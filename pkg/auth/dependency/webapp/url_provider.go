@@ -99,7 +99,7 @@ func (p *URLProvider) convertLoginHint(uri **url.URL, q map[string]string, login
 		switch action {
 		case anonymous.RequestActionPromote:
 			state := NewState()
-			state.AnonymousUserID = userID
+			state.Extra[ExtraUserID] = userID
 			p.States.Set(state)
 			q["x_sid"] = state.ID
 			*uri = p.Endpoints.PromoteUserEndpointURL()
