@@ -10,6 +10,7 @@ import (
 )
 
 type WebAppResult struct {
+	RedirectURI string
 	Interaction *interaction.Interaction
 	Cookies     []*http.Cookie
 }

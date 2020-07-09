@@ -20,6 +20,10 @@ type Responder struct {
 	Interactions  ResponderInteractions
 }
 
+type ErrorRedirect interface {
+	RedirectURI() string
+}
+
 func (r *Responder) Respond(
 	w http.ResponseWriter,
 	req *http.Request,
@@ -28,8 +32,11 @@ func (r *Responder) Respond(
 	err error,
 ) {
 	onError := func() {
-		RedirectToCurrentPath(w, req)
-		return
+		if errorRedirect, ok := err.(ErrorRedirect); ok {
+			http.Redirect(w, req, errorRedirect.RedirectURI(), http.StatusFound)
+		} else {
+			RedirectToCurrentPath(w, req)
+		}
 	}
 
 	if err != nil {
@@ -39,6 +46,11 @@ func (r *Responder) Respond(
 
 	for _, cookie := range result.Cookies {
 		httputil.UpdateCookie(w, cookie)
+	}
+
+	if result.RedirectURI != "" {
+		http.Redirect(w, req, result.RedirectURI, http.StatusFound)
+		return
 	}
 
 	iState, err := r.Interactions.GetInteractionState(result.Interaction)

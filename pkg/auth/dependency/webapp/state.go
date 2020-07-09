@@ -15,6 +15,13 @@ var (
 	stateIDLength   = 32
 )
 
+const (
+	ExtraSSOAction      string = "sso_action"
+	ExtraSSONonce       string = "sso_nonce"
+	ExtraSSORedirectURI string = "sso_redirect_uri"
+	ExtraUserID         string = "user_id"
+)
+
 // State management
 // The webapp adopts the Post/Redirect/Get pattern.
 //
@@ -30,17 +37,27 @@ var (
 type State struct {
 	// ID is a cryptographically random string.
 	ID string `json:"id"`
+
 	// Interaction is the interaction associated with this state.
 	Interaction *interaction.Interaction `json:"interaction"`
+
+	// FIXME(webapp): Clear error correctly.
 	// Error is either reset to nil or set to non-nil in every POST request.
 	Error *skyerr.APIError `json:"error"`
+
+	// FIXME(webapp): Move AnonymousUserID to somewhere else.
 	// AnonymousUserID is the ID of anonymous user during promotion flow.
 	AnonymousUserID string `json:"anonymous_user_id,omitempty"`
+
+	// FIXME(webapp): Unify with Interaction.Extra.
+	// Extra is used to persist extra data across the interaction.
+	Extra map[string]interface{} `json:"extra,omitempty"`
 }
 
 func NewState() *State {
 	return &State{
-		ID: corerand.StringWithAlphabet(stateIDLength, stateIDAlphabet, corerand.SecureRand),
+		ID:    corerand.StringWithAlphabet(stateIDLength, stateIDAlphabet, corerand.SecureRand),
+		Extra: make(map[string]interface{}),
 	}
 }
 

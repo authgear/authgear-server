@@ -1377,12 +1377,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         htmlRendererLogger,
 	}
-	jwtKeyMaterials := deps.ProvideJWTKeyMaterials(secretConfig)
-	stateCodec := &sso.StateCodec{
-		AppID:       appID,
-		Clock:       clockClock,
-		Credentials: jwtKeyMaterials,
-	}
 	endpointsProvider := &endpoints.Provider{
 		Request: request,
 		Config:  serverConfig,
@@ -1575,11 +1569,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
-	oAuthService := &webapp.OAuthService{
-		StateProvider:        stateProviderImpl,
-		SSOStateCodec:        stateCodec,
-		OAuthProviderFactory: oAuthProviderFactory,
-	}
 	sessionConfig := appConfig.Session
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	redisLogger := redis3.NewLogger(factory)
@@ -1619,6 +1608,10 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:          hookProvider,
 		Interactions:   interactionProvider,
 		UserController: userController,
+	}
+	oAuthService := &webapp.OAuthService{
+		OAuthProviderFactory: oAuthProviderFactory,
+		Interactions:         webAppFlow,
 	}
 	responder := &webapp.Responder{
 		ServerConfig:  serverConfig,
@@ -1738,12 +1731,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         htmlRendererLogger,
 	}
-	jwtKeyMaterials := deps.ProvideJWTKeyMaterials(secretConfig)
-	stateCodec := &sso.StateCodec{
-		AppID:       appID,
-		Clock:       clockClock,
-		Credentials: jwtKeyMaterials,
-	}
 	endpointsProvider := &endpoints.Provider{
 		Request: request,
 		Config:  serverConfig,
@@ -1936,10 +1923,348 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	sessionConfig := appConfig.Session
+	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
+	redisLogger := redis3.NewLogger(factory)
+	redisStore := &redis3.Store{
+		Redis:  redisHandle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: redisLogger,
+	}
+	eventStore := &redis2.EventStore{
+		Redis: redisHandle,
+		AppID: appID,
+	}
+	accessEventProvider := &auth.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionRand := _wireRandValue
+	sessionProvider := &session.Provider{
+		Request:      request,
+		Store:        redisStore,
+		AccessEvents: accessEventProvider,
+		ServerConfig: serverConfig,
+		Config:       sessionConfig,
+		Clock:        clockClock,
+		Random:       sessionRand,
+	}
+	userController := &flows.UserController{
+		Users:         userProvider,
+		SessionCookie: cookieDef,
+		Sessions:      sessionProvider,
+		Hooks:         hookProvider,
+	}
+	webAppFlow := &flows.WebAppFlow{
+		Config:         identityConfig,
+		Identities:     providerProvider,
+		Users:          userProvider,
+		Hooks:          hookProvider,
+		Interactions:   interactionProvider,
+		UserController: userController,
+	}
 	oAuthService := &webapp.OAuthService{
-		StateProvider:        stateProviderImpl,
-		SSOStateCodec:        stateCodec,
 		OAuthProviderFactory: oAuthProviderFactory,
+		Interactions:         webAppFlow,
+	}
+	responder := &webapp.Responder{
+		ServerConfig:  serverConfig,
+		StateProvider: stateProviderImpl,
+		Interactions:  interactionProvider,
+	}
+	signupHandler := &webapp2.SignupHandler{
+		Database:                handle,
+		State:                   stateProviderImpl,
+		BaseViewModel:           baseViewModeler,
+		AuthenticationViewModel: authenticationViewModeler,
+		FormPrefiller:           formPrefiller,
+		Renderer:                htmlRenderer,
+		OAuth:                   oAuthService,
+		Interactions:            webAppFlow,
+		Responder:               responder,
+	}
+	return signupHandler
+}
+
+func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	handle := appProvider.Database
+	promoteHandler := &webapp2.PromoteHandler{
+		Database: handle,
+	}
+	return promoteHandler
+}
+
+func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	handle := appProvider.Database
+	redisHandle := appProvider.Redis
+	stateStoreImpl := &webapp.StateStoreImpl{
+		Redis: redisHandle,
+	}
+	factory := appProvider.LoggerFactory
+	stateProviderLogger := webapp.NewStateProviderLogger(factory)
+	stateProviderImpl := &webapp.StateProviderImpl{
+		StateStore: stateStoreImpl,
+		Logger:     stateProviderLogger,
+	}
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	serverConfig := rootProvider.ServerConfig
+	endpointsProvider := &endpoints.Provider{
+		Request: request,
+		Config:  serverConfig,
+	}
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	identityConfig := appConfig.Identity
+	secretConfig := config.SecretConfig
+	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	authenticationConfig := appConfig.Authentication
+	clockClock := _wireSystemClockValue
+	logger := interaction.NewLogger(factory)
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	appID := appConfig.ID
+	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
+	context := deps.ProvideRequestContext(request)
+	sqlExecutor := db.SQLExecutor{
+		Context:  context,
+		Database: handle,
+	}
+	store := &loginid.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginIDConfig := identityConfig.LoginID
+	reservedNameChecker := rootProvider.ReservedNameChecker
+	typeCheckerFactory := &loginid.TypeCheckerFactory{
+		Config:              loginIDConfig,
+		ReservedNameChecker: reservedNameChecker,
+	}
+	checker := &loginid.Checker{
+		Config:             loginIDConfig,
+		TypeCheckerFactory: typeCheckerFactory,
+	}
+	normalizerFactory := &loginid.NormalizerFactory{
+		Config: loginIDConfig,
+	}
+	loginidProvider := &loginid.Provider{
+		Store:             store,
+		Config:            loginIDConfig,
+		Checker:           checker,
+		NormalizerFactory: normalizerFactory,
+	}
+	oauthStore := &oauth3.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	oauthProvider := &oauth3.Provider{
+		Store: oauthStore,
+		Clock: clockClock,
+	}
+	anonymousStore := &anonymous.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	anonymousProvider := &anonymous.Provider{
+		Store: anonymousStore,
+		Clock: clockClock,
+	}
+	providerProvider := &provider.Provider{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		LoginID:        loginidProvider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+	}
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	passwordLogger := password.NewLogger(factory)
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		Logger:          passwordLogger,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	messagingConfig := appConfig.Messaging
+	authenticatorOOBConfig := authenticatorConfig.OOB
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	engine := appProvider.TemplateEngine
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	oobProvider := &oob.Provider{
+		Context:        context,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		Config:         authenticatorOOBConfig,
+		Store:          oobStore,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+		Clock:          clockClock,
+	}
+	bearertokenStore := &bearertoken.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
+	bearertokenProvider := &bearertoken.Provider{
+		Store:  bearertokenStore,
+		Config: authenticatorBearerTokenConfig,
+		Clock:  clockClock,
+	}
+	recoverycodeStore := &recoverycode.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
+	recoverycodeProvider := &recoverycode.Provider{
+		Store:  recoverycodeStore,
+		Config: authenticatorRecoveryCodeConfig,
+		Clock:  clockClock,
+	}
+	provider3 := &provider2.Provider{
+		Password:     passwordProvider,
+		TOTP:         totpProvider,
+		OOBOTP:       oobProvider,
+		BearerToken:  bearertokenProvider,
+		RecoveryCode: recoverycodeProvider,
+	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	welcomemessageProvider := &welcomemessage.Provider{
+		Context:               context,
+		LocalizationConfig:    localizationConfig,
+		MetadataConfiguration: appMetadata,
+		MessagingConfig:       messagingConfig,
+		WelcomeMessageConfig:  welcomeMessageConfig,
+		TemplateEngine:        engine,
+		TaskQueue:             queueQueue,
+	}
+	queries := &user.Queries{
+		Store:      userStore,
+		Identities: providerProvider,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	hookStore := &hook.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	mutatorFactory := &hook.MutatorFactory{
+		Users: rawProvider,
+	}
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:         hookConfig,
+		Secret:         webhookKeyMaterials,
+		Clock:          clockClock,
+		MutatorFactory: mutatorFactory,
+		SyncHTTP:       syncHTTPClient,
+		AsyncHTTP:      asyncHTTPClient,
+	}
+	hookProvider := &hook.Provider{
+		Context:   context,
+		Logger:    hookLogger,
+		Database:  handle,
+		Clock:     clockClock,
+		Users:     rawProvider,
+		Store:     hookStore,
+		Deliverer: deliverer,
+	}
+	commands := &user.Commands{
+		Raw:   rawCommands,
+		Hooks: hookProvider,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
+	interactionProvider := &interaction.Provider{
+		Clock:         clockClock,
+		Logger:        logger,
+		Identity:      providerProvider,
+		Authenticator: provider3,
+		User:          userProvider,
+		OOB:           oobProvider,
+		Hooks:         hookProvider,
+		Config:        authenticationConfig,
+	}
+	challengeProvider := &challenge.Provider{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	anonymousFlow := &flows.AnonymousFlow{
+		Config:       authenticationConfig,
+		Interactions: interactionProvider,
+		Anonymous:    anonymousProvider,
+		Challenges:   challengeProvider,
+	}
+	urlProvider := &webapp.URLProvider{
+		Endpoints: endpointsProvider,
+		Anonymous: anonymousFlow,
+		States:    stateStoreImpl,
+	}
+	userInfoDecoder := sso.UserInfoDecoder{
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	oAuthProviderFactory := &sso.OAuthProviderFactory{
+		Endpoints:                endpointsProvider,
+		IdentityConfig:           identityConfig,
+		Credentials:              oAuthClientCredentials,
+		RedirectURL:              urlProvider,
+		Clock:                    clockClock,
+		UserInfoDecoder:          userInfoDecoder,
+		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	sessionConfig := appConfig.Session
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
@@ -1981,39 +2306,20 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Interactions:   interactionProvider,
 		UserController: userController,
 	}
+	oAuthService := &webapp.OAuthService{
+		OAuthProviderFactory: oAuthProviderFactory,
+		Interactions:         webAppFlow,
+	}
 	responder := &webapp.Responder{
 		ServerConfig:  serverConfig,
 		StateProvider: stateProviderImpl,
 		Interactions:  interactionProvider,
 	}
-	signupHandler := &webapp2.SignupHandler{
-		Database:                handle,
-		State:                   stateProviderImpl,
-		BaseViewModel:           baseViewModeler,
-		AuthenticationViewModel: authenticationViewModeler,
-		FormPrefiller:           formPrefiller,
-		Renderer:                htmlRenderer,
-		OAuth:                   oAuthService,
-		Interactions:            webAppFlow,
-		Responder:               responder,
-	}
-	return signupHandler
-}
-
-func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
-	appProvider := p.AppProvider
-	handle := appProvider.Database
-	promoteHandler := &webapp2.PromoteHandler{
-		Database: handle,
-	}
-	return promoteHandler
-}
-
-func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
-	appProvider := p.AppProvider
-	handle := appProvider.Database
 	ssoCallbackHandler := &webapp2.SSOCallbackHandler{
-		Database: handle,
+		Database:  handle,
+		State:     stateProviderImpl,
+		OAuth:     oAuthService,
+		Responder: responder,
 	}
 	return ssoCallbackHandler
 }

@@ -233,9 +233,22 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" && providerAlias != "" {
 		h.Database.WithTx(func() error {
-			writeResponse, err := h.OAuth.LoginOAuthProvider(w, r, providerAlias)
-			writeResponse(err)
-			return err
+			var state *webapp.State
+			var result *interactionflows.WebAppResult
+			var err error
+
+			defer func() {
+				h.State.UpdateState(state, result, err)
+				h.Responder.Respond(w, r, state, result, err)
+			}()
+			state = h.State.CreateState(r, nil, nil)
+
+			result, err = h.OAuth.LoginOAuthProvider(w, r, providerAlias, state)
+			if err != nil {
+				return err
+			}
+
+			return nil
 		})
 		return
 	}
