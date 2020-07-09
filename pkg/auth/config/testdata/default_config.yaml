@@ -265,12 +265,21 @@ identity:
       - key: email
         type: email
         maximum: 1
+        verification:
+          enabled: true
+          required: true
       - key: phone
         type: phone
         maximum: 1
+        verification:
+          enabled: true
+          required: true
       - key: username
         type: username
         maximum: 1
+        verification:
+          enabled: false
+          required: false
   oauth: {}
   on_conflict:
     promotion: error
@@ -302,4 +311,3 @@ welcome_message:
   destination: first
 verification:
   criteria: any
-  login_id_keys: [email, phone]

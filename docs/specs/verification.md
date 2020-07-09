@@ -33,17 +33,36 @@ verification:
 Developer can configure verification requirement for specific login ID keys.
 The specified login ID keys must have type `email` or `phone`.
 
-When a login ID identity with specified login ID key is created (e.g. during
-sign up), the user is required to verify the login ID using a one-time-
-password sent to the login ID before proceeding. A matching OOB-OTP
+When a login ID identity with a login ID key requiring verification is created
+(e.g. during sign up), the user is required to verify the login ID using a
+one-time-password sent to the login ID before proceeding. A matching OOB-OTP
 authenticator would be created in the verification process.
+
+If a login ID key has optional verification requirement, user does not need to
+verify it when creating identity. Instead, user can choose to verify it in
+settings page after creation.
 
 By default, user must verify login ID key 'email' and 'phone'.
 
 ```yaml
-# Require verification for login ID key 'email' and 'phone'
-verification:
-    login_id_keys: [email, phone]
+# Require verification for login ID key 'email'
+identity:
+  login_id:
+    keys:
+    - key: email
+      type: email
+      verification:       # Default value if not specified; verification is required
+        enabled: true
+        required: true
+    - key: phone
+      type: phone
+      verification:       # verification is optional, can be performed in settings page
+        enabled: true
+        required: false
+    - key: username
+      type: username
+      verification:
+        enabled: false    # verification is disabled
 ```
 
 ## Code & Message

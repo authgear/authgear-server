@@ -131,27 +131,15 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 			EmitErrorMessage("default country calling code is unlisted")
 	}
 
-	for i, loginIDKey := range c.Verification.LoginIDKeys {
-		var config *LoginIDKeyConfig
-		for _, c := range c.Identity.LoginID.Keys {
-			if c.Key == loginIDKey {
-				cc := c
-				config = &cc
-				break
-			}
-		}
-
-		if config == nil {
-			ctx.Child("verification", "login_id_keys", strconv.Itoa(i)).
-				EmitErrorMessage("login ID key is not allowed")
-		} else {
-			loginIDType, _ := config.Type.MetadataKey()
-			switch loginIDType {
-			case metadata.Email, metadata.Phone:
-				break
-			default:
-				ctx.Child("verification", "login_id_keys", strconv.Itoa(i)).
-					EmitErrorMessage("login ID type is not supported")
+	for i, loginIDKey := range c.Identity.LoginID.Keys {
+		loginIDType, _ := loginIDKey.Type.MetadataKey()
+		switch loginIDType {
+		case metadata.Email, metadata.Phone:
+			break
+		default:
+			if *loginIDKey.Verification.Enabled {
+				ctx.Child("identity", "login_id", "keys", strconv.Itoa(i)).
+					EmitErrorMessage("verification for this login ID type is not supported")
 			}
 		}
 	}
