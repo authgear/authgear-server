@@ -29,21 +29,17 @@ user_verification_message.html
 user_verification_message.txt
 ```
 
-### Template Key
-
-Some template may require a key. The key is used differentiate different instances of the same type of the template. For example, the verification message template of email message should be different from that of SMS message.
-
 ### Template Language Tag
 
 Each template may optionally have a language tag. The language tag is specified in [BCP47](https://tools.ietf.org/html/bcp47).
 
 ## Template Resolution
 
-To resolve a template, the input is the template type, optionally the template key and finally the user preferred languages. The type and key is determined by the feature while the user preferred languages is provided by the user.
+To resolve a template, the input is the template type and user preferred languages. The type is determined by the feature while the user preferred languages is provided by the user.
 
 All templates have default value so template resolution always succeed.
 
-The templates are first resolved by matching the type and the key, and then select the best language according to the user preferred languages.
+The templates are first resolved by matching the type, and then select the best language according to the user preferred languages.
 
 ## Component Templates
 
