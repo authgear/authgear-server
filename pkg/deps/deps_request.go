@@ -75,7 +75,6 @@ var requestDeps = wire.NewSet(
 	// wire.Bind(new(handlerwebapp.SSOProvider), new(*webapp.AuthenticateProviderImpl)),
 	// wire.Bind(new(handlerwebapp.EnterLoginIDProvider), new(*webapp.AuthenticateProviderImpl)),
 	// wire.Bind(new(handlerwebapp.OOBOTPProvider), new(*webapp.AuthenticateProviderImpl)),
-	// wire.Bind(new(handlerwebapp.ResetPasswordSuccessProvider), new(*webapp.ForgotPasswordProvider)),
 	// wire.Bind(new(handlerwebapp.SettingsIdentityProvider), new(*webapp.AuthenticateProviderImpl)),
 
 	wire.Bind(new(handlerwebapp.IdentityProvider), new(*identityprovider.Provider)),

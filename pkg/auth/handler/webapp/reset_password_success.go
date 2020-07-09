@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/db"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
 )
@@ -34,9 +34,8 @@ var TemplateAuthUIResetPasswordSuccessHTML = template.Spec{
 
 {{ template "ERROR" . }}
 
-<!-- FIXME: x_login_id -->
-
-<div class="description primary-txt">{{ localize "reset-password-success-description" .x_login_id }}</div>
+<!-- FIXME(webapp): x_login_id -->
+<div class="description primary-txt">{{ localize "reset-password-success-description" "FIXME" }}</div>
 
 </div>
 {{ template "auth_ui_footer.html" . }}
@@ -54,7 +53,9 @@ func ConfigureResetPasswordSuccessRoute(route httproute.Route) httproute.Route {
 }
 
 type ResetPasswordSuccessHandler struct {
-	Database *db.Handle
+	State         webapp.StateProvider
+	BaseViewModel *BaseViewModeler
+	Renderer      Renderer
 }
 
 func (h *ResetPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -63,13 +64,20 @@ func (h *ResetPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	h.Database.WithTx(func() error {
-		// FIXME(webapp): reset_password_success
-		// if r.Method == "GET" {
-		// 	writeResponse, err := h.Provider.GetResetPasswordSuccess(w, r)
-		// 	writeResponse(err)
-		// 	return err
-		// }
-		return nil
-	})
+	if r.Method == "GET" {
+		state, err := h.State.RestoreState(r, false)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
+
+		data := map[string]interface{}{}
+
+		Embed(data, baseViewModel)
+
+		h.Renderer.Render(w, r, TemplateItemTypeAuthUIResetPasswordSuccessHTML, data)
+		return
+	}
 }
