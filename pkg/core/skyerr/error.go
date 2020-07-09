@@ -102,8 +102,11 @@ func IsAPIError(err error) bool {
 func AsAPIError(err error) *APIError {
 	if err == nil {
 		return nil
-	} else if err, ok := err.(*APIError); ok {
-		return err
+	}
+
+	var apiError *APIError
+	if errors.As(err, &apiError) {
+		return apiError
 	}
 
 	var e *skyerr
