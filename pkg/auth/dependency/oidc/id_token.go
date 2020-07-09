@@ -36,6 +36,7 @@ const (
 	IDTokenClaimAMR             = "amr"
 	IDTokenClaimACR             = "acr"
 	IDTokenClaimUserIsAnonymous = "https://authgear.com/user/is_anonymous"
+	IDTokenClaimUserIsVerified  = "https://authgear.com/user/is_verified"
 	IDTokenClaimUserMetadata    = "https://authgear.com/user/metadata"
 )
 
@@ -85,6 +86,7 @@ func (ti *IDTokenIssuer) LoadUserClaims(session auth.AuthSession) (jwt.Token, er
 	claims.Set(jwt.IssuerKey, ti.Endpoints.BaseURL().String())
 	claims.Set(jwt.SubjectKey, session.AuthnAttrs().UserID)
 	claims.Set(IDTokenClaimUserIsAnonymous, user.IsAnonymous)
+	claims.Set(IDTokenClaimUserIsVerified, user.IsVerified)
 
 	if !allowProfile {
 		return claims, nil
