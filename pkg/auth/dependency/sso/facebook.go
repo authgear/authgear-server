@@ -22,22 +22,22 @@ func (f *FacebookImpl) Type() config.OAuthSSOProviderType {
 	return config.OAuthSSOProviderTypeFacebook
 }
 
-func (f *FacebookImpl) GetAuthURL(state State, encodedState string) (string, error) {
+func (f *FacebookImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	p := authURLParams{
-		redirectURI:  f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
-		clientID:     f.ProviderConfig.ClientID,
-		scope:        f.ProviderConfig.Type.Scope(),
-		encodedState: encodedState,
-		baseURL:      facebookAuthorizationURL,
+		redirectURI: f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
+		clientID:    f.ProviderConfig.ClientID,
+		scope:       f.ProviderConfig.Type.Scope(),
+		state:       param.State,
+		baseURL:     facebookAuthorizationURL,
 	}
 	return authURL(p)
 }
 
-func (f *FacebookImpl) GetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
-	return f.NonOpenIDConnectGetAuthInfo(r, state)
+func (f *FacebookImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
+	return f.NonOpenIDConnectGetAuthInfo(r, param)
 }
 
-func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
+func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _ GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
 		redirectURL:     f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
 		providerConfig:  f.ProviderConfig,
@@ -46,7 +46,7 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 		userProfileURL:  facebookUserInfoURL,
 		userInfoDecoder: f.UserInfoDecoder,
 	}
-	return h.getAuthInfo(r, state)
+	return h.getAuthInfo(r)
 }
 
 var (

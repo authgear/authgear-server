@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jws"
@@ -16,11 +17,19 @@ import (
 	"github.com/authgear/authgear-server/pkg/jwtutil"
 )
 
+type jwtClock struct {
+	Clock clock.Clock
+}
+
+func (c jwtClock) Now() time.Time {
+	return c.Clock.NowUTC()
+}
+
 type OIDCAuthParams struct {
 	ProviderConfig config.OAuthSSOProviderConfig
 	RedirectURI    string
 	Nonce          string
-	EncodedState   string
+	State          string
 	ExtraParams    map[string]string
 }
 
@@ -60,7 +69,7 @@ func (d *OIDCDiscoveryDocument) MakeOAuthURL(params OIDCAuthParams) string {
 	for key, value := range params.ExtraParams {
 		v.Add(key, value)
 	}
-	v.Add("state", params.EncodedState)
+	v.Add("state", params.State)
 
 	return d.AuthorizationEndpoint + "?" + v.Encode()
 }
