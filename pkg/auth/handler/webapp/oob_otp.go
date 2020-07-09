@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -34,39 +35,42 @@ var TemplateAuthUIOOBOTPHTML = template.Spec{
 	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
 </div>
 
-<!-- FIXME: x_login_id_input_type, x_calling_code, x_national_number, x_login_id -->
-
+<!-- FIXME(webapp): x_login_id_input_type, x_calling_code, x_national_number, x_login_id -->
+{{ if .x_login_id_input_type }}
 {{ if eq .x_login_id_input_type "phone" }}
 <div class="title primary-txt">{{ localize "oob-otp-page-title--sms" }}</div>
 {{ end }}
 {{ if not (eq .x_login_id_input_type "phone") }}
 <div class="title primary-txt">{{ localize "oob-otp-page-title--email" }}</div>
 {{ end }}
+{{ end }}
 
 {{ template "ERROR" . }}
 
+{{ if .x_login_id_input_type }}
 {{ if eq .x_login_id_input_type "phone" }}
 <!-- FIXME: x_calling_code x_national_number -->
-<div class="description primary-txt">{{ localize "oob-otp-description--sms" .x_oob_otp_code_length "FIXME" "FIXME" }}</div>
+<div class="description primary-txt">{{ localize "oob-otp-description--sms" $.OOBOTPCodeLength "FIXME" "FIXME" }}</div>
 {{ end }}
 {{ if not (eq .x_login_id_input_type "phone") }}
 <!-- FIXME: x_login_id -->
-<div class="description primary-txt">{{ localize "oob-otp-description--email" .x_oob_otp_code_length "FIXME" }}</div>
+<div class="description primary-txt">{{ localize "oob-otp-description--email" $.OOBOTPCodeLength "FIXME" }}</div>
+{{ end }}
 {{ end }}
 
 <form class="vertical-form form-fields-container" method="post" novalidate>
-{{ $.csrfField }}
+{{ $.CSRFField }}
 
 <input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_password" placeholder="{{ localize "oob-otp-placeholder" }}">
 <button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
 </form>
 
 <form class="link oob-otp-trigger-form" method="post" novalidate>
-{{ $.csrfField }}
+{{ $.CSRFField }}
 
 <span class="primary-txt">{{ localize "oob-otp-resend-button-hint" }}</span>
 <button id="resend-button" class="anchor" type="submit" name="trigger" value="true"
-	data-cooldown="{{ .x_oob_otp_code_send_cooldown }}"
+	data-cooldown="{{ $.OOBOTPCodeSendCooldown }}"
 	data-label="{{ localize "oob-otp-resend-button-label" }}"
 	data-label-unit="{{ localize "oob-otp-resend-button-label--unit" }}">{{ localize "oob-otp-resend-button-label" }}</button>
 </form>
@@ -99,7 +103,10 @@ func NewOOBOTPViewModel() OOBOTPViewModel {
 }
 
 type OOBOTPHandler struct {
-	Database *db.Handle
+	Database      *db.Handle
+	State         webapp.StateProvider
+	BaseViewModel *BaseViewModeler
+	Renderer      Renderer
 }
 
 func (h *OOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -108,27 +115,39 @@ func (h *OOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.Database.WithTx(func() error {
-		// FIXME(webapp): oob_otp
-		// if r.Method == "GET" {
-		// 	writeResponse, err := h.Provider.GetOOBOTPForm(w, r)
-		// 	writeResponse(err)
-		// 	return err
-		// }
+	if r.Method == "GET" {
+		state, err := h.State.RestoreState(r, true)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-		// if r.Method == "POST" {
-		// 	if r.Form.Get("trigger") == "true" {
-		// 		r.Form.Del("trigger")
-		// 		writeResponse, err := h.Provider.TriggerOOBOTP(w, r)
-		// 		writeResponse(err)
-		// 		return err
-		// 	}
+		baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
+		oobOTPViewModel := NewOOBOTPViewModel()
 
-		// 	writeResponse, err := h.Provider.EnterSecret(w, r)
-		// 	writeResponse(err)
-		// 	return err
-		// }
+		data := map[string]interface{}{}
+		Embed(data, baseViewModel)
+		Embed(data, oobOTPViewModel)
 
-		return nil
-	})
+		h.Renderer.Render(w, r, TemplateItemTypeAuthUIOOBOTPHTML, data)
+		return
+	}
+
+	// FIXME(webapp): oob_otp
+	// h.Database.WithTx(func() error {
+	// 	// if r.Method == "POST" {
+	// 	// 	if r.Form.Get("trigger") == "true" {
+	// 	// 		r.Form.Del("trigger")
+	// 	// 		writeResponse, err := h.Provider.TriggerOOBOTP(w, r)
+	// 	// 		writeResponse(err)
+	// 	// 		return err
+	// 	// 	}
+
+	// 	// 	writeResponse, err := h.Provider.EnterSecret(w, r)
+	// 	// 	writeResponse(err)
+	// 	// 	return err
+	// 	// }
+
+	// 	return nil
+	// })
 }
