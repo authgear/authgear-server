@@ -17,8 +17,8 @@ An identity is verified if:
 Developer can configure the criteria used to determine verification status
 of a user. There are two possible criteria:
 
-- `any`: User has a verifiable identity and one of user's verifiable identities is verified.
-- `all`: User has a verifiable identity and all of user's verifiable identities are verified.
+- `any`: User has at least one verifiable identity and at least one verified verifiable identity.
+- `all`: User has at least one verifiable identity and all the verifiable identities are verified.
 
 By default, criteria `any` is used.
 
