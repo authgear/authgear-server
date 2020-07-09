@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oidc"
 	oidchandler "github.com/authgear/authgear-server/pkg/auth/dependency/oidc/handler"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/sso"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/verification"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	handlerinternal "github.com/authgear/authgear-server/pkg/auth/handler/internalserver"
 	handleroauth "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
@@ -47,6 +48,7 @@ var requestDeps = wire.NewSet(
 
 	handlerinternal.DependencySet,
 	wire.Bind(new(handlerinternal.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
+	wire.Bind(new(handlerinternal.VerificationService), new(*verification.Service)),
 
 	handleroauth.DependencySet,
 	wire.Bind(new(handleroauth.ProtocolAuthorizeHandler), new(*oauthhandler.AuthorizationHandler)),

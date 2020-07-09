@@ -47,3 +47,41 @@ func (mr *MockAnonymousIdentityProviderMockRecorder) List(userID interface{}) *g
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockAnonymousIdentityProvider)(nil).List), userID)
 }
+
+// MockVerificationService is a mock of VerificationService interface
+type MockVerificationService struct {
+	ctrl     *gomock.Controller
+	recorder *MockVerificationServiceMockRecorder
+}
+
+// MockVerificationServiceMockRecorder is the mock recorder for MockVerificationService
+type MockVerificationServiceMockRecorder struct {
+	mock *MockVerificationService
+}
+
+// NewMockVerificationService creates a new mock instance
+func NewMockVerificationService(ctrl *gomock.Controller) *MockVerificationService {
+	mock := &MockVerificationService{ctrl: ctrl}
+	mock.recorder = &MockVerificationServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockVerificationService) EXPECT() *MockVerificationServiceMockRecorder {
+	return m.recorder
+}
+
+// IsUserVerified mocks base method
+func (m *MockVerificationService) IsUserVerified(userID string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsUserVerified", userID)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsUserVerified indicates an expected call of IsUserVerified
+func (mr *MockVerificationServiceMockRecorder) IsUserVerified(userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsUserVerified", reflect.TypeOf((*MockVerificationService)(nil).IsUserVerified), userID)
+}

@@ -22,6 +22,10 @@ type AnonymousIdentityProvider interface {
 	List(userID string) ([]*anonymous.Identity, error)
 }
 
+type VerificationService interface {
+	IsUserVerified(userID string) (bool, error)
+}
+
 type ResolveHandlerLogger struct{ *log.Logger }
 
 func NewResolveHandlerLogger(lf *log.Factory) ResolveHandlerLogger {
@@ -29,8 +33,9 @@ func NewResolveHandlerLogger(lf *log.Factory) ResolveHandlerLogger {
 }
 
 type ResolveHandler struct {
-	Anonymous AnonymousIdentityProvider
-	Logger    ResolveHandlerLogger
+	Anonymous    AnonymousIdentityProvider
+	Verification VerificationService
+	Logger       ResolveHandlerLogger
 }
 
 func (h *ResolveHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
@@ -55,7 +60,14 @@ func (h *ResolveHandler) resolve(r *http.Request) (*authn.Info, error) {
 		if err != nil {
 			return nil, err
 		}
-		info = authn.NewAuthnInfo(session.AuthnAttrs(), user, len(anonIdentities) > 0)
+		isAnonymous := len(anonIdentities) > 0
+
+		isVerified, err := h.Verification.IsUserVerified(user.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		info = authn.NewAuthnInfo(session.AuthnAttrs(), user, isAnonymous, isVerified)
 	} else if !valid {
 		info = &authn.Info{IsValid: false}
 	}
