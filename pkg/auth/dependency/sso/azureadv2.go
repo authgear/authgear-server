@@ -67,7 +67,7 @@ func (f *Azureadv2Impl) Type() config.OAuthSSOProviderType {
 	return config.OAuthSSOProviderTypeAzureADv2
 }
 
-func (f *Azureadv2Impl) GetAuthURL(state State, encodedState string) (string, error) {
+func (f *Azureadv2Impl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {
 		return "", err
@@ -75,16 +75,16 @@ func (f *Azureadv2Impl) GetAuthURL(state State, encodedState string) (string, er
 	return c.MakeOAuthURL(OIDCAuthParams{
 		ProviderConfig: f.ProviderConfig,
 		RedirectURI:    f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
-		Nonce:          state.HashedNonce,
-		EncodedState:   encodedState,
+		Nonce:          param.Nonce,
+		State:          param.State,
 	}), nil
 }
 
-func (f *Azureadv2Impl) GetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
-	return f.OpenIDConnectGetAuthInfo(r, state)
+func (f *Azureadv2Impl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
+	return f.OpenIDConnectGetAuthInfo(r, param)
 }
 
-func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
+func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {
 		err = NewSSOFailed(NetworkFailed, "failed to get OIDC discovery document")
@@ -106,7 +106,7 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, s
 		f.ProviderConfig.ClientID,
 		f.Credentials.ClientSecret,
 		f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
-		state.HashedNonce,
+		param.Nonce,
 		&tokenResp,
 	)
 	if err != nil {

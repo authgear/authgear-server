@@ -7,11 +7,20 @@ import (
 	"github.com/authgear/authgear-server/pkg/clock"
 )
 
+type GetAuthURLParam struct {
+	Nonce string
+	State string
+}
+
+type GetAuthInfoParam struct {
+	Nonce string
+}
+
 // OAuthProvider is OAuth 2.0 based provider.
 type OAuthProvider interface {
 	Type() config.OAuthSSOProviderType
-	GetAuthURL(state State, encodedState string) (url string, err error)
-	GetAuthInfo(r OAuthAuthorizationResponse, state State) (AuthInfo, error)
+	GetAuthURL(param GetAuthURLParam) (url string, err error)
+	GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (AuthInfo, error)
 }
 
 // NonOpenIDConnectProvider are OAuth 2.0 provider that does not
@@ -20,7 +29,7 @@ type OAuthProvider interface {
 // "facebook"
 // "linkedin"
 type NonOpenIDConnectProvider interface {
-	NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error)
+	NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error)
 }
 
 // OpenIDConnectProvider are OpenID Connect provider.
@@ -29,7 +38,7 @@ type NonOpenIDConnectProvider interface {
 // "apple"
 // "azureadv2"
 type OpenIDConnectProvider interface {
-	OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error)
+	OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error)
 }
 
 type EndpointsProvider interface {

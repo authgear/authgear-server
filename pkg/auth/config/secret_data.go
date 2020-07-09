@@ -301,16 +301,6 @@ var _ = SecretConfigSchema.Add("JWS", `
 }
 `)
 
-var _ = SecretConfigSchema.Add("JWTKeyMaterials", `{ "$ref": "#/$defs/JWS" }`)
-
-type JWTKeyMaterials struct {
-	jwk.Set `json:",inline"`
-}
-
-func (c *JWTKeyMaterials) SensitiveStrings() []string {
-	return nil
-}
-
 var _ = SecretConfigSchema.Add("OIDCKeyMaterials", `{ "$ref": "#/$defs/JWS" }`)
 
 type OIDCKeyMaterials struct {

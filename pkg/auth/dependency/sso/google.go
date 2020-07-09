@@ -20,7 +20,7 @@ type GoogleImpl struct {
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
 }
 
-func (f *GoogleImpl) GetAuthURL(state State, encodedState string) (string, error) {
+func (f *GoogleImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	d, err := FetchOIDCDiscoveryDocument(http.DefaultClient, googleOIDCDiscoveryDocumentURL)
 	if err != nil {
 		return "", err
@@ -28,8 +28,8 @@ func (f *GoogleImpl) GetAuthURL(state State, encodedState string) (string, error
 	return d.MakeOAuthURL(OIDCAuthParams{
 		ProviderConfig: f.ProviderConfig,
 		RedirectURI:    f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
-		Nonce:          state.HashedNonce,
-		EncodedState:   encodedState,
+		Nonce:          param.Nonce,
+		State:          param.State,
 		ExtraParams: map[string]string{
 			"prompt": "select_account",
 		},
@@ -40,11 +40,11 @@ func (f *GoogleImpl) Type() config.OAuthSSOProviderType {
 	return config.OAuthSSOProviderTypeGoogle
 }
 
-func (f *GoogleImpl) GetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
-	return f.OpenIDConnectGetAuthInfo(r, state)
+func (f *GoogleImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
+	return f.OpenIDConnectGetAuthInfo(r, param)
 }
 
-func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
+func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	d, err := FetchOIDCDiscoveryDocument(http.DefaultClient, googleOIDCDiscoveryDocumentURL)
 	if err != nil {
 		err = NewSSOFailed(NetworkFailed, "failed to get OIDC discovery document")
@@ -66,7 +66,7 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, stat
 		f.ProviderConfig.ClientID,
 		f.Credentials.ClientSecret,
 		f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
-		state.HashedNonce,
+		param.Nonce,
 		&tokenResp,
 	)
 	if err != nil {

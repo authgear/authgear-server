@@ -41,7 +41,7 @@ type getAuthInfoRequest struct {
 	userInfoDecoder UserInfoDecoder
 }
 
-func (h getAuthInfoRequest) getAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
+func (h getAuthInfoRequest) getAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
 	// compare nonce
 	authInfo = AuthInfo{
 		ProviderConfig: h.providerConfig,
