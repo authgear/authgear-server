@@ -59,10 +59,10 @@ var TemplateAuthUIResetPasswordHTML = template.Spec{
 `,
 }
 
-const ResetPasswordRequest = "ResetPasswordRequest"
+const ResetPasswordRequestSchema = "ResetPasswordRequestSchema"
 
 var ResetPasswordSchema = validation.NewMultipartSchema("").
-	Add(ResetPasswordRequest, `
+	Add(ResetPasswordRequestSchema, `
 		{
 			"type": "object",
 			"properties": {
@@ -79,12 +79,17 @@ func ConfigureResetPasswordRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/reset_password")
 }
 
+type ResetPasswordInteractions interface {
+	ResetPassword(code string, newPassword string) error
+}
+
 type ResetPasswordHandler struct {
 	Database                *db.Handle
 	State                   webapp.StateProvider
 	BaseViewModel           *BaseViewModeler
 	PasswordPolicyViewModel *PasswordPolicyViewModeler
 	Renderer                Renderer
+	ResetPassword           ResetPasswordInteractions
 }
 
 func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -121,13 +126,41 @@ func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// FIXME(webapp): reset_password
-	// h.Database.WithTx(func() error {
-	// 	// if r.Method == "POST" {
-	// 	// 	writeResponse, err := h.Provider.PostResetPasswordForm(w, r)
-	// 	// 	writeResponse(err)
-	// 	// 	return err
-	// 	// }
-	// 	return nil
-	// })
+	if r.Method == "POST" {
+		h.Database.WithTx(func() error {
+			var state *webapp.State
+			var err error
+
+			defer func() {
+				h.State.UpdateState(state, nil, err)
+				if err != nil {
+					webapp.RedirectToCurrentPath(w, r)
+				} else {
+					// Remove code from URL
+					u := r.URL
+					q := u.Query()
+					q.Del("code")
+					u.RawQuery = q.Encode()
+					r.URL = u
+					webapp.RedirectToPathWithX(w, r, "/reset_password/success")
+				}
+			}()
+			state = h.State.CreateState(r, nil, nil)
+
+			err = ResetPasswordSchema.PartValidator(ResetPasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
+			if err != nil {
+				return err
+			}
+
+			code := r.Form.Get("code")
+			newPassword := r.Form.Get("x_password")
+
+			err = h.ResetPassword.ResetPassword(code, newPassword)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
+	}
 }
