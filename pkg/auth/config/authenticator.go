@@ -90,6 +90,20 @@ func (c *AuthenticatorTOTPConfig) SetDefaults() {
 	}
 }
 
+var _ = Schema.Add("OTPFormat", `
+{
+	"type": "string",
+	"enum": ["numeric", "complex"]
+}
+`)
+
+type OTPFormat string
+
+const (
+	OTPFormatNumeric OTPFormat = "numeric"
+	OTPFormatComplex OTPFormat = "complex"
+)
+
 var _ = Schema.Add("AuthenticatorOOBConfig", `
 {
 	"type": "object",
@@ -112,19 +126,24 @@ var _ = Schema.Add("AuthenticatorOOBSMSConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"maximum": { "type": "integer" },
-		"message": { "$ref": "#/$defs/SMSMessageConfig" }
+		"message": { "$ref": "#/$defs/SMSMessageConfig" },
+		"code_format": { "$ref": "#/$defs/OTPFormat" }
 	}
 }
 `)
 
 type AuthenticatorOOBSMSConfig struct {
-	Maximum *int             `json:"maximum,omitempty"`
-	Message SMSMessageConfig `json:"message,omitempty"`
+	Maximum    *int             `json:"maximum,omitempty"`
+	Message    SMSMessageConfig `json:"message,omitempty"`
+	CodeFormat OTPFormat        `json:"code_format,omitempty"`
 }
 
 func (c *AuthenticatorOOBSMSConfig) SetDefaults() {
 	if c.Maximum == nil {
 		c.Maximum = newInt(99)
+	}
+	if c.CodeFormat == "" {
+		c.CodeFormat = OTPFormatNumeric
 	}
 }
 
@@ -134,14 +153,16 @@ var _ = Schema.Add("AuthenticatorOOBEmailConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"maximum": { "type": "integer" },
-		"message": { "$ref": "#/$defs/EmailMessageConfig" }
+		"message": { "$ref": "#/$defs/EmailMessageConfig" },
+		"code_format": { "$ref": "#/$defs/OTPFormat" }
 	}
 }
 `)
 
 type AuthenticatorOOBEmailConfig struct {
-	Maximum *int               `json:"maximum,omitempty"`
-	Message EmailMessageConfig `json:"message,omitempty"`
+	Maximum    *int               `json:"maximum,omitempty"`
+	Message    EmailMessageConfig `json:"message,omitempty"`
+	CodeFormat OTPFormat          `json:"code_format,omitempty"`
 }
 
 func (c *AuthenticatorOOBEmailConfig) SetDefaults() {
@@ -150,6 +171,9 @@ func (c *AuthenticatorOOBEmailConfig) SetDefaults() {
 	}
 	if c.Message["subject"] == "" {
 		c.Message["subject"] = "Email Verification Instruction"
+	}
+	if c.CodeFormat == "" {
+		c.CodeFormat = OTPFormatComplex
 	}
 }
 

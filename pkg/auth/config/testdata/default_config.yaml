@@ -292,10 +292,12 @@ authenticator:
     sms:
       maximum: 99
       message: {}
+      code_format: numeric
     email:
       maximum: 99
       message:
         subject: Email Verification Instruction
+      code_format: complex
   bearer_token:
     expire_in_days: 30
   recovery_code:

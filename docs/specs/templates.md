@@ -4,7 +4,6 @@ Authgear serves web pages and send email and SMS messages. Templates allow the d
 
   * [Template](#template)
     * [Template Type](#template-type)
-    * [Template Key](#template-key)
     * [Template Language Tag](#template-language-tag)
   * [Template Resolution](#template-resolution)
   * [Component Templates](#component-templates)
@@ -12,6 +11,8 @@ Authgear serves web pages and send email and SMS messages. Templates allow the d
   * [localize](#localize)
   * [Translation file](#translation-file)
     * [Translation Resolution](#translation-resolution)
+  * [Available templates](#available-templates)
+    * [otp_message](#otp_message)
 
 ## Template
 
@@ -105,3 +106,27 @@ For example,
 And the user preferred languages is `["zh-Hant-HK"]`.
 
 `"enter.password"` resolves to `"入你嘅密碼"` and `"enter.email"` resolves to `"輸入電郵地址"`.
+
+## Available templates
+
+> TODO: WIP need update
+
+### `otp_message`
+
+One-time-password message. Used for authentication and user verification.
+
+- Template types:
+    - `otp_message_email.txt`
+    - `otp_message_email.html`
+    - `otp_message_sms.txt`
+- Context:
+    - `AppName`: the display name of the app.
+    - `Email`: The recipient email of the message; empty if not sending an email message.
+    - `Phone`: The recipient phone number of the message; empty if not sending an SMS message.
+    - `LoginID`: The login ID of the identity
+        - `LoginID.Key`: Login ID key
+        - `LoginID.Value`: Login ID
+    - `Code`: The one-time-password.
+    - `Host`: Host of authgear, usually used for [Web OTP](https://web.dev/web-otp/) API.
+    - `Origin`: The origin page of the OTP message, can be `signup`/`login`/`settings`.
+    - `Operation`: The operation triggering the OTP message, can be `primary_auth`/`secondary_auth`/`verify`.

@@ -1,5 +1,13 @@
 # User Verification
 
+  * [Definitions](#definitions)
+  * [Criteria](#criteria)
+  * [Requirement](#requirement)
+  * [Interaction with OOB-OTP authentication](#interaction-with-oob-otp-authentication)
+  * [Code &amp; Message](#code--message)
+  * [Status Flag](#status-flag)
+  * [Future enhancement](#future-enhancement)
+
 ## Definitions
 
 A user is verified if the user fulfill the condition specified by criteria.
@@ -82,8 +90,7 @@ authentication unless it is enabled in the configuration.
 
 ## Code & Message
 
-The verification code & message can be configured using OOB-OTP authenticator
-configuration.
+The OTP format and message is same as specified by [OOB-OTP authenticator](./user-model.md#oob-otp-authenticator).
 
 ## Status Flag
 
