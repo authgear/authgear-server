@@ -45,10 +45,6 @@ type State struct {
 	// Error is either reset to nil or set to non-nil in every POST request.
 	Error *skyerr.APIError `json:"error"`
 
-	// FIXME(webapp): Move AnonymousUserID to somewhere else.
-	// AnonymousUserID is the ID of anonymous user during promotion flow.
-	AnonymousUserID string `json:"anonymous_user_id,omitempty"`
-
 	// FIXME(webapp): Unify with Interaction.Extra.
 	// Extra is used to persist extra data across the interaction.
 	Extra map[string]interface{} `json:"extra,omitempty"`
