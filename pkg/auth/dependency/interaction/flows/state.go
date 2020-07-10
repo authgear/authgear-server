@@ -36,6 +36,9 @@ const (
 	ExtraSSONonce       string = "sso_nonce"
 	ExtraSSORedirectURI string = "sso_redirect_uri"
 	ExtraUserID         string = "user_id"
+
+	// ExtraGivenLoginID indicates the given login ID by the user. It is a string.
+	ExtraGivenLoginID string = "https://authgear.com/claims/given_login_id"
 )
 
 func NewState() *State {

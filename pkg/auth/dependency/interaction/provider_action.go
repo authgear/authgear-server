@@ -296,6 +296,7 @@ func (p *Provider) doTriggerOOB(i *Interaction, action *ActionTriggerOOBAuthenti
 	i.State[authenticator.AuthenticatorStateOOBOTPCode] = code
 	i.State[authenticator.AuthenticatorStateOOBOTPGenerateTime] = generateTimeStr
 	i.State[authenticator.AuthenticatorStateOOBOTPTriggerTime] = nowStr
+	i.State[authenticator.AuthenticatorPropOOBOTPChannelType] = opts.Channel
 
 	return
 }

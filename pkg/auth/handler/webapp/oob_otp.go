@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
 	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/authgear/authgear-server/pkg/db"
@@ -36,27 +37,19 @@ var TemplateAuthUIOOBOTPHTML = template.Spec{
 	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
 </div>
 
-<!-- FIXME(webapp): x_login_id_input_type, x_calling_code, x_national_number, x_login_id -->
-{{ if .x_login_id_input_type }}
-{{ if eq .x_login_id_input_type "phone" }}
+{{ if $.OOBOTPChannel }}
+{{ if eq $.OOBOTPChannel "sms" }}
 <div class="title primary-txt">{{ localize "oob-otp-page-title--sms" }}</div>
 {{ end }}
-{{ if not (eq .x_login_id_input_type "phone") }}
+{{ if eq $.OOBOTPChannel "email" }}
 <div class="title primary-txt">{{ localize "oob-otp-page-title--email" }}</div>
 {{ end }}
 {{ end }}
 
 {{ template "ERROR" . }}
 
-{{ if .x_login_id_input_type }}
-{{ if eq .x_login_id_input_type "phone" }}
-<!-- FIXME: x_calling_code x_national_number -->
-<div class="description primary-txt">{{ localize "oob-otp-description--sms" $.OOBOTPCodeLength "FIXME" "FIXME" }}</div>
-{{ end }}
-{{ if not (eq .x_login_id_input_type "phone") }}
-<!-- FIXME: x_login_id -->
-<div class="description primary-txt">{{ localize "oob-otp-description--email" $.OOBOTPCodeLength "FIXME" }}</div>
-{{ end }}
+{{ if $.GivenLoginID }}
+<div class="description primary-txt">{{ localize "oob-otp-description" $.OOBOTPCodeLength $.GivenLoginID }}</div>
 {{ end }}
 
 <form class="vertical-form form-fields-container" method="post" novalidate>
@@ -107,12 +100,17 @@ func ConfigureOOBOTPRoute(route httproute.Route) httproute.Route {
 type OOBOTPViewModel struct {
 	OOBOTPCodeSendCooldown int
 	OOBOTPCodeLength       int
+	OOBOTPChannel          string
+	GivenLoginID           string
 }
 
-func NewOOBOTPViewModel() OOBOTPViewModel {
+func NewOOBOTPViewModel(state *interactionflows.State) OOBOTPViewModel {
+	givenLoginID, _ := state.Extra[interactionflows.ExtraGivenLoginID].(string)
 	return OOBOTPViewModel{
 		OOBOTPCodeSendCooldown: oob.OOBCodeSendCooldownSeconds,
 		OOBOTPCodeLength:       oob.OOBCodeLength,
+		OOBOTPChannel:          state.Interaction.State[authenticator.AuthenticatorPropOOBOTPChannelType],
+		GivenLoginID:           givenLoginID,
 	}
 }
 
@@ -144,7 +142,7 @@ func (h *OOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-		oobOTPViewModel := NewOOBOTPViewModel()
+		oobOTPViewModel := NewOOBOTPViewModel(state)
 
 		data := map[string]interface{}{}
 		Embed(data, baseViewModel)
