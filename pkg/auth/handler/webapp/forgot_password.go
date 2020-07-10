@@ -213,6 +213,8 @@ func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				return err
 			}
 
+			state.Extra[interactionflows.ExtraGivenLoginID] = loginID
+
 			return nil
 		})
 	}

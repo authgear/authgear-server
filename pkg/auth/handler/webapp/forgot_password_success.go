@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
 )
@@ -33,8 +34,7 @@ var TemplateAuthUIForgotPasswordSuccessHTML = template.Spec{
 
 {{ template "ERROR" . }}
 
-<!-- FIXME(webapp): x_login_id -->
-<div class="description primary-txt">{{ localize "forgot-password-success-description" "FIXME" }}</div>
+<div class="description primary-txt">{{ localize "forgot-password-success-description" $.GivenLoginID }}</div>
 
 <a class="btn primary-btn align-self-flex-end" href="{{ call .MakeURLWithPathWithoutX "/login" }}">{{ localize "login-button-label--forgot-password-success-page" }}</a>
 
@@ -51,6 +51,17 @@ func ConfigureForgotPasswordSuccessRoute(route httproute.Route) httproute.Route 
 	return route.
 		WithMethods("OPTIONS", "GET").
 		WithPathPattern("/forgot_password/success")
+}
+
+type ForgotPasswordSuccessViewModel struct {
+	GivenLoginID string
+}
+
+func NewForgotPasswordSuccessViewModel(state *interactionflows.State) ForgotPasswordSuccessViewModel {
+	givenLoginID, _ := state.Extra[interactionflows.ExtraGivenLoginID].(string)
+	return ForgotPasswordSuccessViewModel{
+		GivenLoginID: givenLoginID,
+	}
 }
 
 type ForgotPasswordSuccessHandler struct {
@@ -73,10 +84,12 @@ func (h *ForgotPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		}
 
 		baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
+		forgotPasswordSuccessViewModel := NewForgotPasswordSuccessViewModel(state)
 
 		data := map[string]interface{}{}
 
 		Embed(data, baseViewModel)
+		Embed(data, forgotPasswordSuccessViewModel)
 
 		h.Renderer.Render(w, r, TemplateItemTypeAuthUIForgotPasswordSuccessHTML, data)
 		return

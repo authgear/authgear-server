@@ -33,8 +33,7 @@ var TemplateAuthUIResetPasswordSuccessHTML = template.Spec{
 
 {{ template "ERROR" . }}
 
-<!-- FIXME(webapp): x_login_id -->
-<div class="description primary-txt">{{ localize "reset-password-success-description" "FIXME" }}</div>
+<div class="description primary-txt">{{ localize "reset-password-success-description" }}</div>
 
 </div>
 {{ template "auth_ui_footer.html" . }}
