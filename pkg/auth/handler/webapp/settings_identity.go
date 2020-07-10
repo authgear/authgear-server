@@ -1,9 +1,11 @@
 package webapp
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -33,7 +35,7 @@ var TemplateAuthUISettingsIdentityHTML = template.Spec{
 
   {{ template "ERROR" . }}
 
-  {{ range .x_identity_candidates }}
+  {{ range .IdentityCandidates }}
   <div class="identity">
     <div class="icon {{ .type }} {{ .provider_type }} {{ .login_id_type }}"></div>
     <div class="identity-info flex-child-no-overflow">
@@ -86,8 +88,8 @@ var TemplateAuthUISettingsIdentityHTML = template.Spec{
 
     {{ if eq .type "oauth" }}
       <form method="post" novalidate>
-      {{ $.csrfField }}
-      <input type="hidden" name="x_idp_id" value="{{ .provider_alias }}">
+      {{ $.CSRFField }}
+      <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
       {{ if .provider_subject_id }}
       <button class="btn destructive-btn" type="submit" name="x_action" value="unlink">{{ localize "disconnect-button-label" }}</button>
       {{ else }}
@@ -98,7 +100,7 @@ var TemplateAuthUISettingsIdentityHTML = template.Spec{
 
     {{ if eq .type "login_id" }}
       <form method="post" novalidate>
-      {{ $.csrfField }}
+      {{ $.CSRFField }}
       <input type="hidden" name="x_login_id_key" value="{{ .login_id_key }}">
       <input type="hidden" name="x_login_id_type" value="{{ .login_id_type }}">
       {{ if eq .login_id_type "phone" }}
@@ -149,7 +151,11 @@ func ConfigureSettingsIdentityRoute(route httproute.Route) httproute.Route {
 }
 
 type SettingsIdentityHandler struct {
-	Database *db.Handle
+	Database                *db.Handle
+	State                   StateService
+	BaseViewModel           *BaseViewModeler
+	AuthenticationViewModel *AuthenticationViewModeler
+	Renderer                Renderer
 }
 
 func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -158,32 +164,54 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	h.Database.WithTx(func() error {
-		// FIXME(webapp): settings_identity
-		// if r.Method == "GET" {
-		// 	writeResponse, err := h.Provider.GetSettingsIdentity(w, r)
-		// 	writeResponse(err)
-		// 	return err
-		// }
+	if r.Method == "GET" {
+		state, err := h.State.RestoreState(r, true)
+		if errors.Is(err, interactionflows.ErrStateNotFound) {
+			err = nil
+		}
 
-		// if r.Method == "POST" {
-		// 	if r.Form.Get("x_action") == "link" {
-		// 		writeResponse, err := h.Provider.LinkIdentityProvider(w, r, r.Form.Get("x_idp_id"))
-		// 		writeResponse(err)
-		// 		return err
-		// 	}
-		// 	if r.Form.Get("x_action") == "unlink" {
-		// 		writeResponse, err := h.Provider.UnlinkIdentityProvider(w, r, r.Form.Get("x_idp_id"))
-		// 		writeResponse(err)
-		// 		return err
-		// 	}
-		// 	if r.Form.Get("x_action") == "login_id" {
-		// 		writeResponse, err := h.Provider.AddOrChangeLoginID(w, r)
-		// 		writeResponse(err)
-		// 		return err
-		// 	}
-		// }
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-		return nil
-	})
+		var anyError interface{}
+		if state != nil {
+			anyError = state.Error
+		}
+
+		baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+		authenticationViewModel := h.AuthenticationViewModel.ViewModel(r)
+
+		data := map[string]interface{}{}
+
+		Embed(data, baseViewModel)
+		Embed(data, authenticationViewModel)
+
+		h.Renderer.Render(w, r, TemplateItemTypeAuthUISettingsIdentityHTML, data)
+		return
+	}
+
+	// FIXME(webapp): settings_identity
+	//h.Database.WithTx(func() error {
+	// if r.Method == "POST" {
+	// 	if r.Form.Get("x_action") == "link" {
+	// 		writeResponse, err := h.Provider.LinkIdentityProvider(w, r, r.Form.Get("x_idp_id"))
+	// 		writeResponse(err)
+	// 		return err
+	// 	}
+	// 	if r.Form.Get("x_action") == "unlink" {
+	// 		writeResponse, err := h.Provider.UnlinkIdentityProvider(w, r, r.Form.Get("x_idp_id"))
+	// 		writeResponse(err)
+	// 		return err
+	// 	}
+	// 	if r.Form.Get("x_action") == "login_id" {
+	// 		writeResponse, err := h.Provider.AddOrChangeLoginID(w, r)
+	// 		writeResponse(err)
+	// 		return err
+	// 	}
+	// }
+	//
+	//			return nil
+	//		})
 }
