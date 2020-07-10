@@ -237,7 +237,7 @@ func (p *Provider) ResetPassword(codeStr string, newPassword string) (err error)
 	userID := code.UserID
 	err = p.Interactions.ResetPassword(userID, newPassword)
 	if err != nil {
-		return err
+		return
 	}
 
 	user, err := p.Users.Get(userID)
@@ -273,5 +273,5 @@ func (p *Provider) ResetPassword(codeStr string, newPassword string) (err error)
 		},
 	})
 
-	return nil
+	return
 }
