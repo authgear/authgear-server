@@ -310,6 +310,8 @@ func (f *WebAppFlow) UpdateLoginID(state *State, userID string, oldLoginID login
 		return nil, err
 	}
 
+	state.Extra[ExtraGivenLoginID] = newLoginID.Value
+
 	return f.afterAddUpdateRemoveLoginID(state)
 }
 
