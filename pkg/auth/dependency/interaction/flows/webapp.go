@@ -10,6 +10,7 @@ import (
 
 type WebAppFlow struct {
 	Config         *config.IdentityConfig
+	SSOOAuthConfig *config.OAuthSSOConfig
 	Identities     IdentityProvider
 	Users          UserProvider
 	Hooks          HookProvider

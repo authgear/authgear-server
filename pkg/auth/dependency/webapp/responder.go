@@ -2,6 +2,7 @@ package webapp
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
@@ -89,7 +90,18 @@ func (r *Responder) Respond(
 		panic("TODO: support StepAuthenticateSecondary")
 	case interaction.StepCommit:
 		r.States.DeleteState(state)
-		RedirectToRedirectURI(w, req, r.ServerConfig.TrustProxy)
+
+		redirectURI, _ := state.Extra[interactionflows.ExtraRedirectURI].(string)
+		// Because we just deleted the state, we have to remove x_sid from redirectURI if it is present.
+		u, err := url.Parse(redirectURI)
+		if err == nil {
+			q := u.Query()
+			q.Del("x_sid")
+			u.RawQuery = q.Encode()
+			redirectURI = u.String()
+		}
+
+		http.Redirect(w, req, redirectURI, http.StatusFound)
 	default:
 		panic("webapp: unexpected step")
 	}

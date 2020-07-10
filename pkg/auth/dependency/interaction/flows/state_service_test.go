@@ -7,6 +7,7 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/log"
 )
 
@@ -17,6 +18,9 @@ func TestStateService(t *testing.T) {
 
 		store := NewMockStateStore(ctrl)
 		p := StateService{
+			ServerConfig: &config.ServerConfig{
+				TrustProxy: true,
+			},
 			StateStore: store,
 			Logger:     StateServiceLogger{log.Null},
 		}

@@ -3,7 +3,9 @@ package flows
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/httputil"
 	"github.com/authgear/authgear-server/pkg/log"
 )
 
@@ -22,14 +24,25 @@ func NewStateServiceLogger(lf *log.Factory) StateServiceLogger {
 }
 
 type StateService struct {
-	StateStore StateStore
-	Logger     StateServiceLogger
+	ServerConfig *config.ServerConfig
+	StateStore   StateStore
+	Logger       StateServiceLogger
 }
 
 func (p *StateService) CreateState(r *http.Request, result *WebAppResult, inputError error) *State {
 	s := NewState()
 
 	r.Form.Set("x_sid", s.ID)
+	q := r.URL.Query()
+	q.Set("x_sid", s.ID)
+	r.URL.RawQuery = q.Encode()
+
+	if redirectURI, err := httputil.GetRedirectURI(r, p.ServerConfig.TrustProxy); err == nil {
+		s.Extra[ExtraRedirectURI] = redirectURI
+	} else {
+		s.Extra[ExtraRedirectURI] = r.URL.String()
+	}
+
 	s.SetError(inputError)
 	if inputError != nil && !skyerr.IsAPIError(inputError) {
 		p.Logger.WithError(inputError).Error("unexpected error occurred")
@@ -39,10 +52,6 @@ func (p *StateService) CreateState(r *http.Request, result *WebAppResult, inputE
 	if err != nil {
 		panic(err)
 	}
-
-	q := r.URL.Query()
-	q.Set("x_sid", s.ID)
-	r.URL.RawQuery = q.Encode()
 
 	return s
 }
