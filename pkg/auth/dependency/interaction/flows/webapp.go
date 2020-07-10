@@ -40,6 +40,8 @@ func (f *WebAppFlow) LoginWithLoginID(state *State, loginID string) (*WebAppResu
 		return nil, err
 	}
 
+	state.Extra[ExtraGivenLoginID] = loginID
+
 	return &WebAppResult{}, nil
 }
 
@@ -62,6 +64,8 @@ func (f *WebAppFlow) SignupWithLoginID(state *State, loginIDKey, loginID string)
 	if err != nil {
 		return nil, err
 	}
+
+	state.Extra[ExtraGivenLoginID] = loginID
 
 	return &WebAppResult{}, nil
 }
@@ -259,6 +263,8 @@ func (f *WebAppFlow) AddLoginID(state *State, userID string, loginID loginid.Log
 	if err != nil {
 		return
 	}
+
+	state.Extra[ExtraGivenLoginID] = loginID.Value
 
 	return f.afterAddUpdateRemoveLoginID(state)
 }

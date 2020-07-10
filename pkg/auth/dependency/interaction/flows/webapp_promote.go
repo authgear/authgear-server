@@ -60,6 +60,8 @@ func (f *WebAppFlow) PromoteWithLoginID(state *State, loginIDKey, loginID string
 	}
 
 	state.Extra[WebAppExtraStateAnonymousUserPromotion] = userID
+	state.Extra[ExtraGivenLoginID] = loginID
+
 	return &WebAppResult{}, nil
 }
 
