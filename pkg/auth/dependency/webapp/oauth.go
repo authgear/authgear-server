@@ -53,7 +53,13 @@ func (e *OAuthRedirectError) Unwrap() error {
 	return e.err
 }
 
-func (s *OAuthService) LoginOAuthProvider(w http.ResponseWriter, r *http.Request, providerAlias string, state *interactionflows.State) (result *interactionflows.WebAppResult, err error) {
+func (s *OAuthService) handleOAuth(
+	r *http.Request,
+	providerAlias string,
+	action string,
+	userID string,
+	state *interactionflows.State,
+) (result *interactionflows.WebAppResult, err error) {
 	var authURI string
 
 	oauthProvider := s.OAuthProviderFactory.NewOAuthProvider(providerAlias)
@@ -80,9 +86,9 @@ func (s *OAuthService) LoginOAuthProvider(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	state.Extra[interactionflows.ExtraSSOAction] = "login"
+	state.Extra[interactionflows.ExtraSSOAction] = action
+	state.Extra[interactionflows.ExtraUserID] = userID
 	state.Extra[interactionflows.ExtraSSONonce] = nonce
-	state.Extra[interactionflows.ExtraSSORedirectURI] = r.URL.String()
 
 	result = &interactionflows.WebAppResult{
 		RedirectURI: authURI,
@@ -90,10 +96,18 @@ func (s *OAuthService) LoginOAuthProvider(w http.ResponseWriter, r *http.Request
 	return
 }
 
+func (s *OAuthService) LoginOAuthProvider(r *http.Request, providerAlias string, state *interactionflows.State) (result *interactionflows.WebAppResult, err error) {
+	return s.handleOAuth(r, providerAlias, "login", "", state)
+}
+
+func (s *OAuthService) LinkOAuthProvider(r *http.Request, providerAlias string, userID string, state *interactionflows.State) (result *interactionflows.WebAppResult, err error) {
+	return s.handleOAuth(r, providerAlias, "link", userID, state)
+}
+
 func (s *OAuthService) HandleSSOCallback(r *http.Request, providerAlias string, state *interactionflows.State, data SSOCallbackData) (result *interactionflows.WebAppResult, err error) {
 	action, _ := state.Extra[interactionflows.ExtraSSOAction].(string)
 	userID, _ := state.Extra[interactionflows.ExtraUserID].(string)
-	redirectURI, _ := state.Extra[interactionflows.ExtraSSORedirectURI].(string)
+	redirectURI, _ := state.Extra[interactionflows.ExtraRedirectURI].(string)
 
 	// Wrap the error so that we can go back where we were.
 	defer func() {

@@ -173,7 +173,7 @@ func ConfigureLoginRoute(route httproute.Route) httproute.Route {
 }
 
 type LoginOAuthService interface {
-	LoginOAuthProvider(w http.ResponseWriter, r *http.Request, providerAlias string, state *interactionflows.State) (*interactionflows.WebAppResult, error)
+	LoginOAuthProvider(r *http.Request, providerAlias string, state *interactionflows.State) (*interactionflows.WebAppResult, error)
 }
 
 type LoginInteractions interface {
@@ -243,7 +243,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}()
 			state = h.State.CreateState(r, nil, nil)
 
-			result, err = h.OAuth.LoginOAuthProvider(w, r, providerAlias, state)
+			result, err = h.OAuth.LoginOAuthProvider(r, providerAlias, state)
 			if err != nil {
 				return err
 			}

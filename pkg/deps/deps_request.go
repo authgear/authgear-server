@@ -71,9 +71,10 @@ var requestDeps = wire.NewSet(
 	wire.Bind(new(handlerwebapp.ResetPasswordInteractions), new(*forgotpassword.Provider)),
 	wire.Bind(new(handlerwebapp.OOBOTPInteractions), new(*interactionflows.WebAppFlow)),
 	wire.Bind(new(handlerwebapp.SSOCallbackOAuthService), new(*webapp.OAuthService)),
+	wire.Bind(new(handlerwebapp.SettingsIdentityOAuthService), new(*webapp.OAuthService)),
+	wire.Bind(new(handlerwebapp.SettingsIdentityInteractions), new(*interactionflows.WebAppFlow)),
 	// wire.Bind(new(handlerwebapp.PromoteProvider), new(*webapp.AuthenticateProviderImpl)),
 	// wire.Bind(new(handlerwebapp.EnterLoginIDProvider), new(*webapp.AuthenticateProviderImpl)),
-	// wire.Bind(new(handlerwebapp.SettingsIdentityProvider), new(*webapp.AuthenticateProviderImpl)),
 
 	wire.Bind(new(handlerwebapp.IdentityProvider), new(*identityprovider.Provider)),
 	wire.Bind(new(handlerwebapp.LogoutSessionManager), new(*auth.SessionManager)),

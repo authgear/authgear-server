@@ -11,3 +11,5 @@ var ErrUnsupportedConfiguration = UnsupportedConfiguration.New(
 var ErrAnonymousDisabled = UnsupportedConfiguration.New(
 	"anonymous user is disabled by configuration",
 )
+
+var ErrOAuthProviderNotFound = skyerr.NotFound.WithReason("OAuthProviderNotFound").New("oauth provider not found")

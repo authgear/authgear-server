@@ -1,7 +1,6 @@
 package webapp
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -18,7 +17,7 @@ const DefaultRedirectURI = "/settings"
 // redirect_uri must have the same origin.
 // Finally a 302 response is written.
 func RedirectToRedirectURI(w http.ResponseWriter, r *http.Request, trustProxy bool) {
-	redirectURI, err := getRedirectURI(r, trustProxy)
+	redirectURI, err := httputil.GetRedirectURI(r, trustProxy)
 	if err != nil {
 		http.Redirect(w, r, DefaultRedirectURI, http.StatusFound)
 	} else {
@@ -40,50 +39,6 @@ func RedirectToCurrentPath(w http.ResponseWriter, r *http.Request) {
 
 func RedirectToPathWithQuery(w http.ResponseWriter, r *http.Request, path string, query url.Values) {
 	http.Redirect(w, r, NewURLWithPathAndQuery(path, query), http.StatusFound)
-}
-
-func getRedirectURI(r *http.Request, trustProxy bool) (out string, err error) {
-	formRedirectURI := r.Form.Get("redirect_uri")
-	queryRedirectURI := r.URL.Query().Get("redirect_uri")
-
-	// Look at form body first
-	if queryRedirectURI == "" && formRedirectURI != "" {
-		out, err = parseRedirectURI(r, formRedirectURI, true, trustProxy)
-		return
-	}
-
-	// Look at query then
-	if queryRedirectURI != "" {
-		out, err = parseRedirectURI(r, queryRedirectURI, false, trustProxy)
-		return
-	}
-
-	err = errors.New("not found")
-	return
-}
-
-func parseRedirectURI(r *http.Request, redirectURL string, allowRecursive bool, trustProxy bool) (out string, err error) {
-	u, err := r.URL.Parse(redirectURL)
-	if err != nil {
-		return
-	}
-
-	recursive := u.Path == r.URL.Path || (u.RawPath != "" && u.RawPath == r.URL.RawPath)
-	sameOrigin := (u.Scheme == "" && u.Host == "") ||
-		(u.Scheme == httputil.GetProto(r, trustProxy) && u.Host == httputil.GetHost(r, trustProxy))
-
-	if !sameOrigin {
-		err = errors.New("not the same origin")
-		return
-	}
-
-	if recursive && !allowRecursive {
-		err = errors.New("recursive")
-		return
-	}
-
-	out = u.String()
-	return
 }
 
 func MakeURLWithPathWithX(i *url.URL, path string) string {

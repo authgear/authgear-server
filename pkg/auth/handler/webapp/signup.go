@@ -242,7 +242,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}()
 			state = h.State.CreateState(r, nil, nil)
 
-			result, err = h.OAuth.LoginOAuthProvider(w, r, providerAlias, state)
+			result, err = h.OAuth.LoginOAuthProvider(r, providerAlias, state)
 			if err != nil {
 				return err
 			}

@@ -3,7 +3,6 @@ package flows
 import (
 	"errors"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/sso"
@@ -117,7 +116,13 @@ func (f *WebAppFlow) LinkWithOAuthProvider(state *State, userID string, oauthAut
 	return
 }
 
-func (f *WebAppFlow) UnlinkWithOAuthProvider(state *State, userID string, providerConfig *config.OAuthSSOProviderConfig) (result *WebAppResult, err error) {
+func (f *WebAppFlow) UnlinkOAuthProvider(state *State, providerAlias string, userID string) (result *WebAppResult, err error) {
+	providerConfig, ok := f.SSOOAuthConfig.GetProviderConfig(providerAlias)
+	if !ok {
+		err = ErrOAuthProviderNotFound
+		return
+	}
+
 	providerID := providerConfig.ProviderID()
 	clientID := ""
 	state.Interaction, err = f.Interactions.NewInteractionRemoveIdentity(&interaction.IntentRemoveIdentity{

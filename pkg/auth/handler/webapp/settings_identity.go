@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
@@ -91,9 +92,9 @@ var TemplateAuthUISettingsIdentityHTML = template.Spec{
       {{ $.CSRFField }}
       <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
       {{ if .provider_subject_id }}
-      <button class="btn destructive-btn" type="submit" name="x_action" value="unlink">{{ localize "disconnect-button-label" }}</button>
+      <button class="btn destructive-btn" type="submit" name="x_action" value="unlink_oauth">{{ localize "disconnect-button-label" }}</button>
       {{ else }}
-      <button class="btn primary-btn" type="submit" name="x_action" value="link" data-form-xhr="false">{{ localize "connect-button-label" }}</button>
+      <button class="btn primary-btn" type="submit" name="x_action" value="link_oauth" data-form-xhr="false">{{ localize "connect-button-label" }}</button>
       {{ end }}
       </form>
     {{ end }}
@@ -150,12 +151,23 @@ func ConfigureSettingsIdentityRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/settings/identity")
 }
 
+type SettingsIdentityOAuthService interface {
+	LinkOAuthProvider(r *http.Request, providerAlias string, userID string, state *interactionflows.State) (*interactionflows.WebAppResult, error)
+}
+
+type SettingsIdentityInteractions interface {
+	UnlinkOAuthProvider(state *interactionflows.State, providerAlias string, userID string) (*interactionflows.WebAppResult, error)
+}
+
 type SettingsIdentityHandler struct {
 	Database                *db.Handle
 	State                   StateService
 	BaseViewModel           *BaseViewModeler
 	AuthenticationViewModel *AuthenticationViewModeler
 	Renderer                Renderer
+	OAuth                   SettingsIdentityOAuthService
+	Interactions            SettingsIdentityInteractions
+	Responder               Responder
 }
 
 func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -192,19 +204,57 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	providerAlias := r.Form.Get("x_provider_alias")
+
+	if r.Method == "POST" && r.Form.Get("x_action") == "link_oauth" {
+		h.Database.WithTx(func() error {
+			state := h.State.CreateState(r, nil, nil)
+			var result *interactionflows.WebAppResult
+			var err error
+
+			defer func() {
+				h.State.UpdateState(state, result, err)
+				h.Responder.Respond(w, r, state, result, err)
+			}()
+
+			sess := auth.GetSession(r.Context())
+			userID := sess.AuthnAttrs().UserID
+
+			result, err = h.OAuth.LinkOAuthProvider(r, providerAlias, userID, state)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
+	}
+
+	if r.Method == "POST" && r.Form.Get("x_action") == "unlink_oauth" {
+		h.Database.WithTx(func() error {
+			state := h.State.CreateState(r, nil, nil)
+			var result *interactionflows.WebAppResult
+			var err error
+
+			defer func() {
+				h.State.UpdateState(state, result, err)
+				h.Responder.Respond(w, r, state, result, err)
+			}()
+
+			sess := auth.GetSession(r.Context())
+			userID := sess.AuthnAttrs().UserID
+
+			result, err = h.Interactions.UnlinkOAuthProvider(state, providerAlias, userID)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
+	}
+
 	// FIXME(webapp): settings_identity
 	//h.Database.WithTx(func() error {
 	// if r.Method == "POST" {
-	// 	if r.Form.Get("x_action") == "link" {
-	// 		writeResponse, err := h.Provider.LinkIdentityProvider(w, r, r.Form.Get("x_idp_id"))
-	// 		writeResponse(err)
-	// 		return err
-	// 	}
-	// 	if r.Form.Get("x_action") == "unlink" {
-	// 		writeResponse, err := h.Provider.UnlinkIdentityProvider(w, r, r.Form.Get("x_idp_id"))
-	// 		writeResponse(err)
-	// 		return err
-	// 	}
 	// 	if r.Form.Get("x_action") == "login_id" {
 	// 		writeResponse, err := h.Provider.AddOrChangeLoginID(w, r)
 	// 		writeResponse(err)
