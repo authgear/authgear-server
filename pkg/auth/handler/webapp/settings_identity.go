@@ -7,10 +7,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
-	"github.com/authgear/authgear-server/pkg/validation"
 )
 
 const (
@@ -131,20 +131,6 @@ var TemplateAuthUISettingsIdentityHTML = template.Spec{
 `,
 }
 
-const AddOrChangeLoginIDRequest = "AddOrChangeLoginIDRequest"
-
-var SettingsIdentitySchema = validation.NewMultipartSchema("").
-	Add(AddOrChangeLoginIDRequest, `
-		{
-			"type": "object",
-			"properties": {
-				"x_login_id_key": { "type": "string" },
-				"x_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] }
-			},
-			"required": ["x_login_id_key", "x_login_id_input_type"]
-		}
-	`).Instantiate()
-
 func ConfigureSettingsIdentityRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
@@ -252,16 +238,18 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		})
 	}
 
-	// FIXME(webapp): settings_identity
-	//h.Database.WithTx(func() error {
-	// if r.Method == "POST" {
-	// 	if r.Form.Get("x_action") == "login_id" {
-	// 		writeResponse, err := h.Provider.AddOrChangeLoginID(w, r)
-	// 		writeResponse(err)
-	// 		return err
-	// 	}
-	// }
-	//
-	//			return nil
-	//		})
+	loginIDKey := r.Form.Get("x_login_id_key")
+	loginIDType := r.Form.Get("x_login_id_type")
+	loginIDInputType := r.Form.Get("x_login_id_input_type")
+	oldLoginIDValue := r.Form.Get("x_old_login_id_value")
+
+	if r.Method == "POST" && r.Form.Get("x_action") == "login_id" {
+		state := h.State.CreateState(r, nil, nil)
+		state.Extra[interactionflows.ExtraLoginIDKey] = loginIDKey
+		state.Extra[interactionflows.ExtraLoginIDType] = loginIDType
+		state.Extra[interactionflows.ExtraLoginIDInputType] = loginIDInputType
+		state.Extra[interactionflows.ExtraOldLoginID] = oldLoginIDValue
+		h.State.UpdateState(state, nil, nil)
+		webapp.RedirectToPathWithX(w, r, "/enter_login_id")
+	}
 }
