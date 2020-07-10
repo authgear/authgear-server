@@ -36,12 +36,7 @@ var TemplateAuthUIEnterPasswordHTML = template.Spec{
 <div class="nav-bar">
 	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
 	<div class="login-id primary-txt">
-	<!-- FIXME(webapp): show login ID -->
-	{{ if .x_national_number }}
-		+{{ .x_calling_code}} {{ .x_national_number }}
-	{{ else }}
-		{{ .x_login_id }}
-	{{ end }}
+	{{ .GivenLoginID }}
 	</div>
 </div>
 
@@ -92,6 +87,17 @@ type EnterPasswordInteractions interface {
 	EnterSecret(state *interactionflows.State, password string) (*interactionflows.WebAppResult, error)
 }
 
+type EnterPasswordViewModel struct {
+	GivenLoginID string
+}
+
+func NewEnterPasswordViewModel(state *interactionflows.State) EnterPasswordViewModel {
+	givenLoginID, _ := state.Extra[interactionflows.ExtraGivenLoginID].(string)
+	return EnterPasswordViewModel{
+		GivenLoginID: givenLoginID,
+	}
+}
+
 type EnterPasswordHandler struct {
 	Database                *db.Handle
 	State                   StateService
@@ -117,11 +123,13 @@ func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 		baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
 		authenticationViewModel := h.AuthenticationViewModel.ViewModel(r)
+		enterPasswordViewModel := NewEnterPasswordViewModel(state)
 
 		data := map[string]interface{}{}
 
 		Embed(data, baseViewModel)
 		Embed(data, authenticationViewModel)
+		Embed(data, enterPasswordViewModel)
 
 		h.Renderer.Render(w, r, TemplateItemTypeAuthUIEnterPasswordHTML, data)
 		return
