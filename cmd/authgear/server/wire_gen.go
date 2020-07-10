@@ -2336,8 +2336,41 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
+	rootProvider := appProvider.RootProvider
+	serverConfig := rootProvider.ServerConfig
+	redisHandle := appProvider.Redis
+	stateStoreRedis := &flows.StateStoreRedis{
+		Redis: redisHandle,
+	}
+	factory := appProvider.LoggerFactory
+	stateServiceLogger := flows.NewStateServiceLogger(factory)
+	stateService := &flows.StateService{
+		ServerConfig: serverConfig,
+		StateStore:   stateStoreRedis,
+		Logger:       stateServiceLogger,
+	}
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	uiConfig := appConfig.UI
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	baseViewModeler := &webapp2.BaseViewModeler{
+		ServerConfig: serverConfig,
+		AuthUI:       uiConfig,
+		Localization: localizationConfig,
+		Metadata:     appMetadata,
+	}
+	engine := appProvider.TemplateEngine
+	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
+	htmlRenderer := &webapp2.HTMLRenderer{
+		TemplateEngine: engine,
+		Logger:         htmlRendererLogger,
+	}
 	enterLoginIDHandler := &webapp2.EnterLoginIDHandler{
-		Database: handle,
+		Database:      handle,
+		State:         stateService,
+		BaseViewModel: baseViewModeler,
+		Renderer:      htmlRenderer,
 	}
 	return enterLoginIDHandler
 }

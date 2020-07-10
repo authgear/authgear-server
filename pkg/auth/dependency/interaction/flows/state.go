@@ -41,6 +41,11 @@ const (
 
 	// ExtraRedirectURI indicates the redirect URI. It is a string.
 	ExtraRedirectURI string = "https://authgear.com/claims/redirect_uri"
+
+	ExtraLoginIDKey       string = "https://authgear.com/claims/login_id_key"
+	ExtraLoginIDType      string = "https://authgear.com/claims/login_id_type"
+	ExtraOldLoginID       string = "https://authgear.com/claims/old_login_id"
+	ExtraLoginIDInputType string = "https://authgear.com/claims/login_id_input_type"
 )
 
 func NewState() *State {

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -34,13 +35,11 @@ var TemplateAuthUIEnterLoginIDHTML = template.Spec{
 	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
 </div>
 
-<!-- FIXME: x_old_login_id_value, x_login_id_key, x_login_id_type, x_login_id_input_type -->
-
 <div class="title primary-txt">
-	{{ if .x_old_login_id_value }}
-	{{ localize "enter-login-id-page-title--change" .x_login_id_key }}
+	{{ if $.OldLoginIDValue }}
+	{{ localize "enter-login-id-page-title--change" $.LoginIDKey }}
 	{{ else }}
-	{{ localize "enter-login-id-page-title--add" .x_login_id_key }}
+	{{ localize "enter-login-id-page-title--add" $.LoginIDKey }}
 	{{ end }}
 </div>
 
@@ -48,16 +47,12 @@ var TemplateAuthUIEnterLoginIDHTML = template.Spec{
 
 <form class="vertical-form form-fields-container" method="post" novalidate>
 
-{{ $.csrfField }}
-<input type="hidden" name="x_login_id_key" value="{{ .x_login_id_key }}">
-<input type="hidden" name="x_login_id_type" value="{{ .x_login_id_type }}">
-<input type="hidden" name="x_login_id_input_type" value="{{ .x_login_id_input_type }}">
-<input type="hidden" name="x_old_login_id_value" value="{{ .x_old_login_id_value }}">
+{{ $.CSRFField }}
 
-{{ if eq .x_login_id_input_type "phone" }}
+{{ if eq .LoginIDInputType "phone" }}
 <div class="phone-input">
 	<select class="input select primary-txt" name="x_calling_code">
-		{{ range .x_calling_codes }}
+		{{ range $.CountryCallingCodes }}
 		<option
 			value="{{ . }}"
 			{{ if $.x_calling_code }}{{ if eq $.x_calling_code . }}
@@ -71,20 +66,16 @@ var TemplateAuthUIEnterLoginIDHTML = template.Spec{
 	<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
 </div>
 {{ else }}
-<input class="input text-input primary-txt" type="{{ .x_login_id_input_type }}" name="x_login_id" placeholder="{{ localize "login-id-placeholder" .x_login_id_type }}">
+<input class="input text-input primary-txt" type="{{ .LoginIDInputType }}" name="x_login_id" placeholder="{{ localize "login-id-placeholder" .LoginIDType }}">
 {{ end }}
 
 <button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
 
 </form>
 
-{{ if .x_old_login_id_value }}
+{{ if .OldLoginIDValue }}
 <form class="enter-login-id-remove-form" method="post" novalidate>
-{{ $.csrfField }}
-<input type="hidden" name="x_login_id_key" value="{{ .x_login_id_key }}">
-<input type="hidden" name="x_login_id_type" value="{{ .x_login_id_type }}">
-<input type="hidden" name="x_login_id_input_type" value="{{ .x_login_id_input_type }}">
-<input type="hidden" name="x_old_login_id_value" value="{{ .x_old_login_id_value }}">
+{{ $.CSRFField }}
 <button class="anchor" type="submit" name="x_action" value="remove">{{ localize "disconnect-button-label" }}</button>
 {{ end }}
 </form>
@@ -96,6 +87,27 @@ var TemplateAuthUIEnterLoginIDHTML = template.Spec{
 </body>
 </html>
 `,
+}
+
+type EnterLoginIDViewModel struct {
+	LoginIDKey       string
+	LoginIDType      string
+	OldLoginIDValue  string
+	LoginIDInputType string
+}
+
+func NewEnterLoginIDViewModel(state *interactionflows.State) EnterLoginIDViewModel {
+	loginIDKey, _ := state.Extra[interactionflows.ExtraLoginIDKey].(string)
+	loginIDType, _ := state.Extra[interactionflows.ExtraLoginIDType].(string)
+	loginIDInputType, _ := state.Extra[interactionflows.ExtraLoginIDInputType].(string)
+	oldLoginIDValue, _ := state.Extra[interactionflows.ExtraOldLoginID].(string)
+
+	return EnterLoginIDViewModel{
+		LoginIDKey:       loginIDKey,
+		LoginIDType:      loginIDType,
+		LoginIDInputType: loginIDInputType,
+		OldLoginIDValue:  oldLoginIDValue,
+	}
 }
 
 const RemoveLoginIDRequest = "RemoveLoginIDRequest"
@@ -119,7 +131,10 @@ func ConfigureEnterLoginIDRoute(route httproute.Route) httproute.Route {
 }
 
 type EnterLoginIDHandler struct {
-	Database *db.Handle
+	Database      *db.Handle
+	State         StateService
+	BaseViewModel *BaseViewModeler
+	Renderer      Renderer
 }
 
 func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -128,26 +143,39 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	h.Database.WithTx(func() error {
-		// FIXME(webapp): enter_login_id
-		// if r.Method == "GET" {
-		// 	writeResponse, err := h.Provider.GetEnterLoginIDForm(w, r)
-		// 	writeResponse(err)
-		// 	return err
-		// }
+	if r.Method == "GET" {
+		state, err := h.State.RestoreState(r, false)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-		// if r.Method == "POST" {
-		// 	if r.Form.Get("x_action") == "remove" {
-		// 		writeResponse, err := h.Provider.RemoveLoginID(w, r)
-		// 		writeResponse(err)
-		// 		return err
-		// 	}
+		baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
+		enterLoginIDViewModel := NewEnterLoginIDViewModel(state)
 
-		// 	writeResponse, err := h.Provider.EnterLoginID(w, r)
-		// 	writeResponse(err)
-		// 	return err
-		// }
+		data := map[string]interface{}{}
 
-		return nil
-	})
+		Embed(data, baseViewModel)
+		Embed(data, enterLoginIDViewModel)
+
+		h.Renderer.Render(w, r, TemplateItemTypeAuthUIEnterLoginIDHTML, data)
+		return
+	}
+
+	// FIXME(webapp): enter_login_id
+	//h.Database.WithTx(func() error {
+	// if r.Method == "POST" {
+	// 	if r.Form.Get("x_action") == "remove" {
+	// 		writeResponse, err := h.Provider.RemoveLoginID(w, r)
+	// 		writeResponse(err)
+	// 		return err
+	// 	}
+
+	// 	writeResponse, err := h.Provider.EnterLoginID(w, r)
+	// 	writeResponse(err)
+	// 	return err
+	// }
+	//
+	//				return nil
+	//			})
 }
