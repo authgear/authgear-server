@@ -36,12 +36,7 @@ var TemplateAuthUICreatePasswordHTML = template.Spec{
 <div class="nav-bar">
 	<button class="btn back-btn" type="button" title="{{ "back-button-title" }}"></button>
 	<div class="login-id primary-txt">
-	<!-- FIXME(webapp): show login ID -->
-	{{ if .x_national_number }}
-		+{{ .x_calling_code}} {{ .x_national_number }}
-	{{ else }}
-		{{ .x_login_id }}
-	{{ end }}
+	{{ .GivenLoginID }}
 	</div>
 </div>
 
@@ -90,6 +85,17 @@ type CreatePasswordInteractions interface {
 	EnterSecret(state *interactionflows.State, password string) (*interactionflows.WebAppResult, error)
 }
 
+type CreatePasswordViewModel struct {
+	GivenLoginID string
+}
+
+func NewCreatePasswordViewModel(state *interactionflows.State) CreatePasswordViewModel {
+	givenLoginID, _ := state.Extra[interactionflows.ExtraGivenLoginID].(string)
+	return CreatePasswordViewModel{
+		GivenLoginID: givenLoginID,
+	}
+}
+
 type CreatePasswordHandler struct {
 	Database                *db.Handle
 	State                   StateService
@@ -115,12 +121,14 @@ func (h *CreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 		baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
 		passwordPolicyViewModel := h.PasswordPolicyViewModel.ViewModel(state.Error)
+		createPasswordViewModel := NewCreatePasswordViewModel(state)
 
 		data := map[string]interface{}{}
 
 		EmbedForm(data, r.Form)
 		Embed(data, baseViewModel)
 		Embed(data, passwordPolicyViewModel)
+		Embed(data, createPasswordViewModel)
 
 		h.Renderer.Render(w, r, TemplateItemTypeAuthUICreatePasswordHTML, data)
 		return
