@@ -48,10 +48,3 @@ func (p *FormPrefiller) Prefill(form url.Values) {
 		form.Set("x_calling_code", p.UI.CountryCallingCode.Default)
 	}
 }
-
-// func (p *ValidateProviderImpl) PrepareValues(form url.Values) {
-// }
-// func (p *ValidateProviderImpl) Validate(partID string, form url.Values) (err error) {
-// 	err = WebAppSchema.PartValidator(partID).ValidateValue(FormToJSON(form))
-// 	return
-// }
