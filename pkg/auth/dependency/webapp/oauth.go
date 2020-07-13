@@ -87,7 +87,7 @@ func (s *OAuthService) handleOAuth(
 	}
 
 	state.Extra[interactionflows.ExtraSSOAction] = action
-	state.Extra[interactionflows.ExtraUserID] = userID
+	state.Extra[interactionflows.ExtraSSOUserID] = userID
 	state.Extra[interactionflows.ExtraSSONonce] = nonce
 
 	result = &interactionflows.WebAppResult{
@@ -104,9 +104,13 @@ func (s *OAuthService) LinkOAuthProvider(r *http.Request, providerAlias string, 
 	return s.handleOAuth(r, providerAlias, "link", userID, state)
 }
 
+func (s *OAuthService) PromoteOAuthProvider(r *http.Request, providerAlias string, userID string, state *interactionflows.State) (result *interactionflows.WebAppResult, err error) {
+	return s.handleOAuth(r, providerAlias, "promote", userID, state)
+}
+
 func (s *OAuthService) HandleSSOCallback(r *http.Request, providerAlias string, state *interactionflows.State, data SSOCallbackData) (result *interactionflows.WebAppResult, err error) {
 	action, _ := state.Extra[interactionflows.ExtraSSOAction].(string)
-	userID, _ := state.Extra[interactionflows.ExtraUserID].(string)
+	userID, _ := state.Extra[interactionflows.ExtraSSOUserID].(string)
 	redirectURI, _ := state.Extra[interactionflows.ExtraRedirectURI].(string)
 
 	// Wrap the error so that we can go back where we were.

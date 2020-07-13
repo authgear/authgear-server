@@ -198,7 +198,7 @@ func (f *WebAppFlow) SetupSecret(state *State, secret string) (*WebAppResult, er
 		// Primary authentication is done using `AuthenticatedAs`
 		return f.afterPrimaryAuthentication(state)
 	case interaction.IntentTypeAddIdentity:
-		if _, ok := state.Extra[WebAppExtraStateAnonymousUserPromotion].(string); ok {
+		if _, ok := state.Extra[ExtraAnonymousUserID].(string); ok {
 			return f.afterAnonymousUserPromotion(state, result)
 		}
 
@@ -369,7 +369,7 @@ func (f *WebAppFlow) afterPrimaryAuthentication(state *State) (*WebAppResult, er
 			return nil, err
 		}
 
-		if _, ok := state.Extra[WebAppExtraStateAnonymousUserPromotion].(string); ok {
+		if _, ok := state.Extra[ExtraAnonymousUserID].(string); ok {
 			return f.afterAnonymousUserPromotion(state, ir)
 		}
 

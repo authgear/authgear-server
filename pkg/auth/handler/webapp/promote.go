@@ -1,7 +1,6 @@
 package webapp
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
@@ -126,6 +125,14 @@ func ConfigurePromoteRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/promote_user")
 }
 
+type PromoteOAuthService interface {
+	PromoteOAuthProvider(r *http.Request, providerAlias string, userID string, state *interactionflows.State) (*interactionflows.WebAppResult, error)
+}
+
+type PromoteInteractions interface {
+	PromoteWithLoginID(state *interactionflows.State, loginIDKey string, loginID string, userID string) (*interactionflows.WebAppResult, error)
+}
+
 type PromoteHandler struct {
 	Database                *db.Handle
 	State                   StateService
@@ -133,6 +140,9 @@ type PromoteHandler struct {
 	AuthenticationViewModel *AuthenticationViewModeler
 	FormPrefiller           *FormPrefiller
 	Renderer                Renderer
+	OAuth                   PromoteOAuthService
+	Interactions            PromoteInteractions
+	Responder               Responder
 }
 
 func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -144,22 +154,13 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.FormPrefiller.Prefill(r.Form)
 
 	if r.Method == "GET" {
-		state, err := h.State.RestoreState(r, true)
-		if errors.Is(err, interactionflows.ErrStateNotFound) {
-			err = nil
-		}
-
+		state, err := h.State.RestoreState(r, false)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		var anyError interface{}
-		if state != nil {
-			anyError = state.Error
-		}
-
-		baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+		baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
 		authenticationViewModel := h.AuthenticationViewModel.ViewModel(r)
 
 		data := map[string]interface{}{}
@@ -172,20 +173,60 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// FIXME(webapp): promote
-	//h.Database.WithTx(func() error {
-	// if r.Method == "POST" {
-	// 	if r.Form.Get("x_idp_id") != "" {
-	// 		writeResponse, err := h.Provider.PromoteIdentityProvider(w, r, r.Form.Get("x_idp_id"))
-	// 		writeResponse(err)
-	// 		return err
-	// 	}
+	providerAlias := r.Form.Get("x_provider_alias")
 
-	// 	writeResponse, err := h.Provider.PromoteLoginID(w, r)
-	// 	writeResponse(err)
-	// 	return err
-	// }
-	//
-	//		return nil
-	//	})
+	if r.Method == "POST" && providerAlias != "" {
+		h.Database.WithTx(func() error {
+			state, err := h.State.RestoreState(r, false)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return err
+			}
+
+			var result *interactionflows.WebAppResult
+			defer func() {
+				h.State.UpdateState(state, result, err)
+				h.Responder.Respond(w, r, state, result, err)
+			}()
+
+			userID, _ := state.Extra[interactionflows.ExtraAnonymousUserID].(string)
+
+			result, err = h.OAuth.PromoteOAuthProvider(r, providerAlias, userID, state)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
+	}
+
+	if r.Method == "POST" {
+		h.Database.WithTx(func() error {
+			state, err := h.State.RestoreState(r, false)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return err
+			}
+
+			var result *interactionflows.WebAppResult
+			defer func() {
+				h.State.UpdateState(state, result, err)
+				h.Responder.Respond(w, r, state, result, err)
+			}()
+
+			userID, _ := state.Extra[interactionflows.ExtraAnonymousUserID].(string)
+			loginID, err := FormToLoginID(r.Form)
+			if err != nil {
+				return err
+			}
+
+			loginIDKey := r.Form.Get("x_login_id_key")
+			result, err = h.Interactions.PromoteWithLoginID(state, loginIDKey, loginID, userID)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
+	}
 }

@@ -11,12 +11,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/core/errors"
 )
 
-const (
-	// WebAppExtraStatePromotion is a extra state indicating the interaction
-	// is for anonymous user promotion. It contains the anonymous user ID
-	WebAppExtraStateAnonymousUserPromotion string = "https://authgear.com/claims/web_app/anonymous_user_promotion"
-)
-
 func (f *WebAppFlow) PromoteWithLoginID(state *State, loginIDKey, loginID string, userID string) (*WebAppResult, error) {
 	var err error
 
@@ -59,7 +53,7 @@ func (f *WebAppFlow) PromoteWithLoginID(state *State, loginIDKey, loginID string
 		return nil, err
 	}
 
-	state.Extra[WebAppExtraStateAnonymousUserPromotion] = userID
+	state.Extra[ExtraAnonymousUserID] = userID
 	state.Extra[ExtraGivenLoginID] = loginID
 
 	return &WebAppResult{}, nil
@@ -109,7 +103,7 @@ func (f *WebAppFlow) PromoteWithOAuthProvider(state *State, userID string, oauth
 		panic("interaction_flow_webapp: unexpected interaction step")
 	}
 
-	state.Extra[WebAppExtraStateAnonymousUserPromotion] = userID
+	state.Extra[ExtraAnonymousUserID] = userID
 
 	result, err := f.Interactions.Commit(state.Interaction)
 	if err != nil {
@@ -121,7 +115,7 @@ func (f *WebAppFlow) PromoteWithOAuthProvider(state *State, userID string, oauth
 
 func (f *WebAppFlow) afterAnonymousUserPromotion(state *State, ir *interaction.Result) (*WebAppResult, error) {
 	var err error
-	anonUserID, _ := state.Extra[WebAppExtraStateAnonymousUserPromotion].(string)
+	anonUserID, _ := state.Extra[ExtraAnonymousUserID].(string)
 
 	anonUser, err := f.Users.Get(anonUserID)
 	if err != nil {

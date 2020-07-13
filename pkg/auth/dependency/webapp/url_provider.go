@@ -57,7 +57,7 @@ func (p *URLProvider) AuthenticateURL(options AuthenticateURLOptions) (*url.URL,
 		q["ui_locales"] = options.UILocales
 	}
 	if options.LoginHint != "" {
-		err := p.convertLoginHint(&authnURI, q, options.LoginHint)
+		err := p.convertLoginHint(&authnURI, q, options)
 		if err != nil {
 			return nil, err
 		}
@@ -83,12 +83,12 @@ func (p *URLProvider) ResetPasswordURL(code string) *url.URL {
 	)
 }
 
-func (p *URLProvider) convertLoginHint(uri **url.URL, q map[string]string, loginHint string) error {
-	if !strings.HasPrefix(loginHint, "https://authgear.com/login_hint?") {
+func (p *URLProvider) convertLoginHint(uri **url.URL, q map[string]string, options AuthenticateURLOptions) error {
+	if !strings.HasPrefix(options.LoginHint, "https://authgear.com/login_hint?") {
 		return nil
 	}
 
-	url, err := url.Parse(loginHint)
+	url, err := url.Parse(options.LoginHint)
 	if err != nil {
 		return err
 	}
@@ -103,8 +103,10 @@ func (p *URLProvider) convertLoginHint(uri **url.URL, q map[string]string, login
 
 		switch action {
 		case anonymous.RequestActionPromote:
+			// FIXME(webapp): Create promote interaction eagerly.
 			state := interactionflows.NewState()
-			state.Extra[interactionflows.ExtraUserID] = userID
+			state.Extra[interactionflows.ExtraAnonymousUserID] = userID
+			state.Extra[interactionflows.ExtraRedirectURI] = options.RedirectURI
 			err = p.States.Set(state)
 			if err != nil {
 				return err

@@ -32,9 +32,10 @@ type State struct {
 }
 
 const (
+	// FIXME(webapp): Remove the following fields when we eagerly create interaction for OAuth.
 	ExtraSSOAction string = "sso_action"
 	ExtraSSONonce  string = "sso_nonce"
-	ExtraUserID    string = "user_id"
+	ExtraSSOUserID string = "sso_user_id"
 
 	// ExtraGivenLoginID indicates the given login ID by the user. It is a string.
 	ExtraGivenLoginID string = "https://authgear.com/claims/given_login_id"
@@ -46,6 +47,9 @@ const (
 	ExtraLoginIDType      string = "https://authgear.com/claims/login_id_type"
 	ExtraOldLoginID       string = "https://authgear.com/claims/old_login_id"
 	ExtraLoginIDInputType string = "https://authgear.com/claims/login_id_input_type"
+
+	// ExtraAnonymousUserID indicates the interaction is for promoting the anonymous user.
+	ExtraAnonymousUserID string = "https://authgear.com/claims/anonymous_user_id"
 )
 
 func NewState() *State {
