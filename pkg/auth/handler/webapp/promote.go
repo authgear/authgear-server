@@ -1,9 +1,11 @@
 package webapp
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -27,11 +29,11 @@ var TemplateAuthUIPromoteHTML = template.Spec{
 		{{ template "auth_ui_header.html" . }}
 		<div class="authorize-form">
 			<div class="authorize-idp-section">
-				{{ range .x_identity_candidates }}
+				{{ range $.IdentityCandidates }}
 				{{ if eq .type "oauth" }}
 				<form class="authorize-idp-form" method="post" novalidate>
-				{{ $.csrfField }}
-				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_idp_id" value="{{ .provider_alias }}" data-form-xhr="false">
+				{{ $.CSRFField }}
+				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_provider_alias" value="{{ .provider_alias }}" data-form-xhr="false">
 					{{- if eq .provider_type "apple" -}}
 					{{ localize "sign-up-apple" }}
 					{{- end -}}
@@ -55,7 +57,7 @@ var TemplateAuthUIPromoteHTML = template.Spec{
 
 			{{ $has_oauth := false }}
 			{{ $has_login_id := false }}
-			{{ range .x_identity_candidates }}
+			{{ range $.IdentityCandidates }}
 				{{ if eq .type "oauth" }}
 				{{ $has_oauth = true }}
 				{{ end }}
@@ -70,15 +72,15 @@ var TemplateAuthUIPromoteHTML = template.Spec{
 			{{ template "ERROR" . }}
 
 			<form class="authorize-loginid-form" method="post" novalidate>
-				{{ $.csrfField }}
+				{{ $.CSRFField }}
 				<input type="hidden" name="x_login_id_key" value="{{ .x_login_id_key }}">
 
-				{{ range .x_identity_candidates }}
+				{{ range $.IdentityCandidates }}
 				{{ if eq .type "login_id" }}{{ if eq .login_id_key $.x_login_id_key }}
 				{{ if eq .login_id_type "phone" }}
 					<div class="phone-input">
 						<select class="input select primary-txt" name="x_calling_code">
-							{{ range $.x_calling_codes }}
+							{{ range $.CountryCallingCodes }}
 							<option
 								value="{{ . }}"
 								{{ if $.x_calling_code }}{{ if eq $.x_calling_code . }}
@@ -97,7 +99,7 @@ var TemplateAuthUIPromoteHTML = template.Spec{
 				{{ end }}{{ end }}
 				{{ end }}
 
-				{{ range .x_identity_candidates }}
+				{{ range $.IdentityCandidates }}
 				{{ if eq .type "login_id" }}{{ if not (eq .login_id_key $.x_login_id_key) }}
 					<a class="link align-self-flex-start"
 						href="{{ call $.MakeURLWithQuery "x_login_id_key" .login_id_key "x_login_id_input_type" .login_id_input_type}}">
@@ -125,7 +127,12 @@ func ConfigurePromoteRoute(route httproute.Route) httproute.Route {
 }
 
 type PromoteHandler struct {
-	Database *db.Handle
+	Database                *db.Handle
+	State                   StateService
+	BaseViewModel           *BaseViewModeler
+	AuthenticationViewModel *AuthenticationViewModeler
+	FormPrefiller           *FormPrefiller
+	Renderer                Renderer
 }
 
 func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -134,26 +141,51 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.Database.WithTx(func() error {
-		// FIXME(webapp): promote
-		// if r.Method == "GET" {
-		// 	writeResponse, err := h.Provider.GetPromoteLoginIDForm(w, r)
-		// 	writeResponse(err)
-		// 	return err
-		// }
+	h.FormPrefiller.Prefill(r.Form)
 
-		// if r.Method == "POST" {
-		// 	if r.Form.Get("x_idp_id") != "" {
-		// 		writeResponse, err := h.Provider.PromoteIdentityProvider(w, r, r.Form.Get("x_idp_id"))
-		// 		writeResponse(err)
-		// 		return err
-		// 	}
+	if r.Method == "GET" {
+		state, err := h.State.RestoreState(r, true)
+		if errors.Is(err, interactionflows.ErrStateNotFound) {
+			err = nil
+		}
 
-		// 	writeResponse, err := h.Provider.PromoteLoginID(w, r)
-		// 	writeResponse(err)
-		// 	return err
-		// }
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-		return nil
-	})
+		var anyError interface{}
+		if state != nil {
+			anyError = state.Error
+		}
+
+		baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+		authenticationViewModel := h.AuthenticationViewModel.ViewModel(r)
+
+		data := map[string]interface{}{}
+
+		EmbedForm(data, r.Form)
+		Embed(data, baseViewModel)
+		Embed(data, authenticationViewModel)
+
+		h.Renderer.Render(w, r, TemplateItemTypeAuthUIPromoteHTML, data)
+		return
+	}
+
+	// FIXME(webapp): promote
+	//h.Database.WithTx(func() error {
+	// if r.Method == "POST" {
+	// 	if r.Form.Get("x_idp_id") != "" {
+	// 		writeResponse, err := h.Provider.PromoteIdentityProvider(w, r, r.Form.Get("x_idp_id"))
+	// 		writeResponse(err)
+	// 		return err
+	// 	}
+
+	// 	writeResponse, err := h.Provider.PromoteLoginID(w, r)
+	// 	writeResponse(err)
+	// 	return err
+	// }
+	//
+	//		return nil
+	//	})
 }
