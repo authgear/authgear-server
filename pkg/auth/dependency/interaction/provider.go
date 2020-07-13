@@ -3,13 +3,13 @@ package interaction
 import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/event"
 	"github.com/authgear/authgear-server/pkg/auth/model"
 	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/log"
+	"github.com/authgear/authgear-server/pkg/otp"
 )
 
 //go:generate mockgen -source=provider.go -destination=provider_mock_test.go -package interaction_test
@@ -72,7 +72,11 @@ type UserProvider interface {
 
 type OOBProvider interface {
 	GenerateCode() string
-	SendCode(opts oob.SendCodeOptions) error
+}
+
+type OTPMessageSender interface {
+	SendEmail(opts otp.SendOptions, message config.EmailMessageConfig) error
+	SendSMS(opts otp.SendOptions, message config.SMSMessageConfig) error
 }
 
 type HookProvider interface {
@@ -86,12 +90,13 @@ func NewLogger(lf *log.Factory) Logger {
 }
 
 type Provider struct {
-	Clock         clock.Clock
-	Logger        Logger
-	Identity      IdentityProvider
-	Authenticator AuthenticatorProvider
-	User          UserProvider
-	OOB           OOBProvider
-	Hooks         HookProvider
-	Config        *config.AuthenticationConfig
+	Clock            clock.Clock
+	Logger           Logger
+	Identity         IdentityProvider
+	Authenticator    AuthenticatorProvider
+	User             UserProvider
+	OOB              OOBProvider
+	OTPMessageSender OTPMessageSender
+	Hooks            HookProvider
+	Config           *config.AuthenticationConfig
 }

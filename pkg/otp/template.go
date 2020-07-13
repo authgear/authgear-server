@@ -2,42 +2,71 @@ package otp
 
 import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/template"
 )
 
+type MessageOrigin string
+
 const (
-	TemplateItemTypeOOBCodeSMSTXT    config.TemplateItemType = "oob_code_sms.txt"
-	TemplateItemTypeOOBCodeEmailTXT  config.TemplateItemType = "oob_code_email.txt"
-	TemplateItemTypeOOBCodeEmailHTML config.TemplateItemType = "oob_code_email.html"
+	MessageOriginSignup   MessageOrigin = "signup"
+	MessageOriginLogin    MessageOrigin = "login"
+	MessageOriginSettings MessageOrigin = "settings"
 )
 
-var TemplateOOBCodeSMSTXT = template.Spec{
-	Type: TemplateItemTypeOOBCodeSMSTXT,
-	Default: `{{ .code }} is your {{ .appname }} verification code.
+type OOBOperationType string
+
+const (
+	OOBOperationTypePrimaryAuth   OOBOperationType = "primary_auth"
+	OOBOperationTypeSecondaryAuth OOBOperationType = "secondary_auth"
+	OOBOperationTypeVerify        OOBOperationType = "verify"
+)
+
+type MessageTemplateContext struct {
+	AppName              string
+	Email                string
+	Phone                string
+	LoginID              *loginid.LoginID
+	Code                 string
+	Host                 string
+	Origin               MessageOrigin
+	Operation            OOBOperationType
+	StaticAssetURLPrefix string
+}
+
+const (
+	TemplateItemTypeOTPMessageSMSTXT    config.TemplateItemType = "otp_message_sms.txt"
+	TemplateItemTypeOTPMessageEmailTXT  config.TemplateItemType = "otp_message_email.txt"
+	TemplateItemTypeOTPMessageEmailHTML config.TemplateItemType = "otp_message_email.html"
+)
+
+var TemplateOTPMessageSMSTXT = template.Spec{
+	Type: TemplateItemTypeOTPMessageSMSTXT,
+	Default: `{{ .Code }} is your {{ .AppName }} verification code.
 
 Please ignore if you didn't sign in or sign up.
 
-@{{ .host }} #{{ .code }}
+@{{ .Host }} #{{ .Code }}
 `,
 }
 
-var TemplateOOBCodeEmailTXT = template.Spec{
-	Type: TemplateItemTypeOOBCodeEmailTXT,
-	Default: `Verify your email on {{ .appname }}
+var TemplateOTPMessageEmailTXT = template.Spec{
+	Type: TemplateItemTypeOTPMessageEmailTXT,
+	Default: `Verify your email on {{ .AppName }}
 
-You have selected {{ .email }} for verification. Please use the following code to complete to the verification.
+You have selected {{ .Email }} for verification. Please use the following code to complete to the verification.
 
-{{ .code }}
+{{ .Code }}
 
 If you didn't sign in or sign up please ignore this email.
 `,
 }
 
-var TemplateOOBCodeEmailHTML = template.Spec{
-	Type:   TemplateItemTypeOOBCodeEmailHTML,
+var TemplateOTPMessageEmailHTML = template.Spec{
+	Type:   TemplateItemTypeOTPMessageEmailHTML,
 	IsHTML: true,
 	Default: `
-<!-- FILE: ./templates/oob_code_email.mjml -->
+<!-- FILE: ./templates/otp_message_email.mjml -->
 <!doctype html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 
@@ -148,12 +177,12 @@ var TemplateOOBCodeEmailHTML = template.Spec{
                 <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
                   <tr>
                     <td align="center" style="font-size:0px;padding:20px;word-break:break-word;">
-                      <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;font-size:24px;font-weight:bold;line-height:1;text-align:center;color:#000000;">Verify your email on {{ .appname }}</div>
+                      <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;font-size:24px;font-weight:bold;line-height:1;text-align:center;color:#000000;">Verify your email on {{ .AppName }}</div>
                     </td>
                   </tr>
                   <tr>
                     <td align="center" style="font-size:0px;padding:20px;word-break:break-word;">
-                      <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;font-size:16px;line-height:1;text-align:center;color:#000000;">You have selected {{ .email }} for verification. Please use the following code to complete the verification.</div>
+                      <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;font-size:16px;line-height:1;text-align:center;color:#000000;">You have selected {{ .Email }} for verification. Please use the following code to complete the verification.</div>
                     </td>
                   </tr>
                 </table>
@@ -199,7 +228,7 @@ var TemplateOOBCodeEmailHTML = template.Spec{
                 <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#f1f4f5;vertical-align:top;" width="100%">
                   <tr>
                     <td align="center" style="font-size:0px;padding:24px 24px 24px 40px;word-break:break-word;">
-                      <div style="font-family:monospace;font-size:36px;font-weight:heavy;letter-spacing:16px;line-height:1;text-align:center;color:#000000;">{{ .code }}</div>
+                      <div style="font-family:monospace;font-size:36px;font-weight:heavy;letter-spacing:16px;line-height:1;text-align:center;color:#000000;">{{ .Code }}</div>
                     </td>
                   </tr>
                 </table>
@@ -254,7 +283,7 @@ var TemplateOOBCodeEmailHTML = template.Spec{
                         <tbody>
                           <tr>
                             <td style="width:65px;">
-                              <img height="15" src="{{ .static_asset_url_prefix }}/authui/image/ic_footer_authgear.png" style="border:0;display:block;outline:none;text-decoration:none;height:15px;width:100%;font-size:13px;" width="65" />
+                              <img height="15" src="{{ .StaticAssetURLPrefix }}/authui/image/ic_footer_authgear.png" style="border:0;display:block;outline:none;text-decoration:none;height:15px;width:100%;font-size:13px;" width="65" />
                             </td>
                           </tr>
                         </tbody>

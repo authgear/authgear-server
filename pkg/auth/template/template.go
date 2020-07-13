@@ -20,9 +20,9 @@ func NewEngineWithConfig(
 	e.Register(welcomemessage.TemplateWelcomeEmailTXT)
 	e.Register(welcomemessage.TemplateWelcomeEmailHTML)
 
-	e.Register(otp.TemplateOOBCodeSMSTXT)
-	e.Register(otp.TemplateOOBCodeEmailTXT)
-	e.Register(otp.TemplateOOBCodeEmailHTML)
+	e.Register(otp.TemplateOTPMessageSMSTXT)
+	e.Register(otp.TemplateOTPMessageEmailTXT)
+	e.Register(otp.TemplateOTPMessageEmailHTML)
 
 	// Auth UI
 	e.Register(webapp.TemplateAuthUITranslationJSON)

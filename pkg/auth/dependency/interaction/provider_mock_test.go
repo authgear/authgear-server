@@ -5,12 +5,13 @@
 package interaction_test
 
 import (
+	config "github.com/authgear/authgear-server/pkg/auth/config"
 	authenticator "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
-	oob "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
 	identity "github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	event "github.com/authgear/authgear-server/pkg/auth/event"
 	model "github.com/authgear/authgear-server/pkg/auth/model"
 	authn "github.com/authgear/authgear-server/pkg/core/authn"
+	otp "github.com/authgear/authgear-server/pkg/otp"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -487,18 +488,55 @@ func (mr *MockOOBProviderMockRecorder) GenerateCode() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateCode", reflect.TypeOf((*MockOOBProvider)(nil).GenerateCode))
 }
 
-// SendCode mocks base method
-func (m *MockOOBProvider) SendCode(opts oob.SendCodeOptions) error {
+// MockOTPMessageSender is a mock of OTPMessageSender interface
+type MockOTPMessageSender struct {
+	ctrl     *gomock.Controller
+	recorder *MockOTPMessageSenderMockRecorder
+}
+
+// MockOTPMessageSenderMockRecorder is the mock recorder for MockOTPMessageSender
+type MockOTPMessageSenderMockRecorder struct {
+	mock *MockOTPMessageSender
+}
+
+// NewMockOTPMessageSender creates a new mock instance
+func NewMockOTPMessageSender(ctrl *gomock.Controller) *MockOTPMessageSender {
+	mock := &MockOTPMessageSender{ctrl: ctrl}
+	mock.recorder = &MockOTPMessageSenderMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockOTPMessageSender) EXPECT() *MockOTPMessageSenderMockRecorder {
+	return m.recorder
+}
+
+// SendEmail mocks base method
+func (m *MockOTPMessageSender) SendEmail(opts otp.SendOptions, message config.EmailMessageConfig) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendCode", opts)
+	ret := m.ctrl.Call(m, "SendEmail", opts, message)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SendCode indicates an expected call of SendCode
-func (mr *MockOOBProviderMockRecorder) SendCode(opts interface{}) *gomock.Call {
+// SendEmail indicates an expected call of SendEmail
+func (mr *MockOTPMessageSenderMockRecorder) SendEmail(opts, message interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendCode", reflect.TypeOf((*MockOOBProvider)(nil).SendCode), opts)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendEmail", reflect.TypeOf((*MockOTPMessageSender)(nil).SendEmail), opts, message)
+}
+
+// SendSMS mocks base method
+func (m *MockOTPMessageSender) SendSMS(opts otp.SendOptions, message config.SMSMessageConfig) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendSMS", opts, message)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendSMS indicates an expected call of SendSMS
+func (mr *MockOTPMessageSenderMockRecorder) SendSMS(opts, message interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendSMS", reflect.TypeOf((*MockOTPMessageSender)(nil).SendSMS), opts, message)
 }
 
 // MockHookProvider is a mock of HookProvider interface

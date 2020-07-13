@@ -36,6 +36,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/core/sentry"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/endpoints"
+	"github.com/authgear/authgear-server/pkg/otp"
 	"github.com/authgear/authgear-server/pkg/task"
 	taskqueue "github.com/authgear/authgear-server/pkg/task/queue"
 )
@@ -182,10 +183,16 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(authenticatoroob.EndpointsProvider), new(*endpoints.Provider)),
 		wire.Bind(new(oidc.EndpointsProvider), new(*endpoints.Provider)),
 		wire.Bind(new(sso.EndpointsProvider), new(*endpoints.Provider)),
+		wire.Bind(new(otp.EndpointsProvider), new(*endpoints.Provider)),
 	),
 
 	wire.NewSet(
 		verification.DependencySet,
 		wire.Bind(new(user.VerificationService), new(*verification.Service)),
+	),
+
+	wire.NewSet(
+		otp.DependencySet,
+		wire.Bind(new(interaction.OTPMessageSender), new(*otp.MessageSender)),
 	),
 )

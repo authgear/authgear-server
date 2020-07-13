@@ -7,7 +7,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
@@ -20,10 +19,6 @@ func (p *mockOOBProvider) GenerateCode() string {
 	code := p.code
 	p.code++
 	return strconv.Itoa(code)
-}
-
-func (p *mockOOBProvider) SendCode(opts oob.SendCodeOptions) error {
-	return nil
 }
 
 func TestDoTriggerOOB(t *testing.T) {

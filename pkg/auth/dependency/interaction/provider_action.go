@@ -260,23 +260,26 @@ func (p *Provider) doTriggerOOB(i *Interaction, action *ActionTriggerOOBAuthenti
 		}
 	}
 
-	opts := oob.SendCodeOptions{
-		Code: code,
-	}
-	if channel, ok := spec.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string); ok {
-		opts.Channel = channel
-	}
-	if email, ok := spec.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string); ok {
-		opts.Email = email
-	}
-	if phone, ok := spec.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string); ok {
-		opts.Phone = phone
-	}
+	// FIXME(otp): send OTP message
+	/*
+		opts := otp.SendOptions{
+			Code: code,
+		}
+		if channel, ok := spec.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string); ok {
+			opts.Channel = channel
+		}
+		if email, ok := spec.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string); ok {
+			opts.Email = email
+		}
+		if phone, ok := spec.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string); ok {
+			opts.Phone = phone
+		}
 
-	err = p.OOB.SendCode(opts)
-	if err != nil {
-		return
-	}
+		err = p.OOB.SendCode(opts)
+		if err != nil {
+			return
+		}
+	*/
 
 	// Perform mutation on interaction at the end.
 
@@ -288,7 +291,7 @@ func (p *Provider) doTriggerOOB(i *Interaction, action *ActionTriggerOOBAuthenti
 	i.State[authenticator.AuthenticatorStateOOBOTPCode] = code
 	i.State[authenticator.AuthenticatorStateOOBOTPGenerateTime] = generateTimeStr
 	i.State[authenticator.AuthenticatorStateOOBOTPTriggerTime] = nowStr
-	i.State[authenticator.AuthenticatorStateOOBOTPChannelType] = opts.Channel
+	// i.State[authenticator.AuthenticatorStateOOBOTPChannelType] = opts.Channel
 
 	return
 }
