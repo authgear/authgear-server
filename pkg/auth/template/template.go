@@ -2,10 +2,10 @@ package template
 
 import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
+	"github.com/authgear/authgear-server/pkg/otp"
 	"github.com/authgear/authgear-server/pkg/template"
 )
 
@@ -20,9 +20,9 @@ func NewEngineWithConfig(
 	e.Register(welcomemessage.TemplateWelcomeEmailTXT)
 	e.Register(welcomemessage.TemplateWelcomeEmailHTML)
 
-	e.Register(oob.TemplateOOBCodeSMSTXT)
-	e.Register(oob.TemplateOOBCodeEmailTXT)
-	e.Register(oob.TemplateOOBCodeEmailHTML)
+	e.Register(otp.TemplateOOBCodeSMSTXT)
+	e.Register(otp.TemplateOOBCodeEmailTXT)
+	e.Register(otp.TemplateOOBCodeEmailHTML)
 
 	// Auth UI
 	e.Register(webapp.TemplateAuthUITranslationJSON)

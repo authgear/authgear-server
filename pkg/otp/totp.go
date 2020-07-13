@@ -1,4 +1,4 @@
-package totp
+package otp
 
 import (
 	"crypto/rand"
@@ -27,8 +27,8 @@ var validateOpts = totp.ValidateOpts{
 	Algorithm: otp.AlgorithmSHA1,
 }
 
-// GenerateSecret generates random TOTP secret encoded in Base32 without Padding.
-func GenerateSecret() (string, error) {
+// GenerateTOTPSecret generates random TOTP secret encoded in Base32 without Padding.
+func GenerateTOTPSecret() (string, error) {
 	// https://tools.ietf.org/html/rfc4226#section-4
 	// The RFC recommends a secret length of 160 bits.
 	// That is 20 bytes.
@@ -42,8 +42,8 @@ func GenerateSecret() (string, error) {
 	return secret, nil
 }
 
-// ValidateCode validates the TOTP code against the secret at the given time t.
-func ValidateCode(secret string, code string, t time.Time) bool {
+// ValidateTOTP validates the TOTP code against the secret at the given time t.
+func ValidateTOTP(secret string, code string, t time.Time) bool {
 	ok, err := totp.ValidateCustom(code, secret, t, validateOpts)
 	if err != nil {
 		return false
@@ -51,7 +51,7 @@ func ValidateCode(secret string, code string, t time.Time) bool {
 	return ok
 }
 
-// GenerateCode generates the TOTP code against the secret at the given time t.
-func GenerateCode(secret string, t time.Time) (string, error) {
+// GenerateTOTP generates the TOTP code against the secret at the given time t.
+func GenerateTOTP(secret string, t time.Time) (string, error) {
 	return totp.GenerateCodeCustom(secret, t, validateOpts)
 }

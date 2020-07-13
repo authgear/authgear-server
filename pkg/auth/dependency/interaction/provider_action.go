@@ -239,7 +239,7 @@ func (p *Provider) doTriggerOOB(i *Interaction, action *ActionTriggerOOBAuthenti
 		}
 
 		// Expire
-		if tt.Add(oob.OOBCodeValidDuration).Before(now) {
+		if tt.Add(oob.OOBOTPValidDuration).Before(now) {
 			code = p.OOB.GenerateCode()
 			generateTimeStr = nowStr
 		}
@@ -254,7 +254,7 @@ func (p *Provider) doTriggerOOB(i *Interaction, action *ActionTriggerOOBAuthenti
 			return
 		}
 
-		if tt.Add(oob.OOBCodeSendCooldownSeconds * time.Second).After(now) {
+		if tt.Add(oob.OOBOTPSendCooldownSeconds * time.Second).After(now) {
 			err = ErrOOBOTPCooldown
 			return
 		}

@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/core/intl"
 	"github.com/authgear/authgear-server/pkg/core/uuid"
 	"github.com/authgear/authgear-server/pkg/mail"
+	"github.com/authgear/authgear-server/pkg/otp"
 	"github.com/authgear/authgear-server/pkg/sms"
 	"github.com/authgear/authgear-server/pkg/task"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -84,7 +85,7 @@ func (p *Provider) Create(a *Authenticator) error {
 }
 
 func (p *Provider) Authenticate(expectedCode string, code string) error {
-	ok := VerifyCode(expectedCode, code)
+	ok := otp.ValidateOOBOTP(expectedCode, code)
 	if !ok {
 		return errors.New("invalid bearer token")
 	}
@@ -92,7 +93,7 @@ func (p *Provider) Authenticate(expectedCode string, code string) error {
 }
 
 func (p *Provider) GenerateCode() string {
-	return GenerateCode()
+	return otp.GenerateOOBOTP()
 }
 
 type SendCodeOptions struct {
@@ -130,7 +131,7 @@ func (p *Provider) SendCode(opts SendCodeOptions) (err error) {
 
 func (p *Provider) SendEmail(email string, data map[string]interface{}) (err error) {
 	textBody, err := p.TemplateEngine.RenderTemplate(
-		TemplateItemTypeOOBCodeEmailTXT,
+		otp.TemplateItemTypeOOBCodeEmailTXT,
 		data,
 		template.ResolveOptions{},
 	)
@@ -139,7 +140,7 @@ func (p *Provider) SendEmail(email string, data map[string]interface{}) (err err
 	}
 
 	htmlBody, err := p.TemplateEngine.RenderTemplate(
-		TemplateItemTypeOOBCodeEmailHTML,
+		otp.TemplateItemTypeOOBCodeEmailHTML,
 		data,
 		template.ResolveOptions{},
 	)
@@ -169,7 +170,7 @@ func (p *Provider) SendEmail(email string, data map[string]interface{}) (err err
 
 func (p *Provider) SendSMS(phone string, data map[string]interface{}) (err error) {
 	body, err := p.TemplateEngine.RenderTemplate(
-		TemplateItemTypeOOBCodeSMSTXT,
+		otp.TemplateItemTypeOOBCodeSMSTXT,
 		data,
 		template.ResolveOptions{},
 	)

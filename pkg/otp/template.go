@@ -1,4 +1,4 @@
-package oob
+package otp
 
 import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
