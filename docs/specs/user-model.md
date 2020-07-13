@@ -236,9 +236,23 @@ To deal with clock skew, the code generated before or after the current time are
 
 Out-of-band One-time-password authenticator is either primary or secondary.
 
-OOB-OTP authenticator is bound to a verified recipient. The recipient can be a verified email address or verified phone number that can receive SMS messages.
+OOB-OTP authenticator is bound to a recipient address. The recipient can be an email address or phone number that can receive SMS messages.
 
-The OTP is 4-digit long.
+The OTP format can be customized in the configuration. The following formats are
+available:
+- `numeric`: 4-digit code
+- `complex`: 8-character alpha-numeric code
+
+```yaml
+authenticator:
+  oob_otp:
+    sms:
+      code_format: numeric      # SMS OTP defaults to 'numeric' format
+    email:
+      code_format: complex      # Email OTP defaults to 'complex' format
+```
+
+The OTP message is rendered by a [customizable template](./templates.md#otp_message).
 
 ### Bearer Token Authenticator
 

@@ -98,3 +98,18 @@ config:
   ui:
     country_calling_code:
       default: xxx
+
+---
+name: unsupported-verification-key-type
+error: |-
+  invalid configuration:
+  /identity/login_id/keys/0: verification for this login ID type is not supported
+config:
+  id: test
+  identity:
+    login_id:
+      keys:
+        - key: username
+          type: username
+          verification:
+            enabled: true
