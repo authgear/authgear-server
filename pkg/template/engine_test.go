@@ -12,16 +12,14 @@ import (
 func TestResolveTemplateItem(t *testing.T) {
 	const typeA config.TemplateItemType = "typeA"
 	const typeB config.TemplateItemType = "typeB"
-	const keyA = "keyA"
-	const keyB = "keyB"
 	specA := Spec{Type: typeA, IsKeyed: true}
 	Convey("resolveTemplateItem", t, func() {
-		test := func(templateItems []config.TemplateItem, tags []string, key string, expected *config.TemplateItem) {
+		test := func(templateItems []config.TemplateItem, tags []string, expected *config.TemplateItem) {
 			e := NewEngine(NewEngineOptions{
 				TemplateItems: templateItems,
 			})
 			e = e.WithPreferredLanguageTags(tags)
-			actual, err := e.resolveTemplateItem(specA, key)
+			actual, err := e.resolveTemplateItem(specA)
 			if expected == nil {
 				So(err, ShouldBeError)
 			} else {
@@ -30,7 +28,7 @@ func TestResolveTemplateItem(t *testing.T) {
 		}
 
 		// No TemplateItems
-		test(nil, nil, "", nil)
+		test(nil, nil, nil)
 
 		// Select type
 		test([]config.TemplateItem{
@@ -40,30 +38,8 @@ func TestResolveTemplateItem(t *testing.T) {
 			config.TemplateItem{
 				Type: typeB,
 			},
-		}, nil, "", &config.TemplateItem{
+		}, nil, &config.TemplateItem{
 			Type:        typeA,
-			LanguageTag: "en",
-		})
-
-		// Select key
-		test([]config.TemplateItem{
-			config.TemplateItem{
-				Type: typeA,
-			},
-			config.TemplateItem{
-				Type: typeB,
-			},
-			config.TemplateItem{
-				Type: typeA,
-				Key:  keyA,
-			},
-			config.TemplateItem{
-				Type: typeA,
-				Key:  keyB,
-			},
-		}, nil, keyA, &config.TemplateItem{
-			Type:        typeA,
-			Key:         keyA,
 			LanguageTag: "en",
 		})
 
@@ -84,7 +60,7 @@ func TestResolveTemplateItem(t *testing.T) {
 				LanguageTag: "zh-Hant-HK",
 				URI:         "Traditional Chinese in Hong Kong",
 			},
-		}, nil, "", &config.TemplateItem{
+		}, nil, &config.TemplateItem{
 			Type:        typeA,
 			URI:         "default",
 			LanguageTag: "en",
@@ -106,7 +82,7 @@ func TestResolveTemplateItem(t *testing.T) {
 				LanguageTag: "zh-Hant-HK",
 				URI:         "Traditional Chinese in Hong Kong",
 			},
-		}, []string{"en-US"}, "", &config.TemplateItem{
+		}, []string{"en-US"}, &config.TemplateItem{
 			Type:        typeA,
 			LanguageTag: "en-US",
 			URI:         "American English",
@@ -119,7 +95,7 @@ func TestResolveTemplateItem(t *testing.T) {
 				LanguageTag: "en-US",
 				URI:         "American English",
 			},
-		}, []string{"zh-Hant-HK"}, "", nil)
+		}, []string{"zh-Hant-HK"}, nil)
 
 		// Select fallback.
 		test([]config.TemplateItem{
@@ -127,7 +103,7 @@ func TestResolveTemplateItem(t *testing.T) {
 				Type: typeA,
 				URI:  "fallback",
 			},
-		}, []string{"zh-Hant-HK"}, "", &config.TemplateItem{
+		}, []string{"zh-Hant-HK"}, &config.TemplateItem{
 			Type:        typeA,
 			URI:         "fallback",
 			LanguageTag: "en",
@@ -272,7 +248,7 @@ func TestResolveComponents(t *testing.T) {
 		}
 		e.loader = &mockLoader{}
 
-		actual, err := e.resolveComponents(spec.Components, "")
+		actual, err := e.resolveComponents(spec.Components)
 		So(err, ShouldBeNil)
 		So(actual, ShouldEqualStringSliceWithoutOrder, expected)
 	}

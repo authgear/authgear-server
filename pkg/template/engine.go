@@ -10,7 +10,6 @@ import (
 )
 
 type ResolveOptions struct {
-	Key string
 }
 
 type resolveResult struct {
@@ -128,7 +127,7 @@ func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options R
 		panic("template: unregistered template type: " + templateType)
 	}
 
-	templateBody, err := e.loadTemplateBody(spec, options.Key)
+	templateBody, err := e.loadTemplateBody(spec)
 	if err != nil {
 		return
 	}
@@ -143,7 +142,7 @@ func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options R
 	}
 
 	// Resolve components
-	components, err := e.resolveComponents(spec.Components, options.Key)
+	components, err := e.resolveComponents(spec.Components)
 	if err != nil {
 		return
 	}
@@ -158,10 +157,10 @@ func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options R
 	return
 }
 
-func (e *Engine) loadTemplateBody(spec Spec, key string) (templateBody string, err error) {
+func (e *Engine) loadTemplateBody(spec Spec) (templateBody string, err error) {
 	// Take the default value by default
 	templateBody = spec.Default
-	templateItem, err := e.resolveTemplateItem(spec, key)
+	templateItem, err := e.resolveTemplateItem(spec)
 	if err != nil {
 		// No template item can be resolved. Fallback to default.
 		err = nil
@@ -174,49 +173,35 @@ func (e *Engine) loadTemplateBody(spec Spec, key string) (templateBody string, e
 	return
 }
 
-func (e *Engine) resolveTemplateItem(spec Spec, key string) (templateItem *config.TemplateItem, err error) {
-	input := e.templateItems
-	var output []config.TemplateItem
+func (e *Engine) resolveTemplateItem(spec Spec) (templateItem *config.TemplateItem, err error) {
+	var templates []config.TemplateItem
 
-	// The first step is to find out templates with the target type.
-	for _, item := range input {
+	// Find out templates with the target type.
+	for _, item := range e.templateItems {
 		if item.Type == spec.Type {
 			i := item
-			output = append(output, i)
+			templates = append(templates, i)
 		}
-	}
-	input = output
-	output = nil
-
-	// The second step is to find out templates with the target key, if key is specified
-	if spec.IsKeyed && key != "" {
-		for _, item := range input {
-			if item.Key == key {
-				i := item
-				output = append(output, i)
-			}
-		}
-		input = output
 	}
 
 	// We have either have a list of templates of different language tags or an empty list.
-	if len(input) <= 0 {
+	if len(templates) <= 0 {
 		err = &errNotFound{name: string(spec.Type)}
 		return
 	}
 
 	// Set the empty language tag to fallback language.
-	for i, item := range input {
+	for i, item := range templates {
 		if item.LanguageTag == "" {
 			item.LanguageTag = string(intl.Fallback(e.fallbackLanguageTag))
-			input[i] = item
+			templates[i] = item
 		}
 	}
 
 	// Build a map from language tag to item and supported languages tags.
 	languageTagToItem := make(map[string]config.TemplateItem)
 	var rawSupported []string
-	for _, item := range input {
+	for _, item := range templates {
 		languageTagToItem[item.LanguageTag] = item
 		rawSupported = append(rawSupported, item.LanguageTag)
 	}
@@ -276,7 +261,7 @@ func (e *Engine) resolveTranslations(templateType config.TemplateItemType) (tran
 	return
 }
 
-func (e *Engine) resolveComponents(types []config.TemplateItemType, key string) (bodies []string, err error) {
+func (e *Engine) resolveComponents(types []config.TemplateItemType) (bodies []string, err error) {
 	resolvedBodies := make(map[config.TemplateItemType]string)
 
 	// We need to declare it first otherwise recur cannot reference itself.
@@ -295,7 +280,7 @@ func (e *Engine) resolveComponents(types []config.TemplateItemType, key string) 
 				panic("template: unregistered template type: " + templateType)
 			}
 			var body string
-			body, err = e.loadTemplateBody(spec, key)
+			body, err = e.loadTemplateBody(spec)
 			if err != nil {
 				return
 			}
