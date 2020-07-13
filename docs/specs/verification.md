@@ -90,7 +90,19 @@ authentication unless it is enabled in the configuration.
 
 ## Code & Message
 
-The OTP format and message is same as specified by [OOB-OTP authenticator](./user-model.md#oob-otp-authenticator).
+The OTP format and message has same configuration as specified by [OOB-OTP authenticator](./user-model.md#oob-otp-authenticator).
+
+```yaml
+verification:
+    sms:
+      code_format: numeric      # SMS OTP defaults to 'numeric' format
+      message:
+        sender: "+85200000000"
+    email:
+      code_format: complex      # Email OTP defaults to 'complex' format
+      message:
+        sender: "no-reply@example.com"
+```
 
 ## Status Flag
 

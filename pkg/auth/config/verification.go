@@ -21,7 +21,9 @@ var _ = Schema.Add("VerificationConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"criteria": { "$ref": "#/$defs/VerificationCriteria" }
+		"criteria": { "$ref": "#/$defs/VerificationCriteria" },
+		"sms": { "$ref": "#/$defs/VerificationSMSConfig" },
+		"email": { "$ref": "#/$defs/VerificationEmailConfig" }
 	}
 }
 `)
@@ -33,6 +35,53 @@ type VerificationConfig struct {
 func (c *VerificationConfig) SetDefaults() {
 	if c.Criteria == "" {
 		c.Criteria = VerificationCriteriaAny
+	}
+}
+
+var _ = Schema.Add("VerificationSMSConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"message": { "$ref": "#/$defs/SMSMessageConfig" },
+		"code_format": { "$ref": "#/$defs/OTPFormat" }
+	}
+}
+`)
+
+type VerificationSMSConfig struct {
+	Message    SMSMessageConfig `json:"message,omitempty"`
+	CodeFormat OTPFormat        `json:"code_format,omitempty"`
+}
+
+func (c *VerificationSMSConfig) SetDefaults() {
+	if c.CodeFormat == "" {
+		c.CodeFormat = OTPFormatNumeric
+	}
+}
+
+var _ = Schema.Add("VerificationEmailConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"message": { "$ref": "#/$defs/EmailMessageConfig" },
+		"code_format": { "$ref": "#/$defs/OTPFormat" }
+	}
+}
+`)
+
+type VerificationEmailConfig struct {
+	Message    EmailMessageConfig `json:"message,omitempty"`
+	CodeFormat OTPFormat          `json:"code_format,omitempty"`
+}
+
+func (c *VerificationEmailConfig) SetDefaults() {
+	if c.Message["subject"] == "" {
+		c.Message["subject"] = "Email Verification Instruction"
+	}
+	if c.CodeFormat == "" {
+		c.CodeFormat = OTPFormatComplex
 	}
 }
 

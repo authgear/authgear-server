@@ -248,8 +248,12 @@ authenticator:
   oob_otp:
     sms:
       code_format: numeric      # SMS OTP defaults to 'numeric' format
+      message:
+        sender: "+85200000000"
     email:
       code_format: complex      # Email OTP defaults to 'complex' format
+      message:
+        sender: "no-reply@example.com"
 ```
 
 The OTP message is rendered by a [customizable template](./templates.md#otp_message).
