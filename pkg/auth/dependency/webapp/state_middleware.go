@@ -7,7 +7,7 @@ import (
 )
 
 type StateMiddlewareStates interface {
-	Get(id string) (*interactionflows.State, error)
+	GetState(instanceID string) (*interactionflows.State, error)
 }
 
 type StateMiddleware struct {
@@ -25,9 +25,9 @@ func (m *StateMiddleware) Handle(next http.Handler) http.Handler {
 		sid := q.Get("x_sid")
 
 		if sid != "" {
-			_, err := m.StateStore.Get(sid)
+			_, err := m.StateStore.GetState(sid)
 			if err != nil {
-				RedirectToPathWithoutX(w, r, "/")
+				http.Redirect(w, r, MakeURLWithPathWithoutX(r.URL, "/"), http.StatusFound)
 				return
 			}
 		}

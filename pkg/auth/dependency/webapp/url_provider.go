@@ -35,7 +35,7 @@ type AuthenticateURLOptions struct {
 }
 
 type URLProviderStates interface {
-	Set(*interactionflows.State) error
+	CreateState(state *interactionflows.State, redirectURI string) *interactionflows.State
 }
 
 type URLProvider struct {
@@ -106,12 +106,8 @@ func (p *URLProvider) convertLoginHint(uri **url.URL, q map[string]string, optio
 			// FIXME(webapp): Create promote interaction eagerly.
 			state := interactionflows.NewState()
 			state.Extra[interactionflows.ExtraAnonymousUserID] = userID
-			state.Extra[interactionflows.ExtraRedirectURI] = options.RedirectURI
-			err = p.States.Set(state)
-			if err != nil {
-				return err
-			}
-			q["x_sid"] = state.ID
+			p.States.CreateState(state, options.RedirectURI)
+			q["x_sid"] = state.InstanceID
 			*uri = p.Endpoints.PromoteUserEndpointURL()
 			return nil
 		case anonymous.RequestActionAuth:

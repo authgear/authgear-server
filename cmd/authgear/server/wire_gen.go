@@ -377,10 +377,16 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	stateStoreRedis := &flows.StateStoreRedis{
 		Redis: redisHandle,
 	}
+	stateServiceLogger := flows.NewStateServiceLogger(factory)
+	stateService := &flows.StateService{
+		ServerConfig: serverConfig,
+		StateStore:   stateStoreRedis,
+		Logger:       stateServiceLogger,
+	}
 	webappURLProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 		Anonymous: anonymousFlow,
-		States:    stateStoreRedis,
+		States:    stateService,
 	}
 	scopesValidator := _wireScopesValidatorValue
 	tokenGenerator := _wireTokenGeneratorValue
@@ -1237,10 +1243,16 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	stateStoreRedis := &flows.StateStoreRedis{
 		Redis: redisHandle,
 	}
+	stateServiceLogger := flows.NewStateServiceLogger(factory)
+	stateService := &flows.StateService{
+		ServerConfig: serverConfig,
+		StateStore:   stateStoreRedis,
+		Logger:       stateServiceLogger,
+	}
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 		Anonymous: anonymousFlow,
-		States:    stateStoreRedis,
+		States:    stateService,
 	}
 	endSessionHandler := &handler2.EndSessionHandler{
 		Config:    oAuthConfig,
@@ -1556,7 +1568,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 		Anonymous: anonymousFlow,
-		States:    stateStoreRedis,
+		States:    stateService,
 	}
 	userInfoDecoder := sso.UserInfoDecoder{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -1914,7 +1926,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 		Anonymous: anonymousFlow,
-		States:    stateStoreRedis,
+		States:    stateService,
 	}
 	userInfoDecoder := sso.UserInfoDecoder{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -2272,7 +2284,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 		Anonymous: anonymousFlow,
-		States:    stateStoreRedis,
+		States:    stateService,
 	}
 	userInfoDecoder := sso.UserInfoDecoder{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -2609,7 +2621,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 		Anonymous: anonymousFlow,
-		States:    stateStoreRedis,
+		States:    stateService,
 	}
 	userInfoDecoder := sso.UserInfoDecoder{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -4225,7 +4237,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 		Anonymous: anonymousFlow,
-		States:    stateStoreRedis,
+		States:    stateService,
 	}
 	passwordFlow := &flows.PasswordFlow{
 		Interactions: interactionProvider,
@@ -4575,7 +4587,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 		Anonymous: anonymousFlow,
-		States:    stateStoreRedis,
+		States:    stateService,
 	}
 	passwordFlow := &flows.PasswordFlow{
 		Interactions: interactionProvider,
@@ -4951,7 +4963,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 		Anonymous: anonymousFlow,
-		States:    stateStoreRedis,
+		States:    stateService,
 	}
 	userInfoDecoder := sso.UserInfoDecoder{
 		LoginIDNormalizerFactory: normalizerFactory,

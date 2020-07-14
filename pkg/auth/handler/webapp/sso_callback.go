@@ -42,7 +42,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ErrorDescription: r.Form.Get("error_description"),
 	}
 
-	// Add x_sid so RestoreState works.
+	// Add x_sid so CloneState works.
 	q := r.URL.Query()
 	q.Set("x_sid", data.State)
 	u := *r.URL
@@ -50,7 +50,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r.URL = &u
 
 	h.Database.WithTx(func() error {
-		state, err := h.State.RestoreState(r, false)
+		state, err := h.State.CloneState(r)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return err

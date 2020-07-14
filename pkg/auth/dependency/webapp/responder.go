@@ -38,11 +38,14 @@ func (r *Responder) Respond(
 ) {
 	// result and err can be nil at the same time.
 
+	// u is /req.URL.Path?x_sid=state.InstanceID
+	u := state.RedirectURI(req.URL)
+
 	onError := func() {
 		if errorRedirect, ok := err.(ErrorRedirect); ok {
 			http.Redirect(w, req, errorRedirect.RedirectURI(), http.StatusFound)
 		} else {
-			RedirectToCurrentPath(w, req)
+			http.Redirect(w, req, u.String(), http.StatusFound)
 		}
 	}
 
@@ -73,9 +76,11 @@ func (r *Responder) Respond(
 	case interaction.StepSetupPrimaryAuthenticator:
 		switch currentStep.AvailableAuthenticators[0].Type {
 		case authn.AuthenticatorTypeOOB:
-			RedirectToPathWithX(w, req, "/oob_otp")
+			u.Path = "/oob_otp"
+			http.Redirect(w, req, u.String(), http.StatusFound)
 		case authn.AuthenticatorTypePassword:
-			RedirectToPathWithX(w, req, "/create_password")
+			u.Path = "/create_password"
+			http.Redirect(w, req, u.String(), http.StatusFound)
 		default:
 			panic("webapp: unexpected authenticator type")
 		}
@@ -84,9 +89,11 @@ func (r *Responder) Respond(
 	case interaction.StepAuthenticatePrimary:
 		switch currentStep.AvailableAuthenticators[0].Type {
 		case authn.AuthenticatorTypeOOB:
-			RedirectToPathWithX(w, req, "/oob_otp")
+			u.Path = "/oob_otp"
+			http.Redirect(w, req, u.String(), http.StatusFound)
 		case authn.AuthenticatorTypePassword:
-			RedirectToPathWithX(w, req, "/enter_password")
+			u.Path = "/enter_password"
+			http.Redirect(w, req, u.String(), http.StatusFound)
 		default:
 			panic("webapp: unexpected authenticator type")
 		}

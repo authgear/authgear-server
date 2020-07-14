@@ -2,6 +2,7 @@ package flows
 
 import (
 	"errors"
+	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
 	corerand "github.com/authgear/authgear-server/pkg/core/rand"
@@ -15,20 +16,30 @@ var (
 	stateIDLength   = 32
 )
 
-// State is the state of a flow of an interaction.
+// State is a particular state instance of a interaction flow.
+// State is immutable in the sense that every mutation creates a new state with a different InstanceID.
 type State struct {
-	// ID is a cryptographically random string.
-	ID string `json:"id"`
+	// FlowID is the unique ID for a flow.
+	// It is a constant value through out a flow.
+	// It is used to keep track of which instances belong to a particular flow.
+	// When one instance is committed, any other instances sharing the same FlowID become invalid.
+	FlowID string `json:"flow_id"`
 
-	// Interaction is the interaction of this flow.
-	Interaction *interaction.Interaction `json:"interaction"`
+	// InstanceID is a unique ID for a particular instance of a flow.
+	InstanceID string `json:"instance_id"`
 
-	// FIXME(webapp): Clear error correctly.
-	// Error is either reset to nil or set to non-nil in every POST request.
+	// Interaction is the interaction of this
+	Interaction *interaction.Interaction `json:"interaction,omitempty"`
+
+	// Error is the error associated with this state.
 	Error *skyerr.APIError `json:"error,omitempty"`
 
 	// Extra is used to persist extra data across the interaction.
 	Extra map[string]interface{} `json:"extra,omitempty"`
+
+	// readOnly is a flag to indicate that this state was read for read-only.
+	// If this state is passed to UpdateState, panic will occur.
+	readOnly bool
 }
 
 const (
@@ -53,12 +64,27 @@ const (
 )
 
 func NewState() *State {
+	flowID := corerand.StringWithAlphabet(stateIDLength, stateIDAlphabet, corerand.SecureRand)
+	instanceID := corerand.StringWithAlphabet(stateIDLength, stateIDAlphabet, corerand.SecureRand)
 	return &State{
-		ID:    corerand.StringWithAlphabet(stateIDLength, stateIDAlphabet, corerand.SecureRand),
-		Extra: make(map[string]interface{}),
+		FlowID:     flowID,
+		InstanceID: instanceID,
+		Extra:      make(map[string]interface{}),
 	}
 }
 
-func (s *State) SetError(err error) {
-	s.Error = skyerr.AsAPIError(err)
+// RedirectURI returns the redirect URI associated with s.
+func (s *State) RedirectURI(input *url.URL) *url.URL {
+	u := *input
+
+	q := u.Query()
+	q.Set("x_sid", s.InstanceID)
+
+	u.Scheme = ""
+	u.Opaque = ""
+	u.Host = ""
+	u.User = nil
+	u.RawQuery = q.Encode()
+
+	return &u
 }

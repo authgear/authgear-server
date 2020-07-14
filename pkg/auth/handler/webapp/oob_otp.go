@@ -135,7 +135,7 @@ func (h *OOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "GET" {
-		state, err := h.State.RestoreState(r, true)
+		state, err := h.State.RestoreReadOnlyState(r, true)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -156,7 +156,7 @@ func (h *OOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" && trigger {
 		h.Database.WithTx(func() error {
-			state, err := h.State.RestoreState(r, false)
+			state, err := h.State.CloneState(r)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
@@ -180,7 +180,7 @@ func (h *OOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 		h.Database.WithTx(func() error {
-			state, err := h.State.RestoreState(r, false)
+			state, err := h.State.CloneState(r)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err

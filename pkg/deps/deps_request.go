@@ -34,7 +34,7 @@ var requestDeps = wire.NewSet(
 
 	webapp.DependencySet,
 	wire.Bind(new(webapp.ResponderStates), new(*interactionflows.StateService)),
-	wire.Bind(new(webapp.URLProviderStates), new(*interactionflows.StateStoreRedis)),
+	wire.Bind(new(webapp.URLProviderStates), new(*interactionflows.StateService)),
 	wire.Bind(new(webapp.StateMiddlewareStates), new(*interactionflows.StateStoreRedis)),
 	wire.Bind(new(oauthhandler.WebAppURLProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(oidchandler.WebAppURLsProvider), new(*webapp.URLProvider)),

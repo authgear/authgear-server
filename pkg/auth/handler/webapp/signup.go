@@ -202,7 +202,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.FormPrefiller.Prefill(r.Form)
 
 	if r.Method == "GET" {
-		state, err := h.State.RestoreState(r, true)
+		state, err := h.State.RestoreReadOnlyState(r, true)
 		if errors.Is(err, interactionflows.ErrStateNotFound) {
 			err = nil
 		}
@@ -242,7 +242,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				h.State.UpdateState(state, result, err)
 				h.Responder.Respond(w, r, state, result, err)
 			}()
-			state = h.State.MakeState(r)
+			state = interactionflows.NewState()
 			state = h.State.CreateState(state, webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy))
 
 			result, err = h.OAuth.LoginOAuthProvider(r, providerAlias, state)
@@ -265,7 +265,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				h.State.UpdateState(state, result, err)
 				h.Responder.Respond(w, r, state, result, err)
 			}()
-			state = h.State.MakeState(r)
+			state = interactionflows.NewState()
 			state = h.State.CreateState(state, webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy))
 
 			err = SignupSchema.PartValidator(SignupWithLoginIDRequestSchema).ValidateValue(FormToJSON(r.Form))

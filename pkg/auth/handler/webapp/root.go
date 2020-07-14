@@ -16,5 +16,6 @@ func ConfigureRootRoute(route httproute.Route) httproute.Route {
 type RootHandler struct{}
 
 func (h *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	webapp.RedirectToPathWithoutX(w, r, "/login")
+	redirectURI := webapp.MakeURLWithPathWithoutX(r.URL, "/login")
+	http.Redirect(w, r, redirectURI, http.StatusFound)
 }

@@ -7,7 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -163,7 +162,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	}
 
 	if r.Method == "GET" {
-		state, err := h.State.RestoreState(r, true)
+		state, err := h.State.RestoreReadOnlyState(r, true)
 		if errors.Is(err, interactionflows.ErrStateNotFound) {
 			err = nil
 		}
@@ -194,7 +193,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 
 	if r.Method == "POST" && r.Form.Get("x_action") == "link_oauth" {
 		h.Database.WithTx(func() error {
-			state := h.State.MakeState(r)
+			state := interactionflows.NewState()
 			state = h.State.CreateState(state, "/settings/identity")
 			var result *interactionflows.WebAppResult
 			var err error
@@ -218,7 +217,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 
 	if r.Method == "POST" && r.Form.Get("x_action") == "unlink_oauth" {
 		h.Database.WithTx(func() error {
-			state := h.State.MakeState(r)
+			state := interactionflows.NewState()
 			state = h.State.CreateState(state, "/settings/identity")
 			var result *interactionflows.WebAppResult
 			var err error
@@ -246,13 +245,16 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	oldLoginIDValue := r.Form.Get("x_old_login_id_value")
 
 	if r.Method == "POST" && r.Form.Get("x_action") == "login_id" {
-		state := h.State.MakeState(r)
+		state := interactionflows.NewState()
 		state = h.State.CreateState(state, "/settings/identity")
 		state.Extra[interactionflows.ExtraLoginIDKey] = loginIDKey
 		state.Extra[interactionflows.ExtraLoginIDType] = loginIDType
 		state.Extra[interactionflows.ExtraLoginIDInputType] = loginIDInputType
 		state.Extra[interactionflows.ExtraOldLoginID] = oldLoginIDValue
 		h.State.UpdateState(state, nil, nil)
-		webapp.RedirectToPathWithX(w, r, "/enter_login_id")
+
+		redirectURI := state.RedirectURI(r.URL)
+		redirectURI.Path = "/enter_login_id"
+		http.Redirect(w, r, redirectURI.String(), http.StatusFound)
 	}
 }

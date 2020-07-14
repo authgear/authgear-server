@@ -77,7 +77,7 @@ func (s *OAuthService) handleOAuth(
 	nonce := crypto.SHA256String(cookie.Value)
 
 	param := sso.GetAuthURLParam{
-		State: state.ID,
+		State: state.InstanceID,
 		Nonce: nonce,
 	}
 

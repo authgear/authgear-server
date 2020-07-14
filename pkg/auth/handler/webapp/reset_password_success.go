@@ -63,7 +63,7 @@ func (h *ResetPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	}
 
 	if r.Method == "GET" {
-		state, err := h.State.RestoreState(r, false)
+		state, err := h.State.RestoreReadOnlyState(r, false)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
