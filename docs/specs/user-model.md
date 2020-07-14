@@ -238,6 +238,9 @@ Out-of-band One-time-password authenticator is either primary or secondary.
 
 OOB-OTP authenticator is bound to a recipient address. The recipient can be an email address or phone number that can receive SMS messages.
 
+An OOB-OTP authenticator may be bound to a login ID identity. If the bounded
+identity is deleted, the authenticator would be deleted as well.
+
 The OTP format can be customized in the configuration. The following formats are
 available:
 - `numeric`: 4-digit code

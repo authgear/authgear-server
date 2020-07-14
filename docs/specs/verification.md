@@ -18,7 +18,8 @@ An identity is verifiable if:
 
 An identity is verified if:
 - it is an SSO identity; or
-- it is a login ID identity, and the user has a matching OOB-OTP authenticator.
+- it is a login ID identity, and the user has a OOB-OTP authenticator bound to
+  the login ID identity.
 
 ## Criteria
 
