@@ -38,11 +38,6 @@ func NewSecretConfigFromOptions(opts *SecretOptions) *config.SecretConfig {
 	})
 
 	items = append(items, config.SecretItem{
-		Key:  config.JWTKeyMaterialsKey,
-		Data: &config.JWTKeyMaterials{Set: generateOctetKey()},
-	})
-
-	items = append(items, config.SecretItem{
 		Key:  config.OIDCKeyMaterialsKey,
 		Data: &config.OIDCKeyMaterials{Set: generateRSAKey()},
 	})

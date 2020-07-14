@@ -7,6 +7,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/forgotpassword"
 	identityanonymous "github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
+	identityprovider "github.com/authgear/authgear-server/pkg/auth/dependency/identity/provider"
+	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oidc"
@@ -24,26 +26,23 @@ func ProvideOAuthMetadataProviders(oauth *oauth.MetadataProvider, oidc *oidc.Met
 }
 
 var requestDeps = wire.NewSet(
-	wire.NewSet(
-		commonDeps,
+	commonDeps,
 
-		wire.NewSet(
-			sso.DependencySet,
-			wire.Bind(new(webapp.OAuthProviderFactory), new(*sso.OAuthProviderFactory)),
-			wire.Bind(new(webapp.SSOStateCodec), new(*sso.StateCodec)),
-		),
+	sso.DependencySet,
+	wire.Bind(new(webapp.OAuthProviderFactory), new(*sso.OAuthProviderFactory)),
+	wire.Bind(new(webapp.OAuthInteractions), new(*interactionflows.WebAppFlow)),
 
-		wire.NewSet(
-			webapp.DependencySet,
-			wire.Bind(new(oauthhandler.WebAppURLProvider), new(*webapp.URLProvider)),
-			wire.Bind(new(oidchandler.WebAppURLsProvider), new(*webapp.URLProvider)),
-			wire.Bind(new(sso.RedirectURLProvider), new(*webapp.URLProvider)),
-			wire.Bind(new(forgotpassword.URLProvider), new(*webapp.URLProvider)),
-		),
+	webapp.DependencySet,
+	wire.Bind(new(webapp.ResponderStates), new(*interactionflows.StateService)),
+	wire.Bind(new(webapp.URLProviderStates), new(*interactionflows.StateStoreRedis)),
+	wire.Bind(new(webapp.StateMiddlewareStates), new(*interactionflows.StateStoreRedis)),
+	wire.Bind(new(oauthhandler.WebAppURLProvider), new(*webapp.URLProvider)),
+	wire.Bind(new(oidchandler.WebAppURLsProvider), new(*webapp.URLProvider)),
+	wire.Bind(new(sso.RedirectURLProvider), new(*webapp.URLProvider)),
+	wire.Bind(new(forgotpassword.URLProvider), new(*webapp.URLProvider)),
 
-		oauthhandler.DependencySet,
-		oidchandler.DependencySet,
-	),
+	oauthhandler.DependencySet,
+	oidchandler.DependencySet,
 
 	middlewares.DependencySet,
 
@@ -61,18 +60,23 @@ var requestDeps = wire.NewSet(
 	ProvideOAuthMetadataProviders,
 
 	handlerwebapp.DependencySet,
-	wire.Bind(new(handlerwebapp.LoginProvider), new(*webapp.AuthenticateProviderImpl)),
-	wire.Bind(new(handlerwebapp.SignupProvider), new(*webapp.AuthenticateProviderImpl)),
-	wire.Bind(new(handlerwebapp.PromoteProvider), new(*webapp.AuthenticateProviderImpl)),
-	wire.Bind(new(handlerwebapp.SSOProvider), new(*webapp.AuthenticateProviderImpl)),
-	wire.Bind(new(handlerwebapp.EnterLoginIDProvider), new(*webapp.AuthenticateProviderImpl)),
-	wire.Bind(new(handlerwebapp.EnterPasswordProvider), new(*webapp.AuthenticateProviderImpl)),
-	wire.Bind(new(handlerwebapp.CreatePasswordProvider), new(*webapp.AuthenticateProviderImpl)),
-	wire.Bind(new(handlerwebapp.OOBOTPProvider), new(*webapp.AuthenticateProviderImpl)),
-	wire.Bind(new(handlerwebapp.ForgotPasswordProvider), new(*webapp.ForgotPasswordProvider)),
-	wire.Bind(new(handlerwebapp.ForgotPasswordSuccessProvider), new(*webapp.ForgotPasswordProvider)),
-	wire.Bind(new(handlerwebapp.ResetPasswordProvider), new(*webapp.ForgotPasswordProvider)),
-	wire.Bind(new(handlerwebapp.ResetPasswordSuccessProvider), new(*webapp.ForgotPasswordProvider)),
-	wire.Bind(new(handlerwebapp.SettingsIdentityProvider), new(*webapp.AuthenticateProviderImpl)),
+	wire.Bind(new(handlerwebapp.StateService), new(*interactionflows.StateService)),
+	wire.Bind(new(handlerwebapp.Responder), new(*webapp.Responder)),
+	wire.Bind(new(handlerwebapp.LoginOAuthService), new(*webapp.OAuthService)),
+	wire.Bind(new(handlerwebapp.LoginInteractions), new(*interactionflows.WebAppFlow)),
+	wire.Bind(new(handlerwebapp.SignupInteractions), new(*interactionflows.WebAppFlow)),
+	wire.Bind(new(handlerwebapp.CreatePasswordInteractions), new(*interactionflows.WebAppFlow)),
+	wire.Bind(new(handlerwebapp.EnterPasswordInteractions), new(*interactionflows.WebAppFlow)),
+	wire.Bind(new(handlerwebapp.ForgotPasswordInteractions), new(*forgotpassword.Provider)),
+	wire.Bind(new(handlerwebapp.ResetPasswordInteractions), new(*forgotpassword.Provider)),
+	wire.Bind(new(handlerwebapp.OOBOTPInteractions), new(*interactionflows.WebAppFlow)),
+	wire.Bind(new(handlerwebapp.SSOCallbackOAuthService), new(*webapp.OAuthService)),
+	wire.Bind(new(handlerwebapp.SettingsIdentityOAuthService), new(*webapp.OAuthService)),
+	wire.Bind(new(handlerwebapp.SettingsIdentityInteractions), new(*interactionflows.WebAppFlow)),
+	wire.Bind(new(handlerwebapp.EnterLoginIDInteractions), new(*interactionflows.WebAppFlow)),
+	wire.Bind(new(handlerwebapp.PromoteOAuthService), new(*webapp.OAuthService)),
+	wire.Bind(new(handlerwebapp.PromoteInteractions), new(*interactionflows.WebAppFlow)),
+
+	wire.Bind(new(handlerwebapp.IdentityProvider), new(*identityprovider.Provider)),
 	wire.Bind(new(handlerwebapp.LogoutSessionManager), new(*auth.SessionManager)),
 )

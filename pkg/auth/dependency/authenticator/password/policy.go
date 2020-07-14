@@ -1,8 +1,6 @@
 package password
 
 import (
-	"encoding/json"
-
 	"github.com/authgear/authgear-server/pkg/core/skyerr"
 )
 
@@ -39,12 +37,4 @@ type Policy struct {
 
 func (v Policy) Kind() string {
 	return string(v.Name)
-}
-
-func (v Policy) MarshalJSON() ([]byte, error) {
-	d := map[string]interface{}{"kind": v.Name}
-	for k, v := range v.Info {
-		d[k] = v
-	}
-	return json.Marshal(d)
 }

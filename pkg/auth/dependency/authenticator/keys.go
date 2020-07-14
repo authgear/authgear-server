@@ -28,4 +28,6 @@ const (
 	AuthenticatorStateOOBOTPGenerateTime string = "https://authgear.com/claims/oob_otp/generate_time"
 	// AuthenticatorStateOOBOTPTriggerTime is a claim with string value for OOB last trigger time of current interaction.
 	AuthenticatorStateOOBOTPTriggerTime string = "https://authgear.com/claims/oob_otp/trigger_time"
+	// AuthenticatorStateOOBOTPChannelType is a claim with string value for OOB OTP channel type.
+	AuthenticatorStateOOBOTPChannelType = AuthenticatorPropOOBOTPChannelType
 )

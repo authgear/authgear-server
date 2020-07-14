@@ -23,22 +23,22 @@ func (f *LinkedInImpl) Type() config.OAuthSSOProviderType {
 	return config.OAuthSSOProviderTypeLinkedIn
 }
 
-func (f *LinkedInImpl) GetAuthURL(state State, encodedState string) (string, error) {
+func (f *LinkedInImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	p := authURLParams{
-		redirectURI:  f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
-		clientID:     f.ProviderConfig.ClientID,
-		scope:        f.ProviderConfig.Type.Scope(),
-		encodedState: encodedState,
-		baseURL:      linkedinAuthorizationURL,
+		redirectURI: f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
+		clientID:    f.ProviderConfig.ClientID,
+		scope:       f.ProviderConfig.Type.Scope(),
+		state:       param.State,
+		baseURL:     linkedinAuthorizationURL,
 	}
 	return authURL(p)
 }
 
-func (f *LinkedInImpl) GetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
-	return f.NonOpenIDConnectGetAuthInfo(r, state)
+func (f *LinkedInImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
+	return f.NonOpenIDConnectGetAuthInfo(r, param)
 }
 
-func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
+func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _ GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	accessTokenResp, err := fetchAccessTokenResp(
 		r.Code,
 		linkedinTokenURL,

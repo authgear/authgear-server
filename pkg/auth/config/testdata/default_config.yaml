@@ -265,12 +265,21 @@ identity:
       - key: email
         type: email
         maximum: 1
+        verification:
+          enabled: true
+          required: true
       - key: phone
         type: phone
         maximum: 1
+        verification:
+          enabled: true
+          required: true
       - key: username
         type: username
         maximum: 1
+        verification:
+          enabled: false
+          required: false
   oauth: {}
   on_conflict:
     promotion: error
@@ -283,10 +292,12 @@ authenticator:
     sms:
       maximum: 99
       message: {}
+      code_format: numeric
     email:
       maximum: 99
       message:
         subject: Email Verification Instruction
+      code_format: complex
   bearer_token:
     expire_in_days: 30
   recovery_code:
@@ -300,3 +311,5 @@ welcome_message:
   email_message:
     subject: Welcome!
   destination: first
+verification:
+  criteria: any

@@ -9,6 +9,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
+	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	coreurl "github.com/authgear/authgear-server/pkg/core/url"
 )
 
@@ -33,10 +34,14 @@ type AuthenticateURLOptions struct {
 	LoginHint   string
 }
 
+type URLProviderStates interface {
+	Set(*interactionflows.State) error
+}
+
 type URLProvider struct {
 	Endpoints EndpointsProvider
 	Anonymous AnonymousFlow
-	States    StateStore
+	States    URLProviderStates
 }
 
 func (p *URLProvider) AuthenticateURL(options AuthenticateURLOptions) (*url.URL, error) {
@@ -52,7 +57,7 @@ func (p *URLProvider) AuthenticateURL(options AuthenticateURLOptions) (*url.URL,
 		q["ui_locales"] = options.UILocales
 	}
 	if options.LoginHint != "" {
-		err := p.convertLoginHint(&authnURI, q, options.LoginHint)
+		err := p.convertLoginHint(&authnURI, q, options)
 		if err != nil {
 			return nil, err
 		}
@@ -78,12 +83,12 @@ func (p *URLProvider) ResetPasswordURL(code string) *url.URL {
 	)
 }
 
-func (p *URLProvider) convertLoginHint(uri **url.URL, q map[string]string, loginHint string) error {
-	if !strings.HasPrefix(loginHint, "https://authgear.com/login_hint?") {
+func (p *URLProvider) convertLoginHint(uri **url.URL, q map[string]string, options AuthenticateURLOptions) error {
+	if !strings.HasPrefix(options.LoginHint, "https://authgear.com/login_hint?") {
 		return nil
 	}
 
-	url, err := url.Parse(loginHint)
+	url, err := url.Parse(options.LoginHint)
 	if err != nil {
 		return err
 	}
@@ -98,17 +103,20 @@ func (p *URLProvider) convertLoginHint(uri **url.URL, q map[string]string, login
 
 		switch action {
 		case anonymous.RequestActionPromote:
-			state := NewState()
-			state.AnonymousUserID = userID
-			p.States.Set(state)
+			// FIXME(webapp): Create promote interaction eagerly.
+			state := interactionflows.NewState()
+			state.Extra[interactionflows.ExtraAnonymousUserID] = userID
+			state.Extra[interactionflows.ExtraRedirectURI] = options.RedirectURI
+			err = p.States.Set(state)
+			if err != nil {
+				return err
+			}
 			q["x_sid"] = state.ID
 			*uri = p.Endpoints.PromoteUserEndpointURL()
 			return nil
-
 		case anonymous.RequestActionAuth:
 			// TODO(webapp): support anonymous auth
 			panic("webapp: anonymous auth through web app is not supported")
-
 		default:
 			return errors.New("unknown anonymous request action")
 		}

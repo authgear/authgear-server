@@ -2,6 +2,7 @@ package skyerr_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/authgear/authgear-server/pkg/core/skyerr"
@@ -13,6 +14,19 @@ func TestAPIError(t *testing.T) {
 	Convey("AsAPIError", t, func() {
 		Convey("simple error", func() {
 			err := skyerr.NewInternalError("internal server error")
+			apiErr := skyerr.AsAPIError(err)
+			So(apiErr, ShouldResemble, &skyerr.APIError{
+				Kind:    skyerr.Kind{Name: skyerr.InternalError, Reason: string(skyerr.InternalError)},
+				Message: "internal server error",
+				Code:    500,
+				Info:    map[string]interface{}{},
+			})
+		})
+		Convey("wrapped error", func() {
+			var err error
+			err = skyerr.NewInternalError("internal server error")
+			err = fmt.Errorf("wrap this: %w", err)
+
 			apiErr := skyerr.AsAPIError(err)
 			So(apiErr, ShouldResemble, &skyerr.APIError{
 				Kind:    skyerr.Kind{Name: skyerr.InternalError, Reason: string(skyerr.InternalError)},

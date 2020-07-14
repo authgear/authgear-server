@@ -66,20 +66,20 @@ func (f *AppleImpl) Type() config.OAuthSSOProviderType {
 	return config.OAuthSSOProviderTypeApple
 }
 
-func (f *AppleImpl) GetAuthURL(state State, encodedState string) (string, error) {
+func (f *AppleImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	return appleOIDCConfig.MakeOAuthURL(OIDCAuthParams{
 		ProviderConfig: f.ProviderConfig,
 		RedirectURI:    f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
-		Nonce:          state.HashedNonce,
-		EncodedState:   encodedState,
+		Nonce:          param.Nonce,
+		State:          param.State,
 	}), nil
 }
 
-func (f *AppleImpl) GetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
-	return f.OpenIDConnectGetAuthInfo(r, state)
+func (f *AppleImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
+	return f.OpenIDConnectGetAuthInfo(r, param)
 }
 
-func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state State) (authInfo AuthInfo, err error) {
+func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	keySet, err := appleOIDCConfig.FetchJWKs(http.DefaultClient)
 	if err != nil {
 		err = NewSSOFailed(NetworkFailed, "failed to get OIDC JWKs")
@@ -101,7 +101,7 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, state
 		f.ProviderConfig.ClientID,
 		clientSecret,
 		f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
-		state.HashedNonce,
+		param.Nonce,
 		&tokenResp,
 	)
 	if err != nil {

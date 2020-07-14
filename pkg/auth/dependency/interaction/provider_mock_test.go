@@ -8,93 +8,12 @@ import (
 	authenticator "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	oob "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
 	identity "github.com/authgear/authgear-server/pkg/auth/dependency/identity"
-	interaction "github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
 	event "github.com/authgear/authgear-server/pkg/auth/event"
 	model "github.com/authgear/authgear-server/pkg/auth/model"
 	authn "github.com/authgear/authgear-server/pkg/core/authn"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
-
-// MockStore is a mock of Store interface
-type MockStore struct {
-	ctrl     *gomock.Controller
-	recorder *MockStoreMockRecorder
-}
-
-// MockStoreMockRecorder is the mock recorder for MockStore
-type MockStoreMockRecorder struct {
-	mock *MockStore
-}
-
-// NewMockStore creates a new mock instance
-func NewMockStore(ctrl *gomock.Controller) *MockStore {
-	mock := &MockStore{ctrl: ctrl}
-	mock.recorder = &MockStoreMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockStore) EXPECT() *MockStoreMockRecorder {
-	return m.recorder
-}
-
-// Create mocks base method
-func (m *MockStore) Create(i *interaction.Interaction) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", i)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Create indicates an expected call of Create
-func (mr *MockStoreMockRecorder) Create(i interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockStore)(nil).Create), i)
-}
-
-// Get mocks base method
-func (m *MockStore) Get(token string) (*interaction.Interaction, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", token)
-	ret0, _ := ret[0].(*interaction.Interaction)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Get indicates an expected call of Get
-func (mr *MockStoreMockRecorder) Get(token interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockStore)(nil).Get), token)
-}
-
-// Update mocks base method
-func (m *MockStore) Update(i *interaction.Interaction) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", i)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Update indicates an expected call of Update
-func (mr *MockStoreMockRecorder) Update(i interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockStore)(nil).Update), i)
-}
-
-// Delete mocks base method
-func (m *MockStore) Delete(i *interaction.Interaction) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", i)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Delete indicates an expected call of Delete
-func (mr *MockStoreMockRecorder) Delete(i interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockStore)(nil).Delete), i)
-}
 
 // MockIdentityProvider is a mock of IdentityProvider interface
 type MockIdentityProvider struct {

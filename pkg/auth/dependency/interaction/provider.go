@@ -1,8 +1,6 @@
 package interaction
 
 import (
-	"time"
-
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
@@ -15,13 +13,6 @@ import (
 )
 
 //go:generate mockgen -source=provider.go -destination=provider_mock_test.go -package interaction_test
-
-type Store interface {
-	Create(i *Interaction) error
-	Get(token string) (*Interaction, error)
-	Update(i *Interaction) error
-	Delete(i *Interaction) error
-}
 
 type IdentityProvider interface {
 	Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error)
@@ -94,26 +85,7 @@ func NewLogger(lf *log.Factory) Logger {
 	return Logger{lf.New("interaction")}
 }
 
-// TODO(interaction): configurable lifetime
-const interactionIdleTimeout = 5 * time.Minute
-
-// NOTE(interaction): save-commit
-// SaveInteraction and Commit are mutually exclusively within a request.
-// You either do something with the interaction, SaveInteraction and return the token.
-// Or do something with the interaction, Commit and discard the interaction.
-//
-// Mixing SaveInteraction and Commit may lead to data corruption.
-// For example, given the following call sequence in a function.
-//
-// PerformAction
-// SaveInteraction
-// Commit
-//
-// If Commit fails for some reason, the interaction has already been mutated by SaveInteraction.
-// If the function is retried, PerformAction is applied twice, leading to data corruption.
-
 type Provider struct {
-	Store         Store
 	Clock         clock.Clock
 	Logger        Logger
 	Identity      IdentityProvider
@@ -122,37 +94,4 @@ type Provider struct {
 	OOB           OOBProvider
 	Hooks         HookProvider
 	Config        *config.AuthenticationConfig
-}
-
-func (p *Provider) GetInteraction(token string) (*Interaction, error) {
-	i, err := p.Store.Get(token)
-	if err != nil {
-		return nil, err
-	}
-
-	return i, nil
-}
-
-func (p *Provider) SaveInteraction(i *Interaction) (string, error) {
-	if i.committed {
-		panic("interaction: see NOTE(interaction): save-commit")
-	}
-
-	if i.Token == "" {
-		i.Token = generateToken()
-		i.CreatedAt = p.Clock.NowUTC()
-		i.ExpireAt = i.CreatedAt.Add(interactionIdleTimeout)
-		if err := p.Store.Create(i); err != nil {
-			return "", err
-		}
-	} else {
-		i.ExpireAt = p.Clock.NowUTC().Add(interactionIdleTimeout)
-		if err := p.Store.Update(i); err != nil {
-			return "", err
-		}
-	}
-
-	i.saved = true
-
-	return i.Token, nil
 }

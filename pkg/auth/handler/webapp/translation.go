@@ -60,8 +60,7 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"oob-otp-page-title--sms": "SMS Verification",
 	"oob-otp-page-title--email": "Email Verification",
 	"oob-otp-placeholder": "code",
-	"oob-otp-description--sms": "We have sent a {0} digit code to +{1}{2}. Please enter the code below to continue",
-	"oob-otp-description--email": "We have sent a {0} digit code to {1}. Please enter the code below to continue",
+	"oob-otp-description": "We have sent a {0} digit code to {1}. Please enter the code below to continue",
 	"oob-otp-resend-button-hint": "Didn''t receive the code? ",
 	"oob-otp-resend-button-label": "Resend",
 	"oob-otp-resend-button-label--unit": "Resend (%ds)",
@@ -82,7 +81,6 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"password-policy-guessable-level-3": "NOT somewhat guessable",
 	"password-policy-guessable-level-4": "Safely unguessable",
 	"password-policy-guessable-level-5": "Very unguessable",
-	"sms-charge-warning": "By providing your phone number, you agree to receive service notifications to your mobile phone. Text messaging rates may apply.",
 
 	"forgot-password-page-title": "Forgot Password",
 	"email-placeholder": "email",

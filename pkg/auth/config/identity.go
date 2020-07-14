@@ -43,9 +43,12 @@ type LoginIDConfig struct {
 func (c *LoginIDConfig) SetDefaults() {
 	if len(c.Keys) == 0 {
 		c.Keys = []LoginIDKeyConfig{
-			{Key: "email", Type: LoginIDKeyType(metadata.Email), Maximum: newInt(1)},
-			{Key: "phone", Type: LoginIDKeyType(metadata.Phone), Maximum: newInt(1)},
-			{Key: "username", Type: LoginIDKeyType(metadata.Username), Maximum: newInt(1)},
+			{Key: "email", Type: LoginIDKeyType(metadata.Email)},
+			{Key: "phone", Type: LoginIDKeyType(metadata.Phone)},
+			{Key: "username", Type: LoginIDKeyType(metadata.Username)},
+		}
+		for i := range c.Keys {
+			c.Keys[i].SetDefaults()
 		}
 	}
 }
@@ -145,22 +148,29 @@ var _ = Schema.Add("LoginIDKeyConfig", `
 	"properties": {
 		"key": { "type": "string" },
 		"type": { "$ref": "#/$defs/LoginIDKeyType" },
-		"maximum": { "type": "integer" }
+		"maximum": { "type": "integer" },
+		"verification": { "$ref": "#/$defs/VerificationLoginIDKeyConfig" }
 	},
 	"required": ["key", "type"]
 }
 `)
 
 type LoginIDKeyConfig struct {
-	Key     string         `json:"key,omitempty"`
-	Type    LoginIDKeyType `json:"type,omitempty"`
-	Maximum *int           `json:"maximum,omitempty"`
+	Key          string                        `json:"key,omitempty"`
+	Type         LoginIDKeyType                `json:"type,omitempty"`
+	Maximum      *int                          `json:"maximum,omitempty"`
+	Verification *VerificationLoginIDKeyConfig `json:"verification,omitempty"`
 }
 
 func (c *LoginIDKeyConfig) SetDefaults() {
 	if c.Maximum == nil {
 		c.Maximum = newInt(1)
 	}
+
+	if c.Verification == nil {
+		c.Verification = &VerificationLoginIDKeyConfig{}
+	}
+	c.Verification.SetDefaults(c.Type)
 }
 
 var _ = Schema.Add("LoginIDKeyType", `

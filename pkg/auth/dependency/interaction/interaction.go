@@ -2,24 +2,18 @@ package interaction
 
 import (
 	"encoding/json"
-	"time"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
-	"github.com/authgear/authgear-server/pkg/core/skyerr"
 )
 
 // Interaction represents an interaction with authenticators/identities, and authentication process.
 type Interaction struct {
-	Token       string    `json:"token"`
-	CreatedAt   time.Time `json:"created_at"`
-	ExpireAt    time.Time `json:"expire_at"`
-	SessionID   string    `json:"session_id,omitempty"`
-	SessionType string    `json:"session_type,omitempty"`
-	ClientID    string    `json:"client_id,omitempty"`
+	SessionID   string `json:"session_id,omitempty"`
+	SessionType string `json:"session_type,omitempty"`
+	ClientID    string `json:"client_id,omitempty"`
 
-	Intent Intent           `json:"-"`
-	Error  *skyerr.APIError `json:"error,omitempty"`
+	Intent Intent `json:"-"`
 
 	UserID                 string             `json:"user_id"`
 	Identity               *identity.Ref      `json:"identity"`
@@ -34,13 +28,6 @@ type Interaction struct {
 	NewAuthenticators    []*authenticator.Info `json:"new_authenticators,omitempty"`
 	RemoveIdentities     []*identity.Info      `json:"remove_identities,omitempty"`
 	RemoveAuthenticators []*authenticator.Info `json:"remove_authenticators,omitempty"`
-
-	// Extra is used to persist extra data across the interaction.
-	Extra map[string]string `json:"extra,omitempty"`
-
-	// The following fields are for checking programming errors.
-	saved     bool
-	committed bool
 }
 
 func newInteraction(clientID string, intent Intent) *Interaction {
@@ -48,7 +35,6 @@ func newInteraction(clientID string, intent Intent) *Interaction {
 		ClientID: clientID,
 		Intent:   intent,
 		State:    map[string]string{},
-		Extra:    map[string]string{},
 	}
 }
 

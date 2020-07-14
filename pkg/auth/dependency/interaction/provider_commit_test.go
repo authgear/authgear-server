@@ -23,7 +23,6 @@ func TestProviderCommit(t *testing.T) {
 
 		identityProvider := NewMockIdentityProvider(ctrl)
 		authenticatorProvider := NewMockAuthenticatorProvider(ctrl)
-		store := NewMockStore(ctrl)
 		userProvider := NewMockUserProvider(ctrl)
 		hooks := NewMockHookProvider(ctrl)
 
@@ -32,7 +31,6 @@ func TestProviderCommit(t *testing.T) {
 			Identity:      identityProvider,
 			Authenticator: authenticatorProvider,
 			User:          userProvider,
-			Store:         store,
 			Hooks:         hooks,
 		}
 		userID := "userid1"
@@ -72,8 +70,6 @@ func TestProviderCommit(t *testing.T) {
 		}, nil).AnyTimes()
 		authenticatorProvider.EXPECT().ListByIdentity(userID, oauthID).Return([]*authenticator.Info{}, nil).AnyTimes()
 
-		store.EXPECT().Create(gomock.Any()).Return(nil).AnyTimes()
-		store.EXPECT().Delete(gomock.Any()).Return(nil).AnyTimes()
 		identityProvider.EXPECT().CreateAll(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 		identityProvider.EXPECT().UpdateAll(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 		identityProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
