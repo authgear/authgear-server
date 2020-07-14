@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/core/skyerr"
-	"github.com/authgear/authgear-server/pkg/httputil"
 	"github.com/authgear/authgear-server/pkg/log"
 )
 
@@ -29,30 +28,21 @@ type StateService struct {
 	Logger       StateServiceLogger
 }
 
-func (p *StateService) CreateState(r *http.Request, result *WebAppResult, inputError error) *State {
+func (p *StateService) MakeState(r *http.Request) *State {
 	s := NewState()
-
 	r.Form.Set("x_sid", s.ID)
 	q := r.URL.Query()
 	q.Set("x_sid", s.ID)
 	r.URL.RawQuery = q.Encode()
+	return s
+}
 
-	if redirectURI, err := httputil.GetRedirectURI(r, p.ServerConfig.TrustProxy); err == nil {
-		s.Extra[ExtraRedirectURI] = redirectURI
-	} else {
-		s.Extra[ExtraRedirectURI] = r.URL.String()
-	}
-
-	s.SetError(inputError)
-	if inputError != nil && !skyerr.IsAPIError(inputError) {
-		p.Logger.WithError(inputError).Error("unexpected error occurred")
-	}
-
+func (p *StateService) CreateState(s *State, redirectURI string) *State {
+	s.Extra[ExtraRedirectURI] = redirectURI
 	err := p.StateStore.Set(s)
 	if err != nil {
 		panic(err)
 	}
-
 	return s
 }
 

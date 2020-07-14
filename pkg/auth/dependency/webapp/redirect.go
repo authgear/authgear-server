@@ -17,12 +17,15 @@ const DefaultRedirectURI = "/settings"
 // redirect_uri must have the same origin.
 // Finally a 302 response is written.
 func RedirectToRedirectURI(w http.ResponseWriter, r *http.Request, trustProxy bool) {
+	http.Redirect(w, r, GetRedirectURI(r, trustProxy), http.StatusFound)
+}
+
+func GetRedirectURI(r *http.Request, trustProxy bool) string {
 	redirectURI, err := httputil.GetRedirectURI(r, trustProxy)
 	if err != nil {
-		http.Redirect(w, r, DefaultRedirectURI, http.StatusFound)
-	} else {
-		http.Redirect(w, r, redirectURI, http.StatusFound)
+		return DefaultRedirectURI
 	}
+	return redirectURI
 }
 
 func RedirectToPathWithX(w http.ResponseWriter, r *http.Request, path string) {

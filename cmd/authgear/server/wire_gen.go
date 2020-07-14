@@ -1280,9 +1280,9 @@ func newWebAppRootHandler(p *deps.RequestProvider) http.Handler {
 
 func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
+	handle := appProvider.Database
 	redisHandle := appProvider.Redis
 	stateStoreRedis := &flows.StateStoreRedis{
 		Redis: redisHandle,
@@ -1622,6 +1622,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Interactions: interactionProvider,
 	}
 	loginHandler := &webapp2.LoginHandler{
+		ServerConfig:            serverConfig,
 		Database:                handle,
 		State:                   stateService,
 		BaseViewModel:           baseViewModeler,
@@ -1637,9 +1638,9 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 
 func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
+	handle := appProvider.Database
 	redisHandle := appProvider.Redis
 	stateStoreRedis := &flows.StateStoreRedis{
 		Redis: redisHandle,
@@ -1979,6 +1980,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Interactions: interactionProvider,
 	}
 	signupHandler := &webapp2.SignupHandler{
+		ServerConfig:            serverConfig,
 		Database:                handle,
 		State:                   stateService,
 		BaseViewModel:           baseViewModeler,

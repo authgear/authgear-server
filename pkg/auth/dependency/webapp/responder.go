@@ -36,6 +36,8 @@ func (r *Responder) Respond(
 	result *interactionflows.WebAppResult,
 	err error,
 ) {
+	// result and err can be nil at the same time.
+
 	onError := func() {
 		if errorRedirect, ok := err.(ErrorRedirect); ok {
 			http.Redirect(w, req, errorRedirect.RedirectURI(), http.StatusFound)
@@ -49,11 +51,13 @@ func (r *Responder) Respond(
 		return
 	}
 
-	for _, cookie := range result.Cookies {
-		httputil.UpdateCookie(w, cookie)
+	if result != nil {
+		for _, cookie := range result.Cookies {
+			httputil.UpdateCookie(w, cookie)
+		}
 	}
 
-	if result.RedirectURI != "" {
+	if result != nil && result.RedirectURI != "" {
 		http.Redirect(w, req, result.RedirectURI, http.StatusFound)
 		return
 	}

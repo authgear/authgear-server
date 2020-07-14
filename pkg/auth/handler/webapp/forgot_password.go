@@ -196,7 +196,8 @@ func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 					webapp.RedirectToPathWithX(w, r, "/forgot_password/success")
 				}
 			}()
-			state = h.State.CreateState(r, nil, nil)
+			state = h.State.MakeState(r)
+			state = h.State.CreateState(state, "")
 
 			err = ForgotPasswordSchema.PartValidator(ForgotPasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
 			if err != nil {

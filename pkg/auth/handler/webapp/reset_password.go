@@ -146,7 +146,8 @@ func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 					webapp.RedirectToPathWithX(w, r, "/reset_password/success")
 				}
 			}()
-			state = h.State.CreateState(r, nil, nil)
+			state = h.State.MakeState(r)
+			state = h.State.CreateState(state, "")
 
 			err = ResetPasswordSchema.PartValidator(ResetPasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
 			if err != nil {

@@ -25,15 +25,6 @@ func TestStateService(t *testing.T) {
 			Logger:     StateServiceLogger{log.Null},
 		}
 
-		Convey("CreateState ignore existing sid", func() {
-			r, _ := http.NewRequest("GET", "/?x_sid=a", nil)
-			_ = r.ParseForm()
-			store.EXPECT().Set(gomock.Any()).Return(nil)
-
-			p.CreateState(r, nil, nil)
-			So(r.URL.Query().Get("x_sid"), ShouldNotEqual, "a")
-		})
-
 		Convey("UpdateState reject missing sid", func() {
 			_, _ = http.NewRequest("GET", "/", nil)
 

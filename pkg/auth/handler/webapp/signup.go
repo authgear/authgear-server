@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -180,6 +181,7 @@ type SignupInteractions interface {
 }
 
 type SignupHandler struct {
+	ServerConfig            *config.ServerConfig
 	Database                *db.Handle
 	State                   StateService
 	BaseViewModel           *BaseViewModeler
@@ -240,7 +242,8 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				h.State.UpdateState(state, result, err)
 				h.Responder.Respond(w, r, state, result, err)
 			}()
-			state = h.State.CreateState(r, nil, nil)
+			state = h.State.MakeState(r)
+			state = h.State.CreateState(state, webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy))
 
 			result, err = h.OAuth.LoginOAuthProvider(r, providerAlias, state)
 			if err != nil {
@@ -262,8 +265,8 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				h.State.UpdateState(state, result, err)
 				h.Responder.Respond(w, r, state, result, err)
 			}()
-
-			state = h.State.CreateState(r, nil, nil)
+			state = h.State.MakeState(r)
+			state = h.State.CreateState(state, webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy))
 
 			err = SignupSchema.PartValidator(SignupWithLoginIDRequestSchema).ValidateValue(FormToJSON(r.Form))
 			if err != nil {
