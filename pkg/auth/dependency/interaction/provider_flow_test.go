@@ -82,12 +82,11 @@ func TestProviderFlow(t *testing.T) {
 				)
 				So(err, ShouldBeNil)
 
-				state, err := p.GetInteractionState(i)
+				stepState, err := p.GetStepState(i)
 				So(err, ShouldBeNil)
-				So(state.Steps, ShouldHaveLength, 1)
-				So(state.Steps[0].Step, ShouldEqual, interaction.StepSetupPrimaryAuthenticator)
-				So(state.Steps[0].AvailableAuthenticators, ShouldNotBeEmpty)
-				So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
+				So(stepState.Step, ShouldEqual, interaction.StepSetupPrimaryAuthenticator)
+				So(stepState.AvailableAuthenticators, ShouldNotBeEmpty)
+				So(stepState.AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
 					Type:  authn.AuthenticatorTypePassword,
 					Props: map[string]interface{}{},
 				})
@@ -115,27 +114,24 @@ func TestProviderFlow(t *testing.T) {
 				authenticatorProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
 
 				// step 2
-				state, err = p.GetInteractionState(i)
+				stepState, err = p.GetStepState(i)
 				So(err, ShouldBeNil)
-				So(state.Steps, ShouldHaveLength, 1)
-				So(state.Steps[0].Step, ShouldEqual, interaction.StepSetupPrimaryAuthenticator)
-				So(state.Steps[0].AvailableAuthenticators, ShouldNotBeEmpty)
-				So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
+				So(stepState.Step, ShouldEqual, interaction.StepSetupPrimaryAuthenticator)
+				So(stepState.AvailableAuthenticators, ShouldNotBeEmpty)
+				So(stepState.AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
 					Type:  authn.AuthenticatorTypePassword,
 					Props: map[string]interface{}{},
 				})
 
 				err = p.PerformAction(i, interaction.StepSetupPrimaryAuthenticator, &interaction.ActionSetupAuthenticator{
-					Authenticator: state.Steps[0].AvailableAuthenticators[0],
+					Authenticator: stepState.AvailableAuthenticators[0],
 					Secret:        "password",
 				})
 				So(err, ShouldBeNil)
 
-				state, err = p.GetInteractionState(i)
+				stepState, err = p.GetStepState(i)
 				So(err, ShouldBeNil)
-				So(state.Steps, ShouldHaveLength, 2)
-				So(state.Steps[0].Step, ShouldEqual, interaction.StepSetupPrimaryAuthenticator)
-				So(state.Steps[1].Step, ShouldEqual, interaction.StepCommit)
+				So(stepState.Step, ShouldEqual, interaction.StepCommit)
 
 				_, err = p.Commit(i)
 				So(err, ShouldBeNil)
@@ -174,12 +170,11 @@ func TestProviderFlow(t *testing.T) {
 				)
 				So(err, ShouldBeNil)
 
-				state, err := p.GetInteractionState(i)
+				stepState, err := p.GetStepState(i)
 				So(err, ShouldBeNil)
-				So(state.Steps, ShouldHaveLength, 1)
-				So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticatePrimary)
-				So(state.Steps[0].AvailableAuthenticators, ShouldNotBeEmpty)
-				So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
+				So(stepState.Step, ShouldEqual, interaction.StepAuthenticatePrimary)
+				So(stepState.AvailableAuthenticators, ShouldNotBeEmpty)
+				So(stepState.AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
 					Type:  authn.AuthenticatorTypePassword,
 					Props: map[string]interface{}{},
 				})
@@ -202,27 +197,24 @@ func TestProviderFlow(t *testing.T) {
 				authenticatorProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
 
 				// step 2
-				state, err = p.GetInteractionState(i)
+				stepState, err = p.GetStepState(i)
 				So(err, ShouldBeNil)
-				So(state.Steps, ShouldHaveLength, 1)
-				So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticatePrimary)
-				So(state.Steps[0].AvailableAuthenticators, ShouldNotBeEmpty)
-				So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
+				So(stepState.Step, ShouldEqual, interaction.StepAuthenticatePrimary)
+				So(stepState.AvailableAuthenticators, ShouldNotBeEmpty)
+				So(stepState.AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
 					Type:  authn.AuthenticatorTypePassword,
 					Props: map[string]interface{}{},
 				})
 
 				err = p.PerformAction(i, interaction.StepAuthenticatePrimary, &interaction.ActionAuthenticate{
-					Authenticator: state.Steps[0].AvailableAuthenticators[0],
+					Authenticator: stepState.AvailableAuthenticators[0],
 					Secret:        "password",
 				})
 				So(err, ShouldBeNil)
 
-				state, err = p.GetInteractionState(i)
+				stepState, err = p.GetStepState(i)
 				So(err, ShouldBeNil)
-				So(state.Steps, ShouldHaveLength, 2)
-				So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticatePrimary)
-				So(state.Steps[1].Step, ShouldEqual, interaction.StepCommit)
+				So(stepState.Step, ShouldEqual, interaction.StepCommit)
 
 				_, err = p.Commit(i)
 				So(err, ShouldBeNil)
@@ -284,12 +276,11 @@ func TestProviderFlow(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			state, err := p.GetInteractionState(i)
+			stepState, err := p.GetStepState(i)
 			So(err, ShouldBeNil)
-			So(state.Steps, ShouldHaveLength, 1)
-			So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticateSecondary)
-			So(state.Steps[0].AvailableAuthenticators, ShouldNotBeEmpty)
-			So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
+			So(stepState.Step, ShouldEqual, interaction.StepAuthenticateSecondary)
+			So(stepState.AvailableAuthenticators, ShouldNotBeEmpty)
+			So(stepState.AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
 				Type: authn.AuthenticatorTypeTOTP,
 				Props: map[string]interface{}{
 					authenticator.AuthenticatorPropTOTPDisplayName: "My Authenticator",
@@ -322,12 +313,11 @@ func TestProviderFlow(t *testing.T) {
 				gomock.Eq(userID), gomock.Eq(ai.ToSpec()), gomock.Any(), gomock.Any(),
 			).Return(ai, nil)
 
-			state, err = p.GetInteractionState(i)
+			stepState, err = p.GetStepState(i)
 			So(err, ShouldBeNil)
-			So(state.Steps, ShouldHaveLength, 1)
-			So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticateSecondary)
-			So(state.Steps[0].AvailableAuthenticators, ShouldNotBeEmpty)
-			So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
+			So(stepState.Step, ShouldEqual, interaction.StepAuthenticateSecondary)
+			So(stepState.AvailableAuthenticators, ShouldNotBeEmpty)
+			So(stepState.AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
 				Type: authn.AuthenticatorTypeTOTP,
 				Props: map[string]interface{}{
 					authenticator.AuthenticatorPropTOTPDisplayName: "My Authenticator",
@@ -335,16 +325,14 @@ func TestProviderFlow(t *testing.T) {
 			})
 
 			err = p.PerformAction(i, interaction.StepAuthenticateSecondary, &interaction.ActionAuthenticate{
-				Authenticator: state.Steps[0].AvailableAuthenticators[0],
+				Authenticator: stepState.AvailableAuthenticators[0],
 				Secret:        "123456",
 			})
 			So(err, ShouldBeNil)
 
-			state, err = p.GetInteractionState(i)
+			stepState, err = p.GetStepState(i)
 			So(err, ShouldBeNil)
-			So(state.Steps, ShouldHaveLength, 2)
-			So(state.Steps[0].Step, ShouldEqual, interaction.StepAuthenticateSecondary)
-			So(state.Steps[1].Step, ShouldEqual, interaction.StepCommit)
+			So(stepState.Step, ShouldEqual, interaction.StepCommit)
 
 			_, err = p.Commit(i)
 			So(err, ShouldBeNil)
@@ -378,21 +366,18 @@ func TestProviderFlow(t *testing.T) {
 				},
 			})
 
-			state, err := p.GetInteractionState(i)
+			stepState, err := p.GetStepState(i)
 			So(err, ShouldBeNil)
-			So(state.Steps, ShouldHaveLength, 1)
-			So(state.Steps[0].Step, ShouldEqual, interaction.StepSetupSecondaryAuthenticator)
+			So(stepState.Step, ShouldEqual, interaction.StepSetupSecondaryAuthenticator)
 
 			err = p.PerformAction(i, interaction.StepSetupSecondaryAuthenticator, &interaction.ActionAuthenticate{
 				Secret: "123456",
 			})
 			So(err, ShouldBeNil)
 
-			state, err = p.GetInteractionState(i)
+			stepState, err = p.GetStepState(i)
 			So(err, ShouldBeNil)
-			So(state.Steps, ShouldHaveLength, 2)
-			So(state.Steps[0].Step, ShouldEqual, interaction.StepSetupSecondaryAuthenticator)
-			So(state.Steps[1].Step, ShouldEqual, interaction.StepCommit)
+			So(stepState.Step, ShouldEqual, interaction.StepCommit)
 
 			_, err = p.Commit(i)
 			So(err, ShouldBeNil)
@@ -466,10 +451,9 @@ func TestProviderFlow(t *testing.T) {
 
 				So(err, ShouldBeNil)
 
-				state, err := p.GetInteractionState(i)
+				stepState, err := p.GetStepState(i)
 				So(err, ShouldBeNil)
-				So(state.Steps, ShouldHaveLength, 1)
-				So(state.Steps[0].Step, ShouldEqual, interaction.StepCommit)
+				So(stepState.Step, ShouldEqual, interaction.StepCommit)
 			})
 
 			Convey("should setup authenticator", func() {
@@ -559,28 +543,25 @@ func TestProviderFlow(t *testing.T) {
 
 				So(err, ShouldBeNil)
 
-				state, err := p.GetInteractionState(i)
+				stepState, err := p.GetStepState(i)
 				So(err, ShouldBeNil)
-				So(state.Steps, ShouldHaveLength, 1)
-				So(state.Steps[0].Step, ShouldEqual, interaction.StepSetupPrimaryAuthenticator)
-				So(state.Steps[0].AvailableAuthenticators, ShouldNotBeEmpty)
-				So(state.Steps[0].AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
+				So(stepState.Step, ShouldEqual, interaction.StepSetupPrimaryAuthenticator)
+				So(stepState.AvailableAuthenticators, ShouldNotBeEmpty)
+				So(stepState.AvailableAuthenticators[0], ShouldResemble, authenticator.Spec{
 					Type:  authn.AuthenticatorTypePassword,
 					Props: map[string]interface{}{},
 				})
 
 				// setup primary authenticator
 				err = p.PerformAction(i, interaction.StepSetupPrimaryAuthenticator, &interaction.ActionSetupAuthenticator{
-					Authenticator: state.Steps[0].AvailableAuthenticators[0],
+					Authenticator: stepState.AvailableAuthenticators[0],
 					Secret:        "password",
 				})
 				So(err, ShouldBeNil)
 
-				state, err = p.GetInteractionState(i)
+				stepState, err = p.GetStepState(i)
 				So(err, ShouldBeNil)
-				So(state.Steps, ShouldHaveLength, 2)
-				So(state.Steps[0].Step, ShouldEqual, interaction.StepSetupPrimaryAuthenticator)
-				So(state.Steps[1].Step, ShouldEqual, interaction.StepCommit)
+				So(stepState.Step, ShouldEqual, interaction.StepCommit)
 
 				_, err = p.Commit(i)
 				So(err, ShouldBeNil)
@@ -686,11 +667,10 @@ func TestProviderFlow(t *testing.T) {
 			}, "", userID)
 			So(err, ShouldBeNil)
 
-			state, err := p.GetInteractionState(i)
+			stepState, err := p.GetStepState(i)
 			So(err, ShouldBeNil)
 
-			So(state.Steps, ShouldHaveLength, 1)
-			So(state.Steps[0].Step, ShouldEqual, interaction.StepCommit)
+			So(stepState.Step, ShouldEqual, interaction.StepCommit)
 
 			_, err = p.Commit(i)
 			So(err, ShouldBeNil)
@@ -790,10 +770,9 @@ func TestProviderFlow(t *testing.T) {
 				}, "", userID)
 				So(err, ShouldBeNil)
 
-				state, err := p.GetInteractionState(i)
+				stepState, err := p.GetStepState(i)
 				So(err, ShouldBeNil)
-				So(state.Steps, ShouldHaveLength, 1)
-				So(state.Steps[0].Step, ShouldEqual, interaction.StepCommit)
+				So(stepState.Step, ShouldEqual, interaction.StepCommit)
 
 				_, err = p.Commit(i)
 				So(err, ShouldBeNil)
@@ -850,22 +829,19 @@ func TestProviderFlow(t *testing.T) {
 				}, "", userID)
 				So(err, ShouldBeNil)
 
-				state, err := p.GetInteractionState(i)
+				stepState, err := p.GetStepState(i)
 				So(err, ShouldBeNil)
-				So(state.Steps, ShouldHaveLength, 1)
-				So(state.Steps[0].Step, ShouldEqual, interaction.StepSetupPrimaryAuthenticator)
+				So(stepState.Step, ShouldEqual, interaction.StepSetupPrimaryAuthenticator)
 
 				err = p.PerformAction(i, interaction.StepSetupPrimaryAuthenticator, &interaction.ActionSetupAuthenticator{
-					Authenticator: state.Steps[0].AvailableAuthenticators[0],
+					Authenticator: stepState.AvailableAuthenticators[0],
 					Secret:        "newpassword",
 				})
 				So(err, ShouldBeNil)
 
-				state, err = p.GetInteractionState(i)
+				stepState, err = p.GetStepState(i)
 				So(err, ShouldBeNil)
-				So(state.Steps, ShouldHaveLength, 2)
-				So(state.Steps[0].Step, ShouldEqual, interaction.StepSetupPrimaryAuthenticator)
-				So(state.Steps[1].Step, ShouldEqual, interaction.StepCommit)
+				So(stepState.Step, ShouldEqual, interaction.StepCommit)
 
 				_, err = p.Commit(i)
 				So(err, ShouldBeNil)
@@ -888,22 +864,19 @@ func TestProviderFlow(t *testing.T) {
 				}, "", userID)
 				So(err, ShouldBeNil)
 
-				state, err := p.GetInteractionState(i)
+				stepState, err := p.GetStepState(i)
 				So(err, ShouldBeNil)
-				So(state.Steps, ShouldHaveLength, 1)
-				So(state.Steps[0].Step, ShouldEqual, interaction.StepSetupPrimaryAuthenticator)
+				So(stepState.Step, ShouldEqual, interaction.StepSetupPrimaryAuthenticator)
 
 				err = p.PerformAction(i, interaction.StepSetupPrimaryAuthenticator, &interaction.ActionSetupAuthenticator{
-					Authenticator: state.Steps[0].AvailableAuthenticators[0],
+					Authenticator: stepState.AvailableAuthenticators[0],
 					Secret:        "samepassword",
 				})
 				So(err, ShouldBeNil)
 
-				state, err = p.GetInteractionState(i)
+				stepState, err = p.GetStepState(i)
 				So(err, ShouldBeNil)
-				So(state.Steps, ShouldHaveLength, 2)
-				So(state.Steps[0].Step, ShouldEqual, interaction.StepSetupPrimaryAuthenticator)
-				So(state.Steps[1].Step, ShouldEqual, interaction.StepCommit)
+				So(stepState.Step, ShouldEqual, interaction.StepCommit)
 
 				_, err = p.Commit(i)
 				So(err, ShouldBeNil)

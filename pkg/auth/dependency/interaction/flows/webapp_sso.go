@@ -43,11 +43,11 @@ func (f *WebAppFlow) LoginWithOAuthProvider(state *State, oauthAuthInfo sso.Auth
 	if err != nil {
 		return nil, err
 	}
-	s, err := f.Interactions.GetInteractionState(state.Interaction)
+	stepState, err := f.Interactions.GetStepState(state.Interaction)
 	if err != nil {
 		return nil, err
 	}
-	if s.CurrentStep().Step != interaction.StepCommit {
+	if stepState.Step != interaction.StepCommit {
 		panic("interaction_flow_webapp: unexpected interaction state")
 	}
 	result, err := f.Interactions.Commit(state.Interaction)
@@ -96,12 +96,12 @@ func (f *WebAppFlow) LinkWithOAuthProvider(state *State, userID string, oauthAut
 		return
 	}
 
-	s, err := f.Interactions.GetInteractionState(state.Interaction)
+	stepState, err := f.Interactions.GetStepState(state.Interaction)
 	if err != nil {
 		return
 	}
 
-	if s.CurrentStep().Step != interaction.StepCommit {
+	if stepState.Step != interaction.StepCommit {
 		// authenticator is not needed for oauth identity
 		// so the current step must be commit
 		panic("interaction_flow_webapp: unexpected interaction step")
@@ -137,13 +137,13 @@ func (f *WebAppFlow) UnlinkOAuthProvider(state *State, providerAlias string, use
 		return
 	}
 
-	s, err := f.Interactions.GetInteractionState(state.Interaction)
+	stepState, err := f.Interactions.GetStepState(state.Interaction)
 	if err != nil {
 		return
 	}
 
-	if s.CurrentStep().Step != interaction.StepCommit {
-		panic("interaction_flow_webapp: unexpected step " + s.CurrentStep().Step)
+	if stepState.Step != interaction.StepCommit {
+		panic("interaction_flow_webapp: unexpected step " + stepState.Step)
 	}
 
 	_, err = f.Interactions.Commit(state.Interaction)

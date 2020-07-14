@@ -12,7 +12,7 @@ import (
 )
 
 type ResponderInteractions interface {
-	GetInteractionState(i *interaction.Interaction) (*interaction.State, error)
+	GetStepState(i *interaction.Interaction) (*interaction.StepState, error)
 }
 
 type ResponderStates interface {
@@ -65,16 +65,15 @@ func (r *Responder) Respond(
 		return
 	}
 
-	iState, err := r.Interactions.GetInteractionState(state.Interaction)
+	stepState, err := r.Interactions.GetStepState(state.Interaction)
 	if err != nil {
 		onError()
 		return
 	}
 
-	currentStep := iState.CurrentStep()
-	switch currentStep.Step {
+	switch stepState.Step {
 	case interaction.StepSetupPrimaryAuthenticator:
-		switch currentStep.AvailableAuthenticators[0].Type {
+		switch stepState.AvailableAuthenticators[0].Type {
 		case authn.AuthenticatorTypeOOB:
 			u.Path = "/oob_otp"
 			http.Redirect(w, req, u.String(), http.StatusFound)
@@ -87,7 +86,7 @@ func (r *Responder) Respond(
 	case interaction.StepSetupSecondaryAuthenticator:
 		panic("TODO: support StepSetupSecondaryAuthenticator")
 	case interaction.StepAuthenticatePrimary:
-		switch currentStep.AvailableAuthenticators[0].Type {
+		switch stepState.AvailableAuthenticators[0].Type {
 		case authn.AuthenticatorTypeOOB:
 			u.Path = "/oob_otp"
 			http.Redirect(w, req, u.String(), http.StatusFound)

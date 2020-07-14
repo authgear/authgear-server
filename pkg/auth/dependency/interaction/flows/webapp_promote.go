@@ -94,10 +94,10 @@ func (f *WebAppFlow) PromoteWithOAuthProvider(state *State, userID string, oauth
 		return nil, err
 	}
 
-	s, err := f.Interactions.GetInteractionState(state.Interaction)
+	stepState, err := f.Interactions.GetStepState(state.Interaction)
 	if err != nil {
 		return nil, err
-	} else if s.CurrentStep().Step != interaction.StepCommit {
+	} else if stepState.Step != interaction.StepCommit {
 		// authenticator is not needed for oauth identity
 		// so the current step must be commit
 		panic("interaction_flow_webapp: unexpected interaction step")
@@ -134,13 +134,13 @@ func (f *WebAppFlow) afterAnonymousUserPromotion(state *State, ir *interaction.R
 			return nil, err
 		}
 
-		s, err := f.Interactions.GetInteractionState(state.Interaction)
+		stepState, err := f.Interactions.GetStepState(state.Interaction)
 		if err != nil {
 			return nil, err
 		}
 
-		if s.CurrentStep().Step != interaction.StepCommit {
-			panic("interaction_flow_webapp: unexpected step " + s.CurrentStep().Step)
+		if stepState.Step != interaction.StepCommit {
+			panic("interaction_flow_webapp: unexpected step " + stepState.Step)
 		}
 
 		_, err = f.Interactions.Commit(state.Interaction)

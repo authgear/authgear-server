@@ -41,18 +41,18 @@ func (f *PasswordFlow) ResetPassword(userID string, password string) error {
 }
 
 func (f *PasswordFlow) startUpdatePasswordInteraction(i *interaction.Interaction, password string) error {
-	s, err := f.Interactions.GetInteractionState(i)
+	stepState, err := f.Interactions.GetStepState(i)
 	if err != nil {
 		return err
 	}
 
-	if s.CurrentStep().Step != interaction.StepSetupPrimaryAuthenticator ||
-		len(s.CurrentStep().AvailableAuthenticators) != 1 ||
-		s.CurrentStep().AvailableAuthenticators[0].Type != authn.AuthenticatorTypePassword {
+	if stepState.Step != interaction.StepSetupPrimaryAuthenticator ||
+		len(stepState.AvailableAuthenticators) != 1 ||
+		stepState.AvailableAuthenticators[0].Type != authn.AuthenticatorTypePassword {
 		panic("interaction_flow_password: unexpected interaction state")
 	}
 
-	passwordAuthenticator := s.CurrentStep().AvailableAuthenticators[0]
+	passwordAuthenticator := stepState.AvailableAuthenticators[0]
 	err = f.Interactions.PerformAction(i, interaction.StepSetupPrimaryAuthenticator, &interaction.ActionSetupAuthenticator{
 		Authenticator: passwordAuthenticator,
 		Secret:        password,
@@ -61,12 +61,12 @@ func (f *PasswordFlow) startUpdatePasswordInteraction(i *interaction.Interaction
 		return err
 	}
 
-	s, err = f.Interactions.GetInteractionState(i)
+	stepState, err = f.Interactions.GetStepState(i)
 	if err != nil {
 		return err
 	}
 
-	if s.CurrentStep().Step != interaction.StepCommit {
+	if stepState.Step != interaction.StepCommit {
 		panic("interaction_flow_password: unexpected interaction state")
 	}
 
