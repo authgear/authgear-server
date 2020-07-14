@@ -109,7 +109,7 @@ func NewOOBOTPViewModel(state *interactionflows.State) OOBOTPViewModel {
 	return OOBOTPViewModel{
 		OOBOTPCodeSendCooldown: oob.OOBCodeSendCooldownSeconds,
 		OOBOTPCodeLength:       oob.OOBCodeLength,
-		OOBOTPChannel:          state.Interaction.State[authenticator.AuthenticatorPropOOBOTPChannelType],
+		OOBOTPChannel:          state.Interaction.State[authenticator.AuthenticatorStateOOBOTPChannelType],
 		GivenLoginID:           givenLoginID,
 	}
 }
