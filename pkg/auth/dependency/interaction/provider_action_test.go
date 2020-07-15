@@ -17,7 +17,7 @@ type mockOOBProvider struct {
 	code int
 }
 
-func (p *mockOOBProvider) GenerateCode() string {
+func (p *mockOOBProvider) GenerateCode(channel authn.AuthenticatorOOBChannel) string {
 	code := p.code
 	p.code++
 	return strconv.Itoa(code)

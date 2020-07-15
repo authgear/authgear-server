@@ -475,17 +475,17 @@ func (m *MockOOBProvider) EXPECT() *MockOOBProviderMockRecorder {
 }
 
 // GenerateCode mocks base method
-func (m *MockOOBProvider) GenerateCode() string {
+func (m *MockOOBProvider) GenerateCode(channel authn.AuthenticatorOOBChannel) string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GenerateCode")
+	ret := m.ctrl.Call(m, "GenerateCode", channel)
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
 // GenerateCode indicates an expected call of GenerateCode
-func (mr *MockOOBProviderMockRecorder) GenerateCode() *gomock.Call {
+func (mr *MockOOBProviderMockRecorder) GenerateCode(channel interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateCode", reflect.TypeOf((*MockOOBProvider)(nil).GenerateCode))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateCode", reflect.TypeOf((*MockOOBProvider)(nil).GenerateCode), channel)
 }
 
 // SendCode mocks base method

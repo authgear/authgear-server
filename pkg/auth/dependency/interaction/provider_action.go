@@ -230,8 +230,9 @@ func (p *Provider) doTriggerOOB(i *Interaction, step *StepState, action *ActionT
 	// Rotate the code according to oob.OOBCodeValidDuration
 	code := i.State[authenticator.AuthenticatorStateOOBOTPCode]
 	generateTimeStr := i.State[authenticator.AuthenticatorStateOOBOTPGenerateTime]
+	channel := spec.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string)
 	if generateTimeStr == "" {
-		code = p.OOB.GenerateCode()
+		code = p.OOB.GenerateCode(authn.AuthenticatorOOBChannel(channel))
 		generateTimeStr = nowStr
 	} else {
 		var tt time.Time
@@ -242,7 +243,7 @@ func (p *Provider) doTriggerOOB(i *Interaction, step *StepState, action *ActionT
 
 		// Expire
 		if tt.Add(oob.OOBOTPValidDuration).Before(now) {
-			code = p.OOB.GenerateCode()
+			code = p.OOB.GenerateCode(authn.AuthenticatorOOBChannel(channel))
 			generateTimeStr = nowStr
 		}
 	}
@@ -277,8 +278,7 @@ func (p *Provider) doTriggerOOB(i *Interaction, step *StepState, action *ActionT
 	i.State[authenticator.AuthenticatorStateOOBOTPCode] = code
 	i.State[authenticator.AuthenticatorStateOOBOTPGenerateTime] = generateTimeStr
 	i.State[authenticator.AuthenticatorStateOOBOTPTriggerTime] = nowStr
-	i.State[authenticator.AuthenticatorStateOOBOTPChannelType] =
-		spec.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string)
+	i.State[authenticator.AuthenticatorStateOOBOTPChannelType] = channel
 
 	return
 }

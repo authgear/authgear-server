@@ -72,7 +72,7 @@ type UserProvider interface {
 }
 
 type OOBProvider interface {
-	GenerateCode() string
+	GenerateCode(channel authn.AuthenticatorOOBChannel) string
 	SendCode(
 		channel authn.AuthenticatorOOBChannel,
 		loginID *loginid.LoginID,

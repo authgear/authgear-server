@@ -9,7 +9,6 @@ import (
 	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
-	"github.com/authgear/authgear-server/pkg/otp"
 	"github.com/authgear/authgear-server/pkg/template"
 	"github.com/authgear/authgear-server/pkg/validation"
 )
@@ -109,7 +108,7 @@ func NewOOBOTPViewModel(state *interactionflows.State) OOBOTPViewModel {
 	givenLoginID, _ := state.Extra[interactionflows.ExtraGivenLoginID].(string)
 	return OOBOTPViewModel{
 		OOBOTPCodeSendCooldown: oob.OOBOTPSendCooldownSeconds,
-		OOBOTPCodeLength:       otp.OOBOTPLength,
+		OOBOTPCodeLength:       len(state.Interaction.State[authenticator.AuthenticatorStateOOBOTPCode]),
 		OOBOTPChannel:          state.Interaction.State[authenticator.AuthenticatorStateOOBOTPChannelType],
 		GivenLoginID:           givenLoginID,
 	}

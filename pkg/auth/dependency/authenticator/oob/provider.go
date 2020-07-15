@@ -80,15 +80,24 @@ func (p *Provider) Create(a *Authenticator) error {
 }
 
 func (p *Provider) Authenticate(expectedCode string, code string) error {
-	ok := otp.ValidateOOBOTP(expectedCode, code)
+	ok := otp.ValidateOTP(expectedCode, code)
 	if !ok {
 		return errors.New("invalid bearer token")
 	}
 	return nil
 }
 
-func (p *Provider) GenerateCode() string {
-	return otp.GenerateOOBOTP()
+func (p *Provider) GenerateCode(channel authn.AuthenticatorOOBChannel) string {
+	var format *otp.Format
+	switch channel {
+	case authn.AuthenticatorOOBChannelEmail:
+		format = otp.GetFormat(p.Config.Email.CodeFormat)
+	case authn.AuthenticatorOOBChannelSMS:
+		format = otp.GetFormat(p.Config.SMS.CodeFormat)
+	default:
+		panic("oob: unknown channel type: " + channel)
+	}
+	return format.Generate()
 }
 
 func (p *Provider) SendCode(
