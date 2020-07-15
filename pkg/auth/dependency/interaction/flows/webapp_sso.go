@@ -21,25 +21,6 @@ type OAuthCallbackData struct {
 	ErrorDescription string
 }
 
-// OAuthRedirectError wraps err and redirectURI.
-// Its purpose is to instruct the error handler to use the provided redirectURI.
-type OAuthRedirectError struct {
-	redirectURI string
-	err         error
-}
-
-func (e *OAuthRedirectError) Error() string {
-	return e.err.Error()
-}
-
-func (e *OAuthRedirectError) RedirectURI() string {
-	return e.redirectURI
-}
-
-func (e *OAuthRedirectError) Unwrap() error {
-	return e.err
-}
-
 type OAuthAction string
 
 const (
@@ -49,10 +30,11 @@ const (
 )
 
 type BeginOAuthOptions struct {
-	ProviderAlias string
-	Action        OAuthAction
-	UserID        string
-	NonceSource   *http.Cookie
+	ProviderAlias    string
+	ErrorRedirectURI string
+	Action           OAuthAction
+	NonceSource      *http.Cookie
+	UserID           string
 }
 
 func (f *WebAppFlow) BeginOAuth(state *State, opts BeginOAuthOptions) (result *WebAppResult, err error) {
@@ -101,6 +83,7 @@ func (f *WebAppFlow) BeginOAuth(state *State, opts BeginOAuthOptions) (result *W
 		return
 	}
 
+	state.Extra[ExtraErrorRedirectURI] = opts.ErrorRedirectURI
 	result = &WebAppResult{}
 	return
 }
@@ -122,17 +105,6 @@ func (f *WebAppFlow) HandleOAuthCallback(state *State, data OAuthCallbackData, o
 	action, _ := stepState.Identity.Claims[identity.IdentityClaimOAuthAction].(string)
 	userID, _ := stepState.Identity.Claims[identity.IdentityClaimOAuthUserID].(string)
 	hashedNonce, _ := stepState.Identity.Claims[identity.IdentityClaimOAuthNonce].(string)
-	redirectURI, _ := state.Extra[ExtraRedirectURI].(string)
-
-	// Wrap the error so that we can go back where we were.
-	defer func() {
-		if err != nil {
-			err = &OAuthRedirectError{
-				redirectURI: redirectURI,
-				err:         err,
-			}
-		}
-	}()
 
 	oauthProvider := f.OAuthProviderFactory.NewOAuthProvider(opts.ProviderAlias)
 	if oauthProvider == nil {

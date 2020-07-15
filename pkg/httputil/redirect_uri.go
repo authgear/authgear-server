@@ -3,7 +3,20 @@ package httputil
 import (
 	"errors"
 	"net/http"
+	"net/url"
 )
+
+func HostRelative(u *url.URL) *url.URL {
+	uu := *u
+	uu.Scheme = ""
+	uu.Opaque = ""
+	uu.Host = ""
+	uu.User = nil
+	if uu.Path == "" {
+		uu.Path = "/"
+	}
+	return &uu
+}
 
 func GetRedirectURI(r *http.Request, trustProxy bool) (out string, err error) {
 	formRedirectURI := r.Form.Get("redirect_uri")

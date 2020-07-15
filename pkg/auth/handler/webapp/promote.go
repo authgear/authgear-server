@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
+	"github.com/authgear/authgear-server/pkg/httputil"
 	"github.com/authgear/authgear-server/pkg/template"
 )
 
@@ -190,10 +191,11 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 			nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
 			result, err = h.Interactions.BeginOAuth(state, interactionflows.BeginOAuthOptions{
-				ProviderAlias: providerAlias,
-				Action:        interactionflows.OAuthActionPromote,
-				UserID:        userID,
-				NonceSource:   nonceSource,
+				ProviderAlias:    providerAlias,
+				Action:           interactionflows.OAuthActionPromote,
+				UserID:           userID,
+				NonceSource:      nonceSource,
+				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
 			})
 			if err != nil {
 				return err

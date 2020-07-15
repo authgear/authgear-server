@@ -26,10 +26,6 @@ type Responder struct {
 	Interactions ResponderInteractions
 }
 
-type ErrorRedirect interface {
-	RedirectURI() string
-}
-
 func (r *Responder) Respond(
 	w http.ResponseWriter,
 	req *http.Request,
@@ -43,11 +39,17 @@ func (r *Responder) Respond(
 	u := state.RedirectURI(req.URL)
 
 	onError := func() {
-		if errorRedirect, ok := err.(ErrorRedirect); ok {
-			http.Redirect(w, req, errorRedirect.RedirectURI(), http.StatusFound)
-		} else {
-			http.Redirect(w, req, u.String(), http.StatusFound)
+		var redirectURI *url.URL
+
+		redirectURIString, ok := state.Extra[interactionflows.ExtraErrorRedirectURI].(string)
+		if !ok {
+			redirectURIString = httputil.HostRelative(req.URL).String()
 		}
+
+		redirectURI, _ = url.Parse(redirectURIString)
+		redirectURI = state.RedirectURI(redirectURI)
+
+		http.Redirect(w, req, redirectURI.String(), http.StatusFound)
 	}
 
 	if err != nil {

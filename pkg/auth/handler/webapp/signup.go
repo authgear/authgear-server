@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
+	"github.com/authgear/authgear-server/pkg/httputil"
 	"github.com/authgear/authgear-server/pkg/template"
 	"github.com/authgear/authgear-server/pkg/validation"
 )
@@ -248,9 +249,10 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
 
 			result, err = h.Interactions.BeginOAuth(state, interactionflows.BeginOAuthOptions{
-				ProviderAlias: providerAlias,
-				Action:        interactionflows.OAuthActionLogin,
-				NonceSource:   nonceSource,
+				ProviderAlias:    providerAlias,
+				Action:           interactionflows.OAuthActionLogin,
+				NonceSource:      nonceSource,
+				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
 			})
 			if err != nil {
 				return err

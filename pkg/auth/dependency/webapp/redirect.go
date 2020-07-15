@@ -20,24 +20,14 @@ func GetRedirectURI(r *http.Request, trustProxy bool) string {
 }
 
 func MakeURLWithPathWithX(i *url.URL, path string) string {
-	u := *i
+	u := httputil.HostRelative(i)
 	u.Path = path
-	u.Scheme = ""
-	u.Opaque = ""
-	u.Host = ""
-	u.User = nil
 	return u.String()
 }
 
 func MakeURLWithPathWithoutX(i *url.URL, path string) string {
-	u := *i
-
+	u := httputil.HostRelative(i)
 	u.Path = path
-	u.Scheme = ""
-	u.Opaque = ""
-	u.Host = ""
-	u.User = nil
-
 	q := u.Query()
 	for name := range q {
 		if strings.HasPrefix(name, "x_") {
@@ -45,7 +35,6 @@ func MakeURLWithPathWithoutX(i *url.URL, path string) string {
 		}
 	}
 	u.RawQuery = q.Encode()
-
 	return u.String()
 }
 

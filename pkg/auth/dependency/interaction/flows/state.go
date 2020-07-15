@@ -46,7 +46,10 @@ const (
 	// ExtraGivenLoginID indicates the given login ID by the user. It is a string.
 	ExtraGivenLoginID string = "https://authgear.com/claims/given_login_id"
 
-	// ExtraRedirectURI indicates the redirect URI. It is a string.
+	// ExtraErrorRedirectURI indicates the redirect URI if there is an error. It is a string.
+	ExtraErrorRedirectURI string = "https://authgear.com/claims/error_redirect_uri"
+
+	// ExtraRedirectURI indicates the redirect URI when the interaction flow ends. It is a string.
 	ExtraRedirectURI string = "https://authgear.com/claims/redirect_uri"
 
 	ExtraLoginIDKey       string = "https://authgear.com/claims/login_id_key"
