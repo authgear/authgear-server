@@ -9,9 +9,6 @@ import (
 	"github.com/iawaknahc/gomessageformat"
 )
 
-type ResolveOptions struct {
-}
-
 type resolveResult struct {
 	Spec         Spec
 	TemplateBody string
@@ -86,8 +83,8 @@ func (e *Engine) Register(spec Spec) {
 	e.TemplateSpecs[spec.Type] = spec
 }
 
-func (e *Engine) RenderTemplate(templateType config.TemplateItemType, data interface{}, resolveOptions ResolveOptions) (out string, err error) {
-	result, err := e.resolveTemplate(templateType, resolveOptions)
+func (e *Engine) RenderTemplate(templateType config.TemplateItemType, data interface{}) (out string, err error) {
+	result, err := e.resolveTemplate(templateType)
 	if err != nil {
 		return
 	}
@@ -121,7 +118,7 @@ func (e *Engine) RenderTemplate(templateType config.TemplateItemType, data inter
 	return renderFunc(renderOptions)
 }
 
-func (e *Engine) resolveTemplate(templateType config.TemplateItemType, options ResolveOptions) (result *resolveResult, err error) {
+func (e *Engine) resolveTemplate(templateType config.TemplateItemType) (result *resolveResult, err error) {
 	spec, ok := e.TemplateSpecs[templateType]
 	if !ok {
 		panic("template: unregistered template type: " + templateType)

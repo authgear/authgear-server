@@ -64,7 +64,6 @@ func (s *MessageSender) SendEmail(opts SendOptions, message config.EmailMessageC
 	textBody, err := s.TemplateEngine.RenderTemplate(
 		TemplateItemTypeOTPMessageEmailTXT,
 		ctx,
-		template.ResolveOptions{},
 	)
 	if err != nil {
 		return
@@ -73,7 +72,6 @@ func (s *MessageSender) SendEmail(opts SendOptions, message config.EmailMessageC
 	htmlBody, err := s.TemplateEngine.RenderTemplate(
 		TemplateItemTypeOTPMessageEmailHTML,
 		ctx,
-		template.ResolveOptions{},
 	)
 	if err != nil {
 		return
@@ -106,7 +104,6 @@ func (s *MessageSender) SendSMS(opts SendOptions, message config.SMSMessageConfi
 	body, err := s.TemplateEngine.RenderTemplate(
 		TemplateItemTypeOTPMessageSMSTXT,
 		ctx,
-		template.ResolveOptions{},
 	)
 	if err != nil {
 		return

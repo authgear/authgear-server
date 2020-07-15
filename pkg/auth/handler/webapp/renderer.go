@@ -39,7 +39,6 @@ func (r *HTMLRenderer) Render(w http.ResponseWriter, req *http.Request, template
 	).WithPreferredLanguageTags(preferredLanguageTags).RenderTemplate(
 		templateType,
 		data,
-		template.ResolveOptions{},
 	)
 	if err != nil {
 		panic(err)

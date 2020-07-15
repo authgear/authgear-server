@@ -51,7 +51,6 @@ func (p *Provider) send(emails []string) (err error) {
 		textBody, err = p.TemplateEngine.RenderTemplate(
 			TemplateItemTypeWelcomeEmailTXT,
 			data,
-			template.ResolveOptions{},
 		)
 		if err != nil {
 			return
@@ -61,7 +60,6 @@ func (p *Provider) send(emails []string) (err error) {
 		htmlBody, err = p.TemplateEngine.RenderTemplate(
 			TemplateItemTypeWelcomeEmailHTML,
 			data,
-			template.ResolveOptions{},
 		)
 		if err != nil {
 			return
