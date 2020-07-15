@@ -387,27 +387,30 @@ func (a *Provider) Validate(is []*identity.Info) error {
 	return nil
 }
 
-func (a *Provider) RelateIdentityToAuthenticator(is identity.Spec, as *authenticator.Spec) *authenticator.Spec {
-	switch is.Type {
+func (a *Provider) RelateIdentityToAuthenticator(ii *identity.Info, as *authenticator.Spec) *authenticator.Spec {
+	switch ii.Type {
 	case authn.IdentityTypeLoginID:
 		// Early return for other authenticators.
 		if as.Type != authn.AuthenticatorTypeOOB {
 			return as
 		}
 
-		loginID, loginIDConfig, _, err := a.LoginID.Normalize(extractLoginIDClaims(is.Claims))
+		loginID, loginIDConfig, _, err := a.LoginID.Normalize(extractLoginIDClaims(ii.Claims))
 		if err != nil {
 			return nil
 		}
 
+		identityID := ii.ID
 		switch string(loginIDConfig.Type) {
 		case string(metadata.Email):
 			as.Props[authenticator.AuthenticatorPropOOBOTPChannelType] = string(authn.AuthenticatorOOBChannelEmail)
 			as.Props[authenticator.AuthenticatorPropOOBOTPEmail] = loginID.Value
+			as.Props[authenticator.AuthenticatorPropOOBOTPIdentityID] = &identityID
 			return as
 		case string(metadata.Phone):
 			as.Props[authenticator.AuthenticatorPropOOBOTPChannelType] = string(authn.AuthenticatorOOBChannelSMS)
 			as.Props[authenticator.AuthenticatorPropOOBOTPPhone] = loginID.Value
+			as.Props[authenticator.AuthenticatorPropOOBOTPIdentityID] = &identityID
 			return as
 		default:
 			return nil
@@ -418,7 +421,7 @@ func (a *Provider) RelateIdentityToAuthenticator(is identity.Spec, as *authentic
 		return nil
 	}
 
-	panic("interaction_adaptors: unknown identity type " + is.Type)
+	panic("interaction_adaptors: unknown identity type " + ii.Type)
 }
 
 func (a *Provider) CheckIdentityDuplicated(is *identity.Info) (err error) {

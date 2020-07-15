@@ -51,17 +51,17 @@ func (mr *MockIdentityProviderMockRecorder) ListByUser(userID interface{}) *gomo
 }
 
 // RelateIdentityToAuthenticator mocks base method
-func (m *MockIdentityProvider) RelateIdentityToAuthenticator(is identity.Spec, as *authenticator.Spec) *authenticator.Spec {
+func (m *MockIdentityProvider) RelateIdentityToAuthenticator(ii *identity.Info, as *authenticator.Spec) *authenticator.Spec {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RelateIdentityToAuthenticator", is, as)
+	ret := m.ctrl.Call(m, "RelateIdentityToAuthenticator", ii, as)
 	ret0, _ := ret[0].(*authenticator.Spec)
 	return ret0
 }
 
 // RelateIdentityToAuthenticator indicates an expected call of RelateIdentityToAuthenticator
-func (mr *MockIdentityProviderMockRecorder) RelateIdentityToAuthenticator(is, as interface{}) *gomock.Call {
+func (mr *MockIdentityProviderMockRecorder) RelateIdentityToAuthenticator(ii, as interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RelateIdentityToAuthenticator", reflect.TypeOf((*MockIdentityProvider)(nil).RelateIdentityToAuthenticator), is, as)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RelateIdentityToAuthenticator", reflect.TypeOf((*MockIdentityProvider)(nil).RelateIdentityToAuthenticator), ii, as)
 }
 
 // MockAuthenticatorProvider is a mock of AuthenticatorProvider interface

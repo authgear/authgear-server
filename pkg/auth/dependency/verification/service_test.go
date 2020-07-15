@@ -67,8 +67,8 @@ func TestService(t *testing.T) {
 		}
 
 		identities.EXPECT().RelateIdentityToAuthenticator(gomock.Any(), gomock.Any()).
-			DoAndReturn(func(is identity.Spec, as *authenticator.Spec) *authenticator.Spec {
-				if as.Props["test-id"].(string) == is.Claims["test-id"].(string) {
+			DoAndReturn(func(ii *identity.Info, as *authenticator.Spec) *authenticator.Spec {
+				if as.Props["test-id"].(string) == ii.Claims["test-id"].(string) {
 					return as
 				}
 				return nil

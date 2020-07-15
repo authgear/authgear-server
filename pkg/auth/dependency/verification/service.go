@@ -11,7 +11,7 @@ import (
 
 type IdentityProvider interface {
 	ListByUser(userID string) ([]*identity.Info, error)
-	RelateIdentityToAuthenticator(is identity.Spec, as *authenticator.Spec) *authenticator.Spec
+	RelateIdentityToAuthenticator(ii *identity.Info, as *authenticator.Spec) *authenticator.Spec
 }
 
 type AuthenticatorProvider interface {
@@ -62,7 +62,7 @@ func (s *Service) IsIdentityVerified(i *identity.Info) (bool, error) {
 
 		for _, a := range as {
 			spec := a.ToSpec()
-			if s.Identities.RelateIdentityToAuthenticator(i.ToSpec(), &spec) != nil {
+			if s.Identities.RelateIdentityToAuthenticator(i, &spec) != nil {
 				return true, nil
 			}
 		}
@@ -103,7 +103,7 @@ func (s *Service) IsVerified(identities []*identity.Info, authenticators []*auth
 				}
 
 				spec := a.ToSpec()
-				if s.Identities.RelateIdentityToAuthenticator(i.ToSpec(), &spec) != nil {
+				if s.Identities.RelateIdentityToAuthenticator(i, &spec) != nil {
 					numVerified++
 					break
 				}

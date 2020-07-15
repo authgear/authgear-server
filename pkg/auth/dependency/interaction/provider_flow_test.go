@@ -46,10 +46,6 @@ func TestProviderFlow(t *testing.T) {
 
 				// step 1 setup
 				loginIDClaims := map[string]interface{}{"email": "user@example.com"}
-				is := identity.Spec{
-					Type:   authn.IdentityTypeLoginID,
-					Claims: loginIDClaims,
-				}
 				ii := &identity.Info{
 					ID:     "identity_id_1",
 					Type:   authn.IdentityTypeLoginID,
@@ -67,7 +63,7 @@ func TestProviderFlow(t *testing.T) {
 				}
 				identityProvider.EXPECT().New(gomock.Any(), gomock.Any(), gomock.Eq(loginIDClaims)).Return(ii, nil)
 				identityProvider.EXPECT().Validate(gomock.Any()).Return(nil)
-				identityProvider.EXPECT().RelateIdentityToAuthenticator(gomock.Eq(is), gomock.Eq(as)).Return(as).AnyTimes()
+				identityProvider.EXPECT().RelateIdentityToAuthenticator(gomock.Eq(ii), gomock.Eq(as)).Return(as).AnyTimes()
 
 				// step 1
 				i, err := p.NewInteractionSignup(
@@ -432,7 +428,7 @@ func TestProviderFlow(t *testing.T) {
 
 				// return new identity related authenticator spec
 				identityProvider.EXPECT().RelateIdentityToAuthenticator(
-					gomock.Eq(ii.ToSpec()), gomock.Eq(as),
+					gomock.Eq(ii), gomock.Eq(as),
 				).Return(as)
 
 				// user has setup authenticator before, no need to setup
@@ -506,7 +502,7 @@ func TestProviderFlow(t *testing.T) {
 
 				// return new identity related authenticator spec
 				identityProvider.EXPECT().RelateIdentityToAuthenticator(
-					gomock.Eq(ii.ToSpec()), gomock.Eq(as),
+					gomock.Eq(ii), gomock.Eq(as),
 				).Return(as).AnyTimes()
 
 				identityProvider.EXPECT().CheckIdentityDuplicated(gomock.Eq(ii)).Return(nil)
@@ -622,7 +618,7 @@ func TestProviderFlow(t *testing.T) {
 			).Return(nil)
 			// return updated identity related authenticator spec
 			identityProvider.EXPECT().RelateIdentityToAuthenticator(
-				gomock.Eq(nii.ToSpec()), gomock.Eq(as),
+				gomock.Eq(nii), gomock.Eq(as),
 			).Return(as)
 
 			identityProvider.EXPECT().CheckIdentityDuplicated(gomock.Eq(nii)).Return(nil)
