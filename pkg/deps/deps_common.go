@@ -193,6 +193,6 @@ var commonDeps = wire.NewSet(
 
 	wire.NewSet(
 		otp.DependencySet,
-		wire.Bind(new(interaction.OTPMessageSender), new(*otp.MessageSender)),
+		wire.Bind(new(authenticatoroob.OTPMessageSender), new(*otp.MessageSender)),
 	),
 )

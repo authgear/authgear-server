@@ -173,13 +173,42 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clock,
 	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	serverConfig := rootProvider.ServerConfig
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	messagingConfig := appConfig.Messaging
+	engine := appProvider.TemplateEngine
+	endpointsProvider := &endpoints.Provider{
+		Request: request,
+		Config:  serverConfig,
+	}
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clock,
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -350,13 +379,37 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	messagingConfig := appConfig.Messaging
+	engine := appProvider.TemplateEngine
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -389,18 +442,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	localizationConfig := appConfig.Localization
-	appMetadata := appConfig.Metadata
-	messagingConfig := appConfig.Messaging
 	welcomeMessageConfig := appConfig.WelcomeMessage
-	engine := appProvider.TemplateEngine
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
 	welcomemessageProvider := &welcomemessage.Provider{
 		Context:               context,
 		LocalizationConfig:    localizationConfig,
@@ -470,26 +512,15 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	messageSender := &otp.MessageSender{
-		Context:        context,
-		ServerConfig:   serverConfig,
-		Localization:   localizationConfig,
-		AppMetadata:    appMetadata,
-		Messaging:      messagingConfig,
-		TemplateEngine: engine,
-		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
-	}
 	interactionProvider := &interaction.Provider{
-		Clock:            clockClock,
-		Logger:           interactionLogger,
-		Identity:         providerProvider,
-		Authenticator:    provider3,
-		User:             userProvider,
-		OOB:              oobProvider,
-		OTPMessageSender: messageSender,
-		Hooks:            hookProvider,
-		Config:           authenticationConfig,
+		Clock:         clockClock,
+		Logger:        interactionLogger,
+		Identity:      providerProvider,
+		Authenticator: provider3,
+		User:          userProvider,
+		OOB:           oobProvider,
+		Hooks:         hookProvider,
+		Config:        authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -688,13 +719,41 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	messagingConfig := appConfig.Messaging
+	engine := appProvider.TemplateEngine
+	endpointsProvider := &endpoints.Provider{
+		Request: request,
+		Config:  serverConfig,
+	}
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -727,18 +786,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	localizationConfig := appConfig.Localization
-	appMetadata := appConfig.Metadata
-	messagingConfig := appConfig.Messaging
 	welcomeMessageConfig := appConfig.WelcomeMessage
-	engine := appProvider.TemplateEngine
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
 	welcomemessageProvider := &welcomemessage.Provider{
 		Context:               context,
 		LocalizationConfig:    localizationConfig,
@@ -808,30 +856,15 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	endpointsProvider := &endpoints.Provider{
-		Request: request,
-		Config:  serverConfig,
-	}
-	messageSender := &otp.MessageSender{
-		Context:        context,
-		ServerConfig:   serverConfig,
-		Localization:   localizationConfig,
-		AppMetadata:    appMetadata,
-		Messaging:      messagingConfig,
-		TemplateEngine: engine,
-		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
-	}
 	interactionProvider := &interaction.Provider{
-		Clock:            clockClock,
-		Logger:           interactionLogger,
-		Identity:         providerProvider,
-		Authenticator:    provider3,
-		User:             userProvider,
-		OOB:              oobProvider,
-		OTPMessageSender: messageSender,
-		Hooks:            hookProvider,
-		Config:           authenticationConfig,
+		Clock:         clockClock,
+		Logger:        interactionLogger,
+		Identity:      providerProvider,
+		Authenticator: provider3,
+		User:          userProvider,
+		OOB:           oobProvider,
+		Hooks:         hookProvider,
+		Config:        authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -1052,13 +1085,37 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	messagingConfig := appConfig.Messaging
+	engine := appProvider.TemplateEngine
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1220,13 +1277,37 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	messagingConfig := appConfig.Messaging
+	engine := appProvider.TemplateEngine
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1385,13 +1466,37 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	messagingConfig := appConfig.Messaging
+	engine := appProvider.TemplateEngine
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1424,18 +1529,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	localizationConfig := appConfig.Localization
-	appMetadata := appConfig.Metadata
-	messagingConfig := appConfig.Messaging
 	welcomeMessageConfig := appConfig.WelcomeMessage
-	engine := appProvider.TemplateEngine
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
 	welcomemessageProvider := &welcomemessage.Provider{
 		Context:               context,
 		LocalizationConfig:    localizationConfig,
@@ -1505,26 +1599,15 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	messageSender := &otp.MessageSender{
-		Context:        context,
-		ServerConfig:   serverConfig,
-		Localization:   localizationConfig,
-		AppMetadata:    appMetadata,
-		Messaging:      messagingConfig,
-		TemplateEngine: engine,
-		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
-	}
 	interactionProvider := &interaction.Provider{
-		Clock:            clockClock,
-		Logger:           logger,
-		Identity:         providerProvider,
-		Authenticator:    provider3,
-		User:             userProvider,
-		OOB:              oobProvider,
-		OTPMessageSender: messageSender,
-		Hooks:            hookProvider,
-		Config:           authenticationConfig,
+		Clock:         clockClock,
+		Logger:        logger,
+		Identity:      providerProvider,
+		Authenticator: provider3,
+		User:          userProvider,
+		OOB:           oobProvider,
+		Hooks:         hookProvider,
+		Config:        authenticationConfig,
 	}
 	redisHandle := appProvider.Redis
 	challengeProvider := &challenge.Provider{
@@ -1726,13 +1809,34 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	messagingConfig := appConfig.Messaging
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1765,15 +1869,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	messagingConfig := appConfig.Messaging
 	welcomeMessageConfig := appConfig.WelcomeMessage
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
 	welcomemessageProvider := &welcomemessage.Provider{
 		Context:               context,
 		LocalizationConfig:    localizationConfig,
@@ -1843,26 +1939,15 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	messageSender := &otp.MessageSender{
-		Context:        context,
-		ServerConfig:   serverConfig,
-		Localization:   localizationConfig,
-		AppMetadata:    appMetadata,
-		Messaging:      messagingConfig,
-		TemplateEngine: engine,
-		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
-	}
 	interactionProvider := &interaction.Provider{
-		Clock:            clockClock,
-		Logger:           logger,
-		Identity:         providerProvider,
-		Authenticator:    provider3,
-		User:             userProvider,
-		OOB:              oobProvider,
-		OTPMessageSender: messageSender,
-		Hooks:            hookProvider,
-		Config:           authenticationConfig,
+		Clock:         clockClock,
+		Logger:        logger,
+		Identity:      providerProvider,
+		Authenticator: provider3,
+		User:          userProvider,
+		OOB:           oobProvider,
+		Hooks:         hookProvider,
+		Config:        authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -2091,13 +2176,34 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	messagingConfig := appConfig.Messaging
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -2130,15 +2236,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	messagingConfig := appConfig.Messaging
 	welcomeMessageConfig := appConfig.WelcomeMessage
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
 	welcomemessageProvider := &welcomemessage.Provider{
 		Context:               context,
 		LocalizationConfig:    localizationConfig,
@@ -2208,26 +2306,15 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	messageSender := &otp.MessageSender{
-		Context:        context,
-		ServerConfig:   serverConfig,
-		Localization:   localizationConfig,
-		AppMetadata:    appMetadata,
-		Messaging:      messagingConfig,
-		TemplateEngine: engine,
-		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
-	}
 	interactionProvider := &interaction.Provider{
-		Clock:            clockClock,
-		Logger:           logger,
-		Identity:         providerProvider,
-		Authenticator:    provider3,
-		User:             userProvider,
-		OOB:              oobProvider,
-		OTPMessageSender: messageSender,
-		Hooks:            hookProvider,
-		Config:           authenticationConfig,
+		Clock:         clockClock,
+		Logger:        logger,
+		Identity:      providerProvider,
+		Authenticator: provider3,
+		User:          userProvider,
+		OOB:           oobProvider,
+		Hooks:         hookProvider,
+		Config:        authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -2456,13 +2543,34 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	messagingConfig := appConfig.Messaging
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -2495,15 +2603,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	messagingConfig := appConfig.Messaging
 	welcomeMessageConfig := appConfig.WelcomeMessage
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
 	welcomemessageProvider := &welcomemessage.Provider{
 		Context:               context,
 		LocalizationConfig:    localizationConfig,
@@ -2573,26 +2673,15 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	messageSender := &otp.MessageSender{
-		Context:        context,
-		ServerConfig:   serverConfig,
-		Localization:   localizationConfig,
-		AppMetadata:    appMetadata,
-		Messaging:      messagingConfig,
-		TemplateEngine: engine,
-		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
-	}
 	interactionProvider := &interaction.Provider{
-		Clock:            clockClock,
-		Logger:           logger,
-		Identity:         providerProvider,
-		Authenticator:    provider3,
-		User:             userProvider,
-		OOB:              oobProvider,
-		OTPMessageSender: messageSender,
-		Hooks:            hookProvider,
-		Config:           authenticationConfig,
+		Clock:         clockClock,
+		Logger:        logger,
+		Identity:      providerProvider,
+		Authenticator: provider3,
+		User:          userProvider,
+		OOB:           oobProvider,
+		Hooks:         hookProvider,
+		Config:        authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -2797,13 +2886,37 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	messagingConfig := appConfig.Messaging
+	engine := appProvider.TemplateEngine
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -2836,18 +2949,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	localizationConfig := appConfig.Localization
-	appMetadata := appConfig.Metadata
-	messagingConfig := appConfig.Messaging
 	welcomeMessageConfig := appConfig.WelcomeMessage
-	engine := appProvider.TemplateEngine
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
 	welcomemessageProvider := &welcomemessage.Provider{
 		Context:               context,
 		LocalizationConfig:    localizationConfig,
@@ -2917,26 +3019,15 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	messageSender := &otp.MessageSender{
-		Context:        context,
-		ServerConfig:   serverConfig,
-		Localization:   localizationConfig,
-		AppMetadata:    appMetadata,
-		Messaging:      messagingConfig,
-		TemplateEngine: engine,
-		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
-	}
 	interactionProvider := &interaction.Provider{
-		Clock:            clockClock,
-		Logger:           logger,
-		Identity:         providerProvider,
-		Authenticator:    provider3,
-		User:             userProvider,
-		OOB:              oobProvider,
-		OTPMessageSender: messageSender,
-		Hooks:            hookProvider,
-		Config:           authenticationConfig,
+		Clock:         clockClock,
+		Logger:        logger,
+		Identity:      providerProvider,
+		Authenticator: provider3,
+		User:          userProvider,
+		OOB:           oobProvider,
+		Hooks:         hookProvider,
+		Config:        authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -3152,13 +3243,34 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	messagingConfig := appConfig.Messaging
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -3191,15 +3303,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	messagingConfig := appConfig.Messaging
 	welcomeMessageConfig := appConfig.WelcomeMessage
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
 	welcomemessageProvider := &welcomemessage.Provider{
 		Context:               context,
 		LocalizationConfig:    localizationConfig,
@@ -3269,26 +3373,15 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	messageSender := &otp.MessageSender{
-		Context:        context,
-		ServerConfig:   serverConfig,
-		Localization:   localizationConfig,
-		AppMetadata:    appMetadata,
-		Messaging:      messagingConfig,
-		TemplateEngine: engine,
-		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
-	}
 	interactionProvider := &interaction.Provider{
-		Clock:            clockClock,
-		Logger:           logger,
-		Identity:         providerProvider,
-		Authenticator:    provider3,
-		User:             userProvider,
-		OOB:              oobProvider,
-		OTPMessageSender: messageSender,
-		Hooks:            hookProvider,
-		Config:           authenticationConfig,
+		Clock:         clockClock,
+		Logger:        logger,
+		Identity:      providerProvider,
+		Authenticator: provider3,
+		User:          userProvider,
+		OOB:           oobProvider,
+		Hooks:         hookProvider,
+		Config:        authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -3510,13 +3603,34 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	messagingConfig := appConfig.Messaging
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -3549,15 +3663,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	messagingConfig := appConfig.Messaging
 	welcomeMessageConfig := appConfig.WelcomeMessage
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
 	welcomemessageProvider := &welcomemessage.Provider{
 		Context:               context,
 		LocalizationConfig:    localizationConfig,
@@ -3627,26 +3733,15 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	messageSender := &otp.MessageSender{
-		Context:        context,
-		ServerConfig:   serverConfig,
-		Localization:   localizationConfig,
-		AppMetadata:    appMetadata,
-		Messaging:      messagingConfig,
-		TemplateEngine: engine,
-		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
-	}
 	interactionProvider := &interaction.Provider{
-		Clock:            clockClock,
-		Logger:           logger,
-		Identity:         providerProvider,
-		Authenticator:    provider3,
-		User:             userProvider,
-		OOB:              oobProvider,
-		OTPMessageSender: messageSender,
-		Hooks:            hookProvider,
-		Config:           authenticationConfig,
+		Clock:         clockClock,
+		Logger:        logger,
+		Identity:      providerProvider,
+		Authenticator: provider3,
+		User:          userProvider,
+		OOB:           oobProvider,
+		Hooks:         hookProvider,
+		Config:        authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -3868,13 +3963,34 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	messagingConfig := appConfig.Messaging
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -3907,15 +4023,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	messagingConfig := appConfig.Messaging
 	welcomeMessageConfig := appConfig.WelcomeMessage
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
 	welcomemessageProvider := &welcomemessage.Provider{
 		Context:               context,
 		LocalizationConfig:    localizationConfig,
@@ -3985,26 +4093,15 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	messageSender := &otp.MessageSender{
-		Context:        context,
-		ServerConfig:   serverConfig,
-		Localization:   localizationConfig,
-		AppMetadata:    appMetadata,
-		Messaging:      messagingConfig,
-		TemplateEngine: engine,
-		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
-	}
 	interactionProvider := &interaction.Provider{
-		Clock:            clockClock,
-		Logger:           logger,
-		Identity:         providerProvider,
-		Authenticator:    provider3,
-		User:             userProvider,
-		OOB:              oobProvider,
-		OTPMessageSender: messageSender,
-		Hooks:            hookProvider,
-		Config:           authenticationConfig,
+		Clock:         clockClock,
+		Logger:        logger,
+		Identity:      providerProvider,
+		Authenticator: provider3,
+		User:          userProvider,
+		OOB:           oobProvider,
+		Hooks:         hookProvider,
+		Config:        authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -4223,13 +4320,34 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	messagingConfig := appConfig.Messaging
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -4262,15 +4380,7 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	messagingConfig := appConfig.Messaging
 	welcomeMessageConfig := appConfig.WelcomeMessage
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
 	welcomemessageProvider := &welcomemessage.Provider{
 		Context:               context,
 		LocalizationConfig:    localizationConfig,
@@ -4340,26 +4450,15 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	messageSender := &otp.MessageSender{
-		Context:        context,
-		ServerConfig:   serverConfig,
-		Localization:   localizationConfig,
-		AppMetadata:    appMetadata,
-		Messaging:      messagingConfig,
-		TemplateEngine: engine,
-		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
-	}
 	interactionProvider := &interaction.Provider{
-		Clock:            clockClock,
-		Logger:           logger,
-		Identity:         providerProvider,
-		Authenticator:    provider3,
-		User:             userProvider,
-		OOB:              oobProvider,
-		OTPMessageSender: messageSender,
-		Hooks:            hookProvider,
-		Config:           authenticationConfig,
+		Clock:         clockClock,
+		Logger:        logger,
+		Identity:      providerProvider,
+		Authenticator: provider3,
+		User:          userProvider,
+		OOB:           oobProvider,
+		Hooks:         hookProvider,
+		Config:        authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -4588,13 +4687,37 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	endpointsProvider := &endpoints.Provider{
+		Request: request,
+		Config:  serverConfig,
+	}
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -4636,13 +4759,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	hookLogger := hook.NewLogger(factory)
 	welcomeMessageConfig := appConfig.WelcomeMessage
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
 	welcomemessageProvider := &welcomemessage.Provider{
 		Context:               context,
 		LocalizationConfig:    localizationConfig,
@@ -4690,10 +4806,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	endpointsProvider := &endpoints.Provider{
-		Request: request,
-		Config:  serverConfig,
-	}
 	interactionLogger := interaction.NewLogger(factory)
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -4704,26 +4816,15 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	messageSender := &otp.MessageSender{
-		Context:        context,
-		ServerConfig:   serverConfig,
-		Localization:   localizationConfig,
-		AppMetadata:    appMetadata,
-		Messaging:      messagingConfig,
-		TemplateEngine: engine,
-		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
-	}
 	interactionProvider := &interaction.Provider{
-		Clock:            clockClock,
-		Logger:           interactionLogger,
-		Identity:         providerProvider,
-		Authenticator:    provider3,
-		User:             userProvider,
-		OOB:              oobProvider,
-		OTPMessageSender: messageSender,
-		Hooks:            hookProvider,
-		Config:           authenticationConfig,
+		Clock:         clockClock,
+		Logger:        interactionLogger,
+		Identity:      providerProvider,
+		Authenticator: provider3,
+		User:          userProvider,
+		OOB:           oobProvider,
+		Hooks:         hookProvider,
+		Config:        authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -4949,13 +5050,37 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	endpointsProvider := &endpoints.Provider{
+		Request: request,
+		Config:  serverConfig,
+	}
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -4997,13 +5122,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	hookLogger := hook.NewLogger(factory)
 	welcomeMessageConfig := appConfig.WelcomeMessage
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
 	welcomemessageProvider := &welcomemessage.Provider{
 		Context:               context,
 		LocalizationConfig:    localizationConfig,
@@ -5051,10 +5169,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	endpointsProvider := &endpoints.Provider{
-		Request: request,
-		Config:  serverConfig,
-	}
 	interactionLogger := interaction.NewLogger(factory)
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -5065,26 +5179,15 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	messageSender := &otp.MessageSender{
-		Context:        context,
-		ServerConfig:   serverConfig,
-		Localization:   localizationConfig,
-		AppMetadata:    appMetadata,
-		Messaging:      messagingConfig,
-		TemplateEngine: engine,
-		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
-	}
 	interactionProvider := &interaction.Provider{
-		Clock:            clockClock,
-		Logger:           interactionLogger,
-		Identity:         providerProvider,
-		Authenticator:    provider3,
-		User:             userProvider,
-		OOB:              oobProvider,
-		OTPMessageSender: messageSender,
-		Hooks:            hookProvider,
-		Config:           authenticationConfig,
+		Clock:         clockClock,
+		Logger:        interactionLogger,
+		Identity:      providerProvider,
+		Authenticator: provider3,
+		User:          userProvider,
+		OOB:           oobProvider,
+		Hooks:         hookProvider,
+		Config:        authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -5336,13 +5439,34 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	messagingConfig := appConfig.Messaging
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -5375,15 +5499,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	messagingConfig := appConfig.Messaging
 	welcomeMessageConfig := appConfig.WelcomeMessage
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
 	welcomemessageProvider := &welcomemessage.Provider{
 		Context:               context,
 		LocalizationConfig:    localizationConfig,
@@ -5453,26 +5569,15 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	messageSender := &otp.MessageSender{
-		Context:        context,
-		ServerConfig:   serverConfig,
-		Localization:   localizationConfig,
-		AppMetadata:    appMetadata,
-		Messaging:      messagingConfig,
-		TemplateEngine: engine,
-		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
-	}
 	interactionProvider := &interaction.Provider{
-		Clock:            clockClock,
-		Logger:           logger,
-		Identity:         providerProvider,
-		Authenticator:    provider3,
-		User:             userProvider,
-		OOB:              oobProvider,
-		OTPMessageSender: messageSender,
-		Hooks:            hookProvider,
-		Config:           authenticationConfig,
+		Clock:         clockClock,
+		Logger:        logger,
+		Identity:      providerProvider,
+		Authenticator: provider3,
+		User:          userProvider,
+		OOB:           oobProvider,
+		Hooks:         hookProvider,
+		Config:        authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -5664,13 +5769,41 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	messagingConfig := appConfig.Messaging
+	engine := appProvider.TemplateEngine
+	endpointsProvider := &endpoints.Provider{
+		Request: request,
+		Config:  serverConfig,
+	}
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -5711,18 +5844,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Verification: service,
 	}
 	hookLogger := hook.NewLogger(factory)
-	localizationConfig := appConfig.Localization
-	appMetadata := appConfig.Metadata
-	messagingConfig := appConfig.Messaging
 	welcomeMessageConfig := appConfig.WelcomeMessage
-	engine := appProvider.TemplateEngine
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
 	welcomemessageProvider := &welcomemessage.Provider{
 		Context:               context,
 		LocalizationConfig:    localizationConfig,
@@ -6053,13 +6175,41 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	messagingConfig := appConfig.Messaging
+	engine := appProvider.TemplateEngine
+	endpointsProvider := &endpoints.Provider{
+		Request: request,
+		Config:  serverConfig,
+	}
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       dbHandle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,

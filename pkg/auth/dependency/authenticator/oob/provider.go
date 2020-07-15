@@ -5,8 +5,11 @@ import (
 	"net/url"
 	"sort"
 
+	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/core/auth/metadata"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/core/uuid"
 	"github.com/authgear/authgear-server/pkg/otp"
@@ -16,9 +19,16 @@ type EndpointsProvider interface {
 	BaseURL() *url.URL
 }
 
+type OTPMessageSender interface {
+	SendEmail(opts otp.SendOptions, message config.EmailMessageConfig) error
+	SendSMS(opts otp.SendOptions, message config.SMSMessageConfig) error
+}
+
 type Provider struct {
-	Store *Store
-	Clock clock.Clock
+	Config           *config.AuthenticatorOOBConfig
+	Store            *Store
+	Clock            clock.Clock
+	OTPMessageSender OTPMessageSender
 }
 
 func (p *Provider) Get(userID string, id string) (*Authenticator, error) {
@@ -79,6 +89,31 @@ func (p *Provider) Authenticate(expectedCode string, code string) error {
 
 func (p *Provider) GenerateCode() string {
 	return otp.GenerateOOBOTP()
+}
+
+func (p *Provider) SendCode(
+	channel authn.AuthenticatorOOBChannel,
+	loginID *loginid.LoginID,
+	code string,
+	origin otp.MessageOrigin,
+	operation otp.OOBOperationType,
+) error {
+	opts := otp.SendOptions{
+		LoginID:   loginID,
+		OTP:       code,
+		Origin:    origin,
+		Operation: operation,
+	}
+	switch channel {
+	case authn.AuthenticatorOOBChannelEmail:
+		opts.LoginIDType = config.LoginIDKeyType(metadata.Email)
+		return p.OTPMessageSender.SendEmail(opts, p.Config.Email.Message)
+	case authn.AuthenticatorOOBChannelSMS:
+		opts.LoginIDType = config.LoginIDKeyType(metadata.Phone)
+		return p.OTPMessageSender.SendSMS(opts, p.Config.SMS.Message)
+	default:
+		panic("oob: unknown channel type: " + channel)
+	}
 }
 
 func sortAuthenticators(as []*Authenticator) {

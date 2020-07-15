@@ -4,6 +4,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/auth/event"
 	"github.com/authgear/authgear-server/pkg/auth/model"
 	"github.com/authgear/authgear-server/pkg/clock"
@@ -72,11 +73,13 @@ type UserProvider interface {
 
 type OOBProvider interface {
 	GenerateCode() string
-}
-
-type OTPMessageSender interface {
-	SendEmail(opts otp.SendOptions, message config.EmailMessageConfig) error
-	SendSMS(opts otp.SendOptions, message config.SMSMessageConfig) error
+	SendCode(
+		channel authn.AuthenticatorOOBChannel,
+		loginID *loginid.LoginID,
+		code string,
+		origin otp.MessageOrigin,
+		operation otp.OOBOperationType,
+	) error
 }
 
 type HookProvider interface {
@@ -90,13 +93,12 @@ func NewLogger(lf *log.Factory) Logger {
 }
 
 type Provider struct {
-	Clock            clock.Clock
-	Logger           Logger
-	Identity         IdentityProvider
-	Authenticator    AuthenticatorProvider
-	User             UserProvider
-	OOB              OOBProvider
-	OTPMessageSender OTPMessageSender
-	Hooks            HookProvider
-	Config           *config.AuthenticationConfig
+	Clock         clock.Clock
+	Logger        Logger
+	Identity      IdentityProvider
+	Authenticator AuthenticatorProvider
+	User          UserProvider
+	OOB           OOBProvider
+	Hooks         HookProvider
+	Config        *config.AuthenticationConfig
 }
