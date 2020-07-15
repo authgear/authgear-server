@@ -103,7 +103,10 @@ func (p *URLProvider) convertLoginHint(uri **url.URL, q map[string]string, optio
 
 		switch action {
 		case anonymous.RequestActionPromote:
-			// FIXME(webapp): Create promote interaction eagerly.
+			// NOTE(webapp): If we add a new intent for promotion
+			// Promotion will experience 3 interactions
+			// IntentPromote -> IntentOAuth -> the real intent.
+			// which seems too complicated.
 			state := interactionflows.NewState()
 			state.Extra[interactionflows.ExtraAnonymousUserID] = userID
 			p.States.CreateState(state, options.RedirectURI)
