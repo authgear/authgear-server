@@ -36,8 +36,12 @@ func (f *GoogleImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	}), nil
 }
 
-func (f *GoogleImpl) Type() config.OAuthSSOProviderType {
+func (*GoogleImpl) Type() config.OAuthSSOProviderType {
 	return config.OAuthSSOProviderTypeGoogle
+}
+
+func (f *GoogleImpl) Config() config.OAuthSSOProviderConfig {
+	return f.ProviderConfig
 }
 
 func (f *GoogleImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {

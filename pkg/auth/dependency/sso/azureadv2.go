@@ -63,8 +63,12 @@ func (f *Azureadv2Impl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error)
 	return FetchOIDCDiscoveryDocument(http.DefaultClient, endpoint)
 }
 
-func (f *Azureadv2Impl) Type() config.OAuthSSOProviderType {
+func (*Azureadv2Impl) Type() config.OAuthSSOProviderType {
 	return config.OAuthSSOProviderTypeAzureADv2
+}
+
+func (f *Azureadv2Impl) Config() config.OAuthSSOProviderConfig {
+	return f.ProviderConfig
 }
 
 func (f *Azureadv2Impl) GetAuthURL(param GetAuthURLParam) (string, error) {

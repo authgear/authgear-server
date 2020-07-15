@@ -19,6 +19,7 @@ type GetAuthInfoParam struct {
 // OAuthProvider is OAuth 2.0 based provider.
 type OAuthProvider interface {
 	Type() config.OAuthSSOProviderType
+	Config() config.OAuthSSOProviderConfig
 	GetAuthURL(param GetAuthURLParam) (url string, err error)
 	GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (AuthInfo, error)
 }
