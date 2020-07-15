@@ -22,23 +22,28 @@ func (f *WebAppFlow) PromoteWithLoginID(state *State, loginIDKey, loginID string
 		},
 	}
 
-	if f.Config.OnConflict.Promotion == config.PromotionConflictBehaviorLogin {
-		_, _, err = f.Identities.GetByClaims(authn.IdentityTypeLoginID, iden.Claims)
-		if errors.Is(err, identity.ErrIdentityNotFound) {
-			state.Interaction, err = f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
-				Identity: iden,
-			}, "", userID)
-		} else if err != nil {
-			return nil, err
-		} else {
-			state.Interaction, err = f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
-				Identity: iden,
-			}, "")
-		}
-	} else {
+	identityNotFound := false
+	_, _, err = f.Identities.GetByClaims(authn.IdentityTypeLoginID, iden.Claims)
+	if errors.Is(err, identity.ErrIdentityNotFound) {
+		identityNotFound = true
+	} else if err != nil {
+		return nil, err
+	}
+
+	if f.Config.OnConflict.Promotion == config.PromotionConflictBehaviorError && !identityNotFound {
+		err = interaction.ErrDuplicatedIdentity
+		return nil, err
+	}
+
+	if identityNotFound {
 		state.Interaction, err = f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
 			Identity: iden,
 		}, "", userID)
+
+	} else {
+		state.Interaction, err = f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
+			Identity: iden,
+		}, "")
 	}
 	if err != nil {
 		return nil, err
@@ -60,6 +65,8 @@ func (f *WebAppFlow) PromoteWithLoginID(state *State, loginIDKey, loginID string
 }
 
 func (f *WebAppFlow) promoteWithOAuthProvider(state *State, userID string, oauthAuthInfo sso.AuthInfo) (*WebAppResult, error) {
+	var err error
+
 	providerID := oauthAuthInfo.ProviderConfig.ProviderID()
 	iden := identity.Spec{
 		Type: authn.IdentityTypeOAuth,
@@ -70,25 +77,28 @@ func (f *WebAppFlow) promoteWithOAuthProvider(state *State, userID string, oauth
 			identity.IdentityClaimOAuthClaims:       oauthAuthInfo.ProviderUserInfo.ClaimsValue(),
 		},
 	}
-	var err error
 
-	if f.Config.OnConflict.Promotion == config.PromotionConflictBehaviorLogin {
-		_, _, err = f.Identities.GetByClaims(authn.IdentityTypeOAuth, iden.Claims)
-		if errors.Is(err, identity.ErrIdentityNotFound) {
-			state.Interaction, err = f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
-				Identity: iden,
-			}, "", userID)
-		} else if err != nil {
-			return nil, err
-		} else {
-			state.Interaction, err = f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
-				Identity: iden,
-			}, "")
-		}
-	} else {
+	identityNotFound := false
+	_, _, err = f.Identities.GetByClaims(authn.IdentityTypeOAuth, iden.Claims)
+	if errors.Is(err, identity.ErrIdentityNotFound) {
+		identityNotFound = true
+	} else if err != nil {
+		return nil, err
+	}
+
+	if f.Config.OnConflict.Promotion == config.PromotionConflictBehaviorError && !identityNotFound {
+		err = interaction.ErrDuplicatedIdentity
+		return nil, err
+	}
+
+	if identityNotFound {
 		state.Interaction, err = f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
 			Identity: iden,
 		}, "", userID)
+	} else {
+		state.Interaction, err = f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
+			Identity: iden,
+		}, "")
 	}
 	if err != nil {
 		return nil, err
