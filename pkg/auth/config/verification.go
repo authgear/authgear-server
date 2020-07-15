@@ -29,7 +29,9 @@ var _ = Schema.Add("VerificationConfig", `
 `)
 
 type VerificationConfig struct {
-	Criteria VerificationCriteria `json:"criteria,omitempty"`
+	Criteria VerificationCriteria     `json:"criteria,omitempty"`
+	SMS      *VerificationSMSConfig   `json:"sms,omitempty"`
+	Email    *VerificationEmailConfig `json:"email,omitempty"`
 }
 
 func (c *VerificationConfig) SetDefaults() {

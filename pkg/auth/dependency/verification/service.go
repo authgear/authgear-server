@@ -4,7 +4,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
+	"github.com/authgear/authgear-server/pkg/core/auth/metadata"
 	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/otp"
 )
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package verification
@@ -18,11 +21,17 @@ type AuthenticatorProvider interface {
 	List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error)
 }
 
+type OTPMessageSender interface {
+	SendEmail(opts otp.SendOptions, message config.EmailMessageConfig) error
+	SendSMS(opts otp.SendOptions, message config.SMSMessageConfig) error
+}
+
 type Service struct {
-	Config         *config.VerificationConfig
-	LoginID        *config.LoginIDConfig
-	Identities     IdentityProvider
-	Authenticators AuthenticatorProvider
+	Config           *config.VerificationConfig
+	LoginID          *config.LoginIDConfig
+	Identities       IdentityProvider
+	Authenticators   AuthenticatorProvider
+	OTPMessageSender OTPMessageSender
 }
 
 func (s *Service) isLoginIDKeyVerifiable(key string) bool {
@@ -123,5 +132,36 @@ func (s *Service) IsVerified(identities []*identity.Info, authenticators []*auth
 		return numVerifiable > 0 && numVerified == numVerifiable
 	default:
 		panic("verification: unknown criteria " + s.Config.Criteria)
+	}
+}
+
+func (s *Service) SendCode(
+	loginID loginid.LoginID,
+	code string,
+	origin otp.MessageOrigin,
+) error {
+	opts := otp.SendOptions{
+		LoginID:   &loginID,
+		OTP:       code,
+		Origin:    origin,
+		Operation: otp.OOBOperationTypeVerify,
+	}
+
+	var loginIDType config.LoginIDKeyType
+	for _, c := range s.LoginID.Keys {
+		if c.Key == opts.LoginID.Key {
+			loginIDType = c.Type
+			break
+		}
+	}
+	switch loginIDType {
+	case config.LoginIDKeyType(metadata.Email):
+		opts.LoginIDType = config.LoginIDKeyType(metadata.Email)
+		return s.OTPMessageSender.SendEmail(opts, s.Config.Email.Message)
+	case config.LoginIDKeyType(metadata.Phone):
+		opts.LoginIDType = config.LoginIDKeyType(metadata.Phone)
+		return s.OTPMessageSender.SendSMS(opts, s.Config.SMS.Message)
+	default:
+		panic("oob: invalid login ID type: " + loginIDType)
 	}
 }

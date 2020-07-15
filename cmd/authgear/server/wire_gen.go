@@ -238,10 +238,11 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCode: recoverycodeProvider,
 	}
 	service := &verification.Service{
-		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
-		Identities:     providerProvider,
-		Authenticators: provider3,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
 	}
 	resolveHandlerLogger := internalserver.NewResolveHandlerLogger(factory)
 	resolveHandler := &internalserver.ResolveHandler{
@@ -454,10 +455,11 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationConfig := appConfig.Verification
 	service := &verification.Service{
-		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
-		Identities:     providerProvider,
-		Authenticators: provider3,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -798,10 +800,11 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationConfig := appConfig.Verification
 	service := &verification.Service{
-		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
-		Identities:     providerProvider,
-		Authenticators: provider3,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -1145,10 +1148,11 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCode: recoverycodeProvider,
 	}
 	service := &verification.Service{
-		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
-		Identities:     providerProvider,
-		Authenticators: provider3,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        store,
@@ -1337,10 +1341,11 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCode: recoverycodeProvider,
 	}
 	service := &verification.Service{
-		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
-		Identities:     providerProvider,
-		Authenticators: provider3,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        store,
@@ -1541,10 +1546,11 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationConfig := appConfig.Verification
 	service := &verification.Service{
-		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
-		Identities:     providerProvider,
-		Authenticators: provider3,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -1881,10 +1887,11 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationConfig := appConfig.Verification
 	service := &verification.Service{
-		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
-		Identities:     providerProvider,
-		Authenticators: provider3,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -2248,10 +2255,11 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationConfig := appConfig.Verification
 	service := &verification.Service{
-		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
-		Identities:     providerProvider,
-		Authenticators: provider3,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -2615,10 +2623,11 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationConfig := appConfig.Verification
 	service := &verification.Service{
-		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
-		Identities:     providerProvider,
-		Authenticators: provider3,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -2961,10 +2970,11 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationConfig := appConfig.Verification
 	service := &verification.Service{
-		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
-		Identities:     providerProvider,
-		Authenticators: provider3,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -3315,10 +3325,11 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationConfig := appConfig.Verification
 	service := &verification.Service{
-		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
-		Identities:     providerProvider,
-		Authenticators: provider3,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -3675,10 +3686,11 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationConfig := appConfig.Verification
 	service := &verification.Service{
-		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
-		Identities:     providerProvider,
-		Authenticators: provider3,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -4035,10 +4047,11 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationConfig := appConfig.Verification
 	service := &verification.Service{
-		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
-		Identities:     providerProvider,
-		Authenticators: provider3,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -4392,10 +4405,11 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationConfig := appConfig.Verification
 	service := &verification.Service{
-		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
-		Identities:     providerProvider,
-		Authenticators: provider3,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -4747,10 +4761,11 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCode: recoverycodeProvider,
 	}
 	service := &verification.Service{
-		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
-		Identities:     providerProvider,
-		Authenticators: provider3,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -5110,10 +5125,11 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCode: recoverycodeProvider,
 	}
 	service := &verification.Service{
-		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
-		Identities:     providerProvider,
-		Authenticators: provider3,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -5511,10 +5527,11 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationConfig := appConfig.Verification
 	service := &verification.Service{
-		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
-		Identities:     providerProvider,
-		Authenticators: provider3,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -5833,10 +5850,11 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCode: recoverycodeProvider,
 	}
 	service := &verification.Service{
-		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
-		Identities:     providerProvider,
-		Authenticators: provider3,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        store,
@@ -6239,10 +6257,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		RecoveryCode: recoverycodeProvider,
 	}
 	service := &verification.Service{
-		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
-		Identities:     providerProvider,
-		Authenticators: provider3,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
