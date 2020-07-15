@@ -173,11 +173,8 @@ func ConfigureLoginRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/login")
 }
 
-type LoginOAuthService interface {
-	LoginOAuthProvider(r *http.Request, providerAlias string, state *interactionflows.State) (*interactionflows.WebAppResult, error)
-}
-
 type LoginInteractions interface {
+	BeginOAuth(state *interactionflows.State, opts interactionflows.BeginOAuthOptions) (*interactionflows.WebAppResult, error)
 	LoginWithLoginID(state *interactionflows.State, loginID string) (*interactionflows.WebAppResult, error)
 }
 
@@ -189,7 +186,6 @@ type LoginHandler struct {
 	AuthenticationViewModel *AuthenticationViewModeler
 	FormPrefiller           *FormPrefiller
 	Renderer                Renderer
-	OAuth                   LoginOAuthService
 	Interactions            LoginInteractions
 	Responder               Responder
 }
@@ -246,7 +242,13 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			state = interactionflows.NewState()
 			state = h.State.CreateState(state, webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy))
 
-			result, err = h.OAuth.LoginOAuthProvider(r, providerAlias, state)
+			nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
+			result, err = h.Interactions.BeginOAuth(state, interactionflows.BeginOAuthOptions{
+				ProviderAlias: providerAlias,
+				Action:        interactionflows.OAuthActionLogin,
+				NonceSource:   nonceSource,
+			})
+
 			if err != nil {
 				return err
 			}

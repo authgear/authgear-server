@@ -14,6 +14,8 @@ func (p *Provider) GetStepState(i *Interaction) (*StepState, error) {
 	var steps []StepState
 	var err error
 	switch intent := i.Intent.(type) {
+	case *IntentOAuth:
+		steps, err = p.getStateOAuth(i, intent)
 	case *IntentLogin:
 		steps, err = p.getStateLogin(i, intent)
 	case *IntentSignup:
@@ -33,6 +35,14 @@ func (p *Provider) GetStepState(i *Interaction) (*StepState, error) {
 		return nil, err
 	}
 	return &steps[len(steps)-1], nil
+}
+
+func (p *Provider) getStateOAuth(i *Interaction, intent *IntentOAuth) (steps []StepState, err error) {
+	steps = append(steps, StepState{
+		Step:     StepOAuth,
+		Identity: intent.Identity,
+	})
+	return
 }
 
 func (p *Provider) getStateLogin(i *Interaction, intent *IntentLogin) (steps []StepState, err error) {

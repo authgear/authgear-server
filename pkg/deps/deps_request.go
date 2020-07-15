@@ -29,8 +29,7 @@ var requestDeps = wire.NewSet(
 	commonDeps,
 
 	sso.DependencySet,
-	wire.Bind(new(webapp.OAuthProviderFactory), new(*sso.OAuthProviderFactory)),
-	wire.Bind(new(webapp.OAuthInteractions), new(*interactionflows.WebAppFlow)),
+	wire.Bind(new(interactionflows.OAuthProviderFactory), new(*sso.OAuthProviderFactory)),
 
 	webapp.DependencySet,
 	wire.Bind(new(webapp.ResponderStates), new(*interactionflows.StateService)),
@@ -62,7 +61,6 @@ var requestDeps = wire.NewSet(
 	handlerwebapp.DependencySet,
 	wire.Bind(new(handlerwebapp.StateService), new(*interactionflows.StateService)),
 	wire.Bind(new(handlerwebapp.Responder), new(*webapp.Responder)),
-	wire.Bind(new(handlerwebapp.LoginOAuthService), new(*webapp.OAuthService)),
 	wire.Bind(new(handlerwebapp.LoginInteractions), new(*interactionflows.WebAppFlow)),
 	wire.Bind(new(handlerwebapp.SignupInteractions), new(*interactionflows.WebAppFlow)),
 	wire.Bind(new(handlerwebapp.CreatePasswordInteractions), new(*interactionflows.WebAppFlow)),
@@ -70,11 +68,9 @@ var requestDeps = wire.NewSet(
 	wire.Bind(new(handlerwebapp.ForgotPasswordInteractions), new(*forgotpassword.Provider)),
 	wire.Bind(new(handlerwebapp.ResetPasswordInteractions), new(*forgotpassword.Provider)),
 	wire.Bind(new(handlerwebapp.OOBOTPInteractions), new(*interactionflows.WebAppFlow)),
-	wire.Bind(new(handlerwebapp.SSOCallbackOAuthService), new(*webapp.OAuthService)),
-	wire.Bind(new(handlerwebapp.SettingsIdentityOAuthService), new(*webapp.OAuthService)),
+	wire.Bind(new(handlerwebapp.SSOCallbackInteractions), new(*interactionflows.WebAppFlow)),
 	wire.Bind(new(handlerwebapp.SettingsIdentityInteractions), new(*interactionflows.WebAppFlow)),
 	wire.Bind(new(handlerwebapp.EnterLoginIDInteractions), new(*interactionflows.WebAppFlow)),
-	wire.Bind(new(handlerwebapp.PromoteOAuthService), new(*webapp.OAuthService)),
 	wire.Bind(new(handlerwebapp.PromoteInteractions), new(*interactionflows.WebAppFlow)),
 
 	wire.Bind(new(handlerwebapp.IdentityProvider), new(*identityprovider.Provider)),

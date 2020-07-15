@@ -13,6 +13,7 @@ type Intent interface {
 type IntentType string
 
 const (
+	IntentTypeOAuth               IntentType = "oauth"
 	IntentTypeSignup              IntentType = "signup"
 	IntentTypeLogin               IntentType = "login"
 	IntentTypeAddIdentity         IntentType = "add-identity"
@@ -25,6 +26,8 @@ const (
 
 func NewIntent(t IntentType) Intent {
 	switch t {
+	case IntentTypeOAuth:
+		return &IntentOAuth{}
 	case IntentTypeSignup:
 		return &IntentSignup{}
 	case IntentTypeLogin:
@@ -42,6 +45,12 @@ func NewIntent(t IntentType) Intent {
 	}
 	panic("interaction: unknown intent type " + t)
 }
+
+type IntentOAuth struct {
+	Identity identity.Spec `json:"identity"`
+}
+
+func (*IntentOAuth) Type() IntentType { return IntentTypeOAuth }
 
 type IntentSignup struct {
 	UserMetadata map[string]interface{} `json:"user_metadata"`

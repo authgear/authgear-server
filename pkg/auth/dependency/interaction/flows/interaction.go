@@ -7,6 +7,7 @@ import (
 )
 
 type InteractionProvider interface {
+	NewInteractionOAuth(intent *interaction.IntentOAuth, clientID string) (*interaction.Interaction, error)
 	NewInteractionLogin(intent *interaction.IntentLogin, clientID string) (*interaction.Interaction, error)
 	NewInteractionLoginAs(
 		intent *interaction.IntentLogin,

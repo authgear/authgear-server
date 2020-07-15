@@ -177,6 +177,7 @@ func ConfigureSignupRoute(route httproute.Route) httproute.Route {
 }
 
 type SignupInteractions interface {
+	BeginOAuth(state *interactionflows.State, opts interactionflows.BeginOAuthOptions) (*interactionflows.WebAppResult, error)
 	SignupWithLoginID(state *interactionflows.State, loginIDKey string, loginID string) (*interactionflows.WebAppResult, error)
 }
 
@@ -188,7 +189,6 @@ type SignupHandler struct {
 	AuthenticationViewModel *AuthenticationViewModeler
 	FormPrefiller           *FormPrefiller
 	Renderer                Renderer
-	OAuth                   LoginOAuthService
 	Interactions            SignupInteractions
 	Responder               Responder
 }
@@ -245,7 +245,13 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			state = interactionflows.NewState()
 			state = h.State.CreateState(state, webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy))
 
-			result, err = h.OAuth.LoginOAuthProvider(r, providerAlias, state)
+			nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
+
+			result, err = h.Interactions.BeginOAuth(state, interactionflows.BeginOAuthOptions{
+				ProviderAlias: providerAlias,
+				Action:        interactionflows.OAuthActionLogin,
+				NonceSource:   nonceSource,
+			})
 			if err != nil {
 				return err
 			}

@@ -1,15 +1,195 @@
 package flows
 
 import (
+	"crypto/subtle"
 	"errors"
+	"fmt"
+	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/sso"
 	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/core/crypto"
 )
 
-func (f *WebAppFlow) LoginWithOAuthProvider(state *State, oauthAuthInfo sso.AuthInfo) (*WebAppResult, error) {
+type OAuthCallbackData struct {
+	State            string
+	Code             string
+	Scope            string
+	Error            string
+	ErrorDescription string
+}
+
+// OAuthRedirectError wraps err and redirectURI.
+// Its purpose is to instruct the error handler to use the provided redirectURI.
+type OAuthRedirectError struct {
+	redirectURI string
+	err         error
+}
+
+func (e *OAuthRedirectError) Error() string {
+	return e.err.Error()
+}
+
+func (e *OAuthRedirectError) RedirectURI() string {
+	return e.redirectURI
+}
+
+func (e *OAuthRedirectError) Unwrap() error {
+	return e.err
+}
+
+type OAuthAction string
+
+const (
+	OAuthActionLogin   OAuthAction = "login"
+	OAuthActionLink    OAuthAction = "link"
+	OAuthActionPromote OAuthAction = "promote"
+)
+
+type BeginOAuthOptions struct {
+	ProviderAlias string
+	Action        OAuthAction
+	UserID        string
+	NonceSource   *http.Cookie
+}
+
+func (f *WebAppFlow) BeginOAuth(state *State, opts BeginOAuthOptions) (result *WebAppResult, err error) {
+	oauthProvider := f.OAuthProviderFactory.NewOAuthProvider(opts.ProviderAlias)
+	if oauthProvider == nil {
+		err = ErrOAuthProviderNotFound
+		return
+	}
+
+	if opts.NonceSource == nil || opts.NonceSource.Value == "" {
+		err = errors.New("webapp: failed to generate nonce")
+		return
+	}
+
+	nonce := crypto.SHA256String(opts.NonceSource.Value)
+
+	param := sso.GetAuthURLParam{
+		State: state.InstanceID,
+		Nonce: nonce,
+	}
+
+	authURI, err := oauthProvider.GetAuthURL(param)
+	if err != nil {
+		return
+	}
+
+	providerConfig := oauthProvider.Config()
+	providerID := providerConfig.ProviderID()
+
+	identitySpec := identity.Spec{
+		Type: authn.IdentityTypeOAuth,
+		Claims: map[string]interface{}{
+			identity.IdentityClaimOAuthProviderKeys:                 providerID.Claims(),
+			identity.IdentityClaimOAuthAction:                       string(opts.Action),
+			identity.IdentityClaimOAuthNonce:                        nonce,
+			identity.IdentityClaimOAuthUserID:                       opts.UserID,
+			identity.IdentityClaimOAuthGeneratedProviderRedirectURI: authURI,
+		},
+	}
+
+	clientID := ""
+	state.Interaction, err = f.Interactions.NewInteractionOAuth(&interaction.IntentOAuth{
+		Identity: identitySpec,
+	}, clientID)
+	if err != nil {
+		return
+	}
+
+	result = &WebAppResult{}
+	return
+}
+
+type HandleOAuthCallbackOptions struct {
+	ProviderAlias string
+	NonceSource   *http.Cookie
+}
+
+func (f *WebAppFlow) HandleOAuthCallback(state *State, data OAuthCallbackData, opts HandleOAuthCallbackOptions) (result *WebAppResult, err error) {
+	stepState, err := f.Interactions.GetStepState(state.Interaction)
+	if err != nil {
+		return
+	}
+	if stepState.Step != interaction.StepOAuth {
+		panic(fmt.Sprintf("webapp: unexpected step: %v", stepState.Step))
+	}
+
+	action, _ := stepState.Identity.Claims[identity.IdentityClaimOAuthAction].(string)
+	userID, _ := stepState.Identity.Claims[identity.IdentityClaimOAuthUserID].(string)
+	hashedNonce, _ := stepState.Identity.Claims[identity.IdentityClaimOAuthNonce].(string)
+	redirectURI, _ := state.Extra[ExtraRedirectURI].(string)
+
+	// Wrap the error so that we can go back where we were.
+	defer func() {
+		if err != nil {
+			err = &OAuthRedirectError{
+				redirectURI: redirectURI,
+				err:         err,
+			}
+		}
+	}()
+
+	oauthProvider := f.OAuthProviderFactory.NewOAuthProvider(opts.ProviderAlias)
+	if oauthProvider == nil {
+		err = ErrOAuthProviderNotFound
+		return
+	}
+
+	// Handle provider error
+	if data.Error != "" {
+		msg := "login failed"
+		if desc := data.ErrorDescription; desc != "" {
+			msg += ": " + desc
+		}
+		err = sso.NewSSOFailed(sso.SSOUnauthorized, msg)
+		return
+	}
+
+	// Verify CSRF cookie
+	if opts.NonceSource == nil || opts.NonceSource.Value == "" {
+		err = sso.NewSSOFailed(sso.SSOUnauthorized, "invalid nonce")
+		return
+	}
+	hashedCookie := crypto.SHA256String(opts.NonceSource.Value)
+	if subtle.ConstantTimeCompare([]byte(hashedNonce), []byte(hashedCookie)) != 1 {
+		err = sso.NewSSOFailed(sso.SSOUnauthorized, "invalid nonce")
+		return
+	}
+
+	oauthAuthInfo, err := oauthProvider.GetAuthInfo(
+		sso.OAuthAuthorizationResponse{
+			Code:  data.Code,
+			State: data.State,
+			Scope: data.Scope,
+		},
+		sso.GetAuthInfoParam{
+			Nonce: hashedNonce,
+		},
+	)
+	if err != nil {
+		return
+	}
+
+	switch OAuthAction(action) {
+	case OAuthActionLogin:
+		result, err = f.loginWithOAuthProvider(state, oauthAuthInfo)
+	case OAuthActionLink:
+		result, err = f.linkWithOAuthProvider(state, userID, oauthAuthInfo)
+	case OAuthActionPromote:
+		result, err = f.promoteWithOAuthProvider(state, userID, oauthAuthInfo)
+	default:
+		panic(fmt.Errorf("webapp: unexpected sso action: %v", action))
+	}
+
+	return
+}
+
+func (f *WebAppFlow) loginWithOAuthProvider(state *State, oauthAuthInfo sso.AuthInfo) (*WebAppResult, error) {
 	providerID := oauthAuthInfo.ProviderConfig.ProviderID()
 	claims := map[string]interface{}{
 		identity.IdentityClaimOAuthProviderKeys: providerID.Claims(),
@@ -76,7 +256,7 @@ func (f *WebAppFlow) LoginWithOAuthProvider(state *State, oauthAuthInfo sso.Auth
 	return f.afterPrimaryAuthentication(state)
 }
 
-func (f *WebAppFlow) LinkWithOAuthProvider(state *State, userID string, oauthAuthInfo sso.AuthInfo) (result *WebAppResult, err error) {
+func (f *WebAppFlow) linkWithOAuthProvider(state *State, userID string, oauthAuthInfo sso.AuthInfo) (result *WebAppResult, err error) {
 	providerID := oauthAuthInfo.ProviderConfig.ProviderID()
 	claims := map[string]interface{}{
 		identity.IdentityClaimOAuthProviderKeys: providerID.Claims(),

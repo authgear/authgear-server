@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -136,11 +137,8 @@ func ConfigureSettingsIdentityRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/settings/identity")
 }
 
-type SettingsIdentityOAuthService interface {
-	LinkOAuthProvider(r *http.Request, providerAlias string, userID string, state *interactionflows.State) (*interactionflows.WebAppResult, error)
-}
-
 type SettingsIdentityInteractions interface {
+	BeginOAuth(state *interactionflows.State, opts interactionflows.BeginOAuthOptions) (*interactionflows.WebAppResult, error)
 	UnlinkOAuthProvider(state *interactionflows.State, providerAlias string, userID string) (*interactionflows.WebAppResult, error)
 }
 
@@ -150,7 +148,6 @@ type SettingsIdentityHandler struct {
 	BaseViewModel           *BaseViewModeler
 	AuthenticationViewModel *AuthenticationViewModeler
 	Renderer                Renderer
-	OAuth                   SettingsIdentityOAuthService
 	Interactions            SettingsIdentityInteractions
 	Responder               Responder
 }
@@ -206,7 +203,13 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 			sess := auth.GetSession(r.Context())
 			userID := sess.AuthnAttrs().UserID
 
-			result, err = h.OAuth.LinkOAuthProvider(r, providerAlias, userID, state)
+			nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
+			result, err = h.Interactions.BeginOAuth(state, interactionflows.BeginOAuthOptions{
+				ProviderAlias: providerAlias,
+				Action:        interactionflows.OAuthActionLink,
+				UserID:        userID,
+				NonceSource:   nonceSource,
+			})
 			if err != nil {
 				return err
 			}

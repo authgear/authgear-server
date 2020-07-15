@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -125,11 +126,8 @@ func ConfigurePromoteRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/promote_user")
 }
 
-type PromoteOAuthService interface {
-	PromoteOAuthProvider(r *http.Request, providerAlias string, userID string, state *interactionflows.State) (*interactionflows.WebAppResult, error)
-}
-
 type PromoteInteractions interface {
+	BeginOAuth(state *interactionflows.State, opts interactionflows.BeginOAuthOptions) (*interactionflows.WebAppResult, error)
 	PromoteWithLoginID(state *interactionflows.State, loginIDKey string, loginID string, userID string) (*interactionflows.WebAppResult, error)
 }
 
@@ -140,7 +138,6 @@ type PromoteHandler struct {
 	AuthenticationViewModel *AuthenticationViewModeler
 	FormPrefiller           *FormPrefiller
 	Renderer                Renderer
-	OAuth                   PromoteOAuthService
 	Interactions            PromoteInteractions
 	Responder               Responder
 }
@@ -191,7 +188,13 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 			userID, _ := state.Extra[interactionflows.ExtraAnonymousUserID].(string)
 
-			result, err = h.OAuth.PromoteOAuthProvider(r, providerAlias, userID, state)
+			nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
+			result, err = h.Interactions.BeginOAuth(state, interactionflows.BeginOAuthOptions{
+				ProviderAlias: providerAlias,
+				Action:        interactionflows.OAuthActionPromote,
+				UserID:        userID,
+				NonceSource:   nonceSource,
+			})
 			if err != nil {
 				return err
 			}

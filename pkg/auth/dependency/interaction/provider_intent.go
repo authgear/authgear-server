@@ -10,6 +10,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/core/uuid"
 )
 
+func (p *Provider) NewInteractionOAuth(intent *IntentOAuth, clientID string) (*Interaction, error) {
+	i := newInteraction(clientID, intent)
+	return i, nil
+}
+
 func (p *Provider) NewInteractionLoginAs(
 	intent *IntentLogin,
 	userID string,

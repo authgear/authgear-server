@@ -5,17 +5,23 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/sso"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
+type OAuthProviderFactory interface {
+	NewOAuthProvider(alias string) sso.OAuthProvider
+}
+
 type WebAppFlow struct {
-	Config         *config.IdentityConfig
-	SSOOAuthConfig *config.OAuthSSOConfig
-	Identities     IdentityProvider
-	Users          UserProvider
-	Hooks          HookProvider
-	Interactions   InteractionProvider
-	UserController *UserController
+	Config               *config.IdentityConfig
+	SSOOAuthConfig       *config.OAuthSSOConfig
+	Identities           IdentityProvider
+	OAuthProviderFactory OAuthProviderFactory
+	Users                UserProvider
+	Hooks                HookProvider
+	Interactions         InteractionProvider
+	UserController       *UserController
 }
 
 func (f *WebAppFlow) GetStepState(i *interaction.Interaction) (*interaction.StepState, error) {

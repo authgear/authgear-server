@@ -59,7 +59,7 @@ func (f *WebAppFlow) PromoteWithLoginID(state *State, loginIDKey, loginID string
 	return &WebAppResult{}, nil
 }
 
-func (f *WebAppFlow) PromoteWithOAuthProvider(state *State, userID string, oauthAuthInfo sso.AuthInfo) (*WebAppResult, error) {
+func (f *WebAppFlow) promoteWithOAuthProvider(state *State, userID string, oauthAuthInfo sso.AuthInfo) (*WebAppResult, error) {
 	providerID := oauthAuthInfo.ProviderConfig.ProviderID()
 	iden := identity.Spec{
 		Type: authn.IdentityTypeOAuth,
