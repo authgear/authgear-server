@@ -17,3 +17,30 @@ func (i *Info) ToSpec() Spec {
 func (i *Info) ToRef() Ref {
 	return Ref{ID: i.ID, Type: i.Type}
 }
+
+func (i *Info) AMR() []string {
+	switch i.Type {
+	case authn.AuthenticatorTypePassword:
+		return []string{"pwd"}
+	case authn.AuthenticatorTypeTOTP:
+		return []string{"otp"}
+	case authn.AuthenticatorTypeOOB:
+		out := []string{"otp"}
+		channel := i.Props[AuthenticatorPropOOBOTPChannelType].(string)
+		switch authn.AuthenticatorOOBChannel(channel) {
+		case authn.AuthenticatorOOBChannelSMS:
+			out = append(out, "sms")
+		case authn.AuthenticatorOOBChannelEmail:
+			break
+		default:
+			panic("authenticator: unexpected OOB channel")
+		}
+		return out
+	case authn.AuthenticatorTypeRecoveryCode:
+		return []string{}
+	case authn.AuthenticatorTypeBearerToken:
+		return []string{}
+	default:
+		panic("authenticator: unexpected authenticator type")
+	}
+}

@@ -110,6 +110,7 @@ func TestProviderFlow(t *testing.T) {
 				var emptyAuthenticatorInfoList []*authenticator.Info
 				authenticatorProvider.EXPECT().UpdateAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
 				authenticatorProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
+				authenticatorProvider.EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).Return(ai, nil).AnyTimes()
 
 				// step 2
 				stepState, err = p.GetStepState(i)
@@ -193,6 +194,7 @@ func TestProviderFlow(t *testing.T) {
 				authenticatorProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
 				authenticatorProvider.EXPECT().UpdateAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
 				authenticatorProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
+				authenticatorProvider.EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).Return(ai, nil).AnyTimes()
 
 				// step 2
 				stepState, err = p.GetStepState(i)
@@ -308,6 +310,7 @@ func TestProviderFlow(t *testing.T) {
 			authenticatorProvider.EXPECT().Authenticate(
 				gomock.Eq(userID), gomock.Eq(ai.ToSpec()), gomock.Any(), gomock.Any(),
 			).Return(ai, nil)
+			authenticatorProvider.EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).Return(ai, nil).AnyTimes()
 
 			stepState, err = p.GetStepState(i)
 			So(err, ShouldBeNil)
@@ -525,6 +528,7 @@ func TestProviderFlow(t *testing.T) {
 				var emptyAuthenticatorInfoList []*authenticator.Info
 				authenticatorProvider.EXPECT().UpdateAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
 				authenticatorProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
+				authenticatorProvider.EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).Return(ai, nil).AnyTimes()
 
 				// get user for hook
 				userProvider.EXPECT().Get(gomock.Eq(userID)).Return(&model.User{}, nil)
@@ -801,6 +805,7 @@ func TestProviderFlow(t *testing.T) {
 			var emptyAuthenticatorInfoList []*authenticator.Info
 			authenticatorProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
 			authenticatorProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)
+			authenticatorProvider.EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).Return(ai, nil).AnyTimes()
 
 			Convey("should update authenticator", func() {
 				// setup

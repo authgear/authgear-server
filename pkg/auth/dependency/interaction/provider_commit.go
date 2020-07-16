@@ -50,15 +50,31 @@ func (p *Provider) Commit(i *Interaction) (*Result, error) {
 		return nil, err
 	}
 
-	// get the identity before deleting
-	var identity identity.Info
-	// authenticator interaction doesn't not involve identity
+	var identity *identity.Info
 	if i.Identity != nil {
 		ii, err := p.Identity.Get(i.UserID, i.Identity.Type, i.Identity.ID)
 		if err != nil {
 			return nil, err
 		}
-		identity = *ii
+		identity = ii
+	}
+
+	var primaryAuthenticator *authenticator.Info
+	if i.PrimaryAuthenticator != nil {
+		aa, err := p.Authenticator.Get(i.UserID, i.PrimaryAuthenticator.Type, i.PrimaryAuthenticator.ID)
+		if err != nil {
+			return nil, err
+		}
+		primaryAuthenticator = aa
+	}
+
+	var secondaryAuthenticator *authenticator.Info
+	if i.SecondaryAuthenticator != nil {
+		aa, err := p.Authenticator.Get(i.UserID, i.SecondaryAuthenticator.Type, i.SecondaryAuthenticator.ID)
+		if err != nil {
+			return nil, err
+		}
+		secondaryAuthenticator = aa
 	}
 
 	// Delete identities & authenticators
@@ -71,12 +87,15 @@ func (p *Provider) Commit(i *Interaction) (*Result, error) {
 
 	attrs := &authn.Attrs{
 		UserID: i.UserID,
-		// TODO(interaction): populate acr & amr
+		// TODO(interaction): populate ACR
+		AMR: DeriveAMR(primaryAuthenticator, secondaryAuthenticator),
 	}
 
 	return &Result{
-		Attrs:    attrs,
-		Identity: identity,
+		Attrs:                  attrs,
+		Identity:               identity,
+		PrimaryAuthenticator:   primaryAuthenticator,
+		SecondaryAuthenticator: secondaryAuthenticator,
 	}, nil
 }
 
