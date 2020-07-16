@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
 	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
@@ -250,7 +251,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 			result, err = h.Interactions.BeginOAuth(state, interactionflows.BeginOAuthOptions{
 				ProviderAlias:    providerAlias,
-				Action:           interactionflows.OAuthActionLogin,
+				Action:           interaction.OAuthActionLogin,
 				NonceSource:      nonceSource,
 				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
 			})

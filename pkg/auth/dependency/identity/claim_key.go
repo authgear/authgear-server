@@ -3,14 +3,6 @@ package identity
 const (
 	// This claim is intended for internal use only.
 	IdentityClaimOAuthProviderKeys string = "https://authgear.com/claims/oauth/provider_keys"
-	// This claim is intended for internal use only.
-	IdentityClaimOAuthAction string = "https://authgear.com/claims/oauth/action"
-	// This claim is intended for internal use only.
-	IdentityClaimOAuthNonce string = "https://authgear.com/claims/oauth/nonce"
-	// This claim is intended for internal use only.
-	IdentityClaimOAuthUserID string = "https://authgear.com/claims/oauth/user_id"
-	// This claim is intended for internal use only.
-	IdentityClaimOAuthGeneratedProviderRedirectURI string = "https://authgear.com/claims/oauth/generated_provider_redirect_uri"
 
 	// IdentityClaimOAuthProviderType is a claim with a string value.
 	// This claim is intended for external use only.

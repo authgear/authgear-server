@@ -5,7 +5,6 @@ import (
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
 	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/authgear/authgear-server/pkg/core/authn"
@@ -71,8 +70,8 @@ func (r *Responder) Respond(
 
 	switch stepState.Step {
 	case interaction.StepOAuth:
-		redirectURI, _ := stepState.Identity.Claims[identity.IdentityClaimOAuthGeneratedProviderRedirectURI].(string)
-		http.Redirect(w, req, redirectURI, http.StatusFound)
+		authorizationURL := stepState.OAuthProviderAuthorizationURL
+		http.Redirect(w, req, authorizationURL, http.StatusFound)
 	case interaction.StepSetupPrimaryAuthenticator:
 		switch stepState.AvailableAuthenticators[0].Type {
 		case authn.AuthenticatorTypeOOB:

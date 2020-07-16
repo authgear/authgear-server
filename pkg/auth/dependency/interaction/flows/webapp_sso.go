@@ -21,18 +21,10 @@ type OAuthCallbackData struct {
 	ErrorDescription string
 }
 
-type OAuthAction string
-
-const (
-	OAuthActionLogin   OAuthAction = "login"
-	OAuthActionLink    OAuthAction = "link"
-	OAuthActionPromote OAuthAction = "promote"
-)
-
 type BeginOAuthOptions struct {
 	ProviderAlias    string
 	ErrorRedirectURI string
-	Action           OAuthAction
+	Action           interaction.OAuthAction
 	NonceSource      *http.Cookie
 	UserID           string
 }
@@ -67,17 +59,17 @@ func (f *WebAppFlow) BeginOAuth(state *State, opts BeginOAuthOptions) (result *W
 	identitySpec := identity.Spec{
 		Type: authn.IdentityTypeOAuth,
 		Claims: map[string]interface{}{
-			identity.IdentityClaimOAuthProviderKeys:                 providerID.Claims(),
-			identity.IdentityClaimOAuthAction:                       string(opts.Action),
-			identity.IdentityClaimOAuthNonce:                        nonce,
-			identity.IdentityClaimOAuthUserID:                       opts.UserID,
-			identity.IdentityClaimOAuthGeneratedProviderRedirectURI: authURI,
+			identity.IdentityClaimOAuthProviderKeys: providerID.Claims(),
 		},
 	}
 
 	clientID := ""
 	state.Interaction, err = f.Interactions.NewInteractionOAuth(&interaction.IntentOAuth{
-		Identity: identitySpec,
+		Identity:                 identitySpec,
+		Action:                   opts.Action,
+		Nonce:                    nonce,
+		UserID:                   opts.UserID,
+		ProviderAuthorizationURL: authURI,
 	}, clientID)
 	if err != nil {
 		return
@@ -102,9 +94,9 @@ func (f *WebAppFlow) HandleOAuthCallback(state *State, data OAuthCallbackData, o
 		panic(fmt.Sprintf("webapp: unexpected step: %v", stepState.Step))
 	}
 
-	action, _ := stepState.Identity.Claims[identity.IdentityClaimOAuthAction].(string)
-	userID, _ := stepState.Identity.Claims[identity.IdentityClaimOAuthUserID].(string)
-	hashedNonce, _ := stepState.Identity.Claims[identity.IdentityClaimOAuthNonce].(string)
+	action := stepState.OAuthAction
+	userID := stepState.OAuthUserID
+	hashedNonce := stepState.OAuthNonce
 
 	oauthProvider := f.OAuthProviderFactory.NewOAuthProvider(opts.ProviderAlias)
 	if oauthProvider == nil {
@@ -147,12 +139,12 @@ func (f *WebAppFlow) HandleOAuthCallback(state *State, data OAuthCallbackData, o
 		return
 	}
 
-	switch OAuthAction(action) {
-	case OAuthActionLogin:
+	switch action {
+	case interaction.OAuthActionLogin:
 		result, err = f.loginWithOAuthProvider(state, oauthAuthInfo)
-	case OAuthActionLink:
+	case interaction.OAuthActionLink:
 		result, err = f.linkWithOAuthProvider(state, userID, oauthAuthInfo)
-	case OAuthActionPromote:
+	case interaction.OAuthActionPromote:
 		result, err = f.promoteWithOAuthProvider(state, userID, oauthAuthInfo)
 	default:
 		panic(fmt.Errorf("webapp: unexpected sso action: %v", action))

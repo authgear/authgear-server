@@ -17,7 +17,11 @@ const (
 )
 
 type StepState struct {
-	Step                    Step
-	AvailableAuthenticators []authenticator.Spec
-	Identity                identity.Spec
+	Step                          Step
+	AvailableAuthenticators       []authenticator.Spec
+	Identity                      identity.Spec
+	OAuthAction                   OAuthAction
+	OAuthNonce                    string
+	OAuthProviderAuthorizationURL string
+	OAuthUserID                   string
 }

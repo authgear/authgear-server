@@ -46,8 +46,20 @@ func NewIntent(t IntentType) Intent {
 	panic("interaction: unknown intent type " + t)
 }
 
+type OAuthAction string
+
+const (
+	OAuthActionLogin   OAuthAction = "login"
+	OAuthActionLink    OAuthAction = "link"
+	OAuthActionPromote OAuthAction = "promote"
+)
+
 type IntentOAuth struct {
-	Identity identity.Spec `json:"identity"`
+	Identity                 identity.Spec `json:"identity"`
+	Action                   OAuthAction   `json:"action"`
+	Nonce                    string        `json:"nonce"`
+	ProviderAuthorizationURL string        `json:"provider_authorization_url"`
+	UserID                   string        `json:"user_id,omitempty"`
 }
 
 func (*IntentOAuth) Type() IntentType { return IntentTypeOAuth }

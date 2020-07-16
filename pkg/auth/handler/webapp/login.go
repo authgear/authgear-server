@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
 	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/core/phone"
@@ -246,7 +247,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
 			result, err = h.Interactions.BeginOAuth(state, interactionflows.BeginOAuthOptions{
 				ProviderAlias:    providerAlias,
-				Action:           interactionflows.OAuthActionLogin,
+				Action:           interaction.OAuthActionLogin,
 				NonceSource:      nonceSource,
 				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
 			})

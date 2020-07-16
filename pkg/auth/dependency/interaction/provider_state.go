@@ -39,8 +39,12 @@ func (p *Provider) GetStepState(i *Interaction) (*StepState, error) {
 
 func (p *Provider) getStateOAuth(i *Interaction, intent *IntentOAuth) (steps []StepState, err error) {
 	steps = append(steps, StepState{
-		Step:     StepOAuth,
-		Identity: intent.Identity,
+		Step:                          StepOAuth,
+		Identity:                      intent.Identity,
+		OAuthAction:                   intent.Action,
+		OAuthNonce:                    intent.Nonce,
+		OAuthProviderAuthorizationURL: intent.ProviderAuthorizationURL,
+		OAuthUserID:                   intent.UserID,
 	})
 	return
 }
