@@ -2,6 +2,7 @@ package interaction
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
@@ -257,12 +258,16 @@ func (p *Provider) listPrimaryAuthenticators(is identity.Spec) (specs []authenti
 		return
 	}
 
+	// We allow the user to use authenticator not specified in the config
+	// to authenticate themselves.
+	// This is useful in the following case.
+	//
+	// Authgear is initially configured to use password as primary authenticator.
+	// Later on the developer change to use OOB OTP as primary authenticator.
+	// Existing users can still use their password to login.
+	ais = SortAuthenticators(ais, p.Config.PrimaryAuthenticators)
 	for _, ai := range ais {
-		for _, t := range p.Config.PrimaryAuthenticators {
-			if ai.Type == t {
-				specs = append(specs, ai.ToSpec())
-			}
-		}
+		specs = append(specs, ai.ToSpec())
 	}
 
 	return
@@ -303,4 +308,34 @@ func (p *Provider) getNeedSetupPrimaryAuthenticatorsWithNewIdentity(userID strin
 		return availableAuthenticators, nil
 	}
 	return []authenticator.Spec{}, nil
+}
+
+// SortAuthenticators sorts ais by considering preferred as the order.
+func SortAuthenticators(ais []*authenticator.Info, preferred []authn.AuthenticatorType) []*authenticator.Info {
+	rank := make(map[authn.AuthenticatorType]int)
+	for i, typ := range preferred {
+		rank[typ] = i
+	}
+
+	tmp := make([]*authenticator.Info, len(ais))
+	copy(tmp, ais)
+	ais = tmp
+
+	sort.SliceStable(ais, func(i, j int) bool {
+		iRank, iIsPreferred := rank[ais[i].Type]
+		jRank, jIsPreferred := rank[ais[j].Type]
+		switch {
+		case iIsPreferred && jIsPreferred:
+			return iRank < jRank
+		case !iIsPreferred && !jIsPreferred:
+			return false
+		case iIsPreferred && !jIsPreferred:
+			return true
+		case !iIsPreferred && jIsPreferred:
+			return false
+		}
+		panic("unreachable")
+	})
+
+	return ais
 }
