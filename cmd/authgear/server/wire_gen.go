@@ -5967,6 +5967,21 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	return logoutHandler
 }
 
+func newKeyURIImageHandler(p *deps.RequestProvider) http.Handler {
+	request := p.Request
+	appProvider := p.AppProvider
+	rootProvider := appProvider.RootProvider
+	serverConfig := rootProvider.ServerConfig
+	endpointsProvider := &endpoints.Provider{
+		Request: request,
+		Config:  serverConfig,
+	}
+	keyURIImageHandler := &webapp2.KeyURIImageHandler{
+		Endpoints: endpointsProvider,
+	}
+	return keyURIImageHandler
+}
+
 // Injectors from wire_middleware.go:
 
 func newSentryMiddleware(hub *sentry.Hub, p *deps.RootProvider) httproute.Middleware {

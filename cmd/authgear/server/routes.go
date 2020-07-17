@@ -121,6 +121,8 @@ func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *httpro
 	router.Add(oauthhandler.ConfigureEndSessionRoute(rootRoute), p.Handler(newOAuthEndSessionHandler))
 	router.Add(oauthhandler.ConfigureChallengeRoute(rootRoute), p.Handler(newOAuthChallengeHandler))
 
+	router.Add(webapphandler.ConfigureKeyURIImageRoute(rootRoute), p.Handler(newKeyURIImageHandler))
+
 	router.Add(oauthhandler.ConfigureUserInfoRoute(scopedRoute), p.Handler(newOAuthUserInfoHandler))
 
 	if p.ServerConfig.StaticAsset.ServingEnabled {

@@ -187,3 +187,10 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		wire.Bind(new(http.Handler), new(*handlerwebapp.LogoutHandler)),
 	))
 }
+
+func newKeyURIImageHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		deps.RequestDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.KeyURIImageHandler)),
+	))
+}
