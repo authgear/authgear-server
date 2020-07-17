@@ -3,6 +3,9 @@ package otp
 import (
 	"crypto/rand"
 	"encoding/base32"
+	"fmt"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/pquerna/otp"
@@ -13,10 +16,12 @@ import (
 // Base32 encoding as specified by RFC3548 (RFC4648) without padding.
 var b32NoPadding = base32.StdEncoding.WithPadding(base32.NoPadding)
 
+const totpPeriod = 30
+
 var validateOpts = totp.ValidateOpts{
 	// https://github.com/google/google-authenticator/wiki/Key-Uri-Format#period
 	// The value must be 30
-	Period: 30,
+	Period: totpPeriod,
 	// +- 1 period is good enough.
 	Skew: 1,
 	// https://github.com/google/google-authenticator/wiki/Key-Uri-Format#digits
@@ -54,4 +59,28 @@ func ValidateTOTP(secret string, code string, t time.Time) bool {
 // GenerateTOTP generates the TOTP code against the secret at the given time t.
 func GenerateTOTP(secret string, t time.Time) (string, error) {
 	return totp.GenerateCodeCustom(secret, t, validateOpts)
+}
+
+type MakeTOTPKeyOptions struct {
+	Issuer      string
+	AccountName string
+	Secret      string
+}
+
+// MakeTOTPKey is useful for serializing to Key URI format
+// and generate QR image of it.
+func MakeTOTPKey(opts MakeTOTPKeyOptions) (*otp.Key, error) {
+	q := url.Values{}
+	q.Set("secret", opts.Secret)
+	q.Set("issuer", opts.Issuer)
+	q.Set("algorithm", otp.AlgorithmSHA1.String())
+	q.Set("digits", otp.DigitsSix.String())
+	q.Set("period", strconv.Itoa(totpPeriod))
+	u := &url.URL{
+		Scheme:   "otpauth",
+		Host:     "totp",
+		Path:     fmt.Sprintf("/%s:%s", opts.Issuer, opts.AccountName),
+		RawQuery: q.Encode(),
+	}
+	return otp.NewKeyFromURL(u.String())
 }

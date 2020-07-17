@@ -88,3 +88,19 @@ func TestTOTP(t *testing.T) {
 		})
 	})
 }
+
+func TestMakeTOTPKey(t *testing.T) {
+	Convey("MakeTOTPKey", t, func() {
+		test := func(opts otp.MakeTOTPKeyOptions, expected string) {
+			key, err := otp.MakeTOTPKey(opts)
+			So(err, ShouldBeNil)
+			So(key.URL(), ShouldEqual, expected)
+		}
+
+		test(otp.MakeTOTPKeyOptions{
+			Issuer:      "Example",
+			AccountName: "user@example.com",
+			Secret:      "JBSWY3DPEHPK3PXP",
+		}, "otpauth://totp/Example:user@example.com?algorithm=SHA1&digits=6&issuer=Example&period=30&secret=JBSWY3DPEHPK3PXP")
+	})
+}
