@@ -22,23 +22,28 @@ func (f *WebAppFlow) PromoteWithLoginID(state *State, loginIDKey, loginID string
 		},
 	}
 
-	if f.Config.OnConflict.Promotion == config.PromotionConflictBehaviorLogin {
-		_, _, err = f.Identities.GetByClaims(authn.IdentityTypeLoginID, iden.Claims)
-		if errors.Is(err, identity.ErrIdentityNotFound) {
-			state.Interaction, err = f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
-				Identity: iden,
-			}, "", userID)
-		} else if err != nil {
-			return nil, err
-		} else {
-			state.Interaction, err = f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
-				Identity: iden,
-			}, "")
-		}
-	} else {
+	identityNotFound := false
+	_, _, err = f.Identities.GetByClaims(authn.IdentityTypeLoginID, iden.Claims)
+	if errors.Is(err, identity.ErrIdentityNotFound) {
+		identityNotFound = true
+	} else if err != nil {
+		return nil, err
+	}
+
+	if f.Config.OnConflict.Promotion == config.PromotionConflictBehaviorError && !identityNotFound {
+		err = interaction.ErrDuplicatedIdentity
+		return nil, err
+	}
+
+	if identityNotFound {
 		state.Interaction, err = f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
 			Identity: iden,
 		}, "", userID)
+
+	} else {
+		state.Interaction, err = f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
+			Identity: iden,
+		}, "")
 	}
 	if err != nil {
 		return nil, err
@@ -59,7 +64,9 @@ func (f *WebAppFlow) PromoteWithLoginID(state *State, loginIDKey, loginID string
 	return &WebAppResult{}, nil
 }
 
-func (f *WebAppFlow) PromoteWithOAuthProvider(state *State, userID string, oauthAuthInfo sso.AuthInfo) (*WebAppResult, error) {
+func (f *WebAppFlow) promoteWithOAuthProvider(state *State, userID string, oauthAuthInfo sso.AuthInfo) (*WebAppResult, error) {
+	var err error
+
 	providerID := oauthAuthInfo.ProviderConfig.ProviderID()
 	iden := identity.Spec{
 		Type: authn.IdentityTypeOAuth,
@@ -70,34 +77,37 @@ func (f *WebAppFlow) PromoteWithOAuthProvider(state *State, userID string, oauth
 			identity.IdentityClaimOAuthClaims:       oauthAuthInfo.ProviderUserInfo.ClaimsValue(),
 		},
 	}
-	var err error
 
-	if f.Config.OnConflict.Promotion == config.PromotionConflictBehaviorLogin {
-		_, _, err = f.Identities.GetByClaims(authn.IdentityTypeOAuth, iden.Claims)
-		if errors.Is(err, identity.ErrIdentityNotFound) {
-			state.Interaction, err = f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
-				Identity: iden,
-			}, "", userID)
-		} else if err != nil {
-			return nil, err
-		} else {
-			state.Interaction, err = f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
-				Identity: iden,
-			}, "")
-		}
-	} else {
+	identityNotFound := false
+	_, _, err = f.Identities.GetByClaims(authn.IdentityTypeOAuth, iden.Claims)
+	if errors.Is(err, identity.ErrIdentityNotFound) {
+		identityNotFound = true
+	} else if err != nil {
+		return nil, err
+	}
+
+	if f.Config.OnConflict.Promotion == config.PromotionConflictBehaviorError && !identityNotFound {
+		err = interaction.ErrDuplicatedIdentity
+		return nil, err
+	}
+
+	if identityNotFound {
 		state.Interaction, err = f.Interactions.NewInteractionAddIdentity(&interaction.IntentAddIdentity{
 			Identity: iden,
 		}, "", userID)
+	} else {
+		state.Interaction, err = f.Interactions.NewInteractionLogin(&interaction.IntentLogin{
+			Identity: iden,
+		}, "")
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	s, err := f.Interactions.GetInteractionState(state.Interaction)
+	stepState, err := f.Interactions.GetStepState(state.Interaction)
 	if err != nil {
 		return nil, err
-	} else if s.CurrentStep().Step != interaction.StepCommit {
+	} else if stepState.Step != interaction.StepCommit {
 		// authenticator is not needed for oauth identity
 		// so the current step must be commit
 		panic("interaction_flow_webapp: unexpected interaction step")
@@ -134,13 +144,13 @@ func (f *WebAppFlow) afterAnonymousUserPromotion(state *State, ir *interaction.R
 			return nil, err
 		}
 
-		s, err := f.Interactions.GetInteractionState(state.Interaction)
+		stepState, err := f.Interactions.GetStepState(state.Interaction)
 		if err != nil {
 			return nil, err
 		}
 
-		if s.CurrentStep().Step != interaction.StepCommit {
-			panic("interaction_flow_webapp: unexpected step " + s.CurrentStep().Step)
+		if stepState.Step != interaction.StepCommit {
+			panic("interaction_flow_webapp: unexpected step " + stepState.Step)
 		}
 
 		_, err = f.Interactions.Commit(state.Interaction)

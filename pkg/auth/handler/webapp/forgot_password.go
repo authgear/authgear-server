@@ -6,7 +6,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -155,7 +154,7 @@ func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	h.FormPrefiller.Prefill(r.Form)
 
 	if r.Method == "GET" {
-		state, err := h.State.RestoreState(r, true)
+		state, err := h.State.RestoreReadOnlyState(r, true)
 		if errors.Is(err, interactionflows.ErrStateNotFound) {
 			err = nil
 		}
@@ -190,13 +189,13 @@ func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 			defer func() {
 				h.State.UpdateState(state, nil, err)
-				if err != nil {
-					webapp.RedirectToCurrentPath(w, r)
-				} else {
-					webapp.RedirectToPathWithX(w, r, "/forgot_password/success")
+				redirectURI := state.RedirectURI(r.URL)
+				if err == nil {
+					redirectURI.Path = "/forgot_password/success"
 				}
+				http.Redirect(w, r, redirectURI.String(), http.StatusFound)
 			}()
-			state = h.State.MakeState(r)
+			state = interactionflows.NewState()
 			state = h.State.CreateState(state, "")
 
 			err = ForgotPasswordSchema.PartValidator(ForgotPasswordRequestSchema).ValidateValue(FormToJSON(r.Form))

@@ -1,3 +1,3 @@
 package webapp
 
-const csrfCookieName = "_gorilla_csrf"
+const CSRFCookieName = "_gorilla_csrf"

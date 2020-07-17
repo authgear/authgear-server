@@ -8,6 +8,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/core/skyerr"
 	"github.com/authgear/authgear-server/pkg/log"
 )
 
@@ -25,36 +26,42 @@ func TestStateService(t *testing.T) {
 			Logger:     StateServiceLogger{log.Null},
 		}
 
-		Convey("UpdateState reject missing sid", func() {
-			_, _ = http.NewRequest("GET", "/", nil)
+		Convey("UpdateState panic if state is from RestoreReadOnlyState", func() {
+			store.EXPECT().GetState(gomock.Eq("a")).DoAndReturn(func(_ string) (*State, error) {
+				return NewState(), nil
+			})
 
-			So(func() { p.UpdateState(nil, nil, nil) }, ShouldPanic)
-		})
-
-		Convey("RestoreState reject missing sid", func() {
-			r, _ := http.NewRequest("GET", "/", nil)
-			store.EXPECT().Get(gomock.Eq("")).Return(nil, ErrStateNotFound)
-
-			s, err := p.RestoreState(r, false)
-			So(s, ShouldBeNil)
-			So(err, ShouldEqual, ErrStateNotFound)
-		})
-
-		Convey("RestoreState allow missing sid", func() {
-			r, _ := http.NewRequest("GET", "/", nil)
-
-			s, err := p.RestoreState(r, true)
-			So(s, ShouldBeNil)
+			r, _ := http.NewRequest("GET", "?x_sid=a", nil)
+			s, err := p.RestoreReadOnlyState(r, false)
 			So(err, ShouldBeNil)
+
+			So(func() { p.UpdateState(s, nil, nil) }, ShouldPanic)
 		})
 
-		Convey("RestoreState reject invalid sid", func() {
-			r, _ := http.NewRequest("GET", "/?x_sid=a", nil)
-			store.EXPECT().Get(gomock.Eq("a")).Return(nil, ErrStateNotFound)
+		Convey("CloneState generates new InstanceID", func() {
+			store.EXPECT().GetState(gomock.Eq("a")).DoAndReturn(func(_ string) (*State, error) {
+				state := NewState()
+				state.InstanceID = "a"
+				return state, nil
+			})
 
-			s, err := p.RestoreState(r, false)
-			So(s, ShouldBeNil)
-			So(err, ShouldEqual, ErrStateNotFound)
+			r, _ := http.NewRequest("GET", "?x_sid=a", nil)
+			s, err := p.CloneState(r)
+			So(err, ShouldBeNil)
+			So(s.InstanceID, ShouldNotEqual, "a")
+		})
+
+		Convey("CloneState reset Error to nil", func() {
+			store.EXPECT().GetState(gomock.Eq("a")).DoAndReturn(func(_ string) (*State, error) {
+				state := NewState()
+				state.Error = &skyerr.APIError{}
+				return state, nil
+			})
+
+			r, _ := http.NewRequest("GET", "?x_sid=a", nil)
+			s, err := p.CloneState(r)
+			So(err, ShouldBeNil)
+			So(s.Error, ShouldBeNil)
 		})
 	})
 }

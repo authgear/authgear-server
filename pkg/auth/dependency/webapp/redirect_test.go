@@ -2,30 +2,20 @@ package webapp
 
 import (
 	"net/http"
-	"net/http/httptest"
 	"net/url"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestRedirectToRedirectURI(t *testing.T) {
-	Convey("RedirectToRedirectURI", t, func() {
-		check := func(w *httptest.ResponseRecorder, redirectURI string) {
-			So(w.Result().StatusCode, ShouldEqual, http.StatusFound)
-			So(w.Result().Header.Get("Location"), ShouldEqual, redirectURI)
-		}
-
+func TestGetRedirectURI(t *testing.T) {
+	Convey("GetRedirectURI", t, func() {
 		Convey("redirect to default if redirect_uri is absent", func() {
-			w := httptest.NewRecorder()
 			r, _ := http.NewRequest("GET", "http://example.com", nil)
-			RedirectToRedirectURI(w, r, true)
-			check(w, DefaultRedirectURI)
+			So(GetRedirectURI(r, true), ShouldEqual, DefaultRedirectURI)
 		})
 
 		Convey("redirect to redirect_uri", func() {
-			w := httptest.NewRecorder()
-
 			r, _ := http.NewRequest("GET", (&url.URL{
 				Scheme: "http",
 				Host:   "example.com",
@@ -35,13 +25,10 @@ func TestRedirectToRedirectURI(t *testing.T) {
 				}.Encode(),
 			}).String(), nil)
 
-			RedirectToRedirectURI(w, r, true)
-			check(w, "http://example.com/oauth/authorize?client_id=client_id")
+			So(GetRedirectURI(r, true), ShouldEqual, "http://example.com/oauth/authorize?client_id=client_id")
 		})
 
 		Convey("redirect to redirect_uri when request URI does not have scheme nor host", func() {
-			w := httptest.NewRecorder()
-
 			r, _ := http.NewRequest("GET", (&url.URL{
 				Path: "/",
 				RawQuery: url.Values{
@@ -49,13 +36,10 @@ func TestRedirectToRedirectURI(t *testing.T) {
 				}.Encode(),
 			}).String(), nil)
 
-			RedirectToRedirectURI(w, r, true)
-			check(w, "/oauth/authorize?client_id=client_id")
+			So(GetRedirectURI(r, true), ShouldEqual, "/oauth/authorize?client_id=client_id")
 		})
 
 		Convey("redirect to redirect_uri with percent encoding", func() {
-			w := httptest.NewRecorder()
-
 			r, _ := http.NewRequest("GET", (&url.URL{
 				Scheme: "http",
 				Host:   "example.com",
@@ -65,13 +49,10 @@ func TestRedirectToRedirectURI(t *testing.T) {
 				}.Encode(),
 			}).String(), nil)
 
-			RedirectToRedirectURI(w, r, true)
-			check(w, "http://example.com/oauth/authorize?client_id=client_id&scope=openid+offline_access&ui_locales=en%20zh")
+			So(GetRedirectURI(r, true), ShouldEqual, "http://example.com/oauth/authorize?client_id=client_id&scope=openid+offline_access&ui_locales=en%20zh")
 		})
 
 		Convey("redirect to relative URI without .", func() {
-			w := httptest.NewRecorder()
-
 			r, _ := http.NewRequest("GET", (&url.URL{
 				Scheme: "http",
 				Host:   "example.com",
@@ -81,13 +62,10 @@ func TestRedirectToRedirectURI(t *testing.T) {
 				}.Encode(),
 			}).String(), nil)
 
-			RedirectToRedirectURI(w, r, true)
-			check(w, "http://example.com/relative")
+			So(GetRedirectURI(r, true), ShouldEqual, "http://example.com/relative")
 		})
 
 		Convey("redirect to relative URI with .", func() {
-			w := httptest.NewRecorder()
-
 			r, _ := http.NewRequest("GET", (&url.URL{
 				Scheme: "http",
 				Host:   "example.com",
@@ -97,13 +75,10 @@ func TestRedirectToRedirectURI(t *testing.T) {
 				}.Encode(),
 			}).String(), nil)
 
-			RedirectToRedirectURI(w, r, true)
-			check(w, "http://example.com/relative")
+			So(GetRedirectURI(r, true), ShouldEqual, "http://example.com/relative")
 		})
 
 		Convey("redirect to explicit same-origin URI", func() {
-			w := httptest.NewRecorder()
-
 			r, _ := http.NewRequest("GET", (&url.URL{
 				Scheme: "http",
 				Host:   "example.com",
@@ -113,13 +88,10 @@ func TestRedirectToRedirectURI(t *testing.T) {
 				}.Encode(),
 			}).String(), nil)
 
-			RedirectToRedirectURI(w, r, true)
-			check(w, "http://example.com/a")
+			So(GetRedirectURI(r, true), ShouldEqual, "http://example.com/a")
 		})
 
 		Convey("do not redirect to other origin", func() {
-			w := httptest.NewRecorder()
-
 			r, _ := http.NewRequest("GET", (&url.URL{
 				Scheme: "http",
 				Host:   "example.com",
@@ -129,13 +101,10 @@ func TestRedirectToRedirectURI(t *testing.T) {
 				}.Encode(),
 			}).String(), nil)
 
-			RedirectToRedirectURI(w, r, true)
-			check(w, DefaultRedirectURI)
+			So(GetRedirectURI(r, true), ShouldEqual, DefaultRedirectURI)
 		})
 
 		Convey("prevent recursion if redirect_uri is given externally", func() {
-			w := httptest.NewRecorder()
-
 			r, _ := http.NewRequest("GET", (&url.URL{
 				Scheme: "http",
 				Host:   "example.com",
@@ -145,13 +114,10 @@ func TestRedirectToRedirectURI(t *testing.T) {
 				}.Encode(),
 			}).String(), nil)
 
-			RedirectToRedirectURI(w, r, true)
-			check(w, DefaultRedirectURI)
+			So(GetRedirectURI(r, true), ShouldEqual, DefaultRedirectURI)
 		})
 
 		Convey("allow recursion if redirect_uri is given internally", func() {
-			w := httptest.NewRecorder()
-
 			r, _ := http.NewRequest("GET", (&url.URL{
 				Scheme: "http",
 				Host:   "example.com",
@@ -161,8 +127,7 @@ func TestRedirectToRedirectURI(t *testing.T) {
 				"redirect_uri": []string{"/"},
 			}
 
-			RedirectToRedirectURI(w, r, true)
-			check(w, "http://example.com/")
+			So(GetRedirectURI(r, true), ShouldEqual, "http://example.com/")
 		})
 	})
 }

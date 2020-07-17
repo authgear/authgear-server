@@ -1,6 +1,9 @@
 package identity
 
 const (
+	// This claim is intended for internal use only.
+	IdentityClaimOAuthProviderKeys string = "https://authgear.com/claims/oauth/provider_keys"
+
 	// IdentityClaimOAuthProviderType is a claim with a string value.
 	// This claim is intended for external use only.
 	IdentityClaimOAuthProviderType string = "https://authgear.com/claims/oauth/provider_type"
@@ -8,8 +11,6 @@ const (
 	// This claim is intended for external use only.
 	IdentityClaimOAuthProviderAlias string = "https://authgear.com/claims/oauth/provider_alias"
 	// IdentityClaimOAuthProviderKeys is a claim with a map value like `{ "type": "azureadv2", "tenant": "test" }`.
-	// This claim is intended for internal use only.
-	IdentityClaimOAuthProviderKeys string = "https://authgear.com/claims/oauth/provider_keys"
 	// IdentityClaimOAuthSubjectID is a claim with a string value like `1098765432`.
 	IdentityClaimOAuthSubjectID string = "https://authgear.com/claims/oauth/subject_id"
 	// IdentityClaimOAuthData is a claim with a map value containing raw OAuth provider profile.

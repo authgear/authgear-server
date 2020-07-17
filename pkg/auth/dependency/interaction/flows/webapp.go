@@ -5,21 +5,27 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/sso"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
-type WebAppFlow struct {
-	Config         *config.IdentityConfig
-	SSOOAuthConfig *config.OAuthSSOConfig
-	Identities     IdentityProvider
-	Users          UserProvider
-	Hooks          HookProvider
-	Interactions   InteractionProvider
-	UserController *UserController
+type OAuthProviderFactory interface {
+	NewOAuthProvider(alias string) sso.OAuthProvider
 }
 
-func (f *WebAppFlow) GetInteractionState(i *interaction.Interaction) (*interaction.State, error) {
-	return f.Interactions.GetInteractionState(i)
+type WebAppFlow struct {
+	Config               *config.IdentityConfig
+	SSOOAuthConfig       *config.OAuthSSOConfig
+	Identities           IdentityProvider
+	OAuthProviderFactory OAuthProviderFactory
+	Users                UserProvider
+	Hooks                HookProvider
+	Interactions         InteractionProvider
+	UserController       *UserController
+}
+
+func (f *WebAppFlow) GetStepState(i *interaction.Interaction) (*interaction.StepState, error) {
+	return f.Interactions.GetStepState(i)
 }
 
 func (f *WebAppFlow) LoginWithLoginID(state *State, loginID string) (*WebAppResult, error) {
@@ -72,19 +78,19 @@ func (f *WebAppFlow) SignupWithLoginID(state *State, loginIDKey, loginID string)
 }
 
 func (f *WebAppFlow) handleLogin(state *State) error {
-	s, err := f.Interactions.GetInteractionState(state.Interaction)
+	stepState, err := f.Interactions.GetStepState(state.Interaction)
 	if err != nil {
 		return err
 	}
 
-	if s.CurrentStep().Step != interaction.StepAuthenticatePrimary || len(s.CurrentStep().AvailableAuthenticators) <= 0 {
+	if stepState.Step != interaction.StepAuthenticatePrimary || len(stepState.AvailableAuthenticators) <= 0 {
 		panic("interaction_flow_webapp: unexpected interaction state")
 	}
 
-	switch s.CurrentStep().AvailableAuthenticators[0].Type {
+	switch stepState.AvailableAuthenticators[0].Type {
 	case authn.AuthenticatorTypeOOB:
 		err = f.Interactions.PerformAction(state.Interaction, interaction.StepAuthenticatePrimary, &interaction.ActionTriggerOOBAuthenticator{
-			Authenticator: s.CurrentStep().AvailableAuthenticators[0],
+			Authenticator: stepState.AvailableAuthenticators[0],
 		})
 		if err != nil {
 			return err
@@ -99,19 +105,19 @@ func (f *WebAppFlow) handleLogin(state *State) error {
 }
 
 func (f *WebAppFlow) handleSignup(state *State) error {
-	s, err := f.Interactions.GetInteractionState(state.Interaction)
+	stepState, err := f.Interactions.GetStepState(state.Interaction)
 	if err != nil {
 		return err
 	}
 
-	if s.CurrentStep().Step != interaction.StepSetupPrimaryAuthenticator || len(s.CurrentStep().AvailableAuthenticators) <= 0 {
+	if stepState.Step != interaction.StepSetupPrimaryAuthenticator || len(stepState.AvailableAuthenticators) <= 0 {
 		panic("interaction_flow_webapp: unexpected interaction state")
 	}
 
-	switch s.CurrentStep().AvailableAuthenticators[0].Type {
+	switch stepState.AvailableAuthenticators[0].Type {
 	case authn.AuthenticatorTypeOOB:
 		err = f.Interactions.PerformAction(state.Interaction, interaction.StepSetupPrimaryAuthenticator, &interaction.ActionTriggerOOBAuthenticator{
-			Authenticator: s.CurrentStep().AvailableAuthenticators[0],
+			Authenticator: stepState.AvailableAuthenticators[0],
 		})
 		if err != nil {
 			return err
@@ -126,19 +132,19 @@ func (f *WebAppFlow) handleSignup(state *State) error {
 }
 
 func (f *WebAppFlow) EnterSecret(state *State, secret string) (*WebAppResult, error) {
-	s, err := f.Interactions.GetInteractionState(state.Interaction)
+	stepState, err := f.Interactions.GetStepState(state.Interaction)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(s.CurrentStep().AvailableAuthenticators) <= 0 {
+	if len(stepState.AvailableAuthenticators) <= 0 {
 		panic("interaction_flow_webapp: unexpected interaction state")
 	}
 
-	if s.CurrentStep().Step == interaction.StepSetupPrimaryAuthenticator {
+	if stepState.Step == interaction.StepSetupPrimaryAuthenticator {
 		return f.SetupSecret(state, secret)
 	}
-	if s.CurrentStep().Step == interaction.StepAuthenticatePrimary {
+	if stepState.Step == interaction.StepAuthenticatePrimary {
 		return f.AuthenticateSecret(state, secret)
 	}
 
@@ -146,27 +152,27 @@ func (f *WebAppFlow) EnterSecret(state *State, secret string) (*WebAppResult, er
 }
 
 func (f *WebAppFlow) SetupSecret(state *State, secret string) (*WebAppResult, error) {
-	s, err := f.Interactions.GetInteractionState(state.Interaction)
+	stepState, err := f.Interactions.GetStepState(state.Interaction)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(s.CurrentStep().AvailableAuthenticators) <= 0 {
+	if len(stepState.AvailableAuthenticators) <= 0 {
 		panic("interaction_flow_webapp: unexpected interaction state")
 	}
 
 	err = f.Interactions.PerformAction(state.Interaction, interaction.StepSetupPrimaryAuthenticator, &interaction.ActionSetupAuthenticator{
-		Authenticator: s.CurrentStep().AvailableAuthenticators[0],
+		Authenticator: stepState.AvailableAuthenticators[0],
 		Secret:        secret,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	s, err = f.Interactions.GetInteractionState(state.Interaction)
+	stepState, err = f.Interactions.GetStepState(state.Interaction)
 	if err != nil {
 		return nil, err
-	} else if s.CurrentStep().Step != interaction.StepCommit {
+	} else if stepState.Step != interaction.StepCommit {
 		panic("interaction_flow_webapp: unexpected interaction state")
 	}
 
@@ -210,17 +216,17 @@ func (f *WebAppFlow) SetupSecret(state *State, secret string) (*WebAppResult, er
 }
 
 func (f *WebAppFlow) AuthenticateSecret(state *State, secret string) (*WebAppResult, error) {
-	s, err := f.Interactions.GetInteractionState(state.Interaction)
+	stepState, err := f.Interactions.GetStepState(state.Interaction)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(s.CurrentStep().AvailableAuthenticators) <= 0 {
+	if len(stepState.AvailableAuthenticators) <= 0 {
 		panic("interaction_flow_webapp: unexpected interaction state")
 	}
 
 	err = f.Interactions.PerformAction(state.Interaction, interaction.StepAuthenticatePrimary, &interaction.ActionAuthenticate{
-		Authenticator: s.CurrentStep().AvailableAuthenticators[0],
+		Authenticator: stepState.AvailableAuthenticators[0],
 		Secret:        secret,
 	})
 	if err != nil {
@@ -231,17 +237,17 @@ func (f *WebAppFlow) AuthenticateSecret(state *State, secret string) (*WebAppRes
 }
 
 func (f *WebAppFlow) TriggerOOBOTP(state *State) (*WebAppResult, error) {
-	s, err := f.Interactions.GetInteractionState(state.Interaction)
+	stepState, err := f.Interactions.GetStepState(state.Interaction)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(s.CurrentStep().AvailableAuthenticators) <= 0 || s.CurrentStep().AvailableAuthenticators[0].Type != authn.AuthenticatorTypeOOB {
+	if len(stepState.AvailableAuthenticators) <= 0 || stepState.AvailableAuthenticators[0].Type != authn.AuthenticatorTypeOOB {
 		panic("interaction_flow_webapp: unexpected interaction state")
 	}
 
-	err = f.Interactions.PerformAction(state.Interaction, s.CurrentStep().Step, &interaction.ActionTriggerOOBAuthenticator{
-		Authenticator: s.CurrentStep().AvailableAuthenticators[0],
+	err = f.Interactions.PerformAction(state.Interaction, stepState.Step, &interaction.ActionTriggerOOBAuthenticator{
+		Authenticator: stepState.AvailableAuthenticators[0],
 	})
 	if err != nil {
 		return nil, err
@@ -316,13 +322,13 @@ func (f *WebAppFlow) UpdateLoginID(state *State, userID string, oldLoginID login
 }
 
 func (f *WebAppFlow) afterAddUpdateRemoveLoginID(state *State) (result *WebAppResult, err error) {
-	s, err := f.Interactions.GetInteractionState(state.Interaction)
+	stepState, err := f.Interactions.GetStepState(state.Interaction)
 	if err != nil {
 		return nil, err
 	}
 
 	// Either commit
-	if s.CurrentStep().Step == interaction.StepCommit {
+	if stepState.Step == interaction.StepCommit {
 		_, err = f.Interactions.Commit(state.Interaction)
 		if err != nil {
 			return
@@ -333,14 +339,14 @@ func (f *WebAppFlow) afterAddUpdateRemoveLoginID(state *State) (result *WebAppRe
 	}
 
 	// Or have more steps to go through
-	if s.CurrentStep().Step != interaction.StepSetupPrimaryAuthenticator || len(s.CurrentStep().AvailableAuthenticators) <= 0 {
+	if stepState.Step != interaction.StepSetupPrimaryAuthenticator || len(stepState.AvailableAuthenticators) <= 0 {
 		panic("interaction_flow_webapp: unexpected interaction state")
 	}
 
-	switch s.CurrentStep().AvailableAuthenticators[0].Type {
+	switch stepState.AvailableAuthenticators[0].Type {
 	case authn.AuthenticatorTypeOOB:
 		err = f.Interactions.PerformAction(state.Interaction, interaction.StepSetupPrimaryAuthenticator, &interaction.ActionTriggerOOBAuthenticator{
-			Authenticator: s.CurrentStep().AvailableAuthenticators[0],
+			Authenticator: stepState.AvailableAuthenticators[0],
 		})
 		if err != nil {
 			return nil, err
@@ -355,11 +361,11 @@ func (f *WebAppFlow) afterAddUpdateRemoveLoginID(state *State) (result *WebAppRe
 }
 
 func (f *WebAppFlow) afterPrimaryAuthentication(state *State) (*WebAppResult, error) {
-	s, err := f.Interactions.GetInteractionState(state.Interaction)
+	stepState, err := f.Interactions.GetStepState(state.Interaction)
 	if err != nil {
 		return nil, err
 	}
-	switch s.CurrentStep().Step {
+	switch stepState.Step {
 	case interaction.StepAuthenticateSecondary, interaction.StepSetupSecondaryAuthenticator:
 		panic("interaction_flow_webapp: TODO: handle MFA")
 
@@ -382,6 +388,6 @@ func (f *WebAppFlow) afterPrimaryAuthentication(state *State) (*WebAppResult, er
 			Cookies: result.Cookies,
 		}, nil
 	default:
-		panic("interaction_flow_webapp: unexpected step " + s.CurrentStep().Step)
+		panic("interaction_flow_webapp: unexpected step " + stepState.Step)
 	}
 }

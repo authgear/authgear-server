@@ -6,7 +6,6 @@ import (
 
 var DependencySet = wire.NewSet(
 	wire.Struct(new(URLProvider), "*"),
-	wire.Struct(new(OAuthService), "*"),
 	wire.Struct(new(Responder), "*"),
 
 	wire.Struct(new(CSPMiddleware), "*"),

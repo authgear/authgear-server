@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	corerand "github.com/authgear/authgear-server/pkg/core/rand"
 	"github.com/authgear/authgear-server/pkg/core/skyerr"
 	"github.com/authgear/authgear-server/pkg/log"
 )
@@ -11,9 +12,10 @@ import (
 //go:generate mockgen -source=state_service.go -destination=state_service_mock_test.go -package flows
 
 type StateStore interface {
-	Get(id string) (*State, error)
-	Set(state *State) error
-	Delete(id string) error
+	CreateState(state *State) error
+	UpdateState(state *State) error
+	DeleteState(flowID string) error
+	GetState(instanceID string) (*State, error)
 }
 
 type StateServiceLogger struct{ *log.Logger }
@@ -28,18 +30,9 @@ type StateService struct {
 	Logger       StateServiceLogger
 }
 
-func (p *StateService) MakeState(r *http.Request) *State {
-	s := NewState()
-	r.Form.Set("x_sid", s.ID)
-	q := r.URL.Query()
-	q.Set("x_sid", s.ID)
-	r.URL.RawQuery = q.Encode()
-	return s
-}
-
 func (p *StateService) CreateState(s *State, redirectURI string) *State {
 	s.Extra[ExtraRedirectURI] = redirectURI
-	err := p.StateStore.Set(s)
+	err := p.StateStore.CreateState(s)
 	if err != nil {
 		panic(err)
 	}
@@ -48,37 +41,57 @@ func (p *StateService) CreateState(s *State, redirectURI string) *State {
 
 func (p *StateService) UpdateState(s *State, r *WebAppResult, inputError error) {
 	if s == nil {
-		panic("webapp: expected non-nil state to update")
+		panic("interaction_flow_webapp: expected non-nil state to update")
 	}
 
-	s.SetError(inputError)
+	if s.readOnly {
+		panic("interaction_flow_webapp: update read-only state")
+	}
+
+	s.Error = skyerr.AsAPIError(inputError)
 	if inputError != nil && !skyerr.IsAPIError(inputError) {
 		p.Logger.WithError(inputError).Error("unexpected error occurred")
 	}
 
-	err := p.StateStore.Set(s)
+	err := p.StateStore.UpdateState(s)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (p *StateService) RestoreState(r *http.Request, optional bool) (state *State, err error) {
+func (p *StateService) RestoreReadOnlyState(r *http.Request, optional bool) (state *State, err error) {
 	sid := r.URL.Query().Get("x_sid")
 
 	if optional && sid == "" {
 		return
 	}
 
-	state, err = p.StateStore.Get(sid)
+	state, err = p.StateStore.GetState(sid)
 	if err != nil {
 		return
 	}
 
+	state.readOnly = true
+	return
+}
+
+func (p *StateService) CloneState(r *http.Request) (state *State, err error) {
+	sid := r.URL.Query().Get("x_sid")
+
+	state, err = p.StateStore.GetState(sid)
+	if err != nil {
+		return
+	}
+
+	state.Error = nil
+	instanceID := corerand.StringWithAlphabet(stateIDLength, stateIDAlphabet, corerand.SecureRand)
+	state.InstanceID = instanceID
+	state.readOnly = false
 	return
 }
 
 func (p *StateService) DeleteState(s *State) {
-	err := p.StateStore.Delete(s.ID)
+	err := p.StateStore.DeleteState(s.FlowID)
 	if err != nil {
 		p.Logger.WithError(err).Error("failed to delete web app state")
 	}

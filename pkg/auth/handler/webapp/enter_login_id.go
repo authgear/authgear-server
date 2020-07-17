@@ -154,7 +154,7 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if r.Method == "GET" {
-		state, err := h.State.RestoreState(r, false)
+		state, err := h.State.RestoreReadOnlyState(r, false)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -174,7 +174,7 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 	if r.Method == "POST" && r.Form.Get("x_action") == "remove" {
 		h.Database.WithTx(func() error {
-			state, err := h.State.RestoreState(r, false)
+			state, err := h.State.CloneState(r)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
@@ -204,7 +204,7 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 	if r.Method == "POST" && r.Form.Get("x_action") == "add_or_update" {
 		h.Database.WithTx(func() error {
-			state, err := h.State.RestoreState(r, false)
+			state, err := h.State.CloneState(r)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err

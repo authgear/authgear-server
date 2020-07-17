@@ -16,7 +16,8 @@ func (m AuthEntryPointMiddleware) Handle(next http.Handler) http.Handler {
 		user := auth.GetUser(r.Context())
 		requireLoginPrompt := r.URL.Query().Get("prompt") == "login"
 		if user != nil && !requireLoginPrompt {
-			RedirectToRedirectURI(w, r, m.ServerConfig.TrustProxy)
+			redirectURI := GetRedirectURI(r, m.ServerConfig.TrustProxy)
+			http.Redirect(w, r, redirectURI, http.StatusFound)
 		} else {
 			next.ServeHTTP(w, r)
 		}

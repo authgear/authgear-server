@@ -12,39 +12,31 @@ import (
 )
 
 func (p *Provider) PerformAction(i *Interaction, step Step, action Action) error {
-	state, err := p.GetInteractionState(i)
+	stepState, err := p.GetStepState(i)
 	if err != nil {
 		return err
 	}
 
-	var stepState *StepState
-	for _, s := range state.Steps {
-		ss := s
-		if ss.Step == step {
-			stepState = &ss
-			break
-		}
-	}
-	if stepState == nil {
+	if stepState.Step != step {
 		return ErrInvalidStep
 	}
 
 	switch intent := i.Intent.(type) {
 	case *IntentLogin:
-		return p.performActionLogin(i, intent, stepState, state, action)
+		return p.performActionLogin(i, intent, stepState, action)
 	case *IntentSignup:
-		return p.performActionSignup(i, intent, stepState, state, action)
+		return p.performActionSignup(i, intent, stepState, action)
 	case *IntentAddIdentity:
-		return p.performActionAddIdentity(i, intent, stepState, state, action)
+		return p.performActionAddIdentity(i, intent, stepState, action)
 	case *IntentUpdateIdentity:
-		return p.performActionUpdateIdentity(i, intent, stepState, state, action)
+		return p.performActionUpdateIdentity(i, intent, stepState, action)
 	case *IntentUpdateAuthenticator:
-		return p.performActionUpdateAuthenticator(i, intent, stepState, state, action)
+		return p.performActionUpdateAuthenticator(i, intent, stepState, action)
 	}
 	panic(fmt.Sprintf("interaction: unknown intent type %T", i.Intent))
 }
 
-func (p *Provider) performActionLogin(i *Interaction, intent *IntentLogin, step *StepState, s *State, action Action) error {
+func (p *Provider) performActionLogin(i *Interaction, intent *IntentLogin, step *StepState, action Action) error {
 	switch step.Step {
 	case StepAuthenticatePrimary, StepAuthenticateSecondary:
 		switch action := action.(type) {
@@ -83,32 +75,32 @@ func (p *Provider) performActionLogin(i *Interaction, intent *IntentLogin, step 
 	panic("interaction_login: unhandled step " + step.Step)
 }
 
-func (p *Provider) performActionSignup(i *Interaction, intent *IntentSignup, step *StepState, s *State, action Action) error {
+func (p *Provider) performActionSignup(i *Interaction, intent *IntentSignup, step *StepState, action Action) error {
 	switch step.Step {
 	case StepSetupPrimaryAuthenticator:
-		return p.setupPrimaryAuthenticator(i, step, s, action)
+		return p.setupPrimaryAuthenticator(i, step, action)
 	}
 	panic("interaction_signup: unhandled step " + step.Step)
 }
 
-func (p *Provider) performActionAddIdentity(i *Interaction, intent *IntentAddIdentity, step *StepState, s *State, action Action) error {
+func (p *Provider) performActionAddIdentity(i *Interaction, intent *IntentAddIdentity, step *StepState, action Action) error {
 	switch step.Step {
 	case StepSetupPrimaryAuthenticator:
-		return p.setupPrimaryAuthenticator(i, step, s, action)
+		return p.setupPrimaryAuthenticator(i, step, action)
 	}
 	panic("interaction_add_identity: unhandled step " + step.Step)
 }
 
-func (p *Provider) performActionUpdateIdentity(i *Interaction, intent *IntentUpdateIdentity, step *StepState, s *State, action Action) error {
+func (p *Provider) performActionUpdateIdentity(i *Interaction, intent *IntentUpdateIdentity, step *StepState, action Action) error {
 	switch step.Step {
 	case StepSetupPrimaryAuthenticator:
 		// setup primary authenticator for updated identity
-		return p.setupPrimaryAuthenticator(i, step, s, action)
+		return p.setupPrimaryAuthenticator(i, step, action)
 	}
 	panic("interaction_add_identity: unhandled step " + step.Step)
 }
 
-func (p *Provider) performActionUpdateAuthenticator(i *Interaction, intent *IntentUpdateAuthenticator, step *StepState, s *State, action Action) error {
+func (p *Provider) performActionUpdateAuthenticator(i *Interaction, intent *IntentUpdateAuthenticator, step *StepState, action Action) error {
 	if step.Step != StepSetupPrimaryAuthenticator {
 		panic("interaction_update_authenticator: expected step " + step.Step)
 	}
@@ -136,7 +128,7 @@ func (p *Provider) performActionUpdateAuthenticator(i *Interaction, intent *Inte
 
 }
 
-func (p *Provider) setupPrimaryAuthenticator(i *Interaction, step *StepState, s *State, action Action) error {
+func (p *Provider) setupPrimaryAuthenticator(i *Interaction, step *StepState, action Action) error {
 	switch action := action.(type) {
 	case *ActionSetupAuthenticator:
 		authen, err := p.setupAuthenticator(i, step, &i.State, action.Authenticator, action.Secret)

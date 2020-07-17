@@ -77,7 +77,8 @@ func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.Database.WithTx(func() error {
 			sess := auth.GetSession(r.Context())
 			h.SessionManager.Logout(sess, w)
-			webapp.RedirectToRedirectURI(w, r, h.ServerConfig.TrustProxy)
+			redirectURI := webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy)
+			http.Redirect(w, r, redirectURI, http.StatusFound)
 			return nil
 		})
 	}

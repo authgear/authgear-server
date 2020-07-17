@@ -4,9 +4,12 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
 	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
+	"github.com/authgear/authgear-server/pkg/httputil"
 	"github.com/authgear/authgear-server/pkg/template"
 )
 
@@ -125,11 +128,8 @@ func ConfigurePromoteRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/promote_user")
 }
 
-type PromoteOAuthService interface {
-	PromoteOAuthProvider(r *http.Request, providerAlias string, userID string, state *interactionflows.State) (*interactionflows.WebAppResult, error)
-}
-
 type PromoteInteractions interface {
+	BeginOAuth(state *interactionflows.State, opts interactionflows.BeginOAuthOptions) (*interactionflows.WebAppResult, error)
 	PromoteWithLoginID(state *interactionflows.State, loginIDKey string, loginID string, userID string) (*interactionflows.WebAppResult, error)
 }
 
@@ -140,7 +140,6 @@ type PromoteHandler struct {
 	AuthenticationViewModel *AuthenticationViewModeler
 	FormPrefiller           *FormPrefiller
 	Renderer                Renderer
-	OAuth                   PromoteOAuthService
 	Interactions            PromoteInteractions
 	Responder               Responder
 }
@@ -154,7 +153,7 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.FormPrefiller.Prefill(r.Form)
 
 	if r.Method == "GET" {
-		state, err := h.State.RestoreState(r, false)
+		state, err := h.State.RestoreReadOnlyState(r, false)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -177,7 +176,7 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" && providerAlias != "" {
 		h.Database.WithTx(func() error {
-			state, err := h.State.RestoreState(r, false)
+			state, err := h.State.CloneState(r)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
@@ -191,7 +190,14 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 			userID, _ := state.Extra[interactionflows.ExtraAnonymousUserID].(string)
 
-			result, err = h.OAuth.PromoteOAuthProvider(r, providerAlias, userID, state)
+			nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
+			result, err = h.Interactions.BeginOAuth(state, interactionflows.BeginOAuthOptions{
+				ProviderAlias:    providerAlias,
+				Action:           interaction.OAuthActionPromote,
+				UserID:           userID,
+				NonceSource:      nonceSource,
+				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
+			})
 			if err != nil {
 				return err
 			}
@@ -202,7 +208,7 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 		h.Database.WithTx(func() error {
-			state, err := h.State.RestoreState(r, false)
+			state, err := h.State.CloneState(r)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err

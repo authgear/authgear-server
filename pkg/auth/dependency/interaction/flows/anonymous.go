@@ -73,11 +73,11 @@ func (f *AnonymousFlow) Authenticate(requestJWT string, clientID string) (*authn
 		if err != nil {
 			return nil, err
 		}
-		s, err := f.Interactions.GetInteractionState(i)
+		stepState, err := f.Interactions.GetStepState(i)
 		if err != nil {
 			return nil, err
 		}
-		if s.CurrentStep().Step != interaction.StepCommit {
+		if stepState.Step != interaction.StepCommit {
 			panic("interaction_flow_anonymous: unexpected interaction state")
 		}
 		_, err = f.Interactions.Commit(i)
@@ -100,11 +100,11 @@ func (f *AnonymousFlow) Authenticate(requestJWT string, clientID string) (*authn
 	if err != nil {
 		return nil, err
 	}
-	s, err := f.Interactions.GetInteractionState(i)
+	stepState, err := f.Interactions.GetStepState(i)
 	if err != nil {
 		return nil, err
 	}
-	if s.CurrentStep().Step != interaction.StepCommit {
+	if stepState.Step != interaction.StepCommit {
 		panic("interaction_flow_anonymous: unexpected interaction state")
 	}
 	result, err := f.Interactions.Commit(i)

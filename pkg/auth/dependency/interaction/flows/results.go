@@ -9,8 +9,7 @@ import (
 )
 
 type WebAppResult struct {
-	RedirectURI string
-	Cookies     []*http.Cookie
+	Cookies []*http.Cookie
 }
 
 type AuthResult struct {

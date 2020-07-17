@@ -32,45 +32,59 @@ func (m *MockStateStore) EXPECT() *MockStateStoreMockRecorder {
 	return m.recorder
 }
 
-// Get mocks base method
-func (m *MockStateStore) Get(id string) (*State, error) {
+// CreateState mocks base method
+func (m *MockStateStore) CreateState(state *State) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", id)
+	ret := m.ctrl.Call(m, "CreateState", state)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateState indicates an expected call of CreateState
+func (mr *MockStateStoreMockRecorder) CreateState(state interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateState", reflect.TypeOf((*MockStateStore)(nil).CreateState), state)
+}
+
+// UpdateState mocks base method
+func (m *MockStateStore) UpdateState(state *State) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateState", state)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateState indicates an expected call of UpdateState
+func (mr *MockStateStoreMockRecorder) UpdateState(state interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateState", reflect.TypeOf((*MockStateStore)(nil).UpdateState), state)
+}
+
+// DeleteState mocks base method
+func (m *MockStateStore) DeleteState(flowID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteState", flowID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteState indicates an expected call of DeleteState
+func (mr *MockStateStoreMockRecorder) DeleteState(flowID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteState", reflect.TypeOf((*MockStateStore)(nil).DeleteState), flowID)
+}
+
+// GetState mocks base method
+func (m *MockStateStore) GetState(instanceID string) (*State, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetState", instanceID)
 	ret0, _ := ret[0].(*State)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Get indicates an expected call of Get
-func (mr *MockStateStoreMockRecorder) Get(id interface{}) *gomock.Call {
+// GetState indicates an expected call of GetState
+func (mr *MockStateStoreMockRecorder) GetState(instanceID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockStateStore)(nil).Get), id)
-}
-
-// Set mocks base method
-func (m *MockStateStore) Set(state *State) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Set", state)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Set indicates an expected call of Set
-func (mr *MockStateStoreMockRecorder) Set(state interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockStateStore)(nil).Set), state)
-}
-
-// Delete mocks base method
-func (m *MockStateStore) Delete(id string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", id)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Delete indicates an expected call of Delete
-func (mr *MockStateStoreMockRecorder) Delete(id interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockStateStore)(nil).Delete), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetState", reflect.TypeOf((*MockStateStore)(nil).GetState), instanceID)
 }

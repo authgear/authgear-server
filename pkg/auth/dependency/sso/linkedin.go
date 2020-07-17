@@ -19,8 +19,12 @@ type LinkedInImpl struct {
 	UserInfoDecoder UserInfoDecoder
 }
 
-func (f *LinkedInImpl) Type() config.OAuthSSOProviderType {
+func (*LinkedInImpl) Type() config.OAuthSSOProviderType {
 	return config.OAuthSSOProviderTypeLinkedIn
+}
+
+func (f *LinkedInImpl) Config() config.OAuthSSOProviderConfig {
+	return f.ProviderConfig
 }
 
 func (f *LinkedInImpl) GetAuthURL(param GetAuthURLParam) (string, error) {

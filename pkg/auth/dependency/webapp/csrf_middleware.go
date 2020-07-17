@@ -22,7 +22,7 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 		options := []csrf.Option{
 			csrf.Path("/"),
 			csrf.Secure(secure),
-			csrf.CookieName(csrfCookieName),
+			csrf.CookieName(CSRFCookieName),
 		}
 
 		useragent := r.UserAgent()

@@ -7,7 +7,7 @@ import (
 )
 
 type InteractionProvider interface {
-	Commit(*interaction.Interaction) (*interaction.Result, error)
+	NewInteractionOAuth(intent *interaction.IntentOAuth, clientID string) (*interaction.Interaction, error)
 	NewInteractionLogin(intent *interaction.IntentLogin, clientID string) (*interaction.Interaction, error)
 	NewInteractionLoginAs(
 		intent *interaction.IntentLogin,
@@ -21,6 +21,10 @@ type InteractionProvider interface {
 	NewInteractionRemoveIdentity(intent *interaction.IntentRemoveIdentity, clientID string, userID string) (*interaction.Interaction, error)
 	NewInteractionUpdateIdentity(intent *interaction.IntentUpdateIdentity, clientID string, userID string) (*interaction.Interaction, error)
 	NewInteractionUpdateAuthenticator(intent *interaction.IntentUpdateAuthenticator, clientID string, userID string) (*interaction.Interaction, error)
-	GetInteractionState(i *interaction.Interaction) (*interaction.State, error)
+
 	PerformAction(i *interaction.Interaction, step interaction.Step, action interaction.Action) error
+
+	Commit(*interaction.Interaction) (*interaction.Result, error)
+
+	GetStepState(i *interaction.Interaction) (*interaction.StepState, error)
 }

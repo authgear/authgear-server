@@ -36,10 +36,10 @@ jobs:
     - run: make build-image
     - run: make tag-image
     - name: docker login
-      if: ${{ github.repository == 'authgear/authgear-server' }}
+      if: ${{ github.repository == 'authgear/authgear-server' && github.event == 'push' }}
       env:
         QUAY_IO_USERNAME: ${{ secrets.QUAY_IO_USERNAME }}
         QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
       run: docker login -u "$QUAY_IO_USERNAME" -p "$QUAY_IO_PASSWORD" quay.io
     - run: make push-image
-      if: ${{ github.repository == 'authgear/authgear-server' }}
+      if: ${{ github.repository == 'authgear/authgear-server' && github.event == 'push' }}

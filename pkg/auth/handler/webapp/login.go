@@ -6,11 +6,13 @@ import (
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
 	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/core/phone"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
+	"github.com/authgear/authgear-server/pkg/httputil"
 	"github.com/authgear/authgear-server/pkg/template"
 	"github.com/authgear/authgear-server/pkg/validation"
 )
@@ -173,11 +175,8 @@ func ConfigureLoginRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/login")
 }
 
-type LoginOAuthService interface {
-	LoginOAuthProvider(r *http.Request, providerAlias string, state *interactionflows.State) (*interactionflows.WebAppResult, error)
-}
-
 type LoginInteractions interface {
+	BeginOAuth(state *interactionflows.State, opts interactionflows.BeginOAuthOptions) (*interactionflows.WebAppResult, error)
 	LoginWithLoginID(state *interactionflows.State, loginID string) (*interactionflows.WebAppResult, error)
 }
 
@@ -189,7 +188,6 @@ type LoginHandler struct {
 	AuthenticationViewModel *AuthenticationViewModeler
 	FormPrefiller           *FormPrefiller
 	Renderer                Renderer
-	OAuth                   LoginOAuthService
 	Interactions            LoginInteractions
 	Responder               Responder
 }
@@ -203,7 +201,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.FormPrefiller.Prefill(r.Form)
 
 	if r.Method == "GET" {
-		state, err := h.State.RestoreState(r, true)
+		state, err := h.State.RestoreReadOnlyState(r, true)
 		if errors.Is(err, interactionflows.ErrStateNotFound) {
 			err = nil
 		}
@@ -243,10 +241,17 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				h.State.UpdateState(state, result, err)
 				h.Responder.Respond(w, r, state, result, err)
 			}()
-			state = h.State.MakeState(r)
+			state = interactionflows.NewState()
 			state = h.State.CreateState(state, webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy))
 
-			result, err = h.OAuth.LoginOAuthProvider(r, providerAlias, state)
+			nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
+			result, err = h.Interactions.BeginOAuth(state, interactionflows.BeginOAuthOptions{
+				ProviderAlias:    providerAlias,
+				Action:           interaction.OAuthActionLogin,
+				NonceSource:      nonceSource,
+				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
+			})
+
 			if err != nil {
 				return err
 			}
@@ -266,7 +271,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				h.State.UpdateState(state, result, err)
 				h.Responder.Respond(w, r, state, result, err)
 			}()
-			state = h.State.MakeState(r)
+			state = interactionflows.NewState()
 			state = h.State.CreateState(state, webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy))
 
 			err = LoginSchema.PartValidator(LoginWithLoginIDRequestSchema).ValidateValue(FormToJSON(r.Form))

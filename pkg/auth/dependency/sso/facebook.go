@@ -18,8 +18,12 @@ type FacebookImpl struct {
 	UserInfoDecoder UserInfoDecoder
 }
 
-func (f *FacebookImpl) Type() config.OAuthSSOProviderType {
+func (*FacebookImpl) Type() config.OAuthSSOProviderType {
 	return config.OAuthSSOProviderTypeFacebook
+}
+
+func (f *FacebookImpl) Config() config.OAuthSSOProviderConfig {
+	return f.ProviderConfig
 }
 
 func (f *FacebookImpl) GetAuthURL(param GetAuthURLParam) (string, error) {

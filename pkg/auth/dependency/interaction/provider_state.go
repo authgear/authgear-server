@@ -10,25 +10,46 @@ import (
 	"github.com/authgear/authgear-server/pkg/core/errors"
 )
 
-func (p *Provider) GetInteractionState(i *Interaction) (*State, error) {
+func (p *Provider) GetStepState(i *Interaction) (*StepState, error) {
+	var steps []StepState
+	var err error
 	switch intent := i.Intent.(type) {
+	case *IntentOAuth:
+		steps, err = p.getStateOAuth(i, intent)
 	case *IntentLogin:
-		return p.getStateLogin(i, intent)
+		steps, err = p.getStateLogin(i, intent)
 	case *IntentSignup:
-		return p.getStateSignup(i, intent)
+		steps, err = p.getStateSignup(i, intent)
 	case *IntentAddIdentity:
-		return p.getStateAddIdentity(i, intent)
+		steps, err = p.getStateAddIdentity(i, intent)
 	case *IntentRemoveIdentity:
-		return p.getStateRemoveIdentity(i, intent)
+		steps, err = p.getStateRemoveIdentity(i, intent)
 	case *IntentUpdateIdentity:
-		return p.getStateUpdateIdentity(i, intent)
+		steps, err = p.getStateUpdateIdentity(i, intent)
 	case *IntentUpdateAuthenticator:
-		return p.getStateUpdateAuthenticator(i, intent)
+		steps, err = p.getStateUpdateAuthenticator(i, intent)
+	default:
+		panic(fmt.Sprintf("interaction: unknown intent type %T", i.Intent))
 	}
-	panic(fmt.Sprintf("interaction: unknown intent type %T", i.Intent))
+	if err != nil {
+		return nil, err
+	}
+	return &steps[len(steps)-1], nil
 }
 
-func (p *Provider) getStateLogin(i *Interaction, intent *IntentLogin) (*State, error) {
+func (p *Provider) getStateOAuth(i *Interaction, intent *IntentOAuth) (steps []StepState, err error) {
+	steps = append(steps, StepState{
+		Step:                          StepOAuth,
+		Identity:                      intent.Identity,
+		OAuthAction:                   intent.Action,
+		OAuthNonce:                    intent.Nonce,
+		OAuthProviderAuthorizationURL: intent.ProviderAuthorizationURL,
+		OAuthUserID:                   intent.UserID,
+	})
+	return
+}
+
+func (p *Provider) getStateLogin(i *Interaction, intent *IntentLogin) (steps []StepState, err error) {
 	// Whether or not primary authentication is needed or not
 	// solely depends on the identity being used.
 	// If for some reason, the user uses login ID Identity but
@@ -37,25 +58,22 @@ func (p *Provider) getStateLogin(i *Interaction, intent *IntentLogin) (*State, e
 
 	primaryAuthenticators, err := p.listPrimaryAuthenticators(intent.Identity)
 	if err != nil {
-		return nil, err
+		return
 	}
 	secondaryAuthenticators, err := p.listSecondaryAuthenticators(i.UserID)
 	if err != nil {
-		return nil, err
+		return
 	}
-	s := &State{}
 
 	// Primary authentication
 	if needPrimaryAuthn {
-		s.Steps = []StepState{
-			{
-				Step:                    StepAuthenticatePrimary,
-				AvailableAuthenticators: primaryAuthenticators,
-			},
-		}
+		steps = append(steps, StepState{
+			Step:                    StepAuthenticatePrimary,
+			AvailableAuthenticators: primaryAuthenticators,
+		})
 	}
 	if needPrimaryAuthn && i.PrimaryAuthenticator == nil {
-		return s, nil
+		return
 	}
 
 	// Secondary authentication
@@ -64,7 +82,7 @@ func (p *Provider) getStateLogin(i *Interaction, intent *IntentLogin) (*State, e
 	case len(secondaryAuthenticators) > 0 &&
 		(p.Config.SecondaryAuthenticationMode == config.SecondaryAuthenticationModeIfExists ||
 			p.Config.SecondaryAuthenticationMode == config.SecondaryAuthenticationModeRequired):
-		s.Steps = append(s.Steps, StepState{
+		steps = append(steps, StepState{
 			Step:                    StepAuthenticateSecondary,
 			AvailableAuthenticators: secondaryAuthenticators,
 		})
@@ -72,47 +90,43 @@ func (p *Provider) getStateLogin(i *Interaction, intent *IntentLogin) (*State, e
 
 	case len(secondaryAuthenticators) == 0 &&
 		p.Config.SecondaryAuthenticationMode == config.SecondaryAuthenticationModeRequired:
-		s.Steps = append(s.Steps, StepState{
+		steps = append(steps, StepState{
 			Step:                    StepSetupSecondaryAuthenticator,
 			AvailableAuthenticators: p.getAvailableSecondaryAuthenticators(),
 		})
 		needSecondaryAuthn = true
 	}
 	if needSecondaryAuthn && i.SecondaryAuthenticator == nil {
-		return s, nil
+		return
 	}
 
 	// Commit
-	s.Steps = append(s.Steps, StepState{Step: StepCommit})
-	return s, nil
+	steps = append(steps, StepState{Step: StepCommit})
+	return
 }
 
-func (p *Provider) getStateSignup(i *Interaction, intent *IntentSignup) (*State, error) {
+func (p *Provider) getStateSignup(i *Interaction, intent *IntentSignup) (steps []StepState, err error) {
 	primaryAuthenticators := p.getAvailablePrimaryAuthenticators(intent.Identity)
-	s := &State{}
 
 	// Setup primary authenticator
 	needPrimaryAuthn := false
 	if len(primaryAuthenticators) > 0 {
-		s.Steps = []StepState{
-			{
-				Step:                    StepSetupPrimaryAuthenticator,
-				AvailableAuthenticators: primaryAuthenticators,
-			},
-		}
+		steps = append(steps, StepState{
+			Step:                    StepSetupPrimaryAuthenticator,
+			AvailableAuthenticators: primaryAuthenticators,
+		})
 		needPrimaryAuthn = true
 	}
 	if needPrimaryAuthn && i.PrimaryAuthenticator == nil {
-		return s, nil
+		return
 	}
 
 	// Commit
-	s.Steps = append(s.Steps, StepState{Step: StepCommit})
-	return s, nil
+	steps = append(steps, StepState{Step: StepCommit})
+	return
 }
 
-func (p *Provider) getStateAddIdentity(i *Interaction, intent *IntentAddIdentity) (*State, error) {
-	s := &State{}
+func (p *Provider) getStateAddIdentity(i *Interaction, intent *IntentAddIdentity) (steps []StepState, err error) {
 	if len(i.NewIdentities) != 1 {
 		panic("interaction: unexpected number of new identities")
 	}
@@ -120,35 +134,31 @@ func (p *Provider) getStateAddIdentity(i *Interaction, intent *IntentAddIdentity
 	// check if new authenticator is needed for new identity
 	needSetupPrimaryAuthenticators, err := p.getNeedSetupPrimaryAuthenticatorsWithNewIdentity(i.UserID, intent.Identity, i.NewIdentities[0])
 	if err != nil {
-		return nil, err
+		return
 	}
 	if len(needSetupPrimaryAuthenticators) > 0 {
-		s.Steps = []StepState{
-			{
-				Step:                    StepSetupPrimaryAuthenticator,
-				AvailableAuthenticators: needSetupPrimaryAuthenticators,
-			},
-		}
+		steps = append(steps, StepState{
+			Step:                    StepSetupPrimaryAuthenticator,
+			AvailableAuthenticators: needSetupPrimaryAuthenticators,
+		})
 		if i.PrimaryAuthenticator == nil {
-			return s, nil
+			return
 		}
 	}
 
-	s.Steps = append(s.Steps, StepState{Step: StepCommit})
-	return s, nil
+	steps = append(steps, StepState{Step: StepCommit})
+	return
 }
 
-func (p *Provider) getStateRemoveIdentity(i *Interaction, intent *IntentRemoveIdentity) (*State, error) {
-	s := &State{}
+func (p *Provider) getStateRemoveIdentity(i *Interaction, intent *IntentRemoveIdentity) (steps []StepState, err error) {
 	if len(i.RemoveIdentities) != 1 {
 		panic("interaction: unexpected number of identities to be removed")
 	}
-	s.Steps = append(s.Steps, StepState{Step: StepCommit})
-	return s, nil
+	steps = append(steps, StepState{Step: StepCommit})
+	return
 }
 
-func (p *Provider) getStateUpdateIdentity(i *Interaction, intent *IntentUpdateIdentity) (*State, error) {
-	s := &State{}
+func (p *Provider) getStateUpdateIdentity(i *Interaction, intent *IntentUpdateIdentity) (steps []StepState, err error) {
 	if len(i.UpdateIdentities) != 1 {
 		panic("interaction: unexpected number of identities to be updated")
 	}
@@ -156,26 +166,23 @@ func (p *Provider) getStateUpdateIdentity(i *Interaction, intent *IntentUpdateId
 	// check if new authenticator is needed for updated identity
 	needSetupPrimaryAuthenticators, err := p.getNeedSetupPrimaryAuthenticatorsWithNewIdentity(i.UserID, intent.NewIdentity, i.UpdateIdentities[0])
 	if err != nil {
-		return nil, err
+		return
 	}
 	if len(needSetupPrimaryAuthenticators) > 0 {
-		s.Steps = []StepState{
-			{
-				Step:                    StepSetupPrimaryAuthenticator,
-				AvailableAuthenticators: needSetupPrimaryAuthenticators,
-			},
-		}
+		steps = append(steps, StepState{
+			Step:                    StepSetupPrimaryAuthenticator,
+			AvailableAuthenticators: needSetupPrimaryAuthenticators,
+		})
 		if i.PrimaryAuthenticator == nil {
-			return s, nil
+			return
 		}
 	}
 
-	s.Steps = append(s.Steps, StepState{Step: StepCommit})
-	return s, nil
+	steps = append(steps, StepState{Step: StepCommit})
+	return
 }
 
-func (p *Provider) getStateUpdateAuthenticator(i *Interaction, intent *IntentUpdateAuthenticator) (*State, error) {
-	s := &State{}
+func (p *Provider) getStateUpdateAuthenticator(i *Interaction, intent *IntentUpdateAuthenticator) (steps []StepState, err error) {
 	// only password authenticator support update
 	if intent.Authenticator.Type != authn.AuthenticatorTypePassword {
 		panic("interaction: unexpected authenticator type for update " + intent.Authenticator.Type)
@@ -186,17 +193,16 @@ func (p *Provider) getStateUpdateAuthenticator(i *Interaction, intent *IntentUpd
 			Props: map[string]interface{}{},
 		},
 	}
-	s.Steps = []StepState{
-		{
-			Step:                    StepSetupPrimaryAuthenticator,
-			AvailableAuthenticators: availableAuthenticators,
-		},
-	}
+	steps = append(steps, StepState{
+		Step:                    StepSetupPrimaryAuthenticator,
+		AvailableAuthenticators: availableAuthenticators,
+	})
 	if i.PrimaryAuthenticator == nil {
-		return s, nil
+		return
 	}
-	s.Steps = append(s.Steps, StepState{Step: StepCommit})
-	return s, nil
+
+	steps = append(steps, StepState{Step: StepCommit})
+	return
 }
 
 var identityPrimaryAuthenticators = map[authn.IdentityType]map[authn.AuthenticatorType]bool{

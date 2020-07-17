@@ -15,15 +15,15 @@ func ConfigureSSOCallbackRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/sso/oauth2/callback/:alias")
 }
 
-type SSOCallbackOAuthService interface {
-	HandleSSOCallback(r *http.Request, providerAlias string, state *interactionflows.State, data webapp.SSOCallbackData) (*interactionflows.WebAppResult, error)
+type SSOCallbackInteractions interface {
+	HandleOAuthCallback(state *interactionflows.State, data interactionflows.OAuthCallbackData, opts interactionflows.HandleOAuthCallbackOptions) (*interactionflows.WebAppResult, error)
 }
 
 type SSOCallbackHandler struct {
-	Database  *db.Handle
-	State     StateService
-	OAuth     SSOCallbackOAuthService
-	Responder Responder
+	Database     *db.Handle
+	State        StateService
+	Interactions SSOCallbackInteractions
+	Responder    Responder
 }
 
 func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +34,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	providerAlias := httproute.GetParam(r, "alias")
 
-	data := webapp.SSOCallbackData{
+	data := interactionflows.OAuthCallbackData{
 		State:            r.Form.Get("state"),
 		Code:             r.Form.Get("code"),
 		Scope:            r.Form.Get("scope"),
@@ -42,7 +42,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ErrorDescription: r.Form.Get("error_description"),
 	}
 
-	// Add x_sid so RestoreState works.
+	// Add x_sid so CloneState works.
 	q := r.URL.Query()
 	q.Set("x_sid", data.State)
 	u := *r.URL
@@ -50,7 +50,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r.URL = &u
 
 	h.Database.WithTx(func() error {
-		state, err := h.State.RestoreState(r, false)
+		state, err := h.State.CloneState(r)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return err
@@ -62,7 +62,11 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			h.Responder.Respond(w, r, state, result, err)
 		}()
 
-		result, err = h.OAuth.HandleSSOCallback(r, providerAlias, state, data)
+		nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
+		result, err = h.Interactions.HandleOAuthCallback(state, data, interactionflows.HandleOAuthCallbackOptions{
+			ProviderAlias: providerAlias,
+			NonceSource:   nonceSource,
+		})
 		if err != nil {
 			return err
 		}
