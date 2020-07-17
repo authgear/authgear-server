@@ -5982,6 +5982,46 @@ func newKeyURIImageHandler(p *deps.RequestProvider) http.Handler {
 	return keyURIImageHandler
 }
 
+func newRegisterTOTPHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	rootProvider := appProvider.RootProvider
+	serverConfig := rootProvider.ServerConfig
+	handle := appProvider.Redis
+	stateStoreRedis := &flows.StateStoreRedis{
+		Redis: handle,
+	}
+	factory := appProvider.LoggerFactory
+	stateServiceLogger := flows.NewStateServiceLogger(factory)
+	stateService := &flows.StateService{
+		ServerConfig: serverConfig,
+		StateStore:   stateStoreRedis,
+		Logger:       stateServiceLogger,
+	}
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	uiConfig := appConfig.UI
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	baseViewModeler := &webapp2.BaseViewModeler{
+		ServerConfig: serverConfig,
+		AuthUI:       uiConfig,
+		Localization: localizationConfig,
+		Metadata:     appMetadata,
+	}
+	engine := appProvider.TemplateEngine
+	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
+	htmlRenderer := &webapp2.HTMLRenderer{
+		TemplateEngine: engine,
+		Logger:         htmlRendererLogger,
+	}
+	registerTOTPHandler := &webapp2.RegisterTOTPHandler{
+		State:         stateService,
+		BaseViewModel: baseViewModeler,
+		Renderer:      htmlRenderer,
+	}
+	return registerTOTPHandler
+}
+
 // Injectors from wire_middleware.go:
 
 func newSentryMiddleware(hub *sentry.Hub, p *deps.RootProvider) httproute.Middleware {

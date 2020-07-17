@@ -466,3 +466,9 @@ a.btn {
 .login_id.phone {
   background-image: url("../image/ic_login_id_phone.png");
 }
+
+.img-qr-code {
+  display: block;
+  width: 256px;
+  height: 256px;
+}

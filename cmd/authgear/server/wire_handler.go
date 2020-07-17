@@ -194,3 +194,10 @@ func newKeyURIImageHandler(p *deps.RequestProvider) http.Handler {
 		wire.Bind(new(http.Handler), new(*handlerwebapp.KeyURIImageHandler)),
 	))
 }
+
+func newRegisterTOTPHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		deps.RequestDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.RegisterTOTPHandler)),
+	))
+}

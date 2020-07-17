@@ -64,6 +64,10 @@ var TemplateAuthUITranslationJSON = template.Spec{
 	"oob-otp-resend-button-hint": "Didn''t receive the code? ",
 	"oob-otp-resend-button-label": "Resend",
 	"oob-otp-resend-button-label--unit": "Resend (%ds)",
+
+	"register-totp-page-title": "Add TOTP authenticator",
+	"register-totp-page-description": "Scan the following QR image with your authenticator and enter the generated code to register.",
+	"register-totp-placeholder": "code",
 	
 	"use-login-id-key": "Use {0} instead",
 	"login-button-hint": "Have an account already? ",

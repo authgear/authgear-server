@@ -28,4 +28,5 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(SettingsIdentityHandler), "*"),
 	wire.Struct(new(LogoutHandler), "*"),
 	wire.Struct(new(KeyURIImageHandler), "*"),
+	wire.Struct(new(RegisterTOTPHandler), "*"),
 )
