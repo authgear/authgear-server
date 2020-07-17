@@ -87,8 +87,8 @@ func (p *Provider) Commit(i *Interaction) (*Result, error) {
 
 	attrs := &authn.Attrs{
 		UserID: i.UserID,
-		// TODO(interaction): populate ACR
-		AMR: DeriveAMR(primaryAuthenticator, secondaryAuthenticator),
+		ACR:    DeriveACR(primaryAuthenticator, secondaryAuthenticator),
+		AMR:    DeriveAMR(primaryAuthenticator, secondaryAuthenticator),
 	}
 
 	return &Result{
