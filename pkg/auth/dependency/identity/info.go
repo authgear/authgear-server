@@ -6,6 +6,7 @@ import (
 )
 
 type Info struct {
+	UserID   string                 `json:"user_id"`
 	ID       string                 `json:"id"`
 	Type     authn.IdentityType     `json:"type"`
 	Claims   map[string]interface{} `json:"claims"`

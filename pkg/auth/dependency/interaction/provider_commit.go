@@ -18,11 +18,11 @@ func (p *Provider) Commit(i *Interaction) (*Result, error) {
 	case *IntentSignup:
 		err = p.onCommitSignup(i, intent)
 	case *IntentAddIdentity:
-		err = p.onCommitAddIdentity(i, intent, i.UserID)
+		err = p.onCommitAddIdentity(i, intent)
 	case *IntentRemoveIdentity:
-		err = p.onCommitRemoveIdentity(i, intent, i.UserID)
+		err = p.onCommitRemoveIdentity(i, intent)
 	case *IntentUpdateIdentity:
-		err = p.onCommitUpdateIdentity(i, intent, i.UserID)
+		err = p.onCommitUpdateIdentity(i, intent)
 	case *IntentUpdateAuthenticator:
 		break
 	default:
@@ -33,7 +33,7 @@ func (p *Provider) Commit(i *Interaction) (*Result, error) {
 	}
 
 	// Create identities & authenticators
-	if err := p.Identity.CreateAll(i.UserID, i.NewIdentities); err != nil {
+	if err := p.Identity.CreateAll(i.NewIdentities); err != nil {
 		return nil, err
 	}
 	if err := p.Authenticator.CreateAll(i.UserID, i.NewAuthenticators); err != nil {
@@ -41,7 +41,7 @@ func (p *Provider) Commit(i *Interaction) (*Result, error) {
 	}
 
 	// Update identities
-	if err := p.Identity.UpdateAll(i.UserID, i.UpdateIdentities); err != nil {
+	if err := p.Identity.UpdateAll(i.UpdateIdentities); err != nil {
 		return nil, err
 	}
 
@@ -62,7 +62,7 @@ func (p *Provider) Commit(i *Interaction) (*Result, error) {
 	}
 
 	// Delete identities & authenticators
-	if err := p.Identity.DeleteAll(i.UserID, i.RemoveIdentities); err != nil {
+	if err := p.Identity.DeleteAll(i.RemoveIdentities); err != nil {
 		return nil, err
 	}
 	if err := p.Authenticator.DeleteAll(i.UserID, i.RemoveAuthenticators); err != nil {
@@ -92,7 +92,7 @@ func (p *Provider) onCommitLogin(i *Interaction, intent *IntentLogin) error {
 			p.Logger.WithError(err).Warn("failed to new identity for update")
 			return err
 		}
-		ui, err := p.Identity.WithClaims(i.UserID, ii, intent.Identity.Claims)
+		ui, err := p.Identity.WithClaims(ii, intent.Identity.Claims)
 		if err != nil {
 			return err
 		}
@@ -103,12 +103,12 @@ func (p *Provider) onCommitLogin(i *Interaction, intent *IntentLogin) error {
 }
 
 func (p *Provider) onCommitSignup(i *Interaction, intent *IntentSignup) error {
-	err := p.checkIdentitiesDuplicated(i.NewIdentities, "")
+	err := p.checkIdentitiesDuplicated(i.NewIdentities)
 	if err != nil {
 		return err
 	}
 
-	err = p.User.Create(i.UserID, intent.UserMetadata, i.NewIdentities)
+	err = p.User.Create(i.UserID, intent.UserMetadata, i.NewIdentities, i.NewAuthenticators)
 	if err != nil {
 		return err
 	}
@@ -116,13 +116,13 @@ func (p *Provider) onCommitSignup(i *Interaction, intent *IntentSignup) error {
 	return nil
 }
 
-func (p *Provider) onCommitAddIdentity(i *Interaction, intent *IntentAddIdentity, userID string) error {
-	err := p.checkIdentitiesDuplicated(i.NewIdentities, userID)
+func (p *Provider) onCommitAddIdentity(i *Interaction, intent *IntentAddIdentity) error {
+	err := p.checkIdentitiesDuplicated(i.NewIdentities)
 	if err != nil {
 		return err
 	}
 
-	user, err := p.User.Get(userID)
+	user, err := p.User.Get(i.UserID)
 	if err != nil {
 		return err
 	}
@@ -144,9 +144,9 @@ func (p *Provider) onCommitAddIdentity(i *Interaction, intent *IntentAddIdentity
 	return nil
 }
 
-func (p *Provider) onCommitRemoveIdentity(i *Interaction, intent *IntentRemoveIdentity, userID string) error {
+func (p *Provider) onCommitRemoveIdentity(i *Interaction, intent *IntentRemoveIdentity) error {
 	// populate remove authenticators
-	ois, err := p.Identity.ListByUser(userID)
+	ois, err := p.Identity.ListByUser(i.UserID)
 	if err != nil {
 		return err
 	}
@@ -161,7 +161,7 @@ func (p *Provider) onCommitRemoveIdentity(i *Interaction, intent *IntentRemoveId
 	}
 
 	for _, oi := range ois {
-		authenticators, err := p.Authenticator.ListByIdentity(userID, oi)
+		authenticators, err := p.Authenticator.ListByIdentity(i.UserID, oi)
 		if err != nil {
 			return err
 		}
@@ -182,7 +182,7 @@ func (p *Provider) onCommitRemoveIdentity(i *Interaction, intent *IntentRemoveId
 	}
 
 	// remove identity event
-	user, err := p.User.Get(userID)
+	user, err := p.User.Get(i.UserID)
 	if err != nil {
 		return err
 	}
@@ -204,8 +204,8 @@ func (p *Provider) onCommitRemoveIdentity(i *Interaction, intent *IntentRemoveId
 	return nil
 }
 
-func (p *Provider) onCommitUpdateIdentity(i *Interaction, intent *IntentUpdateIdentity, userID string) error {
-	err := p.checkIdentitiesDuplicated(i.UpdateIdentities, userID)
+func (p *Provider) onCommitUpdateIdentity(i *Interaction, intent *IntentUpdateIdentity) error {
+	err := p.checkIdentitiesDuplicated(i.UpdateIdentities)
 	if err != nil {
 		return err
 	}
@@ -221,13 +221,13 @@ func (p *Provider) onCommitUpdateIdentity(i *Interaction, intent *IntentUpdateId
 	keepAuthenticators := map[string]*authenticator.Info{}
 	allAuthenticators := map[string]*authenticator.Info{}
 
-	ois, err := p.Identity.ListByUser(userID)
+	ois, err := p.Identity.ListByUser(i.UserID)
 	if err != nil {
 		return err
 	}
 
 	for _, oi := range ois {
-		authenticators, err := p.Authenticator.ListByIdentity(userID, oi)
+		authenticators, err := p.Authenticator.ListByIdentity(i.UserID, oi)
 		if err != nil {
 			return err
 		}
@@ -249,7 +249,7 @@ func (p *Provider) onCommitUpdateIdentity(i *Interaction, intent *IntentUpdateId
 	}
 
 	// authenticators get by the updated identity info
-	authenticators, err := p.Authenticator.ListByIdentity(userID, updateIdentityInfo)
+	authenticators, err := p.Authenticator.ListByIdentity(i.UserID, updateIdentityInfo)
 	if err != nil {
 		return err
 	}
@@ -265,7 +265,7 @@ func (p *Provider) onCommitUpdateIdentity(i *Interaction, intent *IntentUpdateId
 	}
 
 	// update identity event
-	user, err := p.User.Get(userID)
+	user, err := p.User.Get(i.UserID)
 	if err != nil {
 		return err
 	}
@@ -285,9 +285,9 @@ func (p *Provider) onCommitUpdateIdentity(i *Interaction, intent *IntentUpdateId
 	return nil
 }
 
-func (p *Provider) checkIdentitiesDuplicated(iis []*identity.Info, userID string) error {
+func (p *Provider) checkIdentitiesDuplicated(iis []*identity.Info) error {
 	for _, i := range iis {
-		err := p.Identity.CheckIdentityDuplicated(i, userID)
+		err := p.Identity.CheckIdentityDuplicated(i)
 		if err != nil {
 			if errors.Is(err, identity.ErrIdentityAlreadyExists) {
 				err = ErrDuplicatedIdentity

@@ -46,10 +46,6 @@ func TestProviderFlow(t *testing.T) {
 
 				// step 1 setup
 				loginIDClaims := map[string]interface{}{"email": "user@example.com"}
-				is := identity.Spec{
-					Type:   authn.IdentityTypeLoginID,
-					Claims: loginIDClaims,
-				}
 				ii := &identity.Info{
 					ID:     "identity_id_1",
 					Type:   authn.IdentityTypeLoginID,
@@ -67,7 +63,7 @@ func TestProviderFlow(t *testing.T) {
 				}
 				identityProvider.EXPECT().New(gomock.Any(), gomock.Any(), gomock.Eq(loginIDClaims)).Return(ii, nil)
 				identityProvider.EXPECT().Validate(gomock.Any()).Return(nil)
-				identityProvider.EXPECT().RelateIdentityToAuthenticator(gomock.Eq(is), gomock.Eq(as)).Return(as).AnyTimes()
+				identityProvider.EXPECT().RelateIdentityToAuthenticator(gomock.Eq(ii), gomock.Eq(as)).Return(as).AnyTimes()
 
 				// step 1
 				i, err := p.NewInteractionSignup(
@@ -94,15 +90,17 @@ func TestProviderFlow(t *testing.T) {
 				// step 2 setup
 
 				userProvider.EXPECT().Create(
-					gomock.Any(), gomock.Any(), gomock.Eq([]*identity.Info{ii}),
+					gomock.Any(), gomock.Any(),
+					gomock.Eq([]*identity.Info{ii}),
+					gomock.Eq([]*authenticator.Info{ai}),
 				).Return(nil)
 
-				identityProvider.EXPECT().CheckIdentityDuplicated(gomock.Eq(ii), gomock.Eq("")).Return(nil)
+				identityProvider.EXPECT().CheckIdentityDuplicated(gomock.Eq(ii)).Return(nil)
 
-				identityProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq([]*identity.Info{ii})).Return(nil)
+				identityProvider.EXPECT().CreateAll(gomock.Eq([]*identity.Info{ii})).Return(nil)
 				var emptyIdentityInfoList []*identity.Info
-				identityProvider.EXPECT().UpdateAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
-				identityProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
+				identityProvider.EXPECT().UpdateAll(gomock.Eq(emptyIdentityInfoList)).Return(nil)
+				identityProvider.EXPECT().DeleteAll(gomock.Eq(emptyIdentityInfoList)).Return(nil)
 				identityProvider.EXPECT().Get(gomock.Any(), ii.Type, ii.ID).Return(ii, nil)
 
 				authenticatorProvider.EXPECT().New(
@@ -186,9 +184,9 @@ func TestProviderFlow(t *testing.T) {
 				).Return(ai, nil)
 
 				var emptyIdentityInfoList []*identity.Info
-				identityProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
-				identityProvider.EXPECT().UpdateAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
-				identityProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
+				identityProvider.EXPECT().CreateAll(gomock.Eq(emptyIdentityInfoList)).Return(nil)
+				identityProvider.EXPECT().UpdateAll(gomock.Eq(emptyIdentityInfoList)).Return(nil)
+				identityProvider.EXPECT().DeleteAll(gomock.Eq(emptyIdentityInfoList)).Return(nil)
 				identityProvider.EXPECT().Get(gomock.Eq(userID), ii.Type, ii.ID).Return(ii, nil)
 
 				var emptyAuthenticatorInfoList []*authenticator.Info
@@ -290,16 +288,14 @@ func TestProviderFlow(t *testing.T) {
 			// step 2 setup
 
 			identityProvider.EXPECT().Get(gomock.Eq(userID), ii.Type, ii.ID).Return(ii, nil)
-			identityProvider.EXPECT().WithClaims(
-				gomock.Eq(userID), gomock.Eq(ii), gomock.Eq(oauthClaims),
-			).Return(ii, nil)
+			identityProvider.EXPECT().WithClaims(gomock.Eq(ii), gomock.Eq(oauthClaims)).Return(ii, nil)
 
 			// update oauth claims when login
-			identityProvider.EXPECT().UpdateAll(gomock.Any(), []*identity.Info{ii}).Return(nil)
+			identityProvider.EXPECT().UpdateAll([]*identity.Info{ii}).Return(nil)
 
 			var emptyIdentityInfoList []*identity.Info
-			identityProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
-			identityProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
+			identityProvider.EXPECT().CreateAll(gomock.Eq(emptyIdentityInfoList)).Return(nil)
+			identityProvider.EXPECT().DeleteAll(gomock.Eq(emptyIdentityInfoList)).Return(nil)
 			identityProvider.EXPECT().Get(gomock.Eq(userID), ii.Type, ii.ID).Return(ii, nil)
 
 			var emptyAuthenticatorInfoList []*authenticator.Info
@@ -432,7 +428,7 @@ func TestProviderFlow(t *testing.T) {
 
 				// return new identity related authenticator spec
 				identityProvider.EXPECT().RelateIdentityToAuthenticator(
-					gomock.Eq(ii.ToSpec()), gomock.Eq(as),
+					gomock.Eq(ii), gomock.Eq(as),
 				).Return(as)
 
 				// user has setup authenticator before, no need to setup
@@ -506,15 +502,15 @@ func TestProviderFlow(t *testing.T) {
 
 				// return new identity related authenticator spec
 				identityProvider.EXPECT().RelateIdentityToAuthenticator(
-					gomock.Eq(ii.ToSpec()), gomock.Eq(as),
+					gomock.Eq(ii), gomock.Eq(as),
 				).Return(as).AnyTimes()
 
-				identityProvider.EXPECT().CheckIdentityDuplicated(gomock.Eq(ii), gomock.Eq(userID)).Return(nil)
+				identityProvider.EXPECT().CheckIdentityDuplicated(gomock.Eq(ii)).Return(nil)
 
-				identityProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq([]*identity.Info{ii})).Return(nil)
+				identityProvider.EXPECT().CreateAll(gomock.Eq([]*identity.Info{ii})).Return(nil)
 				var emptyIdentityInfoList []*identity.Info
-				identityProvider.EXPECT().UpdateAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
-				identityProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
+				identityProvider.EXPECT().UpdateAll(gomock.Eq(emptyIdentityInfoList)).Return(nil)
+				identityProvider.EXPECT().DeleteAll(gomock.Eq(emptyIdentityInfoList)).Return(nil)
 				identityProvider.EXPECT().Get(gomock.Any(), ii.Type, ii.ID).Return(ii, nil)
 
 				// no existing authenticator for new login id identity
@@ -612,9 +608,7 @@ func TestProviderFlow(t *testing.T) {
 			identityProvider.EXPECT().GetByClaims(
 				gomock.Eq(authn.IdentityTypeLoginID), gomock.Eq(oldClaims),
 			).Return(userID, oii, nil)
-			identityProvider.EXPECT().WithClaims(
-				gomock.Eq(userID), gomock.Eq(oii), gomock.Eq(newClaims),
-			).Return(nii, nil)
+			identityProvider.EXPECT().WithClaims(gomock.Eq(oii), gomock.Eq(newClaims)).Return(nii, nil)
 			identityProvider.EXPECT().ListByUser(
 				gomock.Eq(userID),
 			).Return([]*identity.Info{oii}, nil).AnyTimes()
@@ -624,15 +618,15 @@ func TestProviderFlow(t *testing.T) {
 			).Return(nil)
 			// return updated identity related authenticator spec
 			identityProvider.EXPECT().RelateIdentityToAuthenticator(
-				gomock.Eq(nii.ToSpec()), gomock.Eq(as),
+				gomock.Eq(nii), gomock.Eq(as),
 			).Return(as)
 
-			identityProvider.EXPECT().CheckIdentityDuplicated(gomock.Eq(nii), gomock.Eq(userID)).Return(nil)
+			identityProvider.EXPECT().CheckIdentityDuplicated(gomock.Eq(nii)).Return(nil)
 
 			var emptyIdentityInfoList []*identity.Info
-			identityProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
-			identityProvider.EXPECT().UpdateAll(gomock.Any(), gomock.Eq([]*identity.Info{nii})).Return(nil)
-			identityProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
+			identityProvider.EXPECT().CreateAll(gomock.Eq(emptyIdentityInfoList)).Return(nil)
+			identityProvider.EXPECT().UpdateAll(gomock.Eq([]*identity.Info{nii})).Return(nil)
+			identityProvider.EXPECT().DeleteAll(gomock.Eq(emptyIdentityInfoList)).Return(nil)
 			identityProvider.EXPECT().Get(gomock.Any(), nii.Type, nii.ID).Return(nii, nil)
 
 			// simulate original identity related to password and oob authenticators
@@ -739,9 +733,9 @@ func TestProviderFlow(t *testing.T) {
 					gomock.Eq(userID),
 				).Return([]*identity.Info{ii, ii2}, nil).AnyTimes()
 				var emptyIdentityInfoList []*identity.Info
-				identityProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
-				identityProvider.EXPECT().UpdateAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
-				identityProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq([]*identity.Info{ii})).Return(nil)
+				identityProvider.EXPECT().CreateAll(gomock.Eq(emptyIdentityInfoList)).Return(nil)
+				identityProvider.EXPECT().UpdateAll(gomock.Eq(emptyIdentityInfoList)).Return(nil)
+				identityProvider.EXPECT().DeleteAll(gomock.Eq([]*identity.Info{ii})).Return(nil)
 				identityProvider.EXPECT().Get(gomock.Any(), ii.Type, ii.ID).Return(ii, nil)
 
 				// identity ii related to authenticators ai1 and ai2
@@ -800,9 +794,9 @@ func TestProviderFlow(t *testing.T) {
 			).Return([]*authenticator.Info{ai}, nil).AnyTimes()
 
 			var emptyIdentityInfoList []*identity.Info
-			identityProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
-			identityProvider.EXPECT().UpdateAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
-			identityProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Eq(emptyIdentityInfoList)).Return(nil)
+			identityProvider.EXPECT().CreateAll(gomock.Eq(emptyIdentityInfoList)).Return(nil)
+			identityProvider.EXPECT().UpdateAll(gomock.Eq(emptyIdentityInfoList)).Return(nil)
+			identityProvider.EXPECT().DeleteAll(gomock.Eq(emptyIdentityInfoList)).Return(nil)
 
 			var emptyAuthenticatorInfoList []*authenticator.Info
 			authenticatorProvider.EXPECT().CreateAll(gomock.Any(), gomock.Eq(emptyAuthenticatorInfoList)).Return(nil)

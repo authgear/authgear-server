@@ -1,39 +1,34 @@
 package oob
 
 import (
-	"context"
 	"errors"
 	"net/url"
 	"sort"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
-	taskspec "github.com/authgear/authgear-server/pkg/auth/task/spec"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/core/auth/metadata"
 	"github.com/authgear/authgear-server/pkg/core/authn"
-	"github.com/authgear/authgear-server/pkg/core/intl"
 	"github.com/authgear/authgear-server/pkg/core/uuid"
-	"github.com/authgear/authgear-server/pkg/mail"
-	"github.com/authgear/authgear-server/pkg/sms"
-	"github.com/authgear/authgear-server/pkg/task"
-	"github.com/authgear/authgear-server/pkg/template"
+	"github.com/authgear/authgear-server/pkg/otp"
 )
 
 type EndpointsProvider interface {
 	BaseURL() *url.URL
 }
 
+type OTPMessageSender interface {
+	SendEmail(opts otp.SendOptions, message config.EmailMessageConfig) error
+	SendSMS(opts otp.SendOptions, message config.SMSMessageConfig) error
+}
+
 type Provider struct {
-	Context        context.Context
-	Localization   *config.LocalizationConfig
-	AppMetadata    config.AppMetadata
-	Messaging      *config.MessagingConfig
-	Config         *config.AuthenticatorOOBConfig
-	Store          *Store
-	TemplateEngine *template.Engine
-	Endpoints      EndpointsProvider
-	TaskQueue      task.Queue
-	Clock          clock.Clock
+	Config           *config.AuthenticatorOOBConfig
+	Store            *Store
+	Clock            clock.Clock
+	OTPMessageSender OTPMessageSender
 }
 
 func (p *Provider) Get(userID string, id string) (*Authenticator, error) {
@@ -58,13 +53,14 @@ func (p *Provider) List(userID string) ([]*Authenticator, error) {
 	return authenticators, nil
 }
 
-func (p *Provider) New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string) *Authenticator {
+func (p *Provider) New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string, identityID *string) *Authenticator {
 	a := &Authenticator{
-		ID:      uuid.New(),
-		UserID:  userID,
-		Channel: channel,
-		Phone:   phone,
-		Email:   email,
+		ID:         uuid.New(),
+		UserID:     userID,
+		Channel:    channel,
+		Phone:      phone,
+		Email:      email,
+		IdentityID: identityID,
 	}
 	return a
 }
@@ -84,117 +80,51 @@ func (p *Provider) Create(a *Authenticator) error {
 }
 
 func (p *Provider) Authenticate(expectedCode string, code string) error {
-	ok := VerifyCode(expectedCode, code)
+	ok := otp.ValidateOTP(expectedCode, code)
 	if !ok {
 		return errors.New("invalid bearer token")
 	}
 	return nil
 }
 
-func (p *Provider) GenerateCode() string {
-	return GenerateCode()
-}
-
-type SendCodeOptions struct {
-	Channel string
-	Email   string
-	Phone   string
-	Code    string
-}
-
-func (p *Provider) SendCode(opts SendCodeOptions) (err error) {
-	email := opts.Email
-	phone := opts.Phone
-	channel := opts.Channel
-	code := opts.Code
-
-	data := map[string]interface{}{
-		"email": email,
-		"phone": phone,
-		"code":  code,
-		"host":  p.Endpoints.BaseURL().Host,
-	}
-
-	preferredLanguageTags := intl.GetPreferredLanguageTags(p.Context)
-	data["appname"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.Localization.FallbackLanguage), p.AppMetadata, "app_name")
-
+func (p *Provider) GenerateCode(channel authn.AuthenticatorOOBChannel) string {
+	var format *otp.Format
 	switch channel {
-	case string(authn.AuthenticatorOOBChannelEmail):
-		return p.SendEmail(email, data)
-	case string(authn.AuthenticatorOOBChannelSMS):
-		return p.SendSMS(phone, data)
+	case authn.AuthenticatorOOBChannelEmail:
+		format = otp.GetFormat(p.Config.Email.CodeFormat)
+	case authn.AuthenticatorOOBChannelSMS:
+		format = otp.GetFormat(p.Config.SMS.CodeFormat)
 	default:
-		panic("expected OOB channel: " + string(channel))
+		panic("oob: unknown channel type: " + channel)
+	}
+	return format.Generate()
+}
+
+func (p *Provider) SendCode(
+	channel authn.AuthenticatorOOBChannel,
+	loginID *loginid.LoginID,
+	code string,
+	origin otp.MessageOrigin,
+	operation otp.OOBOperationType,
+) error {
+	opts := otp.SendOptions{
+		LoginID:   loginID,
+		OTP:       code,
+		Origin:    origin,
+		Operation: operation,
+	}
+	switch channel {
+	case authn.AuthenticatorOOBChannelEmail:
+		opts.LoginIDType = config.LoginIDKeyType(metadata.Email)
+		return p.OTPMessageSender.SendEmail(opts, p.Config.Email.Message)
+	case authn.AuthenticatorOOBChannelSMS:
+		opts.LoginIDType = config.LoginIDKeyType(metadata.Phone)
+		return p.OTPMessageSender.SendSMS(opts, p.Config.SMS.Message)
+	default:
+		panic("oob: unknown channel type: " + channel)
 	}
 }
 
-func (p *Provider) SendEmail(email string, data map[string]interface{}) (err error) {
-	textBody, err := p.TemplateEngine.RenderTemplate(
-		TemplateItemTypeOOBCodeEmailTXT,
-		data,
-		template.ResolveOptions{},
-	)
-	if err != nil {
-		return
-	}
-
-	htmlBody, err := p.TemplateEngine.RenderTemplate(
-		TemplateItemTypeOOBCodeEmailHTML,
-		data,
-		template.ResolveOptions{},
-	)
-	if err != nil {
-		return
-	}
-
-	p.TaskQueue.Enqueue(task.Spec{
-		Name: taskspec.SendMessagesTaskName,
-		Param: taskspec.SendMessagesTaskParam{
-			EmailMessages: []mail.SendOptions{
-				{
-					MessageConfig: config.NewEmailMessageConfig(
-						p.Messaging.DefaultEmailMessage,
-						p.Config.Email.Message,
-					),
-					Recipient: email,
-					TextBody:  textBody,
-					HTMLBody:  htmlBody,
-				},
-			},
-		},
-	})
-
-	return
-}
-
-func (p *Provider) SendSMS(phone string, data map[string]interface{}) (err error) {
-	body, err := p.TemplateEngine.RenderTemplate(
-		TemplateItemTypeOOBCodeSMSTXT,
-		data,
-		template.ResolveOptions{},
-	)
-	if err != nil {
-		return
-	}
-
-	p.TaskQueue.Enqueue(task.Spec{
-		Name: taskspec.SendMessagesTaskName,
-		Param: taskspec.SendMessagesTaskParam{
-			SMSMessages: []sms.SendOptions{
-				{
-					MessageConfig: config.NewSMSMessageConfig(
-						p.Messaging.DefaultSMSMessage,
-						p.Config.SMS.Message,
-					),
-					To:   phone,
-					Body: body,
-				},
-			},
-		},
-	})
-
-	return
-}
 func sortAuthenticators(as []*Authenticator) {
 	sort.Slice(as, func(i, j int) bool {
 		return as[i].CreatedAt.Before(as[j].CreatedAt)

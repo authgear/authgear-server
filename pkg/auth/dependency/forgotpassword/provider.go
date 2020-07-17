@@ -136,7 +136,6 @@ func (p *Provider) sendEmail(email string, code string) (err error) {
 	textBody, err := p.TemplateEngine.RenderTemplate(
 		TemplateItemTypeForgotPasswordEmailTXT,
 		data,
-		template.ResolveOptions{},
 	)
 	if err != nil {
 		return
@@ -145,7 +144,6 @@ func (p *Provider) sendEmail(email string, code string) (err error) {
 	htmlBody, err := p.TemplateEngine.RenderTemplate(
 		TemplateItemTypeForgotPasswordEmailHTML,
 		data,
-		template.ResolveOptions{},
 	)
 	if err != nil {
 		return
@@ -185,7 +183,6 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 	body, err := p.TemplateEngine.RenderTemplate(
 		TemplateItemTypeForgotPasswordSMSTXT,
 		data,
-		template.ResolveOptions{},
 	)
 	if err != nil {
 		return

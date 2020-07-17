@@ -19,8 +19,10 @@ func TestResolveHandler(t *testing.T) {
 		defer ctrl.Finish()
 
 		anonymousProvider := NewMockAnonymousIdentityProvider(ctrl)
+		verificationService := NewMockVerificationService(ctrl)
 		h := &ResolveHandler{
-			Anonymous: anonymousProvider,
+			Anonymous:    anonymousProvider,
+			Verification: verificationService,
 		}
 
 		Convey("should attach headers for valid sessions", func() {
@@ -36,6 +38,7 @@ func TestResolveHandler(t *testing.T) {
 
 			Convey("for normal user", func() {
 				anonymousProvider.EXPECT().List("user-id").Return([]*anonymous.Identity{}, nil)
+				verificationService.EXPECT().IsUserVerified("user-id").Return(true, nil)
 				rw := httptest.NewRecorder()
 				h.ServeHTTP(rw, r)
 
@@ -44,6 +47,7 @@ func TestResolveHandler(t *testing.T) {
 				So(resp.Header, ShouldResemble, http.Header{
 					"X-Authgear-Session-Valid":  []string{"true"},
 					"X-Authgear-User-Id":        []string{"user-id"},
+					"X-Authgear-User-Verified":  []string{"true"},
 					"X-Authgear-User-Anonymous": []string{"false"},
 					"X-Authgear-Session-Acr":    []string{""},
 					"X-Authgear-Session-Amr":    []string{""},
@@ -54,6 +58,7 @@ func TestResolveHandler(t *testing.T) {
 				anonymousProvider.EXPECT().List("user-id").Return([]*anonymous.Identity{
 					{ID: "anonymous-identity"},
 				}, nil)
+				verificationService.EXPECT().IsUserVerified("user-id").Return(false, nil)
 				rw := httptest.NewRecorder()
 				h.ServeHTTP(rw, r)
 
@@ -63,6 +68,7 @@ func TestResolveHandler(t *testing.T) {
 					"X-Authgear-Session-Valid":  []string{"true"},
 					"X-Authgear-User-Id":        []string{"user-id"},
 					"X-Authgear-User-Anonymous": []string{"true"},
+					"X-Authgear-User-Verified":  []string{"false"},
 					"X-Authgear-Session-Acr":    []string{""},
 					"X-Authgear-Session-Amr":    []string{""},
 				})

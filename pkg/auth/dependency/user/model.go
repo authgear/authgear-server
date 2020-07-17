@@ -19,6 +19,7 @@ type User struct {
 func newUserModel(
 	user *User,
 	identities []*identity.Info,
+	isVerified bool,
 ) *model.User {
 	isAnonymous := false
 	for _, i := range identities {
@@ -33,6 +34,7 @@ func newUserModel(
 		CreatedAt:   user.CreatedAt,
 		LastLoginAt: user.LastLoginAt,
 		IsAnonymous: isAnonymous,
+		IsVerified:  isVerified,
 		Metadata:    user.Metadata,
 	}
 }

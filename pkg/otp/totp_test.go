@@ -1,10 +1,11 @@
-package totp_test
+package otp_test
 
 import (
 	"testing"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/totp"
+	"github.com/authgear/authgear-server/pkg/otp"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -14,8 +15,8 @@ func TestTOTP(t *testing.T) {
 		fixtureSecret := "GJQFQHET4FX7U5EWSXU36MM36X46TJ7E"
 		fixtureTime := time.Date(2019, 6, 1, 0, 0, 0, 0, time.UTC)
 
-		Convey("GenerateSecret", func() {
-			secret, err := totp.GenerateSecret()
+		Convey("GenerateTOTPSecret", func() {
+			secret, err := otp.GenerateTOTPSecret()
 			So(err, ShouldBeNil)
 			So(secret, ShouldNotBeEmpty)
 			// The secret is of 160 bits
@@ -24,8 +25,8 @@ func TestTOTP(t *testing.T) {
 			So(len(secret), ShouldEqual, 32)
 		})
 
-		Convey("GenerateCode", func() {
-			code, err := totp.GenerateCode(fixtureSecret, fixtureTime)
+		Convey("GenerateTOTP", func() {
+			code, err := otp.GenerateTOTP(fixtureSecret, fixtureTime)
 			So(err, ShouldBeNil)
 			// Should be 6 digits
 			So(len(code), ShouldEqual, 6)
@@ -34,54 +35,54 @@ func TestTOTP(t *testing.T) {
 
 		Convey("ValidateCode", func() {
 			Convey("Within the same period", func() {
-				code, err := totp.GenerateCode(fixtureSecret, fixtureTime)
+				code, err := otp.GenerateTOTP(fixtureSecret, fixtureTime)
 				So(err, ShouldBeNil)
 
-				valid := totp.ValidateCode(fixtureSecret, code, fixtureTime)
+				valid := otp.ValidateTOTP(fixtureSecret, code, fixtureTime)
 				So(valid, ShouldBeTrue)
 			})
 
 			Convey("-1 period", func() {
-				code, err := totp.GenerateCode(fixtureSecret, fixtureTime)
+				code, err := otp.GenerateTOTP(fixtureSecret, fixtureTime)
 				So(err, ShouldBeNil)
 
 				t1 := fixtureTime.Add(-30 * time.Second)
-				t1Code, err := totp.GenerateCode(fixtureSecret, t1)
+				t1Code, err := otp.GenerateTOTP(fixtureSecret, t1)
 				So(err, ShouldBeNil)
 				So(t1Code, ShouldNotEqual, code)
 				So(t1Code, ShouldEqual, "817861")
-				valid := totp.ValidateCode(fixtureSecret, t1Code, fixtureTime)
+				valid := otp.ValidateTOTP(fixtureSecret, t1Code, fixtureTime)
 				So(valid, ShouldBeTrue)
 			})
 
 			Convey("+1 period", func() {
-				code, err := totp.GenerateCode(fixtureSecret, fixtureTime)
+				code, err := otp.GenerateTOTP(fixtureSecret, fixtureTime)
 				So(err, ShouldBeNil)
 
 				t2 := fixtureTime.Add(30 * time.Second)
-				t2Code, err := totp.GenerateCode(fixtureSecret, t2)
+				t2Code, err := otp.GenerateTOTP(fixtureSecret, t2)
 				So(err, ShouldBeNil)
 				So(t2Code, ShouldNotEqual, code)
 				So(t2Code, ShouldEqual, "503766")
-				valid := totp.ValidateCode(fixtureSecret, t2Code, fixtureTime)
+				valid := otp.ValidateTOTP(fixtureSecret, t2Code, fixtureTime)
 				So(valid, ShouldBeTrue)
 			})
 
 			Convey("Invalid code", func() {
-				valid := totp.ValidateCode(fixtureSecret, "123456", fixtureTime)
+				valid := otp.ValidateTOTP(fixtureSecret, "123456", fixtureTime)
 				So(valid, ShouldBeFalse)
 			})
 
 			Convey("Expired code", func() {
-				code, err := totp.GenerateCode(fixtureSecret, fixtureTime)
+				code, err := otp.GenerateTOTP(fixtureSecret, fixtureTime)
 				So(err, ShouldBeNil)
 
 				t1 := fixtureTime.Add(-60 * time.Second)
-				t1Code, err := totp.GenerateCode(fixtureSecret, t1)
+				t1Code, err := otp.GenerateTOTP(fixtureSecret, t1)
 				So(err, ShouldBeNil)
 				So(t1Code, ShouldNotEqual, code)
 				So(t1Code, ShouldEqual, "369494")
-				valid := totp.ValidateCode(fixtureSecret, t1Code, fixtureTime)
+				valid := otp.ValidateTOTP(fixtureSecret, t1Code, fixtureTime)
 				So(valid, ShouldBeFalse)
 			})
 		})

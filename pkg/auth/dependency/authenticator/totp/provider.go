@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/uuid"
+	"github.com/authgear/authgear-server/pkg/otp"
 )
 
 type Provider struct {
@@ -34,7 +35,7 @@ func (p *Provider) List(userID string) ([]*Authenticator, error) {
 }
 
 func (p *Provider) New(userID string, displayName string) *Authenticator {
-	secret, err := GenerateSecret()
+	secret, err := otp.GenerateTOTPSecret()
 	if err != nil {
 		panic(fmt.Errorf("totp: failed to generate secret: %w", err))
 	}
@@ -58,7 +59,7 @@ func (p *Provider) Create(a *Authenticator) error {
 func (p *Provider) Authenticate(candidates []*Authenticator, code string) *Authenticator {
 	now := p.Clock.NowUTC()
 	for _, a := range candidates {
-		if ValidateCode(a.Secret, code, now) {
+		if otp.ValidateTOTP(a.Secret, code, now) {
 			return a
 		}
 	}

@@ -8,7 +8,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/otp"
 )
 
 func (p *Provider) PerformAction(i *Interaction, step Step, action Action) error {
@@ -56,7 +58,7 @@ func (p *Provider) performActionLogin(i *Interaction, intent *IntentLogin, step 
 			return nil
 
 		case *ActionTriggerOOBAuthenticator:
-			err := p.doTriggerOOB(i, action)
+			err := p.doTriggerOOB(i, step, action)
 			if err != nil {
 				return err
 			}
@@ -141,7 +143,7 @@ func (p *Provider) setupPrimaryAuthenticator(i *Interaction, step *StepState, ac
 		return nil
 
 	case *ActionTriggerOOBAuthenticator:
-		err := p.doTriggerOOB(i, action)
+		err := p.doTriggerOOB(i, step, action)
 		if err != nil {
 			return err
 		}
@@ -207,7 +209,7 @@ func (p *Provider) setupAuthenticator(i *Interaction, step *StepState, astate *m
 	return ais[0], nil
 }
 
-func (p *Provider) doTriggerOOB(i *Interaction, action *ActionTriggerOOBAuthenticator) (err error) {
+func (p *Provider) doTriggerOOB(i *Interaction, step *StepState, action *ActionTriggerOOBAuthenticator) (err error) {
 	spec := action.Authenticator
 
 	if spec.Type != authn.AuthenticatorTypeOOB {
@@ -228,8 +230,9 @@ func (p *Provider) doTriggerOOB(i *Interaction, action *ActionTriggerOOBAuthenti
 	// Rotate the code according to oob.OOBCodeValidDuration
 	code := i.State[authenticator.AuthenticatorStateOOBOTPCode]
 	generateTimeStr := i.State[authenticator.AuthenticatorStateOOBOTPGenerateTime]
+	channel := spec.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string)
 	if generateTimeStr == "" {
-		code = p.OOB.GenerateCode()
+		code = p.OOB.GenerateCode(authn.AuthenticatorOOBChannel(channel))
 		generateTimeStr = nowStr
 	} else {
 		var tt time.Time
@@ -239,8 +242,8 @@ func (p *Provider) doTriggerOOB(i *Interaction, action *ActionTriggerOOBAuthenti
 		}
 
 		// Expire
-		if tt.Add(oob.OOBCodeValidDuration).Before(now) {
-			code = p.OOB.GenerateCode()
+		if tt.Add(oob.OOBOTPValidDuration).Before(now) {
+			code = p.OOB.GenerateCode(authn.AuthenticatorOOBChannel(channel))
 			generateTimeStr = nowStr
 		}
 	}
@@ -254,26 +257,13 @@ func (p *Provider) doTriggerOOB(i *Interaction, action *ActionTriggerOOBAuthenti
 			return
 		}
 
-		if tt.Add(oob.OOBCodeSendCooldownSeconds * time.Second).After(now) {
+		if tt.Add(oob.OOBOTPSendCooldownSeconds * time.Second).After(now) {
 			err = ErrOOBOTPCooldown
 			return
 		}
 	}
 
-	opts := oob.SendCodeOptions{
-		Code: code,
-	}
-	if channel, ok := spec.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string); ok {
-		opts.Channel = channel
-	}
-	if email, ok := spec.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string); ok {
-		opts.Email = email
-	}
-	if phone, ok := spec.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string); ok {
-		opts.Phone = phone
-	}
-
-	err = p.OOB.SendCode(opts)
+	err = p.sendOOBCode(i, step, spec, code)
 	if err != nil {
 		return
 	}
@@ -288,7 +278,97 @@ func (p *Provider) doTriggerOOB(i *Interaction, action *ActionTriggerOOBAuthenti
 	i.State[authenticator.AuthenticatorStateOOBOTPCode] = code
 	i.State[authenticator.AuthenticatorStateOOBOTPGenerateTime] = generateTimeStr
 	i.State[authenticator.AuthenticatorStateOOBOTPTriggerTime] = nowStr
-	i.State[authenticator.AuthenticatorStateOOBOTPChannelType] = opts.Channel
+	i.State[authenticator.AuthenticatorStateOOBOTPChannelType] = channel
 
 	return
+}
+
+func (p *Provider) sendOOBCode(i *Interaction, step *StepState, as authenticator.Spec, code string) error {
+	channel, ok := as.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string)
+	if !ok {
+		panic("interaction: cannot extract authenticator channel")
+	}
+
+	var operation otp.OOBOperationType
+	var loginID *loginid.LoginID
+	switch step.Step {
+	case StepSetupPrimaryAuthenticator, StepAuthenticatePrimary:
+		operation = otp.OOBOperationTypePrimaryAuth
+		// Primary OOB authenticators is bound to login ID identities:
+		// Extract login ID from the bound identity.
+
+		identityID, ok := as.Props[authenticator.AuthenticatorPropOOBOTPIdentityID].(*string)
+		if !ok || identityID == nil {
+			// No bound identity found: break and use placeholder login ID
+			break
+		}
+		var boundIdentity *identity.Info
+		for _, iden := range i.NewIdentities {
+			if iden.ID == *identityID {
+				boundIdentity = iden
+				break
+			}
+		}
+		if boundIdentity == nil {
+			for _, iden := range i.UpdateIdentities {
+				if iden.ID == *identityID {
+					boundIdentity = iden
+					break
+				}
+			}
+		}
+
+		if boundIdentity == nil {
+			var err error
+			boundIdentity, err = p.Identity.Get(i.UserID, authn.IdentityTypeLoginID, *identityID)
+			if errors.Is(err, identity.ErrIdentityNotFound) {
+				// No bound identity found: break and use placeholder login ID
+				break
+			} else if err != nil {
+				return err
+			}
+		}
+
+		loginID = &loginid.LoginID{
+			Key:   boundIdentity.Claims[identity.IdentityClaimLoginIDKey].(string),
+			Value: boundIdentity.Claims[identity.IdentityClaimLoginIDValue].(string),
+		}
+
+	case StepSetupSecondaryAuthenticator, StepAuthenticateSecondary:
+		operation = otp.OOBOperationTypeSecondaryAuth
+		// Secondary OOB authenticators is not bound to login ID identities.
+		loginID = nil
+
+	default:
+		panic("interaction: attempted to trigger OOB in unexpected step: " + step.Step)
+	}
+
+	var origin otp.MessageOrigin
+	switch i.Intent.Type() {
+	case IntentTypeLogin:
+		origin = otp.MessageOriginLogin
+	case IntentTypeSignup:
+		origin = otp.MessageOriginSignup
+	default:
+		origin = otp.MessageOriginSettings
+	}
+
+	if loginID == nil {
+		// Use a placeholder login ID if no bound login ID identity
+		loginID = &loginid.LoginID{}
+		switch channel {
+		case string(authn.AuthenticatorOOBChannelSMS):
+			loginID.Value = as.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string)
+		case string(authn.AuthenticatorOOBChannelEmail):
+			loginID.Value = as.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string)
+		}
+	}
+
+	return p.OOB.SendCode(
+		authn.AuthenticatorOOBChannel(channel),
+		loginID,
+		code,
+		origin,
+		operation,
+	)
 }

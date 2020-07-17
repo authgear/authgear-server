@@ -3,13 +3,14 @@ package interaction
 import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/auth/event"
 	"github.com/authgear/authgear-server/pkg/auth/model"
 	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/log"
+	"github.com/authgear/authgear-server/pkg/otp"
 )
 
 //go:generate mockgen -source=provider.go -destination=provider_mock_test.go -package interaction_test
@@ -28,27 +29,27 @@ type IdentityProvider interface {
 	ListByClaims(claims map[string]string) ([]*identity.Info, error)
 	ListByUser(userID string) ([]*identity.Info, error)
 	New(userID string, typ authn.IdentityType, claims map[string]interface{}) (*identity.Info, error)
-	WithClaims(userID string, ii *identity.Info, claims map[string]interface{}) (*identity.Info, error)
-	CreateAll(userID string, is []*identity.Info) error
-	UpdateAll(userID string, is []*identity.Info) error
-	DeleteAll(userID string, is []*identity.Info) error
+	WithClaims(ii *identity.Info, claims map[string]interface{}) (*identity.Info, error)
+	CreateAll(is []*identity.Info) error
+	UpdateAll(is []*identity.Info) error
+	DeleteAll(is []*identity.Info) error
 	Validate(is []*identity.Info) error
-	// RelateIdentityToAuthenticator tells if authenticatorSpec is compatible with and related to identitySpec.
+	// RelateIdentityToAuthenticator tells if authenticatorSpec is compatible with and related to identityInfo.
 	//
-	// A authenticatorSpec is compatible with identitySpec if authenticator can be used as authentication for the identity.
+	// A authenticatorSpec is compatible with identityInfo if authenticator can be used as authentication for the identity.
 	// For example, OAuth identity is incompatible with any authenticator because the identity itself implicit authenticates.
 	// For example, login ID identity of login ID type username is incompatible with OOB OTP authenticator because
 	// OOB OTP authenticator requires email or phone.
 	//
-	// If authenticatorSpec is incompatible with identitySpec, nil is returned.
+	// If authenticatorSpec is incompatible with identityInfo, nil is returned.
 	//
-	// Otherwise authenticatorSpec is further checked if it is related to identitySpec.
-	// If authenticatorSpec is related to identitySpec, authenticatorSpec.Props is mutated in-place.
+	// Otherwise authenticatorSpec is further checked if it is related to identityInfo.
+	// If authenticatorSpec is related to identityInfo, authenticatorSpec.Props is mutated in-place.
 	// Currently on the following case mutation would occur.
 	//
 	//   - login ID identity of login ID type email or phone and OOB OTP authenticator.
-	RelateIdentityToAuthenticator(identitySpec identity.Spec, authenticatorSpec *authenticator.Spec) *authenticator.Spec
-	CheckIdentityDuplicated(is *identity.Info, userID string) error
+	RelateIdentityToAuthenticator(identityInfo *identity.Info, authenticatorSpec *authenticator.Spec) *authenticator.Spec
+	CheckIdentityDuplicated(is *identity.Info) error
 }
 
 type AuthenticatorProvider interface {
@@ -66,13 +67,19 @@ type AuthenticatorProvider interface {
 }
 
 type UserProvider interface {
-	Create(userID string, metadata map[string]interface{}, identities []*identity.Info) error
+	Create(userID string, metadata map[string]interface{}, identities []*identity.Info, authenticators []*authenticator.Info) error
 	Get(userID string) (*model.User, error)
 }
 
 type OOBProvider interface {
-	GenerateCode() string
-	SendCode(opts oob.SendCodeOptions) error
+	GenerateCode(channel authn.AuthenticatorOOBChannel) string
+	SendCode(
+		channel authn.AuthenticatorOOBChannel,
+		loginID *loginid.LoginID,
+		code string,
+		origin otp.MessageOrigin,
+		operation otp.OOBOperationType,
+	) error
 }
 
 type HookProvider interface {

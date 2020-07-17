@@ -3,6 +3,7 @@ package user
 import (
 	gotime "time"
 
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/event"
 	"github.com/authgear/authgear-server/pkg/auth/model"
@@ -13,17 +14,24 @@ type HookProvider interface {
 }
 
 type Commands struct {
-	Raw   *RawCommands
-	Hooks HookProvider
+	Raw          *RawCommands
+	Hooks        HookProvider
+	Verification VerificationService
 }
 
-func (c *Commands) Create(userID string, metadata map[string]interface{}, identities []*identity.Info) error {
+func (c *Commands) Create(
+	userID string,
+	metadata map[string]interface{},
+	identities []*identity.Info,
+	authenticators []*authenticator.Info,
+) error {
 	user, err := c.Raw.Create(userID, metadata)
 	if err != nil {
 		return err
 	}
 
-	userModel := newUserModel(user, identities)
+	isVerified := c.Verification.IsVerified(identities, authenticators)
+	userModel := newUserModel(user, identities, isVerified)
 	var identityModels []model.Identity
 	for _, i := range identities {
 		identityModels = append(identityModels, i.ToModel())

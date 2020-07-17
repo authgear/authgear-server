@@ -5,8 +5,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/core/authn"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
 func TestAuthnInfo(t *testing.T) {
@@ -47,6 +48,7 @@ func TestAuthnInfo(t *testing.T) {
 					IsValid:       true,
 					UserID:        "user-id",
 					UserAnonymous: true,
+					UserVerified:  true,
 					SessionACR:    "http://schemas.openid.net/pape/policies/2007/06/multi-factor",
 					SessionAMR:    []string{"pwd", "mfa", "otp"},
 				}
@@ -56,6 +58,7 @@ func TestAuthnInfo(t *testing.T) {
 					"X-Authgear-Session-Valid":  []string{"true"},
 					"X-Authgear-User-Id":        []string{"user-id"},
 					"X-Authgear-User-Anonymous": []string{"true"},
+					"X-Authgear-User-Verified":  []string{"true"},
 					"X-Authgear-Session-Acr":    []string{"http://schemas.openid.net/pape/policies/2007/06/multi-factor"},
 					"X-Authgear-Session-Amr":    []string{"pwd mfa otp"},
 				})

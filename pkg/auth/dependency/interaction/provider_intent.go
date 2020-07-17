@@ -147,7 +147,7 @@ func (p *Provider) NewInteractionUpdateIdentity(intent *IntentUpdateIdentity, cl
 		return nil, err
 	}
 
-	updateIden, err := p.Identity.WithClaims(userID, oldIden, intent.NewIdentity.Claims)
+	updateIden, err := p.Identity.WithClaims(oldIden, intent.NewIdentity.Claims)
 	if err != nil {
 		return nil, err
 	}

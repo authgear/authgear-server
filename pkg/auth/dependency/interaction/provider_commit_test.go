@@ -70,9 +70,9 @@ func TestProviderCommit(t *testing.T) {
 		}, nil).AnyTimes()
 		authenticatorProvider.EXPECT().ListByIdentity(userID, oauthID).Return([]*authenticator.Info{}, nil).AnyTimes()
 
-		identityProvider.EXPECT().CreateAll(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
-		identityProvider.EXPECT().UpdateAll(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
-		identityProvider.EXPECT().DeleteAll(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+		identityProvider.EXPECT().CreateAll(gomock.Any()).Return(nil).AnyTimes()
+		identityProvider.EXPECT().UpdateAll(gomock.Any()).Return(nil).AnyTimes()
+		identityProvider.EXPECT().DeleteAll(gomock.Any()).Return(nil).AnyTimes()
 		identityProvider.EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).Return(&identity.Info{}, nil).AnyTimes()
 		authenticatorProvider.EXPECT().CreateAll(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 		authenticatorProvider.EXPECT().UpdateAll(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()

@@ -20,11 +20,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/hook"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
-	oauth3 "github.com/authgear/authgear-server/pkg/auth/dependency/identity/oauth"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/provider"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
-	oauth2 "github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
+	oauth3 "github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/pq"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/redis"
@@ -34,10 +34,11 @@ import (
 	redis3 "github.com/authgear/authgear-server/pkg/auth/dependency/session/redis"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/sso"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/user"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/verification"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/auth/handler/internalserver"
-	"github.com/authgear/authgear-server/pkg/auth/handler/oauth"
+	oauth2 "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	webapp2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	task2 "github.com/authgear/authgear-server/pkg/auth/task"
 	"github.com/authgear/authgear-server/pkg/clock"
@@ -49,6 +50,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/mail"
 	"github.com/authgear/authgear-server/pkg/middlewares"
+	"github.com/authgear/authgear-server/pkg/otp"
 	"github.com/authgear/authgear-server/pkg/sms"
 	"github.com/authgear/authgear-server/pkg/task"
 	"github.com/authgear/authgear-server/pkg/task/queue"
@@ -93,15 +95,160 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	clock := _wireSystemClockValue
-	provider := &anonymous.Provider{
+	anonymousProvider := &anonymous.Provider{
 		Store: store,
 		Clock: clock,
 	}
+	verificationConfig := appConfig.Verification
+	identityConfig := appConfig.Identity
+	loginIDConfig := identityConfig.LoginID
+	authenticationConfig := appConfig.Authentication
+	loginidStore := &loginid.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	rootProvider := appProvider.RootProvider
+	reservedNameChecker := rootProvider.ReservedNameChecker
+	typeCheckerFactory := &loginid.TypeCheckerFactory{
+		Config:              loginIDConfig,
+		ReservedNameChecker: reservedNameChecker,
+	}
+	checker := &loginid.Checker{
+		Config:             loginIDConfig,
+		TypeCheckerFactory: typeCheckerFactory,
+	}
+	normalizerFactory := &loginid.NormalizerFactory{
+		Config: loginIDConfig,
+	}
+	loginidProvider := &loginid.Provider{
+		Store:             loginidStore,
+		Config:            loginIDConfig,
+		Checker:           checker,
+		NormalizerFactory: normalizerFactory,
+	}
+	oauthStore := &oauth.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	oauthProvider := &oauth.Provider{
+		Store: oauthStore,
+		Clock: clock,
+	}
+	providerProvider := &provider.Provider{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		LoginID:        loginidProvider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+	}
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
 	factory := appProvider.LoggerFactory
+	logger := password.NewLogger(factory)
+	historyStore := &password.HistoryStore{
+		Clock:       clock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clock,
+		Logger:          logger,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clock,
+	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	serverConfig := rootProvider.ServerConfig
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	messagingConfig := appConfig.Messaging
+	engine := appProvider.TemplateEngine
+	endpointsProvider := &endpoints.Provider{
+		Request: request,
+		Config:  serverConfig,
+	}
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
+	oobProvider := &oob.Provider{
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clock,
+		OTPMessageSender: messageSender,
+	}
+	bearertokenStore := &bearertoken.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
+	bearertokenProvider := &bearertoken.Provider{
+		Store:  bearertokenStore,
+		Config: authenticatorBearerTokenConfig,
+		Clock:  clock,
+	}
+	recoverycodeStore := &recoverycode.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
+	recoverycodeProvider := &recoverycode.Provider{
+		Store:  recoverycodeStore,
+		Config: authenticatorRecoveryCodeConfig,
+		Clock:  clock,
+	}
+	provider3 := &provider2.Provider{
+		Password:     passwordProvider,
+		TOTP:         totpProvider,
+		OOBOTP:       oobProvider,
+		BearerToken:  bearertokenProvider,
+		RecoveryCode: recoverycodeProvider,
+	}
+	service := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
+	}
 	resolveHandlerLogger := internalserver.NewResolveHandlerLogger(factory)
 	resolveHandler := &internalserver.ResolveHandler{
-		Anonymous: provider,
-		Logger:    resolveHandlerLogger,
+		Anonymous:    anonymousProvider,
+		Verification: service,
+		Logger:       resolveHandlerLogger,
 	}
 	return resolveHandler
 }
@@ -113,7 +260,7 @@ var (
 func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authorizeHandlerLogger := oauth.NewAuthorizeHandlerLogger(factory)
+	authorizeHandlerLogger := oauth2.NewAuthorizeHandlerLogger(factory)
 	handle := appProvider.Database
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
@@ -150,7 +297,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Request: request,
 		Config:  serverConfig,
 	}
-	urlProvider := &oauth2.URLProvider{
+	urlProvider := &oauth3.URLProvider{
 		Endpoints: endpointsProvider,
 	}
 	authenticationConfig := appConfig.Authentication
@@ -179,11 +326,11 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
 	}
-	oauthStore := &oauth3.Store{
+	oauthStore := &oauth.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	oauthProvider := &oauth3.Provider{
+	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
 	}
@@ -233,14 +380,14 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	localizationConfig := appConfig.Localization
-	appMetadata := appConfig.Metadata
-	messagingConfig := appConfig.Messaging
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	messagingConfig := appConfig.Messaging
 	engine := appProvider.TemplateEngine
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
@@ -249,17 +396,21 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
-	oobProvider := &oob.Provider{
+	messageSender := &otp.MessageSender{
 		Context:        context,
+		ServerConfig:   serverConfig,
 		Localization:   localizationConfig,
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
-		Config:         authenticatorOOBConfig,
-		Store:          oobStore,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queueQueue,
-		Clock:          clockClock,
+	}
+	oobProvider := &oob.Provider{
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -302,9 +453,18 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
 	}
+	verificationConfig := appConfig.Verification
+	service := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
+	}
 	queries := &user.Queries{
-		Store:      userStore,
-		Identities: providerProvider,
+		Store:        userStore,
+		Identities:   providerProvider,
+		Verification: service,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -346,8 +506,9 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	commands := &user.Commands{
-		Raw:   rawCommands,
-		Hooks: hookProvider,
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -403,7 +564,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		CodeGenerator:  tokenGenerator,
 		Clock:          clockClock,
 	}
-	authorizeHandler := &oauth.AuthorizeHandler{
+	authorizeHandler := &oauth2.AuthorizeHandler{
 		Logger:       authorizeHandlerLogger,
 		Database:     handle,
 		AuthzHandler: authorizationHandler,
@@ -413,13 +574,13 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 
 var (
 	_wireScopesValidatorValue = handler.ScopesValidator(oidc.ValidateScopes)
-	_wireTokenGeneratorValue  = handler.TokenGenerator(oauth2.GenerateToken)
+	_wireTokenGeneratorValue  = handler.TokenGenerator(oauth3.GenerateToken)
 )
 
 func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	tokenHandlerLogger := oauth.NewTokenHandlerLogger(factory)
+	tokenHandlerLogger := oauth2.NewTokenHandlerLogger(factory)
 	handle := appProvider.Database
 	request := p.Request
 	config := appProvider.Config
@@ -506,11 +667,11 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
 	}
-	oauthStore := &oauth3.Store{
+	oauthStore := &oauth.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	oauthProvider := &oauth3.Provider{
+	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
 	}
@@ -560,14 +721,14 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	localizationConfig := appConfig.Localization
-	appMetadata := appConfig.Metadata
-	messagingConfig := appConfig.Messaging
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	messagingConfig := appConfig.Messaging
 	engine := appProvider.TemplateEngine
 	endpointsProvider := &endpoints.Provider{
 		Request: request,
@@ -580,17 +741,21 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
-	oobProvider := &oob.Provider{
+	messageSender := &otp.MessageSender{
 		Context:        context,
+		ServerConfig:   serverConfig,
 		Localization:   localizationConfig,
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
-		Config:         authenticatorOOBConfig,
-		Store:          oobStore,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queueQueue,
-		Clock:          clockClock,
+	}
+	oobProvider := &oob.Provider{
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -633,9 +798,18 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
 	}
+	verificationConfig := appConfig.Verification
+	service := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
+	}
 	queries := &user.Queries{
-		Store:      userStore,
-		Identities: providerProvider,
+		Store:        userStore,
+		Identities:   providerProvider,
+		Verification: service,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -677,8 +851,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	commands := &user.Commands{
-		Raw:   rawCommands,
-		Hooks: hookProvider,
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -730,7 +905,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		GenerateToken:  tokenGenerator,
 		Clock:          clockClock,
 	}
-	oauthTokenHandler := &oauth.TokenHandler{
+	oauthTokenHandler := &oauth2.TokenHandler{
 		Logger:       tokenHandlerLogger,
 		Database:     handle,
 		TokenHandler: tokenHandler,
@@ -745,7 +920,7 @@ var (
 func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	revokeHandlerLogger := oauth.NewRevokeHandlerLogger(factory)
+	revokeHandlerLogger := oauth2.NewRevokeHandlerLogger(factory)
 	handle := appProvider.Database
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
@@ -774,7 +949,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		OfflineGrants: grantStore,
 		AccessGrants:  grantStore,
 	}
-	oauthRevokeHandler := &oauth.RevokeHandler{
+	oauthRevokeHandler := &oauth2.RevokeHandler{
 		Logger:        revokeHandlerLogger,
 		Database:      handle,
 		RevokeHandler: revokeHandler,
@@ -791,14 +966,14 @@ func newOAuthMetadataHandler(p *deps.RequestProvider) http.Handler {
 		Request: request,
 		Config:  serverConfig,
 	}
-	metadataProvider := &oauth2.MetadataProvider{
+	metadataProvider := &oauth3.MetadataProvider{
 		Endpoints: endpointsProvider,
 	}
 	oidcMetadataProvider := &oidc.MetadataProvider{
 		Endpoints: endpointsProvider,
 	}
 	v := deps.ProvideOAuthMetadataProviders(metadataProvider, oidcMetadataProvider)
-	metadataHandler := &oauth.MetadataHandler{
+	metadataHandler := &oauth2.MetadataHandler{
 		Providers: v,
 	}
 	return metadataHandler
@@ -807,7 +982,7 @@ func newOAuthMetadataHandler(p *deps.RequestProvider) http.Handler {
 func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	jwksHandlerLogger := oauth.NewJWKSHandlerLogger(factory)
+	jwksHandlerLogger := oauth2.NewJWKSHandlerLogger(factory)
 	config := appProvider.Config
 	secretConfig := config.SecretConfig
 	oidcKeyMaterials := deps.ProvideOIDCKeyMaterials(secretConfig)
@@ -857,12 +1032,12 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
 	}
-	oauthStore := &oauth3.Store{
+	oauthStore := &oauth.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	clockClock := _wireSystemClockValue
-	oauthProvider := &oauth3.Provider{
+	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
 	}
@@ -881,9 +1056,108 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
 	}
+	verificationConfig := appConfig.Verification
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	logger := password.NewLogger(factory)
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		Logger:          logger,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	messagingConfig := appConfig.Messaging
+	engine := appProvider.TemplateEngine
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
+	oobProvider := &oob.Provider{
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
+	}
+	bearertokenStore := &bearertoken.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
+	bearertokenProvider := &bearertoken.Provider{
+		Store:  bearertokenStore,
+		Config: authenticatorBearerTokenConfig,
+		Clock:  clockClock,
+	}
+	recoverycodeStore := &recoverycode.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
+	recoverycodeProvider := &recoverycode.Provider{
+		Store:  recoverycodeStore,
+		Config: authenticatorRecoveryCodeConfig,
+		Clock:  clockClock,
+	}
+	provider3 := &provider2.Provider{
+		Password:     passwordProvider,
+		TOTP:         totpProvider,
+		OOBOTP:       oobProvider,
+		BearerToken:  bearertokenProvider,
+		RecoveryCode: recoverycodeProvider,
+	}
+	service := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
+	}
 	queries := &user.Queries{
-		Store:      store,
-		Identities: providerProvider,
+		Store:        store,
+		Identities:   providerProvider,
+		Verification: service,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:   oidcKeyMaterials,
@@ -891,7 +1165,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Users:     queries,
 		Clock:     clockClock,
 	}
-	jwksHandler := &oauth.JWKSHandler{
+	jwksHandler := &oauth2.JWKSHandler{
 		Logger: jwksHandlerLogger,
 		JWKS:   idTokenIssuer,
 	}
@@ -901,7 +1175,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	userInfoHandlerLogger := oauth.NewUserInfoHandlerLogger(factory)
+	userInfoHandlerLogger := oauth2.NewUserInfoHandlerLogger(factory)
 	handle := appProvider.Database
 	config := appProvider.Config
 	secretConfig := config.SecretConfig
@@ -951,12 +1225,12 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
 	}
-	oauthStore := &oauth3.Store{
+	oauthStore := &oauth.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	clockClock := _wireSystemClockValue
-	oauthProvider := &oauth3.Provider{
+	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
 	}
@@ -975,9 +1249,108 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
 	}
+	verificationConfig := appConfig.Verification
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	logger := password.NewLogger(factory)
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		Logger:          logger,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	messagingConfig := appConfig.Messaging
+	engine := appProvider.TemplateEngine
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
+	oobProvider := &oob.Provider{
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
+	}
+	bearertokenStore := &bearertoken.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
+	bearertokenProvider := &bearertoken.Provider{
+		Store:  bearertokenStore,
+		Config: authenticatorBearerTokenConfig,
+		Clock:  clockClock,
+	}
+	recoverycodeStore := &recoverycode.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
+	recoverycodeProvider := &recoverycode.Provider{
+		Store:  recoverycodeStore,
+		Config: authenticatorRecoveryCodeConfig,
+		Clock:  clockClock,
+	}
+	provider3 := &provider2.Provider{
+		Password:     passwordProvider,
+		TOTP:         totpProvider,
+		OOBOTP:       oobProvider,
+		BearerToken:  bearertokenProvider,
+		RecoveryCode: recoverycodeProvider,
+	}
+	service := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
+	}
 	queries := &user.Queries{
-		Store:      store,
-		Identities: providerProvider,
+		Store:        store,
+		Identities:   providerProvider,
+		Verification: service,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:   oidcKeyMaterials,
@@ -985,7 +1358,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Users:     queries,
 		Clock:     clockClock,
 	}
-	userInfoHandler := &oauth.UserInfoHandler{
+	userInfoHandler := &oauth2.UserInfoHandler{
 		Logger:           userInfoHandlerLogger,
 		Database:         handle,
 		UserInfoProvider: idTokenIssuer,
@@ -996,7 +1369,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	endSessionHandlerLogger := oauth.NewEndSessionHandlerLogger(factory)
+	endSessionHandlerLogger := oauth2.NewEndSessionHandlerLogger(factory)
 	handle := appProvider.Database
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -1044,11 +1417,11 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
 	}
-	oauthStore := &oauth3.Store{
+	oauthStore := &oauth.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	oauthProvider := &oauth3.Provider{
+	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
 	}
@@ -1098,14 +1471,14 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	localizationConfig := appConfig.Localization
-	appMetadata := appConfig.Metadata
-	messagingConfig := appConfig.Messaging
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	messagingConfig := appConfig.Messaging
 	engine := appProvider.TemplateEngine
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
@@ -1114,17 +1487,21 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
-	oobProvider := &oob.Provider{
+	messageSender := &otp.MessageSender{
 		Context:        context,
+		ServerConfig:   serverConfig,
 		Localization:   localizationConfig,
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
-		Config:         authenticatorOOBConfig,
-		Store:          oobStore,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queueQueue,
-		Clock:          clockClock,
+	}
+	oobProvider := &oob.Provider{
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1167,9 +1544,18 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
 	}
+	verificationConfig := appConfig.Verification
+	service := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
+	}
 	queries := &user.Queries{
-		Store:      userStore,
-		Identities: providerProvider,
+		Store:        userStore,
+		Identities:   providerProvider,
+		Verification: service,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -1211,8 +1597,9 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	commands := &user.Commands{
-		Raw:   rawCommands,
-		Hooks: hookProvider,
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -1259,7 +1646,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints: endpointsProvider,
 		URLs:      urlProvider,
 	}
-	oauthEndSessionHandler := &oauth.EndSessionHandler{
+	oauthEndSessionHandler := &oauth2.EndSessionHandler{
 		Logger:            endSessionHandlerLogger,
 		Database:          handle,
 		EndSessionHandler: endSessionHandler,
@@ -1279,7 +1666,7 @@ func newOAuthChallengeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	challengeHandler := &oauth.ChallengeHandler{
+	challengeHandler := &oauth2.ChallengeHandler{
 		Challenges: challengeProvider,
 	}
 	return challengeHandler
@@ -1352,12 +1739,12 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
 	}
-	oauthStore := &oauth3.Store{
+	oauthStore := &oauth.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	clockClock := _wireSystemClockValue
-	oauthProvider := &oauth3.Provider{
+	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
 	}
@@ -1428,12 +1815,12 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	messagingConfig := appConfig.Messaging
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	messagingConfig := appConfig.Messaging
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
@@ -1441,17 +1828,21 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
-	oobProvider := &oob.Provider{
+	messageSender := &otp.MessageSender{
 		Context:        context,
+		ServerConfig:   serverConfig,
 		Localization:   localizationConfig,
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
-		Config:         authenticatorOOBConfig,
-		Store:          oobStore,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queueQueue,
-		Clock:          clockClock,
+	}
+	oobProvider := &oob.Provider{
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1494,9 +1885,18 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
 	}
+	verificationConfig := appConfig.Verification
+	service := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
+	}
 	queries := &user.Queries{
-		Store:      userStore,
-		Identities: providerProvider,
+		Store:        userStore,
+		Identities:   providerProvider,
+		Verification: service,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -1538,8 +1938,9 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	commands := &user.Commands{
-		Raw:   rawCommands,
-		Hooks: hookProvider,
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -1706,12 +2107,12 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
 	}
-	oauthStore := &oauth3.Store{
+	oauthStore := &oauth.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	clockClock := _wireSystemClockValue
-	oauthProvider := &oauth3.Provider{
+	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
 	}
@@ -1782,12 +2183,12 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	messagingConfig := appConfig.Messaging
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	messagingConfig := appConfig.Messaging
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
@@ -1795,17 +2196,21 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
-	oobProvider := &oob.Provider{
+	messageSender := &otp.MessageSender{
 		Context:        context,
+		ServerConfig:   serverConfig,
 		Localization:   localizationConfig,
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
-		Config:         authenticatorOOBConfig,
-		Store:          oobStore,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queueQueue,
-		Clock:          clockClock,
+	}
+	oobProvider := &oob.Provider{
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1848,9 +2253,18 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
 	}
+	verificationConfig := appConfig.Verification
+	service := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
+	}
 	queries := &user.Queries{
-		Store:      userStore,
-		Identities: providerProvider,
+		Store:        userStore,
+		Identities:   providerProvider,
+		Verification: service,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -1892,8 +2306,9 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	commands := &user.Commands{
-		Raw:   rawCommands,
-		Hooks: hookProvider,
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -2060,12 +2475,12 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
 	}
-	oauthStore := &oauth3.Store{
+	oauthStore := &oauth.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	clockClock := _wireSystemClockValue
-	oauthProvider := &oauth3.Provider{
+	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
 	}
@@ -2136,12 +2551,12 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	messagingConfig := appConfig.Messaging
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	messagingConfig := appConfig.Messaging
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
@@ -2149,17 +2564,21 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
-	oobProvider := &oob.Provider{
+	messageSender := &otp.MessageSender{
 		Context:        context,
+		ServerConfig:   serverConfig,
 		Localization:   localizationConfig,
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
-		Config:         authenticatorOOBConfig,
-		Store:          oobStore,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queueQueue,
-		Clock:          clockClock,
+	}
+	oobProvider := &oob.Provider{
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -2202,9 +2621,18 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
 	}
+	verificationConfig := appConfig.Verification
+	service := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
+	}
 	queries := &user.Queries{
-		Store:      userStore,
-		Identities: providerProvider,
+		Store:        userStore,
+		Identities:   providerProvider,
+		Verification: service,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -2246,8 +2674,9 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	commands := &user.Commands{
-		Raw:   rawCommands,
-		Hooks: hookProvider,
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -2405,12 +2834,12 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
 	}
-	oauthStore := &oauth3.Store{
+	oauthStore := &oauth.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	clockClock := _wireSystemClockValue
-	oauthProvider := &oauth3.Provider{
+	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
 	}
@@ -2466,14 +2895,14 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	localizationConfig := appConfig.Localization
-	appMetadata := appConfig.Metadata
-	messagingConfig := appConfig.Messaging
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	messagingConfig := appConfig.Messaging
 	engine := appProvider.TemplateEngine
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
@@ -2482,17 +2911,21 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
-	oobProvider := &oob.Provider{
+	messageSender := &otp.MessageSender{
 		Context:        context,
+		ServerConfig:   serverConfig,
 		Localization:   localizationConfig,
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
-		Config:         authenticatorOOBConfig,
-		Store:          oobStore,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queueQueue,
-		Clock:          clockClock,
+	}
+	oobProvider := &oob.Provider{
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -2535,9 +2968,18 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
 	}
+	verificationConfig := appConfig.Verification
+	service := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
+	}
 	queries := &user.Queries{
-		Store:      userStore,
-		Identities: providerProvider,
+		Store:        userStore,
+		Identities:   providerProvider,
+		Verification: service,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -2579,8 +3021,9 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	commands := &user.Commands{
-		Raw:   rawCommands,
-		Hooks: hookProvider,
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -2749,12 +3192,12 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
 	}
-	oauthStore := &oauth3.Store{
+	oauthStore := &oauth.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	clockClock := _wireSystemClockValue
-	oauthProvider := &oauth3.Provider{
+	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
 	}
@@ -2810,12 +3253,12 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	messagingConfig := appConfig.Messaging
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	messagingConfig := appConfig.Messaging
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
@@ -2823,17 +3266,21 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
-	oobProvider := &oob.Provider{
+	messageSender := &otp.MessageSender{
 		Context:        context,
+		ServerConfig:   serverConfig,
 		Localization:   localizationConfig,
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
-		Config:         authenticatorOOBConfig,
-		Store:          oobStore,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queueQueue,
-		Clock:          clockClock,
+	}
+	oobProvider := &oob.Provider{
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -2876,9 +3323,18 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
 	}
+	verificationConfig := appConfig.Verification
+	service := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
+	}
 	queries := &user.Queries{
-		Store:      userStore,
-		Identities: providerProvider,
+		Store:        userStore,
+		Identities:   providerProvider,
+		Verification: service,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -2920,8 +3376,9 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	commands := &user.Commands{
-		Raw:   rawCommands,
-		Hooks: hookProvider,
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -3085,12 +3542,12 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
 	}
-	oauthStore := &oauth3.Store{
+	oauthStore := &oauth.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	clockClock := _wireSystemClockValue
-	oauthProvider := &oauth3.Provider{
+	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
 	}
@@ -3157,12 +3614,12 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	messagingConfig := appConfig.Messaging
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	messagingConfig := appConfig.Messaging
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
@@ -3170,17 +3627,21 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
-	oobProvider := &oob.Provider{
+	messageSender := &otp.MessageSender{
 		Context:        context,
+		ServerConfig:   serverConfig,
 		Localization:   localizationConfig,
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
-		Config:         authenticatorOOBConfig,
-		Store:          oobStore,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queueQueue,
-		Clock:          clockClock,
+	}
+	oobProvider := &oob.Provider{
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -3223,9 +3684,18 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
 	}
+	verificationConfig := appConfig.Verification
+	service := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
+	}
 	queries := &user.Queries{
-		Store:      userStore,
-		Identities: providerProvider,
+		Store:        userStore,
+		Identities:   providerProvider,
+		Verification: service,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -3267,8 +3737,9 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	commands := &user.Commands{
-		Raw:   rawCommands,
-		Hooks: hookProvider,
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -3452,11 +3923,11 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Checker:           loginidChecker,
 		NormalizerFactory: normalizerFactory,
 	}
-	oauthStore := &oauth3.Store{
+	oauthStore := &oauth.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	oauthProvider := &oauth3.Provider{
+	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
 	}
@@ -3504,12 +3975,12 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	messagingConfig := appConfig.Messaging
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	messagingConfig := appConfig.Messaging
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
@@ -3517,17 +3988,21 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
-	oobProvider := &oob.Provider{
+	messageSender := &otp.MessageSender{
 		Context:        context,
+		ServerConfig:   serverConfig,
 		Localization:   localizationConfig,
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
-		Config:         authenticatorOOBConfig,
-		Store:          oobStore,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queueQueue,
-		Clock:          clockClock,
+	}
+	oobProvider := &oob.Provider{
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -3570,9 +4045,18 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
 	}
+	verificationConfig := appConfig.Verification
+	service := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
+	}
 	queries := &user.Queries{
-		Store:      userStore,
-		Identities: providerProvider,
+		Store:        userStore,
+		Identities:   providerProvider,
+		Verification: service,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -3614,8 +4098,9 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	commands := &user.Commands{
-		Raw:   rawCommands,
-		Hooks: hookProvider,
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -3787,12 +4272,12 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
 	}
-	oauthStore := &oauth3.Store{
+	oauthStore := &oauth.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	clockClock := _wireSystemClockValue
-	oauthProvider := &oauth3.Provider{
+	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
 	}
@@ -3848,12 +4333,12 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	messagingConfig := appConfig.Messaging
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	messagingConfig := appConfig.Messaging
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
@@ -3861,17 +4346,21 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
-	oobProvider := &oob.Provider{
+	messageSender := &otp.MessageSender{
 		Context:        context,
+		ServerConfig:   serverConfig,
 		Localization:   localizationConfig,
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
-		Config:         authenticatorOOBConfig,
-		Store:          oobStore,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queueQueue,
-		Clock:          clockClock,
+	}
+	oobProvider := &oob.Provider{
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -3914,9 +4403,18 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
 	}
+	verificationConfig := appConfig.Verification
+	service := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
+	}
 	queries := &user.Queries{
-		Store:      userStore,
-		Identities: providerProvider,
+		Store:        userStore,
+		Identities:   providerProvider,
+		Verification: service,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -3958,8 +4456,9 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	commands := &user.Commands{
-		Raw:   rawCommands,
-		Hooks: hookProvider,
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -4123,12 +4622,12 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
 	}
-	oauthStore := &oauth3.Store{
+	oauthStore := &oauth.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	clockClock := _wireSystemClockValue
-	oauthProvider := &oauth3.Provider{
+	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
 	}
@@ -4170,12 +4669,47 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	queries := &user.Queries{
-		Store:      userStore,
-		Identities: providerProvider,
+	verificationConfig := appConfig.Verification
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
-	logger := hook.NewLogger(factory)
-	welcomeMessageConfig := appConfig.WelcomeMessage
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	logger := password.NewLogger(factory)
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		Logger:          logger,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	endpointsProvider := &endpoints.Provider{
+		Request: request,
+		Config:  serverConfig,
+	}
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
@@ -4183,6 +4717,63 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
+	oobProvider := &oob.Provider{
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
+	}
+	bearertokenStore := &bearertoken.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
+	bearertokenProvider := &bearertoken.Provider{
+		Store:  bearertokenStore,
+		Config: authenticatorBearerTokenConfig,
+		Clock:  clockClock,
+	}
+	recoverycodeStore := &recoverycode.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
+	recoverycodeProvider := &recoverycode.Provider{
+		Store:  recoverycodeStore,
+		Config: authenticatorRecoveryCodeConfig,
+		Clock:  clockClock,
+	}
+	provider3 := &provider2.Provider{
+		Password:     passwordProvider,
+		TOTP:         totpProvider,
+		OOBOTP:       oobProvider,
+		BearerToken:  bearertokenProvider,
+		RecoveryCode: recoverycodeProvider,
+	}
+	service := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
+	}
+	queries := &user.Queries{
+		Store:        userStore,
+		Identities:   providerProvider,
+		Verification: service,
+	}
+	hookLogger := hook.NewLogger(factory)
+	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Context:               context,
 		LocalizationConfig:    localizationConfig,
@@ -4223,96 +4814,18 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	hookProvider := &hook.Provider{
 		Context:   context,
-		Logger:    logger,
+		Logger:    hookLogger,
 		Database:  handle,
 		Clock:     clockClock,
 		Users:     rawProvider,
 		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	endpointsProvider := &endpoints.Provider{
-		Request: request,
-		Config:  serverConfig,
-	}
 	interactionLogger := interaction.NewLogger(factory)
-	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorConfig := appConfig.Authenticator
-	authenticatorPasswordConfig := authenticatorConfig.Password
-	passwordLogger := password.NewLogger(factory)
-	historyStore := &password.HistoryStore{
-		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	passwordProvider := &password.Provider{
-		Store:           passwordStore,
-		Config:          authenticatorPasswordConfig,
-		Clock:           clockClock,
-		Logger:          passwordLogger,
-		PasswordHistory: historyStore,
-		PasswordChecker: passwordChecker,
-	}
-	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorTOTPConfig := authenticatorConfig.TOTP
-	totpProvider := &totp.Provider{
-		Store:  totpStore,
-		Config: authenticatorTOTPConfig,
-		Clock:  clockClock,
-	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
-	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	oobProvider := &oob.Provider{
-		Context:        context,
-		Localization:   localizationConfig,
-		AppMetadata:    appMetadata,
-		Messaging:      messagingConfig,
-		Config:         authenticatorOOBConfig,
-		Store:          oobStore,
-		TemplateEngine: engine,
-		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
-		Clock:          clockClock,
-	}
-	bearertokenStore := &bearertoken.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
-	bearertokenProvider := &bearertoken.Provider{
-		Store:  bearertokenStore,
-		Config: authenticatorBearerTokenConfig,
-		Clock:  clockClock,
-	}
-	recoverycodeStore := &recoverycode.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
-	recoverycodeProvider := &recoverycode.Provider{
-		Store:  recoverycodeStore,
-		Config: authenticatorRecoveryCodeConfig,
-		Clock:  clockClock,
-	}
-	provider3 := &provider2.Provider{
-		Password:     passwordProvider,
-		TOTP:         totpProvider,
-		OOBOTP:       oobProvider,
-		BearerToken:  bearertokenProvider,
-		RecoveryCode: recoverycodeProvider,
-	}
 	commands := &user.Commands{
-		Raw:   rawCommands,
-		Hooks: hookProvider,
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -4505,11 +5018,11 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Checker:           loginidChecker,
 		NormalizerFactory: normalizerFactory,
 	}
-	oauthStore := &oauth3.Store{
+	oauthStore := &oauth.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	oauthProvider := &oauth3.Provider{
+	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
 	}
@@ -4528,12 +5041,39 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
 	}
-	queries := &user.Queries{
-		Store:      userStore,
-		Identities: providerProvider,
+	verificationConfig := appConfig.Verification
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
-	logger := hook.NewLogger(factory)
-	welcomeMessageConfig := appConfig.WelcomeMessage
+	logger := password.NewLogger(factory)
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		Logger:          logger,
+		PasswordHistory: historyStore,
+		PasswordChecker: checker,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	endpointsProvider := &endpoints.Provider{
+		Request: request,
+		Config:  serverConfig,
+	}
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
@@ -4541,6 +5081,63 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
+	oobProvider := &oob.Provider{
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
+	}
+	bearertokenStore := &bearertoken.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
+	bearertokenProvider := &bearertoken.Provider{
+		Store:  bearertokenStore,
+		Config: authenticatorBearerTokenConfig,
+		Clock:  clockClock,
+	}
+	recoverycodeStore := &recoverycode.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
+	recoverycodeProvider := &recoverycode.Provider{
+		Store:  recoverycodeStore,
+		Config: authenticatorRecoveryCodeConfig,
+		Clock:  clockClock,
+	}
+	provider3 := &provider2.Provider{
+		Password:     passwordProvider,
+		TOTP:         totpProvider,
+		OOBOTP:       oobProvider,
+		BearerToken:  bearertokenProvider,
+		RecoveryCode: recoverycodeProvider,
+	}
+	service := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
+	}
+	queries := &user.Queries{
+		Store:        userStore,
+		Identities:   providerProvider,
+		Verification: service,
+	}
+	hookLogger := hook.NewLogger(factory)
+	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Context:               context,
 		LocalizationConfig:    localizationConfig,
@@ -4581,88 +5178,18 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	hookProvider := &hook.Provider{
 		Context:   context,
-		Logger:    logger,
+		Logger:    hookLogger,
 		Database:  handle,
 		Clock:     clockClock,
 		Users:     rawProvider,
 		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	endpointsProvider := &endpoints.Provider{
-		Request: request,
-		Config:  serverConfig,
-	}
 	interactionLogger := interaction.NewLogger(factory)
-	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	passwordLogger := password.NewLogger(factory)
-	passwordProvider := &password.Provider{
-		Store:           passwordStore,
-		Config:          authenticatorPasswordConfig,
-		Clock:           clockClock,
-		Logger:          passwordLogger,
-		PasswordHistory: historyStore,
-		PasswordChecker: checker,
-	}
-	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorTOTPConfig := authenticatorConfig.TOTP
-	totpProvider := &totp.Provider{
-		Store:  totpStore,
-		Config: authenticatorTOTPConfig,
-		Clock:  clockClock,
-	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
-	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	oobProvider := &oob.Provider{
-		Context:        context,
-		Localization:   localizationConfig,
-		AppMetadata:    appMetadata,
-		Messaging:      messagingConfig,
-		Config:         authenticatorOOBConfig,
-		Store:          oobStore,
-		TemplateEngine: engine,
-		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
-		Clock:          clockClock,
-	}
-	bearertokenStore := &bearertoken.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
-	bearertokenProvider := &bearertoken.Provider{
-		Store:  bearertokenStore,
-		Config: authenticatorBearerTokenConfig,
-		Clock:  clockClock,
-	}
-	recoverycodeStore := &recoverycode.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
-	recoverycodeProvider := &recoverycode.Provider{
-		Store:  recoverycodeStore,
-		Config: authenticatorRecoveryCodeConfig,
-		Clock:  clockClock,
-	}
-	provider3 := &provider2.Provider{
-		Password:     passwordProvider,
-		TOTP:         totpProvider,
-		OOBOTP:       oobProvider,
-		BearerToken:  bearertokenProvider,
-		RecoveryCode: recoverycodeProvider,
-	}
 	commands := &user.Commands{
-		Raw:   rawCommands,
-		Hooks: hookProvider,
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -4856,12 +5383,12 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
 	}
-	oauthStore := &oauth3.Store{
+	oauthStore := &oauth.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	clockClock := _wireSystemClockValue
-	oauthProvider := &oauth3.Provider{
+	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
 	}
@@ -4928,12 +5455,12 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	messagingConfig := appConfig.Messaging
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	messagingConfig := appConfig.Messaging
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
@@ -4941,17 +5468,21 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
-	oobProvider := &oob.Provider{
+	messageSender := &otp.MessageSender{
 		Context:        context,
+		ServerConfig:   serverConfig,
 		Localization:   localizationConfig,
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
-		Config:         authenticatorOOBConfig,
-		Store:          oobStore,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queueQueue,
-		Clock:          clockClock,
+	}
+	oobProvider := &oob.Provider{
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
 	}
 	bearertokenStore := &bearertoken.Store{
 		SQLBuilder:  sqlBuilder,
@@ -4994,9 +5525,18 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
 	}
+	verificationConfig := appConfig.Verification
+	service := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
+	}
 	queries := &user.Queries{
-		Store:      userStore,
-		Identities: providerProvider,
+		Store:        userStore,
+		Identities:   providerProvider,
+		Verification: service,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -5038,8 +5578,9 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	commands := &user.Commands{
-		Raw:   rawCommands,
-		Hooks: hookProvider,
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -5188,12 +5729,12 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
 	}
-	oauthStore := &oauth3.Store{
+	oauthStore := &oauth.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	clockClock := _wireSystemClockValue
-	oauthProvider := &oauth3.Provider{
+	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
 	}
@@ -5212,17 +5753,52 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
 	}
-	queries := &user.Queries{
-		Store:      store,
-		Identities: providerProvider,
+	verificationConfig := appConfig.Verification
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
 	factory := appProvider.LoggerFactory
-	logger := hook.NewLogger(factory)
+	logger := password.NewLogger(factory)
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		Logger:          logger,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
 	messagingConfig := appConfig.Messaging
-	welcomeMessageConfig := appConfig.WelcomeMessage
 	engine := appProvider.TemplateEngine
+	endpointsProvider := &endpoints.Provider{
+		Request: request,
+		Config:  serverConfig,
+	}
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
@@ -5230,6 +5806,63 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
+	oobProvider := &oob.Provider{
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
+	}
+	bearertokenStore := &bearertoken.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
+	bearertokenProvider := &bearertoken.Provider{
+		Store:  bearertokenStore,
+		Config: authenticatorBearerTokenConfig,
+		Clock:  clockClock,
+	}
+	recoverycodeStore := &recoverycode.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
+	recoverycodeProvider := &recoverycode.Provider{
+		Store:  recoverycodeStore,
+		Config: authenticatorRecoveryCodeConfig,
+		Clock:  clockClock,
+	}
+	provider3 := &provider2.Provider{
+		Password:     passwordProvider,
+		TOTP:         totpProvider,
+		OOBOTP:       oobProvider,
+		BearerToken:  bearertokenProvider,
+		RecoveryCode: recoverycodeProvider,
+	}
+	service := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
+	}
+	queries := &user.Queries{
+		Store:        store,
+		Identities:   providerProvider,
+		Verification: service,
+	}
+	hookLogger := hook.NewLogger(factory)
+	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Context:               context,
 		LocalizationConfig:    localizationConfig,
@@ -5270,7 +5903,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	hookProvider := &hook.Provider{
 		Context:   context,
-		Logger:    logger,
+		Logger:    hookLogger,
 		Database:  handle,
 		Clock:     clockClock,
 		Users:     rawProvider,
@@ -5302,7 +5935,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	sessionManager := &oauth2.SessionManager{
+	sessionManager := &oauth3.SessionManager{
 		Store: grantStore,
 		Clock: clockClock,
 	}
@@ -5465,7 +6098,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oauthResolver := &oauth2.Resolver{
+	oauthResolver := &oauth3.Resolver{
 		ServerConfig:   serverConfig,
 		Authorizations: authorizationStore,
 		AccessGrants:   grantStore,
@@ -5505,11 +6138,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
 	}
-	oauthStore := &oauth3.Store{
+	oauthStore := &oauth.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	oauthProvider := &oauth3.Provider{
+	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
 	}
@@ -5528,9 +6161,112 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
 	}
+	verificationConfig := appConfig.Verification
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	passwordLogger := password.NewLogger(factory)
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		Logger:          passwordLogger,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	messagingConfig := appConfig.Messaging
+	engine := appProvider.TemplateEngine
+	endpointsProvider := &endpoints.Provider{
+		Request: request,
+		Config:  serverConfig,
+	}
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       dbHandle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
+	oobProvider := &oob.Provider{
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
+	}
+	bearertokenStore := &bearertoken.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
+	bearertokenProvider := &bearertoken.Provider{
+		Store:  bearertokenStore,
+		Config: authenticatorBearerTokenConfig,
+		Clock:  clockClock,
+	}
+	recoverycodeStore := &recoverycode.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
+	recoverycodeProvider := &recoverycode.Provider{
+		Store:  recoverycodeStore,
+		Config: authenticatorRecoveryCodeConfig,
+		Clock:  clockClock,
+	}
+	provider3 := &provider2.Provider{
+		Password:     passwordProvider,
+		TOTP:         totpProvider,
+		OOBOTP:       oobProvider,
+		BearerToken:  bearertokenProvider,
+		RecoveryCode: recoverycodeProvider,
+	}
+	service := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Identities:       providerProvider,
+		Authenticators:   provider3,
+		OTPMessageSender: messageSender,
+	}
 	queries := &user.Queries{
-		Store:      userStore,
-		Identities: providerProvider,
+		Store:        userStore,
+		Identities:   providerProvider,
+		Verification: service,
 	}
 	middleware := &auth.Middleware{
 		IDPSessionResolver:         resolver,
@@ -5596,6 +6332,10 @@ func newPwHousekeeperTask(p *deps.TaskProvider) task.Task {
 
 func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	logger := mail.NewLogger(factory)
+	rootProvider := appProvider.RootProvider
+	serverConfig := rootProvider.ServerConfig
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	localizationConfig := appConfig.Localization
@@ -5604,10 +6344,13 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
 	context := p.Context
 	sender := &mail.Sender{
+		Logger:                    logger,
+		ServerConfig:              serverConfig,
 		LocalizationConfiguration: localizationConfig,
 		GomailDialer:              dialer,
 		Context:                   context,
 	}
+	smsLogger := sms.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	twilioCredentials := deps.ProvideTwilioCredentials(secretConfig)
 	twilioClient := sms.NewTwilioClient(twilioCredentials)
@@ -5615,12 +6358,13 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	nexmoClient := sms.NewNexmoClient(nexmoCredentials)
 	client := &sms.Client{
 		Context:            context,
+		Logger:             smsLogger,
+		ServerConfig:       serverConfig,
 		MessagingConfig:    messagingConfig,
 		LocalizationConfig: localizationConfig,
 		TwilioClient:       twilioClient,
 		NexmoClient:        nexmoClient,
 	}
-	factory := appProvider.LoggerFactory
 	sendMessagesLogger := task2.NewSendMessagesLogger(factory)
 	sendMessagesTask := &task2.SendMessagesTask{
 		EmailSender: sender,

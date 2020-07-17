@@ -106,7 +106,7 @@ func (p *Provider) getStateLogin(i *Interaction, intent *IntentLogin) (steps []S
 }
 
 func (p *Provider) getStateSignup(i *Interaction, intent *IntentSignup) (steps []StepState, err error) {
-	primaryAuthenticators := p.getAvailablePrimaryAuthenticators(intent.Identity)
+	primaryAuthenticators := p.getAvailablePrimaryAuthenticators(i.NewIdentities[0])
 
 	// Setup primary authenticator
 	needPrimaryAuthn := false
@@ -132,7 +132,7 @@ func (p *Provider) getStateAddIdentity(i *Interaction, intent *IntentAddIdentity
 	}
 
 	// check if new authenticator is needed for new identity
-	needSetupPrimaryAuthenticators, err := p.getNeedSetupPrimaryAuthenticatorsWithNewIdentity(i.UserID, intent.Identity, i.NewIdentities[0])
+	needSetupPrimaryAuthenticators, err := p.getNeedSetupPrimaryAuthenticatorsWithNewIdentity(i.UserID, i.NewIdentities[0])
 	if err != nil {
 		return
 	}
@@ -164,7 +164,7 @@ func (p *Provider) getStateUpdateIdentity(i *Interaction, intent *IntentUpdateId
 	}
 
 	// check if new authenticator is needed for updated identity
-	needSetupPrimaryAuthenticators, err := p.getNeedSetupPrimaryAuthenticatorsWithNewIdentity(i.UserID, intent.NewIdentity, i.UpdateIdentities[0])
+	needSetupPrimaryAuthenticators, err := p.getNeedSetupPrimaryAuthenticatorsWithNewIdentity(i.UserID, i.UpdateIdentities[0])
 	if err != nil {
 		return
 	}
@@ -213,14 +213,14 @@ var identityPrimaryAuthenticators = map[authn.IdentityType]map[authn.Authenticat
 	},
 }
 
-func (p *Provider) getAvailablePrimaryAuthenticators(is identity.Spec) []authenticator.Spec {
+func (p *Provider) getAvailablePrimaryAuthenticators(ii *identity.Info) []authenticator.Spec {
 	var as []authenticator.Spec
 	for _, t := range p.Config.PrimaryAuthenticators {
-		authenticatorType := authn.AuthenticatorType(t)
-		if !identityPrimaryAuthenticators[is.Type][authenticatorType] {
+		authenticatorType := t
+		if !identityPrimaryAuthenticators[ii.Type][authenticatorType] {
 			continue
 		}
-		spec := p.Identity.RelateIdentityToAuthenticator(is, &authenticator.Spec{
+		spec := p.Identity.RelateIdentityToAuthenticator(ii, &authenticator.Spec{
 			Type:  authenticatorType,
 			Props: map[string]interface{}{},
 		})
@@ -282,8 +282,8 @@ func (p *Provider) listSecondaryAuthenticators(userID string) ([]authenticator.S
 	return as, nil
 }
 
-func (p *Provider) getNeedSetupPrimaryAuthenticatorsWithNewIdentity(userID string, is identity.Spec, ii *identity.Info) ([]authenticator.Spec, error) {
-	availableAuthenticators := p.getAvailablePrimaryAuthenticators(is)
+func (p *Provider) getNeedSetupPrimaryAuthenticatorsWithNewIdentity(userID string, ii *identity.Info) ([]authenticator.Spec, error) {
+	availableAuthenticators := p.getAvailablePrimaryAuthenticators(ii)
 	identityAuthenticators, err := p.Authenticator.ListByIdentity(userID, ii)
 	if err != nil {
 		return nil, err

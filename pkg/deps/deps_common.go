@@ -29,12 +29,14 @@ import (
 	sessionredis "github.com/authgear/authgear-server/pkg/auth/dependency/session/redis"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/sso"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/user"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/verification"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/sentry"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/endpoints"
+	"github.com/authgear/authgear-server/pkg/otp"
 	"github.com/authgear/authgear-server/pkg/task"
 	taskqueue "github.com/authgear/authgear-server/pkg/task/queue"
 )
@@ -101,6 +103,7 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(authenticatorprovider.RecoveryCodeAuthenticatorProvider), new(*authenticatorrecoverycode.Provider)),
 
 		wire.Bind(new(interaction.AuthenticatorProvider), new(*authenticatorprovider.Provider)),
+		wire.Bind(new(verification.AuthenticatorProvider), new(*authenticatorprovider.Provider)),
 	),
 
 	wire.NewSet(
@@ -118,6 +121,7 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(user.IdentityProvider), new(*identityprovider.Provider)),
 		wire.Bind(new(interaction.IdentityProvider), new(*identityprovider.Provider)),
 		wire.Bind(new(interactionflows.IdentityProvider), new(*identityprovider.Provider)),
+		wire.Bind(new(verification.IdentityProvider), new(*identityprovider.Provider)),
 	),
 
 	wire.NewSet(
@@ -179,5 +183,17 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(authenticatoroob.EndpointsProvider), new(*endpoints.Provider)),
 		wire.Bind(new(oidc.EndpointsProvider), new(*endpoints.Provider)),
 		wire.Bind(new(sso.EndpointsProvider), new(*endpoints.Provider)),
+		wire.Bind(new(otp.EndpointsProvider), new(*endpoints.Provider)),
+	),
+
+	wire.NewSet(
+		verification.DependencySet,
+		wire.Bind(new(user.VerificationService), new(*verification.Service)),
+	),
+
+	wire.NewSet(
+		otp.DependencySet,
+		wire.Bind(new(authenticatoroob.OTPMessageSender), new(*otp.MessageSender)),
+		wire.Bind(new(verification.OTPMessageSender), new(*otp.MessageSender)),
 	),
 )
