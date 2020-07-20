@@ -43,7 +43,7 @@ import (
 	task2 "github.com/authgear/authgear-server/pkg/auth/task"
 	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/rand"
-	sentry2 "github.com/authgear/authgear-server/pkg/core/sentry"
+	"github.com/authgear/authgear-server/pkg/core/sentry"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/deps"
 	"github.com/authgear/authgear-server/pkg/endpoints"
@@ -54,7 +54,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/sms"
 	"github.com/authgear/authgear-server/pkg/task"
 	"github.com/authgear/authgear-server/pkg/task/queue"
-	"github.com/getsentry/sentry-go"
 	"github.com/google/wire"
 	"net/http"
 )
@@ -5969,17 +5968,28 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 
 // Injectors from wire_middleware.go:
 
-func newSentryMiddleware(hub *sentry.Hub, p *deps.RootProvider) httproute.Middleware {
+func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
+	hub := p.SentryHub
 	serverConfig := p.ServerConfig
-	middleware := &sentry2.Middleware{
-		Hub:          hub,
+	middleware := &sentry.Middleware{
+		SentryHub:    hub,
 		ServerConfig: serverConfig,
 	}
 	return middleware
 }
 
-func newRecoverMiddleware(p *deps.RootProvider) httproute.Middleware {
+func newRootRecoverMiddleware(p *deps.RootProvider) httproute.Middleware {
 	factory := p.LoggerFactory
+	recoveryLogger := middlewares.NewRecoveryLogger(factory)
+	recoverMiddleware := &middlewares.RecoverMiddleware{
+		Logger: recoveryLogger,
+	}
+	return recoverMiddleware
+}
+
+func newRequestRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
 	recoveryLogger := middlewares.NewRecoveryLogger(factory)
 	recoverMiddleware := &middlewares.RecoverMiddleware{
 		Logger: recoveryLogger,
@@ -6379,9 +6389,3 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 var rootMiddlewareDependencySet = wire.NewSet(deps.RootDependencySet)
 
 var middlewareDependencySet = wire.NewSet(deps.RequestDependencySet)
-
-func newSentryMiddlewareFactory(hub *sentry.Hub) func(*deps.RootProvider) httproute.Middleware {
-	return func(p *deps.RootProvider) httproute.Middleware {
-		return newSentryMiddleware(hub, p)
-	}
-}
