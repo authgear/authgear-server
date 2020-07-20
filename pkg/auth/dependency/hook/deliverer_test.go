@@ -7,8 +7,8 @@ import (
 	gotime "time"
 
 	"github.com/golang/mock/gomock"
-	"github.com/h2non/gock"
 	"github.com/lestrrat-go/jwx/jwk"
+	"gopkg.in/h2non/gock.v1"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/event"
