@@ -4,7 +4,8 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -81,29 +82,36 @@ func ConfigureCreatePasswordRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/create_password")
 }
 
-type CreatePasswordInteractions interface {
-	EnterSecret(state *interactionflows.State, password string) (*interactionflows.WebAppResult, error)
-}
-
 type CreatePasswordViewModel struct {
 	GivenLoginID string
 }
 
-func NewCreatePasswordViewModel(state *interactionflows.State) CreatePasswordViewModel {
-	givenLoginID, _ := state.Extra[interactionflows.ExtraGivenLoginID].(string)
-	return CreatePasswordViewModel{
-		GivenLoginID: givenLoginID,
-	}
+type CreatePasswordHandler struct {
+	Database      *db.Handle
+	BaseViewModel *BaseViewModeler
+	Renderer      Renderer
+	WebApp        WebAppService
 }
 
-type CreatePasswordHandler struct {
-	Database                *db.Handle
-	State                   StateService
-	BaseViewModel           *BaseViewModeler
-	PasswordPolicyViewModel *PasswordPolicyViewModeler
-	Renderer                Renderer
-	Interactions            CreatePasswordInteractions
-	Responder               Responder
+func (h *CreatePasswordHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
+	data := map[string]interface{}{}
+	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
+	// FIXME(webapp): derive PasswordPolicyViewModel with graph and edges
+	passwordPolicyViewModel := PasswordPolicyViewModel{}
+	// FIXME(webapp): derive CreatePasswordViewModel with graph and edges
+	createPasswordViewModel := CreatePasswordViewModel{}
+
+	EmbedForm(data, r.Form)
+	Embed(data, baseViewModel)
+	Embed(data, passwordPolicyViewModel)
+	Embed(data, createPasswordViewModel)
+
+	return data, nil
+}
+
+// FIXME(webapp): implement input interface
+type CreatePasswordInput struct {
+	Password string
 }
 
 func (h *CreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -113,22 +121,17 @@ func (h *CreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	}
 
 	if r.Method == "GET" {
-		state, err := h.State.RestoreReadOnlyState(r, false)
+		state, graph, edges, err := h.WebApp.Get(StateID(r))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-		passwordPolicyViewModel := h.PasswordPolicyViewModel.ViewModel(state.Error)
-		createPasswordViewModel := NewCreatePasswordViewModel(state)
-
-		data := map[string]interface{}{}
-
-		EmbedForm(data, r.Form)
-		Embed(data, baseViewModel)
-		Embed(data, passwordPolicyViewModel)
-		Embed(data, createPasswordViewModel)
+		data, err := h.GetData(r, state, graph, edges)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		h.Renderer.Render(w, r, TemplateItemTypeAuthUICreatePasswordHTML, data)
 		return
@@ -136,30 +139,23 @@ func (h *CreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 	if r.Method == "POST" {
 		h.Database.WithTx(func() error {
-			state, err := h.State.CloneState(r)
+			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
+				err = CreatePasswordSchema.PartValidator(CreatePasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
+				if err != nil {
+					return
+				}
+
+				plainPassword := r.Form.Get("x_password")
+				input = &CreatePasswordInput{
+					Password: plainPassword,
+				}
+				return
+			})
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
-
-			var result *interactionflows.WebAppResult
-			defer func() {
-				h.State.UpdateState(state, result, err)
-				h.Responder.Respond(w, r, state, result, err)
-			}()
-
-			err = CreatePasswordSchema.PartValidator(CreatePasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
-			if err != nil {
-				return err
-			}
-
-			plainPassword := r.Form.Get("x_password")
-
-			result, err = h.Interactions.EnterSecret(state, plainPassword)
-			if err != nil {
-				return err
-			}
-
+			result.WriteResponse(w, r)
 			return nil
 		})
 	}
