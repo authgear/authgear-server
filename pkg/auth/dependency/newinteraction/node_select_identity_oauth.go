@@ -10,7 +10,7 @@ type InputSelectIdentityOAuth interface {
 }
 
 type EdgeSelectIdentityOAuth struct {
-	Config config.OAuthSSOProviderConfig `json:"config"`
+	Config config.OAuthSSOProviderConfig
 }
 
 type NodeSelectIdentityOAuth struct {

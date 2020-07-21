@@ -20,7 +20,7 @@ func (s *EdgeAuthenticatePassword) Instantiate(ctx *Context, graph *Graph, rawIn
 }
 
 type NodeAuthenticatePassword struct {
-	Stage         AuthenticationStage
+	Stage         AuthenticationStage `json:"stage"`
 	Authenticator *authenticator.Info `json:"authenticator"`
 }
 
