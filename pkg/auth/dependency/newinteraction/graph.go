@@ -47,6 +47,7 @@ func (g *Graph) appendingNode(n Node) *Graph {
 	return &Graph{
 		GraphID:    g.GraphID,
 		InstanceID: "",
+		Intent:     g.Intent,
 		Nodes:      nodes,
 	}
 }
