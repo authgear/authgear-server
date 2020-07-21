@@ -6,6 +6,7 @@ import (
 
 type Intent interface {
 	DeriveFirstNode(ctx *Context) (Node, error)
+	DeriveEdges(ctx *Context, graph *Graph, node Node) ([]Edge, error)
 }
 
 type IntentFactory func() Intent
