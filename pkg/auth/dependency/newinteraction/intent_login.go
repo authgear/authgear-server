@@ -4,7 +4,7 @@ type IntentLogin struct {
 	UseAnonymousUser bool `json:"use_anonymous_user"`
 }
 
-func (i *IntentLogin) DeriveFirstNode(ctx *Context, graph *Graph) (Node, error) {
+func (i *IntentLogin) InstantiateRootNode(ctx *Context, graph *Graph) (Node, error) {
 	spec := EdgeSelectIdentityBegin{}
 	return spec.Instantiate(ctx, graph, i)
 }

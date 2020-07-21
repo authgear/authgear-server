@@ -53,7 +53,7 @@ func (s *Service) WithContext(fn func(*Context) error) error {
 
 func (s *Service) NewGraph(ctx *Context, intent Intent) (*Graph, error) {
 	graph := newGraph(intent)
-	node, err := graph.Intent.DeriveFirstNode(ctx)
+	node, err := graph.Intent.InstantiateRootNode(ctx)
 	if err != nil {
 		return nil, err
 	}
