@@ -27,4 +27,11 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(SettingsHandler), "*"),
 	wire.Struct(new(SettingsIdentityHandler), "*"),
 	wire.Struct(new(LogoutHandler), "*"),
+
+	ProvideWebAppService,
 )
+
+func ProvideWebAppService() WebAppService {
+	// FIXME(webapp): implement WebAppService
+	panic("implement me")
+}

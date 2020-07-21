@@ -1,13 +1,11 @@
 package webapp
 
 import (
-	"errors"
 	"net/http"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
-	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/core/phone"
 	"github.com/authgear/authgear-server/pkg/db"
@@ -175,21 +173,48 @@ func ConfigureLoginRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/login")
 }
 
-type LoginInteractions interface {
-	BeginOAuth(state *interactionflows.State, opts interactionflows.BeginOAuthOptions) (*interactionflows.WebAppResult, error)
-	LoginWithLoginID(state *interactionflows.State, loginID string) (*interactionflows.WebAppResult, error)
+type LoginHandler struct {
+	ServerConfig  *config.ServerConfig
+	Database      *db.Handle
+	BaseViewModel *BaseViewModeler
+	FormPrefiller *FormPrefiller
+	Renderer      Renderer
+	WebApp        WebAppService
 }
 
-type LoginHandler struct {
-	ServerConfig            *config.ServerConfig
-	Database                *db.Handle
-	State                   StateService
-	BaseViewModel           *BaseViewModeler
-	AuthenticationViewModel *AuthenticationViewModeler
-	FormPrefiller           *FormPrefiller
-	Renderer                Renderer
-	Interactions            LoginInteractions
-	Responder               Responder
+func (h *LoginHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+	var anyError interface{}
+	if state != nil {
+		anyError = state.Error
+	}
+	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+	EmbedForm(data, r.Form)
+	Embed(data, baseViewModel)
+	// FIXME(webapp): derive AuthenticationViewModel with graph and edges
+	authenticationViewModel := AuthenticationViewModel{}
+	Embed(data, authenticationViewModel)
+	return data, nil
+}
+
+// FIXME(webapp): implement input interface
+type LoginOAuth struct {
+	ProviderAlias string
+	Action        string
+	NonceSource   *http.Cookie
+}
+
+// FIXME(webapp): implement input interface
+type LoginLoginID struct {
+	LoginID string
+}
+
+func (h *LoginHandler) MakeIntent(r *http.Request) *webapp.Intent {
+	return &webapp.Intent{
+		RedirectURI:      webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy),
+		ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
+		Intent:           &newinteraction.IntentLogin{},
+	}
 }
 
 func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -198,32 +223,22 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	intent := h.MakeIntent(r)
+
 	h.FormPrefiller.Prefill(r.Form)
 
 	if r.Method == "GET" {
-		state, err := h.State.RestoreReadOnlyState(r, true)
-		if errors.Is(err, interactionflows.ErrStateNotFound) {
-			err = nil
-		}
-
+		state, graph, edges, err := h.WebApp.GetIntent(intent, StateID(r))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		var anyError interface{}
-		if state != nil {
-			anyError = state.Error
+		data, err := h.GetData(r, state, graph, edges)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
-
-		baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
-		authenticationViewModel := h.AuthenticationViewModel.ViewModel(r)
-
-		data := map[string]interface{}{}
-
-		EmbedForm(data, r.Form)
-		Embed(data, baseViewModel)
-		Embed(data, authenticationViewModel)
 
 		h.Renderer.Render(w, r, TemplateItemTypeAuthUILoginHTML, data)
 		return
@@ -233,29 +248,21 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" && providerAlias != "" {
 		h.Database.WithTx(func() error {
-			var state *interactionflows.State
-			var result *interactionflows.WebAppResult
-			var err error
-
-			defer func() {
-				h.State.UpdateState(state, result, err)
-				h.Responder.Respond(w, r, state, result, err)
-			}()
-			state = interactionflows.NewState()
-			state = h.State.CreateState(state, webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy))
-
 			nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
-			result, err = h.Interactions.BeginOAuth(state, interactionflows.BeginOAuthOptions{
-				ProviderAlias:    providerAlias,
-				Action:           interaction.OAuthActionLogin,
-				NonceSource:      nonceSource,
-				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
+			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
+				input = &LoginOAuth{
+					ProviderAlias: providerAlias,
+					// FIXME(webapp): Use constant
+					Action:      "login",
+					NonceSource: nonceSource,
+				}
+				return
 			})
-
 			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
-
+			result.WriteResponse(w, r)
 			return nil
 		})
 		return
@@ -263,32 +270,27 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 		h.Database.WithTx(func() error {
-			var state *interactionflows.State
-			var result *interactionflows.WebAppResult
-			var err error
+			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
+				err = LoginSchema.PartValidator(LoginWithLoginIDRequestSchema).ValidateValue(FormToJSON(r.Form))
+				if err != nil {
+					return
+				}
 
-			defer func() {
-				h.State.UpdateState(state, result, err)
-				h.Responder.Respond(w, r, state, result, err)
-			}()
-			state = interactionflows.NewState()
-			state = h.State.CreateState(state, webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy))
+				loginID, err := FormToLoginID(r.Form)
+				if err != nil {
+					return
+				}
 
-			err = LoginSchema.PartValidator(LoginWithLoginIDRequestSchema).ValidateValue(FormToJSON(r.Form))
+				input = &LoginLoginID{
+					LoginID: loginID,
+				}
+				return
+			})
 			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
-
-			loginID, err := FormToLoginID(r.Form)
-			if err != nil {
-				return err
-			}
-
-			result, err = h.Interactions.LoginWithLoginID(state, loginID)
-			if err != nil {
-				return err
-			}
-
+			result.WriteResponse(w, r)
 			return nil
 		})
 	}
