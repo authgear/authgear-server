@@ -29,7 +29,7 @@ func (s *Service) Get(instanceID string) (*Graph, error) {
 	return s.Store.Get(instanceID)
 }
 
-func (s *Service) WithContext(fn func(*Context) error) error {
+func (s *Service) WithContext(fn func(*Context) (*Graph, error)) error {
 	ctx, err := s.Context.initialize()
 	if err != nil {
 		return err
@@ -47,8 +47,16 @@ func (s *Service) WithContext(fn func(*Context) error) error {
 		}
 	}()
 
-	err = fn(ctx)
-	return err
+	graph, err := fn(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Do not create graph if no graph is returned
+	if graph == nil {
+		return nil
+	}
+	return s.Create(graph)
 }
 
 func (s *Service) NewGraph(ctx *Context, intent Intent) (*Graph, error) {
