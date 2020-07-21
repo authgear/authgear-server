@@ -6,7 +6,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
-	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -98,20 +99,6 @@ type EnterLoginIDViewModel struct {
 	LoginIDInputType string
 }
 
-func NewEnterLoginIDViewModel(state *interactionflows.State) EnterLoginIDViewModel {
-	loginIDKey, _ := state.Extra[interactionflows.ExtraLoginIDKey].(string)
-	loginIDType, _ := state.Extra[interactionflows.ExtraLoginIDType].(string)
-	loginIDInputType, _ := state.Extra[interactionflows.ExtraLoginIDInputType].(string)
-	oldLoginIDValue, _ := state.Extra[interactionflows.ExtraOldLoginID].(string)
-
-	return EnterLoginIDViewModel{
-		LoginIDKey:       loginIDKey,
-		LoginIDType:      loginIDType,
-		LoginIDInputType: loginIDInputType,
-		OldLoginIDValue:  oldLoginIDValue,
-	}
-}
-
 const RemoveLoginIDRequest = "RemoveLoginIDRequest"
 
 var EnterLoginIDSchema = validation.NewMultipartSchema("").
@@ -132,19 +119,41 @@ func ConfigureEnterLoginIDRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/enter_login_id")
 }
 
-type EnterLoginIDInteractions interface {
-	RemoveLoginID(state *interactionflows.State, userID string, loginID loginid.LoginID) (*interactionflows.WebAppResult, error)
-	UpdateLoginID(state *interactionflows.State, userID string, oldLoginID loginid.LoginID, newLoginID loginid.LoginID) (*interactionflows.WebAppResult, error)
-	AddLoginID(state *interactionflows.State, userID string, loginID loginid.LoginID) (*interactionflows.WebAppResult, error)
-}
-
 type EnterLoginIDHandler struct {
 	Database      *db.Handle
-	State         StateService
 	BaseViewModel *BaseViewModeler
 	Renderer      Renderer
-	Interactions  EnterLoginIDInteractions
-	Responder     Responder
+	WebApp        WebAppService
+}
+
+func (h *EnterLoginIDHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
+	data := map[string]interface{}{}
+	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
+	// FIXME(webapp): derive EnterLoginIDViewModel with graph and edges
+	enterLoginIDViewModel := EnterLoginIDViewModel{}
+
+	Embed(data, baseViewModel)
+	Embed(data, enterLoginIDViewModel)
+	return data, nil
+}
+
+// FIXME(webapp): implement input interface
+type EnterLoginIDRemoveLoginID struct {
+	UserID  string
+	LoginID loginid.LoginID
+}
+
+// FIXME(webapp): implement input interface
+type EnterLoginIDUpdateLoginID struct {
+	UserID string
+	Old    loginid.LoginID
+	New    loginid.LoginID
+}
+
+// FIXME(webapp): implement input interface
+type EnterLoginIDAddLoginID struct {
+	UserID  string
+	LoginID loginid.LoginID
 }
 
 func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -153,20 +162,20 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
+
 	if r.Method == "GET" {
-		state, err := h.State.RestoreReadOnlyState(r, false)
+		state, graph, edges, err := h.WebApp.Get(StateID(r))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-		enterLoginIDViewModel := NewEnterLoginIDViewModel(state)
-
-		data := map[string]interface{}{}
-
-		Embed(data, baseViewModel)
-		Embed(data, enterLoginIDViewModel)
+		data, err := h.GetData(r, state, graph, edges)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		h.Renderer.Render(w, r, TemplateItemTypeAuthUIEnterLoginIDHTML, data)
 		return
@@ -174,77 +183,76 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 	if r.Method == "POST" && r.Form.Get("x_action") == "remove" {
 		h.Database.WithTx(func() error {
-			state, err := h.State.CloneState(r)
+			_, _, _, err := h.WebApp.Get(StateID(r))
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
-			var result *interactionflows.WebAppResult
-			defer func() {
-				h.State.UpdateState(state, result, err)
-				h.Responder.Respond(w, r, state, result, err)
-			}()
+			// FIXME(webapp): derive EnterLoginIDViewModel with graph and edges
+			enterLoginIDViewModel := EnterLoginIDViewModel{}
 
-			enterLoginIDViewModel := NewEnterLoginIDViewModel(state)
-
-			userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
-
-			result, err = h.Interactions.RemoveLoginID(state, userID, loginid.LoginID{
-				Key:   enterLoginIDViewModel.LoginIDKey,
-				Value: enterLoginIDViewModel.OldLoginIDValue,
+			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
+				input = &EnterLoginIDRemoveLoginID{
+					UserID: userID,
+					LoginID: loginid.LoginID{
+						Key:   enterLoginIDViewModel.LoginIDKey,
+						Value: enterLoginIDViewModel.OldLoginIDValue,
+					},
+				}
+				return
 			})
 			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
-
+			result.WriteResponse(w, r)
 			return nil
 		})
 	}
 
 	if r.Method == "POST" && r.Form.Get("x_action") == "add_or_update" {
 		h.Database.WithTx(func() error {
-			state, err := h.State.CloneState(r)
+			_, _, _, err := h.WebApp.Get(StateID(r))
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
-			var result *interactionflows.WebAppResult
-			defer func() {
-				h.State.UpdateState(state, result, err)
-				h.Responder.Respond(w, r, state, result, err)
-			}()
+			// FIXME(webapp): derive EnterLoginIDViewModel with graph and edges
+			enterLoginIDViewModel := EnterLoginIDViewModel{}
 
-			enterLoginIDViewModel := NewEnterLoginIDViewModel(state)
-			oldLoginID := enterLoginIDViewModel.OldLoginIDValue
 			newLoginID := r.Form.Get("x_login_id")
 
-			userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
-
-			if oldLoginID != "" {
-				result, err = h.Interactions.UpdateLoginID(
-					state,
-					userID,
-					loginid.LoginID{
-						Key:   enterLoginIDViewModel.LoginIDKey,
-						Value: oldLoginID,
-					},
-					loginid.LoginID{
-						Key:   enterLoginIDViewModel.LoginIDKey,
-						Value: newLoginID,
-					},
-				)
-			} else {
-				result, err = h.Interactions.AddLoginID(state, userID, loginid.LoginID{
-					Key:   enterLoginIDViewModel.LoginIDKey,
-					Value: newLoginID,
-				})
-			}
+			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
+				if enterLoginIDViewModel.OldLoginIDValue != "" {
+					input = &EnterLoginIDUpdateLoginID{
+						UserID: userID,
+						Old: loginid.LoginID{
+							Key:   enterLoginIDViewModel.LoginIDKey,
+							Value: enterLoginIDViewModel.OldLoginIDValue,
+						},
+						New: loginid.LoginID{
+							Key:   enterLoginIDViewModel.LoginIDKey,
+							Value: newLoginID,
+						},
+					}
+				} else {
+					input = &EnterLoginIDAddLoginID{
+						UserID: userID,
+						LoginID: loginid.LoginID{
+							Key:   enterLoginIDViewModel.LoginIDKey,
+							Value: newLoginID,
+						},
+					}
+				}
+				return
+			})
 			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
-
+			result.WriteResponse(w, r)
 			return nil
 		})
 	}
