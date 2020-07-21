@@ -199,9 +199,10 @@ func (h *LoginHandler) GetData(r *http.Request, state *webapp.State, graph *newi
 
 // FIXME(webapp): implement input interface
 type LoginOAuth struct {
-	ProviderAlias string
-	Action        string
-	NonceSource   *http.Cookie
+	ProviderAlias    string
+	Action           string
+	NonceSource      *http.Cookie
+	ErrorRedirectURI string
 }
 
 // FIXME(webapp): implement input interface
@@ -211,9 +212,8 @@ type LoginLoginID struct {
 
 func (h *LoginHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	return &webapp.Intent{
-		RedirectURI:      webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy),
-		ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
-		Intent:           &newinteraction.IntentLogin{},
+		RedirectURI: webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy),
+		Intent:      &newinteraction.IntentLogin{},
 	}
 }
 
@@ -253,8 +253,9 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				input = &LoginOAuth{
 					ProviderAlias: providerAlias,
 					// FIXME(webapp): Use constant
-					Action:      "login",
-					NonceSource: nonceSource,
+					Action:           "login",
+					NonceSource:      nonceSource,
+					ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
 				}
 				return
 			})

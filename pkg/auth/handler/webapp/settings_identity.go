@@ -1,13 +1,11 @@
 package webapp
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
-	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
@@ -139,19 +137,53 @@ func ConfigureSettingsIdentityRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/settings/identity")
 }
 
-type SettingsIdentityInteractions interface {
-	BeginOAuth(state *interactionflows.State, opts interactionflows.BeginOAuthOptions) (*interactionflows.WebAppResult, error)
-	UnlinkOAuthProvider(state *interactionflows.State, providerAlias string, userID string) (*interactionflows.WebAppResult, error)
+type SettingsIdentityHandler struct {
+	ServerConfig  *config.ServerConfig
+	Database      *db.Handle
+	BaseViewModel *BaseViewModeler
+	Renderer      Renderer
+	WebApp        WebAppService
 }
 
-type SettingsIdentityHandler struct {
-	Database                *db.Handle
-	State                   StateService
-	BaseViewModel           *BaseViewModeler
-	AuthenticationViewModel *AuthenticationViewModeler
-	Renderer                Renderer
-	Interactions            SettingsIdentityInteractions
-	Responder               Responder
+// FIXME(webapp): implement input interface
+type SettingsIdentityLinkOAuth struct {
+	UserID           string
+	ProviderAlias    string
+	Action           string
+	NonceSource      *http.Cookie
+	ErrorRedirectURI string
+}
+
+// FIXME(webapp): implement input interface
+type SettingsIdentityUnlinkOAuth struct {
+	UserID        string
+	ProviderAlias string
+}
+
+// FIXME(webapp): implement input interface
+type SettingsIdentityAddUpdateRemoveLoginID struct {
+	UserID           string
+	LoginIDKey       string
+	LoginIDType      string
+	LoginIDInputType string
+	OldLoginIDValue  string
+}
+
+func (h *SettingsIdentityHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
+	data := map[string]interface{}{}
+	var anyError interface{}
+	if state != nil {
+		anyError = state.Error
+	}
+
+	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+	// FIXME(webapp): derive AuthenticationViewModel with graph and edges
+	authenticationViewModel := AuthenticationViewModel{}
+
+	Embed(data, baseViewModel)
+	Embed(data, authenticationViewModel)
+
+	return data, nil
 }
 
 func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -160,107 +192,113 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if r.Method == "GET" {
-		state, err := h.State.RestoreReadOnlyState(r, true)
-		if errors.Is(err, interactionflows.ErrStateNotFound) {
-			err = nil
-		}
+	redirectURI := httputil.HostRelative(r.URL).String()
+	providerAlias := r.Form.Get("x_provider_alias")
+	loginIDKey := r.Form.Get("x_login_id_key")
+	loginIDType := r.Form.Get("x_login_id_type")
+	loginIDInputType := r.Form.Get("x_login_id_input_type")
+	oldLoginIDValue := r.Form.Get("x_old_login_id_value")
+	sess := auth.GetSession(r.Context())
+	userID := sess.AuthnAttrs().UserID
+	nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
 
+	if r.Method == "GET" {
+		intent := &webapp.Intent{
+			RedirectURI: redirectURI,
+			// FIXME(webapp): IntentSettingsIdentity
+			// This intent actually does not have any further nodes.
+			// Only the edges are useful.
+			Intent: &newinteraction.IntentLogin{},
+		}
+		state, graph, edges, err := h.WebApp.GetIntent(intent, StateID(r))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		var anyError interface{}
-		if state != nil {
-			anyError = state.Error
+		data, err := h.GetData(r, state, graph, edges)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
-
-		baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
-		authenticationViewModel := h.AuthenticationViewModel.ViewModel(r)
-
-		data := map[string]interface{}{}
-
-		Embed(data, baseViewModel)
-		Embed(data, authenticationViewModel)
 
 		h.Renderer.Render(w, r, TemplateItemTypeAuthUISettingsIdentityHTML, data)
 		return
 	}
 
-	providerAlias := r.Form.Get("x_provider_alias")
-
 	if r.Method == "POST" && r.Form.Get("x_action") == "link_oauth" {
 		h.Database.WithTx(func() error {
-			state := interactionflows.NewState()
-			state = h.State.CreateState(state, "/settings/identity")
-			var result *interactionflows.WebAppResult
-			var err error
-
-			defer func() {
-				h.State.UpdateState(state, result, err)
-				h.Responder.Respond(w, r, state, result, err)
-			}()
-
-			sess := auth.GetSession(r.Context())
-			userID := sess.AuthnAttrs().UserID
-
-			nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
-			result, err = h.Interactions.BeginOAuth(state, interactionflows.BeginOAuthOptions{
-				ProviderAlias:    providerAlias,
-				Action:           interaction.OAuthActionLink,
-				UserID:           userID,
-				NonceSource:      nonceSource,
-				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
+			intent := &webapp.Intent{
+				RedirectURI: redirectURI,
+				// FIXME(webapp): IntentLinkOAuth
+				Intent: &newinteraction.IntentLogin{},
+			}
+			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
+				input = &SettingsIdentityLinkOAuth{
+					ProviderAlias: providerAlias,
+					// FIXME(webapp): Use constant
+					Action:           "link",
+					UserID:           userID,
+					NonceSource:      nonceSource,
+					ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
+				}
+				return
 			})
 			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
-
+			result.WriteResponse(w, r)
 			return nil
 		})
 	}
 
 	if r.Method == "POST" && r.Form.Get("x_action") == "unlink_oauth" {
 		h.Database.WithTx(func() error {
-			state := interactionflows.NewState()
-			state = h.State.CreateState(state, "/settings/identity")
-			var result *interactionflows.WebAppResult
-			var err error
-
-			defer func() {
-				h.State.UpdateState(state, result, err)
-				h.Responder.Respond(w, r, state, result, err)
-			}()
-
-			sess := auth.GetSession(r.Context())
-			userID := sess.AuthnAttrs().UserID
-
-			result, err = h.Interactions.UnlinkOAuthProvider(state, providerAlias, userID)
+			intent := &webapp.Intent{
+				RedirectURI: redirectURI,
+				// FIXME(webapp): IntentUnlinkOAuth
+				Intent: &newinteraction.IntentLogin{},
+			}
+			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
+				input = &SettingsIdentityUnlinkOAuth{
+					ProviderAlias: providerAlias,
+					UserID:        userID,
+				}
+				return
+			})
 			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
-
+			result.WriteResponse(w, r)
 			return nil
 		})
 	}
 
-	loginIDKey := r.Form.Get("x_login_id_key")
-	loginIDType := r.Form.Get("x_login_id_type")
-	loginIDInputType := r.Form.Get("x_login_id_input_type")
-	oldLoginIDValue := r.Form.Get("x_old_login_id_value")
-
 	if r.Method == "POST" && r.Form.Get("x_action") == "login_id" {
-		state := interactionflows.NewState()
-		state = h.State.CreateState(state, "/settings/identity")
-		state.Extra[interactionflows.ExtraLoginIDKey] = loginIDKey
-		state.Extra[interactionflows.ExtraLoginIDType] = loginIDType
-		state.Extra[interactionflows.ExtraLoginIDInputType] = loginIDInputType
-		state.Extra[interactionflows.ExtraOldLoginID] = oldLoginIDValue
-		h.State.UpdateState(state, nil, nil)
-
-		redirectURI := state.RedirectURI(r.URL)
-		redirectURI.Path = "/enter_login_id"
-		http.Redirect(w, r, redirectURI.String(), http.StatusFound)
+		h.Database.WithTx(func() error {
+			intent := &webapp.Intent{
+				RedirectURI: redirectURI,
+				// FIXME(webapp): IntentAddUpdateRemoveLoginID
+				Intent: &newinteraction.IntentLogin{},
+			}
+			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
+				input = &SettingsIdentityAddUpdateRemoveLoginID{
+					UserID:           userID,
+					LoginIDKey:       loginIDKey,
+					LoginIDType:      loginIDType,
+					LoginIDInputType: loginIDInputType,
+					OldLoginIDValue:  oldLoginIDValue,
+				}
+				return
+			})
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return err
+			}
+			result.WriteResponse(w, r)
+			return nil
+		})
 	}
 }

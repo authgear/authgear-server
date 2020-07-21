@@ -202,9 +202,10 @@ func (h *SignupHandler) GetData(r *http.Request, state *webapp.State, graph *new
 
 // FIXME(webapp): implement input interface
 type SignupOAuth struct {
-	ProviderAlias string
-	Action        string
-	NonceSource   *http.Cookie
+	ProviderAlias    string
+	Action           string
+	NonceSource      *http.Cookie
+	ErrorRedirectURI string
 }
 
 // FIXME(webapp): implement input interface
@@ -215,8 +216,7 @@ type SignupLoginID struct {
 
 func (h *SignupHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	return &webapp.Intent{
-		RedirectURI:      webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy),
-		ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
+		RedirectURI: webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy),
 		// FIXME(webapp): Use signup intent
 		Intent: &newinteraction.IntentLogin{},
 	}
@@ -258,8 +258,9 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				input = &SignupOAuth{
 					ProviderAlias: providerAlias,
 					// FIXME(webapp): Use constant
-					Action:      "login",
-					NonceSource: nonceSource,
+					Action:           "login",
+					NonceSource:      nonceSource,
+					ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
 				}
 				return
 			})
