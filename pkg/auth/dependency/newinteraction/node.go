@@ -6,8 +6,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/core/errors"
 )
 
+//go:generate mockgen -source=node.go -destination=node_mock_test.go -package newinteraction_test
+
 var ErrIncompatibleInput = errors.New("incompatible input type for this node")
-var ErrSameNode = errors.New("the edge points to the same node")
+var ErrSameNode = errors.New("the edge points to the same current node")
 
 type Node interface {
 	// Apply the effects of this node to context.
@@ -21,9 +23,9 @@ type Edge interface {
 	// Instantiate instantiates the node pointed by the edge.
 	// It is ran once only for the pointed node, so side effects visible
 	// outside the transaction (e.g. sending messages) is allowed.
-	// It may return ErrSameNode if the source & destination node of the edge
-	// is the same (no nodes are added to graph in this case).
-	// This is used to model OOB trigger, session creation, etc..
+	// It may return ErrSameNode if the edge loops back to self.
+	// This is used to model side-effect only actions, such as sending
+	// OTP message.
 	Instantiate(ctx *Context, graph *Graph, input interface{}) (Node, error)
 }
 

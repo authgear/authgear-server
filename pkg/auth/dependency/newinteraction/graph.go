@@ -1,10 +1,14 @@
 package newinteraction
 
 import (
+	"errors"
+
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/core/skyerr"
 )
+
+var ErrInputRequired = errors.New("new input is required")
 
 type Graph struct {
 	// GraphID is the unique ID for a graph.
@@ -35,7 +39,11 @@ func newGraph(intent Intent) *Graph {
 	}
 }
 
-func (g *Graph) AppendingNode(n Node) *Graph {
+func (g *Graph) CurrentNode() Node {
+	return g.Nodes[len(g.Nodes)-1]
+}
+
+func (g *Graph) appendingNode(n Node) *Graph {
 	nodes := make([]Node, len(g.Nodes)+1)
 	copy(nodes, g.Nodes)
 	nodes[len(nodes)-1] = n
@@ -86,4 +94,51 @@ func (g *Graph) Apply(ctx *Context) error {
 		}
 	}
 	return nil
+}
+
+// Accept run the graph to the deepest node using the input
+func (g *Graph) Accept(ctx *Context, input interface{}) (*Graph, []Edge, error) {
+	graph := g
+	for {
+		node := graph.CurrentNode()
+		edges, err := node.DeriveEdges(ctx, graph)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		if len(edges) == 0 {
+			// No more edges, reached the end of the graph
+			return graph, edges, nil
+		}
+
+		var nextNode Node
+		for _, edge := range edges {
+			nextNode, err = edge.Instantiate(ctx, graph, input)
+			if errors.Is(err, ErrIncompatibleInput) {
+				// Continue to check next edges
+				continue
+			} else if errors.Is(err, ErrSameNode) {
+				// The next node is the same current node,
+				// so no need to update the graph.
+				// Continuing would keep traversing the same edge,
+				// so stop and request new input.
+				return graph, edges, ErrInputRequired
+			} else if err != nil {
+				return nil, nil, err
+			}
+			break
+		}
+
+		// No edges are followed, input is required
+		if nextNode == nil {
+			return graph, edges, ErrInputRequired
+		}
+
+		// Follow the edge to nextNode
+		graph = graph.appendingNode(nextNode)
+		err = nextNode.Apply(ctx, graph)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
 }
