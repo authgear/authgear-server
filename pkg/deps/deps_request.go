@@ -65,7 +65,6 @@ var requestDeps = wire.NewSet(
 	wire.Bind(new(handlerwebapp.Responder), new(*webapp.Responder)),
 	wire.Bind(new(handlerwebapp.ForgotPasswordInteractions), new(*forgotpassword.Provider)),
 	wire.Bind(new(handlerwebapp.ResetPasswordInteractions), new(*forgotpassword.Provider)),
-	wire.Bind(new(handlerwebapp.SSOCallbackInteractions), new(*interactionflows.WebAppFlow)),
 	wire.Bind(new(handlerwebapp.SettingsIdentityInteractions), new(*interactionflows.WebAppFlow)),
 	wire.Bind(new(handlerwebapp.EnterLoginIDInteractions), new(*interactionflows.WebAppFlow)),
 	wire.Bind(new(handlerwebapp.PromoteInteractions), new(*interactionflows.WebAppFlow)),
