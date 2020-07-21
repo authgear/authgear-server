@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
-	"github.com/authgear/authgear-server/pkg/core/skyerr"
 )
 
 var ErrInputRequired = errors.New("new input is required")
@@ -25,9 +24,6 @@ type Graph struct {
 
 	// Nodes are nodes in a specific path from intent of the interaction graph.
 	Nodes []Node `json:"nodes"`
-
-	// TODO: any place to store error outside graph?
-	Error *skyerr.APIError `json:"error"`
 }
 
 func newGraph(intent Intent) *Graph {
