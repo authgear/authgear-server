@@ -26,11 +26,7 @@ func (n *NodeSelectIdentityEnd) Apply(ctx *Context, graph *Graph) error {
 }
 
 func (n *NodeSelectIdentityEnd) DeriveEdges(ctx *Context, graph *Graph) ([]Edge, error) {
-	edge, err := graph.Intent.(interface {
-		AfterSelectIdentity(node *NodeSelectIdentityEnd) (Edge, error)
-	}).AfterSelectIdentity(n)
-
-	return []Edge{edge}, err
+	return graph.Intent.DeriveEdges(ctx, graph, n)
 }
 
 func (n *NodeSelectIdentityEnd) UserIdentity() *identity.Info {
