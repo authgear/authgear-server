@@ -29,8 +29,8 @@ func NewFactory(level Level, hooks ...logrus.Hook) *Factory {
 	}
 }
 
-func (f *Factory) WithHooks(hooks ...logrus.Hook) *Factory {
-	factory := NewFactory(f.Level, append(f.Hooks, hooks...)...)
+func (f *Factory) ReplaceHooks(hooks ...logrus.Hook) *Factory {
+	factory := NewFactory(f.Level, hooks...)
 	for k, v := range f.DefaultFields {
 		factory.DefaultFields[k] = v
 	}

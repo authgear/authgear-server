@@ -17,22 +17,26 @@ var LogHookLevels = []logrus.Level{
 }
 
 type LogHook struct {
-	Hub *sentry.Hub
+	hub *sentry.Hub
+}
+
+func NewLogHookFromHub(hub *sentry.Hub) *LogHook {
+	return &LogHook{hub: hub}
 }
 
 func NewLogHookFromContext(ctx context.Context) *LogHook {
-	return &LogHook{Hub: sentry.GetHubFromContext(ctx)}
+	return &LogHook{hub: sentry.GetHubFromContext(ctx)}
 }
 
 func (h *LogHook) Levels() []logrus.Level { return LogHookLevels }
 
 func (h *LogHook) Fire(entry *logrus.Entry) error {
-	if h.Hub == nil {
+	if h.hub == nil {
 		return nil
 	}
 
 	event := makeEvent(entry)
-	h.Hub.CaptureEvent(event)
+	h.hub.CaptureEvent(event)
 	return nil
 }
 
@@ -50,7 +54,7 @@ func makeEvent(entry *logrus.Entry) *sentry.Event {
 	case logrus.DebugLevel:
 		event.Level = sentry.LevelDebug
 	}
-	event.Timestamp = entry.Time.Unix()
+	event.Timestamp = entry.Time
 	event.Message = entry.Message
 
 	var err string

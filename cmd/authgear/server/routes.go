@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/internalserver"
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	webapphandler "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
-	"github.com/authgear/authgear-server/pkg/core/sentry"
 	"github.com/authgear/authgear-server/pkg/deps"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/httputil"
@@ -24,12 +23,13 @@ func setupInternalRoutes(p *deps.RootProvider, configSource configsource.Source)
 	}, http.HandlerFunc(httputil.HealthCheckHandler))
 
 	chain := httproute.Chain(
-		p.RootMiddleware(newSentryMiddlewareFactory(sentry.DefaultClient.Hub)),
-		p.RootMiddleware(newRecoverMiddleware),
+		p.RootMiddleware(newRootRecoverMiddleware),
+		p.RootMiddleware(newSentryMiddleware),
 		&deps.RequestMiddleware{
 			RootProvider: p,
 			ConfigSource: configSource,
 		},
+		p.Middleware(newRequestRecoverMiddleware),
 		p.Middleware(newSessionMiddleware),
 	)
 
@@ -49,12 +49,13 @@ func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *httpro
 	}, http.HandlerFunc(httputil.HealthCheckHandler))
 
 	rootChain := httproute.Chain(
-		p.RootMiddleware(newSentryMiddlewareFactory(sentry.DefaultClient.Hub)),
-		p.RootMiddleware(newRecoverMiddleware),
+		p.RootMiddleware(newRootRecoverMiddleware),
+		p.RootMiddleware(newSentryMiddleware),
 		&deps.RequestMiddleware{
 			RootProvider: p,
 			ConfigSource: configSource,
 		},
+		p.Middleware(newRequestRecoverMiddleware),
 		p.Middleware(newSessionMiddleware),
 		p.Middleware(newCORSMiddleware),
 	)

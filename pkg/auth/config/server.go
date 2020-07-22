@@ -25,6 +25,9 @@ type ServerConfig struct {
 	ReservedNameFilePath string `envconfig:"RESERVED_NAME_FILE_PATH" default:"reserved_name.txt"`
 	// StaticAsset configures serving static asset
 	StaticAsset ServerStaticAssetConfig `envconfig:"STATIC_ASSET"`
+
+	// SentryDSN sets the sentry DSN.
+	SentryDSN string `envconfig:"SENTRY_DSN"`
 }
 
 func LoadServerConfigFromEnv() (*ServerConfig, error) {

@@ -44,6 +44,7 @@ var RootDependencySet = wire.NewSet(
 	rootDeps,
 	wire.FieldsOf(new(*RootProvider),
 		"LoggerFactory",
+		"SentryHub",
 	),
 )
 

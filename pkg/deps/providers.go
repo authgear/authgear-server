@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	getsentry "github.com/getsentry/sentry-go"
+
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	authtemplate "github.com/authgear/authgear-server/pkg/auth/template"
@@ -20,6 +22,7 @@ import (
 type RootProvider struct {
 	ServerConfig        *config.ServerConfig
 	LoggerFactory       *log.Factory
+	SentryHub           *getsentry.Hub
 	DatabasePool        *db.Pool
 	RedisPool           *redis.Pool
 	TaskExecutor        *taskexecutors.InMemoryExecutor
@@ -34,10 +37,15 @@ func NewRootProvider(cfg *config.ServerConfig) (*RootProvider, error) {
 		return nil, err
 	}
 
+	sentryHub, err := sentry.NewHub(cfg.SentryDSN)
+	if err != nil {
+		return nil, err
+	}
+
 	loggerFactory := log.NewFactory(
 		logLevel,
 		log.NewDefaultMaskLogHook(),
-		&sentry.LogHook{Hub: sentry.DefaultClient.Hub},
+		sentry.NewLogHookFromHub(sentryHub),
 	)
 
 	dbPool := db.NewPool()
@@ -51,6 +59,7 @@ func NewRootProvider(cfg *config.ServerConfig) (*RootProvider, error) {
 	p = RootProvider{
 		ServerConfig:        cfg,
 		LoggerFactory:       loggerFactory,
+		SentryHub:           sentryHub,
 		DatabasePool:        dbPool,
 		RedisPool:           redisPool,
 		TaskExecutor:        taskExecutor,
@@ -60,7 +69,11 @@ func NewRootProvider(cfg *config.ServerConfig) (*RootProvider, error) {
 }
 
 func (p *RootProvider) NewAppProvider(ctx context.Context, cfg *config.Config) *AppProvider {
-	loggerFactory := p.LoggerFactory.WithHooks(log.NewSecretMaskLogHook(cfg.SecretConfig))
+	loggerFactory := p.LoggerFactory.ReplaceHooks(
+		log.NewDefaultMaskLogHook(),
+		log.NewSecretMaskLogHook(cfg.SecretConfig),
+		sentry.NewLogHookFromContext(ctx),
+	)
 	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
 	database := db.NewHandle(
 		ctx,

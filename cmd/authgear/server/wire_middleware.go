@@ -3,7 +3,6 @@
 package server
 
 import (
-	getsentry "github.com/getsentry/sentry-go"
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
@@ -22,13 +21,7 @@ var middlewareDependencySet = wire.NewSet(
 	deps.RequestDependencySet,
 )
 
-func newSentryMiddlewareFactory(hub *getsentry.Hub) func(*deps.RootProvider) httproute.Middleware {
-	return func(p *deps.RootProvider) httproute.Middleware {
-		return newSentryMiddleware(hub, p)
-	}
-}
-
-func newSentryMiddleware(hub *getsentry.Hub, p *deps.RootProvider) httproute.Middleware {
+func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	panic(wire.Build(
 		rootMiddlewareDependencySet,
 		sentry.DependencySet,
@@ -36,10 +29,17 @@ func newSentryMiddleware(hub *getsentry.Hub, p *deps.RootProvider) httproute.Mid
 	))
 }
 
-func newRecoverMiddleware(p *deps.RootProvider) httproute.Middleware {
+func newRootRecoverMiddleware(p *deps.RootProvider) httproute.Middleware {
 	panic(wire.Build(
 		rootMiddlewareDependencySet,
 		middlewares.DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*middlewares.RecoverMiddleware)),
+	))
+}
+
+func newRequestRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		middlewareDependencySet,
 		wire.Bind(new(httproute.Middleware), new(*middlewares.RecoverMiddleware)),
 	))
 }

@@ -34,7 +34,7 @@ type Sender struct {
 
 func NewGomailDialer(smtp *config.SMTPServerCredentials) *gomail.Dialer {
 	if smtp != nil {
-		dialer := gomail.NewPlainDialer(smtp.Host, smtp.Port, smtp.Username, smtp.Password)
+		dialer := gomail.NewDialer(smtp.Host, smtp.Port, smtp.Username, smtp.Password)
 		switch smtp.Mode {
 		case config.SMTPModeNormal:
 			// gomail will infer according to port
