@@ -1,5 +1,7 @@
 package newinteraction
 
+import "github.com/authgear/authgear-server/pkg/core/authn"
+
 type InputSelectIdentityBegin interface {
 	GetUseAnonymousUser() bool
 }
@@ -23,9 +25,33 @@ type NodeSelectIdentityBegin struct {
 }
 
 func (n *NodeSelectIdentityBegin) Apply(ctx *Context, graph *Graph) error {
-	panic("implement me")
+	return nil
 }
 
 func (n *NodeSelectIdentityBegin) DeriveEdges(ctx *Context, graph *Graph) ([]Edge, error) {
-	panic("implement me")
+	var edges []Edge
+	for _, t := range ctx.Config.Authentication.Identities {
+		switch t {
+		case authn.IdentityTypeAnonymous:
+			if n.UseAnonymousUser {
+				// Always use anonymous user only, if requested
+				return []Edge{&EdgeSelectIdentityAnonymous{}}, nil
+			}
+
+		case authn.IdentityTypeLoginID:
+			for _, c := range ctx.Config.Identity.LoginID.Keys {
+				edges = append(edges, &EdgeSelectIdentityLoginID{Config: c})
+			}
+
+		case authn.IdentityTypeOAuth:
+			for _, c := range ctx.Config.Identity.OAuth.Providers {
+				edges = append(edges, &EdgeSelectIdentityOAuth{Config: c})
+			}
+
+		default:
+			panic("interaction: unknown identity type: " + t)
+		}
+	}
+
+	return edges, nil
 }

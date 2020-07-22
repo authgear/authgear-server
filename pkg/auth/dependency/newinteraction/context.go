@@ -3,13 +3,16 @@ package newinteraction
 import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/db"
 )
 
 type IdentityProvider interface {
 	Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error)
+	// FIXME: no need to return userID, now identity.Info has it
 	GetByClaims(typ authn.IdentityType, claims map[string]interface{}) (string, *identity.Info, error)
 	ListByUser(userID string) ([]*identity.Info, error)
 	UpdateAll(is []*identity.Info) error
@@ -28,11 +31,21 @@ type AuthenticatorProvider interface {
 	VerifySecret(userID string, a *authenticator.Info, secret string) error
 }
 
+type AnonymousIdentityProvider interface {
+	ParseRequest(requestJWT string) (*anonymous.Identity, *anonymous.Request, error)
+}
+
+type ChallengeProvider interface {
+	Consume(token string) (*challenge.Purpose, error)
+}
+
 type Context struct {
-	Database       db.SQLExecutor
-	Config         *config.AppConfig
-	Identities     IdentityProvider
-	Authenticators AuthenticatorProvider
+	Database            db.SQLExecutor
+	Config              *config.AppConfig
+	Identities          IdentityProvider
+	Authenticators      AuthenticatorProvider
+	AnonymousIdentities AnonymousIdentityProvider
+	Challenges          ChallengeProvider
 }
 
 var interactionGraphSavePoint savePoint = "interaction_graph"

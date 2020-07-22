@@ -3,30 +3,32 @@ package newinteraction
 import "github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 
 type EdgeSelectIdentityEnd struct {
-	Identity *identity.Info
+	Identity    *identity.Info
+	NewIdentity *identity.Info
 }
 
-func (e *EdgeSelectIdentityEnd) Instantiate(ctx *Context, graph *Graph, rawInput interface{}) (Node, error) {
-	input, ok := rawInput.(InputSelectIdentityBegin)
-	if !ok {
-		return nil, ErrIncompatibleInput
-	}
-
-	return &NodeSelectIdentityBegin{
-		UseAnonymousUser: input.GetUseAnonymousUser(),
+func (e *EdgeSelectIdentityEnd) Instantiate(ctx *Context, graph *Graph, input interface{}) (Node, error) {
+	return &NodeSelectIdentityEnd{
+		Identity:    e.Identity,
+		NewIdentity: e.NewIdentity,
 	}, nil
 }
 
 type NodeSelectIdentityEnd struct {
-	Identity *identity.Info `json:"identity"`
+	Identity    *identity.Info `json:"identity"`
+	NewIdentity *identity.Info `json:"new_identity"`
 }
 
 func (n *NodeSelectIdentityEnd) Apply(ctx *Context, graph *Graph) error {
-	panic("implement me")
+	if n.NewIdentity != nil {
+		panic("TODO(new_interaction): create new identity")
+	}
+
+	return nil
 }
 
 func (n *NodeSelectIdentityEnd) DeriveEdges(ctx *Context, graph *Graph) ([]Edge, error) {
-	return graph.Intent.DeriveEdges(ctx, graph, n)
+	return graph.Intent.DeriveEdgesForNode(ctx, graph, n)
 }
 
 func (n *NodeSelectIdentityEnd) UserIdentity() *identity.Info {

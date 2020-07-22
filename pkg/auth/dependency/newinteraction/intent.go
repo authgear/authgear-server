@@ -6,7 +6,7 @@ import (
 
 type Intent interface {
 	InstantiateRootNode(ctx *Context, graph *Graph) (Node, error)
-	DeriveEdges(ctx *Context, graph *Graph, node Node) ([]Edge, error)
+	DeriveEdgesForNode(ctx *Context, graph *Graph, node Node) ([]Edge, error)
 }
 
 type IntentFactory func() Intent
