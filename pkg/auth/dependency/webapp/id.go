@@ -10,10 +10,6 @@ const (
 	idLength   int    = 32
 )
 
-func newFlowID() string {
-	return corerand.StringWithAlphabet(idLength, idAlphabet, corerand.SecureRand)
-}
-
-func newInstanceID() string {
+func newID() string {
 	return corerand.StringWithAlphabet(idLength, idAlphabet, corerand.SecureRand)
 }

@@ -7,8 +7,7 @@ import (
 )
 
 type State struct {
-	FlowID          string           `json:"flow_id"`
-	InstanceID      string           `json:"instance_id"`
+	ID              string           `json:"id"`
 	Error           *skyerr.APIError `json:"error"`
 	RedirectURI     string           `json:"redirect_uri,omitempty"`
 	KeepState       bool             `json:"keep_state,omitempty"`
@@ -20,7 +19,7 @@ func (s *State) Attach(input *url.URL) *url.URL {
 	u := *input
 
 	q := u.Query()
-	q.Set("x_sid", s.InstanceID)
+	q.Set("x_sid", s.ID)
 
 	u.Scheme = ""
 	u.Opaque = ""

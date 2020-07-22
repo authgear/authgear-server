@@ -99,20 +99,6 @@ func (mr *MockStoreMockRecorder) Get(instanceID interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockStore)(nil).Get), instanceID)
 }
 
-// DeleteFlow mocks base method
-func (m *MockStore) DeleteFlow(flowID string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteFlow", flowID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteFlow indicates an expected call of DeleteFlow
-func (mr *MockStoreMockRecorder) DeleteFlow(flowID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFlow", reflect.TypeOf((*MockStore)(nil).DeleteFlow), flowID)
-}
-
 // MockGraphService is a mock of GraphService interface
 type MockGraphService struct {
 	ctrl     *gomock.Controller

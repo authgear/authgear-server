@@ -19,7 +19,6 @@ type ErrorRedirectURIGetter interface {
 type Store interface {
 	Create(state *State) error
 	Get(instanceID string) (*State, error)
-	DeleteFlow(flowID string) error
 }
 
 type GraphService interface {
@@ -59,8 +58,7 @@ func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph
 	}
 
 	state = &State{
-		FlowID:          newFlowID(),
-		InstanceID:      newInstanceID(),
+		ID:              newID(),
 		RedirectURI:     intent.RedirectURI,
 		KeepState:       intent.KeepState,
 		GraphInstanceID: graph.InstanceID,
@@ -100,8 +98,7 @@ func (s *Service) Get(stateID string) (state *State, graph *newinteraction.Graph
 
 func (s *Service) PostIntent(intent *Intent, inputer func() (interface{}, error)) (result *Result, err error) {
 	state := &State{
-		FlowID:      newFlowID(),
-		InstanceID:  newInstanceID(),
+		ID:          newID(),
 		RedirectURI: intent.RedirectURI,
 		KeepState:   intent.KeepState,
 	}
@@ -157,7 +154,7 @@ func (s *Service) PostInput(stateID string, inputer func() (interface{}, error))
 	}
 
 	// Immutable state
-	state.InstanceID = newInstanceID()
+	state.ID = newID()
 
 	var edges []newinteraction.Edge
 	graph, err := s.Graph.Get(state.GraphInstanceID)
