@@ -1,11 +1,11 @@
 package webapp
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -131,18 +131,41 @@ func ConfigureForgotPasswordRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/forgot_password")
 }
 
-type ForgotPasswordInteractions interface {
-	SendCode(loginID string) error
+type ForgotPasswordHandler struct {
+	Database      *db.Handle
+	BaseViewModel *BaseViewModeler
+	FormPrefiller *FormPrefiller
+	Renderer      Renderer
+	WebApp        WebAppService
 }
 
-type ForgotPasswordHandler struct {
-	Database                *db.Handle
-	State                   StateService
-	BaseViewModel           *BaseViewModeler
-	AuthenticationViewModel *AuthenticationViewModeler
-	FormPrefiller           *FormPrefiller
-	Renderer                Renderer
-	ForgotPassword          ForgotPasswordInteractions
+func (h *ForgotPasswordHandler) MakeIntent(r *http.Request) *webapp.Intent {
+	return &webapp.Intent{
+		RedirectURI: "/forgot_password/success",
+		KeepState:   true,
+		// FIXME(webapp): IntentForgotPassword
+		Intent: &newinteraction.IntentLogin{},
+	}
+}
+
+func (h *ForgotPasswordHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+	var anyError interface{}
+	if state != nil {
+		anyError = state.Error
+	}
+	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+	// FIXME(webapp): derive AuthenticationViewModel with graph and edges
+	authenticationViewModel := AuthenticationViewModel{}
+	EmbedForm(data, r.Form)
+	Embed(data, baseViewModel)
+	Embed(data, authenticationViewModel)
+	return data, nil
+}
+
+// FIXME(webapp): implement input interface
+type ForgotPasswordLoginID struct {
+	LoginID string
 }
 
 func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -151,32 +174,22 @@ func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	intent := h.MakeIntent(r)
+
 	h.FormPrefiller.Prefill(r.Form)
 
 	if r.Method == "GET" {
-		state, err := h.State.RestoreReadOnlyState(r, true)
-		if errors.Is(err, interactionflows.ErrStateNotFound) {
-			err = nil
-		}
-
+		state, graph, edges, err := h.WebApp.GetIntent(intent, StateID(r))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		var anyError interface{}
-		if state != nil {
-			anyError = state.Error
+		data, err := h.GetData(r, state, graph, edges)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
-
-		baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
-		authenticationViewModel := h.AuthenticationViewModel.ViewModel(r)
-
-		data := map[string]interface{}{}
-
-		EmbedForm(data, r.Form)
-		Embed(data, baseViewModel)
-		Embed(data, authenticationViewModel)
 
 		h.Renderer.Render(w, r, TemplateItemTypeAuthUIForgotPasswordHTML, data)
 		return
@@ -184,37 +197,27 @@ func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 	if r.Method == "POST" {
 		h.Database.WithTx(func() error {
-			var state *interactionflows.State
-			var err error
-
-			defer func() {
-				h.State.UpdateState(state, nil, err)
-				redirectURI := state.RedirectURI(r.URL)
-				if err == nil {
-					redirectURI.Path = "/forgot_password/success"
+			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
+				err = ForgotPasswordSchema.PartValidator(ForgotPasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
+				if err != nil {
+					return
 				}
-				http.Redirect(w, r, redirectURI.String(), http.StatusFound)
-			}()
-			state = interactionflows.NewState()
-			state = h.State.CreateState(state, "")
 
-			err = ForgotPasswordSchema.PartValidator(ForgotPasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
+				loginID, err := FormToLoginID(r.Form)
+				if err != nil {
+					return
+				}
+
+				input = &ForgotPasswordLoginID{
+					LoginID: loginID,
+				}
+				return
+			})
 			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
-
-			loginID, err := FormToLoginID(r.Form)
-			if err != nil {
-				return err
-			}
-
-			err = h.ForgotPassword.SendCode(loginID)
-			if err != nil {
-				return err
-			}
-
-			state.Extra[interactionflows.ExtraGivenLoginID] = loginID
-
+			result.WriteResponse(w, r)
 			return nil
 		})
 	}

@@ -4,7 +4,8 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
 )
@@ -57,17 +58,20 @@ type ForgotPasswordSuccessViewModel struct {
 	GivenLoginID string
 }
 
-func NewForgotPasswordSuccessViewModel(state *interactionflows.State) ForgotPasswordSuccessViewModel {
-	givenLoginID, _ := state.Extra[interactionflows.ExtraGivenLoginID].(string)
-	return ForgotPasswordSuccessViewModel{
-		GivenLoginID: givenLoginID,
-	}
-}
-
 type ForgotPasswordSuccessHandler struct {
-	State         StateService
 	BaseViewModel *BaseViewModeler
 	Renderer      Renderer
+	WebApp        WebAppService
+}
+
+func (h *ForgotPasswordSuccessHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
+	// FIXME(webapp): derive ForgotPasswordSuccessViewModel with graph and edges
+	forgotPasswordSuccessViewModel := ForgotPasswordSuccessViewModel{}
+	Embed(data, baseViewModel)
+	Embed(data, forgotPasswordSuccessViewModel)
+	return data, nil
 }
 
 func (h *ForgotPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -77,19 +81,17 @@ func (h *ForgotPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.
 	}
 
 	if r.Method == "GET" {
-		state, err := h.State.RestoreReadOnlyState(r, false)
+		state, graph, edges, err := h.WebApp.Get(StateID(r))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-		forgotPasswordSuccessViewModel := NewForgotPasswordSuccessViewModel(state)
-
-		data := map[string]interface{}{}
-
-		Embed(data, baseViewModel)
-		Embed(data, forgotPasswordSuccessViewModel)
+		data, err := h.GetData(r, state, graph, edges)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		h.Renderer.Render(w, r, TemplateItemTypeAuthUIForgotPasswordSuccessHTML, data)
 		return
