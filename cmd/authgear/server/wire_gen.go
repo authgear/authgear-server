@@ -16,7 +16,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/recoverycode"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/totp"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/hook"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
@@ -2014,17 +2013,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
-	redisHandle := appProvider.Redis
-	stateStoreRedis := &flows.StateStoreRedis{
-		Redis: redisHandle,
-	}
-	factory := appProvider.LoggerFactory
-	stateServiceLogger := flows.NewStateServiceLogger(factory)
-	stateService := &flows.StateService{
-		ServerConfig: serverConfig,
-		StateStore:   stateStoreRedis,
-		Logger:       stateServiceLogger,
-	}
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
@@ -2036,297 +2024,19 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Localization: localizationConfig,
 		Metadata:     appMetadata,
 	}
-	authenticatorConfig := appConfig.Authenticator
-	authenticatorPasswordConfig := authenticatorConfig.Password
-	clockClock := _wireSystemClockValue
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	appID := appConfig.ID
-	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := db.SQLExecutor{
-		Context:  context,
-		Database: handle,
-	}
-	historyStore := &password.HistoryStore{
-		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	checker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	passwordPolicyViewModeler := &webapp2.PasswordPolicyViewModeler{
-		PasswordChecker: checker,
-	}
 	engine := appProvider.TemplateEngine
+	factory := appProvider.LoggerFactory
 	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
 	htmlRenderer := &webapp2.HTMLRenderer{
 		TemplateEngine: engine,
 		Logger:         htmlRendererLogger,
 	}
-	messagingConfig := appConfig.Messaging
-	forgotPasswordConfig := appConfig.ForgotPassword
-	store := &forgotpassword.Store{
-		Redis: redisHandle,
-	}
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticationConfig := appConfig.Authentication
-	identityConfig := appConfig.Identity
-	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
-	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
-	}
-	loginidChecker := &loginid.Checker{
-		Config:             loginIDConfig,
-		TypeCheckerFactory: typeCheckerFactory,
-	}
-	normalizerFactory := &loginid.NormalizerFactory{
-		Config: loginIDConfig,
-	}
-	loginidProvider := &loginid.Provider{
-		Store:             loginidStore,
-		Config:            loginIDConfig,
-		Checker:           loginidChecker,
-		NormalizerFactory: normalizerFactory,
-	}
-	oauthStore := &oauth.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	oauthProvider := &oauth.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
-	}
-	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	anonymousProvider := &anonymous.Provider{
-		Store: anonymousStore,
-		Clock: clockClock,
-	}
-	providerProvider := &provider.Provider{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		LoginID:        loginidProvider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-	}
-	verificationConfig := appConfig.Verification
-	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	logger := password.NewLogger(factory)
-	passwordProvider := &password.Provider{
-		Store:           passwordStore,
-		Config:          authenticatorPasswordConfig,
-		Clock:           clockClock,
-		Logger:          logger,
-		PasswordHistory: historyStore,
-		PasswordChecker: checker,
-	}
-	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorTOTPConfig := authenticatorConfig.TOTP
-	totpProvider := &totp.Provider{
-		Store:  totpStore,
-		Config: authenticatorTOTPConfig,
-		Clock:  clockClock,
-	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
-	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	endpointsProvider := &endpoints.Provider{
-		Request: request,
-		Config:  serverConfig,
-	}
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
-	messageSender := &otp.MessageSender{
-		Context:        context,
-		ServerConfig:   serverConfig,
-		Localization:   localizationConfig,
-		AppMetadata:    appMetadata,
-		Messaging:      messagingConfig,
-		TemplateEngine: engine,
-		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
-	}
-	oobProvider := &oob.Provider{
-		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
-		OTPMessageSender: messageSender,
-	}
-	bearertokenStore := &bearertoken.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
-	bearertokenProvider := &bearertoken.Provider{
-		Store:  bearertokenStore,
-		Config: authenticatorBearerTokenConfig,
-		Clock:  clockClock,
-	}
-	recoverycodeStore := &recoverycode.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
-	recoverycodeProvider := &recoverycode.Provider{
-		Store:  recoverycodeStore,
-		Config: authenticatorRecoveryCodeConfig,
-		Clock:  clockClock,
-	}
-	provider3 := &provider2.Provider{
-		Password:     passwordProvider,
-		TOTP:         totpProvider,
-		OOBOTP:       oobProvider,
-		BearerToken:  bearertokenProvider,
-		RecoveryCode: recoverycodeProvider,
-	}
-	service := &verification.Service{
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Identities:       providerProvider,
-		Authenticators:   provider3,
-		OTPMessageSender: messageSender,
-	}
-	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   providerProvider,
-		Verification: service,
-	}
-	hookLogger := hook.NewLogger(factory)
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               context,
-		LocalizationConfig:    localizationConfig,
-		MetadataConfiguration: appMetadata,
-		MessagingConfig:       messagingConfig,
-		WelcomeMessageConfig:  welcomeMessageConfig,
-		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-		Queries:                queries,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	hookStore := &hook.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
-	}
-	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
-	}
-	interactionLogger := interaction.NewLogger(factory)
-	commands := &user.Commands{
-		Raw:          rawCommands,
-		Hooks:        hookProvider,
-		Verification: service,
-	}
-	userProvider := &user.Provider{
-		Commands: commands,
-		Queries:  queries,
-	}
-	interactionProvider := &interaction.Provider{
-		Clock:         clockClock,
-		Logger:        interactionLogger,
-		Identity:      providerProvider,
-		Authenticator: provider3,
-		User:          userProvider,
-		Hooks:         hookProvider,
-		Config:        authenticationConfig,
-	}
-	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	anonymousFlow := &flows.AnonymousFlow{
-		Config:       authenticationConfig,
-		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
-		Challenges:   challengeProvider,
-	}
-	urlProvider := &webapp.URLProvider{
-		Endpoints: endpointsProvider,
-		Anonymous: anonymousFlow,
-		States:    stateService,
-	}
-	passwordFlow := &flows.PasswordFlow{
-		Interactions: interactionProvider,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		Context:         context,
-		ServerConfig:    serverConfig,
-		Localization:    localizationConfig,
-		AppMetadata:     appMetadata,
-		Messaging:       messagingConfig,
-		Config:          forgotPasswordConfig,
-		Store:           store,
-		Users:           queries,
-		Hooks:           hookProvider,
-		Clock:           clockClock,
-		URLs:            urlProvider,
-		TemplateEngine:  engine,
-		TaskQueue:       queueQueue,
-		Interactions:    passwordFlow,
-		LoginIDProvider: loginidProvider,
-	}
+	webAppService := webapp2.ProvideWebAppService()
 	resetPasswordHandler := &webapp2.ResetPasswordHandler{
-		Database:                handle,
-		State:                   stateService,
-		BaseViewModel:           baseViewModeler,
-		PasswordPolicyViewModel: passwordPolicyViewModeler,
-		Renderer:                htmlRenderer,
-		ResetPassword:           forgotpasswordProvider,
+		Database:      handle,
+		BaseViewModel: baseViewModeler,
+		Renderer:      htmlRenderer,
+		WebApp:        webAppService,
 	}
 	return resetPasswordHandler
 }
@@ -2335,17 +2045,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
-	handle := appProvider.Redis
-	stateStoreRedis := &flows.StateStoreRedis{
-		Redis: handle,
-	}
-	factory := appProvider.LoggerFactory
-	stateServiceLogger := flows.NewStateServiceLogger(factory)
-	stateService := &flows.StateService{
-		ServerConfig: serverConfig,
-		StateStore:   stateStoreRedis,
-		Logger:       stateServiceLogger,
-	}
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
@@ -2358,15 +2057,17 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Metadata:     appMetadata,
 	}
 	engine := appProvider.TemplateEngine
+	factory := appProvider.LoggerFactory
 	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
 	htmlRenderer := &webapp2.HTMLRenderer{
 		TemplateEngine: engine,
 		Logger:         htmlRendererLogger,
 	}
+	webAppService := webapp2.ProvideWebAppService()
 	resetPasswordSuccessHandler := &webapp2.ResetPasswordSuccessHandler{
-		State:         stateService,
 		BaseViewModel: baseViewModeler,
 		Renderer:      htmlRenderer,
+		WebApp:        webAppService,
 	}
 	return resetPasswordSuccessHandler
 }

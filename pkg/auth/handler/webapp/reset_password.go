@@ -1,11 +1,11 @@
 package webapp
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -79,17 +79,40 @@ func ConfigureResetPasswordRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/reset_password")
 }
 
-type ResetPasswordInteractions interface {
-	ResetPassword(code string, newPassword string) error
+type ResetPasswordHandler struct {
+	Database      *db.Handle
+	BaseViewModel *BaseViewModeler
+	Renderer      Renderer
+	WebApp        WebAppService
 }
 
-type ResetPasswordHandler struct {
-	Database                *db.Handle
-	State                   StateService
-	BaseViewModel           *BaseViewModeler
-	PasswordPolicyViewModel *PasswordPolicyViewModeler
-	Renderer                Renderer
-	ResetPassword           ResetPasswordInteractions
+func (h *ResetPasswordHandler) MakeIntent(r *http.Request) *webapp.Intent {
+	return &webapp.Intent{
+		RedirectURI: "/reset_password/success",
+		KeepState:   true,
+		// FIXME(webapp): IntentResetPassword
+		Intent: &newinteraction.IntentLogin{},
+	}
+}
+
+func (h *ResetPasswordHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+	var anyError interface{}
+	if state != nil {
+		anyError = state.Error
+	}
+	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+	// FIXME(webapp): derive PasswordPolicyViewModel with graph and edges
+	passwordPolicyViewModel := PasswordPolicyViewModel{}
+	Embed(data, baseViewModel)
+	Embed(data, passwordPolicyViewModel)
+	return data, nil
+}
+
+// FIXME(webapp): implement input interface
+type ResetPasswordInput struct {
+	Code     string
+	Password string
 }
 
 func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -98,29 +121,20 @@ func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if r.Method == "GET" {
-		state, err := h.State.RestoreReadOnlyState(r, true)
-		if errors.Is(err, interactionflows.ErrStateNotFound) {
-			err = nil
-		}
+	intent := h.MakeIntent(r)
 
+	if r.Method == "GET" {
+		state, graph, edges, err := h.WebApp.GetIntent(intent, StateID(r))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		var anyError interface{}
-		if state != nil {
-			anyError = state.Error
+		data, err := h.GetData(r, state, graph, edges)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
-
-		baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
-		passwordPolicyViewModel := h.PasswordPolicyViewModel.ViewModel(anyError)
-
-		data := map[string]interface{}{}
-
-		Embed(data, baseViewModel)
-		Embed(data, passwordPolicyViewModel)
 
 		h.Renderer.Render(w, r, TemplateItemTypeAuthUIResetPasswordHTML, data)
 		return
@@ -128,36 +142,26 @@ func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 	if r.Method == "POST" {
 		h.Database.WithTx(func() error {
-			var state *interactionflows.State
-			var err error
-
-			defer func() {
-				h.State.UpdateState(state, nil, err)
-				redirectURI := state.RedirectURI(r.URL)
-				if err == nil {
-					q := redirectURI.Query()
-					q.Del("code")
-					redirectURI.RawQuery = q.Encode()
-					redirectURI.Path = "/reset_password/success"
+			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
+				err = ResetPasswordSchema.PartValidator(ResetPasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
+				if err != nil {
+					return
 				}
-				http.Redirect(w, r, redirectURI.String(), http.StatusFound)
-			}()
-			state = interactionflows.NewState()
-			state = h.State.CreateState(state, "")
 
-			err = ResetPasswordSchema.PartValidator(ResetPasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
+				code := r.Form.Get("code")
+				newPassword := r.Form.Get("x_password")
+
+				input = &ResetPasswordInput{
+					Code:     code,
+					Password: newPassword,
+				}
+				return
+			})
 			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
-
-			code := r.Form.Get("code")
-			newPassword := r.Form.Get("x_password")
-
-			err = h.ResetPassword.ResetPassword(code, newPassword)
-			if err != nil {
-				return err
-			}
-
+			result.WriteResponse(w, r)
 			return nil
 		})
 	}
