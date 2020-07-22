@@ -20,6 +20,7 @@ import (
 	identityprovider "github.com/authgear/authgear-server/pkg/auth/dependency/identity/provider"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
 	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/dependency/oauth/handler"
 	oauthpq "github.com/authgear/authgear-server/pkg/auth/dependency/oauth/pq"
@@ -103,6 +104,7 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(authenticatorprovider.RecoveryCodeAuthenticatorProvider), new(*authenticatorrecoverycode.Provider)),
 
 		wire.Bind(new(interaction.AuthenticatorProvider), new(*authenticatorprovider.Provider)),
+		wire.Bind(new(newinteraction.AuthenticatorProvider), new(*authenticatorprovider.Provider)),
 		wire.Bind(new(verification.AuthenticatorProvider), new(*authenticatorprovider.Provider)),
 	),
 
@@ -121,6 +123,7 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(user.IdentityProvider), new(*identityprovider.Provider)),
 		wire.Bind(new(interaction.IdentityProvider), new(*identityprovider.Provider)),
 		wire.Bind(new(interactionflows.IdentityProvider), new(*identityprovider.Provider)),
+		wire.Bind(new(newinteraction.IdentityProvider), new(*identityprovider.Provider)),
 		wire.Bind(new(verification.IdentityProvider), new(*identityprovider.Provider)),
 	),
 
@@ -174,6 +177,10 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(webapp.ResponderInteractions), new(*interaction.Provider)),
 		wire.Bind(new(oauthhandler.AnonymousInteractionFlow), new(*interactionflows.AnonymousFlow)),
 		wire.Bind(new(forgotpassword.ResetPasswordFlow), new(*interactionflows.PasswordFlow)),
+	),
+
+	wire.NewSet(
+		newinteraction.DependencySet,
 	),
 
 	wire.NewSet(

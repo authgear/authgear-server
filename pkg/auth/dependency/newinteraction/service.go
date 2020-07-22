@@ -16,6 +16,8 @@ type Store interface {
 
 type Logger struct{ *log.Logger }
 
+func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("interaction")} }
+
 type Service struct {
 	Logger  Logger
 	Context *Context
