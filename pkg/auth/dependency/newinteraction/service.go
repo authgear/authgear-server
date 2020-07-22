@@ -45,14 +45,20 @@ func (s *Service) Get(instanceID string) (*Graph, error) {
 	return s.Store.GetGraphInstance(instanceID)
 }
 
-func (s *Service) WithContext(fn func(*Context) (*Graph, error)) error {
+func (s *Service) WithContext(fn func(*Context) (*Graph, error)) (err error) {
 	ctx, err := s.Context.initialize()
 	if err != nil {
-		return err
+		return
 	}
 
 	defer func() {
-		if err == nil {
+		if r := recover(); r != nil {
+			rbErr := ctx.rollback()
+			if rbErr != nil {
+				s.Logger.WithError(rbErr).Error("cannot rollback")
+			}
+			panic(r)
+		} else if err == nil {
 			err = ctx.commit()
 		} else {
 			rbErr := ctx.rollback()
@@ -64,15 +70,14 @@ func (s *Service) WithContext(fn func(*Context) (*Graph, error)) error {
 	}()
 
 	graph, err := fn(ctx)
-	if err != nil {
-		return err
+	// Create graph if graph is returned
+	if graph != nil {
+		if cErr := s.Create(graph); cErr != nil {
+			err = cErr
+			return
+		}
 	}
-
-	// Do not create graph if no graph is returned
-	if graph == nil {
-		return nil
-	}
-	return s.Create(graph)
+	return
 }
 
 func (s *Service) NewGraph(ctx *Context, intent Intent) (*Graph, error) {
