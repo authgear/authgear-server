@@ -2,10 +2,13 @@ package newinteraction
 
 import (
 	"errors"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 )
+
+const GraphLifetime = 5 * time.Minute
 
 var ErrInputRequired = errors.New("new input is required")
 
@@ -28,7 +31,7 @@ type Graph struct {
 
 func newGraph(intent Intent) *Graph {
 	return &Graph{
-		GraphID:    newGraphID(),
+		GraphID:    "",
 		InstanceID: "",
 		Intent:     intent,
 		Nodes:      nil,

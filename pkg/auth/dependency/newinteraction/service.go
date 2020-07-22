@@ -5,28 +5,42 @@ import (
 	"github.com/authgear/authgear-server/pkg/log"
 )
 
+var ErrStateNotFound = errors.New("invalid state or state not found")
+
+type Store interface {
+	CreateGraph(graph *Graph) error
+	CreateGraphInstance(graph *Graph) error
+	GetGraphInstance(instanceID string) (*Graph, error)
+	DeleteGraph(graph *Graph) error
+}
+
 type Logger struct{ *log.Logger }
 
 type Service struct {
 	Logger  Logger
 	Context *Context
-	Store   *Store
+	Store   Store
 }
 
 func (s *Service) Create(graph *Graph) error {
 	if graph.InstanceID != "" {
-		panic("interaction: cannot create an existing graph")
+		panic("interaction: cannot re-create an existing graph instance")
 	}
 	graph.InstanceID = newInstanceID()
-	return s.Store.Create(graph)
+
+	if graph.GraphID == "" {
+		graph.GraphID = newGraphID()
+		return s.Store.CreateGraph(graph)
+	}
+	return s.Store.CreateGraphInstance(graph)
 }
 
-func (s *Service) Delete(instanceID string) error {
-	return s.Store.Delete(instanceID)
+func (s *Service) Delete(graph *Graph) error {
+	return s.Store.DeleteGraph(graph)
 }
 
 func (s *Service) Get(instanceID string) (*Graph, error) {
-	return s.Store.Get(instanceID)
+	return s.Store.GetGraphInstance(instanceID)
 }
 
 func (s *Service) WithContext(fn func(*Context) (*Graph, error)) error {
