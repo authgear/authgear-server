@@ -8,6 +8,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
+func init() {
+	newinteraction.RegisterNode(&NodeAuthenticationTOTP{})
+}
+
 type InputAuthenticationTOTP interface {
 	GetTOTP() string
 }

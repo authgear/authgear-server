@@ -8,6 +8,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
+func init() {
+	newinteraction.RegisterNode(&NodeAuthenticationOOB{})
+}
+
 type InputAuthenticationOOB interface {
 	GetOOBOTP() string
 }

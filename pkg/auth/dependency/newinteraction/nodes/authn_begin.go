@@ -5,6 +5,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
+func init() {
+	newinteraction.RegisterNode(&NodeAuthenticationBegin{})
+}
+
 type EdgeAuthenticationBegin struct {
 	Stage newinteraction.AuthenticationStage
 }

@@ -10,6 +10,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
+func init() {
+	newinteraction.RegisterNode(&NodeSelectIdentityOAuth{})
+}
+
 type InputSelectIdentityOAuth interface {
 	GetUserInfo() sso.AuthInfo
 }

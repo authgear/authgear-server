@@ -6,6 +6,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
+func init() {
+	newinteraction.RegisterIntent(&IntentLogin{})
+}
+
 type IntentLogin struct {
 	UseAnonymousUser bool `json:"use_anonymous_user"`
 }

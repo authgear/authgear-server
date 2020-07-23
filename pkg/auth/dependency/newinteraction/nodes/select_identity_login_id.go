@@ -9,6 +9,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
+func init() {
+	newinteraction.RegisterNode(&NodeSelectIdentityLoginID{})
+}
+
 type InputSelectIdentityLoginID interface {
 	GetLoginID() string
 }

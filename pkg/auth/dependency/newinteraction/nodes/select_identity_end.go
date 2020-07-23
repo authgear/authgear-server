@@ -5,6 +5,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 )
 
+func init() {
+	newinteraction.RegisterNode(&NodeSelectIdentityEnd{})
+}
+
 type EdgeSelectIdentityEnd struct {
 	RequestedIdentity *identity.Spec
 	ExistingIdentity  *identity.Info

@@ -8,6 +8,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
+func init() {
+	newinteraction.RegisterNode(&NodeAuthenticationPassword{})
+}
+
 type InputAuthenticationPassword interface {
 	GetPassword() string
 }

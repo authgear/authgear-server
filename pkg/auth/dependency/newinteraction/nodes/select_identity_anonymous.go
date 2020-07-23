@@ -10,6 +10,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
+func init() {
+	newinteraction.RegisterNode(&NodeSelectIdentityAnonymous{})
+}
+
 type InputSelectIdentityAnonymous interface {
 	GetAnonymousRequestToken() string
 }
@@ -54,4 +58,12 @@ type NodeSelectIdentityAnonymous struct {
 	NewIdentity *identity.Info          `json:"new_identity"`
 	KeySet      *jwk.Set                `json:"key_set"`
 	Action      anonymous.RequestAction `json:"action"`
+}
+
+func (n *NodeSelectIdentityAnonymous) Apply(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	panic("implement me")
+}
+
+func (n *NodeSelectIdentityAnonymous) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+	panic("implement me")
 }

@@ -5,6 +5,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
+func init() {
+	newinteraction.RegisterNode(&NodeSelectIdentityBegin{})
+}
+
 type InputSelectIdentityBegin interface {
 	GetUseAnonymousUser() bool
 }

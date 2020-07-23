@@ -9,6 +9,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/otp"
 )
 
+func init() {
+	newinteraction.RegisterNode(&NodeAuthenticationOOBTrigger{})
+}
+
 type InputAuthenticationOOBTrigger interface {
 	GetOOBTarget() string
 }
