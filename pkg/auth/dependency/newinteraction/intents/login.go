@@ -62,7 +62,11 @@ func (i *IntentLogin) DeriveEdgesForNode(ctx *newinteraction.Context, graph *new
 		}
 
 		// TODO(interaction): check secondary authentication
-		panic("TODO(interaction): conclude & create session")
+		return []newinteraction.Edge{&nodes.EdgeDoCreateSession{}}, nil
+
+	case *nodes.NodeDoCreateSession:
+		// Intent is finished
+		return nil, nil
 
 	default:
 		panic("interaction: unexpected node")
