@@ -159,7 +159,7 @@ func (c *AuthenticatorOOBEmailConfig) SetDefaults() {
 		c.Message["subject"] = "Email Verification Instruction"
 	}
 	if c.CodeDigits == 0 {
-		c.CodeDigits = 8
+		c.CodeDigits = 6
 	}
 }
 
