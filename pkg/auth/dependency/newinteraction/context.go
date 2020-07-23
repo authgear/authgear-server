@@ -20,6 +20,7 @@ type IdentityProvider interface {
 }
 
 type AuthenticatorProvider interface {
+	// FIXME: cleanup user ID, authenticator.Info & Spec has it
 	Get(userID string, typ authn.AuthenticatorType, id string) (*authenticator.Info, error)
 	List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error)
 	ListByIdentity(userID string, ii *identity.Info) ([]*authenticator.Info, error)
@@ -28,6 +29,7 @@ type AuthenticatorProvider interface {
 	CreateAll(userID string, ais []*authenticator.Info) error
 	UpdateAll(userID string, ais []*authenticator.Info) error
 	DeleteAll(userID string, ais []*authenticator.Info) error
+	// FIXME: pass in authenticator type instead of spec
 	Authenticate(userID string, spec authenticator.Spec, state *map[string]string, secret string) (*authenticator.Info, error)
 	VerifySecret(userID string, a *authenticator.Info, secret string) error
 }

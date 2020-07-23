@@ -63,6 +63,15 @@ func (g *Graph) UnmarshalJSON(d []byte) error {
 	return nil
 }
 
+func (g *Graph) MustGetUserID() string {
+	for i := len(g.Nodes) - 1; i >= 0; i-- {
+		if n, ok := g.Nodes[i].(interface{ UserID() string }); ok {
+			return n.UserID()
+		}
+	}
+	panic("interaction: expect user ID presents")
+}
+
 func (g *Graph) MustGetUserIdentity() *identity.Info {
 	for i := len(g.Nodes) - 1; i >= 0; i-- {
 		if n, ok := g.Nodes[i].(interface{ UserIdentity() *identity.Info }); ok {

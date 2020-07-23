@@ -33,3 +33,10 @@ func (n *NodeSelectIdentityEnd) DeriveEdges(ctx *newinteraction.Context, graph *
 func (n *NodeSelectIdentityEnd) UserIdentity() *identity.Info {
 	return n.ExistingIdentity
 }
+
+func (n *NodeSelectIdentityEnd) UserID() string {
+	if n.ExistingIdentity == nil {
+		return ""
+	}
+	return n.ExistingIdentity.UserID
+}

@@ -3,11 +3,11 @@ package authenticator
 import "github.com/authgear/authgear-server/pkg/core/authn"
 
 type Info struct {
-	ID            string                  `json:"id"`
-	Type          authn.AuthenticatorType `json:"type"`
-	Secret        string                  `json:"secret"`
-	Props         map[string]interface{}  `json:"props"`
-	Authenticator interface{}             `json:"-"`
+	ID     string                  `json:"id"`
+	UserID string                  `json:"user_id"`
+	Type   authn.AuthenticatorType `json:"type"`
+	Secret string                  `json:"secret"`
+	Props  map[string]interface{}  `json:"props"`
 }
 
 func (i *Info) ToSpec() Spec {

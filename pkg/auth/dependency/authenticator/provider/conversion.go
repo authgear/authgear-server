@@ -12,11 +12,11 @@ import (
 
 func passwordToAuthenticatorInfo(p *password.Authenticator) *authenticator.Info {
 	return &authenticator.Info{
-		Type:          authn.AuthenticatorTypePassword,
-		ID:            p.ID,
-		Secret:        string(p.PasswordHash),
-		Props:         map[string]interface{}{},
-		Authenticator: p,
+		Type:   authn.AuthenticatorTypePassword,
+		ID:     p.ID,
+		UserID: p.UserID,
+		Secret: string(p.PasswordHash),
+		Props:  map[string]interface{}{},
 	}
 }
 
@@ -32,11 +32,11 @@ func totpToAuthenticatorInfo(t *totp.Authenticator) *authenticator.Info {
 	return &authenticator.Info{
 		Type:   authn.AuthenticatorTypeTOTP,
 		ID:     t.ID,
+		UserID: t.UserID,
 		Secret: t.Secret,
 		Props: map[string]interface{}{
 			authenticator.AuthenticatorPropTOTPDisplayName: t.DisplayName,
 		},
-		Authenticator: t,
 	}
 }
 
@@ -53,6 +53,7 @@ func oobotpToAuthenticatorInfo(o *oob.Authenticator) *authenticator.Info {
 	return &authenticator.Info{
 		Type:   authn.AuthenticatorTypeOOB,
 		ID:     o.ID,
+		UserID: o.UserID,
 		Secret: "",
 		Props: map[string]interface{}{
 			authenticator.AuthenticatorPropOOBOTPID:          o.ID,
@@ -61,7 +62,6 @@ func oobotpToAuthenticatorInfo(o *oob.Authenticator) *authenticator.Info {
 			authenticator.AuthenticatorPropOOBOTPPhone:       o.Phone,
 			authenticator.AuthenticatorPropOOBOTPIdentityID:  o.IdentityID,
 		},
-		Authenticator: o,
 	}
 }
 
@@ -80,11 +80,11 @@ func bearerTokenToAuthenticatorInfo(b *bearertoken.Authenticator) *authenticator
 	return &authenticator.Info{
 		Type:   authn.AuthenticatorTypeBearerToken,
 		ID:     b.ID,
+		UserID: b.UserID,
 		Secret: b.Token,
 		Props: map[string]interface{}{
 			authenticator.AuthenticatorPropBearerTokenParentID: b.ParentID,
 		},
-		Authenticator: b,
 	}
 }
 
@@ -99,11 +99,11 @@ func bearerTokenFromAuthenticatorInfo(userID string, a *authenticator.Info) *bea
 
 func recoveryCodeToAuthenticatorInfo(r *recoverycode.Authenticator) *authenticator.Info {
 	return &authenticator.Info{
-		Type:          authn.AuthenticatorTypeBearerToken,
-		ID:            r.ID,
-		Secret:        r.Code,
-		Props:         map[string]interface{}{},
-		Authenticator: r,
+		Type:   authn.AuthenticatorTypeBearerToken,
+		ID:     r.ID,
+		UserID: r.UserID,
+		Secret: r.Code,
+		Props:  map[string]interface{}{},
 	}
 }
 
