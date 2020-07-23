@@ -42,7 +42,7 @@ func (n *NodeAuthenticationBegin) DeriveEdges(ctx *newinteraction.Context, graph
 			edges = append(edges, &EdgeAuthenticationPassword{})
 
 		case authn.AuthenticatorTypeTOTP:
-			infos, err := getAuthenticators(ctx, graph, n.Stage, authn.AuthenticatorTypeTOTP)
+			_, infos, err := getAuthenticators(ctx, graph, n.Stage, authn.AuthenticatorTypeTOTP)
 			if err != nil {
 				return nil, err
 			}
@@ -52,7 +52,7 @@ func (n *NodeAuthenticationBegin) DeriveEdges(ctx *newinteraction.Context, graph
 			}
 
 		case authn.AuthenticatorTypeOOB:
-			infos, err := getAuthenticators(ctx, graph, n.Stage, authn.AuthenticatorTypeOOB)
+			_, infos, err := getAuthenticators(ctx, graph, n.Stage, authn.AuthenticatorTypeOOB)
 			if err != nil {
 				return nil, err
 			}

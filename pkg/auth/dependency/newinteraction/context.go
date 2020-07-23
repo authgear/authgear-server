@@ -6,8 +6,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/db"
+	"github.com/authgear/authgear-server/pkg/otp"
 )
 
 type IdentityProvider interface {
@@ -34,6 +36,17 @@ type AuthenticatorProvider interface {
 	VerifySecret(userID string, a *authenticator.Info, secret string) error
 }
 
+type OOBAuthenticatorProvider interface {
+	GenerateCode(secret string, channel authn.AuthenticatorOOBChannel) string
+	SendCode(
+		channel authn.AuthenticatorOOBChannel,
+		loginID *loginid.LoginID,
+		code string,
+		origin otp.MessageOrigin,
+		operation otp.OOBOperationType,
+	) error
+}
+
 type AnonymousIdentityProvider interface {
 	ParseRequest(requestJWT string) (*anonymous.Identity, *anonymous.Request, error)
 }
@@ -48,6 +61,7 @@ type Context struct {
 	Identities          IdentityProvider
 	Authenticators      AuthenticatorProvider
 	AnonymousIdentities AnonymousIdentityProvider
+	OOBAuthenticators   OOBAuthenticatorProvider
 	Challenges          ChallengeProvider
 }
 

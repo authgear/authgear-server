@@ -91,7 +91,7 @@ var commonDeps = wire.NewSet(
 	wire.NewSet(
 		authenticatorpassword.DependencySet,
 		authenticatoroob.DependencySet,
-		// wire.Bind(new(interaction.OOBProvider), new(*authenticatoroob.Provider)),
+		wire.Bind(new(newinteraction.OOBAuthenticatorProvider), new(*authenticatoroob.Provider)),
 		authenticatortotp.DependencySet,
 		authenticatorbearertoken.DependencySet,
 		authenticatorrecoverycode.DependencySet,
