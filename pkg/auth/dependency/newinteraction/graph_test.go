@@ -83,27 +83,27 @@ func TestGraph(t *testing.T) {
 			})
 
 		Convey("should go to deepest node", func() {
-			nodeB.EXPECT().Apply(ctx, any)
+			nodeB.EXPECT().Apply(any, any)
 			graph, edges, err := g.Accept(ctx, input1{})
 			So(err, ShouldBeError, newinteraction.ErrInputRequired)
 			So(graph.Nodes, ShouldResemble, []newinteraction.Node{nodeA, nodeB})
 			So(edges, ShouldResemble, []newinteraction.Edge{edgeD})
 
-			nodeB.EXPECT().Apply(ctx, any)
-			nodeD.EXPECT().Apply(ctx, any)
+			nodeB.EXPECT().Apply(any, any)
+			nodeD.EXPECT().Apply(any, any)
 			graph, edges, err = g.Accept(ctx, input2{})
 			So(err, ShouldBeNil)
 			So(graph.Nodes, ShouldResemble, []newinteraction.Node{nodeA, nodeB, nodeD})
 			So(edges, ShouldResemble, []newinteraction.Edge{})
 
-			nodeC.EXPECT().Apply(ctx, any)
+			nodeC.EXPECT().Apply(any, any)
 			graph, edges, err = g.Accept(ctx, input3{})
 			So(err, ShouldBeError, newinteraction.ErrInputRequired)
 			So(graph.Nodes, ShouldResemble, []newinteraction.Node{nodeA, nodeC})
 			So(edges, ShouldResemble, []newinteraction.Edge{edgeB, edgeE})
 
-			nodeB.EXPECT().Apply(ctx, any)
-			nodeD.EXPECT().Apply(ctx, any)
+			nodeB.EXPECT().Apply(any, any)
+			nodeD.EXPECT().Apply(any, any)
 			graph, edges, err = graph.Accept(ctx, input2{})
 			So(err, ShouldBeNil)
 			So(graph.Nodes, ShouldResemble, []newinteraction.Node{nodeA, nodeC, nodeB, nodeD})
@@ -111,7 +111,7 @@ func TestGraph(t *testing.T) {
 		})
 
 		Convey("should process looping edge", func() {
-			nodeC.EXPECT().Apply(ctx, any)
+			nodeC.EXPECT().Apply(any, any)
 			graph, edges, err := g.Accept(ctx, input3{})
 			So(err, ShouldBeError, newinteraction.ErrInputRequired)
 			So(graph.Nodes, ShouldResemble, []newinteraction.Node{nodeA, nodeC})
@@ -122,8 +122,8 @@ func TestGraph(t *testing.T) {
 			So(graph.Nodes, ShouldResemble, []newinteraction.Node{nodeA, nodeC})
 			So(edges, ShouldResemble, []newinteraction.Edge{edgeB, edgeE})
 
-			nodeB.EXPECT().Apply(ctx, any)
-			nodeD.EXPECT().Apply(ctx, any)
+			nodeB.EXPECT().Apply(any, any)
+			nodeD.EXPECT().Apply(any, any)
 			graph, edges, err = graph.Accept(ctx, input2{})
 			So(err, ShouldBeNil)
 			So(graph.Nodes, ShouldResemble, []newinteraction.Node{nodeA, nodeC, nodeB, nodeD})

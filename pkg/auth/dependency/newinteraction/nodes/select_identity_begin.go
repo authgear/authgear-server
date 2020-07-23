@@ -31,7 +31,7 @@ type NodeSelectIdentityBegin struct {
 	UseAnonymousUser bool `json:"use_anonymous_user"`
 }
 
-func (n *NodeSelectIdentityBegin) Apply(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+func (n *NodeSelectIdentityBegin) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 

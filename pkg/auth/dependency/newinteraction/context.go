@@ -1,12 +1,17 @@
 package newinteraction
 
 import (
+	"time"
+
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
+	"github.com/authgear/authgear-server/pkg/auth/event"
+	"github.com/authgear/authgear-server/pkg/auth/model"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/otp"
@@ -55,14 +60,36 @@ type ChallengeProvider interface {
 	Consume(token string) (*challenge.Purpose, error)
 }
 
+type UserService interface {
+	Get(id string) (*model.User, error)
+	UpdateLoginTime(user *model.User, lastLoginAt time.Time) error
+}
+
+type HookProvider interface {
+	DispatchEvent(payload event.Payload, user *model.User) error
+}
+
+type SessionProvider interface {
+	MakeSession(*authn.Attrs) (*session.IDPSession, string)
+	Create(*session.IDPSession) error
+}
+
 type Context struct {
-	Database            db.SQLExecutor
-	Config              *config.AppConfig
+	IsDryRun bool
+
+	Database db.SQLExecutor
+	Config   *config.AppConfig
+
 	Identities          IdentityProvider
 	Authenticators      AuthenticatorProvider
 	AnonymousIdentities AnonymousIdentityProvider
 	OOBAuthenticators   OOBAuthenticatorProvider
-	Challenges          ChallengeProvider
+
+	Challenges    ChallengeProvider
+	Users         UserService
+	Hooks         HookProvider
+	Sessions      SessionProvider
+	SessionCookie session.CookieDef
 }
 
 var interactionGraphSavePoint savePoint = "interaction_graph"
@@ -81,4 +108,8 @@ func (c *Context) commit() error {
 func (c *Context) rollback() error {
 	_, err := c.Database.ExecWith(interactionGraphSavePoint.Rollback())
 	return err
+}
+
+func (c *Context) perform(effect Effect) error {
+	return effect.apply(c)
 }

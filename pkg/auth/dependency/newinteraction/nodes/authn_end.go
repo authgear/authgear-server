@@ -25,7 +25,7 @@ type NodeAuthenticationEnd struct {
 	Authenticator *authenticator.Info                `json:"authenticator"`
 }
 
-func (n *NodeAuthenticationEnd) Apply(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+func (n *NodeAuthenticationEnd) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 

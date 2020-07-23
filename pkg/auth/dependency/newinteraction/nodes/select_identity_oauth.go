@@ -37,7 +37,7 @@ type NodeSelectIdentityOAuth struct {
 	UserInfo sso.AuthInfo `json:"auth_info"`
 }
 
-func (n *NodeSelectIdentityOAuth) Apply(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+func (n *NodeSelectIdentityOAuth) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 

@@ -23,7 +23,7 @@ type NodeAuthenticationBegin struct {
 	Stage newinteraction.AuthenticationStage `json:"stage"`
 }
 
-func (n *NodeAuthenticationBegin) Apply(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+func (n *NodeAuthenticationBegin) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 

@@ -142,7 +142,7 @@ func (g *Graph) GetAuthenticator(stage AuthenticationStage) (*authenticator.Info
 // Apply applies the effect the the graph nodes into the context.
 func (g *Graph) Apply(ctx *Context) error {
 	for _, node := range g.Nodes {
-		if err := node.Apply(ctx, g); err != nil {
+		if err := node.Apply(ctx.perform, g); err != nil {
 			return err
 		}
 	}
@@ -189,7 +189,7 @@ func (g *Graph) Accept(ctx *Context, input interface{}) (*Graph, []Edge, error) 
 
 		// Follow the edge to nextNode
 		graph = graph.appendingNode(nextNode)
-		err = nextNode.Apply(ctx, graph)
+		err = nextNode.Apply(ctx.perform, graph)
 		if err != nil {
 			return nil, nil, err
 		}
