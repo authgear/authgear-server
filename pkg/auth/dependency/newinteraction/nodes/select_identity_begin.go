@@ -1,6 +1,9 @@
-package newinteraction
+package nodes
 
-import "github.com/authgear/authgear-server/pkg/core/authn"
+import (
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/core/authn"
+)
 
 type InputSelectIdentityBegin interface {
 	GetUseAnonymousUser() bool
@@ -9,10 +12,10 @@ type InputSelectIdentityBegin interface {
 type EdgeSelectIdentityBegin struct {
 }
 
-func (e *EdgeSelectIdentityBegin) Instantiate(ctx *Context, graph *Graph, rawInput interface{}) (Node, error) {
+func (e *EdgeSelectIdentityBegin) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
 	input, ok := rawInput.(InputSelectIdentityBegin)
 	if !ok {
-		return nil, ErrIncompatibleInput
+		return nil, newinteraction.ErrIncompatibleInput
 	}
 
 	return &NodeSelectIdentityBegin{
@@ -24,18 +27,18 @@ type NodeSelectIdentityBegin struct {
 	UseAnonymousUser bool `json:"use_anonymous_user"`
 }
 
-func (n *NodeSelectIdentityBegin) Apply(ctx *Context, graph *Graph) error {
+func (n *NodeSelectIdentityBegin) Apply(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeSelectIdentityBegin) DeriveEdges(ctx *Context, graph *Graph) ([]Edge, error) {
-	var edges []Edge
+func (n *NodeSelectIdentityBegin) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+	var edges []newinteraction.Edge
 	for _, t := range ctx.Config.Authentication.Identities {
 		switch t {
 		case authn.IdentityTypeAnonymous:
 			if n.UseAnonymousUser {
 				// Always use anonymous user only, if requested
-				return []Edge{&EdgeSelectIdentityAnonymous{}}, nil
+				return []newinteraction.Edge{&EdgeSelectIdentityAnonymous{}}, nil
 			}
 
 		case authn.IdentityTypeLoginID:

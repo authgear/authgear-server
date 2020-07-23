@@ -1,13 +1,16 @@
-package newinteraction
+package nodes
 
-import "github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+import (
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+)
 
 type EdgeSelectIdentityEnd struct {
 	Identity    *identity.Info
 	NewIdentity *identity.Info
 }
 
-func (e *EdgeSelectIdentityEnd) Instantiate(ctx *Context, graph *Graph, input interface{}) (Node, error) {
+func (e *EdgeSelectIdentityEnd) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, input interface{}) (newinteraction.Node, error) {
 	return &NodeSelectIdentityEnd{
 		Identity:    e.Identity,
 		NewIdentity: e.NewIdentity,
@@ -19,7 +22,7 @@ type NodeSelectIdentityEnd struct {
 	NewIdentity *identity.Info `json:"new_identity"`
 }
 
-func (n *NodeSelectIdentityEnd) Apply(ctx *Context, graph *Graph) error {
+func (n *NodeSelectIdentityEnd) Apply(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
 	if n.NewIdentity != nil {
 		panic("TODO(new_interaction): create new identity")
 	}
@@ -27,7 +30,7 @@ func (n *NodeSelectIdentityEnd) Apply(ctx *Context, graph *Graph) error {
 	return nil
 }
 
-func (n *NodeSelectIdentityEnd) DeriveEdges(ctx *Context, graph *Graph) ([]Edge, error) {
+func (n *NodeSelectIdentityEnd) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	return graph.Intent.DeriveEdgesForNode(ctx, graph, n)
 }
 

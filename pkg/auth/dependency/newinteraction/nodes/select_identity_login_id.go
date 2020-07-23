@@ -1,10 +1,11 @@
-package newinteraction
+package nodes
 
 import (
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
@@ -16,10 +17,10 @@ type EdgeSelectIdentityLoginID struct {
 	Config config.LoginIDKeyConfig
 }
 
-func (s *EdgeSelectIdentityLoginID) Instantiate(ctx *Context, graph *Graph, rawInput interface{}) (Node, error) {
+func (s *EdgeSelectIdentityLoginID) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
 	input, ok := rawInput.(InputSelectIdentityLoginID)
 	if !ok {
-		return nil, ErrIncompatibleInput
+		return nil, newinteraction.ErrIncompatibleInput
 	}
 
 	return &NodeSelectIdentityLoginID{
@@ -33,11 +34,11 @@ type NodeSelectIdentityLoginID struct {
 	LoginID string                  `json:"login_id"`
 }
 
-func (n *NodeSelectIdentityLoginID) Apply(ctx *Context, graph *Graph) error {
+func (n *NodeSelectIdentityLoginID) Apply(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeSelectIdentityLoginID) DeriveEdges(ctx *Context, graph *Graph) ([]Edge, error) {
+func (n *NodeSelectIdentityLoginID) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	_, i, err := ctx.Identities.GetByClaims(
 		authn.IdentityTypeLoginID,
 		map[string]interface{}{
@@ -50,7 +51,7 @@ func (n *NodeSelectIdentityLoginID) DeriveEdges(ctx *Context, graph *Graph) ([]E
 		return nil, err
 	}
 
-	return []Edge{
+	return []newinteraction.Edge{
 		&EdgeSelectIdentityEnd{Identity: i},
 	}, nil
 }

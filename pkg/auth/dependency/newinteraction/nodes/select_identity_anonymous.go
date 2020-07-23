@@ -1,4 +1,4 @@
-package newinteraction
+package nodes
 
 import (
 	"github.com/lestrrat-go/jwx/jwk"
@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
@@ -16,10 +17,10 @@ type InputSelectIdentityAnonymous interface {
 type EdgeSelectIdentityAnonymous struct {
 }
 
-func (e *EdgeSelectIdentityAnonymous) Instantiate(ctx *Context, graph *Graph, rawInput interface{}) (Node, error) {
+func (e *EdgeSelectIdentityAnonymous) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
 	input, ok := rawInput.(InputSelectIdentityAnonymous)
 	if !ok {
-		return nil, ErrIncompatibleInput
+		return nil, newinteraction.ErrIncompatibleInput
 	}
 
 	enabled := false
@@ -31,17 +32,17 @@ func (e *EdgeSelectIdentityAnonymous) Instantiate(ctx *Context, graph *Graph, ra
 	}
 
 	if !enabled {
-		return nil, ConfigurationViolated.New("anonymous users are not allowed")
+		return nil, newinteraction.ConfigurationViolated.New("anonymous users are not allowed")
 	}
 
 	_, request, err := ctx.AnonymousIdentities.ParseRequest(input.GetAnonymousRequestToken())
 	if err != nil {
-		return nil, ErrInvalidCredentials
+		return nil, newinteraction.ErrInvalidCredentials
 	}
 
 	purpose, err := ctx.Challenges.Consume(request.Challenge)
 	if err != nil || *purpose != challenge.PurposeAnonymousRequest {
-		return nil, ErrInvalidCredentials
+		return nil, newinteraction.ErrInvalidCredentials
 	}
 
 	panic("TODO(new_interaction): implements anonymous user signup/login")
