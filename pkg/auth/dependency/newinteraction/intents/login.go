@@ -42,7 +42,7 @@ func (i *IntentLogin) DeriveEdgesForNode(ctx *newinteraction.Context, graph *new
 	case *nodes.NodeAuthenticationEnd:
 		if node.Stage == newinteraction.AuthenticationStagePrimary {
 			if node.Authenticator == nil {
-				identityType := graph.MustGetUserIdentity().Type
+				identityType := graph.MustGetUserLastIdentity().Type
 				switch identityType {
 				case authn.IdentityTypeLoginID:
 					return nil, newinteraction.ErrInvalidCredentials

@@ -63,6 +63,7 @@ type ChallengeProvider interface {
 
 type UserService interface {
 	Get(id string) (*model.User, error)
+	Create(userID string, metadata map[string]interface{}, identities []*identity.Info, authenticators []*authenticator.Info) error
 	UpdateLoginTime(user *model.User, lastLoginAt time.Time) error
 }
 

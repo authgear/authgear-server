@@ -55,7 +55,7 @@ func (n *NodeDoCreateSession) Apply(perform func(eff newinteraction.Effect) erro
 			return err
 		}
 
-		identity := graph.MustGetUserIdentity().ToModel()
+		identity := graph.MustGetUserLastIdentity().ToModel()
 		// TODO(interaction): determine create reason
 		reason := auth.SessionCreateReasonLogin
 
