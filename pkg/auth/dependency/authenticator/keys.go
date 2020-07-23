@@ -24,12 +24,9 @@ const (
 
 	// AuthenticatorStateOOBOTPID is a claim with string value for OOB authenticator ID of current interaction.
 	AuthenticatorStateOOBOTPID string = AuthenticatorPropOOBOTPID
-	// AuthenticatorStateOOBOTPCode is a claim with string value for OOB code of current interaction.
-	AuthenticatorStateOOBOTPCode string = "https://authgear.com/claims/oob_otp/code"
-	// AuthenticatorStateOOBOTPGenerateTime is a claim with string value for OOB code generate time.
-	AuthenticatorStateOOBOTPGenerateTime string = "https://authgear.com/claims/oob_otp/generate_time"
-	// AuthenticatorStateOOBOTPTriggerTime is a claim with string value for OOB last trigger time of current interaction.
-	AuthenticatorStateOOBOTPTriggerTime string = "https://authgear.com/claims/oob_otp/trigger_time"
+	// AuthenticatorStateOOBOTPCode is a claim with string value for OOB OTP code secret of current interaction.
+	// nolint:gosec
+	AuthenticatorStateOOBOTPSecret string = "https://authgear.com/claims/oob_otp/secret"
 	// AuthenticatorStateOOBOTPChannelType is a claim with string value for OOB OTP channel type.
 	AuthenticatorStateOOBOTPChannelType = AuthenticatorPropOOBOTPChannelType
 )

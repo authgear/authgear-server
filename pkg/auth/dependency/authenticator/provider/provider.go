@@ -40,7 +40,7 @@ type OOBOTPAuthenticatorProvider interface {
 	New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string, identityID *string) *oob.Authenticator
 	Create(*oob.Authenticator) error
 	Delete(*oob.Authenticator) error
-	Authenticate(expectedCode string, code string) error
+	Authenticate(secret string, channel authn.AuthenticatorOOBChannel, code string) error
 }
 
 type BearerTokenAuthenticatorProvider interface {
@@ -404,7 +404,8 @@ func (a *Provider) Authenticate(userID string, spec authenticator.Spec, state *m
 			return nil, authenticator.ErrAuthenticatorNotFound
 		}
 		id := (*state)[authenticator.AuthenticatorStateOOBOTPID]
-		code := (*state)[authenticator.AuthenticatorStateOOBOTPCode]
+		otpSecret := (*state)[authenticator.AuthenticatorStateOOBOTPSecret]
+		channel := authn.AuthenticatorOOBChannel((*state)[authenticator.AuthenticatorStateOOBOTPChannelType])
 
 		var o *oob.Authenticator
 		// This function can be called by login or signup.
@@ -417,7 +418,7 @@ func (a *Provider) Authenticate(userID string, spec authenticator.Spec, state *m
 			}
 		}
 
-		if a.OOBOTP.Authenticate(code, secret) != nil {
+		if a.OOBOTP.Authenticate(otpSecret, channel, secret) != nil {
 			return nil, authenticator.ErrInvalidCredentials
 		}
 

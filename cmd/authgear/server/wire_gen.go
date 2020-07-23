@@ -520,7 +520,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Identity:      providerProvider,
 		Authenticator: provider3,
 		User:          userProvider,
-		OOB:           oobProvider,
 		Hooks:         hookProvider,
 		Config:        authenticationConfig,
 	}
@@ -865,7 +864,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Identity:      providerProvider,
 		Authenticator: provider3,
 		User:          userProvider,
-		OOB:           oobProvider,
 		Hooks:         hookProvider,
 		Config:        authenticationConfig,
 	}
@@ -1611,7 +1609,6 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Identity:      providerProvider,
 		Authenticator: provider3,
 		User:          userProvider,
-		OOB:           oobProvider,
 		Hooks:         hookProvider,
 		Config:        authenticationConfig,
 	}
@@ -1952,7 +1949,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Identity:      providerProvider,
 		Authenticator: provider3,
 		User:          userProvider,
-		OOB:           oobProvider,
 		Hooks:         hookProvider,
 		Config:        authenticationConfig,
 	}
@@ -2320,7 +2316,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Identity:      providerProvider,
 		Authenticator: provider3,
 		User:          userProvider,
-		OOB:           oobProvider,
 		Hooks:         hookProvider,
 		Config:        authenticationConfig,
 	}
@@ -2688,7 +2683,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Identity:      providerProvider,
 		Authenticator: provider3,
 		User:          userProvider,
-		OOB:           oobProvider,
 		Hooks:         hookProvider,
 		Config:        authenticationConfig,
 	}
@@ -3035,7 +3029,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Identity:      providerProvider,
 		Authenticator: provider3,
 		User:          userProvider,
-		OOB:           oobProvider,
 		Hooks:         hookProvider,
 		Config:        authenticationConfig,
 	}
@@ -3390,7 +3383,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Identity:      providerProvider,
 		Authenticator: provider3,
 		User:          userProvider,
-		OOB:           oobProvider,
 		Hooks:         hookProvider,
 		Config:        authenticationConfig,
 	}
@@ -3751,7 +3743,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identity:      providerProvider,
 		Authenticator: provider3,
 		User:          userProvider,
-		OOB:           oobProvider,
 		Hooks:         hookProvider,
 		Config:        authenticationConfig,
 	}
@@ -4112,7 +4103,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identity:      providerProvider,
 		Authenticator: provider3,
 		User:          userProvider,
-		OOB:           oobProvider,
 		Hooks:         hookProvider,
 		Config:        authenticationConfig,
 	}
@@ -4470,7 +4460,6 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Identity:      providerProvider,
 		Authenticator: provider3,
 		User:          userProvider,
-		OOB:           oobProvider,
 		Hooks:         hookProvider,
 		Config:        authenticationConfig,
 	}
@@ -4837,7 +4826,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identity:      providerProvider,
 		Authenticator: provider3,
 		User:          userProvider,
-		OOB:           oobProvider,
 		Hooks:         hookProvider,
 		Config:        authenticationConfig,
 	}
@@ -5201,7 +5189,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identity:      providerProvider,
 		Authenticator: provider3,
 		User:          userProvider,
-		OOB:           oobProvider,
 		Hooks:         hookProvider,
 		Config:        authenticationConfig,
 	}
@@ -5592,7 +5579,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Identity:      providerProvider,
 		Authenticator: provider3,
 		User:          userProvider,
-		OOB:           oobProvider,
 		Hooks:         hookProvider,
 		Config:        authenticationConfig,
 	}

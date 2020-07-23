@@ -59,7 +59,7 @@ func (p *Provider) Create(a *Authenticator) error {
 func (p *Provider) Authenticate(candidates []*Authenticator, code string) *Authenticator {
 	now := p.Clock.NowUTC()
 	for _, a := range candidates {
-		if otp.ValidateTOTP(a.Secret, code, now) {
+		if otp.ValidateTOTP(a.Secret, code, now, otp.ValidateOptsTOTP) {
 			return a
 		}
 	}

@@ -26,7 +26,7 @@ func TestTOTP(t *testing.T) {
 		})
 
 		Convey("GenerateTOTP", func() {
-			code, err := otp.GenerateTOTP(fixtureSecret, fixtureTime)
+			code, err := otp.GenerateTOTP(fixtureSecret, fixtureTime, otp.ValidateOptsTOTP)
 			So(err, ShouldBeNil)
 			// Should be 6 digits
 			So(len(code), ShouldEqual, 6)
@@ -35,54 +35,54 @@ func TestTOTP(t *testing.T) {
 
 		Convey("ValidateCode", func() {
 			Convey("Within the same period", func() {
-				code, err := otp.GenerateTOTP(fixtureSecret, fixtureTime)
+				code, err := otp.GenerateTOTP(fixtureSecret, fixtureTime, otp.ValidateOptsTOTP)
 				So(err, ShouldBeNil)
 
-				valid := otp.ValidateTOTP(fixtureSecret, code, fixtureTime)
+				valid := otp.ValidateTOTP(fixtureSecret, code, fixtureTime, otp.ValidateOptsTOTP)
 				So(valid, ShouldBeTrue)
 			})
 
 			Convey("-1 period", func() {
-				code, err := otp.GenerateTOTP(fixtureSecret, fixtureTime)
+				code, err := otp.GenerateTOTP(fixtureSecret, fixtureTime, otp.ValidateOptsTOTP)
 				So(err, ShouldBeNil)
 
 				t1 := fixtureTime.Add(-30 * time.Second)
-				t1Code, err := otp.GenerateTOTP(fixtureSecret, t1)
+				t1Code, err := otp.GenerateTOTP(fixtureSecret, t1, otp.ValidateOptsTOTP)
 				So(err, ShouldBeNil)
 				So(t1Code, ShouldNotEqual, code)
 				So(t1Code, ShouldEqual, "817861")
-				valid := otp.ValidateTOTP(fixtureSecret, t1Code, fixtureTime)
+				valid := otp.ValidateTOTP(fixtureSecret, t1Code, fixtureTime, otp.ValidateOptsTOTP)
 				So(valid, ShouldBeTrue)
 			})
 
 			Convey("+1 period", func() {
-				code, err := otp.GenerateTOTP(fixtureSecret, fixtureTime)
+				code, err := otp.GenerateTOTP(fixtureSecret, fixtureTime, otp.ValidateOptsTOTP)
 				So(err, ShouldBeNil)
 
 				t2 := fixtureTime.Add(30 * time.Second)
-				t2Code, err := otp.GenerateTOTP(fixtureSecret, t2)
+				t2Code, err := otp.GenerateTOTP(fixtureSecret, t2, otp.ValidateOptsTOTP)
 				So(err, ShouldBeNil)
 				So(t2Code, ShouldNotEqual, code)
 				So(t2Code, ShouldEqual, "503766")
-				valid := otp.ValidateTOTP(fixtureSecret, t2Code, fixtureTime)
+				valid := otp.ValidateTOTP(fixtureSecret, t2Code, fixtureTime, otp.ValidateOptsTOTP)
 				So(valid, ShouldBeTrue)
 			})
 
 			Convey("Invalid code", func() {
-				valid := otp.ValidateTOTP(fixtureSecret, "123456", fixtureTime)
+				valid := otp.ValidateTOTP(fixtureSecret, "123456", fixtureTime, otp.ValidateOptsTOTP)
 				So(valid, ShouldBeFalse)
 			})
 
 			Convey("Expired code", func() {
-				code, err := otp.GenerateTOTP(fixtureSecret, fixtureTime)
+				code, err := otp.GenerateTOTP(fixtureSecret, fixtureTime, otp.ValidateOptsTOTP)
 				So(err, ShouldBeNil)
 
 				t1 := fixtureTime.Add(-60 * time.Second)
-				t1Code, err := otp.GenerateTOTP(fixtureSecret, t1)
+				t1Code, err := otp.GenerateTOTP(fixtureSecret, t1, otp.ValidateOptsTOTP)
 				So(err, ShouldBeNil)
 				So(t1Code, ShouldNotEqual, code)
 				So(t1Code, ShouldEqual, "369494")
-				valid := otp.ValidateTOTP(fixtureSecret, t1Code, fixtureTime)
+				valid := otp.ValidateTOTP(fixtureSecret, t1Code, fixtureTime, otp.ValidateOptsTOTP)
 				So(valid, ShouldBeFalse)
 			})
 		})

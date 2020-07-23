@@ -108,7 +108,7 @@ func NewOOBOTPViewModel(state *interactionflows.State) OOBOTPViewModel {
 	givenLoginID, _ := state.Extra[interactionflows.ExtraGivenLoginID].(string)
 	return OOBOTPViewModel{
 		OOBOTPCodeSendCooldown: oob.OOBOTPSendCooldownSeconds,
-		OOBOTPCodeLength:       len(state.Interaction.State[authenticator.AuthenticatorStateOOBOTPCode]),
+		OOBOTPCodeLength:       0, // FIXME: use code length
 		OOBOTPChannel:          state.Interaction.State[authenticator.AuthenticatorStateOOBOTPChannelType],
 		GivenLoginID:           givenLoginID,
 	}
