@@ -2,6 +2,7 @@ package oob
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 	"sort"
 
@@ -79,25 +80,34 @@ func (p *Provider) Create(a *Authenticator) error {
 	return p.Store.Create(a)
 }
 
-func (p *Provider) Authenticate(expectedCode string, code string) error {
-	ok := otp.ValidateOTP(expectedCode, code)
+func (p *Provider) getOTPOpts(channel authn.AuthenticatorOOBChannel) otp.ValidateOpts {
+	var digits int
+	switch channel {
+	case authn.AuthenticatorOOBChannelEmail:
+		digits = p.Config.Email.CodeDigits
+	case authn.AuthenticatorOOBChannelSMS:
+		digits = p.Config.SMS.CodeDigits
+	default:
+		panic("oob: unknown channel type: " + channel)
+	}
+	return otp.ValidateOptsOOBTOTP(digits)
+}
+
+func (p *Provider) Authenticate(secret string, channel authn.AuthenticatorOOBChannel, code string) error {
+	ok := otp.ValidateTOTP(secret, code, p.Clock.NowUTC(), p.getOTPOpts(channel))
 	if !ok {
-		return errors.New("invalid bearer token")
+		return errors.New("invalid OOB code")
 	}
 	return nil
 }
 
-func (p *Provider) GenerateCode(channel authn.AuthenticatorOOBChannel) string {
-	var format *otp.Format
-	switch channel {
-	case authn.AuthenticatorOOBChannelEmail:
-		format = otp.GetFormat(p.Config.Email.CodeFormat)
-	case authn.AuthenticatorOOBChannelSMS:
-		format = otp.GetFormat(p.Config.SMS.CodeFormat)
-	default:
-		panic("oob: unknown channel type: " + channel)
+func (p *Provider) GenerateCode(secret string, channel authn.AuthenticatorOOBChannel) string {
+	code, err := otp.GenerateTOTP(secret, p.Clock.NowUTC(), p.getOTPOpts(channel))
+	if err != nil {
+		panic(fmt.Sprintf("oob: cannot generate code: %s", err))
 	}
-	return format.Generate()
+
+	return code
 }
 
 func (p *Provider) SendCode(

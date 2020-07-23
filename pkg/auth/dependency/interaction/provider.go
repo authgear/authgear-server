@@ -98,7 +98,7 @@ type Provider struct {
 	Identity      IdentityProvider
 	Authenticator AuthenticatorProvider
 	User          UserProvider
-	OOB           OOBProvider
+	OOB           OOBProvider `wire:"-"`
 	Hooks         HookProvider
 	Config        *config.AuthenticationConfig
 }

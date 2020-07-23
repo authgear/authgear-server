@@ -9,6 +9,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
+func init() {
+	newinteraction.RegisterNode(&NodeSelectIdentityLoginID{})
+}
+
 type InputSelectIdentityLoginID interface {
 	GetLoginID() string
 }
@@ -17,14 +21,14 @@ type EdgeSelectIdentityLoginID struct {
 	Config config.LoginIDKeyConfig
 }
 
-func (s *EdgeSelectIdentityLoginID) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
+func (e *EdgeSelectIdentityLoginID) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
 	input, ok := rawInput.(InputSelectIdentityLoginID)
 	if !ok {
 		return nil, newinteraction.ErrIncompatibleInput
 	}
 
 	return &NodeSelectIdentityLoginID{
-		Config:  s.Config,
+		Config:  e.Config,
 		LoginID: input.GetLoginID(),
 	}, nil
 }

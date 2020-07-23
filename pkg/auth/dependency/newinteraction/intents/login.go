@@ -6,6 +6,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
+func init() {
+	newinteraction.RegisterIntent(&IntentLogin{})
+}
+
 type IntentLogin struct {
 	UseAnonymousUser bool `json:"use_anonymous_user"`
 }
@@ -34,6 +38,31 @@ func (i *IntentLogin) DeriveEdgesForNode(ctx *newinteraction.Context, graph *new
 		return []newinteraction.Edge{
 			&nodes.EdgeAuthenticationBegin{Stage: newinteraction.AuthenticationStagePrimary},
 		}, nil
+
+	case *nodes.NodeAuthenticationEnd:
+		if node.Stage == newinteraction.AuthenticationStagePrimary {
+			if node.Authenticator == nil {
+				identityType := graph.MustGetUserIdentity().Type
+				switch identityType {
+				case authn.IdentityTypeLoginID:
+					return nil, newinteraction.ErrInvalidCredentials
+
+				case authn.IdentityTypeAnonymous, authn.IdentityTypeOAuth:
+					// Primary authentication is not needed
+					break
+
+				default:
+					panic("interaction: unknown identity type: " + identityType)
+				}
+			}
+
+			return []newinteraction.Edge{
+				&nodes.EdgeAuthenticationBegin{Stage: newinteraction.AuthenticationStageSecondary},
+			}, nil
+		}
+
+		// TODO(interaction): check secondary authentication
+		panic("TODO(interaction): conclude & create session")
 
 	default:
 		panic("interaction: unexpected node")

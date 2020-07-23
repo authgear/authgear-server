@@ -9,19 +9,19 @@ import (
 )
 
 func init() {
-	newinteraction.RegisterNode(&NodeAuthenticationPassword{})
+	newinteraction.RegisterNode(&NodeAuthenticationTOTP{})
 }
 
-type InputAuthenticationPassword interface {
-	GetPassword() string
+type InputAuthenticationTOTP interface {
+	GetTOTP() string
 }
 
-type EdgeAuthenticationPassword struct {
+type EdgeAuthenticationTOTP struct {
 	Stage newinteraction.AuthenticationStage
 }
 
-func (e *EdgeAuthenticationPassword) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
-	input, ok := rawInput.(InputAuthenticationPassword)
+func (e *EdgeAuthenticationTOTP) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
+	input, ok := rawInput.(InputAuthenticationTOTP)
 	if !ok {
 		return nil, newinteraction.ErrIncompatibleInput
 	}
@@ -29,10 +29,10 @@ func (e *EdgeAuthenticationPassword) Instantiate(ctx *newinteraction.Context, gr
 	userID := graph.MustGetUserID()
 	spec := &authenticator.Spec{
 		UserID: userID,
-		Type:   authn.AuthenticatorTypePassword,
+		Type:   authn.AuthenticatorTypeTOTP,
 		Props:  map[string]interface{}{},
 	}
-	info, err := ctx.Authenticators.Authenticate(userID, *spec, nil, input.GetPassword())
+	info, err := ctx.Authenticators.Authenticate(userID, *spec, nil, input.GetTOTP())
 	if errors.Is(err, authenticator.ErrAuthenticatorNotFound) ||
 		errors.Is(err, authenticator.ErrInvalidCredentials) {
 		info = nil
@@ -40,19 +40,19 @@ func (e *EdgeAuthenticationPassword) Instantiate(ctx *newinteraction.Context, gr
 		return nil, err
 	}
 
-	return &NodeAuthenticationPassword{Stage: e.Stage, Authenticator: info}, nil
+	return &NodeAuthenticationTOTP{Stage: e.Stage, Authenticator: info}, nil
 }
 
-type NodeAuthenticationPassword struct {
+type NodeAuthenticationTOTP struct {
 	Stage         newinteraction.AuthenticationStage `json:"stage"`
 	Authenticator *authenticator.Info                `json:"authenticator"`
 }
 
-func (n *NodeAuthenticationPassword) Apply(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+func (n *NodeAuthenticationTOTP) Apply(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeAuthenticationPassword) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+func (n *NodeAuthenticationTOTP) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	return []newinteraction.Edge{
 		&EdgeAuthenticationEnd{Stage: n.Stage, Authenticator: n.Authenticator},
 	}, nil

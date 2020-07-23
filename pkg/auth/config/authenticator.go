@@ -90,20 +90,6 @@ func (c *AuthenticatorTOTPConfig) SetDefaults() {
 	}
 }
 
-var _ = Schema.Add("OTPFormat", `
-{
-	"type": "string",
-	"enum": ["numeric", "complex"]
-}
-`)
-
-type OTPFormat string
-
-const (
-	OTPFormatNumeric OTPFormat = "numeric"
-	OTPFormatComplex OTPFormat = "complex"
-)
-
 var _ = Schema.Add("AuthenticatorOOBConfig", `
 {
 	"type": "object",
@@ -127,7 +113,7 @@ var _ = Schema.Add("AuthenticatorOOBSMSConfig", `
 	"properties": {
 		"maximum": { "type": "integer" },
 		"message": { "$ref": "#/$defs/SMSMessageConfig" },
-		"code_format": { "$ref": "#/$defs/OTPFormat" }
+		"code_digits": { "type": "integer", "minimum": 4, "maximum": 8 }
 	}
 }
 `)
@@ -135,15 +121,15 @@ var _ = Schema.Add("AuthenticatorOOBSMSConfig", `
 type AuthenticatorOOBSMSConfig struct {
 	Maximum    *int             `json:"maximum,omitempty"`
 	Message    SMSMessageConfig `json:"message,omitempty"`
-	CodeFormat OTPFormat        `json:"code_format,omitempty"`
+	CodeDigits int              `json:"code_digits,omitempty"`
 }
 
 func (c *AuthenticatorOOBSMSConfig) SetDefaults() {
 	if c.Maximum == nil {
 		c.Maximum = newInt(99)
 	}
-	if c.CodeFormat == "" {
-		c.CodeFormat = OTPFormatNumeric
+	if c.CodeDigits == 0 {
+		c.CodeDigits = 6
 	}
 }
 
@@ -154,7 +140,7 @@ var _ = Schema.Add("AuthenticatorOOBEmailConfig", `
 	"properties": {
 		"maximum": { "type": "integer" },
 		"message": { "$ref": "#/$defs/EmailMessageConfig" },
-		"code_format": { "$ref": "#/$defs/OTPFormat" }
+		"code_digits": { "type": "integer", "minimum": 4, "maximum": 8 }
 	}
 }
 `)
@@ -162,7 +148,7 @@ var _ = Schema.Add("AuthenticatorOOBEmailConfig", `
 type AuthenticatorOOBEmailConfig struct {
 	Maximum    *int               `json:"maximum,omitempty"`
 	Message    EmailMessageConfig `json:"message,omitempty"`
-	CodeFormat OTPFormat          `json:"code_format,omitempty"`
+	CodeDigits int                `json:"code_digits,omitempty"`
 }
 
 func (c *AuthenticatorOOBEmailConfig) SetDefaults() {
@@ -172,8 +158,8 @@ func (c *AuthenticatorOOBEmailConfig) SetDefaults() {
 	if c.Message["subject"] == "" {
 		c.Message["subject"] = "Email Verification Instruction"
 	}
-	if c.CodeFormat == "" {
-		c.CodeFormat = OTPFormatComplex
+	if c.CodeDigits == 0 {
+		c.CodeDigits = 6
 	}
 }
 

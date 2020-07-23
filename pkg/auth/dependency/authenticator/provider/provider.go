@@ -1,8 +1,6 @@
 package provider
 
 import (
-	"errors"
-
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/bearertoken"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
@@ -42,7 +40,7 @@ type OOBOTPAuthenticatorProvider interface {
 	New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string, identityID *string) *oob.Authenticator
 	Create(*oob.Authenticator) error
 	Delete(*oob.Authenticator) error
-	Authenticate(expectedCode string, code string) error
+	Authenticate(secret string, channel authn.AuthenticatorOOBChannel, code string) error
 }
 
 type BearerTokenAuthenticatorProvider interface {
@@ -381,11 +379,11 @@ func (a *Provider) Authenticate(userID string, spec authenticator.Spec, state *m
 			return nil, err
 		}
 		if len(ps) != 1 {
-			return nil, interaction.ErrInvalidCredentials
+			return nil, authenticator.ErrAuthenticatorNotFound
 		}
 
 		if a.Password.Authenticate(ps[0], secret) != nil {
-			return nil, interaction.ErrInvalidCredentials
+			return nil, authenticator.ErrInvalidCredentials
 		}
 		return passwordToAuthenticatorInfo(ps[0]), nil
 
@@ -397,16 +395,17 @@ func (a *Provider) Authenticate(userID string, spec authenticator.Spec, state *m
 
 		t := a.TOTP.Authenticate(ts, secret)
 		if t == nil {
-			return nil, interaction.ErrInvalidCredentials
+			return nil, authenticator.ErrInvalidCredentials
 		}
 		return totpToAuthenticatorInfo(t), nil
 
 	case authn.AuthenticatorTypeOOB:
 		if state == nil {
-			return nil, interaction.ErrInvalidCredentials
+			return nil, authenticator.ErrAuthenticatorNotFound
 		}
 		id := (*state)[authenticator.AuthenticatorStateOOBOTPID]
-		code := (*state)[authenticator.AuthenticatorStateOOBOTPCode]
+		otpSecret := (*state)[authenticator.AuthenticatorStateOOBOTPSecret]
+		channel := authn.AuthenticatorOOBChannel((*state)[authenticator.AuthenticatorStateOOBOTPChannelType])
 
 		var o *oob.Authenticator
 		// This function can be called by login or signup.
@@ -414,15 +413,13 @@ func (a *Provider) Authenticate(userID string, spec authenticator.Spec, state *m
 		if id != "" {
 			var err error
 			o, err = a.OOBOTP.Get(userID, id)
-			if errors.Is(err, authenticator.ErrAuthenticatorNotFound) {
-				return nil, interaction.ErrInvalidCredentials
-			} else if err != nil {
+			if err != nil {
 				return nil, err
 			}
 		}
 
-		if a.OOBOTP.Authenticate(code, secret) != nil {
-			return nil, interaction.ErrInvalidCredentials
+		if a.OOBOTP.Authenticate(otpSecret, channel, secret) != nil {
+			return nil, authenticator.ErrInvalidCredentials
 		}
 
 		if o != nil {
@@ -431,14 +428,12 @@ func (a *Provider) Authenticate(userID string, spec authenticator.Spec, state *m
 		return nil, nil
 	case authn.AuthenticatorTypeBearerToken:
 		b, err := a.BearerToken.GetByToken(userID, secret)
-		if errors.Is(err, authenticator.ErrAuthenticatorNotFound) {
-			return nil, interaction.ErrInvalidCredentials
-		} else if err != nil {
+		if err != nil {
 			return nil, err
 		}
 
 		if a.BearerToken.Authenticate(b, secret) != nil {
-			return nil, interaction.ErrInvalidCredentials
+			return nil, authenticator.ErrInvalidCredentials
 		}
 		return bearerTokenToAuthenticatorInfo(b), nil
 
@@ -450,7 +445,7 @@ func (a *Provider) Authenticate(userID string, spec authenticator.Spec, state *m
 
 		r := a.RecoveryCode.Authenticate(rs, secret)
 		if r == nil {
-			return nil, interaction.ErrInvalidCredentials
+			return nil, authenticator.ErrInvalidCredentials
 		}
 		return recoveryCodeToAuthenticatorInfo(r), nil
 	}

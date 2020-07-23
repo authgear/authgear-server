@@ -5,6 +5,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 )
 
+func init() {
+	newinteraction.RegisterNode(&NodeAuthenticationEnd{})
+}
+
 type EdgeAuthenticationEnd struct {
 	Stage         newinteraction.AuthenticationStage
 	Authenticator *authenticator.Info
@@ -22,11 +26,11 @@ type NodeAuthenticationEnd struct {
 }
 
 func (n *NodeAuthenticationEnd) Apply(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
-	panic("implement me")
+	return nil
 }
 
 func (n *NodeAuthenticationEnd) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
-	panic("implement me")
+	return graph.Intent.DeriveEdgesForNode(ctx, graph, n)
 }
 
 func (n *NodeAuthenticationEnd) UserAuthenticator() (newinteraction.AuthenticationStage, *authenticator.Info) {

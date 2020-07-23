@@ -3,10 +3,8 @@ package interaction
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/core/authn"
@@ -210,75 +208,77 @@ func (p *Provider) setupAuthenticator(i *Interaction, step *StepState, astate *m
 }
 
 func (p *Provider) doTriggerOOB(i *Interaction, step *StepState, action *ActionTriggerOOBAuthenticator) (err error) {
-	spec := action.Authenticator
+	/*
+		spec := action.Authenticator
 
-	if spec.Type != authn.AuthenticatorTypeOOB {
-		panic("interaction: unexpected ActionTriggerOOBAuthenticator.Authenticator.Type: " + spec.Type)
-	}
+		if spec.Type != authn.AuthenticatorTypeOOB {
+			panic("interaction: unexpected ActionTriggerOOBAuthenticator.Authenticator.Type: " + spec.Type)
+		}
 
-	now := p.Clock.NowUTC()
-	nowBytes, err := now.MarshalText()
-	if err != nil {
-		return
-	}
-	nowStr := string(nowBytes)
-
-	if i.State == nil {
-		i.State = map[string]string{}
-	}
-
-	// Rotate the code according to oob.OOBCodeValidDuration
-	code := i.State[authenticator.AuthenticatorStateOOBOTPCode]
-	generateTimeStr := i.State[authenticator.AuthenticatorStateOOBOTPGenerateTime]
-	channel := spec.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string)
-	if generateTimeStr == "" {
-		code = p.OOB.GenerateCode(authn.AuthenticatorOOBChannel(channel))
-		generateTimeStr = nowStr
-	} else {
-		var tt time.Time
-		err = tt.UnmarshalText([]byte(generateTimeStr))
+		now := p.Clock.NowUTC()
+		nowBytes, err := now.MarshalText()
 		if err != nil {
 			return
 		}
+		nowStr := string(nowBytes)
 
-		// Expire
-		if tt.Add(oob.OOBOTPValidDuration).Before(now) {
+		if i.State == nil {
+			i.State = map[string]string{}
+		}
+
+		// Rotate the code according to oob.OOBCodeValidDuration
+		code := i.State[authenticator.AuthenticatorStateOOBOTPCode]
+		generateTimeStr := i.State[authenticator.AuthenticatorStateOOBOTPGenerateTime]
+		channel := spec.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string)
+		if generateTimeStr == "" {
 			code = p.OOB.GenerateCode(authn.AuthenticatorOOBChannel(channel))
 			generateTimeStr = nowStr
-		}
-	}
+		} else {
+			var tt time.Time
+			err = tt.UnmarshalText([]byte(generateTimeStr))
+			if err != nil {
+				return
+			}
 
-	// Respect cooldown
-	triggerTimeStr := i.State[authenticator.AuthenticatorStateOOBOTPTriggerTime]
-	if triggerTimeStr != "" {
-		var tt time.Time
-		err = tt.UnmarshalText([]byte(triggerTimeStr))
+			// Expire
+			if tt.Add(oob.OOBOTPValidDuration).Before(now) {
+				code = p.OOB.GenerateCode(authn.AuthenticatorOOBChannel(channel))
+				generateTimeStr = nowStr
+			}
+		}
+
+		// Respect cooldown
+		triggerTimeStr := i.State[authenticator.AuthenticatorStateOOBOTPTriggerTime]
+		if triggerTimeStr != "" {
+			var tt time.Time
+			err = tt.UnmarshalText([]byte(triggerTimeStr))
+			if err != nil {
+				return
+			}
+
+			if tt.Add(oob.OOBOTPSendCooldownSeconds * time.Second).After(now) {
+				err = ErrOOBOTPCooldown
+				return
+			}
+		}
+
+		err = p.sendOOBCode(i, step, spec, code)
 		if err != nil {
 			return
 		}
 
-		if tt.Add(oob.OOBOTPSendCooldownSeconds * time.Second).After(now) {
-			err = ErrOOBOTPCooldown
-			return
+		// Perform mutation on interaction at the end.
+
+		// This function can be called by login or signup.
+		// In case of signup, the spec does not have an ID yet.
+		if id, ok := spec.Props[authenticator.AuthenticatorPropOOBOTPID].(string); ok {
+			i.State[authenticator.AuthenticatorStateOOBOTPID] = id
 		}
-	}
-
-	err = p.sendOOBCode(i, step, spec, code)
-	if err != nil {
-		return
-	}
-
-	// Perform mutation on interaction at the end.
-
-	// This function can be called by login or signup.
-	// In case of signup, the spec does not have an ID yet.
-	if id, ok := spec.Props[authenticator.AuthenticatorPropOOBOTPID].(string); ok {
-		i.State[authenticator.AuthenticatorStateOOBOTPID] = id
-	}
-	i.State[authenticator.AuthenticatorStateOOBOTPCode] = code
-	i.State[authenticator.AuthenticatorStateOOBOTPGenerateTime] = generateTimeStr
-	i.State[authenticator.AuthenticatorStateOOBOTPTriggerTime] = nowStr
-	i.State[authenticator.AuthenticatorStateOOBOTPChannelType] = channel
+		i.State[authenticator.AuthenticatorStateOOBOTPCode] = code
+		i.State[authenticator.AuthenticatorStateOOBOTPGenerateTime] = generateTimeStr
+		i.State[authenticator.AuthenticatorStateOOBOTPTriggerTime] = nowStr
+		i.State[authenticator.AuthenticatorStateOOBOTPChannelType] = channel
+	*/
 
 	return
 }

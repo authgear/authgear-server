@@ -5,6 +5,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 )
 
+func init() {
+	newinteraction.RegisterNode(&NodeSelectIdentityEnd{})
+}
+
 type EdgeSelectIdentityEnd struct {
 	RequestedIdentity *identity.Spec
 	ExistingIdentity  *identity.Info
@@ -32,4 +36,11 @@ func (n *NodeSelectIdentityEnd) DeriveEdges(ctx *newinteraction.Context, graph *
 
 func (n *NodeSelectIdentityEnd) UserIdentity() *identity.Info {
 	return n.ExistingIdentity
+}
+
+func (n *NodeSelectIdentityEnd) UserID() string {
+	if n.ExistingIdentity == nil {
+		return ""
+	}
+	return n.ExistingIdentity.UserID
 }

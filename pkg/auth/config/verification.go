@@ -51,6 +51,20 @@ var _ = Schema.Add("VerificationSMSConfig", `
 }
 `)
 
+var _ = Schema.Add("OTPFormat", `
+{
+	"type": "string",
+	"enum": ["numeric", "complex"]
+}
+`)
+
+type OTPFormat string
+
+const (
+	OTPFormatNumeric OTPFormat = "numeric"
+	OTPFormatComplex OTPFormat = "complex"
+)
+
 type VerificationSMSConfig struct {
 	Message    SMSMessageConfig `json:"message,omitempty"`
 	CodeFormat OTPFormat        `json:"code_format,omitempty"`

@@ -6,8 +6,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/db"
+	"github.com/authgear/authgear-server/pkg/otp"
 )
 
 type IdentityProvider interface {
@@ -20,6 +22,7 @@ type IdentityProvider interface {
 }
 
 type AuthenticatorProvider interface {
+	// FIXME: cleanup user ID, authenticator.Info & Spec has it
 	Get(userID string, typ authn.AuthenticatorType, id string) (*authenticator.Info, error)
 	List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error)
 	ListByIdentity(userID string, ii *identity.Info) ([]*authenticator.Info, error)
@@ -28,8 +31,20 @@ type AuthenticatorProvider interface {
 	CreateAll(userID string, ais []*authenticator.Info) error
 	UpdateAll(userID string, ais []*authenticator.Info) error
 	DeleteAll(userID string, ais []*authenticator.Info) error
+	// FIXME: pass in authenticator type instead of spec
 	Authenticate(userID string, spec authenticator.Spec, state *map[string]string, secret string) (*authenticator.Info, error)
 	VerifySecret(userID string, a *authenticator.Info, secret string) error
+}
+
+type OOBAuthenticatorProvider interface {
+	GenerateCode(secret string, channel authn.AuthenticatorOOBChannel) string
+	SendCode(
+		channel authn.AuthenticatorOOBChannel,
+		loginID *loginid.LoginID,
+		code string,
+		origin otp.MessageOrigin,
+		operation otp.OOBOperationType,
+	) error
 }
 
 type AnonymousIdentityProvider interface {
@@ -46,6 +61,7 @@ type Context struct {
 	Identities          IdentityProvider
 	Authenticators      AuthenticatorProvider
 	AnonymousIdentities AnonymousIdentityProvider
+	OOBAuthenticators   OOBAuthenticatorProvider
 	Challenges          ChallengeProvider
 }
 
