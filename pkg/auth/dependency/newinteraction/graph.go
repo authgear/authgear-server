@@ -1,6 +1,7 @@
 package newinteraction
 
 import (
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -17,16 +18,16 @@ type Graph struct {
 	// It is a constant value through out a graph.
 	// It is used to keep track of which instances belong to a particular graph.
 	// When one graph is committed, any other instances sharing the same GraphID become invalid.
-	GraphID string `json:"graph_id"`
+	GraphID string
 
 	// InstanceID is a unique ID for a particular instance of a graph.
-	InstanceID string `json:"instance_id"`
+	InstanceID string
 
 	// Intent is the intent (i.e. flow type) of the graph
-	Intent Intent `json:"intent"`
+	Intent Intent
 
 	// Nodes are nodes in a specific path from intent of the interaction graph.
-	Nodes []Node `json:"nodes"`
+	Nodes []Node
 }
 
 func newGraph(intent Intent) *Graph {
@@ -56,10 +57,53 @@ func (g *Graph) appendingNode(n Node) *Graph {
 }
 
 func (g *Graph) MarshalJSON() ([]byte, error) {
-	return nil, nil
+	var err error
+
+	intent := ifaceJSON{Kind: IntentKind(g.Intent)}
+	if intent.Data, err = json.Marshal(g.Intent); err != nil {
+		return nil, err
+	}
+
+	nodes := make([]ifaceJSON, len(g.Nodes))
+	for i, node := range g.Nodes {
+		nodes[i].Kind = NodeKind(node)
+		if nodes[i].Data, err = json.Marshal(node); err != nil {
+			return nil, err
+		}
+	}
+
+	graph := &graphJSON{
+		GraphID:    g.GraphID,
+		InstanceID: g.InstanceID,
+		Intent:     intent,
+		Nodes:      nodes,
+	}
+	return json.Marshal(graph)
 }
 
 func (g *Graph) UnmarshalJSON(d []byte) error {
+	graph := &graphJSON{}
+	if err := json.Unmarshal(d, graph); err != nil {
+		return err
+	}
+
+	intent := InstantiateIntent(graph.Intent.Kind)
+	if err := json.Unmarshal(graph.Intent.Data, intent); err != nil {
+		return err
+	}
+
+	nodes := make([]Node, len(graph.Nodes))
+	for i, node := range graph.Nodes {
+		nodes[i] = InstantiateNode(node.Kind)
+		if err := json.Unmarshal(node.Data, nodes[i]); err != nil {
+			return err
+		}
+	}
+
+	g.GraphID = graph.GraphID
+	g.InstanceID = graph.InstanceID
+	g.Intent = intent
+	g.Nodes = nodes
 	return nil
 }
 
@@ -150,4 +194,16 @@ func (g *Graph) Accept(ctx *Context, input interface{}) (*Graph, []Edge, error) 
 			return nil, nil, err
 		}
 	}
+}
+
+type ifaceJSON struct {
+	Kind string          `json:"kind"`
+	Data json.RawMessage `json:"data"`
+}
+
+type graphJSON struct {
+	GraphID    string      `json:"graph_id"`
+	InstanceID string      `json:"instance_id"`
+	Intent     ifaceJSON   `json:"intent"`
+	Nodes      []ifaceJSON `json:"nodes"`
 }
