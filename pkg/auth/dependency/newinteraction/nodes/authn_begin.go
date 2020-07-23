@@ -40,6 +40,7 @@ func (n *NodeAuthenticationBegin) DeriveEdges(ctx *newinteraction.Context, graph
 		panic("interaction: unknown authentication stage: " + n.Stage)
 	}
 
+	// TODO(interaction): to prevent un-usable user, also return user's authenticators, even if not enabled in config
 	for _, t := range availableAuthenticators {
 		switch t {
 		case authn.AuthenticatorTypePassword:
