@@ -52,8 +52,9 @@ func (e *EdgeAuthenticationOOBTrigger) Instantiate(ctx *newinteraction.Context, 
 		}
 	}
 
-	// When targetInfo is nil: continue and act as if there is one,
-	// prevent enumeration of user's authenticators
+	if targetInfo == nil {
+		return nil, newinteraction.ErrInvalidCredentials
+	}
 
 	secret, err := otp.GenerateTOTPSecret()
 	if err != nil {
