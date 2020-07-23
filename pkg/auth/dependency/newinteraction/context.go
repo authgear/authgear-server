@@ -7,6 +7,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
+	"github.com/authgear/authgear-server/pkg/auth/event"
+	"github.com/authgear/authgear-server/pkg/auth/model"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/otp"
@@ -55,7 +57,13 @@ type ChallengeProvider interface {
 	Consume(token string) (*challenge.Purpose, error)
 }
 
+type HookProvider interface {
+	DispatchEvent(payload event.Payload, user *model.User) error
+}
+
 type Context struct {
+	IsDryRun bool
+
 	Database            db.SQLExecutor
 	Config              *config.AppConfig
 	Identities          IdentityProvider
@@ -81,4 +89,8 @@ func (c *Context) commit() error {
 func (c *Context) rollback() error {
 	_, err := c.Database.ExecWith(interactionGraphSavePoint.Rollback())
 	return err
+}
+
+func (c *Context) perform(effect Effect) error {
+	return effect.apply(c)
 }

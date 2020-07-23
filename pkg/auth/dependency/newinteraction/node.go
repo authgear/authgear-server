@@ -15,7 +15,7 @@ type Node interface {
 	// Apply the effects of this node to context.
 	// This may be ran multiple times, due to replaying the graph.
 	// So no external visible side effect is allowed.
-	Apply(ctx *Context, graph *Graph) error
+	Apply(perform func(eff Effect) error, graph *Graph) error
 	DeriveEdges(ctx *Context, graph *Graph) ([]Edge, error)
 }
 

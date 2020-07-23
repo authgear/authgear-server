@@ -48,7 +48,7 @@ type NodeAuthenticationPassword struct {
 	Authenticator *authenticator.Info                `json:"authenticator"`
 }
 
-func (n *NodeAuthenticationPassword) Apply(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+func (n *NodeAuthenticationPassword) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 

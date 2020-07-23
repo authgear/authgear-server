@@ -58,7 +58,7 @@ type NodeAuthenticationOOB struct {
 	Authenticator *authenticator.Info                `json:"authenticator"`
 }
 
-func (n *NodeAuthenticationOOB) Apply(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+func (n *NodeAuthenticationOOB) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 

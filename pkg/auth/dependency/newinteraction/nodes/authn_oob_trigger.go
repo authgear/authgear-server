@@ -81,7 +81,7 @@ type NodeAuthenticationOOBTrigger struct {
 	Secret        string                             `json:"secret"`
 }
 
-func (n *NodeAuthenticationOOBTrigger) Apply(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+func (n *NodeAuthenticationOOBTrigger) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 

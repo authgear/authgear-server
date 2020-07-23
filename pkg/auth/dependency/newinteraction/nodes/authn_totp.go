@@ -48,7 +48,7 @@ type NodeAuthenticationTOTP struct {
 	Authenticator *authenticator.Info                `json:"authenticator"`
 }
 
-func (n *NodeAuthenticationTOTP) Apply(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+func (n *NodeAuthenticationTOTP) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 

@@ -12,7 +12,7 @@ type testNode struct {
 	x int
 }
 
-func (t testNode) Apply(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+func (t testNode) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 

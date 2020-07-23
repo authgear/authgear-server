@@ -26,7 +26,7 @@ type NodeSelectIdentityEnd struct {
 	ExistingIdentity  *identity.Info `json:"existing_identity"`
 }
 
-func (n *NodeSelectIdentityEnd) Apply(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+func (n *NodeSelectIdentityEnd) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 

@@ -60,7 +60,7 @@ type NodeSelectIdentityAnonymous struct {
 	Action      anonymous.RequestAction `json:"action"`
 }
 
-func (n *NodeSelectIdentityAnonymous) Apply(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+func (n *NodeSelectIdentityAnonymous) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	panic("implement me")
 }
 

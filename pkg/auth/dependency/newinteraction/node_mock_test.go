@@ -34,17 +34,17 @@ func (m *MockNode) EXPECT() *MockNodeMockRecorder {
 }
 
 // Apply mocks base method
-func (m *MockNode) Apply(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+func (m *MockNode) Apply(perform func(newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Apply", ctx, graph)
+	ret := m.ctrl.Call(m, "Apply", perform, graph)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Apply indicates an expected call of Apply
-func (mr *MockNodeMockRecorder) Apply(ctx, graph interface{}) *gomock.Call {
+func (mr *MockNodeMockRecorder) Apply(perform, graph interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Apply", reflect.TypeOf((*MockNode)(nil).Apply), ctx, graph)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Apply", reflect.TypeOf((*MockNode)(nil).Apply), perform, graph)
 }
 
 // DeriveEdges mocks base method

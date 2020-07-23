@@ -38,7 +38,7 @@ type NodeSelectIdentityLoginID struct {
 	LoginID string                  `json:"login_id"`
 }
 
-func (n *NodeSelectIdentityLoginID) Apply(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+func (n *NodeSelectIdentityLoginID) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
