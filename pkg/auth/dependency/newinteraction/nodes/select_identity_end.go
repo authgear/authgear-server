@@ -6,27 +6,23 @@ import (
 )
 
 type EdgeSelectIdentityEnd struct {
-	Identity    *identity.Info
-	NewIdentity *identity.Info
+	RequestedIdentity *identity.Spec
+	ExistingIdentity  *identity.Info
 }
 
 func (e *EdgeSelectIdentityEnd) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, input interface{}) (newinteraction.Node, error) {
 	return &NodeSelectIdentityEnd{
-		Identity:    e.Identity,
-		NewIdentity: e.NewIdentity,
+		RequestedIdentity: e.RequestedIdentity,
+		ExistingIdentity:  e.ExistingIdentity,
 	}, nil
 }
 
 type NodeSelectIdentityEnd struct {
-	Identity    *identity.Info `json:"identity"`
-	NewIdentity *identity.Info `json:"new_identity"`
+	RequestedIdentity *identity.Spec `json:"requested_identity"`
+	ExistingIdentity  *identity.Info `json:"existing_identity"`
 }
 
 func (n *NodeSelectIdentityEnd) Apply(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
-	if n.NewIdentity != nil {
-		panic("TODO(new_interaction): create new identity")
-	}
-
 	return nil
 }
 
@@ -35,5 +31,5 @@ func (n *NodeSelectIdentityEnd) DeriveEdges(ctx *newinteraction.Context, graph *
 }
 
 func (n *NodeSelectIdentityEnd) UserIdentity() *identity.Info {
-	return n.Identity
+	return n.ExistingIdentity
 }

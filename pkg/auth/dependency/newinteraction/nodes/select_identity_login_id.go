@@ -39,19 +39,22 @@ func (n *NodeSelectIdentityLoginID) Apply(ctx *newinteraction.Context, graph *ne
 }
 
 func (n *NodeSelectIdentityLoginID) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
-	_, i, err := ctx.Identities.GetByClaims(
-		authn.IdentityTypeLoginID,
-		map[string]interface{}{
+	spec := &identity.Spec{
+		Type: authn.IdentityTypeLoginID,
+		Claims: map[string]interface{}{
+			identity.IdentityClaimLoginIDKey:   n.Config.Key,
 			identity.IdentityClaimLoginIDValue: n.LoginID,
 		},
-	)
+	}
+
+	_, info, err := ctx.Identities.GetByClaims(spec.Type, spec.Claims)
 	if errors.Is(err, identity.ErrIdentityNotFound) {
-		i = nil
+		info = nil
 	} else if err != nil {
 		return nil, err
 	}
 
 	return []newinteraction.Edge{
-		&EdgeSelectIdentityEnd{Identity: i},
+		&EdgeSelectIdentityEnd{RequestedIdentity: spec, ExistingIdentity: info},
 	}, nil
 }

@@ -39,23 +39,24 @@ func (n *NodeSelectIdentityOAuth) Apply(ctx *newinteraction.Context, graph *newi
 
 func (n *NodeSelectIdentityOAuth) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	providerID := n.UserInfo.ProviderConfig.ProviderID()
-	claims := map[string]interface{}{
-		identity.IdentityClaimOAuthProviderKeys: providerID.Claims(),
-		identity.IdentityClaimOAuthSubjectID:    n.UserInfo.ProviderUserInfo.ID,
-		identity.IdentityClaimOAuthProfile:      n.UserInfo.ProviderRawProfile,
-		identity.IdentityClaimOAuthClaims:       n.UserInfo.ProviderUserInfo.ClaimsValue(),
+	spec := &identity.Spec{
+		Type: authn.IdentityTypeOAuth,
+		Claims: map[string]interface{}{
+			identity.IdentityClaimOAuthProviderKeys: providerID.Claims(),
+			identity.IdentityClaimOAuthSubjectID:    n.UserInfo.ProviderUserInfo.ID,
+			identity.IdentityClaimOAuthProfile:      n.UserInfo.ProviderRawProfile,
+			identity.IdentityClaimOAuthClaims:       n.UserInfo.ProviderUserInfo.ClaimsValue(),
+		},
 	}
 
-	_, i, err := ctx.Identities.GetByClaims(authn.IdentityTypeOAuth, claims)
+	_, info, err := ctx.Identities.GetByClaims(spec.Type, spec.Claims)
 	if errors.Is(err, identity.ErrIdentityNotFound) {
-		// TODO: create new OAuth identity
-		i = nil
-
+		info = nil
 	} else if err != nil {
 		return nil, err
 	}
 
 	return []newinteraction.Edge{
-		&EdgeSelectIdentityEnd{Identity: i},
+		&EdgeSelectIdentityEnd{RequestedIdentity: spec, ExistingIdentity: info},
 	}, nil
 }

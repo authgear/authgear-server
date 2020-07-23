@@ -1,25 +1,21 @@
 package nodes
 
 import (
-	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 )
 
 type EdgeAuthenticationBegin struct {
-	Stage    newinteraction.AuthenticationStage
-	Identity *identity.Info
+	Stage newinteraction.AuthenticationStage
 }
 
 func (e *EdgeAuthenticationBegin) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, input interface{}) (newinteraction.Node, error) {
 	return &NodeAuthenticationBegin{
-		Stage:    e.Stage,
-		Identity: e.Identity,
+		Stage: e.Stage,
 	}, nil
 }
 
 type NodeAuthenticationBegin struct {
-	Stage    newinteraction.AuthenticationStage `json:"stage"`
-	Identity *identity.Info                     `json:"identity"`
+	Stage newinteraction.AuthenticationStage `json:"stage"`
 }
 
 func (n *NodeAuthenticationBegin) Apply(ctx *newinteraction.Context, graph *newinteraction.Graph) error {

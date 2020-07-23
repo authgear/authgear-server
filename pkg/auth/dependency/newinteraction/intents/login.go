@@ -3,6 +3,7 @@ package intents
 import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
 type IntentLogin struct {
@@ -22,12 +23,16 @@ func (i *IntentLogin) DeriveEdgesForNode(ctx *newinteraction.Context, graph *new
 	switch node := node.(type) {
 	case *nodes.NodeSelectIdentityEnd:
 		// Ensure identity exists before performing authentication
-		if node.Identity == nil {
+		if node.ExistingIdentity == nil {
+			if node.RequestedIdentity.Type == authn.IdentityTypeOAuth {
+				panic("TODO(new_interaction): create new user & identity if not exist")
+			}
+
 			return nil, newinteraction.ErrInvalidCredentials
 		}
 
 		return []newinteraction.Edge{
-			&nodes.EdgeAuthenticationBegin{Stage: newinteraction.AuthenticationStagePrimary, Identity: node.Identity},
+			&nodes.EdgeAuthenticationBegin{Stage: newinteraction.AuthenticationStagePrimary},
 		}, nil
 
 	default:

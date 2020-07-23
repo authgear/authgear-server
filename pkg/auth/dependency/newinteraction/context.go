@@ -13,6 +13,7 @@ import (
 type IdentityProvider interface {
 	Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error)
 	// FIXME: no need to return userID, now identity.Info has it
+	// FIXME: take *identity.Spec instead
 	GetByClaims(typ authn.IdentityType, claims map[string]interface{}) (string, *identity.Info, error)
 	ListByUser(userID string) ([]*identity.Info, error)
 	UpdateAll(is []*identity.Info) error
