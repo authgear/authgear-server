@@ -45,12 +45,13 @@ func (s *Service) Get(instanceID string) (*Graph, error) {
 	return s.Store.GetGraphInstance(instanceID)
 }
 
-func (s *Service) WithContext(fn func(*Context) (*Graph, error)) (err error) {
+func (s *Service) WithContext(fn func(*Context) (Result, error)) (err error) {
 	ctx, err := s.Context.initialize()
 	if err != nil {
 		return
 	}
 
+	doCommit := false
 	defer func() {
 		if r := recover(); r != nil {
 			rbErr := ctx.rollback()
@@ -58,7 +59,7 @@ func (s *Service) WithContext(fn func(*Context) (*Graph, error)) (err error) {
 				s.Logger.WithError(rbErr).Error("cannot rollback")
 			}
 			panic(r)
-		} else if err == nil {
+		} else if err == nil && doCommit {
 			err = ctx.commit()
 		} else {
 			rbErr := ctx.rollback()
@@ -69,15 +70,26 @@ func (s *Service) WithContext(fn func(*Context) (*Graph, error)) (err error) {
 		}
 	}()
 
-	graph, err := fn(ctx)
-	// Create graph if graph is returned
-	if graph != nil {
-		if cErr := s.Create(graph); cErr != nil {
-			err = cErr
-			return
-		}
+	result, err := fn(ctx)
+	if err != nil {
+		return
 	}
-	return
+
+	switch result := result.(type) {
+	case ResultSave:
+		err = s.Create(result.Graph)
+		return
+
+	case ResultCommit:
+		doCommit = true
+		if result.PreserveGraph != nil {
+			err = s.Create(result.PreserveGraph)
+		}
+		return
+
+	default:
+		panic("interaction: unexpected result")
+	}
 }
 
 func (s *Service) NewGraph(ctx *Context, intent Intent) (*Graph, error) {
