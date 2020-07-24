@@ -127,8 +127,8 @@ func (g *Graph) MustGetUserLastIdentity() *identity.Info {
 
 func (g *Graph) GetUserNewIdentities() []*identity.Info {
 	var identities []*identity.Info
-	for i := len(g.Nodes) - 1; i >= 0; i-- {
-		if n, ok := g.Nodes[i].(interface{ UserNewIdentity() *identity.Info }); ok {
+	for _, node := range g.Nodes {
+		if n, ok := node.(interface{ UserNewIdentity() *identity.Info }); ok {
 			identities = append(identities, n.UserNewIdentity())
 		}
 	}
@@ -151,8 +151,8 @@ func (g *Graph) GetUserAuthenticator(stage AuthenticationStage) (*authenticator.
 
 func (g *Graph) GetUserNewAuthenticators() []*authenticator.Info {
 	var authenticators []*authenticator.Info
-	for i := len(g.Nodes) - 1; i >= 0; i-- {
-		if n, ok := g.Nodes[i].(interface{ UserNewAuthenticator() *authenticator.Info }); ok {
+	for _, node := range g.Nodes {
+		if n, ok := node.(interface{ UserNewAuthenticator() *authenticator.Info }); ok {
 			authenticators = append(authenticators, n.UserNewAuthenticator())
 		}
 	}
