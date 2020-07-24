@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -134,7 +135,7 @@ func ConfigureForgotPasswordRoute(route httproute.Route) httproute.Route {
 
 type ForgotPasswordHandler struct {
 	Database      *db.Handle
-	BaseViewModel *BaseViewModeler
+	BaseViewModel *viewmodels.BaseViewModeler
 	FormPrefiller *FormPrefiller
 	Renderer      Renderer
 	WebApp        WebAppService
@@ -157,10 +158,10 @@ func (h *ForgotPasswordHandler) GetData(r *http.Request, state *webapp.State, gr
 	}
 	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
 	// FIXME(webapp): derive AuthenticationViewModel with graph and edges
-	authenticationViewModel := AuthenticationViewModel{}
-	EmbedForm(data, r.Form)
-	Embed(data, baseViewModel)
-	Embed(data, authenticationViewModel)
+	authenticationViewModel := viewmodels.AuthenticationViewModel{}
+	viewmodels.EmbedForm(data, r.Form)
+	viewmodels.Embed(data, baseViewModel)
+	viewmodels.Embed(data, authenticationViewModel)
 	return data, nil
 }
 

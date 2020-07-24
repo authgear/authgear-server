@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/httputil"
@@ -129,7 +130,7 @@ func ConfigurePromoteRoute(route httproute.Route) httproute.Route {
 
 type PromoteHandler struct {
 	Database      *db.Handle
-	BaseViewModel *BaseViewModeler
+	BaseViewModel *viewmodels.BaseViewModeler
 	FormPrefiller *FormPrefiller
 	Renderer      Renderer
 	WebApp        WebAppService
@@ -140,11 +141,11 @@ func (h *PromoteHandler) GetData(r *http.Request, state *webapp.State, graph *ne
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
 	// FIXME(webapp): derive AuthenticationViewModel with graph and edges
-	authenticationViewModel := AuthenticationViewModel{}
+	authenticationViewModel := viewmodels.AuthenticationViewModel{}
 
-	EmbedForm(data, r.Form)
-	Embed(data, baseViewModel)
-	Embed(data, authenticationViewModel)
+	viewmodels.EmbedForm(data, r.Form)
+	viewmodels.Embed(data, baseViewModel)
+	viewmodels.Embed(data, authenticationViewModel)
 
 	return data, nil
 }

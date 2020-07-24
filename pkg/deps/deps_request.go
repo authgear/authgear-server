@@ -18,6 +18,7 @@ import (
 	handlerinternal "github.com/authgear/authgear-server/pkg/auth/handler/internalserver"
 	handleroauth "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
+	viewmodelswebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/middlewares"
 )
 
@@ -58,6 +59,8 @@ var requestDeps = wire.NewSet(
 	wire.Bind(new(handleroauth.JWSSource), new(*oidc.IDTokenIssuer)),
 	wire.Bind(new(handleroauth.ChallengeProvider), new(*challenge.Provider)),
 	ProvideOAuthMetadataProviders,
+
+	viewmodelswebapp.DependencySet,
 
 	handlerwebapp.DependencySet,
 	wire.Bind(new(handlerwebapp.LogoutSessionManager), new(*auth.SessionManager)),

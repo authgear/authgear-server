@@ -4,7 +4,6 @@ import "github.com/google/wire"
 
 var DependencySet = wire.NewSet(
 	NewHTMLRendererLogger,
-	wire.Struct(new(BaseViewModeler), "*"),
 	wire.Struct(new(HTMLRenderer), "*"),
 	wire.Struct(new(FormPrefiller), "*"),
 	wire.Bind(new(Renderer), new(*HTMLRenderer)),

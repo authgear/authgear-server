@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -121,7 +122,7 @@ func ConfigureEnterLoginIDRoute(route httproute.Route) httproute.Route {
 
 type EnterLoginIDHandler struct {
 	Database      *db.Handle
-	BaseViewModel *BaseViewModeler
+	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
 	WebApp        WebAppService
 }
@@ -132,8 +133,8 @@ func (h *EnterLoginIDHandler) GetData(r *http.Request, state *webapp.State, grap
 	// FIXME(webapp): derive EnterLoginIDViewModel with graph and edges
 	enterLoginIDViewModel := EnterLoginIDViewModel{}
 
-	Embed(data, baseViewModel)
-	Embed(data, enterLoginIDViewModel)
+	viewmodels.Embed(data, baseViewModel)
+	viewmodels.Embed(data, enterLoginIDViewModel)
 	return data, nil
 }
 

@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
 )
@@ -59,7 +60,7 @@ type ForgotPasswordSuccessViewModel struct {
 }
 
 type ForgotPasswordSuccessHandler struct {
-	BaseViewModel *BaseViewModeler
+	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
 	WebApp        WebAppService
 }
@@ -69,8 +70,8 @@ func (h *ForgotPasswordSuccessHandler) GetData(r *http.Request, state *webapp.St
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
 	// FIXME(webapp): derive ForgotPasswordSuccessViewModel with graph and edges
 	forgotPasswordSuccessViewModel := ForgotPasswordSuccessViewModel{}
-	Embed(data, baseViewModel)
-	Embed(data, forgotPasswordSuccessViewModel)
+	viewmodels.Embed(data, baseViewModel)
+	viewmodels.Embed(data, forgotPasswordSuccessViewModel)
 	return data, nil
 }
 

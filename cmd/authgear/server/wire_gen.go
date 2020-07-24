@@ -38,6 +38,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/internalserver"
 	oauth2 "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	webapp2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	task2 "github.com/authgear/authgear-server/pkg/auth/task"
 	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/rand"
@@ -1682,7 +1683,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
-	baseViewModeler := &webapp2.BaseViewModeler{
+	baseViewModeler := &viewmodels.BaseViewModeler{
 		ServerConfig: serverConfig,
 		AuthUI:       uiConfig,
 		Localization: localizationConfig,
@@ -1723,7 +1724,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
-	baseViewModeler := &webapp2.BaseViewModeler{
+	baseViewModeler := &viewmodels.BaseViewModeler{
 		ServerConfig: serverConfig,
 		AuthUI:       uiConfig,
 		Localization: localizationConfig,
@@ -1764,7 +1765,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
-	baseViewModeler := &webapp2.BaseViewModeler{
+	baseViewModeler := &viewmodels.BaseViewModeler{
 		ServerConfig: serverConfig,
 		AuthUI:       uiConfig,
 		Localization: localizationConfig,
@@ -1815,7 +1816,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
-	baseViewModeler := &webapp2.BaseViewModeler{
+	baseViewModeler := &viewmodels.BaseViewModeler{
 		ServerConfig: serverConfig,
 		AuthUI:       uiConfig,
 		Localization: localizationConfig,
@@ -1848,7 +1849,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
-	baseViewModeler := &webapp2.BaseViewModeler{
+	baseViewModeler := &viewmodels.BaseViewModeler{
 		ServerConfig: serverConfig,
 		AuthUI:       uiConfig,
 		Localization: localizationConfig,
@@ -1881,7 +1882,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
-	baseViewModeler := &webapp2.BaseViewModeler{
+	baseViewModeler := &viewmodels.BaseViewModeler{
 		ServerConfig: serverConfig,
 		AuthUI:       uiConfig,
 		Localization: localizationConfig,
@@ -1914,7 +1915,7 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
-	baseViewModeler := &webapp2.BaseViewModeler{
+	baseViewModeler := &viewmodels.BaseViewModeler{
 		ServerConfig: serverConfig,
 		AuthUI:       uiConfig,
 		Localization: localizationConfig,
@@ -1947,7 +1948,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
-	baseViewModeler := &webapp2.BaseViewModeler{
+	baseViewModeler := &viewmodels.BaseViewModeler{
 		ServerConfig: serverConfig,
 		AuthUI:       uiConfig,
 		Localization: localizationConfig,
@@ -1986,7 +1987,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
-	baseViewModeler := &webapp2.BaseViewModeler{
+	baseViewModeler := &viewmodels.BaseViewModeler{
 		ServerConfig: serverConfig,
 		AuthUI:       uiConfig,
 		Localization: localizationConfig,
@@ -2018,7 +2019,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
-	baseViewModeler := &webapp2.BaseViewModeler{
+	baseViewModeler := &viewmodels.BaseViewModeler{
 		ServerConfig: serverConfig,
 		AuthUI:       uiConfig,
 		Localization: localizationConfig,
@@ -2050,7 +2051,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
-	baseViewModeler := &webapp2.BaseViewModeler{
+	baseViewModeler := &viewmodels.BaseViewModeler{
 		ServerConfig: serverConfig,
 		AuthUI:       uiConfig,
 		Localization: localizationConfig,
@@ -2081,7 +2082,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
-	baseViewModeler := &webapp2.BaseViewModeler{
+	baseViewModeler := &viewmodels.BaseViewModeler{
 		ServerConfig: serverConfig,
 		AuthUI:       uiConfig,
 		Localization: localizationConfig,
@@ -2111,7 +2112,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
-	baseViewModeler := &webapp2.BaseViewModeler{
+	baseViewModeler := &viewmodels.BaseViewModeler{
 		ServerConfig: serverConfig,
 		AuthUI:       uiConfig,
 		Localization: localizationConfig,
@@ -2398,7 +2399,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 	}
 	uiConfig := appConfig.UI
-	baseViewModeler := &webapp2.BaseViewModeler{
+	baseViewModeler := &viewmodels.BaseViewModeler{
 		ServerConfig: serverConfig,
 		AuthUI:       uiConfig,
 		Localization: localizationConfig,

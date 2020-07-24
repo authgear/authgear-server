@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -90,7 +91,7 @@ type EnterPasswordViewModel struct {
 
 type EnterPasswordHandler struct {
 	Database      *db.Handle
-	BaseViewModel *BaseViewModeler
+	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
 	WebApp        WebAppService
 }
@@ -100,13 +101,13 @@ func (h *EnterPasswordHandler) GetData(r *http.Request, state *webapp.State, gra
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
 	// FIXME(webapp): derive AuthenticationViewModel with graph and edges
-	authenticationViewModel := AuthenticationViewModel{}
+	authenticationViewModel := viewmodels.AuthenticationViewModel{}
 	// FIXME(webapp): derive EnterPasswordViewModel with graph and edges
 	enterPasswordViewModel := EnterPasswordViewModel{}
 
-	Embed(data, baseViewModel)
-	Embed(data, authenticationViewModel)
-	Embed(data, enterPasswordViewModel)
+	viewmodels.Embed(data, baseViewModel)
+	viewmodels.Embed(data, authenticationViewModel)
+	viewmodels.Embed(data, enterPasswordViewModel)
 
 	return data, nil
 }

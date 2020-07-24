@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -82,7 +83,7 @@ func ConfigureResetPasswordRoute(route httproute.Route) httproute.Route {
 
 type ResetPasswordHandler struct {
 	Database      *db.Handle
-	BaseViewModel *BaseViewModeler
+	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
 	WebApp        WebAppService
 }
@@ -104,9 +105,9 @@ func (h *ResetPasswordHandler) GetData(r *http.Request, state *webapp.State, gra
 	}
 	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
 	// FIXME(webapp): derive PasswordPolicyViewModel with graph and edges
-	passwordPolicyViewModel := PasswordPolicyViewModel{}
-	Embed(data, baseViewModel)
-	Embed(data, passwordPolicyViewModel)
+	passwordPolicyViewModel := viewmodels.PasswordPolicyViewModel{}
+	viewmodels.Embed(data, baseViewModel)
+	viewmodels.Embed(data, passwordPolicyViewModel)
 	return data, nil
 }
 

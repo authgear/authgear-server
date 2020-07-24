@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -88,7 +89,7 @@ type CreatePasswordViewModel struct {
 
 type CreatePasswordHandler struct {
 	Database      *db.Handle
-	BaseViewModel *BaseViewModeler
+	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
 	WebApp        WebAppService
 }
@@ -97,14 +98,14 @@ func (h *CreatePasswordHandler) GetData(r *http.Request, state *webapp.State, gr
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
 	// FIXME(webapp): derive PasswordPolicyViewModel with graph and edges
-	passwordPolicyViewModel := PasswordPolicyViewModel{}
+	passwordPolicyViewModel := viewmodels.PasswordPolicyViewModel{}
 	// FIXME(webapp): derive CreatePasswordViewModel with graph and edges
 	createPasswordViewModel := CreatePasswordViewModel{}
 
-	EmbedForm(data, r.Form)
-	Embed(data, baseViewModel)
-	Embed(data, passwordPolicyViewModel)
-	Embed(data, createPasswordViewModel)
+	viewmodels.EmbedForm(data, r.Form)
+	viewmodels.Embed(data, baseViewModel)
+	viewmodels.Embed(data, passwordPolicyViewModel)
+	viewmodels.Embed(data, createPasswordViewModel)
 
 	return data, nil
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/core/phone"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
@@ -178,7 +179,7 @@ func ConfigureLoginRoute(route httproute.Route) httproute.Route {
 type LoginHandler struct {
 	ServerConfig  *config.ServerConfig
 	Database      *db.Handle
-	BaseViewModel *BaseViewModeler
+	BaseViewModel *viewmodels.BaseViewModeler
 	FormPrefiller *FormPrefiller
 	Renderer      Renderer
 	WebApp        WebAppService
@@ -191,11 +192,11 @@ func (h *LoginHandler) GetData(r *http.Request, state *webapp.State, graph *newi
 		anyError = state.Error
 	}
 	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
-	EmbedForm(data, r.Form)
-	Embed(data, baseViewModel)
+	viewmodels.EmbedForm(data, r.Form)
+	viewmodels.Embed(data, baseViewModel)
 	// FIXME(webapp): derive AuthenticationViewModel with graph and edges
-	authenticationViewModel := AuthenticationViewModel{}
-	Embed(data, authenticationViewModel)
+	authenticationViewModel := viewmodels.AuthenticationViewModel{}
+	viewmodels.Embed(data, authenticationViewModel)
 	return data, nil
 }
 

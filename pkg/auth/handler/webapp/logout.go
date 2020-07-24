@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -57,7 +58,7 @@ type LogoutHandler struct {
 	Database       *db.Handle
 	ServerConfig   *config.ServerConfig
 	SessionManager LogoutSessionManager
-	BaseViewModel  *BaseViewModeler
+	BaseViewModel  *viewmodels.BaseViewModeler
 	Renderer       Renderer
 }
 
@@ -67,7 +68,7 @@ func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		data := map[string]interface{}{}
 
-		Embed(data, baseViewModel)
+		viewmodels.Embed(data, baseViewModel)
 
 		h.Renderer.Render(w, r, TemplateItemTypeAuthUILogoutHTML, data)
 		return

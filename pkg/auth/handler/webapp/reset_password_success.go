@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
 )
@@ -53,7 +54,7 @@ func ConfigureResetPasswordSuccessRoute(route httproute.Route) httproute.Route {
 }
 
 type ResetPasswordSuccessHandler struct {
-	BaseViewModel *BaseViewModeler
+	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
 	WebApp        WebAppService
 }
@@ -61,7 +62,7 @@ type ResetPasswordSuccessHandler struct {
 func (h *ResetPasswordSuccessHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-	Embed(data, baseViewModel)
+	viewmodels.Embed(data, baseViewModel)
 	return data, nil
 }
 

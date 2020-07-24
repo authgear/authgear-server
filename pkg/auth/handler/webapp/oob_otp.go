@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -105,7 +106,7 @@ type OOBOTPViewModel struct {
 
 type OOBOTPHandler struct {
 	Database      *db.Handle
-	BaseViewModel *BaseViewModeler
+	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
 	WebApp        WebAppService
 }
@@ -117,8 +118,8 @@ func (h *OOBOTPHandler) GetData(r *http.Request, state *webapp.State, graph *new
 	// FIXME(webapp): derive OOBOTPViewModel with graph and edges
 	oobOTPViewModel := OOBOTPViewModel{}
 
-	Embed(data, baseViewModel)
-	Embed(data, oobOTPViewModel)
+	viewmodels.Embed(data, baseViewModel)
+	viewmodels.Embed(data, oobOTPViewModel)
 
 	return data, nil
 }

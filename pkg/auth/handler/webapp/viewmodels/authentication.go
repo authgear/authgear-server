@@ -1,4 +1,4 @@
-package webapp
+package viewmodels
 
 import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
