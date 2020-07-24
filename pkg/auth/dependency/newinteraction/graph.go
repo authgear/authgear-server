@@ -116,7 +116,7 @@ func (g *Graph) MustGetUserID() string {
 	panic("interaction: expect user ID presents")
 }
 
-func (g *Graph) MustGetUserIdentity() *identity.Info {
+func (g *Graph) MustGetUserLastIdentity() *identity.Info {
 	for i := len(g.Nodes) - 1; i >= 0; i-- {
 		if n, ok := g.Nodes[i].(interface{ UserIdentity() *identity.Info }); ok {
 			return n.UserIdentity()
@@ -125,7 +125,17 @@ func (g *Graph) MustGetUserIdentity() *identity.Info {
 	panic("interaction: expect user identity presents")
 }
 
-func (g *Graph) GetAuthenticator(stage AuthenticationStage) (*authenticator.Info, bool) {
+func (g *Graph) GetUserNewIdentities() []*identity.Info {
+	var identities []*identity.Info
+	for _, node := range g.Nodes {
+		if n, ok := node.(interface{ UserNewIdentity() *identity.Info }); ok {
+			identities = append(identities, n.UserNewIdentity())
+		}
+	}
+	return identities
+}
+
+func (g *Graph) GetUserAuthenticator(stage AuthenticationStage) (*authenticator.Info, bool) {
 	for i := len(g.Nodes) - 1; i >= 0; i-- {
 		if n, ok := g.Nodes[i].(interface {
 			UserAuthenticator() (AuthenticationStage, *authenticator.Info)
@@ -137,6 +147,16 @@ func (g *Graph) GetAuthenticator(stage AuthenticationStage) (*authenticator.Info
 		}
 	}
 	return nil, false
+}
+
+func (g *Graph) GetUserNewAuthenticators() []*authenticator.Info {
+	var authenticators []*authenticator.Info
+	for _, node := range g.Nodes {
+		if n, ok := node.(interface{ UserNewAuthenticator() *authenticator.Info }); ok {
+			authenticators = append(authenticators, n.UserNewAuthenticator())
+		}
+	}
+	return authenticators
 }
 
 // Apply applies the effect the the graph nodes into the context.

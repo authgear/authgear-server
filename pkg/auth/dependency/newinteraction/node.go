@@ -40,6 +40,10 @@ func RegisterNode(node Node) {
 	factory := NodeFactory(func() Node {
 		return reflect.New(nodeType).Interface().(Node)
 	})
+
+	if _, hasKind := nodeRegistry[nodeKind]; hasKind {
+		panic("interaction: duplicated node kind: " + nodeKind)
+	}
 	nodeRegistry[nodeKind] = factory
 }
 

@@ -24,7 +24,10 @@ type IdentityProvider interface {
 	// FIXME: take *identity.Spec instead
 	GetByClaims(typ authn.IdentityType, claims map[string]interface{}) (string, *identity.Info, error)
 	ListByUser(userID string) ([]*identity.Info, error)
+	New(userID string, typ authn.IdentityType, claims map[string]interface{}) (*identity.Info, error)
+	CreateAll(is []*identity.Info) error
 	UpdateAll(is []*identity.Info) error
+	Validate(is []*identity.Info) error
 }
 
 type AuthenticatorProvider interface {
@@ -53,6 +56,10 @@ type OOBAuthenticatorProvider interface {
 	) error
 }
 
+type LoginIDIdentityProvider interface {
+	ValidateOne(loginID loginid.LoginID) error
+}
+
 type AnonymousIdentityProvider interface {
 	ParseRequest(requestJWT string) (*anonymous.Identity, *anonymous.Request, error)
 }
@@ -63,6 +70,7 @@ type ChallengeProvider interface {
 
 type UserService interface {
 	Get(id string) (*model.User, error)
+	Create(userID string, metadata map[string]interface{}, identities []*identity.Info, authenticators []*authenticator.Info) error
 	UpdateLoginTime(user *model.User, lastLoginAt time.Time) error
 }
 
@@ -87,6 +95,7 @@ type Context struct {
 
 	Identities           IdentityProvider
 	Authenticators       AuthenticatorProvider
+	LoginIDIdentities    LoginIDIdentityProvider
 	AnonymousIdentities  AnonymousIdentityProvider
 	OOBAuthenticators    OOBAuthenticatorProvider
 	OAuthProviderFactory OAuthProviderFactory
