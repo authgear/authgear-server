@@ -2,14 +2,21 @@ package webapp
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/log"
 )
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package webapp
+
+type RedirectURIGetter interface {
+	GetRedirectURI() string
+}
 
 type ErrorRedirectURIGetter interface {
 	GetErrorRedirectURI() string
@@ -31,9 +38,16 @@ type GraphService interface {
 	Run(graph *newinteraction.Graph, preserveGraph bool) error
 }
 
+type ServiceLogger struct{ *log.Logger }
+
+func NewServiceLogger(lf *log.Factory) ServiceLogger {
+	return ServiceLogger{lf.New("webapp-service")}
+}
+
 type Service struct {
-	Store Store
-	Graph GraphService
+	Logger ServiceLogger
+	Store  Store
+	Graph  GraphService
 }
 
 func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph *newinteraction.Graph, edges []newinteraction.Edge, err error) {
@@ -195,6 +209,7 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 	finished := graph != nil && len(edges) == 0 && inputError == nil
 	// The graph finished. Apply its effect permanently
 	if finished {
+		s.Logger.Debugf("afterPost run graph")
 		inputError = s.Graph.Run(graph, state.KeepState)
 	}
 
@@ -210,6 +225,9 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 
 	// Case: error
 	if state.Error != nil {
+		s.Logger.WithFields(map[string]interface{}{
+			"error": state.Error,
+		}).Debugf("afterPost error")
 		if graph != nil {
 			node := graph.CurrentNode()
 			if a, ok := node.(ErrorRedirectURIGetter); ok {
@@ -231,6 +249,7 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 
 	// Case: finish
 	if finished {
+		s.Logger.Debugf("afterPost finished")
 		// Loop from start to end to collect cookies.
 		// This iteration order allows newer node to overwrite cookies.
 		var cookies []*http.Cookie
@@ -247,10 +266,48 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 		}, nil
 	}
 
-	// FIXME(webapp): Interpret graph and edges to derive redirectURI.
-	// FIXME(webapp): Check if current node implements RedirectURIGetter.
+	s.Logger.Debugf("afterPost transition")
+
+	node := graph.CurrentNode()
+	firstEdge := edges[0]
+
+	// Case: the node has redirect URI.
+	if a, ok := node.(RedirectURIGetter); ok {
+		s.Logger.Debugf("afterPost transition to node redirect URI")
+		return &Result{
+			state:       state,
+			redirectURI: a.GetRedirectURI(),
+		}, nil
+	}
+
+	var path string
+	// Case: transition
+	switch node.(type) {
+	case *nodes.NodeAuthenticationBegin:
+		switch firstEdge.(type) {
+		case *nodes.EdgeAuthenticationPassword:
+			path = "/enter_password"
+		case *nodes.EdgeAuthenticationOOBTrigger:
+			path = "/oob_otp"
+		default:
+			panic(fmt.Errorf("webapp: unexpected edge: %T", firstEdge))
+		}
+	default:
+		panic(fmt.Errorf("webapp: unexpected node: %T", node))
+	}
+
+	s.Logger.Debugf("afterPost transition to path: %v", path)
+
+	pathURL, err := url.Parse(path)
+	if err != nil {
+		panic(fmt.Errorf("webapp: unexpected invalid transition path: %v", path))
+	}
+	redirectURI := state.Attach(pathURL).String()
+
+	s.Logger.Debugf("afterPost transition to redirect URI: %v", redirectURI)
+
 	return &Result{
 		state:       state,
-		redirectURI: "",
+		redirectURI: redirectURI,
 	}, nil
 }

@@ -1706,6 +1706,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         htmlRendererLogger,
 	}
+	serviceLogger := webapp.NewServiceLogger(factory)
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -2033,8 +2034,9 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Store:   storeRedis,
 	}
 	webappService := &webapp.Service{
-		Store: redisStore,
-		Graph: newinteractionService,
+		Logger: serviceLogger,
+		Store:  redisStore,
+		Graph:  newinteractionService,
 	}
 	loginHandler := &webapp2.LoginHandler{
 		ServerConfig:  serverConfig,
@@ -2078,6 +2080,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         htmlRendererLogger,
 	}
+	serviceLogger := webapp.NewServiceLogger(factory)
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -2405,8 +2408,9 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Store:   storeRedis,
 	}
 	webappService := &webapp.Service{
-		Store: redisStore,
-		Graph: newinteractionService,
+		Logger: serviceLogger,
+		Store:  redisStore,
+		Graph:  newinteractionService,
 	}
 	signupHandler := &webapp2.SignupHandler{
 		ServerConfig:  serverConfig,
@@ -2450,6 +2454,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         htmlRendererLogger,
 	}
+	serviceLogger := webapp.NewServiceLogger(factory)
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -2777,8 +2782,9 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Store:   storeRedis,
 	}
 	webappService := &webapp.Service{
-		Store: redisStore,
-		Graph: newinteractionService,
+		Logger: serviceLogger,
+		Store:  redisStore,
+		Graph:  newinteractionService,
 	}
 	promoteHandler := &webapp2.PromoteHandler{
 		Database:      handle,
@@ -2793,6 +2799,8 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
+	factory := appProvider.LoggerFactory
+	serviceLogger := webapp.NewServiceLogger(factory)
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -2801,7 +2809,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	factory := appProvider.LoggerFactory
 	logger := newinteraction.NewLogger(factory)
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
@@ -3130,8 +3137,9 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Store:   storeRedis,
 	}
 	webappService := &webapp.Service{
-		Store: redisStore,
-		Graph: newinteractionService,
+		Logger: serviceLogger,
+		Store:  redisStore,
+		Graph:  newinteractionService,
 	}
 	ssoCallbackHandler := &webapp2.SSOCallbackHandler{
 		Database: handle,
@@ -3165,6 +3173,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         htmlRendererLogger,
 	}
+	serviceLogger := webapp.NewServiceLogger(factory)
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -3494,8 +3503,9 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Store:   storeRedis,
 	}
 	webappService := &webapp.Service{
-		Store: redisStore,
-		Graph: newinteractionService,
+		Logger: serviceLogger,
+		Store:  redisStore,
+		Graph:  newinteractionService,
 	}
 	enterLoginIDHandler := &webapp2.EnterLoginIDHandler{
 		Database:      handle,
@@ -3531,6 +3541,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         htmlRendererLogger,
 	}
+	serviceLogger := webapp.NewServiceLogger(factory)
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -3860,8 +3871,9 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store:   storeRedis,
 	}
 	webappService := &webapp.Service{
-		Store: redisStore,
-		Graph: newinteractionService,
+		Logger: serviceLogger,
+		Store:  redisStore,
+		Graph:  newinteractionService,
 	}
 	enterPasswordHandler := &webapp2.EnterPasswordHandler{
 		Database:      handle,
@@ -3897,6 +3909,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         htmlRendererLogger,
 	}
+	serviceLogger := webapp.NewServiceLogger(factory)
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -4226,8 +4239,9 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store:   storeRedis,
 	}
 	webappService := &webapp.Service{
-		Store: redisStore,
-		Graph: newinteractionService,
+		Logger: serviceLogger,
+		Store:  redisStore,
+		Graph:  newinteractionService,
 	}
 	createPasswordHandler := &webapp2.CreatePasswordHandler{
 		Database:      handle,
@@ -4263,6 +4277,7 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         htmlRendererLogger,
 	}
+	serviceLogger := webapp.NewServiceLogger(factory)
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -4592,8 +4607,9 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store:   storeRedis,
 	}
 	webappService := &webapp.Service{
-		Store: redisStore,
-		Graph: newinteractionService,
+		Logger: serviceLogger,
+		Store:  redisStore,
+		Graph:  newinteractionService,
 	}
 	oobotpHandler := &webapp2.OOBOTPHandler{
 		Database:      handle,
@@ -4635,6 +4651,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         htmlRendererLogger,
 	}
+	serviceLogger := webapp.NewServiceLogger(factory)
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -4962,8 +4979,9 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store:   storeRedis,
 	}
 	webappService := &webapp.Service{
-		Store: redisStore,
-		Graph: newinteractionService,
+		Logger: serviceLogger,
+		Store:  redisStore,
+		Graph:  newinteractionService,
 	}
 	forgotPasswordHandler := &webapp2.ForgotPasswordHandler{
 		Database:      handle,
@@ -4977,6 +4995,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 
 func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
+	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
 	config := appProvider.Config
@@ -4999,19 +5018,19 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		TemplateEngine: engine,
 		Logger:         htmlRendererLogger,
 	}
+	serviceLogger := webapp.NewServiceLogger(factory)
 	appID := appConfig.ID
-	handle := appProvider.Redis
+	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
 		AppID: appID,
-		Redis: handle,
+		Redis: redisHandle,
 	}
 	logger := newinteraction.NewLogger(factory)
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	dbHandle := appProvider.Database
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
-		Database: dbHandle,
+		Database: handle,
 	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
@@ -5109,7 +5128,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
-		Database:       dbHandle,
+		Database:       handle,
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
@@ -5218,7 +5237,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	hookProvider := &hook.Provider{
 		Context:   context,
 		Logger:    hookLogger,
-		Database:  dbHandle,
+		Database:  handle,
 		Clock:     clockClock,
 		Users:     rawProvider,
 		Store:     hookStore,
@@ -5243,7 +5262,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Config:        authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: handle,
+		Redis: redisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -5254,7 +5273,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Challenges:   challengeProvider,
 	}
 	stateStoreRedis := &flows.StateStoreRedis{
-		Redis: handle,
+		Redis: redisHandle,
 	}
 	stateServiceLogger := flows.NewStateServiceLogger(factory)
 	stateService := &flows.StateService{
@@ -5281,13 +5300,13 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	redisLogger := redis3.NewLogger(factory)
 	store2 := &redis3.Store{
-		Redis:  handle,
+		Redis:  redisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: redisLogger,
 	}
 	eventStore := &redis2.EventStore{
-		Redis: handle,
+		Redis: redisHandle,
 		AppID: appID,
 	}
 	accessEventProvider := &auth.AccessEventProvider{
@@ -5321,7 +5340,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SessionCookie:        cookieDef,
 	}
 	storeRedis := &newinteraction.StoreRedis{
-		Redis: handle,
+		Redis: redisHandle,
 	}
 	newinteractionService := &newinteraction.Service{
 		Logger:  logger,
@@ -5329,10 +5348,12 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Store:   storeRedis,
 	}
 	webappService := &webapp.Service{
-		Store: redisStore,
-		Graph: newinteractionService,
+		Logger: serviceLogger,
+		Store:  redisStore,
+		Graph:  newinteractionService,
 	}
 	forgotPasswordSuccessHandler := &webapp2.ForgotPasswordSuccessHandler{
+		Database:      handle,
 		BaseViewModel: baseViewModeler,
 		Renderer:      htmlRenderer,
 		WebApp:        webappService,
@@ -5365,6 +5386,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         htmlRendererLogger,
 	}
+	serviceLogger := webapp.NewServiceLogger(factory)
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -5694,8 +5716,9 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store:   storeRedis,
 	}
 	webappService := &webapp.Service{
-		Store: redisStore,
-		Graph: newinteractionService,
+		Logger: serviceLogger,
+		Store:  redisStore,
+		Graph:  newinteractionService,
 	}
 	resetPasswordHandler := &webapp2.ResetPasswordHandler{
 		Database:      handle,
@@ -5708,6 +5731,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 
 func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
+	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
 	config := appProvider.Config
@@ -5730,19 +5754,19 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		TemplateEngine: engine,
 		Logger:         htmlRendererLogger,
 	}
+	serviceLogger := webapp.NewServiceLogger(factory)
 	appID := appConfig.ID
-	handle := appProvider.Redis
+	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
 		AppID: appID,
-		Redis: handle,
+		Redis: redisHandle,
 	}
 	logger := newinteraction.NewLogger(factory)
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	dbHandle := appProvider.Database
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
-		Database: dbHandle,
+		Database: handle,
 	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
@@ -5840,7 +5864,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inMemoryExecutor := rootProvider.TaskExecutor
 	queueQueue := &queue.Queue{
-		Database:       dbHandle,
+		Database:       handle,
 		CaptureContext: captureTaskContext,
 		Executor:       inMemoryExecutor,
 	}
@@ -5949,7 +5973,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	hookProvider := &hook.Provider{
 		Context:   context,
 		Logger:    hookLogger,
-		Database:  dbHandle,
+		Database:  handle,
 		Clock:     clockClock,
 		Users:     rawProvider,
 		Store:     hookStore,
@@ -5974,7 +5998,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Config:        authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: handle,
+		Redis: redisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -5985,7 +6009,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Challenges:   challengeProvider,
 	}
 	stateStoreRedis := &flows.StateStoreRedis{
-		Redis: handle,
+		Redis: redisHandle,
 	}
 	stateServiceLogger := flows.NewStateServiceLogger(factory)
 	stateService := &flows.StateService{
@@ -6012,13 +6036,13 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	redisLogger := redis3.NewLogger(factory)
 	store2 := &redis3.Store{
-		Redis:  handle,
+		Redis:  redisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: redisLogger,
 	}
 	eventStore := &redis2.EventStore{
-		Redis: handle,
+		Redis: redisHandle,
 		AppID: appID,
 	}
 	accessEventProvider := &auth.AccessEventProvider{
@@ -6052,7 +6076,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SessionCookie:        cookieDef,
 	}
 	storeRedis := &newinteraction.StoreRedis{
-		Redis: handle,
+		Redis: redisHandle,
 	}
 	newinteractionService := &newinteraction.Service{
 		Logger:  logger,
@@ -6060,10 +6084,12 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Store:   storeRedis,
 	}
 	webappService := &webapp.Service{
-		Store: redisStore,
-		Graph: newinteractionService,
+		Logger: serviceLogger,
+		Store:  redisStore,
+		Graph:  newinteractionService,
 	}
 	resetPasswordSuccessHandler := &webapp2.ResetPasswordSuccessHandler{
+		Database:      handle,
 		BaseViewModel: baseViewModeler,
 		Renderer:      htmlRenderer,
 		WebApp:        webappService,
@@ -6127,6 +6153,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         htmlRendererLogger,
 	}
+	serviceLogger := webapp.NewServiceLogger(factory)
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -6456,8 +6483,9 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Store:   storeRedis,
 	}
 	webappService := &webapp.Service{
-		Store: redisStore,
-		Graph: newinteractionService,
+		Logger: serviceLogger,
+		Store:  redisStore,
+		Graph:  newinteractionService,
 	}
 	settingsIdentityHandler := &webapp2.SettingsIdentityHandler{
 		ServerConfig:  serverConfig,

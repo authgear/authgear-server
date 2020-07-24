@@ -76,7 +76,12 @@ type NodeSelectIdentityOAuthProvider struct {
 	RedirectURI      string                        `json:"redirect_uri"`
 }
 
-// GetErrorRedirectURI implements ErrorRedirectURIGetter
+// GetRedirectURI implements RedirectURIGetter.
+func (n *NodeSelectIdentityOAuthProvider) GetRedirectURI() string {
+	return n.RedirectURI
+}
+
+// GetErrorRedirectURI implements ErrorRedirectURIGetter.
 func (n *NodeSelectIdentityOAuthProvider) GetErrorRedirectURI() string {
 	return n.ErrorRedirectURI
 }
