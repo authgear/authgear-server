@@ -51,8 +51,13 @@ type Service struct {
 }
 
 func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph *newinteraction.Graph, edges []newinteraction.Edge, err error) {
+	var stateError *skyerr.APIError
 	if stateID != "" {
-		return s.Get(stateID)
+		state, err = s.Store.Get(stateID)
+		if err != nil {
+			return
+		}
+		stateError = state.Error
 	}
 
 	err = s.Graph.DryRun(func(ctx *newinteraction.Context) (_ *newinteraction.Graph, err error) {
@@ -82,6 +87,7 @@ func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph
 		RedirectURI:     intent.RedirectURI,
 		KeepState:       intent.KeepState,
 		GraphInstanceID: graph.InstanceID,
+		Error:           stateError,
 	}
 
 	return
