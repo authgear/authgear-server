@@ -22,6 +22,11 @@ type EdgeSelectIdentityLoginID struct {
 	Config config.LoginIDKeyConfig
 }
 
+// GetIdentityCandidate implements IdentityCandidateGetter.
+func (e *EdgeSelectIdentityLoginID) GetIdentityCandidate() identity.Candidate {
+	return identity.NewLoginIDCandidate(&e.Config)
+}
+
 func (e *EdgeSelectIdentityLoginID) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
 	input, ok := rawInput.(InputSelectIdentityLoginID)
 	if !ok {

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/sso"
 	"github.com/authgear/authgear-server/pkg/core/crypto"
@@ -22,6 +23,10 @@ type InputSelectIdentityOAuthProvider interface {
 
 type EdgeSelectIdentityOAuthProvider struct {
 	Config config.OAuthSSOProviderConfig
+}
+
+func (e *EdgeSelectIdentityOAuthProvider) GetIdentityCandidate() identity.Candidate {
+	return identity.NewOAuthCandidate(&e.Config)
 }
 
 func (e *EdgeSelectIdentityOAuthProvider) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {

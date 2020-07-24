@@ -194,8 +194,7 @@ func (h *LoginHandler) GetData(r *http.Request, state *webapp.State, graph *newi
 	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
 	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
-	// FIXME(webapp): derive AuthenticationViewModel with graph and edges
-	authenticationViewModel := viewmodels.AuthenticationViewModel{}
+	authenticationViewModel := viewmodels.NewAuthenticationViewModel(edges)
 	viewmodels.Embed(data, authenticationViewModel)
 	return data, nil
 }
