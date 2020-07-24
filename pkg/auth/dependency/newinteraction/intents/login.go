@@ -3,6 +3,7 @@ package intents
 import (
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/core/authn"
@@ -63,7 +64,7 @@ func (i *IntentLogin) DeriveEdgesForNode(ctx *newinteraction.Context, graph *new
 			}, nil
 		case newinteraction.AuthenticationStageSecondary:
 			// TODO(new_interaction): MFA")
-			return []newinteraction.Edge{&nodes.EdgeDoCreateSession{}}, nil
+			return []newinteraction.Edge{&nodes.EdgeDoCreateSession{Reason: auth.SessionCreateReasonLogin}}, nil
 		default:
 			panic(fmt.Errorf("interaction: unexpected authentication stage: %v", node.Stage))
 		}
