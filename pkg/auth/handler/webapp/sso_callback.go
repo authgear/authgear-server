@@ -3,6 +3,7 @@ package webapp
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
@@ -19,7 +20,6 @@ type SSOCallbackHandler struct {
 	WebApp   WebAppService
 }
 
-// FIXME(webapp): implement input interface
 type SSOCallbackInput struct {
 	ProviderAlias string
 	NonceSource   *http.Cookie
@@ -30,6 +30,36 @@ type SSOCallbackInput struct {
 	Error            string
 	ErrorDescription string
 }
+
+func (i *SSOCallbackInput) GetProviderAlias() string {
+	return i.ProviderAlias
+}
+
+func (i *SSOCallbackInput) GetNonceSource() *http.Cookie {
+	return i.NonceSource
+}
+
+func (i *SSOCallbackInput) GetCode() string {
+	return i.Code
+}
+
+func (i *SSOCallbackInput) GetState() string {
+	return i.State
+}
+
+func (i *SSOCallbackInput) GetScope() string {
+	return i.Scope
+}
+
+func (i *SSOCallbackInput) GetError() string {
+	return i.Error
+}
+
+func (i *SSOCallbackInput) GetErrorDescription() string {
+	return i.ErrorDescription
+}
+
+var _ nodes.InputSelectIdentityOAuthUserInfo = &SSOCallbackInput{}
 
 func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {

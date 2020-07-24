@@ -1,7 +1,9 @@
 package nodes
 
 import (
+	"crypto/subtle"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
@@ -33,6 +35,7 @@ type EdgeSelectIdentityOAuthProvider struct {
 
 type NodeSelectIdentityOAuthProvider struct {
 	Config           config.OAuthSSOProviderConfig `json:"provider_config"`
+	HashedNonce      string                        `json:"hashed_nonce"`
 	ErrorRedirectURI string                        `json:"error_redirect_uri"`
 	RedirectURI      string                        `json:"redirect_uri"`
 }
@@ -71,6 +74,7 @@ func (e *EdgeSelectIdentityOAuthProvider) Instantiate(ctx *newinteraction.Contex
 
 	return &NodeSelectIdentityOAuthProvider{
 		Config:           e.Config,
+		HashedNonce:      nonce,
 		ErrorRedirectURI: errorRedirectURI,
 		RedirectURI:      redirectURI,
 	}, nil
@@ -87,15 +91,28 @@ func (n *NodeSelectIdentityOAuthProvider) Apply(perform func(eff newinteraction.
 
 func (n *NodeSelectIdentityOAuthProvider) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	return []newinteraction.Edge{
-		&EdgeSelectIdentityOAuthUserInfo{},
+		&EdgeSelectIdentityOAuthUserInfo{
+			Config:           n.Config,
+			HashedNonce:      n.HashedNonce,
+			ErrorRedirectURI: n.ErrorRedirectURI,
+		},
 	}, nil
 }
 
 type InputSelectIdentityOAuthUserInfo interface {
-	GetUserInfo() sso.AuthInfo
+	GetProviderAlias() string
+	GetNonceSource() *http.Cookie
+	GetCode() string
+	GetState() string
+	GetScope() string
+	GetError() string
+	GetErrorDescription() string
 }
 
 type EdgeSelectIdentityOAuthUserInfo struct {
+	Config           config.OAuthSSOProviderConfig
+	HashedNonce      string
+	ErrorRedirectURI string
 }
 
 func (e *EdgeSelectIdentityOAuthUserInfo) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
@@ -103,7 +120,56 @@ func (e *EdgeSelectIdentityOAuthUserInfo) Instantiate(ctx *newinteraction.Contex
 	if !ok {
 		return nil, newinteraction.ErrIncompatibleInput
 	}
-	userInfo := input.GetUserInfo()
+
+	alias := input.GetProviderAlias()
+	nonceSource := input.GetNonceSource()
+	code := input.GetCode()
+	state := input.GetState()
+	scope := input.GetScope()
+	oauthError := input.GetError()
+	errorDescription := input.GetErrorDescription()
+	hashedNonce := e.HashedNonce
+
+	if e.Config.Alias != alias {
+		return nil, fmt.Errorf("interaction: unexpected provider alias %s != %s", e.Config.Alias, alias)
+	}
+
+	oauthProvider := ctx.OAuthProviderFactory.NewOAuthProvider(alias)
+	if oauthProvider == nil {
+		return nil, ErrOAuthProviderNotFound
+	}
+
+	// Handle provider error
+	if oauthError != "" {
+		msg := "login failed"
+		if errorDescription != "" {
+			msg += ": " + errorDescription
+		}
+		return nil, sso.NewSSOFailed(sso.SSOUnauthorized, msg)
+	}
+
+	if nonceSource == nil || nonceSource.Value == "" {
+		return nil, sso.NewSSOFailed(sso.SSOUnauthorized, "invalid nonce")
+	}
+	nonce := crypto.SHA256String(nonceSource.Value)
+	if subtle.ConstantTimeCompare([]byte(hashedNonce), []byte(nonce)) != 1 {
+		return nil, sso.NewSSOFailed(sso.SSOUnauthorized, "invalid nonce")
+	}
+
+	userInfo, err := oauthProvider.GetAuthInfo(
+		sso.OAuthAuthorizationResponse{
+			Code:  code,
+			State: state,
+			Scope: scope,
+		},
+		sso.GetAuthInfoParam{
+			Nonce: hashedNonce,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	return &NodeSelectIdentityOAuthUserInfo{
 		UserInfo: userInfo,
 	}, nil
