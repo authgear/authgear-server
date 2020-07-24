@@ -206,9 +206,15 @@ type LoginOAuth struct {
 	ErrorRedirectURI string
 }
 
-// FIXME(webapp): implement input interface
 type LoginLoginID struct {
 	LoginID string
+}
+
+var _ nodes.InputSelectIdentityLoginID = &LoginLoginID{}
+
+// GetLoginID implements InputSelectIdentityLoginID.
+func (i *LoginLoginID) GetLoginID() string {
+	return i.LoginID
 }
 
 func (h *LoginHandler) MakeIntent(r *http.Request) *webapp.Intent {
