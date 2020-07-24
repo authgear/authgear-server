@@ -56,6 +56,10 @@ type OOBAuthenticatorProvider interface {
 	) error
 }
 
+type LoginIDIdentityProvider interface {
+	ValidateOne(loginID loginid.LoginID) error
+}
+
 type AnonymousIdentityProvider interface {
 	ParseRequest(requestJWT string) (*anonymous.Identity, *anonymous.Request, error)
 }
@@ -91,6 +95,7 @@ type Context struct {
 
 	Identities           IdentityProvider
 	Authenticators       AuthenticatorProvider
+	LoginIDIdentities    LoginIDIdentityProvider
 	AnonymousIdentities  AnonymousIdentityProvider
 	OOBAuthenticators    OOBAuthenticatorProvider
 	OAuthProviderFactory OAuthProviderFactory

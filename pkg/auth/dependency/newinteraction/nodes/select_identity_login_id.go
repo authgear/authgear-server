@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
@@ -27,9 +28,15 @@ func (e *EdgeSelectIdentityLoginID) Instantiate(ctx *newinteraction.Context, gra
 		return nil, newinteraction.ErrIncompatibleInput
 	}
 
+	loginID := loginid.LoginID{Key: e.Config.Key, Value: input.GetLoginID()}
+	err := ctx.LoginIDIdentities.ValidateOne(loginID)
+	if err != nil {
+		return nil, newinteraction.ErrIncompatibleInput
+	}
+
 	return &NodeSelectIdentityLoginID{
 		Config:  e.Config,
-		LoginID: input.GetLoginID(),
+		LoginID: loginID.Value,
 	}, nil
 }
 

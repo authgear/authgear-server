@@ -115,6 +115,10 @@ func (p *Provider) Normalize(loginID LoginID) (normalized *LoginID, c *config.Lo
 	return
 }
 
+func (p *Provider) ValidateOne(loginID LoginID) error {
+	return p.Checker.ValidateOne(loginID)
+}
+
 func (p *Provider) Validate(loginIDs []LoginID) error {
 	return p.Checker.Validate(loginIDs)
 }
