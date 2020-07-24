@@ -7096,12 +7096,16 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 
 func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
 	handle := appProvider.Redis
-	stateStoreRedis := &flows.StateStoreRedis{
+	redisStore := &webapp.RedisStore{
+		AppID: appID,
 		Redis: handle,
 	}
 	stateMiddleware := &webapp.StateMiddleware{
-		StateStore: stateStoreRedis,
+		States: redisStore,
 	}
 	return stateMiddleware
 }

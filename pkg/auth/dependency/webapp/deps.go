@@ -12,6 +12,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(CSRFMiddleware), "*"),
 	wire.Struct(new(AuthEntryPointMiddleware), "*"),
 	wire.Struct(new(StateMiddleware), "*"),
+	wire.Bind(new(StateMiddlewareStates), new(*RedisStore)),
 
 	wire.Struct(new(RedisStore), "*"),
 	wire.Bind(new(Store), new(*RedisStore)),
