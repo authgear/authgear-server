@@ -102,12 +102,12 @@ func (n *NodeAuthenticationOOBTrigger) sendOOBCode(ctx *newinteraction.Context, 
 
 	channel := authn.AuthenticatorOOBChannel(n.Authenticator.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string))
 
-	var operation otp.OOBOperationType
+	var stage otp.OOBAuthenticationStage
 	var loginID *loginid.LoginID
 	if n.Stage == newinteraction.AuthenticationStagePrimary {
 		// Primary OOB authenticators is bound to login ID identities:
 		// Extract login ID from the bound identity.
-		operation = otp.OOBOperationTypePrimaryAuth
+		stage = otp.OOBAuthenticationStagePrimary
 		if n.Identity != nil {
 			loginID = &loginid.LoginID{
 				Key:   n.Identity.Claims[identity.IdentityClaimLoginIDKey].(string),
@@ -116,7 +116,7 @@ func (n *NodeAuthenticationOOBTrigger) sendOOBCode(ctx *newinteraction.Context, 
 		}
 	} else {
 		// Secondary OOB authenticators is not bound to login ID identities.
-		operation = otp.OOBOperationTypeSecondaryAuth
+		stage = otp.OOBAuthenticationStageSecondary
 		loginID = nil
 	}
 
@@ -131,11 +131,8 @@ func (n *NodeAuthenticationOOBTrigger) sendOOBCode(ctx *newinteraction.Context, 
 		}
 	}
 
-	// TODO(interaction): determine intent type
-	var origin = otp.MessageOriginLogin
-
 	code := ctx.OOBAuthenticators.GenerateCode(n.Secret, channel)
-	return ctx.OOBAuthenticators.SendCode(channel, loginID, code, origin, operation)
+	return ctx.OOBAuthenticators.SendCode(channel, loginID, code, otp.OOBOperationTypeAuthenticate, stage)
 }
 
 type InputAuthenticationOOBResend interface {

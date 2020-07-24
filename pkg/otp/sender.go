@@ -33,8 +33,8 @@ type SendOptions struct {
 	LoginIDType config.LoginIDKeyType
 	LoginID     *loginid.LoginID
 	OTP         string
-	Origin      MessageOrigin
 	Operation   OOBOperationType
+	Stage       OOBAuthenticationStage
 }
 
 func (s *MessageSender) makeContext(opts SendOptions) *MessageTemplateContext {
@@ -49,8 +49,8 @@ func (s *MessageSender) makeContext(opts SendOptions) *MessageTemplateContext {
 		LoginID:              opts.LoginID,
 		Code:                 opts.OTP,
 		Host:                 s.Endpoints.BaseURL().Host,
-		Origin:               opts.Origin,
 		Operation:            opts.Operation,
+		Stage:                opts.Stage,
 		StaticAssetURLPrefix: s.ServerConfig.StaticAsset.URLPrefix,
 	}
 

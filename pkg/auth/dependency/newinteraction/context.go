@@ -51,8 +51,8 @@ type OOBAuthenticatorProvider interface {
 		channel authn.AuthenticatorOOBChannel,
 		loginID *loginid.LoginID,
 		code string,
-		origin otp.MessageOrigin,
 		operation otp.OOBOperationType,
+		stage otp.OOBAuthenticationStage,
 	) error
 }
 

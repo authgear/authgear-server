@@ -138,13 +138,11 @@ func (s *Service) IsVerified(identities []*identity.Info, authenticators []*auth
 func (s *Service) SendCode(
 	loginID loginid.LoginID,
 	code string,
-	origin otp.MessageOrigin,
 ) error {
+	// FIXME(verification: use different templates
 	opts := otp.SendOptions{
-		LoginID:   &loginID,
-		OTP:       code,
-		Origin:    origin,
-		Operation: otp.OOBOperationTypeVerify,
+		LoginID: &loginID,
+		OTP:     code,
 	}
 
 	var loginIDType config.LoginIDKeyType

@@ -6,20 +6,18 @@ import (
 	"github.com/authgear/authgear-server/pkg/template"
 )
 
-type MessageOrigin string
-
-const (
-	MessageOriginSignup   MessageOrigin = "signup"
-	MessageOriginLogin    MessageOrigin = "login"
-	MessageOriginSettings MessageOrigin = "settings"
-)
-
 type OOBOperationType string
 
 const (
-	OOBOperationTypePrimaryAuth   OOBOperationType = "primary_auth"
-	OOBOperationTypeSecondaryAuth OOBOperationType = "secondary_auth"
-	OOBOperationTypeVerify        OOBOperationType = "verify"
+	OOBOperationTypeSetup        OOBOperationType = "setup"
+	OOBOperationTypeAuthenticate OOBOperationType = "authenticate"
+)
+
+type OOBAuthenticationStage string
+
+const (
+	OOBAuthenticationStagePrimary   OOBAuthenticationStage = "primary_auth"
+	OOBAuthenticationStageSecondary OOBAuthenticationStage = "secondary_auth"
 )
 
 type MessageTemplateContext struct {
@@ -29,8 +27,8 @@ type MessageTemplateContext struct {
 	LoginID              *loginid.LoginID
 	Code                 string
 	Host                 string
-	Origin               MessageOrigin
 	Operation            OOBOperationType
+	Stage                OOBAuthenticationStage
 	StaticAssetURLPrefix string
 }
 
