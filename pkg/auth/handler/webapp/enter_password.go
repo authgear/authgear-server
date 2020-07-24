@@ -99,13 +99,10 @@ func (h *EnterPasswordHandler) GetData(r *http.Request, state *webapp.State, gra
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-	// FIXME(webapp): derive AuthenticationViewModel with graph and edges
-	authenticationViewModel := viewmodels.AuthenticationViewModel{}
 	// FIXME(webapp): derive EnterPasswordViewModel with graph and edges
 	enterPasswordViewModel := EnterPasswordViewModel{}
 
 	viewmodels.Embed(data, baseViewModel)
-	viewmodels.Embed(data, authenticationViewModel)
 	viewmodels.Embed(data, enterPasswordViewModel)
 
 	return data, nil
