@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/sso"
 	"github.com/authgear/authgear-server/pkg/auth/event"
 	"github.com/authgear/authgear-server/pkg/auth/model"
 	"github.com/authgear/authgear-server/pkg/core/authn"
@@ -74,16 +75,21 @@ type SessionProvider interface {
 	Create(*session.IDPSession) error
 }
 
+type OAuthProviderFactory interface {
+	NewOAuthProvider(alias string) sso.OAuthProvider
+}
+
 type Context struct {
 	IsDryRun bool
 
 	Database db.SQLExecutor
 	Config   *config.AppConfig
 
-	Identities          IdentityProvider
-	Authenticators      AuthenticatorProvider
-	AnonymousIdentities AnonymousIdentityProvider
-	OOBAuthenticators   OOBAuthenticatorProvider
+	Identities           IdentityProvider
+	Authenticators       AuthenticatorProvider
+	AnonymousIdentities  AnonymousIdentityProvider
+	OOBAuthenticators    OOBAuthenticatorProvider
+	OAuthProviderFactory OAuthProviderFactory
 
 	Challenges    ChallengeProvider
 	Users         UserService

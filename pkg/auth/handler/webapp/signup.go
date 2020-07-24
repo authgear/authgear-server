@@ -1,13 +1,13 @@
 package webapp
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
-	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/httputil"
@@ -178,21 +178,50 @@ func ConfigureSignupRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/signup")
 }
 
-type SignupInteractions interface {
-	BeginOAuth(state *interactionflows.State, opts interactionflows.BeginOAuthOptions) (*interactionflows.WebAppResult, error)
-	SignupWithLoginID(state *interactionflows.State, loginIDKey string, loginID string) (*interactionflows.WebAppResult, error)
+type SignupHandler struct {
+	ServerConfig  *config.ServerConfig
+	Database      *db.Handle
+	BaseViewModel *viewmodels.BaseViewModeler
+	FormPrefiller *FormPrefiller
+	Renderer      Renderer
+	WebApp        WebAppService
 }
 
-type SignupHandler struct {
-	ServerConfig            *config.ServerConfig
-	Database                *db.Handle
-	State                   StateService
-	BaseViewModel           *BaseViewModeler
-	AuthenticationViewModel *AuthenticationViewModeler
-	FormPrefiller           *FormPrefiller
-	Renderer                Renderer
-	Interactions            SignupInteractions
-	Responder               Responder
+func (h *SignupHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+	var anyError interface{}
+	if state != nil {
+		anyError = state.Error
+	}
+	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+	viewmodels.EmbedForm(data, r.Form)
+	viewmodels.Embed(data, baseViewModel)
+	// FIXME(webapp): derive AuthenticationViewModel with graph and edges
+	authenticationViewModel := viewmodels.AuthenticationViewModel{}
+	viewmodels.Embed(data, authenticationViewModel)
+	return data, nil
+}
+
+// FIXME(webapp): implement input interface
+type SignupOAuth struct {
+	ProviderAlias    string
+	Action           string
+	NonceSource      *http.Cookie
+	ErrorRedirectURI string
+}
+
+// FIXME(webapp): implement input interface
+type SignupLoginID struct {
+	LoginIDKey   string
+	LoginIDValue string
+}
+
+func (h *SignupHandler) MakeIntent(r *http.Request) *webapp.Intent {
+	return &webapp.Intent{
+		RedirectURI: webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy),
+		// FIXME(webapp): Use signup intent
+		Intent: &intents.IntentLogin{},
+	}
 }
 
 func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -201,32 +230,22 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	intent := h.MakeIntent(r)
+
 	h.FormPrefiller.Prefill(r.Form)
 
 	if r.Method == "GET" {
-		state, err := h.State.RestoreReadOnlyState(r, true)
-		if errors.Is(err, interactionflows.ErrStateNotFound) {
-			err = nil
-		}
-
+		state, graph, edges, err := h.WebApp.GetIntent(intent, StateID(r))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		var anyError interface{}
-		if state != nil {
-			anyError = state.Error
+		data, err := h.GetData(r, state, graph, edges)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
-
-		baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
-		authenticationViewModel := h.AuthenticationViewModel.ViewModel(r)
-
-		data := map[string]interface{}{}
-
-		EmbedForm(data, r.Form)
-		Embed(data, baseViewModel)
-		Embed(data, authenticationViewModel)
 
 		h.Renderer.Render(w, r, TemplateItemTypeAuthUISignupHTML, data)
 		return
@@ -236,29 +255,22 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" && providerAlias != "" {
 		h.Database.WithTx(func() error {
-			var state *interactionflows.State
-			var result *interactionflows.WebAppResult
-			var err error
-
-			defer func() {
-				h.State.UpdateState(state, result, err)
-				h.Responder.Respond(w, r, state, result, err)
-			}()
-			state = interactionflows.NewState()
-			state = h.State.CreateState(state, webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy))
-
 			nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
-
-			result, err = h.Interactions.BeginOAuth(state, interactionflows.BeginOAuthOptions{
-				ProviderAlias:    providerAlias,
-				Action:           interaction.OAuthActionLogin,
-				NonceSource:      nonceSource,
-				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
+			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
+				input = &SignupOAuth{
+					ProviderAlias: providerAlias,
+					// FIXME(webapp): Use constant
+					Action:           "login",
+					NonceSource:      nonceSource,
+					ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
+				}
+				return
 			})
 			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
-
+			result.WriteResponse(w, r)
 			return nil
 		})
 		return
@@ -266,33 +278,30 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 		h.Database.WithTx(func() error {
-			var state *interactionflows.State
-			var result *interactionflows.WebAppResult
-			var err error
+			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
+				err = SignupSchema.PartValidator(SignupWithLoginIDRequestSchema).ValidateValue(FormToJSON(r.Form))
+				if err != nil {
+					return
+				}
 
-			defer func() {
-				h.State.UpdateState(state, result, err)
-				h.Responder.Respond(w, r, state, result, err)
-			}()
-			state = interactionflows.NewState()
-			state = h.State.CreateState(state, webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy))
+				loginIDValue, err := FormToLoginID(r.Form)
+				if err != nil {
+					return
+				}
 
-			err = SignupSchema.PartValidator(SignupWithLoginIDRequestSchema).ValidateValue(FormToJSON(r.Form))
+				loginIDKey := r.Form.Get("x_login_id_key")
+
+				input = &SignupLoginID{
+					LoginIDKey:   loginIDKey,
+					LoginIDValue: loginIDValue,
+				}
+				return
+			})
 			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
-
-			loginID, err := FormToLoginID(r.Form)
-			if err != nil {
-				return err
-			}
-
-			loginIDKey := r.Form.Get("x_login_id_key")
-			result, err = h.Interactions.SignupWithLoginID(state, loginIDKey, loginID)
-			if err != nil {
-				return err
-			}
-
+			result.WriteResponse(w, r)
 			return nil
 		})
 	}

@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
-	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -104,28 +104,33 @@ type OOBOTPViewModel struct {
 	GivenLoginID           string
 }
 
-func NewOOBOTPViewModel(state *interactionflows.State) OOBOTPViewModel {
-	givenLoginID, _ := state.Extra[interactionflows.ExtraGivenLoginID].(string)
-	return OOBOTPViewModel{
-		OOBOTPCodeSendCooldown: oob.OOBOTPSendCooldownSeconds,
-		OOBOTPCodeLength:       0, // FIXME: use code length
-		OOBOTPChannel:          state.Interaction.State[authenticator.AuthenticatorStateOOBOTPChannelType],
-		GivenLoginID:           givenLoginID,
-	}
-}
-
-type OOBOTPInteractions interface {
-	TriggerOOBOTP(state *interactionflows.State) (*interactionflows.WebAppResult, error)
-	EnterSecret(state *interactionflows.State, password string) (*interactionflows.WebAppResult, error)
-}
-
 type OOBOTPHandler struct {
 	Database      *db.Handle
-	State         StateService
-	BaseViewModel *BaseViewModeler
+	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
-	Interactions  OOBOTPInteractions
-	Responder     Responder
+	WebApp        WebAppService
+}
+
+func (h *OOBOTPHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
+	data := map[string]interface{}{}
+
+	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
+	// FIXME(webapp): derive OOBOTPViewModel with graph and edges
+	oobOTPViewModel := OOBOTPViewModel{}
+
+	viewmodels.Embed(data, baseViewModel)
+	viewmodels.Embed(data, oobOTPViewModel)
+
+	return data, nil
+}
+
+// FIXME(webapp): implement input interface
+type OOBOTPTrigger struct {
+}
+
+// FIXME(webapp): implement input interface
+type OOBOTPInput struct {
+	Code string
 }
 
 func (h *OOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -135,18 +140,17 @@ func (h *OOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "GET" {
-		state, err := h.State.RestoreReadOnlyState(r, true)
+		state, graph, edges, err := h.WebApp.Get(StateID(r))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-		oobOTPViewModel := NewOOBOTPViewModel(state)
-
-		data := map[string]interface{}{}
-		Embed(data, baseViewModel)
-		Embed(data, oobOTPViewModel)
+		data, err := h.GetData(r, state, graph, edges)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		h.Renderer.Render(w, r, TemplateItemTypeAuthUIOOBOTPHTML, data)
 		return
@@ -156,23 +160,15 @@ func (h *OOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" && trigger {
 		h.Database.WithTx(func() error {
-			state, err := h.State.CloneState(r)
+			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
+				input = &OOBOTPTrigger{}
+				return
+			})
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
-
-			var result *interactionflows.WebAppResult
-			defer func() {
-				h.State.UpdateState(state, result, err)
-				h.Responder.Respond(w, r, state, result, err)
-			}()
-
-			result, err = h.Interactions.TriggerOOBOTP(state)
-			if err != nil {
-				return err
-			}
-
+			result.WriteResponse(w, r)
 			return nil
 		})
 		return
@@ -180,30 +176,24 @@ func (h *OOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 		h.Database.WithTx(func() error {
-			state, err := h.State.CloneState(r)
+			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
+				err = OOBOTPSchema.PartValidator(OOBOTPRequestSchema).ValidateValue(FormToJSON(r.Form))
+				if err != nil {
+					return
+				}
+
+				code := r.Form.Get("x_password")
+
+				input = &OOBOTPInput{
+					Code: code,
+				}
+				return
+			})
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
-
-			var result *interactionflows.WebAppResult
-			defer func() {
-				h.State.UpdateState(state, result, err)
-				h.Responder.Respond(w, r, state, result, err)
-			}()
-
-			err = OOBOTPSchema.PartValidator(OOBOTPRequestSchema).ValidateValue(FormToJSON(r.Form))
-			if err != nil {
-				return err
-			}
-
-			code := r.Form.Get("x_password")
-
-			result, err = h.Interactions.EnterSecret(state, code)
-			if err != nil {
-				return err
-			}
-
+			result.WriteResponse(w, r)
 			return nil
 		})
 	}

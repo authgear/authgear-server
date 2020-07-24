@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
-	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/httputil"
@@ -128,20 +128,40 @@ func ConfigurePromoteRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/promote_user")
 }
 
-type PromoteInteractions interface {
-	BeginOAuth(state *interactionflows.State, opts interactionflows.BeginOAuthOptions) (*interactionflows.WebAppResult, error)
-	PromoteWithLoginID(state *interactionflows.State, loginIDKey string, loginID string, userID string) (*interactionflows.WebAppResult, error)
+type PromoteHandler struct {
+	Database      *db.Handle
+	BaseViewModel *viewmodels.BaseViewModeler
+	FormPrefiller *FormPrefiller
+	Renderer      Renderer
+	WebApp        WebAppService
 }
 
-type PromoteHandler struct {
-	Database                *db.Handle
-	State                   StateService
-	BaseViewModel           *BaseViewModeler
-	AuthenticationViewModel *AuthenticationViewModeler
-	FormPrefiller           *FormPrefiller
-	Renderer                Renderer
-	Interactions            PromoteInteractions
-	Responder               Responder
+func (h *PromoteHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
+	data := map[string]interface{}{}
+
+	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
+	// FIXME(webapp): derive AuthenticationViewModel with graph and edges
+	authenticationViewModel := viewmodels.AuthenticationViewModel{}
+
+	viewmodels.EmbedForm(data, r.Form)
+	viewmodels.Embed(data, baseViewModel)
+	viewmodels.Embed(data, authenticationViewModel)
+
+	return data, nil
+}
+
+// FIXME(webapp): implement input interface
+type PromoteOAuth struct {
+	ProviderAlias    string
+	Action           string
+	NonceSource      *http.Cookie
+	ErrorRedirectURI string
+}
+
+// FIXME(webapp): implement input interface
+type PromoteLoginID struct {
+	LoginIDKey   string
+	LoginIDValue string
 }
 
 func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -153,20 +173,17 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.FormPrefiller.Prefill(r.Form)
 
 	if r.Method == "GET" {
-		state, err := h.State.RestoreReadOnlyState(r, false)
+		state, graph, edges, err := h.WebApp.Get(StateID(r))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-		authenticationViewModel := h.AuthenticationViewModel.ViewModel(r)
-
-		data := map[string]interface{}{}
-
-		EmbedForm(data, r.Form)
-		Embed(data, baseViewModel)
-		Embed(data, authenticationViewModel)
+		data, err := h.GetData(r, state, graph, edges)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		h.Renderer.Render(w, r, TemplateItemTypeAuthUIPromoteHTML, data)
 		return
@@ -176,62 +193,45 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" && providerAlias != "" {
 		h.Database.WithTx(func() error {
-			state, err := h.State.CloneState(r)
+			nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
+			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
+				input = &PromoteOAuth{
+					ProviderAlias: providerAlias,
+					// FIXME(webapp): Use constant
+					Action:           "promote",
+					NonceSource:      nonceSource,
+					ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
+				}
+				return
+			})
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
-
-			var result *interactionflows.WebAppResult
-			defer func() {
-				h.State.UpdateState(state, result, err)
-				h.Responder.Respond(w, r, state, result, err)
-			}()
-
-			userID, _ := state.Extra[interactionflows.ExtraAnonymousUserID].(string)
-
-			nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
-			result, err = h.Interactions.BeginOAuth(state, interactionflows.BeginOAuthOptions{
-				ProviderAlias:    providerAlias,
-				Action:           interaction.OAuthActionPromote,
-				UserID:           userID,
-				NonceSource:      nonceSource,
-				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
-			})
-			if err != nil {
-				return err
-			}
-
+			result.WriteResponse(w, r)
 			return nil
 		})
 	}
 
 	if r.Method == "POST" {
 		h.Database.WithTx(func() error {
-			state, err := h.State.CloneState(r)
+			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
+				loginIDKey := r.Form.Get("x_login_id_key")
+				loginID, err := FormToLoginID(r.Form)
+				if err != nil {
+					return
+				}
+				input = &PromoteLoginID{
+					LoginIDKey:   loginIDKey,
+					LoginIDValue: loginID,
+				}
+				return
+			})
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
-
-			var result *interactionflows.WebAppResult
-			defer func() {
-				h.State.UpdateState(state, result, err)
-				h.Responder.Respond(w, r, state, result, err)
-			}()
-
-			userID, _ := state.Extra[interactionflows.ExtraAnonymousUserID].(string)
-			loginID, err := FormToLoginID(r.Form)
-			if err != nil {
-				return err
-			}
-
-			loginIDKey := r.Form.Get("x_login_id_key")
-			result, err = h.Interactions.PromoteWithLoginID(state, loginIDKey, loginID, userID)
-			if err != nil {
-				return err
-			}
-
+			result.WriteResponse(w, r)
 			return nil
 		})
 	}

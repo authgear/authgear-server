@@ -1,14 +1,15 @@
 package webapp
 
 import (
-	"errors"
 	"net/http"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
-	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/core/phone"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
@@ -175,21 +176,71 @@ func ConfigureLoginRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/login")
 }
 
-type LoginInteractions interface {
-	BeginOAuth(state *interactionflows.State, opts interactionflows.BeginOAuthOptions) (*interactionflows.WebAppResult, error)
-	LoginWithLoginID(state *interactionflows.State, loginID string) (*interactionflows.WebAppResult, error)
+type LoginHandler struct {
+	ServerConfig  *config.ServerConfig
+	Database      *db.Handle
+	BaseViewModel *viewmodels.BaseViewModeler
+	FormPrefiller *FormPrefiller
+	Renderer      Renderer
+	WebApp        WebAppService
 }
 
-type LoginHandler struct {
-	ServerConfig            *config.ServerConfig
-	Database                *db.Handle
-	State                   StateService
-	BaseViewModel           *BaseViewModeler
-	AuthenticationViewModel *AuthenticationViewModeler
-	FormPrefiller           *FormPrefiller
-	Renderer                Renderer
-	Interactions            LoginInteractions
-	Responder               Responder
+func (h *LoginHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+	var anyError interface{}
+	if state != nil {
+		anyError = state.Error
+	}
+	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+	viewmodels.EmbedForm(data, r.Form)
+	viewmodels.Embed(data, baseViewModel)
+	// FIXME(webapp): derive AuthenticationViewModel with graph and edges
+	authenticationViewModel := viewmodels.AuthenticationViewModel{}
+	viewmodels.Embed(data, authenticationViewModel)
+	return data, nil
+}
+
+type LoginOAuth struct {
+	ProviderAlias    string
+	State            string
+	NonceSource      *http.Cookie
+	ErrorRedirectURI string
+}
+
+var _ nodes.InputSelectIdentityOAuthProvider = &LoginOAuth{}
+
+func (i *LoginOAuth) GetProviderAlias() string {
+	return i.ProviderAlias
+}
+
+func (i *LoginOAuth) GetState() string {
+	return i.State
+}
+
+func (i *LoginOAuth) GetNonceSource() *http.Cookie {
+	return i.NonceSource
+}
+
+func (i *LoginOAuth) GetErrorRedirectURI() string {
+	return i.ErrorRedirectURI
+}
+
+type LoginLoginID struct {
+	LoginID string
+}
+
+var _ nodes.InputSelectIdentityLoginID = &LoginLoginID{}
+
+// GetLoginID implements InputSelectIdentityLoginID.
+func (i *LoginLoginID) GetLoginID() string {
+	return i.LoginID
+}
+
+func (h *LoginHandler) MakeIntent(r *http.Request) *webapp.Intent {
+	return &webapp.Intent{
+		RedirectURI: webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy),
+		Intent:      &intents.IntentLogin{},
+	}
 }
 
 func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -198,32 +249,22 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	intent := h.MakeIntent(r)
+
 	h.FormPrefiller.Prefill(r.Form)
 
 	if r.Method == "GET" {
-		state, err := h.State.RestoreReadOnlyState(r, true)
-		if errors.Is(err, interactionflows.ErrStateNotFound) {
-			err = nil
-		}
-
+		state, graph, edges, err := h.WebApp.GetIntent(intent, StateID(r))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		var anyError interface{}
-		if state != nil {
-			anyError = state.Error
+		data, err := h.GetData(r, state, graph, edges)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
-
-		baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
-		authenticationViewModel := h.AuthenticationViewModel.ViewModel(r)
-
-		data := map[string]interface{}{}
-
-		EmbedForm(data, r.Form)
-		Embed(data, baseViewModel)
-		Embed(data, authenticationViewModel)
 
 		h.Renderer.Render(w, r, TemplateItemTypeAuthUILoginHTML, data)
 		return
@@ -233,29 +274,23 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" && providerAlias != "" {
 		h.Database.WithTx(func() error {
-			var state *interactionflows.State
-			var result *interactionflows.WebAppResult
-			var err error
-
-			defer func() {
-				h.State.UpdateState(state, result, err)
-				h.Responder.Respond(w, r, state, result, err)
-			}()
-			state = interactionflows.NewState()
-			state = h.State.CreateState(state, webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy))
-
 			nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
-			result, err = h.Interactions.BeginOAuth(state, interactionflows.BeginOAuthOptions{
-				ProviderAlias:    providerAlias,
-				Action:           interaction.OAuthActionLogin,
-				NonceSource:      nonceSource,
-				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
+			stateID := webapp.NewID()
+			intent.StateID = stateID
+			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
+				input = &LoginOAuth{
+					ProviderAlias:    providerAlias,
+					State:            stateID,
+					NonceSource:      nonceSource,
+					ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
+				}
+				return
 			})
-
 			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
-
+			result.WriteResponse(w, r)
 			return nil
 		})
 		return
@@ -263,32 +298,27 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 		h.Database.WithTx(func() error {
-			var state *interactionflows.State
-			var result *interactionflows.WebAppResult
-			var err error
+			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
+				err = LoginSchema.PartValidator(LoginWithLoginIDRequestSchema).ValidateValue(FormToJSON(r.Form))
+				if err != nil {
+					return
+				}
 
-			defer func() {
-				h.State.UpdateState(state, result, err)
-				h.Responder.Respond(w, r, state, result, err)
-			}()
-			state = interactionflows.NewState()
-			state = h.State.CreateState(state, webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy))
+				loginID, err := FormToLoginID(r.Form)
+				if err != nil {
+					return
+				}
 
-			err = LoginSchema.PartValidator(LoginWithLoginIDRequestSchema).ValidateValue(FormToJSON(r.Form))
+				input = &LoginLoginID{
+					LoginID: loginID,
+				}
+				return
+			})
 			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
-
-			loginID, err := FormToLoginID(r.Form)
-			if err != nil {
-				return err
-			}
-
-			result, err = h.Interactions.LoginWithLoginID(state, loginID)
-			if err != nil {
-				return err
-			}
-
+			result.WriteResponse(w, r)
 			return nil
 		})
 	}

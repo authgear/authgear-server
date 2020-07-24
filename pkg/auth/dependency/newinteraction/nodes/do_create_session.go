@@ -38,6 +38,11 @@ type NodeDoCreateSession struct {
 	SessionCookie *http.Cookie        `json:"session_cookie"`
 }
 
+// GetCookies implements CookiesGetter
+func (n *NodeDoCreateSession) GetCookies() []*http.Cookie {
+	return []*http.Cookie{n.SessionCookie}
+}
+
 func (n *NodeDoCreateSession) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	err := perform(newinteraction.EffectOnCommit(func(ctx *newinteraction.Context) error {
 		user, err := ctx.Users.Get(n.Session.Attrs.UserID)

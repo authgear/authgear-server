@@ -1,12 +1,10 @@
-package webapp
+package viewmodels
 
 import (
 	"encoding/json"
-	"fmt"
 	htmltemplate "html/template"
 	"net/http"
 	"net/url"
-	"reflect"
 
 	"github.com/gorilla/csrf"
 
@@ -15,35 +13,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/core/intl"
 	"github.com/authgear/authgear-server/pkg/core/skyerr"
 )
-
-func sliceContains(slice []interface{}, value interface{}) bool {
-	for _, v := range slice {
-		if reflect.DeepEqual(v, value) {
-			return true
-		}
-	}
-	return false
-}
-
-// Embed embeds the given struct s into data.
-func Embed(data map[string]interface{}, s interface{}) {
-	v := reflect.ValueOf(s)
-	typ := v.Type()
-	if typ.Kind() != reflect.Struct {
-		panic(fmt.Errorf("webapp: expected struct but was %T", s))
-	}
-	numField := typ.NumField()
-	for i := 0; i < numField; i++ {
-		structField := typ.Field(i)
-		data[structField.Name] = v.Field(i).Interface()
-	}
-}
-
-func EmbedForm(data map[string]interface{}, form url.Values) {
-	for name := range form {
-		data[name] = form.Get(name)
-	}
-}
 
 // BaseViewModel contains data that are common to all pages.
 type BaseViewModel struct {

@@ -4,9 +4,6 @@ import "github.com/google/wire"
 
 var DependencySet = wire.NewSet(
 	NewHTMLRendererLogger,
-	wire.Struct(new(BaseViewModeler), "*"),
-	wire.Struct(new(AuthenticationViewModeler), "*"),
-	wire.Struct(new(PasswordPolicyViewModeler), "*"),
 	wire.Struct(new(HTMLRenderer), "*"),
 	wire.Struct(new(FormPrefiller), "*"),
 	wire.Bind(new(Renderer), new(*HTMLRenderer)),
@@ -27,4 +24,11 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(SettingsHandler), "*"),
 	wire.Struct(new(SettingsIdentityHandler), "*"),
 	wire.Struct(new(LogoutHandler), "*"),
+
+	ProvideWebAppService,
 )
+
+func ProvideWebAppService() WebAppService {
+	// FIXME(webapp): implement WebAppService
+	panic("implement me")
+}

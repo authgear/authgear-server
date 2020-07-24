@@ -4,6 +4,9 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
 )
@@ -51,9 +54,16 @@ func ConfigureResetPasswordSuccessRoute(route httproute.Route) httproute.Route {
 }
 
 type ResetPasswordSuccessHandler struct {
-	State         StateService
-	BaseViewModel *BaseViewModeler
+	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
+	WebApp        WebAppService
+}
+
+func (h *ResetPasswordSuccessHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
+	viewmodels.Embed(data, baseViewModel)
+	return data, nil
 }
 
 func (h *ResetPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -63,17 +73,17 @@ func (h *ResetPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	}
 
 	if r.Method == "GET" {
-		state, err := h.State.RestoreReadOnlyState(r, false)
+		state, graph, edges, err := h.WebApp.Get(StateID(r))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-
-		data := map[string]interface{}{}
-
-		Embed(data, baseViewModel)
+		data, err := h.GetData(r, state, graph, edges)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		h.Renderer.Render(w, r, TemplateItemTypeAuthUIResetPasswordSuccessHTML, data)
 		return
