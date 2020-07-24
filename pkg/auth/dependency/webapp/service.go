@@ -2,6 +2,7 @@ package webapp
 
 import (
 	"errors"
+	"net/http"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
@@ -12,6 +13,10 @@ import (
 
 type ErrorRedirectURIGetter interface {
 	GetErrorRedirectURI() string
+}
+
+type CookiesGetter interface {
+	GetCookies() []*http.Cookie
 }
 
 type Store interface {
@@ -218,10 +223,19 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 
 	// Case: finish
 	if finished {
+		// Loop from start to end to collect cookies.
+		// This iteration order allows newer node to overwrite cookies.
+		var cookies []*http.Cookie
+		for _, node := range graph.Nodes {
+			if a, ok := node.(CookiesGetter); ok {
+				cookies = append(cookies, a.GetCookies()...)
+			}
+		}
+
 		return &Result{
 			state:       state,
 			redirectURI: state.RedirectURI,
-			// FIXME(webapp): get cookies somewhere?
+			cookies:     cookies,
 		}, nil
 	}
 
