@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
@@ -91,7 +92,7 @@ func (h *ResetPasswordHandler) MakeIntent(r *http.Request) *webapp.Intent {
 		RedirectURI: "/reset_password/success",
 		KeepState:   true,
 		// FIXME(webapp): IntentResetPassword
-		Intent: &newinteraction.IntentLogin{},
+		Intent: &intents.IntentLogin{},
 	}
 }
 

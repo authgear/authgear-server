@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
@@ -144,7 +145,7 @@ func (h *ForgotPasswordHandler) MakeIntent(r *http.Request) *webapp.Intent {
 		RedirectURI: "/forgot_password/success",
 		KeepState:   true,
 		// FIXME(webapp): IntentForgotPassword
-		Intent: &newinteraction.IntentLogin{},
+		Intent: &intents.IntentLogin{},
 	}
 }
 
