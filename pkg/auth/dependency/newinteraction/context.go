@@ -24,7 +24,10 @@ type IdentityProvider interface {
 	// FIXME: take *identity.Spec instead
 	GetByClaims(typ authn.IdentityType, claims map[string]interface{}) (string, *identity.Info, error)
 	ListByUser(userID string) ([]*identity.Info, error)
+	New(userID string, typ authn.IdentityType, claims map[string]interface{}) (*identity.Info, error)
+	CreateAll(is []*identity.Info) error
 	UpdateAll(is []*identity.Info) error
+	Validate(is []*identity.Info) error
 }
 
 type AuthenticatorProvider interface {

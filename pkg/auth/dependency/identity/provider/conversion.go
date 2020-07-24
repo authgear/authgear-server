@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
@@ -60,14 +61,7 @@ func oauthFromIdentityInfo(i *identity.Info) *oauth.Identity {
 	for k, v := range i.Claims {
 		switch k {
 		case identity.IdentityClaimOAuthProviderKeys:
-			o.ProviderID.Keys = map[string]interface{}{}
-			for k, v := range v.(map[string]interface{}) {
-				if k == "type" {
-					o.ProviderID.Type = v.(string)
-				} else {
-					o.ProviderID.Keys[k] = v.(string)
-				}
-			}
+			o.ProviderID = config.NewProviderID(v.(map[string]interface{}))
 		case identity.IdentityClaimOAuthSubjectID:
 			o.ProviderSubjectID = v.(string)
 		case identity.IdentityClaimOAuthProfile:
