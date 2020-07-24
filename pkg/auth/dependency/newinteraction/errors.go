@@ -8,3 +8,4 @@ var (
 )
 
 var ErrInvalidCredentials = InvalidCredentials.New("invalid credentials")
+var ErrOAuthProviderNotFound = skyerr.NotFound.WithReason("OAuthProviderNotFound").New("oauth provider not found")
