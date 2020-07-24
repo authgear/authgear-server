@@ -77,7 +77,11 @@ func (s *Service) DryRun(fn func(*Context) (*Graph, error)) (err error) {
 		return
 	}
 
-	err = s.create(graph)
+	if graph != nil {
+		err = s.create(graph)
+		return
+	}
+
 	return
 }
 

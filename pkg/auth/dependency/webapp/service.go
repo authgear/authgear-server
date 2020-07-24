@@ -10,8 +10,6 @@ import (
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package webapp
 
-var ErrRollback = errors.New("rollback")
-
 type ErrorRedirectURIGetter interface {
 	GetErrorRedirectURI() string
 }
@@ -22,9 +20,10 @@ type Store interface {
 }
 
 type GraphService interface {
-	Get(instanceID string) (*newinteraction.Graph, error)
-	WithContext(fn func(*newinteraction.Context) (*newinteraction.Graph, error)) error
 	NewGraph(ctx *newinteraction.Context, intent newinteraction.Intent) (*newinteraction.Graph, error)
+	Get(instanceID string) (*newinteraction.Graph, error)
+	DryRun(fn func(*newinteraction.Context) (*newinteraction.Graph, error)) error
+	Run(graph *newinteraction.Graph, preserveGraph bool) error
 }
 
 type Service struct {
@@ -37,7 +36,7 @@ func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph
 		return s.Get(stateID)
 	}
 
-	errRollback := s.Graph.WithContext(func(ctx *newinteraction.Context) (_ *newinteraction.Graph, err error) {
+	err = s.Graph.DryRun(func(ctx *newinteraction.Context) (_ *newinteraction.Graph, err error) {
 		graph, err = s.Graph.NewGraph(ctx, intent.Intent)
 		if err != nil {
 			return
@@ -49,11 +48,9 @@ func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph
 			return
 		}
 
-		err = ErrRollback
 		return
 	})
-	if !errors.Is(errRollback, ErrRollback) {
-		err = errRollback
+	if err != nil {
 		return
 	}
 
@@ -78,18 +75,16 @@ func (s *Service) Get(stateID string) (state *State, graph *newinteraction.Graph
 		return
 	}
 
-	errRollback := s.Graph.WithContext(func(ctx *newinteraction.Context) (_ *newinteraction.Graph, err error) {
+	err = s.Graph.DryRun(func(ctx *newinteraction.Context) (_ *newinteraction.Graph, err error) {
 		node := graph.CurrentNode()
 		edges, err = node.DeriveEdges(ctx, graph)
 		if err != nil {
 			return
 		}
 
-		err = ErrRollback
 		return
 	})
-	if !errors.Is(errRollback, ErrRollback) {
-		err = errRollback
+	if err != nil {
 		return
 	}
 
@@ -105,9 +100,7 @@ func (s *Service) PostIntent(intent *Intent, inputer func() (interface{}, error)
 
 	var graph *newinteraction.Graph
 	var edges []newinteraction.Edge
-	// FIXME(webapp): How to convey the intention that we only want to
-	// commit if the interaction finishes?
-	err = s.Graph.WithContext(func(ctx *newinteraction.Context) (newGraph *newinteraction.Graph, err error) {
+	err = s.Graph.DryRun(func(ctx *newinteraction.Context) (newGraph *newinteraction.Graph, err error) {
 		graph, err = s.Graph.NewGraph(ctx, intent.Intent)
 		if err != nil {
 			return
@@ -131,15 +124,9 @@ func (s *Service) PostIntent(intent *Intent, inputer func() (interface{}, error)
 		newGraph = graph
 		return
 	})
-	if err != nil {
-		result, err = s.makeResult(state, graph, edges, err)
-		if err != nil {
-			return
-		}
-		return
-	}
 
-	result, err = s.makeResult(state, graph, edges, err)
+	// Regardless of err, we need to return result.
+	result, err = s.afterPost(state, graph, edges, err)
 	if err != nil {
 		return
 	}
@@ -162,9 +149,7 @@ func (s *Service) PostInput(stateID string, inputer func() (interface{}, error))
 		return nil, err
 	}
 
-	// FIXME(webapp): How to convey the intention that we only want to
-	// commit if the interaction finishes?
-	err = s.Graph.WithContext(func(ctx *newinteraction.Context) (newGraph *newinteraction.Graph, err error) {
+	err = s.Graph.DryRun(func(ctx *newinteraction.Context) (newGraph *newinteraction.Graph, err error) {
 		input, err := inputer()
 		if err != nil {
 			return
@@ -183,15 +168,9 @@ func (s *Service) PostInput(stateID string, inputer func() (interface{}, error))
 		newGraph = graph
 		return
 	})
-	if err != nil {
-		result, err = s.makeResult(state, graph, edges, err)
-		if err != nil {
-			return
-		}
-		return
-	}
 
-	result, err = s.makeResult(state, graph, edges, err)
+	// Regardless of err, we need to return result.
+	result, err = s.afterPost(state, graph, edges, err)
 	if err != nil {
 		return
 	}
@@ -199,7 +178,13 @@ func (s *Service) PostInput(stateID string, inputer func() (interface{}, error))
 	return
 }
 
-func (s *Service) makeResult(state *State, graph *newinteraction.Graph, edges []newinteraction.Edge, inputError error) (*Result, error) {
+func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []newinteraction.Edge, inputError error) (*Result, error) {
+	finished := graph != nil && len(edges) == 0 && inputError == nil
+	// The graph finished. Apply its effect permanently
+	if finished {
+		inputError = s.Graph.Run(graph, state.KeepState)
+	}
+
 	state.Error = skyerr.AsAPIError(inputError)
 	if graph != nil {
 		state.GraphInstanceID = graph.InstanceID
@@ -232,7 +217,7 @@ func (s *Service) makeResult(state *State, graph *newinteraction.Graph, edges []
 	}
 
 	// Case: finish
-	if len(edges) == 0 {
+	if finished {
 		return &Result{
 			state:       state,
 			redirectURI: state.RedirectURI,
