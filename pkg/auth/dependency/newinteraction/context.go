@@ -88,7 +88,7 @@ type OAuthProviderFactory interface {
 }
 
 type Context struct {
-	IsDryRun bool
+	IsDryRun bool `wire:"-"`
 
 	Database db.SQLExecutor
 	Config   *config.AppConfig
