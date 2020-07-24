@@ -1682,12 +1682,14 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
+	forgotPasswordConfig := appConfig.ForgotPassword
 	appMetadata := appConfig.Metadata
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		ServerConfig: serverConfig,
-		AuthUI:       uiConfig,
-		Localization: localizationConfig,
-		Metadata:     appMetadata,
+		ServerConfig:   serverConfig,
+		AuthUI:         uiConfig,
+		Localization:   localizationConfig,
+		ForgotPassword: forgotPasswordConfig,
+		Metadata:       appMetadata,
 	}
 	identityConfig := appConfig.Identity
 	loginIDConfig := identityConfig.LoginID
@@ -1723,12 +1725,14 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
+	forgotPasswordConfig := appConfig.ForgotPassword
 	appMetadata := appConfig.Metadata
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		ServerConfig: serverConfig,
-		AuthUI:       uiConfig,
-		Localization: localizationConfig,
-		Metadata:     appMetadata,
+		ServerConfig:   serverConfig,
+		AuthUI:         uiConfig,
+		Localization:   localizationConfig,
+		ForgotPassword: forgotPasswordConfig,
+		Metadata:       appMetadata,
 	}
 	identityConfig := appConfig.Identity
 	loginIDConfig := identityConfig.LoginID
@@ -1764,12 +1768,14 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
+	forgotPasswordConfig := appConfig.ForgotPassword
 	appMetadata := appConfig.Metadata
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		ServerConfig: serverConfig,
-		AuthUI:       uiConfig,
-		Localization: localizationConfig,
-		Metadata:     appMetadata,
+		ServerConfig:   serverConfig,
+		AuthUI:         uiConfig,
+		Localization:   localizationConfig,
+		ForgotPassword: forgotPasswordConfig,
+		Metadata:       appMetadata,
 	}
 	identityConfig := appConfig.Identity
 	loginIDConfig := identityConfig.LoginID
@@ -1815,12 +1821,14 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
+	forgotPasswordConfig := appConfig.ForgotPassword
 	appMetadata := appConfig.Metadata
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		ServerConfig: serverConfig,
-		AuthUI:       uiConfig,
-		Localization: localizationConfig,
-		Metadata:     appMetadata,
+		ServerConfig:   serverConfig,
+		AuthUI:         uiConfig,
+		Localization:   localizationConfig,
+		ForgotPassword: forgotPasswordConfig,
+		Metadata:       appMetadata,
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
@@ -1848,12 +1856,14 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
+	forgotPasswordConfig := appConfig.ForgotPassword
 	appMetadata := appConfig.Metadata
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		ServerConfig: serverConfig,
-		AuthUI:       uiConfig,
-		Localization: localizationConfig,
-		Metadata:     appMetadata,
+		ServerConfig:   serverConfig,
+		AuthUI:         uiConfig,
+		Localization:   localizationConfig,
+		ForgotPassword: forgotPasswordConfig,
+		Metadata:       appMetadata,
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
@@ -1881,12 +1891,14 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
+	forgotPasswordConfig := appConfig.ForgotPassword
 	appMetadata := appConfig.Metadata
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		ServerConfig: serverConfig,
-		AuthUI:       uiConfig,
-		Localization: localizationConfig,
-		Metadata:     appMetadata,
+		ServerConfig:   serverConfig,
+		AuthUI:         uiConfig,
+		Localization:   localizationConfig,
+		ForgotPassword: forgotPasswordConfig,
+		Metadata:       appMetadata,
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
@@ -1914,12 +1926,14 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
+	forgotPasswordConfig := appConfig.ForgotPassword
 	appMetadata := appConfig.Metadata
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		ServerConfig: serverConfig,
-		AuthUI:       uiConfig,
-		Localization: localizationConfig,
-		Metadata:     appMetadata,
+		ServerConfig:   serverConfig,
+		AuthUI:         uiConfig,
+		Localization:   localizationConfig,
+		ForgotPassword: forgotPasswordConfig,
+		Metadata:       appMetadata,
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
@@ -1947,12 +1961,14 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
+	forgotPasswordConfig := appConfig.ForgotPassword
 	appMetadata := appConfig.Metadata
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		ServerConfig: serverConfig,
-		AuthUI:       uiConfig,
-		Localization: localizationConfig,
-		Metadata:     appMetadata,
+		ServerConfig:   serverConfig,
+		AuthUI:         uiConfig,
+		Localization:   localizationConfig,
+		ForgotPassword: forgotPasswordConfig,
+		Metadata:       appMetadata,
 	}
 	identityConfig := appConfig.Identity
 	loginIDConfig := identityConfig.LoginID
@@ -1986,12 +2002,14 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
+	forgotPasswordConfig := appConfig.ForgotPassword
 	appMetadata := appConfig.Metadata
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		ServerConfig: serverConfig,
-		AuthUI:       uiConfig,
-		Localization: localizationConfig,
-		Metadata:     appMetadata,
+		ServerConfig:   serverConfig,
+		AuthUI:         uiConfig,
+		Localization:   localizationConfig,
+		ForgotPassword: forgotPasswordConfig,
+		Metadata:       appMetadata,
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
@@ -2018,12 +2036,14 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
+	forgotPasswordConfig := appConfig.ForgotPassword
 	appMetadata := appConfig.Metadata
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		ServerConfig: serverConfig,
-		AuthUI:       uiConfig,
-		Localization: localizationConfig,
-		Metadata:     appMetadata,
+		ServerConfig:   serverConfig,
+		AuthUI:         uiConfig,
+		Localization:   localizationConfig,
+		ForgotPassword: forgotPasswordConfig,
+		Metadata:       appMetadata,
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
@@ -2050,12 +2070,14 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
+	forgotPasswordConfig := appConfig.ForgotPassword
 	appMetadata := appConfig.Metadata
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		ServerConfig: serverConfig,
-		AuthUI:       uiConfig,
-		Localization: localizationConfig,
-		Metadata:     appMetadata,
+		ServerConfig:   serverConfig,
+		AuthUI:         uiConfig,
+		Localization:   localizationConfig,
+		ForgotPassword: forgotPasswordConfig,
+		Metadata:       appMetadata,
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
@@ -2081,12 +2103,14 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
+	forgotPasswordConfig := appConfig.ForgotPassword
 	appMetadata := appConfig.Metadata
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		ServerConfig: serverConfig,
-		AuthUI:       uiConfig,
-		Localization: localizationConfig,
-		Metadata:     appMetadata,
+		ServerConfig:   serverConfig,
+		AuthUI:         uiConfig,
+		Localization:   localizationConfig,
+		ForgotPassword: forgotPasswordConfig,
+		Metadata:       appMetadata,
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
@@ -2111,12 +2135,14 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
 	localizationConfig := appConfig.Localization
+	forgotPasswordConfig := appConfig.ForgotPassword
 	appMetadata := appConfig.Metadata
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		ServerConfig: serverConfig,
-		AuthUI:       uiConfig,
-		Localization: localizationConfig,
-		Metadata:     appMetadata,
+		ServerConfig:   serverConfig,
+		AuthUI:         uiConfig,
+		Localization:   localizationConfig,
+		ForgotPassword: forgotPasswordConfig,
+		Metadata:       appMetadata,
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
@@ -2399,11 +2425,13 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 	}
 	uiConfig := appConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		ServerConfig: serverConfig,
-		AuthUI:       uiConfig,
-		Localization: localizationConfig,
-		Metadata:     appMetadata,
+		ServerConfig:   serverConfig,
+		AuthUI:         uiConfig,
+		Localization:   localizationConfig,
+		ForgotPassword: forgotPasswordConfig,
+		Metadata:       appMetadata,
 	}
 	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
 	htmlRenderer := &webapp2.HTMLRenderer{

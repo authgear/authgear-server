@@ -25,7 +25,6 @@ type AuthenticationViewModel struct {
 	LoginPageLoginIDHasPhone      bool
 	LoginPageTextLoginIDVariant   string
 	LoginPageTextLoginIDInputType string
-	PasswordAuthenticatorEnabled  bool
 }
 
 // func (m *AuthenticationViewModeler) ViewModel(r *http.Request) AuthenticationViewModel {
@@ -77,18 +76,10 @@ type AuthenticationViewModel struct {
 // 		}
 // 	}
 //
-// 	passwordAuthenticatorEnabled := false
-// 	for _, s := range m.Authentication.PrimaryAuthenticators {
-// 		if s == authn.AuthenticatorTypePassword {
-// 			passwordAuthenticatorEnabled = true
-// 		}
-// 	}
-//
 // 	return AuthenticationViewModel{
 // 		IdentityCandidates:            identityCandidates,
 // 		LoginPageLoginIDHasPhone:      hasPhone,
 // 		LoginPageTextLoginIDVariant:   loginPageTextLoginIDVariant,
 // 		LoginPageTextLoginIDInputType: loginPageTextLoginIDInputType,
-// 		PasswordAuthenticatorEnabled:  passwordAuthenticatorEnabled,
 // 	}
 // }

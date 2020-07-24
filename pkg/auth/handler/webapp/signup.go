@@ -117,7 +117,7 @@ var TemplateAuthUISignupHTML = template.Spec{
 					<a href="{{ call $.MakeURLWithPathWithoutX "/login" }}">{{ localize "login-button-label" }}</a>
 				</div>
 
-				{{ if .PasswordAuthenticatorEnabled }}
+				{{ if .ForgotPasswordEnabled }}
 				<a class="link align-self-flex-start" href="{{ call $.MakeURLWithPathWithoutX "/forgot_password" }}">{{ localize "forgot-password-button-label" }}</a>
 				{{ end }}
 

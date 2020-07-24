@@ -303,6 +303,7 @@ authenticator:
   recovery_code:
     count: 16
 forgot_password:
+  enabled: true
   email_message:
     subject: Reset password instruction
   sms_message: {}

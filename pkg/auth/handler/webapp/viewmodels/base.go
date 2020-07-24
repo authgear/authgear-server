@@ -26,13 +26,15 @@ type BaseViewModel struct {
 	MakeURLWithQuery        func(pairs ...string) string
 	MakeURLWithPathWithoutX func(path string) string
 	Error                   interface{}
+	ForgotPasswordEnabled   bool
 }
 
 type BaseViewModeler struct {
-	ServerConfig *config.ServerConfig
-	AuthUI       *config.UIConfig
-	Localization *config.LocalizationConfig
-	Metadata     config.AppMetadata
+	ServerConfig   *config.ServerConfig
+	AuthUI         *config.UIConfig
+	Localization   *config.LocalizationConfig
+	ForgotPassword *config.ForgotPasswordConfig
+	Metadata       config.AppMetadata
 }
 
 func (m *BaseViewModeler) ViewModel(r *http.Request, anyError interface{}) BaseViewModel {
@@ -57,6 +59,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, anyError interface{}) BaseV
 		MakeURLWithPathWithoutX: func(path string) string {
 			return webapp.MakeURLWithPathWithoutX(r.URL, path)
 		},
+		ForgotPasswordEnabled: *m.ForgotPassword.Enabled,
 	}
 
 	if apiError := asAPIError(anyError); apiError != nil {
