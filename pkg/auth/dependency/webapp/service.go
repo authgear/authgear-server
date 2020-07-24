@@ -59,8 +59,12 @@ func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph
 		return
 	}
 
+	newStateID := intent.StateID
+	if newStateID == "" {
+		newStateID = NewID()
+	}
 	state = &State{
-		ID:              newID(),
+		ID:              newStateID,
 		RedirectURI:     intent.RedirectURI,
 		KeepState:       intent.KeepState,
 		GraphInstanceID: graph.InstanceID,
@@ -97,8 +101,12 @@ func (s *Service) Get(stateID string) (state *State, graph *newinteraction.Graph
 }
 
 func (s *Service) PostIntent(intent *Intent, inputer func() (interface{}, error)) (result *Result, err error) {
+	stateID := intent.StateID
+	if stateID == "" {
+		stateID = NewID()
+	}
 	state := &State{
-		ID:          newID(),
+		ID:          stateID,
 		RedirectURI: intent.RedirectURI,
 		KeepState:   intent.KeepState,
 	}
@@ -146,7 +154,7 @@ func (s *Service) PostInput(stateID string, inputer func() (interface{}, error))
 	}
 
 	// Immutable state
-	state.ID = newID()
+	state.ID = NewID()
 
 	var edges []newinteraction.Edge
 	graph, err := s.Graph.Get(state.GraphInstanceID)
@@ -240,6 +248,7 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 	}
 
 	// FIXME(webapp): Interpret graph and edges to derive redirectURI.
+	// FIXME(webapp): Check if current node implements RedirectURIGetter.
 	return &Result{
 		state:       state,
 		redirectURI: "",

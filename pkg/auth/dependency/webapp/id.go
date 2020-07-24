@@ -10,6 +10,6 @@ const (
 	idLength   int    = 32
 )
 
-func newID() string {
+func NewID() string {
 	return corerand.StringWithAlphabet(idLength, idAlphabet, corerand.SecureRand)
 }

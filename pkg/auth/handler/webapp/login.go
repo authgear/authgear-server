@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/core/phone"
 	"github.com/authgear/authgear-server/pkg/db"
@@ -198,12 +199,29 @@ func (h *LoginHandler) GetData(r *http.Request, state *webapp.State, graph *newi
 	return data, nil
 }
 
-// FIXME(webapp): implement input interface
 type LoginOAuth struct {
 	ProviderAlias    string
-	Action           string
+	State            string
 	NonceSource      *http.Cookie
 	ErrorRedirectURI string
+}
+
+var _ nodes.InputSelectIdentityOAuthProvider = &LoginOAuth{}
+
+func (i *LoginOAuth) GetProviderAlias() string {
+	return i.ProviderAlias
+}
+
+func (i *LoginOAuth) GetState() string {
+	return i.State
+}
+
+func (i *LoginOAuth) GetNonceSource() *http.Cookie {
+	return i.NonceSource
+}
+
+func (i *LoginOAuth) GetErrorRedirectURI() string {
+	return i.ErrorRedirectURI
 }
 
 type LoginLoginID struct {
@@ -256,11 +274,12 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" && providerAlias != "" {
 		h.Database.WithTx(func() error {
 			nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
+			stateID := webapp.NewID()
+			intent.StateID = stateID
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
 				input = &LoginOAuth{
-					ProviderAlias: providerAlias,
-					// FIXME(webapp): Use constant
-					Action:           "login",
+					ProviderAlias:    providerAlias,
+					State:            stateID,
 					NonceSource:      nonceSource,
 					ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
 				}

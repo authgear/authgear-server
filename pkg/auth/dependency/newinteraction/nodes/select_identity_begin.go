@@ -52,7 +52,7 @@ func (n *NodeSelectIdentityBegin) DeriveEdges(ctx *newinteraction.Context, graph
 
 		case authn.IdentityTypeOAuth:
 			for _, c := range ctx.Config.Identity.OAuth.Providers {
-				edges = append(edges, &EdgeSelectIdentityOAuth{Config: c})
+				edges = append(edges, &EdgeSelectIdentityOAuthProvider{Config: c})
 			}
 
 		default:

@@ -7,6 +7,7 @@ package webapp
 import (
 	newinteraction "github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	gomock "github.com/golang/mock/gomock"
+	http "net/http"
 	reflect "reflect"
 )
 
@@ -45,6 +46,43 @@ func (m *MockErrorRedirectURIGetter) GetErrorRedirectURI() string {
 func (mr *MockErrorRedirectURIGetterMockRecorder) GetErrorRedirectURI() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetErrorRedirectURI", reflect.TypeOf((*MockErrorRedirectURIGetter)(nil).GetErrorRedirectURI))
+}
+
+// MockCookiesGetter is a mock of CookiesGetter interface
+type MockCookiesGetter struct {
+	ctrl     *gomock.Controller
+	recorder *MockCookiesGetterMockRecorder
+}
+
+// MockCookiesGetterMockRecorder is the mock recorder for MockCookiesGetter
+type MockCookiesGetterMockRecorder struct {
+	mock *MockCookiesGetter
+}
+
+// NewMockCookiesGetter creates a new mock instance
+func NewMockCookiesGetter(ctrl *gomock.Controller) *MockCookiesGetter {
+	mock := &MockCookiesGetter{ctrl: ctrl}
+	mock.recorder = &MockCookiesGetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockCookiesGetter) EXPECT() *MockCookiesGetterMockRecorder {
+	return m.recorder
+}
+
+// GetCookies mocks base method
+func (m *MockCookiesGetter) GetCookies() []*http.Cookie {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCookies")
+	ret0, _ := ret[0].([]*http.Cookie)
+	return ret0
+}
+
+// GetCookies indicates an expected call of GetCookies
+func (mr *MockCookiesGetterMockRecorder) GetCookies() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCookies", reflect.TypeOf((*MockCookiesGetter)(nil).GetCookies))
 }
 
 // MockStore is a mock of Store interface
@@ -122,6 +160,21 @@ func (m *MockGraphService) EXPECT() *MockGraphServiceMockRecorder {
 	return m.recorder
 }
 
+// NewGraph mocks base method
+func (m *MockGraphService) NewGraph(ctx *newinteraction.Context, intent newinteraction.Intent) (*newinteraction.Graph, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NewGraph", ctx, intent)
+	ret0, _ := ret[0].(*newinteraction.Graph)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NewGraph indicates an expected call of NewGraph
+func (mr *MockGraphServiceMockRecorder) NewGraph(ctx, intent interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewGraph", reflect.TypeOf((*MockGraphService)(nil).NewGraph), ctx, intent)
+}
+
 // Get mocks base method
 func (m *MockGraphService) Get(instanceID string) (*newinteraction.Graph, error) {
 	m.ctrl.T.Helper()
@@ -137,31 +190,30 @@ func (mr *MockGraphServiceMockRecorder) Get(instanceID interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockGraphService)(nil).Get), instanceID)
 }
 
-// WithContext mocks base method
-func (m *MockGraphService) WithContext(fn func(*newinteraction.Context) (*newinteraction.Graph, error)) error {
+// DryRun mocks base method
+func (m *MockGraphService) DryRun(fn func(*newinteraction.Context) (*newinteraction.Graph, error)) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WithContext", fn)
+	ret := m.ctrl.Call(m, "DryRun", fn)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// WithContext indicates an expected call of WithContext
-func (mr *MockGraphServiceMockRecorder) WithContext(fn interface{}) *gomock.Call {
+// DryRun indicates an expected call of DryRun
+func (mr *MockGraphServiceMockRecorder) DryRun(fn interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithContext", reflect.TypeOf((*MockGraphService)(nil).WithContext), fn)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DryRun", reflect.TypeOf((*MockGraphService)(nil).DryRun), fn)
 }
 
-// NewGraph mocks base method
-func (m *MockGraphService) NewGraph(ctx *newinteraction.Context, intent newinteraction.Intent) (*newinteraction.Graph, error) {
+// Run mocks base method
+func (m *MockGraphService) Run(graph *newinteraction.Graph, preserveGraph bool) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NewGraph", ctx, intent)
-	ret0, _ := ret[0].(*newinteraction.Graph)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "Run", graph, preserveGraph)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-// NewGraph indicates an expected call of NewGraph
-func (mr *MockGraphServiceMockRecorder) NewGraph(ctx, intent interface{}) *gomock.Call {
+// Run indicates an expected call of Run
+func (mr *MockGraphServiceMockRecorder) Run(graph, preserveGraph interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewGraph", reflect.TypeOf((*MockGraphService)(nil).NewGraph), ctx, intent)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Run", reflect.TypeOf((*MockGraphService)(nil).Run), graph, preserveGraph)
 }
