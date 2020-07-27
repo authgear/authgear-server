@@ -105,6 +105,11 @@ func (s *Service) Get(stateID string) (state *State, graph *newinteraction.Graph
 	}
 
 	err = s.Graph.DryRun(func(ctx *newinteraction.Context) (_ *newinteraction.Graph, err error) {
+		err = graph.Apply(ctx)
+		if err != nil {
+			return nil, err
+		}
+
 		node := graph.CurrentNode()
 		edges, err = node.DeriveEdges(ctx, graph)
 		if err != nil {
@@ -184,6 +189,11 @@ func (s *Service) PostInput(stateID string, inputer func() (interface{}, error))
 
 	err = s.Graph.DryRun(func(ctx *newinteraction.Context) (*newinteraction.Graph, error) {
 		input, err := inputer()
+		if err != nil {
+			return nil, err
+		}
+
+		err = graph.Apply(ctx)
 		if err != nil {
 			return nil, err
 		}
