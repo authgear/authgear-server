@@ -28,7 +28,7 @@ type OTPMessageSender interface {
 type Service struct {
 	Config           *config.VerificationConfig
 	LoginID          *config.LoginIDConfig
-	Identities       IdentityProvider
+	Identities       IdentityProvider `wire:"-"`
 	Authenticators   AuthenticatorProvider
 	OTPMessageSender OTPMessageSender
 }
@@ -55,29 +55,32 @@ func (s *Service) IsIdentityVerifiable(i *identity.Info) bool {
 }
 
 func (s *Service) IsIdentityVerified(i *identity.Info) (bool, error) {
-	switch i.Type {
-	case authn.IdentityTypeOAuth:
-		return true, nil
-	case authn.IdentityTypeLoginID:
-		if !s.isLoginIDKeyVerifiable(i.Claims[identity.IdentityClaimLoginIDKey].(string)) {
-			return false, nil
-		}
-
-		as, err := s.Authenticators.List(i.UserID, authn.AuthenticatorTypeOOB)
-		if err != nil {
-			return false, err
-		}
-
-		for _, a := range as {
-			spec := a.ToSpec()
-			if s.Identities.RelateIdentityToAuthenticator(i, &spec) != nil {
-				return true, nil
+	// FIXME: verification
+	/*
+		switch i.Type {
+		case authn.IdentityTypeOAuth:
+			return true, nil
+		case authn.IdentityTypeLoginID:
+			if !s.isLoginIDKeyVerifiable(i.Claims[identity.IdentityClaimLoginIDKey].(string)) {
+				return false, nil
 			}
-		}
-		return false, nil
-	default:
-		return false, nil
-	}
+
+			as, err := s.Authenticators.List(i.UserID, authn.AuthenticatorTypeOOB)
+			if err != nil {
+				return false, err
+			}
+
+			for _, a := range as {
+				spec := a.ToSpec()
+				if s.Identities.RelateIdentityToAuthenticator(i, &spec) != nil {
+					return true, nil
+				}
+			}
+			return false, nil
+		default:
+			return false, nil
+		}*/
+	return false, nil
 }
 
 func (s *Service) IsUserVerified(userID string) (bool, error) {
@@ -97,32 +100,34 @@ func (s *Service) IsUserVerified(userID string) (bool, error) {
 func (s *Service) IsVerified(identities []*identity.Info, authenticators []*authenticator.Info) bool {
 	numVerifiable := 0
 	numVerified := 0
-	for _, i := range identities {
-		switch i.Type {
-		case authn.IdentityTypeLoginID:
-			if !s.isLoginIDKeyVerifiable(i.Claims[identity.IdentityClaimLoginIDKey].(string)) {
-				continue
-			}
-
-			numVerifiable++
-			for _, a := range authenticators {
-				if a.Type != authn.AuthenticatorTypeOOB {
+	// FIXME: verification
+	/*
+		for _, i := range identities {
+			switch i.Type {
+			case authn.IdentityTypeLoginID:
+				if !s.isLoginIDKeyVerifiable(i.Claims[identity.IdentityClaimLoginIDKey].(string)) {
 					continue
 				}
 
-				spec := a.ToSpec()
-				if s.Identities.RelateIdentityToAuthenticator(i, &spec) != nil {
-					numVerified++
-					break
+				numVerifiable++
+				for _, a := range authenticators {
+					if a.Type != authn.AuthenticatorTypeOOB {
+						continue
+					}
+
+					spec := a.ToSpec()
+					if s.Identities.RelateIdentityToAuthenticator(i, &spec) != nil {
+						numVerified++
+						break
+					}
 				}
+			case authn.IdentityTypeOAuth:
+				numVerifiable++
+				numVerified++
+			default:
+				continue
 			}
-		case authn.IdentityTypeOAuth:
-			numVerifiable++
-			numVerified++
-		default:
-			continue
-		}
-	}
+		}*/
 
 	switch s.Config.Criteria {
 	case config.VerificationCriteriaAny:

@@ -19,15 +19,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/otp"
 )
 
-type IdentityProvider interface {
+type IdentityService interface {
 	Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error)
-	// FIXME: no need to return userID, now identity.Info has it
-	// FIXME: take *identity.Spec instead
-	GetByClaims(typ authn.IdentityType, claims map[string]interface{}) (string, *identity.Info, error)
+	GetBySpec(spec *identity.Spec) (*identity.Info, error)
 	ListByUser(userID string) ([]*identity.Info, error)
-	New(userID string, typ authn.IdentityType, claims map[string]interface{}) (*identity.Info, error)
-	CreateAll(is []*identity.Info) error
-	UpdateAll(is []*identity.Info) error
+	New(userID string, spec *identity.Spec) (*identity.Info, error)
+	Create(is *identity.Info) error
+	Update(is *identity.Info) error
 	Validate(is []*identity.Info) error
 }
 
@@ -89,8 +87,8 @@ type Context struct {
 	Database db.SQLExecutor
 	Config   *config.AppConfig
 
-	Identities           IdentityProvider
-	Authenticators       AuthenticatorProvider
+	Identities           IdentityService
+	Authenticators       AuthenticatorService
 	AnonymousIdentities  AnonymousIdentityProvider
 	OOBAuthenticators    OOBAuthenticatorProvider
 	OAuthProviderFactory OAuthProviderFactory

@@ -86,7 +86,7 @@ func NewLogger(lf *log.Factory) Logger {
 type Provider struct {
 	Clock         clock.Clock
 	Logger        Logger
-	Identity      IdentityProvider
+	Identity      IdentityProvider      `wire:"-"`
 	Authenticator AuthenticatorProvider `wire:"-"`
 	User          UserProvider          `wire:"-"`
 	OOB           OOBProvider           `wire:"-"`

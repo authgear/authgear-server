@@ -1,4 +1,4 @@
-package provider
+package service
 
 import (
 	"testing"
@@ -21,7 +21,7 @@ func TestProviderListCandidates(t *testing.T) {
 		loginIDProvider := NewMockLoginIDIdentityProvider(ctrl)
 		oauthProvider := NewMockOAuthIdentityProvider(ctrl)
 
-		p := &Provider{
+		p := &Service{
 			Authentication: &config.AuthenticationConfig{},
 			Identity: &config.IdentityConfig{
 				LoginID: &config.LoginIDConfig{},

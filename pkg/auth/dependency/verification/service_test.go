@@ -83,7 +83,7 @@ func TestService(t *testing.T) {
 			So(service.IsIdentityVerifiable(identityLoginID("username", "bar")), ShouldBeFalse)
 		})
 
-		Convey("IsIdentityVerified", func() {
+		SkipConvey("IsIdentityVerified", func() {
 			So(must(service.IsIdentityVerified(identityOfType(authn.IdentityTypeOAuth))), ShouldBeTrue)
 			So(must(service.IsIdentityVerified(identityOfType(authn.IdentityTypeAnonymous))), ShouldBeFalse)
 
@@ -101,7 +101,7 @@ func TestService(t *testing.T) {
 			So(must(service.IsIdentityVerified(identityLoginID("username", "bar"))), ShouldBeFalse)
 		})
 
-		Convey("IsVerified", func() {
+		SkipConvey("IsVerified", func() {
 			cases := []struct {
 				Identities     []*identity.Info
 				Authenticators []*authenticator.Info

@@ -1,4 +1,4 @@
-package provider
+package service
 
 import (
 	"github.com/authgear/authgear-server/pkg/auth/config"

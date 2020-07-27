@@ -47,7 +47,7 @@ func (e *EdgeSelectIdentityLoginID) Instantiate(ctx *newinteraction.Context, gra
 		spec.Claims[identity.IdentityClaimLoginIDKey] = key
 	}
 
-	_, info, err := ctx.Identities.GetByClaims(spec.Type, spec.Claims)
+	info, err := ctx.Identities.GetBySpec(spec)
 	if errors.Is(err, identity.ErrIdentityNotFound) {
 		info = nil
 	} else if err != nil {

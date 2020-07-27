@@ -27,7 +27,7 @@ func (n *NodeCreateIdentityEnd) Apply(perform func(eff newinteraction.Effect) er
 			return err
 		}
 
-		if err := ctx.Identities.CreateAll([]*identity.Info{n.NewIdentity}); err != nil {
+		if err := ctx.Identities.Create(n.NewIdentity); err != nil {
 			return err
 		}
 
