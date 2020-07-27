@@ -8,8 +8,8 @@ import (
 	authenticatorbearertoken "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/bearertoken"
 	authenticatoroob "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
 	authenticatorpassword "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/password"
-	authenticatorprovider "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/provider"
 	authenticatorrecoverycode "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/recoverycode"
+	authenticatorservice "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/service"
 	authenticatortotp "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/totp"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/forgotpassword"
@@ -99,15 +99,15 @@ var commonDeps = wire.NewSet(
 		authenticatorbearertoken.DependencySet,
 		authenticatorrecoverycode.DependencySet,
 
-		authenticatorprovider.DependencySet,
-		wire.Bind(new(authenticatorprovider.PasswordAuthenticatorProvider), new(*authenticatorpassword.Provider)),
-		wire.Bind(new(authenticatorprovider.OOBOTPAuthenticatorProvider), new(*authenticatoroob.Provider)),
-		wire.Bind(new(authenticatorprovider.TOTPAuthenticatorProvider), new(*authenticatortotp.Provider)),
-		wire.Bind(new(authenticatorprovider.BearerTokenAuthenticatorProvider), new(*authenticatorbearertoken.Provider)),
-		wire.Bind(new(authenticatorprovider.RecoveryCodeAuthenticatorProvider), new(*authenticatorrecoverycode.Provider)),
+		authenticatorservice.DependencySet,
+		wire.Bind(new(authenticatorservice.PasswordAuthenticatorProvider), new(*authenticatorpassword.Provider)),
+		wire.Bind(new(authenticatorservice.OOBOTPAuthenticatorProvider), new(*authenticatoroob.Provider)),
+		wire.Bind(new(authenticatorservice.TOTPAuthenticatorProvider), new(*authenticatortotp.Provider)),
+		wire.Bind(new(authenticatorservice.BearerTokenAuthenticatorProvider), new(*authenticatorbearertoken.Provider)),
+		wire.Bind(new(authenticatorservice.RecoveryCodeAuthenticatorProvider), new(*authenticatorrecoverycode.Provider)),
 
-		wire.Bind(new(newinteraction.AuthenticatorProvider), new(*authenticatorprovider.Provider)),
-		wire.Bind(new(verification.AuthenticatorProvider), new(*authenticatorprovider.Provider)),
+		wire.Bind(new(newinteraction.AuthenticatorService), new(*authenticatorservice.Service)),
+		wire.Bind(new(verification.AuthenticatorProvider), new(*authenticatorservice.Service)),
 	),
 
 	wire.NewSet(

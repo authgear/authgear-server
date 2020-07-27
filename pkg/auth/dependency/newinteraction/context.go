@@ -31,18 +31,17 @@ type IdentityProvider interface {
 	Validate(is []*identity.Info) error
 }
 
-type AuthenticatorProvider interface {
-	// FIXME: cleanup user ID, authenticator.Info & Spec has it
+type AuthenticatorService interface {
 	Get(userID string, typ authn.AuthenticatorType, id string) (*authenticator.Info, error)
 	List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error)
-	ListByIdentity(userID string, ii *identity.Info) ([]*authenticator.Info, error)
-	New(userID string, spec authenticator.Spec, secret string) ([]*authenticator.Info, error)
-	WithSecret(userID string, a *authenticator.Info, secret string) (changed bool, info *authenticator.Info, err error)
-	CreateAll(userID string, ais []*authenticator.Info) error
-	UpdateAll(userID string, ais []*authenticator.Info) error
-	DeleteAll(userID string, ais []*authenticator.Info) error
-	Authenticate(userID string, spec authenticator.Spec, state map[string]string, secret string) (*authenticator.Info, error)
-	VerifySecret(userID string, a *authenticator.Info, state map[string]string, secret string) error
+	ListByIdentity(ii *identity.Info) ([]*authenticator.Info, error)
+	New(spec *authenticator.Spec, secret string) ([]*authenticator.Info, error)
+	WithSecret(authenticatorInfo *authenticator.Info, secret string) (changed bool, info *authenticator.Info, err error)
+	Create(authenticatorInfo *authenticator.Info) error
+	Update(authenticatorInfo *authenticator.Info) error
+	Delete(authenticatorInfo *authenticator.Info) error
+	Authenticate(spec *authenticator.Spec, state map[string]string, secret string) (*authenticator.Info, error)
+	VerifySecret(info *authenticator.Info, state map[string]string, secret string) error
 }
 
 type OOBAuthenticatorProvider interface {

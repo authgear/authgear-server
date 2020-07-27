@@ -1,4 +1,4 @@
-package provider
+package service
 
 import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
@@ -20,10 +20,10 @@ func passwordToAuthenticatorInfo(p *password.Authenticator) *authenticator.Info 
 	}
 }
 
-func passwordFromAuthenticatorInfo(userID string, a *authenticator.Info) *password.Authenticator {
+func passwordFromAuthenticatorInfo(a *authenticator.Info) *password.Authenticator {
 	return &password.Authenticator{
 		ID:           a.ID,
-		UserID:       userID,
+		UserID:       a.UserID,
 		PasswordHash: []byte(a.Secret),
 	}
 }
@@ -40,10 +40,10 @@ func totpToAuthenticatorInfo(t *totp.Authenticator) *authenticator.Info {
 	}
 }
 
-func totpFromAuthenticatorInfo(userID string, a *authenticator.Info) *totp.Authenticator {
+func totpFromAuthenticatorInfo(a *authenticator.Info) *totp.Authenticator {
 	return &totp.Authenticator{
 		ID:          a.ID,
-		UserID:      userID,
+		UserID:      a.UserID,
 		Secret:      a.Secret,
 		DisplayName: a.Props[authenticator.AuthenticatorPropTOTPDisplayName].(string),
 	}
@@ -64,10 +64,10 @@ func oobotpToAuthenticatorInfo(o *oob.Authenticator) *authenticator.Info {
 	}
 }
 
-func oobotpFromAuthenticatorInfo(userID string, a *authenticator.Info) *oob.Authenticator {
+func oobotpFromAuthenticatorInfo(a *authenticator.Info) *oob.Authenticator {
 	return &oob.Authenticator{
 		ID:      a.ID,
-		UserID:  userID,
+		UserID:  a.UserID,
 		Channel: authn.AuthenticatorOOBChannel(a.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string)),
 		Phone:   a.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string),
 		Email:   a.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string),
@@ -86,10 +86,10 @@ func bearerTokenToAuthenticatorInfo(b *bearertoken.Authenticator) *authenticator
 	}
 }
 
-func bearerTokenFromAuthenticatorInfo(userID string, a *authenticator.Info) *bearertoken.Authenticator {
+func bearerTokenFromAuthenticatorInfo(a *authenticator.Info) *bearertoken.Authenticator {
 	return &bearertoken.Authenticator{
 		ID:       a.ID,
-		UserID:   userID,
+		UserID:   a.UserID,
 		ParentID: a.Props[authenticator.AuthenticatorPropBearerTokenParentID].(string),
 		Token:    a.Secret,
 	}
@@ -105,10 +105,10 @@ func recoveryCodeToAuthenticatorInfo(r *recoverycode.Authenticator) *authenticat
 	}
 }
 
-func recoveryCodeFromAuthenticatorInfo(userID string, a *authenticator.Info) *recoverycode.Authenticator {
+func recoveryCodeFromAuthenticatorInfo(a *authenticator.Info) *recoverycode.Authenticator {
 	return &recoverycode.Authenticator{
 		ID:     a.ID,
-		UserID: userID,
+		UserID: a.UserID,
 		Code:   a.Secret,
 	}
 }

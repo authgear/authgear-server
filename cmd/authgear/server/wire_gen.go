@@ -12,8 +12,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/bearertoken"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/password"
-	provider2 "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/provider"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/recoverycode"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/totp"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/hook"
@@ -231,24 +231,24 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorRecoveryCodeConfig,
 		Clock:  clock,
 	}
-	provider3 := &provider2.Provider{
+	serviceService := &service.Service{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	service := &verification.Service{
+	verificationService := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Identities:       providerProvider,
-		Authenticators:   provider3,
+		Authenticators:   serviceService,
 		OTPMessageSender: messageSender,
 	}
 	resolveHandlerLogger := internalserver.NewResolveHandlerLogger(factory)
 	resolveHandler := &internalserver.ResolveHandler{
 		Anonymous:    anonymousProvider,
-		Verification: service,
+		Verification: verificationService,
 		Logger:       resolveHandlerLogger,
 	}
 	return resolveHandler
@@ -449,24 +449,24 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorRecoveryCodeConfig,
 		Clock:  clockClock,
 	}
-	provider3 := &provider2.Provider{
+	serviceService := &service.Service{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	service := &verification.Service{
+	verificationService := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Identities:       providerProvider,
-		Authenticators:   provider3,
+		Authenticators:   serviceService,
 		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   providerProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -782,24 +782,24 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorRecoveryCodeConfig,
 		Clock:  clockClock,
 	}
-	provider3 := &provider2.Provider{
+	serviceService := &service.Service{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	service := &verification.Service{
+	verificationService := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Identities:       providerProvider,
-		Authenticators:   provider3,
+		Authenticators:   serviceService,
 		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   providerProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -1117,24 +1117,24 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorRecoveryCodeConfig,
 		Clock:  clockClock,
 	}
-	provider3 := &provider2.Provider{
+	serviceService := &service.Service{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	service := &verification.Service{
+	verificationService := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Identities:       providerProvider,
-		Authenticators:   provider3,
+		Authenticators:   serviceService,
 		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        store,
 		Identities:   providerProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:   oidcKeyMaterials,
@@ -1310,24 +1310,24 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorRecoveryCodeConfig,
 		Clock:  clockClock,
 	}
-	provider3 := &provider2.Provider{
+	serviceService := &service.Service{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	service := &verification.Service{
+	verificationService := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Identities:       providerProvider,
-		Authenticators:   provider3,
+		Authenticators:   serviceService,
 		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        store,
 		Identities:   providerProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:   oidcKeyMaterials,
@@ -1516,24 +1516,24 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorRecoveryCodeConfig,
 		Clock:  clockClock,
 	}
-	provider3 := &provider2.Provider{
+	serviceService := &service.Service{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	service := &verification.Service{
+	verificationService := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Identities:       providerProvider,
-		Authenticators:   provider3,
+		Authenticators:   serviceService,
 		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   providerProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -1821,7 +1821,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorRecoveryCodeConfig,
 		Clock:  clockClock,
 	}
-	provider3 := &provider2.Provider{
+	serviceService := &service.Service{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
@@ -1846,17 +1846,17 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue:             queueQueue,
 	}
 	verificationConfig := appConfig.Verification
-	service := &verification.Service{
+	verificationService := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Identities:       providerProvider,
-		Authenticators:   provider3,
+		Authenticators:   serviceService,
 		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   providerProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -1943,7 +1943,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -1979,7 +1979,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Database:             sqlExecutor,
 		Config:               appConfig,
 		Identities:           providerProvider,
-		Authenticators:       provider3,
+		Authenticators:       serviceService,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -2192,7 +2192,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorRecoveryCodeConfig,
 		Clock:  clockClock,
 	}
-	provider3 := &provider2.Provider{
+	serviceService := &service.Service{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
@@ -2217,17 +2217,17 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue:             queueQueue,
 	}
 	verificationConfig := appConfig.Verification
-	service := &verification.Service{
+	verificationService := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Identities:       providerProvider,
-		Authenticators:   provider3,
+		Authenticators:   serviceService,
 		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   providerProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -2314,7 +2314,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -2350,7 +2350,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Database:             sqlExecutor,
 		Config:               appConfig,
 		Identities:           providerProvider,
-		Authenticators:       provider3,
+		Authenticators:       serviceService,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -2563,7 +2563,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorRecoveryCodeConfig,
 		Clock:  clockClock,
 	}
-	provider3 := &provider2.Provider{
+	serviceService := &service.Service{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
@@ -2588,17 +2588,17 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue:             queueQueue,
 	}
 	verificationConfig := appConfig.Verification
-	service := &verification.Service{
+	verificationService := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Identities:       providerProvider,
-		Authenticators:   provider3,
+		Authenticators:   serviceService,
 		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   providerProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -2685,7 +2685,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -2721,7 +2721,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Database:             sqlExecutor,
 		Config:               appConfig,
 		Identities:           providerProvider,
-		Authenticators:       provider3,
+		Authenticators:       serviceService,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -2915,7 +2915,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorRecoveryCodeConfig,
 		Clock:  clockClock,
 	}
-	provider3 := &provider2.Provider{
+	serviceService := &service.Service{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
@@ -2940,17 +2940,17 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue:             queueQueue,
 	}
 	verificationConfig := appConfig.Verification
-	service := &verification.Service{
+	verificationService := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Identities:       providerProvider,
-		Authenticators:   provider3,
+		Authenticators:   serviceService,
 		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   providerProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -3037,7 +3037,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -3073,7 +3073,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Database:             sqlExecutor,
 		Config:               appConfig,
 		Identities:           providerProvider,
-		Authenticators:       provider3,
+		Authenticators:       serviceService,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -3278,7 +3278,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorRecoveryCodeConfig,
 		Clock:  clockClock,
 	}
-	provider3 := &provider2.Provider{
+	serviceService := &service.Service{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
@@ -3303,17 +3303,17 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue:             queueQueue,
 	}
 	verificationConfig := appConfig.Verification
-	service := &verification.Service{
+	verificationService := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Identities:       providerProvider,
-		Authenticators:   provider3,
+		Authenticators:   serviceService,
 		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   providerProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -3400,7 +3400,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -3436,7 +3436,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Database:             sqlExecutor,
 		Config:               appConfig,
 		Identities:           providerProvider,
-		Authenticators:       provider3,
+		Authenticators:       serviceService,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -3643,7 +3643,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorRecoveryCodeConfig,
 		Clock:  clockClock,
 	}
-	provider3 := &provider2.Provider{
+	serviceService := &service.Service{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
@@ -3668,17 +3668,17 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue:             queueQueue,
 	}
 	verificationConfig := appConfig.Verification
-	service := &verification.Service{
+	verificationService := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Identities:       providerProvider,
-		Authenticators:   provider3,
+		Authenticators:   serviceService,
 		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   providerProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -3765,7 +3765,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -3801,7 +3801,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database:             sqlExecutor,
 		Config:               appConfig,
 		Identities:           providerProvider,
-		Authenticators:       provider3,
+		Authenticators:       serviceService,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -4008,7 +4008,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorRecoveryCodeConfig,
 		Clock:  clockClock,
 	}
-	provider3 := &provider2.Provider{
+	serviceService := &service.Service{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
@@ -4033,17 +4033,17 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue:             queueQueue,
 	}
 	verificationConfig := appConfig.Verification
-	service := &verification.Service{
+	verificationService := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Identities:       providerProvider,
-		Authenticators:   provider3,
+		Authenticators:   serviceService,
 		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   providerProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -4130,7 +4130,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -4166,7 +4166,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database:             sqlExecutor,
 		Config:               appConfig,
 		Identities:           providerProvider,
-		Authenticators:       provider3,
+		Authenticators:       serviceService,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -4374,7 +4374,7 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorRecoveryCodeConfig,
 		Clock:  clockClock,
 	}
-	provider3 := &provider2.Provider{
+	serviceService := &service.Service{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
@@ -4399,17 +4399,17 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue:             queueQueue,
 	}
 	verificationConfig := appConfig.Verification
-	service := &verification.Service{
+	verificationService := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Identities:       providerProvider,
-		Authenticators:   provider3,
+		Authenticators:   serviceService,
 		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   providerProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -4496,7 +4496,7 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -4532,7 +4532,7 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database:             sqlExecutor,
 		Config:               appConfig,
 		Identities:           providerProvider,
-		Authenticators:       provider3,
+		Authenticators:       serviceService,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -4743,7 +4743,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorRecoveryCodeConfig,
 		Clock:  clockClock,
 	}
-	provider3 := &provider2.Provider{
+	serviceService := &service.Service{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
@@ -4768,17 +4768,17 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue:             queueQueue,
 	}
 	verificationConfig := appConfig.Verification
-	service := &verification.Service{
+	verificationService := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Identities:       providerProvider,
-		Authenticators:   provider3,
+		Authenticators:   serviceService,
 		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   providerProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -4865,7 +4865,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -4901,7 +4901,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database:             sqlExecutor,
 		Config:               appConfig,
 		Identities:           providerProvider,
-		Authenticators:       provider3,
+		Authenticators:       serviceService,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -5109,7 +5109,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Config: authenticatorRecoveryCodeConfig,
 		Clock:  clockClock,
 	}
-	provider3 := &provider2.Provider{
+	serviceService := &service.Service{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
@@ -5134,17 +5134,17 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		TaskQueue:             queueQueue,
 	}
 	verificationConfig := appConfig.Verification
-	service := &verification.Service{
+	verificationService := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Identities:       providerProvider,
-		Authenticators:   provider3,
+		Authenticators:   serviceService,
 		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   providerProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -5231,7 +5231,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -5267,7 +5267,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Database:             sqlExecutor,
 		Config:               appConfig,
 		Identities:           providerProvider,
-		Authenticators:       provider3,
+		Authenticators:       serviceService,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -5474,7 +5474,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorRecoveryCodeConfig,
 		Clock:  clockClock,
 	}
-	provider3 := &provider2.Provider{
+	serviceService := &service.Service{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
@@ -5499,17 +5499,17 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue:             queueQueue,
 	}
 	verificationConfig := appConfig.Verification
-	service := &verification.Service{
+	verificationService := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Identities:       providerProvider,
-		Authenticators:   provider3,
+		Authenticators:   serviceService,
 		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   providerProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -5596,7 +5596,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -5632,7 +5632,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database:             sqlExecutor,
 		Config:               appConfig,
 		Identities:           providerProvider,
-		Authenticators:       provider3,
+		Authenticators:       serviceService,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -5839,7 +5839,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Config: authenticatorRecoveryCodeConfig,
 		Clock:  clockClock,
 	}
-	provider3 := &provider2.Provider{
+	serviceService := &service.Service{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
@@ -5864,17 +5864,17 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		TaskQueue:             queueQueue,
 	}
 	verificationConfig := appConfig.Verification
-	service := &verification.Service{
+	verificationService := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Identities:       providerProvider,
-		Authenticators:   provider3,
+		Authenticators:   serviceService,
 		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   providerProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -5961,7 +5961,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -5997,7 +5997,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Database:             sqlExecutor,
 		Config:               appConfig,
 		Identities:           providerProvider,
-		Authenticators:       provider3,
+		Authenticators:       serviceService,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -6235,7 +6235,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorRecoveryCodeConfig,
 		Clock:  clockClock,
 	}
-	provider3 := &provider2.Provider{
+	serviceService := &service.Service{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
@@ -6260,17 +6260,17 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue:             queueQueue,
 	}
 	verificationConfig := appConfig.Verification
-	service := &verification.Service{
+	verificationService := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Identities:       providerProvider,
-		Authenticators:   provider3,
+		Authenticators:   serviceService,
 		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   providerProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  userStore,
@@ -6357,7 +6357,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -6393,7 +6393,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Database:             sqlExecutor,
 		Config:               appConfig,
 		Identities:           providerProvider,
-		Authenticators:       provider3,
+		Authenticators:       serviceService,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -6585,24 +6585,24 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorRecoveryCodeConfig,
 		Clock:  clockClock,
 	}
-	provider3 := &provider2.Provider{
+	serviceService := &service.Service{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	service := &verification.Service{
+	verificationService := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Identities:       providerProvider,
-		Authenticators:   provider3,
+		Authenticators:   serviceService,
 		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        store,
 		Identities:   providerProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	hookLogger := hook.NewLogger(factory)
 	welcomeMessageConfig := appConfig.WelcomeMessage
@@ -6994,24 +6994,24 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Config: authenticatorRecoveryCodeConfig,
 		Clock:  clockClock,
 	}
-	provider3 := &provider2.Provider{
+	serviceService := &service.Service{
 		Password:     passwordProvider,
 		TOTP:         totpProvider,
 		OOBOTP:       oobProvider,
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	service := &verification.Service{
+	verificationService := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Identities:       providerProvider,
-		Authenticators:   provider3,
+		Authenticators:   serviceService,
 		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   providerProvider,
-		Verification: service,
+		Verification: verificationService,
 	}
 	middleware := &auth.Middleware{
 		IDPSessionResolver:         resolver,

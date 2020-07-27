@@ -28,7 +28,7 @@ func (e *EdgeCreateAuthenticatorTOTP) Instantiate(ctx *newinteraction.Context, g
 	info := cloneAuthenticator(e.Authenticator)
 	info.Props[authenticator.AuthenticatorPropTOTPDisplayName] = input.GetTOTPDisplayName()
 
-	err := ctx.Authenticators.VerifySecret(info.UserID, info, nil, input.GetTOTP())
+	err := ctx.Authenticators.VerifySecret(info, nil, input.GetTOTP())
 	if err != nil {
 		return nil, err
 	}

@@ -1,4 +1,4 @@
-package provider
+package service
 
 import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
@@ -17,7 +17,7 @@ type PasswordAuthenticatorProvider interface {
 	New(userID string, password string) (*password.Authenticator, error)
 	// WithPassword returns new authenticator pointer if password is changed
 	// Otherwise original authenticator will be returned
-	WithPassword(userID string, a *password.Authenticator, password string) (*password.Authenticator, error)
+	WithPassword(a *password.Authenticator, password string) (*password.Authenticator, error)
 	Create(*password.Authenticator) error
 	UpdatePassword(*password.Authenticator) error
 	Delete(*password.Authenticator) error
@@ -59,7 +59,7 @@ type RecoveryCodeAuthenticatorProvider interface {
 	Authenticate(candidates []*recoverycode.Authenticator, code string) *recoverycode.Authenticator
 }
 
-type Provider struct {
+type Service struct {
 	Password     PasswordAuthenticatorProvider
 	TOTP         TOTPAuthenticatorProvider
 	OOBOTP       OOBOTPAuthenticatorProvider
@@ -67,52 +67,52 @@ type Provider struct {
 	RecoveryCode RecoveryCodeAuthenticatorProvider
 }
 
-func (a *Provider) Get(userID string, typ authn.AuthenticatorType, id string) (*authenticator.Info, error) {
+func (s *Service) Get(userID string, typ authn.AuthenticatorType, id string) (*authenticator.Info, error) {
 	switch typ {
 	case authn.AuthenticatorTypePassword:
-		p, err := a.Password.Get(userID, id)
+		p, err := s.Password.Get(userID, id)
 		if err != nil {
 			return nil, err
 		}
 		return passwordToAuthenticatorInfo(p), nil
 
 	case authn.AuthenticatorTypeTOTP:
-		t, err := a.TOTP.Get(userID, id)
+		t, err := s.TOTP.Get(userID, id)
 		if err != nil {
 			return nil, err
 		}
 		return totpToAuthenticatorInfo(t), nil
 
 	case authn.AuthenticatorTypeOOB:
-		o, err := a.OOBOTP.Get(userID, id)
+		o, err := s.OOBOTP.Get(userID, id)
 		if err != nil {
 			return nil, err
 		}
 		return oobotpToAuthenticatorInfo(o), nil
 
 	case authn.AuthenticatorTypeBearerToken:
-		b, err := a.BearerToken.Get(userID, id)
+		b, err := s.BearerToken.Get(userID, id)
 		if err != nil {
 			return nil, err
 		}
 		return bearerTokenToAuthenticatorInfo(b), nil
 
 	case authn.AuthenticatorTypeRecoveryCode:
-		r, err := a.RecoveryCode.Get(userID, id)
+		r, err := s.RecoveryCode.Get(userID, id)
 		if err != nil {
 			return nil, err
 		}
 		return recoveryCodeToAuthenticatorInfo(r), nil
 	}
 
-	panic("interaction_adaptors: unknown authenticator type " + typ)
+	panic("authenticator: unknown authenticator type " + typ)
 }
 
-func (a *Provider) List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error) {
+func (s *Service) List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error) {
 	var ais []*authenticator.Info
 	switch typ {
 	case authn.AuthenticatorTypePassword:
-		as, err := a.Password.List(userID)
+		as, err := s.Password.List(userID)
 		if err != nil {
 			return nil, err
 		}
@@ -121,7 +121,7 @@ func (a *Provider) List(userID string, typ authn.AuthenticatorType) ([]*authenti
 		}
 
 	case authn.AuthenticatorTypeTOTP:
-		as, err := a.TOTP.List(userID)
+		as, err := s.TOTP.List(userID)
 		if err != nil {
 			return nil, err
 		}
@@ -130,7 +130,7 @@ func (a *Provider) List(userID string, typ authn.AuthenticatorType) ([]*authenti
 		}
 
 	case authn.AuthenticatorTypeOOB:
-		as, err := a.OOBOTP.List(userID)
+		as, err := s.OOBOTP.List(userID)
 		if err != nil {
 			return nil, err
 		}
@@ -139,7 +139,7 @@ func (a *Provider) List(userID string, typ authn.AuthenticatorType) ([]*authenti
 		}
 
 	case authn.AuthenticatorTypeBearerToken:
-		as, err := a.BearerToken.List(userID)
+		as, err := s.BearerToken.List(userID)
 		if err != nil {
 			return nil, err
 		}
@@ -148,7 +148,7 @@ func (a *Provider) List(userID string, typ authn.AuthenticatorType) ([]*authenti
 		}
 
 	case authn.AuthenticatorTypeRecoveryCode:
-		as, err := a.RecoveryCode.List(userID)
+		as, err := s.RecoveryCode.List(userID)
 		if err != nil {
 			return nil, err
 		}
@@ -157,12 +157,12 @@ func (a *Provider) List(userID string, typ authn.AuthenticatorType) ([]*authenti
 		}
 
 	default:
-		panic("interaction_adaptors: unknown authenticator type " + typ)
+		panic("authenticator: unknown authenticator type " + typ)
 	}
 	return ais, nil
 }
 
-func (a *Provider) ListByIdentity(userID string, ii *identity.Info) (ais []*authenticator.Info, err error) {
+func (s *Service) ListByIdentity(ii *identity.Info) (ais []*authenticator.Info, err error) {
 	// This function takes IdentityInfo instead of IdentitySpec because
 	// The login ID value in IdentityInfo is normalized.
 	switch ii.Type {
@@ -173,7 +173,7 @@ func (a *Provider) ListByIdentity(userID string, ii *identity.Info) (ais []*auth
 		// Login ID Identity has password, TOTP and OOB OTP.
 		// Note that we only return OOB OTP associated with the login ID.
 		var pas []*password.Authenticator
-		pas, err = a.Password.List(userID)
+		pas, err = s.Password.List(ii.UserID)
 		if err != nil {
 			return
 		}
@@ -182,7 +182,7 @@ func (a *Provider) ListByIdentity(userID string, ii *identity.Info) (ais []*auth
 		}
 
 		var tas []*totp.Authenticator
-		tas, err = a.TOTP.List(userID)
+		tas, err = s.TOTP.List(ii.UserID)
 		if err != nil {
 			return
 		}
@@ -192,7 +192,7 @@ func (a *Provider) ListByIdentity(userID string, ii *identity.Info) (ais []*auth
 
 		loginID := ii.Claims[identity.IdentityClaimLoginIDValue]
 		var oas []*oob.Authenticator
-		oas, err = a.OOBOTP.List(userID)
+		oas, err = s.OOBOTP.List(ii.UserID)
 		if err != nil {
 			return
 		}
@@ -205,23 +205,23 @@ func (a *Provider) ListByIdentity(userID string, ii *identity.Info) (ais []*auth
 		// Anonymous Identity does not have associated authenticators.
 		return
 	default:
-		panic("interaction_adaptors: unknown identity type " + ii.Type)
+		panic("v: unknown identity type " + ii.Type)
 	}
 
 	return
 }
 
-func (a *Provider) New(userID string, spec authenticator.Spec, secret string) ([]*authenticator.Info, error) {
+func (s *Service) New(spec *authenticator.Spec, secret string) ([]*authenticator.Info, error) {
 	switch spec.Type {
 	case authn.AuthenticatorTypePassword:
-		p, err := a.Password.New(userID, secret)
+		p, err := s.Password.New(spec.UserID, secret)
 		if err != nil {
 			return nil, err
 		}
 		return []*authenticator.Info{passwordToAuthenticatorInfo(p)}, nil
 
 	case authn.AuthenticatorTypeTOTP:
-		t := a.TOTP.New(userID)
+		t := s.TOTP.New(spec.UserID)
 		return []*authenticator.Info{totpToAuthenticatorInfo(t)}, nil
 
 	case authn.AuthenticatorTypeOOB:
@@ -233,16 +233,16 @@ func (a *Provider) New(userID string, spec authenticator.Spec, secret string) ([
 		case authn.AuthenticatorOOBChannelEmail:
 			email = spec.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string)
 		}
-		o := a.OOBOTP.New(userID, authn.AuthenticatorOOBChannel(channel), phone, email)
+		o := s.OOBOTP.New(spec.UserID, authn.AuthenticatorOOBChannel(channel), phone, email)
 		return []*authenticator.Info{oobotpToAuthenticatorInfo(o)}, nil
 
 	case authn.AuthenticatorTypeBearerToken:
 		parentID := spec.Props[authenticator.AuthenticatorPropBearerTokenParentID].(string)
-		b := a.BearerToken.New(userID, parentID)
+		b := s.BearerToken.New(spec.UserID, parentID)
 		return []*authenticator.Info{bearerTokenToAuthenticatorInfo(b)}, nil
 
 	case authn.AuthenticatorTypeRecoveryCode:
-		rs := a.RecoveryCode.Generate(userID)
+		rs := s.RecoveryCode.Generate(spec.UserID)
 		var ais []*authenticator.Info
 		for _, r := range rs {
 			ais = append(ais, recoveryCodeToAuthenticatorInfo(r))
@@ -250,64 +250,62 @@ func (a *Provider) New(userID string, spec authenticator.Spec, secret string) ([
 		return ais, nil
 	}
 
-	panic("interaction_adaptors: unknown authenticator type " + spec.Type)
+	panic("authenticator: unknown authenticator type " + spec.Type)
 }
 
-func (a *Provider) WithSecret(userID string, ai *authenticator.Info, secret string) (bool, *authenticator.Info, error) {
+func (s *Service) WithSecret(ai *authenticator.Info, secret string) (bool, *authenticator.Info, error) {
 	changed := false
 	switch ai.Type {
 	case authn.AuthenticatorTypePassword:
-		authen := passwordFromAuthenticatorInfo(userID, ai)
-		newAuth, err := a.Password.WithPassword(userID, authen, secret)
+		a := passwordFromAuthenticatorInfo(ai)
+		newAuth, err := s.Password.WithPassword(a, secret)
 		if err != nil {
 			return false, nil, err
 		}
-		changed = (newAuth != authen)
+		changed = (newAuth != a)
 		return changed, passwordToAuthenticatorInfo(newAuth), nil
 	}
 
-	panic("interaction_adaptors: update authenticator is not supported for type " + ai.Type)
+	panic("authenticator: update authenticator is not supported for type " + ai.Type)
 }
 
-func (a *Provider) CreateAll(userID string, ais []*authenticator.Info) error {
+func (s *Service) Create(info *authenticator.Info) error {
 	var recoveryCodes []*recoverycode.Authenticator
-	for _, ai := range ais {
-		switch ai.Type {
-		case authn.AuthenticatorTypePassword:
-			authenticator := passwordFromAuthenticatorInfo(userID, ai)
-			if err := a.Password.Create(authenticator); err != nil {
-				return err
-			}
-
-		case authn.AuthenticatorTypeTOTP:
-			authenticator := totpFromAuthenticatorInfo(userID, ai)
-			if err := a.TOTP.Create(authenticator); err != nil {
-				return err
-			}
-
-		case authn.AuthenticatorTypeOOB:
-			authenticator := oobotpFromAuthenticatorInfo(userID, ai)
-			if err := a.OOBOTP.Create(authenticator); err != nil {
-				return err
-			}
-
-		case authn.AuthenticatorTypeBearerToken:
-			authenticator := bearerTokenFromAuthenticatorInfo(userID, ai)
-			if err := a.BearerToken.Create(authenticator); err != nil {
-				return err
-			}
-
-		case authn.AuthenticatorTypeRecoveryCode:
-			authenticator := recoveryCodeFromAuthenticatorInfo(userID, ai)
-			recoveryCodes = append(recoveryCodes, authenticator)
-
-		default:
-			panic("interaction_adaptors: unknown authenticator type " + ai.Type)
+	switch info.Type {
+	case authn.AuthenticatorTypePassword:
+		a := passwordFromAuthenticatorInfo(info)
+		if err := s.Password.Create(a); err != nil {
+			return err
 		}
+
+	case authn.AuthenticatorTypeTOTP:
+		a := totpFromAuthenticatorInfo(info)
+		if err := s.TOTP.Create(a); err != nil {
+			return err
+		}
+
+	case authn.AuthenticatorTypeOOB:
+		a := oobotpFromAuthenticatorInfo(info)
+		if err := s.OOBOTP.Create(a); err != nil {
+			return err
+		}
+
+	case authn.AuthenticatorTypeBearerToken:
+		a := bearerTokenFromAuthenticatorInfo(info)
+		if err := s.BearerToken.Create(a); err != nil {
+			return err
+		}
+
+	case authn.AuthenticatorTypeRecoveryCode:
+		a := recoveryCodeFromAuthenticatorInfo(info)
+		recoveryCodes = append(recoveryCodes, a)
+
+	default:
+		panic("authenticator: unknown authenticator type " + info.Type)
 	}
 
 	if len(recoveryCodes) > 0 {
-		err := a.RecoveryCode.ReplaceAll(userID, recoveryCodes)
+		err := s.RecoveryCode.ReplaceAll(info.UserID, recoveryCodes)
 		if err != nil {
 			return err
 		}
@@ -316,62 +314,50 @@ func (a *Provider) CreateAll(userID string, ais []*authenticator.Info) error {
 	return nil
 }
 
-func (a *Provider) UpdateAll(userID string, ais []*authenticator.Info) error {
-	var recoveryCodes []*recoverycode.Authenticator
-	for _, ai := range ais {
-		switch ai.Type {
-		case authn.AuthenticatorTypePassword:
-			authenticator := passwordFromAuthenticatorInfo(userID, ai)
-			if err := a.Password.UpdatePassword(authenticator); err != nil {
-				return err
-			}
-		default:
-			panic("interaction_adaptors: unknown authenticator type for update" + ai.Type)
-		}
-	}
-
-	if len(recoveryCodes) > 0 {
-		err := a.RecoveryCode.ReplaceAll(userID, recoveryCodes)
-		if err != nil {
+func (s *Service) Update(info *authenticator.Info) error {
+	switch info.Type {
+	case authn.AuthenticatorTypePassword:
+		a := passwordFromAuthenticatorInfo(info)
+		if err := s.Password.UpdatePassword(a); err != nil {
 			return err
 		}
+	default:
+		panic("authenticator: unknown authenticator type for update" + info.Type)
 	}
 
 	return nil
 }
 
-func (a *Provider) DeleteAll(userID string, ais []*authenticator.Info) error {
-	for _, ai := range ais {
-		switch ai.Type {
-		case authn.AuthenticatorTypePassword:
-			authenticator := passwordFromAuthenticatorInfo(userID, ai)
-			if err := a.Password.Delete(authenticator); err != nil {
-				return err
-			}
-
-		case authn.AuthenticatorTypeTOTP:
-			authenticator := totpFromAuthenticatorInfo(userID, ai)
-			if err := a.TOTP.Delete(authenticator); err != nil {
-				return err
-			}
-
-		case authn.AuthenticatorTypeOOB:
-			authenticator := oobotpFromAuthenticatorInfo(userID, ai)
-			if err := a.OOBOTP.Delete(authenticator); err != nil {
-				return err
-			}
-		default:
-			panic("interaction_adaptors: delete authenticator is not supported yet for type " + ai.Type)
+func (s *Service) Delete(info *authenticator.Info) error {
+	switch info.Type {
+	case authn.AuthenticatorTypePassword:
+		a := passwordFromAuthenticatorInfo(info)
+		if err := s.Password.Delete(a); err != nil {
+			return err
 		}
+
+	case authn.AuthenticatorTypeTOTP:
+		a := totpFromAuthenticatorInfo(info)
+		if err := s.TOTP.Delete(a); err != nil {
+			return err
+		}
+
+	case authn.AuthenticatorTypeOOB:
+		a := oobotpFromAuthenticatorInfo(info)
+		if err := s.OOBOTP.Delete(a); err != nil {
+			return err
+		}
+	default:
+		panic("authenticator: delete authenticator is not supported yet for type " + info.Type)
 	}
 
 	return nil
 }
 
-func (a *Provider) Authenticate(userID string, spec authenticator.Spec, state map[string]string, secret string) (*authenticator.Info, error) {
+func (s *Service) Authenticate(spec *authenticator.Spec, state map[string]string, secret string) (*authenticator.Info, error) {
 	switch spec.Type {
 	case authn.AuthenticatorTypePassword:
-		ps, err := a.Password.List(userID)
+		ps, err := s.Password.List(spec.UserID)
 		if err != nil {
 			return nil, err
 		}
@@ -379,18 +365,18 @@ func (a *Provider) Authenticate(userID string, spec authenticator.Spec, state ma
 			return nil, authenticator.ErrAuthenticatorNotFound
 		}
 
-		if a.Password.Authenticate(ps[0], secret) != nil {
+		if s.Password.Authenticate(ps[0], secret) != nil {
 			return nil, authenticator.ErrInvalidCredentials
 		}
 		return passwordToAuthenticatorInfo(ps[0]), nil
 
 	case authn.AuthenticatorTypeTOTP:
-		ts, err := a.TOTP.List(userID)
+		ts, err := s.TOTP.List(spec.UserID)
 		if err != nil {
 			return nil, err
 		}
 
-		t := a.TOTP.Authenticate(ts, secret)
+		t := s.TOTP.Authenticate(ts, secret)
 		if t == nil {
 			return nil, authenticator.ErrInvalidCredentials
 		}
@@ -409,13 +395,13 @@ func (a *Provider) Authenticate(userID string, spec authenticator.Spec, state ma
 		// In case of login, we must check if the authenticator belongs to the user.
 		if id != "" {
 			var err error
-			o, err = a.OOBOTP.Get(userID, id)
+			o, err = s.OOBOTP.Get(spec.UserID, id)
 			if err != nil {
 				return nil, err
 			}
 		}
 
-		if a.OOBOTP.Authenticate(otpSecret, channel, secret) != nil {
+		if s.OOBOTP.Authenticate(otpSecret, channel, secret) != nil {
 			return nil, authenticator.ErrInvalidCredentials
 		}
 
@@ -424,56 +410,56 @@ func (a *Provider) Authenticate(userID string, spec authenticator.Spec, state ma
 		}
 		return nil, nil
 	case authn.AuthenticatorTypeBearerToken:
-		b, err := a.BearerToken.GetByToken(userID, secret)
+		b, err := s.BearerToken.GetByToken(spec.UserID, secret)
 		if err != nil {
 			return nil, err
 		}
 
-		if a.BearerToken.Authenticate(b, secret) != nil {
+		if s.BearerToken.Authenticate(b, secret) != nil {
 			return nil, authenticator.ErrInvalidCredentials
 		}
 		return bearerTokenToAuthenticatorInfo(b), nil
 
 	case authn.AuthenticatorTypeRecoveryCode:
-		rs, err := a.RecoveryCode.List(userID)
+		rs, err := s.RecoveryCode.List(spec.UserID)
 		if err != nil {
 			return nil, err
 		}
 
-		r := a.RecoveryCode.Authenticate(rs, secret)
+		r := s.RecoveryCode.Authenticate(rs, secret)
 		if r == nil {
 			return nil, authenticator.ErrInvalidCredentials
 		}
 		return recoveryCodeToAuthenticatorInfo(r), nil
 	}
 
-	panic("interaction_adaptors: unknown authenticator type " + spec.Type)
+	panic("authenticator: unknown authenticator type " + spec.Type)
 }
 
-func (a *Provider) VerifySecret(userID string, ai *authenticator.Info, state map[string]string, secret string) error {
-	switch ai.Type {
+func (s *Service) VerifySecret(info *authenticator.Info, state map[string]string, secret string) error {
+	switch info.Type {
 	case authn.AuthenticatorTypePassword:
-		authen := passwordFromAuthenticatorInfo(userID, ai)
-		if a.Password.Authenticate(authen, secret) != nil {
+		a := passwordFromAuthenticatorInfo(info)
+		if s.Password.Authenticate(a, secret) != nil {
 			return authenticator.ErrInvalidCredentials
 		}
 		return nil
 
 	case authn.AuthenticatorTypeTOTP:
-		authen := totpFromAuthenticatorInfo(userID, ai)
-		if a.TOTP.Authenticate([]*totp.Authenticator{authen}, secret) != nil {
+		a := totpFromAuthenticatorInfo(info)
+		if s.TOTP.Authenticate([]*totp.Authenticator{a}, secret) != nil {
 			return authenticator.ErrInvalidCredentials
 		}
 		return nil
 
 	case authn.AuthenticatorTypeOOB:
-		authen := oobotpFromAuthenticatorInfo(userID, ai)
+		a := oobotpFromAuthenticatorInfo(info)
 		otpSecret := state[authenticator.AuthenticatorStateOOBOTPSecret]
-		if a.OOBOTP.Authenticate(otpSecret, authen.Channel, secret) != nil {
+		if s.OOBOTP.Authenticate(otpSecret, a.Channel, secret) != nil {
 			return authenticator.ErrInvalidCredentials
 		}
 		return nil
 	}
 
-	panic("interaction_adaptors: unhandled authenticator type " + ai.Type)
+	panic("authenticator: unhandled authenticator type " + info.Type)
 }

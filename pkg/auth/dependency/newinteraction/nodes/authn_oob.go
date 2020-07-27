@@ -38,7 +38,7 @@ func (e *EdgeAuthenticationOOB) Instantiate(ctx *newinteraction.Context, graph *
 		Type:   authn.AuthenticatorTypeOOB,
 		Props:  map[string]interface{}{},
 	}
-	info, err := ctx.Authenticators.Authenticate(userID, *spec, map[string]string{
+	info, err := ctx.Authenticators.Authenticate(spec, map[string]string{
 		authenticator.AuthenticatorStateOOBOTPID:          e.Authenticator.ID,
 		authenticator.AuthenticatorStateOOBOTPSecret:      e.Secret,
 		authenticator.AuthenticatorStateOOBOTPChannelType: e.Authenticator.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string),

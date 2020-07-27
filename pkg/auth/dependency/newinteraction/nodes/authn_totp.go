@@ -32,7 +32,7 @@ func (e *EdgeAuthenticationTOTP) Instantiate(ctx *newinteraction.Context, graph 
 		Type:   authn.AuthenticatorTypeTOTP,
 		Props:  map[string]interface{}{},
 	}
-	info, err := ctx.Authenticators.Authenticate(userID, *spec, nil, input.GetTOTP())
+	info, err := ctx.Authenticators.Authenticate(spec, nil, input.GetTOTP())
 	if errors.Is(err, authenticator.ErrAuthenticatorNotFound) ||
 		errors.Is(err, authenticator.ErrInvalidCredentials) {
 		info = nil

@@ -65,10 +65,10 @@ func (p *Provider) New(userID string, password string) (*Authenticator, error) {
 
 // WithPassword return new authenticator pointer if password is changed
 // Otherwise original authenticator will be returned
-func (p *Provider) WithPassword(userID string, a *Authenticator, password string) (*Authenticator, error) {
+func (p *Provider) WithPassword(a *Authenticator, password string) (*Authenticator, error) {
 	var newAuthen *Authenticator
 	if password != "" {
-		err := p.isPasswordAllowed(userID, password)
+		err := p.isPasswordAllowed(a.UserID, password)
 		if err != nil {
 			return nil, err
 		}
