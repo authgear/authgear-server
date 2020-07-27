@@ -43,10 +43,9 @@ func (g *Graph) CurrentNode() Node {
 	return g.Nodes[len(g.Nodes)-1]
 }
 
-func (g *Graph) appendingNode(n Node) *Graph {
-	nodes := make([]Node, len(g.Nodes)+1)
+func (g *Graph) clone() *Graph {
+	nodes := make([]Node, len(g.Nodes))
 	copy(nodes, g.Nodes)
-	nodes[len(nodes)-1] = n
 
 	return &Graph{
 		GraphID:    g.GraphID,
@@ -54,6 +53,12 @@ func (g *Graph) appendingNode(n Node) *Graph {
 		Intent:     g.Intent,
 		Nodes:      nodes,
 	}
+}
+
+func (g *Graph) appendingNode(n Node) *Graph {
+	graph := g.clone()
+	graph.Nodes = append(graph.Nodes, n)
+	return graph
 }
 
 func (g *Graph) MarshalJSON() ([]byte, error) {
@@ -196,7 +201,7 @@ func (g *Graph) Accept(ctx *Context, input interface{}) (*Graph, []Edge, error) 
 				// so no need to update the graph.
 				// Continuing would keep traversing the same edge,
 				// so stop and request new input.
-				return graph, edges, ErrInputRequired
+				return graph.clone(), edges, ErrInputRequired
 			} else if err != nil {
 				return nil, nil, err
 			}
