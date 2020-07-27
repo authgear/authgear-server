@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/clock"
-	"github.com/authgear/authgear-server/pkg/core/auth/metadata"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/core/uuid"
 	"github.com/authgear/authgear-server/pkg/otp"
@@ -125,10 +124,10 @@ func (p *Provider) SendCode(
 	}
 	switch channel {
 	case authn.AuthenticatorOOBChannelEmail:
-		opts.LoginIDType = config.LoginIDKeyType(metadata.Email)
+		opts.LoginIDType = config.LoginIDKeyTypeEmail
 		return p.OTPMessageSender.SendEmail(opts, p.Config.Email.Message)
 	case authn.AuthenticatorOOBChannelSMS:
-		opts.LoginIDType = config.LoginIDKeyType(metadata.Phone)
+		opts.LoginIDType = config.LoginIDKeyTypePhone
 		return p.OTPMessageSender.SendSMS(opts, p.Config.SMS.Message)
 	default:
 		panic("oob: unknown channel type: " + channel)

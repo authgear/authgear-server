@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/oauth"
-	"github.com/authgear/authgear-server/pkg/core/auth/metadata"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
@@ -401,13 +400,13 @@ func (a *Provider) RelateIdentityToAuthenticator(ii *identity.Info, as *authenti
 		}
 
 		identityID := ii.ID
-		switch string(loginIDConfig.Type) {
-		case string(metadata.Email):
+		switch loginIDConfig.Type {
+		case config.LoginIDKeyTypeEmail:
 			as.Props[authenticator.AuthenticatorPropOOBOTPChannelType] = string(authn.AuthenticatorOOBChannelEmail)
 			as.Props[authenticator.AuthenticatorPropOOBOTPEmail] = loginID.Value
 			as.Props[authenticator.AuthenticatorPropOOBOTPIdentityID] = &identityID
 			return as
-		case string(metadata.Phone):
+		case config.LoginIDKeyTypePhone:
 			as.Props[authenticator.AuthenticatorPropOOBOTPChannelType] = string(authn.AuthenticatorOOBChannelSMS)
 			as.Props[authenticator.AuthenticatorPropOOBOTPPhone] = loginID.Value
 			as.Props[authenticator.AuthenticatorPropOOBOTPIdentityID] = &identityID
@@ -601,9 +600,9 @@ func extractAnonymousClaims(claims map[string]interface{}) (keyID string, key st
 
 func extractStandardClaims(claims map[string]interface{}) map[string]string {
 	standardClaims := map[string]string{}
-	email, hasEmail := claims[string(metadata.Email)].(string)
+	email, hasEmail := claims[identity.StandardClaimEmail].(string)
 	if hasEmail {
-		standardClaims[string(metadata.Email)] = email
+		standardClaims[identity.StandardClaimEmail] = email
 	}
 
 	return standardClaims

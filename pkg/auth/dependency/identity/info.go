@@ -67,7 +67,7 @@ func (i *Info) DisplayID() string {
 		displayID, _ := i.Claims[IdentityClaimLoginIDOriginalValue].(string)
 		return displayID
 	case authn.IdentityTypeOAuth:
-		displayID, _ := i.Claims["email"].(string)
+		displayID, _ := i.Claims[StandardClaimEmail].(string)
 		return displayID
 	case authn.IdentityTypeAnonymous:
 		displayID, _ := i.Claims[IdentityClaimAnonymousKeyID].(string)

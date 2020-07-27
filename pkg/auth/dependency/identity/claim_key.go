@@ -32,3 +32,7 @@ const (
 	// IdentityClaimAnonymousKey is a claim with a string value containing anonymous public key JWK.
 	IdentityClaimAnonymousKey string = "https://authgear.com/claims/anonymous/key"
 )
+
+const (
+	StandardClaimEmail string = "email"
+)

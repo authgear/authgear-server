@@ -5,7 +5,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
-	"github.com/authgear/authgear-server/pkg/core/auth/metadata"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/otp"
 )
@@ -153,11 +152,11 @@ func (s *Service) SendCode(
 		}
 	}
 	switch loginIDType {
-	case config.LoginIDKeyType(metadata.Email):
-		opts.LoginIDType = config.LoginIDKeyType(metadata.Email)
+	case config.LoginIDKeyTypeEmail:
+		opts.LoginIDType = config.LoginIDKeyTypeEmail
 		return s.OTPMessageSender.SendEmail(opts, s.Config.Email.Message)
-	case config.LoginIDKeyType(metadata.Phone):
-		opts.LoginIDType = config.LoginIDKeyType(metadata.Phone)
+	case config.LoginIDKeyTypePhone:
+		opts.LoginIDType = config.LoginIDKeyTypePhone
 		return s.OTPMessageSender.SendSMS(opts, s.Config.SMS.Message)
 	default:
 		panic("oob: invalid login ID type: " + loginIDType)

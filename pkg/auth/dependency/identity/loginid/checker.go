@@ -4,7 +4,6 @@ import (
 	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/core/auth/metadata"
 	"github.com/authgear/authgear-server/pkg/validation"
 )
 
@@ -65,24 +64,17 @@ func (c *Checker) validateOne(ctx *validation.Context, loginID LoginID) {
 	c.TypeCheckerFactory.NewChecker(loginIDType).Validate(ctx, loginID.Value)
 }
 
-func (c *Checker) StandardKey(loginIDKey string) (key metadata.StandardKey, ok bool) {
-	var config config.LoginIDKeyConfig
+func (c *Checker) LoginIDKeyType(loginIDKey string) (config.LoginIDKeyType, bool) {
 	for _, keyConfig := range c.Config.Keys {
 		if keyConfig.Key == loginIDKey {
-			config = keyConfig
-			ok = true
-			break
+			return keyConfig.Type, true
 		}
 	}
-	if !ok {
-		return
-	}
 
-	key, ok = config.Type.MetadataKey()
-	return
+	return "", false
 }
 
-func (c *Checker) CheckType(loginIDKey string, standardKey metadata.StandardKey) bool {
-	loginIDKeyStandardKey, ok := c.StandardKey(loginIDKey)
-	return ok && loginIDKeyStandardKey == standardKey
+func (c *Checker) CheckType(loginIDKey string, t config.LoginIDKeyType) bool {
+	loginIDKeyType, ok := c.LoginIDKeyType(loginIDKey)
+	return ok && loginIDKeyType == t
 }
