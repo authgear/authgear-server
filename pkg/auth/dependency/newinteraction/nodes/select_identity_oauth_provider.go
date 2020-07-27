@@ -22,11 +22,16 @@ type InputSelectIdentityOAuthProvider interface {
 }
 
 type EdgeSelectIdentityOAuthProvider struct {
-	Config config.OAuthSSOProviderConfig
+	Configs []config.OAuthSSOProviderConfig
 }
 
-func (e *EdgeSelectIdentityOAuthProvider) GetIdentityCandidate() identity.Candidate {
-	return identity.NewOAuthCandidate(&e.Config)
+func (e *EdgeSelectIdentityOAuthProvider) GetIdentityCandidates() []identity.Candidate {
+	candidates := make([]identity.Candidate, len(e.Configs))
+	for i, c := range e.Configs {
+		conf := c
+		candidates[i] = identity.NewOAuthCandidate(&conf)
+	}
+	return candidates
 }
 
 func (e *EdgeSelectIdentityOAuthProvider) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
@@ -36,8 +41,16 @@ func (e *EdgeSelectIdentityOAuthProvider) Instantiate(ctx *newinteraction.Contex
 	}
 
 	alias := input.GetProviderAlias()
-	if e.Config.Alias != alias {
-		return nil, newinteraction.ErrIncompatibleInput
+	var oauthConfig *config.OAuthSSOProviderConfig
+	for _, c := range e.Configs {
+		if c.Alias == alias {
+			conf := c
+			oauthConfig = &conf
+			break
+		}
+	}
+	if oauthConfig == nil {
+		panic("interaction: no OAuth provider with specified alias")
 	}
 
 	nonceSource := input.GetNonceSource()
@@ -62,7 +75,7 @@ func (e *EdgeSelectIdentityOAuthProvider) Instantiate(ctx *newinteraction.Contex
 	}
 
 	return &NodeSelectIdentityOAuthProvider{
-		Config:           e.Config,
+		Config:           *oauthConfig,
 		HashedNonce:      nonce,
 		ErrorRedirectURI: errorRedirectURI,
 		RedirectURI:      redirectURI,

@@ -22,8 +22,8 @@ const (
 	LoginPageTextLoginIDInputTypeEmail = "email"
 )
 
-type IdentityCandidateGetter interface {
-	GetIdentityCandidate() identity.Candidate
+type IdentityCandidatesGetter interface {
+	GetIdentityCandidates() []identity.Candidate
 }
 
 type AuthenticationViewModel struct {
@@ -40,22 +40,24 @@ func NewAuthenticationViewModel(edges []newinteraction.Edge) AuthenticationViewM
 	hasPhone := false
 
 	for _, edge := range edges {
-		if a, ok := edge.(IdentityCandidateGetter); ok {
-			candidate := a.GetIdentityCandidate()
-			candidates = append(candidates, candidate)
-			typ, _ := candidate[identity.CandidateKeyType].(string)
-			if typ == string(authn.IdentityTypeLoginID) {
-				loginIDType, _ := candidate[identity.CandidateKeyLoginIDType].(string)
-				switch loginIDType {
-				case "phone":
-					candidate["login_id_input_type"] = "phone"
-					hasPhone = true
-				case "email":
-					candidate["login_id_input_type"] = "email"
-					hasEmail = true
-				default:
-					candidate["login_id_input_type"] = "text"
-					hasUsername = true
+		if a, ok := edge.(IdentityCandidatesGetter); ok {
+			identityCandidates := a.GetIdentityCandidates()
+			candidates = append(candidates, identityCandidates...)
+			for _, c := range identityCandidates {
+				typ, _ := c[identity.CandidateKeyType].(string)
+				if typ == string(authn.IdentityTypeLoginID) {
+					loginIDType, _ := c[identity.CandidateKeyLoginIDType].(string)
+					switch loginIDType {
+					case "phone":
+						c["login_id_input_type"] = "phone"
+						hasPhone = true
+					case "email":
+						c["login_id_input_type"] = "email"
+						hasEmail = true
+					default:
+						c["login_id_input_type"] = "text"
+						hasUsername = true
+					}
 				}
 			}
 		}

@@ -46,14 +46,10 @@ func (n *NodeSelectIdentityBegin) DeriveEdges(ctx *newinteraction.Context, graph
 			}
 
 		case authn.IdentityTypeLoginID:
-			for _, c := range ctx.Config.Identity.LoginID.Keys {
-				edges = append(edges, &EdgeSelectIdentityLoginID{Config: c})
-			}
+			edges = append(edges, &EdgeSelectIdentityLoginID{Configs: ctx.Config.Identity.LoginID.Keys})
 
 		case authn.IdentityTypeOAuth:
-			for _, c := range ctx.Config.Identity.OAuth.Providers {
-				edges = append(edges, &EdgeSelectIdentityOAuthProvider{Config: c})
-			}
+			edges = append(edges, &EdgeSelectIdentityOAuthProvider{Configs: ctx.Config.Identity.OAuth.Providers})
 
 		default:
 			panic("interaction: unknown identity type: " + t)

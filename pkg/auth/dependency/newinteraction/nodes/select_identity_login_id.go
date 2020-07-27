@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
@@ -15,16 +14,22 @@ func init() {
 }
 
 type InputSelectIdentityLoginID interface {
+	GetLoginIDKey() string
 	GetLoginID() string
 }
 
 type EdgeSelectIdentityLoginID struct {
-	Config config.LoginIDKeyConfig
+	Configs []config.LoginIDKeyConfig
 }
 
-// GetIdentityCandidate implements IdentityCandidateGetter.
-func (e *EdgeSelectIdentityLoginID) GetIdentityCandidate() identity.Candidate {
-	return identity.NewLoginIDCandidate(&e.Config)
+// GetIdentityCandidates implements IdentityCandidatesGetter.
+func (e *EdgeSelectIdentityLoginID) GetIdentityCandidates() []identity.Candidate {
+	candidates := make([]identity.Candidate, len(e.Configs))
+	for i, c := range e.Configs {
+		conf := c
+		candidates[i] = identity.NewLoginIDCandidate(&conf)
+	}
+	return candidates
 }
 
 func (e *EdgeSelectIdentityLoginID) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
@@ -32,35 +37,14 @@ func (e *EdgeSelectIdentityLoginID) Instantiate(ctx *newinteraction.Context, gra
 	if !ok {
 		return nil, newinteraction.ErrIncompatibleInput
 	}
-
-	loginID := loginid.LoginID{Key: e.Config.Key, Value: input.GetLoginID()}
-	err := ctx.LoginIDIdentities.ValidateOne(loginID)
-	if err != nil {
-		return nil, newinteraction.ErrIncompatibleInput
-	}
-
-	return &NodeSelectIdentityLoginID{
-		Config:  e.Config,
-		LoginID: loginID.Value,
-	}, nil
-}
-
-type NodeSelectIdentityLoginID struct {
-	Config  config.LoginIDKeyConfig `json:"login_id_config"`
-	LoginID string                  `json:"login_id"`
-}
-
-func (n *NodeSelectIdentityLoginID) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
-	return nil
-}
-
-func (n *NodeSelectIdentityLoginID) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	spec := &identity.Spec{
 		Type: authn.IdentityTypeLoginID,
 		Claims: map[string]interface{}{
-			identity.IdentityClaimLoginIDKey:   n.Config.Key,
-			identity.IdentityClaimLoginIDValue: n.LoginID,
+			identity.IdentityClaimLoginIDValue: input.GetLoginID(),
 		},
+	}
+	if key := input.GetLoginIDKey(); key != "" {
+		spec.Claims[identity.IdentityClaimLoginIDKey] = key
 	}
 
 	_, info, err := ctx.Identities.GetByClaims(spec.Type, spec.Claims)
@@ -70,7 +54,20 @@ func (n *NodeSelectIdentityLoginID) DeriveEdges(ctx *newinteraction.Context, gra
 		return nil, err
 	}
 
+	return &NodeSelectIdentityLoginID{RequestedIdentity: spec, ExistingIdentity: info}, nil
+}
+
+type NodeSelectIdentityLoginID struct {
+	RequestedIdentity *identity.Spec `json:"requested_identity"`
+	ExistingIdentity  *identity.Info `json:"existing_identity"`
+}
+
+func (n *NodeSelectIdentityLoginID) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
+	return nil
+}
+
+func (n *NodeSelectIdentityLoginID) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	return []newinteraction.Edge{
-		&EdgeSelectIdentityEnd{RequestedIdentity: spec, ExistingIdentity: info},
+		&EdgeSelectIdentityEnd{RequestedIdentity: n.RequestedIdentity, ExistingIdentity: n.ExistingIdentity},
 	}, nil
 }
