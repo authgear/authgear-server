@@ -1,5 +1,6 @@
 package metadata
 
+// TODO: Merge with config.LoginIDKeyType
 type StandardKey string
 
 const (

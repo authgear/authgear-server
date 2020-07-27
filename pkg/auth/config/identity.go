@@ -182,7 +182,12 @@ var _ = Schema.Add("LoginIDKeyType", `
 
 type LoginIDKeyType string
 
-const LoginIDKeyTypeRaw LoginIDKeyType = "raw"
+const (
+	LoginIDKeyTypeRaw      LoginIDKeyType = "raw"
+	LoginIDKeyTypeEmail    LoginIDKeyType = "email"
+	LoginIDKeyTypePhone    LoginIDKeyType = "phone"
+	LoginIDKeyTypeUsername LoginIDKeyType = "username"
+)
 
 func (t LoginIDKeyType) MetadataKey() (metadata.StandardKey, bool) {
 	for _, key := range metadata.AllKeys() {

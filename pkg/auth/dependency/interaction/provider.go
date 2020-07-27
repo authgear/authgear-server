@@ -87,7 +87,7 @@ type Provider struct {
 	Clock         clock.Clock
 	Logger        Logger
 	Identity      IdentityProvider
-	Authenticator AuthenticatorProvider
+	Authenticator AuthenticatorProvider `wire:"-"`
 	User          UserProvider
 	OOB           OOBProvider `wire:"-"`
 	Hooks         HookProvider

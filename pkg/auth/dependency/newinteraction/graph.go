@@ -152,8 +152,8 @@ func (g *Graph) GetUserAuthenticator(stage AuthenticationStage) (*authenticator.
 func (g *Graph) GetUserNewAuthenticators() []*authenticator.Info {
 	var authenticators []*authenticator.Info
 	for _, node := range g.Nodes {
-		if n, ok := node.(interface{ UserNewAuthenticator() *authenticator.Info }); ok {
-			authenticators = append(authenticators, n.UserNewAuthenticator())
+		if n, ok := node.(interface{ UserNewAuthenticators() []*authenticator.Info }); ok {
+			authenticators = append(authenticators, n.UserNewAuthenticators()...)
 		}
 	}
 	return authenticators
