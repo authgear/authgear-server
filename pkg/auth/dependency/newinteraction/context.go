@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/sso"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/user"
 	"github.com/authgear/authgear-server/pkg/auth/event"
 	"github.com/authgear/authgear-server/pkg/auth/model"
 	"github.com/authgear/authgear-server/pkg/core/authn"
@@ -65,7 +66,8 @@ type ChallengeProvider interface {
 
 type UserService interface {
 	Get(id string) (*model.User, error)
-	Create(userID string, metadata map[string]interface{}, identities []*identity.Info, authenticators []*authenticator.Info) error
+	Create(userID string, metadata map[string]interface{}) (*user.User, error)
+	AfterCreate(user *user.User, identities []*identity.Info, authenticators []*authenticator.Info) error
 	UpdateLoginTime(user *model.User, lastLoginAt time.Time) error
 }
 

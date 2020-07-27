@@ -22,21 +22,22 @@ type Commands struct {
 func (c *Commands) Create(
 	userID string,
 	metadata map[string]interface{},
+) (*User, error) {
+	return c.Raw.Create(userID, metadata)
+}
+
+func (c *Commands) AfterCreate(
+	user *User,
 	identities []*identity.Info,
 	authenticators []*authenticator.Info,
 ) error {
-	user, err := c.Raw.Create(userID, metadata)
-	if err != nil {
-		return err
-	}
-
 	isVerified := c.Verification.IsVerified(identities, authenticators)
 	userModel := newUserModel(user, identities, isVerified)
 	var identityModels []model.Identity
 	for _, i := range identities {
 		identityModels = append(identityModels, i.ToModel())
 	}
-	err = c.Hooks.DispatchEvent(
+	err := c.Hooks.DispatchEvent(
 		event.UserCreateEvent{
 			User:       *userModel,
 			Identities: identityModels,

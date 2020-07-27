@@ -133,7 +133,6 @@ var commonDeps = wire.NewSet(
 	wire.NewSet(
 		user.DependencySet,
 		wire.Bind(new(auth.UserProvider), new(*user.Queries)),
-		wire.Bind(new(interaction.UserProvider), new(*user.Provider)),
 		wire.Bind(new(interactionflows.UserProvider), new(*user.Provider)),
 		wire.Bind(new(newinteraction.UserService), new(*user.Provider)),
 		wire.Bind(new(forgotpassword.UserProvider), new(*user.Queries)),

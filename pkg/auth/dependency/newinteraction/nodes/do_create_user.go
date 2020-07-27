@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/user"
 	"github.com/authgear/authgear-server/pkg/core/uuid"
 )
 
@@ -23,15 +24,19 @@ type NodeDoCreateUser struct {
 }
 
 func (n *NodeDoCreateUser) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
-	err := perform(newinteraction.EffectOnCommit(func(ctx *newinteraction.Context) error {
-		// User creation triggers hook, so run in a on commit effect
-		// TODO(interaction): user metadata
-		err := ctx.Users.Create(n.NewUserID, map[string]interface{}{}, graph.GetUserNewIdentities(), graph.GetUserNewAuthenticators())
-		if err != nil {
-			return err
-		}
+	var u *user.User
 
-		return nil
+	err := perform(newinteraction.EffectRun(func(ctx *newinteraction.Context) error {
+		var err error
+		u, err = ctx.Users.Create(n.NewUserID, map[string]interface{}{})
+		return err
+	}))
+	if err != nil {
+		return err
+	}
+
+	err = perform(newinteraction.EffectOnCommit(func(ctx *newinteraction.Context) error {
+		return ctx.Users.AfterCreate(u, graph.GetUserNewIdentities(), graph.GetUserNewAuthenticators())
 	}))
 	if err != nil {
 		return err

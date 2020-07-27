@@ -88,8 +88,8 @@ type Provider struct {
 	Logger        Logger
 	Identity      IdentityProvider
 	Authenticator AuthenticatorProvider `wire:"-"`
-	User          UserProvider
-	OOB           OOBProvider `wire:"-"`
+	User          UserProvider          `wire:"-"`
+	OOB           OOBProvider           `wire:"-"`
 	Hooks         HookProvider
 	Config        *config.AuthenticationConfig
 }
