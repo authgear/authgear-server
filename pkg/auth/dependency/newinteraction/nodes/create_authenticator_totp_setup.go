@@ -11,7 +11,7 @@ func init() {
 }
 
 type InputCreateAuthenticatorTOTPSetup interface {
-	SetupTOTP() bool
+	SetupTOTP()
 }
 
 type EdgeCreateAuthenticatorTOTPSetup struct {

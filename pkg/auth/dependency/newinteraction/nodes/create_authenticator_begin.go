@@ -17,7 +17,8 @@ type EdgeCreateAuthenticatorBegin struct {
 
 func (e *EdgeCreateAuthenticatorBegin) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, input interface{}) (newinteraction.Node, error) {
 	return &NodeCreateAuthenticatorBegin{
-		Stage: e.Stage,
+		Stage:                  e.Stage,
+		RequestedAuthenticator: e.RequestedAuthenticator,
 	}, nil
 }
 
