@@ -182,24 +182,23 @@ func (s *Service) PostInput(stateID string, inputer func() (interface{}, error))
 		return nil, err
 	}
 
-	err = s.Graph.DryRun(func(ctx *newinteraction.Context) (newGraph *newinteraction.Graph, err error) {
+	err = s.Graph.DryRun(func(ctx *newinteraction.Context) (*newinteraction.Graph, error) {
 		input, err := inputer()
 		if err != nil {
-			return
+			return nil, err
 		}
 
-		graph, edges, err = graph.Accept(ctx, input)
+		var newGraph *newinteraction.Graph
+		newGraph, edges, err = graph.Accept(ctx, input)
 		if errors.Is(err, newinteraction.ErrInputRequired) {
-			err = nil
-			newGraph = graph
-			return
-		}
-		if err != nil {
-			return
+			graph = newGraph
+			return newGraph, nil
+		} else if err != nil {
+			return nil, err
 		}
 
-		newGraph = graph
-		return
+		graph = newGraph
+		return newGraph, nil
 	})
 
 	// Regardless of err, we need to return result.
