@@ -4,7 +4,9 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/db"
@@ -48,8 +50,8 @@ var TemplateAuthUIOOBOTPHTML = template.Spec{
 
 {{ template "ERROR" . }}
 
-{{ if $.GivenLoginID }}
-<div class="description primary-txt">{{ localize "oob-otp-description" $.OOBOTPCodeLength $.GivenLoginID }}</div>
+{{ if $.IdentityDisplayID }}
+<div class="description primary-txt">{{ localize "oob-otp-description" $.OOBOTPCodeLength $.IdentityDisplayID }}</div>
 {{ end }}
 
 <form class="vertical-form form-fields-container" method="post" novalidate>
@@ -101,7 +103,7 @@ type OOBOTPViewModel struct {
 	OOBOTPCodeSendCooldown int
 	OOBOTPCodeLength       int
 	OOBOTPChannel          string
-	GivenLoginID           string
+	IdentityDisplayID      string
 }
 
 type OOBOTPHandler struct {
@@ -115,8 +117,16 @@ func (h *OOBOTPHandler) GetData(r *http.Request, state *webapp.State, graph *new
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-	// FIXME(webapp): derive OOBOTPViewModel with graph and edges
-	oobOTPViewModel := OOBOTPViewModel{}
+	node := graph.CurrentNode()
+	// FIXME(webapp): Fill in OOBOTPCodeSendCooldown, OOBOTPCodeLength from node.
+	oobOTPViewModel := OOBOTPViewModel{
+		OOBOTPCodeSendCooldown: 60,
+		OOBOTPCodeLength:       4,
+		IdentityDisplayID:      graph.MustGetUserLastIdentity().DisplayID(),
+	}
+	if n, ok := node.(*nodes.NodeAuthenticationOOBTrigger); ok {
+		oobOTPViewModel.OOBOTPChannel = n.Authenticator.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string)
+	}
 
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, oobOTPViewModel)
@@ -124,13 +134,17 @@ func (h *OOBOTPHandler) GetData(r *http.Request, state *webapp.State, graph *new
 	return data, nil
 }
 
-// FIXME(webapp): implement input interface
-type OOBOTPTrigger struct {
-}
+type OOBOTPResend struct{}
 
-// FIXME(webapp): implement input interface
+func (i *OOBOTPResend) DoResend() {}
+
 type OOBOTPInput struct {
 	Code string
+}
+
+// GetOOBOTP implements InputAuthenticationOOB.
+func (i *OOBOTPInput) GetOOBOTP() string {
+	return i.Code
 }
 
 func (h *OOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -163,7 +177,7 @@ func (h *OOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" && trigger {
 		h.Database.WithTx(func() error {
 			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
-				input = &OOBOTPTrigger{}
+				input = &OOBOTPResend{}
 				return
 			})
 			if err != nil {

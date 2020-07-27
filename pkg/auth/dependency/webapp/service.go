@@ -293,11 +293,11 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 		switch firstEdge.(type) {
 		case *nodes.EdgeAuthenticationPassword:
 			path = "/enter_password"
-		case *nodes.EdgeAuthenticationOOBTrigger:
-			path = "/oob_otp"
 		default:
 			panic(fmt.Errorf("webapp: unexpected edge: %T", firstEdge))
 		}
+	case *nodes.NodeAuthenticationOOBTrigger:
+		path = "/oob_otp"
 	default:
 		panic(fmt.Errorf("webapp: unexpected node: %T", node))
 	}

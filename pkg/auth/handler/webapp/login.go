@@ -235,6 +235,11 @@ func (i *LoginLoginID) GetLoginID() string {
 	return i.LoginID
 }
 
+// GetOOBTarget implements InputAuthenticationOOBTrigger.
+func (i *LoginLoginID) GetOOBTarget() string {
+	return i.LoginID
+}
+
 func (h *LoginHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	return &webapp.Intent{
 		RedirectURI: webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy),
