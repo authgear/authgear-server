@@ -60,19 +60,17 @@ func oobotpToAuthenticatorInfo(o *oob.Authenticator) *authenticator.Info {
 			authenticator.AuthenticatorPropOOBOTPChannelType: string(o.Channel),
 			authenticator.AuthenticatorPropOOBOTPEmail:       o.Email,
 			authenticator.AuthenticatorPropOOBOTPPhone:       o.Phone,
-			authenticator.AuthenticatorPropOOBOTPIdentityID:  o.IdentityID,
 		},
 	}
 }
 
 func oobotpFromAuthenticatorInfo(userID string, a *authenticator.Info) *oob.Authenticator {
 	return &oob.Authenticator{
-		ID:         a.ID,
-		UserID:     userID,
-		Channel:    authn.AuthenticatorOOBChannel(a.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string)),
-		Phone:      a.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string),
-		Email:      a.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string),
-		IdentityID: a.Props[authenticator.AuthenticatorPropOOBOTPIdentityID].(*string),
+		ID:      a.ID,
+		UserID:  userID,
+		Channel: authn.AuthenticatorOOBChannel(a.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string)),
+		Phone:   a.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string),
+		Email:   a.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string),
 	}
 }
 

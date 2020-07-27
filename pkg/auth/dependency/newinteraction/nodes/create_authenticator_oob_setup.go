@@ -42,9 +42,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *newinteraction.Contex
 		spec = &authenticator.Spec{
 			UserID: identityInfo.UserID,
 			Type:   authn.AuthenticatorTypeOOB,
-			Props: map[string]interface{}{
-				authenticator.AuthenticatorPropOOBOTPIdentityID: identityInfo.ID,
-			},
+			Props:  map[string]interface{}{},
 		}
 
 		// Ignore given OOB target, use channel & target inferred from identity

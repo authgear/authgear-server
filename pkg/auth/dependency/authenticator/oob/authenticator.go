@@ -15,11 +15,12 @@ const (
 )
 
 type Authenticator struct {
-	ID         string
-	UserID     string
-	CreatedAt  time.Time
-	Channel    authn.AuthenticatorOOBChannel
-	Phone      string
-	Email      string
+	ID        string
+	UserID    string
+	CreatedAt time.Time
+	Channel   authn.AuthenticatorOOBChannel
+	Phone     string
+	Email     string
+	// TODO(interaction): Remove IdentityID from OOB Authenticator.
 	IdentityID *string
 }
