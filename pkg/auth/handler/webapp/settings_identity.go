@@ -205,7 +205,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 				// FIXME(webapp): IntentSettingsIdentity
 				// This intent actually does not have any further nodes.
 				// Only the edges are useful.
-				Intent: &intents.IntentLogin{},
+				Intent: intents.NewIntentLogin(),
 			}
 			state, graph, edges, err := h.WebApp.GetIntent(intent, StateID(r))
 			if err != nil {
@@ -229,7 +229,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 			intent := &webapp.Intent{
 				RedirectURI: redirectURI,
 				// FIXME(webapp): IntentLinkOAuth
-				Intent: &intents.IntentLogin{},
+				Intent: intents.NewIntentLogin(),
 			}
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
 				input = &SettingsIdentityLinkOAuth{
@@ -256,7 +256,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 			intent := &webapp.Intent{
 				RedirectURI: redirectURI,
 				// FIXME(webapp): IntentUnlinkOAuth
-				Intent: &intents.IntentLogin{},
+				Intent: intents.NewIntentLogin(),
 			}
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
 				input = &SettingsIdentityUnlinkOAuth{
@@ -279,7 +279,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 			intent := &webapp.Intent{
 				RedirectURI: redirectURI,
 				// FIXME(webapp): IntentAddUpdateRemoveLoginID
-				Intent: &intents.IntentLogin{},
+				Intent: intents.NewIntentLogin(),
 			}
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
 				input = &SettingsIdentityAddUpdateRemoveLoginID{

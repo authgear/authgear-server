@@ -249,7 +249,7 @@ func (i *LoginLoginID) GetOOBTarget() string {
 func (h *LoginHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	return &webapp.Intent{
 		RedirectURI: webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy),
-		Intent:      &intents.IntentLogin{},
+		Intent:      intents.NewIntentLogin(),
 	}
 }
 

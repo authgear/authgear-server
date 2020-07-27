@@ -146,7 +146,7 @@ func (h *ForgotPasswordHandler) MakeIntent(r *http.Request) *webapp.Intent {
 		RedirectURI: "/forgot_password/success",
 		KeepState:   true,
 		// FIXME(webapp): IntentForgotPassword
-		Intent: &intents.IntentLogin{},
+		Intent: intents.NewIntentLogin(),
 	}
 }
 
