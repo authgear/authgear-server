@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/model"
 	taskspec "github.com/authgear/authgear-server/pkg/auth/task/spec"
 	"github.com/authgear/authgear-server/pkg/clock"
-	"github.com/authgear/authgear-server/pkg/core/auth/metadata"
 	"github.com/authgear/authgear-server/pkg/core/intl"
 	"github.com/authgear/authgear-server/pkg/mail"
 	"github.com/authgear/authgear-server/pkg/sms"
@@ -24,7 +23,7 @@ type ResetPasswordFlow interface {
 
 type LoginIDProvider interface {
 	GetByLoginID(loginID loginid.LoginID) ([]*loginid.Identity, error)
-	IsLoginIDKeyType(loginIDKey string, loginIDKeyType metadata.StandardKey) bool
+	IsLoginIDKeyType(loginIDKey string, loginIDKeyType config.LoginIDKeyType) bool
 }
 
 type UserProvider interface {
@@ -78,8 +77,8 @@ func (p *Provider) SendCode(loginID string) (err error) {
 	}
 
 	for _, iden := range idens {
-		email := p.LoginIDProvider.IsLoginIDKeyType(iden.LoginIDKey, metadata.Email)
-		phone := p.LoginIDProvider.IsLoginIDKeyType(iden.LoginIDKey, metadata.Phone)
+		email := p.LoginIDProvider.IsLoginIDKeyType(iden.LoginIDKey, config.LoginIDKeyTypeEmail)
+		phone := p.LoginIDProvider.IsLoginIDKeyType(iden.LoginIDKey, config.LoginIDKeyTypePhone)
 
 		if !email && !phone {
 			continue

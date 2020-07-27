@@ -7,11 +7,9 @@ package interaction_test
 import (
 	authenticator "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	identity "github.com/authgear/authgear-server/pkg/auth/dependency/identity"
-	loginid "github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	event "github.com/authgear/authgear-server/pkg/auth/event"
 	model "github.com/authgear/authgear-server/pkg/auth/model"
 	authn "github.com/authgear/authgear-server/pkg/core/authn"
-	otp "github.com/authgear/authgear-server/pkg/otp"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -486,20 +484,6 @@ func (m *MockOOBProvider) GenerateCode(channel authn.AuthenticatorOOBChannel) st
 func (mr *MockOOBProviderMockRecorder) GenerateCode(channel interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateCode", reflect.TypeOf((*MockOOBProvider)(nil).GenerateCode), channel)
-}
-
-// SendCode mocks base method
-func (m *MockOOBProvider) SendCode(channel authn.AuthenticatorOOBChannel, loginID *loginid.LoginID, code string, origin otp.MessageOrigin, operation otp.OOBOperationType) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendCode", channel, loginID, code, origin, operation)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SendCode indicates an expected call of SendCode
-func (mr *MockOOBProviderMockRecorder) SendCode(channel, loginID, code, origin, operation interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendCode", reflect.TypeOf((*MockOOBProvider)(nil).SendCode), channel, loginID, code, origin, operation)
 }
 
 // MockHookProvider is a mock of HookProvider interface

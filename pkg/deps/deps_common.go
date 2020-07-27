@@ -106,7 +106,6 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(authenticatorprovider.BearerTokenAuthenticatorProvider), new(*authenticatorbearertoken.Provider)),
 		wire.Bind(new(authenticatorprovider.RecoveryCodeAuthenticatorProvider), new(*authenticatorrecoverycode.Provider)),
 
-		wire.Bind(new(interaction.AuthenticatorProvider), new(*authenticatorprovider.Provider)),
 		wire.Bind(new(newinteraction.AuthenticatorProvider), new(*authenticatorprovider.Provider)),
 		wire.Bind(new(verification.AuthenticatorProvider), new(*authenticatorprovider.Provider)),
 	),

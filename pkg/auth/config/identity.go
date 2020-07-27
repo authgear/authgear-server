@@ -2,8 +2,6 @@ package config
 
 import (
 	"fmt"
-
-	"github.com/authgear/authgear-server/pkg/core/auth/metadata"
 )
 
 var _ = Schema.Add("IdentityConfig", `
@@ -43,9 +41,9 @@ type LoginIDConfig struct {
 func (c *LoginIDConfig) SetDefaults() {
 	if len(c.Keys) == 0 {
 		c.Keys = []LoginIDKeyConfig{
-			{Key: "email", Type: LoginIDKeyType(metadata.Email)},
-			{Key: "phone", Type: LoginIDKeyType(metadata.Phone)},
-			{Key: "username", Type: LoginIDKeyType(metadata.Username)},
+			{Key: "email", Type: LoginIDKeyTypeEmail},
+			{Key: "phone", Type: LoginIDKeyTypePhone},
+			{Key: "username", Type: LoginIDKeyTypeUsername},
 		}
 		for i := range c.Keys {
 			c.Keys[i].SetDefaults()
@@ -182,16 +180,12 @@ var _ = Schema.Add("LoginIDKeyType", `
 
 type LoginIDKeyType string
 
-const LoginIDKeyTypeRaw LoginIDKeyType = "raw"
-
-func (t LoginIDKeyType) MetadataKey() (metadata.StandardKey, bool) {
-	for _, key := range metadata.AllKeys() {
-		if string(t) == string(key) {
-			return key, true
-		}
-	}
-	return "", false
-}
+const (
+	LoginIDKeyTypeRaw      LoginIDKeyType = "raw"
+	LoginIDKeyTypeEmail    LoginIDKeyType = "email"
+	LoginIDKeyTypePhone    LoginIDKeyType = "phone"
+	LoginIDKeyTypeUsername LoginIDKeyType = "username"
+)
 
 var _ = Schema.Add("OAuthSSOConfig", `
 {

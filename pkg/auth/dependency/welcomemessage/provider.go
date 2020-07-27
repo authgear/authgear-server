@@ -6,7 +6,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	taskspec "github.com/authgear/authgear-server/pkg/auth/task/spec"
-	"github.com/authgear/authgear-server/pkg/core/auth/metadata"
 	"github.com/authgear/authgear-server/pkg/core/intl"
 	"github.com/authgear/authgear-server/pkg/mail"
 	"github.com/authgear/authgear-server/pkg/task"
@@ -89,7 +88,7 @@ func (p *Provider) send(emails []string) (err error) {
 func (p *Provider) SendToIdentityInfos(infos []*identity.Info) (err error) {
 	var emails []string
 	for _, info := range infos {
-		if email, ok := info.Claims[string(metadata.Email)].(string); ok {
+		if email, ok := info.Claims[identity.StandardClaimEmail].(string); ok {
 			emails = append(emails, email)
 		}
 	}

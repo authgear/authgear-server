@@ -40,9 +40,8 @@ type AuthenticatorProvider interface {
 	CreateAll(userID string, ais []*authenticator.Info) error
 	UpdateAll(userID string, ais []*authenticator.Info) error
 	DeleteAll(userID string, ais []*authenticator.Info) error
-	// FIXME: pass in authenticator type instead of spec
-	Authenticate(userID string, spec authenticator.Spec, state *map[string]string, secret string) (*authenticator.Info, error)
-	VerifySecret(userID string, a *authenticator.Info, secret string) error
+	Authenticate(userID string, spec authenticator.Spec, state map[string]string, secret string) (*authenticator.Info, error)
+	VerifySecret(userID string, a *authenticator.Info, state map[string]string, secret string) error
 }
 
 type OOBAuthenticatorProvider interface {
@@ -51,8 +50,8 @@ type OOBAuthenticatorProvider interface {
 		channel authn.AuthenticatorOOBChannel,
 		loginID *loginid.LoginID,
 		code string,
-		origin otp.MessageOrigin,
 		operation otp.OOBOperationType,
+		stage otp.OOBAuthenticationStage,
 	) error
 }
 

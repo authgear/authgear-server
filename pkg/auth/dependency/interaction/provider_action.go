@@ -6,9 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/core/authn"
-	"github.com/authgear/authgear-server/pkg/otp"
 )
 
 func (p *Provider) PerformAction(i *Interaction, step Step, action Action) error {
@@ -283,6 +281,7 @@ func (p *Provider) doTriggerOOB(i *Interaction, step *StepState, action *ActionT
 	return
 }
 
+/*
 func (p *Provider) sendOOBCode(i *Interaction, step *StepState, as authenticator.Spec, code string) error {
 	channel, ok := as.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string)
 	if !ok {
@@ -372,3 +371,4 @@ func (p *Provider) sendOOBCode(i *Interaction, step *StepState, as authenticator
 		operation,
 	)
 }
+*/

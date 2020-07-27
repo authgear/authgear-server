@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/recoverycode"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/totp"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
@@ -28,7 +27,7 @@ type PasswordAuthenticatorProvider interface {
 type TOTPAuthenticatorProvider interface {
 	Get(userID, id string) (*totp.Authenticator, error)
 	List(userID string) ([]*totp.Authenticator, error)
-	New(userID string, displayName string) *totp.Authenticator
+	New(userID string) *totp.Authenticator
 	Create(*totp.Authenticator) error
 	Delete(*totp.Authenticator) error
 	Authenticate(candidates []*totp.Authenticator, code string) *totp.Authenticator
@@ -222,8 +221,7 @@ func (a *Provider) New(userID string, spec authenticator.Spec, secret string) ([
 		return []*authenticator.Info{passwordToAuthenticatorInfo(p)}, nil
 
 	case authn.AuthenticatorTypeTOTP:
-		displayName, _ := spec.Props[authenticator.AuthenticatorPropTOTPDisplayName].(string)
-		t := a.TOTP.New(userID, displayName)
+		t := a.TOTP.New(userID)
 		return []*authenticator.Info{totpToAuthenticatorInfo(t)}, nil
 
 	case authn.AuthenticatorTypeOOB:
@@ -371,7 +369,7 @@ func (a *Provider) DeleteAll(userID string, ais []*authenticator.Info) error {
 	return nil
 }
 
-func (a *Provider) Authenticate(userID string, spec authenticator.Spec, state *map[string]string, secret string) (*authenticator.Info, error) {
+func (a *Provider) Authenticate(userID string, spec authenticator.Spec, state map[string]string, secret string) (*authenticator.Info, error) {
 	switch spec.Type {
 	case authn.AuthenticatorTypePassword:
 		ps, err := a.Password.List(userID)
@@ -403,9 +401,9 @@ func (a *Provider) Authenticate(userID string, spec authenticator.Spec, state *m
 		if state == nil {
 			return nil, authenticator.ErrAuthenticatorNotFound
 		}
-		id := (*state)[authenticator.AuthenticatorStateOOBOTPID]
-		otpSecret := (*state)[authenticator.AuthenticatorStateOOBOTPSecret]
-		channel := authn.AuthenticatorOOBChannel((*state)[authenticator.AuthenticatorStateOOBOTPChannelType])
+		id := state[authenticator.AuthenticatorStateOOBOTPID]
+		otpSecret := state[authenticator.AuthenticatorStateOOBOTPSecret]
+		channel := authn.AuthenticatorOOBChannel(state[authenticator.AuthenticatorStateOOBOTPChannelType])
 
 		var o *oob.Authenticator
 		// This function can be called by login or signup.
@@ -453,12 +451,27 @@ func (a *Provider) Authenticate(userID string, spec authenticator.Spec, state *m
 	panic("interaction_adaptors: unknown authenticator type " + spec.Type)
 }
 
-func (a *Provider) VerifySecret(userID string, ai *authenticator.Info, secret string) error {
+func (a *Provider) VerifySecret(userID string, ai *authenticator.Info, state map[string]string, secret string) error {
 	switch ai.Type {
 	case authn.AuthenticatorTypePassword:
 		authen := passwordFromAuthenticatorInfo(userID, ai)
 		if a.Password.Authenticate(authen, secret) != nil {
-			return interaction.ErrInvalidCredentials
+			return authenticator.ErrInvalidCredentials
+		}
+		return nil
+
+	case authn.AuthenticatorTypeTOTP:
+		authen := totpFromAuthenticatorInfo(userID, ai)
+		if a.TOTP.Authenticate([]*totp.Authenticator{authen}, secret) != nil {
+			return authenticator.ErrInvalidCredentials
+		}
+		return nil
+
+	case authn.AuthenticatorTypeOOB:
+		authen := oobotpFromAuthenticatorInfo(userID, ai)
+		otpSecret := state[authenticator.AuthenticatorStateOOBOTPSecret]
+		if a.OOBOTP.Authenticate(otpSecret, authen.Channel, secret) != nil {
+			return authenticator.ErrInvalidCredentials
 		}
 		return nil
 	}

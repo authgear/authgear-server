@@ -8,7 +8,6 @@ import (
 	"golang.org/x/text/secure/precis"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/core/auth/metadata"
 	"github.com/authgear/authgear-server/pkg/core/errors"
 	"github.com/authgear/authgear-server/pkg/validation"
 )
@@ -27,18 +26,17 @@ type TypeCheckerFactory struct {
 }
 
 func (f *TypeCheckerFactory) NewChecker(loginIDKeyType config.LoginIDKeyType) TypeChecker {
-	metadataKey, _ := loginIDKeyType.MetadataKey()
-	switch metadataKey {
-	case metadata.Email:
+	switch loginIDKeyType {
+	case config.LoginIDKeyTypeEmail:
 		return &EmailChecker{
 			Config: f.Config.Types.Email,
 		}
-	case metadata.Username:
+	case config.LoginIDKeyTypeUsername:
 		return &UsernameChecker{
 			Config:              f.Config.Types.Username,
 			ReservedNameChecker: f.ReservedNameChecker,
 		}
-	case metadata.Phone:
+	case config.LoginIDKeyTypePhone:
 		return &PhoneChecker{}
 	}
 

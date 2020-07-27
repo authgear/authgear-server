@@ -46,6 +46,10 @@ func (n *NodeCreateIdentityEnd) DeriveEdges(ctx *newinteraction.Context, graph *
 	return graph.Intent.DeriveEdgesForNode(ctx, graph, n)
 }
 
+func (n *NodeCreateIdentityEnd) UserIdentity() *identity.Info {
+	return n.NewIdentity
+}
+
 func (n *NodeCreateIdentityEnd) UserNewIdentity() *identity.Info {
 	return n.NewIdentity
 }

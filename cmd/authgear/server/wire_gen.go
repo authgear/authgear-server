@@ -350,6 +350,32 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
 	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	messagingConfig := appConfig.Messaging
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	engine := appProvider.TemplateEngine
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	welcomemessageProvider := &welcomemessage.Provider{
+		Context:               context,
+		LocalizationConfig:    localizationConfig,
+		MetadataConfiguration: appMetadata,
+		MessagingConfig:       messagingConfig,
+		WelcomeMessageConfig:  welcomeMessageConfig,
+		TemplateEngine:        engine,
+		TaskQueue:             queueQueue,
+	}
+	verificationConfig := appConfig.Verification
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -385,17 +411,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
-	}
-	localizationConfig := appConfig.Localization
-	appMetadata := appConfig.Metadata
-	messagingConfig := appConfig.Messaging
-	engine := appProvider.TemplateEngine
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -440,21 +455,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               context,
-		LocalizationConfig:    localizationConfig,
-		MetadataConfiguration: appMetadata,
-		MessagingConfig:       messagingConfig,
-		WelcomeMessageConfig:  welcomeMessageConfig,
-		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
-	}
-	verificationConfig := appConfig.Verification
 	service := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
@@ -516,13 +516,12 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Queries:  queries,
 	}
 	interactionProvider := &interaction.Provider{
-		Clock:         clockClock,
-		Logger:        interactionLogger,
-		Identity:      providerProvider,
-		Authenticator: provider3,
-		User:          userProvider,
-		Hooks:         hookProvider,
-		Config:        authenticationConfig,
+		Clock:    clockClock,
+		Logger:   interactionLogger,
+		Identity: providerProvider,
+		User:     userProvider,
+		Hooks:    hookProvider,
+		Config:   authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -690,6 +689,32 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
 	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	messagingConfig := appConfig.Messaging
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	engine := appProvider.TemplateEngine
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	welcomemessageProvider := &welcomemessage.Provider{
+		Context:               context,
+		LocalizationConfig:    localizationConfig,
+		MetadataConfiguration: appMetadata,
+		MessagingConfig:       messagingConfig,
+		WelcomeMessageConfig:  welcomeMessageConfig,
+		TemplateEngine:        engine,
+		TaskQueue:             queueQueue,
+	}
+	verificationConfig := appConfig.Verification
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -726,20 +751,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	localizationConfig := appConfig.Localization
-	appMetadata := appConfig.Metadata
-	messagingConfig := appConfig.Messaging
-	engine := appProvider.TemplateEngine
 	endpointsProvider := &endpoints.Provider{
 		Request: request,
 		Config:  serverConfig,
-	}
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -784,21 +798,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               context,
-		LocalizationConfig:    localizationConfig,
-		MetadataConfiguration: appMetadata,
-		MessagingConfig:       messagingConfig,
-		WelcomeMessageConfig:  welcomeMessageConfig,
-		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
-	}
-	verificationConfig := appConfig.Verification
 	service := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
@@ -860,13 +859,12 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Queries:  queries,
 	}
 	interactionProvider := &interaction.Provider{
-		Clock:         clockClock,
-		Logger:        interactionLogger,
-		Identity:      providerProvider,
-		Authenticator: provider3,
-		User:          userProvider,
-		Hooks:         hookProvider,
-		Config:        authenticationConfig,
+		Clock:    clockClock,
+		Logger:   interactionLogger,
+		Identity: providerProvider,
+		User:     userProvider,
+		Hooks:    hookProvider,
+		Config:   authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -1439,6 +1437,32 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
 	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	messagingConfig := appConfig.Messaging
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	engine := appProvider.TemplateEngine
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	welcomemessageProvider := &welcomemessage.Provider{
+		Context:               context,
+		LocalizationConfig:    localizationConfig,
+		MetadataConfiguration: appMetadata,
+		MessagingConfig:       messagingConfig,
+		WelcomeMessageConfig:  welcomeMessageConfig,
+		TemplateEngine:        engine,
+		TaskQueue:             queueQueue,
+	}
+	verificationConfig := appConfig.Verification
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -1474,17 +1498,6 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
-	}
-	localizationConfig := appConfig.Localization
-	appMetadata := appConfig.Metadata
-	messagingConfig := appConfig.Messaging
-	engine := appProvider.TemplateEngine
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -1529,21 +1542,6 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		BearerToken:  bearertokenProvider,
 		RecoveryCode: recoverycodeProvider,
 	}
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               context,
-		LocalizationConfig:    localizationConfig,
-		MetadataConfiguration: appMetadata,
-		MessagingConfig:       messagingConfig,
-		WelcomeMessageConfig:  welcomeMessageConfig,
-		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
-	}
-	verificationConfig := appConfig.Verification
 	service := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
@@ -1605,13 +1603,12 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Queries:  queries,
 	}
 	interactionProvider := &interaction.Provider{
-		Clock:         clockClock,
-		Logger:        logger,
-		Identity:      providerProvider,
-		Authenticator: provider3,
-		User:          userProvider,
-		Hooks:         hookProvider,
-		Config:        authenticationConfig,
+		Clock:    clockClock,
+		Logger:   logger,
+		Identity: providerProvider,
+		User:     userProvider,
+		Hooks:    hookProvider,
+		Config:   authenticationConfig,
 	}
 	redisHandle := appProvider.Redis
 	challengeProvider := &challenge.Provider{
@@ -1939,13 +1936,12 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Queries:  queries,
 	}
 	interactionProvider := &interaction.Provider{
-		Clock:         clockClock,
-		Logger:        interactionLogger,
-		Identity:      providerProvider,
-		Authenticator: provider3,
-		User:          userProvider,
-		Hooks:         hookProvider,
-		Config:        authenticationConfig,
+		Clock:    clockClock,
+		Logger:   interactionLogger,
+		Identity: providerProvider,
+		User:     userProvider,
+		Hooks:    hookProvider,
+		Config:   authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -2313,13 +2309,12 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Queries:  queries,
 	}
 	interactionProvider := &interaction.Provider{
-		Clock:         clockClock,
-		Logger:        interactionLogger,
-		Identity:      providerProvider,
-		Authenticator: provider3,
-		User:          userProvider,
-		Hooks:         hookProvider,
-		Config:        authenticationConfig,
+		Clock:    clockClock,
+		Logger:   interactionLogger,
+		Identity: providerProvider,
+		User:     userProvider,
+		Hooks:    hookProvider,
+		Config:   authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -2687,13 +2682,12 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Queries:  queries,
 	}
 	interactionProvider := &interaction.Provider{
-		Clock:         clockClock,
-		Logger:        interactionLogger,
-		Identity:      providerProvider,
-		Authenticator: provider3,
-		User:          userProvider,
-		Hooks:         hookProvider,
-		Config:        authenticationConfig,
+		Clock:    clockClock,
+		Logger:   interactionLogger,
+		Identity: providerProvider,
+		User:     userProvider,
+		Hooks:    hookProvider,
+		Config:   authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -3042,13 +3036,12 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Queries:  queries,
 	}
 	interactionProvider := &interaction.Provider{
-		Clock:         clockClock,
-		Logger:        interactionLogger,
-		Identity:      providerProvider,
-		Authenticator: provider3,
-		User:          userProvider,
-		Hooks:         hookProvider,
-		Config:        authenticationConfig,
+		Clock:    clockClock,
+		Logger:   interactionLogger,
+		Identity: providerProvider,
+		User:     userProvider,
+		Hooks:    hookProvider,
+		Config:   authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -3408,13 +3401,12 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Queries:  queries,
 	}
 	interactionProvider := &interaction.Provider{
-		Clock:         clockClock,
-		Logger:        interactionLogger,
-		Identity:      providerProvider,
-		Authenticator: provider3,
-		User:          userProvider,
-		Hooks:         hookProvider,
-		Config:        authenticationConfig,
+		Clock:    clockClock,
+		Logger:   interactionLogger,
+		Identity: providerProvider,
+		User:     userProvider,
+		Hooks:    hookProvider,
+		Config:   authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -3776,13 +3768,12 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Queries:  queries,
 	}
 	interactionProvider := &interaction.Provider{
-		Clock:         clockClock,
-		Logger:        interactionLogger,
-		Identity:      providerProvider,
-		Authenticator: provider3,
-		User:          userProvider,
-		Hooks:         hookProvider,
-		Config:        authenticationConfig,
+		Clock:    clockClock,
+		Logger:   interactionLogger,
+		Identity: providerProvider,
+		User:     userProvider,
+		Hooks:    hookProvider,
+		Config:   authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -4144,13 +4135,12 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Queries:  queries,
 	}
 	interactionProvider := &interaction.Provider{
-		Clock:         clockClock,
-		Logger:        interactionLogger,
-		Identity:      providerProvider,
-		Authenticator: provider3,
-		User:          userProvider,
-		Hooks:         hookProvider,
-		Config:        authenticationConfig,
+		Clock:    clockClock,
+		Logger:   interactionLogger,
+		Identity: providerProvider,
+		User:     userProvider,
+		Hooks:    hookProvider,
+		Config:   authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -4512,13 +4502,12 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Queries:  queries,
 	}
 	interactionProvider := &interaction.Provider{
-		Clock:         clockClock,
-		Logger:        interactionLogger,
-		Identity:      providerProvider,
-		Authenticator: provider3,
-		User:          userProvider,
-		Hooks:         hookProvider,
-		Config:        authenticationConfig,
+		Clock:    clockClock,
+		Logger:   interactionLogger,
+		Identity: providerProvider,
+		User:     userProvider,
+		Hooks:    hookProvider,
+		Config:   authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -4884,13 +4873,12 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Queries:  queries,
 	}
 	interactionProvider := &interaction.Provider{
-		Clock:         clockClock,
-		Logger:        interactionLogger,
-		Identity:      providerProvider,
-		Authenticator: provider3,
-		User:          userProvider,
-		Hooks:         hookProvider,
-		Config:        authenticationConfig,
+		Clock:    clockClock,
+		Logger:   interactionLogger,
+		Identity: providerProvider,
+		User:     userProvider,
+		Hooks:    hookProvider,
+		Config:   authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -5253,13 +5241,12 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Queries:  queries,
 	}
 	interactionProvider := &interaction.Provider{
-		Clock:         clockClock,
-		Logger:        interactionLogger,
-		Identity:      providerProvider,
-		Authenticator: provider3,
-		User:          userProvider,
-		Hooks:         hookProvider,
-		Config:        authenticationConfig,
+		Clock:    clockClock,
+		Logger:   interactionLogger,
+		Identity: providerProvider,
+		User:     userProvider,
+		Hooks:    hookProvider,
+		Config:   authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -5621,13 +5608,12 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Queries:  queries,
 	}
 	interactionProvider := &interaction.Provider{
-		Clock:         clockClock,
-		Logger:        interactionLogger,
-		Identity:      providerProvider,
-		Authenticator: provider3,
-		User:          userProvider,
-		Hooks:         hookProvider,
-		Config:        authenticationConfig,
+		Clock:    clockClock,
+		Logger:   interactionLogger,
+		Identity: providerProvider,
+		User:     userProvider,
+		Hooks:    hookProvider,
+		Config:   authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -5989,13 +5975,12 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Queries:  queries,
 	}
 	interactionProvider := &interaction.Provider{
-		Clock:         clockClock,
-		Logger:        interactionLogger,
-		Identity:      providerProvider,
-		Authenticator: provider3,
-		User:          userProvider,
-		Hooks:         hookProvider,
-		Config:        authenticationConfig,
+		Clock:    clockClock,
+		Logger:   interactionLogger,
+		Identity: providerProvider,
+		User:     userProvider,
+		Hooks:    hookProvider,
+		Config:   authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -6388,13 +6373,12 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Queries:  queries,
 	}
 	interactionProvider := &interaction.Provider{
-		Clock:         clockClock,
-		Logger:        interactionLogger,
-		Identity:      providerProvider,
-		Authenticator: provider3,
-		User:          userProvider,
-		Hooks:         hookProvider,
-		Config:        authenticationConfig,
+		Clock:    clockClock,
+		Logger:   interactionLogger,
+		Identity: providerProvider,
+		User:     userProvider,
+		Hooks:    hookProvider,
+		Config:   authenticationConfig,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,

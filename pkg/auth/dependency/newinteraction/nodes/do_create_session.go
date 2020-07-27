@@ -15,6 +15,7 @@ func init() {
 }
 
 type EdgeDoCreateSession struct {
+	Reason auth.SessionCreateReason
 }
 
 func (e *EdgeDoCreateSession) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, input interface{}) (newinteraction.Node, error) {
@@ -28,14 +29,16 @@ func (e *EdgeDoCreateSession) Instantiate(ctx *newinteraction.Context, graph *ne
 	cookie := ctx.SessionCookie.New(token)
 
 	return &NodeDoCreateSession{
+		Reason:        e.Reason,
 		Session:       sess,
 		SessionCookie: cookie,
 	}, nil
 }
 
 type NodeDoCreateSession struct {
-	Session       *session.IDPSession `json:"session"`
-	SessionCookie *http.Cookie        `json:"session_cookie"`
+	Reason        auth.SessionCreateReason `json:"reason"`
+	Session       *session.IDPSession      `json:"session"`
+	SessionCookie *http.Cookie             `json:"session_cookie"`
 }
 
 // GetCookies implements CookiesGetter
@@ -56,12 +59,10 @@ func (n *NodeDoCreateSession) Apply(perform func(eff newinteraction.Effect) erro
 		}
 
 		identity := graph.MustGetUserLastIdentity().ToModel()
-		// TODO(interaction): determine create reason
-		reason := auth.SessionCreateReasonLogin
 
 		err = ctx.Hooks.DispatchEvent(
 			event.SessionCreateEvent{
-				Reason:   string(reason),
+				Reason:   string(n.Reason),
 				User:     *user,
 				Identity: identity,
 				Session:  *n.Session.ToAPIModel(),

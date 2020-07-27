@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
-	"github.com/authgear/authgear-server/pkg/core/auth/metadata"
 	"github.com/authgear/authgear-server/pkg/core/errors"
 	"github.com/authgear/authgear-server/pkg/core/uuid"
 )
@@ -80,7 +79,7 @@ func (p *Provider) GetByLoginID(loginID LoginID) ([]*Identity, error) {
 	return is, nil
 }
 
-func (p *Provider) IsLoginIDKeyType(loginIDKey string, loginIDKeyType metadata.StandardKey) bool {
+func (p *Provider) IsLoginIDKeyType(loginIDKey string, loginIDKeyType config.LoginIDKeyType) bool {
 	return p.Checker.CheckType(loginIDKey, loginIDKeyType)
 }
 
@@ -206,7 +205,7 @@ func (p *Provider) populateLoginID(i *Identity, loginID LoginID) (newIden *Ident
 	}
 
 	claims := map[string]string{}
-	if standardKey, ok := p.Checker.StandardKey(loginID.Key); ok {
+	if standardKey, ok := p.Checker.LoginIDKeyType(loginID.Key); ok {
 		claims[string(standardKey)] = normalized.Value
 	}
 

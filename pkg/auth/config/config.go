@@ -7,7 +7,6 @@ import (
 
 	"sigs.k8s.io/yaml"
 
-	"github.com/authgear/authgear-server/pkg/core/auth/metadata"
 	"github.com/authgear/authgear-server/pkg/validation"
 )
 
@@ -132,9 +131,8 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 	}
 
 	for i, loginIDKey := range c.Identity.LoginID.Keys {
-		loginIDType, _ := loginIDKey.Type.MetadataKey()
-		switch loginIDType {
-		case metadata.Email, metadata.Phone:
+		switch loginIDKey.Type {
+		case LoginIDKeyTypeEmail, LoginIDKeyTypePhone:
 			break
 		default:
 			if *loginIDKey.Verification.Enabled {
