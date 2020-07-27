@@ -240,9 +240,9 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 
 	// Case: error
 	if state.Error != nil {
-		s.Logger.WithFields(map[string]interface{}{
-			"error": state.Error,
-		}).Debugf("afterPost error")
+		if !skyerr.IsAPIError(inputError) {
+			s.Logger.Errorf("afterPost error: %v", inputError)
+		}
 		if graph != nil {
 			node := graph.CurrentNode()
 			if a, ok := node.(ErrorRedirectURIGetter); ok {
@@ -305,7 +305,16 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 		default:
 			panic(fmt.Errorf("webapp: unexpected edge: %T", firstEdge))
 		}
+	case *nodes.NodeCreateAuthenticatorBegin:
+		switch firstEdge.(type) {
+		case *nodes.EdgeCreateAuthenticatorPassword:
+			path = "/create_password"
+		default:
+			panic(fmt.Errorf("webapp: unexpected edge: %T", firstEdge))
+		}
 	case *nodes.NodeAuthenticationOOBTrigger:
+		path = "/oob_otp"
+	case *nodes.NodeCreateAuthenticatorOOBSetup:
 		path = "/oob_otp"
 	default:
 		panic(fmt.Errorf("webapp: unexpected node: %T", node))

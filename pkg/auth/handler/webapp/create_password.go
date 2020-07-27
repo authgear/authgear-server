@@ -4,7 +4,9 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/db"
@@ -38,7 +40,7 @@ var TemplateAuthUICreatePasswordHTML = template.Spec{
 <div class="nav-bar">
 	<button class="btn back-btn" type="button" title="{{ "back-button-title" }}"></button>
 	<div class="login-id primary-txt">
-	{{ .GivenLoginID }}
+	{{ $.IdentityDisplayID }}
 	</div>
 </div>
 
@@ -84,23 +86,32 @@ func ConfigureCreatePasswordRoute(route httproute.Route) httproute.Route {
 }
 
 type CreatePasswordViewModel struct {
-	GivenLoginID string
+	IdentityDisplayID string
+}
+
+type PasswordPolicy interface {
+	PasswordPolicy() []password.Policy
 }
 
 type CreatePasswordHandler struct {
-	Database      *db.Handle
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      Renderer
-	WebApp        WebAppService
+	Database       *db.Handle
+	BaseViewModel  *viewmodels.BaseViewModeler
+	Renderer       Renderer
+	WebApp         WebAppService
+	PasswordPolicy PasswordPolicy
 }
 
 func (h *CreatePasswordHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-	// FIXME(webapp): derive PasswordPolicyViewModel with graph and edges
-	passwordPolicyViewModel := viewmodels.PasswordPolicyViewModel{}
-	// FIXME(webapp): derive CreatePasswordViewModel with graph and edges
-	createPasswordViewModel := CreatePasswordViewModel{}
+	identityInfo := graph.MustGetUserLastIdentity()
+	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModel(
+		h.PasswordPolicy.PasswordPolicy(),
+		state.Error,
+	)
+	createPasswordViewModel := CreatePasswordViewModel{
+		IdentityDisplayID: identityInfo.DisplayID(),
+	}
 
 	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
@@ -110,9 +121,15 @@ func (h *CreatePasswordHandler) GetData(r *http.Request, state *webapp.State, gr
 	return data, nil
 }
 
-// FIXME(webapp): implement input interface
 type CreatePasswordInput struct {
 	Password string
+}
+
+var _ nodes.InputCreateAuthenticatorPassword = &CreatePasswordInput{}
+
+// GetPassword implements InputCreateAuthenticatorPassword.
+func (i *CreatePasswordInput) GetPassword() string {
+	return i.Password
 }
 
 func (h *CreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

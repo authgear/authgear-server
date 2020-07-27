@@ -27,11 +27,14 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *newinteraction.Contex
 	if !ok {
 		return nil, newinteraction.ErrIncompatibleInput
 	}
+	channel := input.GetOOBChannel()
+	if channel == "" {
+		return nil, newinteraction.ErrIncompatibleInput
+	}
 
 	var spec *authenticator.Spec
 	var identityInfo *identity.Info
 	target := input.GetOOBTarget()
-	channel := input.GetOOBChannel()
 	if e.Stage == newinteraction.AuthenticationStagePrimary {
 		// Primary OOB authenticators must be bound to login ID identity
 		identityInfo = graph.MustGetUserLastIdentity()
