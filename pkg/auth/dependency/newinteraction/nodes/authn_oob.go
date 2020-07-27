@@ -1,11 +1,8 @@
 package nodes
 
 import (
-	"errors"
-
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
-	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
 func init() {
@@ -28,26 +25,12 @@ func (e *EdgeAuthenticationOOB) Instantiate(ctx *newinteraction.Context, graph *
 		return nil, newinteraction.ErrIncompatibleInput
 	}
 
-	if e.Authenticator == nil {
-		return &NodeAuthenticationOOB{Stage: e.Stage, Authenticator: nil}, nil
-	}
-
-	userID := graph.MustGetUserID()
-	spec := &authenticator.Spec{
-		UserID: userID,
-		Type:   authn.AuthenticatorTypeOOB,
-		Props:  map[string]interface{}{},
-	}
-	info, err := ctx.Authenticators.Authenticate(spec, map[string]string{
-		authenticator.AuthenticatorStateOOBOTPID:          e.Authenticator.ID,
-		authenticator.AuthenticatorStateOOBOTPSecret:      e.Secret,
-		authenticator.AuthenticatorStateOOBOTPChannelType: e.Authenticator.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string),
+	info := e.Authenticator
+	err := ctx.Authenticators.VerifySecret(info, map[string]string{
+		authenticator.AuthenticatorStateOOBOTPSecret: e.Secret,
 	}, input.GetOOBOTP())
-	if errors.Is(err, authenticator.ErrAuthenticatorNotFound) ||
-		errors.Is(err, authenticator.ErrInvalidCredentials) {
+	if err != nil {
 		info = nil
-	} else if err != nil {
-		return nil, err
 	}
 
 	return &NodeAuthenticationOOB{Stage: e.Stage, Authenticator: info}, nil

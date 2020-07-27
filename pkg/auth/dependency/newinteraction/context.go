@@ -27,6 +27,7 @@ type IdentityService interface {
 	Create(is *identity.Info) error
 	Update(is *identity.Info) error
 	Validate(is []*identity.Info) error
+	CheckDuplicated(info *identity.Info) error
 }
 
 type AuthenticatorService interface {

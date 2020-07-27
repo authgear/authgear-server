@@ -383,32 +383,8 @@ func (s *Service) Authenticate(spec *authenticator.Spec, state map[string]string
 		return totpToAuthenticatorInfo(t), nil
 
 	case authn.AuthenticatorTypeOOB:
-		if state == nil {
-			return nil, authenticator.ErrAuthenticatorNotFound
-		}
-		id := state[authenticator.AuthenticatorStateOOBOTPID]
-		otpSecret := state[authenticator.AuthenticatorStateOOBOTPSecret]
-		channel := authn.AuthenticatorOOBChannel(state[authenticator.AuthenticatorStateOOBOTPChannelType])
+		panic("authenticator: unsupported OOB authenticator")
 
-		var o *oob.Authenticator
-		// This function can be called by login or signup.
-		// In case of login, we must check if the authenticator belongs to the user.
-		if id != "" {
-			var err error
-			o, err = s.OOBOTP.Get(spec.UserID, id)
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		if s.OOBOTP.Authenticate(otpSecret, channel, secret) != nil {
-			return nil, authenticator.ErrInvalidCredentials
-		}
-
-		if o != nil {
-			return oobotpToAuthenticatorInfo(o), nil
-		}
-		return nil, nil
 	case authn.AuthenticatorTypeBearerToken:
 		b, err := s.BearerToken.GetByToken(spec.UserID, secret)
 		if err != nil {

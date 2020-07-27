@@ -84,17 +84,21 @@ func (s *Service) IsIdentityVerified(i *identity.Info) (bool, error) {
 }
 
 func (s *Service) IsUserVerified(userID string) (bool, error) {
-	is, err := s.Identities.ListByUser(userID)
-	if err != nil {
-		return false, err
-	}
+	// FIXME: verification
+	return false, nil
+	/*
+		is, err := s.Identities.ListByUser(userID)
+		if err != nil {
+			return false, err
+		}
 
-	as, err := s.Authenticators.List(userID, authn.AuthenticatorTypeOOB)
-	if err != nil {
-		return false, err
-	}
+		as, err := s.Authenticators.List(userID, authn.AuthenticatorTypeOOB)
+		if err != nil {
+			return false, err
+		}
 
-	return s.IsVerified(is, as), nil
+		return s.IsVerified(is, as), nil
+	*/
 }
 
 func (s *Service) IsVerified(identities []*identity.Info, authenticators []*authenticator.Info) bool {

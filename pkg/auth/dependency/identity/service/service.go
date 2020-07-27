@@ -293,7 +293,7 @@ func (s *Service) Validate(is []*identity.Info) error {
 	return nil
 }
 
-func (s *Service) CheckIdentityDuplicated(is *identity.Info) (err error) {
+func (s *Service) CheckDuplicated(is *identity.Info) (err error) {
 	// extract login id unique key
 	loginIDUniqueKey := ""
 	if is.Type == authn.IdentityTypeLoginID {
