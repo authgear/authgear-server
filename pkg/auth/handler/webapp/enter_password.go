@@ -39,7 +39,7 @@ var TemplateAuthUIEnterPasswordHTML = template.Spec{
 <div class="nav-bar">
 	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
 	<div class="login-id primary-txt">
-	{{ .GivenLoginID }}
+	{{ $.IdentityDisplayID }}
 	</div>
 </div>
 
@@ -86,7 +86,7 @@ func ConfigureEnterPasswordRoute(route httproute.Route) httproute.Route {
 }
 
 type EnterPasswordViewModel struct {
-	GivenLoginID string
+	IdentityDisplayID string
 }
 
 type EnterPasswordHandler struct {
@@ -100,8 +100,10 @@ func (h *EnterPasswordHandler) GetData(r *http.Request, state *webapp.State, gra
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-	// FIXME(webapp): derive EnterPasswordViewModel with graph and edges
-	enterPasswordViewModel := EnterPasswordViewModel{}
+	identityInfo := graph.MustGetUserLastIdentity()
+	enterPasswordViewModel := EnterPasswordViewModel{
+		IdentityDisplayID: identityInfo.DisplayID(),
+	}
 
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, enterPasswordViewModel)

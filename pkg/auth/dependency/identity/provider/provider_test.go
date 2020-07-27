@@ -51,7 +51,7 @@ func TestProviderListCandidates(t *testing.T) {
 			So(actual, ShouldResemble, []identity.Candidate{
 				{
 					"type":                "oauth",
-					"email":               "",
+					"display_id":          "",
 					"provider_type":       "google",
 					"provider_alias":      "google",
 					"provider_subject_id": "",
@@ -73,7 +73,7 @@ func TestProviderListCandidates(t *testing.T) {
 			So(actual, ShouldResemble, []identity.Candidate{
 				{
 					"type":           "login_id",
-					"email":          "",
+					"display_id":     "",
 					"login_id_type":  "email",
 					"login_id_key":   "email",
 					"login_id_value": "",
@@ -113,8 +113,9 @@ func TestProviderListCandidates(t *testing.T) {
 
 			loginIDProvider.EXPECT().List(userID).Return([]*loginid.Identity{
 				{
-					LoginIDKey: "email",
-					LoginID:    "john.doe@example.com",
+					LoginIDKey:      "email",
+					LoginID:         "john.doe@example.com",
+					OriginalLoginID: "john.doe@example.com",
 					Claims: map[string]string{
 						"email": "john.doe@example.com",
 					},
@@ -127,7 +128,7 @@ func TestProviderListCandidates(t *testing.T) {
 			So(actual, ShouldResemble, []identity.Candidate{
 				{
 					"type":           "login_id",
-					"email":          "john.doe@example.com",
+					"display_id":     "john.doe@example.com",
 					"login_id_type":  "email",
 					"login_id_key":   "email",
 					"login_id_value": "john.doe@example.com",
@@ -165,7 +166,7 @@ func TestProviderListCandidates(t *testing.T) {
 			So(actual, ShouldResemble, []identity.Candidate{
 				{
 					"type":                "oauth",
-					"email":               "john.doe@gmail.com",
+					"display_id":          "john.doe@gmail.com",
 					"provider_type":       "google",
 					"provider_alias":      "google",
 					"provider_subject_id": "john.doe@gmail.com",

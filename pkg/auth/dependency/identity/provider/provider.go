@@ -476,9 +476,7 @@ func (a *Provider) ListCandidates(userID string) (out []identity.Candidate, err 
 				for _, iden := range oauths {
 					if iden.ProviderID.Equal(&configProviderID) {
 						candidate[identity.CandidateKeyProviderSubjectID] = string(iden.ProviderSubjectID)
-						if email, ok := iden.Claims["email"].(string); ok {
-							candidate[identity.CandidateKeyEmail] = email
-						}
+						candidate[identity.CandidateKeyDisplayID] = a.toIdentityInfo(iden).DisplayID()
 					}
 				}
 				out = append(out, candidate)
@@ -490,9 +488,7 @@ func (a *Provider) ListCandidates(userID string) (out []identity.Candidate, err 
 				for _, iden := range loginIDs {
 					if loginIDKeyConfig.Key == iden.LoginIDKey {
 						candidate[identity.CandidateKeyLoginIDValue] = iden.LoginID
-						if email, ok := iden.Claims["email"]; ok {
-							candidate[identity.CandidateKeyEmail] = email
-						}
+						candidate[identity.CandidateKeyDisplayID] = loginIDToIdentityInfo(iden).DisplayID()
 					}
 				}
 				out = append(out, candidate)
