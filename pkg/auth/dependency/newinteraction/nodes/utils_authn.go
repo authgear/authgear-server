@@ -17,7 +17,7 @@ func getAuthenticators(
 	var infos []*authenticator.Info
 	var err error
 	if stage == newinteraction.AuthenticationStagePrimary {
-		identityInfo = graph.MustGetUserIdentity()
+		identityInfo = graph.MustGetUserLastIdentity()
 		infos, err = ctx.Authenticators.ListByIdentity(identityInfo.UserID, identityInfo)
 
 		n := 0

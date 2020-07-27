@@ -20,6 +20,10 @@ func RegisterIntent(intent Intent) {
 	factory := IntentFactory(func() Intent {
 		return reflect.New(intentType).Interface().(Intent)
 	})
+
+	if _, hasKind := intentRegistry[intentKind]; hasKind {
+		panic("interaction: duplicated intent kind: " + intentKind)
+	}
 	intentRegistry[intentKind] = factory
 }
 

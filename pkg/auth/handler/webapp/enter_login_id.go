@@ -166,20 +166,22 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
 
 	if r.Method == "GET" {
-		state, graph, edges, err := h.WebApp.Get(StateID(r))
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		h.Database.WithTx(func() error {
+			state, graph, edges, err := h.WebApp.Get(StateID(r))
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return err
+			}
 
-		data, err := h.GetData(r, state, graph, edges)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+			data, err := h.GetData(r, state, graph, edges)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return err
+			}
 
-		h.Renderer.Render(w, r, TemplateItemTypeAuthUIEnterLoginIDHTML, data)
-		return
+			h.Renderer.Render(w, r, TemplateItemTypeAuthUIEnterLoginIDHTML, data)
+			return nil
+		})
 	}
 
 	if r.Method == "POST" && r.Form.Get("x_action") == "remove" {

@@ -1,6 +1,8 @@
 package identity
 
 import (
+	"fmt"
+
 	"github.com/authgear/authgear-server/pkg/auth/model"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
@@ -52,5 +54,25 @@ func (i *Info) ToModel() model.Identity {
 	return model.Identity{
 		Type:   string(i.Type),
 		Claims: claims,
+	}
+}
+
+// DisplayID returns a string that is suitable for the owner to identify the identity.
+// If it is a Login ID identity, the original login ID value is returned.
+// If it is a OAuth identity, the email claim is returned.
+// If it is a anonymous identity, the kid is returned.
+func (i *Info) DisplayID() string {
+	switch i.Type {
+	case authn.IdentityTypeLoginID:
+		displayID, _ := i.Claims[IdentityClaimLoginIDOriginalValue].(string)
+		return displayID
+	case authn.IdentityTypeOAuth:
+		displayID, _ := i.Claims["email"].(string)
+		return displayID
+	case authn.IdentityTypeAnonymous:
+		displayID, _ := i.Claims[IdentityClaimAnonymousKeyID].(string)
+		return displayID
+	default:
+		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
 	}
 }

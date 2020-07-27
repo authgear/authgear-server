@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/db"
@@ -38,7 +39,7 @@ var TemplateAuthUIEnterPasswordHTML = template.Spec{
 <div class="nav-bar">
 	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
 	<div class="login-id primary-txt">
-	{{ .GivenLoginID }}
+	{{ $.IdentityDisplayID }}
 	</div>
 </div>
 
@@ -51,9 +52,8 @@ var TemplateAuthUIEnterPasswordHTML = template.Spec{
 <button class="btn secondary-btn password-visibility-btn show-password" type="button">{{ localize "show-password" }}</button>
 <button class="btn secondary-btn password-visibility-btn hide-password" type="button">{{ localize "hide-password" }}</button>
 
-{{ if $.PasswordAuthenticatorEnabled }}
+<!-- This page for entering password. So if the user reaches this page normally, forgot password link should be provided -->
 <a class="link align-self-flex-start" href="{{ call $.MakeURLWithPathWithoutX "/forgot_password" }}">{{ localize "forgot-password-button-label--enter-password-page" }}</a>
-{{ end }}
 
 <button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
 
@@ -86,7 +86,7 @@ func ConfigureEnterPasswordRoute(route httproute.Route) httproute.Route {
 }
 
 type EnterPasswordViewModel struct {
-	GivenLoginID string
+	IdentityDisplayID string
 }
 
 type EnterPasswordHandler struct {
@@ -100,21 +100,26 @@ func (h *EnterPasswordHandler) GetData(r *http.Request, state *webapp.State, gra
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-	// FIXME(webapp): derive AuthenticationViewModel with graph and edges
-	authenticationViewModel := viewmodels.AuthenticationViewModel{}
-	// FIXME(webapp): derive EnterPasswordViewModel with graph and edges
-	enterPasswordViewModel := EnterPasswordViewModel{}
+	identityInfo := graph.MustGetUserLastIdentity()
+	enterPasswordViewModel := EnterPasswordViewModel{
+		IdentityDisplayID: identityInfo.DisplayID(),
+	}
 
 	viewmodels.Embed(data, baseViewModel)
-	viewmodels.Embed(data, authenticationViewModel)
 	viewmodels.Embed(data, enterPasswordViewModel)
 
 	return data, nil
 }
 
-// FIXME(webapp): implement input interface
 type EnterPasswordInput struct {
 	Password string
+}
+
+var _ nodes.InputAuthenticationPassword = &EnterPasswordInput{}
+
+// GetPassword implements InputAuthenticationPassword
+func (i *EnterPasswordInput) GetPassword() string {
+	return i.Password
 }
 
 func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -124,21 +129,22 @@ func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	}
 
 	if r.Method == "GET" {
-		state, graph, edges, err := h.WebApp.Get(StateID(r))
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		h.Database.WithTx(func() error {
+			state, graph, edges, err := h.WebApp.Get(StateID(r))
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return err
+			}
 
-		data, err := h.GetData(r, state, graph, edges)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+			data, err := h.GetData(r, state, graph, edges)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return err
+			}
 
-		h.Renderer.Render(w, r, TemplateItemTypeAuthUIEnterPasswordHTML, data)
-		return
-
+			h.Renderer.Render(w, r, TemplateItemTypeAuthUIEnterPasswordHTML, data)
+			return nil
+		})
 	}
 
 	if r.Method == "POST" {

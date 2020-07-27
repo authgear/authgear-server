@@ -139,7 +139,7 @@ func (n *NodeAuthenticationOOBTrigger) sendOOBCode(ctx *newinteraction.Context, 
 }
 
 type InputAuthenticationOOBResend interface {
-	DoResend() bool
+	DoResend()
 }
 
 type EdgeAuthenticationOOBResend struct {

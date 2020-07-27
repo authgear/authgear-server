@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
 )
@@ -60,6 +61,7 @@ type ForgotPasswordSuccessViewModel struct {
 }
 
 type ForgotPasswordSuccessHandler struct {
+	Database      *db.Handle
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
 	WebApp        WebAppService
@@ -82,19 +84,21 @@ func (h *ForgotPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.
 	}
 
 	if r.Method == "GET" {
-		state, graph, edges, err := h.WebApp.Get(StateID(r))
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		h.Database.WithTx(func() error {
+			state, graph, edges, err := h.WebApp.Get(StateID(r))
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return err
+			}
 
-		data, err := h.GetData(r, state, graph, edges)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+			data, err := h.GetData(r, state, graph, edges)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return err
+			}
 
-		h.Renderer.Render(w, r, TemplateItemTypeAuthUIForgotPasswordSuccessHTML, data)
-		return
+			h.Renderer.Render(w, r, TemplateItemTypeAuthUIForgotPasswordSuccessHTML, data)
+			return nil
+		})
 	}
 }

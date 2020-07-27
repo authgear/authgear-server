@@ -2,6 +2,8 @@ package viewmodels
 
 import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
 // Ideally we should use type alias to present
@@ -20,75 +22,69 @@ const (
 	LoginPageTextLoginIDInputTypeEmail = "email"
 )
 
+type IdentityCandidateGetter interface {
+	GetIdentityCandidate() identity.Candidate
+}
+
 type AuthenticationViewModel struct {
 	IdentityCandidates            []identity.Candidate
 	LoginPageLoginIDHasPhone      bool
 	LoginPageTextLoginIDVariant   string
 	LoginPageTextLoginIDInputType string
-	PasswordAuthenticatorEnabled  bool
 }
 
-// func (m *AuthenticationViewModeler) ViewModel(r *http.Request) AuthenticationViewModel {
-// 	userID := ""
-// 	if sess := authn.GetSession(r.Context()); sess != nil {
-// 		userID = sess.AuthnAttrs().UserID
-// 	}
-//
-// 	identityCandidates, err := m.Identity.ListCandidates(userID)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-//
-// 	hasEmail := false
-// 	hasUsername := false
-// 	hasPhone := false
-// 	for _, c := range identityCandidates {
-// 		if c[identity.CandidateKeyType] == string(authn.IdentityTypeLoginID) {
-// 			if c[identity.CandidateKeyLoginIDType] == "phone" {
-// 				c["login_id_input_type"] = "phone"
-// 				hasPhone = true
-// 			} else if c[identity.CandidateKeyLoginIDType] == "email" {
-// 				c["login_id_input_type"] = "email"
-// 				hasEmail = true
-// 			} else {
-// 				c["login_id_input_type"] = "text"
-// 				hasUsername = true
-// 			}
-// 		}
-// 	}
-//
-// 	var loginPageTextLoginIDVariant string
-// 	var loginPageTextLoginIDInputType string
-// 	if hasEmail {
-// 		if hasUsername {
-// 			loginPageTextLoginIDVariant = LoginPageTextLoginIDVariantEamilOrUsername
-// 			loginPageTextLoginIDInputType = LoginPageTextLoginIDInputTypeText
-// 		} else {
-// 			loginPageTextLoginIDVariant = LoginPageTextLoginIDVariantEmail
-// 			loginPageTextLoginIDInputType = LoginPageTextLoginIDInputTypeEmail
-// 		}
-// 	} else {
-// 		if hasUsername {
-// 			loginPageTextLoginIDVariant = LoginPageTextLoginIDVariantUsername
-// 			loginPageTextLoginIDInputType = LoginPageTextLoginIDInputTypeText
-// 		} else {
-// 			loginPageTextLoginIDVariant = LoginPageTextLoginIDVariantNone
-// 			loginPageTextLoginIDInputType = LoginPageTextLoginIDInputTypeText
-// 		}
-// 	}
-//
-// 	passwordAuthenticatorEnabled := false
-// 	for _, s := range m.Authentication.PrimaryAuthenticators {
-// 		if s == authn.AuthenticatorTypePassword {
-// 			passwordAuthenticatorEnabled = true
-// 		}
-// 	}
-//
-// 	return AuthenticationViewModel{
-// 		IdentityCandidates:            identityCandidates,
-// 		LoginPageLoginIDHasPhone:      hasPhone,
-// 		LoginPageTextLoginIDVariant:   loginPageTextLoginIDVariant,
-// 		LoginPageTextLoginIDInputType: loginPageTextLoginIDInputType,
-// 		PasswordAuthenticatorEnabled:  passwordAuthenticatorEnabled,
-// 	}
-// }
+func NewAuthenticationViewModel(edges []newinteraction.Edge) AuthenticationViewModel {
+	var candidates []identity.Candidate
+	hasEmail := false
+	hasUsername := false
+	hasPhone := false
+
+	for _, edge := range edges {
+		if a, ok := edge.(IdentityCandidateGetter); ok {
+			candidate := a.GetIdentityCandidate()
+			candidates = append(candidates, candidate)
+			typ, _ := candidate[identity.CandidateKeyType].(string)
+			if typ == string(authn.IdentityTypeLoginID) {
+				loginIDType, _ := candidate[identity.CandidateKeyLoginIDType].(string)
+				switch loginIDType {
+				case "phone":
+					candidate["login_id_input_type"] = "phone"
+					hasPhone = true
+				case "email":
+					candidate["login_id_input_type"] = "email"
+					hasEmail = true
+				default:
+					candidate["login_id_input_type"] = "text"
+					hasUsername = true
+				}
+			}
+		}
+	}
+
+	var loginPageTextLoginIDVariant string
+	var loginPageTextLoginIDInputType string
+	if hasEmail {
+		if hasUsername {
+			loginPageTextLoginIDVariant = LoginPageTextLoginIDVariantEamilOrUsername
+			loginPageTextLoginIDInputType = LoginPageTextLoginIDInputTypeText
+		} else {
+			loginPageTextLoginIDVariant = LoginPageTextLoginIDVariantEmail
+			loginPageTextLoginIDInputType = LoginPageTextLoginIDInputTypeEmail
+		}
+	} else {
+		if hasUsername {
+			loginPageTextLoginIDVariant = LoginPageTextLoginIDVariantUsername
+			loginPageTextLoginIDInputType = LoginPageTextLoginIDInputTypeText
+		} else {
+			loginPageTextLoginIDVariant = LoginPageTextLoginIDVariantNone
+			loginPageTextLoginIDInputType = LoginPageTextLoginIDInputTypeText
+		}
+	}
+
+	return AuthenticationViewModel{
+		IdentityCandidates:            candidates,
+		LoginPageLoginIDHasPhone:      hasPhone,
+		LoginPageTextLoginIDVariant:   loginPageTextLoginIDVariant,
+		LoginPageTextLoginIDInputType: loginPageTextLoginIDInputType,
+	}
+}

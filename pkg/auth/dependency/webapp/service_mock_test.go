@@ -11,6 +11,43 @@ import (
 	reflect "reflect"
 )
 
+// MockRedirectURIGetter is a mock of RedirectURIGetter interface
+type MockRedirectURIGetter struct {
+	ctrl     *gomock.Controller
+	recorder *MockRedirectURIGetterMockRecorder
+}
+
+// MockRedirectURIGetterMockRecorder is the mock recorder for MockRedirectURIGetter
+type MockRedirectURIGetterMockRecorder struct {
+	mock *MockRedirectURIGetter
+}
+
+// NewMockRedirectURIGetter creates a new mock instance
+func NewMockRedirectURIGetter(ctrl *gomock.Controller) *MockRedirectURIGetter {
+	mock := &MockRedirectURIGetter{ctrl: ctrl}
+	mock.recorder = &MockRedirectURIGetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockRedirectURIGetter) EXPECT() *MockRedirectURIGetterMockRecorder {
+	return m.recorder
+}
+
+// GetRedirectURI mocks base method
+func (m *MockRedirectURIGetter) GetRedirectURI() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRedirectURI")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GetRedirectURI indicates an expected call of GetRedirectURI
+func (mr *MockRedirectURIGetterMockRecorder) GetRedirectURI() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRedirectURI", reflect.TypeOf((*MockRedirectURIGetter)(nil).GetRedirectURI))
+}
+
 // MockErrorRedirectURIGetter is a mock of ErrorRedirectURIGetter interface
 type MockErrorRedirectURIGetter struct {
 	ctrl     *gomock.Controller

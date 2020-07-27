@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
@@ -21,15 +22,26 @@ type EdgeSelectIdentityLoginID struct {
 	Config config.LoginIDKeyConfig
 }
 
+// GetIdentityCandidate implements IdentityCandidateGetter.
+func (e *EdgeSelectIdentityLoginID) GetIdentityCandidate() identity.Candidate {
+	return identity.NewLoginIDCandidate(&e.Config)
+}
+
 func (e *EdgeSelectIdentityLoginID) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
 	input, ok := rawInput.(InputSelectIdentityLoginID)
 	if !ok {
 		return nil, newinteraction.ErrIncompatibleInput
 	}
 
+	loginID := loginid.LoginID{Key: e.Config.Key, Value: input.GetLoginID()}
+	err := ctx.LoginIDIdentities.ValidateOne(loginID)
+	if err != nil {
+		return nil, newinteraction.ErrIncompatibleInput
+	}
+
 	return &NodeSelectIdentityLoginID{
 		Config:  e.Config,
-		LoginID: input.GetLoginID(),
+		LoginID: loginID.Value,
 	}, nil
 }
 

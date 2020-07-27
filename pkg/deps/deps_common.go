@@ -52,6 +52,7 @@ var commonDeps = wire.NewSet(
 	wire.NewSet(
 		challenge.DependencySet,
 		wire.Bind(new(interactionflows.ChallengeProvider), new(*challenge.Provider)),
+		wire.Bind(new(newinteraction.ChallengeProvider), new(*challenge.Provider)),
 	),
 
 	wire.NewSet(
@@ -62,6 +63,7 @@ var commonDeps = wire.NewSet(
 	wire.NewSet(
 		hook.DependencySet,
 		wire.Bind(new(interaction.HookProvider), new(*hook.Provider)),
+		wire.Bind(new(newinteraction.HookProvider), new(*hook.Provider)),
 		wire.Bind(new(user.HookProvider), new(*hook.Provider)),
 		wire.Bind(new(auth.HookProvider), new(*hook.Provider)),
 		wire.Bind(new(forgotpassword.HookProvider), new(*hook.Provider)),
@@ -78,6 +80,7 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(oauth.ResolverSessionProvider), new(*session.Provider)),
 		wire.Bind(new(oauthhandler.SessionProvider), new(*session.Provider)),
 		wire.Bind(new(interactionflows.SessionProvider), new(*session.Provider)),
+		wire.Bind(new(newinteraction.SessionProvider), new(*session.Provider)),
 	),
 
 	wire.NewSet(
@@ -112,9 +115,11 @@ var commonDeps = wire.NewSet(
 		identityloginid.DependencySet,
 		wire.Bind(new(sso.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
 		wire.Bind(new(forgotpassword.LoginIDProvider), new(*identityloginid.Provider)),
+		wire.Bind(new(newinteraction.LoginIDIdentityProvider), new(*identityloginid.Provider)),
 		identityoauth.DependencySet,
 		identityanonymous.DependencySet,
 		wire.Bind(new(interactionflows.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
+		wire.Bind(new(newinteraction.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 
 		identityprovider.DependencySet,
 		wire.Bind(new(identityprovider.LoginIDIdentityProvider), new(*identityloginid.Provider)),
@@ -132,9 +137,16 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(auth.UserProvider), new(*user.Queries)),
 		wire.Bind(new(interaction.UserProvider), new(*user.Provider)),
 		wire.Bind(new(interactionflows.UserProvider), new(*user.Provider)),
+		wire.Bind(new(newinteraction.UserService), new(*user.Provider)),
 		wire.Bind(new(forgotpassword.UserProvider), new(*user.Queries)),
 		wire.Bind(new(oidc.UserProvider), new(*user.Queries)),
 		wire.Bind(new(hook.UserProvider), new(*user.RawProvider)),
+	),
+
+	wire.NewSet(
+		sso.DependencySet,
+		wire.Bind(new(interactionflows.OAuthProviderFactory), new(*sso.OAuthProviderFactory)),
+		wire.Bind(new(newinteraction.OAuthProviderFactory), new(*sso.OAuthProviderFactory)),
 	),
 
 	wire.NewSet(
@@ -181,6 +193,7 @@ var commonDeps = wire.NewSet(
 
 	wire.NewSet(
 		newinteraction.DependencySet,
+		wire.Bind(new(webapp.GraphService), new(*newinteraction.Service)),
 	),
 
 	wire.NewSet(

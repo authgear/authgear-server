@@ -116,7 +116,7 @@ var TemplateAuthUILoginHTML = template.Spec{
 					<a href="{{ call $.MakeURLWithPathWithoutX "/signup" }}">{{ localize "signup-button-label" }}</a>
 				</div>
 
-				{{ if $.PasswordAuthenticatorEnabled }}
+				{{ if $.ForgotPasswordEnabled }}
 				<a class="link align-self-flex-start" href="{{ call $.MakeURLWithPathWithoutX "/forgot_password" }}">{{ localize "forgot-password-button-label" }}</a>
 				{{ end }}
 
@@ -194,8 +194,7 @@ func (h *LoginHandler) GetData(r *http.Request, state *webapp.State, graph *newi
 	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
 	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
-	// FIXME(webapp): derive AuthenticationViewModel with graph and edges
-	authenticationViewModel := viewmodels.AuthenticationViewModel{}
+	authenticationViewModel := viewmodels.NewAuthenticationViewModel(edges)
 	viewmodels.Embed(data, authenticationViewModel)
 	return data, nil
 }
@@ -236,6 +235,11 @@ func (i *LoginLoginID) GetLoginID() string {
 	return i.LoginID
 }
 
+// GetOOBTarget implements InputAuthenticationOOBTrigger.
+func (i *LoginLoginID) GetOOBTarget() string {
+	return i.LoginID
+}
+
 func (h *LoginHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	return &webapp.Intent{
 		RedirectURI: webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy),
@@ -254,20 +258,22 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.FormPrefiller.Prefill(r.Form)
 
 	if r.Method == "GET" {
-		state, graph, edges, err := h.WebApp.GetIntent(intent, StateID(r))
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		h.Database.WithTx(func() error {
+			state, graph, edges, err := h.WebApp.GetIntent(intent, StateID(r))
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return err
+			}
 
-		data, err := h.GetData(r, state, graph, edges)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+			data, err := h.GetData(r, state, graph, edges)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return err
+			}
 
-		h.Renderer.Render(w, r, TemplateItemTypeAuthUILoginHTML, data)
-		return
+			h.Renderer.Render(w, r, TemplateItemTypeAuthUILoginHTML, data)
+			return nil
+		})
 	}
 
 	providerAlias := r.Form.Get("x_provider_alias")

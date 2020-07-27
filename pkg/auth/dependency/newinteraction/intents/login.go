@@ -1,6 +1,8 @@
 package intents
 
 import (
+	"fmt"
+
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/core/authn"
@@ -40,9 +42,10 @@ func (i *IntentLogin) DeriveEdgesForNode(ctx *newinteraction.Context, graph *new
 		}, nil
 
 	case *nodes.NodeAuthenticationEnd:
-		if node.Stage == newinteraction.AuthenticationStagePrimary {
+		switch node.Stage {
+		case newinteraction.AuthenticationStagePrimary:
 			if node.Authenticator == nil {
-				identityType := graph.MustGetUserIdentity().Type
+				identityType := graph.MustGetUserLastIdentity().Type
 				switch identityType {
 				case authn.IdentityTypeLoginID:
 					return nil, newinteraction.ErrInvalidCredentials
@@ -55,15 +58,15 @@ func (i *IntentLogin) DeriveEdgesForNode(ctx *newinteraction.Context, graph *new
 					panic("interaction: unknown identity type: " + identityType)
 				}
 			}
-
 			return []newinteraction.Edge{
 				&nodes.EdgeAuthenticationBegin{Stage: newinteraction.AuthenticationStageSecondary},
 			}, nil
+		case newinteraction.AuthenticationStageSecondary:
+			// TODO(new_interaction): MFA")
+			return []newinteraction.Edge{&nodes.EdgeDoCreateSession{}}, nil
+		default:
+			panic(fmt.Errorf("interaction: unexpected authentication stage: %v", node.Stage))
 		}
-
-		// TODO(interaction): check secondary authentication
-		return []newinteraction.Edge{&nodes.EdgeDoCreateSession{}}, nil
-
 	case *nodes.NodeDoCreateSession:
 		// Intent is finished
 		return nil, nil

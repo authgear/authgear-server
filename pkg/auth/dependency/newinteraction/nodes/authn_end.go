@@ -16,6 +16,7 @@ type EdgeAuthenticationEnd struct {
 
 func (e *EdgeAuthenticationEnd) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, input interface{}) (newinteraction.Node, error) {
 	return &NodeAuthenticationEnd{
+		Stage:         e.Stage,
 		Authenticator: e.Authenticator,
 	}, nil
 }

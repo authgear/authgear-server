@@ -354,6 +354,18 @@ type ProviderID struct {
 	Keys map[string]interface{}
 }
 
+func NewProviderID(claims map[string]interface{}) ProviderID {
+	id := ProviderID{Keys: map[string]interface{}{}}
+	for k, v := range claims {
+		if k == "type" {
+			id.Type = v.(string)
+		} else {
+			id.Keys[k] = v.(string)
+		}
+	}
+	return id
+}
+
 func (p ProviderID) Claims() map[string]interface{} {
 	claim := map[string]interface{}{}
 	claim["type"] = p.Type

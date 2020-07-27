@@ -76,17 +76,11 @@ var TemplateAuthUISettingsIdentityHTML = template.Spec{
          {{ end }}
       </h2>
 
-      {{ if eq .type "oauth" }}{{ if .email }}
+      {{ if .display_id }}
       <h3 class="identity-claim secondary-txt text-ellipsis">
-        {{ .email }}
+        {{ .display_id }}
       </h3>
-      {{ end }}{{ end }}
-
-      {{ if eq .type "login_id" }}{{ if .login_id_value }}
-      <h3 class="identity-claim secondary-txt text-ellipsis">
-        {{ .login_id_value }}
-      </h3>
-      {{ end }}{{ end }}
+      {{ end }}
     </div>
 
     {{ if eq .type "oauth" }}
@@ -205,27 +199,29 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
 
 	if r.Method == "GET" {
-		intent := &webapp.Intent{
-			RedirectURI: redirectURI,
-			// FIXME(webapp): IntentSettingsIdentity
-			// This intent actually does not have any further nodes.
-			// Only the edges are useful.
-			Intent: &intents.IntentLogin{},
-		}
-		state, graph, edges, err := h.WebApp.GetIntent(intent, StateID(r))
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		h.Database.WithTx(func() error {
+			intent := &webapp.Intent{
+				RedirectURI: redirectURI,
+				// FIXME(webapp): IntentSettingsIdentity
+				// This intent actually does not have any further nodes.
+				// Only the edges are useful.
+				Intent: &intents.IntentLogin{},
+			}
+			state, graph, edges, err := h.WebApp.GetIntent(intent, StateID(r))
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return err
+			}
 
-		data, err := h.GetData(r, state, graph, edges)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+			data, err := h.GetData(r, state, graph, edges)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return err
+			}
 
-		h.Renderer.Render(w, r, TemplateItemTypeAuthUISettingsIdentityHTML, data)
-		return
+			h.Renderer.Render(w, r, TemplateItemTypeAuthUISettingsIdentityHTML, data)
+			return nil
+		})
 	}
 
 	if r.Method == "POST" && r.Form.Get("x_action") == "link_oauth" {

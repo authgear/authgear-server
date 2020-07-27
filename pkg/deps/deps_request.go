@@ -29,13 +29,9 @@ func ProvideOAuthMetadataProviders(oauth *oauth.MetadataProvider, oidc *oidc.Met
 var requestDeps = wire.NewSet(
 	commonDeps,
 
-	sso.DependencySet,
-	wire.Bind(new(interactionflows.OAuthProviderFactory), new(*sso.OAuthProviderFactory)),
-
 	webapp.DependencySet,
 	wire.Bind(new(webapp.ResponderStates), new(*interactionflows.StateService)),
 	wire.Bind(new(webapp.URLProviderStates), new(*interactionflows.StateService)),
-	wire.Bind(new(webapp.StateMiddlewareStates), new(*interactionflows.StateStoreRedis)),
 	wire.Bind(new(oauthhandler.WebAppURLProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(oidchandler.WebAppURLsProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(sso.RedirectURLProvider), new(*webapp.URLProvider)),
@@ -64,4 +60,5 @@ var requestDeps = wire.NewSet(
 
 	handlerwebapp.DependencySet,
 	wire.Bind(new(handlerwebapp.LogoutSessionManager), new(*auth.SessionManager)),
+	wire.Bind(new(handlerwebapp.WebAppService), new(*webapp.Service)),
 )

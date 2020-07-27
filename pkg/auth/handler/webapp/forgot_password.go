@@ -181,20 +181,22 @@ func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	h.FormPrefiller.Prefill(r.Form)
 
 	if r.Method == "GET" {
-		state, graph, edges, err := h.WebApp.GetIntent(intent, StateID(r))
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		h.Database.WithTx(func() error {
+			state, graph, edges, err := h.WebApp.GetIntent(intent, StateID(r))
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return err
+			}
 
-		data, err := h.GetData(r, state, graph, edges)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+			data, err := h.GetData(r, state, graph, edges)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return err
+			}
 
-		h.Renderer.Render(w, r, TemplateItemTypeAuthUIForgotPasswordHTML, data)
-		return
+			h.Renderer.Render(w, r, TemplateItemTypeAuthUIForgotPasswordHTML, data)
+			return nil
+		})
 	}
 
 	if r.Method == "POST" {
