@@ -4,9 +4,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/db"
@@ -113,19 +111,23 @@ type OOBOTPHandler struct {
 	WebApp        WebAppService
 }
 
+type OOBOTPNode interface {
+	GetOOBOTPChannel() string
+	GetOOBOTPCodeSendCooldown() int
+	GetOOBOTPCodeLength() int
+}
+
 func (h *OOBOTPHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-	node := graph.CurrentNode()
-	// FIXME(webapp): Fill in OOBOTPCodeSendCooldown, OOBOTPCodeLength from node.
 	oobOTPViewModel := OOBOTPViewModel{
-		OOBOTPCodeSendCooldown: 60,
-		OOBOTPCodeLength:       4,
-		IdentityDisplayID:      graph.MustGetUserLastIdentity().DisplayID(),
+		IdentityDisplayID: graph.MustGetUserLastIdentity().DisplayID(),
 	}
-	if n, ok := node.(*nodes.NodeAuthenticationOOBTrigger); ok {
-		oobOTPViewModel.OOBOTPChannel = n.Authenticator.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string)
+	if n, ok := graph.CurrentNode().(OOBOTPNode); ok {
+		oobOTPViewModel.OOBOTPCodeSendCooldown = n.GetOOBOTPCodeSendCooldown()
+		oobOTPViewModel.OOBOTPCodeLength = n.GetOOBOTPCodeLength()
+		oobOTPViewModel.OOBOTPChannel = n.GetOOBOTPChannel()
 	}
 
 	viewmodels.Embed(data, baseViewModel)

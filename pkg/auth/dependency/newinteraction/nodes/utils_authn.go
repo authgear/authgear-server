@@ -57,11 +57,7 @@ func sendOOBCode(
 	identityInfo *identity.Info,
 	authenticatorInfo *authenticator.Info,
 	secret string,
-) error {
-	if authenticatorInfo == nil {
-		return nil
-	}
-
+) (*otp.OOBSendResult, error) {
 	// TODO(interaction): handle rate limits
 
 	channel := authn.AuthenticatorOOBChannel(authenticatorInfo.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string))
