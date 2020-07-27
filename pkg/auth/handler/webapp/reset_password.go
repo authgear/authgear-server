@@ -93,7 +93,7 @@ func (h *ResetPasswordHandler) MakeIntent(r *http.Request) *webapp.Intent {
 		RedirectURI: "/reset_password/success",
 		KeepState:   true,
 		// FIXME(webapp): IntentResetPassword
-		Intent: &intents.IntentLogin{},
+		Intent: intents.NewIntentLogin(),
 	}
 }
 

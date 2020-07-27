@@ -225,10 +225,16 @@ func (i *LoginOAuth) GetErrorRedirectURI() string {
 }
 
 type LoginLoginID struct {
-	LoginID string
+	LoginIDKey string
+	LoginID    string
 }
 
 var _ nodes.InputSelectIdentityLoginID = &LoginLoginID{}
+
+// GetLoginIDKey implements InputSelectIdentityLoginID.
+func (i *LoginLoginID) GetLoginIDKey() string {
+	return i.LoginIDKey
+}
 
 // GetLoginID implements InputSelectIdentityLoginID.
 func (i *LoginLoginID) GetLoginID() string {
@@ -243,7 +249,7 @@ func (i *LoginLoginID) GetOOBTarget() string {
 func (h *LoginHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	return &webapp.Intent{
 		RedirectURI: webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy),
-		Intent:      &intents.IntentLogin{},
+		Intent:      intents.NewIntentLogin(),
 	}
 }
 

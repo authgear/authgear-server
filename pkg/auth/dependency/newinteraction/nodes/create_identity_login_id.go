@@ -3,7 +3,6 @@ package nodes
 import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
@@ -13,7 +12,8 @@ func init() {
 }
 
 type InputCreateIdentityLoginID interface {
-	GetLoginID() *loginid.LoginID
+	GetLoginIDKey() string
+	GetLoginID() string
 }
 
 type EdgeCreateIdentityLoginID struct {
@@ -31,14 +31,15 @@ func (e *EdgeCreateIdentityLoginID) Instantiate(ctx *newinteraction.Context, gra
 			return nil, newinteraction.ErrIncompatibleInput
 		}
 
+		loginIDKey := input.GetLoginIDKey()
 		loginID := input.GetLoginID()
-		if loginID.Key != e.Config.Key {
+		if loginIDKey != e.Config.Key {
 			return nil, newinteraction.ErrIncompatibleInput
 		}
 
 		claims = map[string]interface{}{
-			identity.IdentityClaimLoginIDKey:   loginID.Key,
-			identity.IdentityClaimLoginIDValue: loginID.Value,
+			identity.IdentityClaimLoginIDKey:   loginIDKey,
+			identity.IdentityClaimLoginIDValue: loginID,
 		}
 	}
 

@@ -350,6 +350,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
 	}
+	hookLogger := hook.NewLogger(factory)
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -473,7 +474,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 		Queries:                queries,
 	}
-	hookLogger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -506,20 +506,10 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	commands := &user.Commands{
-		Raw:          rawCommands,
-		Hooks:        hookProvider,
-		Verification: service,
-	}
-	userProvider := &user.Provider{
-		Commands: commands,
-		Queries:  queries,
-	}
 	interactionProvider := &interaction.Provider{
 		Clock:    clockClock,
 		Logger:   interactionLogger,
 		Identity: providerProvider,
-		User:     userProvider,
 		Hooks:    hookProvider,
 		Config:   authenticationConfig,
 	}
@@ -689,6 +679,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
 	}
+	hookLogger := hook.NewLogger(factory)
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -816,7 +807,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 		Queries:                queries,
 	}
-	hookLogger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -849,20 +839,10 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	commands := &user.Commands{
-		Raw:          rawCommands,
-		Hooks:        hookProvider,
-		Verification: service,
-	}
-	userProvider := &user.Provider{
-		Commands: commands,
-		Queries:  queries,
-	}
 	interactionProvider := &interaction.Provider{
 		Clock:    clockClock,
 		Logger:   interactionLogger,
 		Identity: providerProvider,
-		User:     userProvider,
 		Hooks:    hookProvider,
 		Config:   authenticationConfig,
 	}
@@ -1437,6 +1417,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
 	}
+	hookLogger := hook.NewLogger(factory)
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -1560,7 +1541,6 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 		Queries:                queries,
 	}
-	hookLogger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -1593,20 +1573,10 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	commands := &user.Commands{
-		Raw:          rawCommands,
-		Hooks:        hookProvider,
-		Verification: service,
-	}
-	userProvider := &user.Provider{
-		Commands: commands,
-		Queries:  queries,
-	}
 	interactionProvider := &interaction.Provider{
 		Clock:    clockClock,
 		Logger:   logger,
 		Identity: providerProvider,
-		User:     userProvider,
 		Hooks:    hookProvider,
 		Config:   authenticationConfig,
 	}
@@ -1860,6 +1830,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
+	hookLogger := hook.NewLogger(factory)
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -1893,7 +1864,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 		Queries:                queries,
 	}
-	hookLogger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -1926,20 +1896,10 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	commands := &user.Commands{
-		Raw:          rawCommands,
-		Hooks:        hookProvider,
-		Verification: service,
-	}
-	userProvider := &user.Provider{
-		Commands: commands,
-		Queries:  queries,
-	}
 	interactionProvider := &interaction.Provider{
 		Clock:    clockClock,
 		Logger:   interactionLogger,
 		Identity: providerProvider,
-		User:     userProvider,
 		Hooks:    hookProvider,
 		Config:   authenticationConfig,
 	}
@@ -1980,6 +1940,15 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	commands := &user.Commands{
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
 	redisLogger := redis3.NewLogger(factory)
 	store2 := &redis3.Store{
 		Redis:  redisHandle,
@@ -2011,7 +1980,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Config:               appConfig,
 		Identities:           providerProvider,
 		Authenticators:       provider3,
-		LoginIDIdentities:    loginidProvider,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -2233,6 +2201,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
+	hookLogger := hook.NewLogger(factory)
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -2266,7 +2235,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 		Queries:                queries,
 	}
-	hookLogger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -2299,20 +2267,10 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	commands := &user.Commands{
-		Raw:          rawCommands,
-		Hooks:        hookProvider,
-		Verification: service,
-	}
-	userProvider := &user.Provider{
-		Commands: commands,
-		Queries:  queries,
-	}
 	interactionProvider := &interaction.Provider{
 		Clock:    clockClock,
 		Logger:   interactionLogger,
 		Identity: providerProvider,
-		User:     userProvider,
 		Hooks:    hookProvider,
 		Config:   authenticationConfig,
 	}
@@ -2353,6 +2311,15 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	commands := &user.Commands{
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
 	redisLogger := redis3.NewLogger(factory)
 	store2 := &redis3.Store{
 		Redis:  redisHandle,
@@ -2384,7 +2351,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Config:               appConfig,
 		Identities:           providerProvider,
 		Authenticators:       provider3,
-		LoginIDIdentities:    loginidProvider,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -2606,6 +2572,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
+	hookLogger := hook.NewLogger(factory)
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -2639,7 +2606,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 		Queries:                queries,
 	}
-	hookLogger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -2672,20 +2638,10 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	commands := &user.Commands{
-		Raw:          rawCommands,
-		Hooks:        hookProvider,
-		Verification: service,
-	}
-	userProvider := &user.Provider{
-		Commands: commands,
-		Queries:  queries,
-	}
 	interactionProvider := &interaction.Provider{
 		Clock:    clockClock,
 		Logger:   interactionLogger,
 		Identity: providerProvider,
-		User:     userProvider,
 		Hooks:    hookProvider,
 		Config:   authenticationConfig,
 	}
@@ -2726,6 +2682,15 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	commands := &user.Commands{
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
 	redisLogger := redis3.NewLogger(factory)
 	store2 := &redis3.Store{
 		Redis:  redisHandle,
@@ -2757,7 +2722,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Config:               appConfig,
 		Identities:           providerProvider,
 		Authenticators:       provider3,
-		LoginIDIdentities:    loginidProvider,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -2960,6 +2924,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
+	hookLogger := hook.NewLogger(factory)
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -2993,7 +2958,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 		Queries:                queries,
 	}
-	hookLogger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -3026,20 +2990,10 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	commands := &user.Commands{
-		Raw:          rawCommands,
-		Hooks:        hookProvider,
-		Verification: service,
-	}
-	userProvider := &user.Provider{
-		Commands: commands,
-		Queries:  queries,
-	}
 	interactionProvider := &interaction.Provider{
 		Clock:    clockClock,
 		Logger:   interactionLogger,
 		Identity: providerProvider,
-		User:     userProvider,
 		Hooks:    hookProvider,
 		Config:   authenticationConfig,
 	}
@@ -3080,6 +3034,15 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	commands := &user.Commands{
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
 	redisLogger := redis3.NewLogger(factory)
 	store2 := &redis3.Store{
 		Redis:  redisHandle,
@@ -3111,7 +3074,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Config:               appConfig,
 		Identities:           providerProvider,
 		Authenticators:       provider3,
-		LoginIDIdentities:    loginidProvider,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -3325,6 +3287,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
+	hookLogger := hook.NewLogger(factory)
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -3358,7 +3321,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 		Queries:                queries,
 	}
-	hookLogger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -3391,20 +3353,10 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	commands := &user.Commands{
-		Raw:          rawCommands,
-		Hooks:        hookProvider,
-		Verification: service,
-	}
-	userProvider := &user.Provider{
-		Commands: commands,
-		Queries:  queries,
-	}
 	interactionProvider := &interaction.Provider{
 		Clock:    clockClock,
 		Logger:   interactionLogger,
 		Identity: providerProvider,
-		User:     userProvider,
 		Hooks:    hookProvider,
 		Config:   authenticationConfig,
 	}
@@ -3445,6 +3397,15 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	commands := &user.Commands{
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
 	redisLogger := redis3.NewLogger(factory)
 	store2 := &redis3.Store{
 		Redis:  redisHandle,
@@ -3476,7 +3437,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Config:               appConfig,
 		Identities:           providerProvider,
 		Authenticators:       provider3,
-		LoginIDIdentities:    loginidProvider,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -3692,6 +3652,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
+	hookLogger := hook.NewLogger(factory)
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -3725,7 +3686,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 		Queries:                queries,
 	}
-	hookLogger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -3758,20 +3718,10 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	commands := &user.Commands{
-		Raw:          rawCommands,
-		Hooks:        hookProvider,
-		Verification: service,
-	}
-	userProvider := &user.Provider{
-		Commands: commands,
-		Queries:  queries,
-	}
 	interactionProvider := &interaction.Provider{
 		Clock:    clockClock,
 		Logger:   interactionLogger,
 		Identity: providerProvider,
-		User:     userProvider,
 		Hooks:    hookProvider,
 		Config:   authenticationConfig,
 	}
@@ -3812,6 +3762,15 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	commands := &user.Commands{
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
 	redisLogger := redis3.NewLogger(factory)
 	store2 := &redis3.Store{
 		Redis:  redisHandle,
@@ -3843,7 +3802,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:               appConfig,
 		Identities:           providerProvider,
 		Authenticators:       provider3,
-		LoginIDIdentities:    loginidProvider,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -4059,6 +4017,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
+	hookLogger := hook.NewLogger(factory)
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -4092,7 +4051,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 		Queries:                queries,
 	}
-	hookLogger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -4125,20 +4083,10 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	commands := &user.Commands{
-		Raw:          rawCommands,
-		Hooks:        hookProvider,
-		Verification: service,
-	}
-	userProvider := &user.Provider{
-		Commands: commands,
-		Queries:  queries,
-	}
 	interactionProvider := &interaction.Provider{
 		Clock:    clockClock,
 		Logger:   interactionLogger,
 		Identity: providerProvider,
-		User:     userProvider,
 		Hooks:    hookProvider,
 		Config:   authenticationConfig,
 	}
@@ -4179,6 +4127,15 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	commands := &user.Commands{
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
 	redisLogger := redis3.NewLogger(factory)
 	store2 := &redis3.Store{
 		Redis:  redisHandle,
@@ -4210,7 +4167,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:               appConfig,
 		Identities:           providerProvider,
 		Authenticators:       provider3,
-		LoginIDIdentities:    loginidProvider,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -4426,6 +4382,7 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
+	hookLogger := hook.NewLogger(factory)
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -4459,7 +4416,6 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 		Queries:                queries,
 	}
-	hookLogger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -4492,20 +4448,10 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	commands := &user.Commands{
-		Raw:          rawCommands,
-		Hooks:        hookProvider,
-		Verification: service,
-	}
-	userProvider := &user.Provider{
-		Commands: commands,
-		Queries:  queries,
-	}
 	interactionProvider := &interaction.Provider{
 		Clock:    clockClock,
 		Logger:   interactionLogger,
 		Identity: providerProvider,
-		User:     userProvider,
 		Hooks:    hookProvider,
 		Config:   authenticationConfig,
 	}
@@ -4546,6 +4492,15 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	commands := &user.Commands{
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
 	redisLogger := redis3.NewLogger(factory)
 	store2 := &redis3.Store{
 		Redis:  redisHandle,
@@ -4577,7 +4532,6 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:               appConfig,
 		Identities:           providerProvider,
 		Authenticators:       provider3,
-		LoginIDIdentities:    loginidProvider,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -4797,6 +4751,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
+	hookLogger := hook.NewLogger(factory)
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -4830,7 +4785,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 		Queries:                queries,
 	}
-	hookLogger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -4863,20 +4817,10 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	commands := &user.Commands{
-		Raw:          rawCommands,
-		Hooks:        hookProvider,
-		Verification: service,
-	}
-	userProvider := &user.Provider{
-		Commands: commands,
-		Queries:  queries,
-	}
 	interactionProvider := &interaction.Provider{
 		Clock:    clockClock,
 		Logger:   interactionLogger,
 		Identity: providerProvider,
-		User:     userProvider,
 		Hooks:    hookProvider,
 		Config:   authenticationConfig,
 	}
@@ -4917,6 +4861,15 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	commands := &user.Commands{
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
 	redisLogger := redis3.NewLogger(factory)
 	store2 := &redis3.Store{
 		Redis:  redisHandle,
@@ -4948,7 +4901,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:               appConfig,
 		Identities:           providerProvider,
 		Authenticators:       provider3,
-		LoginIDIdentities:    loginidProvider,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -5165,6 +5117,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
+	hookLogger := hook.NewLogger(factory)
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -5198,7 +5151,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		WelcomeMessageProvider: welcomemessageProvider,
 		Queries:                queries,
 	}
-	hookLogger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -5231,20 +5183,10 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	commands := &user.Commands{
-		Raw:          rawCommands,
-		Hooks:        hookProvider,
-		Verification: service,
-	}
-	userProvider := &user.Provider{
-		Commands: commands,
-		Queries:  queries,
-	}
 	interactionProvider := &interaction.Provider{
 		Clock:    clockClock,
 		Logger:   interactionLogger,
 		Identity: providerProvider,
-		User:     userProvider,
 		Hooks:    hookProvider,
 		Config:   authenticationConfig,
 	}
@@ -5285,6 +5227,15 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	commands := &user.Commands{
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
 	redisLogger := redis3.NewLogger(factory)
 	store2 := &redis3.Store{
 		Redis:  redisHandle,
@@ -5316,7 +5267,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Config:               appConfig,
 		Identities:           providerProvider,
 		Authenticators:       provider3,
-		LoginIDIdentities:    loginidProvider,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -5532,6 +5482,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
+	hookLogger := hook.NewLogger(factory)
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -5565,7 +5516,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 		Queries:                queries,
 	}
-	hookLogger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -5598,20 +5548,10 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	commands := &user.Commands{
-		Raw:          rawCommands,
-		Hooks:        hookProvider,
-		Verification: service,
-	}
-	userProvider := &user.Provider{
-		Commands: commands,
-		Queries:  queries,
-	}
 	interactionProvider := &interaction.Provider{
 		Clock:    clockClock,
 		Logger:   interactionLogger,
 		Identity: providerProvider,
-		User:     userProvider,
 		Hooks:    hookProvider,
 		Config:   authenticationConfig,
 	}
@@ -5652,6 +5592,15 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	commands := &user.Commands{
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
 	redisLogger := redis3.NewLogger(factory)
 	store2 := &redis3.Store{
 		Redis:  redisHandle,
@@ -5683,7 +5632,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:               appConfig,
 		Identities:           providerProvider,
 		Authenticators:       provider3,
-		LoginIDIdentities:    loginidProvider,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -5899,6 +5847,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
+	hookLogger := hook.NewLogger(factory)
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -5932,7 +5881,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		WelcomeMessageProvider: welcomemessageProvider,
 		Queries:                queries,
 	}
-	hookLogger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -5965,20 +5913,10 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	commands := &user.Commands{
-		Raw:          rawCommands,
-		Hooks:        hookProvider,
-		Verification: service,
-	}
-	userProvider := &user.Provider{
-		Commands: commands,
-		Queries:  queries,
-	}
 	interactionProvider := &interaction.Provider{
 		Clock:    clockClock,
 		Logger:   interactionLogger,
 		Identity: providerProvider,
-		User:     userProvider,
 		Hooks:    hookProvider,
 		Config:   authenticationConfig,
 	}
@@ -6019,6 +5957,15 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	commands := &user.Commands{
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
 	redisLogger := redis3.NewLogger(factory)
 	store2 := &redis3.Store{
 		Redis:  redisHandle,
@@ -6050,7 +5997,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Config:               appConfig,
 		Identities:           providerProvider,
 		Authenticators:       provider3,
-		LoginIDIdentities:    loginidProvider,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
@@ -6297,6 +6243,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
+	hookLogger := hook.NewLogger(factory)
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -6330,7 +6277,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 		Queries:                queries,
 	}
-	hookLogger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -6363,20 +6309,10 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	commands := &user.Commands{
-		Raw:          rawCommands,
-		Hooks:        hookProvider,
-		Verification: service,
-	}
-	userProvider := &user.Provider{
-		Commands: commands,
-		Queries:  queries,
-	}
 	interactionProvider := &interaction.Provider{
 		Clock:    clockClock,
 		Logger:   interactionLogger,
 		Identity: providerProvider,
-		User:     userProvider,
 		Hooks:    hookProvider,
 		Config:   authenticationConfig,
 	}
@@ -6417,6 +6353,15 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	commands := &user.Commands{
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: service,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
 	redisLogger := redis3.NewLogger(factory)
 	store2 := &redis3.Store{
 		Redis:  redisHandle,
@@ -6448,7 +6393,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Config:               appConfig,
 		Identities:           providerProvider,
 		Authenticators:       provider3,
-		LoginIDIdentities:    loginidProvider,
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,

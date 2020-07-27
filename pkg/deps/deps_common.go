@@ -114,7 +114,6 @@ var commonDeps = wire.NewSet(
 		identityloginid.DependencySet,
 		wire.Bind(new(sso.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
 		wire.Bind(new(forgotpassword.LoginIDProvider), new(*identityloginid.Provider)),
-		wire.Bind(new(newinteraction.LoginIDIdentityProvider), new(*identityloginid.Provider)),
 		identityoauth.DependencySet,
 		identityanonymous.DependencySet,
 		wire.Bind(new(interactionflows.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
@@ -134,7 +133,6 @@ var commonDeps = wire.NewSet(
 	wire.NewSet(
 		user.DependencySet,
 		wire.Bind(new(auth.UserProvider), new(*user.Queries)),
-		wire.Bind(new(interaction.UserProvider), new(*user.Provider)),
 		wire.Bind(new(interactionflows.UserProvider), new(*user.Provider)),
 		wire.Bind(new(newinteraction.UserService), new(*user.Provider)),
 		wire.Bind(new(forgotpassword.UserProvider), new(*user.Queries)),
