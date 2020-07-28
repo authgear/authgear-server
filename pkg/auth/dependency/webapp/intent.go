@@ -12,6 +12,7 @@ type Intent struct {
 	RedirectURI string
 	// KeepState indicates whether the state should be kept after the interaction finishes.
 	// It is useful for interaction that has a dead end, such as forgot / reset password.
+	// If it is true, then the state is attached to RedirectURI.
 	KeepState bool
 	Intent    newinteraction.Intent
 }

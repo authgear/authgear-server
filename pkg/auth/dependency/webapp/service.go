@@ -274,9 +274,18 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 			}
 		}
 
+		redirectURI, err := url.Parse(state.RedirectURI)
+		if err != nil {
+			return nil, err
+		}
+
+		if state.KeepState {
+			redirectURI = state.Attach(redirectURI)
+		}
+
 		return &Result{
 			state:       state,
-			redirectURI: state.RedirectURI,
+			redirectURI: redirectURI.String(),
 			cookies:     cookies,
 		}, nil
 	}

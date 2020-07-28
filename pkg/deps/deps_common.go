@@ -151,6 +151,7 @@ var commonDeps = wire.NewSet(
 
 	wire.NewSet(
 		forgotpassword.DependencySet,
+		wire.Bind(new(newinteraction.ForgotPasswordService), new(*forgotpassword.Provider)),
 	),
 
 	wire.NewSet(
