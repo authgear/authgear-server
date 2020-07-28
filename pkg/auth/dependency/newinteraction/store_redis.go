@@ -7,12 +7,14 @@ import (
 
 	goredis "github.com/gomodule/redigo/redis"
 
+	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/core/errors"
 	"github.com/authgear/authgear-server/pkg/redis"
 )
 
 type StoreRedis struct {
 	Redis *redis.Handle
+	AppID config.AppID
 }
 
 func (s *StoreRedis) CreateGraph(graph *Graph) error {
@@ -30,8 +32,8 @@ func (s *StoreRedis) create(graph *Graph, graphSetMode string) error {
 	}
 
 	return s.Redis.WithConn(func(conn redis.Conn) error {
-		graphKey := redisGraphKey(graph.GraphID)
-		instanceKey := redisInstanceKey(graph.InstanceID)
+		graphKey := redisGraphKey(s.AppID, graph.GraphID)
+		instanceKey := redisInstanceKey(s.AppID, graph.InstanceID)
 		ttl := toMilliseconds(GraphLifetime)
 		_, err := goredis.String(conn.Do("SET", graphKey, []byte(graphKey), "PX", ttl, graphSetMode))
 		if errors.Is(err, goredis.ErrNil) {
@@ -52,7 +54,7 @@ func (s *StoreRedis) create(graph *Graph, graphSetMode string) error {
 }
 
 func (s *StoreRedis) GetGraphInstance(instanceID string) (*Graph, error) {
-	instanceKey := redisInstanceKey(instanceID)
+	instanceKey := redisInstanceKey(s.AppID, instanceID)
 	var graph Graph
 	err := s.Redis.WithConn(func(conn redis.Conn) error {
 		data, err := goredis.Bytes(conn.Do("GET", instanceKey))
@@ -67,7 +69,7 @@ func (s *StoreRedis) GetGraphInstance(instanceID string) (*Graph, error) {
 			return err
 		}
 
-		graphKey := redisGraphKey(graph.GraphID)
+		graphKey := redisGraphKey(s.AppID, graph.GraphID)
 		_, err = goredis.String(conn.Do("GET", graphKey))
 		if errors.Is(err, goredis.ErrNil) {
 			return ErrStateNotFound
@@ -82,7 +84,7 @@ func (s *StoreRedis) GetGraphInstance(instanceID string) (*Graph, error) {
 
 func (s *StoreRedis) DeleteGraph(graph *Graph) error {
 	return s.Redis.WithConn(func(conn redis.Conn) error {
-		graphKey := redisGraphKey(graph.GraphID)
+		graphKey := redisGraphKey(s.AppID, graph.GraphID)
 		_, err := conn.Do("DEL", graphKey)
 		if err != nil {
 			return err
@@ -95,10 +97,10 @@ func toMilliseconds(d time.Duration) int64 {
 	return int64(d / time.Millisecond)
 }
 
-func redisGraphKey(graphID string) string {
-	return fmt.Sprintf("interaction-graph:%s", graphID)
+func redisGraphKey(appID config.AppID, graphID string) string {
+	return fmt.Sprintf("app:%s:interaction-graph:%s", appID, graphID)
 }
 
-func redisInstanceKey(instanceID string) string {
-	return fmt.Sprintf("interaction-graph-instance:%s", instanceID)
+func redisInstanceKey(appID config.AppID, instanceID string) string {
+	return fmt.Sprintf("app:%s:interaction-graph-instance:%s", appID, instanceID)
 }
