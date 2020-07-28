@@ -2,10 +2,8 @@ package service
 
 import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/bearertoken"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/password"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/recoverycode"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/totp"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
@@ -71,44 +69,5 @@ func oobotpFromAuthenticatorInfo(a *authenticator.Info) *oob.Authenticator {
 		Channel: authn.AuthenticatorOOBChannel(a.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string)),
 		Phone:   a.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string),
 		Email:   a.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string),
-	}
-}
-
-func bearerTokenToAuthenticatorInfo(b *bearertoken.Authenticator) *authenticator.Info {
-	return &authenticator.Info{
-		Type:   authn.AuthenticatorTypeBearerToken,
-		ID:     b.ID,
-		UserID: b.UserID,
-		Secret: b.Token,
-		Props: map[string]interface{}{
-			authenticator.AuthenticatorPropBearerTokenParentID: b.ParentID,
-		},
-	}
-}
-
-func bearerTokenFromAuthenticatorInfo(a *authenticator.Info) *bearertoken.Authenticator {
-	return &bearertoken.Authenticator{
-		ID:       a.ID,
-		UserID:   a.UserID,
-		ParentID: a.Props[authenticator.AuthenticatorPropBearerTokenParentID].(string),
-		Token:    a.Secret,
-	}
-}
-
-func recoveryCodeToAuthenticatorInfo(r *recoverycode.Authenticator) *authenticator.Info {
-	return &authenticator.Info{
-		Type:   authn.AuthenticatorTypeBearerToken,
-		ID:     r.ID,
-		UserID: r.UserID,
-		Secret: r.Code,
-		Props:  map[string]interface{}{},
-	}
-}
-
-func recoveryCodeFromAuthenticatorInfo(a *authenticator.Info) *recoverycode.Authenticator {
-	return &recoverycode.Authenticator{
-		ID:     a.ID,
-		UserID: a.UserID,
-		Code:   a.Secret,
 	}
 }

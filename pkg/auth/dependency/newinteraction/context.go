@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/model"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/db"
+	"github.com/authgear/authgear-server/pkg/mfa"
 	"github.com/authgear/authgear-server/pkg/otp"
 )
 
@@ -34,7 +35,7 @@ type AuthenticatorService interface {
 	Get(userID string, typ authn.AuthenticatorType, id string) (*authenticator.Info, error)
 	List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error)
 	ListByIdentity(ii *identity.Info) ([]*authenticator.Info, error)
-	New(spec *authenticator.Spec, secret string) ([]*authenticator.Info, error)
+	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
 	WithSecret(authenticatorInfo *authenticator.Info, secret string) (changed bool, info *authenticator.Info, err error)
 	Create(authenticatorInfo *authenticator.Info) error
 	Update(authenticatorInfo *authenticator.Info) error
@@ -60,6 +61,18 @@ type AnonymousIdentityProvider interface {
 
 type ChallengeProvider interface {
 	Consume(token string) (*challenge.Purpose, error)
+}
+
+type MFAService interface {
+	GenerateDeviceToken() string
+	CreateDeviceToken(userID string, token string) (*mfa.DeviceToken, error)
+	VerifyDeviceToken(userID string, token string) error
+	InvalidateAllDeviceTokens(userID string) error
+
+	GenerateRecoveryCodes() []string
+	ReplaceRecoveryCodes(userID string, codes []string) ([]*mfa.RecoveryCode, error)
+	ConsumeRecoveryCode(userID string, code string) error
+	ListRecoveryCodes(userID string) ([]*mfa.RecoveryCode, error)
 }
 
 type UserService interface {
@@ -93,6 +106,7 @@ type Context struct {
 	AnonymousIdentities  AnonymousIdentityProvider
 	OOBAuthenticators    OOBAuthenticatorProvider
 	OAuthProviderFactory OAuthProviderFactory
+	MFA                  MFAService
 
 	Challenges    ChallengeProvider
 	Users         UserService

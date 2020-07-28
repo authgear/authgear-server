@@ -7,19 +7,15 @@ var _ = Schema.Add("AuthenticatorConfig", `
 	"properties": {
 		"password": { "$ref": "#/$defs/AuthenticatorPasswordConfig" },
 		"totp": { "$ref": "#/$defs/AuthenticatorTOTPConfig" },
-		"oob_otp": { "$ref": "#/$defs/AuthenticatorOOBConfig" },
-		"bearer_token": { "$ref": "#/$defs/AuthenticatorBearerTokenConfig" },
-		"recovery_code": { "$ref": "#/$defs/AuthenticatorRecoveryCodeConfig" }
+		"oob_otp": { "$ref": "#/$defs/AuthenticatorOOBConfig" }
 	}
 }
 `)
 
 type AuthenticatorConfig struct {
-	Password     *AuthenticatorPasswordConfig     `json:"password,omitempty"`
-	TOTP         *AuthenticatorTOTPConfig         `json:"totp,omitempty"`
-	OOB          *AuthenticatorOOBConfig          `json:"oob_otp,omitempty"`
-	BearerToken  *AuthenticatorBearerTokenConfig  `json:"bearer_token,omitempty"`
-	RecoveryCode *AuthenticatorRecoveryCodeConfig `json:"recovery_code,omitempty"`
+	Password *AuthenticatorPasswordConfig `json:"password,omitempty"`
+	TOTP     *AuthenticatorTOTPConfig     `json:"totp,omitempty"`
+	OOB      *AuthenticatorOOBConfig      `json:"oob_otp,omitempty"`
 }
 
 var _ = Schema.Add("AuthenticatorPasswordConfig", `
@@ -160,47 +156,5 @@ func (c *AuthenticatorOOBEmailConfig) SetDefaults() {
 	}
 	if c.CodeDigits == 0 {
 		c.CodeDigits = 6
-	}
-}
-
-var _ = Schema.Add("AuthenticatorBearerTokenConfig", `
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"expire_in_days": { "$ref": "#/$defs/DurationDays" }
-	}
-}
-`)
-
-type AuthenticatorBearerTokenConfig struct {
-	ExpireIn DurationDays `json:"expire_in_days,omitempty"`
-}
-
-func (c *AuthenticatorBearerTokenConfig) SetDefaults() {
-	if c.ExpireIn == 0 {
-		c.ExpireIn = DurationDays(30)
-	}
-}
-
-var _ = Schema.Add("AuthenticatorRecoveryCodeConfig", `
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"count": { "type": "integer" },
-		"list_enabled": { "type": "integer" }
-	}
-}
-`)
-
-type AuthenticatorRecoveryCodeConfig struct {
-	Count       int  `json:"count,omitempty"`
-	ListEnabled bool `json:"list_enabled,omitempty"`
-}
-
-func (c *AuthenticatorRecoveryCodeConfig) SetDefaults() {
-	if c.Count == 0 {
-		c.Count = 16
 	}
 }

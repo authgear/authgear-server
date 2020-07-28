@@ -9,10 +9,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config/source"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	redis2 "github.com/authgear/authgear-server/pkg/auth/dependency/auth/redis"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/bearertoken"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/password"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/recoverycode"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/totp"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
@@ -50,6 +48,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/endpoints"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/mail"
+	"github.com/authgear/authgear-server/pkg/mfa"
 	"github.com/authgear/authgear-server/pkg/middlewares"
 	"github.com/authgear/authgear-server/pkg/otp"
 	"github.com/authgear/authgear-server/pkg/sms"
@@ -173,32 +172,10 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Clock:            clock,
 		OTPMessageSender: messageSender,
 	}
-	bearertokenStore := &bearertoken.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
-	bearertokenProvider := &bearertoken.Provider{
-		Store:  bearertokenStore,
-		Config: authenticatorBearerTokenConfig,
-		Clock:  clock,
-	}
-	recoverycodeStore := &recoverycode.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
-	recoverycodeProvider := &recoverycode.Provider{
-		Store:  recoverycodeStore,
-		Config: authenticatorRecoveryCodeConfig,
-		Clock:  clock,
-	}
 	serviceService := &service.Service{
-		Password:     passwordProvider,
-		TOTP:         totpProvider,
-		OOBOTP:       oobProvider,
-		BearerToken:  bearertokenProvider,
-		RecoveryCode: recoverycodeProvider,
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
 	}
 	verificationService := &verification.Service{
 		Config:           verificationConfig,
@@ -390,32 +367,10 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:            clockClock,
 		OTPMessageSender: messageSender,
 	}
-	bearertokenStore := &bearertoken.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
-	bearertokenProvider := &bearertoken.Provider{
-		Store:  bearertokenStore,
-		Config: authenticatorBearerTokenConfig,
-		Clock:  clockClock,
-	}
-	recoverycodeStore := &recoverycode.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
-	recoverycodeProvider := &recoverycode.Provider{
-		Store:  recoverycodeStore,
-		Config: authenticatorRecoveryCodeConfig,
-		Clock:  clockClock,
-	}
 	service3 := &service.Service{
-		Password:     passwordProvider,
-		TOTP:         totpProvider,
-		OOBOTP:       oobProvider,
-		BearerToken:  bearertokenProvider,
-		RecoveryCode: recoverycodeProvider,
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
 	}
 	verificationService := &verification.Service{
 		Config:           verificationConfig,
@@ -721,32 +676,10 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:            clockClock,
 		OTPMessageSender: messageSender,
 	}
-	bearertokenStore := &bearertoken.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
-	bearertokenProvider := &bearertoken.Provider{
-		Store:  bearertokenStore,
-		Config: authenticatorBearerTokenConfig,
-		Clock:  clockClock,
-	}
-	recoverycodeStore := &recoverycode.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
-	recoverycodeProvider := &recoverycode.Provider{
-		Store:  recoverycodeStore,
-		Config: authenticatorRecoveryCodeConfig,
-		Clock:  clockClock,
-	}
 	service3 := &service.Service{
-		Password:     passwordProvider,
-		TOTP:         totpProvider,
-		OOBOTP:       oobProvider,
-		BearerToken:  bearertokenProvider,
-		RecoveryCode: recoverycodeProvider,
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
 	}
 	verificationService := &verification.Service{
 		Config:           verificationConfig,
@@ -1054,32 +987,10 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Clock:            clockClock,
 		OTPMessageSender: messageSender,
 	}
-	bearertokenStore := &bearertoken.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
-	bearertokenProvider := &bearertoken.Provider{
-		Store:  bearertokenStore,
-		Config: authenticatorBearerTokenConfig,
-		Clock:  clockClock,
-	}
-	recoverycodeStore := &recoverycode.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
-	recoverycodeProvider := &recoverycode.Provider{
-		Store:  recoverycodeStore,
-		Config: authenticatorRecoveryCodeConfig,
-		Clock:  clockClock,
-	}
 	service3 := &service.Service{
-		Password:     passwordProvider,
-		TOTP:         totpProvider,
-		OOBOTP:       oobProvider,
-		BearerToken:  bearertokenProvider,
-		RecoveryCode: recoverycodeProvider,
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
 	}
 	verificationService := &verification.Service{
 		Config:           verificationConfig,
@@ -1246,32 +1157,10 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Clock:            clockClock,
 		OTPMessageSender: messageSender,
 	}
-	bearertokenStore := &bearertoken.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
-	bearertokenProvider := &bearertoken.Provider{
-		Store:  bearertokenStore,
-		Config: authenticatorBearerTokenConfig,
-		Clock:  clockClock,
-	}
-	recoverycodeStore := &recoverycode.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
-	recoverycodeProvider := &recoverycode.Provider{
-		Store:  recoverycodeStore,
-		Config: authenticatorRecoveryCodeConfig,
-		Clock:  clockClock,
-	}
 	service3 := &service.Service{
-		Password:     passwordProvider,
-		TOTP:         totpProvider,
-		OOBOTP:       oobProvider,
-		BearerToken:  bearertokenProvider,
-		RecoveryCode: recoverycodeProvider,
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
 	}
 	verificationService := &verification.Service{
 		Config:           verificationConfig,
@@ -1451,32 +1340,10 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Clock:            clockClock,
 		OTPMessageSender: messageSender,
 	}
-	bearertokenStore := &bearertoken.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
-	bearertokenProvider := &bearertoken.Provider{
-		Store:  bearertokenStore,
-		Config: authenticatorBearerTokenConfig,
-		Clock:  clockClock,
-	}
-	recoverycodeStore := &recoverycode.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
-	recoverycodeProvider := &recoverycode.Provider{
-		Store:  recoverycodeStore,
-		Config: authenticatorRecoveryCodeConfig,
-		Clock:  clockClock,
-	}
 	service3 := &service.Service{
-		Password:     passwordProvider,
-		TOTP:         totpProvider,
-		OOBOTP:       oobProvider,
-		BearerToken:  bearertokenProvider,
-		RecoveryCode: recoverycodeProvider,
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
 	}
 	verificationService := &verification.Service{
 		Config:           verificationConfig,
@@ -1754,32 +1621,10 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:            clockClock,
 		OTPMessageSender: messageSender,
 	}
-	bearertokenStore := &bearertoken.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
-	bearertokenProvider := &bearertoken.Provider{
-		Store:  bearertokenStore,
-		Config: authenticatorBearerTokenConfig,
-		Clock:  clockClock,
-	}
-	recoverycodeStore := &recoverycode.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
-	recoverycodeProvider := &recoverycode.Provider{
-		Store:  recoverycodeStore,
-		Config: authenticatorRecoveryCodeConfig,
-		Clock:  clockClock,
-	}
 	service3 := &service.Service{
-		Password:     passwordProvider,
-		TOTP:         totpProvider,
-		OOBOTP:       oobProvider,
-		BearerToken:  bearertokenProvider,
-		RecoveryCode: recoverycodeProvider,
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
@@ -1891,6 +1736,21 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -1934,6 +1794,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
+		MFA:                  mfaService,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,
@@ -1942,6 +1803,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
+		AppID: appID,
 	}
 	newinteractionService := &newinteraction.Service{
 		Logger:  logger,
@@ -2123,32 +1985,10 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:            clockClock,
 		OTPMessageSender: messageSender,
 	}
-	bearertokenStore := &bearertoken.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
-	bearertokenProvider := &bearertoken.Provider{
-		Store:  bearertokenStore,
-		Config: authenticatorBearerTokenConfig,
-		Clock:  clockClock,
-	}
-	recoverycodeStore := &recoverycode.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
-	recoverycodeProvider := &recoverycode.Provider{
-		Store:  recoverycodeStore,
-		Config: authenticatorRecoveryCodeConfig,
-		Clock:  clockClock,
-	}
 	service3 := &service.Service{
-		Password:     passwordProvider,
-		TOTP:         totpProvider,
-		OOBOTP:       oobProvider,
-		BearerToken:  bearertokenProvider,
-		RecoveryCode: recoverycodeProvider,
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
@@ -2260,6 +2100,21 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -2303,6 +2158,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
+		MFA:                  mfaService,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,
@@ -2311,6 +2167,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
+		AppID: appID,
 	}
 	newinteractionService := &newinteraction.Service{
 		Logger:  logger,
@@ -2492,32 +2349,10 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock:            clockClock,
 		OTPMessageSender: messageSender,
 	}
-	bearertokenStore := &bearertoken.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
-	bearertokenProvider := &bearertoken.Provider{
-		Store:  bearertokenStore,
-		Config: authenticatorBearerTokenConfig,
-		Clock:  clockClock,
-	}
-	recoverycodeStore := &recoverycode.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
-	recoverycodeProvider := &recoverycode.Provider{
-		Store:  recoverycodeStore,
-		Config: authenticatorRecoveryCodeConfig,
-		Clock:  clockClock,
-	}
 	service3 := &service.Service{
-		Password:     passwordProvider,
-		TOTP:         totpProvider,
-		OOBOTP:       oobProvider,
-		BearerToken:  bearertokenProvider,
-		RecoveryCode: recoverycodeProvider,
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
@@ -2629,6 +2464,21 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -2672,6 +2522,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
+		MFA:                  mfaService,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,
@@ -2680,6 +2531,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
+		AppID: appID,
 	}
 	newinteractionService := &newinteraction.Service{
 		Logger:  logger,
@@ -2842,32 +2694,10 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:            clockClock,
 		OTPMessageSender: messageSender,
 	}
-	bearertokenStore := &bearertoken.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
-	bearertokenProvider := &bearertoken.Provider{
-		Store:  bearertokenStore,
-		Config: authenticatorBearerTokenConfig,
-		Clock:  clockClock,
-	}
-	recoverycodeStore := &recoverycode.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
-	recoverycodeProvider := &recoverycode.Provider{
-		Store:  recoverycodeStore,
-		Config: authenticatorRecoveryCodeConfig,
-		Clock:  clockClock,
-	}
 	service3 := &service.Service{
-		Password:     passwordProvider,
-		TOTP:         totpProvider,
-		OOBOTP:       oobProvider,
-		BearerToken:  bearertokenProvider,
-		RecoveryCode: recoverycodeProvider,
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
@@ -2979,6 +2809,21 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -3022,6 +2867,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
+		MFA:                  mfaService,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,
@@ -3030,6 +2876,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
+		AppID: appID,
 	}
 	newinteractionService := &newinteraction.Service{
 		Logger:  logger,
@@ -3203,32 +3050,10 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock:            clockClock,
 		OTPMessageSender: messageSender,
 	}
-	bearertokenStore := &bearertoken.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
-	bearertokenProvider := &bearertoken.Provider{
-		Store:  bearertokenStore,
-		Config: authenticatorBearerTokenConfig,
-		Clock:  clockClock,
-	}
-	recoverycodeStore := &recoverycode.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
-	recoverycodeProvider := &recoverycode.Provider{
-		Store:  recoverycodeStore,
-		Config: authenticatorRecoveryCodeConfig,
-		Clock:  clockClock,
-	}
 	service3 := &service.Service{
-		Password:     passwordProvider,
-		TOTP:         totpProvider,
-		OOBOTP:       oobProvider,
-		BearerToken:  bearertokenProvider,
-		RecoveryCode: recoverycodeProvider,
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
@@ -3340,6 +3165,21 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -3383,6 +3223,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
+		MFA:                  mfaService,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,
@@ -3391,6 +3232,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
+		AppID: appID,
 	}
 	newinteractionService := &newinteraction.Service{
 		Logger:  logger,
@@ -3566,32 +3408,10 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:            clockClock,
 		OTPMessageSender: messageSender,
 	}
-	bearertokenStore := &bearertoken.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
-	bearertokenProvider := &bearertoken.Provider{
-		Store:  bearertokenStore,
-		Config: authenticatorBearerTokenConfig,
-		Clock:  clockClock,
-	}
-	recoverycodeStore := &recoverycode.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
-	recoverycodeProvider := &recoverycode.Provider{
-		Store:  recoverycodeStore,
-		Config: authenticatorRecoveryCodeConfig,
-		Clock:  clockClock,
-	}
 	service3 := &service.Service{
-		Password:     passwordProvider,
-		TOTP:         totpProvider,
-		OOBOTP:       oobProvider,
-		BearerToken:  bearertokenProvider,
-		RecoveryCode: recoverycodeProvider,
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
@@ -3703,6 +3523,21 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -3746,6 +3581,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
+		MFA:                  mfaService,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,
@@ -3754,6 +3590,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
+		AppID: appID,
 	}
 	newinteractionService := &newinteraction.Service{
 		Logger:  logger,
@@ -3929,32 +3766,10 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:            clockClock,
 		OTPMessageSender: messageSender,
 	}
-	bearertokenStore := &bearertoken.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
-	bearertokenProvider := &bearertoken.Provider{
-		Store:  bearertokenStore,
-		Config: authenticatorBearerTokenConfig,
-		Clock:  clockClock,
-	}
-	recoverycodeStore := &recoverycode.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
-	recoverycodeProvider := &recoverycode.Provider{
-		Store:  recoverycodeStore,
-		Config: authenticatorRecoveryCodeConfig,
-		Clock:  clockClock,
-	}
 	service3 := &service.Service{
-		Password:     passwordProvider,
-		TOTP:         totpProvider,
-		OOBOTP:       oobProvider,
-		BearerToken:  bearertokenProvider,
-		RecoveryCode: recoverycodeProvider,
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
@@ -4066,6 +3881,21 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -4109,6 +3939,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
+		MFA:                  mfaService,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,
@@ -4117,6 +3948,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
+		AppID: appID,
 	}
 	newinteractionService := &newinteraction.Service{
 		Logger:  logger,
@@ -4293,32 +4125,10 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:            clockClock,
 		OTPMessageSender: messageSender,
 	}
-	bearertokenStore := &bearertoken.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
-	bearertokenProvider := &bearertoken.Provider{
-		Store:  bearertokenStore,
-		Config: authenticatorBearerTokenConfig,
-		Clock:  clockClock,
-	}
-	recoverycodeStore := &recoverycode.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
-	recoverycodeProvider := &recoverycode.Provider{
-		Store:  recoverycodeStore,
-		Config: authenticatorRecoveryCodeConfig,
-		Clock:  clockClock,
-	}
 	service3 := &service.Service{
-		Password:     passwordProvider,
-		TOTP:         totpProvider,
-		OOBOTP:       oobProvider,
-		BearerToken:  bearertokenProvider,
-		RecoveryCode: recoverycodeProvider,
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
@@ -4430,6 +4240,21 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -4473,6 +4298,7 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
+		MFA:                  mfaService,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,
@@ -4481,6 +4307,7 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
+		AppID: appID,
 	}
 	newinteractionService := &newinteraction.Service{
 		Logger:  logger,
@@ -4660,32 +4487,10 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:            clockClock,
 		OTPMessageSender: messageSender,
 	}
-	bearertokenStore := &bearertoken.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
-	bearertokenProvider := &bearertoken.Provider{
-		Store:  bearertokenStore,
-		Config: authenticatorBearerTokenConfig,
-		Clock:  clockClock,
-	}
-	recoverycodeStore := &recoverycode.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
-	recoverycodeProvider := &recoverycode.Provider{
-		Store:  recoverycodeStore,
-		Config: authenticatorRecoveryCodeConfig,
-		Clock:  clockClock,
-	}
 	service3 := &service.Service{
-		Password:     passwordProvider,
-		TOTP:         totpProvider,
-		OOBOTP:       oobProvider,
-		BearerToken:  bearertokenProvider,
-		RecoveryCode: recoverycodeProvider,
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
@@ -4797,6 +4602,21 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -4840,6 +4660,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
+		MFA:                  mfaService,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,
@@ -4848,6 +4669,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
+		AppID: appID,
 	}
 	newinteractionService := &newinteraction.Service{
 		Logger:  logger,
@@ -5024,32 +4846,10 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:            clockClock,
 		OTPMessageSender: messageSender,
 	}
-	bearertokenStore := &bearertoken.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
-	bearertokenProvider := &bearertoken.Provider{
-		Store:  bearertokenStore,
-		Config: authenticatorBearerTokenConfig,
-		Clock:  clockClock,
-	}
-	recoverycodeStore := &recoverycode.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
-	recoverycodeProvider := &recoverycode.Provider{
-		Store:  recoverycodeStore,
-		Config: authenticatorRecoveryCodeConfig,
-		Clock:  clockClock,
-	}
 	service3 := &service.Service{
-		Password:     passwordProvider,
-		TOTP:         totpProvider,
-		OOBOTP:       oobProvider,
-		BearerToken:  bearertokenProvider,
-		RecoveryCode: recoverycodeProvider,
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
@@ -5161,6 +4961,21 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -5204,6 +5019,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
+		MFA:                  mfaService,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,
@@ -5212,6 +5028,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
+		AppID: appID,
 	}
 	newinteractionService := &newinteraction.Service{
 		Logger:  logger,
@@ -5387,32 +5204,10 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:            clockClock,
 		OTPMessageSender: messageSender,
 	}
-	bearertokenStore := &bearertoken.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
-	bearertokenProvider := &bearertoken.Provider{
-		Store:  bearertokenStore,
-		Config: authenticatorBearerTokenConfig,
-		Clock:  clockClock,
-	}
-	recoverycodeStore := &recoverycode.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
-	recoverycodeProvider := &recoverycode.Provider{
-		Store:  recoverycodeStore,
-		Config: authenticatorRecoveryCodeConfig,
-		Clock:  clockClock,
-	}
 	service3 := &service.Service{
-		Password:     passwordProvider,
-		TOTP:         totpProvider,
-		OOBOTP:       oobProvider,
-		BearerToken:  bearertokenProvider,
-		RecoveryCode: recoverycodeProvider,
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
@@ -5524,6 +5319,21 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -5567,6 +5377,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
+		MFA:                  mfaService,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,
@@ -5575,6 +5386,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
+		AppID: appID,
 	}
 	newinteractionService := &newinteraction.Service{
 		Logger:  logger,
@@ -5750,32 +5562,10 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock:            clockClock,
 		OTPMessageSender: messageSender,
 	}
-	bearertokenStore := &bearertoken.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
-	bearertokenProvider := &bearertoken.Provider{
-		Store:  bearertokenStore,
-		Config: authenticatorBearerTokenConfig,
-		Clock:  clockClock,
-	}
-	recoverycodeStore := &recoverycode.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
-	recoverycodeProvider := &recoverycode.Provider{
-		Store:  recoverycodeStore,
-		Config: authenticatorRecoveryCodeConfig,
-		Clock:  clockClock,
-	}
 	service3 := &service.Service{
-		Password:     passwordProvider,
-		TOTP:         totpProvider,
-		OOBOTP:       oobProvider,
-		BearerToken:  bearertokenProvider,
-		RecoveryCode: recoverycodeProvider,
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
@@ -5887,6 +5677,21 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -5930,6 +5735,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
+		MFA:                  mfaService,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,
@@ -5938,6 +5744,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
+		AppID: appID,
 	}
 	newinteractionService := &newinteraction.Service{
 		Logger:  logger,
@@ -6144,32 +5951,10 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:            clockClock,
 		OTPMessageSender: messageSender,
 	}
-	bearertokenStore := &bearertoken.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
-	bearertokenProvider := &bearertoken.Provider{
-		Store:  bearertokenStore,
-		Config: authenticatorBearerTokenConfig,
-		Clock:  clockClock,
-	}
-	recoverycodeStore := &recoverycode.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
-	recoverycodeProvider := &recoverycode.Provider{
-		Store:  recoverycodeStore,
-		Config: authenticatorRecoveryCodeConfig,
-		Clock:  clockClock,
-	}
 	service3 := &service.Service{
-		Password:     passwordProvider,
-		TOTP:         totpProvider,
-		OOBOTP:       oobProvider,
-		BearerToken:  bearertokenProvider,
-		RecoveryCode: recoverycodeProvider,
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	interactionLogger := interaction.NewLogger(factory)
@@ -6281,6 +6066,21 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -6324,6 +6124,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousIdentities:  anonymousProvider,
 		OOBAuthenticators:    oobProvider,
 		OAuthProviderFactory: oAuthProviderFactory,
+		MFA:                  mfaService,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,
@@ -6332,6 +6133,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
+		AppID: appID,
 	}
 	newinteractionService := &newinteraction.Service{
 		Logger:  logger,
@@ -6492,32 +6294,10 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock:            clockClock,
 		OTPMessageSender: messageSender,
 	}
-	bearertokenStore := &bearertoken.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
-	bearertokenProvider := &bearertoken.Provider{
-		Store:  bearertokenStore,
-		Config: authenticatorBearerTokenConfig,
-		Clock:  clockClock,
-	}
-	recoverycodeStore := &recoverycode.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
-	recoverycodeProvider := &recoverycode.Provider{
-		Store:  recoverycodeStore,
-		Config: authenticatorRecoveryCodeConfig,
-		Clock:  clockClock,
-	}
 	service3 := &service.Service{
-		Password:     passwordProvider,
-		TOTP:         totpProvider,
-		OOBOTP:       oobProvider,
-		BearerToken:  bearertokenProvider,
-		RecoveryCode: recoverycodeProvider,
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
 	}
 	verificationService := &verification.Service{
 		Config:           verificationConfig,
@@ -6900,32 +6680,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:            clockClock,
 		OTPMessageSender: messageSender,
 	}
-	bearertokenStore := &bearertoken.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorBearerTokenConfig := authenticatorConfig.BearerToken
-	bearertokenProvider := &bearertoken.Provider{
-		Store:  bearertokenStore,
-		Config: authenticatorBearerTokenConfig,
-		Clock:  clockClock,
-	}
-	recoverycodeStore := &recoverycode.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorRecoveryCodeConfig := authenticatorConfig.RecoveryCode
-	recoverycodeProvider := &recoverycode.Provider{
-		Store:  recoverycodeStore,
-		Config: authenticatorRecoveryCodeConfig,
-		Clock:  clockClock,
-	}
 	service3 := &service.Service{
-		Password:     passwordProvider,
-		TOTP:         totpProvider,
-		OOBOTP:       oobProvider,
-		BearerToken:  bearertokenProvider,
-		RecoveryCode: recoverycodeProvider,
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
 	}
 	verificationService := &verification.Service{
 		Config:           verificationConfig,

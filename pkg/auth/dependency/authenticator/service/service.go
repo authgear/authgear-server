@@ -2,10 +2,8 @@ package service
 
 import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/bearertoken"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/password"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/recoverycode"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/totp"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/core/authn"
@@ -42,29 +40,10 @@ type OOBOTPAuthenticatorProvider interface {
 	Authenticate(secret string, channel authn.AuthenticatorOOBChannel, code string) error
 }
 
-type BearerTokenAuthenticatorProvider interface {
-	Get(userID, id string) (*bearertoken.Authenticator, error)
-	GetByToken(userID string, token string) (*bearertoken.Authenticator, error)
-	List(userID string) ([]*bearertoken.Authenticator, error)
-	New(userID string, parentID string) *bearertoken.Authenticator
-	Create(*bearertoken.Authenticator) error
-	Authenticate(authenticator *bearertoken.Authenticator, token string) error
-}
-
-type RecoveryCodeAuthenticatorProvider interface {
-	Get(userID, id string) (*recoverycode.Authenticator, error)
-	List(userID string) ([]*recoverycode.Authenticator, error)
-	Generate(userID string) []*recoverycode.Authenticator
-	ReplaceAll(userID string, as []*recoverycode.Authenticator) error
-	Authenticate(candidates []*recoverycode.Authenticator, code string) *recoverycode.Authenticator
-}
-
 type Service struct {
-	Password     PasswordAuthenticatorProvider
-	TOTP         TOTPAuthenticatorProvider
-	OOBOTP       OOBOTPAuthenticatorProvider
-	BearerToken  BearerTokenAuthenticatorProvider
-	RecoveryCode RecoveryCodeAuthenticatorProvider
+	Password PasswordAuthenticatorProvider
+	TOTP     TOTPAuthenticatorProvider
+	OOBOTP   OOBOTPAuthenticatorProvider
 }
 
 func (s *Service) Get(userID string, typ authn.AuthenticatorType, id string) (*authenticator.Info, error) {
@@ -89,20 +68,6 @@ func (s *Service) Get(userID string, typ authn.AuthenticatorType, id string) (*a
 			return nil, err
 		}
 		return oobotpToAuthenticatorInfo(o), nil
-
-	case authn.AuthenticatorTypeBearerToken:
-		b, err := s.BearerToken.Get(userID, id)
-		if err != nil {
-			return nil, err
-		}
-		return bearerTokenToAuthenticatorInfo(b), nil
-
-	case authn.AuthenticatorTypeRecoveryCode:
-		r, err := s.RecoveryCode.Get(userID, id)
-		if err != nil {
-			return nil, err
-		}
-		return recoveryCodeToAuthenticatorInfo(r), nil
 	}
 
 	panic("authenticator: unknown authenticator type " + typ)
@@ -136,24 +101,6 @@ func (s *Service) List(userID string, typ authn.AuthenticatorType) ([]*authentic
 		}
 		for _, a := range as {
 			ais = append(ais, oobotpToAuthenticatorInfo(a))
-		}
-
-	case authn.AuthenticatorTypeBearerToken:
-		as, err := s.BearerToken.List(userID)
-		if err != nil {
-			return nil, err
-		}
-		for _, a := range as {
-			ais = append(ais, bearerTokenToAuthenticatorInfo(a))
-		}
-
-	case authn.AuthenticatorTypeRecoveryCode:
-		as, err := s.RecoveryCode.List(userID)
-		if err != nil {
-			return nil, err
-		}
-		for _, a := range as {
-			ais = append(ais, recoveryCodeToAuthenticatorInfo(a))
 		}
 
 	default:
@@ -211,18 +158,18 @@ func (s *Service) ListByIdentity(ii *identity.Info) (ais []*authenticator.Info, 
 	return
 }
 
-func (s *Service) New(spec *authenticator.Spec, secret string) ([]*authenticator.Info, error) {
+func (s *Service) New(spec *authenticator.Spec, secret string) (*authenticator.Info, error) {
 	switch spec.Type {
 	case authn.AuthenticatorTypePassword:
 		p, err := s.Password.New(spec.UserID, secret)
 		if err != nil {
 			return nil, err
 		}
-		return []*authenticator.Info{passwordToAuthenticatorInfo(p)}, nil
+		return passwordToAuthenticatorInfo(p), nil
 
 	case authn.AuthenticatorTypeTOTP:
 		t := s.TOTP.New(spec.UserID)
-		return []*authenticator.Info{totpToAuthenticatorInfo(t)}, nil
+		return totpToAuthenticatorInfo(t), nil
 
 	case authn.AuthenticatorTypeOOB:
 		channel := spec.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string)
@@ -234,20 +181,7 @@ func (s *Service) New(spec *authenticator.Spec, secret string) ([]*authenticator
 			email = spec.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string)
 		}
 		o := s.OOBOTP.New(spec.UserID, authn.AuthenticatorOOBChannel(channel), phone, email)
-		return []*authenticator.Info{oobotpToAuthenticatorInfo(o)}, nil
-
-	case authn.AuthenticatorTypeBearerToken:
-		parentID := spec.Props[authenticator.AuthenticatorPropBearerTokenParentID].(string)
-		b := s.BearerToken.New(spec.UserID, parentID)
-		return []*authenticator.Info{bearerTokenToAuthenticatorInfo(b)}, nil
-
-	case authn.AuthenticatorTypeRecoveryCode:
-		rs := s.RecoveryCode.Generate(spec.UserID)
-		var ais []*authenticator.Info
-		for _, r := range rs {
-			ais = append(ais, recoveryCodeToAuthenticatorInfo(r))
-		}
-		return ais, nil
+		return oobotpToAuthenticatorInfo(o), nil
 	}
 
 	panic("authenticator: unknown authenticator type " + spec.Type)
@@ -270,7 +204,6 @@ func (s *Service) WithSecret(ai *authenticator.Info, secret string) (bool, *auth
 }
 
 func (s *Service) Create(info *authenticator.Info) error {
-	var recoveryCodes []*recoverycode.Authenticator
 	switch info.Type {
 	case authn.AuthenticatorTypePassword:
 		a := passwordFromAuthenticatorInfo(info)
@@ -290,25 +223,8 @@ func (s *Service) Create(info *authenticator.Info) error {
 			return err
 		}
 
-	case authn.AuthenticatorTypeBearerToken:
-		a := bearerTokenFromAuthenticatorInfo(info)
-		if err := s.BearerToken.Create(a); err != nil {
-			return err
-		}
-
-	case authn.AuthenticatorTypeRecoveryCode:
-		a := recoveryCodeFromAuthenticatorInfo(info)
-		recoveryCodes = append(recoveryCodes, a)
-
 	default:
 		panic("authenticator: unknown authenticator type " + info.Type)
-	}
-
-	if len(recoveryCodes) > 0 {
-		err := s.RecoveryCode.ReplaceAll(info.UserID, recoveryCodes)
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil
@@ -384,29 +300,6 @@ func (s *Service) Authenticate(spec *authenticator.Spec, state map[string]string
 
 	case authn.AuthenticatorTypeOOB:
 		panic("authenticator: unsupported OOB authenticator")
-
-	case authn.AuthenticatorTypeBearerToken:
-		b, err := s.BearerToken.GetByToken(spec.UserID, secret)
-		if err != nil {
-			return nil, err
-		}
-
-		if s.BearerToken.Authenticate(b, secret) != nil {
-			return nil, authenticator.ErrInvalidCredentials
-		}
-		return bearerTokenToAuthenticatorInfo(b), nil
-
-	case authn.AuthenticatorTypeRecoveryCode:
-		rs, err := s.RecoveryCode.List(spec.UserID)
-		if err != nil {
-			return nil, err
-		}
-
-		r := s.RecoveryCode.Authenticate(rs, secret)
-		if r == nil {
-			return nil, authenticator.ErrInvalidCredentials
-		}
-		return recoveryCodeToAuthenticatorInfo(r), nil
 	}
 
 	panic("authenticator: unknown authenticator type " + spec.Type)

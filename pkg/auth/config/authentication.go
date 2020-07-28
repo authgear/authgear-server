@@ -22,7 +22,9 @@ var _ = Schema.Add("AuthenticationConfig", `
 			"items": { "$ref": "#/$defs/AuthenticatorType" },
 			"uniqueItems": true
 		},
-		"secondary_authentication_mode": { "$ref": "#/$defs/SecondaryAuthenticationMode" }
+		"secondary_authentication_mode": { "$ref": "#/$defs/SecondaryAuthenticationMode" },
+		"device_token": { "$ref": "#/$defs/DeviceTokenConfig" },
+		"recovery_code": { "$ref": "#/$defs/RecoveryCodeConfig" }
 	}
 }
 `)
@@ -46,6 +48,8 @@ type AuthenticationConfig struct {
 	PrimaryAuthenticators       []authn.AuthenticatorType   `json:"primary_authenticators,omitempty"`
 	SecondaryAuthenticators     []authn.AuthenticatorType   `json:"secondary_authenticators,omitempty"`
 	SecondaryAuthenticationMode SecondaryAuthenticationMode `json:"secondary_authentication_mode,omitempty"`
+	DeviceToken                 *DeviceTokenConfig          `json:"device_token,omitempty"`
+	RecoveryCode                *RecoveryCodeConfig         `json:"recovery_code,omitempty"`
 }
 
 func (c *AuthenticationConfig) SetDefaults() {
@@ -64,7 +68,6 @@ func (c *AuthenticationConfig) SetDefaults() {
 		c.SecondaryAuthenticators = []authn.AuthenticatorType{
 			authn.AuthenticatorTypeTOTP,
 			authn.AuthenticatorTypeOOB,
-			authn.AuthenticatorTypeBearerToken,
 		}
 	}
 	if c.SecondaryAuthenticationMode == "" {
@@ -86,3 +89,47 @@ const (
 	SecondaryAuthenticationModeIfExists    SecondaryAuthenticationMode = "if_exists"
 	SecondaryAuthenticationModeRequired    SecondaryAuthenticationMode = "required"
 )
+
+var _ = Schema.Add("DeviceTokenConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"disabled": { "type": "boolean" },
+		"expire_in_days": { "$ref": "#/$defs/DurationDays" }
+	}
+}
+`)
+
+type DeviceTokenConfig struct {
+	Disabled bool         `json:"disabled,omitempty"`
+	ExpireIn DurationDays `json:"expire_in_days,omitempty"`
+}
+
+func (c *DeviceTokenConfig) SetDefaults() {
+	if c.ExpireIn == 0 {
+		c.ExpireIn = DurationDays(30)
+	}
+}
+
+var _ = Schema.Add("RecoveryCodeConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"count": { "type": "integer" },
+		"list_enabled": { "type": "boolean" }
+	}
+}
+`)
+
+type RecoveryCodeConfig struct {
+	Count       int  `json:"count,omitempty"`
+	ListEnabled bool `json:"list_enabled,omitempty"`
+}
+
+func (c *RecoveryCodeConfig) SetDefaults() {
+	if c.Count == 0 {
+		c.Count = 16
+	}
+}

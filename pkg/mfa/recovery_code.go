@@ -1,10 +1,8 @@
-package recoverycode
+package mfa
 
-import (
-	"time"
-)
+import "time"
 
-type Authenticator struct {
+type RecoveryCode struct {
 	ID        string
 	UserID    string
 	Code      string
