@@ -27,11 +27,14 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *newinteraction.Contex
 	if !ok {
 		return nil, newinteraction.ErrIncompatibleInput
 	}
+	channel := input.GetOOBChannel()
+	if channel == "" {
+		return nil, newinteraction.ErrIncompatibleInput
+	}
 
 	var spec *authenticator.Spec
 	var identityInfo *identity.Info
 	target := input.GetOOBTarget()
-	channel := input.GetOOBChannel()
 	if e.Stage == newinteraction.AuthenticationStagePrimary {
 		// Primary OOB authenticators must be bound to login ID identity
 		identityInfo = graph.MustGetUserLastIdentity()
@@ -42,9 +45,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *newinteraction.Contex
 		spec = &authenticator.Spec{
 			UserID: identityInfo.UserID,
 			Type:   authn.AuthenticatorTypeOOB,
-			Props: map[string]interface{}{
-				authenticator.AuthenticatorPropOOBOTPIdentityID: identityInfo.ID,
-			},
+			Props:  map[string]interface{}{},
 		}
 
 		// Ignore given OOB target, use channel & target inferred from identity
@@ -96,7 +97,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *newinteraction.Contex
 		return nil, err
 	}
 
-	err = sendOOBCode(ctx, e.Stage, otp.OOBOperationTypeSetup, identityInfo, infos[0], secret)
+	result, err := sendOOBCode(ctx, e.Stage, otp.OOBOperationTypeSetup, identityInfo, infos[0], secret)
 	if err != nil {
 		return nil, err
 	}
@@ -106,6 +107,9 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *newinteraction.Contex
 		Identity:      identityInfo,
 		Authenticator: infos[0],
 		Secret:        secret,
+		Channel:       result.Channel,
+		CodeLength:    result.CodeLength,
+		SendCooldown:  result.SendCooldown,
 	}, nil
 }
 
@@ -114,6 +118,24 @@ type NodeCreateAuthenticatorOOBSetup struct {
 	Identity      *identity.Info                     `json:"identity"`
 	Authenticator *authenticator.Info                `json:"authenticator"`
 	Secret        string                             `json:"secret"`
+	Channel       string                             `json:"channel"`
+	CodeLength    int                                `json:"code_length"`
+	SendCooldown  int                                `json:"send_cooldown"`
+}
+
+// GetOOBOTPChannel implements OOBOTPNode.
+func (n *NodeCreateAuthenticatorOOBSetup) GetOOBOTPChannel() string {
+	return n.Channel
+}
+
+// GetOOBOTPCodeSendCooldown implements OOBOTPNode.
+func (n *NodeCreateAuthenticatorOOBSetup) GetOOBOTPCodeSendCooldown() int {
+	return n.SendCooldown
+}
+
+// GetOOBOTPCodeLength implements OOBOTPNode.
+func (n *NodeCreateAuthenticatorOOBSetup) GetOOBOTPCodeLength() int {
+	return n.CodeLength
 }
 
 func (n *NodeCreateAuthenticatorOOBSetup) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {

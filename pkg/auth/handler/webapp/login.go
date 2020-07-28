@@ -230,6 +230,7 @@ type LoginLoginID struct {
 }
 
 var _ nodes.InputSelectIdentityLoginID = &LoginLoginID{}
+var _ nodes.InputAuthenticationOOBTrigger = &LoginLoginID{}
 
 // GetLoginIDKey implements InputSelectIdentityLoginID.
 func (i *LoginLoginID) GetLoginIDKey() string {

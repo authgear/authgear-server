@@ -53,7 +53,7 @@ type OOBAuthenticatorProvider interface {
 		code string,
 		operation otp.OOBOperationType,
 		stage otp.OOBAuthenticationStage,
-	) error
+	) (*otp.OOBSendResult, error)
 }
 
 type AnonymousIdentityProvider interface {

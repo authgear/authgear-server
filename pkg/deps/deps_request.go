@@ -4,6 +4,7 @@ import (
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/forgotpassword"
 	identityanonymous "github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
@@ -59,6 +60,7 @@ var requestDeps = wire.NewSet(
 	viewmodelswebapp.DependencySet,
 
 	handlerwebapp.DependencySet,
+	wire.Bind(new(handlerwebapp.PasswordPolicy), new(*password.Checker)),
 	wire.Bind(new(handlerwebapp.LogoutSessionManager), new(*auth.SessionManager)),
 	wire.Bind(new(handlerwebapp.WebAppService), new(*webapp.Service)),
 )

@@ -36,7 +36,7 @@ type TOTPAuthenticatorProvider interface {
 type OOBOTPAuthenticatorProvider interface {
 	Get(userID, id string) (*oob.Authenticator, error)
 	List(userID string) ([]*oob.Authenticator, error)
-	New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string, identityID *string) *oob.Authenticator
+	New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string) *oob.Authenticator
 	Create(*oob.Authenticator) error
 	Delete(*oob.Authenticator) error
 	Authenticate(secret string, channel authn.AuthenticatorOOBChannel, code string) error
@@ -233,8 +233,7 @@ func (a *Provider) New(userID string, spec authenticator.Spec, secret string) ([
 		case authn.AuthenticatorOOBChannelEmail:
 			email = spec.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string)
 		}
-		identityID := spec.Props[authenticator.AuthenticatorPropOOBOTPIdentityID].(*string)
-		o := a.OOBOTP.New(userID, authn.AuthenticatorOOBChannel(channel), phone, email, identityID)
+		o := a.OOBOTP.New(userID, authn.AuthenticatorOOBChannel(channel), phone, email)
 		return []*authenticator.Info{oobotpToAuthenticatorInfo(o)}, nil
 
 	case authn.AuthenticatorTypeBearerToken:

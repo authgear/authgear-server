@@ -25,7 +25,7 @@ func (e *EdgeOOBResendCode) Instantiate(ctx *newinteraction.Context, graph *newi
 		return nil, newinteraction.ErrIncompatibleInput
 	}
 
-	err := sendOOBCode(ctx, e.Stage, e.Operation, e.Identity, e.Authenticator, e.Secret)
+	_, err := sendOOBCode(ctx, e.Stage, e.Operation, e.Identity, e.Authenticator, e.Secret)
 	if err != nil {
 		return nil, err
 	}

@@ -6,8 +6,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/httputil"
@@ -81,6 +83,7 @@ var TemplateAuthUISignupHTML = template.Spec{
 
 				{{ range $.IdentityCandidates }}
 				{{ if eq .type "login_id" }}{{ if eq .login_id_key $.x_login_id_key }}
+				<input type="hidden" name="x_login_id_type" value="{{ .login_id_type }}">
 				{{ if eq .login_id_type "phone" }}
 					<div class="phone-input">
 						<select class="input select primary-txt" name="x_calling_code">
@@ -141,12 +144,13 @@ var SignupSchema = validation.NewMultipartSchema("").
 			"type": "object",
 			"properties": {
 				"x_login_id_key": { "type": "string" },
+				"x_login_id_type": { "type": "string" },
 				"x_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] },
 				"x_calling_code": { "type": "string" },
 				"x_national_number": { "type": "string" },
 				"x_login_id": { "type": "string" }
 			},
-			"required": ["x_login_id_key", "x_login_id_input_type"],
+			"required": ["x_login_id_key", "x_login_id_type", "x_login_id_input_type"],
 			"allOf": [
 				{
 					"if": {
@@ -196,31 +200,75 @@ func (h *SignupHandler) GetData(r *http.Request, state *webapp.State, graph *new
 	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
 	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
-	// FIXME(webapp): derive AuthenticationViewModel with graph and edges
-	authenticationViewModel := viewmodels.AuthenticationViewModel{}
+	authenticationViewModel := viewmodels.NewAuthenticationViewModel(edges)
 	viewmodels.Embed(data, authenticationViewModel)
 	return data, nil
 }
 
-// FIXME(webapp): implement input interface
 type SignupOAuth struct {
 	ProviderAlias    string
-	Action           string
+	State            string
 	NonceSource      *http.Cookie
 	ErrorRedirectURI string
 }
 
-// FIXME(webapp): implement input interface
+var _ nodes.InputSelectIdentityOAuthProvider = &SignupOAuth{}
+
+func (i *SignupOAuth) GetProviderAlias() string {
+	return i.ProviderAlias
+}
+
+func (i *SignupOAuth) GetState() string {
+	return i.State
+}
+
+func (i *SignupOAuth) GetNonceSource() *http.Cookie {
+	return i.NonceSource
+}
+
+func (i *SignupOAuth) GetErrorRedirectURI() string {
+	return i.ErrorRedirectURI
+}
+
 type SignupLoginID struct {
+	LoginIDType  string
 	LoginIDKey   string
 	LoginIDValue string
+}
+
+var _ nodes.InputCreateIdentityLoginID = &SignupLoginID{}
+var _ nodes.InputCreateAuthenticatorOOBSetup = &SignupLoginID{}
+
+// GetLoginIDKey implements InputCreateIdentityLoginID.
+func (i *SignupLoginID) GetLoginIDKey() string {
+	return i.LoginIDKey
+}
+
+// GetLoginID implements InputCreateIdentityLoginID.
+func (i *SignupLoginID) GetLoginID() string {
+	return i.LoginIDValue
+}
+
+func (i *SignupLoginID) GetOOBChannel() authn.AuthenticatorOOBChannel {
+	switch i.LoginIDType {
+	case string(config.LoginIDKeyTypeEmail):
+		return authn.AuthenticatorOOBChannelEmail
+	case string(config.LoginIDKeyTypePhone):
+		return authn.AuthenticatorOOBChannelSMS
+	default:
+		return ""
+	}
+}
+
+// GetOOBTarget implements InputCreateAuthenticatorOOBSetup.
+func (i *SignupLoginID) GetOOBTarget() string {
+	return i.LoginIDValue
 }
 
 func (h *SignupHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	return &webapp.Intent{
 		RedirectURI: webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy),
-		// FIXME(webapp): Use signup intent
-		Intent: intents.NewIntentLogin(),
+		Intent:      intents.NewIntentSignup(),
 	}
 }
 
@@ -258,11 +306,12 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" && providerAlias != "" {
 		h.Database.WithTx(func() error {
 			nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
+			stateID := webapp.NewID()
+			intent.StateID = stateID
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
 				input = &SignupOAuth{
-					ProviderAlias: providerAlias,
-					// FIXME(webapp): Use constant
-					Action:           "login",
+					ProviderAlias:    providerAlias,
+					State:            stateID,
 					NonceSource:      nonceSource,
 					ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
 				}
@@ -292,8 +341,10 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 
 				loginIDKey := r.Form.Get("x_login_id_key")
+				loginIDType := r.Form.Get("x_login_id_type")
 
 				input = &SignupLoginID{
+					LoginIDType:  loginIDType,
 					LoginIDKey:   loginIDKey,
 					LoginIDValue: loginIDValue,
 				}

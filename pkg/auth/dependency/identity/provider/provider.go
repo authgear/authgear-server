@@ -399,17 +399,14 @@ func (a *Provider) RelateIdentityToAuthenticator(ii *identity.Info, as *authenti
 			return nil
 		}
 
-		identityID := ii.ID
 		switch loginIDConfig.Type {
 		case config.LoginIDKeyTypeEmail:
 			as.Props[authenticator.AuthenticatorPropOOBOTPChannelType] = string(authn.AuthenticatorOOBChannelEmail)
 			as.Props[authenticator.AuthenticatorPropOOBOTPEmail] = loginID.Value
-			as.Props[authenticator.AuthenticatorPropOOBOTPIdentityID] = &identityID
 			return as
 		case config.LoginIDKeyTypePhone:
 			as.Props[authenticator.AuthenticatorPropOOBOTPChannelType] = string(authn.AuthenticatorOOBChannelSMS)
 			as.Props[authenticator.AuthenticatorPropOOBOTPPhone] = loginID.Value
-			as.Props[authenticator.AuthenticatorPropOOBOTPIdentityID] = &identityID
 			return as
 		default:
 			return nil

@@ -53,14 +53,13 @@ func (p *Provider) List(userID string) ([]*Authenticator, error) {
 	return authenticators, nil
 }
 
-func (p *Provider) New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string, identityID *string) *Authenticator {
+func (p *Provider) New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string) *Authenticator {
 	a := &Authenticator{
-		ID:         uuid.New(),
-		UserID:     userID,
-		Channel:    channel,
-		Phone:      phone,
-		Email:      email,
-		IdentityID: identityID,
+		ID:      uuid.New(),
+		UserID:  userID,
+		Channel: channel,
+		Phone:   phone,
+		Email:   email,
 	}
 	return a
 }
@@ -115,7 +114,7 @@ func (p *Provider) SendCode(
 	code string,
 	operation otp.OOBOperationType,
 	stage otp.OOBAuthenticationStage,
-) error {
+) (result *otp.OOBSendResult, err error) {
 	opts := otp.SendOptions{
 		LoginID:   loginID,
 		OTP:       code,
@@ -125,13 +124,24 @@ func (p *Provider) SendCode(
 	switch channel {
 	case authn.AuthenticatorOOBChannelEmail:
 		opts.LoginIDType = config.LoginIDKeyTypeEmail
-		return p.OTPMessageSender.SendEmail(opts, p.Config.Email.Message)
+		err = p.OTPMessageSender.SendEmail(opts, p.Config.Email.Message)
 	case authn.AuthenticatorOOBChannelSMS:
 		opts.LoginIDType = config.LoginIDKeyTypePhone
-		return p.OTPMessageSender.SendSMS(opts, p.Config.SMS.Message)
+		err = p.OTPMessageSender.SendSMS(opts, p.Config.SMS.Message)
 	default:
 		panic("oob: unknown channel type: " + channel)
 	}
+
+	if err != nil {
+		return
+	}
+
+	result = &otp.OOBSendResult{
+		Channel:      string(channel),
+		CodeLength:   len(code),
+		SendCooldown: OOBOTPSendCooldownSeconds,
+	}
+	return
 }
 
 func sortAuthenticators(as []*Authenticator) {

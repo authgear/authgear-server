@@ -4190,10 +4190,11 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Graph:  newinteractionService,
 	}
 	createPasswordHandler := &webapp2.CreatePasswordHandler{
-		Database:      handle,
-		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
-		WebApp:        webappService,
+		Database:       handle,
+		BaseViewModel:  baseViewModeler,
+		Renderer:       htmlRenderer,
+		WebApp:         webappService,
+		PasswordPolicy: passwordChecker,
 	}
 	return createPasswordHandler
 }

@@ -60,7 +60,7 @@ func (e *EdgeAuthenticationOOBTrigger) Instantiate(ctx *newinteraction.Context, 
 		return nil, err
 	}
 
-	err = sendOOBCode(ctx, e.Stage, otp.OOBOperationTypeAuthenticate, identityInfo, targetInfo, secret)
+	result, err := sendOOBCode(ctx, e.Stage, otp.OOBOperationTypeAuthenticate, identityInfo, targetInfo, secret)
 	if err != nil {
 		return nil, err
 	}
@@ -70,6 +70,9 @@ func (e *EdgeAuthenticationOOBTrigger) Instantiate(ctx *newinteraction.Context, 
 		Identity:      identityInfo,
 		Authenticator: targetInfo,
 		Secret:        secret,
+		Channel:       result.Channel,
+		CodeLength:    result.CodeLength,
+		SendCooldown:  result.SendCooldown,
 	}, nil
 }
 
@@ -78,6 +81,24 @@ type NodeAuthenticationOOBTrigger struct {
 	Identity      *identity.Info                     `json:"identity"`
 	Authenticator *authenticator.Info                `json:"authenticator"`
 	Secret        string                             `json:"secret"`
+	Channel       string                             `json:"channel"`
+	CodeLength    int                                `json:"code_length"`
+	SendCooldown  int                                `json:"send_cooldown"`
+}
+
+// GetOOBOTPChannel implements OOBOTPNode.
+func (n *NodeAuthenticationOOBTrigger) GetOOBOTPChannel() string {
+	return n.Channel
+}
+
+// GetOOBOTPCodeSendCooldown implements OOBOTPNode.
+func (n *NodeAuthenticationOOBTrigger) GetOOBOTPCodeSendCooldown() int {
+	return n.SendCooldown
+}
+
+// GetOOBOTPCodeLength implements OOBOTPNode.
+func (n *NodeAuthenticationOOBTrigger) GetOOBOTPCodeLength() int {
+	return n.CodeLength
 }
 
 func (n *NodeAuthenticationOOBTrigger) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
