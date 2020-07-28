@@ -8,8 +8,8 @@ import (
 	authenticatorbearertoken "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/bearertoken"
 	authenticatoroob "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
 	authenticatorpassword "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/password"
-	authenticatorprovider "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/provider"
 	authenticatorrecoverycode "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/recoverycode"
+	authenticatorservice "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/service"
 	authenticatortotp "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/totp"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/forgotpassword"
@@ -17,7 +17,7 @@ import (
 	identityanonymous "github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
 	identityloginid "github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	identityoauth "github.com/authgear/authgear-server/pkg/auth/dependency/identity/oauth"
-	identityprovider "github.com/authgear/authgear-server/pkg/auth/dependency/identity/provider"
+	identityprovider "github.com/authgear/authgear-server/pkg/auth/dependency/identity/service"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
 	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
@@ -99,15 +99,15 @@ var commonDeps = wire.NewSet(
 		authenticatorbearertoken.DependencySet,
 		authenticatorrecoverycode.DependencySet,
 
-		authenticatorprovider.DependencySet,
-		wire.Bind(new(authenticatorprovider.PasswordAuthenticatorProvider), new(*authenticatorpassword.Provider)),
-		wire.Bind(new(authenticatorprovider.OOBOTPAuthenticatorProvider), new(*authenticatoroob.Provider)),
-		wire.Bind(new(authenticatorprovider.TOTPAuthenticatorProvider), new(*authenticatortotp.Provider)),
-		wire.Bind(new(authenticatorprovider.BearerTokenAuthenticatorProvider), new(*authenticatorbearertoken.Provider)),
-		wire.Bind(new(authenticatorprovider.RecoveryCodeAuthenticatorProvider), new(*authenticatorrecoverycode.Provider)),
+		authenticatorservice.DependencySet,
+		wire.Bind(new(authenticatorservice.PasswordAuthenticatorProvider), new(*authenticatorpassword.Provider)),
+		wire.Bind(new(authenticatorservice.OOBOTPAuthenticatorProvider), new(*authenticatoroob.Provider)),
+		wire.Bind(new(authenticatorservice.TOTPAuthenticatorProvider), new(*authenticatortotp.Provider)),
+		wire.Bind(new(authenticatorservice.BearerTokenAuthenticatorProvider), new(*authenticatorbearertoken.Provider)),
+		wire.Bind(new(authenticatorservice.RecoveryCodeAuthenticatorProvider), new(*authenticatorrecoverycode.Provider)),
 
-		wire.Bind(new(newinteraction.AuthenticatorProvider), new(*authenticatorprovider.Provider)),
-		wire.Bind(new(verification.AuthenticatorProvider), new(*authenticatorprovider.Provider)),
+		wire.Bind(new(newinteraction.AuthenticatorService), new(*authenticatorservice.Service)),
+		wire.Bind(new(verification.AuthenticatorProvider), new(*authenticatorservice.Service)),
 	),
 
 	wire.NewSet(
@@ -123,11 +123,8 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(identityprovider.LoginIDIdentityProvider), new(*identityloginid.Provider)),
 		wire.Bind(new(identityprovider.OAuthIdentityProvider), new(*identityoauth.Provider)),
 		wire.Bind(new(identityprovider.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
-		wire.Bind(new(user.IdentityProvider), new(*identityprovider.Provider)),
-		wire.Bind(new(interaction.IdentityProvider), new(*identityprovider.Provider)),
-		wire.Bind(new(interactionflows.IdentityProvider), new(*identityprovider.Provider)),
-		wire.Bind(new(newinteraction.IdentityProvider), new(*identityprovider.Provider)),
-		wire.Bind(new(verification.IdentityProvider), new(*identityprovider.Provider)),
+		wire.Bind(new(user.IdentityProvider), new(*identityprovider.Service)),
+		wire.Bind(new(newinteraction.IdentityService), new(*identityprovider.Service)),
 	),
 
 	wire.NewSet(

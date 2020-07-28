@@ -19,30 +19,28 @@ import (
 	"github.com/authgear/authgear-server/pkg/otp"
 )
 
-type IdentityProvider interface {
+type IdentityService interface {
 	Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error)
-	// FIXME: no need to return userID, now identity.Info has it
-	// FIXME: take *identity.Spec instead
-	GetByClaims(typ authn.IdentityType, claims map[string]interface{}) (string, *identity.Info, error)
+	GetBySpec(spec *identity.Spec) (*identity.Info, error)
 	ListByUser(userID string) ([]*identity.Info, error)
-	New(userID string, typ authn.IdentityType, claims map[string]interface{}) (*identity.Info, error)
-	CreateAll(is []*identity.Info) error
-	UpdateAll(is []*identity.Info) error
+	New(userID string, spec *identity.Spec) (*identity.Info, error)
+	Create(is *identity.Info) error
+	Update(is *identity.Info) error
 	Validate(is []*identity.Info) error
+	CheckDuplicated(info *identity.Info) error
 }
 
-type AuthenticatorProvider interface {
-	// FIXME: cleanup user ID, authenticator.Info & Spec has it
+type AuthenticatorService interface {
 	Get(userID string, typ authn.AuthenticatorType, id string) (*authenticator.Info, error)
 	List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error)
-	ListByIdentity(userID string, ii *identity.Info) ([]*authenticator.Info, error)
-	New(userID string, spec authenticator.Spec, secret string) ([]*authenticator.Info, error)
-	WithSecret(userID string, a *authenticator.Info, secret string) (changed bool, info *authenticator.Info, err error)
-	CreateAll(userID string, ais []*authenticator.Info) error
-	UpdateAll(userID string, ais []*authenticator.Info) error
-	DeleteAll(userID string, ais []*authenticator.Info) error
-	Authenticate(userID string, spec authenticator.Spec, state map[string]string, secret string) (*authenticator.Info, error)
-	VerifySecret(userID string, a *authenticator.Info, state map[string]string, secret string) error
+	ListByIdentity(ii *identity.Info) ([]*authenticator.Info, error)
+	New(spec *authenticator.Spec, secret string) ([]*authenticator.Info, error)
+	WithSecret(authenticatorInfo *authenticator.Info, secret string) (changed bool, info *authenticator.Info, err error)
+	Create(authenticatorInfo *authenticator.Info) error
+	Update(authenticatorInfo *authenticator.Info) error
+	Delete(authenticatorInfo *authenticator.Info) error
+	Authenticate(spec *authenticator.Spec, state map[string]string, secret string) (*authenticator.Info, error)
+	VerifySecret(info *authenticator.Info, state map[string]string, secret string) error
 }
 
 type OOBAuthenticatorProvider interface {
@@ -90,8 +88,8 @@ type Context struct {
 	Database db.SQLExecutor
 	Config   *config.AppConfig
 
-	Identities           IdentityProvider
-	Authenticators       AuthenticatorProvider
+	Identities           IdentityService
+	Authenticators       AuthenticatorService
 	AnonymousIdentities  AnonymousIdentityProvider
 	OOBAuthenticators    OOBAuthenticatorProvider
 	OAuthProviderFactory OAuthProviderFactory

@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"errors"
+
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 )
@@ -27,7 +29,13 @@ func (n *NodeCreateIdentityEnd) Apply(perform func(eff newinteraction.Effect) er
 			return err
 		}
 
-		if err := ctx.Identities.CreateAll([]*identity.Info{n.NewIdentity}); err != nil {
+		if err := ctx.Identities.CheckDuplicated(n.NewIdentity); err != nil {
+			if errors.Is(err, identity.ErrIdentityAlreadyExists) {
+				return newinteraction.ErrDuplicatedIdentity
+			}
+			return err
+		}
+		if err := ctx.Identities.Create(n.NewIdentity); err != nil {
 			return err
 		}
 

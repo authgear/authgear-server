@@ -45,7 +45,10 @@ func (e *EdgeCreateIdentityOAuth) Instantiate(ctx *newinteraction.Context, graph
 		}
 	}
 
-	newIdentity, err := ctx.Identities.New(graph.MustGetUserID(), authn.IdentityTypeOAuth, claims)
+	newIdentity, err := ctx.Identities.New(graph.MustGetUserID(), &identity.Spec{
+		Type:   authn.IdentityTypeOAuth,
+		Claims: claims,
+	})
 	if err != nil {
 		return nil, err
 	}

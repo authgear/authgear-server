@@ -16,7 +16,7 @@ type OAuthProviderFactory interface {
 type WebAppFlow struct {
 	Config               *config.IdentityConfig
 	SSOOAuthConfig       *config.OAuthSSOConfig
-	Identities           IdentityProvider
+	Identities           IdentityProvider `wire:"-"`
 	OAuthProviderFactory OAuthProviderFactory
 	Users                UserProvider
 	Hooks                HookProvider

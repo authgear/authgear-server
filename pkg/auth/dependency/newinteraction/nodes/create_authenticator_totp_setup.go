@@ -31,7 +31,7 @@ func (e *EdgeCreateAuthenticatorTOTPSetup) Instantiate(ctx *newinteraction.Conte
 		Props:  map[string]interface{}{},
 	}
 
-	infos, err := ctx.Authenticators.New(spec.UserID, *spec, "")
+	infos, err := ctx.Authenticators.New(spec, "")
 	if err != nil {
 		return nil, err
 	}

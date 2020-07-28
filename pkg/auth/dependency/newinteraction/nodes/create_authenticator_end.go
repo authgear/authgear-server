@@ -28,8 +28,10 @@ type NodeCreateAuthenticatorEnd struct {
 
 func (n *NodeCreateAuthenticatorEnd) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	err := perform(newinteraction.EffectRun(func(ctx *newinteraction.Context) error {
-		if err := ctx.Authenticators.CreateAll(graph.MustGetUserID(), n.Authenticators); err != nil {
-			return err
+		for _, a := range n.Authenticators {
+			if err := ctx.Authenticators.Create(a); err != nil {
+				return err
+			}
 		}
 
 		return nil

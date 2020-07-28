@@ -32,7 +32,7 @@ func (e *EdgeAuthenticationPassword) Instantiate(ctx *newinteraction.Context, gr
 		Type:   authn.AuthenticatorTypePassword,
 		Props:  map[string]interface{}{},
 	}
-	info, err := ctx.Authenticators.Authenticate(userID, *spec, nil, input.GetPassword())
+	info, err := ctx.Authenticators.Authenticate(spec, nil, input.GetPassword())
 	if errors.Is(err, authenticator.ErrAuthenticatorNotFound) ||
 		errors.Is(err, authenticator.ErrInvalidCredentials) {
 		info = nil

@@ -114,7 +114,7 @@ func (n *NodeSelectIdentityOAuthUserInfo) DeriveEdges(ctx *newinteraction.Contex
 		},
 	}
 
-	_, info, err := ctx.Identities.GetByClaims(spec.Type, spec.Claims)
+	info, err := ctx.Identities.GetBySpec(spec)
 	if errors.Is(err, identity.ErrIdentityNotFound) {
 		info = nil
 	} else if err != nil {

@@ -83,7 +83,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *newinteraction.Contex
 		spec.Props[authenticator.AuthenticatorPropOOBOTPEmail] = target
 	}
 
-	infos, err := ctx.Authenticators.New(spec.UserID, *spec, "")
+	infos, err := ctx.Authenticators.New(spec, "")
 	if err != nil {
 		return nil, err
 	}
