@@ -35,8 +35,8 @@
     * [Password Authenticator](#password-authenticator)
     * [TOTP Authenticator](#totp-authenticator)
     * [OOB-OTP Authenticator](#oob-otp-authenticator)
-    * [Bearer Token Authenticator](#bearer-token-authenticator)
-    * [Recovery Code Authenticator](#recovery-code-authenticator)
+    * [Device Token](#device-token)
+    * [Recovery Code](#recovery-code)
 
 ## User
 
@@ -238,8 +238,8 @@ Out-of-band One-time-password authenticator is either primary or secondary.
 
 OOB-OTP authenticator is bound to a recipient address. The recipient can be an email address or phone number that can receive SMS messages.
 
-An OOB-OTP authenticator may be bound to a login ID identity. If the bounded
-identity is deleted, the authenticator would be deleted as well.
+An OOB-OTP authenticator may matches a login ID identity. The normalized email
+address/phone number is used to match login ID identities.
 
 The OTP format can be customized in the configuration. The following formats are
 available:
@@ -261,18 +261,25 @@ authenticator:
 
 The OTP message is rendered by a [customizable template](./templates.md#otp_message).
 
-### Bearer Token Authenticator
+### Device Token
 
-Bearer token authenticator is secondary.
+Device tokens are used to indicate a trusted device.
 
-A bearer token is generated during MFA when the user opt to skip MFA next time.
+A device token is generated when user opts in during secondary authentication.
+The generated device token is stored in a cookie, and it allows the user to skip
+secondary authentication as long as it remains valid.
 
-The token is a cryptographically secure random string of 256 bits (32 bytes) in hex encoding.
+The token is a cryptographically secure random string with at least 256 bits.
 
-### Recovery Code Authenticator
+### Recovery Code
 
-Recovery code authenticator is secondary.
+Recovery codes are used to bypass secondary authentication when a secondary
+authenticator is lost or unusable.
 
-Recovery codes are generated when the user adds a secondary authenticator first time.
+Recovery codes are generated when the user adds a secondary authenticator first
+time. It can be regenerated and listed (if configured) in settings page.
 
-The codes are cryptographically secure random 10-letter string in Crockford's Base32 alphabet.
+Once used, a recovery code is invalidated.
+
+The codes are cryptographically secure random 10-letter string in Crockford's
+Base32 alphabet.
