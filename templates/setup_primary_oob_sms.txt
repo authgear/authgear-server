@@ -1,5 +1,5 @@
-{{ .Code }} is your {{ .AppName }} verification code.
+{{ .Code }} is your {{ .AppName }} one-time-password.
 
-Please ignore if you didn't sign in or sign up.
+Please ignore if you are not signing up your account.
 
 @{{ .Host }} #{{ .Code }}

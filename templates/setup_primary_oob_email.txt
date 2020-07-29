@@ -1,7 +1,7 @@
-Verify your email on {{ .AppName }}
+Signing up on {{ .AppName }}
 
-You have selected {{ .Email }} for verification. Please use the following code to complete to the verification.
+Please use the following one-time-password to complete the sign up process.
 
 {{ .Code }}
 
-If you didn't sign in or sign up please ignore this email.
+If you are not signing up your account please ignore this email.

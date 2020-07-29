@@ -7,8 +7,8 @@
 <mj-body>
   <mj-section>
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px" padding="20px">Verify your email on {{ .AppName }}</mj-text>
-      <mj-text font-size="16px" padding="20px">You have selected {{ .Email }} for verification. Please use the following code to complete the verification.</mj-text>
+      <mj-text font-weight="bold" font-size="24px" padding="20px">Logging in to {{ .AppName }}</mj-text>
+      <mj-text font-size="16px" padding="20px">Please use the following one-time-password to complete the log in process.</mj-text>
     </mj-column>
   </mj-section>
   <mj-section>
@@ -18,7 +18,7 @@
   </mj-section>
   <mj-section>
     <mj-column>
-      <mj-text font-weight="light" font-size="12px" padding="20px">If you didn't sign in or sign up please ignore this email.</mj-text>
+      <mj-text font-weight="light" font-size="12px" padding="20px">If you are not logging in your account please ignore this email.</mj-text>
       <mj-image width="65px" height="15px" padding="60px" src="{{ .StaticAssetURLPrefix }}/authui/image/ic_footer_authgear.png" />
     </mj-column>
   </mj-section>
