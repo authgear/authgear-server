@@ -17,6 +17,7 @@ COPY ./scripts/npm/package.json ./scripts/npm/package-lock.json ./scripts/npm/
 RUN cd ./scripts/npm && npm ci
 COPY . .
 RUN make static GIT_HASH=$GIT_HASH
+RUN make html-email && rm ./templates/*.mjml
 
 FROM debian:buster-slim
 ARG GIT_HASH
@@ -32,6 +33,7 @@ COPY ./reserved_name.txt .
 COPY ./migrations ./migrations
 COPY --from=stage1 /src/authgear /usr/local/bin/
 COPY --from=stage2 /src/dist/ ./dist/
+COPY --from=stage2 /src/templates/ ./templates/
 USER nobody
 EXPOSE 3000
 ENV STATIC_ASSET_DIR ./dist

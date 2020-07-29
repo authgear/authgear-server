@@ -23,59 +23,6 @@ var TemplateAuthUIOOBOTPHTML = template.Spec{
 	Translation: TemplateItemTypeAuthUITranslationJSON,
 	Defines:     defines,
 	Components:  components,
-	Default: `<!DOCTYPE html>
-<html>
-{{ template "auth_ui_html_head.html" . }}
-<body class="page">
-<div class="content">
-
-{{ template "auth_ui_header.html" . }}
-
-<div class="simple-form vertical-form form-fields-container">
-
-<div class="nav-bar">
-	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
-</div>
-
-{{ if $.OOBOTPChannel }}
-{{ if eq $.OOBOTPChannel "sms" }}
-<div class="title primary-txt">{{ localize "oob-otp-page-title--sms" }}</div>
-{{ end }}
-{{ if eq $.OOBOTPChannel "email" }}
-<div class="title primary-txt">{{ localize "oob-otp-page-title--email" }}</div>
-{{ end }}
-{{ end }}
-
-{{ template "ERROR" . }}
-
-{{ if $.IdentityDisplayID }}
-<div class="description primary-txt">{{ localize "oob-otp-description" $.OOBOTPCodeLength $.IdentityDisplayID }}</div>
-{{ end }}
-
-<form class="vertical-form form-fields-container" method="post" novalidate>
-{{ $.CSRFField }}
-
-<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_password" placeholder="{{ localize "oob-otp-placeholder" }}">
-<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
-</form>
-
-<form class="link oob-otp-trigger-form" method="post" novalidate>
-{{ $.CSRFField }}
-
-<span class="primary-txt">{{ localize "oob-otp-resend-button-hint" }}</span>
-<button id="resend-button" class="anchor" type="submit" name="trigger" value="true"
-	data-cooldown="{{ $.OOBOTPCodeSendCooldown }}"
-	data-label="{{ localize "oob-otp-resend-button-label" }}"
-	data-label-unit="{{ localize "oob-otp-resend-button-label--unit" }}">{{ localize "oob-otp-resend-button-label" }}</button>
-</form>
-
-</div>
-{{ template "auth_ui_footer.html" . }}
-
-</div>
-</body>
-</html>
-`,
 }
 
 const OOBOTPRequestSchema = "OOBOTPRequestSchema"

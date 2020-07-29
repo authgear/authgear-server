@@ -70,5 +70,6 @@ func (n *NodeCreateAuthenticatorBegin) DeriveEdges(ctx *newinteraction.Context, 
 		edges = append(edges, &EdgeCreateAuthenticatorEnd{Stage: n.Stage, Authenticators: nil})
 	}
 
-	return edges, nil
+	// TODO(interaction): support choosing authenticator to create
+	return edges[:1], nil
 }

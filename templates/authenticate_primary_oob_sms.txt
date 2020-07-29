@@ -1,0 +1,5 @@
+{{ .Code }} is your {{ .AppName }} one-time-password.
+
+Please ignore if you are not logging in your account.
+
+@{{ .Host }} #{{ .Code }}

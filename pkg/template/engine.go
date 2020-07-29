@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/iawaknahc/gomessageformat"
+
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/core/intl"
-	"github.com/iawaknahc/gomessageformat"
 )
 
 type resolveResult struct {
@@ -26,8 +27,9 @@ type resolveResult struct {
 }
 
 type NewEngineOptions struct {
-	TemplateItems    []config.TemplateItem
-	FallbackLanguage string
+	DefaultTemplatesDirectory string
+	TemplateItems             []config.TemplateItem
+	FallbackLanguage          string
 }
 
 type Loader interface {
@@ -37,6 +39,7 @@ type Loader interface {
 // Engine resolves and renders templates.
 type Engine struct {
 	loader                Loader
+	defaultLoader         DefaultLoader
 	TemplateSpecs         map[config.TemplateItemType]Spec
 	templateItems         []config.TemplateItem
 	preferredLanguageTags []string
@@ -46,8 +49,10 @@ type Engine struct {
 
 func NewEngine(opts NewEngineOptions) *Engine {
 	uriLoader := NewURILoader()
+	defaultLoader := &DefaultLoaderFS{Directory: opts.DefaultTemplatesDirectory}
 	return &Engine{
 		loader:              uriLoader,
+		defaultLoader:       defaultLoader,
 		templateItems:       opts.TemplateItems,
 		TemplateSpecs:       map[config.TemplateItemType]Spec{},
 		fallbackLanguageTag: opts.FallbackLanguage,
@@ -154,20 +159,13 @@ func (e *Engine) resolveTemplate(templateType config.TemplateItemType) (result *
 	return
 }
 
-func (e *Engine) loadTemplateBody(spec Spec) (templateBody string, err error) {
-	// Take the default value by default
-	templateBody = spec.Default
+func (e *Engine) loadTemplateBody(spec Spec) (string, error) {
 	templateItem, err := e.resolveTemplateItem(spec)
-	if err != nil {
-		// No template item can be resolved. Fallback to default.
-		err = nil
-	} else {
-		templateBody, err = e.loader.Load(templateItem.URI)
-		if err != nil {
-			return
-		}
+	if err == nil {
+		return e.loader.Load(templateItem.URI)
 	}
-	return
+
+	return e.defaultLoader.LoadDefault(spec.Type)
 }
 
 func (e *Engine) resolveTemplateItem(spec Spec) (templateItem *config.TemplateItem, err error) {
@@ -225,7 +223,11 @@ func (e *Engine) resolveTranslations(templateType config.TemplateItemType) (tran
 	translations = map[string]map[string]string{}
 
 	// Load the default translation
-	defaultTranslation, err := loadTranslation(spec.Default)
+	defaultJSON, err := e.defaultLoader.LoadDefault(templateType)
+	if err != nil {
+		return
+	}
+	defaultTranslation, err := loadTranslation(defaultJSON)
 	if err != nil {
 		return
 	}

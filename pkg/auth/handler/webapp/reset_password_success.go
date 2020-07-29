@@ -23,29 +23,6 @@ var TemplateAuthUIResetPasswordSuccessHTML = template.Spec{
 	Translation: TemplateItemTypeAuthUITranslationJSON,
 	Defines:     defines,
 	Components:  components,
-	Default: `<!DOCTYPE html>
-<html>
-{{ template "auth_ui_html_head.html" . }}
-<body class="page">
-<div class="content">
-
-{{ template "auth_ui_header.html" . }}
-
-<div class="simple-form vertical-form form-fields-container">
-
-<div class="title primary-txt">{{ localize "reset-password-success-page-title" }}</div>
-
-{{ template "ERROR" . }}
-
-<div class="description primary-txt">{{ localize "reset-password-success-description" }}</div>
-
-</div>
-{{ template "auth_ui_footer.html" . }}
-
-</div>
-</body>
-</html>
-`,
 }
 
 func ConfigureResetPasswordSuccessRoute(route httproute.Route) httproute.Route {

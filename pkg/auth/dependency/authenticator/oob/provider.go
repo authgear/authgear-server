@@ -112,14 +112,12 @@ func (p *Provider) SendCode(
 	channel authn.AuthenticatorOOBChannel,
 	loginID *loginid.LoginID,
 	code string,
-	operation otp.OOBOperationType,
-	stage otp.OOBAuthenticationStage,
+	messageType otp.MessageType,
 ) (result *otp.OOBSendResult, err error) {
 	opts := otp.SendOptions{
-		LoginID:   loginID,
-		OTP:       code,
-		Operation: operation,
-		Stage:     stage,
+		LoginID:     loginID,
+		OTP:         code,
+		MessageType: messageType,
 	}
 	switch channel {
 	case authn.AuthenticatorOOBChannelEmail:

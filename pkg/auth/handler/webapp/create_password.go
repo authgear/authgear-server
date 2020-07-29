@@ -26,44 +26,6 @@ var TemplateAuthUICreatePasswordHTML = template.Spec{
 	Translation: TemplateItemTypeAuthUITranslationJSON,
 	Defines:     defines,
 	Components:  components,
-	Default: `<!DOCTYPE html>
-<html>
-{{ template "auth_ui_html_head.html" . }}
-<body class="page">
-<div class="content">
-
-{{ template "auth_ui_header.html" . }}
-
-<form class="simple-form vertical-form form-fields-container" method="post" novalidate>
-{{ $.CSRFField }}
-
-<div class="nav-bar">
-	<button class="btn back-btn" type="button" title="{{ "back-button-title" }}"></button>
-	<div class="login-id primary-txt">
-	{{ $.IdentityDisplayID }}
-	</div>
-</div>
-
-<div class="title primary-txt">{{ localize "create-password-page-title" }}</div>
-
-{{ template "ERROR" . }}
-
-<input id="password" data-password-policy-password="" class="input text-input primary-txt" type="password" name="x_password" placeholder="{{ localize "password-placeholder" }}">
-
-<button class="btn secondary-btn password-visibility-btn show-password" type="button">{{ localize "show-password" }}</button>
-<button class="btn secondary-btn password-visibility-btn hide-password" type="button">{{ localize "hide-password" }}</button>
-
-{{ template "PASSWORD_POLICY" . }}
-
-<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
-
-</form>
-{{ template "auth_ui_footer.html" . }}
-
-</div>
-</body>
-</html>
-`,
 }
 
 const CreatePasswordRequestSchema = "CreatePasswordRequestSchema"

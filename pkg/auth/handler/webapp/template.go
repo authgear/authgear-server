@@ -152,45 +152,16 @@ var defines = []string{
 var TemplateAuthUIHTMLHeadHTML = template.Spec{
 	Type:   TemplateItemTypeAuthUIHTMLHeadHTML,
 	IsHTML: true,
-	Default: `
-{{ define "auth_ui_html_head.html" }}
-<head>
-<title>{{ .AppName }}</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="{{ .StaticAssetURLPrefix }}/authui/css/main.css">
-<script src="{{ .StaticAssetURLPrefix }}/authui/js/main.js"></script>
-{{ if .CSS }}
-<style>
-{{ .CSS }}
-</style>
-{{ end }}
-</head>
-{{ end }}
-`,
 }
 
 var TemplateAuthUIHeaderHTML = template.Spec{
 	Type:   TemplateItemTypeAuthUIHeaderHTML,
 	IsHTML: true,
-	Default: `
-{{ define "auth_ui_header.html" }}
-{{ if .LogoURI }}
-<div class="logo" style="background-image: url('{{ .LogoURI }}'); background-position: center; background-size: contain; background-repeat: no-repeat"></div>
-{{ else }}
-<div class="logo"></div>
-{{ end }}
-{{ end }}
-`,
 }
 
 var TemplateAuthUIFooterHTML = template.Spec{
 	Type:   TemplateItemTypeAuthUIFooterHTML,
 	IsHTML: true,
-	Default: `
-{{ define "auth_ui_footer.html" }}
-<div class="authgear-logo"></div>
-{{ end }}
-`,
 }
 
 var components = []config.TemplateItemType{

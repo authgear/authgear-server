@@ -50,8 +50,7 @@ type OOBAuthenticatorProvider interface {
 		channel authn.AuthenticatorOOBChannel,
 		loginID *loginid.LoginID,
 		code string,
-		operation otp.OOBOperationType,
-		stage otp.OOBAuthenticationStage,
+		messageType otp.MessageType,
 	) (*otp.OOBSendResult, error)
 }
 
