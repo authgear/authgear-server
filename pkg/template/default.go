@@ -22,6 +22,8 @@ func (l *DefaultLoaderFS) LoadDefault(t config.TemplateItemType) (string, error)
 	data, err := ioutil.ReadFile(templatePath)
 	if os.IsNotExist(err) {
 		return "", &errNotFound{name: string(t)}
+	} else if err != nil {
+		return "", err
 	}
 
 	return string(data), nil
