@@ -8,8 +8,6 @@ import (
 type Spec struct {
 	// Type is the type of the template.
 	Type config.TemplateItemType `json:"type"`
-	// Default is the default content of the template.
-	Default string `json:"default,omitempty"`
 	// IsHTML indicates whether the template content is HTML
 	IsHTML bool `json:"is_html"`
 	// Defines is a list of defines to be parsed after the main template is parsed.

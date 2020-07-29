@@ -25,68 +25,6 @@ var TemplateAuthUIForgotPasswordHTML = template.Spec{
 	Translation: TemplateItemTypeAuthUITranslationJSON,
 	Defines:     defines,
 	Components:  components,
-	Default: `<!DOCTYPE html>
-<html>
-{{ template "auth_ui_html_head.html" . }}
-<body class="page">
-<div class="content">
-
-{{ template "auth_ui_header.html" . }}
-
-<form class="simple-form vertical-form form-fields-container" method="post" novalidate>
-{{ $.CSRFField }}
-
-<div class="nav-bar">
-	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
-</div>
-
-<div class="title primary-txt">{{ localize "forgot-password-page-title" }}</div>
-
-{{ template "ERROR" . }}
-
-{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if $.LoginPageLoginIDHasPhone }}
-<div class="description primary-txt">{{ localize "forgot-password-phone-description" }}</div>
-<div class="phone-input">
-	<select class="input select primary-txt" name="x_calling_code">
-		{{ range .CountryCallingCodes }}
-		<option
-			value="{{ . }}"
-			{{ if $.x_calling_code }}{{ if eq $.x_calling_code . }}
-			selected
-			{{ end }}{{ end }}
-			>
-			+{{ . }}
-		</option>
-		{{ end }}
-	</select>
-	<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
-</div>
-{{ end }}{{ end }}{{ end }}
-
-{{ if $.x_login_id_input_type }}{{ if (not (eq $.x_login_id_input_type "phone")) }}{{ if or (eq $.LoginPageTextLoginIDVariant "email") (eq $.LoginPageTextLoginIDVariant "email_or_username") }}
-<div class="description primary-txt">{{ localize "forgot-password-email-description" }}</div>
-<input class="input text-input primary-txt" type="{{ $.x_login_id_input_type }}" name="x_login_id" placeholder="{{ localize "email-placeholder" }}">
-{{ end }}{{ end }}{{ end }}
-
-{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if or (eq $.LoginPageTextLoginIDVariant "email") (eq $.LoginPageTextLoginIDVariant "email_or_username") }}
-<a class="link align-self-flex-start" href="{{ call $.MakeURLWithQuery "x_login_id_input_type" "email" }}">{{ localize "use-email-login-id-description" }}</a>
-{{ end }}{{ end }}{{ end }}
-
-{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "email" }}{{ if $.LoginPageLoginIDHasPhone }}
-<a class="link align-self-flex-start" href="{{ call $.MakeURLWithQuery "x_login_id_input_type" "phone" }}">{{ localize "use-phone-login-id-description" }}</a>
-{{ end }}{{ end }}{{ end }}
-
-{{ if or $.LoginPageLoginIDHasPhone (not (eq $.LoginPageTextLoginIDVariant "none")) }}
-<button class="btn primary-btn submit-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
-{{ end }}
-
-</form>
-{{ template "auth_ui_footer.html" . }}
-
-</div>
-</body>
-</html>
-`,
 }
 
 const ForgotPasswordRequestSchema = "ForgotPasswordRequestSchema"

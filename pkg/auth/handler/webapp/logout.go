@@ -22,26 +22,6 @@ var TemplateAuthUILogoutHTML = template.Spec{
 	Translation: TemplateItemTypeAuthUITranslationJSON,
 	Defines:     defines,
 	Components:  components,
-	Default: `<!DOCTYPE html>
-<html>
-{{ template "auth_ui_html_head.html" . }}
-<body class="page">
-<div class="content">
-
-{{ template "auth_ui_header.html" . }}
-
-<form class="logout-form" method="post" novalidate>
-  {{ $.CSRFField }}
-  <p class="primary-txt">{{ localize "logout-button-hint" }}</p>
-  <button class="btn primary-btn align-self-center" type="submit" name="x_action" value="logout">{{ localize "logout-button-label" }}</button>
-</form>
-
-{{ template "auth_ui_footer.html" . }}
-
-</div>
-</body>
-</html>
-`,
 }
 
 func ConfigureLogoutRoute(route httproute.Route) httproute.Route {

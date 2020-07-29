@@ -1,0 +1,5 @@
+Hello {{ .email }},
+
+Welcome to {{ .appname }}.
+
+Thanks.

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+{{ template "auth_ui_html_head.html" . }}
+<body class="page">
+<div class="content">
+
+{{ template "auth_ui_header.html" . }}
+
+<div class="settings-identity">
+  <h1 class="title primary-txt">{{ localize "settings-identity-title" }}</h1>
+
+  {{ template "ERROR" . }}
+
+  {{ range .IdentityCandidates }}
+  <div class="identity">
+    <div class="icon {{ .type }} {{ .provider_type }} {{ .login_id_type }}"></div>
+    <div class="identity-info flex-child-no-overflow">
+      <h2 class="identity-name primary-txt">
+         {{ if eq .type "oauth" }}
+           {{ if eq .provider_type "google" }}
+           {{ localize "settings-identity-oauth-google" }}
+           {{ end }}
+           {{ if eq .provider_type "apple" }}
+           {{ localize "settings-identity-oauth-apple" }}
+           {{ end }}
+           {{ if eq .provider_type "facebook" }}
+           {{ localize "settings-identity-oauth-facebook" }}
+           {{ end }}
+           {{ if eq .provider_type "linkedin" }}
+           {{ localize "settings-identity-oauth-linkedin" }}
+           {{ end }}
+           {{ if eq .provider_type "azureadv2" }}
+           {{ localize "settings-identity-oauth-azureadv2" }}
+           {{ end }}
+         {{ end }}
+         {{ if eq .type "login_id" }}
+           {{ if eq .login_id_type "email" }}
+           {{ localize "settings-identity-login-id-email" }}
+           {{ end }}
+           {{ if eq .login_id_type "phone" }}
+           {{ localize "settings-identity-login-id-phone" }}
+           {{ end }}
+           {{ if eq .login_id_type "username" }}
+           {{ localize "settings-identity-login-id-username" }}
+           {{ end }}
+           {{ if eq .login_id_type "raw" }}
+           {{ localize "settings-identity-login-id-raw" }}
+           {{ end }}
+         {{ end }}
+      </h2>
+
+      {{ if .display_id }}
+      <h3 class="identity-claim secondary-txt text-ellipsis">
+        {{ .display_id }}
+      </h3>
+      {{ end }}
+    </div>
+
+    {{ if eq .type "oauth" }}
+      <form method="post" novalidate>
+      {{ $.CSRFField }}
+      <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
+      {{ if .provider_subject_id }}
+      <button class="btn destructive-btn" type="submit" name="x_action" value="unlink_oauth">{{ localize "disconnect-button-label" }}</button>
+      {{ else }}
+      <button class="btn primary-btn" type="submit" name="x_action" value="link_oauth" data-form-xhr="false">{{ localize "connect-button-label" }}</button>
+      {{ end }}
+      </form>
+    {{ end }}
+
+    {{ if eq .type "login_id" }}
+      <form method="post" novalidate>
+      {{ $.CSRFField }}
+      <input type="hidden" name="x_login_id_key" value="{{ .login_id_key }}">
+      <input type="hidden" name="x_login_id_type" value="{{ .login_id_type }}">
+      {{ if eq .login_id_type "phone" }}
+      <input type="hidden" name="x_login_id_input_type" value="phone">
+      {{ else if eq .login_id_type "email" }}
+      <input type="hidden" name="x_login_id_input_type" value="email">
+      {{ else }}
+      <input type="hidden" name="x_login_id_input_type" value="text">
+      {{ end }}
+      {{ if .login_id_value }}
+      <input type="hidden" name="x_old_login_id_value" value="{{ .login_id_value }}">
+      <button class="btn secondary-btn" type="submit" name="x_action" value="login_id">{{ localize "change-button-label" }}</a>
+      {{ else }}
+      <button class="btn primary-btn" type="submit" name="x_action" value="login_id">{{ localize "connect-button-label" }}</a>
+      {{ end }}
+      </form>
+    {{ end }}
+  </div>
+  {{ end }}
+</div>
+
+{{ template "auth_ui_footer.html" . }}
+
+</div>
+</body>
+</html>

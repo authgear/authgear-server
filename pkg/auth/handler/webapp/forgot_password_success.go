@@ -23,31 +23,6 @@ var TemplateAuthUIForgotPasswordSuccessHTML = template.Spec{
 	Translation: TemplateItemTypeAuthUITranslationJSON,
 	Defines:     defines,
 	Components:  components,
-	Default: `<!DOCTYPE html>
-<html>
-{{ template "auth_ui_html_head.html" . }}
-<body class="page">
-<div class="content">
-
-{{ template "auth_ui_header.html" . }}
-
-<div class="simple-form vertical-form form-fields-container">
-
-<div class="title primary-txt">{{ localize "forgot-password-success-page-title" }}</div>
-
-{{ template "ERROR" . }}
-
-<div class="description primary-txt">{{ localize "forgot-password-success-description" $.GivenLoginID }}</div>
-
-<a class="btn primary-btn align-self-flex-end" href="{{ call .MakeURLWithPathWithoutX "/login" }}">{{ localize "login-button-label--forgot-password-success-page" }}</a>
-
-</div>
-{{ template "auth_ui_footer.html" . }}
-
-</div>
-</body>
-</html>
-`,
 }
 
 func ConfigureForgotPasswordSuccessRoute(route httproute.Route) httproute.Route {
