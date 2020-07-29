@@ -1,0 +1,5 @@
+{{ .Code }} is your {{ .AppName }} verification code.
+
+Please ignore if you didn't sign in or sign up.
+
+@{{ .Host }} #{{ .Code }}

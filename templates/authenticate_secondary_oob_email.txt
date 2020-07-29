@@ -1,0 +1,7 @@
+Verify your email on {{ .AppName }}
+
+You have selected {{ .Email }} for verification. Please use the following code to complete to the verification.
+
+{{ .Code }}
+
+If you didn't sign in or sign up please ignore this email.

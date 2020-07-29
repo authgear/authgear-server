@@ -60,7 +60,7 @@ func (e *EdgeAuthenticationOOBTrigger) Instantiate(ctx *newinteraction.Context, 
 		return nil, err
 	}
 
-	result, err := sendOOBCode(ctx, e.Stage, otp.OOBOperationTypeAuthenticate, identityInfo, targetInfo, secret)
+	result, err := sendOOBCode(ctx, e.Stage, true, identityInfo, targetInfo, secret)
 	if err != nil {
 		return nil, err
 	}
@@ -108,11 +108,11 @@ func (n *NodeAuthenticationOOBTrigger) Apply(perform func(eff newinteraction.Eff
 func (n *NodeAuthenticationOOBTrigger) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	return []newinteraction.Edge{
 		&EdgeOOBResendCode{
-			Stage:         n.Stage,
-			Operation:     otp.OOBOperationTypeAuthenticate,
-			Identity:      n.Identity,
-			Authenticator: n.Authenticator,
-			Secret:        n.Secret,
+			Stage:            n.Stage,
+			IsAuthenticating: true,
+			Identity:         n.Identity,
+			Authenticator:    n.Authenticator,
+			Secret:           n.Secret,
 		},
 		&EdgeAuthenticationOOB{Stage: n.Stage, Authenticator: n.Authenticator, Secret: n.Secret},
 	}, nil

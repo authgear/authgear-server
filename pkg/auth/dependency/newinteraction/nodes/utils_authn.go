@@ -53,7 +53,7 @@ func getAuthenticators(
 func sendOOBCode(
 	ctx *newinteraction.Context,
 	stage newinteraction.AuthenticationStage,
-	operation otp.OOBOperationType,
+	isAuthenticating bool,
 	identityInfo *identity.Info,
 	authenticatorInfo *authenticator.Info,
 	secret string,
@@ -62,25 +62,35 @@ func sendOOBCode(
 
 	channel := authn.AuthenticatorOOBChannel(authenticatorInfo.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string))
 
-	var oobStage otp.OOBAuthenticationStage
 	var loginID *loginid.LoginID
+	var messageType otp.MessageType
 	if stage == newinteraction.AuthenticationStagePrimary {
-		// Primary OOB authenticators is bound to login ID identities:
-		// Extract login ID from the bound identity.
-		oobStage = otp.OOBAuthenticationStagePrimary
+		// Primary OOB authenticators should match login ID identities:
+		// Extract login ID from the identity.
 		if identityInfo != nil {
 			loginID = &loginid.LoginID{
 				Key:   identityInfo.Claims[identity.IdentityClaimLoginIDKey].(string),
 				Value: identityInfo.Claims[identity.IdentityClaimLoginIDValue].(string),
 			}
 		}
+
+		if isAuthenticating {
+			messageType = otp.MessageTypeAuthenticatePrimaryOOB
+		} else {
+			messageType = otp.MessageTypeSetupPrimaryOOB
+		}
 	} else {
-		// Secondary OOB authenticators is not bound to login ID identities.
-		oobStage = otp.OOBAuthenticationStageSecondary
+		// Secondary OOB authenticators is not related to login ID identities.
 		loginID = nil
+
+		if isAuthenticating {
+			messageType = otp.MessageTypeAuthenticateSecondaryOOB
+		} else {
+			messageType = otp.MessageTypeSetupSecondaryOOB
+		}
 	}
 
-	// Use a placeholder login ID if no bound login ID identity
+	// Use a placeholder login ID if no matching login ID identity
 	if loginID == nil {
 		loginID = &loginid.LoginID{}
 		switch channel {
@@ -92,5 +102,5 @@ func sendOOBCode(
 	}
 
 	code := ctx.OOBAuthenticators.GenerateCode(secret, channel)
-	return ctx.OOBAuthenticators.SendCode(channel, loginID, code, operation, oobStage)
+	return ctx.OOBAuthenticators.SendCode(channel, loginID, code, messageType)
 }
