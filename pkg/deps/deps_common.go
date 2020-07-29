@@ -65,7 +65,6 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(newinteraction.HookProvider), new(*hook.Provider)),
 		wire.Bind(new(user.HookProvider), new(*hook.Provider)),
 		wire.Bind(new(auth.HookProvider), new(*hook.Provider)),
-		wire.Bind(new(forgotpassword.HookProvider), new(*hook.Provider)),
 		wire.Bind(new(interactionflows.HookProvider), new(*hook.Provider)),
 	),
 
@@ -101,6 +100,7 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(authenticatorservice.OOBOTPAuthenticatorProvider), new(*authenticatoroob.Provider)),
 		wire.Bind(new(authenticatorservice.TOTPAuthenticatorProvider), new(*authenticatortotp.Provider)),
 
+		wire.Bind(new(forgotpassword.AuthenticatorService), new(*authenticatorservice.Service)),
 		wire.Bind(new(newinteraction.AuthenticatorService), new(*authenticatorservice.Service)),
 		wire.Bind(new(verification.AuthenticatorProvider), new(*authenticatorservice.Service)),
 	),
@@ -133,7 +133,6 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(auth.UserProvider), new(*user.Queries)),
 		wire.Bind(new(interactionflows.UserProvider), new(*user.Provider)),
 		wire.Bind(new(newinteraction.UserService), new(*user.Provider)),
-		wire.Bind(new(forgotpassword.UserProvider), new(*user.Queries)),
 		wire.Bind(new(oidc.UserProvider), new(*user.Queries)),
 		wire.Bind(new(hook.UserProvider), new(*user.RawProvider)),
 	),
@@ -152,6 +151,7 @@ var commonDeps = wire.NewSet(
 	wire.NewSet(
 		forgotpassword.DependencySet,
 		wire.Bind(new(newinteraction.ForgotPasswordService), new(*forgotpassword.Provider)),
+		wire.Bind(new(newinteraction.ResetPasswordService), new(*forgotpassword.Provider)),
 	),
 
 	wire.NewSet(
@@ -184,7 +184,6 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(webapp.AnonymousFlow), new(*interactionflows.AnonymousFlow)),
 		wire.Bind(new(webapp.ResponderInteractions), new(*interaction.Provider)),
 		wire.Bind(new(oauthhandler.AnonymousInteractionFlow), new(*interactionflows.AnonymousFlow)),
-		wire.Bind(new(forgotpassword.ResetPasswordFlow), new(*interactionflows.PasswordFlow)),
 	),
 
 	wire.NewSet(

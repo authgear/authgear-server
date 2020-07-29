@@ -1755,9 +1755,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
 	}
-	passwordFlow := &flows.PasswordFlow{
-		Interactions: interactionProvider,
-	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
 		Context:         context,
 		ServerConfig:    serverConfig,
@@ -1766,14 +1764,13 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:       messagingConfig,
 		Config:          forgotPasswordConfig,
 		Store:           forgotpasswordStore,
-		Users:           queries,
-		Hooks:           hookProvider,
 		Clock:           clockClock,
 		URLs:            urlProvider,
 		TemplateEngine:  engine,
 		TaskQueue:       queueQueue,
-		Interactions:    passwordFlow,
+		Logger:          providerLogger,
 		LoginIDProvider: provider,
+		Authenticators:  service3,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -1820,6 +1817,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		OAuthProviderFactory: oAuthProviderFactory,
 		MFA:                  mfaService,
 		ForgotPassword:       forgotpasswordProvider,
+		ResetPassword:        forgotpasswordProvider,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,
@@ -2143,9 +2141,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
 	}
-	passwordFlow := &flows.PasswordFlow{
-		Interactions: interactionProvider,
-	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
 		Context:         context,
 		ServerConfig:    serverConfig,
@@ -2154,14 +2150,13 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:       messagingConfig,
 		Config:          forgotPasswordConfig,
 		Store:           forgotpasswordStore,
-		Users:           queries,
-		Hooks:           hookProvider,
 		Clock:           clockClock,
 		URLs:            urlProvider,
 		TemplateEngine:  engine,
 		TaskQueue:       queueQueue,
-		Interactions:    passwordFlow,
+		Logger:          providerLogger,
 		LoginIDProvider: provider,
+		Authenticators:  service3,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -2208,6 +2203,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		OAuthProviderFactory: oAuthProviderFactory,
 		MFA:                  mfaService,
 		ForgotPassword:       forgotpasswordProvider,
+		ResetPassword:        forgotpasswordProvider,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,
@@ -2531,9 +2527,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
 	}
-	passwordFlow := &flows.PasswordFlow{
-		Interactions: interactionProvider,
-	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
 		Context:         context,
 		ServerConfig:    serverConfig,
@@ -2542,14 +2536,13 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:       messagingConfig,
 		Config:          forgotPasswordConfig,
 		Store:           forgotpasswordStore,
-		Users:           queries,
-		Hooks:           hookProvider,
 		Clock:           clockClock,
 		URLs:            urlProvider,
 		TemplateEngine:  engine,
 		TaskQueue:       queueQueue,
-		Interactions:    passwordFlow,
+		Logger:          providerLogger,
 		LoginIDProvider: provider,
+		Authenticators:  service3,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -2596,6 +2589,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		OAuthProviderFactory: oAuthProviderFactory,
 		MFA:                  mfaService,
 		ForgotPassword:       forgotpasswordProvider,
+		ResetPassword:        forgotpasswordProvider,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,
@@ -2901,9 +2895,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
 	}
-	passwordFlow := &flows.PasswordFlow{
-		Interactions: interactionProvider,
-	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
 		Context:         context,
 		ServerConfig:    serverConfig,
@@ -2912,14 +2904,13 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:       messagingConfig,
 		Config:          forgotPasswordConfig,
 		Store:           forgotpasswordStore,
-		Users:           queries,
-		Hooks:           hookProvider,
 		Clock:           clockClock,
 		URLs:            urlProvider,
 		TemplateEngine:  engine,
 		TaskQueue:       queueQueue,
-		Interactions:    passwordFlow,
+		Logger:          providerLogger,
 		LoginIDProvider: provider,
+		Authenticators:  service3,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -2966,6 +2957,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		OAuthProviderFactory: oAuthProviderFactory,
 		MFA:                  mfaService,
 		ForgotPassword:       forgotpasswordProvider,
+		ResetPassword:        forgotpasswordProvider,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,
@@ -3281,9 +3273,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
 	}
-	passwordFlow := &flows.PasswordFlow{
-		Interactions: interactionProvider,
-	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
 		Context:         context,
 		ServerConfig:    serverConfig,
@@ -3292,14 +3282,13 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:       messagingConfig,
 		Config:          forgotPasswordConfig,
 		Store:           forgotpasswordStore,
-		Users:           queries,
-		Hooks:           hookProvider,
 		Clock:           clockClock,
 		URLs:            urlProvider,
 		TemplateEngine:  engine,
 		TaskQueue:       queueQueue,
-		Interactions:    passwordFlow,
+		Logger:          providerLogger,
 		LoginIDProvider: provider,
+		Authenticators:  service3,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -3346,6 +3335,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		OAuthProviderFactory: oAuthProviderFactory,
 		MFA:                  mfaService,
 		ForgotPassword:       forgotpasswordProvider,
+		ResetPassword:        forgotpasswordProvider,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,
@@ -3663,9 +3653,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
 	}
-	passwordFlow := &flows.PasswordFlow{
-		Interactions: interactionProvider,
-	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
 		Context:         context,
 		ServerConfig:    serverConfig,
@@ -3674,14 +3662,13 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:       messagingConfig,
 		Config:          forgotPasswordConfig,
 		Store:           forgotpasswordStore,
-		Users:           queries,
-		Hooks:           hookProvider,
 		Clock:           clockClock,
 		URLs:            urlProvider,
 		TemplateEngine:  engine,
 		TaskQueue:       queueQueue,
-		Interactions:    passwordFlow,
+		Logger:          providerLogger,
 		LoginIDProvider: provider,
+		Authenticators:  service3,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -3728,6 +3715,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OAuthProviderFactory: oAuthProviderFactory,
 		MFA:                  mfaService,
 		ForgotPassword:       forgotpasswordProvider,
+		ResetPassword:        forgotpasswordProvider,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,
@@ -4045,9 +4033,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
 	}
-	passwordFlow := &flows.PasswordFlow{
-		Interactions: interactionProvider,
-	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
 		Context:         context,
 		ServerConfig:    serverConfig,
@@ -4056,14 +4042,13 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:       messagingConfig,
 		Config:          forgotPasswordConfig,
 		Store:           forgotpasswordStore,
-		Users:           queries,
-		Hooks:           hookProvider,
 		Clock:           clockClock,
 		URLs:            urlProvider,
 		TemplateEngine:  engine,
 		TaskQueue:       queueQueue,
-		Interactions:    passwordFlow,
+		Logger:          providerLogger,
 		LoginIDProvider: provider,
+		Authenticators:  service3,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -4110,6 +4095,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		OAuthProviderFactory: oAuthProviderFactory,
 		MFA:                  mfaService,
 		ForgotPassword:       forgotpasswordProvider,
+		ResetPassword:        forgotpasswordProvider,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,
@@ -4428,9 +4414,7 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
 	}
-	passwordFlow := &flows.PasswordFlow{
-		Interactions: interactionProvider,
-	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
 		Context:         context,
 		ServerConfig:    serverConfig,
@@ -4439,14 +4423,13 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:       messagingConfig,
 		Config:          forgotPasswordConfig,
 		Store:           forgotpasswordStore,
-		Users:           queries,
-		Hooks:           hookProvider,
 		Clock:           clockClock,
 		URLs:            urlProvider,
 		TemplateEngine:  engine,
 		TaskQueue:       queueQueue,
-		Interactions:    passwordFlow,
+		Logger:          providerLogger,
 		LoginIDProvider: provider,
+		Authenticators:  service3,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -4493,6 +4476,7 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OAuthProviderFactory: oAuthProviderFactory,
 		MFA:                  mfaService,
 		ForgotPassword:       forgotpasswordProvider,
+		ResetPassword:        forgotpasswordProvider,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,
@@ -4814,9 +4798,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
 	}
-	passwordFlow := &flows.PasswordFlow{
-		Interactions: interactionProvider,
-	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
 		Context:         context,
 		ServerConfig:    serverConfig,
@@ -4825,14 +4807,13 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:       messagingConfig,
 		Config:          forgotPasswordConfig,
 		Store:           forgotpasswordStore,
-		Users:           queries,
-		Hooks:           hookProvider,
 		Clock:           clockClock,
 		URLs:            urlProvider,
 		TemplateEngine:  engine,
 		TaskQueue:       queueQueue,
-		Interactions:    passwordFlow,
+		Logger:          providerLogger,
 		LoginIDProvider: provider,
+		Authenticators:  service3,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -4879,6 +4860,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OAuthProviderFactory: oAuthProviderFactory,
 		MFA:                  mfaService,
 		ForgotPassword:       forgotpasswordProvider,
+		ResetPassword:        forgotpasswordProvider,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,
@@ -5197,9 +5179,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
 	}
-	passwordFlow := &flows.PasswordFlow{
-		Interactions: interactionProvider,
-	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
 		Context:         context,
 		ServerConfig:    serverConfig,
@@ -5208,14 +5188,13 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Messaging:       messagingConfig,
 		Config:          forgotPasswordConfig,
 		Store:           forgotpasswordStore,
-		Users:           queries,
-		Hooks:           hookProvider,
 		Clock:           clockClock,
 		URLs:            urlProvider,
 		TemplateEngine:  engine,
 		TaskQueue:       queueQueue,
-		Interactions:    passwordFlow,
+		Logger:          providerLogger,
 		LoginIDProvider: provider,
+		Authenticators:  service3,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -5262,6 +5241,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		OAuthProviderFactory: oAuthProviderFactory,
 		MFA:                  mfaService,
 		ForgotPassword:       forgotpasswordProvider,
+		ResetPassword:        forgotpasswordProvider,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,
@@ -5579,9 +5559,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
 	}
-	passwordFlow := &flows.PasswordFlow{
-		Interactions: interactionProvider,
-	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
 		Context:         context,
 		ServerConfig:    serverConfig,
@@ -5590,14 +5568,13 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:       messagingConfig,
 		Config:          forgotPasswordConfig,
 		Store:           forgotpasswordStore,
-		Users:           queries,
-		Hooks:           hookProvider,
 		Clock:           clockClock,
 		URLs:            urlProvider,
 		TemplateEngine:  engine,
 		TaskQueue:       queueQueue,
-		Interactions:    passwordFlow,
+		Logger:          providerLogger,
 		LoginIDProvider: provider,
+		Authenticators:  service3,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -5644,6 +5621,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OAuthProviderFactory: oAuthProviderFactory,
 		MFA:                  mfaService,
 		ForgotPassword:       forgotpasswordProvider,
+		ResetPassword:        forgotpasswordProvider,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,
@@ -5665,10 +5643,11 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Graph:  newinteractionService,
 	}
 	resetPasswordHandler := &webapp2.ResetPasswordHandler{
-		Database:      handle,
-		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
-		WebApp:        webappService,
+		Database:       handle,
+		BaseViewModel:  baseViewModeler,
+		Renderer:       htmlRenderer,
+		WebApp:         webappService,
+		PasswordPolicy: passwordChecker,
 	}
 	return resetPasswordHandler
 }
@@ -5961,9 +5940,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
 	}
-	passwordFlow := &flows.PasswordFlow{
-		Interactions: interactionProvider,
-	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
 		Context:         context,
 		ServerConfig:    serverConfig,
@@ -5972,14 +5949,13 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Messaging:       messagingConfig,
 		Config:          forgotPasswordConfig,
 		Store:           forgotpasswordStore,
-		Users:           queries,
-		Hooks:           hookProvider,
 		Clock:           clockClock,
 		URLs:            urlProvider,
 		TemplateEngine:  engine,
 		TaskQueue:       queueQueue,
-		Interactions:    passwordFlow,
+		Logger:          providerLogger,
 		LoginIDProvider: provider,
+		Authenticators:  service3,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -6026,6 +6002,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		OAuthProviderFactory: oAuthProviderFactory,
 		MFA:                  mfaService,
 		ForgotPassword:       forgotpasswordProvider,
+		ResetPassword:        forgotpasswordProvider,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,
@@ -6374,9 +6351,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
 	}
-	passwordFlow := &flows.PasswordFlow{
-		Interactions: interactionProvider,
-	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
 		Context:         context,
 		ServerConfig:    serverConfig,
@@ -6385,14 +6360,13 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:       messagingConfig,
 		Config:          forgotPasswordConfig,
 		Store:           forgotpasswordStore,
-		Users:           queries,
-		Hooks:           hookProvider,
 		Clock:           clockClock,
 		URLs:            urlProvider,
 		TemplateEngine:  engine,
 		TaskQueue:       queueQueue,
-		Interactions:    passwordFlow,
+		Logger:          providerLogger,
 		LoginIDProvider: provider,
+		Authenticators:  service3,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -6439,6 +6413,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OAuthProviderFactory: oAuthProviderFactory,
 		MFA:                  mfaService,
 		ForgotPassword:       forgotpasswordProvider,
+		ResetPassword:        forgotpasswordProvider,
 		Challenges:           challengeProvider,
 		Users:                userProvider,
 		Hooks:                hookProvider,

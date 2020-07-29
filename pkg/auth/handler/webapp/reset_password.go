@@ -82,18 +82,18 @@ func ConfigureResetPasswordRoute(route httproute.Route) httproute.Route {
 }
 
 type ResetPasswordHandler struct {
-	Database      *db.Handle
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      Renderer
-	WebApp        WebAppService
+	Database       *db.Handle
+	BaseViewModel  *viewmodels.BaseViewModeler
+	Renderer       Renderer
+	WebApp         WebAppService
+	PasswordPolicy PasswordPolicy
 }
 
 func (h *ResetPasswordHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	return &webapp.Intent{
 		RedirectURI: "/reset_password/success",
 		KeepState:   true,
-		// FIXME(webapp): IntentResetPassword
-		Intent: intents.NewIntentLogin(),
+		Intent:      intents.NewIntentResetPassword(),
 	}
 }
 
@@ -104,17 +104,28 @@ func (h *ResetPasswordHandler) GetData(r *http.Request, state *webapp.State, gra
 		anyError = state.Error
 	}
 	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
-	// FIXME(webapp): derive PasswordPolicyViewModel with graph and edges
-	passwordPolicyViewModel := viewmodels.PasswordPolicyViewModel{}
+	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModel(
+		h.PasswordPolicy.PasswordPolicy(),
+		state.Error,
+	)
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, passwordPolicyViewModel)
 	return data, nil
 }
 
-// FIXME(webapp): implement input interface
 type ResetPasswordInput struct {
 	Code     string
 	Password string
+}
+
+// GetCode implements InputResetPassword.
+func (i *ResetPasswordInput) GetCode() string {
+	return i.Code
+}
+
+// GetNewPassword implements InputResetPassword.
+func (i *ResetPasswordInput) GetNewPassword() string {
+	return i.Password
 }
 
 func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
