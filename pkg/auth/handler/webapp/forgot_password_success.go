@@ -60,6 +60,10 @@ type ForgotPasswordSuccessViewModel struct {
 	GivenLoginID string
 }
 
+type ForgotPasswordSuccessNode interface {
+	GetLoginID() string
+}
+
 type ForgotPasswordSuccessHandler struct {
 	Database      *db.Handle
 	BaseViewModel *viewmodels.BaseViewModeler
@@ -70,8 +74,10 @@ type ForgotPasswordSuccessHandler struct {
 func (h *ForgotPasswordSuccessHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-	// FIXME(webapp): derive ForgotPasswordSuccessViewModel with graph and edges
 	forgotPasswordSuccessViewModel := ForgotPasswordSuccessViewModel{}
+	if n, ok := graph.CurrentNode().(ForgotPasswordSuccessNode); ok {
+		forgotPasswordSuccessViewModel.GivenLoginID = n.GetLoginID()
+	}
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, forgotPasswordSuccessViewModel)
 	return data, nil

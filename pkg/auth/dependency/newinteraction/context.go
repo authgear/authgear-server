@@ -95,6 +95,16 @@ type OAuthProviderFactory interface {
 	NewOAuthProvider(alias string) sso.OAuthProvider
 }
 
+type ForgotPasswordService interface {
+	SendCode(loginID string) error
+}
+
+type ResetPasswordService interface {
+	ResetPassword(code string, newPassword string) (userID string, newInfo *authenticator.Info, updateInfo *authenticator.Info, err error)
+	HashCode(code string) (codeHash string)
+	AfterResetPassword(codeHash string) error
+}
+
 type Context struct {
 	IsDryRun bool `wire:"-"`
 
@@ -107,6 +117,8 @@ type Context struct {
 	OOBAuthenticators    OOBAuthenticatorProvider
 	OAuthProviderFactory OAuthProviderFactory
 	MFA                  MFAService
+	ForgotPassword       ForgotPasswordService
+	ResetPassword        ResetPasswordService
 
 	Challenges    ChallengeProvider
 	Users         UserService

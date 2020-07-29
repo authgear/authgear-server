@@ -145,8 +145,7 @@ func (h *ForgotPasswordHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	return &webapp.Intent{
 		RedirectURI: "/forgot_password/success",
 		KeepState:   true,
-		// FIXME(webapp): IntentForgotPassword
-		Intent: intents.NewIntentLogin(),
+		Intent:      intents.NewIntentForgotPassword(),
 	}
 }
 
@@ -157,17 +156,20 @@ func (h *ForgotPasswordHandler) GetData(r *http.Request, state *webapp.State, gr
 		anyError = state.Error
 	}
 	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
-	// FIXME(webapp): derive AuthenticationViewModel with graph and edges
-	authenticationViewModel := viewmodels.AuthenticationViewModel{}
+	authenticationViewModel := viewmodels.NewAuthenticationViewModel(edges)
 	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, authenticationViewModel)
 	return data, nil
 }
 
-// FIXME(webapp): implement input interface
 type ForgotPasswordLoginID struct {
 	LoginID string
+}
+
+// GetLoginID implements InputForgotPasswordSelectLoginID.
+func (i *ForgotPasswordLoginID) GetLoginID() string {
+	return i.LoginID
 }
 
 func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
