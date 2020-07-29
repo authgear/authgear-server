@@ -12,7 +12,7 @@ import (
 func TestResolveTemplateItem(t *testing.T) {
 	const typeA config.TemplateItemType = "typeA"
 	const typeB config.TemplateItemType = "typeB"
-	specA := Spec{Type: typeA, IsKeyed: true}
+	specA := Spec{Type: typeA}
 	Convey("resolveTemplateItem", t, func() {
 		test := func(templateItems []config.TemplateItem, tags []string, expected *config.TemplateItem) {
 			e := NewEngine(NewEngineOptions{
