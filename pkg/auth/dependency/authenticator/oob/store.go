@@ -23,7 +23,6 @@ func (s *Store) Get(userID string, id string) (*Authenticator, error) {
 			"ao.channel",
 			"ao.phone",
 			"ao.email",
-			"ao.identity_id",
 		).
 		From(s.SQLBuilder.FullTableName("authenticator"), "a").
 		Join(
@@ -46,7 +45,6 @@ func (s *Store) Get(userID string, id string) (*Authenticator, error) {
 		&a.Channel,
 		&a.Phone,
 		&a.Email,
-		&a.IdentityID,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, authenticator.ErrAuthenticatorNotFound
@@ -66,7 +64,6 @@ func (s *Store) GetByChannel(userID string, channel authn.AuthenticatorOOBChanne
 			"ao.channel",
 			"ao.phone",
 			"ao.email",
-			"ao.identity_id",
 		).
 		From(s.SQLBuilder.FullTableName("authenticator"), "a").
 		Join(
@@ -97,7 +94,6 @@ func (s *Store) GetByChannel(userID string, channel authn.AuthenticatorOOBChanne
 		&a.Channel,
 		&a.Phone,
 		&a.Email,
-		&a.IdentityID,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, authenticator.ErrAuthenticatorNotFound
@@ -117,7 +113,6 @@ func (s *Store) List(userID string) ([]*Authenticator, error) {
 			"ao.channel",
 			"ao.phone",
 			"ao.email",
-			"ao.identity_id",
 		).
 		From(s.SQLBuilder.FullTableName("authenticator"), "a").
 		Join(
@@ -143,7 +138,6 @@ func (s *Store) List(userID string) ([]*Authenticator, error) {
 			&a.Channel,
 			&a.Phone,
 			&a.Email,
-			&a.IdentityID,
 		)
 		if err != nil {
 			return nil, err
@@ -200,7 +194,6 @@ func (s *Store) Create(a *Authenticator) error {
 			"channel",
 			"phone",
 			"email",
-			"identity_id",
 		).
 		Values(
 			a.ID,
@@ -208,7 +201,6 @@ func (s *Store) Create(a *Authenticator) error {
 			a.Channel,
 			a.Phone,
 			a.Email,
-			a.IdentityID,
 		)
 	_, err = s.SQLExecutor.ExecWith(q)
 	if err != nil {

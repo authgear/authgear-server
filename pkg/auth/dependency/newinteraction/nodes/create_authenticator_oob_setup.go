@@ -83,13 +83,9 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *newinteraction.Contex
 		spec.Props[authenticator.AuthenticatorPropOOBOTPEmail] = target
 	}
 
-	infos, err := ctx.Authenticators.New(spec, "")
+	info, err := ctx.Authenticators.New(spec, "")
 	if err != nil {
 		return nil, err
-	}
-
-	if len(infos) != 1 {
-		panic("interaction: unexpected number of new OOB authenticators")
 	}
 
 	secret, err := otp.GenerateTOTPSecret()
@@ -97,7 +93,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *newinteraction.Contex
 		return nil, err
 	}
 
-	result, err := sendOOBCode(ctx, e.Stage, otp.OOBOperationTypeSetup, identityInfo, infos[0], secret)
+	result, err := sendOOBCode(ctx, e.Stage, otp.OOBOperationTypeSetup, identityInfo, info, secret)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +101,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *newinteraction.Contex
 	return &NodeCreateAuthenticatorOOBSetup{
 		Stage:         e.Stage,
 		Identity:      identityInfo,
-		Authenticator: infos[0],
+		Authenticator: info,
 		Secret:        secret,
 		Channel:       result.Channel,
 		CodeLength:    result.CodeLength,

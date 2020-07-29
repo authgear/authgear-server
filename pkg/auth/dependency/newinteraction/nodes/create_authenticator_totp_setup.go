@@ -31,16 +31,12 @@ func (e *EdgeCreateAuthenticatorTOTPSetup) Instantiate(ctx *newinteraction.Conte
 		Props:  map[string]interface{}{},
 	}
 
-	infos, err := ctx.Authenticators.New(spec, "")
+	info, err := ctx.Authenticators.New(spec, "")
 	if err != nil {
 		return nil, err
 	}
 
-	if len(infos) != 1 {
-		panic("interaction: unexpected number of new TOTP authenticators")
-	}
-
-	return &NodeCreateAuthenticatorTOTPSetup{Stage: e.Stage, Authenticator: infos[0]}, nil
+	return &NodeCreateAuthenticatorTOTPSetup{Stage: e.Stage, Authenticator: info}, nil
 }
 
 type NodeCreateAuthenticatorTOTPSetup struct {

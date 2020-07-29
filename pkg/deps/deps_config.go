@@ -35,8 +35,6 @@ var configDeps = wire.NewSet(
 		"Password",
 		"TOTP",
 		"OOB",
-		"BearerToken",
-		"RecoveryCode",
 	),
 	secretDeps,
 )

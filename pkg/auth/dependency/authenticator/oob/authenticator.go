@@ -21,6 +21,4 @@ type Authenticator struct {
 	Channel   authn.AuthenticatorOOBChannel
 	Phone     string
 	Email     string
-	// TODO(interaction): Remove IdentityID from OOB Authenticator.
-	IdentityID *string
 }

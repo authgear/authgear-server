@@ -31,16 +31,12 @@ func (e *EdgeCreateAuthenticatorPassword) Instantiate(ctx *newinteraction.Contex
 		Props:  map[string]interface{}{},
 	}
 
-	infos, err := ctx.Authenticators.New(spec, input.GetPassword())
+	info, err := ctx.Authenticators.New(spec, input.GetPassword())
 	if err != nil {
 		return nil, err
 	}
 
-	if len(infos) != 1 {
-		panic("interaction: unexpected number of new password authenticators")
-	}
-
-	return &NodeCreateAuthenticatorPassword{Stage: e.Stage, Authenticator: infos[0]}, nil
+	return &NodeCreateAuthenticatorPassword{Stage: e.Stage, Authenticator: info}, nil
 }
 
 type NodeCreateAuthenticatorPassword struct {

@@ -5,10 +5,8 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	authredis "github.com/authgear/authgear-server/pkg/auth/dependency/auth/redis"
-	authenticatorbearertoken "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/bearertoken"
 	authenticatoroob "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
 	authenticatorpassword "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/password"
-	authenticatorrecoverycode "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/recoverycode"
 	authenticatorservice "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/service"
 	authenticatortotp "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/totp"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
@@ -37,6 +35,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/core/sentry"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/endpoints"
+	"github.com/authgear/authgear-server/pkg/mfa"
 	"github.com/authgear/authgear-server/pkg/otp"
 	"github.com/authgear/authgear-server/pkg/task"
 	taskqueue "github.com/authgear/authgear-server/pkg/task/queue"
@@ -96,18 +95,20 @@ var commonDeps = wire.NewSet(
 		authenticatoroob.DependencySet,
 		wire.Bind(new(newinteraction.OOBAuthenticatorProvider), new(*authenticatoroob.Provider)),
 		authenticatortotp.DependencySet,
-		authenticatorbearertoken.DependencySet,
-		authenticatorrecoverycode.DependencySet,
 
 		authenticatorservice.DependencySet,
 		wire.Bind(new(authenticatorservice.PasswordAuthenticatorProvider), new(*authenticatorpassword.Provider)),
 		wire.Bind(new(authenticatorservice.OOBOTPAuthenticatorProvider), new(*authenticatoroob.Provider)),
 		wire.Bind(new(authenticatorservice.TOTPAuthenticatorProvider), new(*authenticatortotp.Provider)),
-		wire.Bind(new(authenticatorservice.BearerTokenAuthenticatorProvider), new(*authenticatorbearertoken.Provider)),
-		wire.Bind(new(authenticatorservice.RecoveryCodeAuthenticatorProvider), new(*authenticatorrecoverycode.Provider)),
 
 		wire.Bind(new(newinteraction.AuthenticatorService), new(*authenticatorservice.Service)),
 		wire.Bind(new(verification.AuthenticatorProvider), new(*authenticatorservice.Service)),
+	),
+
+	wire.NewSet(
+		mfa.DependencySet,
+
+		wire.Bind(new(newinteraction.MFAService), new(*mfa.Service)),
 	),
 
 	wire.NewSet(

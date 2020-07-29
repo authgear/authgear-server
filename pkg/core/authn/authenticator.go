@@ -3,11 +3,9 @@ package authn
 type AuthenticatorType string
 
 const (
-	AuthenticatorTypePassword     AuthenticatorType = "password"
-	AuthenticatorTypeTOTP         AuthenticatorType = "totp"
-	AuthenticatorTypeOOB          AuthenticatorType = "oob_otp"
-	AuthenticatorTypeRecoveryCode AuthenticatorType = "recovery_code"
-	AuthenticatorTypeBearerToken  AuthenticatorType = "bearer_token"
+	AuthenticatorTypePassword AuthenticatorType = "password"
+	AuthenticatorTypeTOTP     AuthenticatorType = "totp"
+	AuthenticatorTypeOOB      AuthenticatorType = "oob_otp"
 )
 
 type AuthenticatorOOBChannel string

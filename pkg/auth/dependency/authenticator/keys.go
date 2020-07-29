@@ -16,10 +16,6 @@ const (
 	// AuthenticatorPropOOBOTPPhone is a claim with string value for OOB OTP phone channel.
 	AuthenticatorPropOOBOTPPhone string = "https://authgear.com/claims/oob_otp/phone"
 
-	// AuthenticatorPropBearerTokenParentID is a claim with string value for bearer token parent authenticator.
-	// nolint:gosec
-	AuthenticatorPropBearerTokenParentID string = "https://authgear.com/claims/bearer_token/parent_id"
-
 	// AuthenticatorStateOOBOTPID is a claim with string value for OOB authenticator ID of current interaction.
 	AuthenticatorStateOOBOTPID string = AuthenticatorPropOOBOTPID
 	// AuthenticatorStateOOBOTPCode is a claim with string value for OOB OTP code secret of current interaction.
