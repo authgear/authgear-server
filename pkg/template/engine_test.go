@@ -117,11 +117,21 @@ func (l *mockLoader) Load(s string) (string, error) {
 	return s, nil
 }
 
+type mockDefaultLoader struct {
+	Defaults map[config.TemplateItemType]string
+}
+
+func (l *mockDefaultLoader) LoadDefault(t config.TemplateItemType) (string, error) {
+	return l.Defaults[t], nil
+}
+
 func TestResolveTranslations(t *testing.T) {
 	const typeA config.TemplateItemType = "typeA"
-	specA := Spec{
-		Type: typeA,
-		Default: `
+	specA := Spec{Type: typeA}
+
+	defaultLoader := &mockDefaultLoader{}
+	defaultLoader.Defaults = map[config.TemplateItemType]string{
+		typeA: `
 		{
 			"key1": "Hello",
 			"key2": "World"
@@ -136,6 +146,7 @@ func TestResolveTranslations(t *testing.T) {
 			})
 			e.Register(specA)
 			e.loader = &mockLoader{}
+			e.defaultLoader = defaultLoader
 
 			actual, err := e.resolveTranslations(typeA)
 			So(err, ShouldBeNil)
@@ -199,36 +210,33 @@ func TestResolveTranslations(t *testing.T) {
 
 func TestResolveComponents(t *testing.T) {
 	componentA := Spec{
-		Type:    "componentA",
-		Default: "componentA",
+		Type: "componentA",
 	}
 	componentB := Spec{
-		Type:    "componentB",
-		Default: "componentB",
+		Type: "componentB",
 	}
 	componentC := Spec{
 		Type:       "componentC",
-		Default:    "componentC",
 		Components: []config.TemplateItemType{"componentA", "componentB"},
 	}
 	pageA := Spec{
-		Type:    "pageA",
-		Default: "pageA",
+		Type: "pageA",
 	}
 	pageB := Spec{
 		Type:       "pageB",
-		Default:    "pageB",
 		Components: []config.TemplateItemType{"componentA"},
 	}
 	pageC := Spec{
 		Type:       "pageC",
-		Default:    "pageC",
 		Components: []config.TemplateItemType{"componentC"},
 	}
 	pageD := Spec{
 		Type:       "pageD",
-		Default:    "pageD",
 		Components: []config.TemplateItemType{"componentA", "componentC"},
+	}
+
+	defaultLoader := &mockDefaultLoader{
+		Defaults: map[config.TemplateItemType]string{},
 	}
 
 	specs := []Spec{
@@ -240,6 +248,9 @@ func TestResolveComponents(t *testing.T) {
 		pageC,
 		pageD,
 	}
+	for _, spec := range specs {
+		defaultLoader.Defaults[spec.Type] = string(spec.Type)
+	}
 
 	test := func(spec Spec, expected []string) {
 		e := NewEngine(NewEngineOptions{})
@@ -247,6 +258,7 @@ func TestResolveComponents(t *testing.T) {
 			e.Register(s)
 		}
 		e.loader = &mockLoader{}
+		e.defaultLoader = defaultLoader
 
 		actual, err := e.resolveComponents(spec.Components)
 		So(err, ShouldBeNil)

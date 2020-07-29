@@ -21,6 +21,8 @@ type ServerConfig struct {
 	// ConfigSource configures the source of app configurations
 	ConfigSource ConfigurationSourceConfig `envconfig:"CONFIG_SOURCE"`
 
+	// DefaultTemplateDirectory sets the directory for default template files
+	DefaultTemplateDirectory string `envconfig:"DEFAULT_TEMPLATE_DIRECTORY" default:"templates"`
 	// ReservedNameFilePath sets the file path for reserved name list
 	ReservedNameFilePath string `envconfig:"RESERVED_NAME_FILE_PATH" default:"reserved_name.txt"`
 	// StaticAsset configures serving static asset

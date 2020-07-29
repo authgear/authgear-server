@@ -10,11 +10,13 @@ import (
 )
 
 func NewEngineWithConfig(
+	serverConfig *config.ServerConfig,
 	c *config.Config,
 ) *template.Engine {
 	e := template.NewEngine(template.NewEngineOptions{
-		TemplateItems:    c.AppConfig.Template.Items,
-		FallbackLanguage: c.AppConfig.Localization.FallbackLanguage,
+		DefaultTemplatesDirectory: serverConfig.DefaultTemplateDirectory,
+		TemplateItems:             c.AppConfig.Template.Items,
+		FallbackLanguage:          c.AppConfig.Localization.FallbackLanguage,
 	})
 
 	e.Register(welcomemessage.TemplateWelcomeEmailTXT)
