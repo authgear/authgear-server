@@ -344,6 +344,7 @@ func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err e
 				candidate := identity.NewOAuthCandidate(&pc)
 				for _, iden := range oauths {
 					if iden.ProviderID.Equal(&configProviderID) {
+						candidate[identity.CandidateKeyIdentityID] = iden.ID
 						candidate[identity.CandidateKeyProviderSubjectID] = string(iden.ProviderSubjectID)
 						candidate[identity.CandidateKeyDisplayID] = s.toIdentityInfo(iden).DisplayID()
 					}
@@ -356,6 +357,7 @@ func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err e
 				candidate := identity.NewLoginIDCandidate(&lkc)
 				for _, iden := range loginIDs {
 					if loginIDKeyConfig.Key == iden.LoginIDKey {
+						candidate[identity.CandidateKeyIdentityID] = iden.ID
 						candidate[identity.CandidateKeyLoginIDValue] = iden.LoginID
 						candidate[identity.CandidateKeyDisplayID] = loginIDToIdentityInfo(iden).DisplayID()
 					}

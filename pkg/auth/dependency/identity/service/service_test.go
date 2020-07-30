@@ -50,6 +50,7 @@ func TestProviderListCandidates(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(actual, ShouldResemble, []identity.Candidate{
 				{
+					"identity_id":         "",
 					"type":                "oauth",
 					"display_id":          "",
 					"provider_type":       "google",
@@ -72,6 +73,7 @@ func TestProviderListCandidates(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(actual, ShouldResemble, []identity.Candidate{
 				{
+					"identity_id":    "",
 					"type":           "login_id",
 					"display_id":     "",
 					"login_id_type":  "email",
@@ -127,6 +129,7 @@ func TestProviderListCandidates(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(actual, ShouldResemble, []identity.Candidate{
 				{
+					"identity_id":    "",
 					"type":           "login_id",
 					"display_id":     "john.doe@example.com",
 					"login_id_type":  "email",
@@ -165,6 +168,7 @@ func TestProviderListCandidates(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(actual, ShouldResemble, []identity.Candidate{
 				{
+					"identity_id":         "",
 					"type":                "oauth",
 					"display_id":          "john.doe@gmail.com",
 					"provider_type":       "google",

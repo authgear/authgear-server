@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/httputil"
@@ -72,10 +73,16 @@ func (i *SettingsIdentityLinkOAuth) GetErrorRedirectURI() string {
 	return i.ErrorRedirectURI
 }
 
-// FIXME(webapp): implement input interface
 type SettingsIdentityUnlinkOAuth struct {
-	UserID        string
-	ProviderAlias string
+	IdentityID string
+}
+
+func (i *SettingsIdentityUnlinkOAuth) GetIdentityType() authn.IdentityType {
+	return authn.IdentityTypeOAuth
+}
+
+func (i *SettingsIdentityUnlinkOAuth) GetIdentityID() string {
+	return i.IdentityID
 }
 
 // FIXME(webapp): implement input interface
@@ -120,6 +127,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	loginIDType := r.Form.Get("x_login_id_type")
 	loginIDInputType := r.Form.Get("x_login_id_input_type")
 	oldLoginIDValue := r.Form.Get("x_old_login_id_value")
+	identityID := r.Form.Get("x_identity_id")
 	sess := auth.GetSession(r.Context())
 	userID := sess.AuthnAttrs().UserID
 	nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
@@ -173,13 +181,11 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		h.Database.WithTx(func() error {
 			intent := &webapp.Intent{
 				RedirectURI: redirectURI,
-				// FIXME(webapp): IntentUnlinkOAuth
-				Intent: intents.NewIntentLogin(),
+				Intent:      intents.NewIntentRemoveIdentity(userID),
 			}
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
 				input = &SettingsIdentityUnlinkOAuth{
-					ProviderAlias: providerAlias,
-					UserID:        userID,
+					IdentityID: identityID,
 				}
 				return
 			})
