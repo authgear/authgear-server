@@ -22,7 +22,7 @@ type ChallengeProvider interface {
 type AnonymousFlow struct {
 	Config       *config.AuthenticationConfig
 	Interactions InteractionProvider
-	Anonymous    AnonymousIdentityProvider
+	Anonymous    AnonymousIdentityProvider `wire:"-"`
 	Challenges   ChallengeProvider
 }
 

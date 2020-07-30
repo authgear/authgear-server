@@ -9,26 +9,14 @@ func init() {
 	newinteraction.RegisterNode(&NodeSelectIdentityBegin{})
 }
 
-type InputSelectIdentityBegin interface {
-	GetUseAnonymousUser() bool
-}
-
 type EdgeSelectIdentityBegin struct {
 }
 
 func (e *EdgeSelectIdentityBegin) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
-	input, ok := rawInput.(InputSelectIdentityBegin)
-	if !ok {
-		return nil, newinteraction.ErrIncompatibleInput
-	}
-
-	return &NodeSelectIdentityBegin{
-		UseAnonymousUser: input.GetUseAnonymousUser(),
-	}, nil
+	return &NodeSelectIdentityBegin{}, nil
 }
 
 type NodeSelectIdentityBegin struct {
-	UseAnonymousUser bool `json:"use_anonymous_user"`
 }
 
 func (n *NodeSelectIdentityBegin) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
@@ -40,10 +28,9 @@ func (n *NodeSelectIdentityBegin) DeriveEdges(ctx *newinteraction.Context, graph
 	for _, t := range ctx.Config.Authentication.Identities {
 		switch t {
 		case authn.IdentityTypeAnonymous:
-			if n.UseAnonymousUser {
-				// Always use anonymous user only, if requested
-				return []newinteraction.Edge{&EdgeSelectIdentityAnonymous{}}, nil
-			}
+			edges = append(edges, &EdgeUseIdentityAnonymous{
+				IsCreating: false,
+			})
 		case authn.IdentityTypeLoginID:
 			edges = append(edges, &EdgeUseIdentityLoginID{
 				IsCreating: false,

@@ -55,7 +55,9 @@ type OOBAuthenticatorProvider interface {
 }
 
 type AnonymousIdentityProvider interface {
-	ParseRequest(requestJWT string) (*anonymous.Identity, *anonymous.Request, error)
+	ParseRequestUnverified(requestJWT string) (*anonymous.Request, error)
+	GetByKeyID(keyID string) (*anonymous.Identity, error)
+	ParseRequest(requestJWT string, identity *anonymous.Identity) (*anonymous.Request, error)
 }
 
 type ChallengeProvider interface {

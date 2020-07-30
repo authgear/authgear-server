@@ -37,19 +37,15 @@ func (i *IntentAuthenticate) InstantiateRootNode(ctx *newinteraction.Context, gr
 	return edge.Instantiate(ctx, graph, i)
 }
 
-func (i *IntentAuthenticate) GetUseAnonymousUser() bool {
-	return false
-}
-
 func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, graph *newinteraction.Graph, node newinteraction.Node) ([]newinteraction.Edge, error) {
 	switch node := node.(type) {
 	case *nodes.NodeSelectIdentityEnd:
 		switch i.Kind {
 		case IntentAuthenticateKindLogin:
-			// Special case: login with new OAuth identity means signup.
 			if node.IdentityInfo == nil {
 				switch node.IdentitySpec.Type {
-				case authn.IdentityTypeOAuth:
+				// Special case: login with new OAuth/anonymous identity means signup.
+				case authn.IdentityTypeOAuth, authn.IdentityTypeAnonymous:
 					return []newinteraction.Edge{
 						&nodes.EdgeDoCreateUser{},
 					}, nil
@@ -64,9 +60,9 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 				},
 			}, nil
 		case IntentAuthenticateKindSignup:
-			// Special case: signup with existing OAuth identity means login.
 			if node.IdentityInfo != nil {
 				switch node.IdentitySpec.Type {
+				// Special case: signup with existing OAuth identity means login.
 				case authn.IdentityTypeOAuth:
 					return []newinteraction.Edge{
 						&nodes.EdgeAuthenticationBegin{

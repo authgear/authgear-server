@@ -16,6 +16,7 @@ const (
 
 type Request struct {
 	Key       jwk.Key       `json:"-"`
+	KeyID     string        `json:"-"`
 	Challenge string        `json:"challenge"`
 	Action    RequestAction `json:"action"`
 }

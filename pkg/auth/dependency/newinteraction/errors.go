@@ -8,6 +8,6 @@ var (
 	DuplicatedIdentity    = skyerr.AlreadyExists.WithReason("DuplicatedIdentity")
 )
 
-var ErrInvalidCredentials = InvalidCredentials.New("duplicated user")
+var ErrInvalidCredentials = InvalidCredentials.New("invalid credentials")
 var ErrDuplicatedIdentity = DuplicatedIdentity.New("identity already exists")
 var ErrOAuthProviderNotFound = skyerr.NotFound.WithReason("OAuthProviderNotFound").New("oauth provider not found")

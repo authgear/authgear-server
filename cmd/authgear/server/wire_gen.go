@@ -436,7 +436,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	anonymousFlow := &flows.AnonymousFlow{
 		Config:       authenticationConfig,
 		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
 		Challenges:   challengeProvider,
 	}
 	stateStoreRedis := &flows.StateStoreRedis{
@@ -545,34 +544,8 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       rand,
 	}
+	newinteractionLogger := newinteraction.NewLogger(factory)
 	authenticationConfig := appConfig.Authentication
-	interactionLogger := interaction.NewLogger(factory)
-	hookLogger := hook.NewLogger(factory)
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	localizationConfig := appConfig.Localization
-	appMetadata := appConfig.Metadata
-	messagingConfig := appConfig.Messaging
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	engine := appProvider.TemplateEngine
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
-	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               context,
-		LocalizationConfig:    localizationConfig,
-		MetadataConfiguration: appMetadata,
-		MessagingConfig:       messagingConfig,
-		WelcomeMessageConfig:  welcomeMessageConfig,
-		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
-	}
 	identityConfig := appConfig.Identity
 	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
@@ -620,7 +593,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
 	}
-	verificationConfig := appConfig.Verification
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -657,9 +629,20 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	messagingConfig := appConfig.Messaging
+	engine := appProvider.TemplateEngine
 	endpointsProvider := &endpoints.Provider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -682,6 +665,24 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	interactionLogger := interaction.NewLogger(factory)
+	hookLogger := hook.NewLogger(factory)
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	welcomemessageProvider := &welcomemessage.Provider{
+		Context:               context,
+		LocalizationConfig:    localizationConfig,
+		MetadataConfiguration: appMetadata,
+		MessagingConfig:       messagingConfig,
+		WelcomeMessageConfig:  welcomeMessageConfig,
+		TemplateEngine:        engine,
+		TaskQueue:             queueQueue,
+	}
+	verificationConfig := appConfig.Verification
 	verificationService := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
@@ -745,8 +746,105 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	anonymousFlow := &flows.AnonymousFlow{
 		Config:       authenticationConfig,
 		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
 		Challenges:   challengeProvider,
+	}
+	stateStoreRedis := &flows.StateStoreRedis{
+		Redis: redisHandle,
+	}
+	stateServiceLogger := flows.NewStateServiceLogger(factory)
+	stateService := &flows.StateService{
+		ServerConfig: serverConfig,
+		StateStore:   stateStoreRedis,
+		Logger:       stateServiceLogger,
+	}
+	urlProvider := &webapp.URLProvider{
+		Endpoints: endpointsProvider,
+		Anonymous: anonymousFlow,
+		States:    stateService,
+	}
+	userInfoDecoder := sso.UserInfoDecoder{
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	oAuthProviderFactory := &sso.OAuthProviderFactory{
+		Endpoints:                endpointsProvider,
+		IdentityConfig:           identityConfig,
+		Credentials:              oAuthClientCredentials,
+		RedirectURL:              urlProvider,
+		Clock:                    clockClock,
+		UserInfoDecoder:          userInfoDecoder,
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	forgotpasswordStore := &forgotpassword.Store{
+		Redis: redisHandle,
+	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
+	forgotpasswordProvider := &forgotpassword.Provider{
+		Context:         context,
+		ServerConfig:    serverConfig,
+		Localization:    localizationConfig,
+		AppMetadata:     appMetadata,
+		Messaging:       messagingConfig,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TemplateEngine:  engine,
+		TaskQueue:       queueQueue,
+		Logger:          providerLogger,
+		LoginIDProvider: loginidProvider,
+		Authenticators:  service3,
+	}
+	commands := &user.Commands{
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: verificationService,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
+	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
+	newinteractionContext := &newinteraction.Context{
+		Database:             sqlExecutor,
+		Config:               appConfig,
+		Identities:           serviceService,
+		Authenticators:       service3,
+		AnonymousIdentities:  anonymousProvider,
+		OOBAuthenticators:    oobProvider,
+		OAuthProviderFactory: oAuthProviderFactory,
+		MFA:                  mfaService,
+		ForgotPassword:       forgotpasswordProvider,
+		ResetPassword:        forgotpasswordProvider,
+		Challenges:           challengeProvider,
+		Users:                userProvider,
+		Hooks:                hookProvider,
+		Sessions:             provider,
+		SessionCookie:        cookieDef,
+	}
+	storeRedis := &newinteraction.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+	}
+	newinteractionService := &newinteraction.Service{
+		Logger:  newinteractionLogger,
+		Context: newinteractionContext,
+		Store:   storeRedis,
 	}
 	oidcKeyMaterials := deps.ProvideOIDCKeyMaterials(secretConfig)
 	idTokenIssuer := &oidc.IDTokenIssuer{
@@ -768,7 +866,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AccessGrants:   grantStore,
 		AccessEvents:   accessEventProvider,
 		Sessions:       provider,
-		Anonymous:      anonymousFlow,
+		Graphs:         newinteractionService,
 		IDTokenIssuer:  idTokenIssuer,
 		GenerateToken:  tokenGenerator,
 		Clock:          clockClock,
@@ -1410,7 +1508,6 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	anonymousFlow := &flows.AnonymousFlow{
 		Config:       authenticationConfig,
 		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
 		Challenges:   challengeProvider,
 	}
 	stateStoreRedis := &flows.StateStoreRedis{
@@ -1708,7 +1805,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	anonymousFlow := &flows.AnonymousFlow{
 		Config:       authenticationConfig,
 		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
 		Challenges:   challengeProvider,
 	}
 	stateStoreRedis := &flows.StateStoreRedis{
@@ -2094,7 +2190,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	anonymousFlow := &flows.AnonymousFlow{
 		Config:       authenticationConfig,
 		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
 		Challenges:   challengeProvider,
 	}
 	stateStoreRedis := &flows.StateStoreRedis{
@@ -2480,7 +2575,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	anonymousFlow := &flows.AnonymousFlow{
 		Config:       authenticationConfig,
 		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
 		Challenges:   challengeProvider,
 	}
 	stateStoreRedis := &flows.StateStoreRedis{
@@ -2847,7 +2941,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	anonymousFlow := &flows.AnonymousFlow{
 		Config:       authenticationConfig,
 		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
 		Challenges:   challengeProvider,
 	}
 	stateStoreRedis := &flows.StateStoreRedis{
@@ -3226,7 +3319,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	anonymousFlow := &flows.AnonymousFlow{
 		Config:       authenticationConfig,
 		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
 		Challenges:   challengeProvider,
 	}
 	stateStoreRedis := &flows.StateStoreRedis{
@@ -3606,7 +3698,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	anonymousFlow := &flows.AnonymousFlow{
 		Config:       authenticationConfig,
 		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
 		Challenges:   challengeProvider,
 	}
 	stateStoreRedis := &flows.StateStoreRedis{
@@ -3986,7 +4077,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	anonymousFlow := &flows.AnonymousFlow{
 		Config:       authenticationConfig,
 		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
 		Challenges:   challengeProvider,
 	}
 	stateStoreRedis := &flows.StateStoreRedis{
@@ -4367,7 +4457,6 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	anonymousFlow := &flows.AnonymousFlow{
 		Config:       authenticationConfig,
 		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
 		Challenges:   challengeProvider,
 	}
 	stateStoreRedis := &flows.StateStoreRedis{
@@ -4751,7 +4840,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	anonymousFlow := &flows.AnonymousFlow{
 		Config:       authenticationConfig,
 		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
 		Challenges:   challengeProvider,
 	}
 	stateStoreRedis := &flows.StateStoreRedis{
@@ -5132,7 +5220,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	anonymousFlow := &flows.AnonymousFlow{
 		Config:       authenticationConfig,
 		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
 		Challenges:   challengeProvider,
 	}
 	stateStoreRedis := &flows.StateStoreRedis{
@@ -5512,7 +5599,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	anonymousFlow := &flows.AnonymousFlow{
 		Config:       authenticationConfig,
 		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
 		Challenges:   challengeProvider,
 	}
 	stateStoreRedis := &flows.StateStoreRedis{
@@ -5893,7 +5979,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	anonymousFlow := &flows.AnonymousFlow{
 		Config:       authenticationConfig,
 		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
 		Challenges:   challengeProvider,
 	}
 	stateStoreRedis := &flows.StateStoreRedis{
@@ -6304,7 +6389,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	anonymousFlow := &flows.AnonymousFlow{
 		Config:       authenticationConfig,
 		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
 		Challenges:   challengeProvider,
 	}
 	stateStoreRedis := &flows.StateStoreRedis{

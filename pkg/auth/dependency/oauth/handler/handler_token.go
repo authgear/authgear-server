@@ -10,13 +10,14 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
-	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	interactionintents "github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
 	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/core/skyerr"
 	"github.com/authgear/authgear-server/pkg/core/uuid"
 	"github.com/authgear/authgear-server/pkg/log"
 )
@@ -58,7 +59,7 @@ type TokenHandler struct {
 	AccessGrants   oauth.AccessGrantStore
 	AccessEvents   auth.AccessEventProvider
 	Sessions       SessionProvider
-	Anonymous      AnonymousInteractionFlow
+	Graphs         GraphService
 	IDTokenIssuer  IDTokenIssuer
 	GenerateToken  TokenGenerator
 	Clock          clock.Clock
@@ -250,18 +251,62 @@ func (h *TokenHandler) handleRefreshToken(
 	return resp, nil
 }
 
-var errInvalidAnonymousRequest = protocol.NewError("invalid_grant", "invalid anonymous request")
-var errAnonymousDisabled = protocol.NewError("unauthorized_client", "anonymous user is disabled")
+type anonymousTokenInput struct {
+	JWT string
+}
+
+func (i *anonymousTokenInput) GetAnonymousRequestToken() string {
+	return i.JWT
+}
 
 func (h *TokenHandler) handleAnonymousRequest(
 	client config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (TokenResult, error) {
-	attrs, err := h.Anonymous.Authenticate(r.JWT(), client.ClientID())
-	if errors.Is(err, interaction.ErrInvalidCredentials) {
-		return nil, errInvalidAnonymousRequest
-	} else if errors.Is(err, interactionflows.ErrAnonymousDisabled) {
-		return nil, errAnonymousDisabled
+	var graph *newinteraction.Graph
+	var attrs *authn.Attrs
+	err := h.Graphs.DryRun(func(ctx *newinteraction.Context) (*newinteraction.Graph, error) {
+		var err error
+		graph, err = h.Graphs.NewGraph(ctx, interactionintents.NewIntentLogin())
+		if err != nil {
+			return nil, err
+		}
+
+		var edges []newinteraction.Edge
+		graph, edges, err = graph.Accept(ctx, &anonymousTokenInput{
+			JWT: r.JWT(),
+		})
+		if len(edges) != 0 {
+			return nil, errors.New("interaction not completed for anonymous users")
+		} else if err != nil {
+			return nil, err
+		}
+
+		for _, node := range graph.Nodes {
+			if a, ok := node.(interface{ AuthnAttrs() authn.Attrs }); ok {
+				at := a.AuthnAttrs()
+				attrs = &at
+				break
+			}
+		}
+		if attrs == nil {
+			return nil, errors.New("interaction does not produce authn attrs")
+		}
+
+		return graph, nil
+	})
+
+	if skyerr.IsKind(err, newinteraction.ConfigurationViolated) {
+		return nil, protocol.NewError("unauthorized_client", err.Error())
+	} else if errors.Is(err, newinteraction.ErrInvalidCredentials) {
+		return nil, protocol.NewError("invalid_grant", err.Error())
+	} else if err != nil {
+		return nil, err
+	}
+
+	err = h.Graphs.Run(graph, false)
+	if skyerr.IsAPIError(err) {
+		return nil, protocol.NewError("invalid_request", err.Error())
 	} else if err != nil {
 		return nil, err
 	}
