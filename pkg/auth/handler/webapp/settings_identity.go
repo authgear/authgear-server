@@ -5,7 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -33,12 +33,17 @@ func ConfigureSettingsIdentityRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/settings/identity")
 }
 
+type SettingsIdentityService interface {
+	ListCandidates(userID string) ([]identity.Candidate, error)
+}
+
 type SettingsIdentityHandler struct {
 	ServerConfig  *config.ServerConfig
 	Database      *db.Handle
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
 	WebApp        WebAppService
+	Identities    SettingsIdentityService
 }
 
 // FIXME(webapp): implement input interface
@@ -65,7 +70,7 @@ type SettingsIdentityAddUpdateRemoveLoginID struct {
 	OldLoginIDValue  string
 }
 
-func (h *SettingsIdentityHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
+func (h *SettingsIdentityHandler) GetData(r *http.Request, state *webapp.State) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 	var anyError interface{}
 	if state != nil {
@@ -73,8 +78,12 @@ func (h *SettingsIdentityHandler) GetData(r *http.Request, state *webapp.State, 
 	}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
-	// FIXME(webapp): derive AuthenticationViewModel with graph and edges
-	authenticationViewModel := viewmodels.AuthenticationViewModel{}
+	userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
+	candidates, err := h.Identities.ListCandidates(userID)
+	if err != nil {
+		return nil, err
+	}
+	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithCandidates(candidates)
 
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, authenticationViewModel)
@@ -100,20 +109,13 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 
 	if r.Method == "GET" {
 		h.Database.WithTx(func() error {
-			intent := &webapp.Intent{
-				RedirectURI: redirectURI,
-				// FIXME(webapp): IntentSettingsIdentity
-				// This intent actually does not have any further nodes.
-				// Only the edges are useful.
-				Intent: intents.NewIntentLogin(),
-			}
-			state, graph, edges, err := h.WebApp.GetIntent(intent, StateID(r))
+			state, err := h.WebApp.GetState(StateID(r))
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
-			data, err := h.GetData(r, state, graph, edges)
+			data, err := h.GetData(r, state)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err

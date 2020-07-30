@@ -6080,6 +6080,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      htmlRenderer,
 		WebApp:        webappService,
+		Identities:    serviceService,
 	}
 	return settingsIdentityHandler
 }

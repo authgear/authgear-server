@@ -51,6 +51,16 @@ type Service struct {
 	Graph  GraphService
 }
 
+func (s *Service) GetState(stateID string) (state *State, err error) {
+	if stateID != "" {
+		state, err = s.Store.Get(stateID)
+		if err != nil {
+			return
+		}
+	}
+	return
+}
+
 func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph *newinteraction.Graph, edges []newinteraction.Edge, err error) {
 	var stateError *skyerr.APIError
 	if stateID != "" {

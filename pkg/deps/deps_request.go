@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/forgotpassword"
 	identityanonymous "github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
+	identityservice "github.com/authgear/authgear-server/pkg/auth/dependency/identity/service"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oidc"
@@ -57,6 +58,7 @@ var requestDeps = wire.NewSet(
 	viewmodelswebapp.DependencySet,
 
 	handlerwebapp.DependencySet,
+	wire.Bind(new(handlerwebapp.SettingsIdentityService), new(*identityservice.Service)),
 	wire.Bind(new(handlerwebapp.PasswordPolicy), new(*password.Checker)),
 	wire.Bind(new(handlerwebapp.LogoutSessionManager), new(*auth.SessionManager)),
 	wire.Bind(new(handlerwebapp.WebAppService), new(*webapp.Service)),
