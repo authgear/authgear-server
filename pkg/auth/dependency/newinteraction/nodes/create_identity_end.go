@@ -12,15 +12,24 @@ func init() {
 }
 
 type EdgeCreateIdentityEnd struct {
-	NewIdentity *identity.Info
+	IdentitySpec *identity.Spec
 }
 
 func (e *EdgeCreateIdentityEnd) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
-	return &NodeCreateIdentityEnd{NewIdentity: e.NewIdentity}, nil
+	info, err := ctx.Identities.New(graph.MustGetUserID(), e.IdentitySpec)
+	if err != nil {
+		return nil, err
+	}
+
+	return &NodeCreateIdentityEnd{
+		IdentitySpec: e.IdentitySpec,
+		IdentityInfo: info,
+	}, nil
 }
 
 type NodeCreateIdentityEnd struct {
-	NewIdentity *identity.Info `json:"new_identity"`
+	IdentitySpec *identity.Spec `json:"identity_spec"`
+	IdentityInfo *identity.Info `json:"identity_info"`
 }
 
 func (n *NodeCreateIdentityEnd) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
@@ -29,13 +38,13 @@ func (n *NodeCreateIdentityEnd) Apply(perform func(eff newinteraction.Effect) er
 			return err
 		}
 
-		if err := ctx.Identities.CheckDuplicated(n.NewIdentity); err != nil {
+		if err := ctx.Identities.CheckDuplicated(n.IdentityInfo); err != nil {
 			if errors.Is(err, identity.ErrIdentityAlreadyExists) {
 				return newinteraction.ErrDuplicatedIdentity
 			}
 			return err
 		}
-		if err := ctx.Identities.Create(n.NewIdentity); err != nil {
+		if err := ctx.Identities.Create(n.IdentityInfo); err != nil {
 			return err
 		}
 
@@ -55,9 +64,9 @@ func (n *NodeCreateIdentityEnd) DeriveEdges(ctx *newinteraction.Context, graph *
 }
 
 func (n *NodeCreateIdentityEnd) UserIdentity() *identity.Info {
-	return n.NewIdentity
+	return n.IdentityInfo
 }
 
 func (n *NodeCreateIdentityEnd) UserNewIdentity() *identity.Info {
-	return n.NewIdentity
+	return n.IdentityInfo
 }

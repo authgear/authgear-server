@@ -59,7 +59,7 @@ func (i *SSOCallbackInput) GetErrorDescription() string {
 	return i.ErrorDescription
 }
 
-var _ nodes.InputSelectIdentityOAuthUserInfo = &SSOCallbackInput{}
+var _ nodes.InputUseIdentityOAuthUserInfo = &SSOCallbackInput{}
 
 func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {

@@ -11,21 +11,22 @@ import (
 )
 
 func init() {
-	newinteraction.RegisterNode(&NodeSelectIdentityOAuthProvider{})
+	newinteraction.RegisterNode(&NodeUseIdentityOAuthProvider{})
 }
 
-type InputSelectIdentityOAuthProvider interface {
+type InputUseIdentityOAuthProvider interface {
 	GetProviderAlias() string
 	GetState() string
 	GetNonceSource() *http.Cookie
 	GetErrorRedirectURI() string
 }
 
-type EdgeSelectIdentityOAuthProvider struct {
-	Configs []config.OAuthSSOProviderConfig
+type EdgeUseIdentityOAuthProvider struct {
+	IsCreating bool
+	Configs    []config.OAuthSSOProviderConfig
 }
 
-func (e *EdgeSelectIdentityOAuthProvider) GetIdentityCandidates() []identity.Candidate {
+func (e *EdgeUseIdentityOAuthProvider) GetIdentityCandidates() []identity.Candidate {
 	candidates := make([]identity.Candidate, len(e.Configs))
 	for i, c := range e.Configs {
 		conf := c
@@ -34,8 +35,8 @@ func (e *EdgeSelectIdentityOAuthProvider) GetIdentityCandidates() []identity.Can
 	return candidates
 }
 
-func (e *EdgeSelectIdentityOAuthProvider) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
-	input, ok := rawInput.(InputSelectIdentityOAuthProvider)
+func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
+	input, ok := rawInput.(InputUseIdentityOAuthProvider)
 	if !ok {
 		return nil, newinteraction.ErrIncompatibleInput
 	}
@@ -74,7 +75,8 @@ func (e *EdgeSelectIdentityOAuthProvider) Instantiate(ctx *newinteraction.Contex
 		return nil, err
 	}
 
-	return &NodeSelectIdentityOAuthProvider{
+	return &NodeUseIdentityOAuthProvider{
+		IsCreating:       e.IsCreating,
 		Config:           *oauthConfig,
 		HashedNonce:      nonce,
 		ErrorRedirectURI: errorRedirectURI,
@@ -82,7 +84,8 @@ func (e *EdgeSelectIdentityOAuthProvider) Instantiate(ctx *newinteraction.Contex
 	}, nil
 }
 
-type NodeSelectIdentityOAuthProvider struct {
+type NodeUseIdentityOAuthProvider struct {
+	IsCreating       bool                          `json:"is_creating"`
 	Config           config.OAuthSSOProviderConfig `json:"provider_config"`
 	HashedNonce      string                        `json:"hashed_nonce"`
 	ErrorRedirectURI string                        `json:"error_redirect_uri"`
@@ -90,22 +93,23 @@ type NodeSelectIdentityOAuthProvider struct {
 }
 
 // GetRedirectURI implements RedirectURIGetter.
-func (n *NodeSelectIdentityOAuthProvider) GetRedirectURI() string {
+func (n *NodeUseIdentityOAuthProvider) GetRedirectURI() string {
 	return n.RedirectURI
 }
 
 // GetErrorRedirectURI implements ErrorRedirectURIGetter.
-func (n *NodeSelectIdentityOAuthProvider) GetErrorRedirectURI() string {
+func (n *NodeUseIdentityOAuthProvider) GetErrorRedirectURI() string {
 	return n.ErrorRedirectURI
 }
 
-func (n *NodeSelectIdentityOAuthProvider) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
+func (n *NodeUseIdentityOAuthProvider) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeSelectIdentityOAuthProvider) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+func (n *NodeUseIdentityOAuthProvider) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	return []newinteraction.Edge{
-		&EdgeSelectIdentityOAuthUserInfo{
+		&EdgeUseIdentityOAuthUserInfo{
+			IsCreating:       n.IsCreating,
 			Config:           n.Config,
 			HashedNonce:      n.HashedNonce,
 			ErrorRedirectURI: n.ErrorRedirectURI,

@@ -46,14 +46,13 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 	case *nodes.NodeSelectIdentityEnd:
 		switch i.Kind {
 		case IntentAuthenticateKindLogin:
-			if node.ExistingIdentity == nil {
-				switch node.RequestedIdentity.Type {
-				case authn.IdentityTypeOAuth, authn.IdentityTypeAnonymous:
-					// Create new user with the requested identity if not exists
+			// Special case: login with new OAuth identity means signup.
+			if node.IdentityInfo == nil {
+				switch node.IdentitySpec.Type {
+				case authn.IdentityTypeOAuth:
 					return []newinteraction.Edge{
 						&nodes.EdgeDoCreateUser{},
 					}, nil
-
 				default:
 					return nil, newinteraction.ErrInvalidCredentials
 				}
@@ -61,19 +60,27 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 
 			return []newinteraction.Edge{
 				&nodes.EdgeAuthenticationBegin{
-					Stage: firstAuthenticationStage(node.ExistingIdentity.Type),
+					Stage: firstAuthenticationStage(node.IdentityInfo.Type),
 				},
 			}, nil
-
 		case IntentAuthenticateKindSignup:
-			if node.ExistingIdentity != nil {
-				return nil, newinteraction.ErrDuplicatedIdentity
+			// Special case: signup with existing OAuth identity means login.
+			if node.IdentityInfo != nil {
+				switch node.IdentitySpec.Type {
+				case authn.IdentityTypeOAuth:
+					return []newinteraction.Edge{
+						&nodes.EdgeAuthenticationBegin{
+							Stage: firstAuthenticationStage(node.IdentityInfo.Type),
+						},
+					}, nil
+				default:
+					return nil, newinteraction.ErrDuplicatedIdentity
+				}
 			}
 
 			return []newinteraction.Edge{
 				&nodes.EdgeDoCreateUser{},
 			}, nil
-
 		default:
 			panic("interaction: unknown authentication intent kind: " + i.Kind)
 		}
@@ -91,9 +98,10 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 		}
 
 		return []newinteraction.Edge{
-			&nodes.EdgeCreateIdentityBegin{RequestedIdentity: selectIdentity.RequestedIdentity},
+			&nodes.EdgeCreateIdentityEnd{
+				IdentitySpec: selectIdentity.IdentitySpec,
+			},
 		}, nil
-
 	case *nodes.NodeCreateIdentityEnd:
 		return []newinteraction.Edge{
 			&nodes.EdgeCreateAuthenticatorBegin{

@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"errors"
+
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 )
@@ -10,20 +12,28 @@ func init() {
 }
 
 type EdgeSelectIdentityEnd struct {
-	RequestedIdentity *identity.Spec
-	ExistingIdentity  *identity.Info
+	IdentitySpec *identity.Spec
 }
 
 func (e *EdgeSelectIdentityEnd) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, input interface{}) (newinteraction.Node, error) {
+	var info *identity.Info
+	info, err := ctx.Identities.GetBySpec(e.IdentitySpec)
+	if errors.Is(err, identity.ErrIdentityNotFound) {
+		// nolint: ineffassign
+		err = nil
+	} else if err != nil {
+		return nil, err
+	}
+
 	return &NodeSelectIdentityEnd{
-		RequestedIdentity: e.RequestedIdentity,
-		ExistingIdentity:  e.ExistingIdentity,
+		IdentitySpec: e.IdentitySpec,
+		IdentityInfo: info,
 	}, nil
 }
 
 type NodeSelectIdentityEnd struct {
-	RequestedIdentity *identity.Spec `json:"requested_identity"`
-	ExistingIdentity  *identity.Info `json:"existing_identity"`
+	IdentitySpec *identity.Spec `json:"identity_spec"`
+	IdentityInfo *identity.Info `json:"identity_info"`
 }
 
 func (n *NodeSelectIdentityEnd) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
@@ -35,12 +45,12 @@ func (n *NodeSelectIdentityEnd) DeriveEdges(ctx *newinteraction.Context, graph *
 }
 
 func (n *NodeSelectIdentityEnd) UserIdentity() *identity.Info {
-	return n.ExistingIdentity
+	return n.IdentityInfo
 }
 
 func (n *NodeSelectIdentityEnd) UserID() string {
-	if n.ExistingIdentity == nil {
+	if n.IdentityInfo == nil {
 		return ""
 	}
-	return n.ExistingIdentity.UserID
+	return n.IdentityInfo.UserID
 }

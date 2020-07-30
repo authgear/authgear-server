@@ -2,7 +2,6 @@ package nodes
 
 import (
 	"crypto/subtle"
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -15,10 +14,10 @@ import (
 )
 
 func init() {
-	newinteraction.RegisterNode(&NodeSelectIdentityOAuthUserInfo{})
+	newinteraction.RegisterNode(&NodeUseIdentityOAuthUserInfo{})
 }
 
-type InputSelectIdentityOAuthUserInfo interface {
+type InputUseIdentityOAuthUserInfo interface {
 	GetProviderAlias() string
 	GetNonceSource() *http.Cookie
 	GetCode() string
@@ -28,14 +27,15 @@ type InputSelectIdentityOAuthUserInfo interface {
 	GetErrorDescription() string
 }
 
-type EdgeSelectIdentityOAuthUserInfo struct {
+type EdgeUseIdentityOAuthUserInfo struct {
+	IsCreating       bool
 	Config           config.OAuthSSOProviderConfig
 	HashedNonce      string
 	ErrorRedirectURI string
 }
 
-func (e *EdgeSelectIdentityOAuthUserInfo) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
-	input, ok := rawInput.(InputSelectIdentityOAuthUserInfo)
+func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
+	input, ok := rawInput.(InputUseIdentityOAuthUserInfo)
 	if !ok {
 		return nil, newinteraction.ErrIncompatibleInput
 	}
@@ -89,39 +89,35 @@ func (e *EdgeSelectIdentityOAuthUserInfo) Instantiate(ctx *newinteraction.Contex
 		return nil, err
 	}
 
-	return &NodeSelectIdentityOAuthUserInfo{
-		UserInfo: userInfo,
-	}, nil
-}
-
-type NodeSelectIdentityOAuthUserInfo struct {
-	UserInfo sso.AuthInfo
-}
-
-func (n *NodeSelectIdentityOAuthUserInfo) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
-	return nil
-}
-
-func (n *NodeSelectIdentityOAuthUserInfo) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
-	providerID := n.UserInfo.ProviderConfig.ProviderID()
+	providerID := userInfo.ProviderConfig.ProviderID()
 	spec := &identity.Spec{
 		Type: authn.IdentityTypeOAuth,
 		Claims: map[string]interface{}{
 			identity.IdentityClaimOAuthProviderKeys: providerID.Claims(),
-			identity.IdentityClaimOAuthSubjectID:    n.UserInfo.ProviderUserInfo.ID,
-			identity.IdentityClaimOAuthProfile:      n.UserInfo.ProviderRawProfile,
-			identity.IdentityClaimOAuthClaims:       n.UserInfo.ProviderUserInfo.ClaimsValue(),
+			identity.IdentityClaimOAuthSubjectID:    userInfo.ProviderUserInfo.ID,
+			identity.IdentityClaimOAuthProfile:      userInfo.ProviderRawProfile,
+			identity.IdentityClaimOAuthClaims:       userInfo.ProviderUserInfo.ClaimsValue(),
 		},
 	}
 
-	info, err := ctx.Identities.GetBySpec(spec)
-	if errors.Is(err, identity.ErrIdentityNotFound) {
-		info = nil
-	} else if err != nil {
-		return nil, err
-	}
-
-	return []newinteraction.Edge{
-		&EdgeSelectIdentityEnd{RequestedIdentity: spec, ExistingIdentity: info},
+	return &NodeUseIdentityOAuthUserInfo{
+		IsCreating:   e.IsCreating,
+		IdentitySpec: spec,
 	}, nil
+}
+
+type NodeUseIdentityOAuthUserInfo struct {
+	IsCreating   bool           `json:"is_creating"`
+	IdentitySpec *identity.Spec `json:"identity_spec"`
+}
+
+func (n *NodeUseIdentityOAuthUserInfo) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
+	return nil
+}
+
+func (n *NodeUseIdentityOAuthUserInfo) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+	if n.IsCreating {
+		return []newinteraction.Edge{&EdgeCreateIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil
+	}
+	return []newinteraction.Edge{&EdgeSelectIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil
 }

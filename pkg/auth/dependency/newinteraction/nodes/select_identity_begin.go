@@ -44,13 +44,16 @@ func (n *NodeSelectIdentityBegin) DeriveEdges(ctx *newinteraction.Context, graph
 				// Always use anonymous user only, if requested
 				return []newinteraction.Edge{&EdgeSelectIdentityAnonymous{}}, nil
 			}
-
 		case authn.IdentityTypeLoginID:
-			edges = append(edges, &EdgeSelectIdentityLoginID{Configs: ctx.Config.Identity.LoginID.Keys})
-
+			edges = append(edges, &EdgeUseIdentityLoginID{
+				IsCreating: false,
+				Configs:    ctx.Config.Identity.LoginID.Keys,
+			})
 		case authn.IdentityTypeOAuth:
-			edges = append(edges, &EdgeSelectIdentityOAuthProvider{Configs: ctx.Config.Identity.OAuth.Providers})
-
+			edges = append(edges, &EdgeUseIdentityOAuthProvider{
+				IsCreating: false,
+				Configs:    ctx.Config.Identity.OAuth.Providers,
+			})
 		default:
 			panic("interaction: unknown identity type: " + t)
 		}

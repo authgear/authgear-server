@@ -105,7 +105,7 @@ type SignupOAuth struct {
 	ErrorRedirectURI string
 }
 
-var _ nodes.InputSelectIdentityOAuthProvider = &SignupOAuth{}
+var _ nodes.InputUseIdentityOAuthProvider = &SignupOAuth{}
 
 func (i *SignupOAuth) GetProviderAlias() string {
 	return i.ProviderAlias
@@ -129,7 +129,7 @@ type SignupLoginID struct {
 	LoginIDValue string
 }
 
-var _ nodes.InputCreateIdentityLoginID = &SignupLoginID{}
+var _ nodes.InputUseIdentityLoginID = &SignupLoginID{}
 var _ nodes.InputCreateAuthenticatorOOBSetup = &SignupLoginID{}
 
 // GetLoginIDKey implements InputCreateIdentityLoginID.

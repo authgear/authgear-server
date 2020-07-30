@@ -104,7 +104,7 @@ type LoginOAuth struct {
 	ErrorRedirectURI string
 }
 
-var _ nodes.InputSelectIdentityOAuthProvider = &LoginOAuth{}
+var _ nodes.InputUseIdentityOAuthProvider = &LoginOAuth{}
 
 func (i *LoginOAuth) GetProviderAlias() string {
 	return i.ProviderAlias
@@ -127,7 +127,7 @@ type LoginLoginID struct {
 	LoginID    string
 }
 
-var _ nodes.InputSelectIdentityLoginID = &LoginLoginID{}
+var _ nodes.InputUseIdentityLoginID = &LoginLoginID{}
 var _ nodes.InputAuthenticationOOBTrigger = &LoginLoginID{}
 
 // GetLoginIDKey implements InputSelectIdentityLoginID.
