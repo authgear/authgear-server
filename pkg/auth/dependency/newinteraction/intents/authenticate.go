@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/core/errors"
 )
 
 func init() {
@@ -16,8 +17,9 @@ func init() {
 type IntentAuthenticateKind string
 
 const (
-	IntentAuthenticateKindLogin  IntentAuthenticateKind = "login"
-	IntentAuthenticateKindSignup IntentAuthenticateKind = "signup"
+	IntentAuthenticateKindLogin   IntentAuthenticateKind = "login"
+	IntentAuthenticateKindSignup  IntentAuthenticateKind = "signup"
+	IntentAuthenticateKindPromote IntentAuthenticateKind = "promote"
 )
 
 type IntentAuthenticate struct {
@@ -30,6 +32,10 @@ func NewIntentLogin() *IntentAuthenticate {
 
 func NewIntentSignup() *IntentAuthenticate {
 	return &IntentAuthenticate{Kind: IntentAuthenticateKindSignup}
+}
+
+func NewIntentPromote() *IntentAuthenticate {
+	return &IntentAuthenticate{Kind: IntentAuthenticateKindPromote}
 }
 
 func (i *IntentAuthenticate) InstantiateRootNode(ctx *newinteraction.Context, graph *newinteraction.Graph) (newinteraction.Node, error) {
@@ -77,28 +83,40 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 			return []newinteraction.Edge{
 				&nodes.EdgeDoCreateUser{},
 			}, nil
+		case IntentAuthenticateKindPromote:
+			if node.IdentityInfo == nil || node.IdentityInfo.Type != authn.IdentityTypeAnonymous {
+				return nil, errors.New("promote intent is used to select non-anonymous identity")
+			}
+
+			// Create new identity for the anonymous user
+			return []newinteraction.Edge{
+				&nodes.EdgeCreateIdentityBegin{
+					AllowAnonymousUser: false,
+				},
+			}, nil
 		default:
 			panic("interaction: unknown authentication intent kind: " + i.Kind)
 		}
 
 	case *nodes.NodeDoCreateUser:
-		var selectIdentity *nodes.NodeSelectIdentityEnd
-		for _, node := range graph.Nodes {
-			if node, ok := node.(*nodes.NodeSelectIdentityEnd); ok {
-				selectIdentity = node
-				break
-			}
-		}
-		if selectIdentity == nil {
-			panic("interaction: expect identity already selected")
-		}
+		selectIdentity := mustFindNodeSelectIdentity(graph)
 
 		return []newinteraction.Edge{
 			&nodes.EdgeCreateIdentityEnd{
 				IdentitySpec: selectIdentity.IdentitySpec,
 			},
 		}, nil
+
 	case *nodes.NodeCreateIdentityEnd:
+		if i.Kind == IntentAuthenticateKindPromote {
+			selectIdentity := mustFindNodeSelectIdentity(graph)
+			if selectIdentity.IdentityInfo.Type != authn.IdentityTypeAnonymous {
+				panic("interaction: expect anonymous identity")
+			}
+
+			// TODO: remove anonymous identity
+		}
+
 		return []newinteraction.Edge{
 			&nodes.EdgeCreateAuthenticatorBegin{
 				Stage: firstAuthenticationStage(graph.MustGetUserLastIdentity().Type),

@@ -5,12 +5,15 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/httputil"
 	"github.com/authgear/authgear-server/pkg/template"
+	"github.com/authgear/authgear-server/pkg/validation"
 )
 
 const (
@@ -24,6 +27,46 @@ var TemplateAuthUIPromoteHTML = template.Spec{
 	Defines:     defines,
 	Components:  components,
 }
+
+const PromoteWithLoginIDRequestSchema = "PromoteWithLoginIDRequestSchema"
+
+var PromoteSchema = validation.NewMultipartSchema("").
+	Add(PromoteWithLoginIDRequestSchema, `
+		{
+			"type": "object",
+			"properties": {
+				"x_login_id_key": { "type": "string" },
+				"x_login_id_type": { "type": "string" },
+				"x_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] },
+				"x_calling_code": { "type": "string" },
+				"x_national_number": { "type": "string" },
+				"x_login_id": { "type": "string" }
+			},
+			"required": ["x_login_id_key", "x_login_id_type", "x_login_id_input_type"],
+			"allOf": [
+				{
+					"if": {
+						"properties": {
+							"x_login_id_input_type": { "type": "string", "const": "phone" }
+						}
+					},
+					"then": {
+						"required": ["x_calling_code", "x_national_number"]
+					}
+				},
+				{
+					"if": {
+						"properties": {
+							"x_login_id_input_type": { "type": "string", "enum": ["text", "email"] }
+						}
+					},
+					"then": {
+						"required": ["x_login_id"]
+					}
+				}
+			]
+		}
+	`).Instantiate()
 
 func ConfigurePromoteRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -40,31 +83,77 @@ type PromoteHandler struct {
 }
 
 func (h *PromoteHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
-	data := map[string]interface{}{}
-
-	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-	// FIXME(webapp): derive AuthenticationViewModel with graph and edges
-	authenticationViewModel := viewmodels.AuthenticationViewModel{}
-
+	data := make(map[string]interface{})
+	var anyError interface{}
+	if state != nil {
+		anyError = state.Error
+	}
+	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
 	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
+	authenticationViewModel := viewmodels.NewAuthenticationViewModel(edges)
 	viewmodels.Embed(data, authenticationViewModel)
-
 	return data, nil
 }
 
-// FIXME(webapp): implement input interface
 type PromoteOAuth struct {
 	ProviderAlias    string
-	Action           string
+	State            string
 	NonceSource      *http.Cookie
 	ErrorRedirectURI string
 }
 
-// FIXME(webapp): implement input interface
+var _ nodes.InputUseIdentityOAuthProvider = &PromoteOAuth{}
+
+func (i *PromoteOAuth) GetProviderAlias() string {
+	return i.ProviderAlias
+}
+
+func (i *PromoteOAuth) GetState() string {
+	return i.State
+}
+
+func (i *PromoteOAuth) GetNonceSource() *http.Cookie {
+	return i.NonceSource
+}
+
+func (i *PromoteOAuth) GetErrorRedirectURI() string {
+	return i.ErrorRedirectURI
+}
+
 type PromoteLoginID struct {
+	LoginIDType  string
 	LoginIDKey   string
 	LoginIDValue string
+}
+
+var _ nodes.InputUseIdentityLoginID = &PromoteLoginID{}
+var _ nodes.InputCreateAuthenticatorOOBSetup = &PromoteLoginID{}
+
+// GetLoginIDKey implements InputCreateIdentityLoginID.
+func (i *PromoteLoginID) GetLoginIDKey() string {
+	return i.LoginIDKey
+}
+
+// GetLoginID implements InputCreateIdentityLoginID.
+func (i *PromoteLoginID) GetLoginID() string {
+	return i.LoginIDValue
+}
+
+func (i *PromoteLoginID) GetOOBChannel() authn.AuthenticatorOOBChannel {
+	switch i.LoginIDType {
+	case string(config.LoginIDKeyTypeEmail):
+		return authn.AuthenticatorOOBChannelEmail
+	case string(config.LoginIDKeyTypePhone):
+		return authn.AuthenticatorOOBChannelSMS
+	default:
+		return ""
+	}
+}
+
+// GetOOBTarget implements InputCreateAuthenticatorOOBSetup.
+func (i *PromoteLoginID) GetOOBTarget() string {
+	return i.LoginIDValue
 }
 
 func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -99,11 +188,11 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" && providerAlias != "" {
 		h.Database.WithTx(func() error {
 			nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
-			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
+			stateID := StateID(r)
+			result, err := h.WebApp.PostInput(stateID, func() (input interface{}, err error) {
 				input = &PromoteOAuth{
-					ProviderAlias: providerAlias,
-					// FIXME(webapp): Use constant
-					Action:           "promote",
+					ProviderAlias:    providerAlias,
+					State:            stateID,
 					NonceSource:      nonceSource,
 					ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
 				}
@@ -121,14 +210,23 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		h.Database.WithTx(func() error {
 			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
-				loginIDKey := r.Form.Get("x_login_id_key")
-				loginID, err := FormToLoginID(r.Form)
+				err = PromoteSchema.PartValidator(PromoteWithLoginIDRequestSchema).ValidateValue(FormToJSON(r.Form))
 				if err != nil {
 					return
 				}
+
+				loginIDValue, err := FormToLoginID(r.Form)
+				if err != nil {
+					return
+				}
+
+				loginIDKey := r.Form.Get("x_login_id_key")
+				loginIDType := r.Form.Get("x_login_id_type")
+
 				input = &PromoteLoginID{
+					LoginIDType:  loginIDType,
 					LoginIDKey:   loginIDKey,
-					LoginIDValue: loginID,
+					LoginIDValue: loginIDValue,
 				}
 				return
 			})

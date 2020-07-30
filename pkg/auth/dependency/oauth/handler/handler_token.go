@@ -19,6 +19,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/core/skyerr"
 	"github.com/authgear/authgear-server/pkg/core/uuid"
+	"github.com/authgear/authgear-server/pkg/httputil"
 	"github.com/authgear/authgear-server/pkg/log"
 )
 
@@ -65,7 +66,7 @@ type TokenHandler struct {
 	Clock          clock.Clock
 }
 
-func (h *TokenHandler) Handle(r protocol.TokenRequest) TokenResult {
+func (h *TokenHandler) Handle(r protocol.TokenRequest) httputil.Result {
 	client := resolveClient(h.Config, r)
 	if client == nil {
 		return tokenResultError{
@@ -93,7 +94,7 @@ func (h *TokenHandler) Handle(r protocol.TokenRequest) TokenResult {
 func (h *TokenHandler) doHandle(
 	client config.OAuthClientConfig,
 	r protocol.TokenRequest,
-) (TokenResult, error) {
+) (httputil.Result, error) {
 	if err := h.validateRequest(r); err != nil {
 		return nil, err
 	}
@@ -160,7 +161,7 @@ var errInvalidAuthzCode = protocol.NewError("invalid_grant", "invalid authorizat
 func (h *TokenHandler) handleAuthorizationCode(
 	client config.OAuthClientConfig,
 	r protocol.TokenRequest,
-) (TokenResult, error) {
+) (httputil.Result, error) {
 
 	codeHash := oauth.HashToken(r.Code())
 	codeGrant, err := h.CodeGrants.GetCodeGrant(codeHash)
@@ -262,7 +263,7 @@ func (i *anonymousTokenInput) GetAnonymousRequestToken() string {
 func (h *TokenHandler) handleAnonymousRequest(
 	client config.OAuthClientConfig,
 	r protocol.TokenRequest,
-) (TokenResult, error) {
+) (httputil.Result, error) {
 	var graph *newinteraction.Graph
 	var attrs *authn.Attrs
 	err := h.Graphs.DryRun(func(ctx *newinteraction.Context) (*newinteraction.Graph, error) {

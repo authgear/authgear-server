@@ -4,10 +4,10 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
+	"github.com/authgear/authgear-server/pkg/httputil"
 	"github.com/authgear/authgear-server/pkg/log"
 )
 
@@ -24,7 +24,7 @@ func NewAuthorizeHandlerLogger(lf *log.Factory) AuthorizeHandlerLogger {
 }
 
 type ProtocolAuthorizeHandler interface {
-	Handle(r protocol.AuthorizationRequest) handler.AuthorizationResult
+	Handle(r protocol.AuthorizationRequest) httputil.Result
 }
 
 var errAuthzInternalError = errors.New("internal error")
@@ -47,7 +47,7 @@ func (h *AuthorizeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		req[name] = values[0]
 	}
 
-	var result handler.AuthorizationResult
+	var result httputil.Result
 	err = h.Database.WithTx(func() error {
 		result = h.AuthzHandler.Handle(req)
 		if result.IsInternalError() {

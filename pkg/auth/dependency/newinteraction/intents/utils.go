@@ -2,6 +2,7 @@ package intents
 
 import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
@@ -21,4 +22,18 @@ func firstAuthenticationStage(t authn.IdentityType) newinteraction.Authenticatio
 		return newinteraction.AuthenticationStagePrimary
 	}
 	return newinteraction.AuthenticationStageSecondary
+}
+
+func mustFindNodeSelectIdentity(graph *newinteraction.Graph) *nodes.NodeSelectIdentityEnd {
+	var selectIdentity *nodes.NodeSelectIdentityEnd
+	for _, node := range graph.Nodes {
+		if node, ok := node.(*nodes.NodeSelectIdentityEnd); ok {
+			selectIdentity = node
+			break
+		}
+	}
+	if selectIdentity == nil {
+		panic("interaction: expect identity already selected")
+	}
+	return selectIdentity
 }
