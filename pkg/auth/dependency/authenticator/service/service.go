@@ -73,10 +73,9 @@ func (s *Service) Get(userID string, typ authn.AuthenticatorType, id string) (*a
 	panic("authenticator: unknown authenticator type " + typ)
 }
 
-func (s *Service) List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error) {
+func (s *Service) ListAll(userID string) ([]*authenticator.Info, error) {
 	var ais []*authenticator.Info
-	switch typ {
-	case authn.AuthenticatorTypePassword:
+	{
 		as, err := s.Password.List(userID)
 		if err != nil {
 			return nil, err
@@ -84,8 +83,8 @@ func (s *Service) List(userID string, typ authn.AuthenticatorType) ([]*authentic
 		for _, a := range as {
 			ais = append(ais, passwordToAuthenticatorInfo(a))
 		}
-
-	case authn.AuthenticatorTypeTOTP:
+	}
+	{
 		as, err := s.TOTP.List(userID)
 		if err != nil {
 			return nil, err
@@ -93,8 +92,8 @@ func (s *Service) List(userID string, typ authn.AuthenticatorType) ([]*authentic
 		for _, a := range as {
 			ais = append(ais, totpToAuthenticatorInfo(a))
 		}
-
-	case authn.AuthenticatorTypeOOB:
+	}
+	{
 		as, err := s.OOBOTP.List(userID)
 		if err != nil {
 			return nil, err
@@ -102,59 +101,67 @@ func (s *Service) List(userID string, typ authn.AuthenticatorType) ([]*authentic
 		for _, a := range as {
 			ais = append(ais, oobotpToAuthenticatorInfo(a))
 		}
-
-	default:
-		panic("authenticator: unknown authenticator type " + typ)
 	}
 	return ais, nil
 }
 
-func (s *Service) ListByIdentity(ii *identity.Info) (ais []*authenticator.Info, err error) {
-	// This function takes IdentityInfo instead of IdentitySpec because
-	// The login ID value in IdentityInfo is normalized.
-	switch ii.Type {
-	case authn.IdentityTypeOAuth:
-		// OAuth Identity does not have associated authenticators.
-		return
-	case authn.IdentityTypeLoginID:
-		// Login ID Identity has password, TOTP and OOB OTP.
-		// Note that we only return OOB OTP associated with the login ID.
-		var pas []*password.Authenticator
-		pas, err = s.Password.List(ii.UserID)
-		if err != nil {
-			return
-		}
-		for _, pa := range pas {
-			ais = append(ais, passwordToAuthenticatorInfo(pa))
-		}
-
-		var tas []*totp.Authenticator
-		tas, err = s.TOTP.List(ii.UserID)
-		if err != nil {
-			return
-		}
-		for _, ta := range tas {
-			ais = append(ais, totpToAuthenticatorInfo(ta))
-		}
-
-		loginID := ii.Claims[identity.IdentityClaimLoginIDValue]
-		var oas []*oob.Authenticator
-		oas, err = s.OOBOTP.List(ii.UserID)
-		if err != nil {
-			return
-		}
-		for _, oa := range oas {
-			if oa.Email == loginID || oa.Phone == loginID {
-				ais = append(ais, oobotpToAuthenticatorInfo(oa))
-			}
-		}
-	case authn.IdentityTypeAnonymous:
-		// Anonymous Identity does not have associated authenticators.
-		return
-	default:
-		panic("v: unknown identity type " + ii.Type)
+func (s *Service) List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error) {
+	all, err := s.ListAll(userID)
+	if err != nil {
+		return nil, err
 	}
 
+	var ais []*authenticator.Info
+	for _, ai := range all {
+		if ai.Type == typ {
+			ais = append(ais, ai)
+		}
+	}
+
+	return ais, nil
+}
+
+func (s *Service) FilterPrimaryAuthenticators(ii *identity.Info, ais []*authenticator.Info) (out []*authenticator.Info) {
+	types := ii.Type.PrimaryAuthenticatorTypes()
+	for _, typ := range types {
+		for _, ai := range ais {
+			if ai.Type == typ {
+				switch {
+				case ii.Type == authn.IdentityTypeLoginID && ai.Type == authn.AuthenticatorTypeOOB:
+					loginID := ii.Claims[identity.IdentityClaimLoginIDValue]
+					email, _ := ai.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string)
+					phone, _ := ai.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string)
+					if loginID == email || loginID == phone {
+						out = append(out, ai)
+					}
+				default:
+					out = append(out, ai)
+				}
+			}
+		}
+	}
+	return
+}
+
+func (s *Service) FilterMatchingAuthenticators(ii *identity.Info, ais []*authenticator.Info) (out []*authenticator.Info) {
+	types := ii.Type.MatchingAuthenticatorTypes()
+	for _, typ := range types {
+		for _, ai := range ais {
+			if ai.Type == typ {
+				switch {
+				case ii.Type == authn.IdentityTypeLoginID && ai.Type == authn.AuthenticatorTypeOOB:
+					loginID := ii.Claims[identity.IdentityClaimLoginIDValue]
+					email, _ := ai.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string)
+					phone, _ := ai.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string)
+					if loginID == email || loginID == phone {
+						out = append(out, ai)
+					}
+				default:
+					out = append(out, ai)
+				}
+			}
+		}
+	}
 	return
 }
 

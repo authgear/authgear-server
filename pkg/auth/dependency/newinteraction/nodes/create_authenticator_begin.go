@@ -34,13 +34,15 @@ func (n *NodeCreateAuthenticatorBegin) DeriveEdges(ctx *newinteraction.Context, 
 	switch n.Stage {
 	case newinteraction.AuthenticationStagePrimary:
 		iden := graph.MustGetUserLastIdentity()
-		compatibleTypes := iden.Type.AssociatedAuthenticatorTypes()
-		ais, err := ctx.Authenticators.ListByIdentity(iden)
+		primaryAuthenticatorTypes := iden.Type.PrimaryAuthenticatorTypes()
+
+		ais, err := ctx.Authenticators.ListAll(iden.UserID)
 		if err != nil {
 			return nil, err
 		}
+		ais = ctx.Authenticators.FilterPrimaryAuthenticators(iden, ais)
 
-		if len(compatibleTypes) > 0 && len(ctx.Config.Authentication.PrimaryAuthenticators) > 0 {
+		if len(primaryAuthenticatorTypes) > 0 && len(ctx.Config.Authentication.PrimaryAuthenticators) > 0 {
 			first := ctx.Config.Authentication.PrimaryAuthenticators[0]
 
 			found := false
