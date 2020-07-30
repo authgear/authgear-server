@@ -62,7 +62,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 
 			return []newinteraction.Edge{
 				&nodes.EdgeAuthenticationBegin{
-					Stage: firstAuthenticationStage(node.IdentityInfo.Type),
+					Stage: newinteraction.AuthenticationStagePrimary,
 				},
 			}, nil
 		case IntentAuthenticateKindSignup:
@@ -72,7 +72,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 				case authn.IdentityTypeOAuth:
 					return []newinteraction.Edge{
 						&nodes.EdgeAuthenticationBegin{
-							Stage: firstAuthenticationStage(node.IdentityInfo.Type),
+							Stage: newinteraction.AuthenticationStagePrimary,
 						},
 					}, nil
 				default:
@@ -119,7 +119,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 
 		return []newinteraction.Edge{
 			&nodes.EdgeCreateAuthenticatorBegin{
-				Stage: firstAuthenticationStage(graph.MustGetUserLastIdentity().Type),
+				Stage: newinteraction.AuthenticationStagePrimary,
 			},
 		}, nil
 
@@ -137,7 +137,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 
 		case newinteraction.AuthenticationStageSecondary:
 			return []newinteraction.Edge{
-				&nodes.EdgeDoCreateSession{Reason: auth.SessionCreateReasonLogin},
+				&nodes.EdgeCreateAuthenticatorBegin{Stage: newinteraction.AuthenticationStagePrimary},
 			}, nil
 
 		default:
@@ -153,8 +153,16 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 			}, nil
 
 		case newinteraction.AuthenticationStageSecondary:
+			var reason auth.SessionCreateReason
+			_, ok := graph.GetNewUserID()
+			if ok {
+				reason = auth.SessionCreateReasonSignup
+			} else {
+				reason = auth.SessionCreateReasonLogin
+			}
+
 			return []newinteraction.Edge{
-				&nodes.EdgeDoCreateSession{Reason: auth.SessionCreateReasonSignup},
+				&nodes.EdgeDoCreateSession{Reason: reason},
 			}, nil
 
 		default:
@@ -166,6 +174,6 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 		return nil, nil
 
 	default:
-		panic("interaction: unexpected node")
+		panic(fmt.Errorf("interaction: unexpected node: %T", node))
 	}
 }

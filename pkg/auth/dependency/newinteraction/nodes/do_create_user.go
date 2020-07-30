@@ -15,12 +15,12 @@ type EdgeDoCreateUser struct {
 
 func (e *EdgeDoCreateUser) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, input interface{}) (newinteraction.Node, error) {
 	return &NodeDoCreateUser{
-		NewUserID: uuid.New(),
+		CreateUserID: uuid.New(),
 	}, nil
 }
 
 type NodeDoCreateUser struct {
-	NewUserID string `json:"new_user_id"`
+	CreateUserID string `json:"create_user_id"`
 }
 
 func (n *NodeDoCreateUser) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
@@ -28,7 +28,7 @@ func (n *NodeDoCreateUser) Apply(perform func(eff newinteraction.Effect) error, 
 
 	err := perform(newinteraction.EffectRun(func(ctx *newinteraction.Context) error {
 		var err error
-		u, err = ctx.Users.Create(n.NewUserID, map[string]interface{}{})
+		u, err = ctx.Users.Create(n.CreateUserID, map[string]interface{}{})
 		return err
 	}))
 	if err != nil {
@@ -50,5 +50,9 @@ func (n *NodeDoCreateUser) DeriveEdges(ctx *newinteraction.Context, graph *newin
 }
 
 func (n *NodeDoCreateUser) UserID() string {
-	return n.NewUserID
+	return n.CreateUserID
+}
+
+func (n *NodeDoCreateUser) NewUserID() string {
+	return n.CreateUserID
 }

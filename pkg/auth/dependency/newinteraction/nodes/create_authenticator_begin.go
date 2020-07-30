@@ -1,7 +1,6 @@
 package nodes
 
 import (
-	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
@@ -11,20 +10,17 @@ func init() {
 }
 
 type EdgeCreateAuthenticatorBegin struct {
-	Stage                  newinteraction.AuthenticationStage
-	RequestedAuthenticator *authenticator.Spec
+	Stage newinteraction.AuthenticationStage
 }
 
 func (e *EdgeCreateAuthenticatorBegin) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, input interface{}) (newinteraction.Node, error) {
 	return &NodeCreateAuthenticatorBegin{
-		Stage:                  e.Stage,
-		RequestedAuthenticator: e.RequestedAuthenticator,
+		Stage: e.Stage,
 	}, nil
 }
 
 type NodeCreateAuthenticatorBegin struct {
-	Stage                  newinteraction.AuthenticationStage `json:"stage"`
-	RequestedAuthenticator *authenticator.Spec                `json:"requested_authenticator"`
+	Stage newinteraction.AuthenticationStage `json:"stage"`
 }
 
 func (n *NodeCreateAuthenticatorBegin) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
@@ -34,22 +30,40 @@ func (n *NodeCreateAuthenticatorBegin) Apply(perform func(eff newinteraction.Eff
 func (n *NodeCreateAuthenticatorBegin) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	var edges []newinteraction.Edge
 
-	var availableAuthenticators []authn.AuthenticatorType
+	var requiredType authn.AuthenticatorType
 	switch n.Stage {
 	case newinteraction.AuthenticationStagePrimary:
-		availableAuthenticators = ctx.Config.Authentication.PrimaryAuthenticators
+		iden := graph.MustGetUserLastIdentity()
+		compatibleTypes := iden.Type.AssociatedAuthenticatorTypes()
+		ais, err := ctx.Authenticators.ListByIdentity(iden)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(compatibleTypes) > 0 && len(ctx.Config.Authentication.PrimaryAuthenticators) > 0 {
+			first := ctx.Config.Authentication.PrimaryAuthenticators[0]
+
+			found := false
+			for _, ai := range ais {
+				if ai.Type == first {
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				requiredType = first
+			}
+		}
 	case newinteraction.AuthenticationStageSecondary:
-		availableAuthenticators = ctx.Config.Authentication.SecondaryAuthenticators
+		// TODO(new_interaction): MFA
+		break
 	default:
 		panic("interaction: unknown authentication stage: " + n.Stage)
 	}
 
-	for _, t := range availableAuthenticators {
-		if n.RequestedAuthenticator != nil && n.RequestedAuthenticator.Type != t {
-			continue
-		}
-
-		switch t {
+	if requiredType != "" {
+		switch requiredType {
 		case authn.AuthenticatorTypePassword:
 			edges = append(edges, &EdgeCreateAuthenticatorPassword{Stage: n.Stage})
 
@@ -58,10 +72,9 @@ func (n *NodeCreateAuthenticatorBegin) DeriveEdges(ctx *newinteraction.Context, 
 
 		case authn.AuthenticatorTypeOOB:
 			edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{Stage: n.Stage})
-
 		default:
 			// TODO(new_interaction): implements bearer token, recovery code
-			panic("interaction: unknown authenticator type: " + t)
+			panic("interaction: unknown authenticator type: " + requiredType)
 		}
 	}
 
