@@ -9,11 +9,12 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/core/skyerr"
 	"github.com/authgear/authgear-server/pkg/core/utils"
 	"github.com/authgear/authgear-server/pkg/httputil"
 	"github.com/authgear/authgear-server/pkg/log"
@@ -131,8 +132,8 @@ func (h *AuthorizationHandler) doHandle(
 		authnOptions.RedirectURI = authorizeURI.String()
 
 		resp, err := h.WebAppURLs.AuthenticateURL(authnOptions)
-		if errors.Is(err, interaction.ErrInvalidCredentials) {
-			return nil, protocol.NewError("invalid_request", "invalid credentials")
+		if skyerr.IsKind(err, newinteraction.InvalidCredentials) {
+			return nil, protocol.NewError("invalid_request", err.Error())
 		} else if err != nil {
 			return nil, err
 		}

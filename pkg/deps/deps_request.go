@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/forgotpassword"
 	identityanonymous "github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
-	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oidc"
@@ -31,7 +30,6 @@ var requestDeps = wire.NewSet(
 	commonDeps,
 
 	webapp.DependencySet,
-	wire.Bind(new(webapp.ResponderStates), new(*interactionflows.StateService)),
 	wire.Bind(new(oauthhandler.WebAppAuthenticateURLProvider), new(*webapp.AuthenticateURLProvider)),
 	wire.Bind(new(oidchandler.WebAppURLsProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(sso.RedirectURLProvider), new(*webapp.URLProvider)),
