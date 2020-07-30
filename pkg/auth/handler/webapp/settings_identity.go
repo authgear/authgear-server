@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/db"
@@ -46,13 +47,29 @@ type SettingsIdentityHandler struct {
 	Identities    SettingsIdentityService
 }
 
-// FIXME(webapp): implement input interface
 type SettingsIdentityLinkOAuth struct {
-	UserID           string
 	ProviderAlias    string
-	Action           string
+	State            string
 	NonceSource      *http.Cookie
 	ErrorRedirectURI string
+}
+
+var _ nodes.InputUseIdentityOAuthProvider = &SettingsIdentityLinkOAuth{}
+
+func (i *SettingsIdentityLinkOAuth) GetProviderAlias() string {
+	return i.ProviderAlias
+}
+
+func (i *SettingsIdentityLinkOAuth) GetState() string {
+	return i.State
+}
+
+func (i *SettingsIdentityLinkOAuth) GetNonceSource() *http.Cookie {
+	return i.NonceSource
+}
+
+func (i *SettingsIdentityLinkOAuth) GetErrorRedirectURI() string {
+	return i.ErrorRedirectURI
 }
 
 // FIXME(webapp): implement input interface
@@ -130,15 +147,14 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		h.Database.WithTx(func() error {
 			intent := &webapp.Intent{
 				RedirectURI: redirectURI,
-				// FIXME(webapp): IntentLinkOAuth
-				Intent: intents.NewIntentLogin(),
+				Intent:      intents.NewIntentAddIdentity(userID),
 			}
+			stateID := webapp.NewID()
+			intent.StateID = stateID
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
 				input = &SettingsIdentityLinkOAuth{
-					ProviderAlias: providerAlias,
-					// FIXME(webapp): Use constant
-					Action:           "link",
-					UserID:           userID,
+					ProviderAlias:    providerAlias,
+					State:            stateID,
 					NonceSource:      nonceSource,
 					ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
 				}
