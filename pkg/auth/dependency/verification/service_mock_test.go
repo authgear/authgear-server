@@ -158,3 +158,69 @@ func (mr *MockOTPMessageSenderMockRecorder) SendSMS(phone, opts, message interfa
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendSMS", reflect.TypeOf((*MockOTPMessageSender)(nil).SendSMS), phone, opts, message)
 }
+
+// MockStore is a mock of Store interface
+type MockStore struct {
+	ctrl     *gomock.Controller
+	recorder *MockStoreMockRecorder
+}
+
+// MockStoreMockRecorder is the mock recorder for MockStore
+type MockStoreMockRecorder struct {
+	mock *MockStore
+}
+
+// NewMockStore creates a new mock instance
+func NewMockStore(ctrl *gomock.Controller) *MockStore {
+	mock := &MockStore{ctrl: ctrl}
+	mock.recorder = &MockStoreMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockStore) EXPECT() *MockStoreMockRecorder {
+	return m.recorder
+}
+
+// Create mocks base method
+func (m *MockStore) Create(code *Code) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", code)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create
+func (mr *MockStoreMockRecorder) Create(code interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockStore)(nil).Create), code)
+}
+
+// Get mocks base method
+func (m *MockStore) Get(code string) (*Code, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", code)
+	ret0, _ := ret[0].(*Code)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get
+func (mr *MockStoreMockRecorder) Get(code interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockStore)(nil).Get), code)
+}
+
+// Delete mocks base method
+func (m *MockStore) Delete(code string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", code)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete
+func (mr *MockStoreMockRecorder) Delete(code interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockStore)(nil).Delete), code)
+}

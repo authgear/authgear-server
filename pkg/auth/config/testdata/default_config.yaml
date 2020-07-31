@@ -315,8 +315,6 @@ verification:
   criteria: any
   sms:
     message: {}
-    code_format: numeric
   email:
     message:
       subject: Email Verification Instruction
-    code_format: complex

@@ -20,6 +20,7 @@ var _ = Schema.Add("VerificationConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"criteria": { "$ref": "#/$defs/VerificationCriteria" },
+		"code_expiry_seconds": { "$ref": "#/$defs/DurationSeconds" },
 		"sms": { "$ref": "#/$defs/VerificationSMSConfig" },
 		"email": { "$ref": "#/$defs/VerificationEmailConfig" }
 	}
@@ -27,14 +28,18 @@ var _ = Schema.Add("VerificationConfig", `
 `)
 
 type VerificationConfig struct {
-	Criteria VerificationCriteria     `json:"criteria,omitempty"`
-	SMS      *VerificationSMSConfig   `json:"sms,omitempty"`
-	Email    *VerificationEmailConfig `json:"email,omitempty"`
+	Criteria   VerificationCriteria     `json:"criteria,omitempty"`
+	CodeExpiry DurationSeconds          `json:"code_expiry_seconds,omitempty"`
+	SMS        *VerificationSMSConfig   `json:"sms,omitempty"`
+	Email      *VerificationEmailConfig `json:"email,omitempty"`
 }
 
 func (c *VerificationConfig) SetDefaults() {
 	if c.Criteria == "" {
 		c.Criteria = VerificationCriteriaAny
+	}
+	if c.CodeExpiry == 0 {
+		c.CodeExpiry = DurationSeconds(3600)
 	}
 }
 

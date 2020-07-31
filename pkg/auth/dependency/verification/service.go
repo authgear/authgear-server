@@ -5,10 +5,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/core/errors"
 	"github.com/authgear/authgear-server/pkg/otp"
 )
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package verification
+
+var ErrCodeNotFound = errors.New("verification code not found")
 
 type IdentityProvider interface {
 	ListByUser(userID string) ([]*identity.Info, error)
@@ -22,6 +25,12 @@ type AuthenticatorProvider interface {
 type OTPMessageSender interface {
 	SendEmail(email string, opts otp.SendOptions, message config.EmailMessageConfig) error
 	SendSMS(phone string, opts otp.SendOptions, message config.SMSMessageConfig) error
+}
+
+type Store interface {
+	Create(code *Code) error
+	Get(code string) (*Code, error)
+	Delete(code string) error
 }
 
 type Service struct {
