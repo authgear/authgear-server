@@ -4,10 +4,10 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
+	"github.com/authgear/authgear-server/pkg/httputil"
 	"github.com/authgear/authgear-server/pkg/log"
 )
 
@@ -18,7 +18,7 @@ func ConfigureTokenRoute(route httproute.Route) httproute.Route {
 }
 
 type ProtocolTokenHandler interface {
-	Handle(r protocol.TokenRequest) handler.TokenResult
+	Handle(r protocol.TokenRequest) httputil.Result
 }
 
 type TokenHandlerLogger struct{ *log.Logger }
@@ -45,7 +45,7 @@ func (h *TokenHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		req[name] = values[0]
 	}
 
-	var result handler.TokenResult
+	var result httputil.Result
 	err = h.Database.WithTx(func() error {
 		result = h.TokenHandler.Handle(req)
 		if result.IsInternalError() {

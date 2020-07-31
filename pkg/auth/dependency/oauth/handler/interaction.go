@@ -1,7 +1,11 @@
 package handler
 
-import "github.com/authgear/authgear-server/pkg/core/authn"
+import (
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+)
 
-type AnonymousInteractionFlow interface {
-	Authenticate(requestJWT string, clientID string) (*authn.Attrs, error)
+type GraphService interface {
+	NewGraph(ctx *newinteraction.Context, intent newinteraction.Intent) (*newinteraction.Graph, error)
+	DryRun(fn func(*newinteraction.Context) (*newinteraction.Graph, error)) error
+	Run(graph *newinteraction.Graph, preserveGraph bool) error
 }

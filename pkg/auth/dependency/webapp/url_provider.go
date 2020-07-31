@@ -9,8 +9,9 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
-	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	interactionintents "github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
 	coreurl "github.com/authgear/authgear-server/pkg/core/url"
+	"github.com/authgear/authgear-server/pkg/httputil"
 )
 
 type EndpointsProvider interface {
@@ -22,47 +23,8 @@ type EndpointsProvider interface {
 	SSOCallbackEndpointURL() *url.URL
 }
 
-type AnonymousFlow interface {
-	DecodeUserID(requestJWT string) (string, anonymous.RequestAction, error)
-}
-
-type AuthenticateURLOptions struct {
-	ClientID    string
-	RedirectURI string
-	UILocales   string
-	Prompt      string
-	LoginHint   string
-}
-
-type URLProviderStates interface {
-	CreateState(state *interactionflows.State, redirectURI string) *interactionflows.State
-}
-
 type URLProvider struct {
 	Endpoints EndpointsProvider
-	Anonymous AnonymousFlow
-	States    URLProviderStates
-}
-
-func (p *URLProvider) AuthenticateURL(options AuthenticateURLOptions) (*url.URL, error) {
-	authnURI := p.Endpoints.AuthenticateEndpointURL()
-	q := map[string]string{
-		"redirect_uri": options.RedirectURI,
-		"client_id":    options.ClientID,
-	}
-	if options.Prompt != "" {
-		q["prompt"] = options.Prompt
-	}
-	if options.UILocales != "" {
-		q["ui_locales"] = options.UILocales
-	}
-	if options.LoginHint != "" {
-		err := p.convertLoginHint(&authnURI, q, options)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return coreurl.WithQueryParamsAdded(authnURI, q), nil
 }
 
 func (p *URLProvider) LogoutURL(redirectURI *url.URL) *url.URL {
@@ -83,49 +45,101 @@ func (p *URLProvider) ResetPasswordURL(code string) *url.URL {
 	)
 }
 
-func (p *URLProvider) convertLoginHint(uri **url.URL, q map[string]string, options AuthenticateURLOptions) error {
+func (p *URLProvider) SSOCallbackURL(c config.OAuthSSOProviderConfig) *url.URL {
+	u := p.Endpoints.SSOCallbackEndpointURL()
+	u.Path = path.Join(u.Path, url.PathEscape(c.Alias))
+	return u
+}
+
+type AnonymousIdentityProvider interface {
+	ParseRequestUnverified(requestJWT string) (r *anonymous.Request, err error)
+}
+
+type AuthenticateURLOptions struct {
+	ClientID    string
+	RedirectURI string
+	UILocales   string
+	Prompt      string
+	LoginHint   string
+}
+
+type PageService interface {
+	PostIntent(intent *Intent, inputer func() (interface{}, error)) (result *Result, err error)
+}
+
+type anonymousTokenInput struct{ JWT string }
+
+func (i *anonymousTokenInput) GetAnonymousRequestToken() string { return i.JWT }
+
+type AuthenticateURLProvider struct {
+	Endpoints EndpointsProvider
+	Anonymous AnonymousIdentityProvider
+	Pages     PageService
+}
+
+func (p *AuthenticateURLProvider) AuthenticateURL(options AuthenticateURLOptions) (httputil.Result, error) {
+	authnURI := p.Endpoints.AuthenticateEndpointURL()
+	q := map[string]string{
+		"redirect_uri": options.RedirectURI,
+		"client_id":    options.ClientID,
+	}
+	if options.Prompt != "" {
+		q["prompt"] = options.Prompt
+	}
+	if options.UILocales != "" {
+		q["ui_locales"] = options.UILocales
+	}
+	if options.LoginHint != "" {
+		resp, err := p.responseFromLoginHint(options)
+		if err != nil {
+			return nil, err
+		} else if resp != nil {
+			return resp, nil
+		}
+	}
+	return &httputil.ResultRedirect{
+		URL: coreurl.WithQueryParamsAdded(authnURI, q).String(),
+	}, nil
+}
+
+func (p *AuthenticateURLProvider) responseFromLoginHint(options AuthenticateURLOptions) (httputil.Result, error) {
 	if !strings.HasPrefix(options.LoginHint, "https://authgear.com/login_hint?") {
-		return nil
+		return nil, nil
 	}
 
 	url, err := url.Parse(options.LoginHint)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	query := url.Query()
 
 	switch query.Get("type") {
 	case "anonymous":
-		userID, action, err := p.Anonymous.DecodeUserID(query.Get("jwt"))
+		jwt := query.Get("jwt")
+		request, err := p.Anonymous.ParseRequestUnverified(query.Get("jwt"))
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		switch action {
+		switch request.Action {
 		case anonymous.RequestActionPromote:
-			// NOTE(webapp): If we add a new intent for promotion
-			// Promotion will experience 3 interactions
-			// IntentPromote -> IntentOAuth -> the real intent.
-			// which seems too complicated.
-			state := interactionflows.NewState()
-			state.Extra[interactionflows.ExtraAnonymousUserID] = userID
-			p.States.CreateState(state, options.RedirectURI)
-			q["x_sid"] = state.InstanceID
-			*uri = p.Endpoints.PromoteUserEndpointURL()
-			return nil
+			return p.Pages.PostIntent(&Intent{
+				RedirectURI: options.RedirectURI,
+				KeepState:   false,
+				Intent:      interactionintents.NewIntentPromote(),
+			}, func() (interface{}, error) {
+				return &anonymousTokenInput{JWT: jwt}, nil
+			})
+
 		case anonymous.RequestActionAuth:
 			// TODO(webapp): support anonymous auth
 			panic("webapp: anonymous auth through web app is not supported")
+
 		default:
-			return errors.New("unknown anonymous request action")
+			return nil, errors.New("unknown anonymous request action")
 		}
 
 	default:
-		return fmt.Errorf("unsupported login hint type: %s", query.Get("type"))
+		return nil, fmt.Errorf("unsupported login hint type: %s", query.Get("type"))
 	}
-}
-func (p *URLProvider) SSOCallbackURL(c config.OAuthSSOProviderConfig) *url.URL {
-	u := p.Endpoints.SSOCallbackEndpointURL()
-	u.Path = path.Join(u.Path, url.PathEscape(c.Alias))
-	return u
 }

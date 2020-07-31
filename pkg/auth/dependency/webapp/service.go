@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/core/skyerr"
 	"github.com/authgear/authgear-server/pkg/log"
@@ -293,7 +294,6 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 	s.Logger.Debugf("afterPost transition")
 
 	node := graph.CurrentNode()
-	firstEdge := edges[0]
 
 	// Case: the node has redirect URI.
 	if a, ok := node.(RedirectURIGetter); ok {
@@ -304,30 +304,8 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 		}, nil
 	}
 
-	var path string
 	// Case: transition
-	switch node.(type) {
-	case *nodes.NodeAuthenticationBegin:
-		switch firstEdge.(type) {
-		case *nodes.EdgeAuthenticationPassword:
-			path = "/enter_password"
-		default:
-			panic(fmt.Errorf("webapp: unexpected edge: %T", firstEdge))
-		}
-	case *nodes.NodeCreateAuthenticatorBegin:
-		switch firstEdge.(type) {
-		case *nodes.EdgeCreateAuthenticatorPassword:
-			path = "/create_password"
-		default:
-			panic(fmt.Errorf("webapp: unexpected edge: %T", firstEdge))
-		}
-	case *nodes.NodeAuthenticationOOBTrigger:
-		path = "/oob_otp"
-	case *nodes.NodeCreateAuthenticatorOOBSetup:
-		path = "/oob_otp"
-	default:
-		panic(fmt.Errorf("webapp: unexpected node: %T", node))
-	}
+	path := s.deriveRedirectPath(graph, edges)
 
 	s.Logger.Debugf("afterPost transition to path: %v", path)
 
@@ -343,4 +321,43 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 		state:       state,
 		redirectURI: redirectURI,
 	}, nil
+}
+
+func (s *Service) deriveRedirectPath(graph *newinteraction.Graph, edges []newinteraction.Edge) string {
+	firstEdge := edges[0]
+
+	switch graph.CurrentNode().(type) {
+	case *nodes.NodeCreateIdentityBegin:
+		switch intent := graph.Intent.(type) {
+		case *intents.IntentAuthenticate:
+			switch intent.Kind {
+			case intents.IntentAuthenticateKindPromote:
+				return "/promote_user"
+			default:
+				panic(fmt.Errorf("webapp: unexpected authenticate intent: %T", intent.Kind))
+			}
+		default:
+			panic(fmt.Errorf("webapp: unexpected intent: %T", graph.Intent))
+		}
+	case *nodes.NodeAuthenticationBegin:
+		switch firstEdge.(type) {
+		case *nodes.EdgeAuthenticationPassword:
+			return "/enter_password"
+		default:
+			panic(fmt.Errorf("webapp: unexpected edge: %T", firstEdge))
+		}
+	case *nodes.NodeCreateAuthenticatorBegin:
+		switch firstEdge.(type) {
+		case *nodes.EdgeCreateAuthenticatorPassword:
+			return "/create_password"
+		default:
+			panic(fmt.Errorf("webapp: unexpected edge: %T", firstEdge))
+		}
+	case *nodes.NodeAuthenticationOOBTrigger:
+		return "/oob_otp"
+	case *nodes.NodeCreateAuthenticatorOOBSetup:
+		return "/oob_otp"
+	default:
+		panic(fmt.Errorf("webapp: unexpected node: %T", graph.CurrentNode()))
+	}
 }

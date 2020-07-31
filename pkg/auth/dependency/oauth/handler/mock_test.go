@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/httputil"
 )
 
 type mockURLsProvider struct{}
@@ -15,9 +16,8 @@ func (mockURLsProvider) AuthorizeURL(r protocol.AuthorizationRequest) *url.URL {
 	return u
 }
 
-func (mockURLsProvider) AuthenticateURL(opts webapp.AuthenticateURLOptions) (*url.URL, error) {
-	u, _ := url.Parse("https://auth/authenticate")
-	return u, nil
+func (mockURLsProvider) AuthenticateURL(opts webapp.AuthenticateURLOptions) (httputil.Result, error) {
+	return &httputil.ResultRedirect{URL: "https://auth/authenticate"}, nil
 }
 
 type mockAuthzStore struct {

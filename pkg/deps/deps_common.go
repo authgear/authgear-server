@@ -16,8 +16,6 @@ import (
 	identityloginid "github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	identityoauth "github.com/authgear/authgear-server/pkg/auth/dependency/identity/oauth"
 	identityprovider "github.com/authgear/authgear-server/pkg/auth/dependency/identity/service"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
-	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/dependency/oauth/handler"
@@ -50,7 +48,6 @@ var commonDeps = wire.NewSet(
 
 	wire.NewSet(
 		challenge.DependencySet,
-		wire.Bind(new(interactionflows.ChallengeProvider), new(*challenge.Provider)),
 		wire.Bind(new(newinteraction.ChallengeProvider), new(*challenge.Provider)),
 	),
 
@@ -61,11 +58,9 @@ var commonDeps = wire.NewSet(
 
 	wire.NewSet(
 		hook.DependencySet,
-		wire.Bind(new(interaction.HookProvider), new(*hook.Provider)),
 		wire.Bind(new(newinteraction.HookProvider), new(*hook.Provider)),
 		wire.Bind(new(user.HookProvider), new(*hook.Provider)),
 		wire.Bind(new(auth.HookProvider), new(*hook.Provider)),
-		wire.Bind(new(interactionflows.HookProvider), new(*hook.Provider)),
 	),
 
 	wire.NewSet(
@@ -77,7 +72,6 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(auth.IDPSessionManager), new(*session.Manager)),
 		wire.Bind(new(oauth.ResolverSessionProvider), new(*session.Provider)),
 		wire.Bind(new(oauthhandler.SessionProvider), new(*session.Provider)),
-		wire.Bind(new(interactionflows.SessionProvider), new(*session.Provider)),
 		wire.Bind(new(newinteraction.SessionProvider), new(*session.Provider)),
 	),
 
@@ -117,7 +111,7 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(forgotpassword.LoginIDProvider), new(*identityloginid.Provider)),
 		identityoauth.DependencySet,
 		identityanonymous.DependencySet,
-		wire.Bind(new(interactionflows.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
+		wire.Bind(new(webapp.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 		wire.Bind(new(newinteraction.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 
 		identityprovider.DependencySet,
@@ -131,7 +125,6 @@ var commonDeps = wire.NewSet(
 	wire.NewSet(
 		user.DependencySet,
 		wire.Bind(new(auth.UserProvider), new(*user.Queries)),
-		wire.Bind(new(interactionflows.UserProvider), new(*user.Provider)),
 		wire.Bind(new(newinteraction.UserService), new(*user.Provider)),
 		wire.Bind(new(oidc.UserProvider), new(*user.Queries)),
 		wire.Bind(new(hook.UserProvider), new(*user.RawProvider)),
@@ -139,7 +132,6 @@ var commonDeps = wire.NewSet(
 
 	wire.NewSet(
 		sso.DependencySet,
-		wire.Bind(new(interactionflows.OAuthProviderFactory), new(*sso.OAuthProviderFactory)),
 		wire.Bind(new(newinteraction.OAuthProviderFactory), new(*sso.OAuthProviderFactory)),
 	),
 
@@ -177,18 +169,9 @@ var commonDeps = wire.NewSet(
 	),
 
 	wire.NewSet(
-		interaction.DependencySet,
-		wire.Bind(new(interactionflows.InteractionProvider), new(*interaction.Provider)),
-
-		interactionflows.DependencySet,
-		wire.Bind(new(webapp.AnonymousFlow), new(*interactionflows.AnonymousFlow)),
-		wire.Bind(new(webapp.ResponderInteractions), new(*interaction.Provider)),
-		wire.Bind(new(oauthhandler.AnonymousInteractionFlow), new(*interactionflows.AnonymousFlow)),
-	),
-
-	wire.NewSet(
 		newinteraction.DependencySet,
 		wire.Bind(new(webapp.GraphService), new(*newinteraction.Service)),
+		wire.Bind(new(oauthhandler.GraphService), new(*newinteraction.Service)),
 	),
 
 	wire.NewSet(

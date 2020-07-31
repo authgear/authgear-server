@@ -9,12 +9,14 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/core/skyerr"
 	"github.com/authgear/authgear-server/pkg/core/utils"
+	"github.com/authgear/authgear-server/pkg/httputil"
 	"github.com/authgear/authgear-server/pkg/log"
 )
 
@@ -24,8 +26,8 @@ type OAuthURLProvider interface {
 	AuthorizeURL(r protocol.AuthorizationRequest) *url.URL
 }
 
-type WebAppURLProvider interface {
-	AuthenticateURL(options webapp.AuthenticateURLOptions) (*url.URL, error)
+type WebAppAuthenticateURLProvider interface {
+	AuthenticateURL(options webapp.AuthenticateURLOptions) (httputil.Result, error)
 }
 
 type AuthorizationHandlerLogger struct{ *log.Logger }
@@ -43,13 +45,13 @@ type AuthorizationHandler struct {
 	Authorizations oauth.AuthorizationStore
 	CodeGrants     oauth.CodeGrantStore
 	OAuthURLs      OAuthURLProvider
-	WebAppURLs     WebAppURLProvider
+	WebAppURLs     WebAppAuthenticateURLProvider
 	ValidateScopes ScopesValidator
 	CodeGenerator  TokenGenerator
 	Clock          clock.Clock
 }
 
-func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) AuthorizationResult {
+func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.Result {
 	client := resolveClient(h.Config, r)
 	if client == nil {
 		return authorizationResultError{
@@ -93,7 +95,7 @@ func (h *AuthorizationHandler) doHandle(
 	redirectURI *url.URL,
 	client config.OAuthClientConfig,
 	r protocol.AuthorizationRequest,
-) (AuthorizationResult, error) {
+) (httputil.Result, error) {
 	if err := h.validateRequest(client, r); err != nil {
 		return nil, err
 	}
@@ -129,16 +131,14 @@ func (h *AuthorizationHandler) doHandle(
 		authorizeURI := h.OAuthURLs.AuthorizeURL(r)
 		authnOptions.RedirectURI = authorizeURI.String()
 
-		authenticateURI, err := h.WebAppURLs.AuthenticateURL(authnOptions)
-		if errors.Is(err, interaction.ErrInvalidCredentials) {
-			return nil, protocol.NewError("invalid_request", "invalid credentials")
+		resp, err := h.WebAppURLs.AuthenticateURL(authnOptions)
+		if skyerr.IsKind(err, newinteraction.InvalidCredentials) {
+			return nil, protocol.NewError("invalid_request", err.Error())
 		} else if err != nil {
 			return nil, err
 		}
 
-		return authorizationResultRequireAuthn{
-			AuthenticateURI: authenticateURI,
-		}, nil
+		return resp, nil
 	}
 
 	authz, err := checkAuthorization(

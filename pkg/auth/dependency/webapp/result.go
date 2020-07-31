@@ -34,3 +34,7 @@ func (r *Result) WriteResponse(w http.ResponseWriter, req *http.Request) {
 	http.Redirect(w, req, r.redirectURI, http.StatusFound)
 	return
 }
+
+func (r *Result) IsInternalError() bool {
+	return false
+}

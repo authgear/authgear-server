@@ -8,7 +8,7 @@ package server
 import (
 	"github.com/authgear/authgear-server/pkg/auth/config/source"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
-	redis2 "github.com/authgear/authgear-server/pkg/auth/dependency/auth/redis"
+	redis3 "github.com/authgear/authgear-server/pkg/auth/dependency/auth/redis"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/service"
@@ -20,8 +20,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	oauth3 "github.com/authgear/authgear-server/pkg/auth/dependency/identity/oauth"
 	service2 "github.com/authgear/authgear-server/pkg/auth/dependency/identity/service"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	oauth2 "github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/handler"
@@ -30,7 +28,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oidc"
 	handler2 "github.com/authgear/authgear-server/pkg/auth/dependency/oidc/handler"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
-	redis3 "github.com/authgear/authgear-server/pkg/auth/dependency/session/redis"
+	redis2 "github.com/authgear/authgear-server/pkg/auth/dependency/session/redis"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/sso"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/user"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/verification"
@@ -240,34 +238,21 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &oauth2.URLProvider{
 		Endpoints: provider,
 	}
-	authenticationConfig := appConfig.Authentication
-	interactionLogger := interaction.NewLogger(factory)
-	hookLogger := hook.NewLogger(factory)
-	store := &user.Store{
+	store := &anonymous.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	localizationConfig := appConfig.Localization
-	appMetadata := appConfig.Metadata
-	messagingConfig := appConfig.Messaging
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	engine := appProvider.TemplateEngine
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
+	anonymousProvider := &anonymous.Provider{
+		Store: store,
+		Clock: clockClock,
 	}
-	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               context,
-		LocalizationConfig:    localizationConfig,
-		MetadataConfiguration: appMetadata,
-		MessagingConfig:       messagingConfig,
-		WelcomeMessageConfig:  welcomeMessageConfig,
-		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+	serviceLogger := webapp.NewServiceLogger(factory)
+	redisStore := &webapp.RedisStore{
+		AppID: appID,
+		Redis: redisHandle,
 	}
+	newinteractionLogger := newinteraction.NewLogger(factory)
+	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
@@ -300,14 +285,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Store: oauthStore,
 		Clock: clockClock,
 	}
-	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	anonymousProvider := &anonymous.Provider{
-		Store: anonymousStore,
-		Clock: clockClock,
-	}
 	serviceService := &service2.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -315,7 +292,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
 	}
-	verificationConfig := appConfig.Verification
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -352,6 +328,17 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	messagingConfig := appConfig.Messaging
+	engine := appProvider.TemplateEngine
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
 		ServerConfig:   serverConfig,
@@ -373,6 +360,78 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	webappURLProvider := &webapp.URLProvider{
+		Endpoints: provider,
+	}
+	userInfoDecoder := sso.UserInfoDecoder{
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	oAuthProviderFactory := &sso.OAuthProviderFactory{
+		Endpoints:                provider,
+		IdentityConfig:           identityConfig,
+		Credentials:              oAuthClientCredentials,
+		RedirectURL:              webappURLProvider,
+		Clock:                    clockClock,
+		UserInfoDecoder:          userInfoDecoder,
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	forgotpasswordStore := &forgotpassword.Store{
+		Redis: redisHandle,
+	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
+	forgotpasswordProvider := &forgotpassword.Provider{
+		Context:         context,
+		ServerConfig:    serverConfig,
+		Localization:    localizationConfig,
+		AppMetadata:     appMetadata,
+		Messaging:       messagingConfig,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            webappURLProvider,
+		TemplateEngine:  engine,
+		TaskQueue:       queueQueue,
+		Logger:          providerLogger,
+		LoginIDProvider: loginidProvider,
+		Authenticators:  service3,
+	}
+	challengeProvider := &challenge.Provider{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	welcomemessageProvider := &welcomemessage.Provider{
+		Context:               context,
+		LocalizationConfig:    localizationConfig,
+		MetadataConfiguration: appMetadata,
+		MessagingConfig:       messagingConfig,
+		WelcomeMessageConfig:  welcomeMessageConfig,
+		TemplateEngine:        engine,
+		TaskQueue:             queueQueue,
+	}
+	verificationConfig := appConfig.Verification
 	verificationService := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
@@ -380,16 +439,17 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	queries := &user.Queries{
-		Store:        store,
+		Store:        userStore,
 		Identities:   serviceService,
 		Verification: verificationService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 		Queries:                queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -422,36 +482,76 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	interactionProvider := &interaction.Provider{
-		Clock:  clockClock,
-		Logger: interactionLogger,
-		Hooks:  hookProvider,
-		Config: authenticationConfig,
+	commands := &user.Commands{
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: verificationService,
 	}
-	challengeProvider := &challenge.Provider{
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
+	redisLogger := redis2.NewLogger(factory)
+	store2 := &redis2.Store{
+		Redis:  redisHandle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: redisLogger,
+	}
+	eventStore := &redis3.EventStore{
 		Redis: redisHandle,
 		AppID: appID,
-		Clock: clockClock,
 	}
-	anonymousFlow := &flows.AnonymousFlow{
-		Config:       authenticationConfig,
-		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
-		Challenges:   challengeProvider,
+	accessEventProvider := &auth.AccessEventProvider{
+		Store: eventStore,
 	}
-	stateStoreRedis := &flows.StateStoreRedis{
-		Redis: redisHandle,
-	}
-	stateServiceLogger := flows.NewStateServiceLogger(factory)
-	stateService := &flows.StateService{
+	sessionConfig := appConfig.Session
+	rand := _wireRandValue
+	sessionProvider := &session.Provider{
+		Request:      request,
+		Store:        store2,
+		AccessEvents: accessEventProvider,
 		ServerConfig: serverConfig,
-		StateStore:   stateStoreRedis,
-		Logger:       stateServiceLogger,
+		Config:       sessionConfig,
+		Clock:        clockClock,
+		Random:       rand,
 	}
-	webappURLProvider := &webapp.URLProvider{
+	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
+	newinteractionContext := &newinteraction.Context{
+		Database:             sqlExecutor,
+		Config:               appConfig,
+		Identities:           serviceService,
+		Authenticators:       service3,
+		AnonymousIdentities:  anonymousProvider,
+		OOBAuthenticators:    oobProvider,
+		OAuthProviderFactory: oAuthProviderFactory,
+		MFA:                  mfaService,
+		ForgotPassword:       forgotpasswordProvider,
+		ResetPassword:        forgotpasswordProvider,
+		Challenges:           challengeProvider,
+		Users:                userProvider,
+		Hooks:                hookProvider,
+		Sessions:             sessionProvider,
+		SessionCookie:        cookieDef,
+	}
+	storeRedis := &newinteraction.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+	}
+	newinteractionService := &newinteraction.Service{
+		Logger:  newinteractionLogger,
+		Context: newinteractionContext,
+		Store:   storeRedis,
+	}
+	webappService := &webapp.Service{
+		Logger: serviceLogger,
+		Store:  redisStore,
+		Graph:  newinteractionService,
+	}
+	authenticateURLProvider := &webapp.AuthenticateURLProvider{
 		Endpoints: provider,
-		Anonymous: anonymousFlow,
-		States:    stateService,
+		Anonymous: anonymousProvider,
+		Pages:     webappService,
 	}
 	scopesValidator := _wireScopesValidatorValue
 	tokenGenerator := _wireTokenGeneratorValue
@@ -463,7 +563,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Authorizations: authorizationStore,
 		CodeGrants:     grantStore,
 		OAuthURLs:      urlProvider,
-		WebAppURLs:     webappURLProvider,
+		WebAppURLs:     authenticateURLProvider,
 		ValidateScopes: scopesValidator,
 		CodeGenerator:  tokenGenerator,
 		Clock:          clockClock,
@@ -477,6 +577,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 }
 
 var (
+	_wireRandValue            = session.Rand(rand.SecureRand)
 	_wireScopesValidatorValue = handler.ScopesValidator(oidc.ValidateScopes)
 	_wireTokenGeneratorValue  = handler.TokenGenerator(oauth2.GenerateToken)
 )
@@ -517,15 +618,15 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	eventStore := &redis2.EventStore{
+	eventStore := &redis3.EventStore{
 		Redis: redisHandle,
 		AppID: appID,
 	}
 	accessEventProvider := auth.AccessEventProvider{
 		Store: eventStore,
 	}
-	redisLogger := redis3.NewLogger(factory)
-	store := &redis3.Store{
+	redisLogger := redis2.NewLogger(factory)
+	store := &redis2.Store{
 		Redis:  redisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
@@ -535,7 +636,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Store: eventStore,
 	}
 	sessionConfig := appConfig.Session
-	rand := _wireRandValue
+	sessionRand := _wireRandValue
 	provider := &session.Provider{
 		Request:      request,
 		Store:        store,
@@ -543,36 +644,10 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		ServerConfig: serverConfig,
 		Config:       sessionConfig,
 		Clock:        clockClock,
-		Random:       rand,
+		Random:       sessionRand,
 	}
+	newinteractionLogger := newinteraction.NewLogger(factory)
 	authenticationConfig := appConfig.Authentication
-	interactionLogger := interaction.NewLogger(factory)
-	hookLogger := hook.NewLogger(factory)
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	localizationConfig := appConfig.Localization
-	appMetadata := appConfig.Metadata
-	messagingConfig := appConfig.Messaging
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	engine := appProvider.TemplateEngine
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
-	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               context,
-		LocalizationConfig:    localizationConfig,
-		MetadataConfiguration: appMetadata,
-		MessagingConfig:       messagingConfig,
-		WelcomeMessageConfig:  welcomeMessageConfig,
-		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
-	}
 	identityConfig := appConfig.Identity
 	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
@@ -620,7 +695,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
 	}
-	verificationConfig := appConfig.Verification
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -657,9 +731,20 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	messagingConfig := appConfig.Messaging
+	engine := appProvider.TemplateEngine
 	endpointsProvider := &endpoints.Provider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -682,6 +767,78 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	urlProvider := &webapp.URLProvider{
+		Endpoints: endpointsProvider,
+	}
+	userInfoDecoder := sso.UserInfoDecoder{
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	oAuthProviderFactory := &sso.OAuthProviderFactory{
+		Endpoints:                endpointsProvider,
+		IdentityConfig:           identityConfig,
+		Credentials:              oAuthClientCredentials,
+		RedirectURL:              urlProvider,
+		Clock:                    clockClock,
+		UserInfoDecoder:          userInfoDecoder,
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	forgotpasswordStore := &forgotpassword.Store{
+		Redis: redisHandle,
+	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
+	forgotpasswordProvider := &forgotpassword.Provider{
+		Context:         context,
+		ServerConfig:    serverConfig,
+		Localization:    localizationConfig,
+		AppMetadata:     appMetadata,
+		Messaging:       messagingConfig,
+		Config:          forgotPasswordConfig,
+		Store:           forgotpasswordStore,
+		Clock:           clockClock,
+		URLs:            urlProvider,
+		TemplateEngine:  engine,
+		TaskQueue:       queueQueue,
+		Logger:          providerLogger,
+		LoginIDProvider: loginidProvider,
+		Authenticators:  service3,
+	}
+	challengeProvider := &challenge.Provider{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	welcomemessageProvider := &welcomemessage.Provider{
+		Context:               context,
+		LocalizationConfig:    localizationConfig,
+		MetadataConfiguration: appMetadata,
+		MessagingConfig:       messagingConfig,
+		WelcomeMessageConfig:  welcomeMessageConfig,
+		TemplateEngine:        engine,
+		TaskQueue:             queueQueue,
+	}
+	verificationConfig := appConfig.Verification
 	verificationService := &verification.Service{
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
@@ -699,6 +856,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 		Queries:                queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
@@ -731,22 +889,41 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	interactionProvider := &interaction.Provider{
-		Clock:  clockClock,
-		Logger: interactionLogger,
-		Hooks:  hookProvider,
-		Config: authenticationConfig,
+	commands := &user.Commands{
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: verificationService,
 	}
-	challengeProvider := &challenge.Provider{
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
+	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
+	newinteractionContext := &newinteraction.Context{
+		Database:             sqlExecutor,
+		Config:               appConfig,
+		Identities:           serviceService,
+		Authenticators:       service3,
+		AnonymousIdentities:  anonymousProvider,
+		OOBAuthenticators:    oobProvider,
+		OAuthProviderFactory: oAuthProviderFactory,
+		MFA:                  mfaService,
+		ForgotPassword:       forgotpasswordProvider,
+		ResetPassword:        forgotpasswordProvider,
+		Challenges:           challengeProvider,
+		Users:                userProvider,
+		Hooks:                hookProvider,
+		Sessions:             provider,
+		SessionCookie:        cookieDef,
+	}
+	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
 		AppID: appID,
-		Clock: clockClock,
 	}
-	anonymousFlow := &flows.AnonymousFlow{
-		Config:       authenticationConfig,
-		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
-		Challenges:   challengeProvider,
+	newinteractionService := &newinteraction.Service{
+		Logger:  newinteractionLogger,
+		Context: newinteractionContext,
+		Store:   storeRedis,
 	}
 	oidcKeyMaterials := deps.ProvideOIDCKeyMaterials(secretConfig)
 	idTokenIssuer := &oidc.IDTokenIssuer{
@@ -768,7 +945,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AccessGrants:   grantStore,
 		AccessEvents:   accessEventProvider,
 		Sessions:       provider,
-		Anonymous:      anonymousFlow,
+		Graphs:         newinteractionService,
 		IDTokenIssuer:  idTokenIssuer,
 		GenerateToken:  tokenGenerator,
 		Clock:          clockClock,
@@ -780,10 +957,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	return oauthTokenHandler
 }
-
-var (
-	_wireRandValue = session.Rand(rand.SecureRand)
-)
 
 func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
@@ -1203,229 +1376,8 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Request: request,
 		Config:  serverConfig,
 	}
-	authenticationConfig := appConfig.Authentication
-	clockClock := _wireSystemClockValue
-	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	hookLogger := hook.NewLogger(factory)
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	appID := appConfig.ID
-	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	sqlExecutor := db.SQLExecutor{
-		Context:  context,
-		Database: handle,
-	}
-	store := &user.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	localizationConfig := appConfig.Localization
-	appMetadata := appConfig.Metadata
-	messagingConfig := appConfig.Messaging
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	engine := appProvider.TemplateEngine
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
-	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               context,
-		LocalizationConfig:    localizationConfig,
-		MetadataConfiguration: appMetadata,
-		MessagingConfig:       messagingConfig,
-		WelcomeMessageConfig:  welcomeMessageConfig,
-		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
-	}
-	identityConfig := appConfig.Identity
-	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
-	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
-	}
-	checker := &loginid.Checker{
-		Config:             loginIDConfig,
-		TypeCheckerFactory: typeCheckerFactory,
-	}
-	normalizerFactory := &loginid.NormalizerFactory{
-		Config: loginIDConfig,
-	}
-	loginidProvider := &loginid.Provider{
-		Store:             loginidStore,
-		Config:            loginIDConfig,
-		Checker:           checker,
-		NormalizerFactory: normalizerFactory,
-	}
-	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	oauthProvider := &oauth3.Provider{
-		Store: oauthStore,
-		Clock: clockClock,
-	}
-	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	anonymousProvider := &anonymous.Provider{
-		Store: anonymousStore,
-		Clock: clockClock,
-	}
-	serviceService := &service2.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		LoginID:        loginidProvider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-	}
-	verificationConfig := appConfig.Verification
-	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorConfig := appConfig.Authenticator
-	authenticatorPasswordConfig := authenticatorConfig.Password
-	passwordLogger := password.NewLogger(factory)
-	historyStore := &password.HistoryStore{
-		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	passwordProvider := &password.Provider{
-		Store:           passwordStore,
-		Config:          authenticatorPasswordConfig,
-		Clock:           clockClock,
-		Logger:          passwordLogger,
-		PasswordHistory: historyStore,
-		PasswordChecker: passwordChecker,
-	}
-	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	authenticatorTOTPConfig := authenticatorConfig.TOTP
-	totpProvider := &totp.Provider{
-		Store:  totpStore,
-		Config: authenticatorTOTPConfig,
-		Clock:  clockClock,
-	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
-	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	messageSender := &otp.MessageSender{
-		Context:        context,
-		ServerConfig:   serverConfig,
-		Localization:   localizationConfig,
-		AppMetadata:    appMetadata,
-		Messaging:      messagingConfig,
-		TemplateEngine: engine,
-		Endpoints:      provider,
-		TaskQueue:      queueQueue,
-	}
-	oobProvider := &oob.Provider{
-		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
-		OTPMessageSender: messageSender,
-	}
-	service3 := &service.Service{
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
-	}
-	verificationService := &verification.Service{
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-	}
-	queries := &user.Queries{
-		Store:        store,
-		Identities:   serviceService,
-		Verification: verificationService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  store,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-		Queries:                queries,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	hookStore := &hook.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
-	}
-	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
-	}
-	interactionProvider := &interaction.Provider{
-		Clock:  clockClock,
-		Logger: logger,
-		Hooks:  hookProvider,
-		Config: authenticationConfig,
-	}
-	redisHandle := appProvider.Redis
-	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	anonymousFlow := &flows.AnonymousFlow{
-		Config:       authenticationConfig,
-		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
-		Challenges:   challengeProvider,
-	}
-	stateStoreRedis := &flows.StateStoreRedis{
-		Redis: redisHandle,
-	}
-	stateServiceLogger := flows.NewStateServiceLogger(factory)
-	stateService := &flows.StateService{
-		ServerConfig: serverConfig,
-		StateStore:   stateStoreRedis,
-		Logger:       stateServiceLogger,
-	}
 	urlProvider := &webapp.URLProvider{
 		Endpoints: provider,
-		Anonymous: anonymousFlow,
-		States:    stateService,
 	}
 	endSessionHandler := &handler2.EndSessionHandler{
 		Config:    oAuthConfig,
@@ -1628,102 +1580,8 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	interactionLogger := interaction.NewLogger(factory)
-	hookLogger := hook.NewLogger(factory)
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               context,
-		LocalizationConfig:    localizationConfig,
-		MetadataConfiguration: appMetadata,
-		MessagingConfig:       messagingConfig,
-		WelcomeMessageConfig:  welcomeMessageConfig,
-		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
-	}
-	verificationConfig := appConfig.Verification
-	verificationService := &verification.Service{
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-	}
-	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   serviceService,
-		Verification: verificationService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-		Queries:                queries,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	hookStore := &hook.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
-	}
-	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
-	}
-	interactionProvider := &interaction.Provider{
-		Clock:  clockClock,
-		Logger: interactionLogger,
-		Hooks:  hookProvider,
-		Config: authenticationConfig,
-	}
-	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	anonymousFlow := &flows.AnonymousFlow{
-		Config:       authenticationConfig,
-		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
-		Challenges:   challengeProvider,
-	}
-	stateStoreRedis := &flows.StateStoreRedis{
-		Redis: redisHandle,
-	}
-	stateServiceLogger := flows.NewStateServiceLogger(factory)
-	stateService := &flows.StateService{
-		ServerConfig: serverConfig,
-		StateStore:   stateStoreRedis,
-		Logger:       stateServiceLogger,
-	}
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
-		Anonymous: anonymousFlow,
-		States:    stateService,
 	}
 	userInfoDecoder := sso.UserInfoDecoder{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -1772,6 +1630,76 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDProvider: provider,
 		Authenticators:  service3,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	welcomemessageProvider := &welcomemessage.Provider{
+		Context:               context,
+		LocalizationConfig:    localizationConfig,
+		MetadataConfiguration: appMetadata,
+		MessagingConfig:       messagingConfig,
+		WelcomeMessageConfig:  welcomeMessageConfig,
+		TemplateEngine:        engine,
+		TaskQueue:             queueQueue,
+	}
+	verificationConfig := appConfig.Verification
+	verificationService := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+	}
+	queries := &user.Queries{
+		Store:        userStore,
+		Identities:   serviceService,
+		Verification: verificationService,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	hookStore := &hook.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	mutatorFactory := &hook.MutatorFactory{
+		Users: rawProvider,
+	}
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:         hookConfig,
+		Secret:         webhookKeyMaterials,
+		Clock:          clockClock,
+		MutatorFactory: mutatorFactory,
+		SyncHTTP:       syncHTTPClient,
+		AsyncHTTP:      asyncHTTPClient,
+	}
+	hookProvider := &hook.Provider{
+		Context:   context,
+		Logger:    hookLogger,
+		Database:  handle,
+		Clock:     clockClock,
+		Users:     rawProvider,
+		Store:     hookStore,
+		Deliverer: deliverer,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -1781,14 +1709,14 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	redisLogger := redis3.NewLogger(factory)
-	store2 := &redis3.Store{
+	redisLogger := redis2.NewLogger(factory)
+	store2 := &redis2.Store{
 		Redis:  redisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: redisLogger,
 	}
-	eventStore := &redis2.EventStore{
+	eventStore := &redis3.EventStore{
 		Redis: redisHandle,
 		AppID: appID,
 	}
@@ -2014,102 +1942,8 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	interactionLogger := interaction.NewLogger(factory)
-	hookLogger := hook.NewLogger(factory)
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               context,
-		LocalizationConfig:    localizationConfig,
-		MetadataConfiguration: appMetadata,
-		MessagingConfig:       messagingConfig,
-		WelcomeMessageConfig:  welcomeMessageConfig,
-		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
-	}
-	verificationConfig := appConfig.Verification
-	verificationService := &verification.Service{
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-	}
-	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   serviceService,
-		Verification: verificationService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-		Queries:                queries,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	hookStore := &hook.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
-	}
-	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
-	}
-	interactionProvider := &interaction.Provider{
-		Clock:  clockClock,
-		Logger: interactionLogger,
-		Hooks:  hookProvider,
-		Config: authenticationConfig,
-	}
-	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	anonymousFlow := &flows.AnonymousFlow{
-		Config:       authenticationConfig,
-		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
-		Challenges:   challengeProvider,
-	}
-	stateStoreRedis := &flows.StateStoreRedis{
-		Redis: redisHandle,
-	}
-	stateServiceLogger := flows.NewStateServiceLogger(factory)
-	stateService := &flows.StateService{
-		ServerConfig: serverConfig,
-		StateStore:   stateStoreRedis,
-		Logger:       stateServiceLogger,
-	}
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
-		Anonymous: anonymousFlow,
-		States:    stateService,
 	}
 	userInfoDecoder := sso.UserInfoDecoder{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -2158,6 +1992,76 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDProvider: provider,
 		Authenticators:  service3,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	welcomemessageProvider := &welcomemessage.Provider{
+		Context:               context,
+		LocalizationConfig:    localizationConfig,
+		MetadataConfiguration: appMetadata,
+		MessagingConfig:       messagingConfig,
+		WelcomeMessageConfig:  welcomeMessageConfig,
+		TemplateEngine:        engine,
+		TaskQueue:             queueQueue,
+	}
+	verificationConfig := appConfig.Verification
+	verificationService := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+	}
+	queries := &user.Queries{
+		Store:        userStore,
+		Identities:   serviceService,
+		Verification: verificationService,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	hookStore := &hook.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	mutatorFactory := &hook.MutatorFactory{
+		Users: rawProvider,
+	}
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:         hookConfig,
+		Secret:         webhookKeyMaterials,
+		Clock:          clockClock,
+		MutatorFactory: mutatorFactory,
+		SyncHTTP:       syncHTTPClient,
+		AsyncHTTP:      asyncHTTPClient,
+	}
+	hookProvider := &hook.Provider{
+		Context:   context,
+		Logger:    hookLogger,
+		Database:  handle,
+		Clock:     clockClock,
+		Users:     rawProvider,
+		Store:     hookStore,
+		Deliverer: deliverer,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -2167,14 +2071,14 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	redisLogger := redis3.NewLogger(factory)
-	store2 := &redis3.Store{
+	redisLogger := redis2.NewLogger(factory)
+	store2 := &redis2.Store{
 		Redis:  redisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: redisLogger,
 	}
-	eventStore := &redis2.EventStore{
+	eventStore := &redis3.EventStore{
 		Redis: redisHandle,
 		AppID: appID,
 	}
@@ -2400,102 +2304,8 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	interactionLogger := interaction.NewLogger(factory)
-	hookLogger := hook.NewLogger(factory)
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               context,
-		LocalizationConfig:    localizationConfig,
-		MetadataConfiguration: appMetadata,
-		MessagingConfig:       messagingConfig,
-		WelcomeMessageConfig:  welcomeMessageConfig,
-		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
-	}
-	verificationConfig := appConfig.Verification
-	verificationService := &verification.Service{
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-	}
-	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   serviceService,
-		Verification: verificationService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-		Queries:                queries,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	hookStore := &hook.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
-	}
-	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
-	}
-	interactionProvider := &interaction.Provider{
-		Clock:  clockClock,
-		Logger: interactionLogger,
-		Hooks:  hookProvider,
-		Config: authenticationConfig,
-	}
-	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	anonymousFlow := &flows.AnonymousFlow{
-		Config:       authenticationConfig,
-		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
-		Challenges:   challengeProvider,
-	}
-	stateStoreRedis := &flows.StateStoreRedis{
-		Redis: redisHandle,
-	}
-	stateServiceLogger := flows.NewStateServiceLogger(factory)
-	stateService := &flows.StateService{
-		ServerConfig: serverConfig,
-		StateStore:   stateStoreRedis,
-		Logger:       stateServiceLogger,
-	}
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
-		Anonymous: anonymousFlow,
-		States:    stateService,
 	}
 	userInfoDecoder := sso.UserInfoDecoder{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -2544,6 +2354,76 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDProvider: provider,
 		Authenticators:  service3,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	welcomemessageProvider := &welcomemessage.Provider{
+		Context:               context,
+		LocalizationConfig:    localizationConfig,
+		MetadataConfiguration: appMetadata,
+		MessagingConfig:       messagingConfig,
+		WelcomeMessageConfig:  welcomeMessageConfig,
+		TemplateEngine:        engine,
+		TaskQueue:             queueQueue,
+	}
+	verificationConfig := appConfig.Verification
+	verificationService := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+	}
+	queries := &user.Queries{
+		Store:        userStore,
+		Identities:   serviceService,
+		Verification: verificationService,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	hookStore := &hook.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	mutatorFactory := &hook.MutatorFactory{
+		Users: rawProvider,
+	}
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:         hookConfig,
+		Secret:         webhookKeyMaterials,
+		Clock:          clockClock,
+		MutatorFactory: mutatorFactory,
+		SyncHTTP:       syncHTTPClient,
+		AsyncHTTP:      asyncHTTPClient,
+	}
+	hookProvider := &hook.Provider{
+		Context:   context,
+		Logger:    hookLogger,
+		Database:  handle,
+		Clock:     clockClock,
+		Users:     rawProvider,
+		Store:     hookStore,
+		Deliverer: deliverer,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -2553,14 +2433,14 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	redisLogger := redis3.NewLogger(factory)
-	store2 := &redis3.Store{
+	redisLogger := redis2.NewLogger(factory)
+	store2 := &redis2.Store{
 		Redis:  redisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: redisLogger,
 	}
-	eventStore := &redis2.EventStore{
+	eventStore := &redis3.EventStore{
 		Redis: redisHandle,
 		AppID: appID,
 	}
@@ -2767,102 +2647,8 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	interactionLogger := interaction.NewLogger(factory)
-	hookLogger := hook.NewLogger(factory)
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               context,
-		LocalizationConfig:    localizationConfig,
-		MetadataConfiguration: appMetadata,
-		MessagingConfig:       messagingConfig,
-		WelcomeMessageConfig:  welcomeMessageConfig,
-		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
-	}
-	verificationConfig := appConfig.Verification
-	verificationService := &verification.Service{
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-	}
-	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   serviceService,
-		Verification: verificationService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-		Queries:                queries,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	hookStore := &hook.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
-	}
-	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
-	}
-	interactionProvider := &interaction.Provider{
-		Clock:  clockClock,
-		Logger: interactionLogger,
-		Hooks:  hookProvider,
-		Config: authenticationConfig,
-	}
-	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	anonymousFlow := &flows.AnonymousFlow{
-		Config:       authenticationConfig,
-		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
-		Challenges:   challengeProvider,
-	}
-	stateStoreRedis := &flows.StateStoreRedis{
-		Redis: redisHandle,
-	}
-	stateServiceLogger := flows.NewStateServiceLogger(factory)
-	stateService := &flows.StateService{
-		ServerConfig: serverConfig,
-		StateStore:   stateStoreRedis,
-		Logger:       stateServiceLogger,
-	}
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
-		Anonymous: anonymousFlow,
-		States:    stateService,
 	}
 	userInfoDecoder := sso.UserInfoDecoder{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -2912,6 +2698,76 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDProvider: provider,
 		Authenticators:  service3,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	welcomemessageProvider := &welcomemessage.Provider{
+		Context:               context,
+		LocalizationConfig:    localizationConfig,
+		MetadataConfiguration: appMetadata,
+		MessagingConfig:       messagingConfig,
+		WelcomeMessageConfig:  welcomeMessageConfig,
+		TemplateEngine:        engine,
+		TaskQueue:             queueQueue,
+	}
+	verificationConfig := appConfig.Verification
+	verificationService := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+	}
+	queries := &user.Queries{
+		Store:        userStore,
+		Identities:   serviceService,
+		Verification: verificationService,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	hookStore := &hook.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	mutatorFactory := &hook.MutatorFactory{
+		Users: rawProvider,
+	}
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:         hookConfig,
+		Secret:         webhookKeyMaterials,
+		Clock:          clockClock,
+		MutatorFactory: mutatorFactory,
+		SyncHTTP:       syncHTTPClient,
+		AsyncHTTP:      asyncHTTPClient,
+	}
+	hookProvider := &hook.Provider{
+		Context:   context,
+		Logger:    hookLogger,
+		Database:  handle,
+		Clock:     clockClock,
+		Users:     rawProvider,
+		Store:     hookStore,
+		Deliverer: deliverer,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -2921,14 +2777,14 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	redisLogger := redis3.NewLogger(factory)
-	store2 := &redis3.Store{
+	redisLogger := redis2.NewLogger(factory)
+	store2 := &redis2.Store{
 		Redis:  redisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: redisLogger,
 	}
-	eventStore := &redis2.EventStore{
+	eventStore := &redis3.EventStore{
 		Redis: redisHandle,
 		AppID: appID,
 	}
@@ -3146,102 +3002,8 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	interactionLogger := interaction.NewLogger(factory)
-	hookLogger := hook.NewLogger(factory)
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               context,
-		LocalizationConfig:    localizationConfig,
-		MetadataConfiguration: appMetadata,
-		MessagingConfig:       messagingConfig,
-		WelcomeMessageConfig:  welcomeMessageConfig,
-		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
-	}
-	verificationConfig := appConfig.Verification
-	verificationService := &verification.Service{
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-	}
-	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   serviceService,
-		Verification: verificationService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-		Queries:                queries,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	hookStore := &hook.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
-	}
-	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
-	}
-	interactionProvider := &interaction.Provider{
-		Clock:  clockClock,
-		Logger: interactionLogger,
-		Hooks:  hookProvider,
-		Config: authenticationConfig,
-	}
-	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	anonymousFlow := &flows.AnonymousFlow{
-		Config:       authenticationConfig,
-		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
-		Challenges:   challengeProvider,
-	}
-	stateStoreRedis := &flows.StateStoreRedis{
-		Redis: redisHandle,
-	}
-	stateServiceLogger := flows.NewStateServiceLogger(factory)
-	stateService := &flows.StateService{
-		ServerConfig: serverConfig,
-		StateStore:   stateStoreRedis,
-		Logger:       stateServiceLogger,
-	}
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
-		Anonymous: anonymousFlow,
-		States:    stateService,
 	}
 	userInfoDecoder := sso.UserInfoDecoder{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -3290,6 +3052,76 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDProvider: provider,
 		Authenticators:  service3,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	welcomemessageProvider := &welcomemessage.Provider{
+		Context:               context,
+		LocalizationConfig:    localizationConfig,
+		MetadataConfiguration: appMetadata,
+		MessagingConfig:       messagingConfig,
+		WelcomeMessageConfig:  welcomeMessageConfig,
+		TemplateEngine:        engine,
+		TaskQueue:             queueQueue,
+	}
+	verificationConfig := appConfig.Verification
+	verificationService := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+	}
+	queries := &user.Queries{
+		Store:        userStore,
+		Identities:   serviceService,
+		Verification: verificationService,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	hookStore := &hook.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	mutatorFactory := &hook.MutatorFactory{
+		Users: rawProvider,
+	}
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:         hookConfig,
+		Secret:         webhookKeyMaterials,
+		Clock:          clockClock,
+		MutatorFactory: mutatorFactory,
+		SyncHTTP:       syncHTTPClient,
+		AsyncHTTP:      asyncHTTPClient,
+	}
+	hookProvider := &hook.Provider{
+		Context:   context,
+		Logger:    hookLogger,
+		Database:  handle,
+		Clock:     clockClock,
+		Users:     rawProvider,
+		Store:     hookStore,
+		Deliverer: deliverer,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -3299,14 +3131,14 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	redisLogger := redis3.NewLogger(factory)
-	store2 := &redis3.Store{
+	redisLogger := redis2.NewLogger(factory)
+	store2 := &redis2.Store{
 		Redis:  redisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: redisLogger,
 	}
-	eventStore := &redis2.EventStore{
+	eventStore := &redis3.EventStore{
 		Redis: redisHandle,
 		AppID: appID,
 	}
@@ -3526,102 +3358,8 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	interactionLogger := interaction.NewLogger(factory)
-	hookLogger := hook.NewLogger(factory)
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               context,
-		LocalizationConfig:    localizationConfig,
-		MetadataConfiguration: appMetadata,
-		MessagingConfig:       messagingConfig,
-		WelcomeMessageConfig:  welcomeMessageConfig,
-		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
-	}
-	verificationConfig := appConfig.Verification
-	verificationService := &verification.Service{
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-	}
-	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   serviceService,
-		Verification: verificationService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-		Queries:                queries,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	hookStore := &hook.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
-	}
-	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
-	}
-	interactionProvider := &interaction.Provider{
-		Clock:  clockClock,
-		Logger: interactionLogger,
-		Hooks:  hookProvider,
-		Config: authenticationConfig,
-	}
-	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	anonymousFlow := &flows.AnonymousFlow{
-		Config:       authenticationConfig,
-		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
-		Challenges:   challengeProvider,
-	}
-	stateStoreRedis := &flows.StateStoreRedis{
-		Redis: redisHandle,
-	}
-	stateServiceLogger := flows.NewStateServiceLogger(factory)
-	stateService := &flows.StateService{
-		ServerConfig: serverConfig,
-		StateStore:   stateStoreRedis,
-		Logger:       stateServiceLogger,
-	}
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
-		Anonymous: anonymousFlow,
-		States:    stateService,
 	}
 	userInfoDecoder := sso.UserInfoDecoder{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -3670,6 +3408,76 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDProvider: provider,
 		Authenticators:  service3,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	welcomemessageProvider := &welcomemessage.Provider{
+		Context:               context,
+		LocalizationConfig:    localizationConfig,
+		MetadataConfiguration: appMetadata,
+		MessagingConfig:       messagingConfig,
+		WelcomeMessageConfig:  welcomeMessageConfig,
+		TemplateEngine:        engine,
+		TaskQueue:             queueQueue,
+	}
+	verificationConfig := appConfig.Verification
+	verificationService := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+	}
+	queries := &user.Queries{
+		Store:        userStore,
+		Identities:   serviceService,
+		Verification: verificationService,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	hookStore := &hook.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	mutatorFactory := &hook.MutatorFactory{
+		Users: rawProvider,
+	}
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:         hookConfig,
+		Secret:         webhookKeyMaterials,
+		Clock:          clockClock,
+		MutatorFactory: mutatorFactory,
+		SyncHTTP:       syncHTTPClient,
+		AsyncHTTP:      asyncHTTPClient,
+	}
+	hookProvider := &hook.Provider{
+		Context:   context,
+		Logger:    hookLogger,
+		Database:  handle,
+		Clock:     clockClock,
+		Users:     rawProvider,
+		Store:     hookStore,
+		Deliverer: deliverer,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -3679,14 +3487,14 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	redisLogger := redis3.NewLogger(factory)
-	store2 := &redis3.Store{
+	redisLogger := redis2.NewLogger(factory)
+	store2 := &redis2.Store{
 		Redis:  redisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: redisLogger,
 	}
-	eventStore := &redis2.EventStore{
+	eventStore := &redis3.EventStore{
 		Redis: redisHandle,
 		AppID: appID,
 	}
@@ -3906,102 +3714,8 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	interactionLogger := interaction.NewLogger(factory)
-	hookLogger := hook.NewLogger(factory)
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               context,
-		LocalizationConfig:    localizationConfig,
-		MetadataConfiguration: appMetadata,
-		MessagingConfig:       messagingConfig,
-		WelcomeMessageConfig:  welcomeMessageConfig,
-		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
-	}
-	verificationConfig := appConfig.Verification
-	verificationService := &verification.Service{
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-	}
-	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   serviceService,
-		Verification: verificationService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-		Queries:                queries,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	hookStore := &hook.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
-	}
-	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
-	}
-	interactionProvider := &interaction.Provider{
-		Clock:  clockClock,
-		Logger: interactionLogger,
-		Hooks:  hookProvider,
-		Config: authenticationConfig,
-	}
-	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	anonymousFlow := &flows.AnonymousFlow{
-		Config:       authenticationConfig,
-		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
-		Challenges:   challengeProvider,
-	}
-	stateStoreRedis := &flows.StateStoreRedis{
-		Redis: redisHandle,
-	}
-	stateServiceLogger := flows.NewStateServiceLogger(factory)
-	stateService := &flows.StateService{
-		ServerConfig: serverConfig,
-		StateStore:   stateStoreRedis,
-		Logger:       stateServiceLogger,
-	}
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
-		Anonymous: anonymousFlow,
-		States:    stateService,
 	}
 	userInfoDecoder := sso.UserInfoDecoder{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -4050,6 +3764,76 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDProvider: provider,
 		Authenticators:  service3,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	welcomemessageProvider := &welcomemessage.Provider{
+		Context:               context,
+		LocalizationConfig:    localizationConfig,
+		MetadataConfiguration: appMetadata,
+		MessagingConfig:       messagingConfig,
+		WelcomeMessageConfig:  welcomeMessageConfig,
+		TemplateEngine:        engine,
+		TaskQueue:             queueQueue,
+	}
+	verificationConfig := appConfig.Verification
+	verificationService := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+	}
+	queries := &user.Queries{
+		Store:        userStore,
+		Identities:   serviceService,
+		Verification: verificationService,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	hookStore := &hook.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	mutatorFactory := &hook.MutatorFactory{
+		Users: rawProvider,
+	}
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:         hookConfig,
+		Secret:         webhookKeyMaterials,
+		Clock:          clockClock,
+		MutatorFactory: mutatorFactory,
+		SyncHTTP:       syncHTTPClient,
+		AsyncHTTP:      asyncHTTPClient,
+	}
+	hookProvider := &hook.Provider{
+		Context:   context,
+		Logger:    hookLogger,
+		Database:  handle,
+		Clock:     clockClock,
+		Users:     rawProvider,
+		Store:     hookStore,
+		Deliverer: deliverer,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -4059,14 +3843,14 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	redisLogger := redis3.NewLogger(factory)
-	store2 := &redis3.Store{
+	redisLogger := redis2.NewLogger(factory)
+	store2 := &redis2.Store{
 		Redis:  redisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: redisLogger,
 	}
-	eventStore := &redis2.EventStore{
+	eventStore := &redis3.EventStore{
 		Redis: redisHandle,
 		AppID: appID,
 	}
@@ -4287,102 +4071,8 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	interactionLogger := interaction.NewLogger(factory)
-	hookLogger := hook.NewLogger(factory)
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               context,
-		LocalizationConfig:    localizationConfig,
-		MetadataConfiguration: appMetadata,
-		MessagingConfig:       messagingConfig,
-		WelcomeMessageConfig:  welcomeMessageConfig,
-		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
-	}
-	verificationConfig := appConfig.Verification
-	verificationService := &verification.Service{
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-	}
-	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   serviceService,
-		Verification: verificationService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-		Queries:                queries,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	hookStore := &hook.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
-	}
-	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
-	}
-	interactionProvider := &interaction.Provider{
-		Clock:  clockClock,
-		Logger: interactionLogger,
-		Hooks:  hookProvider,
-		Config: authenticationConfig,
-	}
-	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	anonymousFlow := &flows.AnonymousFlow{
-		Config:       authenticationConfig,
-		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
-		Challenges:   challengeProvider,
-	}
-	stateStoreRedis := &flows.StateStoreRedis{
-		Redis: redisHandle,
-	}
-	stateServiceLogger := flows.NewStateServiceLogger(factory)
-	stateService := &flows.StateService{
-		ServerConfig: serverConfig,
-		StateStore:   stateStoreRedis,
-		Logger:       stateServiceLogger,
-	}
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
-		Anonymous: anonymousFlow,
-		States:    stateService,
 	}
 	userInfoDecoder := sso.UserInfoDecoder{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -4431,6 +4121,76 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDProvider: provider,
 		Authenticators:  service3,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	welcomemessageProvider := &welcomemessage.Provider{
+		Context:               context,
+		LocalizationConfig:    localizationConfig,
+		MetadataConfiguration: appMetadata,
+		MessagingConfig:       messagingConfig,
+		WelcomeMessageConfig:  welcomeMessageConfig,
+		TemplateEngine:        engine,
+		TaskQueue:             queueQueue,
+	}
+	verificationConfig := appConfig.Verification
+	verificationService := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+	}
+	queries := &user.Queries{
+		Store:        userStore,
+		Identities:   serviceService,
+		Verification: verificationService,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	hookStore := &hook.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	mutatorFactory := &hook.MutatorFactory{
+		Users: rawProvider,
+	}
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:         hookConfig,
+		Secret:         webhookKeyMaterials,
+		Clock:          clockClock,
+		MutatorFactory: mutatorFactory,
+		SyncHTTP:       syncHTTPClient,
+		AsyncHTTP:      asyncHTTPClient,
+	}
+	hookProvider := &hook.Provider{
+		Context:   context,
+		Logger:    hookLogger,
+		Database:  handle,
+		Clock:     clockClock,
+		Users:     rawProvider,
+		Store:     hookStore,
+		Deliverer: deliverer,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -4440,14 +4200,14 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	redisLogger := redis3.NewLogger(factory)
-	store2 := &redis3.Store{
+	redisLogger := redis2.NewLogger(factory)
+	store2 := &redis2.Store{
 		Redis:  redisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: redisLogger,
 	}
-	eventStore := &redis2.EventStore{
+	eventStore := &redis3.EventStore{
 		Redis: redisHandle,
 		AppID: appID,
 	}
@@ -4671,102 +4431,8 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	interactionLogger := interaction.NewLogger(factory)
-	hookLogger := hook.NewLogger(factory)
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               context,
-		LocalizationConfig:    localizationConfig,
-		MetadataConfiguration: appMetadata,
-		MessagingConfig:       messagingConfig,
-		WelcomeMessageConfig:  welcomeMessageConfig,
-		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
-	}
-	verificationConfig := appConfig.Verification
-	verificationService := &verification.Service{
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-	}
-	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   serviceService,
-		Verification: verificationService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-		Queries:                queries,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	hookStore := &hook.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
-	}
-	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
-	}
-	interactionProvider := &interaction.Provider{
-		Clock:  clockClock,
-		Logger: interactionLogger,
-		Hooks:  hookProvider,
-		Config: authenticationConfig,
-	}
-	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	anonymousFlow := &flows.AnonymousFlow{
-		Config:       authenticationConfig,
-		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
-		Challenges:   challengeProvider,
-	}
-	stateStoreRedis := &flows.StateStoreRedis{
-		Redis: redisHandle,
-	}
-	stateServiceLogger := flows.NewStateServiceLogger(factory)
-	stateService := &flows.StateService{
-		ServerConfig: serverConfig,
-		StateStore:   stateStoreRedis,
-		Logger:       stateServiceLogger,
-	}
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
-		Anonymous: anonymousFlow,
-		States:    stateService,
 	}
 	userInfoDecoder := sso.UserInfoDecoder{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -4815,6 +4481,76 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDProvider: provider,
 		Authenticators:  service3,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	welcomemessageProvider := &welcomemessage.Provider{
+		Context:               context,
+		LocalizationConfig:    localizationConfig,
+		MetadataConfiguration: appMetadata,
+		MessagingConfig:       messagingConfig,
+		WelcomeMessageConfig:  welcomeMessageConfig,
+		TemplateEngine:        engine,
+		TaskQueue:             queueQueue,
+	}
+	verificationConfig := appConfig.Verification
+	verificationService := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+	}
+	queries := &user.Queries{
+		Store:        userStore,
+		Identities:   serviceService,
+		Verification: verificationService,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	hookStore := &hook.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	mutatorFactory := &hook.MutatorFactory{
+		Users: rawProvider,
+	}
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:         hookConfig,
+		Secret:         webhookKeyMaterials,
+		Clock:          clockClock,
+		MutatorFactory: mutatorFactory,
+		SyncHTTP:       syncHTTPClient,
+		AsyncHTTP:      asyncHTTPClient,
+	}
+	hookProvider := &hook.Provider{
+		Context:   context,
+		Logger:    hookLogger,
+		Database:  handle,
+		Clock:     clockClock,
+		Users:     rawProvider,
+		Store:     hookStore,
+		Deliverer: deliverer,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -4824,14 +4560,14 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	redisLogger := redis3.NewLogger(factory)
-	store2 := &redis3.Store{
+	redisLogger := redis2.NewLogger(factory)
+	store2 := &redis2.Store{
 		Redis:  redisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: redisLogger,
 	}
-	eventStore := &redis2.EventStore{
+	eventStore := &redis3.EventStore{
 		Redis: redisHandle,
 		AppID: appID,
 	}
@@ -5052,102 +4788,8 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	interactionLogger := interaction.NewLogger(factory)
-	hookLogger := hook.NewLogger(factory)
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               context,
-		LocalizationConfig:    localizationConfig,
-		MetadataConfiguration: appMetadata,
-		MessagingConfig:       messagingConfig,
-		WelcomeMessageConfig:  welcomeMessageConfig,
-		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
-	}
-	verificationConfig := appConfig.Verification
-	verificationService := &verification.Service{
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-	}
-	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   serviceService,
-		Verification: verificationService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-		Queries:                queries,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	hookStore := &hook.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
-	}
-	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
-	}
-	interactionProvider := &interaction.Provider{
-		Clock:  clockClock,
-		Logger: interactionLogger,
-		Hooks:  hookProvider,
-		Config: authenticationConfig,
-	}
-	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	anonymousFlow := &flows.AnonymousFlow{
-		Config:       authenticationConfig,
-		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
-		Challenges:   challengeProvider,
-	}
-	stateStoreRedis := &flows.StateStoreRedis{
-		Redis: redisHandle,
-	}
-	stateServiceLogger := flows.NewStateServiceLogger(factory)
-	stateService := &flows.StateService{
-		ServerConfig: serverConfig,
-		StateStore:   stateStoreRedis,
-		Logger:       stateServiceLogger,
-	}
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
-		Anonymous: anonymousFlow,
-		States:    stateService,
 	}
 	userInfoDecoder := sso.UserInfoDecoder{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -5196,6 +4838,76 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		LoginIDProvider: provider,
 		Authenticators:  service3,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	welcomemessageProvider := &welcomemessage.Provider{
+		Context:               context,
+		LocalizationConfig:    localizationConfig,
+		MetadataConfiguration: appMetadata,
+		MessagingConfig:       messagingConfig,
+		WelcomeMessageConfig:  welcomeMessageConfig,
+		TemplateEngine:        engine,
+		TaskQueue:             queueQueue,
+	}
+	verificationConfig := appConfig.Verification
+	verificationService := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+	}
+	queries := &user.Queries{
+		Store:        userStore,
+		Identities:   serviceService,
+		Verification: verificationService,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	hookStore := &hook.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	mutatorFactory := &hook.MutatorFactory{
+		Users: rawProvider,
+	}
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:         hookConfig,
+		Secret:         webhookKeyMaterials,
+		Clock:          clockClock,
+		MutatorFactory: mutatorFactory,
+		SyncHTTP:       syncHTTPClient,
+		AsyncHTTP:      asyncHTTPClient,
+	}
+	hookProvider := &hook.Provider{
+		Context:   context,
+		Logger:    hookLogger,
+		Database:  handle,
+		Clock:     clockClock,
+		Users:     rawProvider,
+		Store:     hookStore,
+		Deliverer: deliverer,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -5205,14 +4917,14 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Commands: commands,
 		Queries:  queries,
 	}
-	redisLogger := redis3.NewLogger(factory)
-	store2 := &redis3.Store{
+	redisLogger := redis2.NewLogger(factory)
+	store2 := &redis2.Store{
 		Redis:  redisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: redisLogger,
 	}
-	eventStore := &redis2.EventStore{
+	eventStore := &redis3.EventStore{
 		Redis: redisHandle,
 		AppID: appID,
 	}
@@ -5432,102 +5144,8 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	interactionLogger := interaction.NewLogger(factory)
-	hookLogger := hook.NewLogger(factory)
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               context,
-		LocalizationConfig:    localizationConfig,
-		MetadataConfiguration: appMetadata,
-		MessagingConfig:       messagingConfig,
-		WelcomeMessageConfig:  welcomeMessageConfig,
-		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
-	}
-	verificationConfig := appConfig.Verification
-	verificationService := &verification.Service{
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-	}
-	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   serviceService,
-		Verification: verificationService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-		Queries:                queries,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	hookStore := &hook.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
-	}
-	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
-	}
-	interactionProvider := &interaction.Provider{
-		Clock:  clockClock,
-		Logger: interactionLogger,
-		Hooks:  hookProvider,
-		Config: authenticationConfig,
-	}
-	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	anonymousFlow := &flows.AnonymousFlow{
-		Config:       authenticationConfig,
-		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
-		Challenges:   challengeProvider,
-	}
-	stateStoreRedis := &flows.StateStoreRedis{
-		Redis: redisHandle,
-	}
-	stateServiceLogger := flows.NewStateServiceLogger(factory)
-	stateService := &flows.StateService{
-		ServerConfig: serverConfig,
-		StateStore:   stateStoreRedis,
-		Logger:       stateServiceLogger,
-	}
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
-		Anonymous: anonymousFlow,
-		States:    stateService,
 	}
 	userInfoDecoder := sso.UserInfoDecoder{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -5576,6 +5194,76 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDProvider: provider,
 		Authenticators:  service3,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	welcomemessageProvider := &welcomemessage.Provider{
+		Context:               context,
+		LocalizationConfig:    localizationConfig,
+		MetadataConfiguration: appMetadata,
+		MessagingConfig:       messagingConfig,
+		WelcomeMessageConfig:  welcomeMessageConfig,
+		TemplateEngine:        engine,
+		TaskQueue:             queueQueue,
+	}
+	verificationConfig := appConfig.Verification
+	verificationService := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+	}
+	queries := &user.Queries{
+		Store:        userStore,
+		Identities:   serviceService,
+		Verification: verificationService,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	hookStore := &hook.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	mutatorFactory := &hook.MutatorFactory{
+		Users: rawProvider,
+	}
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:         hookConfig,
+		Secret:         webhookKeyMaterials,
+		Clock:          clockClock,
+		MutatorFactory: mutatorFactory,
+		SyncHTTP:       syncHTTPClient,
+		AsyncHTTP:      asyncHTTPClient,
+	}
+	hookProvider := &hook.Provider{
+		Context:   context,
+		Logger:    hookLogger,
+		Database:  handle,
+		Clock:     clockClock,
+		Users:     rawProvider,
+		Store:     hookStore,
+		Deliverer: deliverer,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -5585,14 +5273,14 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	redisLogger := redis3.NewLogger(factory)
-	store2 := &redis3.Store{
+	redisLogger := redis2.NewLogger(factory)
+	store2 := &redis2.Store{
 		Redis:  redisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: redisLogger,
 	}
-	eventStore := &redis2.EventStore{
+	eventStore := &redis3.EventStore{
 		Redis: redisHandle,
 		AppID: appID,
 	}
@@ -5813,102 +5501,8 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	interactionLogger := interaction.NewLogger(factory)
-	hookLogger := hook.NewLogger(factory)
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               context,
-		LocalizationConfig:    localizationConfig,
-		MetadataConfiguration: appMetadata,
-		MessagingConfig:       messagingConfig,
-		WelcomeMessageConfig:  welcomeMessageConfig,
-		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
-	}
-	verificationConfig := appConfig.Verification
-	verificationService := &verification.Service{
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-	}
-	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   serviceService,
-		Verification: verificationService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-		Queries:                queries,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	hookStore := &hook.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
-	}
-	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
-	}
-	interactionProvider := &interaction.Provider{
-		Clock:  clockClock,
-		Logger: interactionLogger,
-		Hooks:  hookProvider,
-		Config: authenticationConfig,
-	}
-	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	anonymousFlow := &flows.AnonymousFlow{
-		Config:       authenticationConfig,
-		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
-		Challenges:   challengeProvider,
-	}
-	stateStoreRedis := &flows.StateStoreRedis{
-		Redis: redisHandle,
-	}
-	stateServiceLogger := flows.NewStateServiceLogger(factory)
-	stateService := &flows.StateService{
-		ServerConfig: serverConfig,
-		StateStore:   stateStoreRedis,
-		Logger:       stateServiceLogger,
-	}
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
-		Anonymous: anonymousFlow,
-		States:    stateService,
 	}
 	userInfoDecoder := sso.UserInfoDecoder{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -5957,6 +5551,76 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		LoginIDProvider: provider,
 		Authenticators:  service3,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	welcomemessageProvider := &welcomemessage.Provider{
+		Context:               context,
+		LocalizationConfig:    localizationConfig,
+		MetadataConfiguration: appMetadata,
+		MessagingConfig:       messagingConfig,
+		WelcomeMessageConfig:  welcomeMessageConfig,
+		TemplateEngine:        engine,
+		TaskQueue:             queueQueue,
+	}
+	verificationConfig := appConfig.Verification
+	verificationService := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+	}
+	queries := &user.Queries{
+		Store:        userStore,
+		Identities:   serviceService,
+		Verification: verificationService,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	hookStore := &hook.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	mutatorFactory := &hook.MutatorFactory{
+		Users: rawProvider,
+	}
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:         hookConfig,
+		Secret:         webhookKeyMaterials,
+		Clock:          clockClock,
+		MutatorFactory: mutatorFactory,
+		SyncHTTP:       syncHTTPClient,
+		AsyncHTTP:      asyncHTTPClient,
+	}
+	hookProvider := &hook.Provider{
+		Context:   context,
+		Logger:    hookLogger,
+		Database:  handle,
+		Clock:     clockClock,
+		Users:     rawProvider,
+		Store:     hookStore,
+		Deliverer: deliverer,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -5966,14 +5630,14 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Commands: commands,
 		Queries:  queries,
 	}
-	redisLogger := redis3.NewLogger(factory)
-	store2 := &redis3.Store{
+	redisLogger := redis2.NewLogger(factory)
+	store2 := &redis2.Store{
 		Redis:  redisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: redisLogger,
 	}
-	eventStore := &redis2.EventStore{
+	eventStore := &redis3.EventStore{
 		Redis: redisHandle,
 		AppID: appID,
 	}
@@ -6224,102 +5888,8 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	interactionLogger := interaction.NewLogger(factory)
-	hookLogger := hook.NewLogger(factory)
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Context:               context,
-		LocalizationConfig:    localizationConfig,
-		MetadataConfiguration: appMetadata,
-		MessagingConfig:       messagingConfig,
-		WelcomeMessageConfig:  welcomeMessageConfig,
-		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
-	}
-	verificationConfig := appConfig.Verification
-	verificationService := &verification.Service{
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-	}
-	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   serviceService,
-		Verification: verificationService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-		Queries:                queries,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	hookStore := &hook.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
-	}
-	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
-	}
-	interactionProvider := &interaction.Provider{
-		Clock:  clockClock,
-		Logger: interactionLogger,
-		Hooks:  hookProvider,
-		Config: authenticationConfig,
-	}
-	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	anonymousFlow := &flows.AnonymousFlow{
-		Config:       authenticationConfig,
-		Interactions: interactionProvider,
-		Anonymous:    anonymousProvider,
-		Challenges:   challengeProvider,
-	}
-	stateStoreRedis := &flows.StateStoreRedis{
-		Redis: redisHandle,
-	}
-	stateServiceLogger := flows.NewStateServiceLogger(factory)
-	stateService := &flows.StateService{
-		ServerConfig: serverConfig,
-		StateStore:   stateStoreRedis,
-		Logger:       stateServiceLogger,
-	}
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
-		Anonymous: anonymousFlow,
-		States:    stateService,
 	}
 	userInfoDecoder := sso.UserInfoDecoder{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -6368,6 +5938,76 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDProvider: provider,
 		Authenticators:  service3,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	welcomemessageProvider := &welcomemessage.Provider{
+		Context:               context,
+		LocalizationConfig:    localizationConfig,
+		MetadataConfiguration: appMetadata,
+		MessagingConfig:       messagingConfig,
+		WelcomeMessageConfig:  welcomeMessageConfig,
+		TemplateEngine:        engine,
+		TaskQueue:             queueQueue,
+	}
+	verificationConfig := appConfig.Verification
+	verificationService := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+	}
+	queries := &user.Queries{
+		Store:        userStore,
+		Identities:   serviceService,
+		Verification: verificationService,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	hookStore := &hook.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	mutatorFactory := &hook.MutatorFactory{
+		Users: rawProvider,
+	}
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:         hookConfig,
+		Secret:         webhookKeyMaterials,
+		Clock:          clockClock,
+		MutatorFactory: mutatorFactory,
+		SyncHTTP:       syncHTTPClient,
+		AsyncHTTP:      asyncHTTPClient,
+	}
+	hookProvider := &hook.Provider{
+		Context:   context,
+		Logger:    hookLogger,
+		Database:  handle,
+		Clock:     clockClock,
+		Users:     rawProvider,
+		Store:     hookStore,
+		Deliverer: deliverer,
+	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Hooks:        hookProvider,
@@ -6377,14 +6017,14 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	redisLogger := redis3.NewLogger(factory)
-	store2 := &redis3.Store{
+	redisLogger := redis2.NewLogger(factory)
+	store2 := &redis2.Store{
 		Redis:  redisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: redisLogger,
 	}
-	eventStore := &redis2.EventStore{
+	eventStore := &redis3.EventStore{
 		Redis: redisHandle,
 		AppID: appID,
 	}
@@ -6649,8 +6289,8 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	redisHandle := appProvider.Redis
-	redisLogger := redis3.NewLogger(factory)
-	redisStore := &redis3.Store{
+	redisLogger := redis2.NewLogger(factory)
+	redisStore := &redis2.Store{
 		Redis:  redisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
@@ -6786,14 +6426,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appID := appConfig.ID
 	clockClock := _wireSystemClockValue
 	factory := appProvider.LoggerFactory
-	logger := redis3.NewLogger(factory)
-	store := &redis3.Store{
+	logger := redis2.NewLogger(factory)
+	store := &redis2.Store{
 		Redis:  handle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: logger,
 	}
-	eventStore := &redis2.EventStore{
+	eventStore := &redis3.EventStore{
 		Redis: handle,
 		AppID: appID,
 	}
