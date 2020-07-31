@@ -19,12 +19,6 @@ func GetRedirectURI(r *http.Request, trustProxy bool) string {
 	return redirectURI
 }
 
-func MakeURLWithPathWithX(i *url.URL, path string) string {
-	u := httputil.HostRelative(i)
-	u.Path = path
-	return u.String()
-}
-
 func MakeURLWithPathWithoutX(i *url.URL, path string) string {
 	u := httputil.HostRelative(i)
 	u.Path = path
