@@ -99,6 +99,7 @@ func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph
 		KeepState:       intent.KeepState,
 		GraphInstanceID: graph.InstanceID,
 		Error:           stateError,
+		Extra:           intent.StateExtra,
 	}
 
 	return
@@ -145,6 +146,7 @@ func (s *Service) PostIntent(intent *Intent, inputer func() (interface{}, error)
 		ID:          stateID,
 		RedirectURI: intent.RedirectURI,
 		KeepState:   intent.KeepState,
+		Extra:       intent.StateExtra,
 	}
 
 	var graph *newinteraction.Graph
@@ -337,6 +339,13 @@ func (s *Service) deriveRedirectPath(graph *newinteraction.Graph, edges []newint
 	firstEdge := edges[0]
 
 	switch graph.CurrentNode().(type) {
+	case *nodes.NodeUseUser:
+		switch graph.Intent.(type) {
+		case *intents.IntentRemoveIdentity:
+			return "/enter_login_id"
+		default:
+			panic(fmt.Errorf("webapp: unexpected intent: %T", graph.Intent))
+		}
 	case *nodes.NodeCreateIdentityBegin:
 		switch intent := graph.Intent.(type) {
 		case *intents.IntentAuthenticate:
@@ -346,6 +355,8 @@ func (s *Service) deriveRedirectPath(graph *newinteraction.Graph, edges []newint
 			default:
 				panic(fmt.Errorf("webapp: unexpected authenticate intent: %T", intent.Kind))
 			}
+		case *intents.IntentAddIdentity:
+			return "/enter_login_id"
 		default:
 			panic(fmt.Errorf("webapp: unexpected intent: %T", graph.Intent))
 		}

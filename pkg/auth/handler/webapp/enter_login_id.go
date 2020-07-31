@@ -5,10 +5,11 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -30,8 +31,22 @@ var TemplateAuthUIEnterLoginIDHTML = template.Spec{
 type EnterLoginIDViewModel struct {
 	LoginIDKey       string
 	LoginIDType      string
-	OldLoginIDValue  string
 	LoginIDInputType string
+	IdentityID       string
+}
+
+func NewEnterLoginIDViewModel(state *webapp.State) EnterLoginIDViewModel {
+	loginIDKey, _ := state.Extra["x_login_id_key"].(string)
+	loginIDType, _ := state.Extra["x_login_id_type"].(string)
+	loginIDInputType, _ := state.Extra["x_login_id_input_type"].(string)
+	identityID, _ := state.Extra["x_identity_id"].(string)
+
+	return EnterLoginIDViewModel{
+		LoginIDKey:       loginIDKey,
+		LoginIDType:      loginIDType,
+		LoginIDInputType: loginIDInputType,
+		IdentityID:       identityID,
+	}
 }
 
 const RemoveLoginIDRequest = "RemoveLoginIDRequest"
@@ -42,9 +57,9 @@ var EnterLoginIDSchema = validation.NewMultipartSchema("").
 			"type": "object",
 			"properties": {
 				"x_login_id_key": { "type": "string" },
-				"x_old_login_id_value": { "type": "string" }
+				"x_identity_id": { "type": "string" }
 			},
-			"required": ["x_login_id_key", "x_old_login_id_value"]
+			"required": ["x_login_id_key", "x_identity_id"]
 		}
 	`).Instantiate()
 
@@ -63,32 +78,47 @@ type EnterLoginIDHandler struct {
 
 func (h *EnterLoginIDHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
+
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-	// FIXME(webapp): derive EnterLoginIDViewModel with graph and edges
-	enterLoginIDViewModel := EnterLoginIDViewModel{}
+	enterLoginIDViewModel := NewEnterLoginIDViewModel(state)
 
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, enterLoginIDViewModel)
 	return data, nil
 }
 
-// FIXME(webapp): implement input interface
 type EnterLoginIDRemoveLoginID struct {
-	UserID  string
-	LoginID loginid.LoginID
+	IdentityID string
+}
+
+func (i *EnterLoginIDRemoveLoginID) GetIdentityType() authn.IdentityType {
+	return authn.IdentityTypeLoginID
+}
+
+func (i *EnterLoginIDRemoveLoginID) GetIdentityID() string {
+	return i.IdentityID
 }
 
 // FIXME(webapp): implement input interface
 type EnterLoginIDUpdateLoginID struct {
-	UserID string
-	Old    loginid.LoginID
-	New    loginid.LoginID
+	IdentityID string
+	LoginIDKey string
+	LoginID    string
 }
 
-// FIXME(webapp): implement input interface
 type EnterLoginIDAddLoginID struct {
-	UserID  string
-	LoginID loginid.LoginID
+	LoginIDKey string
+	LoginID    string
+}
+
+// GetLoginIDKey implements InputUseIdentityLoginID.
+func (i *EnterLoginIDAddLoginID) GetLoginIDKey() string {
+	return i.LoginIDKey
+}
+
+// GetLoginIDKey implements InputUseIdentityLoginID.
+func (i *EnterLoginIDAddLoginID) GetLoginID() string {
+	return i.LoginID
 }
 
 func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -120,22 +150,20 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 	if r.Method == "POST" && r.Form.Get("x_action") == "remove" {
 		h.Database.WithTx(func() error {
-			_, _, _, err := h.WebApp.Get(StateID(r))
+			state, _, _, err := h.WebApp.Get(StateID(r))
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
-			// FIXME(webapp): derive EnterLoginIDViewModel with graph and edges
-			enterLoginIDViewModel := EnterLoginIDViewModel{}
+			enterLoginIDViewModel := NewEnterLoginIDViewModel(state)
 
-			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
+			intent := state.NewIntent()
+			intent.Intent = intents.NewIntentRemoveIdentity(userID)
+
+			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
 				input = &EnterLoginIDRemoveLoginID{
-					UserID: userID,
-					LoginID: loginid.LoginID{
-						Key:   enterLoginIDViewModel.LoginIDKey,
-						Value: enterLoginIDViewModel.OldLoginIDValue,
-					},
+					IdentityID: enterLoginIDViewModel.IdentityID,
 				}
 				return
 			})
@@ -150,37 +178,30 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 	if r.Method == "POST" && r.Form.Get("x_action") == "add_or_update" {
 		h.Database.WithTx(func() error {
-			_, _, _, err := h.WebApp.Get(StateID(r))
+			state, _, _, err := h.WebApp.Get(StateID(r))
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
-			// FIXME(webapp): derive EnterLoginIDViewModel with graph and edges
-			enterLoginIDViewModel := EnterLoginIDViewModel{}
+			enterLoginIDViewModel := NewEnterLoginIDViewModel(state)
+
+			intent := state.NewIntent()
+			intent.Intent = intents.NewIntentAddIdentity(userID)
 
 			newLoginID := r.Form.Get("x_login_id")
 
-			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
-				if enterLoginIDViewModel.OldLoginIDValue != "" {
+			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
+				if enterLoginIDViewModel.IdentityID != "" {
 					input = &EnterLoginIDUpdateLoginID{
-						UserID: userID,
-						Old: loginid.LoginID{
-							Key:   enterLoginIDViewModel.LoginIDKey,
-							Value: enterLoginIDViewModel.OldLoginIDValue,
-						},
-						New: loginid.LoginID{
-							Key:   enterLoginIDViewModel.LoginIDKey,
-							Value: newLoginID,
-						},
+						IdentityID: enterLoginIDViewModel.IdentityID,
+						LoginIDKey: enterLoginIDViewModel.LoginIDKey,
+						LoginID:    newLoginID,
 					}
 				} else {
 					input = &EnterLoginIDAddLoginID{
-						UserID: userID,
-						LoginID: loginid.LoginID{
-							Key:   enterLoginIDViewModel.LoginIDKey,
-							Value: newLoginID,
-						},
+						LoginIDKey: enterLoginIDViewModel.LoginIDKey,
+						LoginID:    newLoginID,
 					}
 				}
 				return

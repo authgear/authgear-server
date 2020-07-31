@@ -85,15 +85,6 @@ func (i *SettingsIdentityUnlinkOAuth) GetIdentityID() string {
 	return i.IdentityID
 }
 
-// FIXME(webapp): implement input interface
-type SettingsIdentityAddUpdateRemoveLoginID struct {
-	UserID           string
-	LoginIDKey       string
-	LoginIDType      string
-	LoginIDInputType string
-	OldLoginIDValue  string
-}
-
 func (h *SettingsIdentityHandler) GetData(r *http.Request, state *webapp.State) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 	var anyError interface{}
@@ -126,7 +117,6 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	loginIDKey := r.Form.Get("x_login_id_key")
 	loginIDType := r.Form.Get("x_login_id_type")
 	loginIDInputType := r.Form.Get("x_login_id_input_type")
-	oldLoginIDValue := r.Form.Get("x_old_login_id_value")
 	identityID := r.Form.Get("x_identity_id")
 	sess := auth.GetSession(r.Context())
 	userID := sess.AuthnAttrs().UserID
@@ -200,19 +190,24 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 
 	if r.Method == "POST" && r.Form.Get("x_action") == "login_id" {
 		h.Database.WithTx(func() error {
-			intent := &webapp.Intent{
-				RedirectURI: redirectURI,
-				// FIXME(webapp): IntentAddUpdateRemoveLoginID
-				Intent: intents.NewIntentLogin(),
-			}
-			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				input = &SettingsIdentityAddUpdateRemoveLoginID{
-					UserID:           userID,
-					LoginIDKey:       loginIDKey,
-					LoginIDType:      loginIDType,
-					LoginIDInputType: loginIDInputType,
-					OldLoginIDValue:  oldLoginIDValue,
+			var intent *webapp.Intent
+			if identityID == "" {
+				intent = &webapp.Intent{
+					RedirectURI: redirectURI,
+					Intent:      intents.NewIntentAddIdentity(userID),
+					StateExtra: map[string]interface{}{
+						"x_login_id_key":        loginIDKey,
+						"x_login_id_type":       loginIDType,
+						"x_login_id_input_type": loginIDInputType,
+						"x_identity_id":         identityID,
+					},
 				}
+			} else {
+				// FIXME(webapp): Update login ID
+			}
+
+			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
+				input = struct{}{}
 				return
 			})
 			if err != nil {

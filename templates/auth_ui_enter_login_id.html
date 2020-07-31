@@ -13,7 +13,7 @@
 </div>
 
 <div class="title primary-txt">
-	{{ if $.OldLoginIDValue }}
+	{{ if $.IdentityID }}
 	{{ localize "enter-login-id-page-title--change" $.LoginIDKey }}
 	{{ else }}
 	{{ localize "enter-login-id-page-title--add" $.LoginIDKey }}
@@ -50,7 +50,7 @@
 
 </form>
 
-{{ if .OldLoginIDValue }}
+{{ if .IdentityID }}
 <form class="enter-login-id-remove-form" method="post" novalidate>
 {{ $.CSRFField }}
 <button class="anchor" type="submit" name="x_action" value="remove">{{ localize "disconnect-button-label" }}</button>

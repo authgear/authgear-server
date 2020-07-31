@@ -15,4 +15,6 @@ type Intent struct {
 	// If it is true, then the state is attached to RedirectURI.
 	KeepState bool
 	Intent    newinteraction.Intent
+	// StateExtra indicates the extra values to be set on state.
+	StateExtra map[string]interface{}
 }
