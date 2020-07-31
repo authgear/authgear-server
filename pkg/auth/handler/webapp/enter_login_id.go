@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/core/authn"
@@ -99,9 +100,13 @@ func (i *EnterLoginIDRemoveLoginID) GetIdentityID() string {
 }
 
 type EnterLoginIDLoginID struct {
-	LoginIDKey string
-	LoginID    string
+	LoginIDType string
+	LoginIDKey  string
+	LoginID     string
 }
+
+var _ nodes.InputUseIdentityLoginID = &EnterLoginIDLoginID{}
+var _ nodes.InputCreateAuthenticatorOOBSetup = &EnterLoginIDLoginID{}
 
 // GetLoginIDKey implements InputUseIdentityLoginID.
 func (i *EnterLoginIDLoginID) GetLoginIDKey() string {
@@ -110,6 +115,22 @@ func (i *EnterLoginIDLoginID) GetLoginIDKey() string {
 
 // GetLoginIDKey implements InputUseIdentityLoginID.
 func (i *EnterLoginIDLoginID) GetLoginID() string {
+	return i.LoginID
+}
+
+func (i *EnterLoginIDLoginID) GetOOBChannel() authn.AuthenticatorOOBChannel {
+	switch i.LoginIDType {
+	case string(config.LoginIDKeyTypeEmail):
+		return authn.AuthenticatorOOBChannelEmail
+	case string(config.LoginIDKeyTypePhone):
+		return authn.AuthenticatorOOBChannelSMS
+	default:
+		return ""
+	}
+}
+
+// GetOOBTarget implements InputAuthenticationOOBTrigger.
+func (i *EnterLoginIDLoginID) GetOOBTarget() string {
 	return i.LoginID
 }
 
@@ -189,8 +210,9 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
 				input = &EnterLoginIDLoginID{
-					LoginIDKey: enterLoginIDViewModel.LoginIDKey,
-					LoginID:    newLoginID,
+					LoginIDType: enterLoginIDViewModel.LoginIDType,
+					LoginIDKey:  enterLoginIDViewModel.LoginIDKey,
+					LoginID:     newLoginID,
 				}
 				return
 			})
