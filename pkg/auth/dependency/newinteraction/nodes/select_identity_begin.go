@@ -33,8 +33,8 @@ func (n *NodeSelectIdentityBegin) DeriveEdges(ctx *newinteraction.Context, graph
 			})
 		case authn.IdentityTypeLoginID:
 			edges = append(edges, &EdgeUseIdentityLoginID{
-				IsCreating: false,
-				Configs:    ctx.Config.Identity.LoginID.Keys,
+				Mode:    UseIdentityLoginIDModeSelect,
+				Configs: ctx.Config.Identity.LoginID.Keys,
 			})
 		case authn.IdentityTypeOAuth:
 			edges = append(edges, &EdgeUseIdentityOAuthProvider{

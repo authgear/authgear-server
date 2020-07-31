@@ -139,6 +139,15 @@ func (g *Graph) MustGetUserLastIdentity() *identity.Info {
 	panic("interaction: expect user identity presents")
 }
 
+func (g *Graph) MustGetUpdateIdentityID() string {
+	for i := len(g.Nodes) - 1; i >= 0; i-- {
+		if n, ok := g.Nodes[i].(interface{ UpdateIdentityID() string }); ok {
+			return n.UpdateIdentityID()
+		}
+	}
+	panic("interaction: expect update identity ID presents")
+}
+
 func (g *Graph) GetUserNewIdentities() []*identity.Info {
 	var identities []*identity.Info
 	for _, node := range g.Nodes {

@@ -216,6 +216,20 @@ func (s *Service) Create(info *identity.Info) error {
 	return nil
 }
 
+func (s *Service) UpdateWithSpec(info *identity.Info, spec *identity.Spec) (*identity.Info, error) {
+	switch info.Type {
+	case authn.IdentityTypeLoginID:
+		i, err := s.LoginID.WithLoginID(loginIDFromIdentityInfo(info), extractLoginIDClaims(spec.Claims))
+		if err != nil {
+			return nil, err
+		}
+		return loginIDToIdentityInfo(i), nil
+	default:
+		panic("identity: cannot update identity type " + info.Type)
+	}
+
+}
+
 func (s *Service) Update(info *identity.Info) error {
 	switch info.Type {
 	case authn.IdentityTypeLoginID:

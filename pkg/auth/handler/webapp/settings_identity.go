@@ -203,7 +203,16 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 					},
 				}
 			} else {
-				// FIXME(webapp): Update login ID
+				intent = &webapp.Intent{
+					RedirectURI: redirectURI,
+					Intent:      intents.NewIntentUpdateIdentity(userID, identityID),
+					StateExtra: map[string]interface{}{
+						"x_login_id_key":        loginIDKey,
+						"x_login_id_type":       loginIDType,
+						"x_login_id_input_type": loginIDInputType,
+						"x_identity_id":         identityID,
+					},
+				}
 			}
 
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {

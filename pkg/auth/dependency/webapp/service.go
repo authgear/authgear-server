@@ -346,6 +346,8 @@ func (s *Service) deriveRedirectPath(graph *newinteraction.Graph, edges []newint
 		default:
 			panic(fmt.Errorf("webapp: unexpected intent: %T", graph.Intent))
 		}
+	case *nodes.NodeUpdateIdentityBegin:
+		return "/enter_login_id"
 	case *nodes.NodeCreateIdentityBegin:
 		switch intent := graph.Intent.(type) {
 		case *intents.IntentAuthenticate:

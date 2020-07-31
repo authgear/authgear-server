@@ -15,10 +15,7 @@ type InputRemoveIdentity interface {
 	GetIdentityID() string
 }
 
-type EdgeRemoveIdentity struct {
-	IdentityType authn.IdentityType
-	IdentityID   string
-}
+type EdgeRemoveIdentity struct{}
 
 func (e *EdgeRemoveIdentity) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
 	input, ok := rawInput.(InputRemoveIdentity)
