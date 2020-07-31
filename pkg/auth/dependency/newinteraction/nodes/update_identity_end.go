@@ -20,37 +20,44 @@ func (e *EdgeUpdateIdentityEnd) Instantiate(ctx *newinteraction.Context, graph *
 	identityType := e.IdentitySpec.Type
 	identityID := graph.MustGetUpdateIdentityID()
 
-	info, err := ctx.Identities.Get(userID, identityType, identityID)
+	oldInfo, err := ctx.Identities.Get(userID, identityType, identityID)
 	if err != nil {
 		return nil, err
 	}
 
-	info, err = ctx.Identities.UpdateWithSpec(info, e.IdentitySpec)
+	newInfo, err := ctx.Identities.Get(userID, identityType, identityID)
+	if err != nil {
+		return nil, err
+	}
+
+	newInfo, err = ctx.Identities.UpdateWithSpec(newInfo, e.IdentitySpec)
 	if err != nil {
 		return nil, err
 	}
 
 	return &NodeUpdateIdentityEnd{
-		IdentitySpec: e.IdentitySpec,
-		IdentityInfo: info,
+		IdentitySpec:         e.IdentitySpec,
+		IdentityBeforeUpdate: oldInfo,
+		IdentityAfterUpdate:  newInfo,
 	}, nil
 }
 
 type NodeUpdateIdentityEnd struct {
-	IdentitySpec *identity.Spec `json:"identity_spec"`
-	IdentityInfo *identity.Info `json:"identity_info"`
+	IdentitySpec         *identity.Spec `json:"identity_spec"`
+	IdentityBeforeUpdate *identity.Info `json:"identity_before_update"`
+	IdentityAfterUpdate  *identity.Info `json:"identity_after_update"`
 }
 
 func (n *NodeUpdateIdentityEnd) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	err := perform(newinteraction.EffectRun(func(ctx *newinteraction.Context) error {
-		if err := ctx.Identities.CheckDuplicated(n.IdentityInfo); err != nil {
+		if err := ctx.Identities.CheckDuplicated(n.IdentityAfterUpdate); err != nil {
 			if errors.Is(err, identity.ErrIdentityAlreadyExists) {
 				return newinteraction.ErrDuplicatedIdentity
 			}
 			return err
 		}
 
-		if err := ctx.Identities.Update(n.IdentityInfo); err != nil {
+		if err := ctx.Identities.Update(n.IdentityAfterUpdate); err != nil {
 			return err
 		}
 
@@ -70,5 +77,5 @@ func (n *NodeUpdateIdentityEnd) DeriveEdges(ctx *newinteraction.Context, graph *
 }
 
 func (n *NodeUpdateIdentityEnd) UserIdentity() *identity.Info {
-	return n.IdentityInfo
+	return n.IdentityAfterUpdate
 }

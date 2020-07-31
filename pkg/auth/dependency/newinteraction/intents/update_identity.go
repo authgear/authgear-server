@@ -42,9 +42,13 @@ func (i *IntentUpdateIdentity) DeriveEdgesForNode(ctx *newinteraction.Context, g
 				IdentityInfo: node.IdentityInfo,
 			},
 		}, nil
-	case *nodes.NodeRemoveAuthenticator:
-		return nil, nil
 	case *nodes.NodeUpdateIdentityEnd:
+		return []newinteraction.Edge{
+			&nodes.EdgeRemoveAuthenticator{
+				IdentityInfo: node.IdentityBeforeUpdate,
+			},
+		}, nil
+	case *nodes.NodeRemoveAuthenticator:
 		return []newinteraction.Edge{
 			&nodes.EdgeCreateAuthenticatorBegin{
 				Stage: newinteraction.AuthenticationStagePrimary,
