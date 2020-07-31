@@ -16,17 +16,16 @@ import (
 
 // BaseViewModel contains data that are common to all pages.
 type BaseViewModel struct {
-	CSRFField               htmltemplate.HTML
-	CSS                     htmltemplate.CSS
-	AppName                 string
-	LogoURI                 string
-	CountryCallingCodes     []string
-	StaticAssetURLPrefix    string
-	SliceContains           func([]interface{}, interface{}) bool
-	MakeURLWithQuery        func(pairs ...string) string
-	MakeURLWithPathWithoutX func(path string) string
-	Error                   interface{}
-	ForgotPasswordEnabled   bool
+	CSRFField             htmltemplate.HTML
+	CSS                   htmltemplate.CSS
+	AppName               string
+	LogoURI               string
+	CountryCallingCodes   []string
+	StaticAssetURLPrefix  string
+	SliceContains         func([]interface{}, interface{}) bool
+	MakeURL               func(path string, pairs ...string) string
+	Error                 interface{}
+	ForgotPasswordEnabled bool
 }
 
 type BaseViewModeler struct {
@@ -49,15 +48,13 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, anyError interface{}) BaseV
 		CountryCallingCodes:  m.AuthUI.CountryCallingCode.Values,
 		StaticAssetURLPrefix: m.ServerConfig.StaticAsset.URLPrefix,
 		SliceContains:        sliceContains,
-		MakeURLWithQuery: func(pairs ...string) string {
-			q := url.Values{}
+		MakeURL: func(path string, pairs ...string) string {
+			u := r.URL
+			inQuery := url.Values{}
 			for i := 0; i < len(pairs); i += 2 {
-				q.Set(pairs[i], pairs[i+1])
+				inQuery.Set(pairs[i], pairs[i+1])
 			}
-			return webapp.MakeURLWithQuery(r.URL, q)
-		},
-		MakeURLWithPathWithoutX: func(path string) string {
-			return webapp.MakeURLWithPathWithoutX(r.URL, path)
+			return webapp.MakeURL(u, path, inQuery).String()
 		},
 		ForgotPasswordEnabled: *m.ForgotPassword.Enabled,
 	}
