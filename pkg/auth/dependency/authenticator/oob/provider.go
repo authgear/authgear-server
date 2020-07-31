@@ -106,6 +106,7 @@ func (p *Provider) SendCode(
 ) (result *otp.OOBSendResult, err error) {
 	opts := otp.SendOptions{
 		OTP:         code,
+		URL:         "", // FIXME: send a login link to email?
 		MessageType: messageType,
 	}
 	switch channel {

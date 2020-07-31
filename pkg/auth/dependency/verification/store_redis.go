@@ -25,9 +25,9 @@ func (s *StoreRedis) Create(code *Code) error {
 	}
 
 	return s.Redis.WithConn(func(conn redis.Conn) error {
-		codeKey := redisCodeKey(s.AppID, code.Code)
+		codeKey := redisCodeKey(s.AppID, code.ID)
 		ttl := toMilliseconds(s.Config.CodeExpiry.Duration())
-		_, err := goredis.String(conn.Do("SET", codeKey, data, "PX", ttl, "NX"))
+		_, err := goredis.String(conn.Do("SET", codeKey, data, "PX", ttl))
 		if errors.Is(err, goredis.ErrNil) {
 			return errors.New("duplicated code")
 		} else if err != nil {
@@ -38,8 +38,8 @@ func (s *StoreRedis) Create(code *Code) error {
 	})
 }
 
-func (s *StoreRedis) Get(code string) (*Code, error) {
-	key := redisCodeKey(s.AppID, code)
+func (s *StoreRedis) Get(id string) (*Code, error) {
+	key := redisCodeKey(s.AppID, id)
 	var codeModel *Code
 	err := s.Redis.WithConn(func(conn redis.Conn) error {
 		data, err := goredis.Bytes(conn.Do("GET", key))
@@ -59,9 +59,9 @@ func (s *StoreRedis) Get(code string) (*Code, error) {
 	return codeModel, err
 }
 
-func (s *StoreRedis) Delete(code string) error {
+func (s *StoreRedis) Delete(id string) error {
 	return s.Redis.WithConn(func(conn redis.Conn) error {
-		key := redisCodeKey(s.AppID, code)
+		key := redisCodeKey(s.AppID, id)
 		_, err := conn.Do("DEL", key)
 		if err != nil {
 			return err
@@ -74,6 +74,6 @@ func toMilliseconds(d time.Duration) int64 {
 	return int64(d / time.Millisecond)
 }
 
-func redisCodeKey(appID config.AppID, code string) string {
-	return fmt.Sprintf("app:%s:verification-code:%s", appID, code)
+func redisCodeKey(appID config.AppID, id string) string {
+	return fmt.Sprintf("app:%s:verification-code:%s", appID, id)
 }

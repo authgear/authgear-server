@@ -5,13 +5,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/core/authn"
-	"github.com/authgear/authgear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/log"
 	"github.com/authgear/authgear-server/pkg/otp"
 )
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package verification
-
-var ErrCodeNotFound = errors.New("verification code not found")
 
 type IdentityProvider interface {
 	ListByUser(userID string) ([]*identity.Info, error)
@@ -29,16 +27,22 @@ type OTPMessageSender interface {
 
 type Store interface {
 	Create(code *Code) error
-	Get(code string) (*Code, error)
-	Delete(code string) error
+	Get(id string) (*Code, error)
+	Delete(id string) error
 }
 
+type Logger struct{ *log.Logger }
+
+func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("verification")} }
+
 type Service struct {
+	Logger           Logger
 	Config           *config.VerificationConfig
 	LoginID          *config.LoginIDConfig
 	Identities       IdentityProvider `wire:"-"`
 	Authenticators   AuthenticatorProvider
 	OTPMessageSender OTPMessageSender
+	Store            Store
 }
 
 func (s *Service) isLoginIDKeyVerifiable(key string) bool {
@@ -151,14 +155,65 @@ func (s *Service) IsVerified(identities []*identity.Info, authenticators []*auth
 	}
 }
 
+func (s *Service) CreateNewCode(id string, info *identity.Info) (*Code, error) {
+	if info.Type != authn.IdentityTypeLoginID {
+		panic("verification: expect login ID identity")
+	}
+
+	loginIDType := config.LoginIDKeyType(info.Claims[identity.IdentityClaimLoginIDType].(string))
+
+	var code string
+	switch loginIDType {
+	case config.LoginIDKeyTypeEmail:
+		code = otp.FormatComplex.Generate()
+	case config.LoginIDKeyTypePhone:
+		code = otp.FormatNumeric.Generate()
+	default:
+		panic("verification: unsupported login ID type: " + loginIDType)
+	}
+
+	codeModel := &Code{
+		ID:         id,
+		UserID:     info.UserID,
+		IdentityID: info.ID,
+		Code:       code,
+	}
+
+	err := s.Store.Create(codeModel)
+	if err != nil {
+		return nil, err
+	}
+
+	return codeModel, nil
+}
+
+func (s *Service) VerifyCode(id string, code string) error {
+	codeModel, err := s.Store.Get(id)
+	if err != nil {
+		return err
+	}
+
+	if !otp.ValidateOTP(code, codeModel.Code) {
+		return ErrInvalidVerificationCode
+	}
+
+	if err = s.Store.Delete(id); err != nil {
+		s.Logger.WithError(err).Error("failed to delete code after verification")
+	}
+
+	return nil
+}
+
 func (s *Service) SendCode(
 	loginIDType config.LoginIDKeyType,
 	loginIDValue string,
-	code string,
+	code *Code,
+	url string,
 ) error {
-	// FIXME(verification: use different templates
 	opts := otp.SendOptions{
-		OTP: code,
+		OTP:         code.Code,
+		URL:         url,
+		MessageType: otp.MessageTypeVerification,
 	}
 
 	switch loginIDType {
@@ -167,6 +222,6 @@ func (s *Service) SendCode(
 	case config.LoginIDKeyTypePhone:
 		return s.OTPMessageSender.SendSMS(loginIDValue, opts, s.Config.SMS.Message)
 	default:
-		panic("oob: invalid login ID type: " + loginIDType)
+		panic("verification: unsupported login ID type: " + loginIDType)
 	}
 }
