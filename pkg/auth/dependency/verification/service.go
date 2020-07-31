@@ -1,9 +1,12 @@
 package verification
 
 import (
+	"errors"
+
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/log"
 	"github.com/authgear/authgear-server/pkg/otp"
@@ -39,6 +42,7 @@ type Service struct {
 	Logger           Logger
 	Config           *config.VerificationConfig
 	LoginID          *config.LoginIDConfig
+	Clock            clock.Clock
 	Identities       IdentityProvider `wire:"-"`
 	Authenticators   AuthenticatorProvider
 	OTPMessageSender OTPMessageSender
@@ -177,6 +181,7 @@ func (s *Service) CreateNewCode(id string, info *identity.Info) (*Code, error) {
 		UserID:     info.UserID,
 		IdentityID: info.ID,
 		Code:       code,
+		ExpireAt:   s.Clock.NowUTC().Add(s.Config.CodeExpiry.Duration()),
 	}
 
 	err := s.Store.Create(codeModel)
@@ -189,7 +194,9 @@ func (s *Service) CreateNewCode(id string, info *identity.Info) (*Code, error) {
 
 func (s *Service) VerifyCode(id string, code string) error {
 	codeModel, err := s.Store.Get(id)
-	if err != nil {
+	if errors.Is(err, ErrCodeNotFound) {
+		return ErrInvalidVerificationCode
+	} else if err != nil {
 		return err
 	}
 

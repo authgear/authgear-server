@@ -9,13 +9,14 @@ import (
 	goredis "github.com/gomodule/redigo/redis"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/redis"
 )
 
 type StoreRedis struct {
-	Redis  *redis.Handle
-	AppID  config.AppID
-	Config *config.VerificationConfig
+	Redis *redis.Handle
+	AppID config.AppID
+	Clock clock.Clock
 }
 
 func (s *StoreRedis) Create(code *Code) error {
@@ -26,7 +27,7 @@ func (s *StoreRedis) Create(code *Code) error {
 
 	return s.Redis.WithConn(func(conn redis.Conn) error {
 		codeKey := redisCodeKey(s.AppID, code.ID)
-		ttl := toMilliseconds(s.Config.CodeExpiry.Duration())
+		ttl := toMilliseconds(code.ExpireAt.Sub(s.Clock.NowUTC()))
 		_, err := goredis.String(conn.Do("SET", codeKey, data, "PX", ttl))
 		if errors.Is(err, goredis.ErrNil) {
 			return errors.New("duplicated code")
