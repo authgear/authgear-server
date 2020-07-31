@@ -22,7 +22,7 @@
 
 {{ template "ERROR" . }}
 
-<form class="vertical-form form-fields-container" method="post" novalidate>
+<form id="main-form" class="vertical-form form-fields-container" method="post" novalidate>
 
 {{ $.CSRFField }}
 
@@ -46,15 +46,18 @@
 <input class="input text-input primary-txt" type="{{ .LoginIDInputType }}" name="x_login_id" placeholder="{{ localize "login-id-placeholder" .LoginIDType }}">
 {{ end }}
 
-<button class="btn primary-btn align-self-flex-end" type="submit" name="x_action" value="add_or_update">{{ localize "next-button-label" }}</button>
+<div class="enter-login-id-buttons">
+	<button form="main-form" class="btn primary-btn" type="submit" name="x_action" value="add_or_update">{{ localize "next-button-label" }}</button>
+
+	{{ if .IdentityID }}
+	<button form="remove-form" class="anchor" type="submit" name="x_action" value="remove">{{ localize "disconnect-button-label" }}</button>
+	{{ end }}
+</div>
 
 </form>
 
-{{ if .IdentityID }}
-<form class="enter-login-id-remove-form" method="post" novalidate>
+<form id="remove-form" class="enter-login-id-remove-form" method="post" novalidate>
 {{ $.CSRFField }}
-<button class="anchor" type="submit" name="x_action" value="remove">{{ localize "disconnect-button-label" }}</button>
-{{ end }}
 </form>
 
 </div>
