@@ -15,14 +15,6 @@ type State struct {
 	Extra           map[string]interface{} `json:"extra,omitempty"`
 }
 
-func (s *State) NewIntent() *Intent {
-	return &Intent{
-		RedirectURI: s.RedirectURI,
-		KeepState:   s.KeepState,
-		StateExtra:  s.Extra,
-	}
-}
-
 // Attach attaches s to input.
 func (s *State) Attach(input *url.URL) *url.URL {
 	u := *input

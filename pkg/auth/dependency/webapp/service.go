@@ -99,7 +99,6 @@ func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph
 		KeepState:       intent.KeepState,
 		GraphInstanceID: graph.InstanceID,
 		Error:           stateError,
-		Extra:           intent.StateExtra,
 	}
 
 	return
@@ -146,7 +145,6 @@ func (s *Service) PostIntent(intent *Intent, inputer func() (interface{}, error)
 		ID:          stateID,
 		RedirectURI: intent.RedirectURI,
 		KeepState:   intent.KeepState,
-		Extra:       intent.StateExtra,
 	}
 
 	var graph *newinteraction.Graph

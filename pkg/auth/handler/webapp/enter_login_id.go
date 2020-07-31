@@ -35,11 +35,11 @@ type EnterLoginIDViewModel struct {
 	IdentityID       string
 }
 
-func NewEnterLoginIDViewModel(state *webapp.State) EnterLoginIDViewModel {
-	loginIDKey, _ := state.Extra["x_login_id_key"].(string)
-	loginIDType, _ := state.Extra["x_login_id_type"].(string)
-	loginIDInputType, _ := state.Extra["x_login_id_input_type"].(string)
-	identityID, _ := state.Extra["x_identity_id"].(string)
+func NewEnterLoginIDViewModel(r *http.Request) EnterLoginIDViewModel {
+	loginIDKey := r.Form.Get("x_login_id_key")
+	loginIDType := r.Form.Get("x_login_id_type")
+	loginIDInputType := r.Form.Get("x_login_id_input_type")
+	identityID := r.Form.Get("x_identity_id")
 
 	return EnterLoginIDViewModel{
 		LoginIDKey:       loginIDKey,
@@ -79,8 +79,13 @@ type EnterLoginIDHandler struct {
 func (h *EnterLoginIDHandler) GetData(r *http.Request, state *webapp.State) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
-	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-	enterLoginIDViewModel := NewEnterLoginIDViewModel(state)
+	var anyError interface{}
+	if state != nil {
+		anyError = state.Error
+	}
+
+	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+	enterLoginIDViewModel := NewEnterLoginIDViewModel(r)
 
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, enterLoginIDViewModel)
@@ -163,16 +168,12 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 	if r.Method == "POST" && r.Form.Get("x_action") == "remove" {
 		h.Database.WithTx(func() error {
-			state, err := h.WebApp.GetState(StateID(r))
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return err
+			enterLoginIDViewModel := NewEnterLoginIDViewModel(r)
+
+			intent := &webapp.Intent{
+				RedirectURI: "/settings/identity",
+				Intent:      intents.NewIntentRemoveIdentity(userID),
 			}
-
-			enterLoginIDViewModel := NewEnterLoginIDViewModel(state)
-
-			intent := state.NewIntent()
-			intent.Intent = intents.NewIntentRemoveIdentity(userID)
 
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
 				input = &EnterLoginIDRemoveLoginID{
@@ -191,17 +192,14 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 	if r.Method == "POST" && r.Form.Get("x_action") == "add_or_update" {
 		h.Database.WithTx(func() error {
-			state, err := h.WebApp.GetState(StateID(r))
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return err
-			}
-
-			enterLoginIDViewModel := NewEnterLoginIDViewModel(state)
+			enterLoginIDViewModel := NewEnterLoginIDViewModel(r)
 
 			newLoginID := r.Form.Get("x_login_id")
 
-			intent := state.NewIntent()
+			intent := &webapp.Intent{
+				RedirectURI: "/settings/identity",
+			}
+
 			if enterLoginIDViewModel.IdentityID != "" {
 				intent.Intent = intents.NewIntentUpdateIdentity(userID, enterLoginIDViewModel.IdentityID)
 			} else {

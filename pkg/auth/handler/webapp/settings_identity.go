@@ -114,9 +114,6 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 
 	redirectURI := httputil.HostRelative(r.URL).String()
 	providerAlias := r.Form.Get("x_provider_alias")
-	loginIDKey := r.Form.Get("x_login_id_key")
-	loginIDType := r.Form.Get("x_login_id_type")
-	loginIDInputType := r.Form.Get("x_login_id_input_type")
 	identityID := r.Form.Get("x_identity_id")
 	sess := auth.GetSession(r.Context())
 	userID := sess.AuthnAttrs().UserID
@@ -177,33 +174,6 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 				input = &SettingsIdentityUnlinkOAuth{
 					IdentityID: identityID,
 				}
-				return
-			})
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return err
-			}
-			result.WriteResponse(w, r)
-			return nil
-		})
-	}
-
-	if r.Method == "POST" && r.Form.Get("x_action") == "login_id" {
-		h.Database.WithTx(func() error {
-			// The intent here actually does not really matter.
-			// The main purpose is to store extra and let the next page to post the actual intent.
-			intent := &webapp.Intent{
-				RedirectURI: redirectURI,
-				Intent:      intents.NewIntentAddIdentity(userID),
-				StateExtra: map[string]interface{}{
-					"x_login_id_key":        loginIDKey,
-					"x_login_id_type":       loginIDType,
-					"x_login_id_input_type": loginIDInputType,
-					"x_identity_id":         identityID,
-				},
-			}
-			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				input = struct{}{}
 				return
 			})
 			if err != nil {
