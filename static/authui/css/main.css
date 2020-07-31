@@ -401,7 +401,13 @@ a.btn {
 }
 
 .enter-login-id-remove-form {
-  margin: -35px 0 0 10px;
+  display: none;
+}
+
+.enter-login-id-buttons {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: space-between;
 }
 
 .settings-identity {

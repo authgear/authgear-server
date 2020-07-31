@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"fmt"
+
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
@@ -16,9 +18,17 @@ type InputUseIdentityLoginID interface {
 	GetLoginID() string
 }
 
+type UseIdentityLoginIDMode string
+
+const (
+	UseIdentityLoginIDModeCreate = "create"
+	UseIdentityLoginIDModeSelect = "select"
+	UseIdentityLoginIDModeUpdate = "update"
+)
+
 type EdgeUseIdentityLoginID struct {
-	IsCreating bool
-	Configs    []config.LoginIDKeyConfig
+	Mode    UseIdentityLoginIDMode
+	Configs []config.LoginIDKeyConfig
 }
 
 // GetIdentityCandidates implements IdentityCandidatesGetter.
@@ -49,15 +59,15 @@ func (e *EdgeUseIdentityLoginID) Instantiate(ctx *newinteraction.Context, graph 
 	}
 
 	return &NodeUseIdentityLoginID{
-		IsCreating:   e.IsCreating,
+		Mode:         e.Mode,
 		IdentitySpec: spec,
 	}, nil
 
 }
 
 type NodeUseIdentityLoginID struct {
-	IsCreating   bool           `json:"is_creating"`
-	IdentitySpec *identity.Spec `json:"identity_spec"`
+	Mode         UseIdentityLoginIDMode `json:"mode"`
+	IdentitySpec *identity.Spec         `json:"identity_spec"`
 }
 
 func (n *NodeUseIdentityLoginID) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
@@ -65,8 +75,14 @@ func (n *NodeUseIdentityLoginID) Apply(perform func(eff newinteraction.Effect) e
 }
 
 func (n *NodeUseIdentityLoginID) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
-	if n.IsCreating {
+	switch n.Mode {
+	case UseIdentityLoginIDModeCreate:
 		return []newinteraction.Edge{&EdgeCreateIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil
+	case UseIdentityLoginIDModeSelect:
+		return []newinteraction.Edge{&EdgeSelectIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil
+	case UseIdentityLoginIDModeUpdate:
+		return []newinteraction.Edge{&EdgeUpdateIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil
+	default:
+		panic(fmt.Errorf("interaction: unexpected use identity mode: %v", n.Mode))
 	}
-	return []newinteraction.Edge{&EdgeSelectIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil
 }

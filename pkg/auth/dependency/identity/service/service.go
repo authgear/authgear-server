@@ -216,6 +216,20 @@ func (s *Service) Create(info *identity.Info) error {
 	return nil
 }
 
+func (s *Service) UpdateWithSpec(info *identity.Info, spec *identity.Spec) (*identity.Info, error) {
+	switch info.Type {
+	case authn.IdentityTypeLoginID:
+		i, err := s.LoginID.WithLoginID(loginIDFromIdentityInfo(info), extractLoginIDClaims(spec.Claims))
+		if err != nil {
+			return nil, err
+		}
+		return loginIDToIdentityInfo(i), nil
+	default:
+		panic("identity: cannot update identity type " + info.Type)
+	}
+
+}
+
 func (s *Service) Update(info *identity.Info) error {
 	switch info.Type {
 	case authn.IdentityTypeLoginID:
@@ -344,6 +358,7 @@ func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err e
 				candidate := identity.NewOAuthCandidate(&pc)
 				for _, iden := range oauths {
 					if iden.ProviderID.Equal(&configProviderID) {
+						candidate[identity.CandidateKeyIdentityID] = iden.ID
 						candidate[identity.CandidateKeyProviderSubjectID] = string(iden.ProviderSubjectID)
 						candidate[identity.CandidateKeyDisplayID] = s.toIdentityInfo(iden).DisplayID()
 					}
@@ -356,6 +371,7 @@ func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err e
 				candidate := identity.NewLoginIDCandidate(&lkc)
 				for _, iden := range loginIDs {
 					if loginIDKeyConfig.Key == iden.LoginIDKey {
+						candidate[identity.CandidateKeyIdentityID] = iden.ID
 						candidate[identity.CandidateKeyLoginIDValue] = iden.LoginID
 						candidate[identity.CandidateKeyDisplayID] = loginIDToIdentityInfo(iden).DisplayID()
 					}

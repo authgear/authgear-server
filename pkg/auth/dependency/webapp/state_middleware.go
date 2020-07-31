@@ -2,6 +2,8 @@ package webapp
 
 import (
 	"net/http"
+
+	"github.com/authgear/authgear-server/pkg/httputil"
 )
 
 type StateMiddlewareStates interface {
@@ -25,7 +27,13 @@ func (m *StateMiddleware) Handle(next http.Handler) http.Handler {
 		if sid != "" {
 			_, err := m.States.Get(sid)
 			if err != nil {
-				http.Redirect(w, r, MakeURLWithPathWithoutX(r.URL, "/"), http.StatusFound)
+				u := *r.URL
+				q := u.Query()
+				RemoveX(q)
+				u.RawQuery = q.Encode()
+				u.Path = "/"
+
+				http.Redirect(w, r, httputil.HostRelative(&u).String(), http.StatusFound)
 				return
 			}
 		}

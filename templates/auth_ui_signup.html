@@ -80,7 +80,7 @@
 				{{ range .IdentityCandidates }}
 				{{ if eq .type "login_id" }}{{ if not (eq .login_id_key $.x_login_id_key) }}
 					<a class="link align-self-flex-start"
-						href="{{ call $.MakeURLWithQuery "x_login_id_key" .login_id_key "x_login_id_input_type" .login_id_input_type}}">
+						href="{{ call $.MakeURL "" "x_login_id_key" .login_id_key "x_login_id_input_type" .login_id_input_type}}">
 						{{ localize "use-login-id-key" .login_id_key }}
 					</a>
 				{{ end }}{{ end }}
@@ -88,11 +88,11 @@
 
 				<div class="link align-self-flex-start">
 					<span class="primary-text">{{ localize "login-button-hint" }}</span>
-					<a href="{{ call $.MakeURLWithPathWithoutX "/login" }}">{{ localize "login-button-label" }}</a>
+					<a href="{{ call $.MakeURL "/login" }}">{{ localize "login-button-label" }}</a>
 				</div>
 
 				{{ if .ForgotPasswordEnabled }}
-				<a class="link align-self-flex-start" href="{{ call $.MakeURLWithPathWithoutX "/forgot_password" }}">{{ localize "forgot-password-button-label" }}</a>
+				<a class="link align-self-flex-start" href="{{ call $.MakeURL "/forgot_password" }}">{{ localize "forgot-password-button-label" }}</a>
 				{{ end }}
 
 				<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">

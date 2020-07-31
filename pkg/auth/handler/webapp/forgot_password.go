@@ -94,7 +94,7 @@ func (h *ForgotPasswordHandler) GetData(r *http.Request, state *webapp.State, gr
 		anyError = state.Error
 	}
 	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
-	authenticationViewModel := viewmodels.NewAuthenticationViewModel(edges)
+	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithEdges(edges)
 	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, authenticationViewModel)

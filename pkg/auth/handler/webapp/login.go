@@ -92,7 +92,7 @@ func (h *LoginHandler) GetData(r *http.Request, state *webapp.State, graph *newi
 	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
 	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
-	authenticationViewModel := viewmodels.NewAuthenticationViewModel(edges)
+	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithEdges(edges)
 	viewmodels.Embed(data, authenticationViewModel)
 	return data, nil
 }
