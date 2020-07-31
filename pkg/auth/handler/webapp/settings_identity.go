@@ -190,31 +190,18 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 
 	if r.Method == "POST" && r.Form.Get("x_action") == "login_id" {
 		h.Database.WithTx(func() error {
-			var intent *webapp.Intent
-			if identityID == "" {
-				intent = &webapp.Intent{
-					RedirectURI: redirectURI,
-					Intent:      intents.NewIntentAddIdentity(userID),
-					StateExtra: map[string]interface{}{
-						"x_login_id_key":        loginIDKey,
-						"x_login_id_type":       loginIDType,
-						"x_login_id_input_type": loginIDInputType,
-						"x_identity_id":         identityID,
-					},
-				}
-			} else {
-				intent = &webapp.Intent{
-					RedirectURI: redirectURI,
-					Intent:      intents.NewIntentUpdateIdentity(userID, identityID),
-					StateExtra: map[string]interface{}{
-						"x_login_id_key":        loginIDKey,
-						"x_login_id_type":       loginIDType,
-						"x_login_id_input_type": loginIDInputType,
-						"x_identity_id":         identityID,
-					},
-				}
+			// The intent here actually does not really matter.
+			// The main purpose is to store extra and let the next page to post the actual intent.
+			intent := &webapp.Intent{
+				RedirectURI: redirectURI,
+				Intent:      intents.NewIntentAddIdentity(userID),
+				StateExtra: map[string]interface{}{
+					"x_login_id_key":        loginIDKey,
+					"x_login_id_type":       loginIDType,
+					"x_login_id_input_type": loginIDInputType,
+					"x_identity_id":         identityID,
+				},
 			}
-
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
 				input = struct{}{}
 				return
