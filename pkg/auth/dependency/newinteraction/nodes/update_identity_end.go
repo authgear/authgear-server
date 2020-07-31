@@ -67,7 +67,7 @@ func (n *NodeUpdateIdentityEnd) Apply(perform func(eff newinteraction.Effect) er
 		return err
 	}
 
-	// TODO(interaction): dispatch identity creation event if not creating user
+	// TODO(interaction): dispatch identity update event if not creating user
 
 	return nil
 }
