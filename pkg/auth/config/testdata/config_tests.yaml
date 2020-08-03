@@ -77,6 +77,17 @@ config:
     secondary_authenticators: [totp, oob_otp]
 
 ---
+name: invalid-totp-primary-authenticator
+error: |-
+  invalid configuration:
+  /authentication/primary_authenticators/0: enum
+    map[actual:totp expected:[password oob_otp]]
+config:
+  id: test
+  authentication:
+    primary_authenticators: [totp]
+
+---
 name: invalid-conflict
 error: |-
   invalid configuration:

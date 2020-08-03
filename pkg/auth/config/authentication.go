@@ -14,12 +14,12 @@ var _ = Schema.Add("AuthenticationConfig", `
 		},
 		"primary_authenticators": {
 			"type": "array",
-			"items": { "$ref": "#/$defs/AuthenticatorType" },
+			"items": { "$ref": "#/$defs/PrimaryAuthenticatorType" },
 			"uniqueItems": true
 		},
 		"secondary_authenticators": {
 			"type": "array",
-			"items": { "$ref": "#/$defs/AuthenticatorType" },
+			"items": { "$ref": "#/$defs/SecondaryAuthenticatorType" },
 			"uniqueItems": true
 		},
 		"secondary_authentication_mode": { "$ref": "#/$defs/SecondaryAuthenticationMode" },
@@ -36,10 +36,17 @@ var _ = Schema.Add("IdentityType", `
 }
 `)
 
-var _ = Schema.Add("AuthenticatorType", `
+var _ = Schema.Add("PrimaryAuthenticatorType", `
 {
 	"type": "string",
-	"enum": ["password", "totp", "oob_otp", "bearer_token"]
+	"enum": ["password", "oob_otp"]
+}
+`)
+
+var _ = Schema.Add("SecondaryAuthenticatorType", `
+{
+	"type": "string",
+	"enum": ["password", "oob_otp", "totp"]
 }
 `)
 
