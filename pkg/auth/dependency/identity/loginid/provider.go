@@ -40,24 +40,21 @@ func (p *Provider) Get(userID, id string) (*Identity, error) {
 	return p.Store.Get(userID, id)
 }
 
-func (p *Provider) GetByLoginID(loginID LoginID) ([]*Identity, error) {
+func (p *Provider) GetByValue(value string) ([]*Identity, error) {
 	im := map[string]*Identity{}
 	for _, config := range p.Config.Keys {
-		if !(loginID.Key == "" || config.Key == loginID.Key) {
-			continue
-		}
-
 		// Normalize expects loginID is in correct type so we have to validate it first.
-		invalid := p.Checker.ValidateOne(LoginID{
+		invalid := p.Checker.ValidateOne(Spec{
 			Key:   config.Key,
-			Value: loginID.Value,
+			Type:  config.Type,
+			Value: value,
 		})
 		if invalid != nil {
 			continue
 		}
 
-		normalizer := p.NormalizerFactory.NormalizerWithLoginIDKey(config.Key)
-		normalizedloginID, err := normalizer.Normalize(loginID.Value)
+		normalizer := p.NormalizerFactory.NormalizerWithLoginIDType(config.Type)
+		normalizedloginID, err := normalizer.Normalize(value)
 		if err != nil {
 			return nil, err
 		}
@@ -83,30 +80,14 @@ func (p *Provider) IsLoginIDKeyType(loginIDKey string, loginIDKeyType config.Log
 	return p.Checker.CheckType(loginIDKey, loginIDKeyType)
 }
 
-func (p *Provider) Normalize(loginID LoginID) (normalized *LoginID, c *config.LoginIDKeyConfig, uniqueKey string, err error) {
-	err = p.Validate([]LoginID{loginID})
+func (p *Provider) Normalize(typ config.LoginIDKeyType, value string) (normalized string, uniqueKey string, err error) {
+	normalizer := p.NormalizerFactory.NormalizerWithLoginIDType(typ)
+	normalized, err = normalizer.Normalize(value)
 	if err != nil {
 		return
 	}
 
-	c = p.lookupLoginIDConfig(loginID)
-	if c == nil {
-		err = errors.Newf("loginid: unknown login ID key %s", loginID.Key)
-		return
-	}
-
-	normalizer := p.NormalizerFactory.NormalizerWithLoginIDKey(loginID.Key)
-	normalizedloginID, err := normalizer.Normalize(loginID.Value)
-	if err != nil {
-		return
-	}
-
-	normalized = &LoginID{
-		Key:   loginID.Key,
-		Value: normalizedloginID,
-	}
-
-	uniqueKey, err = normalizer.ComputeUniqueKey(normalizedloginID)
+	uniqueKey, err = normalizer.ComputeUniqueKey(normalized)
 	if err != nil {
 		return
 	}
@@ -114,34 +95,69 @@ func (p *Provider) Normalize(loginID LoginID) (normalized *LoginID, c *config.Lo
 	return
 }
 
-func (p *Provider) ValidateOne(loginID LoginID) error {
+func (p *Provider) ValidateOne(loginID Spec) error {
 	return p.Checker.ValidateOne(loginID)
 }
 
-func (p *Provider) Validate(loginIDs []LoginID) error {
-	return p.Checker.Validate(loginIDs)
-}
-
-func (p *Provider) New(userID string, loginID LoginID) (*Identity, error) {
-	iden := &Identity{
-		ID:     uuid.New(),
-		UserID: userID,
-	}
-
-	iden, err := p.populateLoginID(iden, loginID)
+func (p *Provider) New(userID string, spec Spec) (*Identity, error) {
+	err := p.ValidateOne(spec)
 	if err != nil {
 		return nil, err
+	}
+
+	normalized, uniqueKey, err := p.Normalize(spec.Type, spec.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	claims := map[string]string{}
+	if standardKey, ok := p.Checker.LoginIDKeyType(spec.Key); ok {
+		claims[string(standardKey)] = normalized
+	}
+
+	iden := &Identity{
+		ID:              uuid.New(),
+		UserID:          userID,
+		LoginIDKey:      spec.Key,
+		LoginIDType:     spec.Type,
+		LoginID:         normalized,
+		UniqueKey:       uniqueKey,
+		OriginalLoginID: spec.Value,
+		Claims:          claims,
 	}
 
 	return iden, nil
 }
 
-func (p *Provider) WithLoginID(iden *Identity, loginID LoginID) (*Identity, error) {
-	newIden, err := p.populateLoginID(iden, loginID)
+func (p *Provider) WithValue(iden *Identity, value string) (*Identity, error) {
+	spec := Spec{
+		Key:   iden.LoginIDKey,
+		Type:  iden.LoginIDType,
+		Value: value,
+	}
+
+	err := p.ValidateOne(spec)
 	if err != nil {
 		return nil, err
 	}
-	return newIden, nil
+
+	normalized, uniqueKey, err := p.Normalize(spec.Type, spec.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	claims := map[string]string{}
+	if standardKey, ok := p.Checker.LoginIDKeyType(spec.Key); ok {
+		claims[string(standardKey)] = normalized
+	}
+
+	newIden := *iden
+	newIden.LoginID = normalized
+	newIden.UniqueKey = uniqueKey
+	newIden.OriginalLoginID = value
+	newIden.Claims = claims
+
+	return &newIden, nil
 }
 
 func (p *Provider) CheckDuplicated(uniqueKey string, standardClaims map[string]string, userID string) error {
@@ -183,39 +199,8 @@ func (p *Provider) Delete(i *Identity) error {
 	return p.Store.Delete(i)
 }
 
-func (p *Provider) lookupLoginIDConfig(loginID LoginID) *config.LoginIDKeyConfig {
-	for _, c := range p.Config.Keys {
-		if c.Key == loginID.Key {
-			return &c
-		}
-	}
-	return nil
-}
-
 func sortIdentities(is []*Identity) {
 	sort.Slice(is, func(i, j int) bool {
 		return is[i].UniqueKey < is[j].UniqueKey
 	})
-}
-
-func (p *Provider) populateLoginID(i *Identity, loginID LoginID) (newIden *Identity, err error) {
-	normalized, _, uniqueKey, err := p.Normalize(loginID)
-	if err != nil {
-		return
-	}
-
-	claims := map[string]string{}
-	if standardKey, ok := p.Checker.LoginIDKeyType(loginID.Key); ok {
-		claims[string(standardKey)] = normalized.Value
-	}
-
-	copyI := *i
-	newIden = &copyI
-	newIden.LoginIDKey = loginID.Key
-	newIden.OriginalLoginID = loginID.Value
-	newIden.LoginID = normalized.Value
-	newIden.UniqueKey = uniqueKey
-	newIden.Claims = claims
-
-	return
 }

@@ -4,7 +4,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/otp"
 )
@@ -21,8 +20,8 @@ type AuthenticatorProvider interface {
 }
 
 type OTPMessageSender interface {
-	SendEmail(opts otp.SendOptions, message config.EmailMessageConfig) error
-	SendSMS(opts otp.SendOptions, message config.SMSMessageConfig) error
+	SendEmail(email string, opts otp.SendOptions, message config.EmailMessageConfig) error
+	SendSMS(phone string, opts otp.SendOptions, message config.SMSMessageConfig) error
 }
 
 type Service struct {
@@ -144,29 +143,20 @@ func (s *Service) IsVerified(identities []*identity.Info, authenticators []*auth
 }
 
 func (s *Service) SendCode(
-	loginID loginid.LoginID,
+	loginIDType config.LoginIDKeyType,
+	loginIDValue string,
 	code string,
 ) error {
 	// FIXME(verification: use different templates
 	opts := otp.SendOptions{
-		LoginID: &loginID,
-		OTP:     code,
+		OTP: code,
 	}
 
-	var loginIDType config.LoginIDKeyType
-	for _, c := range s.LoginID.Keys {
-		if c.Key == opts.LoginID.Key {
-			loginIDType = c.Type
-			break
-		}
-	}
 	switch loginIDType {
 	case config.LoginIDKeyTypeEmail:
-		opts.LoginIDType = config.LoginIDKeyTypeEmail
-		return s.OTPMessageSender.SendEmail(opts, s.Config.Email.Message)
+		return s.OTPMessageSender.SendEmail(loginIDValue, opts, s.Config.Email.Message)
 	case config.LoginIDKeyTypePhone:
-		opts.LoginIDType = config.LoginIDKeyTypePhone
-		return s.OTPMessageSender.SendSMS(opts, s.Config.SMS.Message)
+		return s.OTPMessageSender.SendSMS(loginIDValue, opts, s.Config.SMS.Message)
 	default:
 		panic("oob: invalid login ID type: " + loginIDType)
 	}

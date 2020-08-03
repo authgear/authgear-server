@@ -7,7 +7,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	taskspec "github.com/authgear/authgear-server/pkg/auth/task/spec"
 	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/authn"
@@ -23,11 +22,6 @@ type AuthenticatorService interface {
 	List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error)
 	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
 	WithSecret(ai *authenticator.Info, secret string) (bool, *authenticator.Info, error)
-}
-
-type LoginIDProvider interface {
-	GetByLoginID(loginID loginid.LoginID) ([]*loginid.Identity, error)
-	IsLoginIDKeyType(loginIDKey string, loginIDKeyType config.LoginIDKeyType) bool
 }
 
 type URLProvider interface {
@@ -56,8 +50,7 @@ type Provider struct {
 
 	Logger ProviderLogger
 
-	LoginIDProvider LoginIDProvider
-	Authenticators  AuthenticatorService
+	Authenticators AuthenticatorService
 }
 
 // SendCode checks if loginID is an existing login ID.
@@ -67,45 +60,48 @@ type Provider struct {
 // The code becomes invalid if it is consumed.
 // Finally the code is sent to the login ID asynchronously.
 func (p *Provider) SendCode(loginID string) (err error) {
-	idens, err := p.LoginIDProvider.GetByLoginID(
-		loginid.LoginID{
-			Key:   "",
-			Value: loginID,
-		},
-	)
-	if err != nil {
-		return
-	}
+	// FIXME(forgotpassword): interpret the given value as email claim or phone_number claim to look up user.
+	return nil
 
-	for _, iden := range idens {
-		email := p.LoginIDProvider.IsLoginIDKeyType(iden.LoginIDKey, config.LoginIDKeyTypeEmail)
-		phone := p.LoginIDProvider.IsLoginIDKeyType(iden.LoginIDKey, config.LoginIDKeyTypePhone)
+	// idens, err := p.LoginIDProvider.GetByLoginID(
+	// 	loginid.LoginID{
+	// 		Key:   "",
+	// 		Value: loginID,
+	// 	},
+	// )
+	// if err != nil {
+	// 	return
+	// }
 
-		if !email && !phone {
-			continue
-		}
+	// for _, iden := range idens {
+	// 	email := p.LoginIDProvider.IsLoginIDKeyType(iden.LoginIDKey, config.LoginIDKeyTypeEmail)
+	// 	phone := p.LoginIDProvider.IsLoginIDKeyType(iden.LoginIDKey, config.LoginIDKeyTypePhone)
 
-		code, codeStr := p.newCode(iden.UserID)
+	// 	if !email && !phone {
+	// 		continue
+	// 	}
 
-		err = p.Store.Create(code)
-		if err != nil {
-			return
-		}
+	// 	code, codeStr := p.newCode(iden.UserID)
 
-		if email {
-			p.Logger.Debugf("sending email")
-			err = p.sendEmail(iden.LoginID, codeStr)
-			return
-		}
+	// 	err = p.Store.Create(code)
+	// 	if err != nil {
+	// 		return
+	// 	}
 
-		if phone {
-			p.Logger.Debugf("sending sms")
-			err = p.sendSMS(iden.LoginID, codeStr)
-			return
-		}
-	}
+	// 	if email {
+	// 		p.Logger.Debugf("sending email")
+	// 		err = p.sendEmail(iden.LoginID, codeStr)
+	// 		return
+	// 	}
 
-	return
+	// 	if phone {
+	// 		p.Logger.Debugf("sending sms")
+	// 		err = p.sendSMS(iden.LoginID, codeStr)
+	// 		return
+	// 	}
+	// }
+
+	// return
 }
 
 func (p *Provider) newCode(userID string) (code *Code, codeStr string) {

@@ -23,6 +23,7 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"p.id",
 			"p.user_id",
 			"l.login_id_key",
+			"l.login_id_type",
 			"l.login_id",
 			"l.original_login_id",
 			"l.unique_key",
@@ -40,6 +41,7 @@ func (s *Store) scan(scn db.Scanner) (*Identity, error) {
 		&i.ID,
 		&i.UserID,
 		&i.LoginIDKey,
+		&i.LoginIDType,
 		&i.LoginID,
 		&i.OriginalLoginID,
 		&i.UniqueKey,
@@ -160,6 +162,7 @@ func (s *Store) Create(i *Identity) error {
 		Columns(
 			"id",
 			"login_id_key",
+			"login_id_type",
 			"login_id",
 			"original_login_id",
 			"unique_key",
@@ -168,6 +171,7 @@ func (s *Store) Create(i *Identity) error {
 		Values(
 			i.ID,
 			i.LoginIDKey,
+			i.LoginIDType,
 			i.LoginID,
 			i.OriginalLoginID,
 			i.UniqueKey,
@@ -190,7 +194,6 @@ func (s *Store) Update(i *Identity) error {
 
 	q := s.SQLBuilder.Tenant().
 		Update(s.SQLBuilder.FullTableName("identity_login_id")).
-		Set("login_id_key", i.LoginIDKey).
 		Set("login_id", i.LoginID).
 		Set("original_login_id", i.OriginalLoginID).
 		Set("unique_key", i.UniqueKey).

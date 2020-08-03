@@ -5,7 +5,6 @@ import (
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	taskspec "github.com/authgear/authgear-server/pkg/auth/task/spec"
 	"github.com/authgear/authgear-server/pkg/core/intl"
 	"github.com/authgear/authgear-server/pkg/mail"
@@ -30,8 +29,6 @@ type MessageSender struct {
 }
 
 type SendOptions struct {
-	LoginIDType config.LoginIDKeyType
-	LoginID     *loginid.LoginID
 	OTP         string
 	MessageType MessageType
 }
@@ -45,7 +42,6 @@ func (s *MessageSender) makeContext(opts SendOptions) *MessageTemplateContext {
 		// To be filled by caller
 		Email:                "",
 		Phone:                "",
-		LoginID:              opts.LoginID,
 		Code:                 opts.OTP,
 		Host:                 s.Endpoints.BaseURL().Host,
 		StaticAssetURLPrefix: s.ServerConfig.StaticAsset.URLPrefix,
@@ -54,9 +50,9 @@ func (s *MessageSender) makeContext(opts SendOptions) *MessageTemplateContext {
 	return ctx
 }
 
-func (s *MessageSender) SendEmail(opts SendOptions, message config.EmailMessageConfig) (err error) {
+func (s *MessageSender) SendEmail(email string, opts SendOptions, message config.EmailMessageConfig) (err error) {
 	ctx := s.makeContext(opts)
-	ctx.Email = opts.LoginID.Value
+	ctx.Email = email
 
 	var textTemplate, htmlTemplate config.TemplateItemType
 	switch opts.MessageType {
@@ -109,9 +105,9 @@ func (s *MessageSender) SendEmail(opts SendOptions, message config.EmailMessageC
 	return
 }
 
-func (s *MessageSender) SendSMS(opts SendOptions, message config.SMSMessageConfig) (err error) {
+func (s *MessageSender) SendSMS(phone string, opts SendOptions, message config.SMSMessageConfig) (err error) {
 	ctx := s.makeContext(opts)
-	ctx.Phone = opts.LoginID.Value
+	ctx.Phone = phone
 
 	var templateType config.TemplateItemType
 	switch opts.MessageType {

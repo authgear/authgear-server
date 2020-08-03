@@ -66,19 +66,19 @@ func (mr *MockLoginIDIdentityProviderMockRecorder) List(userID interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).List), userID)
 }
 
-// GetByLoginID mocks base method
-func (m *MockLoginIDIdentityProvider) GetByLoginID(loginID loginid.LoginID) ([]*loginid.Identity, error) {
+// GetByValue mocks base method
+func (m *MockLoginIDIdentityProvider) GetByValue(loginIDValue string) ([]*loginid.Identity, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByLoginID", loginID)
+	ret := m.ctrl.Call(m, "GetByValue", loginIDValue)
 	ret0, _ := ret[0].([]*loginid.Identity)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetByLoginID indicates an expected call of GetByLoginID
-func (mr *MockLoginIDIdentityProviderMockRecorder) GetByLoginID(loginID interface{}) *gomock.Call {
+// GetByValue indicates an expected call of GetByValue
+func (mr *MockLoginIDIdentityProviderMockRecorder) GetByValue(loginIDValue interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByLoginID", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).GetByLoginID), loginID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByValue", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).GetByValue), loginIDValue)
 }
 
 // ListByClaim mocks base method
@@ -97,7 +97,7 @@ func (mr *MockLoginIDIdentityProviderMockRecorder) ListByClaim(name, value inter
 }
 
 // New mocks base method
-func (m *MockLoginIDIdentityProvider) New(userID string, loginID loginid.LoginID) (*loginid.Identity, error) {
+func (m *MockLoginIDIdentityProvider) New(userID string, loginID loginid.Spec) (*loginid.Identity, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "New", userID, loginID)
 	ret0, _ := ret[0].(*loginid.Identity)
@@ -111,19 +111,19 @@ func (mr *MockLoginIDIdentityProviderMockRecorder) New(userID, loginID interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).New), userID, loginID)
 }
 
-// WithLoginID mocks base method
-func (m *MockLoginIDIdentityProvider) WithLoginID(iden *loginid.Identity, loginID loginid.LoginID) (*loginid.Identity, error) {
+// WithValue mocks base method
+func (m *MockLoginIDIdentityProvider) WithValue(iden *loginid.Identity, value string) (*loginid.Identity, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WithLoginID", iden, loginID)
+	ret := m.ctrl.Call(m, "WithValue", iden, value)
 	ret0, _ := ret[0].(*loginid.Identity)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// WithLoginID indicates an expected call of WithLoginID
-func (mr *MockLoginIDIdentityProviderMockRecorder) WithLoginID(iden, loginID interface{}) *gomock.Call {
+// WithValue indicates an expected call of WithValue
+func (mr *MockLoginIDIdentityProviderMockRecorder) WithValue(iden, value interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithLoginID", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).WithLoginID), iden, loginID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithValue", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).WithValue), iden, value)
 }
 
 // Create mocks base method
@@ -166,37 +166,6 @@ func (m *MockLoginIDIdentityProvider) Delete(i *loginid.Identity) error {
 func (mr *MockLoginIDIdentityProviderMockRecorder) Delete(i interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).Delete), i)
-}
-
-// Validate mocks base method
-func (m *MockLoginIDIdentityProvider) Validate(loginIDs []loginid.LoginID) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Validate", loginIDs)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Validate indicates an expected call of Validate
-func (mr *MockLoginIDIdentityProviderMockRecorder) Validate(loginIDs interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Validate", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).Validate), loginIDs)
-}
-
-// Normalize mocks base method
-func (m *MockLoginIDIdentityProvider) Normalize(loginID loginid.LoginID) (*loginid.LoginID, *config.LoginIDKeyConfig, string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Normalize", loginID)
-	ret0, _ := ret[0].(*loginid.LoginID)
-	ret1, _ := ret[1].(*config.LoginIDKeyConfig)
-	ret2, _ := ret[2].(string)
-	ret3, _ := ret[3].(error)
-	return ret0, ret1, ret2, ret3
-}
-
-// Normalize indicates an expected call of Normalize
-func (mr *MockLoginIDIdentityProviderMockRecorder) Normalize(loginID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Normalize", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).Normalize), loginID)
 }
 
 // CheckDuplicated mocks base method

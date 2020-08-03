@@ -20,16 +20,6 @@ type NormalizerFactory struct {
 	Config *config.LoginIDConfig
 }
 
-func (f *NormalizerFactory) NormalizerWithLoginIDKey(loginIDKey string) Normalizer {
-	for _, c := range f.Config.Keys {
-		if c.Key == loginIDKey {
-			return f.NormalizerWithLoginIDType(c.Type)
-		}
-	}
-
-	panic("loginid: invalid login id key: " + loginIDKey)
-}
-
 func (f *NormalizerFactory) NormalizerWithLoginIDType(loginIDKeyType config.LoginIDKeyType) Normalizer {
 	switch loginIDKeyType {
 	case config.LoginIDKeyTypeEmail:

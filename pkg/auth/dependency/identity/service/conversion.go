@@ -12,6 +12,7 @@ import (
 func loginIDToIdentityInfo(l *loginid.Identity) *identity.Info {
 	claims := map[string]interface{}{
 		identity.IdentityClaimLoginIDKey:           l.LoginIDKey,
+		identity.IdentityClaimLoginIDType:          string(l.LoginIDType),
 		identity.IdentityClaimLoginIDValue:         l.LoginID,
 		identity.IdentityClaimLoginIDOriginalValue: l.OriginalLoginID,
 		identity.IdentityClaimLoginIDUniqueKey:     l.UniqueKey,
@@ -39,6 +40,8 @@ func loginIDFromIdentityInfo(i *identity.Info) *loginid.Identity {
 		switch k {
 		case identity.IdentityClaimLoginIDKey:
 			l.LoginIDKey = v.(string)
+		case identity.IdentityClaimLoginIDType:
+			l.LoginIDType = config.LoginIDKeyType(v.(string))
 		case identity.IdentityClaimLoginIDValue:
 			l.LoginID = v.(string)
 		case identity.IdentityClaimLoginIDOriginalValue:

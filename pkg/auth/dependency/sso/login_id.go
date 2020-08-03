@@ -6,6 +6,5 @@ import (
 )
 
 type LoginIDNormalizerFactory interface {
-	NormalizerWithLoginIDKey(loginIDKey string) loginid.Normalizer
 	NormalizerWithLoginIDType(loginIDKeyType config.LoginIDKeyType) loginid.Normalizer
 }

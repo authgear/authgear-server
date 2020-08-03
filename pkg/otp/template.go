@@ -2,7 +2,6 @@ package otp
 
 import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/template"
 )
 
@@ -20,7 +19,6 @@ type MessageTemplateContext struct {
 	AppName              string
 	Email                string
 	Phone                string
-	LoginID              *loginid.LoginID
 	Code                 string
 	Host                 string
 	StaticAssetURLPrefix string

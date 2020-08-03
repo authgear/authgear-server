@@ -34,10 +34,6 @@ type NodeCreateIdentityEnd struct {
 
 func (n *NodeCreateIdentityEnd) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	err := perform(newinteraction.EffectRun(func(ctx *newinteraction.Context) error {
-		if err := ctx.Identities.Validate(graph.GetUserNewIdentities()); err != nil {
-			return err
-		}
-
 		if err := ctx.Identities.CheckDuplicated(n.IdentityInfo); err != nil {
 			if errors.Is(err, identity.ErrIdentityAlreadyExists) {
 				return newinteraction.ErrDuplicatedIdentity
