@@ -79,7 +79,10 @@ func (n *NodeAuthenticationBegin) DeriveEdges(ctx *newinteraction.Context, graph
 
 	// No authenticators found, skip the authentication stage
 	if len(edges) == 0 {
-		edges = append(edges, &EdgeAuthenticationEnd{Stage: n.Stage, Authenticator: nil})
+		edges = append(edges, &EdgeAuthenticationEnd{
+			Stage:    n.Stage,
+			Optional: true,
+		})
 	}
 
 	// TODO(interaction): support choosing authenticator to use

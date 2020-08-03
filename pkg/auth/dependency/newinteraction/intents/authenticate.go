@@ -43,6 +43,7 @@ func (i *IntentAuthenticate) InstantiateRootNode(ctx *newinteraction.Context, gr
 	return edge.Instantiate(ctx, graph, i)
 }
 
+// nolint:gocycle
 func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, graph *newinteraction.Graph, node newinteraction.Node) ([]newinteraction.Edge, error) {
 	switch node := node.(type) {
 	case *nodes.NodeSelectIdentityEnd:
@@ -126,7 +127,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 	case *nodes.NodeAuthenticationEnd:
 		switch node.Stage {
 		case newinteraction.AuthenticationStagePrimary:
-			if node.Authenticator == nil {
+			if !node.Optional && node.VerifiedAuthenticator == nil {
 				return nil, newinteraction.ErrInvalidCredentials
 			}
 
