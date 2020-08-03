@@ -37,7 +37,7 @@ func (e *EdgeResetPassword) Instantiate(ctx *newinteraction.Context, graph *newi
 	newPassword := input.GetNewPassword()
 
 	codeHash := ctx.ResetPassword.HashCode(code)
-	oldInfo, newInfo, updateInfo, err := ctx.ResetPassword.ResetPassword(code, newPassword)
+	oldInfo, newInfo, err := ctx.ResetPassword.ResetPassword(code, newPassword)
 	if err != nil {
 		return nil, err
 	}
@@ -48,16 +48,14 @@ func (e *EdgeResetPassword) Instantiate(ctx *newinteraction.Context, graph *newi
 	}
 
 	return &NodeResetPasswordEnd{
-		OldAuthenticator:    oldInfo,
-		NewAuthenticator:    newInfo,
-		UpdateAuthenticator: updateInfo,
+		OldAuthenticator: oldInfo,
+		NewAuthenticator: newInfo,
 	}, nil
 }
 
 type NodeResetPasswordEnd struct {
-	OldAuthenticator    *authenticator.Info `json:"old_authenticator,omitempty"`
-	NewAuthenticator    *authenticator.Info `json:"new_authenticator,omitempty"`
-	UpdateAuthenticator *authenticator.Info `json:"update_authenticator,omitempty"`
+	OldAuthenticator *authenticator.Info `json:"old_authenticator"`
+	NewAuthenticator *authenticator.Info `json:"new_authenticator,omitempty"`
 }
 
 func (n *NodeResetPasswordEnd) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
@@ -68,21 +66,14 @@ func (n *NodeResetPasswordEnd) DeriveEdges(ctx *newinteraction.Context, graph *n
 	// Password authenticator is always primary for now
 	if n.NewAuthenticator != nil {
 		return []newinteraction.Edge{
-			&EdgeDoCreateAuthenticator{
-				Stage:          newinteraction.AuthenticationStagePrimary,
-				Authenticators: []*authenticator.Info{n.NewAuthenticator},
-			},
-		}, nil
-	} else if n.UpdateAuthenticator != nil {
-		return []newinteraction.Edge{
 			&EdgeDoUpdateAuthenticator{
 				Stage:                     newinteraction.AuthenticationStagePrimary,
 				AuthenticatorBeforeUpdate: n.OldAuthenticator,
 				AuthenticatorAfterUpdate:  n.NewAuthenticator,
 			},
 		}, nil
-	} else {
-		// Password is not changed, ends the interaction
-		return nil, nil
 	}
+
+	// Password is not changed, ends the interaction
+	return nil, nil
 }

@@ -228,7 +228,7 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 // Otherwise, the password is reset to newPassword.
 // newPassword is checked against the password policy so
 // password policy error may also be returned.
-func (p *Provider) ResetPassword(codeStr string, newPassword string) (oldInfo *authenticator.Info, newInfo *authenticator.Info, updateInfo *authenticator.Info, err error) {
+func (p *Provider) ResetPassword(codeStr string, newPassword string) (oldInfo *authenticator.Info, newInfo *authenticator.Info, err error) {
 	codeHash := HashCode(codeStr)
 	code, err := p.Store.Get(codeHash)
 	if err != nil {
@@ -251,18 +251,13 @@ func (p *Provider) ResetPassword(codeStr string, newPassword string) (oldInfo *a
 		return
 	}
 
-	// The user has no password. Create one for them.
+	// Ensure user has password authenticator
 	if len(ais) == 0 {
-		p.Logger.Debugf("creating new password")
-		newInfo, err = p.Authenticators.New(&authenticator.Spec{
-			UserID: code.UserID,
-			Type:   authn.AuthenticatorTypePassword,
-			Props:  map[string]interface{}{},
-		}, newPassword)
-		if err != nil {
-			return
-		}
-	} else if len(ais) == 1 {
+		err = ErrNoPassword
+		return
+	}
+
+	if len(ais) == 1 {
 		p.Logger.Debugf("resetting password")
 		// The user has 1 password. Reset it.
 		var changed bool
@@ -273,7 +268,7 @@ func (p *Provider) ResetPassword(codeStr string, newPassword string) (oldInfo *a
 		}
 		if changed {
 			oldInfo = ais[0]
-			updateInfo = ai
+			newInfo = ai
 		}
 	} else {
 		// Otherwise the user has two passwords :(
