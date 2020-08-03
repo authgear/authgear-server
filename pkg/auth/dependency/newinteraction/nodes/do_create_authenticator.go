@@ -3,8 +3,6 @@ package nodes
 import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
-	"github.com/authgear/authgear-server/pkg/auth/event"
-	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
 func init() {
@@ -12,9 +10,8 @@ func init() {
 }
 
 type EdgeDoCreateAuthenticator struct {
-	Stage                newinteraction.AuthenticationStage
-	Authenticators       []*authenticator.Info
-	PasswordUpdateReason event.PasswordUpdateReason
+	Stage          newinteraction.AuthenticationStage
+	Authenticators []*authenticator.Info
 }
 
 func (e *EdgeDoCreateAuthenticator) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
@@ -25,9 +22,8 @@ func (e *EdgeDoCreateAuthenticator) Instantiate(ctx *newinteraction.Context, gra
 }
 
 type NodeDoCreateAuthenticator struct {
-	Stage                newinteraction.AuthenticationStage `json:"stage"`
-	Authenticators       []*authenticator.Info              `json:"authenticators"`
-	PasswordUpdateReason event.PasswordUpdateReason         `json:"password_update_reason"`
+	Stage          newinteraction.AuthenticationStage `json:"stage"`
+	Authenticators []*authenticator.Info              `json:"authenticators"`
 }
 
 func (n *NodeDoCreateAuthenticator) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
@@ -42,39 +38,6 @@ func (n *NodeDoCreateAuthenticator) Apply(perform func(eff newinteraction.Effect
 	}))
 	if err != nil {
 		return err
-	}
-
-	// Run hooks only if not creating user
-	if _, ok := graph.GetNewUserID(); !ok {
-		err = perform(newinteraction.EffectOnCommit(func(ctx *newinteraction.Context) error {
-			for _, a := range n.Authenticators {
-				switch a.Type {
-				case authn.AuthenticatorTypePassword:
-					user, err := ctx.Users.Get(a.UserID)
-					if err != nil {
-						return err
-					}
-
-					err = ctx.Hooks.DispatchEvent(
-						event.PasswordUpdateEvent{
-							Reason: n.PasswordUpdateReason,
-							User:   *user,
-						},
-						user,
-					)
-					if err != nil {
-						return err
-					}
-
-				default:
-					break
-				}
-			}
-			return nil
-		}))
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil

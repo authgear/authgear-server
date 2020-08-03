@@ -3,7 +3,6 @@ package nodes
 import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
-	"github.com/authgear/authgear-server/pkg/auth/event"
 )
 
 func init() {
@@ -70,9 +69,8 @@ func (n *NodeResetPasswordEnd) DeriveEdges(ctx *newinteraction.Context, graph *n
 	if n.NewAuthenticator != nil {
 		return []newinteraction.Edge{
 			&EdgeDoCreateAuthenticator{
-				Stage:                newinteraction.AuthenticationStagePrimary,
-				Authenticators:       []*authenticator.Info{n.NewAuthenticator},
-				PasswordUpdateReason: event.PasswordUpdateReasonResetPassword,
+				Stage:          newinteraction.AuthenticationStagePrimary,
+				Authenticators: []*authenticator.Info{n.NewAuthenticator},
 			},
 		}, nil
 	} else if n.UpdateAuthenticator != nil {
@@ -81,7 +79,6 @@ func (n *NodeResetPasswordEnd) DeriveEdges(ctx *newinteraction.Context, graph *n
 				Stage:                     newinteraction.AuthenticationStagePrimary,
 				AuthenticatorBeforeUpdate: n.OldAuthenticator,
 				AuthenticatorAfterUpdate:  n.NewAuthenticator,
-				PasswordUpdateReason:      event.PasswordUpdateReasonResetPassword,
 			},
 		}, nil
 	} else {
