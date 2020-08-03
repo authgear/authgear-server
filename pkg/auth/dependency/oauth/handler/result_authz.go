@@ -9,11 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
 )
 
-type AuthorizationResult interface {
-	WriteResponse(rw http.ResponseWriter, r *http.Request)
-	IsInternalError() bool
-}
-
 type (
 	authorizationResultCode struct {
 		RedirectURI  *url.URL

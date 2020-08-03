@@ -3,6 +3,8 @@
 /authgear
 /authgear.yaml
 /authgear.secrets.yaml
+/tls-cert.pem
+/tls-key.pem
 
 # docker
 docker-compose.override.yml

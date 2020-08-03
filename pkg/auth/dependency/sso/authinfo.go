@@ -2,6 +2,7 @@ package sso
 
 import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 )
 
 // AuthInfo contains auth info from HandleAuthzResp
@@ -21,7 +22,7 @@ type ProviderUserInfo struct {
 func (i ProviderUserInfo) ClaimsValue() map[string]interface{} {
 	claimsValue := map[string]interface{}{}
 	if i.Email != "" {
-		claimsValue["email"] = i.Email
+		claimsValue[identity.StandardClaimEmail] = i.Email
 	}
 	return claimsValue
 }

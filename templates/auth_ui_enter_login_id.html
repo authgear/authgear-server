@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+{{ template "auth_ui_html_head.html" . }}
+<body class="page">
+<div class="content">
+
+{{ template "auth_ui_header.html" . }}
+
+<div class="simple-form vertical-form form-fields-container">
+
+<div class="nav-bar">
+	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
+</div>
+
+<div class="title primary-txt">
+	{{ if $.IdentityID }}
+	{{ localize "enter-login-id-page-title--change" $.LoginIDKey }}
+	{{ else }}
+	{{ localize "enter-login-id-page-title--add" $.LoginIDKey }}
+	{{ end }}
+</div>
+
+{{ template "ERROR" . }}
+
+<form id="main-form" class="vertical-form form-fields-container" method="post" novalidate>
+
+{{ $.CSRFField }}
+
+{{ if eq .LoginIDInputType "phone" }}
+<div class="phone-input">
+	<select class="input select primary-txt" name="x_calling_code">
+		{{ range $.CountryCallingCodes }}
+		<option
+			value="{{ . }}"
+			{{ if $.x_calling_code }}{{ if eq $.x_calling_code . }}
+			selected
+			{{ end }}{{ end }}
+			>
+			+{{ . }}
+		</option>
+		{{ end }}
+	</select>
+	<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
+</div>
+{{ else }}
+<input class="input text-input primary-txt" type="{{ .LoginIDInputType }}" name="x_login_id" placeholder="{{ localize "login-id-placeholder" .LoginIDType }}">
+{{ end }}
+
+<div class="enter-login-id-buttons">
+	<button form="main-form" class="btn primary-btn" type="submit" name="x_action" value="add_or_update">{{ localize "next-button-label" }}</button>
+
+	{{ if .IdentityID }}
+	<button form="remove-form" class="anchor" type="submit" name="x_action" value="remove">{{ localize "disconnect-button-label" }}</button>
+	{{ end }}
+</div>
+
+</form>
+
+<form id="remove-form" class="enter-login-id-remove-form" method="post" novalidate>
+{{ $.CSRFField }}
+</form>
+
+</div>
+{{ template "auth_ui_footer.html" . }}
+
+</div>
+</body>
+</html>

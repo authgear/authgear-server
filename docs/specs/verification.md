@@ -18,8 +18,8 @@ An identity is verifiable if:
 
 An identity is verified if:
 - it is an SSO identity; or
-- it is a login ID identity, and the user has a OOB-OTP authenticator bound to
-  the login ID identity.
+- it is a login ID identity, and the user has a matching OOB-OTP authenticator
+  created after the identity.
 
 ## Criteria
 
@@ -82,12 +82,15 @@ Therefore:
   identity to become unverified.
 - Enrolling in OOB-OTP authentication would cause the corresponding login ID
   identity to become verified.
-- Verifying a login ID identity would allow it to be used in OOB-OTP
-  authentication if enabled in the configuration.
 
 Note that even if OOB-OTP authentication is not enabled, user can still perform
 user verification. However, the added OOB-OTP authenticator cannot be used in
 authentication unless it is enabled in the configuration.
+  
+To ensure verification status is always up-to-date, we do not consider matching
+authenticators created before the identity in verification, since the identity
+may be re-added. When user attempted to verify the identity, the authenticator
+is removed and created to indicate it's valid for the identity.
 
 ## Code & Message
 

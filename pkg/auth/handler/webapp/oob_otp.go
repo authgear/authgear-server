@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
-	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -23,59 +23,6 @@ var TemplateAuthUIOOBOTPHTML = template.Spec{
 	Translation: TemplateItemTypeAuthUITranslationJSON,
 	Defines:     defines,
 	Components:  components,
-	Default: `<!DOCTYPE html>
-<html>
-{{ template "auth_ui_html_head.html" . }}
-<body class="page">
-<div class="content">
-
-{{ template "auth_ui_header.html" . }}
-
-<div class="simple-form vertical-form form-fields-container">
-
-<div class="nav-bar">
-	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
-</div>
-
-{{ if $.OOBOTPChannel }}
-{{ if eq $.OOBOTPChannel "sms" }}
-<div class="title primary-txt">{{ localize "oob-otp-page-title--sms" }}</div>
-{{ end }}
-{{ if eq $.OOBOTPChannel "email" }}
-<div class="title primary-txt">{{ localize "oob-otp-page-title--email" }}</div>
-{{ end }}
-{{ end }}
-
-{{ template "ERROR" . }}
-
-{{ if $.GivenLoginID }}
-<div class="description primary-txt">{{ localize "oob-otp-description" $.OOBOTPCodeLength $.GivenLoginID }}</div>
-{{ end }}
-
-<form class="vertical-form form-fields-container" method="post" novalidate>
-{{ $.CSRFField }}
-
-<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_password" placeholder="{{ localize "oob-otp-placeholder" }}">
-<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
-</form>
-
-<form class="link oob-otp-trigger-form" method="post" novalidate>
-{{ $.CSRFField }}
-
-<span class="primary-txt">{{ localize "oob-otp-resend-button-hint" }}</span>
-<button id="resend-button" class="anchor" type="submit" name="trigger" value="true"
-	data-cooldown="{{ $.OOBOTPCodeSendCooldown }}"
-	data-label="{{ localize "oob-otp-resend-button-label" }}"
-	data-label-unit="{{ localize "oob-otp-resend-button-label--unit" }}">{{ localize "oob-otp-resend-button-label" }}</button>
-</form>
-
-</div>
-{{ template "auth_ui_footer.html" . }}
-
-</div>
-</body>
-</html>
-`,
 }
 
 const OOBOTPRequestSchema = "OOBOTPRequestSchema"
@@ -101,31 +48,52 @@ type OOBOTPViewModel struct {
 	OOBOTPCodeSendCooldown int
 	OOBOTPCodeLength       int
 	OOBOTPChannel          string
-	GivenLoginID           string
-}
-
-func NewOOBOTPViewModel(state *interactionflows.State) OOBOTPViewModel {
-	givenLoginID, _ := state.Extra[interactionflows.ExtraGivenLoginID].(string)
-	return OOBOTPViewModel{
-		OOBOTPCodeSendCooldown: oob.OOBOTPSendCooldownSeconds,
-		OOBOTPCodeLength:       len(state.Interaction.State[authenticator.AuthenticatorStateOOBOTPCode]),
-		OOBOTPChannel:          state.Interaction.State[authenticator.AuthenticatorStateOOBOTPChannelType],
-		GivenLoginID:           givenLoginID,
-	}
-}
-
-type OOBOTPInteractions interface {
-	TriggerOOBOTP(state *interactionflows.State) (*interactionflows.WebAppResult, error)
-	EnterSecret(state *interactionflows.State, password string) (*interactionflows.WebAppResult, error)
+	IdentityDisplayID      string
 }
 
 type OOBOTPHandler struct {
 	Database      *db.Handle
-	State         StateService
-	BaseViewModel *BaseViewModeler
+	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
-	Interactions  OOBOTPInteractions
-	Responder     Responder
+	WebApp        WebAppService
+}
+
+type OOBOTPNode interface {
+	GetOOBOTPChannel() string
+	GetOOBOTPCodeSendCooldown() int
+	GetOOBOTPCodeLength() int
+}
+
+func (h *OOBOTPHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
+	data := map[string]interface{}{}
+
+	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
+	oobOTPViewModel := OOBOTPViewModel{
+		IdentityDisplayID: graph.MustGetUserLastIdentity().DisplayID(),
+	}
+	if n, ok := graph.CurrentNode().(OOBOTPNode); ok {
+		oobOTPViewModel.OOBOTPCodeSendCooldown = n.GetOOBOTPCodeSendCooldown()
+		oobOTPViewModel.OOBOTPCodeLength = n.GetOOBOTPCodeLength()
+		oobOTPViewModel.OOBOTPChannel = n.GetOOBOTPChannel()
+	}
+
+	viewmodels.Embed(data, baseViewModel)
+	viewmodels.Embed(data, oobOTPViewModel)
+
+	return data, nil
+}
+
+type OOBOTPResend struct{}
+
+func (i *OOBOTPResend) DoResend() {}
+
+type OOBOTPInput struct {
+	Code string
+}
+
+// GetOOBOTP implements InputAuthenticationOOB.
+func (i *OOBOTPInput) GetOOBOTP() string {
+	return i.Code
 }
 
 func (h *OOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -135,44 +103,37 @@ func (h *OOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "GET" {
-		state, err := h.State.RestoreReadOnlyState(r, true)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		h.Database.WithTx(func() error {
+			state, graph, edges, err := h.WebApp.Get(StateID(r))
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return err
+			}
 
-		baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-		oobOTPViewModel := NewOOBOTPViewModel(state)
+			data, err := h.GetData(r, state, graph, edges)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return err
+			}
 
-		data := map[string]interface{}{}
-		Embed(data, baseViewModel)
-		Embed(data, oobOTPViewModel)
-
-		h.Renderer.Render(w, r, TemplateItemTypeAuthUIOOBOTPHTML, data)
-		return
+			h.Renderer.Render(w, r, TemplateItemTypeAuthUIOOBOTPHTML, data)
+			return nil
+		})
 	}
 
 	trigger := r.Form.Get("trigger") == "true"
 
 	if r.Method == "POST" && trigger {
 		h.Database.WithTx(func() error {
-			state, err := h.State.CloneState(r)
+			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
+				input = &OOBOTPResend{}
+				return
+			})
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
-
-			var result *interactionflows.WebAppResult
-			defer func() {
-				h.State.UpdateState(state, result, err)
-				h.Responder.Respond(w, r, state, result, err)
-			}()
-
-			result, err = h.Interactions.TriggerOOBOTP(state)
-			if err != nil {
-				return err
-			}
-
+			result.WriteResponse(w, r)
 			return nil
 		})
 		return
@@ -180,30 +141,24 @@ func (h *OOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 		h.Database.WithTx(func() error {
-			state, err := h.State.CloneState(r)
+			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
+				err = OOBOTPSchema.PartValidator(OOBOTPRequestSchema).ValidateValue(FormToJSON(r.Form))
+				if err != nil {
+					return
+				}
+
+				code := r.Form.Get("x_password")
+
+				input = &OOBOTPInput{
+					Code: code,
+				}
+				return
+			})
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
-
-			var result *interactionflows.WebAppResult
-			defer func() {
-				h.State.UpdateState(state, result, err)
-				h.Responder.Respond(w, r, state, result, err)
-			}()
-
-			err = OOBOTPSchema.PartValidator(OOBOTPRequestSchema).ValidateValue(FormToJSON(r.Form))
-			if err != nil {
-				return err
-			}
-
-			code := r.Form.Get("x_password")
-
-			result, err = h.Interactions.EnterSecret(state, code)
-			if err != nil {
-				return err
-			}
-
+			result.WriteResponse(w, r)
 			return nil
 		})
 	}

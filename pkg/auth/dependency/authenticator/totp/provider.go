@@ -34,17 +34,16 @@ func (p *Provider) List(userID string) ([]*Authenticator, error) {
 	return authenticators, nil
 }
 
-func (p *Provider) New(userID string, displayName string) *Authenticator {
+func (p *Provider) New(userID string) *Authenticator {
 	secret, err := otp.GenerateTOTPSecret()
 	if err != nil {
 		panic(fmt.Errorf("totp: failed to generate secret: %w", err))
 	}
 
 	a := &Authenticator{
-		ID:          uuid.New(),
-		UserID:      userID,
-		Secret:      secret,
-		DisplayName: displayName,
+		ID:     uuid.New(),
+		UserID: userID,
+		Secret: secret,
 	}
 	return a
 }
@@ -59,7 +58,7 @@ func (p *Provider) Create(a *Authenticator) error {
 func (p *Provider) Authenticate(candidates []*Authenticator, code string) *Authenticator {
 	now := p.Clock.NowUTC()
 	for _, a := range candidates {
-		if otp.ValidateTOTP(a.Secret, code, now) {
+		if otp.ValidateTOTP(a.Secret, code, now, otp.ValidateOptsTOTP) {
 			return a
 		}
 	}

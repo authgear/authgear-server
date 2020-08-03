@@ -132,7 +132,7 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, p
 	// For "AD user", email never exists even one is provided in "Authentication Methods".
 	email, _ := claims["email"].(string)
 	if email != "" {
-		normalizer := f.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyType("email"))
+		normalizer := f.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypeEmail)
 		email, err = normalizer.Normalize(email)
 		if err != nil {
 			return

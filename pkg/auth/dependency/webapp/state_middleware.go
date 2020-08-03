@@ -3,15 +3,15 @@ package webapp
 import (
 	"net/http"
 
-	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	"github.com/authgear/authgear-server/pkg/httputil"
 )
 
 type StateMiddlewareStates interface {
-	GetState(instanceID string) (*interactionflows.State, error)
+	Get(instanceID string) (*State, error)
 }
 
 type StateMiddleware struct {
-	StateStore StateMiddlewareStates
+	States StateMiddlewareStates
 }
 
 func (m *StateMiddleware) Handle(next http.Handler) http.Handler {
@@ -25,9 +25,15 @@ func (m *StateMiddleware) Handle(next http.Handler) http.Handler {
 		sid := q.Get("x_sid")
 
 		if sid != "" {
-			_, err := m.StateStore.GetState(sid)
+			_, err := m.States.Get(sid)
 			if err != nil {
-				http.Redirect(w, r, MakeURLWithPathWithoutX(r.URL, "/"), http.StatusFound)
+				u := *r.URL
+				q := u.Query()
+				RemoveX(q)
+				u.RawQuery = q.Encode()
+				u.Path = "/"
+
+				http.Redirect(w, r, httputil.HostRelative(&u).String(), http.StatusFound)
 				return
 			}
 		}

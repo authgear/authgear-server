@@ -5,11 +5,9 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	authredis "github.com/authgear/authgear-server/pkg/auth/dependency/auth/redis"
-	authenticatorbearertoken "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/bearertoken"
 	authenticatoroob "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
 	authenticatorpassword "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/password"
-	authenticatorprovider "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/provider"
-	authenticatorrecoverycode "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/recoverycode"
+	authenticatorservice "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/service"
 	authenticatortotp "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/totp"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/forgotpassword"
@@ -17,9 +15,8 @@ import (
 	identityanonymous "github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
 	identityloginid "github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	identityoauth "github.com/authgear/authgear-server/pkg/auth/dependency/identity/oauth"
-	identityprovider "github.com/authgear/authgear-server/pkg/auth/dependency/identity/provider"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/interaction"
-	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	identityprovider "github.com/authgear/authgear-server/pkg/auth/dependency/identity/service"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/dependency/oauth/handler"
 	oauthpq "github.com/authgear/authgear-server/pkg/auth/dependency/oauth/pq"
@@ -36,6 +33,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/core/sentry"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/endpoints"
+	"github.com/authgear/authgear-server/pkg/mfa"
 	"github.com/authgear/authgear-server/pkg/otp"
 	"github.com/authgear/authgear-server/pkg/task"
 	taskqueue "github.com/authgear/authgear-server/pkg/task/queue"
@@ -50,7 +48,7 @@ var commonDeps = wire.NewSet(
 
 	wire.NewSet(
 		challenge.DependencySet,
-		wire.Bind(new(interactionflows.ChallengeProvider), new(*challenge.Provider)),
+		wire.Bind(new(newinteraction.ChallengeProvider), new(*challenge.Provider)),
 	),
 
 	wire.NewSet(
@@ -60,11 +58,9 @@ var commonDeps = wire.NewSet(
 
 	wire.NewSet(
 		hook.DependencySet,
-		wire.Bind(new(interaction.HookProvider), new(*hook.Provider)),
+		wire.Bind(new(newinteraction.HookProvider), new(*hook.Provider)),
 		wire.Bind(new(user.HookProvider), new(*hook.Provider)),
 		wire.Bind(new(auth.HookProvider), new(*hook.Provider)),
-		wire.Bind(new(forgotpassword.HookProvider), new(*hook.Provider)),
-		wire.Bind(new(interactionflows.HookProvider), new(*hook.Provider)),
 	),
 
 	wire.NewSet(
@@ -76,7 +72,7 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(auth.IDPSessionManager), new(*session.Manager)),
 		wire.Bind(new(oauth.ResolverSessionProvider), new(*session.Provider)),
 		wire.Bind(new(oauthhandler.SessionProvider), new(*session.Provider)),
-		wire.Bind(new(interactionflows.SessionProvider), new(*session.Provider)),
+		wire.Bind(new(newinteraction.SessionProvider), new(*session.Provider)),
 	),
 
 	wire.NewSet(
@@ -90,20 +86,23 @@ var commonDeps = wire.NewSet(
 	wire.NewSet(
 		authenticatorpassword.DependencySet,
 		authenticatoroob.DependencySet,
-		wire.Bind(new(interaction.OOBProvider), new(*authenticatoroob.Provider)),
+		wire.Bind(new(newinteraction.OOBAuthenticatorProvider), new(*authenticatoroob.Provider)),
 		authenticatortotp.DependencySet,
-		authenticatorbearertoken.DependencySet,
-		authenticatorrecoverycode.DependencySet,
 
-		authenticatorprovider.DependencySet,
-		wire.Bind(new(authenticatorprovider.PasswordAuthenticatorProvider), new(*authenticatorpassword.Provider)),
-		wire.Bind(new(authenticatorprovider.OOBOTPAuthenticatorProvider), new(*authenticatoroob.Provider)),
-		wire.Bind(new(authenticatorprovider.TOTPAuthenticatorProvider), new(*authenticatortotp.Provider)),
-		wire.Bind(new(authenticatorprovider.BearerTokenAuthenticatorProvider), new(*authenticatorbearertoken.Provider)),
-		wire.Bind(new(authenticatorprovider.RecoveryCodeAuthenticatorProvider), new(*authenticatorrecoverycode.Provider)),
+		authenticatorservice.DependencySet,
+		wire.Bind(new(authenticatorservice.PasswordAuthenticatorProvider), new(*authenticatorpassword.Provider)),
+		wire.Bind(new(authenticatorservice.OOBOTPAuthenticatorProvider), new(*authenticatoroob.Provider)),
+		wire.Bind(new(authenticatorservice.TOTPAuthenticatorProvider), new(*authenticatortotp.Provider)),
 
-		wire.Bind(new(interaction.AuthenticatorProvider), new(*authenticatorprovider.Provider)),
-		wire.Bind(new(verification.AuthenticatorProvider), new(*authenticatorprovider.Provider)),
+		wire.Bind(new(forgotpassword.AuthenticatorService), new(*authenticatorservice.Service)),
+		wire.Bind(new(newinteraction.AuthenticatorService), new(*authenticatorservice.Service)),
+		wire.Bind(new(verification.AuthenticatorProvider), new(*authenticatorservice.Service)),
+	),
+
+	wire.NewSet(
+		mfa.DependencySet,
+
+		wire.Bind(new(newinteraction.MFAService), new(*mfa.Service)),
 	),
 
 	wire.NewSet(
@@ -112,26 +111,28 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(forgotpassword.LoginIDProvider), new(*identityloginid.Provider)),
 		identityoauth.DependencySet,
 		identityanonymous.DependencySet,
-		wire.Bind(new(interactionflows.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
+		wire.Bind(new(webapp.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
+		wire.Bind(new(newinteraction.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 
 		identityprovider.DependencySet,
 		wire.Bind(new(identityprovider.LoginIDIdentityProvider), new(*identityloginid.Provider)),
 		wire.Bind(new(identityprovider.OAuthIdentityProvider), new(*identityoauth.Provider)),
 		wire.Bind(new(identityprovider.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
-		wire.Bind(new(user.IdentityProvider), new(*identityprovider.Provider)),
-		wire.Bind(new(interaction.IdentityProvider), new(*identityprovider.Provider)),
-		wire.Bind(new(interactionflows.IdentityProvider), new(*identityprovider.Provider)),
-		wire.Bind(new(verification.IdentityProvider), new(*identityprovider.Provider)),
+		wire.Bind(new(user.IdentityProvider), new(*identityprovider.Service)),
+		wire.Bind(new(newinteraction.IdentityService), new(*identityprovider.Service)),
 	),
 
 	wire.NewSet(
 		user.DependencySet,
 		wire.Bind(new(auth.UserProvider), new(*user.Queries)),
-		wire.Bind(new(interaction.UserProvider), new(*user.Provider)),
-		wire.Bind(new(interactionflows.UserProvider), new(*user.Provider)),
-		wire.Bind(new(forgotpassword.UserProvider), new(*user.Queries)),
+		wire.Bind(new(newinteraction.UserService), new(*user.Provider)),
 		wire.Bind(new(oidc.UserProvider), new(*user.Queries)),
 		wire.Bind(new(hook.UserProvider), new(*user.RawProvider)),
+	),
+
+	wire.NewSet(
+		sso.DependencySet,
+		wire.Bind(new(newinteraction.OAuthProviderFactory), new(*sso.OAuthProviderFactory)),
 	),
 
 	wire.NewSet(
@@ -141,6 +142,8 @@ var commonDeps = wire.NewSet(
 
 	wire.NewSet(
 		forgotpassword.DependencySet,
+		wire.Bind(new(newinteraction.ForgotPasswordService), new(*forgotpassword.Provider)),
+		wire.Bind(new(newinteraction.ResetPasswordService), new(*forgotpassword.Provider)),
 	),
 
 	wire.NewSet(
@@ -166,14 +169,9 @@ var commonDeps = wire.NewSet(
 	),
 
 	wire.NewSet(
-		interaction.DependencySet,
-		wire.Bind(new(interactionflows.InteractionProvider), new(*interaction.Provider)),
-
-		interactionflows.DependencySet,
-		wire.Bind(new(webapp.AnonymousFlow), new(*interactionflows.AnonymousFlow)),
-		wire.Bind(new(webapp.ResponderInteractions), new(*interaction.Provider)),
-		wire.Bind(new(oauthhandler.AnonymousInteractionFlow), new(*interactionflows.AnonymousFlow)),
-		wire.Bind(new(forgotpassword.ResetPasswordFlow), new(*interactionflows.PasswordFlow)),
+		newinteraction.DependencySet,
+		wire.Bind(new(webapp.GraphService), new(*newinteraction.Service)),
+		wire.Bind(new(oauthhandler.GraphService), new(*newinteraction.Service)),
 	),
 
 	wire.NewSet(

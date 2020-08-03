@@ -134,7 +134,7 @@ func AsAPIError(err error) *APIError {
 
 func IsKind(err error, kind Kind) bool {
 	e := AsAPIError(err)
-	return e.Kind == kind
+	return e != nil && e.Kind == kind
 }
 
 func NewBadRequest(msg string) error {

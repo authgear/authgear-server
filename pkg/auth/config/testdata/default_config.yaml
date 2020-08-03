@@ -242,8 +242,11 @@ authentication:
   secondary_authenticators:
     - totp
     - oob_otp
-    - bearer_token
   secondary_authentication_mode: if_exists
+  device_token:
+    expire_in_days: 30
+  recovery_code:
+    count: 16
 session:
   lifetime_seconds: 86400
   idle_timeout_seconds: 300
@@ -292,17 +295,14 @@ authenticator:
     sms:
       maximum: 99
       message: {}
-      code_format: numeric
+      code_digits: 6
     email:
       maximum: 99
       message:
         subject: Email Verification Instruction
-      code_format: complex
-  bearer_token:
-    expire_in_days: 30
-  recovery_code:
-    count: 16
+      code_digits: 6
 forgot_password:
+  enabled: true
   email_message:
     subject: Reset password instruction
   sms_message: {}

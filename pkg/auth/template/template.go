@@ -10,19 +10,33 @@ import (
 )
 
 func NewEngineWithConfig(
+	serverConfig *config.ServerConfig,
 	c *config.Config,
 ) *template.Engine {
 	e := template.NewEngine(template.NewEngineOptions{
-		TemplateItems:    c.AppConfig.Template.Items,
-		FallbackLanguage: c.AppConfig.Localization.FallbackLanguage,
+		DefaultTemplatesDirectory: serverConfig.DefaultTemplateDirectory,
+		TemplateItems:             c.AppConfig.Template.Items,
+		FallbackLanguage:          c.AppConfig.Localization.FallbackLanguage,
 	})
 
 	e.Register(welcomemessage.TemplateWelcomeEmailTXT)
 	e.Register(welcomemessage.TemplateWelcomeEmailHTML)
 
-	e.Register(otp.TemplateOTPMessageSMSTXT)
-	e.Register(otp.TemplateOTPMessageEmailTXT)
-	e.Register(otp.TemplateOTPMessageEmailHTML)
+	e.Register(otp.TemplateVerificationSMSTXT)
+	e.Register(otp.TemplateVerificationEmailTXT)
+	e.Register(otp.TemplateVerificationEmailHTML)
+	e.Register(otp.TemplateSetupPrimaryOOBSMSTXT)
+	e.Register(otp.TemplateSetupPrimaryOOBEmailTXT)
+	e.Register(otp.TemplateSetupPrimaryOOBEmailHTML)
+	e.Register(otp.TemplateSetupSecondaryOOBSMSTXT)
+	e.Register(otp.TemplateSetupSecondaryOOBEmailTXT)
+	e.Register(otp.TemplateSetupSecondaryOOBEmailHTML)
+	e.Register(otp.TemplateAuthenticatePrimaryOOBSMSTXT)
+	e.Register(otp.TemplateAuthenticatePrimaryOOBEmailTXT)
+	e.Register(otp.TemplateAuthenticatePrimaryOOBEmailHTML)
+	e.Register(otp.TemplateAuthenticateSecondaryOOBSMSTXT)
+	e.Register(otp.TemplateAuthenticateSecondaryOOBEmailTXT)
+	e.Register(otp.TemplateAuthenticateSecondaryOOBEmailHTML)
 
 	// Auth UI
 	e.Register(webapp.TemplateAuthUITranslationJSON)

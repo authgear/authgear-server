@@ -26,7 +26,7 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 		}
 
 		useragent := r.UserAgent()
-		if samesite.ShouldSendSameSiteNone(useragent) {
+		if samesite.ShouldSendSameSiteNone(useragent, secure) {
 			options = append(options, csrf.SameSite(csrf.SameSiteNoneMode))
 		} else {
 			// http.Cookie SameSiteDefaultMode option will write SameSite

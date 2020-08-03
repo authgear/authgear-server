@@ -2,6 +2,7 @@ package oob
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 	"sort"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/clock"
-	"github.com/authgear/authgear-server/pkg/core/auth/metadata"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/core/uuid"
 	"github.com/authgear/authgear-server/pkg/otp"
@@ -53,14 +53,13 @@ func (p *Provider) List(userID string) ([]*Authenticator, error) {
 	return authenticators, nil
 }
 
-func (p *Provider) New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string, identityID *string) *Authenticator {
+func (p *Provider) New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string) *Authenticator {
 	a := &Authenticator{
-		ID:         uuid.New(),
-		UserID:     userID,
-		Channel:    channel,
-		Phone:      phone,
-		Email:      email,
-		IdentityID: identityID,
+		ID:      uuid.New(),
+		UserID:  userID,
+		Channel: channel,
+		Phone:   phone,
+		Email:   email,
 	}
 	return a
 }
@@ -79,50 +78,68 @@ func (p *Provider) Create(a *Authenticator) error {
 	return p.Store.Create(a)
 }
 
-func (p *Provider) Authenticate(expectedCode string, code string) error {
-	ok := otp.ValidateOTP(expectedCode, code)
+func (p *Provider) getOTPOpts(channel authn.AuthenticatorOOBChannel) otp.ValidateOpts {
+	var digits int
+	switch channel {
+	case authn.AuthenticatorOOBChannelEmail:
+		digits = p.Config.Email.CodeDigits
+	case authn.AuthenticatorOOBChannelSMS:
+		digits = p.Config.SMS.CodeDigits
+	default:
+		panic("oob: unknown channel type: " + channel)
+	}
+	return otp.ValidateOptsOOBTOTP(digits)
+}
+
+func (p *Provider) Authenticate(secret string, channel authn.AuthenticatorOOBChannel, code string) error {
+	ok := otp.ValidateTOTP(secret, code, p.Clock.NowUTC(), p.getOTPOpts(channel))
 	if !ok {
-		return errors.New("invalid bearer token")
+		return errors.New("invalid OOB code")
 	}
 	return nil
 }
 
-func (p *Provider) GenerateCode(channel authn.AuthenticatorOOBChannel) string {
-	var format *otp.Format
-	switch channel {
-	case authn.AuthenticatorOOBChannelEmail:
-		format = otp.GetFormat(p.Config.Email.CodeFormat)
-	case authn.AuthenticatorOOBChannelSMS:
-		format = otp.GetFormat(p.Config.SMS.CodeFormat)
-	default:
-		panic("oob: unknown channel type: " + channel)
+func (p *Provider) GenerateCode(secret string, channel authn.AuthenticatorOOBChannel) string {
+	code, err := otp.GenerateTOTP(secret, p.Clock.NowUTC(), p.getOTPOpts(channel))
+	if err != nil {
+		panic(fmt.Sprintf("oob: cannot generate code: %s", err))
 	}
-	return format.Generate()
+
+	return code
 }
 
 func (p *Provider) SendCode(
 	channel authn.AuthenticatorOOBChannel,
 	loginID *loginid.LoginID,
 	code string,
-	origin otp.MessageOrigin,
-	operation otp.OOBOperationType,
-) error {
+	messageType otp.MessageType,
+) (result *otp.OOBSendResult, err error) {
 	opts := otp.SendOptions{
-		LoginID:   loginID,
-		OTP:       code,
-		Origin:    origin,
-		Operation: operation,
+		LoginID:     loginID,
+		OTP:         code,
+		MessageType: messageType,
 	}
 	switch channel {
 	case authn.AuthenticatorOOBChannelEmail:
-		opts.LoginIDType = config.LoginIDKeyType(metadata.Email)
-		return p.OTPMessageSender.SendEmail(opts, p.Config.Email.Message)
+		opts.LoginIDType = config.LoginIDKeyTypeEmail
+		err = p.OTPMessageSender.SendEmail(opts, p.Config.Email.Message)
 	case authn.AuthenticatorOOBChannelSMS:
-		opts.LoginIDType = config.LoginIDKeyType(metadata.Phone)
-		return p.OTPMessageSender.SendSMS(opts, p.Config.SMS.Message)
+		opts.LoginIDType = config.LoginIDKeyTypePhone
+		err = p.OTPMessageSender.SendSMS(opts, p.Config.SMS.Message)
 	default:
 		panic("oob: unknown channel type: " + channel)
 	}
+
+	if err != nil {
+		return
+	}
+
+	result = &otp.OOBSendResult{
+		Channel:      string(channel),
+		CodeLength:   len(code),
+		SendCooldown: OOBOTPSendCooldownSeconds,
+	}
+	return
 }
 
 func sortAuthenticators(as []*Authenticator) {

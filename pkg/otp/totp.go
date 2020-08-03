@@ -13,7 +13,9 @@ import (
 // Base32 encoding as specified by RFC3548 (RFC4648) without padding.
 var b32NoPadding = base32.StdEncoding.WithPadding(base32.NoPadding)
 
-var validateOpts = totp.ValidateOpts{
+type ValidateOpts = totp.ValidateOpts
+
+var ValidateOptsTOTP = ValidateOpts{
 	// https://github.com/google/google-authenticator/wiki/Key-Uri-Format#period
 	// The value must be 30
 	Period: 30,
@@ -25,6 +27,15 @@ var validateOpts = totp.ValidateOpts{
 	// https://github.com/google/google-authenticator/wiki/Key-Uri-Format#algorithm
 	// The value must be SHA1
 	Algorithm: otp.AlgorithmSHA1,
+}
+
+func ValidateOptsOOBTOTP(digits int) ValidateOpts {
+	return ValidateOpts{
+		Period:    5 * 60,
+		Skew:      0,
+		Digits:    otp.Digits(digits),
+		Algorithm: otp.AlgorithmSHA1,
+	}
 }
 
 // GenerateTOTPSecret generates random TOTP secret encoded in Base32 without Padding.
@@ -43,8 +54,8 @@ func GenerateTOTPSecret() (string, error) {
 }
 
 // ValidateTOTP validates the TOTP code against the secret at the given time t.
-func ValidateTOTP(secret string, code string, t time.Time) bool {
-	ok, err := totp.ValidateCustom(code, secret, t, validateOpts)
+func ValidateTOTP(secret string, code string, t time.Time, opts ValidateOpts) bool {
+	ok, err := totp.ValidateCustom(code, secret, t, opts)
 	if err != nil {
 		return false
 	}
@@ -52,6 +63,6 @@ func ValidateTOTP(secret string, code string, t time.Time) bool {
 }
 
 // GenerateTOTP generates the TOTP code against the secret at the given time t.
-func GenerateTOTP(secret string, t time.Time) (string, error) {
-	return totp.GenerateCodeCustom(secret, t, validateOpts)
+func GenerateTOTP(secret string, t time.Time, opts ValidateOpts) (string, error) {
+	return totp.GenerateCodeCustom(secret, t, opts)
 }

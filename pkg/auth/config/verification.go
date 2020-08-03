@@ -1,7 +1,5 @@
 package config
 
-import "github.com/authgear/authgear-server/pkg/core/auth/metadata"
-
 var _ = Schema.Add("VerificationCriteria", `
 {
 	"type": "string",
@@ -50,6 +48,20 @@ var _ = Schema.Add("VerificationSMSConfig", `
 	}
 }
 `)
+
+var _ = Schema.Add("OTPFormat", `
+{
+	"type": "string",
+	"enum": ["numeric", "complex"]
+}
+`)
+
+type OTPFormat string
+
+const (
+	OTPFormatNumeric OTPFormat = "numeric"
+	OTPFormatComplex OTPFormat = "complex"
+)
 
 type VerificationSMSConfig struct {
 	Message    SMSMessageConfig `json:"message,omitempty"`
@@ -105,7 +117,7 @@ type VerificationLoginIDKeyConfig struct {
 
 func (c *VerificationLoginIDKeyConfig) SetDefaults(keyType LoginIDKeyType) {
 	isVerifiableType := false
-	if m, ok := keyType.MetadataKey(); ok && (m == metadata.Email || m == metadata.Phone) {
+	if keyType == LoginIDKeyTypeEmail || keyType == LoginIDKeyTypePhone {
 		isVerifiableType = true
 	}
 

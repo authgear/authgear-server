@@ -8,7 +8,6 @@ import (
 	"golang.org/x/text/unicode/norm"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/core/auth/metadata"
 	"github.com/authgear/authgear-server/pkg/core/errors"
 )
 
@@ -32,13 +31,12 @@ func (f *NormalizerFactory) NormalizerWithLoginIDKey(loginIDKey string) Normaliz
 }
 
 func (f *NormalizerFactory) NormalizerWithLoginIDType(loginIDKeyType config.LoginIDKeyType) Normalizer {
-	metadataKey, _ := loginIDKeyType.MetadataKey()
-	switch metadataKey {
-	case metadata.Email:
+	switch loginIDKeyType {
+	case config.LoginIDKeyTypeEmail:
 		return &EmailNormalizer{
 			Config: f.Config.Types.Email,
 		}
-	case metadata.Username:
+	case config.LoginIDKeyTypeUsername:
 		return &UsernameNormalizer{
 			Config: f.Config.Types.Username,
 		}

@@ -7,11 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
 )
 
-type TokenResult interface {
-	WriteResponse(rw http.ResponseWriter, r *http.Request)
-	IsInternalError() bool
-}
-
 type (
 	tokenResultOK struct {
 		Response protocol.TokenResponse

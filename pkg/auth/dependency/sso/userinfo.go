@@ -28,7 +28,7 @@ func (d *UserInfoDecoder) DecodeUserInfo(providerType config.OAuthSSOProviderTyp
 
 	if providerUserInfo.Email != "" {
 		var email string
-		normalizer := d.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyType("email"))
+		normalizer := d.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypeEmail)
 		email, err = normalizer.Normalize(providerUserInfo.Email)
 		if err != nil {
 			return

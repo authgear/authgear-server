@@ -8,9 +8,8 @@ import (
 type Candidate map[string]interface{}
 
 const (
-	CandidateKeyType = "type"
-
-	CandidateKeyEmail = "email"
+	CandidateKeyIdentityID = "identity_id"
+	CandidateKeyType       = "type"
 
 	CandidateKeyProviderType      = "provider_type"
 	CandidateKeyProviderAlias     = "provider_alias"
@@ -19,24 +18,28 @@ const (
 	CandidateKeyLoginIDType  = "login_id_type"
 	CandidateKeyLoginIDKey   = "login_id_key"
 	CandidateKeyLoginIDValue = "login_id_value"
+
+	CandidateKeyDisplayID = "display_id"
 )
 
 func NewOAuthCandidate(c *config.OAuthSSOProviderConfig) Candidate {
 	return Candidate{
+		CandidateKeyIdentityID:        "",
 		CandidateKeyType:              string(authn.IdentityTypeOAuth),
-		CandidateKeyEmail:             "",
 		CandidateKeyProviderType:      string(c.Type),
 		CandidateKeyProviderAlias:     c.Alias,
 		CandidateKeyProviderSubjectID: "",
+		CandidateKeyDisplayID:         "",
 	}
 }
 
 func NewLoginIDCandidate(c *config.LoginIDKeyConfig) Candidate {
 	return Candidate{
+		CandidateKeyIdentityID:   "",
 		CandidateKeyType:         string(authn.IdentityTypeLoginID),
-		CandidateKeyEmail:        "",
 		CandidateKeyLoginIDType:  string(c.Type),
 		CandidateKeyLoginIDKey:   c.Key,
 		CandidateKeyLoginIDValue: "",
+		CandidateKeyDisplayID:    "",
 	}
 }

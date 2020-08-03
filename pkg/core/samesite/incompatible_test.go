@@ -76,15 +76,24 @@ var positiveTestCases = map[string]string{
 
 func TestShouldSendSameSiteNone(t *testing.T) {
 	Convey("TestShouldSendSameSiteNone", t, func() {
+		Convey("do not send SameSite=None if it is not Secure", func() {
+			for _, ua := range positiveTestCases {
+				So(ShouldSendSameSiteNone(ua, false), ShouldBeFalse)
+			}
+			for _, ua := range negativeTestCases {
+				So(ShouldSendSameSiteNone(ua, false), ShouldBeFalse)
+			}
+		})
+
 		Convey("should send same site none", func() {
 			for _, ua := range positiveTestCases {
-				So(ShouldSendSameSiteNone(ua), ShouldBeTrue)
+				So(ShouldSendSameSiteNone(ua, true), ShouldBeTrue)
 			}
 		})
 
 		Convey("should not send same site none", func() {
 			for _, ua := range negativeTestCases {
-				So(ShouldSendSameSiteNone(ua), ShouldBeFalse)
+				So(ShouldSendSameSiteNone(ua, true), ShouldBeFalse)
 			}
 		})
 	})

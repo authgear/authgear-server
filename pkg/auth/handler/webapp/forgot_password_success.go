@@ -4,7 +4,10 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
 )
@@ -20,31 +23,6 @@ var TemplateAuthUIForgotPasswordSuccessHTML = template.Spec{
 	Translation: TemplateItemTypeAuthUITranslationJSON,
 	Defines:     defines,
 	Components:  components,
-	Default: `<!DOCTYPE html>
-<html>
-{{ template "auth_ui_html_head.html" . }}
-<body class="page">
-<div class="content">
-
-{{ template "auth_ui_header.html" . }}
-
-<div class="simple-form vertical-form form-fields-container">
-
-<div class="title primary-txt">{{ localize "forgot-password-success-page-title" }}</div>
-
-{{ template "ERROR" . }}
-
-<div class="description primary-txt">{{ localize "forgot-password-success-description" $.GivenLoginID }}</div>
-
-<a class="btn primary-btn align-self-flex-end" href="{{ call .MakeURLWithPathWithoutX "/login" }}">{{ localize "login-button-label--forgot-password-success-page" }}</a>
-
-</div>
-{{ template "auth_ui_footer.html" . }}
-
-</div>
-</body>
-</html>
-`,
 }
 
 func ConfigureForgotPasswordSuccessRoute(route httproute.Route) httproute.Route {
@@ -57,17 +35,27 @@ type ForgotPasswordSuccessViewModel struct {
 	GivenLoginID string
 }
 
-func NewForgotPasswordSuccessViewModel(state *interactionflows.State) ForgotPasswordSuccessViewModel {
-	givenLoginID, _ := state.Extra[interactionflows.ExtraGivenLoginID].(string)
-	return ForgotPasswordSuccessViewModel{
-		GivenLoginID: givenLoginID,
-	}
+type ForgotPasswordSuccessNode interface {
+	GetLoginID() string
 }
 
 type ForgotPasswordSuccessHandler struct {
-	State         StateService
-	BaseViewModel *BaseViewModeler
+	Database      *db.Handle
+	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
+	WebApp        WebAppService
+}
+
+func (h *ForgotPasswordSuccessHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
+	forgotPasswordSuccessViewModel := ForgotPasswordSuccessViewModel{}
+	if n, ok := graph.CurrentNode().(ForgotPasswordSuccessNode); ok {
+		forgotPasswordSuccessViewModel.GivenLoginID = n.GetLoginID()
+	}
+	viewmodels.Embed(data, baseViewModel)
+	viewmodels.Embed(data, forgotPasswordSuccessViewModel)
+	return data, nil
 }
 
 func (h *ForgotPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -77,21 +65,21 @@ func (h *ForgotPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.
 	}
 
 	if r.Method == "GET" {
-		state, err := h.State.RestoreReadOnlyState(r, false)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		h.Database.WithTx(func() error {
+			state, graph, edges, err := h.WebApp.Get(StateID(r))
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return err
+			}
 
-		baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-		forgotPasswordSuccessViewModel := NewForgotPasswordSuccessViewModel(state)
+			data, err := h.GetData(r, state, graph, edges)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return err
+			}
 
-		data := map[string]interface{}{}
-
-		Embed(data, baseViewModel)
-		Embed(data, forgotPasswordSuccessViewModel)
-
-		h.Renderer.Render(w, r, TemplateItemTypeAuthUIForgotPasswordSuccessHTML, data)
-		return
+			h.Renderer.Render(w, r, TemplateItemTypeAuthUIForgotPasswordSuccessHTML, data)
+			return nil
+		})
 	}
 }

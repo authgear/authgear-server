@@ -4,7 +4,10 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -22,46 +25,6 @@ var TemplateAuthUIEnterPasswordHTML = template.Spec{
 	Translation: TemplateItemTypeAuthUITranslationJSON,
 	Defines:     defines,
 	Components:  components,
-	Default: `<!DOCTYPE html>
-<html>
-{{ template "auth_ui_html_head.html" . }}
-<body class="page">
-<div class="content">
-
-{{ template "auth_ui_header.html" . }}
-
-<form class="simple-form vertical-form form-fields-container" method="post" novalidate>
-{{ $.CSRFField }}
-
-<div class="nav-bar">
-	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
-	<div class="login-id primary-txt">
-	{{ .GivenLoginID }}
-	</div>
-</div>
-
-<div class="title primary-txt">{{ localize "enter-password-page-title" }}</div>
-
-{{ template "ERROR" . }}
-
-<input id="password" class="input text-input primary-txt" type="password" name="x_password" placeholder="{{ localize "password-placeholder" }}">
-
-<button class="btn secondary-btn password-visibility-btn show-password" type="button">{{ localize "show-password" }}</button>
-<button class="btn secondary-btn password-visibility-btn hide-password" type="button">{{ localize "hide-password" }}</button>
-
-{{ if $.PasswordAuthenticatorEnabled }}
-<a class="link align-self-flex-start" href="{{ call $.MakeURLWithPathWithoutX "/forgot_password" }}">{{ localize "forgot-password-button-label--enter-password-page" }}</a>
-{{ end }}
-
-<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
-
-</form>
-{{ template "auth_ui_footer.html" . }}
-
-</div>
-</body>
-</html>
-`,
 }
 
 const EnterPasswordRequestSchema = "EnterPasswordRequestSchema"
@@ -83,29 +46,41 @@ func ConfigureEnterPasswordRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/enter_password")
 }
 
-type EnterPasswordInteractions interface {
-	EnterSecret(state *interactionflows.State, password string) (*interactionflows.WebAppResult, error)
-}
-
 type EnterPasswordViewModel struct {
-	GivenLoginID string
-}
-
-func NewEnterPasswordViewModel(state *interactionflows.State) EnterPasswordViewModel {
-	givenLoginID, _ := state.Extra[interactionflows.ExtraGivenLoginID].(string)
-	return EnterPasswordViewModel{
-		GivenLoginID: givenLoginID,
-	}
+	IdentityDisplayID string
 }
 
 type EnterPasswordHandler struct {
-	Database                *db.Handle
-	State                   StateService
-	BaseViewModel           *BaseViewModeler
-	AuthenticationViewModel *AuthenticationViewModeler
-	Renderer                Renderer
-	Interactions            EnterPasswordInteractions
-	Responder               Responder
+	Database      *db.Handle
+	BaseViewModel *viewmodels.BaseViewModeler
+	Renderer      Renderer
+	WebApp        WebAppService
+}
+
+func (h *EnterPasswordHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
+	data := map[string]interface{}{}
+
+	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
+	identityInfo := graph.MustGetUserLastIdentity()
+	enterPasswordViewModel := EnterPasswordViewModel{
+		IdentityDisplayID: identityInfo.DisplayID(),
+	}
+
+	viewmodels.Embed(data, baseViewModel)
+	viewmodels.Embed(data, enterPasswordViewModel)
+
+	return data, nil
+}
+
+type EnterPasswordInput struct {
+	Password string
+}
+
+var _ nodes.InputAuthenticationPassword = &EnterPasswordInput{}
+
+// GetPassword implements InputAuthenticationPassword
+func (i *EnterPasswordInput) GetPassword() string {
+	return i.Password
 }
 
 func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -115,52 +90,44 @@ func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	}
 
 	if r.Method == "GET" {
-		state, err := h.State.RestoreReadOnlyState(r, false)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-		authenticationViewModel := h.AuthenticationViewModel.ViewModel(r)
-		enterPasswordViewModel := NewEnterPasswordViewModel(state)
-
-		data := map[string]interface{}{}
-
-		Embed(data, baseViewModel)
-		Embed(data, authenticationViewModel)
-		Embed(data, enterPasswordViewModel)
-
-		h.Renderer.Render(w, r, TemplateItemTypeAuthUIEnterPasswordHTML, data)
-		return
-	}
-
-	if r.Method == "POST" {
 		h.Database.WithTx(func() error {
-			state, err := h.State.CloneState(r)
+			state, graph, edges, err := h.WebApp.Get(StateID(r))
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
-			var result *interactionflows.WebAppResult
-			defer func() {
-				h.State.UpdateState(state, result, err)
-				h.Responder.Respond(w, r, state, result, err)
-			}()
-
-			err = EnterPasswordSchema.PartValidator(EnterPasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
+			data, err := h.GetData(r, state, graph, edges)
 			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
-			plainPassword := r.Form.Get("x_password")
+			h.Renderer.Render(w, r, TemplateItemTypeAuthUIEnterPasswordHTML, data)
+			return nil
+		})
+	}
 
-			result, err = h.Interactions.EnterSecret(state, plainPassword)
+	if r.Method == "POST" {
+		h.Database.WithTx(func() error {
+			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
+				err = EnterPasswordSchema.PartValidator(EnterPasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
+				if err != nil {
+					return
+				}
+
+				plainPassword := r.Form.Get("x_password")
+
+				input = &EnterPasswordInput{
+					Password: plainPassword,
+				}
+				return
+			})
 			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
-
+			result.WriteResponse(w, r)
 			return nil
 		})
 	}

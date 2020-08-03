@@ -1,0 +1,13 @@
+{{ define "auth_ui_html_head.html" }}
+<head>
+<title>{{ .AppName }}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="{{ .StaticAssetURLPrefix }}/authui/css/main.css">
+<script src="{{ .StaticAssetURLPrefix }}/authui/js/main.js"></script>
+{{ if .CSS }}
+<style>
+{{ .CSS }}
+</style>
+{{ end }}
+</head>
+{{ end }}

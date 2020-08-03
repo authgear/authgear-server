@@ -42,7 +42,10 @@ build:
 
 .PHONY: check-tidy
 check-tidy:
-	$(MAKE) generate; go mod tidy; git status --porcelain | grep '.*'; test $$? -eq 1
+	$(MAKE) generate
+	$(MAKE) html-email
+	go mod tidy
+	git status --porcelain | grep '.*'; test $$? -eq 1
 
 .PHONY: build-image
 build-image:
@@ -60,13 +63,11 @@ push-image:
 	docker push $(DOCKER_IMAGE):$(GIT_HASH)
 	if [ ! -z $(GIT_NAME) ]; then docker push $(DOCKER_IMAGE):$(GIT_NAME); fi
 
-# Compile mjml and print to stdout.
-# You should capture the output and update the default template in Go code.
-# For example,
-# make html-email NAME=./templates/forgot_password_email.mjml | pbcopy
 .PHONY: html-email
 html-email:
-	./scripts/npm/node_modules/.bin/mjml -l strict $(NAME)
+	for t in templates/*.mjml; do \
+		./scripts/npm/node_modules/.bin/mjml -l strict "$$t" > "$${t%.mjml}.html"; \
+	done
 
 .PHONY: static
 static:

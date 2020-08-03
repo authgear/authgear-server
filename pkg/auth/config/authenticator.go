@@ -7,19 +7,15 @@ var _ = Schema.Add("AuthenticatorConfig", `
 	"properties": {
 		"password": { "$ref": "#/$defs/AuthenticatorPasswordConfig" },
 		"totp": { "$ref": "#/$defs/AuthenticatorTOTPConfig" },
-		"oob_otp": { "$ref": "#/$defs/AuthenticatorOOBConfig" },
-		"bearer_token": { "$ref": "#/$defs/AuthenticatorBearerTokenConfig" },
-		"recovery_code": { "$ref": "#/$defs/AuthenticatorRecoveryCodeConfig" }
+		"oob_otp": { "$ref": "#/$defs/AuthenticatorOOBConfig" }
 	}
 }
 `)
 
 type AuthenticatorConfig struct {
-	Password     *AuthenticatorPasswordConfig     `json:"password,omitempty"`
-	TOTP         *AuthenticatorTOTPConfig         `json:"totp,omitempty"`
-	OOB          *AuthenticatorOOBConfig          `json:"oob_otp,omitempty"`
-	BearerToken  *AuthenticatorBearerTokenConfig  `json:"bearer_token,omitempty"`
-	RecoveryCode *AuthenticatorRecoveryCodeConfig `json:"recovery_code,omitempty"`
+	Password *AuthenticatorPasswordConfig `json:"password,omitempty"`
+	TOTP     *AuthenticatorTOTPConfig     `json:"totp,omitempty"`
+	OOB      *AuthenticatorOOBConfig      `json:"oob_otp,omitempty"`
 }
 
 var _ = Schema.Add("AuthenticatorPasswordConfig", `
@@ -90,20 +86,6 @@ func (c *AuthenticatorTOTPConfig) SetDefaults() {
 	}
 }
 
-var _ = Schema.Add("OTPFormat", `
-{
-	"type": "string",
-	"enum": ["numeric", "complex"]
-}
-`)
-
-type OTPFormat string
-
-const (
-	OTPFormatNumeric OTPFormat = "numeric"
-	OTPFormatComplex OTPFormat = "complex"
-)
-
 var _ = Schema.Add("AuthenticatorOOBConfig", `
 {
 	"type": "object",
@@ -127,7 +109,7 @@ var _ = Schema.Add("AuthenticatorOOBSMSConfig", `
 	"properties": {
 		"maximum": { "type": "integer" },
 		"message": { "$ref": "#/$defs/SMSMessageConfig" },
-		"code_format": { "$ref": "#/$defs/OTPFormat" }
+		"code_digits": { "type": "integer", "minimum": 4, "maximum": 8 }
 	}
 }
 `)
@@ -135,15 +117,15 @@ var _ = Schema.Add("AuthenticatorOOBSMSConfig", `
 type AuthenticatorOOBSMSConfig struct {
 	Maximum    *int             `json:"maximum,omitempty"`
 	Message    SMSMessageConfig `json:"message,omitempty"`
-	CodeFormat OTPFormat        `json:"code_format,omitempty"`
+	CodeDigits int              `json:"code_digits,omitempty"`
 }
 
 func (c *AuthenticatorOOBSMSConfig) SetDefaults() {
 	if c.Maximum == nil {
 		c.Maximum = newInt(99)
 	}
-	if c.CodeFormat == "" {
-		c.CodeFormat = OTPFormatNumeric
+	if c.CodeDigits == 0 {
+		c.CodeDigits = 6
 	}
 }
 
@@ -154,7 +136,7 @@ var _ = Schema.Add("AuthenticatorOOBEmailConfig", `
 	"properties": {
 		"maximum": { "type": "integer" },
 		"message": { "$ref": "#/$defs/EmailMessageConfig" },
-		"code_format": { "$ref": "#/$defs/OTPFormat" }
+		"code_digits": { "type": "integer", "minimum": 4, "maximum": 8 }
 	}
 }
 `)
@@ -162,7 +144,7 @@ var _ = Schema.Add("AuthenticatorOOBEmailConfig", `
 type AuthenticatorOOBEmailConfig struct {
 	Maximum    *int               `json:"maximum,omitempty"`
 	Message    EmailMessageConfig `json:"message,omitempty"`
-	CodeFormat OTPFormat          `json:"code_format,omitempty"`
+	CodeDigits int                `json:"code_digits,omitempty"`
 }
 
 func (c *AuthenticatorOOBEmailConfig) SetDefaults() {
@@ -172,49 +154,7 @@ func (c *AuthenticatorOOBEmailConfig) SetDefaults() {
 	if c.Message["subject"] == "" {
 		c.Message["subject"] = "Email Verification Instruction"
 	}
-	if c.CodeFormat == "" {
-		c.CodeFormat = OTPFormatComplex
-	}
-}
-
-var _ = Schema.Add("AuthenticatorBearerTokenConfig", `
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"expire_in_days": { "$ref": "#/$defs/DurationDays" }
-	}
-}
-`)
-
-type AuthenticatorBearerTokenConfig struct {
-	ExpireIn DurationDays `json:"expire_in_days,omitempty"`
-}
-
-func (c *AuthenticatorBearerTokenConfig) SetDefaults() {
-	if c.ExpireIn == 0 {
-		c.ExpireIn = DurationDays(30)
-	}
-}
-
-var _ = Schema.Add("AuthenticatorRecoveryCodeConfig", `
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"count": { "type": "integer" },
-		"list_enabled": { "type": "integer" }
-	}
-}
-`)
-
-type AuthenticatorRecoveryCodeConfig struct {
-	Count       int  `json:"count,omitempty"`
-	ListEnabled bool `json:"list_enabled,omitempty"`
-}
-
-func (c *AuthenticatorRecoveryCodeConfig) SetDefaults() {
-	if c.Count == 0 {
-		c.Count = 16
+	if c.CodeDigits == 0 {
+		c.CodeDigits = 6
 	}
 }

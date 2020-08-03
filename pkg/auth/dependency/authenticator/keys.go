@@ -15,21 +15,12 @@ const (
 	AuthenticatorPropOOBOTPEmail string = "https://authgear.com/claims/oob_otp/email"
 	// AuthenticatorPropOOBOTPPhone is a claim with string value for OOB OTP phone channel.
 	AuthenticatorPropOOBOTPPhone string = "https://authgear.com/claims/oob_otp/phone"
-	// AuthenticatorPropOOBOTPPhone is a claim with string value for ID of the bound login ID identity.
-	AuthenticatorPropOOBOTPIdentityID string = "https://authgear.com/claims/oob_otp/identity_id"
-
-	// AuthenticatorPropBearerTokenParentID is a claim with string value for bearer token parent authenticator.
-	// nolint:gosec
-	AuthenticatorPropBearerTokenParentID string = "https://authgear.com/claims/bearer_token/parent_id"
 
 	// AuthenticatorStateOOBOTPID is a claim with string value for OOB authenticator ID of current interaction.
 	AuthenticatorStateOOBOTPID string = AuthenticatorPropOOBOTPID
-	// AuthenticatorStateOOBOTPCode is a claim with string value for OOB code of current interaction.
-	AuthenticatorStateOOBOTPCode string = "https://authgear.com/claims/oob_otp/code"
-	// AuthenticatorStateOOBOTPGenerateTime is a claim with string value for OOB code generate time.
-	AuthenticatorStateOOBOTPGenerateTime string = "https://authgear.com/claims/oob_otp/generate_time"
-	// AuthenticatorStateOOBOTPTriggerTime is a claim with string value for OOB last trigger time of current interaction.
-	AuthenticatorStateOOBOTPTriggerTime string = "https://authgear.com/claims/oob_otp/trigger_time"
+	// AuthenticatorStateOOBOTPCode is a claim with string value for OOB OTP code secret of current interaction.
+	// nolint:gosec
+	AuthenticatorStateOOBOTPSecret string = "https://authgear.com/claims/oob_otp/secret"
 	// AuthenticatorStateOOBOTPChannelType is a claim with string value for OOB OTP channel type.
 	AuthenticatorStateOOBOTPChannelType = AuthenticatorPropOOBOTPChannelType
 )

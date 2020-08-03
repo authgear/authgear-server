@@ -4,11 +4,11 @@ import (
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/forgotpassword"
 	identityanonymous "github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
-	identityprovider "github.com/authgear/authgear-server/pkg/auth/dependency/identity/provider"
-	interactionflows "github.com/authgear/authgear-server/pkg/auth/dependency/interaction/flows"
+	identityservice "github.com/authgear/authgear-server/pkg/auth/dependency/identity/service"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oidc"
@@ -19,6 +19,7 @@ import (
 	handlerinternal "github.com/authgear/authgear-server/pkg/auth/handler/internalserver"
 	handleroauth "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
+	viewmodelswebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/middlewares"
 )
 
@@ -29,14 +30,8 @@ func ProvideOAuthMetadataProviders(oauth *oauth.MetadataProvider, oidc *oidc.Met
 var requestDeps = wire.NewSet(
 	commonDeps,
 
-	sso.DependencySet,
-	wire.Bind(new(interactionflows.OAuthProviderFactory), new(*sso.OAuthProviderFactory)),
-
 	webapp.DependencySet,
-	wire.Bind(new(webapp.ResponderStates), new(*interactionflows.StateService)),
-	wire.Bind(new(webapp.URLProviderStates), new(*interactionflows.StateService)),
-	wire.Bind(new(webapp.StateMiddlewareStates), new(*interactionflows.StateStoreRedis)),
-	wire.Bind(new(oauthhandler.WebAppURLProvider), new(*webapp.URLProvider)),
+	wire.Bind(new(oauthhandler.WebAppAuthenticateURLProvider), new(*webapp.AuthenticateURLProvider)),
 	wire.Bind(new(oidchandler.WebAppURLsProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(sso.RedirectURLProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(forgotpassword.URLProvider), new(*webapp.URLProvider)),
@@ -60,21 +55,11 @@ var requestDeps = wire.NewSet(
 	wire.Bind(new(handleroauth.ChallengeProvider), new(*challenge.Provider)),
 	ProvideOAuthMetadataProviders,
 
-	handlerwebapp.DependencySet,
-	wire.Bind(new(handlerwebapp.StateService), new(*interactionflows.StateService)),
-	wire.Bind(new(handlerwebapp.Responder), new(*webapp.Responder)),
-	wire.Bind(new(handlerwebapp.LoginInteractions), new(*interactionflows.WebAppFlow)),
-	wire.Bind(new(handlerwebapp.SignupInteractions), new(*interactionflows.WebAppFlow)),
-	wire.Bind(new(handlerwebapp.CreatePasswordInteractions), new(*interactionflows.WebAppFlow)),
-	wire.Bind(new(handlerwebapp.EnterPasswordInteractions), new(*interactionflows.WebAppFlow)),
-	wire.Bind(new(handlerwebapp.ForgotPasswordInteractions), new(*forgotpassword.Provider)),
-	wire.Bind(new(handlerwebapp.ResetPasswordInteractions), new(*forgotpassword.Provider)),
-	wire.Bind(new(handlerwebapp.OOBOTPInteractions), new(*interactionflows.WebAppFlow)),
-	wire.Bind(new(handlerwebapp.SSOCallbackInteractions), new(*interactionflows.WebAppFlow)),
-	wire.Bind(new(handlerwebapp.SettingsIdentityInteractions), new(*interactionflows.WebAppFlow)),
-	wire.Bind(new(handlerwebapp.EnterLoginIDInteractions), new(*interactionflows.WebAppFlow)),
-	wire.Bind(new(handlerwebapp.PromoteInteractions), new(*interactionflows.WebAppFlow)),
+	viewmodelswebapp.DependencySet,
 
-	wire.Bind(new(handlerwebapp.IdentityProvider), new(*identityprovider.Provider)),
+	handlerwebapp.DependencySet,
+	wire.Bind(new(handlerwebapp.SettingsIdentityService), new(*identityservice.Service)),
+	wire.Bind(new(handlerwebapp.PasswordPolicy), new(*password.Checker)),
 	wire.Bind(new(handlerwebapp.LogoutSessionManager), new(*auth.SessionManager)),
+	wire.Bind(new(handlerwebapp.WebAppService), new(*webapp.Service)),
 )

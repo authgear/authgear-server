@@ -11,7 +11,6 @@ import (
 	"github.com/lestrrat-go/jwx/jws"
 	"github.com/lestrrat-go/jwx/jwt"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/uuid"
 	"github.com/authgear/authgear-server/pkg/jwtutil"
@@ -80,9 +79,8 @@ func (p *Provider) Delete(i *Identity) error {
 	return p.Store.Delete(i)
 }
 
-func (p *Provider) ParseRequest(requestJWT string) (iden *Identity, r *Request, err error) {
+func (p *Provider) ParseRequestUnverified(requestJWT string) (r *Request, err error) {
 	compact := []byte(requestJWT)
-	var key jwk.Key
 
 	hdr, jwtToken, err := jwtutil.SplitWithoutVerify(compact)
 	if err != nil {
@@ -99,6 +97,8 @@ func (p *Provider) ParseRequest(requestJWT string) (iden *Identity, r *Request, 
 		return
 	}
 
+	var key jwk.Key
+	var keyID string
 	if jwkIface, ok := hdr.Get("jwk"); ok {
 		var jwkBytes []byte
 		jwkBytes, err = json.Marshal(jwkIface)
@@ -115,38 +115,19 @@ func (p *Provider) ParseRequest(requestJWT string) (iden *Identity, r *Request, 
 		}
 
 		key = set.Keys[0]
+		keyID = key.KeyID()
 
-		iden, err = p.Store.GetByKeyID(key.KeyID())
-		if err != nil && !errors.Is(err, identity.ErrIdentityNotFound) {
-			return
-		} else if err == nil {
-			key, err = iden.toJWK()
-			if err != nil {
-				err = fmt.Errorf("invalid JWK: %w", err)
-				return
-			}
+		// The client does include alg in the JWK.
+		// Fix it by copying alg in the header.
+		if key.Algorithm() == "" {
+			key.Set(jws.AlgorithmKey, hdr.Algorithm())
 		}
 	} else if kid := hdr.KeyID(); kid != "" {
-		iden, err = p.Store.GetByKeyID(kid)
-		if err != nil {
-			err = fmt.Errorf("unknown key ID: %w", err)
-			return
-		}
-
-		key, err = iden.toJWK()
-		if err != nil {
-			err = fmt.Errorf("invalid JWK: %w", err)
-			return
-		}
+		key = nil
+		keyID = kid
 	} else {
 		err = errors.New("no key provided")
 		return
-	}
-
-	// The client does include alg in the JWK.
-	// Fix it by copying alg in the header.
-	if key.Algorithm() == "" {
-		key.Set(jws.AlgorithmKey, hdr.Algorithm())
 	}
 
 	typ := hdr.Type()
@@ -155,27 +136,50 @@ func (p *Provider) ParseRequest(requestJWT string) (iden *Identity, r *Request, 
 		return
 	}
 
-	if !KeyIDFormat.MatchString(key.KeyID()) {
+	if !KeyIDFormat.MatchString(keyID) {
 		err = errors.New("invalid key ID format")
 		return
 	}
 
-	payload, err := jws.VerifyWithJWK(compact, key)
+	token, err := jws.ParseString(requestJWT)
 	if err != nil {
-		err = fmt.Errorf("invalid JWT signature: %w", err)
+		err = fmt.Errorf("invalid JWT: %w", err)
 		return
 	}
 
 	var req Request
-	err = json.Unmarshal(payload, &req)
+	err = json.Unmarshal(token.Payload(), &req)
 	if err != nil {
 		err = fmt.Errorf("invalid JWT payload: %w", err)
 		return
 	}
 
 	req.Key = key
+	req.KeyID = keyID
 	r = &req
 	return
+}
+
+func (p *Provider) ParseRequest(requestJWT string, identity *Identity) (*Request, error) {
+	key, err := identity.toJWK()
+	if err != nil {
+		return nil, err
+	}
+
+	payload, err := jws.VerifyWithJWK([]byte(requestJWT), key)
+	if err != nil {
+		return nil, fmt.Errorf("invalid JWT: %w", err)
+	}
+
+	req := &Request{}
+	err = json.Unmarshal(payload, req)
+	if err != nil {
+		return nil, fmt.Errorf("invalid JWT payload: %w", err)
+	}
+
+	req.KeyID = identity.KeyID
+	req.Key = key
+	return req, nil
 }
 
 func sortIdentities(is []*Identity) {

@@ -2,41 +2,42 @@ package forgotpassword
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
-	"github.com/authgear/authgear-server/pkg/auth/event"
-	"github.com/authgear/authgear-server/pkg/auth/model"
 	taskspec "github.com/authgear/authgear-server/pkg/auth/task/spec"
 	"github.com/authgear/authgear-server/pkg/clock"
-	"github.com/authgear/authgear-server/pkg/core/auth/metadata"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/core/intl"
+	"github.com/authgear/authgear-server/pkg/log"
 	"github.com/authgear/authgear-server/pkg/mail"
 	"github.com/authgear/authgear-server/pkg/sms"
 	"github.com/authgear/authgear-server/pkg/task"
 	"github.com/authgear/authgear-server/pkg/template"
 )
 
-type ResetPasswordFlow interface {
-	ResetPassword(userID string, password string) error
+type AuthenticatorService interface {
+	List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error)
+	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
+	WithSecret(ai *authenticator.Info, secret string) (bool, *authenticator.Info, error)
 }
 
 type LoginIDProvider interface {
 	GetByLoginID(loginID loginid.LoginID) ([]*loginid.Identity, error)
-	IsLoginIDKeyType(loginIDKey string, loginIDKeyType metadata.StandardKey) bool
-}
-
-type UserProvider interface {
-	Get(id string) (*model.User, error)
-}
-
-type HookProvider interface {
-	DispatchEvent(payload event.Payload, user *model.User) error
+	IsLoginIDKeyType(loginIDKey string, loginIDKeyType config.LoginIDKeyType) bool
 }
 
 type URLProvider interface {
 	ResetPasswordURL(code string) *url.URL
+}
+
+type ProviderLogger struct{ *log.Logger }
+
+func NewProviderLogger(lf *log.Factory) ProviderLogger {
+	return ProviderLogger{lf.New("forgotpassword")}
 }
 
 type Provider struct {
@@ -48,15 +49,15 @@ type Provider struct {
 	Config       *config.ForgotPasswordConfig
 
 	Store          *Store
-	Users          UserProvider
-	Hooks          HookProvider
 	Clock          clock.Clock
 	URLs           URLProvider
 	TemplateEngine *template.Engine
 	TaskQueue      task.Queue
 
-	Interactions    ResetPasswordFlow
+	Logger ProviderLogger
+
 	LoginIDProvider LoginIDProvider
+	Authenticators  AuthenticatorService
 }
 
 // SendCode checks if loginID is an existing login ID.
@@ -66,7 +67,6 @@ type Provider struct {
 // The code becomes invalid if it is consumed.
 // Finally the code is sent to the login ID asynchronously.
 func (p *Provider) SendCode(loginID string) (err error) {
-	// TODO(forgotpassword): Test SendCode
 	idens, err := p.LoginIDProvider.GetByLoginID(
 		loginid.LoginID{
 			Key:   "",
@@ -78,8 +78,8 @@ func (p *Provider) SendCode(loginID string) (err error) {
 	}
 
 	for _, iden := range idens {
-		email := p.LoginIDProvider.IsLoginIDKeyType(iden.LoginIDKey, metadata.Email)
-		phone := p.LoginIDProvider.IsLoginIDKeyType(iden.LoginIDKey, metadata.Phone)
+		email := p.LoginIDProvider.IsLoginIDKeyType(iden.LoginIDKey, config.LoginIDKeyTypeEmail)
+		phone := p.LoginIDProvider.IsLoginIDKeyType(iden.LoginIDKey, config.LoginIDKeyTypePhone)
 
 		if !email && !phone {
 			continue
@@ -93,11 +93,13 @@ func (p *Provider) SendCode(loginID string) (err error) {
 		}
 
 		if email {
+			p.Logger.Debugf("sending email")
 			err = p.sendEmail(iden.LoginID, codeStr)
 			return
 		}
 
 		if phone {
+			p.Logger.Debugf("sending sms")
 			err = p.sendSMS(iden.LoginID, codeStr)
 			return
 		}
@@ -214,7 +216,7 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 // Otherwise, the password is reset to newPassword.
 // newPassword is checked against the password policy so
 // password policy error may also be returned.
-func (p *Provider) ResetPassword(codeStr string, newPassword string) (err error) {
+func (p *Provider) ResetPassword(codeStr string, newPassword string) (userID string, newInfo *authenticator.Info, updateInfo *authenticator.Info, err error) {
 	codeHash := HashCode(codeStr)
 	code, err := p.Store.Get(codeHash)
 	if err != nil {
@@ -231,32 +233,56 @@ func (p *Provider) ResetPassword(codeStr string, newPassword string) (err error)
 		return
 	}
 
-	userID := code.UserID
-	err = p.Interactions.ResetPassword(userID, newPassword)
+	userID = code.UserID
+
+	// First see if the user has password authenticator.
+	ais, err := p.Authenticators.List(userID, authn.AuthenticatorTypePassword)
 	if err != nil {
 		return
 	}
 
-	user, err := p.Users.Get(userID)
+	// The user has no password. Create one for them.
+	if len(ais) == 0 {
+		p.Logger.Debugf("creating new password")
+		newInfo, err = p.Authenticators.New(&authenticator.Spec{
+			UserID: userID,
+			Type:   authn.AuthenticatorTypePassword,
+			Props:  map[string]interface{}{},
+		}, newPassword)
+		if err != nil {
+			return
+		}
+	} else if len(ais) == 1 {
+		p.Logger.Debugf("resetting password")
+		// The user has 1 password. Reset it.
+		var changed bool
+		var ai *authenticator.Info
+		changed, ai, err = p.Authenticators.WithSecret(ais[0], newPassword)
+		if err != nil {
+			return
+		}
+		if changed {
+			updateInfo = ai
+		}
+	} else {
+		// Otherwise the user has two passwords :(
+		err = fmt.Errorf("forgotpassword: detected user %s having more than 1 password", userID)
+		return
+	}
+
+	return
+}
+
+func (p *Provider) HashCode(code string) string {
+	return HashCode(code)
+}
+
+func (p *Provider) AfterResetPassword(codeHash string) (err error) {
+	code, err := p.Store.Get(codeHash)
 	if err != nil {
 		return
 	}
 
-	err = p.Hooks.DispatchEvent(
-		event.PasswordUpdateEvent{
-			Reason: event.PasswordUpdateReasonResetPassword,
-			User:   *user,
-		},
-		user,
-	)
-	if err != nil {
-		return
-	}
-
-	// We have to mark the code as consumed at the end
-	// because if we mark it at the beginning,
-	// the code will be consumed if the new password violates
-	// the password policy.
 	code.Consumed = true
 	err = p.Store.Update(code)
 	if err != nil {
@@ -266,7 +292,7 @@ func (p *Provider) ResetPassword(codeStr string, newPassword string) (err error)
 	p.TaskQueue.Enqueue(task.Spec{
 		Name: taskspec.PwHousekeeperTaskName,
 		Param: taskspec.PwHousekeeperTaskParam{
-			AuthID: user.ID,
+			AuthID: code.UserID,
 		},
 	})
 

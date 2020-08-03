@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -21,26 +22,6 @@ var TemplateAuthUILogoutHTML = template.Spec{
 	Translation: TemplateItemTypeAuthUITranslationJSON,
 	Defines:     defines,
 	Components:  components,
-	Default: `<!DOCTYPE html>
-<html>
-{{ template "auth_ui_html_head.html" . }}
-<body class="page">
-<div class="content">
-
-{{ template "auth_ui_header.html" . }}
-
-<form class="logout-form" method="post" novalidate>
-  {{ $.CSRFField }}
-  <p class="primary-txt">{{ localize "logout-button-hint" }}</p>
-  <button class="btn primary-btn align-self-center" type="submit" name="x_action" value="logout">{{ localize "logout-button-label" }}</button>
-</form>
-
-{{ template "auth_ui_footer.html" . }}
-
-</div>
-</body>
-</html>
-`,
 }
 
 func ConfigureLogoutRoute(route httproute.Route) httproute.Route {
@@ -57,7 +38,7 @@ type LogoutHandler struct {
 	Database       *db.Handle
 	ServerConfig   *config.ServerConfig
 	SessionManager LogoutSessionManager
-	BaseViewModel  *BaseViewModeler
+	BaseViewModel  *viewmodels.BaseViewModeler
 	Renderer       Renderer
 }
 
@@ -67,7 +48,7 @@ func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		data := map[string]interface{}{}
 
-		Embed(data, baseViewModel)
+		viewmodels.Embed(data, baseViewModel)
 
 		h.Renderer.Render(w, r, TemplateItemTypeAuthUILogoutHTML, data)
 		return

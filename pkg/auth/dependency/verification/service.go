@@ -5,7 +5,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
-	"github.com/authgear/authgear-server/pkg/core/auth/metadata"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/otp"
 )
@@ -29,7 +28,7 @@ type OTPMessageSender interface {
 type Service struct {
 	Config           *config.VerificationConfig
 	LoginID          *config.LoginIDConfig
-	Identities       IdentityProvider
+	Identities       IdentityProvider `wire:"-"`
 	Authenticators   AuthenticatorProvider
 	OTPMessageSender OTPMessageSender
 }
@@ -56,74 +55,83 @@ func (s *Service) IsIdentityVerifiable(i *identity.Info) bool {
 }
 
 func (s *Service) IsIdentityVerified(i *identity.Info) (bool, error) {
-	switch i.Type {
-	case authn.IdentityTypeOAuth:
-		return true, nil
-	case authn.IdentityTypeLoginID:
-		if !s.isLoginIDKeyVerifiable(i.Claims[identity.IdentityClaimLoginIDKey].(string)) {
-			return false, nil
-		}
+	// FIXME: verification
+	/*
+		switch i.Type {
+		case authn.IdentityTypeOAuth:
+			return true, nil
+		case authn.IdentityTypeLoginID:
+			if !s.isLoginIDKeyVerifiable(i.Claims[identity.IdentityClaimLoginIDKey].(string)) {
+				return false, nil
+			}
 
-		as, err := s.Authenticators.List(i.UserID, authn.AuthenticatorTypeOOB)
+			as, err := s.Authenticators.List(i.UserID, authn.AuthenticatorTypeOOB)
+			if err != nil {
+				return false, err
+			}
+
+			for _, a := range as {
+				spec := a.ToSpec()
+				if s.Identities.RelateIdentityToAuthenticator(i, &spec) != nil {
+					return true, nil
+				}
+			}
+			return false, nil
+		default:
+			return false, nil
+		}*/
+	return false, nil
+}
+
+func (s *Service) IsUserVerified(userID string) (bool, error) {
+	// FIXME: verification
+	return false, nil
+	/*
+		is, err := s.Identities.ListByUser(userID)
 		if err != nil {
 			return false, err
 		}
 
-		for _, a := range as {
-			spec := a.ToSpec()
-			if s.Identities.RelateIdentityToAuthenticator(i, &spec) != nil {
-				return true, nil
-			}
+		as, err := s.Authenticators.List(userID, authn.AuthenticatorTypeOOB)
+		if err != nil {
+			return false, err
 		}
-		return false, nil
-	default:
-		return false, nil
-	}
-}
 
-func (s *Service) IsUserVerified(userID string) (bool, error) {
-	is, err := s.Identities.ListByUser(userID)
-	if err != nil {
-		return false, err
-	}
-
-	as, err := s.Authenticators.List(userID, authn.AuthenticatorTypeOOB)
-	if err != nil {
-		return false, err
-	}
-
-	return s.IsVerified(is, as), nil
+		return s.IsVerified(is, as), nil
+	*/
 }
 
 func (s *Service) IsVerified(identities []*identity.Info, authenticators []*authenticator.Info) bool {
 	numVerifiable := 0
 	numVerified := 0
-	for _, i := range identities {
-		switch i.Type {
-		case authn.IdentityTypeLoginID:
-			if !s.isLoginIDKeyVerifiable(i.Claims[identity.IdentityClaimLoginIDKey].(string)) {
-				continue
-			}
-
-			numVerifiable++
-			for _, a := range authenticators {
-				if a.Type != authn.AuthenticatorTypeOOB {
+	// FIXME: verification
+	/*
+		for _, i := range identities {
+			switch i.Type {
+			case authn.IdentityTypeLoginID:
+				if !s.isLoginIDKeyVerifiable(i.Claims[identity.IdentityClaimLoginIDKey].(string)) {
 					continue
 				}
 
-				spec := a.ToSpec()
-				if s.Identities.RelateIdentityToAuthenticator(i, &spec) != nil {
-					numVerified++
-					break
+				numVerifiable++
+				for _, a := range authenticators {
+					if a.Type != authn.AuthenticatorTypeOOB {
+						continue
+					}
+
+					spec := a.ToSpec()
+					if s.Identities.RelateIdentityToAuthenticator(i, &spec) != nil {
+						numVerified++
+						break
+					}
 				}
+			case authn.IdentityTypeOAuth:
+				numVerifiable++
+				numVerified++
+			default:
+				continue
 			}
-		case authn.IdentityTypeOAuth:
-			numVerifiable++
-			numVerified++
-		default:
-			continue
-		}
-	}
+		}*/
 
 	switch s.Config.Criteria {
 	case config.VerificationCriteriaAny:
@@ -138,13 +146,11 @@ func (s *Service) IsVerified(identities []*identity.Info, authenticators []*auth
 func (s *Service) SendCode(
 	loginID loginid.LoginID,
 	code string,
-	origin otp.MessageOrigin,
 ) error {
+	// FIXME(verification: use different templates
 	opts := otp.SendOptions{
-		LoginID:   &loginID,
-		OTP:       code,
-		Origin:    origin,
-		Operation: otp.OOBOperationTypeVerify,
+		LoginID: &loginID,
+		OTP:     code,
 	}
 
 	var loginIDType config.LoginIDKeyType
@@ -155,11 +161,11 @@ func (s *Service) SendCode(
 		}
 	}
 	switch loginIDType {
-	case config.LoginIDKeyType(metadata.Email):
-		opts.LoginIDType = config.LoginIDKeyType(metadata.Email)
+	case config.LoginIDKeyTypeEmail:
+		opts.LoginIDType = config.LoginIDKeyTypeEmail
 		return s.OTPMessageSender.SendEmail(opts, s.Config.Email.Message)
-	case config.LoginIDKeyType(metadata.Phone):
-		opts.LoginIDType = config.LoginIDKeyType(metadata.Phone)
+	case config.LoginIDKeyTypePhone:
+		opts.LoginIDType = config.LoginIDKeyTypePhone
 		return s.OTPMessageSender.SendSMS(opts, s.Config.SMS.Message)
 	default:
 		panic("oob: invalid login ID type: " + loginIDType)

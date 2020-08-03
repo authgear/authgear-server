@@ -33,8 +33,7 @@ type SendOptions struct {
 	LoginIDType config.LoginIDKeyType
 	LoginID     *loginid.LoginID
 	OTP         string
-	Origin      MessageOrigin
-	Operation   OOBOperationType
+	MessageType MessageType
 }
 
 func (s *MessageSender) makeContext(opts SendOptions) *MessageTemplateContext {
@@ -49,8 +48,6 @@ func (s *MessageSender) makeContext(opts SendOptions) *MessageTemplateContext {
 		LoginID:              opts.LoginID,
 		Code:                 opts.OTP,
 		Host:                 s.Endpoints.BaseURL().Host,
-		Origin:               opts.Origin,
-		Operation:            opts.Operation,
 		StaticAssetURLPrefix: s.ServerConfig.StaticAsset.URLPrefix,
 	}
 
@@ -61,18 +58,33 @@ func (s *MessageSender) SendEmail(opts SendOptions, message config.EmailMessageC
 	ctx := s.makeContext(opts)
 	ctx.Email = opts.LoginID.Value
 
-	textBody, err := s.TemplateEngine.RenderTemplate(
-		TemplateItemTypeOTPMessageEmailTXT,
-		ctx,
-	)
+	var textTemplate, htmlTemplate config.TemplateItemType
+	switch opts.MessageType {
+	case MessageTypeVerification:
+		textTemplate = TemplateItemTypeVerificationEmailTXT
+		htmlTemplate = TemplateItemTypeVerificationEmailHTML
+	case MessageTypeSetupPrimaryOOB:
+		textTemplate = TemplateItemTypeSetupPrimaryOOBEmailTXT
+		htmlTemplate = TemplateItemTypeSetupPrimaryOOBEmailHTML
+	case MessageTypeSetupSecondaryOOB:
+		textTemplate = TemplateItemTypeSetupSecondaryOOBEmailTXT
+		htmlTemplate = TemplateItemTypeSetupSecondaryOOBEmailHTML
+	case MessageTypeAuthenticatePrimaryOOB:
+		textTemplate = TemplateItemTypeAuthenticatePrimaryOOBEmailTXT
+		htmlTemplate = TemplateItemTypeAuthenticatePrimaryOOBEmailHTML
+	case MessageTypeAuthenticateSecondaryOOB:
+		textTemplate = TemplateItemTypeAuthenticateSecondaryOOBEmailTXT
+		htmlTemplate = TemplateItemTypeAuthenticateSecondaryOOBEmailHTML
+	default:
+		panic("otp: unknown message type: " + opts.MessageType)
+	}
+
+	textBody, err := s.TemplateEngine.RenderTemplate(textTemplate, ctx)
 	if err != nil {
 		return
 	}
 
-	htmlBody, err := s.TemplateEngine.RenderTemplate(
-		TemplateItemTypeOTPMessageEmailHTML,
-		ctx,
-	)
+	htmlBody, err := s.TemplateEngine.RenderTemplate(htmlTemplate, ctx)
 	if err != nil {
 		return
 	}
@@ -101,10 +113,23 @@ func (s *MessageSender) SendSMS(opts SendOptions, message config.SMSMessageConfi
 	ctx := s.makeContext(opts)
 	ctx.Phone = opts.LoginID.Value
 
-	body, err := s.TemplateEngine.RenderTemplate(
-		TemplateItemTypeOTPMessageSMSTXT,
-		ctx,
-	)
+	var templateType config.TemplateItemType
+	switch opts.MessageType {
+	case MessageTypeVerification:
+		templateType = TemplateItemTypeVerificationSMSTXT
+	case MessageTypeSetupPrimaryOOB:
+		templateType = TemplateItemTypeSetupPrimaryOOBSMSTXT
+	case MessageTypeSetupSecondaryOOB:
+		templateType = TemplateItemTypeSetupSecondaryOOBSMSTXT
+	case MessageTypeAuthenticatePrimaryOOB:
+		templateType = TemplateItemTypeAuthenticatePrimaryOOBSMSTXT
+	case MessageTypeAuthenticateSecondaryOOB:
+		templateType = TemplateItemTypeAuthenticateSecondaryOOBSMSTXT
+	default:
+		panic("otp: unknown message type: " + opts.MessageType)
+	}
+
+	body, err := s.TemplateEngine.RenderTemplate(templateType, ctx)
 	if err != nil {
 		return
 	}
