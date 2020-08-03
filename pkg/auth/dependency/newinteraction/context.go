@@ -33,8 +33,7 @@ type IdentityService interface {
 
 type AuthenticatorService interface {
 	Get(userID string, typ authn.AuthenticatorType, id string) (*authenticator.Info, error)
-	ListAll(userID string) ([]*authenticator.Info, error)
-	List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error)
+	List(userID string, filters ...func(*authenticator.Info) bool) ([]*authenticator.Info, error)
 	FilterPrimaryAuthenticators(ii *identity.Info, ais []*authenticator.Info) []*authenticator.Info
 	FilterMatchingAuthenticators(ii *identity.Info, ais []*authenticator.Info) []*authenticator.Info
 	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)

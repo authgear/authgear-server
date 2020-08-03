@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
@@ -36,7 +37,10 @@ func (n *NodeCreateAuthenticatorBegin) DeriveEdges(ctx *newinteraction.Context, 
 		iden := graph.MustGetUserLastIdentity()
 		primaryAuthenticatorTypes := iden.Type.PrimaryAuthenticatorTypes()
 
-		ais, err := ctx.Authenticators.ListAll(iden.UserID)
+		ais, err := ctx.Authenticators.List(
+			iden.UserID,
+			authenticator.KeepTag(authenticator.TagPrimaryAuthenticator),
+		)
 		if err != nil {
 			return nil, err
 		}

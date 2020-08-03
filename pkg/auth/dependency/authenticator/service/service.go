@@ -73,7 +73,7 @@ func (s *Service) Get(userID string, typ authn.AuthenticatorType, id string) (*a
 	panic("authenticator: unknown authenticator type " + typ)
 }
 
-func (s *Service) ListAll(userID string) ([]*authenticator.Info, error) {
+func (s *Service) List(userID string, filters ...func(*authenticator.Info) bool) ([]*authenticator.Info, error) {
 	var ais []*authenticator.Info
 	{
 		as, err := s.Password.List(userID)
@@ -102,23 +102,22 @@ func (s *Service) ListAll(userID string) ([]*authenticator.Info, error) {
 			ais = append(ais, oobotpToAuthenticatorInfo(a))
 		}
 	}
-	return ais, nil
-}
 
-func (s *Service) List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error) {
-	all, err := s.ListAll(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	var ais []*authenticator.Info
-	for _, ai := range all {
-		if ai.Type == typ {
-			ais = append(ais, ai)
+	var filtered []*authenticator.Info
+	for _, a := range ais {
+		keep := true
+		for _, f := range filters {
+			if !f(a) {
+				keep = false
+				break
+			}
+		}
+		if keep {
+			filtered = append(filtered, a)
 		}
 	}
 
-	return ais, nil
+	return filtered, nil
 }
 
 func (s *Service) FilterPrimaryAuthenticators(ii *identity.Info, ais []*authenticator.Info) (out []*authenticator.Info) {

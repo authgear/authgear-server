@@ -17,7 +17,7 @@ type EdgeRemoveAuthenticator struct {
 
 func (e *EdgeRemoveAuthenticator) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
 	userID := graph.MustGetUserID()
-	ais, err := ctx.Authenticators.ListAll(userID)
+	ais, err := ctx.Authenticators.List(userID)
 	if err != nil {
 		return nil, err
 	}

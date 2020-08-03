@@ -20,7 +20,7 @@ import (
 )
 
 type AuthenticatorService interface {
-	List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error)
+	List(userID string, filters ...func(*authenticator.Info) bool) ([]*authenticator.Info, error)
 	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
 	WithSecret(ai *authenticator.Info, secret string) (bool, *authenticator.Info, error)
 }
@@ -81,7 +81,11 @@ func (p *Provider) SendCode(loginID string) error {
 	}
 
 	for _, info := range allIdentities {
-		authenticators, err := p.Authenticators.List(info.UserID, authn.AuthenticatorTypePassword)
+		authenticators, err := p.Authenticators.List(
+			info.UserID,
+			authenticator.KeepType(authn.AuthenticatorTypePassword),
+			authenticator.KeepTag(authenticator.TagPrimaryAuthenticator),
+		)
 		if err != nil {
 			return err
 		} else if len(authenticators) == 0 {
@@ -246,7 +250,11 @@ func (p *Provider) ResetPassword(codeStr string, newPassword string) (oldInfo *a
 	}
 
 	// First see if the user has password authenticator.
-	ais, err := p.Authenticators.List(code.UserID, authn.AuthenticatorTypePassword)
+	ais, err := p.Authenticators.List(
+		code.UserID,
+		authenticator.KeepType(authn.AuthenticatorTypePassword),
+		authenticator.KeepTag(authenticator.TagPrimaryAuthenticator),
+	)
 	if err != nil {
 		return
 	}
