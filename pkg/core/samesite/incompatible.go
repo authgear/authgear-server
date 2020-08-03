@@ -25,7 +25,13 @@ var chromiumVersionRegex = regexp.MustCompile(`Chrom[^ \/]+\/(\d+)[\.\d]* `)
 var isUcBrowserRegex = regexp.MustCompile(`UCBrowser\/`)
 var ucBrowserVersionRegex = regexp.MustCompile(`UCBrowser\/(\d+)\.(\d+)\.(\d+)[\.\d]* `)
 
-func ShouldSendSameSiteNone(useragent string) bool {
+func ShouldSendSameSiteNone(useragent string, secure bool) bool {
+	// Any cookie with SameSite=None and not Secure will be rejected.
+	// So without the Secure attribute, the cookie must NOT have SameSite=None.
+	// https://www.chromestatus.com/feature/5633521622188032
+	if !secure {
+		return false
+	}
 	return !isSameSiteNoneIncompatible(useragent)
 }
 
