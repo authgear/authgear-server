@@ -128,29 +128,29 @@ func (m *MockOTPMessageSender) EXPECT() *MockOTPMessageSenderMockRecorder {
 }
 
 // SendEmail mocks base method
-func (m *MockOTPMessageSender) SendEmail(opts otp.SendOptions, message config.EmailMessageConfig) error {
+func (m *MockOTPMessageSender) SendEmail(email string, opts otp.SendOptions, message config.EmailMessageConfig) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendEmail", opts, message)
+	ret := m.ctrl.Call(m, "SendEmail", email, opts, message)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SendEmail indicates an expected call of SendEmail
-func (mr *MockOTPMessageSenderMockRecorder) SendEmail(opts, message interface{}) *gomock.Call {
+func (mr *MockOTPMessageSenderMockRecorder) SendEmail(email, opts, message interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendEmail", reflect.TypeOf((*MockOTPMessageSender)(nil).SendEmail), opts, message)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendEmail", reflect.TypeOf((*MockOTPMessageSender)(nil).SendEmail), email, opts, message)
 }
 
 // SendSMS mocks base method
-func (m *MockOTPMessageSender) SendSMS(opts otp.SendOptions, message config.SMSMessageConfig) error {
+func (m *MockOTPMessageSender) SendSMS(phone string, opts otp.SendOptions, message config.SMSMessageConfig) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendSMS", opts, message)
+	ret := m.ctrl.Call(m, "SendSMS", phone, opts, message)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SendSMS indicates an expected call of SendSMS
-func (mr *MockOTPMessageSenderMockRecorder) SendSMS(opts, message interface{}) *gomock.Call {
+func (mr *MockOTPMessageSenderMockRecorder) SendSMS(phone, opts, message interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendSMS", reflect.TypeOf((*MockOTPMessageSender)(nil).SendSMS), opts, message)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendSMS", reflect.TypeOf((*MockOTPMessageSender)(nil).SendSMS), phone, opts, message)
 }

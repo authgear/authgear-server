@@ -8,7 +8,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/core/uuid"
@@ -20,8 +19,8 @@ type EndpointsProvider interface {
 }
 
 type OTPMessageSender interface {
-	SendEmail(opts otp.SendOptions, message config.EmailMessageConfig) error
-	SendSMS(opts otp.SendOptions, message config.SMSMessageConfig) error
+	SendEmail(email string, opts otp.SendOptions, message config.EmailMessageConfig) error
+	SendSMS(phone string, opts otp.SendOptions, message config.SMSMessageConfig) error
 }
 
 type Provider struct {
@@ -110,22 +109,19 @@ func (p *Provider) GenerateCode(secret string, channel authn.AuthenticatorOOBCha
 
 func (p *Provider) SendCode(
 	channel authn.AuthenticatorOOBChannel,
-	loginID *loginid.LoginID,
+	target string,
 	code string,
 	messageType otp.MessageType,
 ) (result *otp.OOBSendResult, err error) {
 	opts := otp.SendOptions{
-		LoginID:     loginID,
 		OTP:         code,
 		MessageType: messageType,
 	}
 	switch channel {
 	case authn.AuthenticatorOOBChannelEmail:
-		opts.LoginIDType = config.LoginIDKeyTypeEmail
-		err = p.OTPMessageSender.SendEmail(opts, p.Config.Email.Message)
+		err = p.OTPMessageSender.SendEmail(target, opts, p.Config.Email.Message)
 	case authn.AuthenticatorOOBChannelSMS:
-		opts.LoginIDType = config.LoginIDKeyTypePhone
-		err = p.OTPMessageSender.SendSMS(opts, p.Config.SMS.Message)
+		err = p.OTPMessageSender.SendSMS(target, opts, p.Config.SMS.Message)
 	default:
 		panic("oob: unknown channel type: " + channel)
 	}

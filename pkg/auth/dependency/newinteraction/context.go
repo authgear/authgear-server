@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/sso"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/user"
@@ -29,7 +28,6 @@ type IdentityService interface {
 	Create(is *identity.Info) error
 	Update(is *identity.Info) error
 	Delete(is *identity.Info) error
-	Validate(is []*identity.Info) error
 	CheckDuplicated(info *identity.Info) error
 }
 
@@ -52,7 +50,7 @@ type OOBAuthenticatorProvider interface {
 	GenerateCode(secret string, channel authn.AuthenticatorOOBChannel) string
 	SendCode(
 		channel authn.AuthenticatorOOBChannel,
-		loginID *loginid.LoginID,
+		target string,
 		code string,
 		messageType otp.MessageType,
 	) (*otp.OOBSendResult, error)

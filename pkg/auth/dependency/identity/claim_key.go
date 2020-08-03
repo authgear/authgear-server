@@ -18,6 +18,8 @@ const (
 	// IdentityClaimOAuthData is a claim with a map value containing mapped OIDC claims.
 	IdentityClaimOAuthClaims string = "https://authgear.com/claims/oauth/claims"
 
+	// IdentityClaimLoginIDType is a claim with a string value indicating the type of login ID.
+	IdentityClaimLoginIDType string = "https://authgear.com/claims/login_id/type"
 	// IdentityClaimLoginIDValue is a claim with a string value indicating the key of login ID.
 	IdentityClaimLoginIDKey string = "https://authgear.com/claims/login_id/key"
 	// IdentityClaimLoginIDOriginalValue is a claim with a string value indicating the value of original login ID.

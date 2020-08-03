@@ -2,7 +2,6 @@ package service
 
 import (
 	"fmt"
-	"reflect"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
@@ -17,15 +16,13 @@ import (
 type LoginIDIdentityProvider interface {
 	Get(userID, id string) (*loginid.Identity, error)
 	List(userID string) ([]*loginid.Identity, error)
-	GetByLoginID(loginID loginid.LoginID) ([]*loginid.Identity, error)
+	GetByValue(loginIDValue string) ([]*loginid.Identity, error)
 	ListByClaim(name string, value string) ([]*loginid.Identity, error)
-	New(userID string, loginID loginid.LoginID) (*loginid.Identity, error)
-	WithLoginID(iden *loginid.Identity, loginID loginid.LoginID) (*loginid.Identity, error)
+	New(userID string, loginID loginid.Spec) (*loginid.Identity, error)
+	WithValue(iden *loginid.Identity, value string) (*loginid.Identity, error)
 	Create(i *loginid.Identity) error
 	Update(i *loginid.Identity) error
 	Delete(i *loginid.Identity) error
-	Validate(loginIDs []loginid.LoginID) error
-	Normalize(loginID loginid.LoginID) (*loginid.LoginID, *config.LoginIDKeyConfig, string, error)
 	CheckDuplicated(uniqueKey string, standardClaims map[string]string, userID string) error
 }
 
@@ -97,8 +94,8 @@ func (s *Service) Get(userID string, typ authn.IdentityType, id string) (*identi
 func (s *Service) GetBySpec(spec *identity.Spec) (*identity.Info, error) {
 	switch spec.Type {
 	case authn.IdentityTypeLoginID:
-		loginID := extractLoginIDClaims(spec.Claims)
-		l, err := s.LoginID.GetByLoginID(loginID)
+		loginID := extractLoginIDValue(spec.Claims)
+		l, err := s.LoginID.GetByValue(loginID)
 		if err != nil {
 			return nil, err
 		} else if len(l) != 1 {
@@ -162,7 +159,7 @@ func (s *Service) ListByUser(userID string) ([]*identity.Info, error) {
 func (s *Service) New(userID string, spec *identity.Spec) (*identity.Info, error) {
 	switch spec.Type {
 	case authn.IdentityTypeLoginID:
-		loginID := extractLoginIDClaims(spec.Claims)
+		loginID := extractLoginIDSpec(spec.Claims)
 		l, err := s.LoginID.New(userID, loginID)
 		if err != nil {
 			return nil, err
@@ -219,7 +216,7 @@ func (s *Service) Create(info *identity.Info) error {
 func (s *Service) UpdateWithSpec(info *identity.Info, spec *identity.Spec) (*identity.Info, error) {
 	switch info.Type {
 	case authn.IdentityTypeLoginID:
-		i, err := s.LoginID.WithLoginID(loginIDFromIdentityInfo(info), extractLoginIDClaims(spec.Claims))
+		i, err := s.LoginID.WithValue(loginIDFromIdentityInfo(info), extractLoginIDValue(spec.Claims))
 		if err != nil {
 			return nil, err
 		}
@@ -270,40 +267,6 @@ func (s *Service) Delete(info *identity.Info) error {
 	default:
 		panic("identity: unknown identity type " + info.Type)
 	}
-	return nil
-}
-
-func (s *Service) Validate(is []*identity.Info) error {
-	var loginIDs []loginid.LoginID
-	var oauthProviderIDs []config.ProviderID
-	for _, i := range is {
-		if i.Type == authn.IdentityTypeLoginID {
-			loginID := extractLoginIDClaims(i.Claims)
-			loginIDs = append(loginIDs, loginID)
-		} else if i.Type == authn.IdentityTypeOAuth {
-			providerID, _ := extractOAuthClaims(i.Claims)
-			oauthProviderIDs = append(oauthProviderIDs, providerID)
-		}
-	}
-
-	// if there is IdentityInfo with type is loginid
-	if len(loginIDs) > 0 {
-		if err := s.LoginID.Validate(loginIDs); err != nil {
-			return err
-		}
-	}
-
-	// oauth identity check duplicate provider
-	if len(oauthProviderIDs) > 0 {
-		for i, l := range oauthProviderIDs {
-			for j, r := range oauthProviderIDs {
-				if i != j && reflect.DeepEqual(l, r) {
-					return identity.ErrIdentityAlreadyExists
-				}
-			}
-		}
-	}
-
 	return nil
 }
 
@@ -423,19 +386,36 @@ func (s *Service) toIdentityInfo(o *oauth.Identity) *identity.Info {
 	}
 }
 
-func extractLoginIDClaims(claims map[string]interface{}) loginid.LoginID {
-	loginIDKey := ""
-	if v, ok := claims[identity.IdentityClaimLoginIDKey]; ok {
-		if loginIDKey, ok = v.(string); !ok {
-			panic(fmt.Sprintf("identity: expect string login ID key, got %T", claims[identity.IdentityClaimLoginIDKey]))
-		}
-	}
+func extractLoginIDValue(claims map[string]interface{}) string {
 	loginID, ok := claims[identity.IdentityClaimLoginIDValue].(string)
 	if !ok {
 		panic(fmt.Sprintf("identity: expect string login ID value, got %T", claims[identity.IdentityClaimLoginIDValue]))
 	}
 
-	return loginid.LoginID{Key: loginIDKey, Value: loginID}
+	return loginID
+}
+
+func extractLoginIDSpec(claims map[string]interface{}) loginid.Spec {
+	loginIDKey, ok := claims[identity.IdentityClaimLoginIDKey].(string)
+	if !ok {
+		panic(fmt.Sprintf("identity: expect string login ID key, got %T", claims[identity.IdentityClaimLoginIDKey]))
+	}
+
+	loginIDType, ok := claims[identity.IdentityClaimLoginIDType].(string)
+	if !ok {
+		panic(fmt.Sprintf("identity: expect string login ID type, got %T", claims[identity.IdentityClaimLoginIDType]))
+	}
+
+	loginIDValue, ok := claims[identity.IdentityClaimLoginIDValue].(string)
+	if !ok {
+		panic(fmt.Sprintf("identity: expect string login ID value, got %T", claims[identity.IdentityClaimLoginIDValue]))
+	}
+
+	return loginid.Spec{
+		Key:   loginIDKey,
+		Type:  config.LoginIDKeyType(loginIDType),
+		Value: loginIDValue,
+	}
 }
 
 func extractOAuthClaims(claims map[string]interface{}) (providerID config.ProviderID, subjectID string) {

@@ -49,10 +49,32 @@ func (e *EdgeUseIdentityLoginID) Instantiate(ctx *newinteraction.Context, graph 
 
 	loginIDKey := input.GetLoginIDKey()
 	loginID := input.GetLoginID()
+
 	claims := map[string]interface{}{
 		identity.IdentityClaimLoginIDKey:   loginIDKey,
 		identity.IdentityClaimLoginIDValue: loginID,
 	}
+
+	// This node is used by signup and login.
+	// In login, loginIDKey is empty so it is impossible to derive type.
+	// In signup, loginIDKey is given explicitly, and it is required to include
+	// IdentityClaimLoginIDType in the claims.
+	var typ config.LoginIDKeyType
+	if loginIDKey != "" {
+		for _, cfg := range e.Configs {
+			if cfg.Key == loginIDKey {
+				typ = cfg.Type
+			}
+		}
+		if typ == "" {
+			return nil, fmt.Errorf("interaction: invalid login id key: %s", loginIDKey)
+		}
+	}
+
+	if typ != "" {
+		claims[identity.IdentityClaimLoginIDType] = string(typ)
+	}
+
 	spec := &identity.Spec{
 		Type:   authn.IdentityTypeLoginID,
 		Claims: claims,
@@ -62,7 +84,6 @@ func (e *EdgeUseIdentityLoginID) Instantiate(ctx *newinteraction.Context, graph 
 		Mode:         e.Mode,
 		IdentitySpec: spec,
 	}, nil
-
 }
 
 type NodeUseIdentityLoginID struct {

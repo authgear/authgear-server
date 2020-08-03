@@ -58,46 +58,46 @@ func TestLoginIDChecker(t *testing.T) {
 					ReservedNameChecker: reservedNameChecker,
 				},
 			}
-			var loginIDs []LoginID
+			var loginIDs []Spec
 
-			loginIDs = []LoginID{
-				LoginID{Key: "username", Value: "johndoe"},
-				LoginID{Key: "email", Value: "johndoe@example.com"},
+			loginIDs = []Spec{
+				{Key: "username", Type: config.LoginIDKeyTypeRaw, Value: "johndoe"},
+				{Key: "email", Type: config.LoginIDKeyTypeEmail, Value: "johndoe@example.com"},
 			}
 			So(checker.Validate(loginIDs), ShouldBeNil)
 
-			loginIDs = []LoginID{
-				LoginID{Key: "username", Value: "johndoe"},
+			loginIDs = []Spec{
+				{Key: "username", Type: config.LoginIDKeyTypeRaw, Value: "johndoe"},
 			}
 			So(checker.Validate(loginIDs), ShouldBeNil)
 
-			loginIDs = []LoginID{
-				LoginID{Key: "email", Value: "johndoe@example.com"},
+			loginIDs = []Spec{
+				{Key: "email", Type: config.LoginIDKeyTypeEmail, Value: "johndoe@example.com"},
 			}
 			So(checker.Validate(loginIDs), ShouldBeNil)
 
-			loginIDs = []LoginID{
-				LoginID{Key: "email", Value: "johndoe+1@example.com"},
-				LoginID{Key: "email", Value: "johndoe+2@example.com"},
+			loginIDs = []Spec{
+				{Key: "email", Type: config.LoginIDKeyTypeEmail, Value: "johndoe+1@example.com"},
+				{Key: "email", Type: config.LoginIDKeyTypeEmail, Value: "johndoe+2@example.com"},
 			}
 			So(checker.Validate(loginIDs), ShouldBeError, "invalid login IDs:\n<root>: too many login IDs")
 
-			loginIDs = []LoginID{
-				LoginID{Key: "nickname", Value: "johndoe"},
+			loginIDs = []Spec{
+				{Key: "nickname", Type: "", Value: "johndoe"},
 			}
 			So(checker.Validate(loginIDs), ShouldBeError, "invalid login IDs:\n/0: login ID key is not allowed")
 
-			loginIDs = []LoginID{
-				LoginID{Key: "email", Value: ""},
+			loginIDs = []Spec{
+				{Key: "email", Type: config.LoginIDKeyTypeEmail, Value: ""},
 			}
 			So(checker.Validate(loginIDs), ShouldBeError, "invalid login IDs:\n/0: required")
 
-			loginIDs = []LoginID{
-				LoginID{Key: "phone", Value: "51234567"},
+			loginIDs = []Spec{
+				{Key: "phone", Type: config.LoginIDKeyTypePhone, Value: "51234567"},
 			}
 			So(checker.Validate(loginIDs), ShouldBeError, "invalid login IDs:\n/0: format\n  map[format:phone]")
 
-			loginIDs = []LoginID{}
+			loginIDs = []Spec{}
 			So(checker.Validate(loginIDs), ShouldBeError, "invalid login IDs:\n<root>: required")
 		})
 	})

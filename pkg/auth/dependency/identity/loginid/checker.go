@@ -12,11 +12,11 @@ type Checker struct {
 	TypeCheckerFactory *TypeCheckerFactory
 }
 
-func (c *Checker) Validate(loginIDs []LoginID) error {
+func (c *Checker) Validate(specs []Spec) error {
 	ctx := &validation.Context{}
 
 	amounts := map[string]int{}
-	for i, loginID := range loginIDs {
+	for i, loginID := range specs {
 		amounts[loginID.Key]++
 
 		c.validateOne(ctx.Child(strconv.Itoa(i)), loginID)
@@ -29,25 +29,23 @@ func (c *Checker) Validate(loginIDs []LoginID) error {
 		}
 	}
 
-	if len(loginIDs) == 0 {
+	if len(specs) == 0 {
 		ctx.EmitError("required", nil)
 	}
 
 	return ctx.Error("invalid login IDs")
 }
 
-func (c *Checker) ValidateOne(loginID LoginID) error {
+func (c *Checker) ValidateOne(loginID Spec) error {
 	ctx := &validation.Context{}
 	c.validateOne(ctx, loginID)
 	return ctx.Error("invalid login ID")
 }
 
-func (c *Checker) validateOne(ctx *validation.Context, loginID LoginID) {
+func (c *Checker) validateOne(ctx *validation.Context, loginID Spec) {
 	allowed := false
-	var loginIDType config.LoginIDKeyType
 	for _, keyConfig := range c.Config.Keys {
 		if keyConfig.Key == loginID.Key {
-			loginIDType = keyConfig.Type
 			allowed = true
 		}
 	}
@@ -61,7 +59,7 @@ func (c *Checker) validateOne(ctx *validation.Context, loginID LoginID) {
 		return
 	}
 
-	c.TypeCheckerFactory.NewChecker(loginIDType).Validate(ctx, loginID.Value)
+	c.TypeCheckerFactory.NewChecker(loginID.Type).Validate(ctx, loginID.Value)
 }
 
 func (c *Checker) LoginIDKeyType(loginIDKey string) (config.LoginIDKeyType, bool) {
