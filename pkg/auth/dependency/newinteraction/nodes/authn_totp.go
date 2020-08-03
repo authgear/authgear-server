@@ -54,6 +54,9 @@ func (n *NodeAuthenticationTOTP) Apply(perform func(eff newinteraction.Effect) e
 
 func (n *NodeAuthenticationTOTP) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	return []newinteraction.Edge{
-		&EdgeAuthenticationEnd{Stage: n.Stage, Authenticator: n.Authenticator},
+		&EdgeAuthenticationEnd{
+			Stage:                 n.Stage,
+			VerifiedAuthenticator: n.Authenticator,
+		},
 	}, nil
 }
