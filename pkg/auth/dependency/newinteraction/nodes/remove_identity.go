@@ -15,9 +15,17 @@ type InputRemoveIdentity interface {
 	GetIdentityID() string
 }
 
-type EdgeRemoveIdentity struct{}
+type EdgeRemoveIdentity struct {
+	IdentityInfo *identity.Info
+}
 
 func (e *EdgeRemoveIdentity) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
+	if e.IdentityInfo != nil {
+		return &NodeRemoveIdentity{
+			IdentityInfo: e.IdentityInfo,
+		}, nil
+	}
+
 	input, ok := rawInput.(InputRemoveIdentity)
 	if !ok {
 		return nil, newinteraction.ErrIncompatibleInput

@@ -110,14 +110,32 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 
 	case *nodes.NodeCreateIdentityEnd:
 		if i.Kind == IntentAuthenticateKindPromote {
+			// Remove anonymous identity before creating new authenticator
 			selectIdentity := mustFindNodeSelectIdentity(graph)
 			if selectIdentity.IdentityInfo.Type != authn.IdentityTypeAnonymous {
 				panic("interaction: expect anonymous identity")
 			}
 
-			// TODO: remove anonymous identity
+			return []newinteraction.Edge{
+				&nodes.EdgeRemoveIdentity{
+					IdentityInfo: selectIdentity.IdentityInfo,
+				},
+			}, nil
 		}
 
+		return []newinteraction.Edge{
+			&nodes.EdgeCreateAuthenticatorBegin{
+				Stage: newinteraction.AuthenticationStagePrimary,
+			},
+		}, nil
+
+	case *nodes.NodeRemoveIdentity:
+		if node.IdentityInfo.Type != authn.IdentityTypeAnonymous {
+			panic("interaction: expect anonymous identity")
+		}
+
+		// After removing anonymous identity:
+		// continue to create authenticators
 		return []newinteraction.Edge{
 			&nodes.EdgeCreateAuthenticatorBegin{
 				Stage: newinteraction.AuthenticationStagePrimary,
