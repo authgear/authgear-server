@@ -14,12 +14,11 @@ import (
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package verification
 
-type IdentityProvider interface {
+type IdentityService interface {
 	ListByUser(userID string) ([]*identity.Info, error)
-	RelateIdentityToAuthenticator(ii *identity.Info, as *authenticator.Spec) *authenticator.Spec
 }
 
-type AuthenticatorProvider interface {
+type AuthenticatorService interface {
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 }
 
@@ -43,8 +42,8 @@ type Service struct {
 	Config           *config.VerificationConfig
 	LoginID          *config.LoginIDConfig
 	Clock            clock.Clock
-	Identities       IdentityProvider `wire:"-"`
-	Authenticators   AuthenticatorProvider
+	Identities       IdentityService
+	Authenticators   AuthenticatorService
 	OTPMessageSender OTPMessageSender
 	Store            Store
 }
@@ -70,84 +69,70 @@ func (s *Service) IsIdentityVerifiable(i *identity.Info) bool {
 	}
 }
 
+func (s *Service) isIdentityVerified(i *identity.Info, ais []*authenticator.Info) bool {
+	if !s.IsIdentityVerifiable(i) {
+		return false
+	}
+
+	switch i.Type {
+	case authn.IdentityTypeLoginID:
+		matched := false
+		filter := authenticator.KeepMatchingAuthenticatorOfIdentity(i)
+		for _, a := range ais {
+			if filter.Keep(a) {
+				matched = true
+				break
+			}
+		}
+		return matched
+	case authn.IdentityTypeOAuth:
+		return true
+	default:
+		return false
+	}
+}
+
 func (s *Service) IsIdentityVerified(i *identity.Info) (bool, error) {
-	// FIXME: verification
-	/*
-		switch i.Type {
-		case authn.IdentityTypeOAuth:
-			return true, nil
-		case authn.IdentityTypeLoginID:
-			if !s.isLoginIDKeyVerifiable(i.Claims[identity.IdentityClaimLoginIDKey].(string)) {
-				return false, nil
-			}
+	if !s.IsIdentityVerifiable(i) {
+		return false, nil
+	}
 
-			as, err := s.Authenticators.List(i.UserID, authn.AuthenticatorTypeOOB)
-			if err != nil {
-				return false, err
-			}
+	authenticators, err := s.Authenticators.List(i.UserID)
+	if err != nil {
+		return false, err
+	}
 
-			for _, a := range as {
-				spec := a.ToSpec()
-				if s.Identities.RelateIdentityToAuthenticator(i, &spec) != nil {
-					return true, nil
-				}
-			}
-			return false, nil
-		default:
-			return false, nil
-		}*/
-	return false, nil
+	return s.isIdentityVerified(i, authenticators), nil
 }
 
 func (s *Service) IsUserVerified(userID string) (bool, error) {
-	// FIXME: verification
-	return false, nil
-	/*
-		is, err := s.Identities.ListByUser(userID)
-		if err != nil {
-			return false, err
-		}
+	is, err := s.Identities.ListByUser(userID)
+	if err != nil {
+		return false, err
+	}
 
-		as, err := s.Authenticators.List(userID, authn.AuthenticatorTypeOOB)
-		if err != nil {
-			return false, err
-		}
+	as, err := s.Authenticators.List(userID)
+	if err != nil {
+		return false, err
+	}
 
-		return s.IsVerified(is, as), nil
-	*/
+	return s.IsVerified(is, as), nil
 }
 
 func (s *Service) IsVerified(identities []*identity.Info, authenticators []*authenticator.Info) bool {
 	numVerifiable := 0
 	numVerified := 0
-	// FIXME: verification
-	/*
-		for _, i := range identities {
-			switch i.Type {
-			case authn.IdentityTypeLoginID:
-				if !s.isLoginIDKeyVerifiable(i.Claims[identity.IdentityClaimLoginIDKey].(string)) {
-					continue
-				}
+	for _, i := range identities {
+		if !s.IsIdentityVerifiable(i) {
+			continue
+		}
 
-				numVerifiable++
-				for _, a := range authenticators {
-					if a.Type != authn.AuthenticatorTypeOOB {
-						continue
-					}
+		numVerifiable++
 
-					spec := a.ToSpec()
-					if s.Identities.RelateIdentityToAuthenticator(i, &spec) != nil {
-						numVerified++
-						break
-					}
-				}
-			case authn.IdentityTypeOAuth:
-				numVerifiable++
-				numVerified++
-			default:
-				continue
-			}
-		}*/
+		if s.isIdentityVerified(i, authenticators) {
+			numVerified++
+		}
+	}
 
 	switch s.Config.Criteria {
 	case config.VerificationCriteriaAny:

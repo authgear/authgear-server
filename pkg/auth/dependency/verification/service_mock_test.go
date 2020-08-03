@@ -13,31 +13,31 @@ import (
 	reflect "reflect"
 )
 
-// MockIdentityProvider is a mock of IdentityProvider interface
-type MockIdentityProvider struct {
+// MockIdentityService is a mock of IdentityService interface
+type MockIdentityService struct {
 	ctrl     *gomock.Controller
-	recorder *MockIdentityProviderMockRecorder
+	recorder *MockIdentityServiceMockRecorder
 }
 
-// MockIdentityProviderMockRecorder is the mock recorder for MockIdentityProvider
-type MockIdentityProviderMockRecorder struct {
-	mock *MockIdentityProvider
+// MockIdentityServiceMockRecorder is the mock recorder for MockIdentityService
+type MockIdentityServiceMockRecorder struct {
+	mock *MockIdentityService
 }
 
-// NewMockIdentityProvider creates a new mock instance
-func NewMockIdentityProvider(ctrl *gomock.Controller) *MockIdentityProvider {
-	mock := &MockIdentityProvider{ctrl: ctrl}
-	mock.recorder = &MockIdentityProviderMockRecorder{mock}
+// NewMockIdentityService creates a new mock instance
+func NewMockIdentityService(ctrl *gomock.Controller) *MockIdentityService {
+	mock := &MockIdentityService{ctrl: ctrl}
+	mock.recorder = &MockIdentityServiceMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockIdentityProvider) EXPECT() *MockIdentityProviderMockRecorder {
+func (m *MockIdentityService) EXPECT() *MockIdentityServiceMockRecorder {
 	return m.recorder
 }
 
 // ListByUser mocks base method
-func (m *MockIdentityProvider) ListByUser(userID string) ([]*identity.Info, error) {
+func (m *MockIdentityService) ListByUser(userID string) ([]*identity.Info, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListByUser", userID)
 	ret0, _ := ret[0].([]*identity.Info)
@@ -46,50 +46,36 @@ func (m *MockIdentityProvider) ListByUser(userID string) ([]*identity.Info, erro
 }
 
 // ListByUser indicates an expected call of ListByUser
-func (mr *MockIdentityProviderMockRecorder) ListByUser(userID interface{}) *gomock.Call {
+func (mr *MockIdentityServiceMockRecorder) ListByUser(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByUser", reflect.TypeOf((*MockIdentityProvider)(nil).ListByUser), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByUser", reflect.TypeOf((*MockIdentityService)(nil).ListByUser), userID)
 }
 
-// RelateIdentityToAuthenticator mocks base method
-func (m *MockIdentityProvider) RelateIdentityToAuthenticator(ii *identity.Info, as *authenticator.Spec) *authenticator.Spec {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RelateIdentityToAuthenticator", ii, as)
-	ret0, _ := ret[0].(*authenticator.Spec)
-	return ret0
-}
-
-// RelateIdentityToAuthenticator indicates an expected call of RelateIdentityToAuthenticator
-func (mr *MockIdentityProviderMockRecorder) RelateIdentityToAuthenticator(ii, as interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RelateIdentityToAuthenticator", reflect.TypeOf((*MockIdentityProvider)(nil).RelateIdentityToAuthenticator), ii, as)
-}
-
-// MockAuthenticatorProvider is a mock of AuthenticatorProvider interface
-type MockAuthenticatorProvider struct {
+// MockAuthenticatorService is a mock of AuthenticatorService interface
+type MockAuthenticatorService struct {
 	ctrl     *gomock.Controller
-	recorder *MockAuthenticatorProviderMockRecorder
+	recorder *MockAuthenticatorServiceMockRecorder
 }
 
-// MockAuthenticatorProviderMockRecorder is the mock recorder for MockAuthenticatorProvider
-type MockAuthenticatorProviderMockRecorder struct {
-	mock *MockAuthenticatorProvider
+// MockAuthenticatorServiceMockRecorder is the mock recorder for MockAuthenticatorService
+type MockAuthenticatorServiceMockRecorder struct {
+	mock *MockAuthenticatorService
 }
 
-// NewMockAuthenticatorProvider creates a new mock instance
-func NewMockAuthenticatorProvider(ctrl *gomock.Controller) *MockAuthenticatorProvider {
-	mock := &MockAuthenticatorProvider{ctrl: ctrl}
-	mock.recorder = &MockAuthenticatorProviderMockRecorder{mock}
+// NewMockAuthenticatorService creates a new mock instance
+func NewMockAuthenticatorService(ctrl *gomock.Controller) *MockAuthenticatorService {
+	mock := &MockAuthenticatorService{ctrl: ctrl}
+	mock.recorder = &MockAuthenticatorServiceMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockAuthenticatorProvider) EXPECT() *MockAuthenticatorProviderMockRecorder {
+func (m *MockAuthenticatorService) EXPECT() *MockAuthenticatorServiceMockRecorder {
 	return m.recorder
 }
 
 // List mocks base method
-func (m *MockAuthenticatorProvider) List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error) {
+func (m *MockAuthenticatorService) List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{userID}
 	for _, a := range filters {
@@ -102,10 +88,10 @@ func (m *MockAuthenticatorProvider) List(userID string, filters ...authenticator
 }
 
 // List indicates an expected call of List
-func (mr *MockAuthenticatorProviderMockRecorder) List(userID interface{}, filters ...interface{}) *gomock.Call {
+func (mr *MockAuthenticatorServiceMockRecorder) List(userID interface{}, filters ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{userID}, filters...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockAuthenticatorProvider)(nil).List), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockAuthenticatorService)(nil).List), varargs...)
 }
 
 // MockOTPMessageSender is a mock of OTPMessageSender interface
@@ -197,30 +183,30 @@ func (mr *MockStoreMockRecorder) Create(code interface{}) *gomock.Call {
 }
 
 // Get mocks base method
-func (m *MockStore) Get(code string) (*Code, error) {
+func (m *MockStore) Get(id string) (*Code, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", code)
+	ret := m.ctrl.Call(m, "Get", id)
 	ret0, _ := ret[0].(*Code)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get
-func (mr *MockStoreMockRecorder) Get(code interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) Get(id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockStore)(nil).Get), code)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockStore)(nil).Get), id)
 }
 
 // Delete mocks base method
-func (m *MockStore) Delete(code string) error {
+func (m *MockStore) Delete(id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", code)
+	ret := m.ctrl.Call(m, "Delete", id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete
-func (mr *MockStoreMockRecorder) Delete(code interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) Delete(id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockStore)(nil).Delete), code)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockStore)(nil).Delete), id)
 }

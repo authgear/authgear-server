@@ -19,8 +19,8 @@ func TestService(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		identities := NewMockIdentityProvider(ctrl)
-		authenticators := NewMockAuthenticatorProvider(ctrl)
+		identities := NewMockIdentityService(ctrl)
+		authenticators := NewMockAuthenticatorService(ctrl)
 		t := true
 		service := &Service{
 			Config: &config.VerificationConfig{
@@ -66,15 +66,6 @@ func TestService(t *testing.T) {
 			return value
 		}
 
-		identities.EXPECT().RelateIdentityToAuthenticator(gomock.Any(), gomock.Any()).
-			DoAndReturn(func(ii *identity.Info, as *authenticator.Spec) *authenticator.Spec {
-				if as.Props["test-id"].(string) == ii.Claims["test-id"].(string) {
-					return as
-				}
-				return nil
-			}).
-			AnyTimes()
-
 		Convey("IsIdentityVerifiable", func() {
 			So(service.IsIdentityVerifiable(identityOfType(authn.IdentityTypeOAuth)), ShouldBeTrue)
 			So(service.IsIdentityVerifiable(identityOfType(authn.IdentityTypeAnonymous)), ShouldBeFalse)
@@ -83,25 +74,31 @@ func TestService(t *testing.T) {
 			So(service.IsIdentityVerifiable(identityLoginID("username", "bar")), ShouldBeFalse)
 		})
 
-		SkipConvey("IsIdentityVerified", func() {
-			So(must(service.IsIdentityVerified(identityOfType(authn.IdentityTypeOAuth))), ShouldBeTrue)
+		Convey("IsIdentityVerified", func() {
 			So(must(service.IsIdentityVerified(identityOfType(authn.IdentityTypeAnonymous))), ShouldBeFalse)
 
-			authenticators.EXPECT().List("user-id", authn.AuthenticatorTypeOOB).Return([]*authenticator.Info{
-				{ID: "email", Props: map[string]interface{}{"test-id": "login-id-foo@example.com"}},
-			}, nil)
+			authenticators.EXPECT().List("user-id").Return(nil, nil)
+			So(must(service.IsIdentityVerified(identityOfType(authn.IdentityTypeOAuth))), ShouldBeTrue)
+
+			authenticators.EXPECT().List("user-id").Return([]*authenticator.Info{{
+				ID:    "email",
+				Type:  authn.AuthenticatorTypeOOB,
+				Props: map[string]interface{}{authenticator.AuthenticatorPropOOBOTPEmail: "foo@example.com"},
+			}}, nil)
 			So(must(service.IsIdentityVerified(identityLoginID("email", "foo@example.com"))), ShouldBeTrue)
 
-			authenticators.EXPECT().List("user-id", authn.AuthenticatorTypeOOB).Return([]*authenticator.Info{
-				{ID: "phone", Props: map[string]interface{}{"test-id": "login-id-+85200000000"}},
-			}, nil)
+			authenticators.EXPECT().List("user-id").Return([]*authenticator.Info{{
+				ID:    "phone",
+				Type:  authn.AuthenticatorTypeOOB,
+				Props: map[string]interface{}{authenticator.AuthenticatorPropOOBOTPPhone: "+85200000000"},
+			}}, nil)
 			So(must(service.IsIdentityVerified(identityLoginID("email", "foo@example.com"))), ShouldBeFalse)
 
 			So(must(service.IsIdentityVerified(identityLoginID("phone", "+85200000000"))), ShouldBeFalse)
 			So(must(service.IsIdentityVerified(identityLoginID("username", "bar"))), ShouldBeFalse)
 		})
 
-		SkipConvey("IsVerified", func() {
+		Convey("IsVerified", func() {
 			cases := []struct {
 				Identities     []*identity.Info
 				Authenticators []*authenticator.Info
@@ -135,18 +132,22 @@ func TestService(t *testing.T) {
 						identityLoginID("email", "foo@example.com"),
 						identityOfType(authn.IdentityTypeOAuth),
 					},
-					Authenticators: []*authenticator.Info{
-						{ID: "email", Type: authn.AuthenticatorTypeOOB, Props: map[string]interface{}{"test-id": "login-id-foo@example.com"}},
-					},
+					Authenticators: []*authenticator.Info{{
+						ID:    "email",
+						Type:  authn.AuthenticatorTypeOOB,
+						Props: map[string]interface{}{authenticator.AuthenticatorPropOOBOTPEmail: "foo@example.com"},
+					}},
 					AnyResult: true, AllResult: true,
 				},
 				{
 					Identities: []*identity.Info{
 						identityLoginID("phone", "+85200000000"),
 					},
-					Authenticators: []*authenticator.Info{
-						{ID: "phone", Type: authn.AuthenticatorTypeOOB, Props: map[string]interface{}{"test-id": "login-id-+85200000000"}},
-					},
+					Authenticators: []*authenticator.Info{{
+						ID:    "phone",
+						Type:  authn.AuthenticatorTypeOOB,
+						Props: map[string]interface{}{authenticator.AuthenticatorPropOOBOTPPhone: "+85200000000"},
+					}},
 					AnyResult: false, AllResult: false,
 				},
 				{
@@ -154,9 +155,11 @@ func TestService(t *testing.T) {
 						identityLoginID("email", "foo@example.com"),
 						identityLoginID("phone", "+85200000000"),
 					},
-					Authenticators: []*authenticator.Info{
-						{ID: "email", Type: authn.AuthenticatorTypeOOB, Props: map[string]interface{}{"test-id": "login-id-foo@example.com"}},
-					},
+					Authenticators: []*authenticator.Info{{
+						ID:    "email",
+						Type:  authn.AuthenticatorTypeOOB,
+						Props: map[string]interface{}{authenticator.AuthenticatorPropOOBOTPEmail: "foo@example.com"},
+					}},
 					AnyResult: true, AllResult: true,
 				},
 			}

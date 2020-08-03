@@ -96,7 +96,7 @@ var commonDeps = wire.NewSet(
 
 		wire.Bind(new(forgotpassword.AuthenticatorService), new(*authenticatorservice.Service)),
 		wire.Bind(new(newinteraction.AuthenticatorService), new(*authenticatorservice.Service)),
-		wire.Bind(new(verification.AuthenticatorProvider), new(*authenticatorservice.Service)),
+		wire.Bind(new(verification.AuthenticatorService), new(*authenticatorservice.Service)),
 	),
 
 	wire.NewSet(
@@ -121,6 +121,7 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(user.IdentityProvider), new(*identityservice.Service)),
 		wire.Bind(new(newinteraction.IdentityService), new(*identityservice.Service)),
 		wire.Bind(new(forgotpassword.IdentityService), new(*identityservice.Service)),
+		wire.Bind(new(verification.IdentityService), new(*identityservice.Service)),
 	),
 
 	wire.NewSet(
