@@ -44,6 +44,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *newinteraction.Contex
 
 		spec = &authenticator.Spec{
 			UserID: identityInfo.UserID,
+			Tag:    stageToAuthenticatorTag(e.Stage),
 			Type:   authn.AuthenticatorTypeOOB,
 			Props:  map[string]interface{}{},
 		}
@@ -70,6 +71,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *newinteraction.Contex
 		userID := graph.MustGetUserID()
 		spec = &authenticator.Spec{
 			UserID: userID,
+			Tag:    stageToAuthenticatorTag(e.Stage),
 			Type:   authn.AuthenticatorTypeOOB,
 			Props:  map[string]interface{}{},
 		}

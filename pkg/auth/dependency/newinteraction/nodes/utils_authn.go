@@ -101,3 +101,14 @@ func sendOOBCode(
 	code := ctx.OOBAuthenticators.GenerateCode(secret, channel)
 	return ctx.OOBAuthenticators.SendCode(channel, target, code, messageType)
 }
+
+func stageToAuthenticatorTag(stage newinteraction.AuthenticationStage) []string {
+	switch stage {
+	case newinteraction.AuthenticationStagePrimary:
+		return []string{authenticator.TagPrimaryAuthenticator}
+	case newinteraction.AuthenticationStageSecondary:
+		return []string{authenticator.TagSecondaryAuthenticator}
+	default:
+		panic("interaction: unknown stage: " + stage)
+	}
+}

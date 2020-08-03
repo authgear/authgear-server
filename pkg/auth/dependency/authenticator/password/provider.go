@@ -45,10 +45,14 @@ func (p *Provider) List(userID string) ([]*Authenticator, error) {
 	return authenticators, nil
 }
 
-func (p *Provider) New(userID string, password string) (*Authenticator, error) {
+func (p *Provider) New(userID string, password string, tag []string) (*Authenticator, error) {
+	if tag == nil {
+		tag = []string{}
+	}
 	authen := &Authenticator{
 		ID:     uuid.New(),
 		UserID: userID,
+		Tag:    tag,
 	}
 	// Empty password is not supported in password authenticator
 	// If the password is empty string means no password for this password authenticator

@@ -52,13 +52,17 @@ func (p *Provider) List(userID string) ([]*Authenticator, error) {
 	return authenticators, nil
 }
 
-func (p *Provider) New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string) *Authenticator {
+func (p *Provider) New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string, tag []string) *Authenticator {
+	if tag == nil {
+		tag = []string{}
+	}
 	a := &Authenticator{
 		ID:      uuid.New(),
 		UserID:  userID,
 		Channel: channel,
 		Phone:   phone,
 		Email:   email,
+		Tag:     tag,
 	}
 	return a
 }

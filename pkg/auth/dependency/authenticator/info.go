@@ -7,13 +7,15 @@ type Info struct {
 	UserID string                  `json:"user_id"`
 	Type   authn.AuthenticatorType `json:"type"`
 	Secret string                  `json:"secret"`
+	Tag    []string                `json:"tag,omitempty"`
 	Props  map[string]interface{}  `json:"props"`
 }
 
 func (i *Info) ToSpec() Spec {
-	return Spec{Type: i.Type, Props: i.Props}
-}
-
-func (i *Info) ToRef() Ref {
-	return Ref{ID: i.ID, Type: i.Type}
+	return Spec{
+		UserID: i.UserID,
+		Type:   i.Type,
+		Tag:    i.Tag,
+		Props:  i.Props,
+	}
 }

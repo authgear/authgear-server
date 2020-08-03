@@ -21,4 +21,5 @@ type Authenticator struct {
 	Channel   authn.AuthenticatorOOBChannel
 	Phone     string
 	Email     string
+	Tag       []string
 }

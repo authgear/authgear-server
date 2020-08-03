@@ -27,6 +27,7 @@ func (e *EdgeCreateAuthenticatorPassword) Instantiate(ctx *newinteraction.Contex
 	userID := graph.MustGetUserID()
 	spec := &authenticator.Spec{
 		UserID: userID,
+		Tag:    stageToAuthenticatorTag(e.Stage),
 		Type:   authn.AuthenticatorTypePassword,
 		Props:  map[string]interface{}{},
 	}
