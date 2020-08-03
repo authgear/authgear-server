@@ -51,7 +51,3 @@ func (n *NodeUpdateIdentityEnd) Apply(perform func(eff newinteraction.Effect) er
 func (n *NodeUpdateIdentityEnd) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	return graph.Intent.DeriveEdgesForNode(ctx, graph, n)
 }
-
-func (n *NodeUpdateIdentityEnd) UserIdentity() *identity.Info {
-	return n.IdentityAfterUpdate
-}

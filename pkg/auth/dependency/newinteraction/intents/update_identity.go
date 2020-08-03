@@ -24,13 +24,13 @@ func NewIntentUpdateIdentity(userID string, identityID string) *IntentUpdateIden
 }
 
 func (i *IntentUpdateIdentity) InstantiateRootNode(ctx *newinteraction.Context, graph *newinteraction.Graph) (newinteraction.Node, error) {
-	edge := nodes.EdgeUseUser{UseUserID: i.UserID}
+	edge := nodes.EdgeDoUseUser{UseUserID: i.UserID}
 	return edge.Instantiate(ctx, graph, i)
 }
 
 func (i *IntentUpdateIdentity) DeriveEdgesForNode(ctx *newinteraction.Context, graph *newinteraction.Graph, node newinteraction.Node) ([]newinteraction.Edge, error) {
 	switch node := node.(type) {
-	case *nodes.NodeUseUser:
+	case *nodes.NodeDoUseUser:
 		return []newinteraction.Edge{
 			&nodes.EdgeUpdateIdentityBegin{
 				IdentityID: i.IdentityID,

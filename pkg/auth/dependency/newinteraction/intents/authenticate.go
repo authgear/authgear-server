@@ -3,6 +3,7 @@ package intents
 import (
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
@@ -62,9 +63,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 			}
 
 			return []newinteraction.Edge{
-				&nodes.EdgeAuthenticationBegin{
-					Stage: newinteraction.AuthenticationStagePrimary,
-				},
+				&nodes.EdgeDoUseIdentity{Identity: node.IdentityInfo},
 			}, nil
 		case IntentAuthenticateKindSignup:
 			if node.IdentityInfo != nil {
@@ -72,9 +71,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 				// Special case: signup with existing OAuth identity means login.
 				case authn.IdentityTypeOAuth:
 					return []newinteraction.Edge{
-						&nodes.EdgeAuthenticationBegin{
-							Stage: newinteraction.AuthenticationStagePrimary,
-						},
+						&nodes.EdgeDoUseIdentity{Identity: node.IdentityInfo},
 					}, nil
 				default:
 					return nil, newinteraction.ErrDuplicatedIdentity
@@ -89,11 +86,8 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 				return nil, errors.New("promote intent is used to select non-anonymous identity")
 			}
 
-			// Create new identity for the anonymous user
 			return []newinteraction.Edge{
-				&nodes.EdgeCreateIdentityBegin{
-					AllowAnonymousUser: false,
-				},
+				&nodes.EdgeDoUseIdentity{Identity: node.IdentityInfo},
 			}, nil
 		default:
 			panic("interaction: unknown authentication intent kind: " + i.Kind)
@@ -109,10 +103,54 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 		}, nil
 
 	case *nodes.NodeCreateIdentityEnd:
-		// TODO: handle identity conflict
 		return []newinteraction.Edge{
-			&nodes.EdgeDoCreateIdentity{
-				Identity: node.IdentityInfo,
+			&nodes.EdgeCheckIdentityConflict{
+				NewIdentity: node.IdentityInfo,
+			},
+		}, nil
+
+	case *nodes.NodeCheckIdentityConflict:
+		if node.DuplicatedIdentity == nil {
+			return []newinteraction.Edge{
+				&nodes.EdgeDoCreateIdentity{
+					Identity: node.NewIdentity,
+				},
+			}, nil
+		}
+
+		switch i.Kind {
+		case IntentAuthenticateKindPromote:
+			switch ctx.Config.Identity.OnConflict.Promotion {
+			case config.PromotionConflictBehaviorError:
+				return nil, newinteraction.ErrDuplicatedIdentity
+			case config.PromotionConflictBehaviorLogin:
+				// Authenticate using duplicated identity
+				return []newinteraction.Edge{
+					&nodes.EdgeDoUseIdentity{
+						Identity: node.DuplicatedIdentity,
+					},
+				}, nil
+			default:
+				panic("interaction: unknown promotion conflict behavior: " + ctx.Config.Identity.OnConflict.Promotion)
+			}
+		default:
+			// TODO(interaction): handle OAuth identity conflict
+			return nil, newinteraction.ErrDuplicatedIdentity
+		}
+
+	case *nodes.NodeDoUseIdentity:
+		if i.Kind == IntentAuthenticateKindPromote && node.Identity.Type == authn.IdentityTypeAnonymous {
+			// Create new identity for the anonymous user
+			return []newinteraction.Edge{
+				&nodes.EdgeCreateIdentityBegin{
+					AllowAnonymousUser: false,
+				},
+			}, nil
+		}
+
+		return []newinteraction.Edge{
+			&nodes.EdgeAuthenticationBegin{
+				Stage: newinteraction.AuthenticationStagePrimary,
 			},
 		}, nil
 
@@ -157,6 +195,27 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 				return nil, newinteraction.ErrInvalidCredentials
 			}
 
+			return []newinteraction.Edge{
+				&nodes.EdgeDoUseAuthenticator{
+					Stage:         newinteraction.AuthenticationStagePrimary,
+					Authenticator: node.VerifiedAuthenticator,
+				},
+			}, nil
+
+		case newinteraction.AuthenticationStageSecondary:
+			return []newinteraction.Edge{
+				&nodes.EdgeDoUseAuthenticator{
+					Stage:         newinteraction.AuthenticationStageSecondary,
+					Authenticator: node.VerifiedAuthenticator,
+				},
+			}, nil
+
+		default:
+			panic(fmt.Errorf("interaction: unexpected authentication stage: %v", node.Stage))
+		}
+	case *nodes.NodeDoUseAuthenticator:
+		switch node.Stage {
+		case newinteraction.AuthenticationStagePrimary:
 			// TODO(interaction): check MFA mode
 			return []newinteraction.Edge{
 				&nodes.EdgeAuthenticationBegin{Stage: newinteraction.AuthenticationStageSecondary},

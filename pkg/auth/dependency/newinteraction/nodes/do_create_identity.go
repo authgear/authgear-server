@@ -27,7 +27,7 @@ type NodeDoCreateIdentity struct {
 
 func (n *NodeDoCreateIdentity) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	err := perform(newinteraction.EffectRun(func(ctx *newinteraction.Context) error {
-		if err := ctx.Identities.CheckDuplicated(n.Identity); err != nil {
+		if _, err := ctx.Identities.CheckDuplicated(n.Identity); err != nil {
 			if errors.Is(err, identity.ErrIdentityAlreadyExists) {
 				return newinteraction.ErrDuplicatedIdentity
 			}
