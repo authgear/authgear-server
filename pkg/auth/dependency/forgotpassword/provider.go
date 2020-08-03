@@ -7,6 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	taskspec "github.com/authgear/authgear-server/pkg/auth/task/spec"
 	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/authn"
@@ -22,6 +23,10 @@ type AuthenticatorService interface {
 	List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error)
 	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
 	WithSecret(ai *authenticator.Info, secret string) (bool, *authenticator.Info, error)
+}
+
+type IdentityService interface {
+	ListByClaim(name string, value string) ([]*identity.Info, error)
 }
 
 type URLProvider interface {
@@ -50,6 +55,7 @@ type Provider struct {
 
 	Logger ProviderLogger
 
+	Identities     IdentityService
 	Authenticators AuthenticatorService
 }
 
@@ -59,49 +65,59 @@ type Provider struct {
 // The code expires after a specific time.
 // The code becomes invalid if it is consumed.
 // Finally the code is sent to the login ID asynchronously.
-func (p *Provider) SendCode(loginID string) (err error) {
-	// FIXME(forgotpassword): interpret the given value as email claim or phone_number claim to look up user.
+func (p *Provider) SendCode(loginID string) error {
+	emailIdentities, err := p.Identities.ListByClaim("email", loginID)
+	if err != nil {
+		return err
+	}
+	phoneIdentities, err := p.Identities.ListByClaim("phone", loginID)
+	if err != nil {
+		return err
+	}
+
+	allIdentities := append(emailIdentities, phoneIdentities...)
+	if len(allIdentities) == 0 {
+		return ErrUserNotFound
+	}
+
+	for _, info := range allIdentities {
+		authenticators, err := p.Authenticators.List(info.UserID, authn.AuthenticatorTypePassword)
+		if err != nil {
+			return err
+		} else if len(authenticators) == 0 {
+			return ErrNoPassword
+		}
+	}
+
+	for _, info := range emailIdentities {
+		email := info.Claims["email"].(string)
+		code, codeStr := p.newCode(info.UserID)
+
+		if err := p.Store.Create(code); err != nil {
+			return err
+		}
+
+		p.Logger.Debugf("sending email")
+		if err := p.sendEmail(email, codeStr); err != nil {
+			return err
+		}
+	}
+
+	for _, info := range phoneIdentities {
+		phone := info.Claims["phone"].(string)
+		code, codeStr := p.newCode(info.UserID)
+
+		if err := p.Store.Create(code); err != nil {
+			return err
+		}
+
+		p.Logger.Debugf("sending sms")
+		if err := p.sendSMS(phone, codeStr); err != nil {
+			return err
+		}
+	}
+
 	return nil
-
-	// idens, err := p.LoginIDProvider.GetByLoginID(
-	// 	loginid.LoginID{
-	// 		Key:   "",
-	// 		Value: loginID,
-	// 	},
-	// )
-	// if err != nil {
-	// 	return
-	// }
-
-	// for _, iden := range idens {
-	// 	email := p.LoginIDProvider.IsLoginIDKeyType(iden.LoginIDKey, config.LoginIDKeyTypeEmail)
-	// 	phone := p.LoginIDProvider.IsLoginIDKeyType(iden.LoginIDKey, config.LoginIDKeyTypePhone)
-
-	// 	if !email && !phone {
-	// 		continue
-	// 	}
-
-	// 	code, codeStr := p.newCode(iden.UserID)
-
-	// 	err = p.Store.Create(code)
-	// 	if err != nil {
-	// 		return
-	// 	}
-
-	// 	if email {
-	// 		p.Logger.Debugf("sending email")
-	// 		err = p.sendEmail(iden.LoginID, codeStr)
-	// 		return
-	// 	}
-
-	// 	if phone {
-	// 		p.Logger.Debugf("sending sms")
-	// 		err = p.sendSMS(iden.LoginID, codeStr)
-	// 		return
-	// 	}
-	// }
-
-	// return
 }
 
 func (p *Provider) newCode(userID string) (code *Code, codeStr string) {

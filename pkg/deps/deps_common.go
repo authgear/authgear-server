@@ -15,7 +15,7 @@ import (
 	identityanonymous "github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
 	identityloginid "github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	identityoauth "github.com/authgear/authgear-server/pkg/auth/dependency/identity/oauth"
-	identityprovider "github.com/authgear/authgear-server/pkg/auth/dependency/identity/service"
+	identityservice "github.com/authgear/authgear-server/pkg/auth/dependency/identity/service"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/dependency/oauth/handler"
@@ -113,12 +113,13 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(webapp.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 		wire.Bind(new(newinteraction.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 
-		identityprovider.DependencySet,
-		wire.Bind(new(identityprovider.LoginIDIdentityProvider), new(*identityloginid.Provider)),
-		wire.Bind(new(identityprovider.OAuthIdentityProvider), new(*identityoauth.Provider)),
-		wire.Bind(new(identityprovider.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
-		wire.Bind(new(user.IdentityProvider), new(*identityprovider.Service)),
-		wire.Bind(new(newinteraction.IdentityService), new(*identityprovider.Service)),
+		identityservice.DependencySet,
+		wire.Bind(new(identityservice.LoginIDIdentityProvider), new(*identityloginid.Provider)),
+		wire.Bind(new(identityservice.OAuthIdentityProvider), new(*identityoauth.Provider)),
+		wire.Bind(new(identityservice.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
+		wire.Bind(new(user.IdentityProvider), new(*identityservice.Service)),
+		wire.Bind(new(newinteraction.IdentityService), new(*identityservice.Service)),
+		wire.Bind(new(forgotpassword.IdentityService), new(*identityservice.Service)),
 	),
 
 	wire.NewSet(

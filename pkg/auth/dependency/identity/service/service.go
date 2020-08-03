@@ -156,6 +156,39 @@ func (s *Service) ListByUser(userID string) ([]*identity.Info, error) {
 	return infos, nil
 }
 
+func (s *Service) ListByClaim(name string, value string) ([]*identity.Info, error) {
+	var infos []*identity.Info
+
+	// login id
+	lis, err := s.LoginID.ListByClaim(name, value)
+	if err != nil {
+		return nil, err
+	}
+	for _, i := range lis {
+		infos = append(infos, loginIDToIdentityInfo(i))
+	}
+
+	// oauth
+	ois, err := s.OAuth.ListByClaim(name, value)
+	if err != nil {
+		return nil, err
+	}
+	for _, i := range ois {
+		infos = append(infos, s.toIdentityInfo(i))
+	}
+
+	// anonymous
+	ais, err := s.Anonymous.ListByClaim(name, value)
+	if err != nil {
+		return nil, err
+	}
+	for _, i := range ais {
+		infos = append(infos, anonymousToIdentityInfo(i))
+	}
+
+	return infos, nil
+}
+
 func (s *Service) New(userID string, spec *identity.Spec) (*identity.Info, error) {
 	switch spec.Type {
 	case authn.IdentityTypeLoginID:
