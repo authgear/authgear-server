@@ -337,7 +337,7 @@ func (s *Service) deriveRedirectPath(graph *newinteraction.Graph, edges []newint
 	firstEdge := edges[0]
 
 	switch graph.CurrentNode().(type) {
-	case *nodes.NodeUseUser:
+	case *nodes.NodeDoUseUser:
 		switch graph.Intent.(type) {
 		case *intents.IntentRemoveIdentity:
 			return "/enter_login_id"

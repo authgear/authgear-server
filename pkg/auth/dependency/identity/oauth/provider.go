@@ -64,23 +64,23 @@ func (p *Provider) New(
 	return i
 }
 
-func (p *Provider) CheckDuplicated(standardClaims map[string]string, userID string) error {
+func (p *Provider) CheckDuplicated(standardClaims map[string]string, userID string) (*Identity, error) {
 	// check duplication with standard claims
 	for name, value := range standardClaims {
 		ls, err := p.ListByClaim(name, value)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		for _, i := range ls {
 			if i.UserID == userID {
 				continue
 			}
-			return identity.ErrIdentityAlreadyExists
+			return i, identity.ErrIdentityAlreadyExists
 		}
 	}
 
-	return nil
+	return nil, nil
 }
 
 func (p *Provider) Create(i *Identity) error {
