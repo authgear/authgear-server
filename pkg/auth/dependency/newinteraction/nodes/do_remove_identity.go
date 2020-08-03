@@ -3,6 +3,7 @@ package nodes
 import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/event"
 )
 
 func init() {
@@ -36,6 +37,29 @@ func (n *NodeDoRemoveIdentity) Apply(perform func(eff newinteraction.Effect) err
 		}
 
 		err = ctx.Identities.Delete(n.Identity)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}))
+	if err != nil {
+		return err
+	}
+
+	err = perform(newinteraction.EffectOnCommit(func(ctx *newinteraction.Context) error {
+		user, err := ctx.Users.Get(n.Identity.UserID)
+		if err != nil {
+			return err
+		}
+
+		err = ctx.Hooks.DispatchEvent(
+			event.IdentityDeleteEvent{
+				User:     *user,
+				Identity: n.Identity.ToModel(),
+			},
+			user,
+		)
 		if err != nil {
 			return err
 		}

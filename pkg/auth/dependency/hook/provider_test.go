@@ -52,13 +52,9 @@ func TestDispatchEvent(t *testing.T) {
 			user := model.User{
 				ID: "user-id",
 			}
-			identity := model.Identity{
-				Type: "login_id",
-			}
 			payload := event.SessionCreateEvent{
-				Reason:   "login",
-				User:     user,
-				Identity: identity,
+				Reason: "login",
+				User:   user,
 			}
 
 			Convey("should be successful", func() {
@@ -131,9 +127,8 @@ func TestDispatchEvent(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(provider.persistentEventPayloads, ShouldResemble, []event.Payload{
 					event.SessionCreateEvent{
-						Reason:   "signup",
-						User:     user,
-						Identity: identity,
+						Reason: "signup",
+						User:   user,
 					},
 				})
 			})
