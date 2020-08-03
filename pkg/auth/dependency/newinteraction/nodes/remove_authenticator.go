@@ -34,20 +34,6 @@ type NodeRemoveAuthenticator struct {
 }
 
 func (n *NodeRemoveAuthenticator) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
-	err := perform(newinteraction.EffectRun(func(ctx *newinteraction.Context) error {
-		for _, ai := range n.Authenticators {
-			err := ctx.Authenticators.Delete(ai)
-			if err != nil {
-				return err
-			}
-		}
-
-		return nil
-	}))
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 

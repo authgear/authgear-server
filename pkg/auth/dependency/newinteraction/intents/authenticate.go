@@ -109,6 +109,14 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 		}, nil
 
 	case *nodes.NodeCreateIdentityEnd:
+		// TODO: handle identity conflict
+		return []newinteraction.Edge{
+			&nodes.EdgeDoCreateIdentity{
+				Identity: node.IdentityInfo,
+			},
+		}, nil
+
+	case *nodes.NodeDoCreateIdentity:
 		if i.Kind == IntentAuthenticateKindPromote {
 			// Remove anonymous identity before creating new authenticator
 			selectIdentity := mustFindNodeSelectIdentity(graph)
@@ -117,8 +125,8 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 			}
 
 			return []newinteraction.Edge{
-				&nodes.EdgeRemoveIdentity{
-					IdentityInfo: selectIdentity.IdentityInfo,
+				&nodes.EdgeDoRemoveIdentity{
+					Identity: selectIdentity.IdentityInfo,
 				},
 			}, nil
 		}
@@ -129,8 +137,8 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 			},
 		}, nil
 
-	case *nodes.NodeRemoveIdentity:
-		if node.IdentityInfo.Type != authn.IdentityTypeAnonymous {
+	case *nodes.NodeDoRemoveIdentity:
+		if node.Identity.Type != authn.IdentityTypeAnonymous {
 			panic("interaction: expect anonymous identity")
 		}
 
@@ -164,6 +172,13 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 		}
 
 	case *nodes.NodeCreateAuthenticatorEnd:
+		return []newinteraction.Edge{
+			&nodes.EdgeDoCreateAuthenticator{
+				Stage:          node.Stage,
+				Authenticators: node.Authenticators,
+			},
+		}, nil
+	case *nodes.NodeDoCreateAuthenticator:
 		switch node.Stage {
 		case newinteraction.AuthenticationStagePrimary:
 			// TODO(interaction): check MFA mode

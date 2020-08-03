@@ -38,71 +38,54 @@ func (e *EdgeResetPassword) Instantiate(ctx *newinteraction.Context, graph *newi
 	newPassword := input.GetNewPassword()
 
 	codeHash := ctx.ResetPassword.HashCode(code)
-	userID, newInfo, updateInfo, err := ctx.ResetPassword.ResetPassword(code, newPassword)
+	oldInfo, newInfo, updateInfo, err := ctx.ResetPassword.ResetPassword(code, newPassword)
+	if err != nil {
+		return nil, err
+	}
+
+	err = ctx.ResetPassword.AfterResetPassword(codeHash)
 	if err != nil {
 		return nil, err
 	}
 
 	return &NodeResetPasswordEnd{
-		UserID:              userID,
+		OldAuthenticator:    oldInfo,
 		NewAuthenticator:    newInfo,
 		UpdateAuthenticator: updateInfo,
-		CodeHash:            codeHash,
 	}, nil
 }
 
 type NodeResetPasswordEnd struct {
-	UserID              string              `json:"user_id"`
+	OldAuthenticator    *authenticator.Info `json:"old_authenticator,omitempty"`
 	NewAuthenticator    *authenticator.Info `json:"new_authenticator,omitempty"`
 	UpdateAuthenticator *authenticator.Info `json:"update_authenticator,omitempty"`
-	CodeHash            string              `json:"code_hash"`
 }
 
 func (n *NodeResetPasswordEnd) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
-	err := perform(newinteraction.EffectOnCommit(func(ctx *newinteraction.Context) error {
-		if n.NewAuthenticator != nil {
-			err := ctx.Authenticators.Create(n.NewAuthenticator)
-			if err != nil {
-				return err
-			}
-		}
-		if n.UpdateAuthenticator != nil {
-			err := ctx.Authenticators.Update(n.UpdateAuthenticator)
-			if err != nil {
-				return err
-			}
-		}
-
-		user, err := ctx.Users.Get(n.UserID)
-		if err != nil {
-			return err
-		}
-
-		err = ctx.Hooks.DispatchEvent(
-			event.PasswordUpdateEvent{
-				Reason: event.PasswordUpdateReasonResetPassword,
-				User:   *user,
-			},
-			user,
-		)
-		if err != nil {
-			return err
-		}
-
-		err = ctx.ResetPassword.AfterResetPassword(n.CodeHash)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	}))
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
 func (n *NodeResetPasswordEnd) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
-	return nil, nil
+	// Password authenticator is always primary for now
+	if n.NewAuthenticator != nil {
+		return []newinteraction.Edge{
+			&EdgeDoCreateAuthenticator{
+				Stage:                newinteraction.AuthenticationStagePrimary,
+				Authenticators:       []*authenticator.Info{n.NewAuthenticator},
+				PasswordUpdateReason: event.PasswordUpdateReasonResetPassword,
+			},
+		}, nil
+	} else if n.UpdateAuthenticator != nil {
+		return []newinteraction.Edge{
+			&EdgeDoUpdateAuthenticator{
+				Stage:                     newinteraction.AuthenticationStagePrimary,
+				AuthenticatorBeforeUpdate: n.OldAuthenticator,
+				AuthenticatorAfterUpdate:  n.NewAuthenticator,
+				PasswordUpdateReason:      event.PasswordUpdateReasonResetPassword,
+			},
+		}, nil
+	} else {
+		// Password is not changed, ends the interaction
+		return nil, nil
+	}
 }

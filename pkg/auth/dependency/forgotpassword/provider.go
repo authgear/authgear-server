@@ -212,7 +212,7 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 // Otherwise, the password is reset to newPassword.
 // newPassword is checked against the password policy so
 // password policy error may also be returned.
-func (p *Provider) ResetPassword(codeStr string, newPassword string) (userID string, newInfo *authenticator.Info, updateInfo *authenticator.Info, err error) {
+func (p *Provider) ResetPassword(codeStr string, newPassword string) (oldInfo *authenticator.Info, newInfo *authenticator.Info, updateInfo *authenticator.Info, err error) {
 	codeHash := HashCode(codeStr)
 	code, err := p.Store.Get(codeHash)
 	if err != nil {
@@ -229,10 +229,8 @@ func (p *Provider) ResetPassword(codeStr string, newPassword string) (userID str
 		return
 	}
 
-	userID = code.UserID
-
 	// First see if the user has password authenticator.
-	ais, err := p.Authenticators.List(userID, authn.AuthenticatorTypePassword)
+	ais, err := p.Authenticators.List(code.UserID, authn.AuthenticatorTypePassword)
 	if err != nil {
 		return
 	}
@@ -241,7 +239,7 @@ func (p *Provider) ResetPassword(codeStr string, newPassword string) (userID str
 	if len(ais) == 0 {
 		p.Logger.Debugf("creating new password")
 		newInfo, err = p.Authenticators.New(&authenticator.Spec{
-			UserID: userID,
+			UserID: code.UserID,
 			Type:   authn.AuthenticatorTypePassword,
 			Props:  map[string]interface{}{},
 		}, newPassword)
@@ -258,11 +256,12 @@ func (p *Provider) ResetPassword(codeStr string, newPassword string) (userID str
 			return
 		}
 		if changed {
+			oldInfo = ais[0]
 			updateInfo = ai
 		}
 	} else {
 		// Otherwise the user has two passwords :(
-		err = fmt.Errorf("forgotpassword: detected user %s having more than 1 password", userID)
+		err = fmt.Errorf("forgotpassword: detected user %s having more than 1 password", code.UserID)
 		return
 	}
 
@@ -284,13 +283,6 @@ func (p *Provider) AfterResetPassword(codeHash string) (err error) {
 	if err != nil {
 		return
 	}
-
-	p.TaskQueue.Enqueue(task.Spec{
-		Name: taskspec.PwHousekeeperTaskName,
-		Param: taskspec.PwHousekeeperTaskParam{
-			AuthID: code.UserID,
-		},
-	})
 
 	return
 }

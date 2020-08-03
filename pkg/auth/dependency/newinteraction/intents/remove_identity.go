@@ -32,14 +32,23 @@ func (i *IntentRemoveIdentity) DeriveEdgesForNode(ctx *newinteraction.Context, g
 		return []newinteraction.Edge{
 			&nodes.EdgeRemoveIdentity{},
 		}, nil
+
 	case *nodes.NodeRemoveIdentity:
 		return []newinteraction.Edge{
-			&nodes.EdgeRemoveAuthenticator{
-				IdentityInfo: node.IdentityInfo,
-			},
+			&nodes.EdgeDoRemoveIdentity{Identity: node.IdentityInfo},
 		}, nil
+	case *nodes.NodeDoRemoveIdentity:
+		return []newinteraction.Edge{
+			&nodes.EdgeRemoveAuthenticator{IdentityInfo: node.Identity},
+		}, nil
+
 	case *nodes.NodeRemoveAuthenticator:
+		return []newinteraction.Edge{
+			&nodes.EdgeDoRemoveAuthenticator{Authenticators: node.Authenticators},
+		}, nil
+	case *nodes.NodeDoRemoveAuthenticator:
 		return nil, nil
+
 	default:
 		panic(fmt.Errorf("interaction: unexpected node: %T", node))
 	}

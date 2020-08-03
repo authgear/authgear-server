@@ -103,7 +103,7 @@ type ForgotPasswordService interface {
 }
 
 type ResetPasswordService interface {
-	ResetPassword(code string, newPassword string) (userID string, newInfo *authenticator.Info, updateInfo *authenticator.Info, err error)
+	ResetPassword(code string, newPassword string) (oldInfo *authenticator.Info, newInfo *authenticator.Info, updateInfo *authenticator.Info, err error)
 	HashCode(code string) (codeHash string)
 	AfterResetPassword(codeHash string) error
 }

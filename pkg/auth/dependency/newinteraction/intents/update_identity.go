@@ -36,31 +36,49 @@ func (i *IntentUpdateIdentity) DeriveEdgesForNode(ctx *newinteraction.Context, g
 				IdentityID: i.IdentityID,
 			},
 		}, nil
-	case *nodes.NodeRemoveIdentity:
+
+	case *nodes.NodeUpdateIdentityEnd:
 		return []newinteraction.Edge{
-			&nodes.EdgeRemoveAuthenticator{
-				IdentityInfo: node.IdentityInfo,
+			&nodes.EdgeDoUpdateIdentity{
+				IdentityBeforeUpdate: node.IdentityBeforeUpdate,
+				IdentityAfterUpdate:  node.IdentityAfterUpdate,
 			},
 		}, nil
-	case *nodes.NodeUpdateIdentityEnd:
+	case *nodes.NodeDoUpdateIdentity:
 		return []newinteraction.Edge{
 			&nodes.EdgeRemoveAuthenticator{
 				IdentityInfo: node.IdentityBeforeUpdate,
 			},
 		}, nil
+
 	case *nodes.NodeRemoveAuthenticator:
+		return []newinteraction.Edge{
+			&nodes.EdgeDoRemoveAuthenticator{
+				Authenticators: node.Authenticators,
+			},
+		}, nil
+	case *nodes.NodeDoRemoveAuthenticator:
 		return []newinteraction.Edge{
 			&nodes.EdgeCreateAuthenticatorBegin{
 				Stage: newinteraction.AuthenticationStagePrimary,
 			},
 		}, nil
+
 	case *nodes.NodeCreateAuthenticatorEnd:
+		return []newinteraction.Edge{
+			&nodes.EdgeDoCreateAuthenticator{
+				Stage:          node.Stage,
+				Authenticators: node.Authenticators,
+			},
+		}, nil
+	case *nodes.NodeDoCreateAuthenticator:
 		switch node.Stage {
 		case newinteraction.AuthenticationStagePrimary:
 			return nil, nil
 		default:
 			panic("interaction: unexpected authenticator stage: " + node.Stage)
 		}
+
 	default:
 		panic(fmt.Errorf("interaction: unexpected node: %T", node))
 	}
