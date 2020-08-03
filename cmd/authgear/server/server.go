@@ -58,10 +58,10 @@ func (c *Controller) Start() {
 
 	setupTasks(p.TaskExecutor, p)
 	if c.ServePublic {
-		c.startServer("public server", cfg.PublicListenAddr, setupRoutes(p, configSource))
+		c.startServer(cfg, "public server", cfg.PublicListenAddr, setupRoutes(p, configSource))
 	}
 	if c.ServeInternal {
-		c.startServer("internal server", cfg.InternalListenAddr, setupInternalRoutes(p, configSource))
+		c.startServer(cfg, "internal server", cfg.InternalListenAddr, setupInternalRoutes(p, configSource))
 	}
 
 	sig := make(chan os.Signal, 1)
@@ -78,7 +78,7 @@ func (c *Controller) Start() {
 	c.wg.Wait()
 }
 
-func (c *Controller) startServer(name string, addr string, handler http.Handler) {
+func (c *Controller) startServer(cfg *config.ServerConfig, name string, addr string, handler http.Handler) {
 	server := &http.Server{
 		Addr:    addr,
 		Handler: handler,
@@ -86,7 +86,13 @@ func (c *Controller) startServer(name string, addr string, handler http.Handler)
 
 	go func() {
 		c.logger.Infof("starting %s on %v", name, addr)
-		err := server.ListenAndServe()
+		var err error
+		if cfg.DevMode {
+			err = server.ListenAndServeTLS(cfg.TLSCertFilePath, cfg.TLSKeyFilePath)
+		} else {
+			err = server.ListenAndServe()
+		}
+
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			c.logger.WithError(err).Fatalf("failed to start %s", name)
 		}
