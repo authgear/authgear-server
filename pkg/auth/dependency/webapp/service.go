@@ -380,6 +380,8 @@ func (s *Service) deriveRedirectPath(graph *newinteraction.Graph, edges []newint
 		return "/enter_oob_otp"
 	case *nodes.NodeCreateAuthenticatorOOBSetup:
 		return "/enter_oob_otp"
+	case *nodes.NodeVerifyIdentity:
+		return "/verify_user"
 	default:
 		panic(fmt.Errorf("webapp: unexpected node: %T", graph.CurrentNode()))
 	}
