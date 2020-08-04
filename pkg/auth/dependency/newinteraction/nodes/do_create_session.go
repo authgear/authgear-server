@@ -23,7 +23,7 @@ func (e *EdgeDoCreateSession) Instantiate(ctx *newinteraction.Context, graph *ne
 		UserID: graph.MustGetUserID(),
 		// TODO(mfa): fill in these claims
 		ACR: "",
-		AMR: nil,
+		AMR: graph.GetAMR(),
 	}
 	sess, token := ctx.Sessions.MakeSession(attrs)
 	cookie := ctx.SessionCookie.New(token)

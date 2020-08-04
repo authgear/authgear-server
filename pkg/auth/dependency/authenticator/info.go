@@ -19,3 +19,26 @@ func (i *Info) ToSpec() Spec {
 		Props:  i.Props,
 	}
 }
+
+func (i *Info) AMR() []string {
+	switch i.Type {
+	case authn.AuthenticatorTypePassword:
+		return []string{authn.AMRPWD}
+	case authn.AuthenticatorTypeTOTP:
+		return []string{authn.AMROTP}
+	case authn.AuthenticatorTypeOOB:
+		out := []string{authn.AMROTP}
+		channel := i.Props[AuthenticatorPropOOBOTPChannelType].(string)
+		switch authn.AuthenticatorOOBChannel(channel) {
+		case authn.AuthenticatorOOBChannelSMS:
+			out = append(out, authn.AMRSMS)
+		case authn.AuthenticatorOOBChannelEmail:
+			break
+		default:
+			panic("authenticator: unknown OOB channel: " + channel)
+		}
+		return out
+	default:
+		panic("authenticator: unknown authenticator type: " + i.Type)
+	}
+}
