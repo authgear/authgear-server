@@ -3,6 +3,9 @@ package otp
 import (
 	"crypto/rand"
 	"encoding/base32"
+	"fmt"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/pquerna/otp"
@@ -65,4 +68,26 @@ func ValidateTOTP(secret string, code string, t time.Time, opts ValidateOpts) bo
 // GenerateTOTP generates the TOTP code against the secret at the given time t.
 func GenerateTOTP(secret string, t time.Time, opts ValidateOpts) (string, error) {
 	return totp.GenerateCodeCustom(secret, t, opts)
+}
+
+type MakeTOTPKeyOptions struct {
+	Issuer      string
+	AccountName string
+	Secret      string
+}
+
+func MakeTOTPKey(opts MakeTOTPKeyOptions) (*otp.Key, error) {
+	q := url.Values{}
+	q.Set("secret", opts.Secret)
+	q.Set("issuer", opts.Issuer)
+	q.Set("algorithm", otp.AlgorithmSHA1.String())
+	q.Set("digits", otp.DigitsSix.String())
+	q.Set("period", strconv.FormatUint(uint64(ValidateOptsTOTP.Period), 10))
+	u := &url.URL{
+		Scheme:   "otpauth",
+		Host:     "totp",
+		Path:     fmt.Sprintf("/%s:%s", opts.Issuer, opts.AccountName),
+		RawQuery: q.Encode(),
+	}
+	return otp.NewKeyFromURL(u.String())
 }
