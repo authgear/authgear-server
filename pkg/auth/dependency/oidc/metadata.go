@@ -19,4 +19,5 @@ func (p *MetadataProvider) PopulateMetadata(meta map[string]interface{}) {
 	meta["jwks_uri"] = p.Endpoints.JWKSEndpointURL().String()
 	meta["userinfo_endpoint"] = p.Endpoints.UserInfoEndpointURL().String()
 	meta["end_session_endpoint"] = p.Endpoints.EndSessionEndpointURL().String()
+	// TODO(mfa): Declare acr_values_supported and support acr_values in authorization request.
 }

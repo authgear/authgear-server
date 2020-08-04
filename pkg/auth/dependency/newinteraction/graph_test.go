@@ -151,9 +151,10 @@ func (n *testGraphGetAMRnode) UserAuthenticator() (newinteraction.Authentication
 	return n.Stage, n.Authenticator
 }
 
-func TestGraphGetAMR(t *testing.T) {
-	Convey("GraphGetAMR", t, func() {
+func TestGraphGetAMRACR(t *testing.T) {
+	Convey("GraphGetAMRACR", t, func() {
 		var graph *newinteraction.Graph
+		var amr []string
 
 		graph = &newinteraction.Graph{}
 		So(graph.GetAMR(), ShouldBeEmpty)
@@ -169,7 +170,9 @@ func TestGraphGetAMR(t *testing.T) {
 				},
 			},
 		}
-		So(graph.GetAMR(), ShouldResemble, []string{"pwd"})
+		amr = graph.GetAMR()
+		So(amr, ShouldResemble, []string{"pwd"})
+		So(graph.GetACR(amr), ShouldEqual, "")
 
 		// oob
 		graph = &newinteraction.Graph{
@@ -185,7 +188,9 @@ func TestGraphGetAMR(t *testing.T) {
 				},
 			},
 		}
-		So(graph.GetAMR(), ShouldResemble, []string{"otp", "sms"})
+		amr = graph.GetAMR()
+		So(amr, ShouldResemble, []string{"otp", "sms"})
+		So(graph.GetACR(amr), ShouldEqual, "")
 
 		// password + email oob
 		graph = &newinteraction.Graph{
@@ -207,7 +212,9 @@ func TestGraphGetAMR(t *testing.T) {
 				},
 			},
 		}
-		So(graph.GetAMR(), ShouldResemble, []string{"mfa", "otp", "pwd"})
+		amr = graph.GetAMR()
+		So(amr, ShouldResemble, []string{"mfa", "otp", "pwd"})
+		So(graph.GetACR(amr), ShouldEqual, authn.ACRMFA)
 
 		// password + SMS oob
 		graph = &newinteraction.Graph{
@@ -229,7 +236,9 @@ func TestGraphGetAMR(t *testing.T) {
 				},
 			},
 		}
-		So(graph.GetAMR(), ShouldResemble, []string{"mfa", "otp", "pwd", "sms"})
+		amr = graph.GetAMR()
+		So(amr, ShouldResemble, []string{"mfa", "otp", "pwd", "sms"})
+		So(graph.GetACR(amr), ShouldEqual, authn.ACRMFA)
 
 		// oauth + totp
 		graph = &newinteraction.Graph{
@@ -242,6 +251,8 @@ func TestGraphGetAMR(t *testing.T) {
 				},
 			},
 		}
-		So(graph.GetAMR(), ShouldResemble, []string{"mfa", "otp"})
+		amr = graph.GetAMR()
+		So(amr, ShouldResemble, []string{"mfa", "otp"})
+		So(graph.GetACR(amr), ShouldEqual, authn.ACRMFA)
 	})
 }

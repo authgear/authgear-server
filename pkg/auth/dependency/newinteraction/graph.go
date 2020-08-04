@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/core/utils"
 )
 
 const GraphLifetime = 5 * time.Minute
@@ -213,6 +214,14 @@ func (g *Graph) GetAMR() []string {
 	sort.Strings(amr)
 
 	return amr
+}
+
+func (g *Graph) GetACR(amrValues []string) string {
+	if utils.StringSliceContains(amrValues, authn.AMRMFA) {
+		return authn.ACRMFA
+	}
+
+	return ""
 }
 
 // Apply applies the effect the the graph nodes into the context.
