@@ -22,16 +22,24 @@ func TestService(t *testing.T) {
 		identities := NewMockIdentityService(ctrl)
 		authenticators := NewMockAuthenticatorService(ctrl)
 		t := true
+		f := false
 		service := &Service{
 			Config: &config.VerificationConfig{
 				Criteria: config.VerificationCriteriaAny,
 			},
 			LoginID: &config.LoginIDConfig{
-				Keys: []config.LoginIDKeyConfig{{
-					Key:          "email",
-					Type:         "email",
-					Verification: &config.VerificationLoginIDKeyConfig{Enabled: &t},
-				}},
+				Keys: []config.LoginIDKeyConfig{
+					{
+						Key:          "email",
+						Type:         "email",
+						Verification: &config.VerificationLoginIDKeyConfig{Enabled: &t, Required: &f},
+					},
+					{
+						Key:          "username",
+						Type:         "username",
+						Verification: &config.VerificationLoginIDKeyConfig{Enabled: &t, Required: &t},
+					},
+				},
 			},
 			Identities:     identities,
 			Authenticators: authenticators,
@@ -61,7 +69,7 @@ func TestService(t *testing.T) {
 			}
 		}
 
-		must := func(value bool, err error) bool {
+		must := func(value Status, err error) Status {
 			So(err, ShouldBeNil)
 			return value
 		}
@@ -71,31 +79,35 @@ func TestService(t *testing.T) {
 			So(service.IsIdentityVerifiable(identityOfType(authn.IdentityTypeAnonymous)), ShouldBeFalse)
 			So(service.IsIdentityVerifiable(identityLoginID("email", "foo@example.com")), ShouldBeTrue)
 			So(service.IsIdentityVerifiable(identityLoginID("phone", "+85200000000")), ShouldBeFalse)
-			So(service.IsIdentityVerifiable(identityLoginID("username", "bar")), ShouldBeFalse)
+			So(service.IsIdentityVerifiable(identityLoginID("username", "bar")), ShouldBeTrue)
 		})
 
 		Convey("IsIdentityVerified", func() {
-			So(must(service.IsIdentityVerified(identityOfType(authn.IdentityTypeAnonymous))), ShouldBeFalse)
+			So(must(service.GetVerificationStatus(identityOfType(authn.IdentityTypeAnonymous))), ShouldEqual, StatusDisabled)
 
 			authenticators.EXPECT().List("user-id").Return(nil, nil)
-			So(must(service.IsIdentityVerified(identityOfType(authn.IdentityTypeOAuth))), ShouldBeTrue)
+			So(must(service.GetVerificationStatus(identityOfType(authn.IdentityTypeOAuth))), ShouldEqual, StatusVerified)
 
 			authenticators.EXPECT().List("user-id").Return([]*authenticator.Info{{
 				ID:    "email",
 				Type:  authn.AuthenticatorTypeOOB,
 				Props: map[string]interface{}{authenticator.AuthenticatorPropOOBOTPEmail: "foo@example.com"},
 			}}, nil)
-			So(must(service.IsIdentityVerified(identityLoginID("email", "foo@example.com"))), ShouldBeTrue)
+			So(must(service.GetVerificationStatus(identityLoginID("email", "foo@example.com"))), ShouldEqual, StatusVerified)
 
 			authenticators.EXPECT().List("user-id").Return([]*authenticator.Info{{
 				ID:    "phone",
 				Type:  authn.AuthenticatorTypeOOB,
 				Props: map[string]interface{}{authenticator.AuthenticatorPropOOBOTPPhone: "+85200000000"},
 			}}, nil)
-			So(must(service.IsIdentityVerified(identityLoginID("email", "foo@example.com"))), ShouldBeFalse)
+			So(must(service.GetVerificationStatus(identityLoginID("email", "foo@example.com"))), ShouldEqual, StatusPending)
 
-			So(must(service.IsIdentityVerified(identityLoginID("phone", "+85200000000"))), ShouldBeFalse)
-			So(must(service.IsIdentityVerified(identityLoginID("username", "bar"))), ShouldBeFalse)
+			So(must(service.GetVerificationStatus(identityLoginID("phone", "+85200000000"))), ShouldEqual, StatusDisabled)
+
+			authenticators.EXPECT().List("user-id").Return([]*authenticator.Info{
+				{ID: "phone", Props: map[string]interface{}{"test-id": "login-id-+85200000000"}},
+			}, nil)
+			So(must(service.GetVerificationStatus(identityLoginID("username", "bar"))), ShouldEqual, StatusRequired)
 		})
 
 		Convey("IsVerified", func() {

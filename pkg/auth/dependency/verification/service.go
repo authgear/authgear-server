@@ -57,6 +57,15 @@ func (s *Service) isLoginIDKeyVerifiable(key string) bool {
 	return false
 }
 
+func (s *Service) isLoginIDKeyRequired(key string) bool {
+	for _, c := range s.LoginID.Keys {
+		if c.Key == key {
+			return *c.Verification.Required
+		}
+	}
+	return false
+}
+
 func (s *Service) IsIdentityVerifiable(i *identity.Info) bool {
 	switch i.Type {
 	case authn.IdentityTypeLoginID:
@@ -69,40 +78,55 @@ func (s *Service) IsIdentityVerifiable(i *identity.Info) bool {
 	}
 }
 
-func (s *Service) isIdentityVerified(i *identity.Info, ais []*authenticator.Info) bool {
+func (s *Service) getVerificationStatus(i *identity.Info, ais []*authenticator.Info) Status {
 	if !s.IsIdentityVerifiable(i) {
-		return false
+		return StatusDisabled
 	}
 
+	var isVerified bool
+	var isRequired bool
 	switch i.Type {
 	case authn.IdentityTypeLoginID:
-		matched := false
+		isVerified = false
 		filter := authenticator.KeepMatchingAuthenticatorOfIdentity(i)
 		for _, a := range ais {
 			if filter.Keep(a) {
-				matched = true
+				isVerified = true
 				break
 			}
 		}
-		return matched
+
+		loginIDKey := i.Claims[identity.IdentityClaimLoginIDKey].(string)
+		isRequired = s.isLoginIDKeyRequired(loginIDKey)
 	case authn.IdentityTypeOAuth:
-		return true
+		isVerified = true
+		isRequired = false
 	default:
-		return false
+		isVerified = false
+		isRequired = false
+	}
+
+	switch {
+	case isVerified:
+		return StatusVerified
+	case isRequired:
+		return StatusRequired
+	default:
+		return StatusPending
 	}
 }
 
-func (s *Service) IsIdentityVerified(i *identity.Info) (bool, error) {
+func (s *Service) GetVerificationStatus(i *identity.Info) (Status, error) {
 	if !s.IsIdentityVerifiable(i) {
-		return false, nil
+		return StatusDisabled, nil
 	}
 
 	authenticators, err := s.Authenticators.List(i.UserID)
 	if err != nil {
-		return false, err
+		return "", err
 	}
 
-	return s.isIdentityVerified(i, authenticators), nil
+	return s.getVerificationStatus(i, authenticators), nil
 }
 
 func (s *Service) IsUserVerified(userID string) (bool, error) {
@@ -123,14 +147,17 @@ func (s *Service) IsVerified(identities []*identity.Info, authenticators []*auth
 	numVerifiable := 0
 	numVerified := 0
 	for _, i := range identities {
-		if !s.IsIdentityVerifiable(i) {
-			continue
-		}
-
-		numVerifiable++
-
-		if s.isIdentityVerified(i, authenticators) {
+		status := s.getVerificationStatus(i, authenticators)
+		switch status {
+		case StatusVerified:
+			numVerifiable++
 			numVerified++
+		case StatusPending, StatusRequired:
+			numVerifiable++
+		case StatusDisabled:
+			break
+		default:
+			panic("verification: unknown status:" + status)
 		}
 	}
 
