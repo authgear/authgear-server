@@ -189,11 +189,13 @@ func (s *Service) CreateNewCode(id string, info *identity.Info) (*Code, error) {
 	}
 
 	codeModel := &Code{
-		ID:         id,
-		UserID:     info.UserID,
-		IdentityID: info.ID,
-		Code:       code,
-		ExpireAt:   s.Clock.NowUTC().Add(s.Config.CodeExpiry.Duration()),
+		ID:          id,
+		UserID:      info.UserID,
+		IdentityID:  info.ID,
+		LoginIDType: string(loginIDType),
+		LoginID:     info.Claims[identity.IdentityClaimLoginIDValue].(string),
+		Code:        code,
+		ExpireAt:    s.Clock.NowUTC().Add(s.Config.CodeExpiry.Duration()),
 	}
 
 	err := s.Store.Create(codeModel)
@@ -223,24 +225,19 @@ func (s *Service) VerifyCode(id string, code string) error {
 	return nil
 }
 
-func (s *Service) SendCode(
-	loginIDType config.LoginIDKeyType,
-	loginIDValue string,
-	code *Code,
-	url string,
-) error {
+func (s *Service) SendCode(code *Code, url string) error {
 	opts := otp.SendOptions{
 		OTP:         code.Code,
 		URL:         url,
 		MessageType: otp.MessageTypeVerification,
 	}
 
-	switch loginIDType {
+	switch config.LoginIDKeyType(code.LoginIDType) {
 	case config.LoginIDKeyTypeEmail:
-		return s.OTPMessageSender.SendEmail(loginIDValue, opts, s.Config.Email.Message)
+		return s.OTPMessageSender.SendEmail(code.LoginID, opts, s.Config.Email.Message)
 	case config.LoginIDKeyTypePhone:
-		return s.OTPMessageSender.SendSMS(loginIDValue, opts, s.Config.SMS.Message)
+		return s.OTPMessageSender.SendSMS(code.LoginID, opts, s.Config.SMS.Message)
 	default:
-		panic("verification: unsupported login ID type: " + loginIDType)
+		panic("verification: unsupported login ID type: " + code.LoginIDType)
 	}
 }
