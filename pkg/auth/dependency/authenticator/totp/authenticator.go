@@ -10,4 +10,5 @@ type Authenticator struct {
 	CreatedAt   time.Time
 	Secret      string
 	DisplayName string
+	Tag         []string
 }

@@ -15,17 +15,9 @@ type InputRemoveIdentity interface {
 	GetIdentityID() string
 }
 
-type EdgeRemoveIdentity struct {
-	IdentityInfo *identity.Info
-}
+type EdgeRemoveIdentity struct{}
 
 func (e *EdgeRemoveIdentity) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
-	if e.IdentityInfo != nil {
-		return &NodeRemoveIdentity{
-			IdentityInfo: e.IdentityInfo,
-		}, nil
-	}
-
 	input, ok := rawInput.(InputRemoveIdentity)
 	if !ok {
 		return nil, newinteraction.ErrIncompatibleInput
@@ -50,28 +42,6 @@ type NodeRemoveIdentity struct {
 }
 
 func (n *NodeRemoveIdentity) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
-	err := perform(newinteraction.EffectRun(func(ctx *newinteraction.Context) error {
-		userID := graph.MustGetUserID()
-		identityInfos, err := ctx.Identities.ListByUser(userID)
-		if err != nil {
-			return err
-		}
-
-		if len(identityInfos) <= 1 {
-			return newinteraction.ErrCannotRemoveLastIdentity
-		}
-
-		err = ctx.Identities.Delete(n.IdentityInfo)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	}))
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 

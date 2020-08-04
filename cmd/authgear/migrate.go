@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -65,7 +66,23 @@ var cmdMigrateDown = &cobra.Command{
 			log.Fatalf("cannot load secret config: %s", err)
 		}
 
-		migrate.Down(migrate.Options{
+		if len(args) == 0 {
+			log.Fatalf("number of migrations to revert not specified; specify 'all' to revert all migrations")
+		}
+
+		var numMigrations int
+		if args[0] == "all" {
+			numMigrations = 0
+		} else {
+			numMigrations, err = strconv.Atoi(args[0])
+			if err != nil {
+				log.Fatalf("invalid number of migrations specified: %s", err)
+			} else if numMigrations <= 0 {
+				log.Fatal("no migrations specified to revert")
+			}
+		}
+
+		migrate.Down(numMigrations, migrate.Options{
 			DatabaseURL:    credentials.DatabaseURL,
 			DatabaseSchema: credentials.DatabaseSchema,
 		})

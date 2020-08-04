@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
@@ -23,7 +24,7 @@ type LoginIDIdentityProvider interface {
 	Create(i *loginid.Identity) error
 	Update(i *loginid.Identity) error
 	Delete(i *loginid.Identity) error
-	CheckDuplicated(uniqueKey string, standardClaims map[string]string, userID string) error
+	CheckDuplicated(uniqueKey string, standardClaims map[string]string, userID string) (*loginid.Identity, error)
 }
 
 type OAuthIdentityProvider interface {
@@ -42,7 +43,7 @@ type OAuthIdentityProvider interface {
 	Create(i *oauth.Identity) error
 	Update(i *oauth.Identity) error
 	Delete(i *oauth.Identity) error
-	CheckDuplicated(standardClaims map[string]string, userID string) error
+	CheckDuplicated(standardClaims map[string]string, userID string) (*oauth.Identity, error)
 }
 
 type AnonymousIdentityProvider interface {
@@ -146,6 +147,39 @@ func (s *Service) ListByUser(userID string) ([]*identity.Info, error) {
 
 	// anonymous
 	ais, err := s.Anonymous.List(userID)
+	if err != nil {
+		return nil, err
+	}
+	for _, i := range ais {
+		infos = append(infos, anonymousToIdentityInfo(i))
+	}
+
+	return infos, nil
+}
+
+func (s *Service) ListByClaim(name string, value string) ([]*identity.Info, error) {
+	var infos []*identity.Info
+
+	// login id
+	lis, err := s.LoginID.ListByClaim(name, value)
+	if err != nil {
+		return nil, err
+	}
+	for _, i := range lis {
+		infos = append(infos, loginIDToIdentityInfo(i))
+	}
+
+	// oauth
+	ois, err := s.OAuth.ListByClaim(name, value)
+	if err != nil {
+		return nil, err
+	}
+	for _, i := range ois {
+		infos = append(infos, s.toIdentityInfo(i))
+	}
+
+	// anonymous
+	ais, err := s.Anonymous.ListByClaim(name, value)
 	if err != nil {
 		return nil, err
 	}
@@ -270,7 +304,7 @@ func (s *Service) Delete(info *identity.Info) error {
 	return nil
 }
 
-func (s *Service) CheckDuplicated(is *identity.Info) (err error) {
+func (s *Service) CheckDuplicated(is *identity.Info) (dupeIdentity *identity.Info, err error) {
 	// extract login id unique key
 	loginIDUniqueKey := ""
 	if is.Type == authn.IdentityTypeLoginID {
@@ -281,14 +315,20 @@ func (s *Service) CheckDuplicated(is *identity.Info) (err error) {
 	// extract standard claims
 	claims := extractStandardClaims(is.Claims)
 
-	err = s.LoginID.CheckDuplicated(loginIDUniqueKey, claims, is.UserID)
-	if err != nil {
-		return err
+	li, err := s.LoginID.CheckDuplicated(loginIDUniqueKey, claims, is.UserID)
+	if errors.Is(err, identity.ErrIdentityAlreadyExists) {
+		dupeIdentity = loginIDToIdentityInfo(li)
+		return
+	} else if err != nil {
+		return
 	}
 
-	err = s.OAuth.CheckDuplicated(claims, is.UserID)
-	if err != nil {
-		return err
+	oi, err := s.OAuth.CheckDuplicated(claims, is.UserID)
+	if errors.Is(err, identity.ErrIdentityAlreadyExists) {
+		dupeIdentity = s.toIdentityInfo(oi)
+		return
+	} else if err != nil {
+		return
 	}
 
 	// No need to consider anonymous identity

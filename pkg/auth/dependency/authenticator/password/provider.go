@@ -4,11 +4,13 @@ import (
 	"sort"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	taskspec "github.com/authgear/authgear-server/pkg/auth/task/spec"
 	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/errors"
 	pwd "github.com/authgear/authgear-server/pkg/core/password"
 	"github.com/authgear/authgear-server/pkg/core/uuid"
 	"github.com/authgear/authgear-server/pkg/log"
+	"github.com/authgear/authgear-server/pkg/task"
 )
 
 type Logger struct{ *log.Logger }
@@ -22,6 +24,7 @@ type Provider struct {
 	Logger          Logger
 	PasswordHistory *HistoryStore
 	PasswordChecker *Checker
+	TaskQueue       task.Queue
 }
 
 func (p *Provider) Get(userID string, id string) (*Authenticator, error) {
@@ -42,10 +45,14 @@ func (p *Provider) List(userID string) ([]*Authenticator, error) {
 	return authenticators, nil
 }
 
-func (p *Provider) New(userID string, password string) (*Authenticator, error) {
+func (p *Provider) New(userID string, password string, tag []string) (*Authenticator, error) {
+	if tag == nil {
+		tag = []string{}
+	}
 	authen := &Authenticator{
 		ID:     uuid.New(),
 		UserID: userID,
+		Tag:    tag,
 	}
 	// Empty password is not supported in password authenticator
 	// If the password is empty string means no password for this password authenticator
@@ -135,6 +142,13 @@ func (p *Provider) UpdatePassword(a *Authenticator) error {
 	if err != nil {
 		return err
 	}
+
+	p.TaskQueue.Enqueue(task.Spec{
+		Name: taskspec.PwHousekeeperTaskName,
+		Param: taskspec.PwHousekeeperTaskParam{
+			AuthID: a.UserID,
+		},
+	})
 
 	return nil
 }

@@ -12,7 +12,7 @@ import (
 type PasswordAuthenticatorProvider interface {
 	Get(userID, id string) (*password.Authenticator, error)
 	List(userID string) ([]*password.Authenticator, error)
-	New(userID string, password string) (*password.Authenticator, error)
+	New(userID string, password string, tag []string) (*password.Authenticator, error)
 	// WithPassword returns new authenticator pointer if password is changed
 	// Otherwise original authenticator will be returned
 	WithPassword(a *password.Authenticator, password string) (*password.Authenticator, error)
@@ -25,7 +25,7 @@ type PasswordAuthenticatorProvider interface {
 type TOTPAuthenticatorProvider interface {
 	Get(userID, id string) (*totp.Authenticator, error)
 	List(userID string) ([]*totp.Authenticator, error)
-	New(userID string) *totp.Authenticator
+	New(userID string, displayName string, tag []string) *totp.Authenticator
 	Create(*totp.Authenticator) error
 	Delete(*totp.Authenticator) error
 	Authenticate(candidates []*totp.Authenticator, code string) *totp.Authenticator
@@ -34,7 +34,7 @@ type TOTPAuthenticatorProvider interface {
 type OOBOTPAuthenticatorProvider interface {
 	Get(userID, id string) (*oob.Authenticator, error)
 	List(userID string) ([]*oob.Authenticator, error)
-	New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string) *oob.Authenticator
+	New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string, tag []string) *oob.Authenticator
 	Create(*oob.Authenticator) error
 	Delete(*oob.Authenticator) error
 	Authenticate(secret string, channel authn.AuthenticatorOOBChannel, code string) error
@@ -73,7 +73,7 @@ func (s *Service) Get(userID string, typ authn.AuthenticatorType, id string) (*a
 	panic("authenticator: unknown authenticator type " + typ)
 }
 
-func (s *Service) ListAll(userID string) ([]*authenticator.Info, error) {
+func (s *Service) List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error) {
 	var ais []*authenticator.Info
 	{
 		as, err := s.Password.List(userID)
@@ -102,23 +102,22 @@ func (s *Service) ListAll(userID string) ([]*authenticator.Info, error) {
 			ais = append(ais, oobotpToAuthenticatorInfo(a))
 		}
 	}
-	return ais, nil
-}
 
-func (s *Service) List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error) {
-	all, err := s.ListAll(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	var ais []*authenticator.Info
-	for _, ai := range all {
-		if ai.Type == typ {
-			ais = append(ais, ai)
+	var filtered []*authenticator.Info
+	for _, a := range ais {
+		keep := true
+		for _, f := range filters {
+			if !f.Keep(a) {
+				keep = false
+				break
+			}
+		}
+		if keep {
+			filtered = append(filtered, a)
 		}
 	}
 
-	return ais, nil
+	return filtered, nil
 }
 
 func (s *Service) FilterPrimaryAuthenticators(ii *identity.Info, ais []*authenticator.Info) (out []*authenticator.Info) {
@@ -168,14 +167,15 @@ func (s *Service) FilterMatchingAuthenticators(ii *identity.Info, ais []*authent
 func (s *Service) New(spec *authenticator.Spec, secret string) (*authenticator.Info, error) {
 	switch spec.Type {
 	case authn.AuthenticatorTypePassword:
-		p, err := s.Password.New(spec.UserID, secret)
+		p, err := s.Password.New(spec.UserID, secret, spec.Tag)
 		if err != nil {
 			return nil, err
 		}
 		return passwordToAuthenticatorInfo(p), nil
 
 	case authn.AuthenticatorTypeTOTP:
-		t := s.TOTP.New(spec.UserID)
+		displayName := spec.Props[authenticator.AuthenticatorPropTOTPDisplayName].(string)
+		t := s.TOTP.New(spec.UserID, displayName, spec.Tag)
 		return totpToAuthenticatorInfo(t), nil
 
 	case authn.AuthenticatorTypeOOB:
@@ -187,7 +187,7 @@ func (s *Service) New(spec *authenticator.Spec, secret string) (*authenticator.I
 		case authn.AuthenticatorOOBChannelEmail:
 			email = spec.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string)
 		}
-		o := s.OOBOTP.New(spec.UserID, authn.AuthenticatorOOBChannel(channel), phone, email)
+		o := s.OOBOTP.New(spec.UserID, authn.AuthenticatorOOBChannel(channel), phone, email, spec.Tag)
 		return oobotpToAuthenticatorInfo(o), nil
 	}
 

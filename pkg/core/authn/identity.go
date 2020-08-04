@@ -14,7 +14,6 @@ func (t IdentityType) PrimaryAuthenticatorTypes() []AuthenticatorType {
 	case IdentityTypeLoginID:
 		return []AuthenticatorType{
 			AuthenticatorTypePassword,
-			AuthenticatorTypeTOTP,
 			AuthenticatorTypeOOB,
 		}
 	case IdentityTypeOAuth:

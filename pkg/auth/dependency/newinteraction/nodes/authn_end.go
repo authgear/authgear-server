@@ -36,7 +36,3 @@ func (n *NodeAuthenticationEnd) Apply(perform func(eff newinteraction.Effect) er
 func (n *NodeAuthenticationEnd) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	return graph.Intent.DeriveEdgesForNode(ctx, graph, n)
 }
-
-func (n *NodeAuthenticationEnd) UserAuthenticator() (newinteraction.AuthenticationStage, *authenticator.Info) {
-	return n.Stage, n.VerifiedAuthenticator
-}

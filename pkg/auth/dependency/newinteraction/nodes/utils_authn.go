@@ -28,7 +28,10 @@ func getAuthenticators(
 	var err error
 	if stage == newinteraction.AuthenticationStagePrimary {
 		identityInfo = graph.MustGetUserLastIdentity()
-		infos, err = ctx.Authenticators.ListAll(identityInfo.UserID)
+		infos, err = ctx.Authenticators.List(
+			identityInfo.UserID,
+			authenticator.KeepTag(authenticator.TagPrimaryAuthenticator),
+		)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -44,7 +47,10 @@ func getAuthenticators(
 		infos = infos[:n]
 	} else {
 		userID := graph.MustGetUserID()
-		infos, err = ctx.Authenticators.List(userID, typ)
+		infos, err = ctx.Authenticators.List(
+			userID,
+			authenticator.KeepType(typ),
+		)
 	}
 	if err != nil {
 		return nil, nil, err
@@ -100,4 +106,15 @@ func sendOOBCode(
 
 	code := ctx.OOBAuthenticators.GenerateCode(secret, channel)
 	return ctx.OOBAuthenticators.SendCode(channel, target, code, messageType)
+}
+
+func stageToAuthenticatorTag(stage newinteraction.AuthenticationStage) []string {
+	switch stage {
+	case newinteraction.AuthenticationStagePrimary:
+		return []string{authenticator.TagPrimaryAuthenticator}
+	case newinteraction.AuthenticationStageSecondary:
+		return []string{authenticator.TagSecondaryAuthenticator}
+	default:
+		panic("interaction: unknown stage: " + stage)
+	}
 }

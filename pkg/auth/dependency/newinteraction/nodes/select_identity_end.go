@@ -43,14 +43,3 @@ func (n *NodeSelectIdentityEnd) Apply(perform func(eff newinteraction.Effect) er
 func (n *NodeSelectIdentityEnd) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	return graph.Intent.DeriveEdgesForNode(ctx, graph, n)
 }
-
-func (n *NodeSelectIdentityEnd) UserIdentity() *identity.Info {
-	return n.IdentityInfo
-}
-
-func (n *NodeSelectIdentityEnd) UserID() string {
-	if n.IdentityInfo == nil {
-		return ""
-	}
-	return n.IdentityInfo.UserID
-}

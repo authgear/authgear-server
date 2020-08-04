@@ -29,6 +29,7 @@ func (e *EdgeAuthenticationTOTP) Instantiate(ctx *newinteraction.Context, graph 
 	userID := graph.MustGetUserID()
 	spec := &authenticator.Spec{
 		UserID: userID,
+		Tag:    stageToAuthenticatorTag(e.Stage),
 		Type:   authn.AuthenticatorTypeTOTP,
 		Props:  map[string]interface{}{},
 	}

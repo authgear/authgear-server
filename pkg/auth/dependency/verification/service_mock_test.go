@@ -8,7 +8,6 @@ import (
 	config "github.com/authgear/authgear-server/pkg/auth/config"
 	authenticator "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	identity "github.com/authgear/authgear-server/pkg/auth/dependency/identity"
-	authn "github.com/authgear/authgear-server/pkg/core/authn"
 	otp "github.com/authgear/authgear-server/pkg/otp"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
@@ -90,18 +89,23 @@ func (m *MockAuthenticatorProvider) EXPECT() *MockAuthenticatorProviderMockRecor
 }
 
 // List mocks base method
-func (m *MockAuthenticatorProvider) List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error) {
+func (m *MockAuthenticatorProvider) List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", userID, typ)
+	varargs := []interface{}{userID}
+	for _, a := range filters {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "List", varargs...)
 	ret0, _ := ret[0].([]*authenticator.Info)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List
-func (mr *MockAuthenticatorProviderMockRecorder) List(userID, typ interface{}) *gomock.Call {
+func (mr *MockAuthenticatorProviderMockRecorder) List(userID interface{}, filters ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockAuthenticatorProvider)(nil).List), userID, typ)
+	varargs := append([]interface{}{userID}, filters...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockAuthenticatorProvider)(nil).List), varargs...)
 }
 
 // MockOTPMessageSender is a mock of OTPMessageSender interface

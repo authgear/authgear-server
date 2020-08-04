@@ -36,7 +36,10 @@ func (n *NodeAuthenticationBegin) DeriveEdges(ctx *newinteraction.Context, graph
 
 	switch n.Stage {
 	case newinteraction.AuthenticationStagePrimary:
-		availableAuthenticators, err = ctx.Authenticators.ListAll(identityInfo.UserID)
+		availableAuthenticators, err = ctx.Authenticators.List(
+			identityInfo.UserID,
+			authenticator.KeepTag(authenticator.TagPrimaryAuthenticator),
+		)
 		if err != nil {
 			return nil, err
 		}

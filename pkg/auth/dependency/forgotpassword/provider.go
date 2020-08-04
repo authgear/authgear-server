@@ -7,6 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	taskspec "github.com/authgear/authgear-server/pkg/auth/task/spec"
 	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/authn"
@@ -19,9 +20,13 @@ import (
 )
 
 type AuthenticatorService interface {
-	List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error)
+	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
 	WithSecret(ai *authenticator.Info, secret string) (bool, *authenticator.Info, error)
+}
+
+type IdentityService interface {
+	ListByClaim(name string, value string) ([]*identity.Info, error)
 }
 
 type URLProvider interface {
@@ -50,6 +55,7 @@ type Provider struct {
 
 	Logger ProviderLogger
 
+	Identities     IdentityService
 	Authenticators AuthenticatorService
 }
 
@@ -59,49 +65,63 @@ type Provider struct {
 // The code expires after a specific time.
 // The code becomes invalid if it is consumed.
 // Finally the code is sent to the login ID asynchronously.
-func (p *Provider) SendCode(loginID string) (err error) {
-	// FIXME(forgotpassword): interpret the given value as email claim or phone_number claim to look up user.
+func (p *Provider) SendCode(loginID string) error {
+	emailIdentities, err := p.Identities.ListByClaim("email", loginID)
+	if err != nil {
+		return err
+	}
+	phoneIdentities, err := p.Identities.ListByClaim("phone", loginID)
+	if err != nil {
+		return err
+	}
+
+	allIdentities := append(emailIdentities, phoneIdentities...)
+	if len(allIdentities) == 0 {
+		return ErrUserNotFound
+	}
+
+	for _, info := range allIdentities {
+		authenticators, err := p.Authenticators.List(
+			info.UserID,
+			authenticator.KeepType(authn.AuthenticatorTypePassword),
+			authenticator.KeepTag(authenticator.TagPrimaryAuthenticator),
+		)
+		if err != nil {
+			return err
+		} else if len(authenticators) == 0 {
+			return ErrNoPassword
+		}
+	}
+
+	for _, info := range emailIdentities {
+		email := info.Claims["email"].(string)
+		code, codeStr := p.newCode(info.UserID)
+
+		if err := p.Store.Create(code); err != nil {
+			return err
+		}
+
+		p.Logger.Debugf("sending email")
+		if err := p.sendEmail(email, codeStr); err != nil {
+			return err
+		}
+	}
+
+	for _, info := range phoneIdentities {
+		phone := info.Claims["phone"].(string)
+		code, codeStr := p.newCode(info.UserID)
+
+		if err := p.Store.Create(code); err != nil {
+			return err
+		}
+
+		p.Logger.Debugf("sending sms")
+		if err := p.sendSMS(phone, codeStr); err != nil {
+			return err
+		}
+	}
+
 	return nil
-
-	// idens, err := p.LoginIDProvider.GetByLoginID(
-	// 	loginid.LoginID{
-	// 		Key:   "",
-	// 		Value: loginID,
-	// 	},
-	// )
-	// if err != nil {
-	// 	return
-	// }
-
-	// for _, iden := range idens {
-	// 	email := p.LoginIDProvider.IsLoginIDKeyType(iden.LoginIDKey, config.LoginIDKeyTypeEmail)
-	// 	phone := p.LoginIDProvider.IsLoginIDKeyType(iden.LoginIDKey, config.LoginIDKeyTypePhone)
-
-	// 	if !email && !phone {
-	// 		continue
-	// 	}
-
-	// 	code, codeStr := p.newCode(iden.UserID)
-
-	// 	err = p.Store.Create(code)
-	// 	if err != nil {
-	// 		return
-	// 	}
-
-	// 	if email {
-	// 		p.Logger.Debugf("sending email")
-	// 		err = p.sendEmail(iden.LoginID, codeStr)
-	// 		return
-	// 	}
-
-	// 	if phone {
-	// 		p.Logger.Debugf("sending sms")
-	// 		err = p.sendSMS(iden.LoginID, codeStr)
-	// 		return
-	// 	}
-	// }
-
-	// return
 }
 
 func (p *Provider) newCode(userID string) (code *Code, codeStr string) {
@@ -212,7 +232,7 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 // Otherwise, the password is reset to newPassword.
 // newPassword is checked against the password policy so
 // password policy error may also be returned.
-func (p *Provider) ResetPassword(codeStr string, newPassword string) (userID string, newInfo *authenticator.Info, updateInfo *authenticator.Info, err error) {
+func (p *Provider) ResetPassword(codeStr string, newPassword string) (oldInfo *authenticator.Info, newInfo *authenticator.Info, err error) {
 	codeHash := HashCode(codeStr)
 	code, err := p.Store.Get(codeHash)
 	if err != nil {
@@ -229,26 +249,23 @@ func (p *Provider) ResetPassword(codeStr string, newPassword string) (userID str
 		return
 	}
 
-	userID = code.UserID
-
 	// First see if the user has password authenticator.
-	ais, err := p.Authenticators.List(userID, authn.AuthenticatorTypePassword)
+	ais, err := p.Authenticators.List(
+		code.UserID,
+		authenticator.KeepType(authn.AuthenticatorTypePassword),
+		authenticator.KeepTag(authenticator.TagPrimaryAuthenticator),
+	)
 	if err != nil {
 		return
 	}
 
-	// The user has no password. Create one for them.
+	// Ensure user has password authenticator
 	if len(ais) == 0 {
-		p.Logger.Debugf("creating new password")
-		newInfo, err = p.Authenticators.New(&authenticator.Spec{
-			UserID: userID,
-			Type:   authn.AuthenticatorTypePassword,
-			Props:  map[string]interface{}{},
-		}, newPassword)
-		if err != nil {
-			return
-		}
-	} else if len(ais) == 1 {
+		err = ErrNoPassword
+		return
+	}
+
+	if len(ais) == 1 {
 		p.Logger.Debugf("resetting password")
 		// The user has 1 password. Reset it.
 		var changed bool
@@ -258,11 +275,12 @@ func (p *Provider) ResetPassword(codeStr string, newPassword string) (userID str
 			return
 		}
 		if changed {
-			updateInfo = ai
+			oldInfo = ais[0]
+			newInfo = ai
 		}
 	} else {
 		// Otherwise the user has two passwords :(
-		err = fmt.Errorf("forgotpassword: detected user %s having more than 1 password", userID)
+		err = fmt.Errorf("forgotpassword: detected user %s having more than 1 password", code.UserID)
 		return
 	}
 
@@ -284,13 +302,6 @@ func (p *Provider) AfterResetPassword(codeHash string) (err error) {
 	if err != nil {
 		return
 	}
-
-	p.TaskQueue.Enqueue(task.Spec{
-		Name: taskspec.PwHousekeeperTaskName,
-		Param: taskspec.PwHousekeeperTaskParam{
-			AuthID: code.UserID,
-		},
-	})
 
 	return
 }

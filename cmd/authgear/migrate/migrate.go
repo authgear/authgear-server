@@ -57,13 +57,13 @@ func Up(opts Options) {
 	}
 }
 
-func Down(opts Options) {
+func Down(numMigrations int, opts Options) {
 	db := openDB(opts)
 	migrations := &migrate.FileMigrationSource{
 		Dir: migrationsDir,
 	}
 
-	n, err := migrate.Exec(db, "postgres", migrations, migrate.Down)
+	n, err := migrate.ExecMax(db, "postgres", migrations, migrate.Down, numMigrations)
 	log.Printf("reverted %d migrations.", n)
 	if err != nil {
 		log.Fatalf("cannot revert all migrations: %s", err)

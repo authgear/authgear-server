@@ -169,11 +169,12 @@ func (mr *MockLoginIDIdentityProviderMockRecorder) Delete(i interface{}) *gomock
 }
 
 // CheckDuplicated mocks base method
-func (m *MockLoginIDIdentityProvider) CheckDuplicated(uniqueKey string, standardClaims map[string]string, userID string) error {
+func (m *MockLoginIDIdentityProvider) CheckDuplicated(uniqueKey string, standardClaims map[string]string, userID string) (*loginid.Identity, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CheckDuplicated", uniqueKey, standardClaims, userID)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*loginid.Identity)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // CheckDuplicated indicates an expected call of CheckDuplicated
@@ -337,11 +338,12 @@ func (mr *MockOAuthIdentityProviderMockRecorder) Delete(i interface{}) *gomock.C
 }
 
 // CheckDuplicated mocks base method
-func (m *MockOAuthIdentityProvider) CheckDuplicated(standardClaims map[string]string, userID string) error {
+func (m *MockOAuthIdentityProvider) CheckDuplicated(standardClaims map[string]string, userID string) (*oauth.Identity, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CheckDuplicated", standardClaims, userID)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*oauth.Identity)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // CheckDuplicated indicates an expected call of CheckDuplicated

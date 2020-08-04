@@ -19,10 +19,6 @@ func (i *Info) ToSpec() Spec {
 	return Spec{Type: i.Type, Claims: i.Claims}
 }
 
-func (i *Info) ToRef() Ref {
-	return Ref{ID: i.ID, Type: i.Type}
-}
-
 func (i *Info) ToModel() model.Identity {
 	claims := make(map[string]interface{})
 	for key, value := range i.Claims {

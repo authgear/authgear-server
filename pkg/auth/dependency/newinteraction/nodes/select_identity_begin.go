@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
@@ -10,14 +11,14 @@ func init() {
 }
 
 type EdgeSelectIdentityBegin struct {
+	Identity *identity.Info
 }
 
 func (e *EdgeSelectIdentityBegin) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
 	return &NodeSelectIdentityBegin{}, nil
 }
 
-type NodeSelectIdentityBegin struct {
-}
+type NodeSelectIdentityBegin struct{}
 
 func (n *NodeSelectIdentityBegin) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil

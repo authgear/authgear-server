@@ -28,13 +28,12 @@ type IdentityService interface {
 	Create(is *identity.Info) error
 	Update(is *identity.Info) error
 	Delete(is *identity.Info) error
-	CheckDuplicated(info *identity.Info) error
+	CheckDuplicated(info *identity.Info) (*identity.Info, error)
 }
 
 type AuthenticatorService interface {
 	Get(userID string, typ authn.AuthenticatorType, id string) (*authenticator.Info, error)
-	ListAll(userID string) ([]*authenticator.Info, error)
-	List(userID string, typ authn.AuthenticatorType) ([]*authenticator.Info, error)
+	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 	FilterPrimaryAuthenticators(ii *identity.Info, ais []*authenticator.Info) []*authenticator.Info
 	FilterMatchingAuthenticators(ii *identity.Info, ais []*authenticator.Info) []*authenticator.Info
 	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
@@ -103,7 +102,7 @@ type ForgotPasswordService interface {
 }
 
 type ResetPasswordService interface {
-	ResetPassword(code string, newPassword string) (userID string, newInfo *authenticator.Info, updateInfo *authenticator.Info, err error)
+	ResetPassword(code string, newPassword string) (oldInfo *authenticator.Info, newInfo *authenticator.Info, err error)
 	HashCode(code string) (codeHash string)
 	AfterResetPassword(codeHash string) error
 }

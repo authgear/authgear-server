@@ -15,6 +15,7 @@ func passwordToAuthenticatorInfo(p *password.Authenticator) *authenticator.Info 
 		UserID: p.UserID,
 		Secret: string(p.PasswordHash),
 		Props:  map[string]interface{}{},
+		Tag:    p.Tag,
 	}
 }
 
@@ -23,6 +24,7 @@ func passwordFromAuthenticatorInfo(a *authenticator.Info) *password.Authenticato
 		ID:           a.ID,
 		UserID:       a.UserID,
 		PasswordHash: []byte(a.Secret),
+		Tag:          a.Tag,
 	}
 }
 
@@ -35,6 +37,7 @@ func totpToAuthenticatorInfo(t *totp.Authenticator) *authenticator.Info {
 		Props: map[string]interface{}{
 			authenticator.AuthenticatorPropTOTPDisplayName: t.DisplayName,
 		},
+		Tag: t.Tag,
 	}
 }
 
@@ -44,6 +47,7 @@ func totpFromAuthenticatorInfo(a *authenticator.Info) *totp.Authenticator {
 		UserID:      a.UserID,
 		Secret:      a.Secret,
 		DisplayName: a.Props[authenticator.AuthenticatorPropTOTPDisplayName].(string),
+		Tag:         a.Tag,
 	}
 }
 
@@ -59,6 +63,7 @@ func oobotpToAuthenticatorInfo(o *oob.Authenticator) *authenticator.Info {
 			authenticator.AuthenticatorPropOOBOTPEmail:       o.Email,
 			authenticator.AuthenticatorPropOOBOTPPhone:       o.Phone,
 		},
+		Tag: o.Tag,
 	}
 }
 
@@ -69,5 +74,6 @@ func oobotpFromAuthenticatorInfo(a *authenticator.Info) *oob.Authenticator {
 		Channel: authn.AuthenticatorOOBChannel(a.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string)),
 		Phone:   a.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string),
 		Email:   a.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string),
+		Tag:     a.Tag,
 	}
 }
