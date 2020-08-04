@@ -6,7 +6,9 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
 func TestGraph(t *testing.T) {
@@ -129,5 +131,128 @@ func TestGraph(t *testing.T) {
 			So(graph.Nodes, ShouldResemble, []newinteraction.Node{nodeA, nodeC, nodeB, nodeD})
 			So(edges, ShouldResemble, []newinteraction.Edge{})
 		})
+	})
+}
+
+type testGraphGetAMRnode struct {
+	Stage         newinteraction.AuthenticationStage
+	Authenticator *authenticator.Info
+}
+
+func (n *testGraphGetAMRnode) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
+	return nil
+}
+
+func (n *testGraphGetAMRnode) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+	return nil, nil
+}
+
+func (n *testGraphGetAMRnode) UserAuthenticator() (newinteraction.AuthenticationStage, *authenticator.Info) {
+	return n.Stage, n.Authenticator
+}
+
+func TestGraphGetAMRACR(t *testing.T) {
+	Convey("GraphGetAMRACR", t, func() {
+		var graph *newinteraction.Graph
+		var amr []string
+
+		graph = &newinteraction.Graph{}
+		So(graph.GetAMR(), ShouldBeEmpty)
+
+		// password
+		graph = &newinteraction.Graph{
+			Nodes: []newinteraction.Node{
+				&testGraphGetAMRnode{
+					Stage: newinteraction.AuthenticationStagePrimary,
+					Authenticator: &authenticator.Info{
+						Type: authn.AuthenticatorTypePassword,
+					},
+				},
+			},
+		}
+		amr = graph.GetAMR()
+		So(amr, ShouldResemble, []string{"pwd"})
+		So(graph.GetACR(amr), ShouldEqual, "")
+
+		// oob
+		graph = &newinteraction.Graph{
+			Nodes: []newinteraction.Node{
+				&testGraphGetAMRnode{
+					Stage: newinteraction.AuthenticationStagePrimary,
+					Authenticator: &authenticator.Info{
+						Type: authn.AuthenticatorTypeOOB,
+						Props: map[string]interface{}{
+							authenticator.AuthenticatorPropOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
+						},
+					},
+				},
+			},
+		}
+		amr = graph.GetAMR()
+		So(amr, ShouldResemble, []string{"otp", "sms"})
+		So(graph.GetACR(amr), ShouldEqual, "")
+
+		// password + email oob
+		graph = &newinteraction.Graph{
+			Nodes: []newinteraction.Node{
+				&testGraphGetAMRnode{
+					Stage: newinteraction.AuthenticationStagePrimary,
+					Authenticator: &authenticator.Info{
+						Type: authn.AuthenticatorTypePassword,
+					},
+				},
+				&testGraphGetAMRnode{
+					Stage: newinteraction.AuthenticationStageSecondary,
+					Authenticator: &authenticator.Info{
+						Type: authn.AuthenticatorTypeOOB,
+						Props: map[string]interface{}{
+							authenticator.AuthenticatorPropOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
+						},
+					},
+				},
+			},
+		}
+		amr = graph.GetAMR()
+		So(amr, ShouldResemble, []string{"mfa", "otp", "pwd"})
+		So(graph.GetACR(amr), ShouldEqual, authn.ACRMFA)
+
+		// password + SMS oob
+		graph = &newinteraction.Graph{
+			Nodes: []newinteraction.Node{
+				&testGraphGetAMRnode{
+					Stage: newinteraction.AuthenticationStagePrimary,
+					Authenticator: &authenticator.Info{
+						Type: authn.AuthenticatorTypePassword,
+					},
+				},
+				&testGraphGetAMRnode{
+					Stage: newinteraction.AuthenticationStageSecondary,
+					Authenticator: &authenticator.Info{
+						Type: authn.AuthenticatorTypeOOB,
+						Props: map[string]interface{}{
+							authenticator.AuthenticatorPropOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
+						},
+					},
+				},
+			},
+		}
+		amr = graph.GetAMR()
+		So(amr, ShouldResemble, []string{"mfa", "otp", "pwd", "sms"})
+		So(graph.GetACR(amr), ShouldEqual, authn.ACRMFA)
+
+		// oauth + totp
+		graph = &newinteraction.Graph{
+			Nodes: []newinteraction.Node{
+				&testGraphGetAMRnode{
+					Stage: newinteraction.AuthenticationStageSecondary,
+					Authenticator: &authenticator.Info{
+						Type: authn.AuthenticatorTypeTOTP,
+					},
+				},
+			},
+		}
+		amr = graph.GetAMR()
+		So(amr, ShouldResemble, []string{"mfa", "otp"})
+		So(graph.GetACR(amr), ShouldEqual, authn.ACRMFA)
 	})
 }

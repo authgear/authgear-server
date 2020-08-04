@@ -3,10 +3,13 @@ package newinteraction
 import (
 	"encoding/json"
 	"errors"
+	"sort"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/core/utils"
 )
 
 const GraphLifetime = 5 * time.Minute
@@ -180,6 +183,45 @@ func (g *Graph) GetUserNewAuthenticators() []*authenticator.Info {
 		}
 	}
 	return authenticators
+}
+
+func (g *Graph) GetAMR() []string {
+	seen := make(map[string]struct{})
+	amr := []string{}
+
+	stages := []AuthenticationStage{
+		AuthenticationStagePrimary,
+		AuthenticationStageSecondary,
+	}
+
+	for _, stage := range stages {
+		ai, ok := g.GetUserAuthenticator(stage)
+		if ok {
+			if stage == AuthenticationStageSecondary {
+				amr = append(amr, authn.AMRMFA)
+			}
+
+			for _, value := range ai.AMR() {
+				_, ok := seen[value]
+				if !ok {
+					seen[value] = struct{}{}
+					amr = append(amr, value)
+				}
+			}
+		}
+	}
+
+	sort.Strings(amr)
+
+	return amr
+}
+
+func (g *Graph) GetACR(amrValues []string) string {
+	if utils.StringSliceContains(amrValues, authn.AMRMFA) {
+		return authn.ACRMFA
+	}
+
+	return ""
 }
 
 // Apply applies the effect the the graph nodes into the context.

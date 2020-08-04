@@ -19,11 +19,12 @@ type EdgeDoCreateSession struct {
 }
 
 func (e *EdgeDoCreateSession) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, input interface{}) (newinteraction.Node, error) {
+	amr := graph.GetAMR()
+	acr := graph.GetACR(amr)
 	attrs := &authn.Attrs{
 		UserID: graph.MustGetUserID(),
-		// TODO(mfa): fill in these claims
-		ACR: "",
-		AMR: nil,
+		ACR:    acr,
+		AMR:    amr,
 	}
 	sess, token := ctx.Sessions.MakeSession(attrs)
 	cookie := ctx.SessionCookie.New(token)
