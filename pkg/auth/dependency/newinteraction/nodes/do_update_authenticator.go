@@ -43,6 +43,9 @@ func (n *NodeDoUpdateAuthenticator) DeriveEdges(ctx *newinteraction.Context, gra
 	return graph.Intent.DeriveEdgesForNode(ctx, graph, n)
 }
 
-func (n *NodeDoUpdateAuthenticator) UserAuthenticator() (newinteraction.AuthenticationStage, *authenticator.Info) {
-	return n.Stage, n.AuthenticatorAfterUpdate
+func (n *NodeDoUpdateAuthenticator) UserAuthenticator(stage newinteraction.AuthenticationStage) (*authenticator.Info, bool) {
+	if n.Stage == stage && n.AuthenticatorAfterUpdate != nil {
+		return n.AuthenticatorAfterUpdate, true
+	}
+	return nil, false
 }

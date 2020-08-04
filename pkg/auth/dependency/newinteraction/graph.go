@@ -164,11 +164,11 @@ func (g *Graph) GetUserNewIdentities() []*identity.Info {
 func (g *Graph) GetUserAuthenticator(stage AuthenticationStage) (*authenticator.Info, bool) {
 	for i := len(g.Nodes) - 1; i >= 0; i-- {
 		if n, ok := g.Nodes[i].(interface {
-			UserAuthenticator() (AuthenticationStage, *authenticator.Info)
+			UserAuthenticator(stage AuthenticationStage) (*authenticator.Info, bool)
 		}); ok {
-			s, authenticator := n.UserAuthenticator()
-			if s == stage {
-				return authenticator, true
+			ai, ok := n.UserAuthenticator(stage)
+			if ok {
+				return ai, true
 			}
 		}
 	}
