@@ -5,7 +5,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/totp"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
@@ -118,50 +117,6 @@ func (s *Service) List(userID string, filters ...authenticator.Filter) ([]*authe
 	}
 
 	return filtered, nil
-}
-
-func (s *Service) FilterPrimaryAuthenticators(ii *identity.Info, ais []*authenticator.Info) (out []*authenticator.Info) {
-	types := ii.Type.PrimaryAuthenticatorTypes()
-	for _, typ := range types {
-		for _, ai := range ais {
-			if ai.Type == typ {
-				switch {
-				case ii.Type == authn.IdentityTypeLoginID && ai.Type == authn.AuthenticatorTypeOOB:
-					loginID := ii.Claims[identity.IdentityClaimLoginIDValue]
-					email, _ := ai.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string)
-					phone, _ := ai.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string)
-					if loginID == email || loginID == phone {
-						out = append(out, ai)
-					}
-				default:
-					out = append(out, ai)
-				}
-			}
-		}
-	}
-	return
-}
-
-func (s *Service) FilterMatchingAuthenticators(ii *identity.Info, ais []*authenticator.Info) (out []*authenticator.Info) {
-	types := ii.Type.MatchingAuthenticatorTypes()
-	for _, typ := range types {
-		for _, ai := range ais {
-			if ai.Type == typ {
-				switch {
-				case ii.Type == authn.IdentityTypeLoginID && ai.Type == authn.AuthenticatorTypeOOB:
-					loginID := ii.Claims[identity.IdentityClaimLoginIDValue]
-					email, _ := ai.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string)
-					phone, _ := ai.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string)
-					if loginID == email || loginID == phone {
-						out = append(out, ai)
-					}
-				default:
-					out = append(out, ai)
-				}
-			}
-		}
-	}
-	return
 }
 
 func (s *Service) New(spec *authenticator.Spec, secret string) (*authenticator.Info, error) {

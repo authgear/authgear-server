@@ -40,11 +40,11 @@ func (n *NodeCreateAuthenticatorBegin) DeriveEdges(ctx *newinteraction.Context, 
 		ais, err := ctx.Authenticators.List(
 			iden.UserID,
 			authenticator.KeepTag(authenticator.TagPrimaryAuthenticator),
+			authenticator.KeepPrimaryAuthenticatorOfIdentity(iden),
 		)
 		if err != nil {
 			return nil, err
 		}
-		ais = ctx.Authenticators.FilterPrimaryAuthenticators(iden, ais)
 
 		if len(primaryAuthenticatorTypes) > 0 && len(ctx.Config.Authentication.PrimaryAuthenticators) > 0 {
 			first := ctx.Config.Authentication.PrimaryAuthenticators[0]

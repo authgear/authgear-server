@@ -31,11 +31,11 @@ func getAuthenticators(
 		infos, err = ctx.Authenticators.List(
 			identityInfo.UserID,
 			authenticator.KeepTag(authenticator.TagPrimaryAuthenticator),
+			authenticator.KeepPrimaryAuthenticatorOfIdentity(identityInfo),
 		)
 		if err != nil {
 			return nil, nil, err
 		}
-		infos = ctx.Authenticators.FilterPrimaryAuthenticators(identityInfo, infos)
 
 		n := 0
 		for _, info := range infos {

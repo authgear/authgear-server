@@ -17,12 +17,13 @@ type EdgeRemoveAuthenticator struct {
 
 func (e *EdgeRemoveAuthenticator) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
 	userID := graph.MustGetUserID()
-	ais, err := ctx.Authenticators.List(userID)
+	ais, err := ctx.Authenticators.List(
+		userID,
+		authenticator.KeepMatchingAuthenticatorOfIdentity(e.IdentityInfo),
+	)
 	if err != nil {
 		return nil, err
 	}
-
-	ais = ctx.Authenticators.FilterMatchingAuthenticators(e.IdentityInfo, ais)
 
 	return &NodeRemoveAuthenticator{
 		Authenticators: ais,

@@ -39,11 +39,11 @@ func (n *NodeAuthenticationBegin) DeriveEdges(ctx *newinteraction.Context, graph
 		availableAuthenticators, err = ctx.Authenticators.List(
 			identityInfo.UserID,
 			authenticator.KeepTag(authenticator.TagPrimaryAuthenticator),
+			authenticator.KeepPrimaryAuthenticatorOfIdentity(identityInfo),
 		)
 		if err != nil {
 			return nil, err
 		}
-		availableAuthenticators = ctx.Authenticators.FilterPrimaryAuthenticators(identityInfo, availableAuthenticators)
 		availableAuthenticators = newinteraction.SortAuthenticators(availableAuthenticators, ctx.Config.Authentication.PrimaryAuthenticators)
 	case newinteraction.AuthenticationStageSecondary:
 		// TODO(new_interaction): MFA
