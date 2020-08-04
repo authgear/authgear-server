@@ -215,6 +215,9 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	urlProvider := &webapp.URLProvider{
+		Endpoints: endpointsProvider,
+	}
 	redisHandle := appProvider.Redis
 	storeRedis := &verification.StoreRedis{
 		Redis: redisHandle,
@@ -229,6 +232,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
+		WebAppURLs:       urlProvider,
 		Store:            storeRedis,
 	}
 	resolveHandlerLogger := internalserver.NewResolveHandlerLogger(factory)
@@ -477,6 +481,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
+		WebAppURLs:       webappURLProvider,
 		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
@@ -898,6 +903,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
+		WebAppURLs:       urlProvider,
 		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
@@ -1245,6 +1251,9 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	urlProvider := &webapp.URLProvider{
+		Endpoints: provider,
+	}
 	redisHandle := appProvider.Redis
 	storeRedis := &verification.StoreRedis{
 		Redis: redisHandle,
@@ -1259,6 +1268,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
+		WebAppURLs:       urlProvider,
 		Store:            storeRedis,
 	}
 	queries := &user.Queries{
@@ -1427,6 +1437,9 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	urlProvider := &webapp.URLProvider{
+		Endpoints: provider,
+	}
 	redisHandle := appProvider.Redis
 	storeRedis := &verification.StoreRedis{
 		Redis: redisHandle,
@@ -1441,6 +1454,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
+		WebAppURLs:       urlProvider,
 		Store:            storeRedis,
 	}
 	queries := &user.Queries{
@@ -1747,6 +1761,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
+		WebAppURLs:       urlProvider,
 		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
@@ -2123,6 +2138,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
+		WebAppURLs:       urlProvider,
 		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
@@ -2499,6 +2515,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
+		WebAppURLs:       urlProvider,
 		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
@@ -2857,6 +2874,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
+		WebAppURLs:       urlProvider,
 		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
@@ -3225,6 +3243,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
+		WebAppURLs:       urlProvider,
 		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
@@ -3595,6 +3614,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
+		WebAppURLs:       urlProvider,
 		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
@@ -3965,6 +3985,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
+		WebAppURLs:       urlProvider,
 		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
@@ -4336,6 +4357,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
+		WebAppURLs:       urlProvider,
 		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
@@ -5076,6 +5098,7 @@ func newWebAppVerifyUserHandler(p *deps.RequestProvider) http.Handler {
 		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
+		WebAppURLs:       urlProvider,
 		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
@@ -5450,6 +5473,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
+		WebAppURLs:       urlProvider,
 		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
@@ -5821,6 +5845,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
+		WebAppURLs:       urlProvider,
 		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
@@ -6191,6 +6216,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
+		WebAppURLs:       urlProvider,
 		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
@@ -6562,6 +6588,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
+		WebAppURLs:       urlProvider,
 		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
@@ -6963,6 +6990,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
+		WebAppURLs:       urlProvider,
 		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
@@ -7254,6 +7282,9 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	urlProvider := &webapp.URLProvider{
+		Endpoints: endpointsProvider,
+	}
 	redisHandle := appProvider.Redis
 	storeRedis := &verification.StoreRedis{
 		Redis: redisHandle,
@@ -7268,6 +7299,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
+		WebAppURLs:       urlProvider,
 		Store:            storeRedis,
 	}
 	queries := &user.Queries{
@@ -7662,6 +7694,9 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	urlProvider := &webapp.URLProvider{
+		Endpoints: endpointsProvider,
+	}
 	storeRedis := &verification.StoreRedis{
 		Redis: handle,
 		AppID: appID,
@@ -7675,6 +7710,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
+		WebAppURLs:       urlProvider,
 		Store:            storeRedis,
 	}
 	queries := &user.Queries{

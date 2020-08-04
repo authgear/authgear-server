@@ -10,6 +10,7 @@ import (
 	identity "github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	otp "github.com/authgear/authgear-server/pkg/otp"
 	gomock "github.com/golang/mock/gomock"
+	url "net/url"
 	reflect "reflect"
 )
 
@@ -158,6 +159,43 @@ func (m *MockOTPMessageSender) SendSMS(phone string, opts otp.SendOptions, messa
 func (mr *MockOTPMessageSenderMockRecorder) SendSMS(phone, opts, message interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendSMS", reflect.TypeOf((*MockOTPMessageSender)(nil).SendSMS), phone, opts, message)
+}
+
+// MockWebAppURLProvider is a mock of WebAppURLProvider interface
+type MockWebAppURLProvider struct {
+	ctrl     *gomock.Controller
+	recorder *MockWebAppURLProviderMockRecorder
+}
+
+// MockWebAppURLProviderMockRecorder is the mock recorder for MockWebAppURLProvider
+type MockWebAppURLProviderMockRecorder struct {
+	mock *MockWebAppURLProvider
+}
+
+// NewMockWebAppURLProvider creates a new mock instance
+func NewMockWebAppURLProvider(ctrl *gomock.Controller) *MockWebAppURLProvider {
+	mock := &MockWebAppURLProvider{ctrl: ctrl}
+	mock.recorder = &MockWebAppURLProviderMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockWebAppURLProvider) EXPECT() *MockWebAppURLProviderMockRecorder {
+	return m.recorder
+}
+
+// VerifyUserURL mocks base method
+func (m *MockWebAppURLProvider) VerifyUserURL(code, webStateID string) *url.URL {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifyUserURL", code, webStateID)
+	ret0, _ := ret[0].(*url.URL)
+	return ret0
+}
+
+// VerifyUserURL indicates an expected call of VerifyUserURL
+func (mr *MockWebAppURLProviderMockRecorder) VerifyUserURL(code, webStateID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyUserURL", reflect.TypeOf((*MockWebAppURLProvider)(nil).VerifyUserURL), code, webStateID)
 }
 
 // MockStore is a mock of Store interface

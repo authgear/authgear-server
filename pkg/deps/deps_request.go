@@ -35,6 +35,7 @@ var requestDeps = wire.NewSet(
 	wire.Bind(new(oidchandler.WebAppURLsProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(sso.RedirectURLProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(forgotpassword.URLProvider), new(*webapp.URLProvider)),
+	wire.Bind(new(verification.WebAppURLProvider), new(*webapp.URLProvider)),
 
 	oauthhandler.DependencySet,
 	oidchandler.DependencySet,

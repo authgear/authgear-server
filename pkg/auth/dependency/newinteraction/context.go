@@ -117,11 +117,12 @@ type VerificationService interface {
 	GetCode(id string) (*verification.Code, error)
 	VerifyCode(id string, code string) (*verification.Code, error)
 	NewVerificationAuthenticator(code *verification.Code) (*authenticator.Info, error)
-	SendCode(code *verification.Code, url string) (*otp.CodeSendResult, error)
+	SendCode(code *verification.Code, webStateID string) (*otp.CodeSendResult, error)
 }
 
 type Context struct {
-	IsDryRun bool `wire:"-"`
+	IsDryRun   bool   `wire:"-"`
+	WebStateID string `wire:"-"`
 
 	Database db.SQLExecutor
 	Clock    clock.Clock

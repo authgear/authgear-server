@@ -2,6 +2,7 @@ package verification
 
 import (
 	"errors"
+	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
@@ -28,6 +29,10 @@ type OTPMessageSender interface {
 	SendSMS(phone string, opts otp.SendOptions, message config.SMSMessageConfig) error
 }
 
+type WebAppURLProvider interface {
+	VerifyUserURL(code string, webStateID string) *url.URL
+}
+
 type Store interface {
 	Create(code *Code) error
 	Get(id string) (*Code, error)
@@ -46,6 +51,7 @@ type Service struct {
 	Identities       IdentityService
 	Authenticators   AuthenticatorService
 	OTPMessageSender OTPMessageSender
+	WebAppURLs       WebAppURLProvider
 	Store            Store
 }
 
@@ -250,10 +256,10 @@ func (s *Service) NewVerificationAuthenticator(code *Code) (*authenticator.Info,
 	return s.Authenticators.New(spec, "")
 }
 
-func (s *Service) SendCode(code *Code, url string) (*otp.CodeSendResult, error) {
+func (s *Service) SendCode(code *Code, webStateID string) (*otp.CodeSendResult, error) {
 	opts := otp.SendOptions{
 		OTP:         code.Code,
-		URL:         url,
+		URL:         s.WebAppURLs.VerifyUserURL(code.Code, webStateID).String(),
 		MessageType: otp.MessageTypeVerification,
 	}
 

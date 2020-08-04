@@ -30,7 +30,7 @@
 <form class="vertical-form form-fields-container" method="post" novalidate>
 {{ $.CSRFField }}
 
-<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_password" placeholder="{{ localize "verify-user-placeholder" }}">
+<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_password" placeholder="{{ localize "verify-user-placeholder" }}" value="{{ $.VerificationCode }}">
 <button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
 </form>
 

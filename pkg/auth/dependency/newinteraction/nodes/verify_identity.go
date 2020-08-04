@@ -21,7 +21,7 @@ type EdgeVerifyIdentity struct {
 func (e *EdgeVerifyIdentity) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
 	node := &NodeVerifyIdentity{
 		Identity: e.Identity,
-		ID:       uuid.New(),
+		CodeID:   uuid.New(),
 	}
 	result, err := node.SendCode(ctx)
 	if err != nil {
@@ -36,7 +36,7 @@ func (e *EdgeVerifyIdentity) Instantiate(ctx *newinteraction.Context, graph *new
 
 type NodeVerifyIdentity struct {
 	Identity     *identity.Info `json:"identity"`
-	ID           string         `json:"id"`
+	CodeID       string         `json:"code_id"`
 	Channel      string         `json:"channel"`
 	CodeLength   int            `json:"code_length"`
 	SendCooldown int            `json:"send_cooldown"`
@@ -68,13 +68,13 @@ func (n *NodeVerifyIdentity) Apply(perform func(eff newinteraction.Effect) error
 
 func (n *NodeVerifyIdentity) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	return []newinteraction.Edge{
-		&EdgeVerifyIdentityCheckCode{Identity: n.Identity, ID: n.ID},
+		&EdgeVerifyIdentityCheckCode{Identity: n.Identity, ID: n.CodeID},
 		&EdgeVerifyIdentityResendCode{Node: n},
 	}, nil
 }
 
 func (n *NodeVerifyIdentity) SendCode(ctx *newinteraction.Context) (*otp.CodeSendResult, error) {
-	code, err := ctx.Verification.GetCode(n.ID)
+	code, err := ctx.Verification.GetCode(n.CodeID)
 	if errors.Is(err, verification.ErrCodeNotFound) {
 		code = nil
 	} else if err != nil {
@@ -82,14 +82,14 @@ func (n *NodeVerifyIdentity) SendCode(ctx *newinteraction.Context) (*otp.CodeSen
 	}
 
 	if code == nil || ctx.Clock.NowUTC().After(code.ExpireAt) {
-		code, err = ctx.Verification.CreateNewCode(n.ID, n.Identity)
+		code, err = ctx.Verification.CreateNewCode(n.CodeID, n.Identity)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	// TODO: generate verification link
-	result, err := ctx.Verification.SendCode(code, "")
+	result, err := ctx.Verification.SendCode(code, ctx.WebStateID)
 	if err != nil {
 		return nil, err
 	}

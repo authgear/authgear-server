@@ -46,6 +46,7 @@ func ConfigureVerifyUserRoute(route httproute.Route) httproute.Route {
 }
 
 type VerifyUserViewModel struct {
+	VerificationCode             string
 	VerificationCodeSendCooldown int
 	VerificationCodeLength       int
 	VerificationCodeChannel      string
@@ -70,7 +71,9 @@ func (h *VerifyUserHandler) GetData(r *http.Request, state *webapp.State, graph 
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-	viewModel := VerifyUserViewModel{}
+	viewModel := VerifyUserViewModel{
+		VerificationCode: r.Form.Get("code"),
+	}
 	if n, ok := graph.CurrentNode().(VerifyIdentityNode); ok {
 		viewModel.IdentityDisplayID = n.GetVerificationIdentity().DisplayID()
 		viewModel.VerificationCodeSendCooldown = n.GetVerificationCodeSendCooldown()

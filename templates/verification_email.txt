@@ -1,7 +1,9 @@
 Verify your email on {{ .AppName }}
 
-You have selected {{ .Email }} for verification. Please use the following code to complete to the verification.
+You have selected {{ .Email }} for verification. Please use the link to verify your account:
 
-{{ .Code }}
+{{ .URL }}
+
+Alternatively, use the code in the verification page: {{ .Code }}
 
 If you didn't sign in or sign up please ignore this email.

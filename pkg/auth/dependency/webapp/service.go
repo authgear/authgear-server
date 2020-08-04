@@ -35,8 +35,8 @@ type Store interface {
 type GraphService interface {
 	NewGraph(ctx *newinteraction.Context, intent newinteraction.Intent) (*newinteraction.Graph, error)
 	Get(instanceID string) (*newinteraction.Graph, error)
-	DryRun(fn func(*newinteraction.Context) (*newinteraction.Graph, error)) error
-	Run(graph *newinteraction.Graph, preserveGraph bool) error
+	DryRun(webStateID string, fn func(*newinteraction.Context) (*newinteraction.Graph, error)) error
+	Run(webStateID string, graph *newinteraction.Graph, preserveGraph bool) error
 }
 
 type ServiceLogger struct{ *log.Logger }
@@ -71,7 +71,12 @@ func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph
 		stateError = state.Error
 	}
 
-	err = s.Graph.DryRun(func(ctx *newinteraction.Context) (_ *newinteraction.Graph, err error) {
+	newStateID := intent.StateID
+	if newStateID == "" {
+		newStateID = NewID()
+	}
+
+	err = s.Graph.DryRun(newStateID, func(ctx *newinteraction.Context) (_ *newinteraction.Graph, err error) {
 		graph, err = s.Graph.NewGraph(ctx, intent.Intent)
 		if err != nil {
 			return
@@ -89,10 +94,6 @@ func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph
 		return
 	}
 
-	newStateID := intent.StateID
-	if newStateID == "" {
-		newStateID = NewID()
-	}
 	state = &State{
 		ID:              newStateID,
 		RedirectURI:     intent.RedirectURI,
@@ -115,7 +116,7 @@ func (s *Service) Get(stateID string) (state *State, graph *newinteraction.Graph
 		return
 	}
 
-	err = s.Graph.DryRun(func(ctx *newinteraction.Context) (_ *newinteraction.Graph, err error) {
+	err = s.Graph.DryRun(stateID, func(ctx *newinteraction.Context) (_ *newinteraction.Graph, err error) {
 		err = graph.Apply(ctx)
 		if err != nil {
 			return nil, err
@@ -149,7 +150,7 @@ func (s *Service) PostIntent(intent *Intent, inputer func() (interface{}, error)
 
 	var graph *newinteraction.Graph
 	var edges []newinteraction.Edge
-	err = s.Graph.DryRun(func(ctx *newinteraction.Context) (newGraph *newinteraction.Graph, err error) {
+	err = s.Graph.DryRun(state.ID, func(ctx *newinteraction.Context) (newGraph *newinteraction.Graph, err error) {
 		graph, err = s.Graph.NewGraph(ctx, intent.Intent)
 		if err != nil {
 			return
@@ -198,7 +199,7 @@ func (s *Service) PostInput(stateID string, inputer func() (interface{}, error))
 		return nil, err
 	}
 
-	err = s.Graph.DryRun(func(ctx *newinteraction.Context) (*newinteraction.Graph, error) {
+	err = s.Graph.DryRun(state.ID, func(ctx *newinteraction.Context) (*newinteraction.Graph, error) {
 		input, err := inputer()
 		if err != nil {
 			return nil, err
@@ -236,7 +237,7 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 	// The graph finished. Apply its effect permanently
 	if finished {
 		s.Logger.Debugf("afterPost run graph")
-		inputError = s.Graph.Run(graph, state.KeepState)
+		inputError = s.Graph.Run(state.ID, graph, state.KeepState)
 	}
 
 	state.Error = skyerr.AsAPIError(inputError)
