@@ -189,6 +189,7 @@ var commonDeps = wire.NewSet(
 	wire.NewSet(
 		verification.DependencySet,
 		wire.Bind(new(user.VerificationService), new(*verification.Service)),
+		wire.Bind(new(newinteraction.VerificationService), new(*verification.Service)),
 	),
 
 	wire.NewSet(

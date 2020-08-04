@@ -462,6 +462,23 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	storeRedis := &verification.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	verificationService := &verification.Service{
+		Logger:           verificationLogger,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Clock:            clockClock,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+		Store:            storeRedis,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -480,23 +497,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
-	}
-	verificationLogger := verification.NewLogger(factory)
-	verificationConfig := appConfig.Verification
-	storeRedis := &verification.StoreRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	verificationService := &verification.Service{
-		Logger:           verificationLogger,
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Identities:       serviceService,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-		Store:            storeRedis,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -579,6 +579,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
 		Database:                 sqlExecutor,
+		Clock:                    clockClock,
 		Config:                   appConfig,
 		Identities:               serviceService,
 		Authenticators:           service3,
@@ -589,6 +590,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
+		Verification:             verificationService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -881,6 +883,23 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	storeRedis := &verification.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	verificationService := &verification.Service{
+		Logger:           verificationLogger,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Clock:            clockClock,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+		Store:            storeRedis,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -899,23 +918,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
-	}
-	verificationLogger := verification.NewLogger(factory)
-	verificationConfig := appConfig.Verification
-	storeRedis := &verification.StoreRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	verificationService := &verification.Service{
-		Logger:           verificationLogger,
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Identities:       serviceService,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-		Store:            storeRedis,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -973,6 +975,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
 		Database:                 sqlExecutor,
+		Clock:                    clockClock,
 		Config:                   appConfig,
 		Identities:               serviceService,
 		Authenticators:           service3,
@@ -983,6 +986,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
+		Verification:             verificationService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -1557,6 +1561,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Context:  context,
 		Database: handle,
 	}
+	clockClock := _wireSystemClockValue
 	authenticationConfig := appConfig.Authentication
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -1587,7 +1592,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	clockClock := _wireSystemClockValue
 	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
@@ -1728,6 +1732,23 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	storeRedis := &verification.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	verificationService := &verification.Service{
+		Logger:           verificationLogger,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Clock:            clockClock,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+		Store:            storeRedis,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -1746,23 +1767,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
-	}
-	verificationLogger := verification.NewLogger(factory)
-	verificationConfig := appConfig.Verification
-	storeRedis := &verification.StoreRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	verificationService := &verification.Service{
-		Logger:           verificationLogger,
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Identities:       serviceService,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-		Store:            storeRedis,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -1845,6 +1849,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
 		Database:                 sqlExecutor,
+		Clock:                    clockClock,
 		Config:                   appConfig,
 		Identities:               serviceService,
 		Authenticators:           service3,
@@ -1855,6 +1860,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
+		Verification:             verificationService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -1931,6 +1937,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Context:  context,
 		Database: handle,
 	}
+	clockClock := _wireSystemClockValue
 	authenticationConfig := appConfig.Authentication
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -1961,7 +1968,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	clockClock := _wireSystemClockValue
 	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
@@ -2102,6 +2108,23 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	storeRedis := &verification.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	verificationService := &verification.Service{
+		Logger:           verificationLogger,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Clock:            clockClock,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+		Store:            storeRedis,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -2120,23 +2143,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
-	}
-	verificationLogger := verification.NewLogger(factory)
-	verificationConfig := appConfig.Verification
-	storeRedis := &verification.StoreRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	verificationService := &verification.Service{
-		Logger:           verificationLogger,
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Identities:       serviceService,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-		Store:            storeRedis,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -2219,6 +2225,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
 		Database:                 sqlExecutor,
+		Clock:                    clockClock,
 		Config:                   appConfig,
 		Identities:               serviceService,
 		Authenticators:           service3,
@@ -2229,6 +2236,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
+		Verification:             verificationService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -2305,6 +2313,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Context:  context,
 		Database: handle,
 	}
+	clockClock := _wireSystemClockValue
 	authenticationConfig := appConfig.Authentication
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -2335,7 +2344,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	clockClock := _wireSystemClockValue
 	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
@@ -2476,6 +2484,23 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	storeRedis := &verification.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	verificationService := &verification.Service{
+		Logger:           verificationLogger,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Clock:            clockClock,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+		Store:            storeRedis,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -2494,23 +2519,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
-	}
-	verificationLogger := verification.NewLogger(factory)
-	verificationConfig := appConfig.Verification
-	storeRedis := &verification.StoreRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	verificationService := &verification.Service{
-		Logger:           verificationLogger,
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Identities:       serviceService,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-		Store:            storeRedis,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -2593,6 +2601,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
 		Database:                 sqlExecutor,
+		Clock:                    clockClock,
 		Config:                   appConfig,
 		Identities:               serviceService,
 		Authenticators:           service3,
@@ -2603,6 +2612,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
+		Verification:             verificationService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -2653,6 +2663,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Context:  context,
 		Database: handle,
 	}
+	clockClock := _wireSystemClockValue
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
@@ -2686,7 +2697,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	clockClock := _wireSystemClockValue
 	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
@@ -2832,6 +2842,23 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	storeRedis := &verification.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	verificationService := &verification.Service{
+		Logger:           verificationLogger,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Clock:            clockClock,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+		Store:            storeRedis,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -2850,23 +2877,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
-	}
-	verificationLogger := verification.NewLogger(factory)
-	verificationConfig := appConfig.Verification
-	storeRedis := &verification.StoreRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	verificationService := &verification.Service{
-		Logger:           verificationLogger,
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Identities:       serviceService,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-		Store:            storeRedis,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -2949,6 +2959,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
 		Database:                 sqlExecutor,
+		Clock:                    clockClock,
 		Config:                   appConfig,
 		Identities:               serviceService,
 		Authenticators:           service3,
@@ -2959,6 +2970,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
+		Verification:             verificationService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -3025,6 +3037,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Context:  context,
 		Database: handle,
 	}
+	clockClock := _wireSystemClockValue
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
@@ -3057,7 +3070,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	clockClock := _wireSystemClockValue
 	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
@@ -3198,6 +3210,23 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	storeRedis := &verification.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	verificationService := &verification.Service{
+		Logger:           verificationLogger,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Clock:            clockClock,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+		Store:            storeRedis,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -3216,23 +3245,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
-	}
-	verificationLogger := verification.NewLogger(factory)
-	verificationConfig := appConfig.Verification
-	storeRedis := &verification.StoreRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	verificationService := &verification.Service{
-		Logger:           verificationLogger,
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Identities:       serviceService,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-		Store:            storeRedis,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -3315,6 +3327,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
 		Database:                 sqlExecutor,
+		Clock:                    clockClock,
 		Config:                   appConfig,
 		Identities:               serviceService,
 		Authenticators:           service3,
@@ -3325,6 +3338,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
+		Verification:             verificationService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -3393,6 +3407,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Context:  context,
 		Database: handle,
 	}
+	clockClock := _wireSystemClockValue
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
@@ -3425,7 +3440,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	clockClock := _wireSystemClockValue
 	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
@@ -3566,6 +3580,23 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	storeRedis := &verification.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	verificationService := &verification.Service{
+		Logger:           verificationLogger,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Clock:            clockClock,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+		Store:            storeRedis,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -3584,23 +3615,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
-	}
-	verificationLogger := verification.NewLogger(factory)
-	verificationConfig := appConfig.Verification
-	storeRedis := &verification.StoreRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	verificationService := &verification.Service{
-		Logger:           verificationLogger,
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Identities:       serviceService,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-		Store:            storeRedis,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -3683,6 +3697,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
 		Database:                 sqlExecutor,
+		Clock:                    clockClock,
 		Config:                   appConfig,
 		Identities:               serviceService,
 		Authenticators:           service3,
@@ -3693,6 +3708,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
+		Verification:             verificationService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -3761,6 +3777,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Context:  context,
 		Database: handle,
 	}
+	clockClock := _wireSystemClockValue
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
@@ -3793,7 +3810,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	clockClock := _wireSystemClockValue
 	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
@@ -3934,6 +3950,23 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	storeRedis := &verification.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	verificationService := &verification.Service{
+		Logger:           verificationLogger,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Clock:            clockClock,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+		Store:            storeRedis,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -3952,23 +3985,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
-	}
-	verificationLogger := verification.NewLogger(factory)
-	verificationConfig := appConfig.Verification
-	storeRedis := &verification.StoreRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	verificationService := &verification.Service{
-		Logger:           verificationLogger,
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Identities:       serviceService,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-		Store:            storeRedis,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -4051,6 +4067,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
 		Database:                 sqlExecutor,
+		Clock:                    clockClock,
 		Config:                   appConfig,
 		Identities:               serviceService,
 		Authenticators:           service3,
@@ -4061,6 +4078,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
+		Verification:             verificationService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -4130,6 +4148,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context:  context,
 		Database: handle,
 	}
+	clockClock := _wireSystemClockValue
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
@@ -4162,7 +4181,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	clockClock := _wireSystemClockValue
 	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
@@ -4303,6 +4321,23 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	storeRedis := &verification.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	verificationService := &verification.Service{
+		Logger:           verificationLogger,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Clock:            clockClock,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+		Store:            storeRedis,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -4321,23 +4356,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
-	}
-	verificationLogger := verification.NewLogger(factory)
-	verificationConfig := appConfig.Verification
-	storeRedis := &verification.StoreRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	verificationService := &verification.Service{
-		Logger:           verificationLogger,
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Identities:       serviceService,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-		Store:            storeRedis,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -4420,6 +4438,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
 		Database:                 sqlExecutor,
+		Clock:                    clockClock,
 		Config:                   appConfig,
 		Identities:               serviceService,
 		Authenticators:           service3,
@@ -4430,6 +4449,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
+		Verification:             verificationService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -4498,6 +4518,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context:  context,
 		Database: handle,
 	}
+	clockClock := _wireSystemClockValue
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
@@ -4530,7 +4551,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	clockClock := _wireSystemClockValue
 	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
@@ -4671,6 +4691,23 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	storeRedis := &verification.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	verificationService := &verification.Service{
+		Logger:           verificationLogger,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Clock:            clockClock,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+		Store:            storeRedis,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -4689,23 +4726,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
-	}
-	verificationLogger := verification.NewLogger(factory)
-	verificationConfig := appConfig.Verification
-	storeRedis := &verification.StoreRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	verificationService := &verification.Service{
-		Logger:           verificationLogger,
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Identities:       serviceService,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-		Store:            storeRedis,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -4788,6 +4808,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
 		Database:                 sqlExecutor,
+		Clock:                    clockClock,
 		Config:                   appConfig,
 		Identities:               serviceService,
 		Authenticators:           service3,
@@ -4798,6 +4819,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
+		Verification:             verificationService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -4872,6 +4894,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Context:  context,
 		Database: handle,
 	}
+	clockClock := _wireSystemClockValue
 	authenticationConfig := appConfig.Authentication
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -4902,7 +4925,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	clockClock := _wireSystemClockValue
 	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
@@ -5043,6 +5065,23 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	storeRedis := &verification.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	verificationService := &verification.Service{
+		Logger:           verificationLogger,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Clock:            clockClock,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+		Store:            storeRedis,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -5061,23 +5100,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
-	}
-	verificationLogger := verification.NewLogger(factory)
-	verificationConfig := appConfig.Verification
-	storeRedis := &verification.StoreRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	verificationService := &verification.Service{
-		Logger:           verificationLogger,
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Identities:       serviceService,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-		Store:            storeRedis,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -5160,6 +5182,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
 		Database:                 sqlExecutor,
+		Clock:                    clockClock,
 		Config:                   appConfig,
 		Identities:               serviceService,
 		Authenticators:           service3,
@@ -5170,6 +5193,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
+		Verification:             verificationService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -5239,6 +5263,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Context:  context,
 		Database: handle,
 	}
+	clockClock := _wireSystemClockValue
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
@@ -5271,7 +5296,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	clockClock := _wireSystemClockValue
 	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
@@ -5412,6 +5436,23 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Identities:     serviceService,
 		Authenticators: service3,
 	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	storeRedis := &verification.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	verificationService := &verification.Service{
+		Logger:           verificationLogger,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Clock:            clockClock,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+		Store:            storeRedis,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -5430,23 +5471,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
-	}
-	verificationLogger := verification.NewLogger(factory)
-	verificationConfig := appConfig.Verification
-	storeRedis := &verification.StoreRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	verificationService := &verification.Service{
-		Logger:           verificationLogger,
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Identities:       serviceService,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-		Store:            storeRedis,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -5529,6 +5553,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
 		Database:                 sqlExecutor,
+		Clock:                    clockClock,
 		Config:                   appConfig,
 		Identities:               serviceService,
 		Authenticators:           service3,
@@ -5539,6 +5564,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
+		Verification:             verificationService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -5607,6 +5633,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Context:  context,
 		Database: handle,
 	}
+	clockClock := _wireSystemClockValue
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
@@ -5639,7 +5666,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	clockClock := _wireSystemClockValue
 	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
@@ -5780,6 +5806,23 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	storeRedis := &verification.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	verificationService := &verification.Service{
+		Logger:           verificationLogger,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Clock:            clockClock,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+		Store:            storeRedis,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -5798,23 +5841,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
-	}
-	verificationLogger := verification.NewLogger(factory)
-	verificationConfig := appConfig.Verification
-	storeRedis := &verification.StoreRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	verificationService := &verification.Service{
-		Logger:           verificationLogger,
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Identities:       serviceService,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-		Store:            storeRedis,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -5897,6 +5923,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
 		Database:                 sqlExecutor,
+		Clock:                    clockClock,
 		Config:                   appConfig,
 		Identities:               serviceService,
 		Authenticators:           service3,
@@ -5907,6 +5934,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
+		Verification:             verificationService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -5976,6 +6004,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Context:  context,
 		Database: handle,
 	}
+	clockClock := _wireSystemClockValue
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
@@ -6008,7 +6037,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	clockClock := _wireSystemClockValue
 	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
@@ -6149,6 +6177,23 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Identities:     serviceService,
 		Authenticators: service3,
 	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	storeRedis := &verification.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	verificationService := &verification.Service{
+		Logger:           verificationLogger,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Clock:            clockClock,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+		Store:            storeRedis,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -6167,23 +6212,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
-	}
-	verificationLogger := verification.NewLogger(factory)
-	verificationConfig := appConfig.Verification
-	storeRedis := &verification.StoreRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	verificationService := &verification.Service{
-		Logger:           verificationLogger,
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Identities:       serviceService,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-		Store:            storeRedis,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -6266,6 +6294,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
 		Database:                 sqlExecutor,
+		Clock:                    clockClock,
 		Config:                   appConfig,
 		Identities:               serviceService,
 		Authenticators:           service3,
@@ -6276,6 +6305,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
+		Verification:             verificationService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -6375,6 +6405,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Context:  context,
 		Database: handle,
 	}
+	clockClock := _wireSystemClockValue
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
@@ -6407,7 +6438,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	clockClock := _wireSystemClockValue
 	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
@@ -6548,6 +6578,23 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	storeRedis := &verification.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	verificationService := &verification.Service{
+		Logger:           verificationLogger,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Clock:            clockClock,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+		Store:            storeRedis,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -6566,23 +6613,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
 		TaskQueue:             queueQueue,
-	}
-	verificationLogger := verification.NewLogger(factory)
-	verificationConfig := appConfig.Verification
-	storeRedis := &verification.StoreRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	verificationService := &verification.Service{
-		Logger:           verificationLogger,
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Identities:       serviceService,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-		Store:            storeRedis,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -6665,6 +6695,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
 		Database:                 sqlExecutor,
+		Clock:                    clockClock,
 		Config:                   appConfig,
 		Identities:               serviceService,
 		Authenticators:           service3,
@@ -6675,6 +6706,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
+		Verification:             verificationService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,

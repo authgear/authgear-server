@@ -103,7 +103,7 @@ func (p *Provider) SendCode(
 	target string,
 	code string,
 	messageType otp.MessageType,
-) (result *otp.OOBSendResult, err error) {
+) (result *otp.CodeSendResult, err error) {
 	opts := otp.SendOptions{
 		OTP:         code,
 		URL:         "", // FIXME: send a login link to email?
@@ -122,7 +122,7 @@ func (p *Provider) SendCode(
 		return
 	}
 
-	result = &otp.OOBSendResult{
+	result = &otp.CodeSendResult{
 		Channel:      string(channel),
 		CodeLength:   len(code),
 		SendCooldown: OOBOTPSendCooldownSeconds,

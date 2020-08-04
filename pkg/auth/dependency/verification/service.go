@@ -20,6 +20,7 @@ type IdentityService interface {
 
 type AuthenticatorService interface {
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
+	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
 }
 
 type OTPMessageSender interface {
@@ -206,38 +207,75 @@ func (s *Service) CreateNewCode(id string, info *identity.Info) (*Code, error) {
 	return codeModel, nil
 }
 
-func (s *Service) VerifyCode(id string, code string) error {
+func (s *Service) GetCode(id string) (*Code, error) {
+	return s.Store.Get(id)
+}
+
+func (s *Service) VerifyCode(id string, code string) (*Code, error) {
 	codeModel, err := s.Store.Get(id)
 	if errors.Is(err, ErrCodeNotFound) {
-		return ErrInvalidVerificationCode
+		return nil, ErrInvalidVerificationCode
 	} else if err != nil {
-		return err
+		return nil, err
 	}
 
 	if !otp.ValidateOTP(code, codeModel.Code) {
-		return ErrInvalidVerificationCode
+		return nil, ErrInvalidVerificationCode
 	}
 
 	if err = s.Store.Delete(id); err != nil {
 		s.Logger.WithError(err).Error("failed to delete code after verification")
 	}
 
-	return nil
+	return codeModel, nil
 }
 
-func (s *Service) SendCode(code *Code, url string) error {
+func (s *Service) NewVerificationAuthenticator(code *Code) (*authenticator.Info, error) {
+	spec := &authenticator.Spec{
+		UserID: code.UserID,
+		Type:   authn.AuthenticatorTypeOOB,
+		Props:  map[string]interface{}{},
+	}
+	switch config.LoginIDKeyType(code.LoginIDType) {
+	case config.LoginIDKeyTypeEmail:
+		spec.Props[authenticator.AuthenticatorPropOOBOTPChannelType] = string(authn.AuthenticatorOOBChannelEmail)
+		spec.Props[authenticator.AuthenticatorPropOOBOTPEmail] = code.LoginID
+	case config.LoginIDKeyTypePhone:
+		spec.Props[authenticator.AuthenticatorPropOOBOTPChannelType] = string(authn.AuthenticatorOOBChannelSMS)
+		spec.Props[authenticator.AuthenticatorPropOOBOTPPhone] = code.LoginID
+	default:
+		panic("verification: unsupported login ID type: " + code.LoginIDType)
+	}
+
+	return s.Authenticators.New(spec, "")
+}
+
+func (s *Service) SendCode(code *Code, url string) (*otp.CodeSendResult, error) {
 	opts := otp.SendOptions{
 		OTP:         code.Code,
 		URL:         url,
 		MessageType: otp.MessageTypeVerification,
 	}
 
+	var err error
+	var channel string
 	switch config.LoginIDKeyType(code.LoginIDType) {
 	case config.LoginIDKeyTypeEmail:
-		return s.OTPMessageSender.SendEmail(code.LoginID, opts, s.Config.Email.Message)
+		channel = string(authn.AuthenticatorOOBChannelEmail)
+		err = s.OTPMessageSender.SendEmail(code.LoginID, opts, s.Config.Email.Message)
 	case config.LoginIDKeyTypePhone:
-		return s.OTPMessageSender.SendSMS(code.LoginID, opts, s.Config.SMS.Message)
+		channel = string(authn.AuthenticatorOOBChannelSMS)
+		err = s.OTPMessageSender.SendSMS(code.LoginID, opts, s.Config.SMS.Message)
 	default:
 		panic("verification: unsupported login ID type: " + code.LoginIDType)
 	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &otp.CodeSendResult{
+		Channel:      channel,
+		CodeLength:   len(code.Code),
+		SendCooldown: SendCooldownSeconds,
+	}, nil
 }

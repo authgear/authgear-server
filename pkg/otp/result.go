@@ -1,6 +1,6 @@
 package otp
 
-type OOBSendResult struct {
+type CodeSendResult struct {
 	Channel      string
 	CodeLength   int
 	SendCooldown int

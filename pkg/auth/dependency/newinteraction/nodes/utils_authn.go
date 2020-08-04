@@ -38,7 +38,7 @@ func sendOOBCode(
 	isAuthenticating bool,
 	authenticatorInfo *authenticator.Info,
 	secret string,
-) (*otp.OOBSendResult, error) {
+) (*otp.CodeSendResult, error) {
 	// TODO(interaction): handle rate limits
 
 	channel := authn.AuthenticatorOOBChannel(authenticatorInfo.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string))

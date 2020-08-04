@@ -2,6 +2,11 @@ package verification
 
 import "time"
 
+const (
+	// SendCooldownSeconds is 60 seconds.
+	SendCooldownSeconds = 60
+)
+
 type Code struct {
 	ID         string `json:"id"`
 	UserID     string `json:"user_id"`

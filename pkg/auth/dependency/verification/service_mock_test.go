@@ -94,6 +94,21 @@ func (mr *MockAuthenticatorServiceMockRecorder) List(userID interface{}, filters
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockAuthenticatorService)(nil).List), varargs...)
 }
 
+// New mocks base method
+func (m *MockAuthenticatorService) New(spec *authenticator.Spec, secret string) (*authenticator.Info, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "New", spec, secret)
+	ret0, _ := ret[0].(*authenticator.Info)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// New indicates an expected call of New
+func (mr *MockAuthenticatorServiceMockRecorder) New(spec, secret interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockAuthenticatorService)(nil).New), spec, secret)
+}
+
 // MockOTPMessageSender is a mock of OTPMessageSender interface
 type MockOTPMessageSender struct {
 	ctrl     *gomock.Controller
