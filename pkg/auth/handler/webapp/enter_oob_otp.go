@@ -14,21 +14,21 @@ import (
 )
 
 const (
-	TemplateItemTypeAuthUIOOBOTPHTML config.TemplateItemType = "auth_ui_oob_otp_html"
+	TemplateItemTypeAuthUIEnterOOBOTPHTML config.TemplateItemType = "auth_ui_enter_oob_otp.html"
 )
 
-var TemplateAuthUIOOBOTPHTML = template.Spec{
-	Type:        TemplateItemTypeAuthUIOOBOTPHTML,
+var TemplateAuthUIEnterOOBOTPHTML = template.Spec{
+	Type:        TemplateItemTypeAuthUIEnterOOBOTPHTML,
 	IsHTML:      true,
 	Translation: TemplateItemTypeAuthUITranslationJSON,
 	Defines:     defines,
 	Components:  components,
 }
 
-const OOBOTPRequestSchema = "OOBOTPRequestSchema"
+const EnterOOBOTPRequestSchema = "EnterOOBOTPRequestSchema"
 
-var OOBOTPSchema = validation.NewMultipartSchema("").
-	Add(OOBOTPRequestSchema, `
+var EnterOOBOTPSchema = validation.NewMultipartSchema("").
+	Add(EnterOOBOTPRequestSchema, `
 		{
 			"type": "object",
 			"properties": {
@@ -38,40 +38,40 @@ var OOBOTPSchema = validation.NewMultipartSchema("").
 		}
 	`).Instantiate()
 
-func ConfigureOOBOTPRoute(route httproute.Route) httproute.Route {
+func ConfigureEnterOOBOTPRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/oob_otp")
+		WithPathPattern("/enter_oob_otp")
 }
 
-type OOBOTPViewModel struct {
+type EnterOOBOTPViewModel struct {
 	OOBOTPCodeSendCooldown int
 	OOBOTPCodeLength       int
 	OOBOTPChannel          string
 	IdentityDisplayID      string
 }
 
-type OOBOTPHandler struct {
+type EnterOOBOTPHandler struct {
 	Database      *db.Handle
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
 	WebApp        WebAppService
 }
 
-type OOBOTPNode interface {
+type EnterOOBOTPNode interface {
 	GetOOBOTPChannel() string
 	GetOOBOTPCodeSendCooldown() int
 	GetOOBOTPCodeLength() int
 }
 
-func (h *OOBOTPHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
+func (h *EnterOOBOTPHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-	oobOTPViewModel := OOBOTPViewModel{
+	oobOTPViewModel := EnterOOBOTPViewModel{
 		IdentityDisplayID: graph.MustGetUserLastIdentity().DisplayID(),
 	}
-	if n, ok := graph.CurrentNode().(OOBOTPNode); ok {
+	if n, ok := graph.CurrentNode().(EnterOOBOTPNode); ok {
 		oobOTPViewModel.OOBOTPCodeSendCooldown = n.GetOOBOTPCodeSendCooldown()
 		oobOTPViewModel.OOBOTPCodeLength = n.GetOOBOTPCodeLength()
 		oobOTPViewModel.OOBOTPChannel = n.GetOOBOTPChannel()
@@ -83,20 +83,20 @@ func (h *OOBOTPHandler) GetData(r *http.Request, state *webapp.State, graph *new
 	return data, nil
 }
 
-type OOBOTPResend struct{}
+type EnterOOBOTPResend struct{}
 
-func (i *OOBOTPResend) DoResend() {}
+func (i *EnterOOBOTPResend) DoResend() {}
 
-type OOBOTPInput struct {
+type EnterOOBOTPInput struct {
 	Code string
 }
 
 // GetOOBOTP implements InputAuthenticationOOB.
-func (i *OOBOTPInput) GetOOBOTP() string {
+func (i *EnterOOBOTPInput) GetOOBOTP() string {
 	return i.Code
 }
 
-func (h *OOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -116,7 +116,7 @@ func (h *OOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			h.Renderer.Render(w, r, TemplateItemTypeAuthUIOOBOTPHTML, data)
+			h.Renderer.Render(w, r, TemplateItemTypeAuthUIEnterOOBOTPHTML, data)
 			return nil
 		})
 	}
@@ -126,7 +126,7 @@ func (h *OOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" && trigger {
 		h.Database.WithTx(func() error {
 			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
-				input = &OOBOTPResend{}
+				input = &EnterOOBOTPResend{}
 				return
 			})
 			if err != nil {
@@ -142,14 +142,14 @@ func (h *OOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		h.Database.WithTx(func() error {
 			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
-				err = OOBOTPSchema.PartValidator(OOBOTPRequestSchema).ValidateValue(FormToJSON(r.Form))
+				err = EnterOOBOTPSchema.PartValidator(EnterOOBOTPRequestSchema).ValidateValue(FormToJSON(r.Form))
 				if err != nil {
 					return
 				}
 
 				code := r.Form.Get("x_password")
 
-				input = &OOBOTPInput{
+				input = &EnterOOBOTPInput{
 					Code: code,
 				}
 				return

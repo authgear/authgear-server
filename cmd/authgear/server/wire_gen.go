@@ -3921,7 +3921,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	return createPasswordHandler
 }
 
-func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
@@ -4269,13 +4269,13 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store:  redisStore,
 		Graph:  newinteractionService,
 	}
-	oobotpHandler := &webapp2.OOBOTPHandler{
+	enterOOBOTPHandler := &webapp2.EnterOOBOTPHandler{
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
 		Renderer:      htmlRenderer,
 		WebApp:        webappService,
 	}
-	return oobotpHandler
+	return enterOOBOTPHandler
 }
 
 func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {

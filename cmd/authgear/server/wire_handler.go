@@ -132,10 +132,10 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
-func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		deps.RequestDependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.OOBOTPHandler)),
+		wire.Bind(new(http.Handler), new(*handlerwebapp.EnterOOBOTPHandler)),
 	))
 }
 
