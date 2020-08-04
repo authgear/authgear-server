@@ -73,7 +73,7 @@ func (s *Service) Get(userID string, typ authn.AuthenticatorType, id string) (*a
 	panic("authenticator: unknown authenticator type " + typ)
 }
 
-func (s *Service) List(userID string, filters ...func(*authenticator.Info) bool) ([]*authenticator.Info, error) {
+func (s *Service) List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error) {
 	var ais []*authenticator.Info
 	{
 		as, err := s.Password.List(userID)
@@ -107,7 +107,7 @@ func (s *Service) List(userID string, filters ...func(*authenticator.Info) bool)
 	for _, a := range ais {
 		keep := true
 		for _, f := range filters {
-			if !f(a) {
+			if !f.Keep(a) {
 				keep = false
 				break
 			}

@@ -16,7 +16,7 @@ type IdentityProvider interface {
 }
 
 type AuthenticatorProvider interface {
-	List(userID string, filters ...func(*authenticator.Info) bool) ([]*authenticator.Info, error)
+	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 }
 
 type OTPMessageSender interface {

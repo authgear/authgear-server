@@ -5,14 +5,24 @@ import (
 	"github.com/authgear/authgear-server/pkg/core/utils"
 )
 
-func KeepTag(tag string) func(*Info) bool {
-	return func(ai *Info) bool {
-		return utils.StringSliceContains(ai.Tag, tag)
-	}
+type Filter interface {
+	Keep(ai *Info) bool
 }
 
-func KeepType(typ authn.AuthenticatorType) func(*Info) bool {
-	return func(ai *Info) bool {
+type FilterFunc func(ai *Info) bool
+
+func (f FilterFunc) Keep(ai *Info) bool {
+	return f(ai)
+}
+
+func KeepTag(tag string) Filter {
+	return FilterFunc(func(ai *Info) bool {
+		return utils.StringSliceContains(ai.Tag, tag)
+	})
+}
+
+func KeepType(typ authn.AuthenticatorType) Filter {
+	return FilterFunc(func(ai *Info) bool {
 		return ai.Type == typ
-	}
+	})
 }

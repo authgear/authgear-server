@@ -20,7 +20,7 @@ import (
 )
 
 type AuthenticatorService interface {
-	List(userID string, filters ...func(*authenticator.Info) bool) ([]*authenticator.Info, error)
+	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
 	WithSecret(ai *authenticator.Info, secret string) (bool, *authenticator.Info, error)
 }

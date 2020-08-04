@@ -89,7 +89,7 @@ func (m *MockAuthenticatorProvider) EXPECT() *MockAuthenticatorProviderMockRecor
 }
 
 // List mocks base method
-func (m *MockAuthenticatorProvider) List(userID string, filters ...func(*authenticator.Info) bool) ([]*authenticator.Info, error) {
+func (m *MockAuthenticatorProvider) List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{userID}
 	for _, a := range filters {
