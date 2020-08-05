@@ -7,7 +7,6 @@ import (
 	"sort"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/core/uuid"
@@ -32,10 +31,6 @@ type Provider struct {
 
 func (p *Provider) Get(userID string, id string) (*Authenticator, error) {
 	return p.Store.Get(userID, id)
-}
-
-func (p *Provider) GetByChannel(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string) (*Authenticator, error) {
-	return p.Store.GetByChannel(userID, channel, phone, email)
 }
 
 func (p *Provider) Delete(a *Authenticator) error {
@@ -68,16 +63,8 @@ func (p *Provider) New(userID string, channel authn.AuthenticatorOOBChannel, pho
 }
 
 func (p *Provider) Create(a *Authenticator) error {
-	_, err := p.Store.GetByChannel(a.UserID, a.Channel, a.Phone, a.Email)
-	if err == nil {
-		return authenticator.ErrAuthenticatorAlreadyExists
-	} else if !errors.Is(err, authenticator.ErrAuthenticatorNotFound) {
-		return err
-	}
-
 	now := p.Clock.NowUTC()
 	a.CreatedAt = now
-
 	return p.Store.Create(a)
 }
 

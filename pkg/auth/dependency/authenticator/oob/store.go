@@ -67,26 +67,6 @@ func (s *Store) Get(userID string, id string) (*Authenticator, error) {
 	return s.scan(row)
 }
 
-func (s *Store) GetByChannel(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string) (*Authenticator, error) {
-	q := s.selectQuery()
-
-	switch channel {
-	case authn.AuthenticatorOOBChannelSMS:
-		q = q.Where("a.user_id = ? AND ao.channel = ? AND ao.phone = ?", userID, channel, phone)
-	case authn.AuthenticatorOOBChannelEmail:
-		q = q.Where("a.user_id = ? AND ao.channel = ? AND ao.email = ?", userID, channel, email)
-	default:
-		panic("oob: unknown channel")
-	}
-
-	row, err := s.SQLExecutor.QueryRowWith(q)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.scan(row)
-}
-
 func (s *Store) List(userID string) ([]*Authenticator, error) {
 	q := s.selectQuery().Where("a.user_id = ?", userID)
 

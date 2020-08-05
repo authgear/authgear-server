@@ -166,6 +166,18 @@ func (s *Service) WithSecret(ai *authenticator.Info, secret string) (bool, *auth
 }
 
 func (s *Service) Create(info *authenticator.Info) error {
+	ais, err := s.List(info.UserID)
+	if err != nil {
+		return err
+	}
+
+	for _, a := range ais {
+		if info.Equal(a) {
+			err = authenticator.ErrAuthenticatorAlreadyExists
+			return err
+		}
+	}
+
 	switch info.Type {
 	case authn.AuthenticatorTypePassword:
 		a := passwordFromAuthenticatorInfo(info)
