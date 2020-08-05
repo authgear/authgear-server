@@ -213,6 +213,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		h.Database.WithTx(func() error {
 			intent := &webapp.Intent{
 				RedirectURI: redirectURI,
+				KeepState:   true,
 				Intent:      intents.NewIntentVerifyIdentity(userID, authn.IdentityTypeLoginID, identityID),
 			}
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {

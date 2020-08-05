@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/db"
@@ -46,12 +45,12 @@ type ForgotPasswordSuccessHandler struct {
 	WebApp        WebAppService
 }
 
-func (h *ForgotPasswordSuccessHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
+func (h *ForgotPasswordSuccessHandler) GetData(r *http.Request, state *webapp.State) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
 	forgotPasswordSuccessViewModel := ForgotPasswordSuccessViewModel{}
-	if n, ok := graph.CurrentNode().(ForgotPasswordSuccessNode); ok {
-		forgotPasswordSuccessViewModel.GivenLoginID = n.GetLoginID()
+	if loginID, ok := state.Extra["login_id"]; ok {
+		forgotPasswordSuccessViewModel.GivenLoginID = loginID.(string)
 	}
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, forgotPasswordSuccessViewModel)
@@ -66,13 +65,13 @@ func (h *ForgotPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.
 
 	if r.Method == "GET" {
 		h.Database.WithTx(func() error {
-			state, graph, edges, err := h.WebApp.Get(StateID(r))
+			state, err := h.WebApp.GetState(StateID(r))
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
-			data, err := h.GetData(r, state, graph, edges)
+			data, err := h.GetData(r, state)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err

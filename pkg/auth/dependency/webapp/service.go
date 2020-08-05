@@ -97,7 +97,6 @@ func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph
 	state = &State{
 		ID:              newStateID,
 		RedirectURI:     intent.RedirectURI,
-		KeepState:       intent.KeepState,
 		GraphInstanceID: graph.InstanceID,
 		Error:           stateError,
 	}
@@ -237,12 +236,13 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 	// The graph finished. Apply its effect permanently
 	if finished {
 		s.Logger.Debugf("afterPost run graph")
-		inputError = s.Graph.Run(state.ID, graph, state.KeepState)
+		inputError = s.Graph.Run(state.ID, graph, false)
 	}
 
 	state.Error = skyerr.AsAPIError(inputError)
 	if graph != nil {
 		state.GraphInstanceID = graph.InstanceID
+		state.Extra = s.collectExtras(graph.CurrentNode())
 	}
 
 	err := s.Store.Create(state)
@@ -385,5 +385,24 @@ func (s *Service) deriveRedirectPath(graph *newinteraction.Graph, edges []newint
 		return "/verify_user"
 	default:
 		panic(fmt.Errorf("webapp: unexpected node: %T", graph.CurrentNode()))
+	}
+}
+
+func (s *Service) collectExtras(node newinteraction.Node) map[string]interface{} {
+	switch node := node.(type) {
+	case *nodes.NodeForgotPasswordEnd:
+		return map[string]interface{}{
+			"login_id": node.LoginID,
+		}
+	case *nodes.NodeEnsureVerificationEnd:
+		return map[string]interface{}{
+			"display_id": node.Identity.DisplayID(),
+		}
+	case *nodes.NodeDoVerifyIdentity:
+		return map[string]interface{}{
+			"display_id": node.Identity.DisplayID(),
+		}
+	default:
+		return nil
 	}
 }
