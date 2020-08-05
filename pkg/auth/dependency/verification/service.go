@@ -15,10 +15,6 @@ import (
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package verification
 
-type IdentityService interface {
-	ListByUser(userID string) ([]*identity.Info, error)
-}
-
 type AuthenticatorService interface {
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
@@ -48,7 +44,6 @@ type Service struct {
 	Config           *config.VerificationConfig
 	LoginID          *config.LoginIDConfig
 	Clock            clock.Clock
-	Identities       IdentityService
 	Authenticators   AuthenticatorService
 	OTPMessageSender OTPMessageSender
 	WebAppURLs       WebAppURLProvider
@@ -136,18 +131,35 @@ func (s *Service) GetVerificationStatus(i *identity.Info) (Status, error) {
 	return s.getVerificationStatus(i, authenticators), nil
 }
 
-func (s *Service) IsUserVerified(userID string) (bool, error) {
-	is, err := s.Identities.ListByUser(userID)
-	if err != nil {
-		return false, err
+func (s *Service) GetVerificationStatuses(is []*identity.Info) (map[string]Status, error) {
+	if len(is) == 0 {
+		return nil, nil
 	}
 
+	// Assuming user ID of all identities is same
+	userID := is[0].UserID
+	authenticators, err := s.Authenticators.List(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	statuses := map[string]Status{}
+	for _, i := range is {
+		if i.UserID != userID {
+			panic("verification: expect all user ID is same")
+		}
+		statuses[i.ID] = s.getVerificationStatus(i, authenticators)
+	}
+	return statuses, nil
+}
+
+func (s *Service) IsUserVerified(identities []*identity.Info, userID string) (bool, error) {
 	as, err := s.Authenticators.List(userID)
 	if err != nil {
 		return false, err
 	}
 
-	return s.IsVerified(is, as), nil
+	return s.IsVerified(identities, as), nil
 }
 
 func (s *Service) IsVerified(identities []*identity.Info, authenticators []*authenticator.Info) bool {

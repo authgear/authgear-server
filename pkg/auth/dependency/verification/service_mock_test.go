@@ -7,50 +7,11 @@ package verification
 import (
 	config "github.com/authgear/authgear-server/pkg/auth/config"
 	authenticator "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
-	identity "github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	otp "github.com/authgear/authgear-server/pkg/otp"
 	gomock "github.com/golang/mock/gomock"
 	url "net/url"
 	reflect "reflect"
 )
-
-// MockIdentityService is a mock of IdentityService interface
-type MockIdentityService struct {
-	ctrl     *gomock.Controller
-	recorder *MockIdentityServiceMockRecorder
-}
-
-// MockIdentityServiceMockRecorder is the mock recorder for MockIdentityService
-type MockIdentityServiceMockRecorder struct {
-	mock *MockIdentityService
-}
-
-// NewMockIdentityService creates a new mock instance
-func NewMockIdentityService(ctrl *gomock.Controller) *MockIdentityService {
-	mock := &MockIdentityService{ctrl: ctrl}
-	mock.recorder = &MockIdentityServiceMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockIdentityService) EXPECT() *MockIdentityServiceMockRecorder {
-	return m.recorder
-}
-
-// ListByUser mocks base method
-func (m *MockIdentityService) ListByUser(userID string) ([]*identity.Info, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByUser", userID)
-	ret0, _ := ret[0].([]*identity.Info)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListByUser indicates an expected call of ListByUser
-func (mr *MockIdentityServiceMockRecorder) ListByUser(userID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByUser", reflect.TypeOf((*MockIdentityService)(nil).ListByUser), userID)
-}
 
 // MockAuthenticatorService is a mock of AuthenticatorService interface
 type MockAuthenticatorService struct {

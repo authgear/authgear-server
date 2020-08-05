@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/log"
@@ -18,12 +18,12 @@ func ConfigureResolveRoute(route httproute.Route) httproute.Route {
 
 //go:generate mockgen -source=resolve.go -destination=resolve_mock_test.go -package internalserver
 
-type AnonymousIdentityProvider interface {
-	List(userID string) ([]*anonymous.Identity, error)
+type IdentityService interface {
+	ListByUser(userID string) ([]*identity.Info, error)
 }
 
 type VerificationService interface {
-	IsUserVerified(userID string) (bool, error)
+	IsUserVerified(identities []*identity.Info, userID string) (bool, error)
 }
 
 type ResolveHandlerLogger struct{ *log.Logger }
@@ -33,7 +33,7 @@ func NewResolveHandlerLogger(lf *log.Factory) ResolveHandlerLogger {
 }
 
 type ResolveHandler struct {
-	Anonymous    AnonymousIdentityProvider
+	Identities   IdentityService
 	Verification VerificationService
 	Logger       ResolveHandlerLogger
 }
@@ -56,13 +56,20 @@ func (h *ResolveHandler) resolve(r *http.Request) (*authn.Info, error) {
 
 	var info *authn.Info
 	if valid && user != nil && session != nil {
-		anonIdentities, err := h.Anonymous.List(user.ID)
+		identities, err := h.Identities.ListByUser(user.ID)
 		if err != nil {
 			return nil, err
 		}
-		isAnonymous := len(anonIdentities) > 0
 
-		isVerified, err := h.Verification.IsUserVerified(user.ID)
+		isAnonymous := false
+		for _, i := range identities {
+			if i.Type == authn.IdentityTypeAnonymous {
+				isAnonymous = true
+				break
+			}
+		}
+
+		isVerified, err := h.Verification.IsUserVerified(identities, user.ID)
 		if err != nil {
 			return nil, err
 		}

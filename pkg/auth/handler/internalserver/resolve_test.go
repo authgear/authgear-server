@@ -8,7 +8,7 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
@@ -18,10 +18,10 @@ func TestResolveHandler(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		anonymousProvider := NewMockAnonymousIdentityProvider(ctrl)
+		identities := NewMockIdentityService(ctrl)
 		verificationService := NewMockVerificationService(ctrl)
 		h := &ResolveHandler{
-			Anonymous:    anonymousProvider,
+			Identities:   identities,
 			Verification: verificationService,
 		}
 
@@ -37,8 +37,11 @@ func TestResolveHandler(t *testing.T) {
 			r = r.WithContext(authn.WithAuthn(r.Context(), s, u))
 
 			Convey("for normal user", func() {
-				anonymousProvider.EXPECT().List("user-id").Return([]*anonymous.Identity{}, nil)
-				verificationService.EXPECT().IsUserVerified("user-id").Return(true, nil)
+				userIdentities := []*identity.Info{
+					{Type: authn.IdentityTypeLoginID},
+				}
+				identities.EXPECT().ListByUser("user-id").Return(userIdentities, nil)
+				verificationService.EXPECT().IsUserVerified(userIdentities, "user-id").Return(true, nil)
 				rw := httptest.NewRecorder()
 				h.ServeHTTP(rw, r)
 
@@ -55,10 +58,12 @@ func TestResolveHandler(t *testing.T) {
 			})
 
 			Convey("for anonymous user", func() {
-				anonymousProvider.EXPECT().List("user-id").Return([]*anonymous.Identity{
-					{ID: "anonymous-identity"},
-				}, nil)
-				verificationService.EXPECT().IsUserVerified("user-id").Return(false, nil)
+				userIdentities := []*identity.Info{
+					{Type: authn.IdentityTypeAnonymous},
+					{Type: authn.IdentityTypeLoginID},
+				}
+				identities.EXPECT().ListByUser("user-id").Return(userIdentities, nil)
+				verificationService.EXPECT().IsUserVerified(userIdentities, "user-id").Return(false, nil)
 				rw := httptest.NewRecorder()
 				h.ServeHTTP(rw, r)
 

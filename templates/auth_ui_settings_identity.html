@@ -12,6 +12,11 @@
   {{ template "ERROR" . }}
 
   {{ range .IdentityCandidates }}
+  {{ $verification_status := index $.VerificationStatuses .identity_id }}
+  {{ if eq $verification_status "" }}
+    {{ $verification_status = "disabled" }}
+  {{ end }}
+
   <div class="identity">
     <div class="icon {{ .type }} {{ .provider_type }} {{ .login_id_type }}"></div>
     <div class="identity-info flex-child-no-overflow">
@@ -56,26 +61,39 @@
       {{ end }}
     </div>
 
-    {{ if eq .type "oauth" }}
-      <form method="post" novalidate>
-      {{ $.CSRFField }}
-      <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
-      <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
-      {{ if .identity_id }}
-      <button class="btn destructive-btn" type="submit" name="x_action" value="unlink_oauth">{{ localize "disconnect-button-label" }}</button>
-      {{ else }}
-      <button class="btn primary-btn" type="submit" name="x_action" value="link_oauth" data-form-xhr="false">{{ localize "connect-button-label" }}</button>
+    <div class="identity-actions">
+      {{ if eq .type "oauth" }}
+        <form method="post" novalidate>
+        {{ $.CSRFField }}
+        <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
+        <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
+        {{ if .identity_id }}
+        <button class="btn destructive-btn" type="submit" name="x_action" value="unlink_oauth">{{ localize "disconnect-button-label" }}</button>
+        {{ else }}
+        <button class="btn primary-btn" type="submit" name="x_action" value="link_oauth" data-form-xhr="false">{{ localize "connect-button-label" }}</button>
+        {{ end }}
+        </form>
       {{ end }}
-      </form>
-    {{ end }}
 
-    {{ if eq .type "login_id" }}
-      {{ if .identity_id }}
-      <a class="btn secondary-btn" href="{{ call $.MakeURL "/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type "x_identity_id" .identity_id }}">{{ localize "change-button-label" }}</a>
-      {{ else }}
-      <a class="btn secondary-btn" href="{{ call $.MakeURL "/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type }}">{{ localize "connect-button-label" }}</a>
+      {{ if eq .type "login_id" }}
+        {{ if .identity_id }}
+        <a class="btn secondary-btn" href="{{ call $.MakeURL "/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type "x_identity_id" .identity_id }}">{{ localize "change-button-label" }}</a>
+
+        {{ if or (eq $verification_status "pending") (eq $verification_status "required") }}
+          <form method="post" novalidate>
+            {{ $.CSRFField }}
+            <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
+            <button class="btn secondary-btn" type="submit" name="x_action" value="verify_login_id">{{ localize "verify-button-label" }}</button>
+          </form>
+        {{ else if eq $verification_status "verified" }}
+          <span class="identity-verified">{{ localize "verification-status-label--verified" }}</span>
+        {{ end }}
+
+        {{ else }}
+        <a class="btn secondary-btn" href="{{ call $.MakeURL "/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type }}">{{ localize "connect-button-label" }}</a>
+        {{ end }}
       {{ end }}
-    {{ end }}
+    </div>
   </div>
   {{ end }}
 </div>

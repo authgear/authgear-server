@@ -426,7 +426,7 @@ a.btn {
   display: flex;
   flex-direction: row;
   align-items: center;
-  height: 70px;
+  min-height: 70px;
   border: solid 1px #d8d8d8;
   margin: 5px 10px;
   padding: 6px;
@@ -461,8 +461,19 @@ a.btn {
   font-size: 14px;
 }
 
+.settings-identity .identity-actions {
+  display: flex;
+  flex-direction: column;
+}
+
 .settings-identity .identity .btn {
   margin: 6px;
+}
+
+.settings-identity .identity-verified {
+  text-align: center;
+  font-size: 14px;
+  color: #008000;
 }
 
 .login_id.email {

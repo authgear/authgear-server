@@ -76,9 +76,11 @@ func newConfigSource(p *deps.RootProvider) source.Source {
 func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	config := appProvider.Config
+	appConfig := config.AppConfig
+	authenticationConfig := appConfig.Authentication
+	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	appConfig := config.AppConfig
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
 	request := p.Request
@@ -88,25 +90,11 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Context:  context,
 		Database: handle,
 	}
-	store := &anonymous.Store{
+	store := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	clock := _wireSystemClockValue
-	provider := &anonymous.Provider{
-		Store: store,
-		Clock: clock,
-	}
-	factory := appProvider.LoggerFactory
-	logger := verification.NewLogger(factory)
-	verificationConfig := appConfig.Verification
-	identityConfig := appConfig.Identity
 	loginIDConfig := identityConfig.LoginID
-	authenticationConfig := appConfig.Authentication
-	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
 	rootProvider := appProvider.RootProvider
 	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
@@ -120,8 +108,8 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
-	loginidProvider := &loginid.Provider{
-		Store:             loginidStore,
+	provider := &loginid.Provider{
+		Store:             store,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
@@ -130,17 +118,29 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	clock := _wireSystemClockValue
 	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
+		Clock: clock,
+	}
+	anonymousStore := &anonymous.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	anonymousProvider := &anonymous.Provider{
+		Store: anonymousStore,
 		Clock: clock,
 	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
-		LoginID:        loginidProvider,
+		LoginID:        provider,
 		OAuth:          oauthProvider,
-		Anonymous:      provider,
+		Anonymous:      anonymousProvider,
 	}
+	factory := appProvider.LoggerFactory
+	logger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -229,7 +229,6 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Clock:            clock,
-		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
@@ -237,7 +236,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	}
 	resolveHandlerLogger := internalserver.NewResolveHandlerLogger(factory)
 	resolveHandler := &internalserver.ResolveHandler{
-		Anonymous:    provider,
+		Identities:   serviceService,
 		Verification: verificationService,
 		Logger:       resolveHandlerLogger,
 	}
@@ -478,7 +477,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Clock:            clockClock,
-		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       webappURLProvider,
@@ -900,7 +898,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Clock:            clockClock,
-		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
@@ -1265,7 +1262,6 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Clock:            clockClock,
-		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
@@ -1451,7 +1447,6 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Clock:            clockClock,
-		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
@@ -1758,7 +1753,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Clock:            clockClock,
-		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
@@ -2135,7 +2129,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Clock:            clockClock,
-		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
@@ -2512,7 +2505,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Clock:            clockClock,
-		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
@@ -2871,7 +2863,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Clock:            clockClock,
-		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
@@ -3240,7 +3231,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Clock:            clockClock,
-		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
@@ -3611,7 +3601,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Clock:            clockClock,
-		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
@@ -3982,7 +3971,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Clock:            clockClock,
-		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
@@ -4354,7 +4342,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Clock:            clockClock,
-		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
@@ -4725,9 +4712,9 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Clock:            clockClock,
-		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
+		WebAppURLs:       urlProvider,
 		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
@@ -5095,7 +5082,6 @@ func newWebAppVerifyUserHandler(p *deps.RequestProvider) http.Handler {
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Clock:            clockClock,
-		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
@@ -5470,7 +5456,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Clock:            clockClock,
-		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
@@ -5842,7 +5827,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Clock:            clockClock,
-		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
@@ -6213,7 +6197,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Clock:            clockClock,
-		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
@@ -6585,7 +6568,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Clock:            clockClock,
-		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
@@ -6987,7 +6969,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Clock:            clockClock,
-		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
@@ -7132,6 +7113,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Renderer:      htmlRenderer,
 		WebApp:        webappService,
 		Identities:    serviceService,
+		Verification:  verificationService,
 	}
 	return settingsIdentityHandler
 }
@@ -7296,7 +7278,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Clock:            clockClock,
-		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
@@ -7707,7 +7688,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Config:           verificationConfig,
 		LoginID:          loginIDConfig,
 		Clock:            clockClock,
-		Identities:       serviceService,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,

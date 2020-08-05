@@ -19,7 +19,6 @@ func TestService(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		identities := NewMockIdentityService(ctrl)
 		authenticators := NewMockAuthenticatorService(ctrl)
 		t := true
 		f := false
@@ -41,7 +40,6 @@ func TestService(t *testing.T) {
 					},
 				},
 			},
-			Identities:     identities,
 			Authenticators: authenticators,
 		}
 

@@ -194,8 +194,6 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		h.Database.WithTx(func() error {
 			enterLoginIDViewModel := NewEnterLoginIDViewModel(r)
 
-			newLoginID := r.Form.Get("x_login_id")
-
 			intent := &webapp.Intent{
 				RedirectURI: "/settings/identity",
 			}
@@ -207,6 +205,11 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			}
 
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
+				newLoginID, err := FormToLoginID(r.Form)
+				if err != nil {
+					return nil, err
+				}
+
 				input = &EnterLoginIDLoginID{
 					LoginIDType: enterLoginIDViewModel.LoginIDType,
 					LoginIDKey:  enterLoginIDViewModel.LoginIDKey,

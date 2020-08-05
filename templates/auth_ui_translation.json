@@ -16,6 +16,8 @@
 	"connect-button-label": "Connect",
 	"disconnect-button-label": "Disconnect",
 	"change-button-label": "Change",
+	"verify-button-label": "Verify",
+	"verification-status-label--verified": "Verified",
 
 	"sign-in-apple": "Sign in with Apple",
 	"sign-up-apple": "Sign up with Apple",

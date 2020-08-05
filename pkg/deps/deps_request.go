@@ -7,7 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/forgotpassword"
-	identityanonymous "github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
 	identityservice "github.com/authgear/authgear-server/pkg/auth/dependency/identity/service"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/dependency/oauth/handler"
@@ -43,7 +42,7 @@ var requestDeps = wire.NewSet(
 	middlewares.DependencySet,
 
 	handlerinternal.DependencySet,
-	wire.Bind(new(handlerinternal.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
+	wire.Bind(new(handlerinternal.IdentityService), new(*identityservice.Service)),
 	wire.Bind(new(handlerinternal.VerificationService), new(*verification.Service)),
 
 	handleroauth.DependencySet,
@@ -60,6 +59,7 @@ var requestDeps = wire.NewSet(
 
 	handlerwebapp.DependencySet,
 	wire.Bind(new(handlerwebapp.SettingsIdentityService), new(*identityservice.Service)),
+	wire.Bind(new(handlerwebapp.SettingsVerificationService), new(*verification.Service)),
 	wire.Bind(new(handlerwebapp.PasswordPolicy), new(*password.Checker)),
 	wire.Bind(new(handlerwebapp.LogoutSessionManager), new(*auth.SessionManager)),
 	wire.Bind(new(handlerwebapp.WebAppService), new(*webapp.Service)),
