@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/sso"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/user"
@@ -34,14 +35,11 @@ type IdentityService interface {
 type AuthenticatorService interface {
 	Get(userID string, typ authn.AuthenticatorType, id string) (*authenticator.Info, error)
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
-	FilterPrimaryAuthenticators(ii *identity.Info, ais []*authenticator.Info) []*authenticator.Info
-	FilterMatchingAuthenticators(ii *identity.Info, ais []*authenticator.Info) []*authenticator.Info
 	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
 	WithSecret(authenticatorInfo *authenticator.Info, secret string) (changed bool, info *authenticator.Info, err error)
 	Create(authenticatorInfo *authenticator.Info) error
 	Update(authenticatorInfo *authenticator.Info) error
 	Delete(authenticatorInfo *authenticator.Info) error
-	Authenticate(spec *authenticator.Spec, state map[string]string, secret string) (*authenticator.Info, error)
 	VerifySecret(info *authenticator.Info, state map[string]string, secret string) error
 }
 
@@ -107,20 +105,25 @@ type ResetPasswordService interface {
 	AfterResetPassword(codeHash string) error
 }
 
+type LoginIDNormalizerFactory interface {
+	NormalizerWithLoginIDType(loginIDKeyType config.LoginIDKeyType) loginid.Normalizer
+}
+
 type Context struct {
 	IsDryRun bool `wire:"-"`
 
 	Database db.SQLExecutor
 	Config   *config.AppConfig
 
-	Identities           IdentityService
-	Authenticators       AuthenticatorService
-	AnonymousIdentities  AnonymousIdentityProvider
-	OOBAuthenticators    OOBAuthenticatorProvider
-	OAuthProviderFactory OAuthProviderFactory
-	MFA                  MFAService
-	ForgotPassword       ForgotPasswordService
-	ResetPassword        ResetPasswordService
+	Identities               IdentityService
+	Authenticators           AuthenticatorService
+	AnonymousIdentities      AnonymousIdentityProvider
+	OOBAuthenticators        OOBAuthenticatorProvider
+	OAuthProviderFactory     OAuthProviderFactory
+	MFA                      MFAService
+	ForgotPassword           ForgotPasswordService
+	ResetPassword            ResetPasswordService
+	LoginIDNormalizerFactory LoginIDNormalizerFactory
 
 	Challenges    ChallengeProvider
 	Users         UserService

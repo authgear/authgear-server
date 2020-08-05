@@ -1,6 +1,11 @@
 package authenticator
 
-import "github.com/authgear/authgear-server/pkg/core/authn"
+import (
+	"crypto/subtle"
+
+	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/core/utils"
+)
 
 type Info struct {
 	ID     string                  `json:"id"`
@@ -38,6 +43,62 @@ func (i *Info) AMR() []string {
 			panic("authenticator: unknown OOB channel: " + channel)
 		}
 		return out
+	default:
+		panic("authenticator: unknown authenticator type: " + i.Type)
+	}
+}
+
+func (i *Info) Equal(that *Info) bool {
+	// Authenticator is equal to each other iff the following holds:
+
+	// They are of the same type.
+	sameType := i.Type == that.Type
+	if !sameType {
+		return false
+	}
+
+	iPrimary := utils.StringSliceContains(i.Tag, TagPrimaryAuthenticator)
+	thatPrimary := utils.StringSliceContains(that.Tag, TagPrimaryAuthenticator)
+
+	iSecondary := utils.StringSliceContains(i.Tag, TagSecondaryAuthenticator)
+	thatSecondary := utils.StringSliceContains(that.Tag, TagSecondaryAuthenticator)
+
+	switch i.Type {
+	case authn.AuthenticatorTypePassword:
+		// If they are password, they have the same primary/secondary tag.
+		return (iPrimary && thatPrimary) || (iSecondary && thatSecondary)
+	case authn.AuthenticatorTypeTOTP:
+		// If they are TOTP, they have the same secret, and primary/secondary tag.
+		if (iPrimary != thatPrimary) || (iSecondary != thatSecondary) {
+			return false
+		}
+
+		return subtle.ConstantTimeCompare([]byte(i.Secret), []byte(that.Secret)) == 1
+	case authn.AuthenticatorTypeOOB:
+		// If they are OOB, they have the same channel, target, and primary/secondary tag.
+		if (iPrimary != thatPrimary) || (iSecondary != thatSecondary) {
+			return false
+		}
+
+		iChannel := i.Props[AuthenticatorPropOOBOTPChannelType].(string)
+		thatChannel := that.Props[AuthenticatorPropOOBOTPChannelType].(string)
+		if iChannel != thatChannel {
+			return false
+		}
+
+		switch authn.AuthenticatorOOBChannel(iChannel) {
+		case authn.AuthenticatorOOBChannelEmail:
+			iEmail := i.Props[AuthenticatorPropOOBOTPEmail].(string)
+			thatEmail := that.Props[AuthenticatorPropOOBOTPEmail].(string)
+			return iEmail == thatEmail
+		case authn.AuthenticatorOOBChannelSMS:
+			// Interesting identifier :)
+			iPhone := i.Props[AuthenticatorPropOOBOTPPhone].(string)
+			thatPhone := i.Props[AuthenticatorPropOOBOTPPhone].(string)
+			return iPhone == thatPhone
+		default:
+			panic("authenticator: unknown OOB channel: " + iChannel)
+		}
 	default:
 		panic("authenticator: unknown authenticator type: " + i.Type)
 	}

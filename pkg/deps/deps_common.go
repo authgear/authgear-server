@@ -108,6 +108,7 @@ var commonDeps = wire.NewSet(
 	wire.NewSet(
 		identityloginid.DependencySet,
 		wire.Bind(new(sso.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
+		wire.Bind(new(newinteraction.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
 		identityoauth.DependencySet,
 		identityanonymous.DependencySet,
 		wire.Bind(new(webapp.AnonymousIdentityProvider), new(*identityanonymous.Provider)),

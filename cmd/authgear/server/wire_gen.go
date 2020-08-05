@@ -519,21 +519,22 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
-		Database:             sqlExecutor,
-		Config:               appConfig,
-		Identities:           serviceService,
-		Authenticators:       service3,
-		AnonymousIdentities:  anonymousProvider,
-		OOBAuthenticators:    oobProvider,
-		OAuthProviderFactory: oAuthProviderFactory,
-		MFA:                  mfaService,
-		ForgotPassword:       forgotpasswordProvider,
-		ResetPassword:        forgotpasswordProvider,
-		Challenges:           challengeProvider,
-		Users:                userProvider,
-		Hooks:                hookProvider,
-		Sessions:             sessionProvider,
-		SessionCookie:        cookieDef,
+		Database:                 sqlExecutor,
+		Config:                   appConfig,
+		Identities:               serviceService,
+		Authenticators:           service3,
+		AnonymousIdentities:      anonymousProvider,
+		OOBAuthenticators:        oobProvider,
+		OAuthProviderFactory:     oAuthProviderFactory,
+		MFA:                      mfaService,
+		ForgotPassword:           forgotpasswordProvider,
+		ResetPassword:            forgotpasswordProvider,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Challenges:               challengeProvider,
+		Users:                    userProvider,
+		Hooks:                    hookProvider,
+		Sessions:                 sessionProvider,
+		SessionCookie:            cookieDef,
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
@@ -902,21 +903,22 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
-		Database:             sqlExecutor,
-		Config:               appConfig,
-		Identities:           serviceService,
-		Authenticators:       service3,
-		AnonymousIdentities:  anonymousProvider,
-		OOBAuthenticators:    oobProvider,
-		OAuthProviderFactory: oAuthProviderFactory,
-		MFA:                  mfaService,
-		ForgotPassword:       forgotpasswordProvider,
-		ResetPassword:        forgotpasswordProvider,
-		Challenges:           challengeProvider,
-		Users:                userProvider,
-		Hooks:                hookProvider,
-		Sessions:             provider,
-		SessionCookie:        cookieDef,
+		Database:                 sqlExecutor,
+		Config:                   appConfig,
+		Identities:               serviceService,
+		Authenticators:           service3,
+		AnonymousIdentities:      anonymousProvider,
+		OOBAuthenticators:        oobProvider,
+		OAuthProviderFactory:     oAuthProviderFactory,
+		MFA:                      mfaService,
+		ForgotPassword:           forgotpasswordProvider,
+		ResetPassword:            forgotpasswordProvider,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Challenges:               challengeProvider,
+		Users:                    userProvider,
+		Hooks:                    hookProvider,
+		Sessions:                 provider,
+		SessionCookie:            cookieDef,
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
@@ -1741,21 +1743,22 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
-		Database:             sqlExecutor,
-		Config:               appConfig,
-		Identities:           serviceService,
-		Authenticators:       service3,
-		AnonymousIdentities:  anonymousProvider,
-		OOBAuthenticators:    oobProvider,
-		OAuthProviderFactory: oAuthProviderFactory,
-		MFA:                  mfaService,
-		ForgotPassword:       forgotpasswordProvider,
-		ResetPassword:        forgotpasswordProvider,
-		Challenges:           challengeProvider,
-		Users:                userProvider,
-		Hooks:                hookProvider,
-		Sessions:             sessionProvider,
-		SessionCookie:        cookieDef,
+		Database:                 sqlExecutor,
+		Config:                   appConfig,
+		Identities:               serviceService,
+		Authenticators:           service3,
+		AnonymousIdentities:      anonymousProvider,
+		OOBAuthenticators:        oobProvider,
+		OAuthProviderFactory:     oAuthProviderFactory,
+		MFA:                      mfaService,
+		ForgotPassword:           forgotpasswordProvider,
+		ResetPassword:            forgotpasswordProvider,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Challenges:               challengeProvider,
+		Users:                    userProvider,
+		Hooks:                    hookProvider,
+		Sessions:                 sessionProvider,
+		SessionCookie:            cookieDef,
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
@@ -2104,21 +2107,22 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
-		Database:             sqlExecutor,
-		Config:               appConfig,
-		Identities:           serviceService,
-		Authenticators:       service3,
-		AnonymousIdentities:  anonymousProvider,
-		OOBAuthenticators:    oobProvider,
-		OAuthProviderFactory: oAuthProviderFactory,
-		MFA:                  mfaService,
-		ForgotPassword:       forgotpasswordProvider,
-		ResetPassword:        forgotpasswordProvider,
-		Challenges:           challengeProvider,
-		Users:                userProvider,
-		Hooks:                hookProvider,
-		Sessions:             sessionProvider,
-		SessionCookie:        cookieDef,
+		Database:                 sqlExecutor,
+		Config:                   appConfig,
+		Identities:               serviceService,
+		Authenticators:           service3,
+		AnonymousIdentities:      anonymousProvider,
+		OOBAuthenticators:        oobProvider,
+		OAuthProviderFactory:     oAuthProviderFactory,
+		MFA:                      mfaService,
+		ForgotPassword:           forgotpasswordProvider,
+		ResetPassword:            forgotpasswordProvider,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Challenges:               challengeProvider,
+		Users:                    userProvider,
+		Hooks:                    hookProvider,
+		Sessions:                 sessionProvider,
+		SessionCookie:            cookieDef,
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
@@ -2467,21 +2471,22 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
-		Database:             sqlExecutor,
-		Config:               appConfig,
-		Identities:           serviceService,
-		Authenticators:       service3,
-		AnonymousIdentities:  anonymousProvider,
-		OOBAuthenticators:    oobProvider,
-		OAuthProviderFactory: oAuthProviderFactory,
-		MFA:                  mfaService,
-		ForgotPassword:       forgotpasswordProvider,
-		ResetPassword:        forgotpasswordProvider,
-		Challenges:           challengeProvider,
-		Users:                userProvider,
-		Hooks:                hookProvider,
-		Sessions:             sessionProvider,
-		SessionCookie:        cookieDef,
+		Database:                 sqlExecutor,
+		Config:                   appConfig,
+		Identities:               serviceService,
+		Authenticators:           service3,
+		AnonymousIdentities:      anonymousProvider,
+		OOBAuthenticators:        oobProvider,
+		OAuthProviderFactory:     oAuthProviderFactory,
+		MFA:                      mfaService,
+		ForgotPassword:           forgotpasswordProvider,
+		ResetPassword:            forgotpasswordProvider,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Challenges:               challengeProvider,
+		Users:                    userProvider,
+		Hooks:                    hookProvider,
+		Sessions:                 sessionProvider,
+		SessionCookie:            cookieDef,
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
@@ -2812,21 +2817,22 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
-		Database:             sqlExecutor,
-		Config:               appConfig,
-		Identities:           serviceService,
-		Authenticators:       service3,
-		AnonymousIdentities:  anonymousProvider,
-		OOBAuthenticators:    oobProvider,
-		OAuthProviderFactory: oAuthProviderFactory,
-		MFA:                  mfaService,
-		ForgotPassword:       forgotpasswordProvider,
-		ResetPassword:        forgotpasswordProvider,
-		Challenges:           challengeProvider,
-		Users:                userProvider,
-		Hooks:                hookProvider,
-		Sessions:             sessionProvider,
-		SessionCookie:        cookieDef,
+		Database:                 sqlExecutor,
+		Config:                   appConfig,
+		Identities:               serviceService,
+		Authenticators:           service3,
+		AnonymousIdentities:      anonymousProvider,
+		OOBAuthenticators:        oobProvider,
+		OAuthProviderFactory:     oAuthProviderFactory,
+		MFA:                      mfaService,
+		ForgotPassword:           forgotpasswordProvider,
+		ResetPassword:            forgotpasswordProvider,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Challenges:               challengeProvider,
+		Users:                    userProvider,
+		Hooks:                    hookProvider,
+		Sessions:                 sessionProvider,
+		SessionCookie:            cookieDef,
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
@@ -3167,21 +3173,22 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
-		Database:             sqlExecutor,
-		Config:               appConfig,
-		Identities:           serviceService,
-		Authenticators:       service3,
-		AnonymousIdentities:  anonymousProvider,
-		OOBAuthenticators:    oobProvider,
-		OAuthProviderFactory: oAuthProviderFactory,
-		MFA:                  mfaService,
-		ForgotPassword:       forgotpasswordProvider,
-		ResetPassword:        forgotpasswordProvider,
-		Challenges:           challengeProvider,
-		Users:                userProvider,
-		Hooks:                hookProvider,
-		Sessions:             sessionProvider,
-		SessionCookie:        cookieDef,
+		Database:                 sqlExecutor,
+		Config:                   appConfig,
+		Identities:               serviceService,
+		Authenticators:           service3,
+		AnonymousIdentities:      anonymousProvider,
+		OOBAuthenticators:        oobProvider,
+		OAuthProviderFactory:     oAuthProviderFactory,
+		MFA:                      mfaService,
+		ForgotPassword:           forgotpasswordProvider,
+		ResetPassword:            forgotpasswordProvider,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Challenges:               challengeProvider,
+		Users:                    userProvider,
+		Hooks:                    hookProvider,
+		Sessions:                 sessionProvider,
+		SessionCookie:            cookieDef,
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
@@ -3524,21 +3531,22 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
-		Database:             sqlExecutor,
-		Config:               appConfig,
-		Identities:           serviceService,
-		Authenticators:       service3,
-		AnonymousIdentities:  anonymousProvider,
-		OOBAuthenticators:    oobProvider,
-		OAuthProviderFactory: oAuthProviderFactory,
-		MFA:                  mfaService,
-		ForgotPassword:       forgotpasswordProvider,
-		ResetPassword:        forgotpasswordProvider,
-		Challenges:           challengeProvider,
-		Users:                userProvider,
-		Hooks:                hookProvider,
-		Sessions:             sessionProvider,
-		SessionCookie:        cookieDef,
+		Database:                 sqlExecutor,
+		Config:                   appConfig,
+		Identities:               serviceService,
+		Authenticators:           service3,
+		AnonymousIdentities:      anonymousProvider,
+		OOBAuthenticators:        oobProvider,
+		OAuthProviderFactory:     oAuthProviderFactory,
+		MFA:                      mfaService,
+		ForgotPassword:           forgotpasswordProvider,
+		ResetPassword:            forgotpasswordProvider,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Challenges:               challengeProvider,
+		Users:                    userProvider,
+		Hooks:                    hookProvider,
+		Sessions:                 sessionProvider,
+		SessionCookie:            cookieDef,
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
@@ -3881,21 +3889,22 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
-		Database:             sqlExecutor,
-		Config:               appConfig,
-		Identities:           serviceService,
-		Authenticators:       service3,
-		AnonymousIdentities:  anonymousProvider,
-		OOBAuthenticators:    oobProvider,
-		OAuthProviderFactory: oAuthProviderFactory,
-		MFA:                  mfaService,
-		ForgotPassword:       forgotpasswordProvider,
-		ResetPassword:        forgotpasswordProvider,
-		Challenges:           challengeProvider,
-		Users:                userProvider,
-		Hooks:                hookProvider,
-		Sessions:             sessionProvider,
-		SessionCookie:        cookieDef,
+		Database:                 sqlExecutor,
+		Config:                   appConfig,
+		Identities:               serviceService,
+		Authenticators:           service3,
+		AnonymousIdentities:      anonymousProvider,
+		OOBAuthenticators:        oobProvider,
+		OAuthProviderFactory:     oAuthProviderFactory,
+		MFA:                      mfaService,
+		ForgotPassword:           forgotpasswordProvider,
+		ResetPassword:            forgotpasswordProvider,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Challenges:               challengeProvider,
+		Users:                    userProvider,
+		Hooks:                    hookProvider,
+		Sessions:                 sessionProvider,
+		SessionCookie:            cookieDef,
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
@@ -3921,7 +3930,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	return createPasswordHandler
 }
 
-func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
@@ -4239,21 +4248,22 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
-		Database:             sqlExecutor,
-		Config:               appConfig,
-		Identities:           serviceService,
-		Authenticators:       service3,
-		AnonymousIdentities:  anonymousProvider,
-		OOBAuthenticators:    oobProvider,
-		OAuthProviderFactory: oAuthProviderFactory,
-		MFA:                  mfaService,
-		ForgotPassword:       forgotpasswordProvider,
-		ResetPassword:        forgotpasswordProvider,
-		Challenges:           challengeProvider,
-		Users:                userProvider,
-		Hooks:                hookProvider,
-		Sessions:             sessionProvider,
-		SessionCookie:        cookieDef,
+		Database:                 sqlExecutor,
+		Config:                   appConfig,
+		Identities:               serviceService,
+		Authenticators:           service3,
+		AnonymousIdentities:      anonymousProvider,
+		OOBAuthenticators:        oobProvider,
+		OAuthProviderFactory:     oAuthProviderFactory,
+		MFA:                      mfaService,
+		ForgotPassword:           forgotpasswordProvider,
+		ResetPassword:            forgotpasswordProvider,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Challenges:               challengeProvider,
+		Users:                    userProvider,
+		Hooks:                    hookProvider,
+		Sessions:                 sessionProvider,
+		SessionCookie:            cookieDef,
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
@@ -4269,13 +4279,371 @@ func newWebAppOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store:  redisStore,
 		Graph:  newinteractionService,
 	}
-	oobotpHandler := &webapp2.OOBOTPHandler{
+	setupOOBOTPHandler := &webapp2.SetupOOBOTPHandler{
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
 		Renderer:      htmlRenderer,
 		WebApp:        webappService,
 	}
-	return oobotpHandler
+	return setupOOBOTPHandler
+}
+
+func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	handle := appProvider.Database
+	rootProvider := appProvider.RootProvider
+	serverConfig := rootProvider.ServerConfig
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	uiConfig := appConfig.UI
+	localizationConfig := appConfig.Localization
+	forgotPasswordConfig := appConfig.ForgotPassword
+	appMetadata := appConfig.Metadata
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		ServerConfig:   serverConfig,
+		AuthUI:         uiConfig,
+		Localization:   localizationConfig,
+		ForgotPassword: forgotPasswordConfig,
+		Metadata:       appMetadata,
+	}
+	engine := appProvider.TemplateEngine
+	factory := appProvider.LoggerFactory
+	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
+	htmlRenderer := &webapp2.HTMLRenderer{
+		TemplateEngine: engine,
+		Logger:         htmlRendererLogger,
+	}
+	serviceLogger := webapp.NewServiceLogger(factory)
+	appID := appConfig.ID
+	redisHandle := appProvider.Redis
+	redisStore := &webapp.RedisStore{
+		AppID: appID,
+		Redis: redisHandle,
+	}
+	logger := newinteraction.NewLogger(factory)
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
+	sqlExecutor := db.SQLExecutor{
+		Context:  context,
+		Database: handle,
+	}
+	authenticationConfig := appConfig.Authentication
+	identityConfig := appConfig.Identity
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
+	store := &loginid.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginIDConfig := identityConfig.LoginID
+	reservedNameChecker := rootProvider.ReservedNameChecker
+	typeCheckerFactory := &loginid.TypeCheckerFactory{
+		Config:              loginIDConfig,
+		ReservedNameChecker: reservedNameChecker,
+	}
+	checker := &loginid.Checker{
+		Config:             loginIDConfig,
+		TypeCheckerFactory: typeCheckerFactory,
+	}
+	normalizerFactory := &loginid.NormalizerFactory{
+		Config: loginIDConfig,
+	}
+	provider := &loginid.Provider{
+		Store:             store,
+		Config:            loginIDConfig,
+		Checker:           checker,
+		NormalizerFactory: normalizerFactory,
+	}
+	oauthStore := &oauth3.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	clockClock := _wireSystemClockValue
+	oauthProvider := &oauth3.Provider{
+		Store: oauthStore,
+		Clock: clockClock,
+	}
+	anonymousStore := &anonymous.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	anonymousProvider := &anonymous.Provider{
+		Store: anonymousStore,
+		Clock: clockClock,
+	}
+	serviceService := &service2.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+	}
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	passwordLogger := password.NewLogger(factory)
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		Logger:          passwordLogger,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+		TaskQueue:       queueQueue,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	messagingConfig := appConfig.Messaging
+	endpointsProvider := &endpoints.Provider{
+		Request: request,
+		Config:  serverConfig,
+	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
+	oobProvider := &oob.Provider{
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
+	}
+	service3 := &service.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
+	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	urlProvider := &webapp.URLProvider{
+		Endpoints: endpointsProvider,
+	}
+	userInfoDecoder := sso.UserInfoDecoder{
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	oAuthProviderFactory := &sso.OAuthProviderFactory{
+		Endpoints:                endpointsProvider,
+		IdentityConfig:           identityConfig,
+		Credentials:              oAuthClientCredentials,
+		RedirectURL:              urlProvider,
+		Clock:                    clockClock,
+		UserInfoDecoder:          userInfoDecoder,
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
+	forgotpasswordStore := &forgotpassword.Store{
+		Redis: redisHandle,
+	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
+	forgotpasswordProvider := &forgotpassword.Provider{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TemplateEngine: engine,
+		TaskQueue:      queueQueue,
+		Logger:         providerLogger,
+		Identities:     serviceService,
+		Authenticators: service3,
+	}
+	challengeProvider := &challenge.Provider{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	welcomemessageProvider := &welcomemessage.Provider{
+		Context:               context,
+		LocalizationConfig:    localizationConfig,
+		MetadataConfiguration: appMetadata,
+		MessagingConfig:       messagingConfig,
+		WelcomeMessageConfig:  welcomeMessageConfig,
+		TemplateEngine:        engine,
+		TaskQueue:             queueQueue,
+	}
+	verificationConfig := appConfig.Verification
+	verificationService := &verification.Service{
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+	}
+	queries := &user.Queries{
+		Store:        userStore,
+		Identities:   serviceService,
+		Verification: verificationService,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	hookStore := &hook.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	mutatorFactory := &hook.MutatorFactory{
+		Users: rawProvider,
+	}
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:         hookConfig,
+		Secret:         webhookKeyMaterials,
+		Clock:          clockClock,
+		MutatorFactory: mutatorFactory,
+		SyncHTTP:       syncHTTPClient,
+		AsyncHTTP:      asyncHTTPClient,
+	}
+	hookProvider := &hook.Provider{
+		Context:   context,
+		Logger:    hookLogger,
+		Database:  handle,
+		Clock:     clockClock,
+		Users:     rawProvider,
+		Store:     hookStore,
+		Deliverer: deliverer,
+	}
+	commands := &user.Commands{
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: verificationService,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
+	redisLogger := redis2.NewLogger(factory)
+	store2 := &redis2.Store{
+		Redis:  redisHandle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: redisLogger,
+	}
+	eventStore := &redis3.EventStore{
+		Redis: redisHandle,
+		AppID: appID,
+	}
+	accessEventProvider := &auth.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionConfig := appConfig.Session
+	sessionRand := _wireRandValue
+	sessionProvider := &session.Provider{
+		Request:      request,
+		Store:        store2,
+		AccessEvents: accessEventProvider,
+		ServerConfig: serverConfig,
+		Config:       sessionConfig,
+		Clock:        clockClock,
+		Random:       sessionRand,
+	}
+	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
+	newinteractionContext := &newinteraction.Context{
+		Database:                 sqlExecutor,
+		Config:                   appConfig,
+		Identities:               serviceService,
+		Authenticators:           service3,
+		AnonymousIdentities:      anonymousProvider,
+		OOBAuthenticators:        oobProvider,
+		OAuthProviderFactory:     oAuthProviderFactory,
+		MFA:                      mfaService,
+		ForgotPassword:           forgotpasswordProvider,
+		ResetPassword:            forgotpasswordProvider,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Challenges:               challengeProvider,
+		Users:                    userProvider,
+		Hooks:                    hookProvider,
+		Sessions:                 sessionProvider,
+		SessionCookie:            cookieDef,
+	}
+	storeRedis := &newinteraction.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+	}
+	newinteractionService := &newinteraction.Service{
+		Logger:  logger,
+		Context: newinteractionContext,
+		Store:   storeRedis,
+	}
+	webappService := &webapp.Service{
+		Logger: serviceLogger,
+		Store:  redisStore,
+		Graph:  newinteractionService,
+	}
+	enterOOBOTPHandler := &webapp2.EnterOOBOTPHandler{
+		Database:      handle,
+		BaseViewModel: baseViewModeler,
+		Renderer:      htmlRenderer,
+		WebApp:        webappService,
+	}
+	return enterOOBOTPHandler
 }
 
 func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
@@ -4600,21 +4968,22 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
-		Database:             sqlExecutor,
-		Config:               appConfig,
-		Identities:           serviceService,
-		Authenticators:       service3,
-		AnonymousIdentities:  anonymousProvider,
-		OOBAuthenticators:    oobProvider,
-		OAuthProviderFactory: oAuthProviderFactory,
-		MFA:                  mfaService,
-		ForgotPassword:       forgotpasswordProvider,
-		ResetPassword:        forgotpasswordProvider,
-		Challenges:           challengeProvider,
-		Users:                userProvider,
-		Hooks:                hookProvider,
-		Sessions:             sessionProvider,
-		SessionCookie:        cookieDef,
+		Database:                 sqlExecutor,
+		Config:                   appConfig,
+		Identities:               serviceService,
+		Authenticators:           service3,
+		AnonymousIdentities:      anonymousProvider,
+		OOBAuthenticators:        oobProvider,
+		OAuthProviderFactory:     oAuthProviderFactory,
+		MFA:                      mfaService,
+		ForgotPassword:           forgotpasswordProvider,
+		ResetPassword:            forgotpasswordProvider,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Challenges:               challengeProvider,
+		Users:                    userProvider,
+		Hooks:                    hookProvider,
+		Sessions:                 sessionProvider,
+		SessionCookie:            cookieDef,
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
@@ -4958,21 +5327,22 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
-		Database:             sqlExecutor,
-		Config:               appConfig,
-		Identities:           serviceService,
-		Authenticators:       service3,
-		AnonymousIdentities:  anonymousProvider,
-		OOBAuthenticators:    oobProvider,
-		OAuthProviderFactory: oAuthProviderFactory,
-		MFA:                  mfaService,
-		ForgotPassword:       forgotpasswordProvider,
-		ResetPassword:        forgotpasswordProvider,
-		Challenges:           challengeProvider,
-		Users:                userProvider,
-		Hooks:                hookProvider,
-		Sessions:             sessionProvider,
-		SessionCookie:        cookieDef,
+		Database:                 sqlExecutor,
+		Config:                   appConfig,
+		Identities:               serviceService,
+		Authenticators:           service3,
+		AnonymousIdentities:      anonymousProvider,
+		OOBAuthenticators:        oobProvider,
+		OAuthProviderFactory:     oAuthProviderFactory,
+		MFA:                      mfaService,
+		ForgotPassword:           forgotpasswordProvider,
+		ResetPassword:            forgotpasswordProvider,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Challenges:               challengeProvider,
+		Users:                    userProvider,
+		Hooks:                    hookProvider,
+		Sessions:                 sessionProvider,
+		SessionCookie:            cookieDef,
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
@@ -5315,21 +5685,22 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
-		Database:             sqlExecutor,
-		Config:               appConfig,
-		Identities:           serviceService,
-		Authenticators:       service3,
-		AnonymousIdentities:  anonymousProvider,
-		OOBAuthenticators:    oobProvider,
-		OAuthProviderFactory: oAuthProviderFactory,
-		MFA:                  mfaService,
-		ForgotPassword:       forgotpasswordProvider,
-		ResetPassword:        forgotpasswordProvider,
-		Challenges:           challengeProvider,
-		Users:                userProvider,
-		Hooks:                hookProvider,
-		Sessions:             sessionProvider,
-		SessionCookie:        cookieDef,
+		Database:                 sqlExecutor,
+		Config:                   appConfig,
+		Identities:               serviceService,
+		Authenticators:           service3,
+		AnonymousIdentities:      anonymousProvider,
+		OOBAuthenticators:        oobProvider,
+		OAuthProviderFactory:     oAuthProviderFactory,
+		MFA:                      mfaService,
+		ForgotPassword:           forgotpasswordProvider,
+		ResetPassword:            forgotpasswordProvider,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Challenges:               challengeProvider,
+		Users:                    userProvider,
+		Hooks:                    hookProvider,
+		Sessions:                 sessionProvider,
+		SessionCookie:            cookieDef,
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
@@ -5673,21 +6044,22 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
-		Database:             sqlExecutor,
-		Config:               appConfig,
-		Identities:           serviceService,
-		Authenticators:       service3,
-		AnonymousIdentities:  anonymousProvider,
-		OOBAuthenticators:    oobProvider,
-		OAuthProviderFactory: oAuthProviderFactory,
-		MFA:                  mfaService,
-		ForgotPassword:       forgotpasswordProvider,
-		ResetPassword:        forgotpasswordProvider,
-		Challenges:           challengeProvider,
-		Users:                userProvider,
-		Hooks:                hookProvider,
-		Sessions:             sessionProvider,
-		SessionCookie:        cookieDef,
+		Database:                 sqlExecutor,
+		Config:                   appConfig,
+		Identities:               serviceService,
+		Authenticators:           service3,
+		AnonymousIdentities:      anonymousProvider,
+		OOBAuthenticators:        oobProvider,
+		OAuthProviderFactory:     oAuthProviderFactory,
+		MFA:                      mfaService,
+		ForgotPassword:           forgotpasswordProvider,
+		ResetPassword:            forgotpasswordProvider,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Challenges:               challengeProvider,
+		Users:                    userProvider,
+		Hooks:                    hookProvider,
+		Sessions:                 sessionProvider,
+		SessionCookie:            cookieDef,
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,
@@ -6061,21 +6433,22 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
-		Database:             sqlExecutor,
-		Config:               appConfig,
-		Identities:           serviceService,
-		Authenticators:       service3,
-		AnonymousIdentities:  anonymousProvider,
-		OOBAuthenticators:    oobProvider,
-		OAuthProviderFactory: oAuthProviderFactory,
-		MFA:                  mfaService,
-		ForgotPassword:       forgotpasswordProvider,
-		ResetPassword:        forgotpasswordProvider,
-		Challenges:           challengeProvider,
-		Users:                userProvider,
-		Hooks:                hookProvider,
-		Sessions:             sessionProvider,
-		SessionCookie:        cookieDef,
+		Database:                 sqlExecutor,
+		Config:                   appConfig,
+		Identities:               serviceService,
+		Authenticators:           service3,
+		AnonymousIdentities:      anonymousProvider,
+		OOBAuthenticators:        oobProvider,
+		OAuthProviderFactory:     oAuthProviderFactory,
+		MFA:                      mfaService,
+		ForgotPassword:           forgotpasswordProvider,
+		ResetPassword:            forgotpasswordProvider,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Challenges:               challengeProvider,
+		Users:                    userProvider,
+		Hooks:                    hookProvider,
+		Sessions:                 sessionProvider,
+		SessionCookie:            cookieDef,
 	}
 	storeRedis := &newinteraction.StoreRedis{
 		Redis: redisHandle,

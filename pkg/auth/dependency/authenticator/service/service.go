@@ -5,7 +5,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/totp"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
@@ -120,50 +119,6 @@ func (s *Service) List(userID string, filters ...authenticator.Filter) ([]*authe
 	return filtered, nil
 }
 
-func (s *Service) FilterPrimaryAuthenticators(ii *identity.Info, ais []*authenticator.Info) (out []*authenticator.Info) {
-	types := ii.Type.PrimaryAuthenticatorTypes()
-	for _, typ := range types {
-		for _, ai := range ais {
-			if ai.Type == typ {
-				switch {
-				case ii.Type == authn.IdentityTypeLoginID && ai.Type == authn.AuthenticatorTypeOOB:
-					loginID := ii.Claims[identity.IdentityClaimLoginIDValue]
-					email, _ := ai.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string)
-					phone, _ := ai.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string)
-					if loginID == email || loginID == phone {
-						out = append(out, ai)
-					}
-				default:
-					out = append(out, ai)
-				}
-			}
-		}
-	}
-	return
-}
-
-func (s *Service) FilterMatchingAuthenticators(ii *identity.Info, ais []*authenticator.Info) (out []*authenticator.Info) {
-	types := ii.Type.MatchingAuthenticatorTypes()
-	for _, typ := range types {
-		for _, ai := range ais {
-			if ai.Type == typ {
-				switch {
-				case ii.Type == authn.IdentityTypeLoginID && ai.Type == authn.AuthenticatorTypeOOB:
-					loginID := ii.Claims[identity.IdentityClaimLoginIDValue]
-					email, _ := ai.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string)
-					phone, _ := ai.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string)
-					if loginID == email || loginID == phone {
-						out = append(out, ai)
-					}
-				default:
-					out = append(out, ai)
-				}
-			}
-		}
-	}
-	return
-}
-
 func (s *Service) New(spec *authenticator.Spec, secret string) (*authenticator.Info, error) {
 	switch spec.Type {
 	case authn.AuthenticatorTypePassword:
@@ -211,6 +166,18 @@ func (s *Service) WithSecret(ai *authenticator.Info, secret string) (bool, *auth
 }
 
 func (s *Service) Create(info *authenticator.Info) error {
+	ais, err := s.List(info.UserID)
+	if err != nil {
+		return err
+	}
+
+	for _, a := range ais {
+		if info.Equal(a) {
+			err = authenticator.ErrAuthenticatorAlreadyExists
+			return err
+		}
+	}
+
 	switch info.Type {
 	case authn.AuthenticatorTypePassword:
 		a := passwordFromAuthenticatorInfo(info)
@@ -275,41 +242,6 @@ func (s *Service) Delete(info *authenticator.Info) error {
 	}
 
 	return nil
-}
-
-func (s *Service) Authenticate(spec *authenticator.Spec, state map[string]string, secret string) (*authenticator.Info, error) {
-	switch spec.Type {
-	case authn.AuthenticatorTypePassword:
-		ps, err := s.Password.List(spec.UserID)
-		if err != nil {
-			return nil, err
-		}
-		if len(ps) != 1 {
-			return nil, authenticator.ErrAuthenticatorNotFound
-		}
-
-		if s.Password.Authenticate(ps[0], secret) != nil {
-			return nil, authenticator.ErrInvalidCredentials
-		}
-		return passwordToAuthenticatorInfo(ps[0]), nil
-
-	case authn.AuthenticatorTypeTOTP:
-		ts, err := s.TOTP.List(spec.UserID)
-		if err != nil {
-			return nil, err
-		}
-
-		t := s.TOTP.Authenticate(ts, secret)
-		if t == nil {
-			return nil, authenticator.ErrInvalidCredentials
-		}
-		return totpToAuthenticatorInfo(t), nil
-
-	case authn.AuthenticatorTypeOOB:
-		panic("authenticator: unsupported OOB authenticator")
-	}
-
-	panic("authenticator: unknown authenticator type " + spec.Type)
 }
 
 func (s *Service) VerifySecret(info *authenticator.Info, state map[string]string, secret string) error {

@@ -44,7 +44,7 @@ func (i *IntentAuthenticate) InstantiateRootNode(ctx *newinteraction.Context, gr
 	return edge.Instantiate(ctx, graph, i)
 }
 
-// nolint:gocycle
+// nolint:gocyclo
 func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, graph *newinteraction.Graph, node newinteraction.Node) ([]newinteraction.Edge, error) {
 	switch node := node.(type) {
 	case *nodes.NodeSelectIdentityEnd:
@@ -216,7 +216,6 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 	case *nodes.NodeDoUseAuthenticator:
 		switch node.Stage {
 		case newinteraction.AuthenticationStagePrimary:
-			// TODO(interaction): check MFA mode
 			return []newinteraction.Edge{
 				&nodes.EdgeAuthenticationBegin{Stage: newinteraction.AuthenticationStageSecondary},
 			}, nil
@@ -240,7 +239,6 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 	case *nodes.NodeDoCreateAuthenticator:
 		switch node.Stage {
 		case newinteraction.AuthenticationStagePrimary:
-			// TODO(interaction): check MFA mode
 			return []newinteraction.Edge{
 				&nodes.EdgeCreateAuthenticatorBegin{Stage: newinteraction.AuthenticationStageSecondary},
 			}, nil

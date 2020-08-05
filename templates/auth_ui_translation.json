@@ -98,5 +98,11 @@
 	"settings-identity-login-id-raw": "Username",
 
 	"enter-login-id-page-title--change": "Change your {0}",
-	"enter-login-id-page-title--add": "Enter your {0}"
+	"enter-login-id-page-title--add": "Enter your {0}",
+
+	"setup-oob-otp-title--sms": "Setup SMS multi-factor verification",
+	"setup-oob-otp-title--email": "Setup email multi-factor verification",
+
+	"setup-oob-otp-use-phone-description": "Setup SMS multi-factor verification instead",
+	"setup-oob-otp-use-email-description": "Setup email multi-factor verification instead"
 }

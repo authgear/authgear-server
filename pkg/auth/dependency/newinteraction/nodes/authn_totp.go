@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
-	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
 func init() {
@@ -17,7 +16,8 @@ type InputAuthenticationTOTP interface {
 }
 
 type EdgeAuthenticationTOTP struct {
-	Stage newinteraction.AuthenticationStage
+	Stage          newinteraction.AuthenticationStage
+	Authenticators []*authenticator.Info
 }
 
 func (e *EdgeAuthenticationTOTP) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
@@ -26,19 +26,19 @@ func (e *EdgeAuthenticationTOTP) Instantiate(ctx *newinteraction.Context, graph 
 		return nil, newinteraction.ErrIncompatibleInput
 	}
 
-	userID := graph.MustGetUserID()
-	spec := &authenticator.Spec{
-		UserID: userID,
-		Tag:    stageToAuthenticatorTag(e.Stage),
-		Type:   authn.AuthenticatorTypeTOTP,
-		Props:  map[string]interface{}{},
-	}
-	info, err := ctx.Authenticators.Authenticate(spec, nil, input.GetTOTP())
-	if errors.Is(err, authenticator.ErrAuthenticatorNotFound) ||
-		errors.Is(err, authenticator.ErrInvalidCredentials) {
-		info = nil
-	} else if err != nil {
-		return nil, err
+	inputTOTP := input.GetTOTP()
+
+	var info *authenticator.Info
+	for _, a := range e.Authenticators {
+		err := ctx.Authenticators.VerifySecret(a, nil, inputTOTP)
+		if errors.Is(err, authenticator.ErrInvalidCredentials) {
+			continue
+		} else if err != nil {
+			return nil, err
+		} else {
+			aa := a
+			info = aa
+		}
 	}
 
 	return &NodeAuthenticationTOTP{Stage: e.Stage, Authenticator: info}, nil

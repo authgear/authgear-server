@@ -39,45 +39,56 @@ func (n *NodeAuthenticationBegin) DeriveEdges(ctx *newinteraction.Context, graph
 		availableAuthenticators, err = ctx.Authenticators.List(
 			identityInfo.UserID,
 			authenticator.KeepTag(authenticator.TagPrimaryAuthenticator),
+			authenticator.KeepPrimaryAuthenticatorOfIdentity(identityInfo),
 		)
 		if err != nil {
 			return nil, err
 		}
-		availableAuthenticators = ctx.Authenticators.FilterPrimaryAuthenticators(identityInfo, availableAuthenticators)
 		availableAuthenticators = newinteraction.SortAuthenticators(availableAuthenticators, ctx.Config.Authentication.PrimaryAuthenticators)
 	case newinteraction.AuthenticationStageSecondary:
-		// TODO(new_interaction): MFA
-		break
+		availableAuthenticators, err = ctx.Authenticators.List(
+			identityInfo.UserID,
+			authenticator.KeepTag(authenticator.TagSecondaryAuthenticator),
+		)
+		if err != nil {
+			return nil, err
+		}
 	default:
 		panic("interaction: unknown authentication stage: " + n.Stage)
 	}
 
-	for _, t := range availableAuthenticators {
-		switch t.Type {
-		case authn.AuthenticatorTypePassword:
-			edges = append(edges, &EdgeAuthenticationPassword{Stage: n.Stage})
-		case authn.AuthenticatorTypeTOTP:
-			_, infos, err := getAuthenticators(ctx, graph, n.Stage, authn.AuthenticatorTypeTOTP)
-			if err != nil {
-				return nil, err
-			}
+	passwords := filterAuthenticators(
+		availableAuthenticators,
+		authenticator.KeepType(authn.AuthenticatorTypePassword),
+	)
+	totps := filterAuthenticators(
+		availableAuthenticators,
+		authenticator.KeepType(authn.AuthenticatorTypeTOTP),
+	)
+	oobs := filterAuthenticators(
+		availableAuthenticators,
+		authenticator.KeepType(authn.AuthenticatorTypeOOB),
+	)
 
-			if len(infos) > 0 {
-				edges = append(edges, &EdgeAuthenticationTOTP{Stage: n.Stage})
-			}
-		case authn.AuthenticatorTypeOOB:
-			_, infos, err := getAuthenticators(ctx, graph, n.Stage, authn.AuthenticatorTypeOOB)
-			if err != nil {
-				return nil, err
-			}
+	if len(passwords) > 0 {
+		edges = append(edges, &EdgeAuthenticationPassword{
+			Stage:          n.Stage,
+			Authenticators: passwords,
+		})
+	}
 
-			if len(infos) > 0 {
-				edges = append(edges, &EdgeAuthenticationOOBTrigger{Stage: n.Stage})
-			}
-		default:
-			// TODO(new_interaction): implements bearer token, recovery code
-			panic("interaction: unsupported authenticator type: " + t.Type)
-		}
+	if len(totps) > 0 {
+		edges = append(edges, &EdgeAuthenticationTOTP{
+			Stage:          n.Stage,
+			Authenticators: totps,
+		})
+	}
+
+	if len(oobs) > 0 {
+		edges = append(edges, &EdgeAuthenticationOOBTrigger{
+			Stage:          n.Stage,
+			Authenticators: oobs,
+		})
 	}
 
 	// No authenticators found, skip the authentication stage

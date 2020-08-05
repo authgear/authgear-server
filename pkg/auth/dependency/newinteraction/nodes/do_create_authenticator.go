@@ -47,14 +47,17 @@ func (n *NodeDoCreateAuthenticator) DeriveEdges(ctx *newinteraction.Context, gra
 	return graph.Intent.DeriveEdgesForNode(ctx, graph, n)
 }
 
-func (n *NodeDoCreateAuthenticator) UserAuthenticator() (newinteraction.AuthenticationStage, *authenticator.Info) {
+func (n *NodeDoCreateAuthenticator) UserAuthenticator(stage newinteraction.AuthenticationStage) (*authenticator.Info, bool) {
 	if len(n.Authenticators) > 1 {
 		panic("interaction: expect at most one primary/secondary authenticator")
 	}
 	if len(n.Authenticators) == 0 {
-		return "", nil
+		return nil, false
 	}
-	return n.Stage, n.Authenticators[0]
+	if n.Stage == stage && n.Authenticators[0] != nil {
+		return n.Authenticators[0], true
+	}
+	return nil, false
 }
 
 func (n *NodeDoCreateAuthenticator) UserNewAuthenticators() []*authenticator.Info {

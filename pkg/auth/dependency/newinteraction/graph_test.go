@@ -147,8 +147,11 @@ func (n *testGraphGetAMRnode) DeriveEdges(ctx *newinteraction.Context, graph *ne
 	return nil, nil
 }
 
-func (n *testGraphGetAMRnode) UserAuthenticator() (newinteraction.AuthenticationStage, *authenticator.Info) {
-	return n.Stage, n.Authenticator
+func (n *testGraphGetAMRnode) UserAuthenticator(stage newinteraction.AuthenticationStage) (*authenticator.Info, bool) {
+	if n.Stage == stage && n.Authenticator != nil {
+		return n.Authenticator, true
+	}
+	return nil, false
 }
 
 func TestGraphGetAMRACR(t *testing.T) {

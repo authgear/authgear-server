@@ -2,7 +2,6 @@ package nodes
 
 import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/otp"
@@ -17,53 +16,26 @@ func cloneAuthenticator(info *authenticator.Info) *authenticator.Info {
 	return &newInfo
 }
 
-func getAuthenticators(
-	ctx *newinteraction.Context,
-	graph *newinteraction.Graph,
-	stage newinteraction.AuthenticationStage,
-	typ authn.AuthenticatorType,
-) (*identity.Info, []*authenticator.Info, error) {
-	var identityInfo *identity.Info
-	var infos []*authenticator.Info
-	var err error
-	if stage == newinteraction.AuthenticationStagePrimary {
-		identityInfo = graph.MustGetUserLastIdentity()
-		infos, err = ctx.Authenticators.List(
-			identityInfo.UserID,
-			authenticator.KeepTag(authenticator.TagPrimaryAuthenticator),
-		)
-		if err != nil {
-			return nil, nil, err
-		}
-		infos = ctx.Authenticators.FilterPrimaryAuthenticators(identityInfo, infos)
-
-		n := 0
-		for _, info := range infos {
-			if info.Type == typ {
-				infos[n] = info
-				n++
+func filterAuthenticators(ais []*authenticator.Info, filters ...authenticator.Filter) (out []*authenticator.Info) {
+	for _, a := range ais {
+		keep := true
+		for _, f := range filters {
+			if !f.Keep(a) {
+				keep = false
+				break
 			}
 		}
-		infos = infos[:n]
-	} else {
-		userID := graph.MustGetUserID()
-		infos, err = ctx.Authenticators.List(
-			userID,
-			authenticator.KeepType(typ),
-		)
+		if keep {
+			out = append(out, a)
+		}
 	}
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return identityInfo, infos, nil
+	return
 }
 
 func sendOOBCode(
 	ctx *newinteraction.Context,
 	stage newinteraction.AuthenticationStage,
 	isAuthenticating bool,
-	identityInfo *identity.Info,
 	authenticatorInfo *authenticator.Info,
 	secret string,
 ) (*otp.OOBSendResult, error) {
@@ -71,37 +43,30 @@ func sendOOBCode(
 
 	channel := authn.AuthenticatorOOBChannel(authenticatorInfo.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string))
 
-	var target string
 	var messageType otp.MessageType
-	if stage == newinteraction.AuthenticationStagePrimary {
-		// Primary OOB authenticators should match login ID identities:
-		// Extract login ID from the identity.
-		if identityInfo != nil {
-			target = identityInfo.Claims[identity.IdentityClaimLoginIDValue].(string)
-		}
-
+	switch stage {
+	case newinteraction.AuthenticationStagePrimary:
 		if isAuthenticating {
 			messageType = otp.MessageTypeAuthenticatePrimaryOOB
 		} else {
 			messageType = otp.MessageTypeSetupPrimaryOOB
 		}
-	} else {
-		// Secondary OOB authenticators is not related to login ID identities.
+	case newinteraction.AuthenticationStageSecondary:
 		if isAuthenticating {
 			messageType = otp.MessageTypeAuthenticateSecondaryOOB
 		} else {
 			messageType = otp.MessageTypeSetupSecondaryOOB
 		}
+	default:
+		panic("interaction: unknown authentication stage: " + stage)
 	}
 
-	// Use a placeholder login ID if no matching login ID identity
-	if target == "" {
-		switch channel {
-		case authn.AuthenticatorOOBChannelSMS:
-			target = authenticatorInfo.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string)
-		case authn.AuthenticatorOOBChannelEmail:
-			target = authenticatorInfo.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string)
-		}
+	var target string
+	switch channel {
+	case authn.AuthenticatorOOBChannelSMS:
+		target = authenticatorInfo.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string)
+	case authn.AuthenticatorOOBChannelEmail:
+		target = authenticatorInfo.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string)
 	}
 
 	code := ctx.OOBAuthenticators.GenerateCode(secret, channel)
