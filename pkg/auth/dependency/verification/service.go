@@ -26,7 +26,7 @@ type OTPMessageSender interface {
 }
 
 type WebAppURLProvider interface {
-	VerifyUserURL(code string, webStateID string) *url.URL
+	VerifyIdentityURL(code string, webStateID string) *url.URL
 }
 
 type Store interface {
@@ -272,7 +272,7 @@ func (s *Service) NewVerificationAuthenticator(code *Code) (*authenticator.Info,
 func (s *Service) SendCode(code *Code, webStateID string) (*otp.CodeSendResult, error) {
 	opts := otp.SendOptions{
 		OTP:         code.Code,
-		URL:         s.WebAppURLs.VerifyUserURL(code.Code, webStateID).String(),
+		URL:         s.WebAppURLs.VerifyIdentityURL(code.Code, webStateID).String(),
 		MessageType: otp.MessageTypeVerification,
 	}
 

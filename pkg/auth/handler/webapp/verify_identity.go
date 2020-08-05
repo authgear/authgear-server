@@ -17,21 +17,21 @@ import (
 )
 
 const (
-	TemplateItemTypeAuthUIVerifyUserHTML config.TemplateItemType = "auth_ui_verify_user.html"
+	TemplateItemTypeAuthUIVerifyIdentityHTML config.TemplateItemType = "auth_ui_verify_identity.html"
 )
 
-var TemplateAuthUIVerifyUserHTML = template.Spec{
-	Type:        TemplateItemTypeAuthUIVerifyUserHTML,
+var TemplateAuthUIVerifyIdentityHTML = template.Spec{
+	Type:        TemplateItemTypeAuthUIVerifyIdentityHTML,
 	IsHTML:      true,
 	Translation: TemplateItemTypeAuthUITranslationJSON,
 	Defines:     defines,
 	Components:  components,
 }
 
-const VerifyUserRequestSchema = "VerifyUserRequestSchema"
+const VerifyIdentityRequestSchema = "VerifyIdentityRequestSchema"
 
-var VerifyUserSchema = validation.NewMultipartSchema("").
-	Add(VerifyUserRequestSchema, `
+var VerifyIdentitySchema = validation.NewMultipartSchema("").
+	Add(VerifyIdentityRequestSchema, `
 		{
 			"type": "object",
 			"properties": {
@@ -41,13 +41,13 @@ var VerifyUserSchema = validation.NewMultipartSchema("").
 		}
 	`).Instantiate()
 
-func ConfigureVerifyUserRoute(route httproute.Route) httproute.Route {
+func ConfigureVerifyIdentityRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/verify_user")
+		WithPathPattern("/verify_identity")
 }
 
-type VerifyUserViewModel struct {
+type VerifyIdentityViewModel struct {
 	VerificationCode             string
 	VerificationCodeSendCooldown int
 	VerificationCodeLength       int
@@ -55,7 +55,7 @@ type VerifyUserViewModel struct {
 	IdentityDisplayID            string
 }
 
-type VerifyUserHandler struct {
+type VerifyIdentityHandler struct {
 	Database      *db.Handle
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
@@ -69,19 +69,19 @@ type VerifyIdentityNode interface {
 	GetVerificationCodeLength() int
 }
 
-func (h *VerifyUserHandler) MakeIntent(r *http.Request) *webapp.Intent {
+func (h *VerifyIdentityHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	return &webapp.Intent{
-		RedirectURI: "/verify_user/success",
+		RedirectURI: "/verify_identity/success",
 		KeepState:   true,
-		Intent:      intents.NewIntentVerifyUserResume(r.Form.Get("id")),
+		Intent:      intents.NewIntentVerifyIdentityResume(r.Form.Get("state")),
 	}
 }
 
-func (h *VerifyUserHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
+func (h *VerifyIdentityHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-	viewModel := VerifyUserViewModel{
+	viewModel := VerifyIdentityViewModel{
 		VerificationCode: r.Form.Get("code"),
 	}
 	if n, ok := graph.CurrentNode().(VerifyIdentityNode); ok {
@@ -97,11 +97,11 @@ func (h *VerifyUserHandler) GetData(r *http.Request, state *webapp.State, graph 
 	return data, nil
 }
 
-func (h *VerifyUserHandler) GetErrorData(r *http.Request, err error) (map[string]interface{}, error) {
+func (h *VerifyIdentityHandler) GetErrorData(r *http.Request, err error) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, err)
-	viewModel := VerifyUserViewModel{}
+	viewModel := VerifyIdentityViewModel{}
 
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, viewModel)
@@ -122,7 +122,7 @@ func (i *VerificationCodeInput) GetVerificationCode() string {
 	return i.Code
 }
 
-func (h *VerifyUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -132,7 +132,7 @@ func (h *VerifyUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	id := StateID(r)
 	if id == "" {
 		// Navigated from the link in verification message
-		id = r.Form.Get("id")
+		id = r.Form.Get("state")
 
 		_, err := h.WebApp.GetState(id)
 		if errors.Is(err, webapp.ErrInvalidState) {
@@ -160,7 +160,7 @@ func (h *VerifyUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			h.Renderer.Render(w, r, TemplateItemTypeAuthUIVerifyUserHTML, data)
+			h.Renderer.Render(w, r, TemplateItemTypeAuthUIVerifyIdentityHTML, data)
 			return nil
 		})
 	}
@@ -180,7 +180,7 @@ func (h *VerifyUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			h.Renderer.Render(w, r, TemplateItemTypeAuthUIVerifyUserHTML, data)
+			h.Renderer.Render(w, r, TemplateItemTypeAuthUIVerifyIdentityHTML, data)
 			return nil
 		})
 	}
@@ -206,7 +206,7 @@ func (h *VerifyUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		h.Database.WithTx(func() error {
 			inputer := func() (input interface{}, err error) {
-				err = VerifyUserSchema.PartValidator(VerifyUserRequestSchema).ValidateValue(FormToJSON(r.Form))
+				err = VerifyIdentitySchema.PartValidator(VerifyIdentityRequestSchema).ValidateValue(FormToJSON(r.Form))
 				if err != nil {
 					return
 				}

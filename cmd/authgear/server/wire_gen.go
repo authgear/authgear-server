@@ -4858,7 +4858,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	return enterOOBOTPHandler
 }
 
-func newWebAppVerifyUserHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
@@ -5219,16 +5219,16 @@ func newWebAppVerifyUserHandler(p *deps.RequestProvider) http.Handler {
 		Store:  redisStore,
 		Graph:  newinteractionService,
 	}
-	verifyUserHandler := &webapp2.VerifyUserHandler{
+	verifyIdentityHandler := &webapp2.VerifyIdentityHandler{
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
 		Renderer:      htmlRenderer,
 		WebApp:        webappService,
 	}
-	return verifyUserHandler
+	return verifyIdentityHandler
 }
 
-func newWebAppVerifyUserSuccessHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
@@ -5589,13 +5589,13 @@ func newWebAppVerifyUserSuccessHandler(p *deps.RequestProvider) http.Handler {
 		Store:  redisStore,
 		Graph:  newinteractionService,
 	}
-	verifyUserSuccessHandler := &webapp2.VerifyUserSuccessHandler{
+	verifyIdentitySuccessHandler := &webapp2.VerifyIdentitySuccessHandler{
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
 		Renderer:      htmlRenderer,
 		WebApp:        webappService,
 	}
-	return verifyUserSuccessHandler
+	return verifyIdentitySuccessHandler
 }
 
 func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {

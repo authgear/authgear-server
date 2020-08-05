@@ -145,18 +145,18 @@ func (m *MockWebAppURLProvider) EXPECT() *MockWebAppURLProviderMockRecorder {
 	return m.recorder
 }
 
-// VerifyUserURL mocks base method
-func (m *MockWebAppURLProvider) VerifyUserURL(code, webStateID string) *url.URL {
+// VerifyIdentityURL mocks base method
+func (m *MockWebAppURLProvider) VerifyIdentityURL(code, webStateID string) *url.URL {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyUserURL", code, webStateID)
+	ret := m.ctrl.Call(m, "VerifyIdentityURL", code, webStateID)
 	ret0, _ := ret[0].(*url.URL)
 	return ret0
 }
 
-// VerifyUserURL indicates an expected call of VerifyUserURL
-func (mr *MockWebAppURLProviderMockRecorder) VerifyUserURL(code, webStateID interface{}) *gomock.Call {
+// VerifyIdentityURL indicates an expected call of VerifyIdentityURL
+func (mr *MockWebAppURLProviderMockRecorder) VerifyIdentityURL(code, webStateID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyUserURL", reflect.TypeOf((*MockWebAppURLProvider)(nil).VerifyUserURL), code, webStateID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyIdentityURL", reflect.TypeOf((*MockWebAppURLProvider)(nil).VerifyIdentityURL), code, webStateID)
 }
 
 // MockStore is a mock of Store interface

@@ -12,39 +12,38 @@ import (
 )
 
 const (
-	// nolint: gosec
-	TemplateItemTypeAuthUIVerifyUserSuccessHTML config.TemplateItemType = "auth_ui_verify_user_success.html"
+	TemplateItemTypeAuthUIVerifyIdentitySuccessHTML config.TemplateItemType = "auth_ui_verify_identity_success.html"
 )
 
-var TemplateAuthUIVerifyUserSuccessHTML = template.Spec{
-	Type:        TemplateItemTypeAuthUIVerifyUserSuccessHTML,
+var TemplateAuthUIVerifyIdentitySuccessHTML = template.Spec{
+	Type:        TemplateItemTypeAuthUIVerifyIdentitySuccessHTML,
 	IsHTML:      true,
 	Translation: TemplateItemTypeAuthUITranslationJSON,
 	Defines:     defines,
 	Components:  components,
 }
 
-func ConfigureVerifyUserSuccessRoute(route httproute.Route) httproute.Route {
+func ConfigureVerifyIdentitySuccessRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET").
-		WithPathPattern("/verify_user/success")
+		WithPathPattern("/verify_identity/success")
 }
 
-type VerifyUserSuccessHandler struct {
+type VerifyIdentitySuccessHandler struct {
 	Database      *db.Handle
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
 	WebApp        WebAppService
 }
 
-func (h *VerifyUserSuccessHandler) GetData(r *http.Request, state *webapp.State) (map[string]interface{}, error) {
+func (h *VerifyIdentitySuccessHandler) GetData(r *http.Request, state *webapp.State) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
 	viewmodels.Embed(data, baseViewModel)
 	return data, nil
 }
 
-func (h *VerifyUserSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *VerifyIdentitySuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -64,7 +63,7 @@ func (h *VerifyUserSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 				return err
 			}
 
-			h.Renderer.Render(w, r, TemplateItemTypeAuthUIVerifyUserSuccessHTML, data)
+			h.Renderer.Render(w, r, TemplateItemTypeAuthUIVerifyIdentitySuccessHTML, data)
 			return nil
 		})
 	}

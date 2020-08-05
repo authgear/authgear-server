@@ -146,17 +146,17 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
-func newWebAppVerifyUserHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		deps.RequestDependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.VerifyUserHandler)),
+		wire.Bind(new(http.Handler), new(*handlerwebapp.VerifyIdentityHandler)),
 	))
 }
 
-func newWebAppVerifyUserSuccessHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		deps.RequestDependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.VerifyUserSuccessHandler)),
+		wire.Bind(new(http.Handler), new(*handlerwebapp.VerifyIdentitySuccessHandler)),
 	))
 }
 

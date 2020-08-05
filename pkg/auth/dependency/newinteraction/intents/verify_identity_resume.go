@@ -12,20 +12,20 @@ import (
 )
 
 func init() {
-	newinteraction.RegisterIntent(&IntentVerifyUserResume{})
+	newinteraction.RegisterIntent(&IntentVerifyIdentityResume{})
 }
 
-type IntentVerifyUserResume struct {
+type IntentVerifyIdentityResume struct {
 	VerificationCodeID string `json:"verification_code_id"`
 }
 
-func NewIntentVerifyUserResume(codeID string) *IntentVerifyUserResume {
-	return &IntentVerifyUserResume{
+func NewIntentVerifyIdentityResume(codeID string) *IntentVerifyIdentityResume {
+	return &IntentVerifyIdentityResume{
 		VerificationCodeID: codeID,
 	}
 }
 
-func (i *IntentVerifyUserResume) InstantiateRootNode(ctx *newinteraction.Context, graph *newinteraction.Graph) (newinteraction.Node, error) {
+func (i *IntentVerifyIdentityResume) InstantiateRootNode(ctx *newinteraction.Context, graph *newinteraction.Graph) (newinteraction.Node, error) {
 	code, err := ctx.Verification.GetCode(i.VerificationCodeID)
 	if err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ func (i *IntentVerifyUserResume) InstantiateRootNode(ctx *newinteraction.Context
 	return edge.Instantiate(ctx, graph, nil)
 }
 
-func (i *IntentVerifyUserResume) DeriveEdgesForNode(ctx *newinteraction.Context, graph *newinteraction.Graph, node newinteraction.Node) ([]newinteraction.Edge, error) {
+func (i *IntentVerifyIdentityResume) DeriveEdgesForNode(ctx *newinteraction.Context, graph *newinteraction.Graph, node newinteraction.Node) ([]newinteraction.Edge, error) {
 	switch node := node.(type) {
 	case *nodes.NodeEnsureVerificationEnd:
 		if node.NewAuthenticator != nil {
