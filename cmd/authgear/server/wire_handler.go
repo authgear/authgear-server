@@ -153,6 +153,13 @@ func newWebAppVerifyUserHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppVerifyUserSuccessHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		deps.RequestDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.VerifyUserSuccessHandler)),
+	))
+}
+
 func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		deps.RequestDependencySet,

@@ -61,7 +61,10 @@
 	"verify-user-resend-button-hint": "Didn''t receive the code? ",
 	"verify-user-resend-button-label": "Resend",
 	"verify-user-resend-button-label--unit": "Resend (%ds)",
-	
+
+	"verify-user-success-page-title": "Account verification",
+	"verify-user-success-description": "You have successfully verified your account.",
+
 	"use-login-id-key": "Use {0} instead",
 	"login-button-hint": "Have an account already? ",
 	"login-button-label": "Sign in!",

@@ -103,6 +103,7 @@ func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *httpro
 	router.Add(webapphandler.ConfigureSetupOOBOTPRoute(webappRoute), p.Handler(newWebAppSetupOOBOTPHandler))
 	router.Add(webapphandler.ConfigureEnterOOBOTPRoute(webappRoute), p.Handler(newWebAppEnterOOBOTPHandler))
 	router.Add(webapphandler.ConfigureVerifyUserRoute(webappRoute), p.Handler(newWebAppVerifyUserHandler))
+	router.Add(webapphandler.ConfigureVerifyUserSuccessRoute(webappRoute), p.Handler(newWebAppVerifyUserSuccessHandler))
 	router.Add(webapphandler.ConfigureCreatePasswordRoute(webappRoute), p.Handler(newWebAppCreatePasswordHandler))
 	router.Add(webapphandler.ConfigureForgotPasswordRoute(webappRoute), p.Handler(newWebAppForgotPasswordHandler))
 	router.Add(webapphandler.ConfigureForgotPasswordSuccessRoute(webappRoute), p.Handler(newWebAppForgotPasswordSuccessHandler))
