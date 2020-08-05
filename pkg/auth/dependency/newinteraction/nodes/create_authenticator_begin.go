@@ -57,13 +57,31 @@ func (n *NodeCreateAuthenticatorBegin) DeriveEdges(ctx *newinteraction.Context, 
 }
 
 func (n *NodeCreateAuthenticatorBegin) derivePrimary(ctx *newinteraction.Context, graph *newinteraction.Graph) (edges []newinteraction.Edge, err error) {
-	var requiredType authn.AuthenticatorType
-
 	iden := graph.MustGetUserLastIdentity()
-	primaryAuthenticatorTypes := iden.Type.PrimaryAuthenticatorTypes()
 
+	// Determine whether we need to create primary authenticator.
+
+	// 1. Check whether the identity actually requires primary authenticator.
+	// If it does not, then no primary authenticator is needed.
+	identityRequiresPrimaryAuthentication := len(iden.Type.PrimaryAuthenticatorTypes()) > 0
+	if !identityRequiresPrimaryAuthentication {
+		return nil, nil
+	}
+
+	// 2. Check what primary authenticator the developer prefers.
+	// Here we check if the configuration is non-sense.
+	types := ctx.Config.Authentication.PrimaryAuthenticators
+	if len(types) == 0 {
+		return nil, newinteraction.ConfigurationViolated.New("identity requires primary authenticator but none is enabled")
+	}
+
+	firstType := types[0]
+
+	// 3. Find out whether the identity has the preferred primary authenticator.
+	// If it does not, creation is needed.
 	ais, err := ctx.Authenticators.List(
 		iden.UserID,
+		authenticator.KeepType(firstType),
 		authenticator.KeepTag(authenticator.TagPrimaryAuthenticator),
 		authenticator.KeepPrimaryAuthenticatorOfIdentity(iden),
 	)
@@ -71,24 +89,8 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary(ctx *newinteraction.Context
 		return nil, err
 	}
 
-	if len(primaryAuthenticatorTypes) > 0 && len(ctx.Config.Authentication.PrimaryAuthenticators) > 0 {
-		first := ctx.Config.Authentication.PrimaryAuthenticators[0]
-
-		found := false
-		for _, ai := range ais {
-			if ai.Type == first {
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			requiredType = first
-		}
-	}
-
-	if requiredType != "" {
-		switch requiredType {
+	if len(ais) == 0 {
+		switch firstType {
 		case authn.AuthenticatorTypePassword:
 			edges = append(edges, &EdgeCreateAuthenticatorPassword{Stage: n.Stage})
 
@@ -98,7 +100,7 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary(ctx *newinteraction.Context
 		case authn.AuthenticatorTypeOOB:
 			edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{Stage: n.Stage})
 		default:
-			panic("interaction: unknown authenticator type: " + requiredType)
+			panic("interaction: unknown authenticator type: " + firstType)
 		}
 	}
 
