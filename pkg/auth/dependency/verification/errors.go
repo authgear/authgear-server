@@ -1,12 +1,10 @@
 package verification
 
 import (
-	"errors"
-
 	"github.com/authgear/authgear-server/pkg/core/skyerr"
 )
 
 var InvalidVerificationCode = skyerr.Forbidden.WithReason("InvalidVerificationCode")
 
-var ErrCodeNotFound = errors.New("verification code not found")
-var ErrInvalidVerificationCode = InvalidVerificationCode.New("invalid verification code")
+var ErrCodeNotFound = InvalidVerificationCode.NewWithCause("verification code is expired or invalid", skyerr.StringCause("CodeNotFound"))
+var ErrInvalidVerificationCode = InvalidVerificationCode.NewWithCause("invalid verification code", skyerr.StringCause("InvalidVerificationCode"))

@@ -6,8 +6,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/core/errors"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -67,6 +69,14 @@ type VerifyIdentityNode interface {
 	GetVerificationCodeLength() int
 }
 
+func (h *VerifyUserHandler) MakeIntent(r *http.Request) *webapp.Intent {
+	return &webapp.Intent{
+		RedirectURI: "/verify_user/success",
+		KeepState:   true,
+		Intent:      intents.NewIntentVerifyUserResume(r.Form.Get("id")),
+	}
+}
+
 func (h *VerifyUserHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
@@ -80,6 +90,18 @@ func (h *VerifyUserHandler) GetData(r *http.Request, state *webapp.State, graph 
 		viewModel.VerificationCodeLength = n.GetVerificationCodeLength()
 		viewModel.VerificationCodeChannel = n.GetVerificationCodeChannel()
 	}
+
+	viewmodels.Embed(data, baseViewModel)
+	viewmodels.Embed(data, viewModel)
+
+	return data, nil
+}
+
+func (h *VerifyUserHandler) GetErrorData(r *http.Request, err error) (map[string]interface{}, error) {
+	data := map[string]interface{}{}
+
+	baseViewModel := h.BaseViewModel.ViewModel(r, err)
+	viewModel := VerifyUserViewModel{}
 
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, viewModel)
@@ -106,9 +128,27 @@ func (h *VerifyUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Method == "GET" {
+	inInteraction := true
+	id := StateID(r)
+	if id == "" {
+		// Navigated from the link in verification message
+		id = r.Form.Get("id")
+
+		_, err := h.WebApp.GetState(id)
+		if errors.Is(err, webapp.ErrInvalidState) {
+			inInteraction = false
+		} else if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		} else {
+			// State still valid, resume the interaction
+			inInteraction = true
+		}
+	}
+
+	if r.Method == "GET" && inInteraction {
 		h.Database.WithTx(func() error {
-			state, graph, edges, err := h.WebApp.Get(StateID(r))
+			state, graph, edges, err := h.WebApp.Get(id)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
@@ -125,11 +165,31 @@ func (h *VerifyUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	if r.Method == "GET" && !inInteraction {
+		h.Database.WithTx(func() error {
+			state, graph, edges, err := h.WebApp.GetIntent(h.MakeIntent(r), "")
+			var data map[string]interface{}
+			if err != nil {
+				data, err = h.GetErrorData(r, err)
+			} else {
+				data, err = h.GetData(r, state, graph, edges)
+			}
+
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return err
+			}
+
+			h.Renderer.Render(w, r, TemplateItemTypeAuthUIVerifyUserHTML, data)
+			return nil
+		})
+	}
+
 	trigger := r.Form.Get("trigger") == "true"
 
 	if r.Method == "POST" && trigger {
 		h.Database.WithTx(func() error {
-			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
+			result, err := h.WebApp.PostInput(id, func() (input interface{}, err error) {
 				input = &VerificationCodeResend{}
 				return
 			})
@@ -145,7 +205,7 @@ func (h *VerifyUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 		h.Database.WithTx(func() error {
-			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
+			inputer := func() (input interface{}, err error) {
 				err = VerifyUserSchema.PartValidator(VerifyUserRequestSchema).ValidateValue(FormToJSON(r.Form))
 				if err != nil {
 					return
@@ -157,7 +217,15 @@ func (h *VerifyUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					Code: code,
 				}
 				return
-			})
+			}
+
+			var result *webapp.Result
+			var err error
+			if inInteraction {
+				result, err = h.WebApp.PostInput(id, inputer)
+			} else {
+				result, err = h.WebApp.PostIntent(h.MakeIntent(r), inputer)
+			}
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err

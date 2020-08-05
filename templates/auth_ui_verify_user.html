@@ -8,24 +8,24 @@
 
 <div class="simple-form vertical-form form-fields-container">
 
+{{ if $.IdentityDisplayID }}
 <div class="nav-bar">
 	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
 </div>
 
-{{ if $.VerificationCodeChannel }}
 {{ if eq $.VerificationCodeChannel "sms" }}
 <div class="title primary-txt">{{ localize "verify-user-page-title--sms" }}</div>
 {{ end }}
 {{ if eq $.VerificationCodeChannel "email" }}
 <div class="title primary-txt">{{ localize "verify-user-page-title--email" }}</div>
 {{ end }}
+
 {{ end }}
 
 {{ template "ERROR" . }}
 
 {{ if $.IdentityDisplayID }}
 <div class="description primary-txt">{{ localize "verify-user-description" $.VerificationCodeLength $.IdentityDisplayID }}</div>
-{{ end }}
 
 <form class="vertical-form form-fields-container" method="post" novalidate>
 {{ $.CSRFField }}
@@ -43,6 +43,8 @@
 	data-label="{{ localize "verify-user-resend-button-label" }}"
 	data-label-unit="{{ localize "verify-user-resend-button-label--unit" }}">{{ localize "verify-user-resend-button-label" }}</button>
 </form>
+
+{{ end }}
 
 </div>
 {{ template "auth_ui_footer.html" . }}

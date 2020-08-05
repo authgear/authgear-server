@@ -49,7 +49,7 @@ func (p *URLProvider) ResetPasswordURL(code string) *url.URL {
 func (p *URLProvider) VerifyUserURL(code string, webStateID string) *url.URL {
 	return coreurl.WithQueryParamsAdded(
 		p.Endpoints.VerifyUserEndpointURL(),
-		map[string]string{"code": code, "x_sid": webStateID},
+		map[string]string{"code": code, "id": webStateID},
 	)
 }
 

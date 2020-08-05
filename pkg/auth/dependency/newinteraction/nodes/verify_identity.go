@@ -6,7 +6,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/verification"
-	"github.com/authgear/authgear-server/pkg/core/uuid"
 	"github.com/authgear/authgear-server/pkg/otp"
 )
 
@@ -21,7 +20,7 @@ type EdgeVerifyIdentity struct {
 func (e *EdgeVerifyIdentity) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
 	node := &NodeVerifyIdentity{
 		Identity: e.Identity,
-		CodeID:   uuid.New(),
+		CodeID:   ctx.WebStateID,
 	}
 	result, err := node.SendCode(ctx)
 	if err != nil {
@@ -32,6 +31,22 @@ func (e *EdgeVerifyIdentity) Instantiate(ctx *newinteraction.Context, graph *new
 	node.CodeLength = result.CodeLength
 	node.SendCooldown = result.SendCooldown
 	return node, nil
+}
+
+type EdgeVerifyIdentityResume struct {
+	Code     *verification.Code
+	Identity *identity.Info
+}
+
+func (e *EdgeVerifyIdentityResume) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
+	r := e.Code.SendResult()
+	return &NodeVerifyIdentity{
+		Identity:     e.Identity,
+		CodeID:       e.Code.ID,
+		Channel:      r.Channel,
+		CodeLength:   r.CodeLength,
+		SendCooldown: r.SendCooldown,
+	}, nil
 }
 
 type NodeVerifyIdentity struct {

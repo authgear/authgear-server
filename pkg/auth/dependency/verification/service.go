@@ -196,13 +196,14 @@ func (s *Service) CreateNewCode(id string, info *identity.Info) (*Code, error) {
 	}
 
 	codeModel := &Code{
-		ID:          id,
-		UserID:      info.UserID,
-		IdentityID:  info.ID,
-		LoginIDType: string(loginIDType),
-		LoginID:     info.Claims[identity.IdentityClaimLoginIDValue].(string),
-		Code:        code,
-		ExpireAt:    s.Clock.NowUTC().Add(s.Config.CodeExpiry.Duration()),
+		ID:           id,
+		UserID:       info.UserID,
+		IdentityID:   info.ID,
+		IdentityType: string(info.Type),
+		LoginIDType:  string(loginIDType),
+		LoginID:      info.Claims[identity.IdentityClaimLoginIDValue].(string),
+		Code:         code,
+		ExpireAt:     s.Clock.NowUTC().Add(s.Config.CodeExpiry.Duration()),
 	}
 
 	err := s.Store.Create(codeModel)
@@ -264,13 +265,10 @@ func (s *Service) SendCode(code *Code, webStateID string) (*otp.CodeSendResult, 
 	}
 
 	var err error
-	var channel string
 	switch config.LoginIDKeyType(code.LoginIDType) {
 	case config.LoginIDKeyTypeEmail:
-		channel = string(authn.AuthenticatorOOBChannelEmail)
 		err = s.OTPMessageSender.SendEmail(code.LoginID, opts, s.Config.Email.Message)
 	case config.LoginIDKeyTypePhone:
-		channel = string(authn.AuthenticatorOOBChannelSMS)
 		err = s.OTPMessageSender.SendSMS(code.LoginID, opts, s.Config.SMS.Message)
 	default:
 		panic("verification: unsupported login ID type: " + code.LoginIDType)
@@ -279,9 +277,5 @@ func (s *Service) SendCode(code *Code, webStateID string) (*otp.CodeSendResult, 
 		return nil, err
 	}
 
-	return &otp.CodeSendResult{
-		Channel:      channel,
-		CodeLength:   len(code.Code),
-		SendCooldown: SendCooldownSeconds,
-	}, nil
+	return code.SendResult(), nil
 }
