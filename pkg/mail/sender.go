@@ -53,7 +53,8 @@ func (s *Sender) Send(opts SendOptions) (err error) {
 		s.Logger.
 			WithField("recipient", opts.Recipient).
 			WithField("body", opts.TextBody).
-			Debug("sending email")
+			Warn("skip sending email in development mode")
+		return nil
 	}
 
 	if s.GomailDialer == nil {

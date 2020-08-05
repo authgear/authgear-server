@@ -40,7 +40,8 @@ func (c *Client) Send(opts SendOptions) error {
 		c.Logger.
 			WithField("recipient", opts.To).
 			WithField("body", opts.Body).
-			Debug("sending SMS")
+			Warn("skip sending SMS in development mode")
+		return nil
 	}
 
 	var client RawClient
