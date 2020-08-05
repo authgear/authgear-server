@@ -232,41 +232,6 @@ func (s *Service) Delete(info *authenticator.Info) error {
 	return nil
 }
 
-func (s *Service) Authenticate(spec *authenticator.Spec, state map[string]string, secret string) (*authenticator.Info, error) {
-	switch spec.Type {
-	case authn.AuthenticatorTypePassword:
-		ps, err := s.Password.List(spec.UserID)
-		if err != nil {
-			return nil, err
-		}
-		if len(ps) != 1 {
-			return nil, authenticator.ErrAuthenticatorNotFound
-		}
-
-		if s.Password.Authenticate(ps[0], secret) != nil {
-			return nil, authenticator.ErrInvalidCredentials
-		}
-		return passwordToAuthenticatorInfo(ps[0]), nil
-
-	case authn.AuthenticatorTypeTOTP:
-		ts, err := s.TOTP.List(spec.UserID)
-		if err != nil {
-			return nil, err
-		}
-
-		t := s.TOTP.Authenticate(ts, secret)
-		if t == nil {
-			return nil, authenticator.ErrInvalidCredentials
-		}
-		return totpToAuthenticatorInfo(t), nil
-
-	case authn.AuthenticatorTypeOOB:
-		panic("authenticator: unsupported OOB authenticator")
-	}
-
-	panic("authenticator: unknown authenticator type " + spec.Type)
-}
-
 func (s *Service) VerifySecret(info *authenticator.Info, state map[string]string, secret string) error {
 	switch info.Type {
 	case authn.AuthenticatorTypePassword:

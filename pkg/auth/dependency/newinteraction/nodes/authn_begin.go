@@ -71,13 +71,17 @@ func (n *NodeAuthenticationBegin) DeriveEdges(ctx *newinteraction.Context, graph
 	)
 
 	if len(passwords) > 0 {
-		// FIXME(mfa): Change AuthenticatorService API to make its Authenticate taking infos.
-		edges = append(edges, &EdgeAuthenticationPassword{Stage: n.Stage})
+		edges = append(edges, &EdgeAuthenticationPassword{
+			Stage:          n.Stage,
+			Authenticators: passwords,
+		})
 	}
 
 	if len(totps) > 0 {
-		// FIXME(mfa): Change AuthenticatorService API to make its Authenticate taking infos.
-		edges = append(edges, &EdgeAuthenticationTOTP{Stage: n.Stage})
+		edges = append(edges, &EdgeAuthenticationTOTP{
+			Stage:          n.Stage,
+			Authenticators: totps,
+		})
 	}
 
 	if len(oobs) > 0 {
