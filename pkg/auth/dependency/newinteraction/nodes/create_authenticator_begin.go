@@ -108,37 +108,49 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary(ctx *newinteraction.Context
 }
 
 func (n *NodeCreateAuthenticatorBegin) deriveSecondary(ctx *newinteraction.Context, graph *newinteraction.Graph) (edges []newinteraction.Edge, err error) {
-	var requiredType authn.AuthenticatorType
+
+	// Determine whether we need to create secondary authenticator.
+
+	// 1. Check secondary authentication mode.
+	// If it is not required, then no secondary authenticator is needed.
+	// FIXME(mfa): Right now we only consider signup/login.
+	mode := ctx.Config.Authentication.SecondaryAuthenticationMode
+	if mode != config.SecondaryAuthenticationModeRequired {
+		return nil, nil
+	}
+
+	// 2. Check whether
+	//   the set of secondary authenticators of the user, and
+	//   the set of preferred secondary authenticators
+	// have intersection.
+	// If there is no interaction, create the first preferred one.
+	// Here we also check for non-sense configuration
+	types := ctx.Config.Authentication.SecondaryAuthenticators
+	if len(types) == 0 {
+		return nil, newinteraction.ConfigurationViolated.New("secondary authentication is required but no secondary authenticator is enabled")
+	}
 
 	userID := graph.MustGetUserID()
-
 	ais, err := ctx.Authenticators.List(
 		userID,
 		authenticator.KeepTag(authenticator.TagSecondaryAuthenticator),
 	)
+	if err != nil {
+		return nil, err
+	}
 
-	mode := ctx.Config.Authentication.SecondaryAuthenticationMode
-	types := ctx.Config.Authentication.SecondaryAuthenticators
-
-	// FIXME(mfa): Right now we only consider signup
-	if mode == config.SecondaryAuthenticationModeRequired && len(types) > 0 {
-		first := types[0]
-
-		found := false
-		for _, ai := range ais {
-			if ai.Type == first {
-				found = true
-				break
+	intersection := make(map[authn.AuthenticatorType]struct{})
+	for _, typ := range types {
+		for _, a := range ais {
+			if a.Type == typ {
+				intersection[typ] = struct{}{}
 			}
-		}
-
-		if !found {
-			requiredType = first
 		}
 	}
 
-	if requiredType != "" {
-		switch requiredType {
+	if len(intersection) == 0 {
+		firstType := types[0]
+		switch firstType {
 		case authn.AuthenticatorTypePassword:
 			edges = append(edges, &EdgeCreateAuthenticatorPassword{Stage: n.Stage})
 
@@ -148,7 +160,7 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary(ctx *newinteraction.Conte
 		case authn.AuthenticatorTypeOOB:
 			edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{Stage: n.Stage})
 		default:
-			panic("interaction: unknown authenticator type: " + requiredType)
+			panic("interaction: unknown authenticator type: " + firstType)
 		}
 	}
 
