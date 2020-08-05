@@ -24,6 +24,7 @@ type BaseViewModel struct {
 	StaticAssetURLPrefix  string
 	SliceContains         func([]interface{}, interface{}) bool
 	MakeURL               func(path string, pairs ...string) string
+	MakeURLState          func(path string, pairs ...string) string
 	Error                 interface{}
 	ForgotPasswordEnabled bool
 }
@@ -54,6 +55,15 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, anyError interface{}) BaseV
 			for i := 0; i < len(pairs); i += 2 {
 				inQuery.Set(pairs[i], pairs[i+1])
 			}
+			return webapp.MakeURL(u, path, inQuery).String()
+		},
+		MakeURLState: func(path string, pairs ...string) string {
+			u := r.URL
+			inQuery := url.Values{}
+			for i := 0; i < len(pairs); i += 2 {
+				inQuery.Set(pairs[i], pairs[i+1])
+			}
+			inQuery.Set("x_sid", r.Form.Get("x_sid"))
 			return webapp.MakeURL(u, path, inQuery).String()
 		},
 		ForgotPasswordEnabled: *m.ForgotPassword.Enabled,
