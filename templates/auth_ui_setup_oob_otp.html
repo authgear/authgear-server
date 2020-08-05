@@ -13,7 +13,12 @@
 </div>
 
 <div class="title primary-txt">
-	{{ localize "setup-oob-otp-title" $.InputType }}
+	{{ if eq $.InputType "phone" }}
+	{{ localize "setup-oob-otp-title--sms" }}
+	{{ end }}
+	{{ if eq $.InputType "email" }}
+	{{ localize "setup-oob-otp-title--email" }}
+	{{ end }}
 </div>
 
 {{ template "ERROR" . }}
