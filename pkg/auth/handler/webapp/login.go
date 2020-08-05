@@ -128,7 +128,6 @@ type LoginLoginID struct {
 }
 
 var _ nodes.InputUseIdentityLoginID = &LoginLoginID{}
-var _ nodes.InputAuthenticationOOBTrigger = &LoginLoginID{}
 
 // GetLoginIDKey implements InputSelectIdentityLoginID.
 func (i *LoginLoginID) GetLoginIDKey() string {
@@ -137,11 +136,6 @@ func (i *LoginLoginID) GetLoginIDKey() string {
 
 // GetLoginID implements InputSelectIdentityLoginID.
 func (i *LoginLoginID) GetLoginID() string {
-	return i.LoginID
-}
-
-// GetOOBTarget implements InputAuthenticationOOBTrigger.
-func (i *LoginLoginID) GetOOBTarget() string {
 	return i.LoginID
 }
 

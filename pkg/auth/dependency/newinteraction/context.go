@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/sso"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/user"
@@ -105,20 +106,25 @@ type ResetPasswordService interface {
 	AfterResetPassword(codeHash string) error
 }
 
+type LoginIDNormalizerFactory interface {
+	NormalizerWithLoginIDType(loginIDKeyType config.LoginIDKeyType) loginid.Normalizer
+}
+
 type Context struct {
 	IsDryRun bool `wire:"-"`
 
 	Database db.SQLExecutor
 	Config   *config.AppConfig
 
-	Identities           IdentityService
-	Authenticators       AuthenticatorService
-	AnonymousIdentities  AnonymousIdentityProvider
-	OOBAuthenticators    OOBAuthenticatorProvider
-	OAuthProviderFactory OAuthProviderFactory
-	MFA                  MFAService
-	ForgotPassword       ForgotPasswordService
-	ResetPassword        ResetPasswordService
+	Identities               IdentityService
+	Authenticators           AuthenticatorService
+	AnonymousIdentities      AnonymousIdentityProvider
+	OOBAuthenticators        OOBAuthenticatorProvider
+	OAuthProviderFactory     OAuthProviderFactory
+	MFA                      MFAService
+	ForgotPassword           ForgotPasswordService
+	ResetPassword            ResetPasswordService
+	LoginIDNormalizerFactory LoginIDNormalizerFactory
 
 	Challenges    ChallengeProvider
 	Users         UserService

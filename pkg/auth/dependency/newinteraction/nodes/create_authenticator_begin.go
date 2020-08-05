@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/core/authn"
@@ -30,42 +31,60 @@ func (n *NodeCreateAuthenticatorBegin) Apply(perform func(eff newinteraction.Eff
 
 func (n *NodeCreateAuthenticatorBegin) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	var edges []newinteraction.Edge
+	var err error
 
-	var requiredType authn.AuthenticatorType
 	switch n.Stage {
 	case newinteraction.AuthenticationStagePrimary:
-		iden := graph.MustGetUserLastIdentity()
-		primaryAuthenticatorTypes := iden.Type.PrimaryAuthenticatorTypes()
-
-		ais, err := ctx.Authenticators.List(
-			iden.UserID,
-			authenticator.KeepTag(authenticator.TagPrimaryAuthenticator),
-			authenticator.KeepPrimaryAuthenticatorOfIdentity(iden),
-		)
+		edges, err = n.derivePrimary(ctx, graph)
 		if err != nil {
 			return nil, err
 		}
-
-		if len(primaryAuthenticatorTypes) > 0 && len(ctx.Config.Authentication.PrimaryAuthenticators) > 0 {
-			first := ctx.Config.Authentication.PrimaryAuthenticators[0]
-
-			found := false
-			for _, ai := range ais {
-				if ai.Type == first {
-					found = true
-					break
-				}
-			}
-
-			if !found {
-				requiredType = first
-			}
-		}
 	case newinteraction.AuthenticationStageSecondary:
-		// TODO(new_interaction): MFA
-		break
+		edges, err = n.deriveSecondary(ctx, graph)
+		if err != nil {
+			return nil, err
+		}
 	default:
 		panic("interaction: unknown authentication stage: " + n.Stage)
+	}
+
+	// No authenticators needed, skip the stage
+	if len(edges) == 0 {
+		edges = append(edges, &EdgeCreateAuthenticatorEnd{Stage: n.Stage, Authenticators: nil})
+	}
+
+	return edges, nil
+}
+
+func (n *NodeCreateAuthenticatorBegin) derivePrimary(ctx *newinteraction.Context, graph *newinteraction.Graph) (edges []newinteraction.Edge, err error) {
+	var requiredType authn.AuthenticatorType
+
+	iden := graph.MustGetUserLastIdentity()
+	primaryAuthenticatorTypes := iden.Type.PrimaryAuthenticatorTypes()
+
+	ais, err := ctx.Authenticators.List(
+		iden.UserID,
+		authenticator.KeepTag(authenticator.TagPrimaryAuthenticator),
+		authenticator.KeepPrimaryAuthenticatorOfIdentity(iden),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(primaryAuthenticatorTypes) > 0 && len(ctx.Config.Authentication.PrimaryAuthenticators) > 0 {
+		first := ctx.Config.Authentication.PrimaryAuthenticators[0]
+
+		found := false
+		for _, ai := range ais {
+			if ai.Type == first {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			requiredType = first
+		}
 	}
 
 	if requiredType != "" {
@@ -79,16 +98,57 @@ func (n *NodeCreateAuthenticatorBegin) DeriveEdges(ctx *newinteraction.Context, 
 		case authn.AuthenticatorTypeOOB:
 			edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{Stage: n.Stage})
 		default:
-			// TODO(new_interaction): implements bearer token, recovery code
 			panic("interaction: unknown authenticator type: " + requiredType)
 		}
 	}
 
-	// No authenticators needed, skip the stage
-	if len(edges) == 0 {
-		edges = append(edges, &EdgeCreateAuthenticatorEnd{Stage: n.Stage, Authenticators: nil})
+	return edges, nil
+}
+
+func (n *NodeCreateAuthenticatorBegin) deriveSecondary(ctx *newinteraction.Context, graph *newinteraction.Graph) (edges []newinteraction.Edge, err error) {
+	var requiredType authn.AuthenticatorType
+
+	userID := graph.MustGetUserID()
+
+	ais, err := ctx.Authenticators.List(
+		userID,
+		authenticator.KeepTag(authenticator.TagSecondaryAuthenticator),
+	)
+
+	mode := ctx.Config.Authentication.SecondaryAuthenticationMode
+	types := ctx.Config.Authentication.SecondaryAuthenticators
+
+	// FIXME(mfa): Right now we only consider signup
+	if mode == config.SecondaryAuthenticationModeRequired && len(types) > 0 {
+		first := types[0]
+
+		found := false
+		for _, ai := range ais {
+			if ai.Type == first {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			requiredType = first
+		}
 	}
 
-	// TODO(interaction): support choosing authenticator to create
-	return edges[:1], nil
+	if requiredType != "" {
+		switch requiredType {
+		case authn.AuthenticatorTypePassword:
+			edges = append(edges, &EdgeCreateAuthenticatorPassword{Stage: n.Stage})
+
+		case authn.AuthenticatorTypeTOTP:
+			edges = append(edges, &EdgeCreateAuthenticatorTOTPSetup{Stage: n.Stage})
+
+		case authn.AuthenticatorTypeOOB:
+			edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{Stage: n.Stage})
+		default:
+			panic("interaction: unknown authenticator type: " + requiredType)
+		}
+	}
+
+	return edges, nil
 }

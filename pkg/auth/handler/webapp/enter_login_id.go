@@ -134,7 +134,7 @@ func (i *EnterLoginIDLoginID) GetOOBChannel() authn.AuthenticatorOOBChannel {
 	}
 }
 
-// GetOOBTarget implements InputAuthenticationOOBTrigger.
+// GetOOBTarget implements InputCreateAuthenticatorOOBSetup.
 func (i *EnterLoginIDLoginID) GetOOBTarget() string {
 	return i.LoginID
 }

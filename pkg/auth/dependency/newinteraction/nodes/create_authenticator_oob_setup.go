@@ -75,6 +75,22 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *newinteraction.Contex
 			Type:   authn.AuthenticatorTypeOOB,
 			Props:  map[string]interface{}{},
 		}
+
+		// Normalize the target.
+		switch channel {
+		case authn.AuthenticatorOOBChannelEmail:
+			var err error
+			target, err = ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypeEmail).Normalize(target)
+			if err != nil {
+				return nil, err
+			}
+		case authn.AuthenticatorOOBChannelSMS:
+			var err error
+			target, err = ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypePhone).Normalize(target)
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	spec.Props[authenticator.AuthenticatorPropOOBOTPChannelType] = string(channel)
@@ -95,14 +111,13 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *newinteraction.Contex
 		return nil, err
 	}
 
-	result, err := sendOOBCode(ctx, e.Stage, false, identityInfo, info, secret)
+	result, err := sendOOBCode(ctx, e.Stage, false, info, secret)
 	if err != nil {
 		return nil, err
 	}
 
 	return &NodeCreateAuthenticatorOOBSetup{
 		Stage:         e.Stage,
-		Identity:      identityInfo,
 		Authenticator: info,
 		Secret:        secret,
 		Channel:       result.Channel,
@@ -113,7 +128,6 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *newinteraction.Contex
 
 type NodeCreateAuthenticatorOOBSetup struct {
 	Stage         newinteraction.AuthenticationStage `json:"stage"`
-	Identity      *identity.Info                     `json:"identity"`
 	Authenticator *authenticator.Info                `json:"authenticator"`
 	Secret        string                             `json:"secret"`
 	Channel       string                             `json:"channel"`
@@ -145,7 +159,6 @@ func (n *NodeCreateAuthenticatorOOBSetup) DeriveEdges(ctx *newinteraction.Contex
 		&EdgeOOBResendCode{
 			Stage:            n.Stage,
 			IsAuthenticating: false,
-			Identity:         n.Identity,
 			Authenticator:    n.Authenticator,
 			Secret:           n.Secret,
 		},
