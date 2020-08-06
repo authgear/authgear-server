@@ -14,5 +14,6 @@ type Intent struct {
 	// It is useful for interaction that has a dead end, such as forgot / reset password.
 	// If it is true, then the state is attached to RedirectURI.
 	KeepState bool
+	UILocales string
 	Intent    newinteraction.Intent
 }
