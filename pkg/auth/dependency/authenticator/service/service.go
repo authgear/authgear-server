@@ -27,7 +27,7 @@ type TOTPAuthenticatorProvider interface {
 	New(userID string, displayName string, tag []string) *totp.Authenticator
 	Create(*totp.Authenticator) error
 	Delete(*totp.Authenticator) error
-	Authenticate(candidates []*totp.Authenticator, code string) *totp.Authenticator
+	Authenticate(a *totp.Authenticator, code string) error
 }
 
 type OOBOTPAuthenticatorProvider interface {
@@ -255,7 +255,7 @@ func (s *Service) VerifySecret(info *authenticator.Info, state map[string]string
 
 	case authn.AuthenticatorTypeTOTP:
 		a := totpFromAuthenticatorInfo(info)
-		if s.TOTP.Authenticate([]*totp.Authenticator{a}, secret) != nil {
+		if s.TOTP.Authenticate(a, secret) != nil {
 			return authenticator.ErrInvalidCredentials
 		}
 		return nil

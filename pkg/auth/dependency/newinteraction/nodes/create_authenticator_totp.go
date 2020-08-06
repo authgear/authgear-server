@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"errors"
+
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 )
@@ -29,11 +31,13 @@ func (e *EdgeCreateAuthenticatorTOTP) Instantiate(ctx *newinteraction.Context, g
 	info.Props[authenticator.AuthenticatorPropTOTPDisplayName] = input.GetTOTPDisplayName()
 
 	err := ctx.Authenticators.VerifySecret(info, nil, input.GetTOTP())
-	if err != nil {
+	if errors.Is(err, authenticator.ErrInvalidCredentials) {
+		return nil, newinteraction.ErrInvalidCredentials
+	} else if err != nil {
 		return nil, err
 	}
 
-	return &NodeCreateAuthenticatorTOTPSetup{Stage: e.Stage, Authenticator: info}, nil
+	return &NodeCreateAuthenticatorTOTP{Stage: e.Stage, Authenticator: info}, nil
 }
 
 type NodeCreateAuthenticatorTOTP struct {

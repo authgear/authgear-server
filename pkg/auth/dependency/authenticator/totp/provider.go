@@ -60,14 +60,13 @@ func (p *Provider) Create(a *Authenticator) error {
 	return p.Store.Create(a)
 }
 
-func (p *Provider) Authenticate(candidates []*Authenticator, code string) *Authenticator {
+func (p *Provider) Authenticate(a *Authenticator, code string) error {
 	now := p.Clock.NowUTC()
-	for _, a := range candidates {
-		if otp.ValidateTOTP(a.Secret, code, now, otp.ValidateOptsTOTP) {
-			return a
-		}
+	if otp.ValidateTOTP(a.Secret, code, now, otp.ValidateOptsTOTP) {
+		return nil
 	}
-	return nil
+
+	return ErrInvalidCode
 }
 
 func sortAuthenticators(as []*Authenticator) {
