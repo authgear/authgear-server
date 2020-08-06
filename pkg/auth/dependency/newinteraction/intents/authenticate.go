@@ -270,21 +270,32 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 			}, nil
 
 		case newinteraction.AuthenticationStageSecondary:
-			var reason auth.SessionCreateReason
-			_, ok := graph.GetNewUserID()
-			if ok {
-				reason = auth.SessionCreateReasonSignup
-			} else {
-				reason = auth.SessionCreateReasonLogin
-			}
-
 			return []newinteraction.Edge{
-				&nodes.EdgeDoCreateSession{Reason: reason},
+				&nodes.EdgeGenerateRecoveryCodeBegin{},
 			}, nil
 
 		default:
 			panic(fmt.Errorf("interaction: unexpected authentication stage: %v", node.Stage))
 		}
+
+	case *nodes.NodeGenerateRecoveryCodeEnd:
+		return []newinteraction.Edge{
+			&nodes.EdgeDoGenerateRecoveryCode{
+				RecoveryCodes: node.RecoveryCodes,
+			},
+		}, nil
+	case *nodes.NodeDoGenerateRecoveryCode:
+		var reason auth.SessionCreateReason
+		_, ok := graph.GetNewUserID()
+		if ok {
+			reason = auth.SessionCreateReasonSignup
+		} else {
+			reason = auth.SessionCreateReasonLogin
+		}
+
+		return []newinteraction.Edge{
+			&nodes.EdgeDoCreateSession{Reason: reason},
+		}, nil
 
 	case *nodes.NodeDoCreateSession:
 		// Intent is finished
