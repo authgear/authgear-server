@@ -27,7 +27,7 @@ func (e *EdgeDoCreateSession) Instantiate(ctx *newinteraction.Context, graph *ne
 		AMR:    amr,
 	}
 	sess, token := ctx.Sessions.MakeSession(attrs)
-	cookie := ctx.SessionCookie.New(token)
+	cookie := ctx.CookieFactory.ValueCookie(ctx.SessionCookie.Def, token)
 
 	return &NodeDoCreateSession{
 		Reason:        e.Reason,

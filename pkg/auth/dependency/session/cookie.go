@@ -10,12 +10,15 @@ import (
 const CookieName = "session"
 
 type CookieDef struct {
-	*httputil.CookieDef
+	Def *httputil.CookieDef
 }
 
 func NewSessionCookieDef(r *http.Request, sessionCfg *config.SessionConfig, serverCfg *config.ServerConfig) CookieDef {
-	secure := httputil.GetProto(r, serverCfg.TrustProxy) == "https"
-	def := &httputil.CookieDef{Name: CookieName, Path: "/", Secure: secure}
+	def := &httputil.CookieDef{
+		Name:     CookieName,
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
+	}
 
 	if sessionCfg.CookieNonPersistent {
 		// HTTP session cookie: no MaxAge
@@ -28,9 +31,7 @@ func NewSessionCookieDef(r *http.Request, sessionCfg *config.SessionConfig, serv
 
 	if sessionCfg.CookieDomain != nil {
 		def.Domain = *sessionCfg.CookieDomain
-	} else {
-		def.Domain = httputil.CookieDomainFromETLDPlusOneWithoutPort(httputil.GetHost(r, serverCfg.TrustProxy))
 	}
 
-	return CookieDef{def}
+	return CookieDef{Def: def}
 }

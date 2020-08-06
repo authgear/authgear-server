@@ -6,7 +6,6 @@ import (
 	"github.com/gorilla/csrf"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/core/samesite"
 	"github.com/authgear/authgear-server/pkg/httputil"
 	"github.com/authgear/authgear-server/pkg/jwkutil"
 )
@@ -26,7 +25,7 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 		}
 
 		useragent := r.UserAgent()
-		if samesite.ShouldSendSameSiteNone(useragent, secure) {
+		if httputil.ShouldSendSameSiteNone(useragent, secure) {
 			options = append(options, csrf.SameSite(csrf.SameSiteNoneMode))
 		} else {
 			// http.Cookie SameSiteDefaultMode option will write SameSite

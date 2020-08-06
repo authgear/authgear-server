@@ -22,7 +22,7 @@ type UserProvider interface {
 }
 
 type SessionManagementProvider interface {
-	Cookie() *httputil.CookieDef
+	ClearCookie() *http.Cookie
 	Get(id string) (AuthSession, error)
 	Update(AuthSession) error
 	Delete(AuthSession) error
@@ -84,8 +84,8 @@ func (m *SessionManager) Logout(session AuthSession, rw http.ResponseWriter) err
 		return err
 	}
 
-	if cookie := provider.Cookie(); cookie != nil {
-		cookie.Clear(rw)
+	if cookie := provider.ClearCookie(); cookie != nil {
+		httputil.UpdateCookie(rw, cookie)
 	}
 
 	return nil

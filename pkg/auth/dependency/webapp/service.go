@@ -9,7 +9,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
+	"github.com/authgear/authgear-server/pkg/core/base32"
+	corerand "github.com/authgear/authgear-server/pkg/core/rand"
 	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/httputil"
 	"github.com/authgear/authgear-server/pkg/log"
 )
 
@@ -39,32 +42,65 @@ type GraphService interface {
 	Run(webStateID string, graph *newinteraction.Graph, preserveGraph bool) error
 }
 
+type CookieFactory interface {
+	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
+}
+
 type ServiceLogger struct{ *log.Logger }
 
 func NewServiceLogger(lf *log.Factory) ServiceLogger {
 	return ServiceLogger{lf.New("webapp-service")}
 }
 
-type Service struct {
-	Logger ServiceLogger
-	Store  Store
-	Graph  GraphService
+var UserAgentTokenCookie = &httputil.CookieDef{
+	Name:              "ua-token",
+	Path:              "/",
+	AllowScriptAccess: false,
+	SameSite:          http.SameSiteNoneMode, // Ensure resume-able after redirecting from external site
+	MaxAge:            nil,                   // Use HTTP session cookie; expires when browser closes
 }
 
-func (s *Service) GetState(stateID string) (state *State, err error) {
-	if stateID != "" {
-		state, err = s.Store.Get(stateID)
-		if err != nil {
-			return
-		}
+type Service struct {
+	Logger        ServiceLogger
+	Request       *http.Request
+	Store         Store
+	Graph         GraphService
+	CookieFactory CookieFactory
+}
+
+func (s *Service) getUserAgentToken() string {
+	token, err := s.Request.Cookie(UserAgentTokenCookie.Name)
+	if err != nil {
+		return ""
 	}
-	return
+	return token.Value
+}
+
+func (s *Service) generateUserAgentToken() (string, *http.Cookie) {
+	token := corerand.StringWithAlphabet(32, base32.Alphabet, corerand.SecureRand)
+	cookie := s.CookieFactory.ValueCookie(UserAgentTokenCookie, token)
+	return token, cookie
+}
+
+func (s *Service) GetState(stateID string) (*State, error) {
+	if stateID == "" {
+		return nil, nil
+	}
+
+	state, err := s.Store.Get(stateID)
+	if err != nil {
+		return nil, err
+	}
+	if state.UserAgentToken != s.getUserAgentToken() {
+		return nil, ErrInvalidState
+	}
+	return state, nil
 }
 
 func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph *newinteraction.Graph, edges []newinteraction.Edge, err error) {
 	var stateError *skyerr.APIError
 	if stateID != "" {
-		state, err = s.Store.Get(stateID)
+		state, err = s.GetState(stateID)
 		if err != nil {
 			return
 		}
@@ -105,7 +141,7 @@ func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph
 }
 
 func (s *Service) Get(stateID string) (state *State, graph *newinteraction.Graph, edges []newinteraction.Edge, err error) {
-	state, err = s.Store.Get(stateID)
+	state, err = s.GetState(stateID)
 	if err != nil {
 		return
 	}
@@ -184,7 +220,7 @@ func (s *Service) PostIntent(intent *Intent, inputer func() (interface{}, error)
 }
 
 func (s *Service) PostInput(stateID string, inputer func() (interface{}, error)) (result *Result, err error) {
-	state, err := s.Store.Get(stateID)
+	state, err := s.GetState(stateID)
 	if err != nil {
 		return nil, err
 	}
@@ -239,6 +275,15 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 		inputError = s.Graph.Run(state.ID, graph, false)
 	}
 
+	var cookies []*http.Cookie
+
+	state.UserAgentToken = s.getUserAgentToken()
+	if state.UserAgentToken == "" {
+		token, userAgentTokenCookie := s.generateUserAgentToken()
+		state.UserAgentToken = token
+		cookies = append(cookies, userAgentTokenCookie)
+	}
+
 	state.Error = skyerr.AsAPIError(inputError)
 	if graph != nil {
 		state.GraphInstanceID = graph.InstanceID
@@ -266,11 +311,13 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 				return &Result{
 					state:            state,
 					errorRedirectURI: errorRedirectURI,
+					cookies:          cookies,
 				}, nil
 			}
 		}
 		return &Result{
-			state: state,
+			state:   state,
+			cookies: cookies,
 		}, nil
 	}
 
@@ -279,7 +326,6 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 		s.Logger.Debugf("afterPost finished")
 		// Loop from start to end to collect cookies.
 		// This iteration order allows newer node to overwrite cookies.
-		var cookies []*http.Cookie
 		for _, node := range graph.Nodes {
 			if a, ok := node.(CookiesGetter); ok {
 				cookies = append(cookies, a.GetCookies()...)
@@ -312,6 +358,7 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 		return &Result{
 			state:       state,
 			redirectURI: a.GetRedirectURI(),
+			cookies:     cookies,
 		}, nil
 	}
 
@@ -331,6 +378,7 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 	return &Result{
 		state:       state,
 		redirectURI: redirectURI,
+		cookies:     cookies,
 	}, nil
 }
 

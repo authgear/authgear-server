@@ -13,6 +13,7 @@ type State struct {
 	KeepState       bool                   `json:"keep_state,omitempty"`
 	GraphInstanceID string                 `json:"graph_instance_id,omitempty"`
 	Extra           map[string]interface{} `json:"extra,omitempty"`
+	UserAgentToken  string                 `json:"user_agent_token"`
 }
 
 // Attach attaches s to input.

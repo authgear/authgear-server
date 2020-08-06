@@ -37,6 +37,12 @@ func (r *mockResolverProvider) Update(session *IDPSession) error {
 	return nil
 }
 
+type mockCookieFactory struct{}
+
+func (*mockCookieFactory) ClearCookie(def *httputil.CookieDef) *http.Cookie {
+	return &http.Cookie{Name: def.Name, Value: "RESET"}
+}
+
 func TestResolver(t *testing.T) {
 	Convey("Resolver", t, func() {
 		cookie := CookieDef{
@@ -44,7 +50,6 @@ func TestResolver(t *testing.T) {
 				Name:   CookieName,
 				Path:   "/",
 				Domain: "app.test",
-				Secure: true,
 				MaxAge: nil,
 			},
 		}
@@ -60,10 +65,11 @@ func TestResolver(t *testing.T) {
 		}
 
 		resolver := Resolver{
-			Cookie:   cookie,
-			Provider: provider,
-			Config:   &config.ServerConfig{TrustProxy: true},
-			Clock:    clock.NewMockClock(),
+			CookieFactory: &mockCookieFactory{},
+			Cookie:        cookie,
+			Provider:      provider,
+			Config:        &config.ServerConfig{TrustProxy: true},
+			Clock:         clock.NewMockClock(),
 		}
 
 		Convey("resolve without session cookie", func() {
@@ -85,7 +91,7 @@ func TestResolver(t *testing.T) {
 			So(session, ShouldBeNil)
 			So(err, ShouldBeError, auth.ErrInvalidSession)
 			So(rw.Result().Cookies(), ShouldHaveLength, 1)
-			So(rw.Result().Cookies()[0].Raw, ShouldEqual, "session=; Path=/; Domain=app.test; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Lax")
+			So(rw.Result().Cookies()[0].Raw, ShouldEqual, "session=RESET")
 		})
 
 		Convey("resolve with valid session cookie", func() {

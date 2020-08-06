@@ -1,6 +1,7 @@
 package newinteraction
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
@@ -18,6 +19,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/db"
+	"github.com/authgear/authgear-server/pkg/httputil"
 	"github.com/authgear/authgear-server/pkg/mfa"
 	"github.com/authgear/authgear-server/pkg/otp"
 )
@@ -120,6 +122,10 @@ type VerificationService interface {
 	SendCode(code *verification.Code, webStateID string) (*otp.CodeSendResult, error)
 }
 
+type CookieFactory interface {
+	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
+}
+
 type Context struct {
 	IsDryRun   bool   `wire:"-"`
 	WebStateID string `wire:"-"`
@@ -142,6 +148,7 @@ type Context struct {
 	Challenges    ChallengeProvider
 	Users         UserService
 	Hooks         HookProvider
+	CookieFactory CookieFactory
 	Sessions      SessionProvider
 	SessionCookie session.CookieDef
 }
