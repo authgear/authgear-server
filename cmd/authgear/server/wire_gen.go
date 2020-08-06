@@ -4178,6 +4178,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         htmlRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -4185,7 +4186,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := newinteraction.NewLogger(factory)
-	request := p.Request
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
@@ -4453,6 +4453,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
+	cookieFactory := deps.NewCookieFactory(request, serverConfig)
 	redisLogger := redis2.NewLogger(factory)
 	store2 := &redis2.Store{
 		Redis:  redisHandle,
@@ -4496,6 +4497,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
+		CookieFactory:            cookieFactory,
 		Sessions:                 sessionProvider,
 		SessionCookie:            cookieDef,
 	}
@@ -4509,9 +4511,11 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store:   newinteractionStoreRedis,
 	}
 	webappService := &webapp.Service{
-		Logger: serviceLogger,
-		Store:  redisStore,
-		Graph:  newinteractionService,
+		Logger:        serviceLogger,
+		Request:       request,
+		Store:         redisStore,
+		Graph:         newinteractionService,
+		CookieFactory: cookieFactory,
 	}
 	setupTOTPHandler := &webapp2.SetupTOTPHandler{
 		Database:      handle,
@@ -4550,6 +4554,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         htmlRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -4557,7 +4562,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := newinteraction.NewLogger(factory)
-	request := p.Request
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
@@ -4825,6 +4829,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
+	cookieFactory := deps.NewCookieFactory(request, serverConfig)
 	redisLogger := redis2.NewLogger(factory)
 	store2 := &redis2.Store{
 		Redis:  redisHandle,
@@ -4868,6 +4873,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
+		CookieFactory:            cookieFactory,
 		Sessions:                 sessionProvider,
 		SessionCookie:            cookieDef,
 	}
@@ -4881,9 +4887,11 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store:   newinteractionStoreRedis,
 	}
 	webappService := &webapp.Service{
-		Logger: serviceLogger,
-		Store:  redisStore,
-		Graph:  newinteractionService,
+		Logger:        serviceLogger,
+		Request:       request,
+		Store:         redisStore,
+		Graph:         newinteractionService,
+		CookieFactory: cookieFactory,
 	}
 	enterTOTPHandler := &webapp2.EnterTOTPHandler{
 		Database:      handle,
