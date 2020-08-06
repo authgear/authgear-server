@@ -29,6 +29,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/verification"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/welcomemessage"
+	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/sentry"
 	"github.com/authgear/authgear-server/pkg/db"
@@ -180,6 +181,7 @@ var commonDeps = wire.NewSet(
 		endpoints.DependencySet,
 		wire.Bind(new(oauth.EndpointsProvider), new(*endpoints.Provider)),
 		wire.Bind(new(webapp.EndpointsProvider), new(*endpoints.Provider)),
+		wire.Bind(new(handlerwebapp.SetupTOTPEndpointsProvider), new(*endpoints.Provider)),
 		wire.Bind(new(authenticatoroob.EndpointsProvider), new(*endpoints.Provider)),
 		wire.Bind(new(oidc.EndpointsProvider), new(*endpoints.Provider)),
 		wire.Bind(new(sso.EndpointsProvider), new(*endpoints.Provider)),

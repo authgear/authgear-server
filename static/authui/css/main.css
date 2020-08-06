@@ -48,6 +48,10 @@ select {
   -webkit-appearance: none;
 }
 
+.white-space-pre {
+  white-space: pre;
+}
+
 /* min-width and max-width initial value is auto, which means content size. */
 /* So setting min-width and min-height to 0 will make flex child not to overflow its parent */
 .flex-child-no-overflow {
@@ -482,4 +486,10 @@ a.btn {
 
 .login_id.phone {
   background-image: url("../image/ic_login_id_phone.png");
+}
+
+.setup-totp .totp-image {
+  width: 200px;
+  height: 200px;
+  align-self: center;
 }

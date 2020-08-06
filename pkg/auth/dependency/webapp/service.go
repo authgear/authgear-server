@@ -429,6 +429,8 @@ func (s *Service) deriveRedirectPath(graph *newinteraction.Graph, edges []newint
 		return "/enter_oob_otp"
 	case *nodes.NodeCreateAuthenticatorOOBSetup:
 		return "/enter_oob_otp"
+	case *nodes.NodeCreateAuthenticatorTOTPSetup:
+		return "/setup_totp"
 	case *nodes.NodeVerifyIdentity:
 		return "/verify_identity"
 	default:

@@ -11,7 +11,7 @@ func init() {
 
 type InputCreateAuthenticatorTOTP interface {
 	GetTOTP() string
-	GetTOTPDisplayName() bool
+	GetTOTPDisplayName() string
 }
 
 type EdgeCreateAuthenticatorTOTP struct {
