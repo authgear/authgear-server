@@ -32,9 +32,11 @@
   * [Authenticator](#authenticator)
     * [Primary Authenticator](#primary-authenticator)
     * [Secondary Authenticator](#secondary-authenticator)
-    * [Password Authenticator](#password-authenticator)
-    * [TOTP Authenticator](#totp-authenticator)
-    * [OOB-OTP Authenticator](#oob-otp-authenticator)
+    * [Authenticator Tags](#authenticator-tags)
+    * [Authenticator Types](#authenticator-types)
+      * [Password Authenticator](#password-authenticator)
+      * [TOTP Authenticator](#totp-authenticator)
+      * [OOB-OTP Authenticator](#oob-otp-authenticator)
     * [Device Token](#device-token)
     * [Recovery Code](#recovery-code)
 
@@ -206,6 +208,13 @@ Authgear supports various types of authenticator. Authenticator can be primary, 
 
 Authenticators have priorities. The first authenticator is the default authenticator in the UI.
 
+When performing authentication, all authenticators possessed by the user can be
+used, regardless of the configured authenticator types.
+
+When an identity is removed, all matching authenticators are also removed. For
+example, removing a login ID identity would also remove the OOB-OTP 
+authenticators using same login ID as target.
+
 ### Primary Authenticator
 
 Primary authenticators authenticate the identity. Each identity has specific applicable primary authenticators. For example, OAuth Identity does not have any applicable primary authenticators.
@@ -214,11 +223,23 @@ Primary authenticators authenticate the identity. Each identity has specific app
 
 Secondary authenticators are additional authentication methods to ensure higher degree of confidence in authenticity.
 
-### Password Authenticator
+### Authenticator Tags
+
+Each authenticator may have associated tags, they are used for determining:
+- whether the authenticator is primary or secondary,
+  or not used in authentication.
+- whether the authenticator is the default when there are multiple authenticators.
+
+The authenticator tags are persisted along with the authenticator, so changing
+the configuration would not affect the interpretation of existing authenticators.
+
+### Authenticator Types
+
+#### Password Authenticator
 
 Password authenticator is a primary authenticator. Every user has at most 1 password authenticator.
 
-### TOTP Authenticator
+#### TOTP Authenticator
 
 TOTP authenticator is either primary or secondary.
 
@@ -237,7 +258,7 @@ would be matched against all TOTP authenticators of user. However, a limit on
 the maximum amount of secondary TOTP authenticators may be set in the
 configuration.
 
-### OOB-OTP Authenticator
+#### OOB-OTP Authenticator
 
 Out-of-band One-time-password authenticator is either primary or secondary.
 

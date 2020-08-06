@@ -18,8 +18,7 @@ An identity is verifiable if:
 
 An identity is verified if:
 - it is an SSO identity; or
-- it is a login ID identity, and the user has a matching OOB-OTP authenticator
-  created after the identity.
+- it is a login ID identity, and the user has a matching OOB-OTP authenticator.
 
 ## Criteria
 
@@ -74,36 +73,26 @@ identity:
         enabled: false    # verification is disabled
 ```
 
-## Interaction with OOB-OTP authentication
+## Interaction with authenticators
 
-Verifying a login ID identity is equivalent to adding an OOB-OTP authenticator.
-Therefore:
-- Removing the OOB-OTP authenticator would cause the corresponding login ID
-  identity to become unverified.
-- Enrolling in OOB-OTP authentication would cause the corresponding login ID
-  identity to become verified.
+Verifying an identity would create an OOB-OTP authenticator without tag
+of primary/secondary authenticator, therefore it cannot be used in
+authentication.
 
-Note that even if OOB-OTP authentication is not enabled, user can still perform
-user verification. However, the added OOB-OTP authenticator cannot be used in
-authentication unless it is enabled in the configuration.
-  
-To ensure verification status is always up-to-date, we do not consider matching
-authenticators created before the identity in verification, since the identity
-may be re-added. When user attempted to verify the identity, the authenticator
-is removed and created to indicate it's valid for the identity.
+However, removing the matching identities would also remove the OOB-OTP
+authenticator created by the verification process. This ensures re-verification
+is required when re-adding the identity.
 
-## Code & Message
+## Message
 
-The OTP format and message has same configuration as specified by [OOB-OTP authenticator](./user-model.md#oob-otp-authenticator).
+The OTP message can be customized in configuration and templates.
 
 ```yaml
 verification:
     sms:
-      code_format: numeric      # SMS OTP defaults to 'numeric' format
       message:
         sender: "+85200000000"
     email:
-      code_format: complex      # Email OTP defaults to 'complex' format
       message:
         sender: "no-reply@example.com"
 ```
