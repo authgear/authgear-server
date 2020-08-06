@@ -3,6 +3,7 @@ package identity
 import (
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/model"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
@@ -68,6 +69,35 @@ func (i *Info) DisplayID() string {
 	case authn.IdentityTypeAnonymous:
 		displayID, _ := i.Claims[IdentityClaimAnonymousKeyID].(string)
 		return displayID
+	default:
+		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
+	}
+}
+
+func (i *Info) DisplayIDClaimName() (authn.ClaimName, bool) {
+	switch i.Type {
+	case authn.IdentityTypeLoginID:
+		loginIDType, _ := i.Claims[IdentityClaimLoginIDType].(string)
+		switch config.LoginIDKeyType(loginIDType) {
+		case config.LoginIDKeyTypeEmail:
+			return authn.ClaimEmail, true
+		case config.LoginIDKeyTypePhone:
+			return authn.ClaimPhoneNumber, true
+		case config.LoginIDKeyTypeUsername:
+			return authn.ClaimPreferredUsername, true
+		default:
+			return "", false
+		}
+	case authn.IdentityTypeOAuth:
+		if _, ok := i.Claims[StandardClaimEmail].(string); ok {
+			return authn.ClaimEmail, true
+		}
+		return "", false
+	case authn.IdentityTypeAnonymous:
+		if _, ok := i.Claims[IdentityClaimAnonymousKeyID].(string); ok {
+			return authn.ClaimKeyID, true
+		}
+		return "", false
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
 	}
