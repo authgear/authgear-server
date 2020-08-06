@@ -313,10 +313,9 @@ welcome_message:
   destination: first
 verification:
   criteria: any
+  code_expiry_seconds: 3600
   sms:
     message: {}
-    code_format: numeric
   email:
     message:
       subject: Email Verification Instruction
-    code_format: complex

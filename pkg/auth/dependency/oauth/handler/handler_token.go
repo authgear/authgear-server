@@ -266,7 +266,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 ) (httputil.Result, error) {
 	var graph *newinteraction.Graph
 	var attrs *authn.Attrs
-	err := h.Graphs.DryRun(func(ctx *newinteraction.Context) (*newinteraction.Graph, error) {
+	err := h.Graphs.DryRun("", func(ctx *newinteraction.Context) (*newinteraction.Graph, error) {
 		var err error
 		graph, err = h.Graphs.NewGraph(ctx, interactionintents.NewIntentLogin())
 		if err != nil {
@@ -305,7 +305,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 		return nil, err
 	}
 
-	err = h.Graphs.Run(graph, false)
+	err = h.Graphs.Run("", graph, false)
 	if skyerr.IsAPIError(err) {
 		return nil, protocol.NewError("invalid_request", err.Error())
 	} else if err != nil {

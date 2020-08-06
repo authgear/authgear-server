@@ -6,6 +6,6 @@ import (
 
 type GraphService interface {
 	NewGraph(ctx *newinteraction.Context, intent newinteraction.Intent) (*newinteraction.Graph, error)
-	DryRun(fn func(*newinteraction.Context) (*newinteraction.Graph, error)) error
-	Run(graph *newinteraction.Graph, preserveGraph bool) error
+	DryRun(webStateID string, fn func(*newinteraction.Context) (*newinteraction.Graph, error)) error
+	Run(webStateID string, graph *newinteraction.Graph, preserveGraph bool) error
 }

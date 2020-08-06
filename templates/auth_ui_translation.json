@@ -16,6 +16,8 @@
 	"connect-button-label": "Connect",
 	"disconnect-button-label": "Disconnect",
 	"change-button-label": "Change",
+	"verify-button-label": "Verify",
+	"verification-status-label--verified": "Verified",
 
 	"sign-in-apple": "Sign in with Apple",
 	"sign-up-apple": "Sign up with Apple",
@@ -44,14 +46,25 @@
 	"show-password": "Show Password",
 	"hide-password": "Hide Password",
 
-	"oob-otp-page-title--sms": "SMS Verification",
-	"oob-otp-page-title--email": "Email Verification",
+	"oob-otp-page-title--sms": "SMS One-Time-Password",
+	"oob-otp-page-title--email": "Email One-Time-Password",
 	"oob-otp-placeholder": "code",
 	"oob-otp-description": "We have sent a {0} digit code to {1}. Please enter the code below to continue",
 	"oob-otp-resend-button-hint": "Didn''t receive the code? ",
 	"oob-otp-resend-button-label": "Resend",
 	"oob-otp-resend-button-label--unit": "Resend (%ds)",
-	
+
+	"verify-user-page-title--sms": "SMS Verification",
+	"verify-user-page-title--email": "Email Verification",
+	"verify-user-placeholder": "code",
+	"verify-user-description": "We have sent a {0} digit code to {1}. Please enter the code below to continue",
+	"verify-user-resend-button-hint": "Didn''t receive the code? ",
+	"verify-user-resend-button-label": "Resend",
+	"verify-user-resend-button-label--unit": "Resend (%ds)",
+
+	"verify-user-success-page-title": "Account verification",
+	"verify-user-success-description": "You have successfully verified your account.",
+
 	"use-login-id-key": "Use {0} instead",
 	"login-button-hint": "Have an account already? ",
 	"login-button-label": "Sign in!",

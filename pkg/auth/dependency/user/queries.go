@@ -6,18 +6,18 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/model"
 )
 
-type IdentityProvider interface {
+type IdentityService interface {
 	ListByUser(userID string) ([]*identity.Info, error)
 }
 
 type VerificationService interface {
-	IsUserVerified(userID string) (bool, error)
+	IsUserVerified(identities []*identity.Info, userID string) (bool, error)
 	IsVerified(identities []*identity.Info, authenticators []*authenticator.Info) bool
 }
 
 type Queries struct {
 	Store        store
-	Identities   IdentityProvider
+	Identities   IdentityService
 	Verification VerificationService
 }
 
@@ -32,7 +32,7 @@ func (p *Queries) Get(id string) (*model.User, error) {
 		return nil, err
 	}
 
-	isVerified, err := p.Verification.IsUserVerified(id)
+	isVerified, err := p.Verification.IsUserVerified(identities, id)
 	if err != nil {
 		return nil, err
 	}

@@ -41,6 +41,31 @@ func (i *IntentAddIdentity) DeriveEdgesForNode(ctx *newinteraction.Context, grap
 		}, nil
 	case *nodes.NodeDoCreateIdentity:
 		return []newinteraction.Edge{
+			&nodes.EdgeEnsureVerificationBegin{
+				Identity:        node.Identity,
+				RequestedByUser: false,
+			},
+		}, nil
+
+	case *nodes.NodeEnsureVerificationEnd:
+		if node.NewAuthenticator != nil {
+			return []newinteraction.Edge{
+				&nodes.EdgeDoVerifyIdentity{
+					Identity:         node.Identity,
+					NewAuthenticator: node.NewAuthenticator,
+				},
+			}, nil
+		}
+		return []newinteraction.Edge{
+			&nodes.EdgeDoUseIdentity{Identity: node.Identity},
+		}, nil
+	case *nodes.NodeDoVerifyIdentity:
+		return []newinteraction.Edge{
+			&nodes.EdgeDoUseIdentity{Identity: node.Identity},
+		}, nil
+
+	case *nodes.NodeDoUseIdentity:
+		return []newinteraction.Edge{
 			&nodes.EdgeCreateAuthenticatorBegin{
 				Stage: newinteraction.AuthenticationStagePrimary,
 			},

@@ -12,39 +12,38 @@ import (
 )
 
 const (
-	// nolint: gosec
-	TemplateItemTypeAuthUIResetPasswordSuccessHTML config.TemplateItemType = "auth_ui_reset_password_success.html"
+	TemplateItemTypeAuthUIVerifyIdentitySuccessHTML config.TemplateItemType = "auth_ui_verify_identity_success.html"
 )
 
-var TemplateAuthUIResetPasswordSuccessHTML = template.Spec{
-	Type:        TemplateItemTypeAuthUIResetPasswordSuccessHTML,
+var TemplateAuthUIVerifyIdentitySuccessHTML = template.Spec{
+	Type:        TemplateItemTypeAuthUIVerifyIdentitySuccessHTML,
 	IsHTML:      true,
 	Translation: TemplateItemTypeAuthUITranslationJSON,
 	Defines:     defines,
 	Components:  components,
 }
 
-func ConfigureResetPasswordSuccessRoute(route httproute.Route) httproute.Route {
+func ConfigureVerifyIdentitySuccessRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET").
-		WithPathPattern("/reset_password/success")
+		WithPathPattern("/verify_identity/success")
 }
 
-type ResetPasswordSuccessHandler struct {
+type VerifyIdentitySuccessHandler struct {
 	Database      *db.Handle
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
 	WebApp        WebAppService
 }
 
-func (h *ResetPasswordSuccessHandler) GetData(r *http.Request, state *webapp.State) (map[string]interface{}, error) {
+func (h *VerifyIdentitySuccessHandler) GetData(r *http.Request, state *webapp.State) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
 	viewmodels.Embed(data, baseViewModel)
 	return data, nil
 }
 
-func (h *ResetPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *VerifyIdentitySuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -64,7 +63,7 @@ func (h *ResetPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 				return err
 			}
 
-			h.Renderer.Render(w, r, TemplateItemTypeAuthUIResetPasswordSuccessHTML, data)
+			h.Renderer.Render(w, r, TemplateItemTypeAuthUIVerifyIdentitySuccessHTML, data)
 			return nil
 		})
 	}

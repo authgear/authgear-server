@@ -20,6 +20,7 @@ var _ = Schema.Add("VerificationConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"criteria": { "$ref": "#/$defs/VerificationCriteria" },
+		"code_expiry_seconds": { "$ref": "#/$defs/DurationSeconds" },
 		"sms": { "$ref": "#/$defs/VerificationSMSConfig" },
 		"email": { "$ref": "#/$defs/VerificationEmailConfig" }
 	}
@@ -27,14 +28,18 @@ var _ = Schema.Add("VerificationConfig", `
 `)
 
 type VerificationConfig struct {
-	Criteria VerificationCriteria     `json:"criteria,omitempty"`
-	SMS      *VerificationSMSConfig   `json:"sms,omitempty"`
-	Email    *VerificationEmailConfig `json:"email,omitempty"`
+	Criteria   VerificationCriteria     `json:"criteria,omitempty"`
+	CodeExpiry DurationSeconds          `json:"code_expiry_seconds,omitempty"`
+	SMS        *VerificationSMSConfig   `json:"sms,omitempty"`
+	Email      *VerificationEmailConfig `json:"email,omitempty"`
 }
 
 func (c *VerificationConfig) SetDefaults() {
 	if c.Criteria == "" {
 		c.Criteria = VerificationCriteriaAny
+	}
+	if c.CodeExpiry == 0 {
+		c.CodeExpiry = DurationSeconds(3600)
 	}
 }
 
@@ -43,35 +48,13 @@ var _ = Schema.Add("VerificationSMSConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"message": { "$ref": "#/$defs/SMSMessageConfig" },
-		"code_format": { "$ref": "#/$defs/OTPFormat" }
+		"message": { "$ref": "#/$defs/SMSMessageConfig" }
 	}
 }
 `)
-
-var _ = Schema.Add("OTPFormat", `
-{
-	"type": "string",
-	"enum": ["numeric", "complex"]
-}
-`)
-
-type OTPFormat string
-
-const (
-	OTPFormatNumeric OTPFormat = "numeric"
-	OTPFormatComplex OTPFormat = "complex"
-)
 
 type VerificationSMSConfig struct {
-	Message    SMSMessageConfig `json:"message,omitempty"`
-	CodeFormat OTPFormat        `json:"code_format,omitempty"`
-}
-
-func (c *VerificationSMSConfig) SetDefaults() {
-	if c.CodeFormat == "" {
-		c.CodeFormat = OTPFormatNumeric
-	}
+	Message SMSMessageConfig `json:"message,omitempty"`
 }
 
 var _ = Schema.Add("VerificationEmailConfig", `
@@ -79,23 +62,18 @@ var _ = Schema.Add("VerificationEmailConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"message": { "$ref": "#/$defs/EmailMessageConfig" },
-		"code_format": { "$ref": "#/$defs/OTPFormat" }
+		"message": { "$ref": "#/$defs/EmailMessageConfig" }
 	}
 }
 `)
 
 type VerificationEmailConfig struct {
-	Message    EmailMessageConfig `json:"message,omitempty"`
-	CodeFormat OTPFormat          `json:"code_format,omitempty"`
+	Message EmailMessageConfig `json:"message,omitempty"`
 }
 
 func (c *VerificationEmailConfig) SetDefaults() {
 	if c.Message["subject"] == "" {
 		c.Message["subject"] = "Email Verification Instruction"
-	}
-	if c.CodeFormat == "" {
-		c.CodeFormat = OTPFormatComplex
 	}
 }
 

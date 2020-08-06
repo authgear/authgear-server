@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/verification"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/core/authn"
@@ -35,8 +36,17 @@ func ConfigureSettingsIdentityRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/settings/identity")
 }
 
+type SettingsIdentityViewModel struct {
+	VerificationStatuses map[string]verification.Status
+}
+
 type SettingsIdentityService interface {
+	ListByUser(userID string) ([]*identity.Info, error)
 	ListCandidates(userID string) ([]identity.Candidate, error)
+}
+
+type SettingsVerificationService interface {
+	GetVerificationStatuses(is []*identity.Info) (map[string]verification.Status, error)
 }
 
 type SettingsIdentityHandler struct {
@@ -46,6 +56,7 @@ type SettingsIdentityHandler struct {
 	Renderer      Renderer
 	WebApp        WebAppService
 	Identities    SettingsIdentityService
+	Verification  SettingsVerificationService
 }
 
 type SettingsIdentityLinkOAuth struct {
@@ -100,8 +111,21 @@ func (h *SettingsIdentityHandler) GetData(r *http.Request, state *webapp.State) 
 	}
 	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithCandidates(candidates)
 
+	viewModel := SettingsIdentityViewModel{
+		VerificationStatuses: map[string]verification.Status{},
+	}
+	identities, err := h.Identities.ListByUser(userID)
+	if err != nil {
+		return nil, err
+	}
+	viewModel.VerificationStatuses, err = h.Verification.GetVerificationStatuses(identities)
+	if err != nil {
+		return nil, err
+	}
+
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, authenticationViewModel)
+	viewmodels.Embed(data, viewModel)
 
 	return data, nil
 }
@@ -174,6 +198,26 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 				input = &SettingsIdentityUnlinkOAuth{
 					IdentityID: identityID,
 				}
+				return
+			})
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return err
+			}
+			result.WriteResponse(w, r)
+			return nil
+		})
+	}
+
+	if r.Method == "POST" && r.Form.Get("x_action") == "verify_login_id" {
+		h.Database.WithTx(func() error {
+			intent := &webapp.Intent{
+				RedirectURI: redirectURI,
+				KeepState:   true,
+				Intent:      intents.NewIntentVerifyIdentity(userID, authn.IdentityTypeLoginID, identityID),
+			}
+			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
+				input = nil
 				return
 			})
 			if err != nil {

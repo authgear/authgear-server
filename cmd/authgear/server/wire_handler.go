@@ -146,6 +146,20 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		deps.RequestDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.VerifyIdentityHandler)),
+	))
+}
+
+func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		deps.RequestDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.VerifyIdentitySuccessHandler)),
+	))
+}
+
 func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		deps.RequestDependencySet,

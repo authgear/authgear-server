@@ -30,6 +30,7 @@ type MessageSender struct {
 
 type SendOptions struct {
 	OTP         string
+	URL         string
 	MessageType MessageType
 }
 
@@ -43,6 +44,7 @@ func (s *MessageSender) makeContext(opts SendOptions) *MessageTemplateContext {
 		Email:                "",
 		Phone:                "",
 		Code:                 opts.OTP,
+		URL:                  opts.URL,
 		Host:                 s.Endpoints.BaseURL().Host,
 		StaticAssetURLPrefix: s.ServerConfig.StaticAsset.URLPrefix,
 	}

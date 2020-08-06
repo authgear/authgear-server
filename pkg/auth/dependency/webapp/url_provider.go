@@ -20,6 +20,7 @@ type EndpointsProvider interface {
 	LogoutEndpointURL() *url.URL
 	SettingsEndpointURL() *url.URL
 	ResetPasswordEndpointURL() *url.URL
+	VerifyIdentityEndpointURL() *url.URL
 	SSOCallbackEndpointURL() *url.URL
 }
 
@@ -42,6 +43,13 @@ func (p *URLProvider) ResetPasswordURL(code string) *url.URL {
 	return coreurl.WithQueryParamsAdded(
 		p.Endpoints.ResetPasswordEndpointURL(),
 		map[string]string{"code": code},
+	)
+}
+
+func (p *URLProvider) VerifyIdentityURL(code string, webStateID string) *url.URL {
+	return coreurl.WithQueryParamsAdded(
+		p.Endpoints.VerifyIdentityEndpointURL(),
+		map[string]string{"code": code, "state": webStateID},
 	)
 }
 

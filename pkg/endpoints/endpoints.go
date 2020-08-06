@@ -27,15 +27,16 @@ func (p *Provider) urlOf(relPath string) *url.URL {
 	return u
 }
 
-func (p *Provider) AuthorizeEndpointURL() *url.URL     { return p.urlOf("oauth2/authorize") }
-func (p *Provider) TokenEndpointURL() *url.URL         { return p.urlOf("oauth2/token") }
-func (p *Provider) RevokeEndpointURL() *url.URL        { return p.urlOf("oauth2/revoke") }
-func (p *Provider) JWKSEndpointURL() *url.URL          { return p.urlOf("oauth2/jwks") }
-func (p *Provider) UserInfoEndpointURL() *url.URL      { return p.urlOf("oauth2/userinfo") }
-func (p *Provider) EndSessionEndpointURL() *url.URL    { return p.urlOf("oauth2/end_session") }
-func (p *Provider) AuthenticateEndpointURL() *url.URL  { return p.urlOf("./login") }
-func (p *Provider) PromoteUserEndpointURL() *url.URL   { return p.urlOf("./promote_user") }
-func (p *Provider) LogoutEndpointURL() *url.URL        { return p.urlOf("./logout") }
-func (p *Provider) SettingsEndpointURL() *url.URL      { return p.urlOf("./settings") }
-func (p *Provider) ResetPasswordEndpointURL() *url.URL { return p.urlOf("./reset_password") }
-func (p *Provider) SSOCallbackEndpointURL() *url.URL   { return p.urlOf("sso/oauth2/callback") }
+func (p *Provider) AuthorizeEndpointURL() *url.URL      { return p.urlOf("oauth2/authorize") }
+func (p *Provider) TokenEndpointURL() *url.URL          { return p.urlOf("oauth2/token") }
+func (p *Provider) RevokeEndpointURL() *url.URL         { return p.urlOf("oauth2/revoke") }
+func (p *Provider) JWKSEndpointURL() *url.URL           { return p.urlOf("oauth2/jwks") }
+func (p *Provider) UserInfoEndpointURL() *url.URL       { return p.urlOf("oauth2/userinfo") }
+func (p *Provider) EndSessionEndpointURL() *url.URL     { return p.urlOf("oauth2/end_session") }
+func (p *Provider) AuthenticateEndpointURL() *url.URL   { return p.urlOf("./login") }
+func (p *Provider) PromoteUserEndpointURL() *url.URL    { return p.urlOf("./promote_user") }
+func (p *Provider) LogoutEndpointURL() *url.URL         { return p.urlOf("./logout") }
+func (p *Provider) SettingsEndpointURL() *url.URL       { return p.urlOf("./settings") }
+func (p *Provider) ResetPasswordEndpointURL() *url.URL  { return p.urlOf("./reset_password") }
+func (p *Provider) VerifyIdentityEndpointURL() *url.URL { return p.urlOf("./verify_identity") }
+func (p *Provider) SSOCallbackEndpointURL() *url.URL    { return p.urlOf("sso/oauth2/callback") }

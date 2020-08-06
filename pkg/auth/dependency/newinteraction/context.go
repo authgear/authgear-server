@@ -12,8 +12,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/sso"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/user"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/verification"
 	"github.com/authgear/authgear-server/pkg/auth/event"
 	"github.com/authgear/authgear-server/pkg/auth/model"
+	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/mfa"
@@ -50,7 +52,7 @@ type OOBAuthenticatorProvider interface {
 		target string,
 		code string,
 		messageType otp.MessageType,
-	) (*otp.OOBSendResult, error)
+	) (*otp.CodeSendResult, error)
 }
 
 type AnonymousIdentityProvider interface {
@@ -109,10 +111,21 @@ type LoginIDNormalizerFactory interface {
 	NormalizerWithLoginIDType(loginIDKeyType config.LoginIDKeyType) loginid.Normalizer
 }
 
+type VerificationService interface {
+	GetVerificationStatus(i *identity.Info) (verification.Status, error)
+	CreateNewCode(id string, info *identity.Info) (*verification.Code, error)
+	GetCode(id string) (*verification.Code, error)
+	VerifyCode(id string, code string) (*verification.Code, error)
+	NewVerificationAuthenticator(code *verification.Code) (*authenticator.Info, error)
+	SendCode(code *verification.Code, webStateID string) (*otp.CodeSendResult, error)
+}
+
 type Context struct {
-	IsDryRun bool `wire:"-"`
+	IsDryRun   bool   `wire:"-"`
+	WebStateID string `wire:"-"`
 
 	Database db.SQLExecutor
+	Clock    clock.Clock
 	Config   *config.AppConfig
 
 	Identities               IdentityService
@@ -124,6 +137,7 @@ type Context struct {
 	ForgotPassword           ForgotPasswordService
 	ResetPassword            ResetPasswordService
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
+	Verification             VerificationService
 
 	Challenges    ChallengeProvider
 	Users         UserService

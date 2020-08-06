@@ -228,29 +228,29 @@ func (mr *MockGraphServiceMockRecorder) Get(instanceID interface{}) *gomock.Call
 }
 
 // DryRun mocks base method
-func (m *MockGraphService) DryRun(fn func(*newinteraction.Context) (*newinteraction.Graph, error)) error {
+func (m *MockGraphService) DryRun(webStateID string, fn func(*newinteraction.Context) (*newinteraction.Graph, error)) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DryRun", fn)
+	ret := m.ctrl.Call(m, "DryRun", webStateID, fn)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DryRun indicates an expected call of DryRun
-func (mr *MockGraphServiceMockRecorder) DryRun(fn interface{}) *gomock.Call {
+func (mr *MockGraphServiceMockRecorder) DryRun(webStateID, fn interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DryRun", reflect.TypeOf((*MockGraphService)(nil).DryRun), fn)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DryRun", reflect.TypeOf((*MockGraphService)(nil).DryRun), webStateID, fn)
 }
 
 // Run mocks base method
-func (m *MockGraphService) Run(graph *newinteraction.Graph, preserveGraph bool) error {
+func (m *MockGraphService) Run(webStateID string, graph *newinteraction.Graph, preserveGraph bool) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Run", graph, preserveGraph)
+	ret := m.ctrl.Call(m, "Run", webStateID, graph, preserveGraph)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Run indicates an expected call of Run
-func (mr *MockGraphServiceMockRecorder) Run(graph, preserveGraph interface{}) *gomock.Call {
+func (mr *MockGraphServiceMockRecorder) Run(webStateID, graph, preserveGraph interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Run", reflect.TypeOf((*MockGraphService)(nil).Run), graph, preserveGraph)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Run", reflect.TypeOf((*MockGraphService)(nil).Run), webStateID, graph, preserveGraph)
 }

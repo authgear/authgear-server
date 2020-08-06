@@ -18,3 +18,17 @@ func mustFindNodeSelectIdentity(graph *newinteraction.Graph) *nodes.NodeSelectId
 	}
 	return selectIdentity
 }
+
+func mustFindNodeDoUpdateIdentity(graph *newinteraction.Graph) *nodes.NodeDoUpdateIdentity {
+	var doUpdateIdentity *nodes.NodeDoUpdateIdentity
+	for _, node := range graph.Nodes {
+		if node, ok := node.(*nodes.NodeDoUpdateIdentity); ok {
+			doUpdateIdentity = node
+			break
+		}
+	}
+	if doUpdateIdentity == nil {
+		panic("interaction: expect identity already updated")
+	}
+	return doUpdateIdentity
+}

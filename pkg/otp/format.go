@@ -3,7 +3,6 @@ package otp
 import (
 	"crypto/subtle"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/core/base32"
 	"github.com/authgear/authgear-server/pkg/core/rand"
 )
@@ -23,17 +22,6 @@ var (
 		Length:   8,
 	}
 )
-
-func GetFormat(format config.OTPFormat) *Format {
-	switch format {
-	case config.OTPFormatNumeric:
-		return FormatNumeric
-	case config.OTPFormatComplex:
-		return FormatComplex
-	default:
-		panic("otp: unknown format: " + format)
-	}
-}
 
 func (f *Format) Generate() string {
 	code := rand.StringWithAlphabet(f.Length, f.Alphabet, rand.SecureRand)

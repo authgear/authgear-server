@@ -138,39 +138,69 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 			return nil, newinteraction.ErrDuplicatedIdentity
 		}
 
-	case *nodes.NodeDoUseIdentity:
-		if i.Kind == IntentAuthenticateKindPromote && node.Identity.Type == authn.IdentityTypeAnonymous {
-			// Create new identity for the anonymous user
-			return []newinteraction.Edge{
-				&nodes.EdgeCreateIdentityBegin{
-					AllowAnonymousUser: false,
-				},
-			}, nil
-		}
-
+	case *nodes.NodeDoCreateIdentity:
 		return []newinteraction.Edge{
-			&nodes.EdgeAuthenticationBegin{
-				Stage: newinteraction.AuthenticationStagePrimary,
+			&nodes.EdgeEnsureVerificationBegin{
+				Identity:        node.Identity,
+				RequestedByUser: false,
 			},
 		}, nil
 
-	case *nodes.NodeDoCreateIdentity:
+	case *nodes.NodeEnsureVerificationEnd:
+		if node.NewAuthenticator != nil {
+			return []newinteraction.Edge{
+				&nodes.EdgeDoVerifyIdentity{
+					Identity:         node.Identity,
+					NewAuthenticator: node.NewAuthenticator,
+				},
+			}, nil
+		}
+		return []newinteraction.Edge{
+			&nodes.EdgeDoUseIdentity{Identity: node.Identity},
+		}, nil
+
+	case *nodes.NodeDoVerifyIdentity:
+		return []newinteraction.Edge{
+			&nodes.EdgeDoUseIdentity{Identity: node.Identity},
+		}, nil
+
+	case *nodes.NodeDoUseIdentity:
 		if i.Kind == IntentAuthenticateKindPromote {
-			// Remove anonymous identity before creating new authenticator
+			if node.Identity.Type == authn.IdentityTypeAnonymous {
+				// Create new identity for the anonymous user
+				return []newinteraction.Edge{
+					&nodes.EdgeCreateIdentityBegin{
+						AllowAnonymousUser: false,
+					},
+				}, nil
+			}
+
 			selectIdentity := mustFindNodeSelectIdentity(graph)
 			if selectIdentity.IdentityInfo.Type != authn.IdentityTypeAnonymous {
 				panic("interaction: expect anonymous identity")
 			}
 
+			if selectIdentity.IdentityInfo.UserID == node.Identity.UserID {
+				// Remove anonymous identity before proceeding
+				return []newinteraction.Edge{
+					&nodes.EdgeDoRemoveIdentity{
+						Identity: selectIdentity.IdentityInfo,
+					},
+				}, nil
+			}
+		}
+
+		_, isNewUser := graph.GetNewUserID()
+		if isNewUser {
+			// No authentication needed for new users
 			return []newinteraction.Edge{
-				&nodes.EdgeDoRemoveIdentity{
-					Identity: selectIdentity.IdentityInfo,
+				&nodes.EdgeCreateAuthenticatorBegin{
+					Stage: newinteraction.AuthenticationStagePrimary,
 				},
 			}, nil
 		}
-
 		return []newinteraction.Edge{
-			&nodes.EdgeCreateAuthenticatorBegin{
+			&nodes.EdgeAuthenticationBegin{
 				Stage: newinteraction.AuthenticationStagePrimary,
 			},
 		}, nil

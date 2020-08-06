@@ -57,7 +57,7 @@ func (s *Service) Get(instanceID string) (*Graph, error) {
 	return s.Store.GetGraphInstance(instanceID)
 }
 
-func (s *Service) DryRun(fn func(*Context) (*Graph, error)) (err error) {
+func (s *Service) DryRun(webStateID string, fn func(*Context) (*Graph, error)) (err error) {
 	ctx, err := s.Context.initialize()
 	if err != nil {
 		return
@@ -72,6 +72,7 @@ func (s *Service) DryRun(fn func(*Context) (*Graph, error)) (err error) {
 	}()
 
 	ctx.IsDryRun = true
+	ctx.WebStateID = webStateID
 	graph, err := fn(ctx)
 	if err != nil {
 		return
@@ -85,7 +86,7 @@ func (s *Service) DryRun(fn func(*Context) (*Graph, error)) (err error) {
 	return
 }
 
-func (s *Service) Run(graph *Graph, preserveGraph bool) (err error) {
+func (s *Service) Run(webStateID string, graph *Graph, preserveGraph bool) (err error) {
 	ctx, err := s.Context.initialize()
 	if err != nil {
 		return
@@ -110,6 +111,7 @@ func (s *Service) Run(graph *Graph, preserveGraph bool) (err error) {
 	}()
 
 	ctx.IsDryRun = false
+	ctx.WebStateID = webStateID
 	err = graph.Apply(ctx)
 	if err != nil {
 		return

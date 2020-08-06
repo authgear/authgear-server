@@ -11,11 +11,9 @@
       <mj-text font-size="16px" padding="20px">You have selected {{ .Email }} for verification. Please use the following code to complete the verification.</mj-text>
     </mj-column>
   </mj-section>
-  <mj-section>
-    <mj-column width="250px" background-color="#f1f4f5">
-      <mj-text font-size="36px" font-weight="heavy" font-family="monospace" letter-spacing="16px" padding="24px 24px 24px 40px">{{ .Code }}</mj-text>
-    </mj-column>
-  </mj-section>
+  <mj-hero>
+    <mj-button background-color="#166BEF" href="{{ .URL }}">Verify Account</mj-button>
+  </mj-hero>
   <mj-section>
     <mj-column>
       <mj-text font-weight="light" font-size="12px" padding="20px">If you didn't sign in or sign up please ignore this email.</mj-text>

@@ -20,6 +20,7 @@ type MessageTemplateContext struct {
 	Email                string
 	Phone                string
 	Code                 string
+	URL                  string
 	Host                 string
 	StaticAssetURLPrefix string
 }
