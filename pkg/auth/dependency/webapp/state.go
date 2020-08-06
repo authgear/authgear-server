@@ -14,6 +14,7 @@ type State struct {
 	GraphInstanceID string                 `json:"graph_instance_id,omitempty"`
 	Extra           map[string]interface{} `json:"extra,omitempty"`
 	UserAgentToken  string                 `json:"user_agent_token"`
+	UILocales       string                 `json:"ui_locales,omitempty"`
 }
 
 // Attach attaches s to input.

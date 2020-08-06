@@ -181,6 +181,7 @@ func (s *Service) PostIntent(intent *Intent, inputer func() (interface{}, error)
 		ID:          stateID,
 		RedirectURI: intent.RedirectURI,
 		KeepState:   intent.KeepState,
+		UILocales:   intent.UILocales,
 	}
 
 	var graph *newinteraction.Graph
@@ -386,6 +387,20 @@ func (s *Service) deriveRedirectPath(graph *newinteraction.Graph, edges []newint
 	firstEdge := edges[0]
 
 	switch graph.CurrentNode().(type) {
+	case *nodes.NodeSelectIdentityBegin:
+		switch intent := graph.Intent.(type) {
+		case *intents.IntentAuthenticate:
+			switch intent.Kind {
+			case intents.IntentAuthenticateKindLogin:
+				return "/login"
+			case intents.IntentAuthenticateKindSignup:
+				return "/signup"
+			default:
+				panic(fmt.Errorf("webapp: unexpected authenticate intent: %T", intent.Kind))
+			}
+		default:
+			panic(fmt.Errorf("webapp: unexpected intent: %T", graph.Intent))
+		}
 	case *nodes.NodeDoUseUser:
 		switch graph.Intent.(type) {
 		case *intents.IntentRemoveIdentity:

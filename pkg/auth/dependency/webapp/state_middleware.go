@@ -3,6 +3,7 @@ package webapp
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/core/intl"
 	"github.com/authgear/authgear-server/pkg/httputil"
 )
 
@@ -24,20 +25,29 @@ func (m *StateMiddleware) Handle(next http.Handler) http.Handler {
 		q := r.URL.Query()
 		sid := q.Get("x_sid")
 
-		if sid != "" {
-			_, err := m.States.Get(sid)
-			if err != nil {
-				u := *r.URL
-				q := u.Query()
-				RemoveX(q)
-				u.RawQuery = q.Encode()
-				u.Path = "/"
-
-				http.Redirect(w, r, httputil.HostRelative(&u).String(), http.StatusFound)
-				return
-			}
+		if sid == "" {
+			next.ServeHTTP(w, r)
+			return
 		}
 
+		state, err := m.States.Get(sid)
+		if err != nil {
+			u := *r.URL
+			q := u.Query()
+			RemoveX(q)
+			u.RawQuery = q.Encode()
+			u.Path = "/"
+
+			http.Redirect(w, r, httputil.HostRelative(&u).String(), http.StatusFound)
+			return
+		}
+
+		// Restore UI locales from state if necessary
+		if state.UILocales != "" {
+			tags := intl.ParseUILocales(state.UILocales)
+			ctx := intl.WithPreferredLanguageTags(r.Context(), tags)
+			r = r.WithContext(ctx)
+		}
 		next.ServeHTTP(w, r)
 	})
 }

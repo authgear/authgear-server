@@ -15,8 +15,6 @@ import (
 )
 
 type EndpointsProvider interface {
-	AuthenticateEndpointURL() *url.URL
-	PromoteUserEndpointURL() *url.URL
 	LogoutEndpointURL() *url.URL
 	SettingsEndpointURL() *url.URL
 	ResetPasswordEndpointURL() *url.URL
@@ -86,38 +84,37 @@ type AuthenticateURLProvider struct {
 }
 
 func (p *AuthenticateURLProvider) AuthenticateURL(options AuthenticateURLOptions) (httputil.Result, error) {
-	authnURI := p.Endpoints.AuthenticateEndpointURL()
-	q := map[string]string{
-		"redirect_uri": options.RedirectURI,
-		"client_id":    options.ClientID,
+	intent := &Intent{
+		RedirectURI: options.RedirectURI,
+		KeepState:   false,
+		UILocales:   options.UILocales,
+		Intent:      interactionintents.NewIntentLogin(),
 	}
-	if options.Prompt != "" {
-		q["prompt"] = options.Prompt
+	inputer := func() (interface{}, error) {
+		return nil, nil
 	}
-	if options.UILocales != "" {
-		q["ui_locales"] = options.UILocales
-	}
+
 	if options.LoginHint != "" {
-		resp, err := p.responseFromLoginHint(options)
+		err := p.processLoginHint(options, intent, &inputer)
 		if err != nil {
 			return nil, err
-		} else if resp != nil {
-			return resp, nil
 		}
 	}
-	return &httputil.ResultRedirect{
-		URL: coreurl.WithQueryParamsAdded(authnURI, q).String(),
-	}, nil
+	return p.Pages.PostIntent(intent, inputer)
 }
 
-func (p *AuthenticateURLProvider) responseFromLoginHint(options AuthenticateURLOptions) (httputil.Result, error) {
+func (p *AuthenticateURLProvider) processLoginHint(
+	options AuthenticateURLOptions,
+	intent *Intent,
+	inputer *func() (interface{}, error),
+) error {
 	if !strings.HasPrefix(options.LoginHint, "https://authgear.com/login_hint?") {
-		return nil, nil
+		return nil
 	}
 
 	url, err := url.Parse(options.LoginHint)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	query := url.Query()
 
@@ -126,28 +123,26 @@ func (p *AuthenticateURLProvider) responseFromLoginHint(options AuthenticateURLO
 		jwt := query.Get("jwt")
 		request, err := p.Anonymous.ParseRequestUnverified(query.Get("jwt"))
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		switch request.Action {
 		case anonymous.RequestActionPromote:
-			return p.Pages.PostIntent(&Intent{
-				RedirectURI: options.RedirectURI,
-				KeepState:   false,
-				Intent:      interactionintents.NewIntentPromote(),
-			}, func() (interface{}, error) {
+			intent.Intent = interactionintents.NewIntentPromote()
+			*inputer = func() (interface{}, error) {
 				return &anonymousTokenInput{JWT: jwt}, nil
-			})
+			}
+			return nil
 
 		case anonymous.RequestActionAuth:
 			// TODO(webapp): support anonymous auth
 			panic("webapp: anonymous auth through web app is not supported")
 
 		default:
-			return nil, errors.New("unknown anonymous request action")
+			return errors.New("unknown anonymous request action")
 		}
 
 	default:
-		return nil, fmt.Errorf("unsupported login hint type: %s", query.Get("type"))
+		return fmt.Errorf("unsupported login hint type: %s", query.Get("type"))
 	}
 }
