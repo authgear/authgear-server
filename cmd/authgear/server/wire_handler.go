@@ -139,6 +139,13 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		deps.RequestDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.EnterTOTPHandler)),
+	))
+}
+
 func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		deps.RequestDependencySet,

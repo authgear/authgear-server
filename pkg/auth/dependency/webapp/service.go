@@ -413,6 +413,8 @@ func (s *Service) deriveRedirectPath(graph *newinteraction.Graph, edges []newint
 		switch firstEdge.(type) {
 		case *nodes.EdgeAuthenticationPassword:
 			return "/enter_password"
+		case *nodes.EdgeAuthenticationTOTP:
+			return "/enter_totp"
 		default:
 			panic(fmt.Errorf("webapp: unexpected edge: %T", firstEdge))
 		}

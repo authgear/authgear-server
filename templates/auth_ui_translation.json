@@ -115,16 +115,20 @@
 	"enter-login-id-page-title--change": "Change your {0}",
 	"enter-login-id-page-title--add": "Enter your {0}",
 
-	"setup-oob-otp-title--sms": "Setup SMS multi-factor verification",
-	"setup-oob-otp-title--email": "Setup email multi-factor verification",
+	"setup-oob-otp-title--sms": "Setup SMS 2-step verification",
+	"setup-oob-otp-title--email": "Setup email 2-step verification",
 
-	"setup-oob-otp-use-phone-description": "Setup SMS multi-factor verification instead",
-	"setup-oob-otp-use-email-description": "Setup email multi-factor verification instead",
+	"setup-oob-otp-use-phone-description": "Setup SMS 2-step verification instead",
+	"setup-oob-otp-use-email-description": "Setup email 2-step verification instead",
 
 	"setup-totp-title": "Setup authenticator",
 	"setup-totp-code-placeholder": "code",
 	"setup-totp-get-google-authenticator-description": "If you don''t have any authenticator device / app\nyou can get the Google Authenticator App from the following links",
 	"setup-totp-use-google-authenticator-description": "In the App select Set up account.\nChoose Scan barcode",
 	"setup-totp-fallback-description": "Can''t scan the barcode?\nChoose Manual entry.\nEnter your email address and this key:\n{0}\nMake sure that Time based is turned on",
-	"setup-totp-code-description": "Enter the 6-digit code that you see in the app / device"
+	"setup-totp-code-description": "Enter the 6-digit code that you see in the app / device",
+
+	"enter-totp-title": "2-step verification",
+	"enter-totp-description": "Enter the 6-digit code you see in the authenticator app / device",
+	"enter-totp-code-placeholder": "6-digit code from the authenticator app / device"
 }
