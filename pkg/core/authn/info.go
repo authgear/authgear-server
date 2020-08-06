@@ -19,13 +19,15 @@ type Info struct {
 var _ Session = &Info{}
 
 func NewAuthnInfo(attrs *Attrs, user *UserInfo, isAnonymous bool, isVerified bool) *Info {
+	acr, _ := attrs.GetACR()
+	amr, _ := attrs.GetAMR()
 	return &Info{
 		IsValid:       true,
 		UserID:        user.ID,
 		UserAnonymous: isAnonymous,
 		UserVerified:  isVerified,
-		SessionACR:    attrs.ACR,
-		SessionAMR:    attrs.AMR,
+		SessionACR:    acr,
+		SessionAMR:    amr,
 	}
 }
 
@@ -61,11 +63,13 @@ func (i *Info) SessionID() string        { return "" }
 func (i *Info) SessionType() SessionType { return SessionTypeAuthnInfo }
 
 func (i *Info) AuthnAttrs() *Attrs {
-	return &Attrs{
+	attrs := &Attrs{
 		UserID: i.UserID,
-		ACR:    i.SessionACR,
-		AMR:    i.SessionAMR,
+		Claims: map[ClaimName]interface{}{},
 	}
+	attrs.SetACR(i.SessionACR)
+	attrs.SetAMR(i.SessionAMR)
+	return attrs
 }
 
 func (i *Info) User() *UserInfo {

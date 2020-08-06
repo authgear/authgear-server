@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	"github.com/authgear/authgear-server/pkg/auth/model"
 	"github.com/authgear/authgear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/jwkutil"
 	"github.com/authgear/authgear-server/pkg/jwtutil"
 )
@@ -31,15 +32,6 @@ type IDTokenIssuer struct {
 // It can be short, since id_token_hint should accept expired ID tokens.
 const IDTokenValidDuration = 5 * time.Minute
 
-// nolint: gosec
-const (
-	IDTokenClaimAMR             = "amr"
-	IDTokenClaimACR             = "acr"
-	IDTokenClaimUserIsAnonymous = "https://authgear.com/user/is_anonymous"
-	IDTokenClaimUserIsVerified  = "https://authgear.com/user/is_verified"
-	IDTokenClaimUserMetadata    = "https://authgear.com/user/metadata"
-)
-
 func (ti *IDTokenIssuer) GetPublicKeySet() (*jwk.Set, error) {
 	return jwkutil.PublicKeySet(&ti.Secrets.Set)
 }
@@ -55,9 +47,12 @@ func (ti *IDTokenIssuer) IssueIDToken(client config.OAuthClientConfig, session a
 	claims.Set(jwt.AudienceKey, client.ClientID())
 	claims.Set(jwt.IssuedAtKey, now.Unix())
 	claims.Set(jwt.ExpirationKey, now.Add(IDTokenValidDuration).Unix())
-	claims.Set(IDTokenClaimACR, session.AuthnAttrs().ACR)
-	claims.Set(IDTokenClaimAMR, session.AuthnAttrs().AMR)
-	claims.Set("nonce", nonce)
+	for key, value := range session.AuthnAttrs().Claims {
+		claims.Set(string(key), value)
+	}
+	if nonce != "" {
+		claims.Set("nonce", nonce)
+	}
 
 	jwk := ti.Secrets.Set.Keys[0]
 
@@ -85,14 +80,14 @@ func (ti *IDTokenIssuer) LoadUserClaims(session auth.AuthSession) (jwt.Token, er
 	claims := jwt.New()
 	claims.Set(jwt.IssuerKey, ti.Endpoints.BaseURL().String())
 	claims.Set(jwt.SubjectKey, session.AuthnAttrs().UserID)
-	claims.Set(IDTokenClaimUserIsAnonymous, user.IsAnonymous)
-	claims.Set(IDTokenClaimUserIsVerified, user.IsVerified)
+	claims.Set(string(authn.ClaimUserIsAnonymous), user.IsAnonymous)
+	claims.Set(string(authn.ClaimUserIsVerified), user.IsVerified)
 
 	if !allowProfile {
 		return claims, nil
 	}
 
-	claims.Set(IDTokenClaimUserMetadata, user.Metadata)
+	claims.Set(string(authn.ClaimUserMetadata), user.Metadata)
 
 	return claims, nil
 }
