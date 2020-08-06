@@ -1,0 +1,7 @@
+Save your recovery codes
+
+Keep these recovery codes somewhere safe but accessible.
+You can only use each recovery code once.
+{{ range $index, $code := $.RecoveryCodes }}
+{{ $index }}. {{ $code }}
+{{- end }}

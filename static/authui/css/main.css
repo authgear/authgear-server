@@ -507,3 +507,12 @@ a.btn {
   margin: 0;
   padding: 0;
 }
+
+.setup-recovery-code-buttons {
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+.setup-recovery-code-buttons > * {
+  margin: 0 6px;
+}

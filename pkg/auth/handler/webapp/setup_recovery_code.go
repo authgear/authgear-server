@@ -15,7 +15,8 @@ import (
 )
 
 const (
-	TemplateItemTypeAuthUISetupRecoveryCodeHTML config.TemplateItemType = "auth_ui_setup_recovery_code.html"
+	TemplateItemTypeAuthUISetupRecoveryCodeHTML   config.TemplateItemType = "auth_ui_setup_recovery_code.html"
+	TemplateItemTypeAuthUIDownloadRecoveryCodeTXT config.TemplateItemType = "auth_ui_download_recovery_code.txt"
 )
 
 var TemplateAuthUISetupRecoveryCodeHTML = template.Spec{
@@ -24,6 +25,10 @@ var TemplateAuthUISetupRecoveryCodeHTML = template.Spec{
 	Translation: TemplateItemTypeAuthUITranslationJSON,
 	Defines:     defines,
 	Components:  components,
+}
+
+var TemplateAuthUIDownloadRecoveryCodeTXT = template.Spec{
+	Type: TemplateItemTypeAuthUIDownloadRecoveryCodeTXT,
 }
 
 func ConfigureSetupRecoveryCodeRoute(route httproute.Route) httproute.Route {
@@ -91,22 +96,42 @@ func (h *SetupRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 	}
 
 	if r.Method == "GET" {
-		h.Database.WithTx(func() error {
-			state, graph, edges, err := h.WebApp.Get(StateID(r))
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return err
-			}
+		download := r.Form.Get("download") == "true"
+		if download {
+			h.Database.WithTx(func() error {
+				state, graph, edges, err := h.WebApp.Get(StateID(r))
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return err
+				}
 
-			data, err := h.GetData(r, state, graph, edges)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return err
-			}
+				data, err := h.GetData(r, state, graph, edges)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return err
+				}
 
-			h.Renderer.Render(w, r, TemplateItemTypeAuthUISetupRecoveryCodeHTML, data)
-			return nil
-		})
+				h.Renderer.RenderAttachment(w, r, TemplateItemTypeAuthUIDownloadRecoveryCodeTXT, data, "recovery-codes.txt")
+				return nil
+			})
+		} else {
+			h.Database.WithTx(func() error {
+				state, graph, edges, err := h.WebApp.Get(StateID(r))
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return err
+				}
+
+				data, err := h.GetData(r, state, graph, edges)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return err
+				}
+
+				h.Renderer.Render(w, r, TemplateItemTypeAuthUISetupRecoveryCodeHTML, data)
+				return nil
+			})
+		}
 	}
 
 	if r.Method == "POST" {

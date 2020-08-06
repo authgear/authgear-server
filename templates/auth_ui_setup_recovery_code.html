@@ -32,11 +32,14 @@
 
 <p class="description primary-txt">{{ localize "recovery-code-consumption-description" }}</p>
 
-<!-- FIXME(mfa): Add download button -->
+<div class="setup-recovery-code-buttons">
 
-<!-- FIXME(mfa): Add regenerate button -->
+	<button class="btn primary-btn" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
 
-<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
+	<a class="btn primary-btn" target="_blank" href="{{ call $.MakeURLState "" "download" "true" }}">{{ localize "download-button-label" }}</a>
+
+	<!-- FIXME(mfa): Add regenerate button -->
+</div>
 
 </form>
 
