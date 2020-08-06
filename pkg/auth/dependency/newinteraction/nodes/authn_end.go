@@ -34,5 +34,9 @@ func (n *NodeAuthenticationEnd) Apply(perform func(eff newinteraction.Effect) er
 }
 
 func (n *NodeAuthenticationEnd) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+	if !n.Optional && n.VerifiedAuthenticator == nil {
+		return nil, newinteraction.ErrInvalidCredentials
+	}
+
 	return graph.Intent.DeriveEdgesForNode(ctx, graph, n)
 }

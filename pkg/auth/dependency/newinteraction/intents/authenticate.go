@@ -221,10 +221,6 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 	case *nodes.NodeAuthenticationEnd:
 		switch node.Stage {
 		case newinteraction.AuthenticationStagePrimary:
-			if !node.Optional && node.VerifiedAuthenticator == nil {
-				return nil, newinteraction.ErrInvalidCredentials
-			}
-
 			return []newinteraction.Edge{
 				&nodes.EdgeDoUseAuthenticator{
 					Stage:         newinteraction.AuthenticationStagePrimary,
