@@ -123,7 +123,7 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary(ctx *newinteraction.Conte
 	//   the set of secondary authenticators of the user, and
 	//   the set of preferred secondary authenticators
 	// have intersection.
-	// If there is no interaction, create the first preferred one.
+	// If there is no intersection, create the first preferred one.
 	// Here we also check for non-sense configuration
 	types := ctx.Config.Authentication.SecondaryAuthenticators
 	if len(types) == 0 {
@@ -148,6 +148,8 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary(ctx *newinteraction.Conte
 		}
 	}
 
+	// FIXME(mfa): Allow the user to choose between which secondary authenticator to setup.
+	// Right now, EdgeCreateAuthenticatorTOTPSetup always instantiate without any input.
 	if len(intersection) == 0 {
 		firstType := types[0]
 		switch firstType {
