@@ -25,7 +25,6 @@ var _ = Schema.Add("TemplateItem", `
 	"properties": {
 		"type": { "$ref": "#/$defs/TemplateItemType" },
 		"language_tag": { "type": "string" },
-		"key": { "type": "string" },
 		"uri": { "type": "string" }
 	},
 	"required": ["type", "uri"]
@@ -35,6 +34,5 @@ var _ = Schema.Add("TemplateItem", `
 type TemplateItem struct {
 	Type        TemplateItemType `json:"type,omitempty"`
 	LanguageTag string           `json:"language_tag,omitempty"`
-	Key         string           `json:"key,omitempty"`
 	URI         string           `json:"uri,omitempty"`
 }
