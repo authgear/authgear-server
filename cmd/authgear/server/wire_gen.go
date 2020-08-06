@@ -554,6 +554,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
+	cookieFactory := deps.NewCookieFactory(request, serverConfig)
 	redisLogger := redis2.NewLogger(factory)
 	store2 := &redis2.Store{
 		Redis:  redisHandle,
@@ -597,6 +598,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
+		CookieFactory:            cookieFactory,
 		Sessions:                 sessionProvider,
 		SessionCookie:            cookieDef,
 	}
@@ -610,11 +612,11 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Store:   newinteractionStoreRedis,
 	}
 	webappService := &webapp.Service{
-		Logger:       serviceLogger,
-		Request:      request,
-		Store:        redisStore,
-		Graph:        newinteractionService,
-		ServerConfig: serverConfig,
+		Logger:        serviceLogger,
+		Request:       request,
+		Store:         redisStore,
+		Graph:         newinteractionService,
+		CookieFactory: cookieFactory,
 	}
 	authenticateURLProvider := &webapp.AuthenticateURLProvider{
 		Endpoints: provider,
@@ -977,6 +979,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
+	cookieFactory := deps.NewCookieFactory(request, serverConfig)
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	newinteractionContext := &newinteraction.Context{
 		Database:                 sqlExecutor,
@@ -995,6 +998,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
+		CookieFactory:            cookieFactory,
 		Sessions:                 provider,
 		SessionCookie:            cookieDef,
 	}
@@ -1832,6 +1836,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
+	cookieFactory := deps.NewCookieFactory(request, serverConfig)
 	redisLogger := redis2.NewLogger(factory)
 	store2 := &redis2.Store{
 		Redis:  redisHandle,
@@ -1875,6 +1880,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
+		CookieFactory:            cookieFactory,
 		Sessions:                 sessionProvider,
 		SessionCookie:            cookieDef,
 	}
@@ -1888,11 +1894,11 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Store:   newinteractionStoreRedis,
 	}
 	webappService := &webapp.Service{
-		Logger:       serviceLogger,
-		Request:      request,
-		Store:        redisStore,
-		Graph:        newinteractionService,
-		ServerConfig: serverConfig,
+		Logger:        serviceLogger,
+		Request:       request,
+		Store:         redisStore,
+		Graph:         newinteractionService,
+		CookieFactory: cookieFactory,
 	}
 	loginHandler := &webapp2.LoginHandler{
 		ServerConfig:  serverConfig,
@@ -2210,6 +2216,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
+	cookieFactory := deps.NewCookieFactory(request, serverConfig)
 	redisLogger := redis2.NewLogger(factory)
 	store2 := &redis2.Store{
 		Redis:  redisHandle,
@@ -2253,6 +2260,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
+		CookieFactory:            cookieFactory,
 		Sessions:                 sessionProvider,
 		SessionCookie:            cookieDef,
 	}
@@ -2266,11 +2274,11 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Store:   newinteractionStoreRedis,
 	}
 	webappService := &webapp.Service{
-		Logger:       serviceLogger,
-		Request:      request,
-		Store:        redisStore,
-		Graph:        newinteractionService,
-		ServerConfig: serverConfig,
+		Logger:        serviceLogger,
+		Request:       request,
+		Store:         redisStore,
+		Graph:         newinteractionService,
+		CookieFactory: cookieFactory,
 	}
 	signupHandler := &webapp2.SignupHandler{
 		ServerConfig:  serverConfig,
@@ -2588,6 +2596,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
+	cookieFactory := deps.NewCookieFactory(request, serverConfig)
 	redisLogger := redis2.NewLogger(factory)
 	store2 := &redis2.Store{
 		Redis:  redisHandle,
@@ -2631,6 +2640,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
+		CookieFactory:            cookieFactory,
 		Sessions:                 sessionProvider,
 		SessionCookie:            cookieDef,
 	}
@@ -2644,11 +2654,11 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Store:   newinteractionStoreRedis,
 	}
 	webappService := &webapp.Service{
-		Logger:       serviceLogger,
-		Request:      request,
-		Store:        redisStore,
-		Graph:        newinteractionService,
-		ServerConfig: serverConfig,
+		Logger:        serviceLogger,
+		Request:       request,
+		Store:         redisStore,
+		Graph:         newinteractionService,
+		CookieFactory: cookieFactory,
 	}
 	promoteHandler := &webapp2.PromoteHandler{
 		Database:      handle,
@@ -2948,6 +2958,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
+	cookieFactory := deps.NewCookieFactory(request, serverConfig)
 	redisLogger := redis2.NewLogger(factory)
 	store2 := &redis2.Store{
 		Redis:  redisHandle,
@@ -2991,6 +3002,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
+		CookieFactory:            cookieFactory,
 		Sessions:                 sessionProvider,
 		SessionCookie:            cookieDef,
 	}
@@ -3004,11 +3016,11 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Store:   newinteractionStoreRedis,
 	}
 	webappService := &webapp.Service{
-		Logger:       serviceLogger,
-		Request:      request,
-		Store:        redisStore,
-		Graph:        newinteractionService,
-		ServerConfig: serverConfig,
+		Logger:        serviceLogger,
+		Request:       request,
+		Store:         redisStore,
+		Graph:         newinteractionService,
+		CookieFactory: cookieFactory,
 	}
 	ssoCallbackHandler := &webapp2.SSOCallbackHandler{
 		Database: handle,
@@ -3318,6 +3330,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
+	cookieFactory := deps.NewCookieFactory(request, serverConfig)
 	redisLogger := redis2.NewLogger(factory)
 	store2 := &redis2.Store{
 		Redis:  redisHandle,
@@ -3361,6 +3374,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
+		CookieFactory:            cookieFactory,
 		Sessions:                 sessionProvider,
 		SessionCookie:            cookieDef,
 	}
@@ -3374,11 +3388,11 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Store:   newinteractionStoreRedis,
 	}
 	webappService := &webapp.Service{
-		Logger:       serviceLogger,
-		Request:      request,
-		Store:        redisStore,
-		Graph:        newinteractionService,
-		ServerConfig: serverConfig,
+		Logger:        serviceLogger,
+		Request:       request,
+		Store:         redisStore,
+		Graph:         newinteractionService,
+		CookieFactory: cookieFactory,
 	}
 	enterLoginIDHandler := &webapp2.EnterLoginIDHandler{
 		Database:      handle,
@@ -3690,6 +3704,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
+	cookieFactory := deps.NewCookieFactory(request, serverConfig)
 	redisLogger := redis2.NewLogger(factory)
 	store2 := &redis2.Store{
 		Redis:  redisHandle,
@@ -3733,6 +3748,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
+		CookieFactory:            cookieFactory,
 		Sessions:                 sessionProvider,
 		SessionCookie:            cookieDef,
 	}
@@ -3746,11 +3762,11 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store:   newinteractionStoreRedis,
 	}
 	webappService := &webapp.Service{
-		Logger:       serviceLogger,
-		Request:      request,
-		Store:        redisStore,
-		Graph:        newinteractionService,
-		ServerConfig: serverConfig,
+		Logger:        serviceLogger,
+		Request:       request,
+		Store:         redisStore,
+		Graph:         newinteractionService,
+		CookieFactory: cookieFactory,
 	}
 	enterPasswordHandler := &webapp2.EnterPasswordHandler{
 		Database:      handle,
@@ -4062,6 +4078,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
+	cookieFactory := deps.NewCookieFactory(request, serverConfig)
 	redisLogger := redis2.NewLogger(factory)
 	store2 := &redis2.Store{
 		Redis:  redisHandle,
@@ -4105,6 +4122,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
+		CookieFactory:            cookieFactory,
 		Sessions:                 sessionProvider,
 		SessionCookie:            cookieDef,
 	}
@@ -4118,11 +4136,11 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store:   newinteractionStoreRedis,
 	}
 	webappService := &webapp.Service{
-		Logger:       serviceLogger,
-		Request:      request,
-		Store:        redisStore,
-		Graph:        newinteractionService,
-		ServerConfig: serverConfig,
+		Logger:        serviceLogger,
+		Request:       request,
+		Store:         redisStore,
+		Graph:         newinteractionService,
+		CookieFactory: cookieFactory,
 	}
 	createPasswordHandler := &webapp2.CreatePasswordHandler{
 		Database:       handle,
@@ -4435,6 +4453,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
+	cookieFactory := deps.NewCookieFactory(request, serverConfig)
 	redisLogger := redis2.NewLogger(factory)
 	store2 := &redis2.Store{
 		Redis:  redisHandle,
@@ -4478,6 +4497,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
+		CookieFactory:            cookieFactory,
 		Sessions:                 sessionProvider,
 		SessionCookie:            cookieDef,
 	}
@@ -4491,11 +4511,11 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store:   newinteractionStoreRedis,
 	}
 	webappService := &webapp.Service{
-		Logger:       serviceLogger,
-		Request:      request,
-		Store:        redisStore,
-		Graph:        newinteractionService,
-		ServerConfig: serverConfig,
+		Logger:        serviceLogger,
+		Request:       request,
+		Store:         redisStore,
+		Graph:         newinteractionService,
+		CookieFactory: cookieFactory,
 	}
 	setupOOBOTPHandler := &webapp2.SetupOOBOTPHandler{
 		Database:      handle,
@@ -4807,6 +4827,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
+	cookieFactory := deps.NewCookieFactory(request, serverConfig)
 	redisLogger := redis2.NewLogger(factory)
 	store2 := &redis2.Store{
 		Redis:  redisHandle,
@@ -4850,6 +4871,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
+		CookieFactory:            cookieFactory,
 		Sessions:                 sessionProvider,
 		SessionCookie:            cookieDef,
 	}
@@ -4863,11 +4885,11 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store:   newinteractionStoreRedis,
 	}
 	webappService := &webapp.Service{
-		Logger:       serviceLogger,
-		Request:      request,
-		Store:        redisStore,
-		Graph:        newinteractionService,
-		ServerConfig: serverConfig,
+		Logger:        serviceLogger,
+		Request:       request,
+		Store:         redisStore,
+		Graph:         newinteractionService,
+		CookieFactory: cookieFactory,
 	}
 	enterOOBOTPHandler := &webapp2.EnterOOBOTPHandler{
 		Database:      handle,
@@ -5179,6 +5201,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
+	cookieFactory := deps.NewCookieFactory(request, serverConfig)
 	redisLogger := redis2.NewLogger(factory)
 	store2 := &redis2.Store{
 		Redis:  redisHandle,
@@ -5222,6 +5245,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
+		CookieFactory:            cookieFactory,
 		Sessions:                 sessionProvider,
 		SessionCookie:            cookieDef,
 	}
@@ -5235,11 +5259,11 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Store:   newinteractionStoreRedis,
 	}
 	webappService := &webapp.Service{
-		Logger:       serviceLogger,
-		Request:      request,
-		Store:        redisStore,
-		Graph:        newinteractionService,
-		ServerConfig: serverConfig,
+		Logger:        serviceLogger,
+		Request:       request,
+		Store:         redisStore,
+		Graph:         newinteractionService,
+		CookieFactory: cookieFactory,
 	}
 	verifyIdentityHandler := &webapp2.VerifyIdentityHandler{
 		Database:      handle,
@@ -5551,6 +5575,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Commands: commands,
 		Queries:  queries,
 	}
+	cookieFactory := deps.NewCookieFactory(request, serverConfig)
 	redisLogger := redis2.NewLogger(factory)
 	store2 := &redis2.Store{
 		Redis:  redisHandle,
@@ -5594,6 +5619,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
+		CookieFactory:            cookieFactory,
 		Sessions:                 sessionProvider,
 		SessionCookie:            cookieDef,
 	}
@@ -5607,11 +5633,11 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Store:   newinteractionStoreRedis,
 	}
 	webappService := &webapp.Service{
-		Logger:       serviceLogger,
-		Request:      request,
-		Store:        redisStore,
-		Graph:        newinteractionService,
-		ServerConfig: serverConfig,
+		Logger:        serviceLogger,
+		Request:       request,
+		Store:         redisStore,
+		Graph:         newinteractionService,
+		CookieFactory: cookieFactory,
 	}
 	verifyIdentitySuccessHandler := &webapp2.VerifyIdentitySuccessHandler{
 		Database:      handle,
@@ -5927,6 +5953,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
+	cookieFactory := deps.NewCookieFactory(request, serverConfig)
 	redisLogger := redis2.NewLogger(factory)
 	store2 := &redis2.Store{
 		Redis:  redisHandle,
@@ -5970,6 +5997,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
+		CookieFactory:            cookieFactory,
 		Sessions:                 sessionProvider,
 		SessionCookie:            cookieDef,
 	}
@@ -5983,11 +6011,11 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store:   newinteractionStoreRedis,
 	}
 	webappService := &webapp.Service{
-		Logger:       serviceLogger,
-		Request:      request,
-		Store:        redisStore,
-		Graph:        newinteractionService,
-		ServerConfig: serverConfig,
+		Logger:        serviceLogger,
+		Request:       request,
+		Store:         redisStore,
+		Graph:         newinteractionService,
+		CookieFactory: cookieFactory,
 	}
 	forgotPasswordHandler := &webapp2.ForgotPasswordHandler{
 		Database:      handle,
@@ -6300,6 +6328,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Commands: commands,
 		Queries:  queries,
 	}
+	cookieFactory := deps.NewCookieFactory(request, serverConfig)
 	redisLogger := redis2.NewLogger(factory)
 	store2 := &redis2.Store{
 		Redis:  redisHandle,
@@ -6343,6 +6372,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
+		CookieFactory:            cookieFactory,
 		Sessions:                 sessionProvider,
 		SessionCookie:            cookieDef,
 	}
@@ -6356,11 +6386,11 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Store:   newinteractionStoreRedis,
 	}
 	webappService := &webapp.Service{
-		Logger:       serviceLogger,
-		Request:      request,
-		Store:        redisStore,
-		Graph:        newinteractionService,
-		ServerConfig: serverConfig,
+		Logger:        serviceLogger,
+		Request:       request,
+		Store:         redisStore,
+		Graph:         newinteractionService,
+		CookieFactory: cookieFactory,
 	}
 	forgotPasswordSuccessHandler := &webapp2.ForgotPasswordSuccessHandler{
 		Database:      handle,
@@ -6672,6 +6702,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
+	cookieFactory := deps.NewCookieFactory(request, serverConfig)
 	redisLogger := redis2.NewLogger(factory)
 	store2 := &redis2.Store{
 		Redis:  redisHandle,
@@ -6715,6 +6746,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
+		CookieFactory:            cookieFactory,
 		Sessions:                 sessionProvider,
 		SessionCookie:            cookieDef,
 	}
@@ -6728,11 +6760,11 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store:   newinteractionStoreRedis,
 	}
 	webappService := &webapp.Service{
-		Logger:       serviceLogger,
-		Request:      request,
-		Store:        redisStore,
-		Graph:        newinteractionService,
-		ServerConfig: serverConfig,
+		Logger:        serviceLogger,
+		Request:       request,
+		Store:         redisStore,
+		Graph:         newinteractionService,
+		CookieFactory: cookieFactory,
 	}
 	resetPasswordHandler := &webapp2.ResetPasswordHandler{
 		Database:       handle,
@@ -7045,6 +7077,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Commands: commands,
 		Queries:  queries,
 	}
+	cookieFactory := deps.NewCookieFactory(request, serverConfig)
 	redisLogger := redis2.NewLogger(factory)
 	store2 := &redis2.Store{
 		Redis:  redisHandle,
@@ -7088,6 +7121,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
+		CookieFactory:            cookieFactory,
 		Sessions:                 sessionProvider,
 		SessionCookie:            cookieDef,
 	}
@@ -7101,11 +7135,11 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Store:   newinteractionStoreRedis,
 	}
 	webappService := &webapp.Service{
-		Logger:       serviceLogger,
-		Request:      request,
-		Store:        redisStore,
-		Graph:        newinteractionService,
-		ServerConfig: serverConfig,
+		Logger:        serviceLogger,
+		Request:       request,
+		Store:         redisStore,
+		Graph:         newinteractionService,
+		CookieFactory: cookieFactory,
 	}
 	resetPasswordSuccessHandler := &webapp2.ResetPasswordSuccessHandler{
 		Database:      handle,
@@ -7448,6 +7482,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
+	cookieFactory := deps.NewCookieFactory(request, serverConfig)
 	redisLogger := redis2.NewLogger(factory)
 	store2 := &redis2.Store{
 		Redis:  redisHandle,
@@ -7491,6 +7526,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
+		CookieFactory:            cookieFactory,
 		Sessions:                 sessionProvider,
 		SessionCookie:            cookieDef,
 	}
@@ -7504,11 +7540,11 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Store:   newinteractionStoreRedis,
 	}
 	webappService := &webapp.Service{
-		Logger:       serviceLogger,
-		Request:      request,
-		Store:        redisStore,
-		Graph:        newinteractionService,
-		ServerConfig: serverConfig,
+		Logger:        serviceLogger,
+		Request:       request,
+		Store:         redisStore,
+		Graph:         newinteractionService,
+		CookieFactory: cookieFactory,
 	}
 	settingsIdentityHandler := &webapp2.SettingsIdentityHandler{
 		ServerConfig:  serverConfig,
@@ -7749,12 +7785,14 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Logger: redisLogger,
 	}
 	sessionConfig := appConfig.Session
+	cookieFactory := deps.NewCookieFactory(request, serverConfig)
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	manager := &session.Manager{
-		Store:     redisStore,
-		Clock:     clockClock,
-		Config:    sessionConfig,
-		CookieDef: cookieDef,
+		Store:         redisStore,
+		Clock:         clockClock,
+		Config:        sessionConfig,
+		CookieFactory: cookieFactory,
+		CookieDef:     cookieDef,
 	}
 	logger2 := redis.NewLogger(factory)
 	grantStore := &redis.GrantStore{
@@ -7879,11 +7917,12 @@ func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	request := p.Request
 	appProvider := p.AppProvider
+	rootProvider := appProvider.RootProvider
+	serverConfig := rootProvider.ServerConfig
+	cookieFactory := deps.NewCookieFactory(request, serverConfig)
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	sessionConfig := appConfig.Session
-	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
 	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
 	handle := appProvider.Redis
 	appID := appConfig.ID
@@ -7914,10 +7953,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Random:       sessionRand,
 	}
 	resolver := &session.Resolver{
-		Cookie:   cookieDef,
-		Provider: provider,
-		Config:   serverConfig,
-		Clock:    clockClock,
+		CookieFactory: cookieFactory,
+		Cookie:        cookieDef,
+		Provider:      provider,
+		Config:        serverConfig,
+		Clock:         clockClock,
 	}
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)

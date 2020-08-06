@@ -1,22 +1,24 @@
 package session
 
 import (
+	"net/http"
+
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/errors"
-	"github.com/authgear/authgear-server/pkg/httputil"
 )
 
 type Manager struct {
-	Store     Store
-	Clock     clock.Clock
-	Config    *config.SessionConfig
-	CookieDef CookieDef
+	Store         Store
+	Clock         clock.Clock
+	Config        *config.SessionConfig
+	CookieFactory CookieFactory
+	CookieDef     CookieDef
 }
 
-func (m *Manager) Cookie() *httputil.CookieDef {
-	return m.CookieDef.CookieDef
+func (m *Manager) ClearCookie() *http.Cookie {
+	return m.CookieFactory.ClearCookie(m.CookieDef.Def)
 }
 
 func (m *Manager) Get(id string) (auth.AuthSession, error) {

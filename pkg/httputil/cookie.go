@@ -10,47 +10,12 @@ import (
 )
 
 type CookieDef struct {
-	Name   string
-	Path   string
-	Domain string
-	Secure bool
-	MaxAge *int
-}
-
-func (c *CookieDef) New(value string) *http.Cookie {
-	cookie := &http.Cookie{
-		Name:     c.Name,
-		Path:     c.Path,
-		Domain:   c.Domain,
-		HttpOnly: true,
-		Secure:   c.Secure,
-		SameSite: http.SameSiteLaxMode,
-	}
-
-	cookie.Value = value
-	if c.MaxAge != nil {
-		cookie.MaxAge = *c.MaxAge
-	}
-
-	return cookie
-}
-
-func (c *CookieDef) WriteTo(rw http.ResponseWriter, value string) {
-	UpdateCookie(rw, c.New(value))
-}
-
-func (c *CookieDef) Clear(rw http.ResponseWriter) {
-	cookie := &http.Cookie{
-		Name:     c.Name,
-		Path:     c.Path,
-		Domain:   c.Domain,
-		HttpOnly: true,
-		Secure:   c.Secure,
-		SameSite: http.SameSiteLaxMode,
-		Expires:  time.Unix(0, 0),
-	}
-
-	UpdateCookie(rw, cookie)
+	Name              string
+	Path              string
+	Domain            string
+	AllowScriptAccess bool
+	SameSite          http.SameSite
+	MaxAge            *int
 }
 
 func UpdateCookie(w http.ResponseWriter, cookie *http.Cookie) {
@@ -103,4 +68,58 @@ func CookieDomainFromETLDPlusOneWithoutPort(host string) string {
 	}
 
 	return host
+}
+
+type CookieFactory struct {
+	Request    *http.Request
+	TrustProxy bool
+}
+
+func (f *CookieFactory) fixupCookie(cookie *http.Cookie) {
+	host := GetHost(f.Request, f.TrustProxy)
+	proto := GetProto(f.Request, f.TrustProxy)
+
+	cookie.Secure = proto == "https"
+	if cookie.Domain == "" {
+		cookie.Domain = CookieDomainFromETLDPlusOneWithoutPort(host)
+	}
+
+	if cookie.SameSite == http.SameSiteNoneMode &&
+		!ShouldSendSameSiteNone(f.Request.UserAgent(), cookie.Secure) {
+		cookie.SameSite = 0
+	}
+}
+
+func (f *CookieFactory) ValueCookie(def *CookieDef, value string) *http.Cookie {
+	cookie := &http.Cookie{
+		Name:     def.Name,
+		Path:     def.Path,
+		Domain:   def.Domain,
+		HttpOnly: !def.AllowScriptAccess,
+		SameSite: def.SameSite,
+	}
+
+	cookie.Value = value
+	if def.MaxAge != nil {
+		cookie.MaxAge = *def.MaxAge
+	}
+
+	f.fixupCookie(cookie)
+
+	return cookie
+}
+
+func (f *CookieFactory) ClearCookie(def *CookieDef) *http.Cookie {
+	cookie := &http.Cookie{
+		Name:     def.Name,
+		Path:     def.Path,
+		Domain:   def.Domain,
+		HttpOnly: !def.AllowScriptAccess,
+		SameSite: def.SameSite,
+		Expires:  time.Unix(0, 0),
+	}
+
+	f.fixupCookie(cookie)
+
+	return cookie
 }

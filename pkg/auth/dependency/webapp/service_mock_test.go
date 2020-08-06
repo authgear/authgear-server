@@ -6,6 +6,7 @@ package webapp
 
 import (
 	newinteraction "github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	httputil "github.com/authgear/authgear-server/pkg/httputil"
 	gomock "github.com/golang/mock/gomock"
 	http "net/http"
 	reflect "reflect"
@@ -253,4 +254,41 @@ func (m *MockGraphService) Run(webStateID string, graph *newinteraction.Graph, p
 func (mr *MockGraphServiceMockRecorder) Run(webStateID, graph, preserveGraph interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Run", reflect.TypeOf((*MockGraphService)(nil).Run), webStateID, graph, preserveGraph)
+}
+
+// MockCookieFactory is a mock of CookieFactory interface
+type MockCookieFactory struct {
+	ctrl     *gomock.Controller
+	recorder *MockCookieFactoryMockRecorder
+}
+
+// MockCookieFactoryMockRecorder is the mock recorder for MockCookieFactory
+type MockCookieFactoryMockRecorder struct {
+	mock *MockCookieFactory
+}
+
+// NewMockCookieFactory creates a new mock instance
+func NewMockCookieFactory(ctrl *gomock.Controller) *MockCookieFactory {
+	mock := &MockCookieFactory{ctrl: ctrl}
+	mock.recorder = &MockCookieFactoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockCookieFactory) EXPECT() *MockCookieFactoryMockRecorder {
+	return m.recorder
+}
+
+// ValueCookie mocks base method
+func (m *MockCookieFactory) ValueCookie(def *httputil.CookieDef, value string) *http.Cookie {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ValueCookie", def, value)
+	ret0, _ := ret[0].(*http.Cookie)
+	return ret0
+}
+
+// ValueCookie indicates an expected call of ValueCookie
+func (mr *MockCookieFactoryMockRecorder) ValueCookie(def, value interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValueCookie", reflect.TypeOf((*MockCookieFactory)(nil).ValueCookie), def, value)
 }

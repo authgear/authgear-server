@@ -6,13 +6,11 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/core/base32"
 	corerand "github.com/authgear/authgear-server/pkg/core/rand"
-	"github.com/authgear/authgear-server/pkg/core/samesite"
 	"github.com/authgear/authgear-server/pkg/core/skyerr"
 	"github.com/authgear/authgear-server/pkg/httputil"
 	"github.com/authgear/authgear-server/pkg/log"
@@ -44,24 +42,34 @@ type GraphService interface {
 	Run(webStateID string, graph *newinteraction.Graph, preserveGraph bool) error
 }
 
+type CookieFactory interface {
+	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
+}
+
 type ServiceLogger struct{ *log.Logger }
 
 func NewServiceLogger(lf *log.Factory) ServiceLogger {
 	return ServiceLogger{lf.New("webapp-service")}
 }
 
-const UserAgentTokenCookieName = "ua-token"
+var UserAgentTokenCookie = &httputil.CookieDef{
+	Name:              "ua-token",
+	Path:              "/",
+	AllowScriptAccess: false,
+	SameSite:          http.SameSiteNoneMode, // Ensure resume-able after redirecting from external site
+	MaxAge:            nil,                   // Use HTTP session cookie; expires when browser closes
+}
 
 type Service struct {
-	Logger       ServiceLogger
-	Request      *http.Request
-	Store        Store
-	Graph        GraphService
-	ServerConfig *config.ServerConfig
+	Logger        ServiceLogger
+	Request       *http.Request
+	Store         Store
+	Graph         GraphService
+	CookieFactory CookieFactory
 }
 
 func (s *Service) getUserAgentToken() string {
-	token, err := s.Request.Cookie(UserAgentTokenCookieName)
+	token, err := s.Request.Cookie(UserAgentTokenCookie.Name)
 	if err != nil {
 		return ""
 	}
@@ -70,19 +78,7 @@ func (s *Service) getUserAgentToken() string {
 
 func (s *Service) generateUserAgentToken() (string, *http.Cookie) {
 	token := corerand.StringWithAlphabet(32, base32.Alphabet, corerand.SecureRand)
-	secure := httputil.GetProto(s.Request, s.ServerConfig.TrustProxy) == "https"
-
-	cookie := &http.Cookie{
-		Name:     UserAgentTokenCookieName,
-		Value:    token,
-		Path:     "/",
-		Secure:   secure,
-		MaxAge:   0,                     // Use HTTP session cookie; expires when browser closes
-		SameSite: http.SameSiteNoneMode, // Ensure resume-able after redirecting from external site
-	}
-	if !samesite.ShouldSendSameSiteNone(s.Request.UserAgent(), secure) {
-		cookie.SameSite = 0
-	}
+	cookie := s.CookieFactory.ValueCookie(UserAgentTokenCookie, token)
 	return token, cookie
 }
 

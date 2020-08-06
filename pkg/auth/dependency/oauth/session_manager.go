@@ -1,10 +1,11 @@
 package oauth
 
 import (
+	"net/http"
+
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/errors"
-	"github.com/authgear/authgear-server/pkg/httputil"
 )
 
 type SessionManager struct {
@@ -12,7 +13,7 @@ type SessionManager struct {
 	Clock clock.Clock
 }
 
-func (m *SessionManager) Cookie() *httputil.CookieDef {
+func (m *SessionManager) ClearCookie() *http.Cookie {
 	return nil
 }
 

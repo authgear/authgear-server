@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	"github.com/authgear/authgear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/httputil"
 )
 
 type resolverProvider interface {
@@ -14,11 +15,16 @@ type resolverProvider interface {
 	Update(session *IDPSession) error
 }
 
+type CookieFactory interface {
+	ClearCookie(def *httputil.CookieDef) *http.Cookie
+}
+
 type Resolver struct {
-	Cookie   CookieDef
-	Provider resolverProvider
-	Config   *config.ServerConfig
-	Clock    clock.Clock
+	CookieFactory CookieFactory
+	Cookie        CookieDef
+	Provider      resolverProvider
+	Config        *config.ServerConfig
+	Clock         clock.Clock
 }
 
 func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (auth.AuthSession, error) {
@@ -32,7 +38,8 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (auth.AuthS
 	if err != nil {
 		if errors.Is(err, ErrSessionNotFound) {
 			err = auth.ErrInvalidSession
-			re.Cookie.Clear(rw)
+			cookie := re.CookieFactory.ClearCookie(re.Cookie.Def)
+			httputil.UpdateCookie(rw, cookie)
 		}
 		return nil, err
 	}

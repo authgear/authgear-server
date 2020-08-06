@@ -41,6 +41,7 @@ import (
 
 var commonDeps = wire.NewSet(
 	configDeps,
+	utilsDeps,
 
 	clock.DependencySet,
 	db.DependencySet,

@@ -9,7 +9,7 @@
 
 // Don’t send `SameSite=None` to known incompatible clients.
 
-package samesite
+package httputil
 
 import (
 	"regexp"
