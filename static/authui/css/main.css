@@ -493,3 +493,17 @@ a.btn {
   height: 200px;
   align-self: center;
 }
+
+.recovery-codes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.recovery-codes .recovery-code {
+  white-space: pre;
+  font-family: monospace;
+  font-size: 18px;
+  margin: 0;
+  padding: 0;
+}

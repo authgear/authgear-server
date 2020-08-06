@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+{{ template "auth_ui_html_head.html" . }}
+<body class="page">
+<div class="content">
+
+{{ template "auth_ui_header.html" . }}
+
+<div class="simple-form vertical-form form-fields-container">
+
+<div class="nav-bar">
+	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
+</div>
+
+<div class="title primary-txt">
+	{{ localize "recovery-code-title" }}
+</div>
+
+{{ template "ERROR" . }}
+
+<form class="vertical-form form-fields-container" method="post" novalidate>
+
+{{ $.CSRFField }}
+
+<p class="description primary-txt">{{ localize "recovery-code-storage-description" }}</p>
+
+<div class="recovery-codes">
+	{{ range $.RecoveryCodes }}
+	<p class="recovery-code">{{ . }}</p>
+	{{ end }}
+</div>
+
+<p class="description primary-txt">{{ localize "recovery-code-consumption-description" }}</p>
+
+<!-- FIXME(mfa): Add download button -->
+
+<!-- FIXME(mfa): Add regenerate button -->
+
+<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
+
+</form>
+
+</div>
+{{ template "auth_ui_footer.html" . }}
+
+</div>
+</body>
+</html>

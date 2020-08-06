@@ -53,3 +53,8 @@ func (n *NodeGenerateRecoveryCodeBegin) DeriveEdges(ctx *newinteraction.Context,
 		&EdgeGenerateRecoveryCodeEnd{RecoveryCodes: n.RecoveryCodes},
 	}, nil
 }
+
+// GetRecoveryCodes implements RecoveryCodeNodes.
+func (n *NodeGenerateRecoveryCodeBegin) GetRecoveryCodes() []string {
+	return n.RecoveryCodes
+}
