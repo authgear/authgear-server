@@ -237,7 +237,6 @@ func (g *Graph) Apply(ctx *Context) error {
 // Accept run the graph to the deepest node using the input
 func (g *Graph) Accept(ctx *Context, input interface{}) (*Graph, []Edge, error) {
 	graph := g
-	hasTransitioned := false
 	for {
 		node := graph.CurrentNode()
 		edges, err := node.DeriveEdges(ctx, graph)
@@ -270,11 +269,6 @@ func (g *Graph) Accept(ctx *Context, input interface{}) (*Graph, []Edge, error) 
 
 		// No edges are followed, input is required
 		if nextNode == nil {
-			// Sanity check: we must have performed at least a transition, otherwise the graph
-			// is stuck in same state
-			if !hasTransitioned {
-				panic("interaction: no transition is performed")
-			}
 			return graph, edges, ErrInputRequired
 		}
 
@@ -284,8 +278,6 @@ func (g *Graph) Accept(ctx *Context, input interface{}) (*Graph, []Edge, error) 
 		if err != nil {
 			return nil, nil, err
 		}
-
-		hasTransitioned = true
 	}
 }
 
