@@ -232,6 +232,11 @@ In order to be compatible with existing authenticator applications like Google A
 
 To deal with clock skew, the code generated before or after the current time are also accepted.
 
+Users may have multiple TOTP authenticators. In this case, the inputted TOTP
+would be matched against all TOTP authenticators of user. However, a limit on
+the maximum amount of secondary TOTP authenticators may be set in the
+configuration.
+
 ### OOB-OTP Authenticator
 
 Out-of-band One-time-password authenticator is either primary or secondary.
@@ -241,25 +246,28 @@ OOB-OTP authenticator is bound to a recipient address. The recipient can be an e
 An OOB-OTP authenticator may matches a login ID identity. The normalized email
 address/phone number is used to match login ID identities.
 
-The OTP format can be customized in the configuration. The following formats are
-available:
-- `numeric`: 4-digit code
-- `complex`: 8-character alpha-numeric code
+The OTP is a numeric code. The number of digits can be customized in the 
+configuration.
 
 ```yaml
 authenticator:
   oob_otp:
     sms:
-      code_format: numeric      # SMS OTP defaults to 'numeric' format
+      code_digits: 4      # OTP digits defaults to 6
       message:
         sender: "+85200000000"
     email:
-      code_format: complex      # Email OTP defaults to 'complex' format
+      code_digits: 8      # OTP digits defaults to 6
       message:
         sender: "no-reply@example.com"
 ```
 
 The OTP message is rendered by a [customizable template](./templates.md#otp_message).
+
+Users may have multiple OOB-OTP authenticators. In this case, user may select
+which OOB-OTP authenticator to use when performing authentication. However, a
+limit on the maximum amount of secondary OOB-OTP authenticators may be set in
+the configuration.
 
 ### Device Token
 
