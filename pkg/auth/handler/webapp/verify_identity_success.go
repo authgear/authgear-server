@@ -63,7 +63,7 @@ func (h *VerifyIdentitySuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.
 				return err
 			}
 
-			h.Renderer.Render(w, r, TemplateItemTypeAuthUIVerifyIdentitySuccessHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIVerifyIdentitySuccessHTML, data)
 			return nil
 		})
 	}

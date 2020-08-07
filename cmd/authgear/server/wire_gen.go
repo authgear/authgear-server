@@ -1557,10 +1557,10 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -1905,7 +1905,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
 		FormPrefiller: formPrefiller,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return loginHandler
@@ -1937,10 +1937,10 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -2285,7 +2285,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
 		FormPrefiller: formPrefiller,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return signupHandler
@@ -2317,10 +2317,10 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -2664,7 +2664,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
 		FormPrefiller: formPrefiller,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return promoteHandler
@@ -3049,10 +3049,10 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -3397,7 +3397,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	enterLoginIDHandler := &webapp2.EnterLoginIDHandler{
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return enterLoginIDHandler
@@ -3423,10 +3423,10 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -3771,7 +3771,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	enterPasswordHandler := &webapp2.EnterPasswordHandler{
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return enterPasswordHandler
@@ -3797,10 +3797,10 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -4145,7 +4145,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	createPasswordHandler := &webapp2.CreatePasswordHandler{
 		Database:       handle,
 		BaseViewModel:  baseViewModeler,
-		Renderer:       htmlRenderer,
+		Renderer:       responseRenderer,
 		WebApp:         webappService,
 		PasswordPolicy: passwordChecker,
 	}
@@ -4172,10 +4172,10 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -4520,7 +4520,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	setupTOTPHandler := &webapp2.SetupTOTPHandler{
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 		Clock:         clockClock,
 		Endpoints:     endpointsProvider,
@@ -4548,10 +4548,10 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -4896,7 +4896,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	enterTOTPHandler := &webapp2.EnterTOTPHandler{
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return enterTOTPHandler
@@ -4922,10 +4922,10 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -5270,7 +5270,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	setupOOBOTPHandler := &webapp2.SetupOOBOTPHandler{
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return setupOOBOTPHandler
@@ -5296,10 +5296,10 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -5644,10 +5644,384 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	enterOOBOTPHandler := &webapp2.EnterOOBOTPHandler{
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return enterOOBOTPHandler
+}
+
+func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	handle := appProvider.Database
+	rootProvider := appProvider.RootProvider
+	serverConfig := rootProvider.ServerConfig
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	uiConfig := appConfig.UI
+	localizationConfig := appConfig.Localization
+	forgotPasswordConfig := appConfig.ForgotPassword
+	appMetadata := appConfig.Metadata
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		ServerConfig:   serverConfig,
+		AuthUI:         uiConfig,
+		Localization:   localizationConfig,
+		ForgotPassword: forgotPasswordConfig,
+		Metadata:       appMetadata,
+	}
+	engine := appProvider.TemplateEngine
+	factory := appProvider.LoggerFactory
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
+	appID := appConfig.ID
+	redisHandle := appProvider.Redis
+	redisStore := &webapp.RedisStore{
+		AppID: appID,
+		Redis: redisHandle,
+	}
+	logger := newinteraction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
+	sqlExecutor := db.SQLExecutor{
+		Context:  context,
+		Database: handle,
+	}
+	clockClock := _wireSystemClockValue
+	authenticationConfig := appConfig.Authentication
+	identityConfig := appConfig.Identity
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
+	store := &loginid.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginIDConfig := identityConfig.LoginID
+	reservedNameChecker := rootProvider.ReservedNameChecker
+	typeCheckerFactory := &loginid.TypeCheckerFactory{
+		Config:              loginIDConfig,
+		ReservedNameChecker: reservedNameChecker,
+	}
+	checker := &loginid.Checker{
+		Config:             loginIDConfig,
+		TypeCheckerFactory: typeCheckerFactory,
+	}
+	normalizerFactory := &loginid.NormalizerFactory{
+		Config: loginIDConfig,
+	}
+	provider := &loginid.Provider{
+		Store:             store,
+		Config:            loginIDConfig,
+		Checker:           checker,
+		NormalizerFactory: normalizerFactory,
+	}
+	oauthStore := &oauth.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	oauthProvider := &oauth.Provider{
+		Store: oauthStore,
+		Clock: clockClock,
+	}
+	anonymousStore := &anonymous.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	anonymousProvider := &anonymous.Provider{
+		Store: anonymousStore,
+		Clock: clockClock,
+	}
+	serviceService := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+	}
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	passwordLogger := password.NewLogger(factory)
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inMemoryExecutor := rootProvider.TaskExecutor
+	queueQueue := &queue.Queue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       inMemoryExecutor,
+	}
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		Logger:          passwordLogger,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+		TaskQueue:       queueQueue,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	messagingConfig := appConfig.Messaging
+	endpointsProvider := &endpoints.Provider{
+		Request: request,
+		Config:  serverConfig,
+	}
+	messageSender := &otp.MessageSender{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		TemplateEngine: engine,
+		Endpoints:      endpointsProvider,
+		TaskQueue:      queueQueue,
+	}
+	oobProvider := &oob.Provider{
+		Config:           authenticatorOOBConfig,
+		Store:            oobStore,
+		Clock:            clockClock,
+		OTPMessageSender: messageSender,
+	}
+	service3 := &service2.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
+	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	urlProvider := &webapp.URLProvider{
+		Endpoints: endpointsProvider,
+	}
+	userInfoDecoder := sso.UserInfoDecoder{
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	oAuthProviderFactory := &sso.OAuthProviderFactory{
+		Endpoints:                endpointsProvider,
+		IdentityConfig:           identityConfig,
+		Credentials:              oAuthClientCredentials,
+		RedirectURL:              urlProvider,
+		Clock:                    clockClock,
+		UserInfoDecoder:          userInfoDecoder,
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
+	forgotpasswordStore := &forgotpassword.Store{
+		Redis: redisHandle,
+	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
+	forgotpasswordProvider := &forgotpassword.Provider{
+		Context:        context,
+		ServerConfig:   serverConfig,
+		Localization:   localizationConfig,
+		AppMetadata:    appMetadata,
+		Messaging:      messagingConfig,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TemplateEngine: engine,
+		TaskQueue:      queueQueue,
+		Logger:         providerLogger,
+		Identities:     serviceService,
+		Authenticators: service3,
+	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	storeRedis := &verification.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	verificationService := &verification.Service{
+		Logger:           verificationLogger,
+		Config:           verificationConfig,
+		LoginID:          loginIDConfig,
+		Clock:            clockClock,
+		Authenticators:   service3,
+		OTPMessageSender: messageSender,
+		WebAppURLs:       urlProvider,
+		Store:            storeRedis,
+	}
+	challengeProvider := &challenge.Provider{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	welcomemessageProvider := &welcomemessage.Provider{
+		Context:               context,
+		LocalizationConfig:    localizationConfig,
+		MetadataConfiguration: appMetadata,
+		MessagingConfig:       messagingConfig,
+		WelcomeMessageConfig:  welcomeMessageConfig,
+		TemplateEngine:        engine,
+		TaskQueue:             queueQueue,
+	}
+	queries := &user.Queries{
+		Store:        userStore,
+		Identities:   serviceService,
+		Verification: verificationService,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	hookStore := &hook.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	mutatorFactory := &hook.MutatorFactory{
+		Users: rawProvider,
+	}
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:         hookConfig,
+		Secret:         webhookKeyMaterials,
+		Clock:          clockClock,
+		MutatorFactory: mutatorFactory,
+		SyncHTTP:       syncHTTPClient,
+		AsyncHTTP:      asyncHTTPClient,
+	}
+	hookProvider := &hook.Provider{
+		Context:   context,
+		Logger:    hookLogger,
+		Database:  handle,
+		Clock:     clockClock,
+		Users:     rawProvider,
+		Store:     hookStore,
+		Deliverer: deliverer,
+	}
+	commands := &user.Commands{
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: verificationService,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
+	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	redisLogger := redis2.NewLogger(factory)
+	store2 := &redis2.Store{
+		Redis:  redisHandle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: redisLogger,
+	}
+	eventStore := &redis3.EventStore{
+		Redis: redisHandle,
+		AppID: appID,
+	}
+	accessEventProvider := &auth.AccessEventProvider{
+		Store: eventStore,
+	}
+	sessionConfig := appConfig.Session
+	sessionRand := _wireRandValue
+	sessionProvider := &session.Provider{
+		Request:      request,
+		Store:        store2,
+		AccessEvents: accessEventProvider,
+		ServerConfig: serverConfig,
+		Config:       sessionConfig,
+		Clock:        clockClock,
+		Random:       sessionRand,
+	}
+	cookieDef := session.NewSessionCookieDef(request, sessionConfig, serverConfig)
+	newinteractionContext := &newinteraction.Context{
+		Database:                 sqlExecutor,
+		Clock:                    clockClock,
+		Config:                   appConfig,
+		Identities:               serviceService,
+		Authenticators:           service3,
+		AnonymousIdentities:      anonymousProvider,
+		OOBAuthenticators:        oobProvider,
+		OAuthProviderFactory:     oAuthProviderFactory,
+		MFA:                      mfaService,
+		ForgotPassword:           forgotpasswordProvider,
+		ResetPassword:            forgotpasswordProvider,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Verification:             verificationService,
+		Challenges:               challengeProvider,
+		Users:                    userProvider,
+		Hooks:                    hookProvider,
+		CookieFactory:            cookieFactory,
+		Sessions:                 sessionProvider,
+		SessionCookie:            cookieDef,
+	}
+	newinteractionStoreRedis := &newinteraction.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+	}
+	newinteractionService := &newinteraction.Service{
+		Logger:  logger,
+		Context: newinteractionContext,
+		Store:   newinteractionStoreRedis,
+	}
+	webappService := &webapp.Service{
+		Logger:        serviceLogger,
+		Request:       request,
+		Store:         redisStore,
+		Graph:         newinteractionService,
+		CookieFactory: cookieFactory,
+	}
+	setupRecoveryCodeHandler := &webapp2.SetupRecoveryCodeHandler{
+		Database:      handle,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		WebApp:        webappService,
+	}
+	return setupRecoveryCodeHandler
 }
 
 func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
@@ -5670,10 +6044,10 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -6018,7 +6392,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	verifyIdentityHandler := &webapp2.VerifyIdentityHandler{
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return verifyIdentityHandler
@@ -6044,10 +6418,10 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -6392,7 +6766,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	verifyIdentitySuccessHandler := &webapp2.VerifyIdentitySuccessHandler{
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return verifyIdentitySuccessHandler
@@ -6424,10 +6798,10 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -6771,7 +7145,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
 		FormPrefiller: formPrefiller,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return forgotPasswordHandler
@@ -6797,10 +7171,10 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -7145,7 +7519,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	forgotPasswordSuccessHandler := &webapp2.ForgotPasswordSuccessHandler{
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return forgotPasswordSuccessHandler
@@ -7171,10 +7545,10 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -7519,7 +7893,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	resetPasswordHandler := &webapp2.ResetPasswordHandler{
 		Database:       handle,
 		BaseViewModel:  baseViewModeler,
-		Renderer:       htmlRenderer,
+		Renderer:       responseRenderer,
 		WebApp:         webappService,
 		PasswordPolicy: passwordChecker,
 	}
@@ -7546,10 +7920,10 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -7894,7 +8268,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	resetPasswordSuccessHandler := &webapp2.ResetPasswordSuccessHandler{
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return resetPasswordSuccessHandler
@@ -7919,14 +8293,14 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	settingsHandler := &webapp2.SettingsHandler{
 		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 	}
 	return settingsHandler
 }
@@ -7951,10 +8325,10 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -8300,7 +8674,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		ServerConfig:  serverConfig,
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 		Identities:    serviceService,
 		Verification:  verificationService,
@@ -8572,17 +8946,17 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword: forgotPasswordConfig,
 		Metadata:       appMetadata,
 	}
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	logoutHandler := &webapp2.LogoutHandler{
 		Database:       handle,
 		ServerConfig:   serverConfig,
 		SessionManager: authSessionManager,
 		BaseViewModel:  baseViewModeler,
-		Renderer:       htmlRenderer,
+		Renderer:       responseRenderer,
 	}
 	return logoutHandler
 }

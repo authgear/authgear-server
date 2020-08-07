@@ -64,7 +64,7 @@ func (h *ResetPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 				return err
 			}
 
-			h.Renderer.Render(w, r, TemplateItemTypeAuthUIResetPasswordSuccessHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIResetPasswordSuccessHTML, data)
 			return nil
 		})
 	}

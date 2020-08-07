@@ -383,6 +383,7 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 	}, nil
 }
 
+// nolint:gocyclo
 func (s *Service) deriveRedirectPath(graph *newinteraction.Graph, edges []newinteraction.Edge) string {
 	firstEdge := edges[0]
 
@@ -448,6 +449,8 @@ func (s *Service) deriveRedirectPath(graph *newinteraction.Graph, edges []newint
 		return "/enter_oob_otp"
 	case *nodes.NodeCreateAuthenticatorTOTPSetup:
 		return "/setup_totp"
+	case *nodes.NodeGenerateRecoveryCodeBegin:
+		return "/setup_recovery_code"
 	case *nodes.NodeVerifyIdentity:
 		return "/verify_identity"
 	default:

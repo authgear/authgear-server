@@ -40,7 +40,7 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		viewmodels.Embed(data, baseViewModel)
 
-		h.Renderer.Render(w, r, TemplateItemTypeAuthUISettingsHTML, data)
+		h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUISettingsHTML, data)
 		return
 	}
 }

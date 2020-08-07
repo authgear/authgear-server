@@ -11,21 +11,25 @@ import (
 )
 
 type Renderer interface {
-	Render(w http.ResponseWriter, r *http.Request, templateType config.TemplateItemType, data interface{})
+	// Render renders the template into response body.
+	// Content-Length is set before calling beforeWrite.
+	Render(w http.ResponseWriter, r *http.Request, templateType config.TemplateItemType, data interface{}, beforeWrite func(w http.ResponseWriter))
+	// RenderHTML is a shorthand of Render that renders HTML.
+	RenderHTML(w http.ResponseWriter, r *http.Request, templateType config.TemplateItemType, data interface{})
 }
 
-type HTMLRendererLogger struct{ *log.Logger }
+type ResponseRendererLogger struct{ *log.Logger }
 
-func NewHTMLRendererLogger(lf *log.Factory) HTMLRendererLogger {
-	return HTMLRendererLogger{lf.New("renderer")}
+func NewResponseRendererLogger(lf *log.Factory) ResponseRendererLogger {
+	return ResponseRendererLogger{lf.New("renderer")}
 }
 
-type HTMLRenderer struct {
+type ResponseRenderer struct {
 	TemplateEngine *template.Engine
-	Logger         HTMLRendererLogger
+	Logger         ResponseRendererLogger
 }
 
-func (r *HTMLRenderer) Render(w http.ResponseWriter, req *http.Request, templateType config.TemplateItemType, data interface{}) {
+func (r *ResponseRenderer) Render(w http.ResponseWriter, req *http.Request, templateType config.TemplateItemType, data interface{}, beforeWrite func(w http.ResponseWriter)) {
 	r.Logger.WithFields(map[string]interface{}{
 		"data": data,
 	}).Debug("render with data")
@@ -45,9 +49,17 @@ func (r *HTMLRenderer) Render(w http.ResponseWriter, req *http.Request, template
 	}
 
 	body := []byte(out)
-	// It is very important to specify the encoding
-	// because browsers assume ASCII if encoding is not specified.
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Content-Length", strconv.Itoa(len(body)))
+	if beforeWrite != nil {
+		beforeWrite(w)
+	}
 	w.Write(body)
+}
+
+func (r *ResponseRenderer) RenderHTML(w http.ResponseWriter, req *http.Request, templateType config.TemplateItemType, data interface{}) {
+	r.Render(w, req, templateType, data, func(w http.ResponseWriter) {
+		// It is very important to specify the encoding because browsers assume ASCII if encoding is not specified.
+		// No need to use FormatMediaType because the value is constant.
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	})
 }

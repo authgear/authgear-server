@@ -15,6 +15,7 @@
 	"apple-app-store-label": "Apple App Store",
 	"back-button-title": "Back",
 	"next-button-label": "Next",
+	"download-button-label": "Download",
 	"connect-button-label": "Connect",
 	"disconnect-button-label": "Disconnect",
 	"change-button-label": "Change",
@@ -131,5 +132,9 @@
 
 	"enter-totp-title": "2-step verification",
 	"enter-totp-description": "Enter the 6-digit code you see in the authenticator app / device",
-	"enter-totp-code-placeholder": "6-digit code from the authenticator app / device"
+	"enter-totp-code-placeholder": "6-digit code from the authenticator app / device",
+
+	"recovery-code-title": "Recovery Code",
+	"recovery-code-storage-description": "Keep these recovery codes somewhere safe but accessible",
+	"recovery-code-consumption-description": "You can only use each code once"
 }

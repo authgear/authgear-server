@@ -162,7 +162,7 @@ func (h *SetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			h.Renderer.Render(w, r, TemplateItemTypeAuthUISetupOOBOTPHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUISetupOOBOTPHTML, data)
 			return nil
 		})
 	}

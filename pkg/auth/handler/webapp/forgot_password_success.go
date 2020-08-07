@@ -77,7 +77,7 @@ func (h *ForgotPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.
 				return err
 			}
 
-			h.Renderer.Render(w, r, TemplateItemTypeAuthUIForgotPasswordSuccessHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIForgotPasswordSuccessHTML, data)
 			return nil
 		})
 	}

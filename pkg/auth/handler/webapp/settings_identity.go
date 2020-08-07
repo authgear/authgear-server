@@ -157,7 +157,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 				return err
 			}
 
-			h.Renderer.Render(w, r, TemplateItemTypeAuthUISettingsIdentityHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUISettingsIdentityHTML, data)
 			return nil
 		})
 	}

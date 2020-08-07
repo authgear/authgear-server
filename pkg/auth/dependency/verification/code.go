@@ -37,6 +37,7 @@ func (c *Code) SendResult() *otp.CodeSendResult {
 	}
 
 	return &otp.CodeSendResult{
+		Target:       c.LoginID,
 		Channel:      channel,
 		CodeLength:   len(c.Code),
 		SendCooldown: SendCooldownSeconds,

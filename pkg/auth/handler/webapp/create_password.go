@@ -114,7 +114,7 @@ func (h *CreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				return err
 			}
 
-			h.Renderer.Render(w, r, TemplateItemTypeAuthUICreatePasswordHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUICreatePasswordHTML, data)
 			return nil
 		})
 	}
