@@ -7,8 +7,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/core/phone"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
+	"github.com/authgear/authgear-server/pkg/mail"
 	"github.com/authgear/authgear-server/pkg/template"
 	"github.com/authgear/authgear-server/pkg/validation"
 )
@@ -45,10 +48,10 @@ func ConfigureEnterOOBOTPRoute(route httproute.Route) httproute.Route {
 }
 
 type EnterOOBOTPViewModel struct {
+	OOBOTPTarget           string
 	OOBOTPCodeSendCooldown int
 	OOBOTPCodeLength       int
 	OOBOTPChannel          string
-	IdentityDisplayID      string
 }
 
 type EnterOOBOTPHandler struct {
@@ -59,6 +62,7 @@ type EnterOOBOTPHandler struct {
 }
 
 type EnterOOBOTPNode interface {
+	GetOOBOTPTarget() string
 	GetOOBOTPChannel() string
 	GetOOBOTPCodeSendCooldown() int
 	GetOOBOTPCodeLength() int
@@ -68,13 +72,18 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, state *webapp.State, graph
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-	oobOTPViewModel := EnterOOBOTPViewModel{
-		IdentityDisplayID: graph.MustGetUserLastIdentity().DisplayID(),
-	}
+	oobOTPViewModel := EnterOOBOTPViewModel{}
 	if n, ok := graph.CurrentNode().(EnterOOBOTPNode); ok {
 		oobOTPViewModel.OOBOTPCodeSendCooldown = n.GetOOBOTPCodeSendCooldown()
 		oobOTPViewModel.OOBOTPCodeLength = n.GetOOBOTPCodeLength()
 		oobOTPViewModel.OOBOTPChannel = n.GetOOBOTPChannel()
+
+		switch authn.AuthenticatorOOBChannel(oobOTPViewModel.OOBOTPChannel) {
+		case authn.AuthenticatorOOBChannelEmail:
+			oobOTPViewModel.OOBOTPTarget = mail.MaskAddress(n.GetOOBOTPTarget())
+		case authn.AuthenticatorOOBChannelSMS:
+			oobOTPViewModel.OOBOTPTarget = phone.Mask(n.GetOOBOTPTarget())
+		}
 	}
 
 	viewmodels.Embed(data, baseViewModel)

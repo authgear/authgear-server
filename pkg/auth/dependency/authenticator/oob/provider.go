@@ -123,6 +123,7 @@ func (p *Provider) SendCode(
 	}
 
 	result = &otp.CodeSendResult{
+		Target:       target,
 		Channel:      string(channel),
 		CodeLength:   len(code),
 		SendCooldown: OOBOTPSendCooldownSeconds,
