@@ -78,6 +78,7 @@
 	"password-policy-digit": "At least 1 digit",
 	"password-policy-symbol": "At least 1 symbol",
 	"password-policy-banned-words": "NO banned words",
+	"password-policy-reuse": "No reuse of {0, plural, one{# previous password} other{# previous passwords}} / previous password within {1, plural, one{# day} other{# days}}",
 	"password-policy-guessable-level-1": "NOT too guessable",
 	"password-policy-guessable-level-2": "NOT very guessable",
 	"password-policy-guessable-level-3": "NOT somewhat guessable",
