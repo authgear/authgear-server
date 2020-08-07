@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"fmt"
+
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
@@ -26,6 +28,7 @@ type NodeCreateAuthenticatorBegin struct {
 	Stage                newinteraction.AuthenticationStage `json:"stage"`
 	Identity             *identity.Info                     `json:"-"`
 	AuthenticationConfig *config.AuthenticationConfig       `json:"-"`
+	AuthenticatorConfig  *config.AuthenticatorConfig        `json:"-"`
 	Authenticators       []*authenticator.Info              `json:"-"`
 }
 
@@ -37,6 +40,7 @@ func (n *NodeCreateAuthenticatorBegin) Prepare(ctx *newinteraction.Context, grap
 
 	n.Identity = graph.MustGetUserLastIdentity()
 	n.AuthenticationConfig = ctx.Config.Authentication
+	n.AuthenticatorConfig = ctx.Config.Authenticator
 	n.Authenticators = ais
 	return nil
 }
@@ -113,7 +117,14 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() (edges []newinteraction.E
 			edges = append(edges, &EdgeCreateAuthenticatorTOTPSetup{Stage: n.Stage})
 
 		case authn.AuthenticatorTypeOOB:
-			edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{Stage: n.Stage})
+			edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
+				Stage: n.Stage,
+				// To make things simpler, just include all channels.
+				AllowedChannels: []authn.AuthenticatorOOBChannel{
+					authn.AuthenticatorOOBChannelEmail,
+					authn.AuthenticatorOOBChannelSMS,
+				},
+			})
 		default:
 			panic("interaction: unknown authenticator type: " + firstType)
 		}
@@ -123,27 +134,20 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() (edges []newinteraction.E
 }
 
 func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []newinteraction.Edge, err error) {
-
 	// Determine whether we need to create secondary authenticator.
 
 	// 1. Check secondary authentication mode.
 	// If it is not required, then no secondary authenticator is needed.
-	// FIXME(mfa): Right now we only consider signup/login.
 	mode := n.AuthenticationConfig.SecondaryAuthenticationMode
 	if mode != config.SecondaryAuthenticationModeRequired {
 		return nil, nil
 	}
 
-	// 2. Check whether
-	//   the set of secondary authenticators of the user, and
-	//   the set of preferred secondary authenticators
-	// have intersection.
-	// If there is no intersection, create the first preferred one.
-	// Here we also check for non-sense configuration
-	types := n.AuthenticationConfig.SecondaryAuthenticators
-	if len(types) == 0 {
-		return nil, newinteraction.ConfigurationViolated.New("secondary authentication is required but no secondary authenticator is enabled")
-	}
+	// 2. Determine what secondary authenticator we allow the user to create.
+	// We have the following conditions to hold:
+	//   A. The secondary authenticator is allowed in the configuration.
+	//   B. The user does not have that type of secondary authenticator yet.
+	//   C. The number of the secondary authenticator the user is less than maximum.
 
 	ais := filterAuthenticators(
 		n.Authenticators,
@@ -153,32 +157,83 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []newinteraction
 		return nil, err
 	}
 
-	intersection := make(map[authn.AuthenticatorType]struct{})
-	for _, typ := range types {
-		for _, a := range ais {
-			if a.Type == typ {
-				intersection[typ] = struct{}{}
-			}
-		}
-	}
-
-	// FIXME(mfa): Allow the user to choose between which secondary authenticator to setup.
-	// Right now, EdgeCreateAuthenticatorTOTPSetup always instantiate without any input.
-	if len(intersection) == 0 {
-		firstType := types[0]
-		switch firstType {
+	passwordCount := 0
+	totpCount := 0
+	oobSMSCount := 0
+	oobEmailCount := 0
+	for _, a := range ais {
+		switch a.Type {
 		case authn.AuthenticatorTypePassword:
-			edges = append(edges, &EdgeCreateAuthenticatorPassword{Stage: n.Stage})
-
+			passwordCount++
 		case authn.AuthenticatorTypeTOTP:
-			edges = append(edges, &EdgeCreateAuthenticatorTOTPSetup{Stage: n.Stage})
-
+			totpCount++
 		case authn.AuthenticatorTypeOOB:
-			edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{Stage: n.Stage})
+			channel := a.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string)
+			switch authn.AuthenticatorOOBChannel(channel) {
+			case authn.AuthenticatorOOBChannelEmail:
+				oobEmailCount++
+			case authn.AuthenticatorOOBChannelSMS:
+				oobSMSCount++
+			default:
+				panic("interaction: unknown OOB channel: " + channel)
+			}
 		default:
-			panic("interaction: unknown authenticator type: " + firstType)
+			panic("interaction: unknown authenticator type: " + a.Type)
 		}
 	}
+
+	// Condition A.
+	for _, typ := range n.AuthenticationConfig.SecondaryAuthenticators {
+		switch typ {
+		case authn.AuthenticatorTypePassword:
+			count := passwordCount
+			// Condition B.
+			if count == 0 {
+				edges = append(edges, &EdgeCreateAuthenticatorPassword{Stage: n.Stage})
+			}
+		case authn.AuthenticatorTypeTOTP:
+			// Condition B and C.
+			if totpCount == 0 && totpCount < *n.AuthenticatorConfig.TOTP.Maximum {
+				edges = append(edges, &EdgeCreateAuthenticatorTOTPSetup{Stage: n.Stage})
+			}
+		case authn.AuthenticatorTypeOOB:
+			var allowedChannels []authn.AuthenticatorOOBChannel
+			// Condition B and C.
+			if oobSMSCount == 0 && oobSMSCount < *n.AuthenticatorConfig.OOB.SMS.Maximum {
+				allowedChannels = append(allowedChannels, authn.AuthenticatorOOBChannelSMS)
+			}
+			// Condition B and C.
+			if oobEmailCount == 0 && oobEmailCount < *n.AuthenticatorConfig.OOB.Email.Maximum {
+				allowedChannels = append(allowedChannels, authn.AuthenticatorOOBChannelEmail)
+			}
+			if len(allowedChannels) > 0 {
+				edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
+					Stage:           n.Stage,
+					AllowedChannels: allowedChannels,
+				})
+			}
+		default:
+			panic("interaction: unknown authenticator type: " + typ)
+		}
+	}
+
+	newinteraction.SortAuthenticators(
+		n.AuthenticationConfig.SecondaryAuthenticators,
+		edges,
+		func(i int) authn.AuthenticatorType {
+			edge := edges[i]
+			switch edge.(type) {
+			case *EdgeCreateAuthenticatorPassword:
+				return authn.AuthenticatorTypePassword
+			case *EdgeCreateAuthenticatorTOTPSetup:
+				return authn.AuthenticatorTypeTOTP
+			case *EdgeCreateAuthenticatorOOBSetup:
+				return authn.AuthenticatorTypeOOB
+			default:
+				panic(fmt.Sprintf("interaction: unknown edge: %T", edge))
+			}
+		},
+	)
 
 	return edges, nil
 }

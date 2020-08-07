@@ -11,6 +11,10 @@ func init() {
 	newinteraction.RegisterNode(&NodeAuthenticationOOBTrigger{})
 }
 
+type InputAuthenticationOOBTrigger interface {
+	GetOOBAuthenticatorIndex() int
+}
+
 type EdgeAuthenticationOOBTrigger struct {
 	Stage          newinteraction.AuthenticationStage
 	Authenticators []*authenticator.Info
@@ -21,8 +25,13 @@ func (e *EdgeAuthenticationOOBTrigger) AuthenticatorType() authn.AuthenticatorTy
 }
 
 func (e *EdgeAuthenticationOOBTrigger) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
-	// FIXME(mfa): Support switching another authenticator.
-	targetInfo := e.Authenticators[0]
+	input, ok := rawInput.(InputAuthenticationOOBTrigger)
+	if !ok {
+		return nil, newinteraction.ErrIncompatibleInput
+	}
+
+	idx := input.GetOOBAuthenticatorIndex()
+	targetInfo := e.Authenticators[idx]
 
 	secret, err := otp.GenerateTOTPSecret()
 	if err != nil {

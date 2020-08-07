@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"fmt"
+
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
@@ -52,22 +54,18 @@ func (n *NodeAuthenticationBegin) DeriveEdges(graph *newinteraction.Graph) ([]ne
 func (n *NodeAuthenticationBegin) deriveEdges() []newinteraction.Edge {
 	var edges []newinteraction.Edge
 	var availableAuthenticators []*authenticator.Info
+	var preferred []authn.AuthenticatorType
 
 	switch n.Stage {
 	case newinteraction.AuthenticationStagePrimary:
+		preferred = n.AuthenticationConfig.PrimaryAuthenticators
 		availableAuthenticators = filterAuthenticators(
 			n.Authenticators,
 			authenticator.KeepTag(authenticator.TagPrimaryAuthenticator),
 			authenticator.KeepPrimaryAuthenticatorOfIdentity(n.Identity),
 		)
-		newinteraction.SortAuthenticators(
-			n.AuthenticationConfig.PrimaryAuthenticators,
-			availableAuthenticators,
-			func(i int) authn.AuthenticatorType {
-				return availableAuthenticators[i].Type
-			},
-		)
 	case newinteraction.AuthenticationStageSecondary:
+		preferred = n.AuthenticationConfig.SecondaryAuthenticators
 		availableAuthenticators = filterAuthenticators(
 			n.Authenticators,
 			authenticator.KeepTag(authenticator.TagSecondaryAuthenticator),
@@ -116,10 +114,28 @@ func (n *NodeAuthenticationBegin) deriveEdges() []newinteraction.Edge {
 			Stage:    n.Stage,
 			Optional: true,
 		})
+		return edges
 	}
 
-	// TODO(interaction): support choosing authenticator to use
-	return edges[:1]
+	newinteraction.SortAuthenticators(
+		preferred,
+		edges,
+		func(i int) authn.AuthenticatorType {
+			edge := edges[i]
+			switch edge.(type) {
+			case *EdgeAuthenticationPassword:
+				return authn.AuthenticatorTypePassword
+			case *EdgeAuthenticationTOTP:
+				return authn.AuthenticatorTypeTOTP
+			case *EdgeAuthenticationOOBTrigger:
+				return authn.AuthenticatorTypeOOB
+			default:
+				panic(fmt.Sprintf("interaction: unknown edge: %T", edge))
+			}
+		},
+	)
+
+	return edges
 }
 
 func (n *NodeAuthenticationBegin) AuthenticatorTypes() []authn.AuthenticatorType {

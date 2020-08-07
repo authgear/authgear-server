@@ -19,7 +19,8 @@ type InputCreateAuthenticatorOOBSetup interface {
 }
 
 type EdgeCreateAuthenticatorOOBSetup struct {
-	Stage newinteraction.AuthenticationStage
+	Stage           newinteraction.AuthenticationStage
+	AllowedChannels []authn.AuthenticatorOOBChannel
 }
 
 func (e *EdgeCreateAuthenticatorOOBSetup) AuthenticatorType() authn.AuthenticatorType {
@@ -121,24 +122,26 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *newinteraction.Contex
 	}
 
 	return &NodeCreateAuthenticatorOOBSetup{
-		Stage:         e.Stage,
-		Authenticator: info,
-		Secret:        secret,
-		Target:        target,
-		Channel:       result.Channel,
-		CodeLength:    result.CodeLength,
-		SendCooldown:  result.SendCooldown,
+		Stage:           e.Stage,
+		AllowedChannels: e.AllowedChannels,
+		Authenticator:   info,
+		Secret:          secret,
+		Target:          target,
+		Channel:         result.Channel,
+		CodeLength:      result.CodeLength,
+		SendCooldown:    result.SendCooldown,
 	}, nil
 }
 
 type NodeCreateAuthenticatorOOBSetup struct {
-	Stage         newinteraction.AuthenticationStage `json:"stage"`
-	Authenticator *authenticator.Info                `json:"authenticator"`
-	Secret        string                             `json:"secret"`
-	Target        string                             `json:"target"`
-	Channel       string                             `json:"channel"`
-	CodeLength    int                                `json:"code_length"`
-	SendCooldown  int                                `json:"send_cooldown"`
+	Stage           newinteraction.AuthenticationStage `json:"stage"`
+	AllowedChannels []authn.AuthenticatorOOBChannel    `json:"allowed_channels"`
+	Authenticator   *authenticator.Info                `json:"authenticator"`
+	Secret          string                             `json:"secret"`
+	Target          string                             `json:"target"`
+	Channel         string                             `json:"channel"`
+	CodeLength      int                                `json:"code_length"`
+	SendCooldown    int                                `json:"send_cooldown"`
 }
 
 // GetOOBOTPTarget implements OOBOTPNode.

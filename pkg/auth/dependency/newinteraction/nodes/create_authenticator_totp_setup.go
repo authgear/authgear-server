@@ -10,6 +10,10 @@ func init() {
 	newinteraction.RegisterNode(&NodeCreateAuthenticatorTOTPSetup{})
 }
 
+type InputCreateAuthenticatorTOTPSetup interface {
+	SetupTOTP()
+}
+
 type EdgeCreateAuthenticatorTOTPSetup struct {
 	Stage newinteraction.AuthenticationStage
 }
@@ -19,9 +23,11 @@ func (e *EdgeCreateAuthenticatorTOTPSetup) AuthenticatorType() authn.Authenticat
 }
 
 func (e *EdgeCreateAuthenticatorTOTPSetup) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
-	// This edge does not take any input so it always instantiate.
-	// The reason bebind this change is because the previous node should not beware of NodeCreateAuthenticatorTOTPSetup is after it.
-	// So no handler can implement the input of EdgeCreateAuthenticatorTOTPSetup.
+	_, ok := rawInput.(InputCreateAuthenticatorTOTPSetup)
+	if !ok {
+		return nil, newinteraction.ErrIncompatibleInput
+	}
+
 	userID := graph.MustGetUserID()
 	spec := &authenticator.Spec{
 		UserID: userID,
