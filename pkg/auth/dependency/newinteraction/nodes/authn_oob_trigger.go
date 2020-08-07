@@ -33,6 +33,7 @@ func (e *EdgeAuthenticationOOBTrigger) Instantiate(ctx *newinteraction.Context, 
 		Stage:         e.Stage,
 		Authenticator: targetInfo,
 		Secret:        secret,
+		Target:        result.Target,
 		Channel:       result.Channel,
 		CodeLength:    result.CodeLength,
 		SendCooldown:  result.SendCooldown,
@@ -43,9 +44,15 @@ type NodeAuthenticationOOBTrigger struct {
 	Stage         newinteraction.AuthenticationStage `json:"stage"`
 	Authenticator *authenticator.Info                `json:"authenticator"`
 	Secret        string                             `json:"secret"`
+	Target        string                             `json:"target"`
 	Channel       string                             `json:"channel"`
 	CodeLength    int                                `json:"code_length"`
 	SendCooldown  int                                `json:"send_cooldown"`
+}
+
+// GetOOBOTPTarget implements OOBOTPNode.
+func (n *NodeAuthenticationOOBTrigger) GetOOBOTPTarget() string {
+	return n.Target
 }
 
 // GetOOBOTPChannel implements OOBOTPNode.

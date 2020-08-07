@@ -45,10 +45,10 @@ func ConfigureEnterOOBOTPRoute(route httproute.Route) httproute.Route {
 }
 
 type EnterOOBOTPViewModel struct {
+	OOBOTPTarget           string
 	OOBOTPCodeSendCooldown int
 	OOBOTPCodeLength       int
 	OOBOTPChannel          string
-	IdentityDisplayID      string
 }
 
 type EnterOOBOTPHandler struct {
@@ -59,6 +59,7 @@ type EnterOOBOTPHandler struct {
 }
 
 type EnterOOBOTPNode interface {
+	GetOOBOTPTarget() string
 	GetOOBOTPChannel() string
 	GetOOBOTPCodeSendCooldown() int
 	GetOOBOTPCodeLength() int
@@ -68,13 +69,13 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, state *webapp.State, graph
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-	oobOTPViewModel := EnterOOBOTPViewModel{
-		IdentityDisplayID: graph.MustGetUserLastIdentity().DisplayID(),
-	}
+	oobOTPViewModel := EnterOOBOTPViewModel{}
 	if n, ok := graph.CurrentNode().(EnterOOBOTPNode); ok {
 		oobOTPViewModel.OOBOTPCodeSendCooldown = n.GetOOBOTPCodeSendCooldown()
 		oobOTPViewModel.OOBOTPCodeLength = n.GetOOBOTPCodeLength()
 		oobOTPViewModel.OOBOTPChannel = n.GetOOBOTPChannel()
+
+		oobOTPViewModel.OOBOTPTarget = n.GetOOBOTPTarget()
 	}
 
 	viewmodels.Embed(data, baseViewModel)

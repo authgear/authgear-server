@@ -23,8 +23,8 @@
 
 {{ template "ERROR" . }}
 
-{{ if $.IdentityDisplayID }}
-<div class="description primary-txt">{{ localize "oob-otp-description" $.OOBOTPCodeLength $.IdentityDisplayID }}</div>
+{{ if $.OOBOTPTarget }}
+<div class="description primary-txt">{{ localize "oob-otp-description" $.OOBOTPCodeLength $.OOBOTPTarget }}</div>
 {{ end }}
 
 <form class="vertical-form form-fields-container" method="post" novalidate>
