@@ -29,7 +29,7 @@ func (e *EdgeGenerateRecoveryCode) Instantiate(ctx *newinteraction.Context, grap
 		authenticator.KeepTag(authenticator.TagSecondaryAuthenticator),
 	)
 
-	if len(newSecondary) == len(ais) {
+	if len(newSecondary) != 0 && len(newSecondary) == len(ais) {
 		recoveryCodes := ctx.MFA.GenerateRecoveryCodes()
 		return &NodeGenerateRecoveryCodeBegin{
 			RecoveryCodes: recoveryCodes,
