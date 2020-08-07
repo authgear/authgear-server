@@ -53,6 +53,28 @@ func (n *NodeCreateAuthenticatorBegin) DeriveEdges(graph *newinteraction.Graph) 
 	return n.deriveEdges()
 }
 
+// GetAllowedChannels implements SetupOOBOTPNode.
+func (n *NodeCreateAuthenticatorBegin) GetAllowedChannels() ([]authn.AuthenticatorOOBChannel, error) {
+	edges, err := n.deriveEdges()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, edge := range edges {
+		switch edge := edge.(type) {
+		case *EdgeCreateAuthenticatorOOBSetup:
+			return edge.AllowedChannels, nil
+		}
+	}
+
+	return nil, fmt.Errorf("interaction: expected to find EdgeCreateAuthenticatorOOBSetup")
+}
+
+// GetCreateAuthenticatorEdges implements CreateAuthenticatorBeginNode.
+func (n *NodeCreateAuthenticatorBegin) GetCreateAuthenticatorEdges() ([]newinteraction.Edge, error) {
+	return n.deriveEdges()
+}
+
 func (n *NodeCreateAuthenticatorBegin) deriveEdges() ([]newinteraction.Edge, error) {
 	var edges []newinteraction.Edge
 	var err error
