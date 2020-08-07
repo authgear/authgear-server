@@ -94,7 +94,7 @@ func (i *Info) Equal(that *Info) bool {
 		case authn.AuthenticatorOOBChannelSMS:
 			// Interesting identifier :)
 			iPhone := i.Props[AuthenticatorPropOOBOTPPhone].(string)
-			thatPhone := i.Props[AuthenticatorPropOOBOTPPhone].(string)
+			thatPhone := that.Props[AuthenticatorPropOOBOTPPhone].(string)
 			return iPhone == thatPhone
 		default:
 			panic("authenticator: unknown OOB channel: " + iChannel)
