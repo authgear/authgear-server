@@ -47,6 +47,11 @@ const definePasswordPolicy = `
     {{ localize "password-policy-banned-words" }}
   </li>
   {{ end }}
+  {{ if eq .Name "PasswordReused" }}
+  <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
+    {{ localize "password-policy-reuse" .Info.history_size .Info.history_days }}
+  </li>
+  {{ end }}
   {{ if eq .Name "PasswordBelowGuessableLevel" }}
     {{ if eq .Info.min_level 1 }}
     <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">

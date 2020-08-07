@@ -298,7 +298,7 @@ func (pc *Checker) policyPasswordHistory() Policy {
 	}
 }
 
-func (pc *Checker) checkPasswordHistory(password, authID string) *Policy {
+func (pc *Checker) checkPasswordHistory(password, authID string) (*Policy, error) {
 	v := pc.policyPasswordHistory()
 	if pc.shouldCheckPasswordHistory() && authID != "" {
 		history, err := pc.PasswordHistoryStore.GetPasswordHistory(
@@ -307,15 +307,15 @@ func (pc *Checker) checkPasswordHistory(password, authID string) *Policy {
 			pc.PwHistoryDays,
 		)
 		if err != nil {
-			return &v
+			return nil, err
 		}
 		for _, ph := range history {
 			if IsSamePassword(ph.HashedPassword, password) {
-				return &v
+				return &v, nil
 			}
 		}
 	}
-	return nil
+	return nil, nil
 }
 
 func (pc *Checker) ValidatePassword(payload ValidatePayload) error {
@@ -338,7 +338,12 @@ func (pc *Checker) ValidatePassword(payload ValidatePayload) error {
 	check(pc.checkPasswordExcludedKeywords(password))
 	check(pc.checkPasswordExcludedFields(password, userData))
 	check(pc.checkPasswordGuessableLevel(password, userData))
-	check(pc.checkPasswordHistory(password, authID))
+
+	p, err := pc.checkPasswordHistory(password, authID)
+	if err != nil {
+		return err
+	}
+	check(p)
 
 	if len(violations) == 0 {
 		return nil
