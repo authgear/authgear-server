@@ -52,15 +52,13 @@ func (i *IntentVerifyIdentityResume) InstantiateRootNode(ctx *newinteraction.Con
 func (i *IntentVerifyIdentityResume) DeriveEdgesForNode(ctx *newinteraction.Context, graph *newinteraction.Graph, node newinteraction.Node) ([]newinteraction.Edge, error) {
 	switch node := node.(type) {
 	case *nodes.NodeEnsureVerificationEnd:
-		if node.NewAuthenticator != nil {
-			return []newinteraction.Edge{
-				&nodes.EdgeDoVerifyIdentity{
-					Identity:         node.Identity,
-					NewAuthenticator: node.NewAuthenticator,
-				},
-			}, nil
-		}
-		return nil, nil
+		return []newinteraction.Edge{
+			&nodes.EdgeDoVerifyIdentity{
+				Identity:         node.Identity,
+				NewAuthenticator: node.NewAuthenticator,
+			},
+		}, nil
+
 	case *nodes.NodeDoVerifyIdentity:
 		return nil, nil
 

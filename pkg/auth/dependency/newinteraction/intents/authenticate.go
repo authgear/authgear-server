@@ -147,16 +147,11 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 		}, nil
 
 	case *nodes.NodeEnsureVerificationEnd:
-		if node.NewAuthenticator != nil {
-			return []newinteraction.Edge{
-				&nodes.EdgeDoVerifyIdentity{
-					Identity:         node.Identity,
-					NewAuthenticator: node.NewAuthenticator,
-				},
-			}, nil
-		}
 		return []newinteraction.Edge{
-			&nodes.EdgeDoUseIdentity{Identity: node.Identity},
+			&nodes.EdgeDoVerifyIdentity{
+				Identity:         node.Identity,
+				NewAuthenticator: node.NewAuthenticator,
+			},
 		}, nil
 
 	case *nodes.NodeDoVerifyIdentity:

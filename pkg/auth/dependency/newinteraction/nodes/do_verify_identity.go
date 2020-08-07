@@ -29,8 +29,10 @@ type NodeDoVerifyIdentity struct {
 
 func (n *NodeDoVerifyIdentity) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	err := perform(newinteraction.EffectRun(func(ctx *newinteraction.Context) error {
-		if err := ctx.Authenticators.Create(n.NewAuthenticator); err != nil {
-			return err
+		if n.NewAuthenticator != nil {
+			if err := ctx.Authenticators.Create(n.NewAuthenticator); err != nil {
+				return err
+			}
 		}
 
 		return nil
@@ -47,5 +49,8 @@ func (n *NodeDoVerifyIdentity) DeriveEdges(ctx *newinteraction.Context, graph *n
 }
 
 func (n *NodeDoVerifyIdentity) UserNewAuthenticators() []*authenticator.Info {
-	return []*authenticator.Info{n.NewAuthenticator}
+	if n.NewAuthenticator != nil {
+		return []*authenticator.Info{n.NewAuthenticator}
+	}
+	return nil
 }
