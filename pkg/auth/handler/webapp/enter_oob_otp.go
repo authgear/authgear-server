@@ -7,8 +7,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/core/phone"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
+	"github.com/authgear/authgear-server/pkg/mail"
 	"github.com/authgear/authgear-server/pkg/template"
 	"github.com/authgear/authgear-server/pkg/validation"
 )
@@ -75,7 +78,12 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, state *webapp.State, graph
 		oobOTPViewModel.OOBOTPCodeLength = n.GetOOBOTPCodeLength()
 		oobOTPViewModel.OOBOTPChannel = n.GetOOBOTPChannel()
 
-		oobOTPViewModel.OOBOTPTarget = n.GetOOBOTPTarget()
+		switch authn.AuthenticatorOOBChannel(oobOTPViewModel.OOBOTPChannel) {
+		case authn.AuthenticatorOOBChannelEmail:
+			oobOTPViewModel.OOBOTPTarget = mail.MaskAddress(n.GetOOBOTPTarget())
+		case authn.AuthenticatorOOBChannelSMS:
+			oobOTPViewModel.OOBOTPTarget = phone.Mask(n.GetOOBOTPTarget())
+		}
 	}
 
 	viewmodels.Embed(data, baseViewModel)
