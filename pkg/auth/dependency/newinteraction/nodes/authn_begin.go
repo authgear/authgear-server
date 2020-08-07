@@ -60,7 +60,13 @@ func (n *NodeAuthenticationBegin) deriveEdges() []newinteraction.Edge {
 			authenticator.KeepTag(authenticator.TagPrimaryAuthenticator),
 			authenticator.KeepPrimaryAuthenticatorOfIdentity(n.Identity),
 		)
-		availableAuthenticators = newinteraction.SortAuthenticators(availableAuthenticators, n.AuthenticationConfig.PrimaryAuthenticators)
+		newinteraction.SortAuthenticators(
+			n.AuthenticationConfig.PrimaryAuthenticators,
+			availableAuthenticators,
+			func(i int) authn.AuthenticatorType {
+				return availableAuthenticators[i].Type
+			},
+		)
 	case newinteraction.AuthenticationStageSecondary:
 		availableAuthenticators = filterAuthenticators(
 			n.Authenticators,
