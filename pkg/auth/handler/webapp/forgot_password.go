@@ -134,7 +134,7 @@ func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				return err
 			}
 
-			h.Renderer.Render(w, r, TemplateItemTypeAuthUIForgotPasswordHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIForgotPasswordHTML, data)
 			return nil
 		})
 	}

@@ -89,7 +89,7 @@ func (h *EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			h.Renderer.Render(w, r, TemplateItemTypeAuthUIEnterTOTPHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIEnterTOTPHTML, data)
 			return nil
 		})
 	}

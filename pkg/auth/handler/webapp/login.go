@@ -170,7 +170,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			h.Renderer.Render(w, r, TemplateItemTypeAuthUILoginHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUILoginHTML, data)
 			return nil
 		})
 	}

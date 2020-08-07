@@ -103,7 +103,7 @@ func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 				return err
 			}
 
-			h.Renderer.Render(w, r, TemplateItemTypeAuthUIEnterPasswordHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIEnterPasswordHTML, data)
 			return nil
 		})
 	}

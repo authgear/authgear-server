@@ -160,7 +160,7 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				return err
 			}
 
-			h.Renderer.Render(w, r, TemplateItemTypeAuthUIVerifyIdentityHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIVerifyIdentityHTML, data)
 			return nil
 		})
 	}
@@ -180,7 +180,7 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				return err
 			}
 
-			h.Renderer.Render(w, r, TemplateItemTypeAuthUIVerifyIdentityHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIVerifyIdentityHTML, data)
 			return nil
 		})
 	}

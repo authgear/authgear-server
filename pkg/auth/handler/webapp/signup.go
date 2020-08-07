@@ -189,7 +189,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			h.Renderer.Render(w, r, TemplateItemTypeAuthUISignupHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUISignupHTML, data)
 			return nil
 		})
 	}

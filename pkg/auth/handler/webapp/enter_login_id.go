@@ -161,7 +161,7 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 				return err
 			}
 
-			h.Renderer.Render(w, r, TemplateItemTypeAuthUIEnterLoginIDHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIEnterLoginIDHTML, data)
 			return nil
 		})
 	}

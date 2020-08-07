@@ -178,7 +178,7 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			h.Renderer.Render(w, r, TemplateItemTypeAuthUIPromoteHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIPromoteHTML, data)
 			return nil
 		})
 	}

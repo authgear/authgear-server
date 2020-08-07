@@ -174,7 +174,7 @@ func (h *SetupTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			h.Renderer.Render(w, r, TemplateItemTypeAuthUISetupTOTPHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUISetupTOTPHTML, data)
 			return nil
 		})
 	}

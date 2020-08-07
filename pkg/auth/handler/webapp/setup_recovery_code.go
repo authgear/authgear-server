@@ -2,6 +2,7 @@ package webapp
 
 import (
 	"fmt"
+	"mime"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
@@ -111,7 +112,7 @@ func (h *SetupRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 					return err
 				}
 
-				h.Renderer.RenderAttachment(w, r, TemplateItemTypeAuthUIDownloadRecoveryCodeTXT, data, "recovery-codes.txt")
+				h.Renderer.Render(w, r, TemplateItemTypeAuthUIDownloadRecoveryCodeTXT, data, setRecoveryCodeAttachmentHeaders)
 				return nil
 			})
 		} else {
@@ -128,7 +129,7 @@ func (h *SetupRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 					return err
 				}
 
-				h.Renderer.Render(w, r, TemplateItemTypeAuthUISetupRecoveryCodeHTML, data)
+				h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUISetupRecoveryCodeHTML, data)
 				return nil
 			})
 		}
@@ -158,4 +159,12 @@ func formatRecoveryCodes(recoveryCodes []string) []string {
 		out[i] = formattedCode
 	}
 	return out
+}
+
+func setRecoveryCodeAttachmentHeaders(w http.ResponseWriter) {
+	// No need to use FormatMediaType because the value is constant.
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("Content-Disposition", mime.FormatMediaType("attachment", map[string]string{
+		"filename": "recovery-codes.txt",
+	}))
 }

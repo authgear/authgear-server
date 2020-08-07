@@ -125,7 +125,7 @@ func (h *EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			h.Renderer.Render(w, r, TemplateItemTypeAuthUIEnterOOBOTPHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIEnterOOBOTPHTML, data)
 			return nil
 		})
 	}

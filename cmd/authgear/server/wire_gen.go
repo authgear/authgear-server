@@ -1557,10 +1557,10 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -1905,7 +1905,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
 		FormPrefiller: formPrefiller,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return loginHandler
@@ -1937,10 +1937,10 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -2285,7 +2285,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
 		FormPrefiller: formPrefiller,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return signupHandler
@@ -2317,10 +2317,10 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -2664,7 +2664,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
 		FormPrefiller: formPrefiller,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return promoteHandler
@@ -3049,10 +3049,10 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -3397,7 +3397,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	enterLoginIDHandler := &webapp2.EnterLoginIDHandler{
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return enterLoginIDHandler
@@ -3423,10 +3423,10 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -3771,7 +3771,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	enterPasswordHandler := &webapp2.EnterPasswordHandler{
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return enterPasswordHandler
@@ -3797,10 +3797,10 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -4145,7 +4145,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	createPasswordHandler := &webapp2.CreatePasswordHandler{
 		Database:       handle,
 		BaseViewModel:  baseViewModeler,
-		Renderer:       htmlRenderer,
+		Renderer:       responseRenderer,
 		WebApp:         webappService,
 		PasswordPolicy: passwordChecker,
 	}
@@ -4172,10 +4172,10 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -4520,7 +4520,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	setupTOTPHandler := &webapp2.SetupTOTPHandler{
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 		Clock:         clockClock,
 		Endpoints:     endpointsProvider,
@@ -4548,10 +4548,10 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -4896,7 +4896,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	enterTOTPHandler := &webapp2.EnterTOTPHandler{
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return enterTOTPHandler
@@ -4922,10 +4922,10 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -5270,7 +5270,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	setupOOBOTPHandler := &webapp2.SetupOOBOTPHandler{
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return setupOOBOTPHandler
@@ -5296,10 +5296,10 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -5644,7 +5644,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	enterOOBOTPHandler := &webapp2.EnterOOBOTPHandler{
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return enterOOBOTPHandler
@@ -5670,10 +5670,10 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -6018,7 +6018,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	setupRecoveryCodeHandler := &webapp2.SetupRecoveryCodeHandler{
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return setupRecoveryCodeHandler
@@ -6044,10 +6044,10 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -6392,7 +6392,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	verifyIdentityHandler := &webapp2.VerifyIdentityHandler{
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return verifyIdentityHandler
@@ -6418,10 +6418,10 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -6766,7 +6766,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	verifyIdentitySuccessHandler := &webapp2.VerifyIdentitySuccessHandler{
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return verifyIdentitySuccessHandler
@@ -6798,10 +6798,10 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -7145,7 +7145,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
 		FormPrefiller: formPrefiller,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return forgotPasswordHandler
@@ -7171,10 +7171,10 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -7519,7 +7519,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	forgotPasswordSuccessHandler := &webapp2.ForgotPasswordSuccessHandler{
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return forgotPasswordSuccessHandler
@@ -7545,10 +7545,10 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -7893,7 +7893,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	resetPasswordHandler := &webapp2.ResetPasswordHandler{
 		Database:       handle,
 		BaseViewModel:  baseViewModeler,
-		Renderer:       htmlRenderer,
+		Renderer:       responseRenderer,
 		WebApp:         webappService,
 		PasswordPolicy: passwordChecker,
 	}
@@ -7920,10 +7920,10 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -8268,7 +8268,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	resetPasswordSuccessHandler := &webapp2.ResetPasswordSuccessHandler{
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 	}
 	return resetPasswordSuccessHandler
@@ -8293,14 +8293,14 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	settingsHandler := &webapp2.SettingsHandler{
 		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 	}
 	return settingsHandler
 }
@@ -8325,10 +8325,10 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	engine := appProvider.TemplateEngine
 	factory := appProvider.LoggerFactory
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
@@ -8674,7 +8674,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		ServerConfig:  serverConfig,
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
-		Renderer:      htmlRenderer,
+		Renderer:      responseRenderer,
 		WebApp:        webappService,
 		Identities:    serviceService,
 		Verification:  verificationService,
@@ -8946,17 +8946,17 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword: forgotPasswordConfig,
 		Metadata:       appMetadata,
 	}
-	htmlRendererLogger := webapp2.NewHTMLRendererLogger(factory)
-	htmlRenderer := &webapp2.HTMLRenderer{
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         htmlRendererLogger,
+		Logger:         responseRendererLogger,
 	}
 	logoutHandler := &webapp2.LogoutHandler{
 		Database:       handle,
 		ServerConfig:   serverConfig,
 		SessionManager: authSessionManager,
 		BaseViewModel:  baseViewModeler,
-		Renderer:       htmlRenderer,
+		Renderer:       responseRenderer,
 	}
 	return logoutHandler
 }
