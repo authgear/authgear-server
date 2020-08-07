@@ -18,11 +18,11 @@ type HistoryStore struct {
 	SQLExecutor db.SQLExecutor
 }
 
-func (p *HistoryStore) CreatePasswordHistory(userID string, hashedPassword []byte, loggedAt time.Time) error {
+func (p *HistoryStore) CreatePasswordHistory(userID string, hashedPassword []byte, createdAt time.Time) error {
 	updateBuilder := p.insertPasswordHistoryBuilder(
 		userID,
 		hashedPassword,
-		loggedAt,
+		createdAt,
 	)
 	if _, err := p.SQLExecutor.ExecWith(updateBuilder); err != nil {
 		return err
@@ -47,7 +47,7 @@ func (p *HistoryStore) GetPasswordHistory(userID string, historySize int, histor
 		startOfDay := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 		since := startOfDay.Add(-historyDays.Duration())
 		daysBuilder := p.basePasswordHistoryBuilder(userID).
-			Where("logged_at >= ?", since)
+			Where("created_at >= ?", since)
 		daysHistory, err = p.doQueryPasswordHistory(daysBuilder)
 		if err != nil {
 			return nil, err
@@ -92,7 +92,7 @@ func (p *HistoryStore) basePasswordHistoryBuilder(userID string) db.SelectBuilde
 		Select("id", "user_id", "password", "created_at").
 		From(p.SQLBuilder.FullTableName("password_history")).
 		Where("user_id = ?", userID).
-		OrderBy("logged_at DESC")
+		OrderBy("created_at DESC")
 }
 
 func (p *HistoryStore) insertPasswordHistoryBuilder(userID string, hashedPassword []byte, createdAt time.Time) db.InsertBuilder {
@@ -124,16 +124,16 @@ func (p *HistoryStore) doQueryPasswordHistory(builder db.SelectBuilder) ([]Histo
 			id                string
 			userID            string
 			hashedPasswordStr string
-			loggedAt          time.Time
+			createdAt         time.Time
 		)
-		if err := rows.Scan(&id, &userID, &hashedPasswordStr, &loggedAt); err != nil {
+		if err := rows.Scan(&id, &userID, &hashedPasswordStr, &createdAt); err != nil {
 			return nil, err
 		}
 		passwordHistory := History{
 			ID:             id,
 			UserID:         userID,
 			HashedPassword: []byte(hashedPasswordStr),
-			CreatedAt:      loggedAt,
+			CreatedAt:      createdAt,
 		}
 		out = append(out, passwordHistory)
 	}
