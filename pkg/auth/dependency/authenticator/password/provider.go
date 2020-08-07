@@ -97,7 +97,17 @@ func (p *Provider) WithPassword(a *Authenticator, password string) (*Authenticat
 }
 
 func (p *Provider) Create(a *Authenticator) error {
-	return p.Store.Create(a)
+	err := p.Store.Create(a)
+	if err != nil {
+		return err
+	}
+
+	err = p.PasswordHistory.CreatePasswordHistory(a.UserID, a.PasswordHash, p.Clock.NowUTC())
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (p *Provider) Authenticate(a *Authenticator, password string) error {
