@@ -104,7 +104,14 @@ func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph
 		if err != nil {
 			return
 		}
-		stateError = state.Error
+
+		// Ignore the intent, reuse the existing state.
+		state.ID = intent.StateID
+		if state.ID == "" {
+			state.ID = NewID()
+		}
+		graph, edges, err = s.get(state)
+		return
 	}
 
 	newStateID := intent.StateID
@@ -146,12 +153,17 @@ func (s *Service) Get(stateID string) (state *State, graph *newinteraction.Graph
 		return
 	}
 
+	graph, edges, err = s.get(state)
+	return
+}
+
+func (s *Service) get(state *State) (graph *newinteraction.Graph, edges []newinteraction.Edge, err error) {
 	graph, err = s.Graph.Get(state.GraphInstanceID)
 	if err != nil {
 		return
 	}
 
-	err = s.Graph.DryRun(stateID, func(ctx *newinteraction.Context) (_ *newinteraction.Graph, err error) {
+	err = s.Graph.DryRun(state.ID, func(ctx *newinteraction.Context) (_ *newinteraction.Graph, err error) {
 		err = graph.Apply(ctx)
 		if err != nil {
 			return nil, err
@@ -174,11 +186,17 @@ func (s *Service) Get(stateID string) (state *State, graph *newinteraction.Graph
 
 func (s *Service) PostIntent(intent *Intent, inputer func() (interface{}, error)) (result *Result, err error) {
 	stateID := intent.StateID
-	if stateID == "" {
-		stateID = NewID()
+	if stateID != "" {
+		// Ignore the intent, reuse the existing state.
+		state, err := s.Store.Get(stateID)
+		if err != nil {
+			return nil, err
+		}
+		return s.post(state, inputer)
 	}
+
 	state := &State{
-		ID:          stateID,
+		ID:          NewID(),
 		RedirectURI: intent.RedirectURI,
 		KeepState:   intent.KeepState,
 		UILocales:   intent.UILocales,
@@ -226,6 +244,10 @@ func (s *Service) PostInput(stateID string, inputer func() (interface{}, error))
 		return nil, err
 	}
 
+	return s.post(state, inputer)
+}
+
+func (s *Service) post(state *State, inputer func() (interface{}, error)) (result *Result, err error) {
 	// Immutable state
 	state.ID = NewID()
 

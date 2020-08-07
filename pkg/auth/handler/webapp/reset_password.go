@@ -57,6 +57,7 @@ type ResetPasswordHandler struct {
 
 func (h *ResetPasswordHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	return &webapp.Intent{
+		StateID:     StateID(r),
 		RedirectURI: "/reset_password/success",
 		KeepState:   true,
 		Intent:      intents.NewIntentResetPassword(),

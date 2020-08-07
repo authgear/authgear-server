@@ -16,7 +16,6 @@ func init() {
 
 type InputUseIdentityOAuthProvider interface {
 	GetProviderAlias() string
-	GetState() string
 	GetNonceSource() *http.Cookie
 	GetErrorRedirectURI() string
 }
@@ -56,7 +55,7 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *newinteraction.Context, 
 
 	nonceSource := input.GetNonceSource()
 	errorRedirectURI := input.GetErrorRedirectURI()
-	state := input.GetState()
+	state := ctx.WebStateID
 
 	oauthProvider := ctx.OAuthProviderFactory.NewOAuthProvider(alias)
 	if oauthProvider == nil {

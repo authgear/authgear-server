@@ -21,7 +21,6 @@ type InputUseIdentityOAuthUserInfo interface {
 	GetProviderAlias() string
 	GetNonceSource() *http.Cookie
 	GetCode() string
-	GetState() string
 	GetScope() string
 	GetError() string
 	GetErrorDescription() string
@@ -43,7 +42,7 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *newinteraction.Context, 
 	alias := input.GetProviderAlias()
 	nonceSource := input.GetNonceSource()
 	code := input.GetCode()
-	state := input.GetState()
+	state := ctx.WebStateID
 	scope := input.GetScope()
 	oauthError := input.GetError()
 	errorDescription := input.GetErrorDescription()

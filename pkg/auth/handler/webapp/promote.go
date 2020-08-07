@@ -98,7 +98,6 @@ func (h *PromoteHandler) GetData(r *http.Request, state *webapp.State, graph *ne
 
 type PromoteOAuth struct {
 	ProviderAlias    string
-	State            string
 	NonceSource      *http.Cookie
 	ErrorRedirectURI string
 }
@@ -107,10 +106,6 @@ var _ nodes.InputUseIdentityOAuthProvider = &PromoteOAuth{}
 
 func (i *PromoteOAuth) GetProviderAlias() string {
 	return i.ProviderAlias
-}
-
-func (i *PromoteOAuth) GetState() string {
-	return i.State
 }
 
 func (i *PromoteOAuth) GetNonceSource() *http.Cookie {
@@ -192,7 +187,6 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			result, err := h.WebApp.PostInput(stateID, func() (input interface{}, err error) {
 				input = &PromoteOAuth{
 					ProviderAlias:    providerAlias,
-					State:            stateID,
 					NonceSource:      nonceSource,
 					ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
 				}

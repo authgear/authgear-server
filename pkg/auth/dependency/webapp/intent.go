@@ -5,8 +5,9 @@ import (
 )
 
 type Intent struct {
-	// StateID indicates the fixed state ID. If it is empty, one is generated.
-	// It is intended for OAuth.
+	// StateID indicates the state ID.
+	// If it is empty, a new state is generated.
+	// If it is not empty, the existing state with specified ID would be used; the given intent is ignored.
 	StateID string
 	// RedirectURI indicates the location to redirect after the interaction finishes.
 	RedirectURI string

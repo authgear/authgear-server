@@ -99,7 +99,6 @@ func (h *LoginHandler) GetData(r *http.Request, state *webapp.State, graph *newi
 
 type LoginOAuth struct {
 	ProviderAlias    string
-	State            string
 	NonceSource      *http.Cookie
 	ErrorRedirectURI string
 }
@@ -108,10 +107,6 @@ var _ nodes.InputUseIdentityOAuthProvider = &LoginOAuth{}
 
 func (i *LoginOAuth) GetProviderAlias() string {
 	return i.ProviderAlias
-}
-
-func (i *LoginOAuth) GetState() string {
-	return i.State
 }
 
 func (i *LoginOAuth) GetNonceSource() *http.Cookie {
@@ -141,6 +136,7 @@ func (i *LoginLoginID) GetLoginID() string {
 
 func (h *LoginHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	return &webapp.Intent{
+		StateID:     StateID(r),
 		RedirectURI: webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy),
 		Intent:      intents.NewIntentLogin(),
 	}
@@ -180,12 +176,9 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" && providerAlias != "" {
 		h.Database.WithTx(func() error {
 			nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
-			stateID := webapp.NewID()
-			intent.StateID = stateID
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
 				input = &LoginOAuth{
 					ProviderAlias:    providerAlias,
-					State:            stateID,
 					NonceSource:      nonceSource,
 					ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
 				}

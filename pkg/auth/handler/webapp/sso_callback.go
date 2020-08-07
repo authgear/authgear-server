@@ -24,7 +24,6 @@ type SSOCallbackInput struct {
 	ProviderAlias string
 	NonceSource   *http.Cookie
 
-	State            string
 	Code             string
 	Scope            string
 	Error            string
@@ -41,10 +40,6 @@ func (i *SSOCallbackInput) GetNonceSource() *http.Cookie {
 
 func (i *SSOCallbackInput) GetCode() string {
 	return i.Code
-}
-
-func (i *SSOCallbackInput) GetState() string {
-	return i.State
 }
 
 func (i *SSOCallbackInput) GetScope() string {
@@ -69,11 +64,11 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
 
+	stateID := r.Form.Get("state")
 	data := SSOCallbackInput{
 		ProviderAlias: httproute.GetParam(r, "alias"),
 		NonceSource:   nonceSource,
 
-		State:            r.Form.Get("state"),
 		Code:             r.Form.Get("code"),
 		Scope:            r.Form.Get("scope"),
 		Error:            r.Form.Get("error"),
@@ -81,7 +76,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.Database.WithTx(func() error {
-		result, err := h.WebApp.PostInput(data.State, func() (input interface{}, err error) {
+		result, err := h.WebApp.PostInput(stateID, func() (input interface{}, err error) {
 			input = &data
 			return
 		})

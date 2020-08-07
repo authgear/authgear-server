@@ -71,6 +71,7 @@ type VerifyIdentityNode interface {
 
 func (h *VerifyIdentityHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	return &webapp.Intent{
+		StateID:     StateID(r),
 		RedirectURI: "/verify_identity/success",
 		KeepState:   true,
 		Intent:      intents.NewIntentVerifyIdentityResume(r.Form.Get("state")),
