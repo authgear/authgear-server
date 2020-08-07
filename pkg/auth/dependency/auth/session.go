@@ -31,6 +31,7 @@ const (
 type SessionCreateReason string
 
 const (
-	SessionCreateReasonSignup SessionCreateReason = "signup"
-	SessionCreateReasonLogin  SessionCreateReason = "login"
+	SessionCreateReasonSignup  SessionCreateReason = "signup"
+	SessionCreateReasonLogin   SessionCreateReason = "login"
+	SessionCreateReasonPromote SessionCreateReason = "promote"
 )

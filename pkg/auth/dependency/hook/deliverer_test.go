@@ -187,7 +187,6 @@ func TestDeliverer(t *testing.T) {
 								"test": 123,
 							},
 						},
-						Identity: model.Identity{},
 					},
 				}
 

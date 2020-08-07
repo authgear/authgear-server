@@ -24,10 +24,9 @@ const (
 			@Response 200 {EmptyResponse}
 */
 type SessionCreateEvent struct {
-	Reason   string         `json:"reason"`
-	User     model.User     `json:"user"`
-	Identity model.Identity `json:"identity"`
-	Session  model.Session  `json:"session"`
+	Reason  string        `json:"reason"`
+	User    model.User    `json:"user"`
+	Session model.Session `json:"session"`
 }
 
 // @JSONSchema
@@ -68,7 +67,6 @@ const SessionCreateEventPayloadSchema = `
 	"properties": {
 		"reason": { "type": "string" },
 		"user": { "$ref": "#User" },
-		"identity": { "$ref": "#Identity" },
 		"session": { "$ref": "#Session" }
 	}
 }
@@ -86,9 +84,8 @@ func (event SessionCreateEvent) WithMutationsApplied(mutations Mutations) UserAw
 	user := event.User
 	mutations.ApplyToUser(&user)
 	return SessionCreateEvent{
-		Reason:   event.Reason,
-		User:     user,
-		Identity: event.Identity,
+		Reason: event.Reason,
+		User:   user,
 	}
 }
 

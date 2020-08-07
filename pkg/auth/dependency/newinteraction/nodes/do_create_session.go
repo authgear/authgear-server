@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
 	"github.com/authgear/authgear-server/pkg/auth/event"
+	"github.com/authgear/authgear-server/pkg/auth/model"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
@@ -60,6 +61,48 @@ func (n *NodeDoCreateSession) AuthnAttrs() authn.Attrs {
 
 func (n *NodeDoCreateSession) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	err := perform(newinteraction.EffectOnCommit(func(ctx *newinteraction.Context) error {
+		if n.Reason != auth.SessionCreateReasonPromote {
+			return nil
+		}
+
+		newUser, err := ctx.Users.Get(n.Session.Attrs.UserID)
+		if err != nil {
+			return err
+		}
+
+		anonUser := newUser
+		if identityCheck, ok := getIdentityConflictNode(graph); ok && identityCheck.DuplicatedIdentity != nil {
+			// Logging as existing user when promoting: old user is different.
+			anonUser, err = ctx.Users.Get(identityCheck.NewIdentity.UserID)
+			if err != nil {
+				return err
+			}
+		}
+
+		var identities []model.Identity
+		for _, info := range graph.GetUserNewIdentities() {
+			identities = append(identities, info.ToModel())
+		}
+
+		err = ctx.Hooks.DispatchEvent(
+			event.UserPromoteEvent{
+				AnonymousUser: *anonUser,
+				User:          *newUser,
+				Identities:    identities,
+			},
+			newUser,
+		)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}))
+	if err != nil {
+		return err
+	}
+
+	err = perform(newinteraction.EffectOnCommit(func(ctx *newinteraction.Context) error {
 		user, err := ctx.Users.Get(n.Session.Attrs.UserID)
 		if err != nil {
 			return err
@@ -70,14 +113,11 @@ func (n *NodeDoCreateSession) Apply(perform func(eff newinteraction.Effect) erro
 			return err
 		}
 
-		identity := graph.MustGetUserLastIdentity().ToModel()
-
 		err = ctx.Hooks.DispatchEvent(
 			event.SessionCreateEvent{
-				Reason:   string(n.Reason),
-				User:     *user,
-				Identity: identity,
-				Session:  *n.Session.ToAPIModel(),
+				Reason:  string(n.Reason),
+				User:    *user,
+				Session: *n.Session.ToAPIModel(),
 			},
 			user,
 		)

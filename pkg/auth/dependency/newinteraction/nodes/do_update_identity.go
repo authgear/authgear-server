@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/event"
 )
 
 func init() {
@@ -47,7 +48,29 @@ func (n *NodeDoUpdateIdentity) Apply(perform func(eff newinteraction.Effect) err
 		return err
 	}
 
-	// TODO(interaction): dispatch identity update event if not creating user
+	err = perform(newinteraction.EffectOnCommit(func(ctx *newinteraction.Context) error {
+		user, err := ctx.Users.Get(n.IdentityAfterUpdate.UserID)
+		if err != nil {
+			return err
+		}
+
+		err = ctx.Hooks.DispatchEvent(
+			event.IdentityUpdateEvent{
+				User:        *user,
+				OldIdentity: n.IdentityBeforeUpdate.ToModel(),
+				NewIdentity: n.IdentityAfterUpdate.ToModel(),
+			},
+			user,
+		)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}))
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

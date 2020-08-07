@@ -281,10 +281,13 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 		}, nil
 	case *nodes.NodeDoGenerateRecoveryCode:
 		var reason auth.SessionCreateReason
-		_, ok := graph.GetNewUserID()
-		if ok {
+		_, creating := graph.GetNewUserID()
+		switch {
+		case i.Kind == IntentAuthenticateKindPromote:
+			reason = auth.SessionCreateReasonPromote
+		case creating:
 			reason = auth.SessionCreateReasonSignup
-		} else {
+		default:
 			reason = auth.SessionCreateReasonLogin
 		}
 
