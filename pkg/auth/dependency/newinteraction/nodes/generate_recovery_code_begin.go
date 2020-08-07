@@ -9,9 +9,9 @@ func init() {
 	newinteraction.RegisterNode(&NodeGenerateRecoveryCodeBegin{})
 }
 
-type EdgeGenerateRecoveryCodeBegin struct{}
+type EdgeGenerateRecoveryCode struct{}
 
-func (e *EdgeGenerateRecoveryCodeBegin) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, input interface{}) (newinteraction.Node, error) {
+func (e *EdgeGenerateRecoveryCode) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, input interface{}) (newinteraction.Node, error) {
 	// List all secondary authenticators and see how many of them are new.
 	// If all of them are new, the user just enrolled into secondary authentication, we need to (re)generate recovery code for them.
 

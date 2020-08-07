@@ -271,7 +271,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 
 		case newinteraction.AuthenticationStageSecondary:
 			return []newinteraction.Edge{
-				&nodes.EdgeGenerateRecoveryCodeBegin{},
+				&nodes.EdgeGenerateRecoveryCode{},
 			}, nil
 
 		default:
