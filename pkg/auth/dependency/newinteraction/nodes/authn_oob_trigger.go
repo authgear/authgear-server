@@ -3,7 +3,6 @@ package nodes
 import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
-	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/otp"
 )
 
@@ -18,10 +17,6 @@ type InputAuthenticationOOBTrigger interface {
 type EdgeAuthenticationOOBTrigger struct {
 	Stage          newinteraction.AuthenticationStage
 	Authenticators []*authenticator.Info
-}
-
-func (e *EdgeAuthenticationOOBTrigger) AuthenticatorType() authn.AuthenticatorType {
-	return authn.AuthenticatorTypeOOB
 }
 
 func (e *EdgeAuthenticationOOBTrigger) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {

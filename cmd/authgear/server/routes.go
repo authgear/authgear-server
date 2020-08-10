@@ -113,6 +113,9 @@ func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *httpro
 	router.Add(webapphandler.ConfigureResetPasswordRoute(webappRoute), p.Handler(newWebAppResetPasswordHandler))
 	router.Add(webapphandler.ConfigureResetPasswordSuccessRoute(webappRoute), p.Handler(newWebAppResetPasswordSuccessHandler))
 
+	router.Add(webapphandler.ConfigureAuthenticationBeginRoute(webappRoute), p.Handler(newWebAppAuthenticationBeginHandler))
+	router.Add(webapphandler.ConfigureCreateAuthenticatorBeginRoute(webappRoute), p.Handler(newWebAppCreateAuthenticatorBeginHandler))
+
 	router.Add(webapphandler.ConfigureLogoutRoute(webappAuthenticatedRoute), p.Handler(newWebAppLogoutHandler))
 	router.Add(webapphandler.ConfigureSettingsIdentityRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsIdentityHandler))
 	router.Add(webapphandler.ConfigureSettingsRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsHandler))

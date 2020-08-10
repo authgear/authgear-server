@@ -86,10 +86,7 @@ func (n *NodeCreateAuthenticatorBegin) deriveEdges() ([]newinteraction.Edge, err
 			return nil, err
 		}
 	case newinteraction.AuthenticationStageSecondary:
-		edges, err = n.deriveSecondary()
-		if err != nil {
-			return nil, err
-		}
+		edges = n.deriveSecondary()
 	default:
 		panic("interaction: unknown authentication stage: " + n.Stage)
 	}
@@ -155,14 +152,14 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() (edges []newinteraction.E
 	return edges, nil
 }
 
-func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []newinteraction.Edge, err error) {
+func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []newinteraction.Edge) {
 	// Determine whether we need to create secondary authenticator.
 
 	// 1. Check secondary authentication mode.
 	// If it is not required, then no secondary authenticator is needed.
 	mode := n.AuthenticationConfig.SecondaryAuthenticationMode
 	if mode != config.SecondaryAuthenticationModeRequired {
-		return nil, nil
+		return nil
 	}
 
 	// 2. Determine what secondary authenticator we allow the user to create.
@@ -175,9 +172,6 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []newinteraction
 		n.Authenticators,
 		authenticator.KeepTag(authenticator.TagSecondaryAuthenticator),
 	)
-	if err != nil {
-		return nil, err
-	}
 
 	passwordCount := 0
 	totpCount := 0
@@ -257,22 +251,5 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []newinteraction
 		},
 	)
 
-	return edges, nil
-}
-
-func (n *NodeCreateAuthenticatorBegin) AuthenticatorTypes() []authn.AuthenticatorType {
-	edges, err := n.deriveEdges()
-	if err != nil {
-		panic(err)
-	}
-
-	var types []authn.AuthenticatorType
-	for _, e := range edges {
-		if e, ok := e.(interface {
-			AuthenticatorType() authn.AuthenticatorType
-		}); ok {
-			types = append(types, e.AuthenticatorType())
-		}
-	}
-	return types
+	return edges
 }

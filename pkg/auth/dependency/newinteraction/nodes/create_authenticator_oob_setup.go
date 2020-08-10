@@ -23,10 +23,6 @@ type EdgeCreateAuthenticatorOOBSetup struct {
 	AllowedChannels []authn.AuthenticatorOOBChannel
 }
 
-func (e *EdgeCreateAuthenticatorOOBSetup) AuthenticatorType() authn.AuthenticatorType {
-	return authn.AuthenticatorTypeOOB
-}
-
 func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
 	input, ok := rawInput.(InputCreateAuthenticatorOOBSetup)
 	if !ok {

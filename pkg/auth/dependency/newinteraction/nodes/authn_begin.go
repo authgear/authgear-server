@@ -48,10 +48,11 @@ func (n *NodeAuthenticationBegin) Apply(perform func(eff newinteraction.Effect) 
 }
 
 func (n *NodeAuthenticationBegin) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
-	return n.deriveEdges(), nil
+	return n.GetAuthenticationEdges(), nil
 }
 
-func (n *NodeAuthenticationBegin) deriveEdges() []newinteraction.Edge {
+// GetAuthenticationEdges implements AuthenticationBeginNode.
+func (n *NodeAuthenticationBegin) GetAuthenticationEdges() []newinteraction.Edge {
 	var edges []newinteraction.Edge
 	var availableAuthenticators []*authenticator.Info
 	var preferred []authn.AuthenticatorType
@@ -136,18 +137,4 @@ func (n *NodeAuthenticationBegin) deriveEdges() []newinteraction.Edge {
 	)
 
 	return edges
-}
-
-func (n *NodeAuthenticationBegin) AuthenticatorTypes() []authn.AuthenticatorType {
-	edges := n.deriveEdges()
-
-	var types []authn.AuthenticatorType
-	for _, e := range edges {
-		if e, ok := e.(interface {
-			AuthenticatorType() authn.AuthenticatorType
-		}); ok {
-			types = append(types, e.AuthenticatorType())
-		}
-	}
-	return types
 }

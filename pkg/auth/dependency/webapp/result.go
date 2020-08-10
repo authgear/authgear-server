@@ -12,6 +12,7 @@ type Result struct {
 	// redirectURI is a string because we may not attach x_sid to it sometimes.
 	// For example, when it is the authorization URL to an OAuth provider.
 	redirectURI      string
+	statusCode       int
 	errorRedirectURI *url.URL
 	cookies          []*http.Cookie
 }
@@ -31,7 +32,11 @@ func (r *Result) WriteResponse(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	http.Redirect(w, req, r.redirectURI, http.StatusFound)
+	statusCode := r.statusCode
+	if statusCode == 0 {
+		statusCode = http.StatusFound
+	}
+	http.Redirect(w, req, r.redirectURI, statusCode)
 	return
 }
 

@@ -18,10 +18,6 @@ type EdgeCreateAuthenticatorTOTPSetup struct {
 	Stage newinteraction.AuthenticationStage
 }
 
-func (e *EdgeCreateAuthenticatorTOTPSetup) AuthenticatorType() authn.AuthenticatorType {
-	return authn.AuthenticatorTypeTOTP
-}
-
 func (e *EdgeCreateAuthenticatorTOTPSetup) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
 	_, ok := rawInput.(InputCreateAuthenticatorTOTPSetup)
 	if !ok {
