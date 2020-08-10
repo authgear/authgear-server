@@ -21,7 +21,6 @@ type InputUseIdentityOAuthUserInfo interface {
 	GetProviderAlias() string
 	GetNonceSource() *http.Cookie
 	GetCode() string
-	GetState() string
 	GetScope() string
 	GetError() string
 	GetErrorDescription() string
@@ -43,7 +42,7 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *newinteraction.Context, 
 	alias := input.GetProviderAlias()
 	nonceSource := input.GetNonceSource()
 	code := input.GetCode()
-	state := input.GetState()
+	state := ctx.WebStateID
 	scope := input.GetScope()
 	oauthError := input.GetError()
 	errorDescription := input.GetErrorDescription()
@@ -111,11 +110,15 @@ type NodeUseIdentityOAuthUserInfo struct {
 	IdentitySpec *identity.Spec `json:"identity_spec"`
 }
 
+func (n *NodeUseIdentityOAuthUserInfo) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeUseIdentityOAuthUserInfo) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeUseIdentityOAuthUserInfo) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+func (n *NodeUseIdentityOAuthUserInfo) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	if n.IsCreating {
 		return []newinteraction.Edge{&EdgeCreateIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil
 	}

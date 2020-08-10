@@ -24,6 +24,10 @@ type NodeDoRemoveIdentity struct {
 	Identity *identity.Info `json:"identity"`
 }
 
+func (n *NodeDoRemoveIdentity) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeDoRemoveIdentity) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	err := perform(newinteraction.EffectRun(func(ctx *newinteraction.Context) error {
 		userID := graph.MustGetUserID()
@@ -73,6 +77,6 @@ func (n *NodeDoRemoveIdentity) Apply(perform func(eff newinteraction.Effect) err
 	return nil
 }
 
-func (n *NodeDoRemoveIdentity) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(ctx, graph, n)
+func (n *NodeDoRemoveIdentity) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(graph, n)
 }

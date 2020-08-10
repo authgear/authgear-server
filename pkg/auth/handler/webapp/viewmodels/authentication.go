@@ -33,17 +33,13 @@ type AuthenticationViewModel struct {
 	LoginPageTextLoginIDInputType string
 }
 
-func NewAuthenticationViewModelWithEdges(edges []newinteraction.Edge) AuthenticationViewModel {
-	var candidates []identity.Candidate
-
-	for _, edge := range edges {
-		if a, ok := edge.(IdentityCandidatesGetter); ok {
-			identityCandidates := a.GetIdentityCandidates()
-			candidates = append(candidates, identityCandidates...)
-		}
+func NewAuthenticationViewModelWithGraph(graph *newinteraction.Graph) AuthenticationViewModel {
+	var node IdentityCandidatesGetter
+	if !graph.FindLastNode(&node) {
+		panic("webapp: no node with identity candidates found")
 	}
 
-	return NewAuthenticationViewModelWithCandidates(candidates)
+	return NewAuthenticationViewModelWithCandidates(node.GetIdentityCandidates())
 }
 
 func NewAuthenticationViewModelWithCandidates(candidates []identity.Candidate) AuthenticationViewModel {

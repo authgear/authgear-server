@@ -45,7 +45,7 @@ func (i *IntentAuthenticate) InstantiateRootNode(ctx *newinteraction.Context, gr
 }
 
 // nolint:gocyclo
-func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, graph *newinteraction.Graph, node newinteraction.Node) ([]newinteraction.Edge, error) {
+func (i *IntentAuthenticate) DeriveEdgesForNode(graph *newinteraction.Graph, node newinteraction.Node) ([]newinteraction.Edge, error) {
 	switch node := node.(type) {
 	case *nodes.NodeSelectIdentityEnd:
 		switch i.Kind {
@@ -120,7 +120,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 
 		switch i.Kind {
 		case IntentAuthenticateKindPromote:
-			switch ctx.Config.Identity.OnConflict.Promotion {
+			switch node.IdentityConflictConfig.Promotion {
 			case config.PromotionConflictBehaviorError:
 				return nil, newinteraction.ErrDuplicatedIdentity
 			case config.PromotionConflictBehaviorLogin:
@@ -131,7 +131,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(ctx *newinteraction.Context, gra
 					},
 				}, nil
 			default:
-				panic("interaction: unknown promotion conflict behavior: " + ctx.Config.Identity.OnConflict.Promotion)
+				panic("interaction: unknown promotion conflict behavior: " + node.IdentityConflictConfig.Promotion)
 			}
 		default:
 			// TODO(interaction): handle OAuth identity conflict

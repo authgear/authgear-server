@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
 func init() {
@@ -18,6 +19,10 @@ type InputAuthenticationPassword interface {
 type EdgeAuthenticationPassword struct {
 	Stage          newinteraction.AuthenticationStage
 	Authenticators []*authenticator.Info
+}
+
+func (e *EdgeAuthenticationPassword) AuthenticatorType() authn.AuthenticatorType {
+	return authn.AuthenticatorTypePassword
 }
 
 func (e *EdgeAuthenticationPassword) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
@@ -49,11 +54,15 @@ type NodeAuthenticationPassword struct {
 	Authenticator *authenticator.Info                `json:"authenticator"`
 }
 
+func (n *NodeAuthenticationPassword) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeAuthenticationPassword) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeAuthenticationPassword) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+func (n *NodeAuthenticationPassword) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	return []newinteraction.Edge{
 		&EdgeAuthenticationEnd{
 			Stage:                 n.Stage,

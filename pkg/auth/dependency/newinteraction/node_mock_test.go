@@ -33,6 +33,20 @@ func (m *MockNode) EXPECT() *MockNodeMockRecorder {
 	return m.recorder
 }
 
+// Prepare mocks base method
+func (m *MockNode) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Prepare", ctx, graph)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Prepare indicates an expected call of Prepare
+func (mr *MockNodeMockRecorder) Prepare(ctx, graph interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Prepare", reflect.TypeOf((*MockNode)(nil).Prepare), ctx, graph)
+}
+
 // Apply mocks base method
 func (m *MockNode) Apply(perform func(newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	m.ctrl.T.Helper()
@@ -48,18 +62,18 @@ func (mr *MockNodeMockRecorder) Apply(perform, graph interface{}) *gomock.Call {
 }
 
 // DeriveEdges mocks base method
-func (m *MockNode) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+func (m *MockNode) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeriveEdges", ctx, graph)
+	ret := m.ctrl.Call(m, "DeriveEdges", graph)
 	ret0, _ := ret[0].([]newinteraction.Edge)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // DeriveEdges indicates an expected call of DeriveEdges
-func (mr *MockNodeMockRecorder) DeriveEdges(ctx, graph interface{}) *gomock.Call {
+func (mr *MockNodeMockRecorder) DeriveEdges(graph interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeriveEdges", reflect.TypeOf((*MockNode)(nil).DeriveEdges), ctx, graph)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeriveEdges", reflect.TypeOf((*MockNode)(nil).DeriveEdges), graph)
 }
 
 // MockEdge is a mock of Edge interface

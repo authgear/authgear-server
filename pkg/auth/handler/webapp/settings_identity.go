@@ -61,7 +61,6 @@ type SettingsIdentityHandler struct {
 
 type SettingsIdentityLinkOAuth struct {
 	ProviderAlias    string
-	State            string
 	NonceSource      *http.Cookie
 	ErrorRedirectURI string
 }
@@ -70,10 +69,6 @@ var _ nodes.InputUseIdentityOAuthProvider = &SettingsIdentityLinkOAuth{}
 
 func (i *SettingsIdentityLinkOAuth) GetProviderAlias() string {
 	return i.ProviderAlias
-}
-
-func (i *SettingsIdentityLinkOAuth) GetState() string {
-	return i.State
 }
 
 func (i *SettingsIdentityLinkOAuth) GetNonceSource() *http.Cookie {
@@ -165,15 +160,13 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	if r.Method == "POST" && r.Form.Get("x_action") == "link_oauth" {
 		h.Database.WithTx(func() error {
 			intent := &webapp.Intent{
+				StateID:     StateID(r),
 				RedirectURI: redirectURI,
 				Intent:      intents.NewIntentAddIdentity(userID),
 			}
-			stateID := webapp.NewID()
-			intent.StateID = stateID
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
 				input = &SettingsIdentityLinkOAuth{
 					ProviderAlias:    providerAlias,
-					State:            stateID,
 					NonceSource:      nonceSource,
 					ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
 				}
@@ -191,6 +184,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	if r.Method == "POST" && r.Form.Get("x_action") == "unlink_oauth" {
 		h.Database.WithTx(func() error {
 			intent := &webapp.Intent{
+				StateID:     StateID(r),
 				RedirectURI: redirectURI,
 				Intent:      intents.NewIntentRemoveIdentity(userID),
 			}
@@ -212,6 +206,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	if r.Method == "POST" && r.Form.Get("x_action") == "verify_login_id" {
 		h.Database.WithTx(func() error {
 			intent := &webapp.Intent{
+				StateID:     StateID(r),
 				RedirectURI: redirectURI,
 				KeepState:   true,
 				Intent:      intents.NewIntentVerifyIdentity(userID, authn.IdentityTypeLoginID, identityID),

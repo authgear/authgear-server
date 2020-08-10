@@ -93,9 +93,9 @@ type SetupTOTPHandler struct {
 }
 
 func (h *SetupTOTPHandler) MakeViewModel(graph *newinteraction.Graph) (*SetupTOTPViewModel, error) {
-	node, ok := graph.CurrentNode().(SetupTOTPNode)
-	if !ok {
-		panic(fmt.Errorf("setup_totp: expected current node to implement SetupTOTPNode: %T", graph.CurrentNode()))
+	var node SetupTOTPNode
+	if !graph.FindLastNode(&node) {
+		panic(fmt.Errorf("setup_totp: expected graph has node implementing SetupTOTPNode"))
 	}
 
 	a := node.GetTOTPAuthenticator()
@@ -135,7 +135,7 @@ func (h *SetupTOTPHandler) MakeViewModel(graph *newinteraction.Graph) (*SetupTOT
 	}, nil
 }
 
-func (h *SetupTOTPHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
+func (h *SetupTOTPHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	var anyError interface{}
@@ -162,13 +162,13 @@ func (h *SetupTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "GET" {
 		h.Database.WithTx(func() error {
-			state, graph, edges, err := h.WebApp.Get(StateID(r))
+			state, graph, err := h.WebApp.Get(StateID(r))
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
-			data, err := h.GetData(r, state, graph, edges)
+			data, err := h.GetData(r, state, graph)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err

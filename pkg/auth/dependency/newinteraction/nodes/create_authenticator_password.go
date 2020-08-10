@@ -18,6 +18,10 @@ type EdgeCreateAuthenticatorPassword struct {
 	Stage newinteraction.AuthenticationStage
 }
 
+func (e *EdgeCreateAuthenticatorPassword) AuthenticatorType() authn.AuthenticatorType {
+	return authn.AuthenticatorTypePassword
+}
+
 func (e *EdgeCreateAuthenticatorPassword) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
 	input, ok := rawInput.(InputCreateAuthenticatorPassword)
 	if !ok {
@@ -45,11 +49,15 @@ type NodeCreateAuthenticatorPassword struct {
 	Authenticator *authenticator.Info                `json:"authenticator"`
 }
 
+func (n *NodeCreateAuthenticatorPassword) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeCreateAuthenticatorPassword) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeCreateAuthenticatorPassword) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+func (n *NodeCreateAuthenticatorPassword) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	return []newinteraction.Edge{
 		&EdgeCreateAuthenticatorEnd{
 			Stage:          n.Stage,

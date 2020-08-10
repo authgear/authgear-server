@@ -19,6 +19,6 @@ func (i *IntentResetPassword) InstantiateRootNode(ctx *newinteraction.Context, g
 	return &nodes.NodeResetPasswordBegin{}, nil
 }
 
-func (i *IntentResetPassword) DeriveEdgesForNode(ctx *newinteraction.Context, graph *newinteraction.Graph, node newinteraction.Node) ([]newinteraction.Edge, error) {
+func (i *IntentResetPassword) DeriveEdgesForNode(graph *newinteraction.Graph, node newinteraction.Node) ([]newinteraction.Edge, error) {
 	return nil, nil
 }

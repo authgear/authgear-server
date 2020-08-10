@@ -83,7 +83,7 @@ type LoginHandler struct {
 	WebApp        WebAppService
 }
 
-func (h *LoginHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
+func (h *LoginHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	var anyError interface{}
 	if state != nil {
@@ -92,14 +92,13 @@ func (h *LoginHandler) GetData(r *http.Request, state *webapp.State, graph *newi
 	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
 	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
-	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithEdges(edges)
+	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithGraph(graph)
 	viewmodels.Embed(data, authenticationViewModel)
 	return data, nil
 }
 
 type LoginOAuth struct {
 	ProviderAlias    string
-	State            string
 	NonceSource      *http.Cookie
 	ErrorRedirectURI string
 }
@@ -108,10 +107,6 @@ var _ nodes.InputUseIdentityOAuthProvider = &LoginOAuth{}
 
 func (i *LoginOAuth) GetProviderAlias() string {
 	return i.ProviderAlias
-}
-
-func (i *LoginOAuth) GetState() string {
-	return i.State
 }
 
 func (i *LoginOAuth) GetNonceSource() *http.Cookie {
@@ -141,6 +136,7 @@ func (i *LoginLoginID) GetLoginID() string {
 
 func (h *LoginHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	return &webapp.Intent{
+		StateID:     StateID(r),
 		RedirectURI: webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy),
 		Intent:      intents.NewIntentLogin(),
 	}
@@ -158,13 +154,13 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "GET" {
 		h.Database.WithTx(func() error {
-			state, graph, edges, err := h.WebApp.GetIntent(intent, StateID(r))
+			state, graph, err := h.WebApp.GetIntent(intent, StateID(r))
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
-			data, err := h.GetData(r, state, graph, edges)
+			data, err := h.GetData(r, state, graph)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
@@ -180,12 +176,9 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" && providerAlias != "" {
 		h.Database.WithTx(func() error {
 			nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
-			stateID := webapp.NewID()
-			intent.StateID = stateID
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
 				input = &LoginOAuth{
 					ProviderAlias:    providerAlias,
-					State:            stateID,
 					NonceSource:      nonceSource,
 					ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
 				}

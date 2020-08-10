@@ -26,7 +26,7 @@ func (i *IntentRemoveIdentity) InstantiateRootNode(ctx *newinteraction.Context, 
 	return edge.Instantiate(ctx, graph, i)
 }
 
-func (i *IntentRemoveIdentity) DeriveEdgesForNode(ctx *newinteraction.Context, graph *newinteraction.Graph, node newinteraction.Node) ([]newinteraction.Edge, error) {
+func (i *IntentRemoveIdentity) DeriveEdgesForNode(graph *newinteraction.Graph, node newinteraction.Node) ([]newinteraction.Edge, error) {
 	switch node := node.(type) {
 	case *nodes.NodeDoUseUser:
 		return []newinteraction.Edge{

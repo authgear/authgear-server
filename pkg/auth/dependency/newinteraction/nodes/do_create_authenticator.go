@@ -26,6 +26,10 @@ type NodeDoCreateAuthenticator struct {
 	Authenticators []*authenticator.Info              `json:"authenticators"`
 }
 
+func (n *NodeDoCreateAuthenticator) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeDoCreateAuthenticator) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	err := perform(newinteraction.EffectRun(func(ctx *newinteraction.Context) error {
 		for _, a := range n.Authenticators {
@@ -43,8 +47,8 @@ func (n *NodeDoCreateAuthenticator) Apply(perform func(eff newinteraction.Effect
 	return nil
 }
 
-func (n *NodeDoCreateAuthenticator) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(ctx, graph, n)
+func (n *NodeDoCreateAuthenticator) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(graph, n)
 }
 
 func (n *NodeDoCreateAuthenticator) UserAuthenticator(stage newinteraction.AuthenticationStage) (*authenticator.Info, bool) {

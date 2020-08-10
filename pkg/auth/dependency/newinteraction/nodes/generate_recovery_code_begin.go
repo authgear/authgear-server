@@ -44,11 +44,15 @@ type NodeGenerateRecoveryCodeBegin struct {
 	RecoveryCodes []string `json:"recovery_codes"`
 }
 
+func (n *NodeGenerateRecoveryCodeBegin) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeGenerateRecoveryCodeBegin) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeGenerateRecoveryCodeBegin) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+func (n *NodeGenerateRecoveryCodeBegin) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	return []newinteraction.Edge{
 		&EdgeGenerateRecoveryCodeEnd{RecoveryCodes: n.RecoveryCodes},
 	}, nil

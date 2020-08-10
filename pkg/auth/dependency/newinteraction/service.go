@@ -45,6 +45,10 @@ func (s *Service) NewGraph(ctx *Context, intent Intent) (*Graph, error) {
 	}
 
 	graph = graph.appendingNode(node)
+	err = node.Prepare(ctx, graph)
+	if err != nil {
+		return nil, err
+	}
 	err = node.Apply(ctx.perform, graph)
 	if err != nil {
 		return nil, err

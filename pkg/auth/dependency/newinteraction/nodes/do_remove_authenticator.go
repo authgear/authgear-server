@@ -23,6 +23,10 @@ type NodeDoRemoveAuthenticator struct {
 	Authenticators []*authenticator.Info `json:"authenticators"`
 }
 
+func (n *NodeDoRemoveAuthenticator) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeDoRemoveAuthenticator) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	err := perform(newinteraction.EffectRun(func(ctx *newinteraction.Context) error {
 		for _, ai := range n.Authenticators {
@@ -41,6 +45,6 @@ func (n *NodeDoRemoveAuthenticator) Apply(perform func(eff newinteraction.Effect
 	return nil
 }
 
-func (n *NodeDoRemoveAuthenticator) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(ctx, graph, n)
+func (n *NodeDoRemoveAuthenticator) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(graph, n)
 }

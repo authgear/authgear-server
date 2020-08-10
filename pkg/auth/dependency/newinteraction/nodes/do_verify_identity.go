@@ -27,6 +27,10 @@ type NodeDoVerifyIdentity struct {
 	NewAuthenticator *authenticator.Info `json:"new_authenticator"`
 }
 
+func (n *NodeDoVerifyIdentity) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeDoVerifyIdentity) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	err := perform(newinteraction.EffectRun(func(ctx *newinteraction.Context) error {
 		if n.NewAuthenticator != nil {
@@ -44,8 +48,8 @@ func (n *NodeDoVerifyIdentity) Apply(perform func(eff newinteraction.Effect) err
 	return nil
 }
 
-func (n *NodeDoVerifyIdentity) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(ctx, graph, n)
+func (n *NodeDoVerifyIdentity) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(graph, n)
 }
 
 func (n *NodeDoVerifyIdentity) UserNewAuthenticators() []*authenticator.Info {

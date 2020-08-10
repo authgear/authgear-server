@@ -3,6 +3,7 @@ package newinteraction
 import (
 	"encoding/json"
 	"errors"
+	"reflect"
 	"sort"
 	"time"
 
@@ -40,6 +41,26 @@ func newGraph(intent Intent) *Graph {
 		Intent:     intent,
 		Nodes:      nil,
 	}
+}
+
+func (g *Graph) FindLastNode(node interface{}) bool {
+	val := reflect.ValueOf(node)
+	typ := val.Type()
+	if typ.Kind() != reflect.Ptr || val.IsNil() {
+		panic("interaction: node must be a non-nil pointer")
+	}
+	if e := typ.Elem(); e.Kind() != reflect.Interface {
+		panic("interaction: *node must be interface")
+	}
+	targetType := typ.Elem()
+	for i := len(g.Nodes) - 1; i >= 0; i-- {
+		n := g.Nodes[i]
+		if reflect.TypeOf(n).AssignableTo(targetType) {
+			val.Elem().Set(reflect.ValueOf(n))
+			return true
+		}
+	}
+	return false
 }
 
 func (g *Graph) CurrentNode() Node {
@@ -226,8 +247,13 @@ func (g *Graph) GetACR(amrValues []string) string {
 
 // Apply applies the effect the the graph nodes into the context.
 func (g *Graph) Apply(ctx *Context) error {
-	for _, node := range g.Nodes {
-		if err := node.Apply(ctx.perform, g); err != nil {
+	for i, node := range g.Nodes {
+		graph := *g
+		graph.Nodes = graph.Nodes[:i+1]
+		if err := node.Prepare(ctx, &graph); err != nil {
+			return err
+		}
+		if err := node.Apply(ctx.perform, &graph); err != nil {
 			return err
 		}
 	}
@@ -239,7 +265,7 @@ func (g *Graph) Accept(ctx *Context, input interface{}) (*Graph, []Edge, error) 
 	graph := g
 	for {
 		node := graph.CurrentNode()
-		edges, err := node.DeriveEdges(ctx, graph)
+		edges, err := node.DeriveEdges(graph)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -274,6 +300,10 @@ func (g *Graph) Accept(ctx *Context, input interface{}) (*Graph, []Edge, error) 
 
 		// Follow the edge to nextNode
 		graph = graph.appendingNode(nextNode)
+		err = nextNode.Prepare(ctx, graph)
+		if err != nil {
+			return nil, nil, err
+		}
 		err = nextNode.Apply(ctx.perform, graph)
 		if err != nil {
 			return nil, nil, err

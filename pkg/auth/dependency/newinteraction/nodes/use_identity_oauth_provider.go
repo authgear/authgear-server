@@ -16,7 +16,6 @@ func init() {
 
 type InputUseIdentityOAuthProvider interface {
 	GetProviderAlias() string
-	GetState() string
 	GetNonceSource() *http.Cookie
 	GetErrorRedirectURI() string
 }
@@ -56,7 +55,7 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *newinteraction.Context, 
 
 	nonceSource := input.GetNonceSource()
 	errorRedirectURI := input.GetErrorRedirectURI()
-	state := input.GetState()
+	state := ctx.WebStateID
 
 	oauthProvider := ctx.OAuthProviderFactory.NewOAuthProvider(alias)
 	if oauthProvider == nil {
@@ -102,11 +101,15 @@ func (n *NodeUseIdentityOAuthProvider) GetErrorRedirectURI() string {
 	return n.ErrorRedirectURI
 }
 
+func (n *NodeUseIdentityOAuthProvider) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeUseIdentityOAuthProvider) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeUseIdentityOAuthProvider) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+func (n *NodeUseIdentityOAuthProvider) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	return []newinteraction.Edge{
 		&EdgeUseIdentityOAuthUserInfo{
 			IsCreating:       n.IsCreating,

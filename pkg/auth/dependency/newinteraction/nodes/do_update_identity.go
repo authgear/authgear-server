@@ -29,6 +29,10 @@ type NodeDoUpdateIdentity struct {
 	IdentityAfterUpdate  *identity.Info `json:"identity_after_update"`
 }
 
+func (n *NodeDoUpdateIdentity) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeDoUpdateIdentity) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	err := perform(newinteraction.EffectRun(func(ctx *newinteraction.Context) error {
 		if _, err := ctx.Identities.CheckDuplicated(n.IdentityAfterUpdate); err != nil {
@@ -75,8 +79,8 @@ func (n *NodeDoUpdateIdentity) Apply(perform func(eff newinteraction.Effect) err
 	return nil
 }
 
-func (n *NodeDoUpdateIdentity) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(ctx, graph, n)
+func (n *NodeDoUpdateIdentity) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(graph, n)
 }
 
 func (n *NodeDoUpdateIdentity) UserIdentity() *identity.Info {

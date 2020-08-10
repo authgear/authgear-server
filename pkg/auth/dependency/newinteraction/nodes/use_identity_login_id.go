@@ -91,11 +91,15 @@ type NodeUseIdentityLoginID struct {
 	IdentitySpec *identity.Spec         `json:"identity_spec"`
 }
 
+func (n *NodeUseIdentityLoginID) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeUseIdentityLoginID) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeUseIdentityLoginID) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+func (n *NodeUseIdentityLoginID) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	switch n.Mode {
 	case UseIdentityLoginIDModeCreate:
 		return []newinteraction.Edge{&EdgeCreateIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil

@@ -82,7 +82,7 @@ type PromoteHandler struct {
 	WebApp        WebAppService
 }
 
-func (h *PromoteHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
+func (h *PromoteHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	var anyError interface{}
 	if state != nil {
@@ -91,14 +91,13 @@ func (h *PromoteHandler) GetData(r *http.Request, state *webapp.State, graph *ne
 	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
 	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
-	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithEdges(edges)
+	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithGraph(graph)
 	viewmodels.Embed(data, authenticationViewModel)
 	return data, nil
 }
 
 type PromoteOAuth struct {
 	ProviderAlias    string
-	State            string
 	NonceSource      *http.Cookie
 	ErrorRedirectURI string
 }
@@ -107,10 +106,6 @@ var _ nodes.InputUseIdentityOAuthProvider = &PromoteOAuth{}
 
 func (i *PromoteOAuth) GetProviderAlias() string {
 	return i.ProviderAlias
-}
-
-func (i *PromoteOAuth) GetState() string {
-	return i.State
 }
 
 func (i *PromoteOAuth) GetNonceSource() *http.Cookie {
@@ -166,13 +161,13 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "GET" {
 		h.Database.WithTx(func() error {
-			state, graph, edges, err := h.WebApp.Get(StateID(r))
+			state, graph, err := h.WebApp.Get(StateID(r))
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
-			data, err := h.GetData(r, state, graph, edges)
+			data, err := h.GetData(r, state, graph)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
@@ -192,7 +187,6 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			result, err := h.WebApp.PostInput(stateID, func() (input interface{}, err error) {
 				input = &PromoteOAuth{
 					ProviderAlias:    providerAlias,
-					State:            stateID,
 					NonceSource:      nonceSource,
 					ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
 				}

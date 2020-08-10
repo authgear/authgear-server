@@ -11,14 +11,29 @@ func init() {
 	newinteraction.RegisterNode(&NodeForgotPasswordEnd{})
 }
 
-type NodeForgotPasswordBegin struct{}
+type NodeForgotPasswordBegin struct {
+	LoginIDKeys []config.LoginIDKeyConfig `json:"-"`
+}
+
+func (n *NodeForgotPasswordBegin) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	n.LoginIDKeys = ctx.Config.Identity.LoginID.Keys
+	return nil
+}
 
 func (n *NodeForgotPasswordBegin) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeForgotPasswordBegin) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
-	return []newinteraction.Edge{&EdgeForgotPasswordSelectLoginID{Configs: ctx.Config.Identity.LoginID.Keys}}, nil
+func (n *NodeForgotPasswordBegin) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+	return []newinteraction.Edge{n.edge()}, nil
+}
+
+func (n *NodeForgotPasswordBegin) edge() *EdgeForgotPasswordSelectLoginID {
+	return &EdgeForgotPasswordSelectLoginID{Configs: n.LoginIDKeys}
+}
+
+func (n *NodeForgotPasswordBegin) GetIdentityCandidates() []identity.Candidate {
+	return n.edge().GetIdentityCandidates()
 }
 
 type InputForgotPasswordSelectLoginID interface {
@@ -64,10 +79,14 @@ func (n *NodeForgotPasswordEnd) GetLoginID() string {
 	return n.LoginID
 }
 
+func (n *NodeForgotPasswordEnd) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeForgotPasswordEnd) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeForgotPasswordEnd) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+func (n *NodeForgotPasswordEnd) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	return nil, nil
 }

@@ -25,21 +25,27 @@ func (e *EdgeEnsureVerificationBegin) Instantiate(ctx *newinteraction.Context, g
 }
 
 type NodeEnsureVerificationBegin struct {
-	Identity        *identity.Info `json:"identity"`
-	RequestedByUser bool           `json:"requested_by_user"`
+	Identity           *identity.Info      `json:"identity"`
+	RequestedByUser    bool                `json:"requested_by_user"`
+	VerificationStatus verification.Status `json:"-"`
+}
+
+func (n *NodeEnsureVerificationBegin) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	status, err := ctx.Verification.GetVerificationStatus(n.Identity)
+	if err != nil {
+		return err
+	}
+
+	n.VerificationStatus = status
+	return nil
 }
 
 func (n *NodeEnsureVerificationBegin) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeEnsureVerificationBegin) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
-	status, err := ctx.Verification.GetVerificationStatus(n.Identity)
-	if err != nil {
-		return nil, err
-	}
-
-	switch status {
+func (n *NodeEnsureVerificationBegin) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+	switch n.VerificationStatus {
 	case verification.StatusDisabled, verification.StatusVerified:
 		break
 	case verification.StatusPending:
@@ -68,10 +74,14 @@ type NodeEnsureVerificationEnd struct {
 	NewAuthenticator *authenticator.Info `json:"new_authenticator,omitempty"`
 }
 
+func (n *NodeEnsureVerificationEnd) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeEnsureVerificationEnd) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeEnsureVerificationEnd) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(ctx, graph, n)
+func (n *NodeEnsureVerificationEnd) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(graph, n)
 }

@@ -22,6 +22,10 @@ type NodeDoGenerateRecoveryCode struct {
 	RecoveryCodes []string `json:"recovery_nodes"`
 }
 
+func (n *NodeDoGenerateRecoveryCode) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeDoGenerateRecoveryCode) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	err := perform(newinteraction.EffectRun(func(ctx *newinteraction.Context) error {
 		if len(n.RecoveryCodes) > 0 {
@@ -38,6 +42,6 @@ func (n *NodeDoGenerateRecoveryCode) Apply(perform func(eff newinteraction.Effec
 	return nil
 }
 
-func (n *NodeDoGenerateRecoveryCode) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(ctx, graph, n)
+func (n *NodeDoGenerateRecoveryCode) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(graph, n)
 }

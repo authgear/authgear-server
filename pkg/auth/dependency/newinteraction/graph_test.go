@@ -39,16 +39,20 @@ func TestGraph(t *testing.T) {
 		ctx := &newinteraction.Context{}
 		g := &newinteraction.Graph{Nodes: []newinteraction.Node{nodeA}}
 
-		nodeA.EXPECT().DeriveEdges(ctx, any).AnyTimes().Return(
+		nodeA.EXPECT().Prepare(ctx, any).AnyTimes().Return(nil)
+		nodeA.EXPECT().DeriveEdges(any).AnyTimes().Return(
 			[]newinteraction.Edge{edgeB, edgeC}, nil,
 		)
-		nodeB.EXPECT().DeriveEdges(ctx, any).AnyTimes().Return(
+		nodeB.EXPECT().Prepare(ctx, any).AnyTimes().Return(nil)
+		nodeB.EXPECT().DeriveEdges(any).AnyTimes().Return(
 			[]newinteraction.Edge{edgeD}, nil,
 		)
-		nodeC.EXPECT().DeriveEdges(ctx, any).AnyTimes().Return(
+		nodeC.EXPECT().Prepare(ctx, any).AnyTimes().Return(nil)
+		nodeC.EXPECT().DeriveEdges(any).AnyTimes().Return(
 			[]newinteraction.Edge{edgeB, edgeE}, nil,
 		)
-		nodeD.EXPECT().DeriveEdges(ctx, any).AnyTimes().Return(
+		nodeD.EXPECT().Prepare(ctx, any).AnyTimes().Return(nil)
+		nodeD.EXPECT().DeriveEdges(any).AnyTimes().Return(
 			[]newinteraction.Edge{}, nil,
 		)
 
@@ -139,11 +143,15 @@ type testGraphGetAMRnode struct {
 	Authenticator *authenticator.Info
 }
 
+func (n *testGraphGetAMRnode) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *testGraphGetAMRnode) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *testGraphGetAMRnode) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+func (n *testGraphGetAMRnode) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	return nil, nil
 }
 
@@ -257,5 +265,44 @@ func TestGraphGetAMRACR(t *testing.T) {
 		amr = graph.GetAMR()
 		So(amr, ShouldResemble, []string{"mfa", "otp"})
 		So(graph.GetACR(amr), ShouldEqual, authn.ACRMFA)
+	})
+}
+
+type findNodeA struct{ newinteraction.Node }
+
+func (*findNodeA) A() {}
+
+type findNodeB struct{ newinteraction.Node }
+
+func (*findNodeB) B() {}
+
+type findNodeC struct{ newinteraction.Node }
+
+func (*findNodeC) B() {}
+func (*findNodeC) C() {}
+
+func TestGraphFindLastNode(t *testing.T) {
+	Convey("Graph.FindLastNode", t, func() {
+		nodeA := &findNodeA{}
+		nodeB := &findNodeB{}
+		nodeC := &findNodeC{}
+		graph := &newinteraction.Graph{
+			Nodes: []newinteraction.Node{nodeA, nodeB, nodeC},
+		}
+
+		var a interface{ A() }
+		So(graph.FindLastNode(&a), ShouldBeTrue)
+		So(a, ShouldEqual, nodeA)
+
+		var b interface{ B() }
+		So(graph.FindLastNode(&b), ShouldBeTrue)
+		So(b, ShouldEqual, nodeC)
+
+		var c interface{ C() }
+		So(graph.FindLastNode(&c), ShouldBeTrue)
+		So(c, ShouldEqual, nodeC)
+
+		var d interface{ D() }
+		So(graph.FindLastNode(&d), ShouldBeFalse)
 	})
 }
