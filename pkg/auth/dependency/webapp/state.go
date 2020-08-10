@@ -8,6 +8,7 @@ import (
 
 type State struct {
 	ID              string                 `json:"id"`
+	PrevID          string                 `json:"prev_id"`
 	Error           *skyerr.APIError       `json:"error"`
 	RedirectURI     string                 `json:"redirect_uri,omitempty"`
 	KeepState       bool                   `json:"keep_state,omitempty"`
@@ -15,6 +16,11 @@ type State struct {
 	Extra           map[string]interface{} `json:"extra,omitempty"`
 	UserAgentToken  string                 `json:"user_agent_token"`
 	UILocales       string                 `json:"ui_locales,omitempty"`
+}
+
+func (s *State) SetID(id string) {
+	s.PrevID = s.ID
+	s.ID = id
 }
 
 // Attach attaches s to input.

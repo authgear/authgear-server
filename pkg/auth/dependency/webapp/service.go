@@ -106,10 +106,11 @@ func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph
 		}
 
 		// Ignore the intent, reuse the existing state.
-		state.ID = intent.StateID
-		if state.ID == "" {
-			state.ID = NewID()
+		newID := intent.StateID
+		if newID == "" {
+			newID = NewID()
 		}
+		state.SetID(newID)
 		graph, err = s.get(state)
 		if err == nil || !errors.Is(err, newinteraction.ErrStateNotFound) {
 			return
@@ -139,6 +140,7 @@ func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph
 		ID:              newStateID,
 		RedirectURI:     intent.RedirectURI,
 		GraphInstanceID: graph.InstanceID,
+		Extra:           map[string]interface{}{},
 		Error:           stateError,
 	}
 
@@ -246,7 +248,7 @@ func (s *Service) PostInput(stateID string, inputer func() (interface{}, error))
 
 func (s *Service) post(state *State, inputer func() (interface{}, error)) (result *Result, err error) {
 	// Immutable state
-	state.ID = NewID()
+	state.SetID(NewID())
 
 	var edges []newinteraction.Edge
 	graph, err := s.Graph.Get(state.GraphInstanceID)
