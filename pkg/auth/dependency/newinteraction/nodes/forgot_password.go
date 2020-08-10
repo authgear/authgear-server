@@ -25,7 +25,15 @@ func (n *NodeForgotPasswordBegin) Apply(perform func(eff newinteraction.Effect) 
 }
 
 func (n *NodeForgotPasswordBegin) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
-	return []newinteraction.Edge{&EdgeForgotPasswordSelectLoginID{Configs: n.LoginIDKeys}}, nil
+	return []newinteraction.Edge{n.edge()}, nil
+}
+
+func (n *NodeForgotPasswordBegin) edge() *EdgeForgotPasswordSelectLoginID {
+	return &EdgeForgotPasswordSelectLoginID{Configs: n.LoginIDKeys}
+}
+
+func (n *NodeForgotPasswordBegin) GetIdentityCandidates() []identity.Candidate {
+	return n.edge().GetIdentityCandidates()
 }
 
 type InputForgotPasswordSelectLoginID interface {

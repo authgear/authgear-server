@@ -18,6 +18,10 @@ type EdgeCreateAuthenticatorPassword struct {
 	Stage newinteraction.AuthenticationStage
 }
 
+func (e *EdgeCreateAuthenticatorPassword) AuthenticatorType() authn.AuthenticatorType {
+	return authn.AuthenticatorTypePassword
+}
+
 func (e *EdgeCreateAuthenticatorPassword) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
 	input, ok := rawInput.(InputCreateAuthenticatorPassword)
 	if !ok {

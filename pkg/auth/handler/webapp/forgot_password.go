@@ -88,14 +88,14 @@ func (h *ForgotPasswordHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	}
 }
 
-func (h *ForgotPasswordHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
+func (h *ForgotPasswordHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	var anyError interface{}
 	if state != nil {
 		anyError = state.Error
 	}
 	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
-	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithEdges(edges)
+	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithGraph(graph)
 	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, authenticationViewModel)
@@ -123,13 +123,13 @@ func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 	if r.Method == "GET" {
 		h.Database.WithTx(func() error {
-			state, graph, edges, err := h.WebApp.GetIntent(intent, StateID(r))
+			state, graph, err := h.WebApp.GetIntent(intent, StateID(r))
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
-			data, err := h.GetData(r, state, graph, edges)
+			data, err := h.GetData(r, state, graph)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err

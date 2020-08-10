@@ -267,3 +267,42 @@ func TestGraphGetAMRACR(t *testing.T) {
 		So(graph.GetACR(amr), ShouldEqual, authn.ACRMFA)
 	})
 }
+
+type findNodeA struct{ newinteraction.Node }
+
+func (*findNodeA) A() {}
+
+type findNodeB struct{ newinteraction.Node }
+
+func (*findNodeB) B() {}
+
+type findNodeC struct{ newinteraction.Node }
+
+func (*findNodeC) B() {}
+func (*findNodeC) C() {}
+
+func TestGraphFindLastNode(t *testing.T) {
+	Convey("Graph.FindLastNode", t, func() {
+		nodeA := &findNodeA{}
+		nodeB := &findNodeB{}
+		nodeC := &findNodeC{}
+		graph := &newinteraction.Graph{
+			Nodes: []newinteraction.Node{nodeA, nodeB, nodeC},
+		}
+
+		var a interface{ A() }
+		So(graph.FindLastNode(&a), ShouldBeTrue)
+		So(a, ShouldEqual, nodeA)
+
+		var b interface{ B() }
+		So(graph.FindLastNode(&b), ShouldBeTrue)
+		So(b, ShouldEqual, nodeC)
+
+		var c interface{ C() }
+		So(graph.FindLastNode(&c), ShouldBeTrue)
+		So(c, ShouldEqual, nodeC)
+
+		var d interface{ D() }
+		So(graph.FindLastNode(&d), ShouldBeFalse)
+	})
+}

@@ -78,14 +78,15 @@ func (h *VerifyIdentityHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	}
 }
 
-func (h *VerifyIdentityHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
+func (h *VerifyIdentityHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
 	viewModel := VerifyIdentityViewModel{
 		VerificationCode: r.Form.Get("code"),
 	}
-	if n, ok := graph.CurrentNode().(VerifyIdentityNode); ok {
+	var n VerifyIdentityNode
+	if graph.FindLastNode(&n) {
 		viewModel.IdentityDisplayID = n.GetVerificationIdentity().DisplayID()
 		viewModel.VerificationCodeSendCooldown = n.GetVerificationCodeSendCooldown()
 		viewModel.VerificationCodeLength = n.GetVerificationCodeLength()
@@ -149,13 +150,13 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 	if r.Method == "GET" && inInteraction {
 		h.Database.WithTx(func() error {
-			state, graph, edges, err := h.WebApp.Get(id)
+			state, graph, err := h.WebApp.Get(id)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
-			data, err := h.GetData(r, state, graph, edges)
+			data, err := h.GetData(r, state, graph)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
@@ -168,12 +169,12 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 	if r.Method == "GET" && !inInteraction {
 		h.Database.WithTx(func() error {
-			state, graph, edges, err := h.WebApp.GetIntent(h.MakeIntent(r), "")
+			state, graph, err := h.WebApp.GetIntent(h.MakeIntent(r), "")
 			var data map[string]interface{}
 			if err != nil {
 				data, err = h.GetErrorData(r, err)
 			} else {
-				data, err = h.GetData(r, state, graph, edges)
+				data, err = h.GetData(r, state, graph)
 			}
 
 			if err != nil {

@@ -3,6 +3,7 @@ package nodes
 import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
@@ -23,6 +24,7 @@ func (e *EdgeCreateAuthenticatorBegin) Instantiate(ctx *newinteraction.Context, 
 
 type NodeCreateAuthenticatorBegin struct {
 	Stage                newinteraction.AuthenticationStage `json:"stage"`
+	Identity             *identity.Info                     `json:"-"`
 	AuthenticationConfig *config.AuthenticationConfig       `json:"-"`
 	Authenticators       []*authenticator.Info              `json:"-"`
 }
@@ -33,6 +35,7 @@ func (n *NodeCreateAuthenticatorBegin) Prepare(ctx *newinteraction.Context, grap
 		return err
 	}
 
+	n.Identity = graph.MustGetUserLastIdentity()
 	n.AuthenticationConfig = ctx.Config.Authentication
 	n.Authenticators = ais
 	return nil
@@ -43,17 +46,21 @@ func (n *NodeCreateAuthenticatorBegin) Apply(perform func(eff newinteraction.Eff
 }
 
 func (n *NodeCreateAuthenticatorBegin) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+	return n.deriveEdges()
+}
+
+func (n *NodeCreateAuthenticatorBegin) deriveEdges() ([]newinteraction.Edge, error) {
 	var edges []newinteraction.Edge
 	var err error
 
 	switch n.Stage {
 	case newinteraction.AuthenticationStagePrimary:
-		edges, err = n.derivePrimary(graph)
+		edges, err = n.derivePrimary()
 		if err != nil {
 			return nil, err
 		}
 	case newinteraction.AuthenticationStageSecondary:
-		edges, err = n.deriveSecondary(graph)
+		edges, err = n.deriveSecondary()
 		if err != nil {
 			return nil, err
 		}
@@ -69,14 +76,12 @@ func (n *NodeCreateAuthenticatorBegin) DeriveEdges(graph *newinteraction.Graph) 
 	return edges, nil
 }
 
-func (n *NodeCreateAuthenticatorBegin) derivePrimary(graph *newinteraction.Graph) (edges []newinteraction.Edge, err error) {
-	iden := graph.MustGetUserLastIdentity()
-
+func (n *NodeCreateAuthenticatorBegin) derivePrimary() (edges []newinteraction.Edge, err error) {
 	// Determine whether we need to create primary authenticator.
 
 	// 1. Check whether the identity actually requires primary authenticator.
 	// If it does not, then no primary authenticator is needed.
-	identityRequiresPrimaryAuthentication := len(iden.Type.PrimaryAuthenticatorTypes()) > 0
+	identityRequiresPrimaryAuthentication := len(n.Identity.Type.PrimaryAuthenticatorTypes()) > 0
 	if !identityRequiresPrimaryAuthentication {
 		return nil, nil
 	}
@@ -96,7 +101,7 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary(graph *newinteraction.Graph
 		n.Authenticators,
 		authenticator.KeepType(firstType),
 		authenticator.KeepTag(authenticator.TagPrimaryAuthenticator),
-		authenticator.KeepPrimaryAuthenticatorOfIdentity(iden),
+		authenticator.KeepPrimaryAuthenticatorOfIdentity(n.Identity),
 	)
 
 	if len(ais) == 0 {
@@ -117,7 +122,7 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary(graph *newinteraction.Graph
 	return edges, nil
 }
 
-func (n *NodeCreateAuthenticatorBegin) deriveSecondary(graph *newinteraction.Graph) (edges []newinteraction.Edge, err error) {
+func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []newinteraction.Edge, err error) {
 
 	// Determine whether we need to create secondary authenticator.
 
@@ -176,4 +181,21 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary(graph *newinteraction.Gra
 	}
 
 	return edges, nil
+}
+
+func (n *NodeCreateAuthenticatorBegin) AuthenticatorTypes() []authn.AuthenticatorType {
+	edges, err := n.deriveEdges()
+	if err != nil {
+		panic(err)
+	}
+
+	var types []authn.AuthenticatorType
+	for _, e := range edges {
+		if e, ok := e.(interface {
+			AuthenticatorType() authn.AuthenticatorType
+		}); ok {
+			types = append(types, e.AuthenticatorType())
+		}
+	}
+	return types
 }

@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 )
 
@@ -32,14 +33,28 @@ func (n *NodeUpdateIdentityBegin) Apply(perform func(eff newinteraction.Effect) 
 }
 
 func (n *NodeUpdateIdentityBegin) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+	return n.deriveEdges(), nil
+}
+
+func (n *NodeUpdateIdentityBegin) deriveEdges() []newinteraction.Edge {
 	var edges []newinteraction.Edge
 	edges = append(edges, &EdgeUseIdentityLoginID{
 		Mode:    UseIdentityLoginIDModeUpdate,
 		Configs: n.LoginIDKeys,
 	})
-	return edges, nil
+	return edges
 }
 
 func (n *NodeUpdateIdentityBegin) UpdateIdentityID() string {
 	return n.IdentityID
+}
+
+func (n *NodeUpdateIdentityBegin) GetIdentityCandidates() []identity.Candidate {
+	var candidates []identity.Candidate
+	for _, e := range n.deriveEdges() {
+		if e, ok := e.(interface{ GetIdentityCandidates() []identity.Candidate }); ok {
+			candidates = append(candidates, e.GetIdentityCandidates()...)
+		}
+	}
+	return candidates
 }

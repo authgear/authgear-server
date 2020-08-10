@@ -14,6 +14,10 @@ type EdgeCreateAuthenticatorTOTPSetup struct {
 	Stage newinteraction.AuthenticationStage
 }
 
+func (e *EdgeCreateAuthenticatorTOTPSetup) AuthenticatorType() authn.AuthenticatorType {
+	return authn.AuthenticatorTypeTOTP
+}
+
 func (e *EdgeCreateAuthenticatorTOTPSetup) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
 	// This edge does not take any input so it always instantiate.
 	// The reason bebind this change is because the previous node should not beware of NodeCreateAuthenticatorTOTPSetup is after it.

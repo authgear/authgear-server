@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/core/base32"
 	corerand "github.com/authgear/authgear-server/pkg/core/rand"
 	"github.com/authgear/authgear-server/pkg/core/skyerr"
@@ -97,7 +98,7 @@ func (s *Service) GetState(stateID string) (*State, error) {
 	return state, nil
 }
 
-func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph *newinteraction.Graph, edges []newinteraction.Edge, err error) {
+func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph *newinteraction.Graph, err error) {
 	var stateError *skyerr.APIError
 	if stateID != "" {
 		state, err = s.GetState(stateID)
@@ -110,8 +111,13 @@ func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph
 		if state.ID == "" {
 			state.ID = NewID()
 		}
-		graph, edges, err = s.get(state)
-		return
+		graph, err = s.get(state)
+		if err == nil || !errors.Is(err, newinteraction.ErrStateNotFound) {
+			return
+		}
+
+		// If graph is not found: use the intent, with same state error
+		stateError = state.Error
 	}
 
 	newStateID := intent.StateID
@@ -119,19 +125,12 @@ func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph
 		newStateID = NewID()
 	}
 
-	err = s.Graph.DryRun(newStateID, func(ctx *newinteraction.Context) (_ *newinteraction.Graph, err error) {
+	err = s.Graph.DryRun(newStateID, func(ctx *newinteraction.Context) (*newinteraction.Graph, error) {
 		graph, err = s.Graph.NewGraph(ctx, intent.Intent)
 		if err != nil {
-			return
+			return nil, err
 		}
-
-		node := graph.CurrentNode()
-		edges, err = node.DeriveEdges(graph)
-		if err != nil {
-			return
-		}
-
-		return
+		return nil, nil
 	})
 	if err != nil {
 		return
@@ -147,35 +146,28 @@ func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph
 	return
 }
 
-func (s *Service) Get(stateID string) (state *State, graph *newinteraction.Graph, edges []newinteraction.Edge, err error) {
+func (s *Service) Get(stateID string) (state *State, graph *newinteraction.Graph, err error) {
 	state, err = s.GetState(stateID)
 	if err != nil {
 		return
 	}
 
-	graph, edges, err = s.get(state)
+	graph, err = s.get(state)
 	return
 }
 
-func (s *Service) get(state *State) (graph *newinteraction.Graph, edges []newinteraction.Edge, err error) {
+func (s *Service) get(state *State) (graph *newinteraction.Graph, err error) {
 	graph, err = s.Graph.Get(state.GraphInstanceID)
 	if err != nil {
 		return
 	}
 
-	err = s.Graph.DryRun(state.ID, func(ctx *newinteraction.Context) (_ *newinteraction.Graph, err error) {
+	err = s.Graph.DryRun(state.ID, func(ctx *newinteraction.Context) (*newinteraction.Graph, error) {
 		err = graph.Apply(ctx)
 		if err != nil {
 			return nil, err
 		}
-
-		node := graph.CurrentNode()
-		edges, err = node.DeriveEdges(graph)
-		if err != nil {
-			return
-		}
-
-		return
+		return nil, nil
 	})
 	if err != nil {
 		return
@@ -192,7 +184,13 @@ func (s *Service) PostIntent(intent *Intent, inputer func() (interface{}, error)
 		if err != nil {
 			return nil, err
 		}
-		return s.post(state, inputer)
+
+		result, err = s.post(state, inputer)
+		if err == nil || !errors.Is(err, newinteraction.ErrStateNotFound) {
+			return result, err
+		}
+
+		// If graph is not found: use the intent
 	}
 
 	state := &State{
@@ -386,7 +384,7 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 	}
 
 	// Case: transition
-	path := s.deriveRedirectPath(graph, edges)
+	path := s.deriveRedirectPath(graph)
 
 	s.Logger.Debugf("afterPost transition to path: %v", path)
 
@@ -406,10 +404,8 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 }
 
 // nolint:gocyclo
-func (s *Service) deriveRedirectPath(graph *newinteraction.Graph, edges []newinteraction.Edge) string {
-	firstEdge := edges[0]
-
-	switch graph.CurrentNode().(type) {
+func (s *Service) deriveRedirectPath(graph *newinteraction.Graph) string {
+	switch node := graph.CurrentNode().(type) {
 	case *nodes.NodeSelectIdentityBegin:
 		switch intent := graph.Intent.(type) {
 		case *intents.IntentAuthenticate:
@@ -448,22 +444,24 @@ func (s *Service) deriveRedirectPath(graph *newinteraction.Graph, edges []newint
 			panic(fmt.Errorf("webapp: unexpected intent: %T", graph.Intent))
 		}
 	case *nodes.NodeAuthenticationBegin:
-		switch firstEdge.(type) {
-		case *nodes.EdgeAuthenticationPassword:
+		authnTypes := node.AuthenticatorTypes()
+		switch authnTypes[0] {
+		case authn.AuthenticatorTypePassword:
 			return "/enter_password"
-		case *nodes.EdgeAuthenticationTOTP:
+		case authn.AuthenticatorTypeTOTP:
 			return "/enter_totp"
 		default:
-			panic(fmt.Errorf("webapp: unexpected edge: %T", firstEdge))
+			panic(fmt.Errorf("webapp: unexpected authenticator type: %T", authnTypes[0]))
 		}
 	case *nodes.NodeCreateAuthenticatorBegin:
-		switch firstEdge.(type) {
-		case *nodes.EdgeCreateAuthenticatorPassword:
+		authnTypes := node.AuthenticatorTypes()
+		switch authnTypes[0] {
+		case authn.AuthenticatorTypePassword:
 			return "/create_password"
-		case *nodes.EdgeCreateAuthenticatorOOBSetup:
+		case authn.AuthenticatorTypeTOTP:
 			return "/setup_oob_otp"
 		default:
-			panic(fmt.Errorf("webapp: unexpected edge: %T", firstEdge))
+			panic(fmt.Errorf("webapp: unexpected authenticator type: %T", authnTypes[0]))
 		}
 	case *nodes.NodeAuthenticationOOBTrigger:
 		return "/enter_oob_otp"

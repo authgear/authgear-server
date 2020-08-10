@@ -35,6 +35,10 @@ func (n *NodeSelectIdentityBegin) Apply(perform func(eff newinteraction.Effect) 
 }
 
 func (n *NodeSelectIdentityBegin) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+	return n.deriveEdges(), nil
+}
+
+func (n *NodeSelectIdentityBegin) deriveEdges() []newinteraction.Edge {
 	var edges []newinteraction.Edge
 	for _, t := range n.IdentityTypes {
 		switch t {
@@ -57,5 +61,15 @@ func (n *NodeSelectIdentityBegin) DeriveEdges(graph *newinteraction.Graph) ([]ne
 		}
 	}
 
-	return edges, nil
+	return edges
+}
+
+func (n *NodeSelectIdentityBegin) GetIdentityCandidates() []identity.Candidate {
+	var candidates []identity.Candidate
+	for _, e := range n.deriveEdges() {
+		if e, ok := e.(interface{ GetIdentityCandidates() []identity.Candidate }); ok {
+			candidates = append(candidates, e.GetIdentityCandidates()...)
+		}
+	}
+	return candidates
 }

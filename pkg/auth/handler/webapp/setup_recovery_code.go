@@ -61,9 +61,9 @@ type SetupRecoveryCodeHandler struct {
 }
 
 func (h *SetupRecoveryCodeHandler) MakeViewModel(graph *newinteraction.Graph) SetupRecoveryCodeViewModel {
-	node, ok := graph.CurrentNode().(SetupRecoveryCodeNode)
-	if !ok {
-		panic(fmt.Errorf("setup_recovery_code: expected current node to implement SetupRecoveryCodeNode: %T", graph.CurrentNode()))
+	var node SetupRecoveryCodeNode
+	if !graph.FindLastNode(&node) {
+		panic(fmt.Errorf("setup_recovery_code: expected graph has node implementing SetupRecoveryCodeNode"))
 	}
 
 	recoveryCodes := node.GetRecoveryCodes()
@@ -74,7 +74,7 @@ func (h *SetupRecoveryCodeHandler) MakeViewModel(graph *newinteraction.Graph) Se
 	}
 }
 
-func (h *SetupRecoveryCodeHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph, edges []newinteraction.Edge) (map[string]interface{}, error) {
+func (h *SetupRecoveryCodeHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	var anyError interface{}
@@ -100,13 +100,13 @@ func (h *SetupRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		download := r.Form.Get("download") == "true"
 		if download {
 			h.Database.WithTx(func() error {
-				state, graph, edges, err := h.WebApp.Get(StateID(r))
+				state, graph, err := h.WebApp.Get(StateID(r))
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return err
 				}
 
-				data, err := h.GetData(r, state, graph, edges)
+				data, err := h.GetData(r, state, graph)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return err
@@ -117,13 +117,13 @@ func (h *SetupRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 			})
 		} else {
 			h.Database.WithTx(func() error {
-				state, graph, edges, err := h.WebApp.Get(StateID(r))
+				state, graph, err := h.WebApp.Get(StateID(r))
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return err
 				}
 
-				data, err := h.GetData(r, state, graph, edges)
+				data, err := h.GetData(r, state, graph)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return err
