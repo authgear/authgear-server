@@ -42,11 +42,15 @@ type NodeCreateAuthenticatorTOTPSetup struct {
 	Authenticator *authenticator.Info                `json:"authenticator"`
 }
 
+func (n *NodeCreateAuthenticatorTOTPSetup) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeCreateAuthenticatorTOTPSetup) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeCreateAuthenticatorTOTPSetup) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+func (n *NodeCreateAuthenticatorTOTPSetup) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	return []newinteraction.Edge{
 		&EdgeCreateAuthenticatorTOTP{
 			Stage:         n.Stage,

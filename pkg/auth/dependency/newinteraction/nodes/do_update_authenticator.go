@@ -28,6 +28,10 @@ type NodeDoUpdateAuthenticator struct {
 	AuthenticatorAfterUpdate  *authenticator.Info                `json:"authenticator_after_update"`
 }
 
+func (n *NodeDoUpdateAuthenticator) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeDoUpdateAuthenticator) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	err := perform(newinteraction.EffectRun(func(ctx *newinteraction.Context) error {
 		return ctx.Authenticators.Update(n.AuthenticatorAfterUpdate)
@@ -39,8 +43,8 @@ func (n *NodeDoUpdateAuthenticator) Apply(perform func(eff newinteraction.Effect
 	return nil
 }
 
-func (n *NodeDoUpdateAuthenticator) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(ctx, graph, n)
+func (n *NodeDoUpdateAuthenticator) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(graph, n)
 }
 
 func (n *NodeDoUpdateAuthenticator) UserAuthenticator(stage newinteraction.AuthenticationStage) (*authenticator.Info, bool) {

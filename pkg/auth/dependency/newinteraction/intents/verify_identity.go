@@ -37,7 +37,7 @@ func (i *IntentVerifyIdentity) InstantiateRootNode(ctx *newinteraction.Context, 
 	}, nil
 }
 
-func (i *IntentVerifyIdentity) DeriveEdgesForNode(ctx *newinteraction.Context, graph *newinteraction.Graph, node newinteraction.Node) ([]newinteraction.Edge, error) {
+func (i *IntentVerifyIdentity) DeriveEdgesForNode(graph *newinteraction.Graph, node newinteraction.Node) ([]newinteraction.Edge, error) {
 	switch node := node.(type) {
 	case *nodes.NodeEnsureVerificationEnd:
 		return []newinteraction.Edge{

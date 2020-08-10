@@ -126,7 +126,7 @@ func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph
 		}
 
 		node := graph.CurrentNode()
-		edges, err = node.DeriveEdges(ctx, graph)
+		edges, err = node.DeriveEdges(graph)
 		if err != nil {
 			return
 		}
@@ -170,7 +170,7 @@ func (s *Service) get(state *State) (graph *newinteraction.Graph, edges []newint
 		}
 
 		node := graph.CurrentNode()
-		edges, err = node.DeriveEdges(ctx, graph)
+		edges, err = node.DeriveEdges(graph)
 		if err != nil {
 			return
 		}

@@ -12,11 +12,15 @@ func init() {
 
 type NodeResetPasswordBegin struct{}
 
+func (n *NodeResetPasswordBegin) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeResetPasswordBegin) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeResetPasswordBegin) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+func (n *NodeResetPasswordBegin) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	return []newinteraction.Edge{&EdgeResetPassword{}}, nil
 }
 
@@ -62,7 +66,11 @@ func (n *NodeResetPasswordEnd) Apply(perform func(eff newinteraction.Effect) err
 	return nil
 }
 
-func (n *NodeResetPasswordEnd) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+func (n *NodeResetPasswordEnd) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
+func (n *NodeResetPasswordEnd) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	// Password authenticator is always primary for now
 	if n.NewAuthenticator != nil {
 		return []newinteraction.Edge{

@@ -12,11 +12,13 @@ var ErrIncompatibleInput = errors.New("incompatible input type for this node")
 var ErrSameNode = errors.New("the edge points to the same current node")
 
 type Node interface {
+	// Prepare the node with data required by DeriveEdges.
+	Prepare(ctx *Context, graph *Graph) error
 	// Apply the effects of this node to context.
 	// This may be ran multiple times, due to replaying the graph.
 	// So no external visible side effect is allowed.
 	Apply(perform func(eff Effect) error, graph *Graph) error
-	DeriveEdges(ctx *Context, graph *Graph) ([]Edge, error)
+	DeriveEdges(graph *Graph) ([]Edge, error)
 }
 
 type Edge interface {

@@ -157,11 +157,15 @@ func (n *NodeCreateAuthenticatorOOBSetup) GetOOBOTPCodeLength() int {
 	return n.CodeLength
 }
 
+func (n *NodeCreateAuthenticatorOOBSetup) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeCreateAuthenticatorOOBSetup) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeCreateAuthenticatorOOBSetup) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+func (n *NodeCreateAuthenticatorOOBSetup) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	return []newinteraction.Edge{
 		&EdgeOOBResendCode{
 			Stage:            n.Stage,

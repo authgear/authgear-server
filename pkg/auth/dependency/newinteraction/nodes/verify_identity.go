@@ -77,11 +77,15 @@ func (n *NodeVerifyIdentity) GetVerificationCodeLength() int {
 	return n.CodeLength
 }
 
+func (n *NodeVerifyIdentity) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeVerifyIdentity) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeVerifyIdentity) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+func (n *NodeVerifyIdentity) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	return []newinteraction.Edge{
 		&EdgeVerifyIdentityCheckCode{Identity: n.Identity, ID: n.CodeID},
 		&EdgeVerifyIdentityResendCode{Node: n},

@@ -23,6 +23,10 @@ type NodeDoCreateUser struct {
 	CreateUserID string `json:"create_user_id"`
 }
 
+func (n *NodeDoCreateUser) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeDoCreateUser) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	var u *user.User
 
@@ -45,8 +49,8 @@ func (n *NodeDoCreateUser) Apply(perform func(eff newinteraction.Effect) error, 
 	return nil
 }
 
-func (n *NodeDoCreateUser) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(ctx, graph, n)
+func (n *NodeDoCreateUser) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(graph, n)
 }
 
 func (n *NodeDoCreateUser) UserID() string {

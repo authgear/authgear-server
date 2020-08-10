@@ -34,10 +34,14 @@ type NodeRemoveAuthenticator struct {
 	Authenticators []*authenticator.Info `json:"authenticators"`
 }
 
+func (n *NodeRemoveAuthenticator) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeRemoveAuthenticator) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeRemoveAuthenticator) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(ctx, graph, n)
+func (n *NodeRemoveAuthenticator) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(graph, n)
 }

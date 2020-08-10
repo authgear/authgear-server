@@ -3,6 +3,7 @@ package nodes
 import (
 	"errors"
 
+	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 )
@@ -28,14 +29,20 @@ func (e *EdgeCheckIdentityConflict) Instantiate(ctx *newinteraction.Context, gra
 }
 
 type NodeCheckIdentityConflict struct {
-	NewIdentity        *identity.Info `json:"new_identity"`
-	DuplicatedIdentity *identity.Info `json:"duplicated_identity"`
+	NewIdentity            *identity.Info                 `json:"new_identity"`
+	DuplicatedIdentity     *identity.Info                 `json:"duplicated_identity"`
+	IdentityConflictConfig *config.IdentityConflictConfig `json:"-"`
+}
+
+func (n *NodeCheckIdentityConflict) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	n.IdentityConflictConfig = ctx.Config.Identity.OnConflict
+	return nil
 }
 
 func (n *NodeCheckIdentityConflict) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeCheckIdentityConflict) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(ctx, graph, n)
+func (n *NodeCheckIdentityConflict) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(graph, n)
 }

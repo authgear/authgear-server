@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
@@ -18,16 +19,24 @@ func (e *EdgeCreateIdentityBegin) Instantiate(ctx *newinteraction.Context, graph
 }
 
 type NodeCreateIdentityBegin struct {
-	AllowAnonymousUser bool `json:"allow_anonymous_user"`
+	AllowAnonymousUser bool                   `json:"allow_anonymous_user"`
+	IdentityTypes      []authn.IdentityType   `json:"-"`
+	IdentityConfig     *config.IdentityConfig `json:"-"`
+}
+
+func (n *NodeCreateIdentityBegin) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	n.IdentityTypes = ctx.Config.Authentication.Identities
+	n.IdentityConfig = ctx.Config.Identity
+	return nil
 }
 
 func (n *NodeCreateIdentityBegin) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeCreateIdentityBegin) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+func (n *NodeCreateIdentityBegin) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	var edges []newinteraction.Edge
-	for _, t := range ctx.Config.Authentication.Identities {
+	for _, t := range n.IdentityTypes {
 		switch t {
 		case authn.IdentityTypeAnonymous:
 			if n.AllowAnonymousUser {
@@ -39,13 +48,13 @@ func (n *NodeCreateIdentityBegin) DeriveEdges(ctx *newinteraction.Context, graph
 		case authn.IdentityTypeLoginID:
 			edges = append(edges, &EdgeUseIdentityLoginID{
 				Mode:    UseIdentityLoginIDModeCreate,
-				Configs: ctx.Config.Identity.LoginID.Keys,
+				Configs: n.IdentityConfig.LoginID.Keys,
 			})
 
 		case authn.IdentityTypeOAuth:
 			edges = append(edges, &EdgeUseIdentityOAuthProvider{
 				IsCreating: true,
-				Configs:    ctx.Config.Identity.OAuth.Providers,
+				Configs:    n.IdentityConfig.OAuth.Providers,
 			})
 
 		default:

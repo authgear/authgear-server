@@ -101,11 +101,15 @@ func (n *NodeUseIdentityOAuthProvider) GetErrorRedirectURI() string {
 	return n.ErrorRedirectURI
 }
 
+func (n *NodeUseIdentityOAuthProvider) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeUseIdentityOAuthProvider) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeUseIdentityOAuthProvider) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+func (n *NodeUseIdentityOAuthProvider) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	return []newinteraction.Edge{
 		&EdgeUseIdentityOAuthUserInfo{
 			IsCreating:       n.IsCreating,

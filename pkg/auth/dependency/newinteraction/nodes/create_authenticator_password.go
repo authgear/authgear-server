@@ -45,11 +45,15 @@ type NodeCreateAuthenticatorPassword struct {
 	Authenticator *authenticator.Info                `json:"authenticator"`
 }
 
+func (n *NodeCreateAuthenticatorPassword) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeCreateAuthenticatorPassword) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeCreateAuthenticatorPassword) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+func (n *NodeCreateAuthenticatorPassword) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	return []newinteraction.Edge{
 		&EdgeCreateAuthenticatorEnd{
 			Stage:          n.Stage,

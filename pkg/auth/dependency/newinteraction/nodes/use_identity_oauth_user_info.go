@@ -110,11 +110,15 @@ type NodeUseIdentityOAuthUserInfo struct {
 	IdentitySpec *identity.Spec `json:"identity_spec"`
 }
 
+func (n *NodeUseIdentityOAuthUserInfo) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeUseIdentityOAuthUserInfo) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeUseIdentityOAuthUserInfo) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+func (n *NodeUseIdentityOAuthUserInfo) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	if n.IsCreating {
 		return []newinteraction.Edge{&EdgeCreateIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil
 	}

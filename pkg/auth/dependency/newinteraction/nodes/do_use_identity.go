@@ -23,12 +23,16 @@ type NodeDoUseIdentity struct {
 	Identity *identity.Info `json:"identity"`
 }
 
+func (n *NodeDoUseIdentity) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeDoUseIdentity) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeDoUseIdentity) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(ctx, graph, n)
+func (n *NodeDoUseIdentity) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(graph, n)
 }
 
 func (n *NodeDoUseIdentity) UserIdentity() *identity.Info {

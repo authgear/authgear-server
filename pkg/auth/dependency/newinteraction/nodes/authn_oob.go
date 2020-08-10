@@ -41,11 +41,15 @@ type NodeAuthenticationOOB struct {
 	Authenticator *authenticator.Info                `json:"authenticator"`
 }
 
+func (n *NodeAuthenticationOOB) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeAuthenticationOOB) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeAuthenticationOOB) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+func (n *NodeAuthenticationOOB) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	return []newinteraction.Edge{
 		&EdgeAuthenticationEnd{
 			Stage:                 n.Stage,

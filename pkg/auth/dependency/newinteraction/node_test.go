@@ -12,11 +12,15 @@ type testNode struct {
 	x int
 }
 
+func (t testNode) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (t testNode) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (t testNode) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+func (t testNode) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	return nil, nil
 }
 

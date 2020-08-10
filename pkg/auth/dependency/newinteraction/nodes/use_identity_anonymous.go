@@ -97,11 +97,15 @@ type NodeUseIdentityAnonymous struct {
 	Action       anonymous.RequestAction `json:"action"`
 }
 
+func (n *NodeUseIdentityAnonymous) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeUseIdentityAnonymous) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeUseIdentityAnonymous) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+func (n *NodeUseIdentityAnonymous) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	if n.IsCreating {
 		return []newinteraction.Edge{&EdgeCreateIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil
 	}

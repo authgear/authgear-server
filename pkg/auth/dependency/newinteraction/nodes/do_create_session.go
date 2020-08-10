@@ -59,6 +59,10 @@ func (n *NodeDoCreateSession) AuthnAttrs() authn.Attrs {
 	return n.Session.Attrs
 }
 
+func (n *NodeDoCreateSession) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeDoCreateSession) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	err := perform(newinteraction.EffectOnCommit(func(ctx *newinteraction.Context) error {
 		if n.Reason != auth.SessionCreateReasonPromote {
@@ -139,6 +143,6 @@ func (n *NodeDoCreateSession) Apply(perform func(eff newinteraction.Effect) erro
 	return nil
 }
 
-func (n *NodeDoCreateSession) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(ctx, graph, n)
+func (n *NodeDoCreateSession) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(graph, n)
 }

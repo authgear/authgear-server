@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/core/authn"
@@ -21,14 +22,27 @@ func (e *EdgeAuthenticationBegin) Instantiate(ctx *newinteraction.Context, graph
 }
 
 type NodeAuthenticationBegin struct {
-	Stage newinteraction.AuthenticationStage `json:"stage"`
+	Stage                newinteraction.AuthenticationStage `json:"stage"`
+	AuthenticationConfig *config.AuthenticationConfig       `json:"-"`
+	Authenticators       []*authenticator.Info              `json:"-"`
+}
+
+func (n *NodeAuthenticationBegin) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	ais, err := ctx.Authenticators.List(graph.MustGetUserID())
+	if err != nil {
+		return err
+	}
+
+	n.AuthenticationConfig = ctx.Config.Authentication
+	n.Authenticators = ais
+	return nil
 }
 
 func (n *NodeAuthenticationBegin) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeAuthenticationBegin) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+func (n *NodeAuthenticationBegin) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	var edges []newinteraction.Edge
 	var err error
 	var availableAuthenticators []*authenticator.Info
@@ -36,18 +50,18 @@ func (n *NodeAuthenticationBegin) DeriveEdges(ctx *newinteraction.Context, graph
 
 	switch n.Stage {
 	case newinteraction.AuthenticationStagePrimary:
-		availableAuthenticators, err = ctx.Authenticators.List(
-			identityInfo.UserID,
+		availableAuthenticators = filterAuthenticators(
+			n.Authenticators,
 			authenticator.KeepTag(authenticator.TagPrimaryAuthenticator),
 			authenticator.KeepPrimaryAuthenticatorOfIdentity(identityInfo),
 		)
 		if err != nil {
 			return nil, err
 		}
-		availableAuthenticators = newinteraction.SortAuthenticators(availableAuthenticators, ctx.Config.Authentication.PrimaryAuthenticators)
+		availableAuthenticators = newinteraction.SortAuthenticators(availableAuthenticators, n.AuthenticationConfig.PrimaryAuthenticators)
 	case newinteraction.AuthenticationStageSecondary:
-		availableAuthenticators, err = ctx.Authenticators.List(
-			identityInfo.UserID,
+		availableAuthenticators = filterAuthenticators(
+			n.Authenticators,
 			authenticator.KeepTag(authenticator.TagSecondaryAuthenticator),
 		)
 		if err != nil {

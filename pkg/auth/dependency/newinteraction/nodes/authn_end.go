@@ -29,14 +29,18 @@ type NodeAuthenticationEnd struct {
 	VerifiedAuthenticator *authenticator.Info                `json:"verified_authenticator"`
 }
 
+func (n *NodeAuthenticationEnd) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
+	return nil
+}
+
 func (n *NodeAuthenticationEnd) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	return nil
 }
 
-func (n *NodeAuthenticationEnd) DeriveEdges(ctx *newinteraction.Context, graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
+func (n *NodeAuthenticationEnd) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
 	if !n.Optional && n.VerifiedAuthenticator == nil {
 		return nil, newinteraction.ErrInvalidCredentials
 	}
 
-	return graph.Intent.DeriveEdgesForNode(ctx, graph, n)
+	return graph.Intent.DeriveEdgesForNode(graph, n)
 }
