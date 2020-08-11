@@ -2,7 +2,6 @@ package user
 
 import (
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"time"
 
@@ -14,7 +13,6 @@ import (
 type store interface {
 	Create(u *User) error
 	Get(userID string) (*User, error)
-	UpdateMetadata(userID string, metadata map[string]interface{}, updateAt time.Time) error
 	UpdateLoginTime(userID string, loginAt time.Time) error
 }
 
@@ -24,12 +22,6 @@ type Store struct {
 }
 
 func (s *Store) Create(u *User) error {
-	var metadataBytes []byte
-	metadataBytes, err := json.Marshal(u.Metadata)
-	if err != nil {
-		return err
-	}
-
 	builder := s.SQLBuilder.Tenant().
 		Insert(s.SQLBuilder.FullTableName("user")).
 		Columns(
@@ -37,17 +29,15 @@ func (s *Store) Create(u *User) error {
 			"created_at",
 			"updated_at",
 			"last_login_at",
-			"metadata",
 		).
 		Values(
 			u.ID,
 			u.CreatedAt,
 			u.UpdatedAt,
 			u.LastLoginAt,
-			metadataBytes,
 		)
 
-	_, err = s.SQLExecutor.ExecWith(builder)
+	_, err := s.SQLExecutor.ExecWith(builder)
 	if err != nil {
 		return err
 	}
@@ -62,7 +52,6 @@ func (s *Store) Get(userID string) (*User, error) {
 			"created_at",
 			"updated_at",
 			"last_login_at",
-			"metadata",
 		).
 		From(s.SQLBuilder.FullTableName("user")).
 		Where("id = ?", userID)
@@ -71,14 +60,12 @@ func (s *Store) Get(userID string) (*User, error) {
 		return nil, err
 	}
 
-	var metadataBytes []byte
 	u := &User{}
 	err = scanner.Scan(
 		&u.ID,
 		&u.CreatedAt,
 		&u.UpdatedAt,
 		&u.LastLoginAt,
-		&metadataBytes,
 	)
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -87,33 +74,7 @@ func (s *Store) Get(userID string) (*User, error) {
 		return nil, err
 	}
 
-	err = json.Unmarshal(metadataBytes, &u.Metadata)
-	if err != nil {
-		return nil, err
-	}
-
 	return u, nil
-}
-
-func (s *Store) UpdateMetadata(userID string, metadata map[string]interface{}, updateAt time.Time) error {
-	var metadataBytes []byte
-	metadataBytes, err := json.Marshal(metadata)
-	if err != nil {
-		return err
-	}
-
-	builder := s.SQLBuilder.Tenant().
-		Update(s.SQLBuilder.FullTableName("user")).
-		Set("updated_at", updateAt).
-		Set("data", metadataBytes).
-		Where("id = ?", userID)
-
-	_, err = s.SQLExecutor.ExecWith(builder)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (s *Store) UpdateLoginTime(userID string, loginAt time.Time) error {

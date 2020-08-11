@@ -19,14 +19,13 @@ type RawCommands struct {
 	Queries                *Queries
 }
 
-func (c *RawCommands) Create(userID string, metadata map[string]interface{}) (*User, error) {
+func (c *RawCommands) Create(userID string) (*User, error) {
 	now := c.Clock.NowUTC()
 	user := &User{
 		ID:          userID,
 		CreatedAt:   now,
 		UpdatedAt:   now,
 		LastLoginAt: nil,
-		Metadata:    metadata,
 	}
 
 	err := c.Store.Create(user)
@@ -43,16 +42,6 @@ func (c *RawCommands) AfterCreate(userModel *model.User, identities []*identity.
 		return err
 	}
 
-	return nil
-}
-
-func (c *RawCommands) UpdateMetadata(user *model.User, metadata map[string]interface{}) error {
-	now := c.Clock.NowUTC()
-	if err := c.Store.UpdateMetadata(user.ID, metadata, now); err != nil {
-		return err
-	}
-
-	user.Metadata = metadata
 	return nil
 }
 

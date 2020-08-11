@@ -81,7 +81,7 @@ type MFAService interface {
 
 type UserService interface {
 	Get(id string) (*model.User, error)
-	Create(userID string, metadata map[string]interface{}) (*user.User, error)
+	Create(userID string) (*user.User, error)
 	AfterCreate(user *user.User, identities []*identity.Info, authenticators []*authenticator.Info) error
 	UpdateLoginTime(user *model.User, lastLoginAt time.Time) error
 }

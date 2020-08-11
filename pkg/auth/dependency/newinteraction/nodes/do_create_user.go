@@ -32,7 +32,7 @@ func (n *NodeDoCreateUser) Apply(perform func(eff newinteraction.Effect) error, 
 
 	err := perform(newinteraction.EffectRun(func(ctx *newinteraction.Context) error {
 		var err error
-		u, err = ctx.Users.Create(n.CreateUserID, map[string]interface{}{})
+		u, err = ctx.Users.Create(n.CreateUserID)
 		return err
 	}))
 	if err != nil {

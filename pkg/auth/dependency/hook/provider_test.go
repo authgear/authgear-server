@@ -193,9 +193,6 @@ func TestDispatchEvent(t *testing.T) {
 				}
 				users.EXPECT().Get("user-id").Return(&model.User{
 					ID: "user-id",
-					Metadata: map[string]interface{}{
-						"user": true,
-					},
 				}, nil)
 				deliverer.EXPECT().WillDeliver(event.UserSync).Return(true)
 				deliverer.EXPECT().WillDeliver(event.AfterSessionCreate).Return(true)
@@ -220,8 +217,7 @@ func TestDispatchEvent(t *testing.T) {
 						Seq:  2,
 						Payload: &event.UserSyncEvent{
 							User: model.User{
-								ID:       "user-id",
-								Metadata: map[string]interface{}{"user": true},
+								ID: "user-id",
 							},
 						},
 						Context: event.Context{
@@ -247,9 +243,6 @@ func TestDispatchEvent(t *testing.T) {
 				}
 				users.EXPECT().Get("user-id").Return(&model.User{
 					ID: "user-id",
-					Metadata: map[string]interface{}{
-						"user": true,
-					},
 				}, nil)
 				deliverer.EXPECT().WillDeliver(event.UserSync).Return(true)
 				deliverer.EXPECT().WillDeliver(event.AfterSessionCreate).Return(false)
@@ -260,8 +253,7 @@ func TestDispatchEvent(t *testing.T) {
 						Seq:  1,
 						Payload: &event.UserSyncEvent{
 							User: model.User{
-								ID:       "user-id",
-								Metadata: map[string]interface{}{"user": true},
+								ID: "user-id",
 							},
 						},
 						Context: event.Context{

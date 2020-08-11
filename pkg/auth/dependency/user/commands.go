@@ -19,11 +19,8 @@ type Commands struct {
 	Verification VerificationService
 }
 
-func (c *Commands) Create(
-	userID string,
-	metadata map[string]interface{},
-) (*User, error) {
-	return c.Raw.Create(userID, metadata)
+func (c *Commands) Create(userID string) (*User, error) {
+	return c.Raw.Create(userID)
 }
 
 func (c *Commands) AfterCreate(
@@ -51,11 +48,6 @@ func (c *Commands) AfterCreate(
 	}
 
 	return nil
-}
-
-func (c *Commands) UpdateMetadata(user *model.User, metadata map[string]interface{}) error {
-	// TODO(webhook): dispatch update metadata event
-	return c.Raw.UpdateMetadata(user, metadata)
 }
 
 func (c *Commands) UpdateLoginTime(user *model.User, loginAt gotime.Time) error {
