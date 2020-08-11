@@ -385,7 +385,7 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 	}
 
 	// Case: transition
-	path, statusCode := s.deriveRedirectPath(graph)
+	path := s.deriveRedirectPath(graph)
 
 	s.Logger.Debugf("afterPost transition to path: %v", path)
 
@@ -400,15 +400,12 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 	return &Result{
 		state:       state,
 		redirectURI: redirectURI,
-		statusCode:  statusCode,
 		cookies:     cookies,
 	}, nil
 }
 
 // nolint:gocyclo
-func (s *Service) deriveRedirectPath(graph *newinteraction.Graph) (path string, statusCode int) {
-	statusCode = http.StatusFound
-
+func (s *Service) deriveRedirectPath(graph *newinteraction.Graph) (path string) {
 	switch graph.CurrentNode().(type) {
 	case *nodes.NodeSelectIdentityBegin:
 		switch intent := graph.Intent.(type) {
@@ -448,11 +445,11 @@ func (s *Service) deriveRedirectPath(graph *newinteraction.Graph) (path string, 
 			panic(fmt.Errorf("webapp: unexpected intent: %T", graph.Intent))
 		}
 	case *nodes.NodeAuthenticationBegin:
+		// Ideally we should use 307 but if we use 307
+		// the CSRF middleware will complain about invalid CSRF token.
 		path = "/authentication_begin"
-		statusCode = http.StatusTemporaryRedirect
 	case *nodes.NodeCreateAuthenticatorBegin:
 		path = "/create_authenticator_begin"
-		statusCode = http.StatusTemporaryRedirect
 	case *nodes.NodeAuthenticationOOBTrigger:
 		path = "/enter_oob_otp"
 	case *nodes.NodeCreateAuthenticatorOOBSetup:
