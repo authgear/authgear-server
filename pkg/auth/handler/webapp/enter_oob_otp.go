@@ -52,6 +52,7 @@ type EnterOOBOTPViewModel struct {
 	OOBOTPCodeSendCooldown int
 	OOBOTPCodeLength       int
 	OOBOTPChannel          string
+	Alternatives           []AuthenticationAlternative
 }
 
 type EnterOOBOTPHandler struct {
@@ -72,23 +73,31 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, state *webapp.State, graph
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-	oobOTPViewModel := EnterOOBOTPViewModel{}
+	viewModel := EnterOOBOTPViewModel{}
 	var n EnterOOBOTPNode
 	if graph.FindLastNode(&n) {
-		oobOTPViewModel.OOBOTPCodeSendCooldown = n.GetOOBOTPCodeSendCooldown()
-		oobOTPViewModel.OOBOTPCodeLength = n.GetOOBOTPCodeLength()
-		oobOTPViewModel.OOBOTPChannel = n.GetOOBOTPChannel()
+		viewModel.OOBOTPCodeSendCooldown = n.GetOOBOTPCodeSendCooldown()
+		viewModel.OOBOTPCodeLength = n.GetOOBOTPCodeLength()
+		viewModel.OOBOTPChannel = n.GetOOBOTPChannel()
 
-		switch authn.AuthenticatorOOBChannel(oobOTPViewModel.OOBOTPChannel) {
+		switch authn.AuthenticatorOOBChannel(viewModel.OOBOTPChannel) {
 		case authn.AuthenticatorOOBChannelEmail:
-			oobOTPViewModel.OOBOTPTarget = mail.MaskAddress(n.GetOOBOTPTarget())
+			viewModel.OOBOTPTarget = mail.MaskAddress(n.GetOOBOTPTarget())
 		case authn.AuthenticatorOOBChannelSMS:
-			oobOTPViewModel.OOBOTPTarget = phone.Mask(n.GetOOBOTPTarget())
+			viewModel.OOBOTPTarget = phone.Mask(n.GetOOBOTPTarget())
 		}
 	}
 
+	viewModel.Alternatives = DeriveAuthenticationAlternatives(
+		// Use previous state ID because the current node should be NodeAuthenticationOOBTrigger.
+		state.PrevID,
+		graph,
+		authn.AuthenticatorTypeOOB,
+		n.GetOOBOTPTarget(),
+	)
+
 	viewmodels.Embed(data, baseViewModel)
-	viewmodels.Embed(data, oobOTPViewModel)
+	viewmodels.Embed(data, viewModel)
 
 	return data, nil
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -48,6 +49,7 @@ func ConfigureEnterPasswordRoute(route httproute.Route) httproute.Route {
 
 type EnterPasswordViewModel struct {
 	IdentityDisplayID string
+	Alternatives      []AuthenticationAlternative
 }
 
 type EnterPasswordHandler struct {
@@ -62,8 +64,18 @@ func (h *EnterPasswordHandler) GetData(r *http.Request, state *webapp.State, gra
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
 	identityInfo := graph.MustGetUserLastIdentity()
+
+	alternatives := DeriveAuthenticationAlternatives(
+		// Use current state ID because the current node should be NodeAuthenticationBegin.
+		state.ID,
+		graph,
+		authn.AuthenticatorTypePassword,
+		"",
+	)
+
 	enterPasswordViewModel := EnterPasswordViewModel{
 		IdentityDisplayID: identityInfo.DisplayID(),
+		Alternatives:      alternatives,
 	}
 
 	viewmodels.Embed(data, baseViewModel)

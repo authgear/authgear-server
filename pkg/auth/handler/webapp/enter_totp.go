@@ -4,8 +4,10 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -43,6 +45,10 @@ func ConfigureEnterTOTPRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/enter_totp")
 }
 
+type EnterTOTPViewModel struct {
+	Alternatives []AuthenticationAlternative
+}
+
 type EnterTOTPHandler struct {
 	Database      *db.Handle
 	BaseViewModel *viewmodels.BaseViewModeler
@@ -50,12 +56,24 @@ type EnterTOTPHandler struct {
 	WebApp        WebAppService
 }
 
-func (h *EnterTOTPHandler) GetData(r *http.Request, state *webapp.State) (map[string]interface{}, error) {
+func (h *EnterTOTPHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
+	alternatives := DeriveAuthenticationAlternatives(
+		// Use current state ID because the current node should be NodeAuthenticationBegin.
+		state.ID,
+		graph,
+		authn.AuthenticatorTypeTOTP,
+		"",
+	)
+
+	viewModel := EnterTOTPViewModel{
+		Alternatives: alternatives,
+	}
 
 	viewmodels.Embed(data, baseViewModel)
+	viewmodels.Embed(data, viewModel)
 
 	return data, nil
 }
@@ -77,13 +95,13 @@ func (h *EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "GET" {
 		h.Database.WithTx(func() error {
-			state, _, err := h.WebApp.Get(StateID(r))
+			state, graph, err := h.WebApp.Get(StateID(r))
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
-			data, err := h.GetData(r, state)
+			data, err := h.GetData(r, state, graph)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
