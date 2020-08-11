@@ -162,16 +162,21 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []newinteraction
 		return nil
 	}
 
-	// 2. Determine what secondary authenticator we allow the user to create.
-	// We have the following conditions to hold:
-	//   A. The secondary authenticator is allowed in the configuration.
-	//   B. The user does not have that type of secondary authenticator yet.
-	//   C. The number of the secondary authenticator the user is less than maximum.
-
+	// 2. Determine whether the user has at least one secondary authenticator.
+	// If yes, then no secondary authenticator is needed.
 	ais := filterAuthenticators(
 		n.Authenticators,
 		authenticator.KeepTag(authenticator.TagSecondaryAuthenticator),
 	)
+	if len(ais) > 0 {
+		return nil
+	}
+
+	// 3. Determine what secondary authenticator we allow the user to create.
+	// We have the following conditions to hold:
+	//   A. The secondary authenticator is allowed in the configuration.
+	//   B. The user does not have that type of secondary authenticator yet.
+	//   C. The number of the secondary authenticator the user is less than maximum.
 
 	passwordCount := 0
 	totpCount := 0
