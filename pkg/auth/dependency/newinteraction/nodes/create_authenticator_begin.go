@@ -188,7 +188,7 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []newinteraction
 	// 3. Determine what secondary authenticator we allow the user to create.
 	// We have the following conditions to hold:
 	//   A. The secondary authenticator is allowed in the configuration.
-	//   B. The user does not have that type of secondary authenticator yet.
+	//   B. The user does not have that type of secondary authenticator yet. (This is always true since we have 2)
 	//   C. The number of the secondary authenticator the user is less than maximum.
 
 	passwordCount := 0
@@ -220,24 +220,21 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []newinteraction
 	for _, typ := range n.AuthenticationConfig.SecondaryAuthenticators {
 		switch typ {
 		case authn.AuthenticatorTypePassword:
-			count := passwordCount
 			// Condition B.
-			if count == 0 {
-				edges = append(edges, &EdgeCreateAuthenticatorPassword{Stage: n.Stage})
-			}
+			edges = append(edges, &EdgeCreateAuthenticatorPassword{Stage: n.Stage})
 		case authn.AuthenticatorTypeTOTP:
 			// Condition B and C.
-			if totpCount == 0 && totpCount < *n.AuthenticatorConfig.TOTP.Maximum {
+			if totpCount < *n.AuthenticatorConfig.TOTP.Maximum {
 				edges = append(edges, &EdgeCreateAuthenticatorTOTPSetup{Stage: n.Stage})
 			}
 		case authn.AuthenticatorTypeOOB:
 			var allowedChannels []authn.AuthenticatorOOBChannel
 			// Condition B and C.
-			if oobSMSCount == 0 && oobSMSCount < *n.AuthenticatorConfig.OOB.SMS.Maximum {
+			if oobSMSCount < *n.AuthenticatorConfig.OOB.SMS.Maximum {
 				allowedChannels = append(allowedChannels, authn.AuthenticatorOOBChannelSMS)
 			}
 			// Condition B and C.
-			if oobEmailCount == 0 && oobEmailCount < *n.AuthenticatorConfig.OOB.Email.Maximum {
+			if oobEmailCount < *n.AuthenticatorConfig.OOB.Email.Maximum {
 				allowedChannels = append(allowedChannels, authn.AuthenticatorOOBChannelEmail)
 			}
 			if len(allowedChannels) > 0 {
