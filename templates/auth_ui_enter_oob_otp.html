@@ -32,7 +32,7 @@
 
 <input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_password" placeholder="{{ localize "oob-otp-placeholder" }}">
 
-{{ range $.Alternatives }}
+{{ range $.AuthenticationAlternatives }}
 {{ if eq .Type "totp" }}
 <a class="link align-self-flex-start" href="{{ .URL }}">{{ localize "enter-totp-instead" }}</a>
 {{ end }}
@@ -41,6 +41,18 @@
 {{ end }}
 {{ if eq .Type "oob_otp" }}
 <a class="link align-self-flex-start" href="{{ .URL }}">{{ localize "enter-oob-otp-instead" .MaskedTarget }}</a>
+{{ end }}
+{{ end }}
+
+{{ range $.CreateAuthenticatorAlternatives }}
+{{ if eq .Type "totp" }}
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ localize "setup-totp-instead" }}</a>
+{{ end }}
+{{ if eq .Type "oob_otp" }}
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ localize "setup-oob-otp-instead" }}</a>
+{{ end }}
+{{ if eq .Type "password" }}
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ localize "setup-password-instead" }}</a>
 {{ end }}
 {{ end }}
 

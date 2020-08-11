@@ -136,14 +136,27 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() (edges []newinteraction.E
 			edges = append(edges, &EdgeCreateAuthenticatorTOTPSetup{Stage: n.Stage})
 
 		case authn.AuthenticatorTypeOOB:
-			edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
-				Stage: n.Stage,
-				// To make things simpler, just include all channels.
-				AllowedChannels: []authn.AuthenticatorOOBChannel{
-					authn.AuthenticatorOOBChannelEmail,
-					authn.AuthenticatorOOBChannelSMS,
-				},
-			})
+			loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
+			loginID := n.Identity.Claims[identity.IdentityClaimLoginIDValue].(string)
+
+			var channel authn.AuthenticatorOOBChannel
+			var target string
+			switch loginIDType {
+			case string(config.LoginIDKeyTypeEmail):
+				channel = authn.AuthenticatorOOBChannelEmail
+				target = loginID
+			case string(config.LoginIDKeyTypePhone):
+				channel = authn.AuthenticatorOOBChannelSMS
+				target = loginID
+			}
+
+			if target != "" {
+				edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
+					Stage:   n.Stage,
+					Channel: channel,
+					Target:  target,
+				})
+			}
 		default:
 			panic("interaction: unknown authenticator type: " + firstType)
 		}

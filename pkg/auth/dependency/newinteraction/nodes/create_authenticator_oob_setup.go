@@ -19,23 +19,36 @@ type InputCreateAuthenticatorOOBSetup interface {
 }
 
 type EdgeCreateAuthenticatorOOBSetup struct {
-	Stage           newinteraction.AuthenticationStage
+	Stage newinteraction.AuthenticationStage
+
+	// Either have Channel and Target
+	Channel authn.AuthenticatorOOBChannel
+	Target  string
+	// Or have AllowedChannels
 	AllowedChannels []authn.AuthenticatorOOBChannel
 }
 
 func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
-	input, ok := rawInput.(InputCreateAuthenticatorOOBSetup)
-	if !ok {
-		return nil, newinteraction.ErrIncompatibleInput
-	}
-	channel := input.GetOOBChannel()
-	if channel == "" {
-		return nil, newinteraction.ErrIncompatibleInput
+	var target string
+	var channel authn.AuthenticatorOOBChannel
+
+	if e.Channel != "" && e.Target != "" {
+		channel = e.Channel
+		target = e.Target
+	} else {
+		input, ok := rawInput.(InputCreateAuthenticatorOOBSetup)
+		if !ok {
+			return nil, newinteraction.ErrIncompatibleInput
+		}
+		channel = input.GetOOBChannel()
+		if channel == "" {
+			return nil, newinteraction.ErrIncompatibleInput
+		}
+		target = input.GetOOBTarget()
 	}
 
 	var spec *authenticator.Spec
 	var identityInfo *identity.Info
-	target := input.GetOOBTarget()
 	if e.Stage == newinteraction.AuthenticationStagePrimary {
 		// Primary OOB authenticators must be bound to login ID identity
 		identityInfo = graph.MustGetUserLastIdentity()

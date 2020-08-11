@@ -1,6 +1,7 @@
 package authenticator
 
 import (
+	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/core/utils"
@@ -60,12 +61,17 @@ func KeepMatchingAuthenticatorOfIdentity(ii *identity.Info) Filter {
 			if ai.Type == typ {
 				switch {
 				case ii.Type == authn.IdentityTypeLoginID && ai.Type == authn.AuthenticatorTypeOOB:
-					loginID := ii.Claims[identity.IdentityClaimLoginIDValue]
+					loginIDType, _ := ii.Claims[identity.IdentityClaimLoginIDType].(string)
+					loginID, _ := ii.Claims[identity.IdentityClaimLoginIDValue].(string)
 					email, _ := ai.Props[AuthenticatorPropOOBOTPEmail].(string)
 					phone, _ := ai.Props[AuthenticatorPropOOBOTPPhone].(string)
-					if loginID == email || loginID == phone {
-						return true
+					switch loginIDType {
+					case string(config.LoginIDKeyTypeEmail):
+						return loginID == email
+					case string(config.LoginIDKeyTypePhone):
+						return loginID == phone
 					}
+					return false
 				default:
 					return true
 				}
