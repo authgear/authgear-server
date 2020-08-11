@@ -11,7 +11,6 @@ import (
 
 type Builder struct {
 	session *session.IDPSession
-	user    *authn.UserInfo
 }
 
 func WithAuthn() Builder {
@@ -22,9 +21,6 @@ func WithAuthn() Builder {
 				UserID: "user-id",
 			},
 		},
-		user: &authn.UserInfo{
-			ID: "user-id",
-		},
 	}
 }
 
@@ -33,7 +29,7 @@ func (b Builder) ToRequest(r *http.Request) *http.Request {
 }
 
 func (b Builder) ToContext(ctx context.Context) context.Context {
-	return authn.WithAuthn(ctx, b.session, b.user)
+	return authn.WithAuthn(ctx, b.session)
 }
 
 func (b Builder) ToSession() auth.AuthSession {
@@ -41,7 +37,6 @@ func (b Builder) ToSession() auth.AuthSession {
 }
 
 func (b Builder) UserID(id string) Builder {
-	b.user.ID = id
 	b.session.Attrs.UserID = id
 	return b
 }

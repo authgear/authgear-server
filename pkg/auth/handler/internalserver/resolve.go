@@ -51,12 +51,12 @@ func (h *ResolveHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 func (h *ResolveHandler) resolve(r *http.Request) (*authn.Info, error) {
 	valid := auth.IsValidAuthn(r.Context())
-	user := auth.GetUser(r.Context())
+	userID := auth.GetUserID(r.Context())
 	session := auth.GetSession(r.Context())
 
 	var info *authn.Info
-	if valid && user != nil && session != nil {
-		identities, err := h.Identities.ListByUser(user.ID)
+	if valid && userID != nil && session != nil {
+		identities, err := h.Identities.ListByUser(*userID)
 		if err != nil {
 			return nil, err
 		}
@@ -69,12 +69,12 @@ func (h *ResolveHandler) resolve(r *http.Request) (*authn.Info, error) {
 			}
 		}
 
-		isVerified, err := h.Verification.IsUserVerified(identities, user.ID)
+		isVerified, err := h.Verification.IsUserVerified(identities, *userID)
 		if err != nil {
 			return nil, err
 		}
 
-		info = authn.NewAuthnInfo(session.AuthnAttrs(), user, isAnonymous, isVerified)
+		info = authn.NewAuthnInfo(session.AuthnAttrs(), isAnonymous, isVerified)
 	} else if !valid {
 		info = &authn.Info{IsValid: false}
 	}

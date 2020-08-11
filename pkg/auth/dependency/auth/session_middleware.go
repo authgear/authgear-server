@@ -5,8 +5,6 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/user"
-	"github.com/authgear/authgear-server/pkg/auth/model"
-
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/db"
 )
@@ -30,14 +28,14 @@ type Middleware struct {
 
 func (m *Middleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		s, u, err := m.resolve(rw, r)
+		s, err := m.resolve(rw, r)
 
 		if errors.Is(err, ErrInvalidSession) {
 			r = r.WithContext(authn.WithInvalidAuthn(r.Context()))
 		} else if err != nil {
 			panic(err)
 		} else if s != nil {
-			r = r.WithContext(authn.WithAuthn(r.Context(), s, u.ToUserInfo()))
+			r = r.WithContext(authn.WithAuthn(r.Context(), s))
 		}
 		// s is nil: no session credentials provided
 
@@ -45,7 +43,7 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 	})
 }
 
-func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (s AuthSession, u *model.User, err error) {
+func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (s AuthSession, err error) {
 	err = m.Database.ReadOnly(func() (err error) {
 		s, err = m.resolveSession(rw, r)
 		if err != nil {
@@ -55,7 +53,7 @@ func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (s AuthSes
 		if s == nil {
 			return
 		}
-		u, err = m.Users.Get(s.AuthnAttrs().UserID)
+		_, err = m.Users.Get(s.AuthnAttrs().UserID)
 		if err != nil {
 			if errors.Is(err, user.ErrUserNotFound) {
 				err = ErrInvalidSession

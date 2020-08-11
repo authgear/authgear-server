@@ -10,8 +10,8 @@ func IsValidAuthn(ctx context.Context) bool {
 	return authn.IsValidAuthn(ctx)
 }
 
-func GetUser(ctx context.Context) *authn.UserInfo {
-	return authn.GetUser(ctx)
+func GetUserID(ctx context.Context) *string {
+	return authn.GetUserID(ctx)
 }
 
 func GetSession(ctx context.Context) AuthSession {

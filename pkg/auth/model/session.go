@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-// Session is the API model of user sessions
 type Session struct {
 	ID string `json:"id"`
 

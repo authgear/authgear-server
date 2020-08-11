@@ -186,14 +186,7 @@ func (provider *Provider) dispatchSyncUserEventIfNeeded() error {
 }
 
 func (provider *Provider) makeContext() event.Context {
-	var userID *string
-
-	user := authn.GetUser(provider.Context)
-	if user == nil {
-		userID = nil
-	} else {
-		userID = &user.ID
-	}
+	userID := authn.GetUserID(provider.Context)
 
 	return event.Context{
 		Timestamp: provider.Clock.NowUTC().Unix(),

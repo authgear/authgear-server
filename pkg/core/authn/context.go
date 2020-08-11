@@ -11,7 +11,6 @@ var contextKey = contextKeyType{}
 type contextValue struct {
 	IsInvalid bool
 	Session   Session
-	User      *UserInfo
 }
 
 func WithInvalidAuthn(ctx context.Context) context.Context {
@@ -21,10 +20,9 @@ func WithInvalidAuthn(ctx context.Context) context.Context {
 	return context.WithValue(ctx, contextKey, actx)
 }
 
-func WithAuthn(ctx context.Context, s Session, u *UserInfo) context.Context {
+func WithAuthn(ctx context.Context, s Session) context.Context {
 	actx := &contextValue{
 		Session: s,
-		User:    u,
 	}
 	return context.WithValue(ctx, contextKey, actx)
 }
@@ -50,10 +48,10 @@ func GetSession(ctx context.Context) Session {
 	return actx.Session
 }
 
-func GetUser(ctx context.Context) *UserInfo {
+func GetUserID(ctx context.Context) *string {
 	actx := getContext(ctx)
-	if actx == nil || actx.User == nil {
+	if actx == nil || actx.Session == nil {
 		return nil
 	}
-	return actx.User
+	return &actx.Session.AuthnAttrs().UserID
 }
