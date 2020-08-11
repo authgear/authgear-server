@@ -87,7 +87,7 @@ type UserService interface {
 }
 
 type HookProvider interface {
-	DispatchEvent(payload event.Payload, user *model.User) error
+	DispatchEvent(payload event.Payload) error
 }
 
 type SessionProvider interface {

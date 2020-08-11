@@ -1,10 +1,8 @@
 package hook
 
 import (
-	"fmt"
 	"net/http"
 	"testing"
-	gotime "time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/lestrrat-go/jwx/jwk"
@@ -12,7 +10,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/event"
-	"github.com/authgear/authgear-server/pkg/auth/model"
 	"github.com/authgear/authgear-server/pkg/clock"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -37,18 +34,14 @@ func TestDeliverer(t *testing.T) {
 
 		clock := clock.NewMockClockAt("2006-01-02T15:04:05Z")
 
-		m := NewMockMutator(ctrl)
-		mf := NewMockMutatorFactory(ctrl)
-
 		httpClient := &http.Client{}
 		gock.InterceptClient(httpClient)
 		deliverer := Deliverer{
-			Config:         cfg,
-			Secret:         secret,
-			Clock:          clock,
-			MutatorFactory: mf,
-			SyncHTTP:       SyncHTTPClient{httpClient},
-			AsyncHTTP:      AsyncHTTPClient{httpClient},
+			Config:    cfg,
+			Secret:    secret,
+			Clock:     clock,
+			SyncHTTP:  SyncHTTPClient{httpClient},
+			AsyncHTTP: AsyncHTTPClient{httpClient},
 		}
 
 		defer gock.Off()
@@ -78,9 +71,6 @@ func TestDeliverer(t *testing.T) {
 				Type: event.BeforeSessionCreate,
 			}
 
-			var user model.User
-			mf.EXPECT().New(&e, &user).Return(m)
-
 			Convey("should be successful", func() {
 				cfg.Handlers = []config.HookHandlerConfig{
 					{
@@ -93,10 +83,6 @@ func TestDeliverer(t *testing.T) {
 					},
 				}
 
-				user = model.User{
-					ID: "user-id",
-				}
-
 				gock.New("https://example.com").
 					Post("/a").
 					JSON(e).
@@ -107,9 +93,7 @@ func TestDeliverer(t *testing.T) {
 					})
 				defer func() { gock.Flush() }()
 
-				m.EXPECT().Apply().Return(nil)
-
-				err := deliverer.DeliverBeforeEvent(&e, &user)
+				err := deliverer.DeliverBeforeEvent(&e)
 
 				So(err, ShouldBeNil)
 				So(gock.IsDone(), ShouldBeTrue)
@@ -125,10 +109,6 @@ func TestDeliverer(t *testing.T) {
 						Event: string(event.BeforeSessionCreate),
 						URL:   "https://example.com/b",
 					},
-				}
-
-				user = model.User{
-					ID: "user-id",
 				}
 
 				gock.New("https://example.com").
@@ -152,118 +132,10 @@ func TestDeliverer(t *testing.T) {
 					})
 				defer func() { gock.Flush() }()
 
-				err := deliverer.DeliverBeforeEvent(&e, &user)
+				err := deliverer.DeliverBeforeEvent(&e)
 
 				So(err, ShouldBeError, "disallowed by web-hook event handler")
 				So(gock.IsDone(), ShouldBeTrue)
-			})
-
-			Convey("should apply mutations", func() {
-				cfg.Handlers = []config.HookHandlerConfig{
-					{
-						Event: string(event.BeforeSessionCreate),
-						URL:   "https://example.com/a",
-					},
-					{
-						Event: string(event.BeforeSessionCreate),
-						URL:   "https://example.com/b",
-					},
-				}
-
-				user = model.User{
-					ID: "user-id",
-					Metadata: map[string]interface{}{
-						"test": 123,
-					},
-				}
-
-				e = event.Event{
-					ID:   "event-id",
-					Type: event.BeforeSessionCreate,
-					Payload: event.SessionCreateEvent{
-						User: model.User{
-							ID: "user-id",
-							Metadata: map[string]interface{}{
-								"test": 123,
-							},
-						},
-					},
-				}
-
-				gock.New("https://example.com").
-					Post("/a").
-					Reply(200).
-					JSON(map[string]interface{}{
-						"is_allowed": true,
-						"mutations": map[string]interface{}{
-							"metadata": map[string]interface{}{
-								"test1": 123,
-							},
-						},
-					})
-
-				gock.New("https://example.com").
-					Post("/b").
-					Reply(200).
-					JSON(map[string]interface{}{
-						"is_allowed": true,
-						"mutations": map[string]interface{}{
-							"metadata": map[string]interface{}{
-								"test2": true,
-							},
-						},
-					})
-				defer func() { gock.Flush() }()
-
-				Convey("successful", func() {
-					m.EXPECT().Add(gomock.Eq(event.Mutations{
-						Metadata: &map[string]interface{}{
-							"test1": float64(123),
-						},
-					})).Return(nil)
-					m.EXPECT().Add(gomock.Eq(event.Mutations{
-						Metadata: &map[string]interface{}{
-							"test2": true,
-						},
-					})).Return(nil)
-					m.EXPECT().Apply().Return(nil)
-
-					err := deliverer.DeliverBeforeEvent(&e, &user)
-
-					So(err, ShouldBeNil)
-					So(gock.IsDone(), ShouldBeTrue)
-				})
-
-				Convey("failed apply", func() {
-					m.EXPECT().Add(event.Mutations{
-						Metadata: &map[string]interface{}{
-							"test1": float64(123),
-						},
-					}).Return(nil)
-					m.EXPECT().Add(event.Mutations{
-						Metadata: &map[string]interface{}{
-							"test2": true,
-						},
-					}).Return(nil)
-					m.EXPECT().Apply().Return(fmt.Errorf("cannot apply mutations"))
-
-					err := deliverer.DeliverBeforeEvent(&e, &user)
-
-					So(err, ShouldBeError, "web-hook mutation failed: cannot apply mutations")
-					So(gock.IsDone(), ShouldBeTrue)
-				})
-
-				Convey("failed add", func() {
-					m.EXPECT().Add(event.Mutations{
-						Metadata: &map[string]interface{}{
-							"test1": float64(123),
-						},
-					}).Return(fmt.Errorf("cannot add mutations"))
-					err := deliverer.DeliverBeforeEvent(&e, &user)
-
-					So(err, ShouldBeError, "web-hook mutation failed: cannot add mutations")
-					So(gock.IsDone(), ShouldBeFalse)
-				})
 			})
 
 			Convey("should reject invalid status code", func() {
@@ -274,17 +146,13 @@ func TestDeliverer(t *testing.T) {
 					},
 				}
 
-				user = model.User{
-					ID: "user-id",
-				}
-
 				gock.New("https://example.com").
 					Post("/a").
 					JSON(e).
 					Reply(500)
 				defer func() { gock.Flush() }()
 
-				err := deliverer.DeliverBeforeEvent(&e, &user)
+				err := deliverer.DeliverBeforeEvent(&e)
 
 				So(err, ShouldBeError, "invalid status code")
 				So(gock.IsDone(), ShouldBeTrue)
@@ -310,10 +178,6 @@ func TestDeliverer(t *testing.T) {
 					},
 				}
 
-				user = model.User{
-					ID: "user-id",
-				}
-
 				gock.New("https://example.com").
 					Post("/a").
 					Times(3).
@@ -328,7 +192,7 @@ func TestDeliverer(t *testing.T) {
 					})
 				defer func() { gock.Flush() }()
 
-				err := deliverer.DeliverBeforeEvent(&e, &user)
+				err := deliverer.DeliverBeforeEvent(&e)
 
 				So(err, ShouldBeError, "web-hook event delivery timed out")
 				So(gock.IsDone(), ShouldBeTrue)
@@ -360,7 +224,7 @@ func TestDeliverer(t *testing.T) {
 					BodyString("test")
 				defer func() { gock.Flush() }()
 
-				err := deliverer.DeliverNonBeforeEvent(&e, 5*gotime.Second)
+				err := deliverer.DeliverNonBeforeEvent(&e)
 
 				So(err, ShouldBeNil)
 				So(gock.IsDone(), ShouldBeTrue)
@@ -380,7 +244,7 @@ func TestDeliverer(t *testing.T) {
 					Reply(500)
 				defer func() { gock.Flush() }()
 
-				err := deliverer.DeliverNonBeforeEvent(&e, 5*gotime.Second)
+				err := deliverer.DeliverNonBeforeEvent(&e)
 
 				So(err, ShouldBeError, "invalid status code")
 				So(gock.IsDone(), ShouldBeTrue)

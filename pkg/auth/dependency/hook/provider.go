@@ -3,7 +3,6 @@ package hook
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/authgear/authgear-server/pkg/auth/event"
 	"github.com/authgear/authgear-server/pkg/auth/model"
@@ -19,13 +18,12 @@ import (
 
 type UserProvider interface {
 	Get(id string) (*model.User, error)
-	UpdateMetadata(user *model.User, metadata map[string]interface{}) error
 }
 
 type deliverer interface {
 	WillDeliver(eventType event.Type) bool
-	DeliverBeforeEvent(event *event.Event, user *model.User) error
-	DeliverNonBeforeEvent(event *event.Event, timeout time.Duration) error
+	DeliverBeforeEvent(event *event.Event) error
+	DeliverNonBeforeEvent(event *event.Event) error
 }
 
 type store interface {
@@ -55,7 +53,7 @@ type Provider struct {
 	dbHooked                bool            `wire:"-"`
 }
 
-func (provider *Provider) DispatchEvent(payload event.Payload, user *model.User) (err error) {
+func (provider *Provider) DispatchEvent(payload event.Payload) (err error) {
 	var seq int64
 	switch typedPayload := payload.(type) {
 	case event.OperationPayload:
@@ -66,7 +64,7 @@ func (provider *Provider) DispatchEvent(payload event.Payload, user *model.User)
 				return
 			}
 			event := event.NewBeforeEvent(seq, typedPayload, provider.makeContext())
-			err = provider.Deliverer.DeliverBeforeEvent(event, user)
+			err = provider.Deliverer.DeliverBeforeEvent(event)
 			if err != nil {
 				if !skyerr.IsKind(err, WebHookDisallowed) {
 					err = errors.HandledWithMessage(err, "failed to dispatch event")
@@ -150,7 +148,7 @@ func (provider *Provider) DidCommitTx() {
 	// TODO(webhook): deliver persisted events
 	events, _ := provider.Store.GetEventsForDelivery()
 	for _, event := range events {
-		err := provider.Deliverer.DeliverNonBeforeEvent(event, 60*time.Second)
+		err := provider.Deliverer.DeliverNonBeforeEvent(event)
 		if err != nil {
 			provider.Logger.WithError(err).Debug("Failed to dispatch event")
 		}
@@ -164,9 +162,7 @@ func (provider *Provider) dispatchSyncUserEventIfNeeded() error {
 		if _, isOperation := payload.(event.OperationPayload); !isOperation {
 			continue
 		}
-		if userAwarePayload, ok := payload.(event.UserAwarePayload); ok {
-			userIDToSync = append(userIDToSync, userAwarePayload.UserID())
-		}
+		userIDToSync = append(userIDToSync, payload.UserID())
 	}
 
 	for _, userID := range userIDToSync {
@@ -175,8 +171,8 @@ func (provider *Provider) dispatchSyncUserEventIfNeeded() error {
 			return err
 		}
 
-		payload := event.UserSyncEvent{User: *user}
-		err = provider.DispatchEvent(payload, user)
+		payload := &event.UserSyncEvent{User: *user}
+		err = provider.DispatchEvent(payload)
 		if err != nil {
 			return err
 		}

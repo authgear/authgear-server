@@ -6,29 +6,20 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/event"
-	"github.com/authgear/authgear-server/pkg/auth/model"
 	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/crypto"
 	"github.com/authgear/authgear-server/pkg/jwkutil"
 )
 
-//go:generate mockgen -source=deliverer.go -destination=deliverer_mock_test.go -mock_names mutatorFactory=MockMutatorFactory -package hook
-
-type mutatorFactory interface {
-	New(event *event.Event, user *model.User) Mutator
-}
-
 type Deliverer struct {
-	Config         *config.HookConfig
-	Secret         *config.WebhookKeyMaterials
-	Clock          clock.Clock
-	MutatorFactory mutatorFactory
-	SyncHTTP       SyncHTTPClient
-	AsyncHTTP      AsyncHTTPClient
+	Config    *config.HookConfig
+	Secret    *config.WebhookKeyMaterials
+	Clock     clock.Clock
+	SyncHTTP  SyncHTTPClient
+	AsyncHTTP AsyncHTTPClient
 }
 
 func (deliverer *Deliverer) WillDeliver(eventType event.Type) bool {
@@ -40,11 +31,9 @@ func (deliverer *Deliverer) WillDeliver(eventType event.Type) bool {
 	return false
 }
 
-func (deliverer *Deliverer) DeliverBeforeEvent(e *event.Event, user *model.User) error {
+func (deliverer *Deliverer) DeliverBeforeEvent(e *event.Event) error {
 	startTime := deliverer.Clock.NowMonotonic()
 	totalTimeout := deliverer.Config.SyncTotalTimeout.Duration()
-
-	mutator := deliverer.MutatorFactory.New(e, user)
 
 	for _, hook := range deliverer.Config.Handlers {
 		if hook.Event != string(e.Type) {
@@ -67,32 +56,18 @@ func (deliverer *Deliverer) DeliverBeforeEvent(e *event.Event, user *model.User)
 
 		if !resp.IsAllowed {
 			return newErrorOperationDisallowed(
-				[]OperationDisallowedItem{
-					OperationDisallowedItem{
-						Reason: resp.Reason,
-						Data:   resp.Data,
-					},
-				},
+				[]OperationDisallowedItem{{
+					Reason: resp.Reason,
+					Data:   resp.Data,
+				}},
 			)
 		}
-
-		if resp.Mutations != nil {
-			err = mutator.Add(*resp.Mutations)
-			if err != nil {
-				return newErrorMutationFailed(err)
-			}
-		}
-	}
-
-	err := mutator.Apply()
-	if err != nil {
-		return newErrorMutationFailed(err)
 	}
 
 	return nil
 }
 
-func (deliverer *Deliverer) DeliverNonBeforeEvent(e *event.Event, timeout time.Duration) error {
+func (deliverer *Deliverer) DeliverNonBeforeEvent(e *event.Event) error {
 	for _, hook := range deliverer.Config.Handlers {
 		if hook.Event != string(e.Type) {
 			continue

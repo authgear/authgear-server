@@ -8,8 +8,6 @@ var DependencySet = wire.NewSet(
 	NewSyncHTTPClient,
 	NewAsyncHTTPClient,
 	NewLogger,
-	wire.Struct(new(MutatorFactory), "*"),
-	wire.Bind(new(mutatorFactory), new(*MutatorFactory)),
 	wire.Struct(new(Deliverer), "*"),
 	wire.Bind(new(deliverer), new(*Deliverer)),
 	wire.Struct(new(Store), "*"),

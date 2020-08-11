@@ -70,24 +70,14 @@ const IdentityUpdateEventPayloadSchema = `
 }
 `
 
-func (IdentityUpdateEvent) BeforeEventType() Type {
+func (e *IdentityUpdateEvent) BeforeEventType() Type {
 	return BeforeIdentityUpdate
 }
 
-func (IdentityUpdateEvent) AfterEventType() Type {
+func (e *IdentityUpdateEvent) AfterEventType() Type {
 	return AfterIdentityUpdate
 }
 
-func (event IdentityUpdateEvent) WithMutationsApplied(mutations Mutations) UserAwarePayload {
-	user := event.User
-	mutations.ApplyToUser(&user)
-	return IdentityUpdateEvent{
-		User:        user,
-		OldIdentity: event.OldIdentity,
-		NewIdentity: event.NewIdentity,
-	}
-}
-
-func (event IdentityUpdateEvent) UserID() string {
-	return event.User.ID
+func (e *IdentityUpdateEvent) UserID() string {
+	return e.User.ID
 }

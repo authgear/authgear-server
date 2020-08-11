@@ -12,7 +12,7 @@ import (
 )
 
 type HookProvider interface {
-	DispatchEvent(payload event.Payload, user *model.User) error
+	DispatchEvent(payload event.Payload) error
 }
 
 var ErrSessionNotFound = errors.New("session not found")
@@ -57,14 +57,11 @@ func (m *SessionManager) invalidate(session AuthSession, reason SessionDeleteRea
 	}
 	s := session.ToAPIModel()
 
-	err = m.Hooks.DispatchEvent(
-		event.SessionDeleteEvent{
-			Reason:  string(reason),
-			User:    *user,
-			Session: *s,
-		},
-		user,
-	)
+	err = m.Hooks.DispatchEvent(&event.SessionDeleteEvent{
+		Reason:  string(reason),
+		User:    *user,
+		Session: *s,
+	})
 	if err != nil {
 		return nil, err
 	}

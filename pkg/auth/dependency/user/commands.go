@@ -10,7 +10,7 @@ import (
 )
 
 type HookProvider interface {
-	DispatchEvent(payload event.Payload, user *model.User) error
+	DispatchEvent(payload event.Payload) error
 }
 
 type Commands struct {
@@ -37,13 +37,10 @@ func (c *Commands) AfterCreate(
 	for _, i := range identities {
 		identityModels = append(identityModels, i.ToModel())
 	}
-	err := c.Hooks.DispatchEvent(
-		event.UserCreateEvent{
-			User:       *userModel,
-			Identities: identityModels,
-		},
-		userModel,
-	)
+	err := c.Hooks.DispatchEvent(&event.UserCreateEvent{
+		User:       *userModel,
+		Identities: identityModels,
+	})
 	if err != nil {
 		return err
 	}

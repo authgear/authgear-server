@@ -523,18 +523,14 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
 		Context:   context,
@@ -948,18 +944,14 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
 		Context:   context,
@@ -1805,18 +1797,14 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
 		Context:   context,
@@ -2185,18 +2173,14 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
 		Context:   context,
@@ -2565,18 +2549,14 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
 		Context:   context,
@@ -2927,18 +2907,14 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
 		Context:   context,
@@ -3299,18 +3275,14 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
 		Context:   context,
@@ -3673,18 +3645,14 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
 		Context:   context,
@@ -4047,18 +4015,14 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
 		Context:   context,
@@ -4422,18 +4386,14 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
 		Context:   context,
@@ -4798,18 +4758,14 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
 		Context:   context,
@@ -5172,18 +5128,14 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
 		Context:   context,
@@ -5546,18 +5498,14 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
 		Context:   context,
@@ -5920,18 +5868,14 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
 		Context:   context,
@@ -6294,18 +6238,14 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
 		Context:   context,
@@ -6668,18 +6608,14 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
 		Context:   context,
@@ -7046,18 +6982,14 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
 		Context:   context,
@@ -7421,18 +7353,14 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
 		Context:   context,
@@ -7795,18 +7723,14 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
 		Context:   context,
@@ -8170,18 +8094,14 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
 		Context:   context,
@@ -8575,18 +8495,14 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
 		Context:   context,
@@ -8879,18 +8795,14 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	mutatorFactory := &hook.MutatorFactory{
-		Users: rawProvider,
-	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:         hookConfig,
-		Secret:         webhookKeyMaterials,
-		Clock:          clockClock,
-		MutatorFactory: mutatorFactory,
-		SyncHTTP:       syncHTTPClient,
-		AsyncHTTP:      asyncHTTPClient,
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
 		Context:   context,

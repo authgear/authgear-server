@@ -73,23 +73,14 @@ const UserPromoteEventPayloadSchema = `
 }
 `
 
-func (UserPromoteEvent) BeforeEventType() Type {
+func (e *UserPromoteEvent) BeforeEventType() Type {
 	return BeforeUserPromote
 }
 
-func (UserPromoteEvent) AfterEventType() Type {
+func (e *UserPromoteEvent) AfterEventType() Type {
 	return AfterUserPromote
 }
 
-func (event UserPromoteEvent) WithMutationsApplied(mutations Mutations) UserAwarePayload {
-	user := event.User
-	mutations.ApplyToUser(&user)
-	return UserPromoteEvent{
-		User:       user,
-		Identities: event.Identities,
-	}
-}
-
-func (event UserPromoteEvent) UserID() string {
-	return event.User.ID
+func (e *UserPromoteEvent) UserID() string {
+	return e.User.ID
 }

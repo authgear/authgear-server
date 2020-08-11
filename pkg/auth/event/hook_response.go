@@ -35,13 +35,7 @@ var HookResponseSchema = validation.NewSimpleSchema(`
 			},
 			"then": {
 				"properties": {
-					"is_allowed": { "type": "boolean" },
-					"mutations": {
-						"type": "object",
-						"properties": {
-							"metadata": { "type": "object" }
-						}
-					}
+					"is_allowed": { "type": "boolean" }
 				},
 				"required": ["is_allowed"]
 			}
@@ -69,7 +63,6 @@ type HookResponse struct {
 	IsAllowed bool        `json:"is_allowed"`
 	Reason    string      `json:"reason"`
 	Data      interface{} `json:"data"`
-	Mutations *Mutations  `json:"mutations"`
 }
 
 func ParseHookResponse(r io.Reader) (*HookResponse, error) {

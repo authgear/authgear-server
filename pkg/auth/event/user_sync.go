@@ -44,18 +44,10 @@ const UserSyncEventPayloadSchema = `
 }
 `
 
-func (UserSyncEvent) EventType() Type {
+func (e *UserSyncEvent) EventType() Type {
 	return UserSync
 }
 
-func (event UserSyncEvent) WithMutationsApplied(mutations Mutations) UserAwarePayload {
-	user := event.User
-	mutations.ApplyToUser(&user)
-	return UserSyncEvent{
-		User: user,
-	}
-}
-
-func (event UserSyncEvent) UserID() string {
-	return event.User.ID
+func (e *UserSyncEvent) UserID() string {
+	return e.User.ID
 }

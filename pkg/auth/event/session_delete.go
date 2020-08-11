@@ -70,23 +70,14 @@ const SessionDeleteEventPayloadSchema = `
 }
 `
 
-func (SessionDeleteEvent) BeforeEventType() Type {
+func (e *SessionDeleteEvent) BeforeEventType() Type {
 	return BeforeSessionDelete
 }
 
-func (SessionDeleteEvent) AfterEventType() Type {
+func (e *SessionDeleteEvent) AfterEventType() Type {
 	return AfterSessionDelete
 }
 
-func (event SessionDeleteEvent) WithMutationsApplied(mutations Mutations) UserAwarePayload {
-	user := event.User
-	mutations.ApplyToUser(&user)
-	return SessionDeleteEvent{
-		Reason: event.Reason,
-		User:   user,
-	}
-}
-
-func (event SessionDeleteEvent) UserID() string {
-	return event.User.ID
+func (e *SessionDeleteEvent) UserID() string {
+	return e.User.ID
 }

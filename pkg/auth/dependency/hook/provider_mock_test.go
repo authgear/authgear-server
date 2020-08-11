@@ -10,7 +10,6 @@ import (
 	db "github.com/authgear/authgear-server/pkg/db"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
-	time "time"
 )
 
 // MockUserProvider is a mock of UserProvider interface
@@ -51,20 +50,6 @@ func (mr *MockUserProviderMockRecorder) Get(id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockUserProvider)(nil).Get), id)
 }
 
-// UpdateMetadata mocks base method
-func (m *MockUserProvider) UpdateMetadata(user *model.User, metadata map[string]interface{}) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateMetadata", user, metadata)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateMetadata indicates an expected call of UpdateMetadata
-func (mr *MockUserProviderMockRecorder) UpdateMetadata(user, metadata interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMetadata", reflect.TypeOf((*MockUserProvider)(nil).UpdateMetadata), user, metadata)
-}
-
 // MockDeliverer is a mock of deliverer interface
 type MockDeliverer struct {
 	ctrl     *gomock.Controller
@@ -103,31 +88,31 @@ func (mr *MockDelivererMockRecorder) WillDeliver(eventType interface{}) *gomock.
 }
 
 // DeliverBeforeEvent mocks base method
-func (m *MockDeliverer) DeliverBeforeEvent(event *event.Event, user *model.User) error {
+func (m *MockDeliverer) DeliverBeforeEvent(event *event.Event) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeliverBeforeEvent", event, user)
+	ret := m.ctrl.Call(m, "DeliverBeforeEvent", event)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeliverBeforeEvent indicates an expected call of DeliverBeforeEvent
-func (mr *MockDelivererMockRecorder) DeliverBeforeEvent(event, user interface{}) *gomock.Call {
+func (mr *MockDelivererMockRecorder) DeliverBeforeEvent(event interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeliverBeforeEvent", reflect.TypeOf((*MockDeliverer)(nil).DeliverBeforeEvent), event, user)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeliverBeforeEvent", reflect.TypeOf((*MockDeliverer)(nil).DeliverBeforeEvent), event)
 }
 
 // DeliverNonBeforeEvent mocks base method
-func (m *MockDeliverer) DeliverNonBeforeEvent(event *event.Event, timeout time.Duration) error {
+func (m *MockDeliverer) DeliverNonBeforeEvent(event *event.Event) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeliverNonBeforeEvent", event, timeout)
+	ret := m.ctrl.Call(m, "DeliverNonBeforeEvent", event)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeliverNonBeforeEvent indicates an expected call of DeliverNonBeforeEvent
-func (mr *MockDelivererMockRecorder) DeliverNonBeforeEvent(event, timeout interface{}) *gomock.Call {
+func (mr *MockDelivererMockRecorder) DeliverNonBeforeEvent(event interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeliverNonBeforeEvent", reflect.TypeOf((*MockDeliverer)(nil).DeliverNonBeforeEvent), event, timeout)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeliverNonBeforeEvent", reflect.TypeOf((*MockDeliverer)(nil).DeliverNonBeforeEvent), event)
 }
 
 // MockStore is a mock of store interface
