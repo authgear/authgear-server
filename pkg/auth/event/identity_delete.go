@@ -68,23 +68,14 @@ const IdentityDeleteEventPayloadSchema = `
 }
 `
 
-func (IdentityDeleteEvent) BeforeEventType() Type {
+func (e *IdentityDeleteEvent) BeforeEventType() Type {
 	return BeforeIdentityDelete
 }
 
-func (IdentityDeleteEvent) AfterEventType() Type {
+func (e *IdentityDeleteEvent) AfterEventType() Type {
 	return AfterIdentityDelete
 }
 
-func (event IdentityDeleteEvent) WithMutationsApplied(mutations Mutations) UserAwarePayload {
-	user := event.User
-	mutations.ApplyToUser(&user)
-	return IdentityDeleteEvent{
-		User:     user,
-		Identity: event.Identity,
-	}
-}
-
-func (event IdentityDeleteEvent) UserID() string {
-	return event.User.ID
+func (e *IdentityDeleteEvent) UserID() string {
+	return e.User.ID
 }

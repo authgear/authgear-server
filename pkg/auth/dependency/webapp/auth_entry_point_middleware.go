@@ -13,9 +13,9 @@ type AuthEntryPointMiddleware struct {
 
 func (m AuthEntryPointMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		user := auth.GetUser(r.Context())
+		userID := auth.GetUserID(r.Context())
 		hasState := r.URL.Query().Get("x_sid") != ""
-		if user != nil && !hasState {
+		if userID != nil && !hasState {
 			redirectURI := GetRedirectURI(r, m.ServerConfig.TrustProxy)
 			http.Redirect(w, r, redirectURI, http.StatusFound)
 		} else {

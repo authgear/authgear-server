@@ -58,14 +58,11 @@ func (n *NodeDoUpdateIdentity) Apply(perform func(eff newinteraction.Effect) err
 			return err
 		}
 
-		err = ctx.Hooks.DispatchEvent(
-			event.IdentityUpdateEvent{
-				User:        *user,
-				OldIdentity: n.IdentityBeforeUpdate.ToModel(),
-				NewIdentity: n.IdentityAfterUpdate.ToModel(),
-			},
-			user,
-		)
+		err = ctx.Hooks.DispatchEvent(&event.IdentityUpdateEvent{
+			User:        *user,
+			OldIdentity: n.IdentityBeforeUpdate.ToModel(),
+			NewIdentity: n.IdentityAfterUpdate.ToModel(),
+		})
 		if err != nil {
 			return err
 		}

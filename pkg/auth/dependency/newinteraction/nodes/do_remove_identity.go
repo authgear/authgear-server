@@ -57,13 +57,10 @@ func (n *NodeDoRemoveIdentity) Apply(perform func(eff newinteraction.Effect) err
 			return err
 		}
 
-		err = ctx.Hooks.DispatchEvent(
-			event.IdentityDeleteEvent{
-				User:     *user,
-				Identity: n.Identity.ToModel(),
-			},
-			user,
-		)
+		err = ctx.Hooks.DispatchEvent(&event.IdentityDeleteEvent{
+			User:     *user,
+			Identity: n.Identity.ToModel(),
+		})
 		if err != nil {
 			return err
 		}

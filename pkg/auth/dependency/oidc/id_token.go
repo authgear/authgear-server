@@ -9,7 +9,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	"github.com/authgear/authgear-server/pkg/auth/model"
 	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/authn"
@@ -65,13 +64,6 @@ func (ti *IDTokenIssuer) IssueIDToken(client config.OAuthClientConfig, session a
 }
 
 func (ti *IDTokenIssuer) LoadUserClaims(session auth.AuthSession) (jwt.Token, error) {
-	allowProfile := false
-	for _, scope := range oauth.SessionScopes(session) {
-		if scope == oauth.FullAccessScope {
-			allowProfile = true
-		}
-	}
-
 	user, err := ti.Users.Get(session.AuthnAttrs().UserID)
 	if err != nil {
 		return nil, err
@@ -82,12 +74,6 @@ func (ti *IDTokenIssuer) LoadUserClaims(session auth.AuthSession) (jwt.Token, er
 	claims.Set(jwt.SubjectKey, session.AuthnAttrs().UserID)
 	claims.Set(string(authn.ClaimUserIsAnonymous), user.IsAnonymous)
 	claims.Set(string(authn.ClaimUserIsVerified), user.IsVerified)
-
-	if !allowProfile {
-		return claims, nil
-	}
-
-	claims.Set(string(authn.ClaimUserMetadata), user.Metadata)
 
 	return claims, nil
 }

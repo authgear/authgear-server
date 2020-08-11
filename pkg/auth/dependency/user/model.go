@@ -13,7 +13,6 @@ type User struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	LastLoginAt *time.Time
-	Metadata    map[string]interface{}
 }
 
 func newUserModel(
@@ -35,6 +34,5 @@ func newUserModel(
 		LastLoginAt: user.LastLoginAt,
 		IsAnonymous: isAnonymous,
 		IsVerified:  isVerified,
-		Metadata:    user.Metadata,
 	}
 }

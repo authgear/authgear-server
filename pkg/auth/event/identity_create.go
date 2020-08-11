@@ -68,23 +68,14 @@ const IdentityCreateEventPayloadSchema = `
 }
 `
 
-func (IdentityCreateEvent) BeforeEventType() Type {
+func (e *IdentityCreateEvent) BeforeEventType() Type {
 	return BeforeIdentityCreate
 }
 
-func (IdentityCreateEvent) AfterEventType() Type {
+func (e *IdentityCreateEvent) AfterEventType() Type {
 	return AfterIdentityCreate
 }
 
-func (event IdentityCreateEvent) WithMutationsApplied(mutations Mutations) UserAwarePayload {
-	user := event.User
-	mutations.ApplyToUser(&user)
-	return IdentityCreateEvent{
-		User:     user,
-		Identity: event.Identity,
-	}
-}
-
-func (event IdentityCreateEvent) UserID() string {
-	return event.User.ID
+func (e *IdentityCreateEvent) UserID() string {
+	return e.User.ID
 }

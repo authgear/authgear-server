@@ -27,7 +27,3 @@ func newErrorOperationDisallowed(items []OperationDisallowedItem) error {
 		map[string]interface{}{"reasons": items},
 	)
 }
-
-func newErrorMutationFailed(inner error) error {
-	return errors.Newf("web-hook mutation failed: %w", inner)
-}

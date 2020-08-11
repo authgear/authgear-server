@@ -26,15 +26,14 @@ func TestResolveHandler(t *testing.T) {
 		}
 
 		Convey("should attach headers for valid sessions", func() {
-			u := &authn.UserInfo{
-				ID: "user-id",
-			}
 			s := &session.IDPSession{
-				ID:    "session-id",
-				Attrs: authn.Attrs{},
+				ID: "session-id",
+				Attrs: authn.Attrs{
+					UserID: "user-id",
+				},
 			}
 			r, _ := http.NewRequest("POST", "/", nil)
-			r = r.WithContext(authn.WithAuthn(r.Context(), s, u))
+			r = r.WithContext(authn.WithAuthn(r.Context(), s))
 
 			Convey("for normal user", func() {
 				userIdentities := []*identity.Info{

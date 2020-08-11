@@ -5,12 +5,6 @@ import "fmt"
 type Type string
 
 type Payload interface {
-}
-
-// UserAwarePayload represents event payload that can apply mutations on its own user object
-type UserAwarePayload interface {
-	Payload
-	WithMutationsApplied(Mutations) UserAwarePayload
 	UserID() string
 }
 

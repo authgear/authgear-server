@@ -88,14 +88,11 @@ func (n *NodeDoCreateSession) Apply(perform func(eff newinteraction.Effect) erro
 			identities = append(identities, info.ToModel())
 		}
 
-		err = ctx.Hooks.DispatchEvent(
-			event.UserPromoteEvent{
-				AnonymousUser: *anonUser,
-				User:          *newUser,
-				Identities:    identities,
-			},
-			newUser,
-		)
+		err = ctx.Hooks.DispatchEvent(&event.UserPromoteEvent{
+			AnonymousUser: *anonUser,
+			User:          *newUser,
+			Identities:    identities,
+		})
 		if err != nil {
 			return err
 		}
@@ -117,14 +114,11 @@ func (n *NodeDoCreateSession) Apply(perform func(eff newinteraction.Effect) erro
 			return err
 		}
 
-		err = ctx.Hooks.DispatchEvent(
-			event.SessionCreateEvent{
-				Reason:  string(n.Reason),
-				User:    *user,
-				Session: *n.Session.ToAPIModel(),
-			},
-			user,
-		)
+		err = ctx.Hooks.DispatchEvent(&event.SessionCreateEvent{
+			Reason:  string(n.Reason),
+			User:    *user,
+			Session: *n.Session.ToAPIModel(),
+		})
 		if err != nil {
 			return err
 		}

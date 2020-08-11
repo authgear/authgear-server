@@ -81,13 +81,13 @@ type MFAService interface {
 
 type UserService interface {
 	Get(id string) (*model.User, error)
-	Create(userID string, metadata map[string]interface{}) (*user.User, error)
+	Create(userID string) (*user.User, error)
 	AfterCreate(user *user.User, identities []*identity.Info, authenticators []*authenticator.Info) error
 	UpdateLoginTime(user *model.User, lastLoginAt time.Time) error
 }
 
 type HookProvider interface {
-	DispatchEvent(payload event.Payload, user *model.User) error
+	DispatchEvent(payload event.Payload) error
 }
 
 type SessionProvider interface {
