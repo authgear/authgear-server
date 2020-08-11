@@ -38,6 +38,18 @@
 
 <input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_code" placeholder="{{ localize "setup-totp-code-placeholder" }}">
 
+{{ range $.Alternatives }}
+{{ if eq .Type "totp" }}
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ localize "setup-totp-instead" }}</a>
+{{ end }}
+{{ if eq .Type "oob_otp" }}
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ localize "setup-oob-otp-instead" }}</a>
+{{ end }}
+{{ if eq .Type "password" }}
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ localize "setup-password-instead" }}</a>
+{{ end }}
+{{ end }}
+
 <button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
 
 </form>

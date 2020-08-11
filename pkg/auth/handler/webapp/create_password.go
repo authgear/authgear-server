@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -49,6 +50,7 @@ func ConfigureCreatePasswordRoute(route httproute.Route) httproute.Route {
 
 type CreatePasswordViewModel struct {
 	IdentityDisplayID string
+	Alternatives      []CreateAuthenticatorAlternative
 }
 
 type PasswordPolicy interface {
@@ -67,12 +69,25 @@ func (h *CreatePasswordHandler) GetData(r *http.Request, state *webapp.State, gr
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
 	identityInfo := graph.MustGetUserLastIdentity()
+
 	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModel(
 		h.PasswordPolicy.PasswordPolicy(),
 		state.Error,
 	)
+
+	alternatives, err := DeriveCreateAuthenticatorAlternatives(
+		// Use current state ID because the current node should be NodeCreateAuthenticatorBegin.
+		state.ID,
+		graph,
+		authn.AuthenticatorTypePassword,
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	createPasswordViewModel := CreatePasswordViewModel{
 		IdentityDisplayID: identityInfo.DisplayID(),
+		Alternatives:      alternatives,
 	}
 
 	viewmodels.EmbedForm(data, r.Form)

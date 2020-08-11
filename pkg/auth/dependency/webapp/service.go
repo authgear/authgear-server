@@ -360,7 +360,7 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 		}
 
 		if state.KeepState {
-			redirectURI = state.Attach(redirectURI)
+			redirectURI = AttachStateID(state.ID, redirectURI)
 		}
 
 		return &Result{
@@ -393,7 +393,7 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 	if err != nil {
 		panic(fmt.Errorf("webapp: unexpected invalid transition path: %v", path))
 	}
-	redirectURI := state.Attach(pathURL).String()
+	redirectURI := AttachStateID(state.ID, pathURL).String()
 
 	s.Logger.Debugf("afterPost transition to redirect URI: %v", redirectURI)
 

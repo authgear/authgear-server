@@ -80,10 +80,11 @@ type SetupOOBOTPNode interface {
 
 type SetupOOBOTPViewModel struct {
 	// InputType is either phone or email.
-	InputType string
+	InputType    string
+	Alternatives []CreateAuthenticatorAlternative
 }
 
-func NewSetupOOBOTPViewModel(graph *newinteraction.Graph, inputType string) SetupOOBOTPViewModel {
+func NewSetupOOBOTPViewModel(stateID string, graph *newinteraction.Graph, inputType string) (*SetupOOBOTPViewModel, error) {
 	var node SetupOOBOTPNode
 	if !graph.FindLastNode(&node) {
 		panic("setup_oob_otp: expected graph has node implementing SetupOOBOTPNode")
@@ -127,9 +128,19 @@ func NewSetupOOBOTPViewModel(graph *newinteraction.Graph, inputType string) Setu
 		}
 	}
 
-	return SetupOOBOTPViewModel{
-		InputType: inputType,
+	alternatives, err := DeriveCreateAuthenticatorAlternatives(
+		stateID,
+		graph,
+		authn.AuthenticatorTypeOOB,
+	)
+	if err != nil {
+		return nil, err
 	}
+
+	return &SetupOOBOTPViewModel{
+		InputType:    inputType,
+		Alternatives: alternatives,
+	}, nil
 }
 
 type SetupOOBOTPInput struct {
@@ -170,10 +181,14 @@ func (h *SetupOOBOTPHandler) GetData(r *http.Request, state *webapp.State, graph
 	}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
-	viewModel := NewSetupOOBOTPViewModel(graph, r.Form.Get("x_input_type"))
+	// Use current state ID because the current node should be NodeCreateAuthenticatorBegin.
+	viewModel, err := NewSetupOOBOTPViewModel(state.ID, graph, r.Form.Get("x_input_type"))
+	if err != nil {
+		return nil, err
+	}
 
 	viewmodels.Embed(data, baseViewModel)
-	viewmodels.Embed(data, viewModel)
+	viewmodels.Embed(data, *viewModel)
 	return data, nil
 }
 

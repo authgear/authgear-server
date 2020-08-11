@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 )
@@ -82,11 +83,11 @@ func (h *CreateAuthenticatorBeginHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		selectedEdge := edges[edgeIndex]
 		switch selectedEdge := selectedEdge.(type) {
 		case *nodes.EdgeCreateAuthenticatorPassword:
-			http.Redirect(w, r, state.Attach(&url.URL{
+			http.Redirect(w, r, webapp.AttachStateID(state.ID, &url.URL{
 				Path: "/create_password",
 			}).String(), http.StatusFound)
 		case *nodes.EdgeCreateAuthenticatorOOBSetup:
-			http.Redirect(w, r, state.Attach(&url.URL{
+			http.Redirect(w, r, webapp.AttachStateID(state.ID, &url.URL{
 				Path: "/setup_oob_otp",
 			}).String(), http.StatusFound)
 		case *nodes.EdgeCreateAuthenticatorTOTPSetup:
@@ -105,4 +106,50 @@ func (h *CreateAuthenticatorBeginHandler) ServeHTTP(w http.ResponseWriter, r *ht
 
 		return nil
 	})
+}
+
+type CreateAuthenticatorAlternative struct {
+	Type string
+	URL  string
+}
+
+func DeriveCreateAuthenticatorAlternatives(stateID string, graph *newinteraction.Graph, currentType authn.AuthenticatorType) (alternatives []CreateAuthenticatorAlternative, err error) {
+	var node CreateAuthenticatorBeginNode
+	if !graph.FindLastNode(&node) {
+		panic("create_authenticator_begin: expected graph has node implementing CreateAuthenticatorBeginNode")
+	}
+
+	edges, err := node.GetCreateAuthenticatorEdges()
+	if err != nil {
+		return
+	}
+
+	for i, edge := range edges {
+		q := url.Values{}
+		q.Set("x_edge", strconv.Itoa(i))
+
+		var typ authn.AuthenticatorType
+		switch edge.(type) {
+		case *nodes.EdgeCreateAuthenticatorPassword:
+			typ = authn.AuthenticatorTypePassword
+		case *nodes.EdgeCreateAuthenticatorOOBSetup:
+			typ = authn.AuthenticatorTypeOOB
+		case *nodes.EdgeCreateAuthenticatorTOTPSetup:
+			typ = authn.AuthenticatorTypeTOTP
+		default:
+			panic(fmt.Errorf("create_authenticator_begin: unexpected edge: %T", edge))
+		}
+
+		if typ != currentType {
+			alternatives = append(alternatives, CreateAuthenticatorAlternative{
+				Type: string(typ),
+				URL: webapp.AttachStateID(stateID, &url.URL{
+					Path:     "/create_authenticator_begin",
+					RawQuery: q.Encode(),
+				}).String(),
+			})
+		}
+	}
+
+	return
 }

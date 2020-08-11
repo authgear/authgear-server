@@ -117,6 +117,10 @@
 	"enter-login-id-page-title--change": "Change your {0}",
 	"enter-login-id-page-title--add": "Enter your {0}",
 
+	"setup-totp-instead": "Setup authenticator app / device instead",
+	"setup-oob-otp-instead": "Setup SMS / email 2-step verification instead",
+	"setup-password-instead": "Setup password instead",
+
 	"setup-oob-otp-title--sms": "Setup SMS 2-step verification",
 	"setup-oob-otp-title--email": "Setup email 2-step verification",
 

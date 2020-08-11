@@ -23,12 +23,11 @@ func (s *State) SetID(id string) {
 	s.ID = id
 }
 
-// Attach attaches s to input.
-func (s *State) Attach(input *url.URL) *url.URL {
+func AttachStateID(id string, input *url.URL) *url.URL {
 	u := *input
 
 	q := u.Query()
-	q.Set("x_sid", s.ID)
+	q.Set("x_sid", id)
 
 	u.Scheme = ""
 	u.Opaque = ""

@@ -91,11 +91,11 @@ func (h *AuthenticationBeginHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		selectedEdge := edges[edgeIndex]
 		switch selectedEdge := selectedEdge.(type) {
 		case *nodes.EdgeAuthenticationPassword:
-			http.Redirect(w, r, state.Attach(&url.URL{
+			http.Redirect(w, r, webapp.AttachStateID(state.ID, &url.URL{
 				Path: "/enter_password",
 			}).String(), http.StatusFound)
 		case *nodes.EdgeAuthenticationTOTP:
-			http.Redirect(w, r, state.Attach(&url.URL{
+			http.Redirect(w, r, webapp.AttachStateID(state.ID, &url.URL{
 				Path: "/enter_totp",
 			}).String(), http.StatusFound)
 		case *nodes.EdgeAuthenticationOOBTrigger:
