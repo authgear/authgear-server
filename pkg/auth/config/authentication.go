@@ -60,13 +60,13 @@ type AuthenticationConfig struct {
 }
 
 func (c *AuthenticationConfig) SetDefaults() {
-	if len(c.Identities) == 0 {
+	if c.Identities == nil {
 		c.Identities = []authn.IdentityType{
 			authn.IdentityTypeOAuth,
 			authn.IdentityTypeLoginID,
 		}
 	}
-	if len(c.PrimaryAuthenticators) == 0 {
+	if c.PrimaryAuthenticators == nil {
 		c.PrimaryAuthenticators = []authn.AuthenticatorType{
 			authn.AuthenticatorTypePassword,
 		}
