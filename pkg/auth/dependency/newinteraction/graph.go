@@ -10,7 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/core/authn"
-	"github.com/authgear/authgear-server/pkg/core/utils"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 const GraphLifetime = 5 * time.Minute
@@ -238,7 +238,7 @@ func (g *Graph) GetAMR() []string {
 }
 
 func (g *Graph) GetACR(amrValues []string) string {
-	if utils.StringSliceContains(amrValues, authn.AMRMFA) {
+	if slice.ContainsString(amrValues, authn.AMRMFA) {
 		return authn.ACRMFA
 	}
 

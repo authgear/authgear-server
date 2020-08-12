@@ -4,7 +4,7 @@ import (
 	"crypto/subtle"
 
 	"github.com/authgear/authgear-server/pkg/core/authn"
-	"github.com/authgear/authgear-server/pkg/core/utils"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 type Info struct {
@@ -57,11 +57,11 @@ func (i *Info) Equal(that *Info) bool {
 		return false
 	}
 
-	iPrimary := utils.StringSliceContains(i.Tag, TagPrimaryAuthenticator)
-	thatPrimary := utils.StringSliceContains(that.Tag, TagPrimaryAuthenticator)
+	iPrimary := slice.ContainsString(i.Tag, TagPrimaryAuthenticator)
+	thatPrimary := slice.ContainsString(that.Tag, TagPrimaryAuthenticator)
 
-	iSecondary := utils.StringSliceContains(i.Tag, TagSecondaryAuthenticator)
-	thatSecondary := utils.StringSliceContains(that.Tag, TagSecondaryAuthenticator)
+	iSecondary := slice.ContainsString(i.Tag, TagSecondaryAuthenticator)
+	thatSecondary := slice.ContainsString(that.Tag, TagSecondaryAuthenticator)
 
 	switch i.Type {
 	case authn.AuthenticatorTypePassword:

@@ -4,7 +4,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/core/authn"
-	"github.com/authgear/authgear-server/pkg/core/utils"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 type Filter interface {
@@ -19,7 +19,7 @@ func (f FilterFunc) Keep(ai *Info) bool {
 
 func KeepTag(tag string) Filter {
 	return FilterFunc(func(ai *Info) bool {
-		return utils.StringSliceContains(ai.Tag, tag)
+		return slice.ContainsString(ai.Tag, tag)
 	})
 }
 
