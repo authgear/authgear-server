@@ -5,7 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/verification"
+	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/otp"
 )
 
