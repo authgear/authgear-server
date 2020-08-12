@@ -7,7 +7,7 @@ import (
 
 	"github.com/lestrrat-go/jwx/jwk"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 

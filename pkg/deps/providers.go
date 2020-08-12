@@ -6,9 +6,9 @@ import (
 
 	getsentry "github.com/getsentry/sentry-go"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	authtemplate "github.com/authgear/authgear-server/pkg/auth/template"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"

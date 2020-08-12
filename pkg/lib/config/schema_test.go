@@ -12,7 +12,7 @@ import (
 	goyaml "gopkg.in/yaml.v2"
 	"sigs.k8s.io/yaml"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func TestDumpSchema(t *testing.T) {

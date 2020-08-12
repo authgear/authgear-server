@@ -3,8 +3,8 @@ package loginid
 import (
 	"sort"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/errors"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )

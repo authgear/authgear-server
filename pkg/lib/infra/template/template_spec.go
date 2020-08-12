@@ -1,7 +1,7 @@
 package template
 
 import (
-	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 // Spec is an template spec.

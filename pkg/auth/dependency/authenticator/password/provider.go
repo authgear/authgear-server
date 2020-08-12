@@ -3,8 +3,8 @@ package password
 import (
 	"sort"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	taskspec "github.com/authgear/authgear-server/pkg/auth/task/spec"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/errors"

@@ -3,7 +3,7 @@ package sso
 import (
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 type UserInfoDecoder struct {

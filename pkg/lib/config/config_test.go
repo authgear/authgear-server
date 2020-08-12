@@ -11,7 +11,7 @@ import (
 	goyaml "gopkg.in/yaml.v2"
 	"sigs.k8s.io/yaml"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func TestAppConfig(t *testing.T) {

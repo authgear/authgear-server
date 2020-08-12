@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	taskspec "github.com/authgear/authgear-server/pkg/auth/task/spec"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"

@@ -1,9 +1,9 @@
 package oidc
 
 import (
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func ValidateScopes(client config.OAuthClientConfig, scopes []string) error {

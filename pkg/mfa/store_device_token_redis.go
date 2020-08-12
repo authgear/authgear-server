@@ -8,7 +8,7 @@ import (
 
 	goredis "github.com/gomodule/redigo/redis"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )

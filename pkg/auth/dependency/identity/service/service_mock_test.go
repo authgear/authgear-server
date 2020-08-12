@@ -5,12 +5,14 @@
 package service
 
 import (
-	config "github.com/authgear/authgear-server/pkg/auth/config"
-	anonymous "github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
-	loginid "github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
-	oauth "github.com/authgear/authgear-server/pkg/auth/dependency/identity/oauth"
-	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
+	"reflect"
+
+	"github.com/golang/mock/gomock"
+
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 // MockLoginIDIdentityProvider is a mock of LoginIDIdentityProvider interface

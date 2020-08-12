@@ -6,7 +6,6 @@
 package server
 
 import (
-	"github.com/authgear/authgear-server/pkg/auth/config/source"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	redis3 "github.com/authgear/authgear-server/pkg/auth/dependency/auth/redis"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
@@ -41,6 +40,7 @@ import (
 	task2 "github.com/authgear/authgear-server/pkg/auth/task"
 	"github.com/authgear/authgear-server/pkg/deps"
 	"github.com/authgear/authgear-server/pkg/endpoints"
+	"github.com/authgear/authgear-server/pkg/lib/config/source"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"

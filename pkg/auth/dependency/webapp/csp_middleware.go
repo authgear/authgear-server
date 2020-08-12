@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func deriveFrameAncestors(clients []config.OAuthClientConfig) (out []string) {

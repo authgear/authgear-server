@@ -5,7 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/util/errors"
 
-	configsource "github.com/authgear/authgear-server/pkg/auth/config/source"
+	configsource "github.com/authgear/authgear-server/pkg/lib/config/source"
 )
 
 type RequestMiddleware struct {
