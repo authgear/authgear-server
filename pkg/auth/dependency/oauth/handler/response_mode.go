@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
-	coreurl "github.com/authgear/authgear-server/pkg/core/url"
+	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
 
 const htmlRedirectTemplateString = `<!DOCTYPE html>
@@ -66,9 +66,9 @@ func writeResponse(w http.ResponseWriter, r *http.Request, redirectURI *url.URL,
 
 	switch responseMode {
 	case "query":
-		htmlRedirect(w, coreurl.WithQueryParamsAdded(redirectURI, response).String())
+		htmlRedirect(w, urlutil.WithQueryParamsAdded(redirectURI, response).String())
 	case "fragment":
-		htmlRedirect(w, coreurl.WithQueryParamsSetToFragment(redirectURI, response).String())
+		htmlRedirect(w, urlutil.WithQueryParamsSetToFragment(redirectURI, response).String())
 	case "form_post":
 		formPost(w, redirectURI, response)
 	default:

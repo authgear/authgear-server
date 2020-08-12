@@ -1,4 +1,4 @@
-package url
+package urlutil
 
 import (
 	"net/url"

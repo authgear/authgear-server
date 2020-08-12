@@ -6,7 +6,7 @@ import (
 	"image/png"
 	"io"
 
-	coreurl "github.com/authgear/authgear-server/pkg/core/url"
+	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
 
 type Encoder interface {
@@ -28,7 +28,7 @@ func (e *pngEncoder) Encode(w io.Writer, m image.Image) error {
 func DataURIFromImage(encoder Encoder, m image.Image) (string, error) {
 	var buf bytes.Buffer
 
-	out, err := coreurl.DataURIWriter(encoder.MediaType(), &buf)
+	out, err := urlutil.DataURIWriter(encoder.MediaType(), &buf)
 	if err != nil {
 		return "", err
 	}

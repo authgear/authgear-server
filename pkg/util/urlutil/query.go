@@ -1,10 +1,10 @@
-package url
+package urlutil
 
 import (
-	gourl "net/url"
+	"net/url"
 )
 
-func WithQueryParamsAdded(url *gourl.URL, params map[string]string) *gourl.URL {
+func WithQueryParamsAdded(url *url.URL, params map[string]string) *url.URL {
 	q := url.Query()
 	for k, v := range params {
 		q.Add(k, v)
