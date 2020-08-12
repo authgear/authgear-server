@@ -3,13 +3,9 @@ package validation
 import (
 	"fmt"
 	"strings"
-
-	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 )
 
 var defaultErrorMessage = "invalid value"
-
-var ValidationFailed = apierrors.Invalid.WithReason("ValidationFailed")
 
 type Error struct {
 	Location string                 `json:"location"`
@@ -46,15 +42,4 @@ func (e *AggregatedError) Error() string {
 		lines = append(lines, err.String())
 	}
 	return strings.Join(lines, "\n")
-}
-
-func (e *AggregatedError) AsAPIError() *apierrors.APIError {
-	return &apierrors.APIError{
-		Kind:    ValidationFailed,
-		Message: e.Message,
-		Code:    ValidationFailed.Name.HTTPStatus(),
-		Info: map[string]interface{}{
-			"causes": e.Errors,
-		},
-	}
 }

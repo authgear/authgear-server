@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/validation"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 type BodyDefaulter interface {
@@ -17,7 +17,7 @@ func BindJSONBody(r *http.Request, w http.ResponseWriter, v *validation.SchemaVa
 	return ParseJSONBody(r, w, func(reader io.Reader, value interface{}) error {
 		err := v.ParseWithMessage(reader, errorMessage, value)
 		if err != nil {
-			if !apierrors.IsKind(err, validation.ValidationFailed) {
+			if !apierrors.IsKind(err, apierrors.ValidationFailed) {
 				return apierrors.NewBadRequest(errorMessage)
 			}
 			return err

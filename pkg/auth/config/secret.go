@@ -9,7 +9,7 @@ import (
 
 	"sigs.k8s.io/yaml"
 
-	"github.com/authgear/authgear-server/pkg/validation"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 var _ = SecretConfigSchema.Add("SecretConfig", `

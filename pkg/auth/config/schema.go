@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/authgear/authgear-server/pkg/validation"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 var Schema = validation.NewMultipartSchema("AppConfig")

@@ -47,3 +47,5 @@ type Kind struct {
 func (n Name) WithReason(reason string) Kind {
 	return Kind{Name: n, Reason: reason}
 }
+
+var ValidationFailed = Invalid.WithReason("ValidationFailed")

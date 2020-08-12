@@ -14,7 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/template"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/validation"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 const (

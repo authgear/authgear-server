@@ -2,9 +2,11 @@ package config
 
 import (
 	"fmt"
-	"github.com/authgear/authgear-server/pkg/validation"
-	"github.com/kelseyhightower/envconfig"
 	"strings"
+
+	"github.com/kelseyhightower/envconfig"
+
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 type ServerConfig struct {

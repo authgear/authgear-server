@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/util/errors"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 type Details errors.Details
@@ -96,6 +97,11 @@ func IsAPIError(err error) bool {
 		return true
 	}
 
+	var v *validation.AggregatedError
+	if errors.As(err, &v) {
+		return true
+	}
+
 	return false
 }
 
@@ -123,6 +129,18 @@ func AsAPIError(err error) *APIError {
 	var c APIErrorConvertible
 	if errors.As(err, &c) {
 		return c.AsAPIError()
+	}
+
+	var v *validation.AggregatedError
+	if errors.As(err, &v) {
+		return &APIError{
+			Kind:    ValidationFailed,
+			Message: v.Message,
+			Code:    ValidationFailed.Name.HTTPStatus(),
+			Info: map[string]interface{}{
+				"causes": v.Errors,
+			},
+		}
 	}
 
 	return &APIError{

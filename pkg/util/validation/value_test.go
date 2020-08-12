@@ -1,8 +1,9 @@
 package validation_test
 
 import (
-	"github.com/authgear/authgear-server/pkg/validation"
 	"testing"
+
+	"github.com/authgear/authgear-server/pkg/util/validation"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
