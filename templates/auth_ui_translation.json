@@ -142,6 +142,10 @@
 	"enter-totp-description": "Enter the 6-digit code you see in the authenticator app / device",
 	"enter-totp-code-placeholder": "6-digit code from the authenticator app / device",
 
+	"enter-recovery-code-title": "2-step verification",
+	"enter-recovery-code-description": "Enter any unused 10-letter recovery code",
+	"enter-recovery-code-placeholder": "10-letter recovery code",
+
 	"recovery-code-title": "Recovery Code",
 	"recovery-code-storage-description": "Keep these recovery codes somewhere safe but accessible",
 	"recovery-code-consumption-description": "You can only use each code once"

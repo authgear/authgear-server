@@ -56,6 +56,7 @@ func NewEngineWithConfig(
 	e.Register(webapp.TemplateAuthUISetupOOBOTPHTML)
 	e.Register(webapp.TemplateAuthUIEnterOOBOTPHTML)
 	e.Register(webapp.TemplateAuthUIEnterLoginIDHTML)
+	e.Register(webapp.TemplateAuthUIEnterRecoveryCodeHTML)
 	e.Register(webapp.TemplateAuthUISetupRecoveryCodeHTML)
 	e.Register(webapp.TemplateAuthUIDownloadRecoveryCodeTXT)
 	e.Register(webapp.TemplateAuthUIVerifyIdentityHTML)
