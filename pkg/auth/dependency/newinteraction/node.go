@@ -3,7 +3,7 @@ package newinteraction
 import (
 	"reflect"
 
-	"github.com/authgear/authgear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/util/errors"
 )
 
 //go:generate mockgen -source=node.go -destination=node_mock_test.go -package newinteraction_test

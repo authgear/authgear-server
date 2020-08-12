@@ -3,7 +3,7 @@ package deps
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/util/errors"
 
 	configsource "github.com/authgear/authgear-server/pkg/auth/config/source"
 )

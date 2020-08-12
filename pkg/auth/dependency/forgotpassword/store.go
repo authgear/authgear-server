@@ -7,8 +7,8 @@ import (
 
 	redigo "github.com/gomodule/redigo/redis"
 
-	"github.com/authgear/authgear-server/pkg/core/errors"
 	"github.com/authgear/authgear-server/pkg/redis"
+	"github.com/authgear/authgear-server/pkg/util/errors"
 )
 
 type Store struct {

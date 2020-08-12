@@ -10,9 +10,9 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
-	"github.com/authgear/authgear-server/pkg/core/errors"
 	"github.com/authgear/authgear-server/pkg/redis"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/errors"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 

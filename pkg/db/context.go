@@ -7,7 +7,7 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/util/errors"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 

@@ -5,9 +5,9 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	taskspec "github.com/authgear/authgear-server/pkg/auth/task/spec"
-	"github.com/authgear/authgear-server/pkg/core/errors"
 	"github.com/authgear/authgear-server/pkg/task"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/errors"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
 	"github.com/authgear/authgear-server/pkg/util/uuid"

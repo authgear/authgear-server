@@ -6,7 +6,7 @@ import (
 	"io"
 	textTemplate "text/template"
 
-	"github.com/authgear/authgear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/util/errors"
 )
 
 const MaxTemplateSize = 1024 * 1024 * 1

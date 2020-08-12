@@ -1,7 +1,7 @@
 package newinteraction
 
 import (
-	"github.com/authgear/authgear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/util/errors"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 

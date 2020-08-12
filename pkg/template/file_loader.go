@@ -5,7 +5,7 @@ import (
 	"os"
 	"unicode/utf8"
 
-	"github.com/authgear/authgear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/util/errors"
 )
 
 type FileLoader struct{}

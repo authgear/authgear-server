@@ -1,8 +1,8 @@
 package hook
 
 import (
-	"github.com/authgear/authgear-server/pkg/core/errors"
 	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/util/errors"
 )
 
 var WebHookDisallowed = skyerr.Forbidden.WithReason("WebHookDisallowed")

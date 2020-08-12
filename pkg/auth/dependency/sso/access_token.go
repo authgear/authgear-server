@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/authgear/authgear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/util/errors"
 )
 
 type AccessTokenResp map[string]interface{}

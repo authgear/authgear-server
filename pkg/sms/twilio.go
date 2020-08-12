@@ -4,7 +4,7 @@ import (
 	"github.com/sfreiberg/gotwilio"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/util/errors"
 )
 
 var ErrMissingTwilioConfiguration = errors.New("twilio: configuration is missing")

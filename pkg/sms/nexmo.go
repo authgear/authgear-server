@@ -4,7 +4,7 @@ import (
 	nexmo "github.com/njern/gonexmo"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/util/errors"
 )
 
 var ErrMissingNexmoConfiguration = errors.New("nexmo: configuration is missing")
