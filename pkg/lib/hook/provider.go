@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/auth/event"
 	"github.com/authgear/authgear-server/pkg/auth/model"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"

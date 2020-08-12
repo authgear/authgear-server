@@ -3,7 +3,7 @@ package hook
 import (
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/auth/event"
+	"github.com/authgear/authgear-server/pkg/lib/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 )
 

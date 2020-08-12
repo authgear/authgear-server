@@ -7,8 +7,8 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 
-	"github.com/authgear/authgear-server/pkg/auth/event"
 	"github.com/authgear/authgear-server/pkg/auth/model"
+	"github.com/authgear/authgear-server/pkg/lib/api/event"
 )
 
 type HookProvider interface {

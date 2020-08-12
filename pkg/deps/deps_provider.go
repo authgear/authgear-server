@@ -6,8 +6,8 @@ import (
 
 	"github.com/google/wire"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/hook"
 	configsource "github.com/authgear/authgear-server/pkg/lib/config/source"
+	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task/executors"
 	taskqueue "github.com/authgear/authgear-server/pkg/lib/infra/task/queue"
