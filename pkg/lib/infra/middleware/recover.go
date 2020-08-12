@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/core/handler"
+	"github.com/authgear/authgear-server/pkg/lib/api"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/util/errors"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -26,7 +26,7 @@ func (m *RecoverMiddleware) Handle(next http.Handler) http.Handler {
 				const errorTypeHandled = 1
 				const errorTypeConflict = 2
 				errorType := errorTypeUnexpected
-				if herr, ok := err.(handler.HandledError); ok {
+				if herr, ok := err.(api.HandledError); ok {
 					errorType = errorTypeHandled
 					err = herr.Error
 				} else if err, ok := err.(error); ok && errors.Is(err, db.ErrWriteConflict) {

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
-	"github.com/authgear/authgear-server/pkg/core/handler"
+	"github.com/authgear/authgear-server/pkg/lib/api"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -85,15 +85,15 @@ type ChallengeHandler struct {
 func (h *ChallengeHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	result, err := h.Handle(resp, req)
 	if err == nil {
-		handler.WriteResponse(resp, handler.APIResponse{Result: result})
+		api.WriteResponse(resp, &api.Response{Result: result})
 	} else {
-		handler.WriteResponse(resp, handler.APIResponse{Error: err})
+		api.WriteResponse(resp, &api.Response{Error: err})
 	}
 }
 
 func (h *ChallengeHandler) Handle(resp http.ResponseWriter, req *http.Request) (*ChallengeResponse, error) {
 	var payload ChallengeRequest
-	if err := handler.BindJSONBody(req, resp, ChallengeAPISchema.PartValidator(ChallengeAPISchemaIDRequest), &payload); err != nil {
+	if err := api.BindJSONBody(req, resp, ChallengeAPISchema.PartValidator(ChallengeAPISchemaIDRequest), &payload); err != nil {
 		return nil, err
 	}
 

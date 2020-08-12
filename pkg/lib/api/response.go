@@ -1,4 +1,4 @@
-package handler
+package api
 
 import (
 	"encoding/json"
@@ -7,12 +7,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 )
 
-type APIResponse struct {
+type Response struct {
 	Result interface{}
 	Error  error
 }
 
-func (r APIResponse) MarshalJSON() ([]byte, error) {
+func (r *Response) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		Result interface{}         `json:"result,omitempty"`
 		Error  *apierrors.APIError `json:"error,omitempty"`
@@ -26,7 +26,7 @@ type HandledError struct {
 	Error error
 }
 
-func WriteResponse(rw http.ResponseWriter, response APIResponse) {
+func WriteResponse(rw http.ResponseWriter, response *Response) {
 	httpStatus := http.StatusOK
 	encoder := json.NewEncoder(rw)
 	err := apierrors.AsAPIError(response.Error)
