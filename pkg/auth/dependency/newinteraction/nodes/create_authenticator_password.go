@@ -16,6 +16,7 @@ type InputCreateAuthenticatorPassword interface {
 
 type EdgeCreateAuthenticatorPassword struct {
 	Stage newinteraction.AuthenticationStage
+	Tag   []string
 }
 
 func (e *EdgeCreateAuthenticatorPassword) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
@@ -31,6 +32,7 @@ func (e *EdgeCreateAuthenticatorPassword) Instantiate(ctx *newinteraction.Contex
 		Type:   authn.AuthenticatorTypePassword,
 		Props:  map[string]interface{}{},
 	}
+	spec.Tag = append(spec.Tag, e.Tag...)
 
 	info, err := ctx.Authenticators.New(spec, input.GetPassword())
 	if err != nil {

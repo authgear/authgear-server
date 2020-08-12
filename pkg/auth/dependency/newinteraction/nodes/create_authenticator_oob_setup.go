@@ -20,6 +20,7 @@ type InputCreateAuthenticatorOOBSetup interface {
 
 type EdgeCreateAuthenticatorOOBSetup struct {
 	Stage newinteraction.AuthenticationStage
+	Tag   []string
 
 	// Either have Channel and Target
 	Channel authn.AuthenticatorOOBChannel
@@ -106,6 +107,8 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *newinteraction.Contex
 			}
 		}
 	}
+
+	spec.Tag = append(spec.Tag, e.Tag...)
 
 	spec.Props[authenticator.AuthenticatorPropOOBOTPChannelType] = string(channel)
 	switch channel {

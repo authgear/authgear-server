@@ -16,6 +16,7 @@ type InputCreateAuthenticatorTOTPSetup interface {
 
 type EdgeCreateAuthenticatorTOTPSetup struct {
 	Stage newinteraction.AuthenticationStage
+	Tag   []string
 }
 
 func (e *EdgeCreateAuthenticatorTOTPSetup) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
@@ -34,6 +35,7 @@ func (e *EdgeCreateAuthenticatorTOTPSetup) Instantiate(ctx *newinteraction.Conte
 			authenticator.AuthenticatorPropTOTPDisplayName: "",
 		},
 	}
+	spec.Tag = append(spec.Tag, e.Tag...)
 
 	info, err := ctx.Authenticators.New(spec, "")
 	if err != nil {
