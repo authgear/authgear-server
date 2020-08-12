@@ -98,7 +98,7 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, state *webapp.State, graph
 			// Use previous state ID because the current node is NodeAuthenticationOOBTrigger.
 			state.PrevID,
 			graph,
-			authn.AuthenticatorTypeOOB,
+			AuthenticationTypeOOB,
 			n.GetOOBOTPTarget(),
 		)
 	case *nodes.NodeCreateAuthenticatorOOBSetup:

@@ -85,12 +85,20 @@ func (s *Service) ReplaceRecoveryCodes(userID string, codes []string) ([]*Recove
 	return codeModels, nil
 }
 
-func (s *Service) ConsumeRecoveryCode(userID string, code string) error {
+func (s *Service) GetRecoveryCode(userID string, code string) (*RecoveryCode, error) {
 	rc, err := s.RecoveryCodes.Get(userID, code)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	if rc.Consumed {
+		return nil, ErrRecoveryCodeConsumed
+	}
+
+	return rc, nil
+}
+
+func (s *Service) ConsumeRecoveryCode(rc *RecoveryCode) error {
 	if err := s.RecoveryCodes.MarkConsumed(rc); err != nil {
 		return err
 	}

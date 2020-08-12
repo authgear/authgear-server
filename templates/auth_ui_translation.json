@@ -122,6 +122,7 @@
 	"setup-password-instead": "Setup password instead",
 	"enter-totp-instead": "Enter 6-digit authenticator code instead",
 	"enter-password-instead": "Enter password instead",
+	"enter-recovery-code-instead": "Enter recovery code instead",
 	"enter-oob-otp-instead": "Send code to {0} instead",
 
 	"setup-oob-otp-title--sms": "Setup SMS 2-step verification",

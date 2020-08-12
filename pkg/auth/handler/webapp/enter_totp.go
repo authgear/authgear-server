@@ -7,7 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
-	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/template"
@@ -64,7 +63,7 @@ func (h *EnterTOTPHandler) GetData(r *http.Request, state *webapp.State, graph *
 		// Use current state ID because the current node should be NodeAuthenticationBegin.
 		state.ID,
 		graph,
-		authn.AuthenticatorTypeTOTP,
+		AuthenticationTypeTOTP,
 		"",
 	)
 
