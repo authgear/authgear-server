@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
-	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
 func init() {
@@ -19,10 +18,6 @@ type InputAuthenticationPassword interface {
 type EdgeAuthenticationPassword struct {
 	Stage          newinteraction.AuthenticationStage
 	Authenticators []*authenticator.Info
-}
-
-func (e *EdgeAuthenticationPassword) AuthenticatorType() authn.AuthenticatorType {
-	return authn.AuthenticatorTypePassword
 }
 
 func (e *EdgeAuthenticationPassword) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {

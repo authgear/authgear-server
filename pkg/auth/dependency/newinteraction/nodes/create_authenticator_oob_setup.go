@@ -20,25 +20,35 @@ type InputCreateAuthenticatorOOBSetup interface {
 
 type EdgeCreateAuthenticatorOOBSetup struct {
 	Stage newinteraction.AuthenticationStage
-}
 
-func (e *EdgeCreateAuthenticatorOOBSetup) AuthenticatorType() authn.AuthenticatorType {
-	return authn.AuthenticatorTypeOOB
+	// Either have Channel and Target
+	Channel authn.AuthenticatorOOBChannel
+	Target  string
+	// Or have AllowedChannels
+	AllowedChannels []authn.AuthenticatorOOBChannel
 }
 
 func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
-	input, ok := rawInput.(InputCreateAuthenticatorOOBSetup)
-	if !ok {
-		return nil, newinteraction.ErrIncompatibleInput
-	}
-	channel := input.GetOOBChannel()
-	if channel == "" {
-		return nil, newinteraction.ErrIncompatibleInput
+	var target string
+	var channel authn.AuthenticatorOOBChannel
+
+	if e.Channel != "" && e.Target != "" {
+		channel = e.Channel
+		target = e.Target
+	} else {
+		input, ok := rawInput.(InputCreateAuthenticatorOOBSetup)
+		if !ok {
+			return nil, newinteraction.ErrIncompatibleInput
+		}
+		channel = input.GetOOBChannel()
+		if channel == "" {
+			return nil, newinteraction.ErrIncompatibleInput
+		}
+		target = input.GetOOBTarget()
 	}
 
 	var spec *authenticator.Spec
 	var identityInfo *identity.Info
-	target := input.GetOOBTarget()
 	if e.Stage == newinteraction.AuthenticationStagePrimary {
 		// Primary OOB authenticators must be bound to login ID identity
 		identityInfo = graph.MustGetUserLastIdentity()
@@ -121,24 +131,26 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *newinteraction.Contex
 	}
 
 	return &NodeCreateAuthenticatorOOBSetup{
-		Stage:         e.Stage,
-		Authenticator: info,
-		Secret:        secret,
-		Target:        target,
-		Channel:       result.Channel,
-		CodeLength:    result.CodeLength,
-		SendCooldown:  result.SendCooldown,
+		Stage:           e.Stage,
+		AllowedChannels: e.AllowedChannels,
+		Authenticator:   info,
+		Secret:          secret,
+		Target:          target,
+		Channel:         result.Channel,
+		CodeLength:      result.CodeLength,
+		SendCooldown:    result.SendCooldown,
 	}, nil
 }
 
 type NodeCreateAuthenticatorOOBSetup struct {
-	Stage         newinteraction.AuthenticationStage `json:"stage"`
-	Authenticator *authenticator.Info                `json:"authenticator"`
-	Secret        string                             `json:"secret"`
-	Target        string                             `json:"target"`
-	Channel       string                             `json:"channel"`
-	CodeLength    int                                `json:"code_length"`
-	SendCooldown  int                                `json:"send_cooldown"`
+	Stage           newinteraction.AuthenticationStage `json:"stage"`
+	AllowedChannels []authn.AuthenticatorOOBChannel    `json:"allowed_channels"`
+	Authenticator   *authenticator.Info                `json:"authenticator"`
+	Secret          string                             `json:"secret"`
+	Target          string                             `json:"target"`
+	Channel         string                             `json:"channel"`
+	CodeLength      int                                `json:"code_length"`
+	SendCooldown    int                                `json:"send_cooldown"`
 }
 
 // GetOOBOTPTarget implements OOBOTPNode.

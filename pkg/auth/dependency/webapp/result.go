@@ -23,11 +23,11 @@ func (r *Result) WriteResponse(w http.ResponseWriter, req *http.Request) {
 
 	if r.state.Error != nil {
 		if r.errorRedirectURI != nil {
-			http.Redirect(w, req, r.state.Attach(r.errorRedirectURI).String(), http.StatusFound)
+			http.Redirect(w, req, AttachStateID(r.state.ID, r.errorRedirectURI).String(), http.StatusFound)
 			return
 		}
 
-		http.Redirect(w, req, r.state.Attach(req.URL).String(), http.StatusFound)
+		http.Redirect(w, req, AttachStateID(r.state.ID, req.URL).String(), http.StatusFound)
 		return
 	}
 

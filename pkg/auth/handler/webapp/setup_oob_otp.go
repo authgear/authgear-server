@@ -1,10 +1,12 @@
 package webapp
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -72,24 +74,73 @@ func ConfigureSetupOOBOTPRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/setup_oob_otp")
 }
 
-type SetupOOBOTPViewModel struct {
-	// InputType is either phone or email.
-	InputType string
+type SetupOOBOTPNode interface {
+	GetAllowedChannels() ([]authn.AuthenticatorOOBChannel, error)
 }
 
-func NewSetupOOBOTPViewModel(inputType string) SetupOOBOTPViewModel {
-	// FIXME(mfa): Derive SetupOOBOTPViewModel from graph and edges.
+type SetupOOBOTPViewModel struct {
+	// InputType is either phone or email.
+	InputType    string
+	Alternatives []CreateAuthenticatorAlternative
+}
+
+func NewSetupOOBOTPViewModel(stateID string, graph *newinteraction.Graph, inputType string) (*SetupOOBOTPViewModel, error) {
+	var node SetupOOBOTPNode
+	if !graph.FindLastNode(&node) {
+		panic("setup_oob_otp: expected graph has node implementing SetupOOBOTPNode")
+	}
+
+	allowedChannels, err := node.GetAllowedChannels()
+	if err != nil {
+		panic(fmt.Errorf("setup_oob_otp: unexpected error: %w", err))
+	}
+
+	phoneAllowed := false
+	emailAllowed := false
+
+	for _, channel := range allowedChannels {
+		switch channel {
+		case authn.AuthenticatorOOBChannelEmail:
+			emailAllowed = true
+		case authn.AuthenticatorOOBChannelSMS:
+			phoneAllowed = true
+		}
+	}
+
+	if !phoneAllowed && !emailAllowed {
+		panic("webapp: expected allowed channels to be non-empty")
+	}
+
 	switch inputType {
 	case "phone":
-		break
+		if !phoneAllowed {
+			inputType = "email"
+		}
 	case "email":
-		break
+		if !emailAllowed {
+			inputType = "phone"
+		}
 	default:
-		inputType = "email"
+		if phoneAllowed {
+			inputType = "phone"
+		} else if emailAllowed {
+			inputType = "email"
+		}
 	}
-	return SetupOOBOTPViewModel{
-		InputType: inputType,
+
+	alternatives, err := DeriveCreateAuthenticatorAlternatives(
+		stateID,
+		graph,
+		authn.AuthenticatorTypeOOB,
+	)
+	if err != nil {
+		return nil, err
 	}
+
+	return &SetupOOBOTPViewModel{
+		InputType:    inputType,
+		Alternatives: alternatives,
+	}, nil
 }
 
 type SetupOOBOTPInput struct {
@@ -121,7 +172,7 @@ type SetupOOBOTPHandler struct {
 	WebApp        WebAppService
 }
 
-func (h *SetupOOBOTPHandler) GetData(r *http.Request, state *webapp.State) (map[string]interface{}, error) {
+func (h *SetupOOBOTPHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	var anyError interface{}
@@ -130,10 +181,14 @@ func (h *SetupOOBOTPHandler) GetData(r *http.Request, state *webapp.State) (map[
 	}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
-	enterLoginIDViewModel := NewSetupOOBOTPViewModel(r.Form.Get("x_input_type"))
+	// Use current state ID because the current node should be NodeCreateAuthenticatorBegin.
+	viewModel, err := NewSetupOOBOTPViewModel(state.ID, graph, r.Form.Get("x_input_type"))
+	if err != nil {
+		return nil, err
+	}
 
 	viewmodels.Embed(data, baseViewModel)
-	viewmodels.Embed(data, enterLoginIDViewModel)
+	viewmodels.Embed(data, *viewModel)
 	return data, nil
 }
 
@@ -150,13 +205,13 @@ func (h *SetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "GET" {
 		h.Database.WithTx(func() error {
-			state, err := h.WebApp.GetState(StateID(r))
+			state, graph, err := h.WebApp.Get(StateID(r))
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
-			data, err := h.GetData(r, state)
+			data, err := h.GetData(r, state, graph)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err

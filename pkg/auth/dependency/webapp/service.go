@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
-	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/core/base32"
 	corerand "github.com/authgear/authgear-server/pkg/core/rand"
 	"github.com/authgear/authgear-server/pkg/core/skyerr"
@@ -107,10 +106,11 @@ func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph
 		}
 
 		// Ignore the intent, reuse the existing state.
-		state.ID = intent.StateID
-		if state.ID == "" {
-			state.ID = NewID()
+		newID := intent.StateID
+		if newID == "" {
+			newID = NewID()
 		}
+		state.SetID(newID)
 		graph, err = s.get(state)
 		if err == nil || !errors.Is(err, newinteraction.ErrStateNotFound) {
 			return
@@ -140,6 +140,7 @@ func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph
 		ID:              newStateID,
 		RedirectURI:     intent.RedirectURI,
 		GraphInstanceID: graph.InstanceID,
+		Extra:           map[string]interface{}{},
 		Error:           stateError,
 	}
 
@@ -247,7 +248,7 @@ func (s *Service) PostInput(stateID string, inputer func() (interface{}, error))
 
 func (s *Service) post(state *State, inputer func() (interface{}, error)) (result *Result, err error) {
 	// Immutable state
-	state.ID = NewID()
+	state.SetID(NewID())
 
 	var edges []newinteraction.Edge
 	graph, err := s.Graph.Get(state.GraphInstanceID)
@@ -359,7 +360,7 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 		}
 
 		if state.KeepState {
-			redirectURI = state.Attach(redirectURI)
+			redirectURI = AttachStateID(state.ID, redirectURI)
 		}
 
 		return &Result{
@@ -392,7 +393,7 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 	if err != nil {
 		panic(fmt.Errorf("webapp: unexpected invalid transition path: %v", path))
 	}
-	redirectURI := state.Attach(pathURL).String()
+	redirectURI := AttachStateID(state.ID, pathURL).String()
 
 	s.Logger.Debugf("afterPost transition to redirect URI: %v", redirectURI)
 
@@ -404,16 +405,16 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 }
 
 // nolint:gocyclo
-func (s *Service) deriveRedirectPath(graph *newinteraction.Graph) string {
-	switch node := graph.CurrentNode().(type) {
+func (s *Service) deriveRedirectPath(graph *newinteraction.Graph) (path string) {
+	switch graph.CurrentNode().(type) {
 	case *nodes.NodeSelectIdentityBegin:
 		switch intent := graph.Intent.(type) {
 		case *intents.IntentAuthenticate:
 			switch intent.Kind {
 			case intents.IntentAuthenticateKindLogin:
-				return "/login"
+				path = "/login"
 			case intents.IntentAuthenticateKindSignup:
-				return "/signup"
+				path = "/signup"
 			default:
 				panic(fmt.Errorf("webapp: unexpected authenticate intent: %T", intent.Kind))
 			}
@@ -423,59 +424,47 @@ func (s *Service) deriveRedirectPath(graph *newinteraction.Graph) string {
 	case *nodes.NodeDoUseUser:
 		switch graph.Intent.(type) {
 		case *intents.IntentRemoveIdentity:
-			return "/enter_login_id"
+			path = "/enter_login_id"
 		default:
 			panic(fmt.Errorf("webapp: unexpected intent: %T", graph.Intent))
 		}
 	case *nodes.NodeUpdateIdentityBegin:
-		return "/enter_login_id"
+		path = "/enter_login_id"
 	case *nodes.NodeCreateIdentityBegin:
 		switch intent := graph.Intent.(type) {
 		case *intents.IntentAuthenticate:
 			switch intent.Kind {
 			case intents.IntentAuthenticateKindPromote:
-				return "/promote_user"
+				path = "/promote_user"
 			default:
 				panic(fmt.Errorf("webapp: unexpected authenticate intent: %T", intent.Kind))
 			}
 		case *intents.IntentAddIdentity:
-			return "/enter_login_id"
+			path = "/enter_login_id"
 		default:
 			panic(fmt.Errorf("webapp: unexpected intent: %T", graph.Intent))
 		}
 	case *nodes.NodeAuthenticationBegin:
-		authnTypes := node.AuthenticatorTypes()
-		switch authnTypes[0] {
-		case authn.AuthenticatorTypePassword:
-			return "/enter_password"
-		case authn.AuthenticatorTypeTOTP:
-			return "/enter_totp"
-		default:
-			panic(fmt.Errorf("webapp: unexpected authenticator type: %T", authnTypes[0]))
-		}
+		// Ideally we should use 307 but if we use 307
+		// the CSRF middleware will complain about invalid CSRF token.
+		path = "/authentication_begin"
 	case *nodes.NodeCreateAuthenticatorBegin:
-		authnTypes := node.AuthenticatorTypes()
-		switch authnTypes[0] {
-		case authn.AuthenticatorTypePassword:
-			return "/create_password"
-		case authn.AuthenticatorTypeTOTP:
-			return "/setup_oob_otp"
-		default:
-			panic(fmt.Errorf("webapp: unexpected authenticator type: %T", authnTypes[0]))
-		}
+		path = "/create_authenticator_begin"
 	case *nodes.NodeAuthenticationOOBTrigger:
-		return "/enter_oob_otp"
+		path = "/enter_oob_otp"
 	case *nodes.NodeCreateAuthenticatorOOBSetup:
-		return "/enter_oob_otp"
+		path = "/enter_oob_otp"
 	case *nodes.NodeCreateAuthenticatorTOTPSetup:
-		return "/setup_totp"
+		path = "/setup_totp"
 	case *nodes.NodeGenerateRecoveryCodeBegin:
-		return "/setup_recovery_code"
+		path = "/setup_recovery_code"
 	case *nodes.NodeVerifyIdentity:
-		return "/verify_identity"
+		path = "/verify_identity"
 	default:
 		panic(fmt.Errorf("webapp: unexpected node: %T", graph.CurrentNode()))
 	}
+
+	return
 }
 
 func (s *Service) collectExtras(node newinteraction.Node) map[string]interface{} {

@@ -18,7 +18,12 @@ func TestSortAuthenticators(t *testing.T) {
 	}
 
 	test := func(ais []*authenticator.Info, preferred []authn.AuthenticatorType, expected []*authenticator.Info) {
-		actual := SortAuthenticators(ais, preferred)
+		actual := make([]*authenticator.Info, len(ais))
+		copy(actual, ais)
+		SortAuthenticators(preferred, actual, func(i int) authn.AuthenticatorType {
+			return actual[i].Type
+		})
+
 		So(actual, ShouldResemble, expected)
 	}
 

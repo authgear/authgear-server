@@ -51,6 +51,7 @@ func TestService(t *testing.T) {
 				Claims: map[string]interface{}{
 					"test-id":                          "login-id-" + loginIDValue,
 					identity.IdentityClaimLoginIDKey:   loginIDKey,
+					identity.IdentityClaimLoginIDType:  loginIDKey,
 					identity.IdentityClaimLoginIDValue: loginIDValue,
 				},
 			}

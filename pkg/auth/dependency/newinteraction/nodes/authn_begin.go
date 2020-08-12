@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"fmt"
+
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
@@ -46,22 +48,25 @@ func (n *NodeAuthenticationBegin) Apply(perform func(eff newinteraction.Effect) 
 }
 
 func (n *NodeAuthenticationBegin) DeriveEdges(graph *newinteraction.Graph) ([]newinteraction.Edge, error) {
-	return n.deriveEdges(), nil
+	return n.GetAuthenticationEdges(), nil
 }
 
-func (n *NodeAuthenticationBegin) deriveEdges() []newinteraction.Edge {
+// GetAuthenticationEdges implements AuthenticationBeginNode.
+func (n *NodeAuthenticationBegin) GetAuthenticationEdges() []newinteraction.Edge {
 	var edges []newinteraction.Edge
 	var availableAuthenticators []*authenticator.Info
+	var preferred []authn.AuthenticatorType
 
 	switch n.Stage {
 	case newinteraction.AuthenticationStagePrimary:
+		preferred = n.AuthenticationConfig.PrimaryAuthenticators
 		availableAuthenticators = filterAuthenticators(
 			n.Authenticators,
 			authenticator.KeepTag(authenticator.TagPrimaryAuthenticator),
 			authenticator.KeepPrimaryAuthenticatorOfIdentity(n.Identity),
 		)
-		availableAuthenticators = newinteraction.SortAuthenticators(availableAuthenticators, n.AuthenticationConfig.PrimaryAuthenticators)
 	case newinteraction.AuthenticationStageSecondary:
+		preferred = n.AuthenticationConfig.SecondaryAuthenticators
 		availableAuthenticators = filterAuthenticators(
 			n.Authenticators,
 			authenticator.KeepTag(authenticator.TagSecondaryAuthenticator),
@@ -110,22 +115,26 @@ func (n *NodeAuthenticationBegin) deriveEdges() []newinteraction.Edge {
 			Stage:    n.Stage,
 			Optional: true,
 		})
+		return edges
 	}
 
-	// TODO(interaction): support choosing authenticator to use
-	return edges[:1]
-}
+	newinteraction.SortAuthenticators(
+		preferred,
+		edges,
+		func(i int) authn.AuthenticatorType {
+			edge := edges[i]
+			switch edge.(type) {
+			case *EdgeAuthenticationPassword:
+				return authn.AuthenticatorTypePassword
+			case *EdgeAuthenticationTOTP:
+				return authn.AuthenticatorTypeTOTP
+			case *EdgeAuthenticationOOBTrigger:
+				return authn.AuthenticatorTypeOOB
+			default:
+				panic(fmt.Sprintf("interaction: unknown edge: %T", edge))
+			}
+		},
+	)
 
-func (n *NodeAuthenticationBegin) AuthenticatorTypes() []authn.AuthenticatorType {
-	edges := n.deriveEdges()
-
-	var types []authn.AuthenticatorType
-	for _, e := range edges {
-		if e, ok := e.(interface {
-			AuthenticatorType() authn.AuthenticatorType
-		}); ok {
-			types = append(types, e.AuthenticatorType())
-		}
-	}
-	return types
+	return edges
 }

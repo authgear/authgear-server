@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/httproute"
 	coreimage "github.com/authgear/authgear-server/pkg/image"
@@ -54,8 +55,9 @@ func ConfigureSetupTOTPRoute(route httproute.Route) httproute.Route {
 }
 
 type SetupTOTPViewModel struct {
-	ImageURI htmltemplate.URL
-	Secret   string
+	ImageURI     htmltemplate.URL
+	Secret       string
+	Alternatives []CreateAuthenticatorAlternative
 }
 
 type SetupTOTPNode interface {
@@ -92,7 +94,7 @@ type SetupTOTPHandler struct {
 	Endpoints     SetupTOTPEndpointsProvider
 }
 
-func (h *SetupTOTPHandler) MakeViewModel(graph *newinteraction.Graph) (*SetupTOTPViewModel, error) {
+func (h *SetupTOTPHandler) MakeViewModel(stateID string, graph *newinteraction.Graph) (*SetupTOTPViewModel, error) {
 	var node SetupTOTPNode
 	if !graph.FindLastNode(&node) {
 		panic(fmt.Errorf("setup_totp: expected graph has node implementing SetupTOTPNode"))
@@ -126,12 +128,22 @@ func (h *SetupTOTPHandler) MakeViewModel(graph *newinteraction.Graph) (*SetupTOT
 		return nil, err
 	}
 
+	alternatives, err := DeriveCreateAuthenticatorAlternatives(
+		stateID,
+		graph,
+		authn.AuthenticatorTypeTOTP,
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	return &SetupTOTPViewModel{
 		Secret: secret,
 		// dataURI is generated here and not user generated,
 		// so it is safe to use htmltemplate.URL with it.
 		// nolint:gosec
-		ImageURI: htmltemplate.URL(dataURI),
+		ImageURI:     htmltemplate.URL(dataURI),
+		Alternatives: alternatives,
 	}, nil
 }
 
@@ -144,7 +156,8 @@ func (h *SetupTOTPHandler) GetData(r *http.Request, state *webapp.State, graph *
 	}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
-	viewModel, err := h.MakeViewModel(graph)
+	// Use previous state ID because the current node should be NodeCreateAuthenticatorTOTPSetup.
+	viewModel, err := h.MakeViewModel(state.PrevID, graph)
 	if err != nil {
 		return nil, err
 	}

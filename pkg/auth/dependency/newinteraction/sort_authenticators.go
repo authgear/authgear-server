@@ -3,24 +3,28 @@ package newinteraction
 import (
 	"sort"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
-// SortAuthenticators sorts ais by considering preferred as the order.
-func SortAuthenticators(ais []*authenticator.Info, preferred []authn.AuthenticatorType) []*authenticator.Info {
+// SortAuthenticators sorts slice in-place by considering preferred as the order.
+// The item in the slice must somehow associated with a single AuthenticatorType.
+func SortAuthenticators(
+	preferred []authn.AuthenticatorType,
+	slice interface{},
+	getType func(i int) authn.AuthenticatorType,
+) {
 	rank := make(map[authn.AuthenticatorType]int)
 	for i, typ := range preferred {
 		rank[typ] = i
 	}
 
-	tmp := make([]*authenticator.Info, len(ais))
-	copy(tmp, ais)
-	ais = tmp
+	sort.SliceStable(slice, func(i, j int) bool {
+		iType := getType(i)
+		jType := getType(j)
 
-	sort.SliceStable(ais, func(i, j int) bool {
-		iRank, iIsPreferred := rank[ais[i].Type]
-		jRank, jIsPreferred := rank[ais[j].Type]
+		iRank, iIsPreferred := rank[iType]
+		jRank, jIsPreferred := rank[jType]
+
 		switch {
 		case iIsPreferred && jIsPreferred:
 			return iRank < jRank
@@ -33,6 +37,4 @@ func SortAuthenticators(ais []*authenticator.Info, preferred []authn.Authenticat
 		}
 		panic("unreachable")
 	})
-
-	return ais
 }

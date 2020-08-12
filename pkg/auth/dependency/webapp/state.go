@@ -8,6 +8,7 @@ import (
 
 type State struct {
 	ID              string                 `json:"id"`
+	PrevID          string                 `json:"prev_id"`
 	Error           *skyerr.APIError       `json:"error"`
 	RedirectURI     string                 `json:"redirect_uri,omitempty"`
 	KeepState       bool                   `json:"keep_state,omitempty"`
@@ -17,12 +18,16 @@ type State struct {
 	UILocales       string                 `json:"ui_locales,omitempty"`
 }
 
-// Attach attaches s to input.
-func (s *State) Attach(input *url.URL) *url.URL {
+func (s *State) SetID(id string) {
+	s.PrevID = s.ID
+	s.ID = id
+}
+
+func AttachStateID(id string, input *url.URL) *url.URL {
 	u := *input
 
 	q := u.Query()
-	q.Set("x_sid", s.ID)
+	q.Set("x_sid", id)
 
 	u.Scheme = ""
 	u.Opaque = ""
