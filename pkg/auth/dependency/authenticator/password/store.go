@@ -7,7 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/core/authn"
-	"github.com/authgear/authgear-server/pkg/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 )
 
 type Store struct {

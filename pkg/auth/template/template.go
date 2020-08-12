@@ -5,8 +5,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/infra/template"
 	"github.com/authgear/authgear-server/pkg/otp"
-	"github.com/authgear/authgear-server/pkg/template"
 )
 
 func NewEngineWithConfig(

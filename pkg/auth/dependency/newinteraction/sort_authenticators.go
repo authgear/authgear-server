@@ -5,7 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/core/authn"
-	"github.com/authgear/authgear-server/pkg/core/utils"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 type SortableAuthenticator interface {
@@ -20,7 +20,7 @@ func (i *SortableAuthenticatorInfo) AuthenticatorType() authn.AuthenticatorType 
 }
 
 func (i *SortableAuthenticatorInfo) HasDefaultTag() bool {
-	return utils.StringSliceContains(i.Tag, authenticator.TagDefaultAuthenticator)
+	return slice.ContainsString(i.Tag, authenticator.TagDefaultAuthenticator)
 }
 
 // SortAuthenticators sorts slice in-place by considering preferred as the order.

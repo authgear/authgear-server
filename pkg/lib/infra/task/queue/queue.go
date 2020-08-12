@@ -1,8 +1,8 @@
 package queue
 
 import (
-	"github.com/authgear/authgear-server/pkg/db"
-	"github.com/authgear/authgear-server/pkg/task"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 )
 
 type CaptureTaskContext func() *task.Context

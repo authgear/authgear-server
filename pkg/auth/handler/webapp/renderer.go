@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/template"
+	"github.com/authgear/authgear-server/pkg/lib/infra/template"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )

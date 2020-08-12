@@ -31,12 +31,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/welcomemessage"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/core/sentry"
-	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/endpoints"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/task"
+	taskqueue "github.com/authgear/authgear-server/pkg/lib/infra/task/queue"
 	"github.com/authgear/authgear-server/pkg/mfa"
 	"github.com/authgear/authgear-server/pkg/otp"
-	"github.com/authgear/authgear-server/pkg/task"
-	taskqueue "github.com/authgear/authgear-server/pkg/task/queue"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 

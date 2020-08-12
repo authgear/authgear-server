@@ -8,9 +8,9 @@ import (
 
 	configsource "github.com/authgear/authgear-server/pkg/auth/config/source"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/hook"
-	"github.com/authgear/authgear-server/pkg/db"
-	"github.com/authgear/authgear-server/pkg/task/executors"
-	taskqueue "github.com/authgear/authgear-server/pkg/task/queue"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/task/executors"
+	taskqueue "github.com/authgear/authgear-server/pkg/lib/infra/task/queue"
 )
 
 var rootDeps = wire.NewSet(

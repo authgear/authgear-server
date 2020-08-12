@@ -6,9 +6,9 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/authgear/authgear-server/pkg/auth/task/spec"
-	"github.com/authgear/authgear-server/pkg/mail"
-	"github.com/authgear/authgear-server/pkg/sms"
-	"github.com/authgear/authgear-server/pkg/task"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
+	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 )

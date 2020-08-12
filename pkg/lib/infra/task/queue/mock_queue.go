@@ -1,7 +1,7 @@
 package queue
 
 import (
-	"github.com/authgear/authgear-server/pkg/task"
+	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 )
 
 type MockQueue struct {

@@ -4,8 +4,8 @@ import (
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/auth/task"
-	"github.com/authgear/authgear-server/pkg/mail"
-	"github.com/authgear/authgear-server/pkg/sms"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 )
 
 var taskDeps = wire.NewSet(

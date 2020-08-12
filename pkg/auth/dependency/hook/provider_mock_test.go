@@ -5,11 +5,13 @@
 package hook
 
 import (
-	event "github.com/authgear/authgear-server/pkg/auth/event"
-	model "github.com/authgear/authgear-server/pkg/auth/model"
-	db "github.com/authgear/authgear-server/pkg/db"
-	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
+	"reflect"
+
+	"github.com/golang/mock/gomock"
+
+	"github.com/authgear/authgear-server/pkg/auth/event"
+	"github.com/authgear/authgear-server/pkg/auth/model"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 )
 
 // MockUserProvider is a mock of UserProvider interface

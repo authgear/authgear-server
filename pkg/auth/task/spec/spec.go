@@ -3,8 +3,8 @@ package spec
 import (
 	"errors"
 
-	"github.com/authgear/authgear-server/pkg/mail"
-	"github.com/authgear/authgear-server/pkg/sms"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 )
 
 const (

@@ -3,7 +3,7 @@ package executors
 import (
 	"context"
 
-	"github.com/authgear/authgear-server/pkg/task"
+	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/util/errors"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
