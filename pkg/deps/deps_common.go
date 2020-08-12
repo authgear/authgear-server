@@ -30,7 +30,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/welcomemessage"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
-	"github.com/authgear/authgear-server/pkg/core/sentry"
 	"github.com/authgear/authgear-server/pkg/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
@@ -46,7 +45,6 @@ var commonDeps = wire.NewSet(
 
 	clock.DependencySet,
 	db.DependencySet,
-	sentry.DependencySet,
 
 	wire.NewSet(
 		challenge.DependencySet,

@@ -1,12 +1,13 @@
-package middlewares
+package middleware
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/auth/config"
 )
 
 var testBody = []byte{1, 2, 3}

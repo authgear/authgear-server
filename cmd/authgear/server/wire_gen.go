@@ -39,16 +39,15 @@ import (
 	webapp2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	task2 "github.com/authgear/authgear-server/pkg/auth/task"
-	"github.com/authgear/authgear-server/pkg/core/sentry"
 	"github.com/authgear/authgear-server/pkg/deps"
 	"github.com/authgear/authgear-server/pkg/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task/queue"
 	"github.com/authgear/authgear-server/pkg/mfa"
-	"github.com/authgear/authgear-server/pkg/middlewares"
 	"github.com/authgear/authgear-server/pkg/otp"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -9958,17 +9957,17 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	hub := p.SentryHub
 	serverConfig := p.ServerConfig
-	middleware := &sentry.Middleware{
+	sentryMiddleware := &middleware.SentryMiddleware{
 		SentryHub:    hub,
 		ServerConfig: serverConfig,
 	}
-	return middleware
+	return sentryMiddleware
 }
 
 func newRootRecoverMiddleware(p *deps.RootProvider) httproute.Middleware {
 	factory := p.LoggerFactory
-	recoveryLogger := middlewares.NewRecoveryLogger(factory)
-	recoverMiddleware := &middlewares.RecoverMiddleware{
+	recoveryLogger := middleware.NewRecoveryLogger(factory)
+	recoverMiddleware := &middleware.RecoverMiddleware{
 		Logger: recoveryLogger,
 	}
 	return recoverMiddleware
@@ -9977,8 +9976,8 @@ func newRootRecoverMiddleware(p *deps.RootProvider) httproute.Middleware {
 func newRequestRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	recoveryLogger := middlewares.NewRecoveryLogger(factory)
-	recoverMiddleware := &middlewares.RecoverMiddleware{
+	recoveryLogger := middleware.NewRecoveryLogger(factory)
+	recoverMiddleware := &middleware.RecoverMiddleware{
 		Logger: recoveryLogger,
 	}
 	return recoverMiddleware
@@ -9989,7 +9988,7 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
-	corsMiddleware := &middlewares.CORSMiddleware{
+	corsMiddleware := &middleware.CORSMiddleware{
 		Config: httpConfig,
 	}
 	return corsMiddleware
@@ -10258,14 +10257,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Identities:   serviceService,
 		Verification: verificationService,
 	}
-	middleware := &auth.Middleware{
+	authMiddleware := &auth.Middleware{
 		IDPSessionResolver:         resolver,
 		AccessTokenSessionResolver: oauthResolver,
 		AccessEvents:               authAccessEventProvider,
 		Users:                      queries,
 		Database:                   dbHandle,
 	}
-	return middleware
+	return authMiddleware
 }
 
 func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {

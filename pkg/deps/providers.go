@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	authtemplate "github.com/authgear/authgear-server/pkg/auth/template"
-	"github.com/authgear/authgear-server/pkg/core/sentry"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
@@ -17,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/template"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/sentry"
 )
 
 type RootProvider struct {
