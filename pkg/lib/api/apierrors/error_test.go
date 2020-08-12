@@ -1,11 +1,11 @@
-package skyerr_test
+package apierrors_test
 
 import (
 	"encoding/json"
 	"fmt"
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -13,10 +13,10 @@ import (
 func TestAPIError(t *testing.T) {
 	Convey("AsAPIError", t, func() {
 		Convey("simple error", func() {
-			err := skyerr.NewInternalError("internal server error")
-			apiErr := skyerr.AsAPIError(err)
-			So(apiErr, ShouldResemble, &skyerr.APIError{
-				Kind:    skyerr.Kind{Name: skyerr.InternalError, Reason: string(skyerr.InternalError)},
+			err := apierrors.NewInternalError("internal server error")
+			apiErr := apierrors.AsAPIError(err)
+			So(apiErr, ShouldResemble, &apierrors.APIError{
+				Kind:    apierrors.Kind{Name: apierrors.InternalError, Reason: string(apierrors.InternalError)},
 				Message: "internal server error",
 				Code:    500,
 				Info:    map[string]interface{}{},
@@ -24,40 +24,40 @@ func TestAPIError(t *testing.T) {
 		})
 		Convey("wrapped error", func() {
 			var err error
-			err = skyerr.NewInternalError("internal server error")
+			err = apierrors.NewInternalError("internal server error")
 			err = fmt.Errorf("wrap this: %w", err)
 
-			apiErr := skyerr.AsAPIError(err)
-			So(apiErr, ShouldResemble, &skyerr.APIError{
-				Kind:    skyerr.Kind{Name: skyerr.InternalError, Reason: string(skyerr.InternalError)},
+			apiErr := apierrors.AsAPIError(err)
+			So(apiErr, ShouldResemble, &apierrors.APIError{
+				Kind:    apierrors.Kind{Name: apierrors.InternalError, Reason: string(apierrors.InternalError)},
 				Message: "internal server error",
 				Code:    500,
 				Info:    map[string]interface{}{},
 			})
 		})
 		Convey("common error", func() {
-			NotAuthenticated := skyerr.Unauthorized.WithReason("NotAuthenticated")
+			NotAuthenticated := apierrors.Unauthorized.WithReason("NotAuthenticated")
 			err := NotAuthenticated.New("authentication required")
-			apiErr := skyerr.AsAPIError(err)
-			So(apiErr, ShouldResemble, &skyerr.APIError{
-				Kind:    skyerr.Kind{Name: skyerr.Unauthorized, Reason: "NotAuthenticated"},
+			apiErr := apierrors.AsAPIError(err)
+			So(apiErr, ShouldResemble, &apierrors.APIError{
+				Kind:    apierrors.Kind{Name: apierrors.Unauthorized, Reason: "NotAuthenticated"},
 				Message: "authentication required",
 				Code:    401,
 				Info:    map[string]interface{}{},
 			})
 		})
 		Convey("error with details", func() {
-			NotAuthenticated := skyerr.Invalid.WithReason("ValidationFailure")
+			NotAuthenticated := apierrors.Invalid.WithReason("ValidationFailure")
 			err := NotAuthenticated.NewWithDetails(
 				"failed to validate form payload",
-				skyerr.Details{
-					"field":   skyerr.APIErrorDetail.Value("email"),
+				apierrors.Details{
+					"field":   apierrors.APIErrorDetail.Value("email"),
 					"user_id": "user-id",
 				},
 			)
-			apiErr := skyerr.AsAPIError(err)
-			So(apiErr, ShouldResemble, &skyerr.APIError{
-				Kind:    skyerr.Kind{Name: skyerr.Invalid, Reason: "ValidationFailure"},
+			apiErr := apierrors.AsAPIError(err)
+			So(apiErr, ShouldResemble, &apierrors.APIError{
+				Kind:    apierrors.Kind{Name: apierrors.Invalid, Reason: "ValidationFailure"},
 				Message: "failed to validate form payload",
 				Code:    400,
 				Info: map[string]interface{}{
@@ -66,14 +66,14 @@ func TestAPIError(t *testing.T) {
 			})
 		})
 		Convey("error with info", func() {
-			NotAuthenticated := skyerr.Invalid.WithReason("ValidationFailure")
+			NotAuthenticated := apierrors.Invalid.WithReason("ValidationFailure")
 			err := NotAuthenticated.NewWithInfo(
 				"failed to validate form payload",
-				skyerr.Details{"field": "email"},
+				apierrors.Details{"field": "email"},
 			)
-			apiErr := skyerr.AsAPIError(err)
-			So(apiErr, ShouldResemble, &skyerr.APIError{
-				Kind:    skyerr.Kind{Name: skyerr.Invalid, Reason: "ValidationFailure"},
+			apiErr := apierrors.AsAPIError(err)
+			So(apiErr, ShouldResemble, &apierrors.APIError{
+				Kind:    apierrors.Kind{Name: apierrors.Invalid, Reason: "ValidationFailure"},
 				Message: "failed to validate form payload",
 				Code:    400,
 				Info: map[string]interface{}{
@@ -82,39 +82,39 @@ func TestAPIError(t *testing.T) {
 			})
 		})
 		Convey("error with cause", func() {
-			NotAuthenticated := skyerr.Invalid.WithReason("ValidationFailure")
+			NotAuthenticated := apierrors.Invalid.WithReason("ValidationFailure")
 			err := NotAuthenticated.NewWithCause(
 				"invalid code",
-				skyerr.StringCause("CodeExpired"),
+				apierrors.StringCause("CodeExpired"),
 			)
-			apiErr := skyerr.AsAPIError(err)
-			So(apiErr, ShouldResemble, &skyerr.APIError{
-				Kind:    skyerr.Kind{Name: skyerr.Invalid, Reason: "ValidationFailure"},
+			apiErr := apierrors.AsAPIError(err)
+			So(apiErr, ShouldResemble, &apierrors.APIError{
+				Kind:    apierrors.Kind{Name: apierrors.Invalid, Reason: "ValidationFailure"},
 				Message: "invalid code",
 				Code:    400,
 				Info: map[string]interface{}{
-					"cause": skyerr.StringCause("CodeExpired"),
+					"cause": apierrors.StringCause("CodeExpired"),
 				},
 			})
 		})
 		Convey("error with causes", func() {
-			NotAuthenticated := skyerr.Invalid.WithReason("ValidationFailure")
+			NotAuthenticated := apierrors.Invalid.WithReason("ValidationFailure")
 			err := NotAuthenticated.NewWithCauses(
 				"invalid password format",
-				[]skyerr.Cause{
-					skyerr.StringCause("TooShort"),
-					skyerr.StringCause("TooSimple"),
+				[]apierrors.Cause{
+					apierrors.StringCause("TooShort"),
+					apierrors.StringCause("TooSimple"),
 				},
 			)
-			apiErr := skyerr.AsAPIError(err)
-			So(apiErr, ShouldResemble, &skyerr.APIError{
-				Kind:    skyerr.Kind{Name: skyerr.Invalid, Reason: "ValidationFailure"},
+			apiErr := apierrors.AsAPIError(err)
+			So(apiErr, ShouldResemble, &apierrors.APIError{
+				Kind:    apierrors.Kind{Name: apierrors.Invalid, Reason: "ValidationFailure"},
 				Message: "invalid password format",
 				Code:    400,
 				Info: map[string]interface{}{
-					"causes": []skyerr.Cause{
-						skyerr.StringCause("TooShort"),
-						skyerr.StringCause("TooSimple"),
+					"causes": []apierrors.Cause{
+						apierrors.StringCause("TooShort"),
+						apierrors.StringCause("TooSimple"),
 					},
 				},
 			})
@@ -123,8 +123,8 @@ func TestAPIError(t *testing.T) {
 
 	Convey("APIError", t, func() {
 		Convey("simple error", func() {
-			apiErr := &skyerr.APIError{
-				Kind:    skyerr.Kind{Name: skyerr.InternalError, Reason: string(skyerr.InternalError)},
+			apiErr := &apierrors.APIError{
+				Kind:    apierrors.Kind{Name: apierrors.InternalError, Reason: string(apierrors.InternalError)},
 				Message: "internal server error",
 				Code:    500,
 				Info:    map[string]interface{}{},
@@ -133,8 +133,8 @@ func TestAPIError(t *testing.T) {
 			So(string(json), ShouldEqual, `{"name":"InternalError","reason":"InternalError","message":"internal server error","code":500}`)
 		})
 		Convey("common error", func() {
-			apiErr := &skyerr.APIError{
-				Kind:    skyerr.Kind{Name: skyerr.Unauthorized, Reason: "NotAuthenticated"},
+			apiErr := &apierrors.APIError{
+				Kind:    apierrors.Kind{Name: apierrors.Unauthorized, Reason: "NotAuthenticated"},
 				Message: "authentication required",
 				Code:    401,
 				Info:    map[string]interface{}{},
@@ -143,8 +143,8 @@ func TestAPIError(t *testing.T) {
 			So(string(json), ShouldEqual, `{"name":"Unauthorized","reason":"NotAuthenticated","message":"authentication required","code":401}`)
 		})
 		Convey("error with details", func() {
-			apiErr := &skyerr.APIError{
-				Kind:    skyerr.Kind{Name: skyerr.Invalid, Reason: "ValidationFailure"},
+			apiErr := &apierrors.APIError{
+				Kind:    apierrors.Kind{Name: apierrors.Invalid, Reason: "ValidationFailure"},
 				Message: "failed to validate form payload",
 				Code:    400,
 				Info: map[string]interface{}{
@@ -155,14 +155,14 @@ func TestAPIError(t *testing.T) {
 			So(string(json), ShouldEqual, `{"name":"Invalid","reason":"ValidationFailure","message":"failed to validate form payload","code":400,"info":{"field":"email"}}`)
 		})
 		Convey("error with causes", func() {
-			apiErr := &skyerr.APIError{
-				Kind:    skyerr.Kind{Name: skyerr.Invalid, Reason: "ValidationFailure"},
+			apiErr := &apierrors.APIError{
+				Kind:    apierrors.Kind{Name: apierrors.Invalid, Reason: "ValidationFailure"},
 				Message: "invalid password format",
 				Code:    400,
 				Info: map[string]interface{}{
-					"causes": []skyerr.Cause{
-						skyerr.StringCause("TooShort"),
-						skyerr.StringCause("TooSimple"),
+					"causes": []apierrors.Cause{
+						apierrors.StringCause("TooShort"),
+						apierrors.StringCause("TooSimple"),
 					},
 				},
 			}

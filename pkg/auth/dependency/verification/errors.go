@@ -1,10 +1,10 @@
 package verification
 
 import (
-	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 )
 
-var InvalidVerificationCode = skyerr.Forbidden.WithReason("InvalidVerificationCode")
+var InvalidVerificationCode = apierrors.Forbidden.WithReason("InvalidVerificationCode")
 
-var ErrCodeNotFound = InvalidVerificationCode.NewWithCause("verification code is expired or invalid", skyerr.StringCause("CodeNotFound"))
-var ErrInvalidVerificationCode = InvalidVerificationCode.NewWithCause("invalid verification code", skyerr.StringCause("InvalidVerificationCode"))
+var ErrCodeNotFound = InvalidVerificationCode.NewWithCause("verification code is expired or invalid", apierrors.StringCause("CodeNotFound"))
+var ErrInvalidVerificationCode = InvalidVerificationCode.NewWithCause("invalid verification code", apierrors.StringCause("InvalidVerificationCode"))

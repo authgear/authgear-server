@@ -1,16 +1,16 @@
 package forgotpassword
 
 import (
-	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 )
 
-var PasswordResetFailed = skyerr.Invalid.WithReason("PasswordResetFailed")
+var PasswordResetFailed = apierrors.Invalid.WithReason("PasswordResetFailed")
 
-var ErrInvalidCode = PasswordResetFailed.NewWithCause("invalid code", skyerr.StringCause("InvalidCode"))
-var ErrUsedCode = PasswordResetFailed.NewWithCause("used code", skyerr.StringCause("UsedCode"))
-var ErrExpiredCode = PasswordResetFailed.NewWithCause("expired code", skyerr.StringCause("ExpiredCode"))
+var ErrInvalidCode = PasswordResetFailed.NewWithCause("invalid code", apierrors.StringCause("InvalidCode"))
+var ErrUsedCode = PasswordResetFailed.NewWithCause("used code", apierrors.StringCause("UsedCode"))
+var ErrExpiredCode = PasswordResetFailed.NewWithCause("expired code", apierrors.StringCause("ExpiredCode"))
 
-var SendCodeFailed = skyerr.Invalid.WithReason("ForgotPasswordFailed")
+var SendCodeFailed = apierrors.Invalid.WithReason("ForgotPasswordFailed")
 
-var ErrUserNotFound = SendCodeFailed.NewWithCause("specified user not found", skyerr.StringCause("UserNotFound"))
-var ErrNoPassword = SendCodeFailed.NewWithCause("specified user cannot be logged in using password", skyerr.StringCause("NoPassword"))
+var ErrUserNotFound = SendCodeFailed.NewWithCause("specified user not found", apierrors.StringCause("UserNotFound"))
+var ErrNoPassword = SendCodeFailed.NewWithCause("specified user cannot be logged in using password", apierrors.StringCause("NoPassword"))

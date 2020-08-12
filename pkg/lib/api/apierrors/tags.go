@@ -1,4 +1,4 @@
-package skyerr
+package apierrors
 
 import (
 	"github.com/authgear/authgear-server/pkg/util/errors"

@@ -6,7 +6,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/validation"
 )
 
@@ -76,8 +76,8 @@ func TestSchemaValidate(t *testing.T) {
 			},
 		})
 
-		apiErr := skyerr.AsAPIError(err)
-		So(apiErr, ShouldResemble, &skyerr.APIError{
+		apiErr := apierrors.AsAPIError(err)
+		So(apiErr, ShouldResemble, &apierrors.APIError{
 			Kind:    validation.ValidationFailed,
 			Message: "invalid value",
 			Code:    400,

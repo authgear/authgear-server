@@ -4,7 +4,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/validation"
 )
 
@@ -17,8 +17,8 @@ func BindJSONBody(r *http.Request, w http.ResponseWriter, v *validation.SchemaVa
 	return ParseJSONBody(r, w, func(reader io.Reader, value interface{}) error {
 		err := v.ParseWithMessage(reader, errorMessage, value)
 		if err != nil {
-			if !skyerr.IsKind(err, validation.ValidationFailed) {
-				return skyerr.NewBadRequest(errorMessage)
+			if !apierrors.IsKind(err, validation.ValidationFailed) {
+				return apierrors.NewBadRequest(errorMessage)
 			}
 			return err
 		}

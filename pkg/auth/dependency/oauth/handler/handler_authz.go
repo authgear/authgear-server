@@ -13,7 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
-	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -132,7 +132,7 @@ func (h *AuthorizationHandler) doHandle(
 		authnOptions.RedirectURI = authorizeURI.String()
 
 		resp, err := h.WebAppURLs.AuthenticateURL(authnOptions)
-		if skyerr.IsKind(err, newinteraction.InvalidCredentials) {
+		if apierrors.IsKind(err, newinteraction.InvalidCredentials) {
 			return nil, protocol.NewError("invalid_request", err.Error())
 		} else if err != nil {
 			return nil, err

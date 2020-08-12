@@ -9,30 +9,30 @@ import (
 
 	"github.com/smartystreets/goconvey/convey"
 
-	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 )
 
-// ShouldEqualAPIError asserts the equality of skyerr.APIError
+// ShouldEqualAPIError asserts the equality of apierrors.APIError
 func ShouldEqualAPIError(actual interface{}, expected ...interface{}) string {
 	if len(expected) < 1 || len(expected) > 2 {
 		return fmt.Sprintf("ShouldEqualSkyError receives 1 to 2 arguments")
 	}
 
-	apiErr, ok := actual.(skyerr.APIError)
+	apiErr, ok := actual.(apierrors.APIError)
 	if !ok {
 		if err, ok := actual.(error); ok {
-			apiErr = *skyerr.AsAPIError(err)
+			apiErr = *apierrors.AsAPIError(err)
 		} else {
-			return fmt.Sprintf("%v is not convertible to skyerr.APIError", actual)
+			return fmt.Sprintf("%v is not convertible to apierrors.APIError", actual)
 		}
 	}
 
 	// expected[0] is kind
 	// expected[1] is info
 
-	kind, ok := expected[0].(skyerr.Kind)
+	kind, ok := expected[0].(apierrors.Kind)
 	if !ok {
-		return fmt.Sprintf("%v is not skyerr.Kind", expected[0])
+		return fmt.Sprintf("%v is not apierrors.Kind", expected[0])
 	}
 
 	var info map[string]interface{}
@@ -46,7 +46,7 @@ func ShouldEqualAPIError(actual interface{}, expected ...interface{}) string {
 	}
 
 	type APIError struct {
-		Kind skyerr.Kind
+		Kind apierrors.Kind
 		Info map[string]interface{}
 	}
 

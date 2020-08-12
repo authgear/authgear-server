@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 )
 
 var defaultErrorMessage = "invalid value"
 
-var ValidationFailed = skyerr.Invalid.WithReason("ValidationFailed")
+var ValidationFailed = apierrors.Invalid.WithReason("ValidationFailed")
 
 type Error struct {
 	Location string                 `json:"location"`
@@ -48,8 +48,8 @@ func (e *AggregatedError) Error() string {
 	return strings.Join(lines, "\n")
 }
 
-func (e *AggregatedError) AsAPIError() *skyerr.APIError {
-	return &skyerr.APIError{
+func (e *AggregatedError) AsAPIError() *apierrors.APIError {
+	return &apierrors.APIError{
 		Kind:    ValidationFailed,
 		Message: e.Message,
 		Code:    ValidationFailed.Name.HTTPStatus(),

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 )
 
 type APIResponse struct {
@@ -14,9 +14,9 @@ type APIResponse struct {
 
 func (r APIResponse) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
-		Result interface{}      `json:"result,omitempty"`
-		Error  *skyerr.APIError `json:"error,omitempty"`
-	}{r.Result, skyerr.AsAPIError(r.Error)})
+		Result interface{}         `json:"result,omitempty"`
+		Error  *apierrors.APIError `json:"error,omitempty"`
+	}{r.Result, apierrors.AsAPIError(r.Error)})
 }
 
 // HandledError represents a handled (i.e. API responded with error) unexpected
@@ -29,7 +29,7 @@ type HandledError struct {
 func WriteResponse(rw http.ResponseWriter, response APIResponse) {
 	httpStatus := http.StatusOK
 	encoder := json.NewEncoder(rw)
-	err := skyerr.AsAPIError(response.Error)
+	err := apierrors.AsAPIError(response.Error)
 
 	if err != nil {
 		httpStatus = err.Code

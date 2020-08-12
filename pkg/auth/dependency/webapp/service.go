@@ -9,7 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
-	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/util/base32"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -98,7 +98,7 @@ func (s *Service) GetState(stateID string) (*State, error) {
 }
 
 func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph *newinteraction.Graph, err error) {
-	var stateError *skyerr.APIError
+	var stateError *apierrors.APIError
 	if stateID != "" {
 		state, err = s.GetState(stateID)
 		if err != nil {
@@ -306,7 +306,7 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 		cookies = append(cookies, userAgentTokenCookie)
 	}
 
-	state.Error = skyerr.AsAPIError(inputError)
+	state.Error = apierrors.AsAPIError(inputError)
 	if graph != nil {
 		state.GraphInstanceID = graph.InstanceID
 		state.Extra = s.collectExtras(graph.CurrentNode())
@@ -319,7 +319,7 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 
 	// Case: error
 	if state.Error != nil {
-		if !skyerr.IsAPIError(inputError) {
+		if !apierrors.IsAPIError(inputError) {
 			s.Logger.Errorf("afterPost error: %v", inputError)
 		}
 		if graph != nil {

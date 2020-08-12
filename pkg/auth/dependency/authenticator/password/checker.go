@@ -22,7 +22,7 @@ import (
 
 	"github.com/nbutton23/zxcvbn-go"
 
-	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 	corepassword "github.com/authgear/authgear-server/pkg/util/password"
 )
 
@@ -324,7 +324,7 @@ func (pc *Checker) ValidatePassword(payload ValidatePayload) error {
 	userData := payload.UserData
 	authID := payload.AuthID
 
-	var violations []skyerr.Cause
+	var violations []apierrors.Cause
 	check := func(v *Policy) {
 		if v != nil {
 			violations = append(violations, *v)

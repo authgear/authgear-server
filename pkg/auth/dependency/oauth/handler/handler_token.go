@@ -16,7 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
 	"github.com/authgear/authgear-server/pkg/core/authn"
-	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -297,7 +297,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 		return graph, nil
 	})
 
-	if skyerr.IsKind(err, newinteraction.ConfigurationViolated) {
+	if apierrors.IsKind(err, newinteraction.ConfigurationViolated) {
 		return nil, protocol.NewError("unauthorized_client", err.Error())
 	} else if errors.Is(err, newinteraction.ErrInvalidCredentials) {
 		return nil, protocol.NewError("invalid_grant", err.Error())
@@ -306,7 +306,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 	}
 
 	err = h.Graphs.Run("", graph, false)
-	if skyerr.IsAPIError(err) {
+	if apierrors.IsAPIError(err) {
 		return nil, protocol.NewError("invalid_request", err.Error())
 	} else if err != nil {
 		return nil, err

@@ -1,4 +1,4 @@
-package skyerr
+package apierrors
 
 import "net/http"
 

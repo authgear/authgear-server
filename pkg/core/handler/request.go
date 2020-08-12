@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 )
 
 const BodyMaxSize = 1024 * 1024 * 10
@@ -34,7 +34,7 @@ func IsJSONContentType(contentType string) bool {
 
 func ParseJSONBody(r *http.Request, w http.ResponseWriter, parse func(io.Reader, interface{}) error, payload interface{}) error {
 	if !IsJSONContentType(r.Header.Get("Content-Type")) {
-		return skyerr.NewBadRequest("request content type is invalid")
+		return apierrors.NewBadRequest("request content type is invalid")
 	}
 	body := http.MaxBytesReader(w, r.Body, BodyMaxSize)
 	defer body.Close()

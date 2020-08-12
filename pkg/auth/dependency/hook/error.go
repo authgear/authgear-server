@@ -1,11 +1,11 @@
 package hook
 
 import (
-	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/util/errors"
 )
 
-var WebHookDisallowed = skyerr.Forbidden.WithReason("WebHookDisallowed")
+var WebHookDisallowed = apierrors.Forbidden.WithReason("WebHookDisallowed")
 
 var errDeliveryTimeout = errors.New("web-hook event delivery timed out")
 var errDeliveryInvalidStatusCode = errors.New("invalid status code")
