@@ -19,6 +19,14 @@ type EdgeCreateAuthenticatorTOTPSetup struct {
 	Tag   []string
 }
 
+func (e *EdgeCreateAuthenticatorTOTPSetup) AuthenticatorType() authn.AuthenticatorType {
+	return authn.AuthenticatorTypeTOTP
+}
+
+func (e *EdgeCreateAuthenticatorTOTPSetup) HasDefaultTag() bool {
+	return false
+}
+
 func (e *EdgeCreateAuthenticatorTOTPSetup) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
 	_, ok := rawInput.(InputCreateAuthenticatorTOTPSetup)
 	if !ok {

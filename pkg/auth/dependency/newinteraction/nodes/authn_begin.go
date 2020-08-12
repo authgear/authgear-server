@@ -79,13 +79,39 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() []newinteraction.Edge
 		availableAuthenticators,
 		authenticator.KeepType(authn.AuthenticatorTypePassword),
 	)
+	newinteraction.SortAuthenticators(
+		nil,
+		passwords,
+		func(i int) newinteraction.SortableAuthenticator {
+			a := newinteraction.SortableAuthenticatorInfo(*passwords[i])
+			return &a
+		},
+	)
+
 	totps := filterAuthenticators(
 		availableAuthenticators,
 		authenticator.KeepType(authn.AuthenticatorTypeTOTP),
 	)
+	newinteraction.SortAuthenticators(
+		nil,
+		totps,
+		func(i int) newinteraction.SortableAuthenticator {
+			a := newinteraction.SortableAuthenticatorInfo(*totps[i])
+			return &a
+		},
+	)
+
 	oobs := filterAuthenticators(
 		availableAuthenticators,
 		authenticator.KeepType(authn.AuthenticatorTypeOOB),
+	)
+	newinteraction.SortAuthenticators(
+		nil,
+		totps,
+		func(i int) newinteraction.SortableAuthenticator {
+			a := newinteraction.SortableAuthenticatorInfo(*oobs[i])
+			return &a
+		},
 	)
 
 	if len(passwords) > 0 {
@@ -121,15 +147,15 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() []newinteraction.Edge
 	newinteraction.SortAuthenticators(
 		preferred,
 		edges,
-		func(i int) authn.AuthenticatorType {
+		func(i int) newinteraction.SortableAuthenticator {
 			edge := edges[i]
-			switch edge.(type) {
+			switch edge := edge.(type) {
 			case *EdgeAuthenticationPassword:
-				return authn.AuthenticatorTypePassword
+				return edge
 			case *EdgeAuthenticationTOTP:
-				return authn.AuthenticatorTypeTOTP
+				return edge
 			case *EdgeAuthenticationOOBTrigger:
-				return authn.AuthenticatorTypeOOB
+				return edge
 			default:
 				panic(fmt.Sprintf("interaction: unknown edge: %T", edge))
 			}

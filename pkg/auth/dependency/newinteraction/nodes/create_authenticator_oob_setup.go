@@ -29,6 +29,14 @@ type EdgeCreateAuthenticatorOOBSetup struct {
 	AllowedChannels []authn.AuthenticatorOOBChannel
 }
 
+func (e *EdgeCreateAuthenticatorOOBSetup) AuthenticatorType() authn.AuthenticatorType {
+	return authn.AuthenticatorTypeOOB
+}
+
+func (e *EdgeCreateAuthenticatorOOBSetup) HasDefaultTag() bool {
+	return false
+}
+
 func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
 	var target string
 	var channel authn.AuthenticatorOOBChannel

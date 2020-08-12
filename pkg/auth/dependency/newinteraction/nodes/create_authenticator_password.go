@@ -19,6 +19,14 @@ type EdgeCreateAuthenticatorPassword struct {
 	Tag   []string
 }
 
+func (e *EdgeCreateAuthenticatorPassword) AuthenticatorType() authn.AuthenticatorType {
+	return authn.AuthenticatorTypePassword
+}
+
+func (e *EdgeCreateAuthenticatorPassword) HasDefaultTag() bool {
+	return false
+}
+
 func (e *EdgeCreateAuthenticatorPassword) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
 	input, ok := rawInput.(InputCreateAuthenticatorPassword)
 	if !ok {

@@ -262,15 +262,15 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []newinteraction
 	newinteraction.SortAuthenticators(
 		n.AuthenticationConfig.SecondaryAuthenticators,
 		edges,
-		func(i int) authn.AuthenticatorType {
+		func(i int) newinteraction.SortableAuthenticator {
 			edge := edges[i]
-			switch edge.(type) {
+			switch edge := edge.(type) {
 			case *EdgeCreateAuthenticatorPassword:
-				return authn.AuthenticatorTypePassword
+				return edge
 			case *EdgeCreateAuthenticatorTOTPSetup:
-				return authn.AuthenticatorTypeTOTP
+				return edge
 			case *EdgeCreateAuthenticatorOOBSetup:
-				return authn.AuthenticatorTypeOOB
+				return edge
 			default:
 				panic(fmt.Sprintf("interaction: unknown edge: %T", edge))
 			}

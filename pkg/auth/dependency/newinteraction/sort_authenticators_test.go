@@ -17,17 +17,29 @@ func TestSortAuthenticators(t *testing.T) {
 		}
 	}
 
+	infoDefault := func(typ authn.AuthenticatorType, id string, isDefault bool) *authenticator.Info {
+		i := &authenticator.Info{
+			ID:   id,
+			Type: typ,
+		}
+		if isDefault {
+			i.Tag = append(i.Tag, authenticator.TagDefaultAuthenticator)
+		}
+		return i
+	}
+
 	test := func(ais []*authenticator.Info, preferred []authn.AuthenticatorType, expected []*authenticator.Info) {
 		actual := make([]*authenticator.Info, len(ais))
 		copy(actual, ais)
-		SortAuthenticators(preferred, actual, func(i int) authn.AuthenticatorType {
-			return actual[i].Type
+		SortAuthenticators(preferred, actual, func(i int) SortableAuthenticator {
+			a := SortableAuthenticatorInfo(*actual[i])
+			return &a
 		})
 
 		So(actual, ShouldResemble, expected)
 	}
 
-	Convey("SortAuthenticators", t, func() {
+	Convey("SortAuthenticators by type", t, func() {
 		// Sort nil
 		test(nil, nil, []*authenticator.Info{})
 
@@ -63,6 +75,40 @@ func TestSortAuthenticators(t *testing.T) {
 		}, []*authenticator.Info{
 			info(authn.AuthenticatorTypeOOB, "oob1"),
 			info(authn.AuthenticatorTypeOOB, "oob2"),
+			info(authn.AuthenticatorTypePassword, "password1"),
+			info(authn.AuthenticatorTypePassword, "password2"),
+		})
+	})
+
+	Convey("SortAuthenticators by default", t, func() {
+		// Sort singleton
+		test([]*authenticator.Info{
+			infoDefault(authn.AuthenticatorTypePassword, "password", true),
+		}, []authn.AuthenticatorType{}, []*authenticator.Info{
+			infoDefault(authn.AuthenticatorTypePassword, "password", true),
+		})
+
+		// Default comes first
+		test([]*authenticator.Info{
+			infoDefault(authn.AuthenticatorTypePassword, "password", true),
+			info(authn.AuthenticatorTypeOOB, "oob"),
+		}, []authn.AuthenticatorType{
+			authn.AuthenticatorTypeOOB,
+		}, []*authenticator.Info{
+			infoDefault(authn.AuthenticatorTypePassword, "password", true),
+			info(authn.AuthenticatorTypeOOB, "oob"),
+		})
+
+		test([]*authenticator.Info{
+			info(authn.AuthenticatorTypePassword, "password1"),
+			info(authn.AuthenticatorTypePassword, "password2"),
+			info(authn.AuthenticatorTypeOOB, "oob1"),
+			infoDefault(authn.AuthenticatorTypeOOB, "oob2", true),
+		}, []authn.AuthenticatorType{
+			authn.AuthenticatorTypeOOB,
+		}, []*authenticator.Info{
+			infoDefault(authn.AuthenticatorTypeOOB, "oob2", true),
+			info(authn.AuthenticatorTypeOOB, "oob1"),
 			info(authn.AuthenticatorTypePassword, "password1"),
 			info(authn.AuthenticatorTypePassword, "password2"),
 		})

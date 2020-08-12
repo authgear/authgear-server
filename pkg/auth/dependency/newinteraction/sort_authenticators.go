@@ -3,15 +3,32 @@ package newinteraction
 import (
 	"sort"
 
+	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/core/utils"
 )
+
+type SortableAuthenticator interface {
+	AuthenticatorType() authn.AuthenticatorType
+	HasDefaultTag() bool
+}
+
+type SortableAuthenticatorInfo authenticator.Info
+
+func (i *SortableAuthenticatorInfo) AuthenticatorType() authn.AuthenticatorType {
+	return i.Type
+}
+
+func (i *SortableAuthenticatorInfo) HasDefaultTag() bool {
+	return utils.StringSliceContains(i.Tag, authenticator.TagDefaultAuthenticator)
+}
 
 // SortAuthenticators sorts slice in-place by considering preferred as the order.
 // The item in the slice must somehow associated with a single AuthenticatorType.
 func SortAuthenticators(
 	preferred []authn.AuthenticatorType,
 	slice interface{},
-	getType func(i int) authn.AuthenticatorType,
+	toSortable func(i int) SortableAuthenticator,
 ) {
 	rank := make(map[authn.AuthenticatorType]int)
 	for i, typ := range preferred {
@@ -19,22 +36,35 @@ func SortAuthenticators(
 	}
 
 	sort.SliceStable(slice, func(i, j int) bool {
-		iType := getType(i)
-		jType := getType(j)
+		iSortable := toSortable(i)
+		jSortable := toSortable(j)
 
-		iRank, iIsPreferred := rank[iType]
-		jRank, jIsPreferred := rank[jType]
-
+		iDefault := iSortable.HasDefaultTag()
+		jDefault := jSortable.HasDefaultTag()
 		switch {
-		case iIsPreferred && jIsPreferred:
-			return iRank < jRank
-		case !iIsPreferred && !jIsPreferred:
-			return false
-		case iIsPreferred && !jIsPreferred:
+		case iDefault && !jDefault:
 			return true
-		case !iIsPreferred && jIsPreferred:
+		case !iDefault && jDefault:
 			return false
+		default:
+			iType := iSortable.AuthenticatorType()
+			jType := jSortable.AuthenticatorType()
+
+			iRank, iIsPreferred := rank[iType]
+			jRank, jIsPreferred := rank[jType]
+
+			switch {
+			case iIsPreferred && jIsPreferred:
+				return iRank < jRank
+			case !iIsPreferred && !jIsPreferred:
+				return false
+			case iIsPreferred && !jIsPreferred:
+				return true
+			case !iIsPreferred && jIsPreferred:
+				return false
+			}
 		}
+
 		panic("unreachable")
 	})
 }
