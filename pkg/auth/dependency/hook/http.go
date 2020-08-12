@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/httputil"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 const HeaderRequestBodySignature = "x-authgear-body-signature"

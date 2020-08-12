@@ -5,9 +5,9 @@ import (
 	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/core/intl"
-	"github.com/authgear/authgear-server/pkg/log"
 	"github.com/authgear/authgear-server/pkg/template"
+	"github.com/authgear/authgear-server/pkg/util/intl"
+	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 type Renderer interface {

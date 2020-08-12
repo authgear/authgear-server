@@ -1,10 +1,11 @@
 package httputil_test
 
 import (
-	"github.com/authgear/authgear-server/pkg/httputil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 
 	. "github.com/smartystreets/goconvey/convey"
 )

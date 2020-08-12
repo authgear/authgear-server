@@ -9,8 +9,8 @@ import (
 	goredis "github.com/gomodule/redigo/redis"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/redis"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 type StoreRedis struct {

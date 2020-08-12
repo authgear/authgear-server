@@ -6,7 +6,7 @@ import (
 	"github.com/getsentry/sentry-go"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/httputil"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type Middleware struct {

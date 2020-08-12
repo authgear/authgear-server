@@ -7,7 +7,7 @@ import (
 	"github.com/iawaknahc/gomessageformat"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/core/intl"
+	"github.com/authgear/authgear-server/pkg/util/intl"
 )
 
 type resolveResult struct {

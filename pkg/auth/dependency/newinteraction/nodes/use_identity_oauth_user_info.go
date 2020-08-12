@@ -10,7 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/sso"
 	"github.com/authgear/authgear-server/pkg/core/authn"
-	"github.com/authgear/authgear-server/pkg/core/crypto"
+	"github.com/authgear/authgear-server/pkg/util/crypto"
 )
 
 func init() {

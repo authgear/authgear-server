@@ -13,7 +13,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/authgear/authgear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 type mockAccessEventProvider struct{}

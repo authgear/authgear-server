@@ -15,14 +15,15 @@
 package password
 
 import (
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"regexp"
 	"strings"
 
+	"github.com/authgear/authgear-server/pkg/auth/config"
+
 	"github.com/nbutton23/zxcvbn-go"
 
-	corepassword "github.com/authgear/authgear-server/pkg/core/password"
 	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	corepassword "github.com/authgear/authgear-server/pkg/util/password"
 )
 
 func isUpperRune(r rune) bool {

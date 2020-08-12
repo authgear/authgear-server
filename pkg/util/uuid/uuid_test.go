@@ -15,10 +15,10 @@
 package uuid
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
+	"regexp"
 	"testing"
 
-	"regexp"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestNew(t *testing.T) {

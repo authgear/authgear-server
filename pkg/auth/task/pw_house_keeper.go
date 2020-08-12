@@ -8,8 +8,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/auth/task/spec"
 	"github.com/authgear/authgear-server/pkg/db"
-	"github.com/authgear/authgear-server/pkg/log"
 	"github.com/authgear/authgear-server/pkg/task"
+	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 func ConfigurePwHousekeeperTask(registry task.Registry, t task.Task) {

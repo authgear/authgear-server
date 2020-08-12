@@ -1,11 +1,12 @@
 package password
 
 import (
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"sort"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/core/uuid"
+	"github.com/authgear/authgear-server/pkg/auth/config"
+
+	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 type mockPasswordHistoryStoreImpl struct {

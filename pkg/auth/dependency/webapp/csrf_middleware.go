@@ -6,8 +6,8 @@ import (
 	"github.com/gorilla/csrf"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/httputil"
-	"github.com/authgear/authgear-server/pkg/jwkutil"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 )
 
 type CSRFMiddleware struct {

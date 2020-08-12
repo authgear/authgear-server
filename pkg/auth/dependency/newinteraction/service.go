@@ -2,7 +2,7 @@ package newinteraction
 
 import (
 	"github.com/authgear/authgear-server/pkg/core/errors"
-	"github.com/authgear/authgear-server/pkg/log"
+	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 var ErrStateNotFound = errors.New("invalid state or state not found")

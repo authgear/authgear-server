@@ -4,7 +4,7 @@ import (
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 type GetAuthURLParam struct {

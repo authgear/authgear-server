@@ -5,12 +5,12 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	taskspec "github.com/authgear/authgear-server/pkg/auth/task/spec"
-	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/errors"
-	pwd "github.com/authgear/authgear-server/pkg/core/password"
-	"github.com/authgear/authgear-server/pkg/core/uuid"
-	"github.com/authgear/authgear-server/pkg/log"
 	"github.com/authgear/authgear-server/pkg/task"
+	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/log"
+	pwd "github.com/authgear/authgear-server/pkg/util/password"
+	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 type Logger struct{ *log.Logger }

@@ -30,7 +30,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/welcomemessage"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
-	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/sentry"
 	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/authgear/authgear-server/pkg/endpoints"
@@ -38,6 +37,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/otp"
 	"github.com/authgear/authgear-server/pkg/task"
 	taskqueue "github.com/authgear/authgear-server/pkg/task/queue"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 var commonDeps = wire.NewSet(

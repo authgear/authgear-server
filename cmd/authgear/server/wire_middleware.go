@@ -9,8 +9,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/core/sentry"
 	"github.com/authgear/authgear-server/pkg/deps"
-	"github.com/authgear/authgear-server/pkg/httproute"
 	"github.com/authgear/authgear-server/pkg/middlewares"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
 var rootMiddlewareDependencySet = wire.NewSet(

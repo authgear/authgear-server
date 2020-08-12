@@ -11,12 +11,12 @@ import (
 	authtemplate "github.com/authgear/authgear-server/pkg/auth/template"
 	"github.com/authgear/authgear-server/pkg/core/sentry"
 	"github.com/authgear/authgear-server/pkg/db"
-	"github.com/authgear/authgear-server/pkg/httproute"
-	"github.com/authgear/authgear-server/pkg/log"
 	"github.com/authgear/authgear-server/pkg/redis"
 	"github.com/authgear/authgear-server/pkg/task"
 	taskexecutors "github.com/authgear/authgear-server/pkg/task/executors"
 	"github.com/authgear/authgear-server/pkg/template"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 type RootProvider struct {

@@ -2,11 +2,13 @@ package validation
 
 import (
 	"errors"
-	"github.com/authgear/authgear-server/pkg/core/phone"
-	jsonschemaformat "github.com/iawaknahc/jsonschema/pkg/jsonschema/format"
 	"net/mail"
 	"net/url"
 	"path/filepath"
+
+	jsonschemaformat "github.com/iawaknahc/jsonschema/pkg/jsonschema/format"
+
+	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
 func init() {

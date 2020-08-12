@@ -1,8 +1,8 @@
 package webapp
 
 import (
-	"github.com/authgear/authgear-server/pkg/core/base32"
-	corerand "github.com/authgear/authgear-server/pkg/core/rand"
+	"github.com/authgear/authgear-server/pkg/util/base32"
+	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 )
 
 const (

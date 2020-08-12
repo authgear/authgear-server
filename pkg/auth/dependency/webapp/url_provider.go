@@ -11,7 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
 	interactionintents "github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
 	coreurl "github.com/authgear/authgear-server/pkg/core/url"
-	"github.com/authgear/authgear-server/pkg/httputil"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type EndpointsProvider interface {

@@ -9,11 +9,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
-	"github.com/authgear/authgear-server/pkg/core/base32"
-	corerand "github.com/authgear/authgear-server/pkg/core/rand"
 	"github.com/authgear/authgear-server/pkg/core/skyerr"
-	"github.com/authgear/authgear-server/pkg/httputil"
-	"github.com/authgear/authgear-server/pkg/log"
+	"github.com/authgear/authgear-server/pkg/util/base32"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/log"
+	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 )
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package webapp
