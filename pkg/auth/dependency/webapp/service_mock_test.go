@@ -5,13 +5,11 @@
 package webapp
 
 import (
-	"net/http"
-	"reflect"
-
-	"github.com/golang/mock/gomock"
-
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
+	newinteraction "github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	httputil "github.com/authgear/authgear-server/pkg/util/httputil"
+	gomock "github.com/golang/mock/gomock"
+	http "net/http"
+	reflect "reflect"
 )
 
 // MockRedirectURIGetter is a mock of RedirectURIGetter interface
