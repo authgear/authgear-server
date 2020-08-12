@@ -23,7 +23,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/core/skyerr"
-	. "github.com/authgear/authgear-server/pkg/core/skytest"
+	. "github.com/authgear/authgear-server/pkg/util/testing"
 )
 
 func TestPasswordCheckingFuncs(t *testing.T) {

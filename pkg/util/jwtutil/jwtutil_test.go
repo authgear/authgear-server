@@ -16,7 +16,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	. "github.com/authgear/authgear-server/pkg/core/skytest"
+	. "github.com/authgear/authgear-server/pkg/util/testing"
 )
 
 func TestSign(t *testing.T) {

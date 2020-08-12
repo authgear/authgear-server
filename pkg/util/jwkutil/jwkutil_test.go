@@ -8,7 +8,7 @@ import (
 
 	"github.com/lestrrat-go/jwx/jwk"
 
-	. "github.com/authgear/authgear-server/pkg/core/skytest"
+	. "github.com/authgear/authgear-server/pkg/util/testing"
 )
 
 func TestPublicKeySet(t *testing.T) {
