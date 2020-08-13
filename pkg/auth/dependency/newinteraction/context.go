@@ -125,6 +125,7 @@ type VerificationService interface {
 
 type CookieFactory interface {
 	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
+	ClearCookie(def *httputil.CookieDef) *http.Cookie
 }
 
 type Context struct {

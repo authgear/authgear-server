@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"errors"
+	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/mfa"
@@ -24,8 +25,11 @@ func (e *EdgeUseDeviceToken) Instantiate(ctx *newinteraction.Context, graph *new
 
 	err := ctx.MFA.VerifyDeviceToken(userID, deviceToken)
 	if errors.Is(err, mfa.ErrDeviceTokenNotFound) {
-		err = newinteraction.ErrInvalidCredentials
-		return nil, err
+		cookie := ctx.CookieFactory.ClearCookie(ctx.MFADeviceTokenCookie.Def)
+		return nil, &newinteraction.ErrClearCookie{
+			Cookies: []*http.Cookie{cookie},
+			Inner:   newinteraction.ErrSameNode,
+		}
 	} else if err != nil {
 		return nil, err
 	}

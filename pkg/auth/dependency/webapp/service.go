@@ -203,6 +203,7 @@ func (s *Service) PostIntent(intent *Intent, inputer func() (interface{}, error)
 
 	var graph *newinteraction.Graph
 	var edges []newinteraction.Edge
+	var clearCookie *newinteraction.ErrClearCookie
 	err = s.Graph.DryRun(state.ID, func(ctx *newinteraction.Context) (newGraph *newinteraction.Graph, err error) {
 		graph, err = s.Graph.NewGraph(ctx, intent.Intent)
 		if err != nil {
@@ -215,7 +216,11 @@ func (s *Service) PostIntent(intent *Intent, inputer func() (interface{}, error)
 		}
 
 		graph, edges, err = graph.Accept(ctx, input)
-		if errors.Is(err, newinteraction.ErrInputRequired) {
+
+		errors.As(err, &clearCookie)
+
+		var inputRequired *newinteraction.ErrInputRequired
+		if errors.As(err, &inputRequired) {
 			err = nil
 			newGraph = graph
 			return
@@ -229,7 +234,7 @@ func (s *Service) PostIntent(intent *Intent, inputer func() (interface{}, error)
 	})
 
 	// Regardless of err, we need to return result.
-	result, err = s.afterPost(state, graph, edges, err)
+	result, err = s.afterPost(state, graph, edges, err, clearCookie)
 	if err != nil {
 		return
 	}
@@ -256,6 +261,7 @@ func (s *Service) post(state *State, inputer func() (interface{}, error)) (resul
 		return nil, err
 	}
 
+	var clearCookie *newinteraction.ErrClearCookie
 	err = s.Graph.DryRun(state.ID, func(ctx *newinteraction.Context) (*newinteraction.Graph, error) {
 		input, err := inputer()
 		if err != nil {
@@ -269,7 +275,11 @@ func (s *Service) post(state *State, inputer func() (interface{}, error)) (resul
 
 		var newGraph *newinteraction.Graph
 		newGraph, edges, err = graph.Accept(ctx, input)
-		if errors.Is(err, newinteraction.ErrInputRequired) {
+
+		errors.As(err, &clearCookie)
+
+		var inputRequired *newinteraction.ErrInputRequired
+		if errors.As(err, &inputRequired) {
 			graph = newGraph
 			return newGraph, nil
 		} else if err != nil {
@@ -281,7 +291,7 @@ func (s *Service) post(state *State, inputer func() (interface{}, error)) (resul
 	})
 
 	// Regardless of err, we need to return result.
-	result, err = s.afterPost(state, graph, edges, err)
+	result, err = s.afterPost(state, graph, edges, err, clearCookie)
 	if err != nil {
 		return
 	}
@@ -289,7 +299,7 @@ func (s *Service) post(state *State, inputer func() (interface{}, error)) (resul
 	return
 }
 
-func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []newinteraction.Edge, inputError error) (*Result, error) {
+func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []newinteraction.Edge, inputError error, clearCookie *newinteraction.ErrClearCookie) (*Result, error) {
 	finished := graph != nil && len(edges) == 0 && inputError == nil
 	// The graph finished. Apply its effect permanently
 	if finished {
@@ -304,6 +314,12 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 		token, userAgentTokenCookie := s.generateUserAgentToken()
 		state.UserAgentToken = token
 		cookies = append(cookies, userAgentTokenCookie)
+	}
+
+	// Handle ErrClearCookie specifically.
+	// The main use case is to remove invalid device token.
+	if clearCookie != nil {
+		cookies = append(cookies, clearCookie.Cookies...)
 	}
 
 	state.Error = apierrors.AsAPIError(inputError)

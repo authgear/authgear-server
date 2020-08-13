@@ -1,6 +1,7 @@
 package newinteraction_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -89,9 +90,11 @@ func TestGraph(t *testing.T) {
 			})
 
 		Convey("should go to deepest node", func() {
+			var inputRequired *newinteraction.ErrInputRequired
+
 			nodeB.EXPECT().Apply(any, any)
 			graph, edges, err := g.Accept(ctx, input1{})
-			So(err, ShouldBeError, newinteraction.ErrInputRequired)
+			So(errors.As(err, &inputRequired), ShouldBeTrue)
 			So(graph.Nodes, ShouldResemble, []newinteraction.Node{nodeA, nodeB})
 			So(edges, ShouldResemble, []newinteraction.Edge{edgeD})
 
@@ -104,7 +107,7 @@ func TestGraph(t *testing.T) {
 
 			nodeC.EXPECT().Apply(any, any)
 			graph, edges, err = g.Accept(ctx, input3{})
-			So(err, ShouldBeError, newinteraction.ErrInputRequired)
+			So(errors.As(err, &inputRequired), ShouldBeTrue)
 			So(graph.Nodes, ShouldResemble, []newinteraction.Node{nodeA, nodeC})
 			So(edges, ShouldResemble, []newinteraction.Edge{edgeB, edgeE})
 
@@ -117,14 +120,16 @@ func TestGraph(t *testing.T) {
 		})
 
 		Convey("should process looping edge", func() {
+			var inputRequired *newinteraction.ErrInputRequired
+
 			nodeC.EXPECT().Apply(any, any)
 			graph, edges, err := g.Accept(ctx, input3{})
-			So(err, ShouldBeError, newinteraction.ErrInputRequired)
+			So(errors.As(err, &inputRequired), ShouldBeTrue)
 			So(graph.Nodes, ShouldResemble, []newinteraction.Node{nodeA, nodeC})
 			So(edges, ShouldResemble, []newinteraction.Edge{edgeB, edgeE})
 
 			graph, edges, err = graph.Accept(ctx, input4{})
-			So(err, ShouldBeError, newinteraction.ErrInputRequired)
+			So(errors.As(err, &inputRequired), ShouldBeTrue)
 			So(graph.Nodes, ShouldResemble, []newinteraction.Node{nodeA, nodeC})
 			So(edges, ShouldResemble, []newinteraction.Edge{edgeB, edgeE})
 

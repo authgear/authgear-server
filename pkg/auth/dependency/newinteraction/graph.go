@@ -15,8 +15,6 @@ import (
 
 const GraphLifetime = 5 * time.Minute
 
-var ErrInputRequired = errors.New("new input is required")
-
 type Graph struct {
 	// GraphID is the unique ID for a graph.
 	// It is a constant value through out a graph.
@@ -286,7 +284,7 @@ func (g *Graph) Accept(ctx *Context, input interface{}) (*Graph, []Edge, error) 
 				// so no need to update the graph.
 				// Continuing would keep traversing the same edge,
 				// so stop and request new input.
-				return graph.clone(), edges, ErrInputRequired
+				return graph.clone(), edges, &ErrInputRequired{Inner: err}
 			} else if err != nil {
 				return nil, nil, err
 			}
@@ -295,7 +293,7 @@ func (g *Graph) Accept(ctx *Context, input interface{}) (*Graph, []Edge, error) 
 
 		// No edges are followed, input is required
 		if nextNode == nil {
-			return graph, edges, ErrInputRequired
+			return graph, edges, &ErrInputRequired{}
 		}
 
 		// Follow the edge to nextNode

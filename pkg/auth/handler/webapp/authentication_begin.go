@@ -1,7 +1,6 @@
 package webapp
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -117,11 +116,7 @@ func (h *AuthenticationBeginHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 						}
 						return
 					})
-					if errors.Is(err, newinteraction.ErrInvalidCredentials) {
-						err = nil
-						// FIXME(mfa): remove cookie
-						// Continue
-					} else if err != nil {
+					if err != nil {
 						http.Error(w, err.Error(), http.StatusInternalServerError)
 						return err
 					}
