@@ -5,10 +5,10 @@ package server
 import (
 	"github.com/google/wire"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -74,7 +74,7 @@ func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		middlewareDependencySet,
-		wire.Bind(new(httproute.Middleware), new(*auth.Middleware)),
+		wire.Bind(new(httproute.Middleware), new(*session.Middleware)),
 	))
 }
 

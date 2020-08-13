@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
-	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/lib/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 )
 
 type User struct {

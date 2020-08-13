@@ -3,9 +3,9 @@ package oauth
 import (
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
-	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/lib/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/session/access"
 )
 
 type OfflineGrant struct {
@@ -19,27 +19,23 @@ type OfflineGrant struct {
 	Scopes    []string  `json:"scopes"`
 	TokenHash string    `json:"token_hash"`
 
-	Attrs      authn.Attrs     `json:"attrs"`
-	AccessInfo auth.AccessInfo `json:"access_info"`
+	Attrs      session.Attrs `json:"attrs"`
+	AccessInfo access.Info   `json:"access_info"`
 }
 
 var _ Grant = &OfflineGrant{}
-var _ auth.AuthSession = &OfflineGrant{}
 
 func (g *OfflineGrant) Session() (kind GrantSessionKind, id string) {
 	return GrantSessionKindOffline, g.ID
 }
 
-func (g *OfflineGrant) SessionID() string              { return g.ID }
-func (g *OfflineGrant) SessionType() authn.SessionType { return auth.SessionTypeOfflineGrant }
+func (g *OfflineGrant) SessionID() string            { return g.ID }
+func (g *OfflineGrant) SessionType() session.Type    { return session.TypeOfflineGrant }
+func (g *OfflineGrant) SessionAttrs() *session.Attrs { return &g.Attrs }
 
-func (g *OfflineGrant) AuthnAttrs() *authn.Attrs {
-	return &g.Attrs
-}
-
-func (g *OfflineGrant) GetCreatedAt() time.Time         { return g.CreatedAt }
-func (g *OfflineGrant) GetClientID() string             { return g.ClientID }
-func (g *OfflineGrant) GetAccessInfo() *auth.AccessInfo { return &g.AccessInfo }
+func (g *OfflineGrant) GetCreatedAt() time.Time     { return g.CreatedAt }
+func (g *OfflineGrant) GetClientID() string         { return g.ClientID }
+func (g *OfflineGrant) GetAccessInfo() *access.Info { return &g.AccessInfo }
 
 func (g *OfflineGrant) ToAPIModel() *model.Session {
 	ua := model.ParseUserAgent(g.AccessInfo.LastAccess.UserAgent)

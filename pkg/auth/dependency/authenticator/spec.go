@@ -1,6 +1,8 @@
 package authenticator
 
-import "github.com/authgear/authgear-server/pkg/core/authn"
+import (
+	"github.com/authgear/authgear-server/pkg/lib/authn"
+)
 
 type Spec struct {
 	UserID string                  `json:"user_id"`

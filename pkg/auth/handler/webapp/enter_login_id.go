@@ -3,15 +3,15 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
-	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/template"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -145,7 +145,7 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
+	userID := session.GetUserID(r.Context())
 
 	if r.Method == "GET" {
 		h.Database.WithTx(func() error {
@@ -173,7 +173,7 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			intent := &webapp.Intent{
 				StateID:     StateID(r),
 				RedirectURI: "/settings/identity",
-				Intent:      intents.NewIntentRemoveIdentity(userID),
+				Intent:      intents.NewIntentRemoveIdentity(*userID),
 			}
 
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
@@ -201,9 +201,9 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			}
 
 			if enterLoginIDViewModel.IdentityID != "" {
-				intent.Intent = intents.NewIntentUpdateIdentity(userID, enterLoginIDViewModel.IdentityID)
+				intent.Intent = intents.NewIntentUpdateIdentity(*userID, enterLoginIDViewModel.IdentityID)
 			} else {
-				intent.Intent = intents.NewIntentAddIdentity(userID)
+				intent.Intent = intents.NewIntentAddIdentity(*userID)
 			}
 
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {

@@ -7,10 +7,10 @@ import (
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jwt"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
-	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/lib/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
@@ -35,8 +35,8 @@ func (ti *IDTokenIssuer) GetPublicKeySet() (*jwk.Set, error) {
 	return jwkutil.PublicKeySet(&ti.Secrets.Set)
 }
 
-func (ti *IDTokenIssuer) IssueIDToken(client config.OAuthClientConfig, session auth.AuthSession, nonce string) (string, error) {
-	claims, err := ti.LoadUserClaims(session)
+func (ti *IDTokenIssuer) IssueIDToken(client config.OAuthClientConfig, s session.Session, nonce string) (string, error) {
+	claims, err := ti.LoadUserClaims(s)
 	if err != nil {
 		return "", err
 	}
@@ -46,7 +46,7 @@ func (ti *IDTokenIssuer) IssueIDToken(client config.OAuthClientConfig, session a
 	claims.Set(jwt.AudienceKey, client.ClientID())
 	claims.Set(jwt.IssuedAtKey, now.Unix())
 	claims.Set(jwt.ExpirationKey, now.Add(IDTokenValidDuration).Unix())
-	for key, value := range session.AuthnAttrs().Claims {
+	for key, value := range s.SessionAttrs().Claims {
 		claims.Set(string(key), value)
 	}
 	if nonce != "" {
@@ -63,15 +63,15 @@ func (ti *IDTokenIssuer) IssueIDToken(client config.OAuthClientConfig, session a
 	return string(signed), nil
 }
 
-func (ti *IDTokenIssuer) LoadUserClaims(session auth.AuthSession) (jwt.Token, error) {
-	user, err := ti.Users.Get(session.AuthnAttrs().UserID)
+func (ti *IDTokenIssuer) LoadUserClaims(s session.Session) (jwt.Token, error) {
+	user, err := ti.Users.Get(s.SessionAttrs().UserID)
 	if err != nil {
 		return nil, err
 	}
 
 	claims := jwt.New()
 	claims.Set(jwt.IssuerKey, ti.Endpoints.BaseURL().String())
-	claims.Set(jwt.SubjectKey, session.AuthnAttrs().UserID)
+	claims.Set(jwt.SubjectKey, s.SessionAttrs().UserID)
 	claims.Set(string(authn.ClaimUserIsAnonymous), user.IsAnonymous)
 	claims.Set(string(authn.ClaimUserIsVerified), user.IsVerified)
 

@@ -3,12 +3,12 @@ package nodes
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
-	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/lib/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 )
 
 func init() {
@@ -16,7 +16,7 @@ func init() {
 }
 
 type EdgeDoCreateSession struct {
-	Reason auth.SessionCreateReason
+	Reason session.CreateReason
 }
 
 func (e *EdgeDoCreateSession) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, input interface{}) (newinteraction.Node, error) {
@@ -24,7 +24,7 @@ func (e *EdgeDoCreateSession) Instantiate(ctx *newinteraction.Context, graph *ne
 	acr := graph.GetACR(amr)
 	userIdentity := graph.MustGetUserLastIdentity()
 
-	attrs := &authn.Attrs{
+	attrs := &session.Attrs{
 		UserID: graph.MustGetUserID(),
 		Claims: map[authn.ClaimName]interface{}{},
 	}
@@ -45,9 +45,9 @@ func (e *EdgeDoCreateSession) Instantiate(ctx *newinteraction.Context, graph *ne
 }
 
 type NodeDoCreateSession struct {
-	Reason        auth.SessionCreateReason `json:"reason"`
-	Session       *session.IDPSession      `json:"session"`
-	SessionCookie *http.Cookie             `json:"session_cookie"`
+	Reason        session.CreateReason   `json:"reason"`
+	Session       *idpsession.IDPSession `json:"session"`
+	SessionCookie *http.Cookie           `json:"session_cookie"`
 }
 
 // GetCookies implements CookiesGetter
@@ -55,8 +55,8 @@ func (n *NodeDoCreateSession) GetCookies() []*http.Cookie {
 	return []*http.Cookie{n.SessionCookie}
 }
 
-func (n *NodeDoCreateSession) AuthnAttrs() authn.Attrs {
-	return n.Session.Attrs
+func (n *NodeDoCreateSession) SessionAttrs() *session.Attrs {
+	return &n.Session.Attrs
 }
 
 func (n *NodeDoCreateSession) Prepare(ctx *newinteraction.Context, graph *newinteraction.Graph) error {
@@ -65,7 +65,7 @@ func (n *NodeDoCreateSession) Prepare(ctx *newinteraction.Context, graph *newint
 
 func (n *NodeDoCreateSession) Apply(perform func(eff newinteraction.Effect) error, graph *newinteraction.Graph) error {
 	err := perform(newinteraction.EffectOnCommit(func(ctx *newinteraction.Context) error {
-		if n.Reason != auth.SessionCreateReasonPromote {
+		if n.Reason != session.CreateReasonPromote {
 			return nil
 		}
 

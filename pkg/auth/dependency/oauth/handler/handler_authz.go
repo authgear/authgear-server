@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -106,7 +106,7 @@ func (h *AuthorizationHandler) doHandle(
 		return nil, err
 	}
 
-	session := auth.GetSession(h.Context)
+	s := session.GetSession(h.Context)
 	authnOptions := webapp.AuthenticateURLOptions{}
 	if slice.ContainsString(r.Prompt(), "login") {
 		// Request login prompt => force re-authentication and retry
@@ -120,9 +120,9 @@ func (h *AuthorizationHandler) doHandle(
 
 		r = r2
 		// Treat as not authenticated
-		session = nil
+		s = nil
 	}
-	if session == nil || session.SessionType() != auth.SessionTypeIdentityProvider {
+	if s == nil || s.SessionType() != session.TypeIdentityProvider {
 		// Not authenticated as IdP session => request authentication and retry
 		authnOptions.ClientID = r.ClientID()
 		authnOptions.UILocales = strings.Join(r.UILocales(), " ")
@@ -146,7 +146,7 @@ func (h *AuthorizationHandler) doHandle(
 		h.Clock.NowUTC(),
 		h.AppID,
 		r.ClientID(),
-		session.AuthnAttrs().UserID,
+		s.SessionAttrs().UserID,
 		scopes,
 	)
 	if err != nil {
@@ -156,7 +156,7 @@ func (h *AuthorizationHandler) doHandle(
 	resp := protocol.AuthorizationResponse{}
 	switch r.ResponseType() {
 	case "code":
-		err = h.generateCodeResponse(redirectURI.String(), session, r, authz, scopes, resp)
+		err = h.generateCodeResponse(redirectURI.String(), s, r, authz, scopes, resp)
 		if err != nil {
 			return nil, err
 		}
@@ -227,7 +227,7 @@ func (h *AuthorizationHandler) validateRequest(
 
 func (h *AuthorizationHandler) generateCodeResponse(
 	redirectURI string,
-	session auth.AuthSession,
+	session session.Session,
 	r protocol.AuthorizationRequest,
 	authz *oauth.Authorization,
 	scopes []string,

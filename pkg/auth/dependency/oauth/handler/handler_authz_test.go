@@ -10,11 +10,11 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	authtesting "github.com/authgear/authgear-server/pkg/auth/dependency/auth/testing"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	sessiontest "github.com/authgear/authgear-server/pkg/lib/session/test"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -150,9 +150,9 @@ func TestAuthorizationHandler(t *testing.T) {
 				So(resp.Result().StatusCode, ShouldEqual, 302)
 			})
 			Convey("return authorization code", func() {
-				h.Context = authtesting.WithAuthn().
-					UserID("user-id").
-					SessionID("session-id").
+				h.Context = sessiontest.NewMockSession().
+					SetUserID("user-id").
+					SetSessionID("session-id").
 					ToContext(context.Background())
 
 				Convey("create new authorization implicitly", func() {
@@ -281,9 +281,9 @@ func TestAuthorizationHandler(t *testing.T) {
 				So(resp.Result().StatusCode, ShouldEqual, 302)
 			})
 			Convey("redirect to URI", func() {
-				h.Context = authtesting.WithAuthn().
-					UserID("user-id").
-					SessionID("session-id").
+				h.Context = sessiontest.NewMockSession().
+					SetUserID("user-id").
+					SetSessionID("session-id").
 					ToContext(context.Background())
 
 				Convey("create new authorization implicitly", func() {

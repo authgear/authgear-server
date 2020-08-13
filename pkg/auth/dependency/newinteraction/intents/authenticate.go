@@ -4,11 +4,11 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
-	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 )
 
 func init() {
@@ -280,15 +280,15 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *newinteraction.Graph, nod
 			},
 		}, nil
 	case *nodes.NodeDoGenerateRecoveryCode:
-		var reason auth.SessionCreateReason
+		var reason session.CreateReason
 		_, creating := graph.GetNewUserID()
 		switch {
 		case i.Kind == IntentAuthenticateKindPromote:
-			reason = auth.SessionCreateReasonPromote
+			reason = session.CreateReasonPromote
 		case creating:
-			reason = auth.SessionCreateReasonSignup
+			reason = session.CreateReasonSignup
 		default:
-			reason = auth.SessionCreateReasonLogin
+			reason = session.CreateReasonLogin
 		}
 
 		return []newinteraction.Edge{

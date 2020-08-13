@@ -1,17 +1,16 @@
 package handler
 
 import (
-	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
-	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 )
 
 func (h *TokenHandler) IssueTokens(
 	client config.OAuthClientConfig,
-	attrs *authn.Attrs,
-) (auth.AuthSession, protocol.TokenResponse, error) {
+	attrs *session.Attrs,
+) (session.Session, protocol.TokenResponse, error) {
 	scopes := []string{"openid", oauth.FullAccessScope}
 
 	authz, err := checkAuthorization(

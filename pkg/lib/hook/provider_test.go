@@ -7,10 +7,10 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
-	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/lib/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
 
@@ -124,11 +124,11 @@ func TestDispatchEvent(t *testing.T) {
 
 			Convey("should include auth info", func() {
 				userID := "user-id"
-				provider.Context = authn.WithAuthn(
+				provider.Context = session.WithSession(
 					context.Background(),
-					&session.IDPSession{
+					&idpsession.IDPSession{
 						ID: "user-id-principal-id",
-						Attrs: authn.Attrs{
+						Attrs: session.Attrs{
 							UserID: userID,
 						},
 					},

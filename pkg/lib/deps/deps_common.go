@@ -3,8 +3,6 @@ package deps
 import (
 	"github.com/google/wire"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
-	authredis "github.com/authgear/authgear-server/pkg/auth/dependency/auth/redis"
 	authenticatoroob "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
 	authenticatorpassword "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/password"
 	authenticatorservice "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/service"
@@ -20,8 +18,6 @@ import (
 	oauthpq "github.com/authgear/authgear-server/pkg/auth/dependency/oauth/pq"
 	oauthredis "github.com/authgear/authgear-server/pkg/auth/dependency/oauth/redis"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oidc"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
-	sessionredis "github.com/authgear/authgear-server/pkg/auth/dependency/session/redis"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/sso"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/user"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
@@ -32,6 +28,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/session/access"
+	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/mfa"
 	"github.com/authgear/authgear-server/pkg/otp"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -53,27 +52,23 @@ var commonDeps = wire.NewSet(
 		hook.DependencySet,
 		wire.Bind(new(newinteraction.HookProvider), new(*hook.Provider)),
 		wire.Bind(new(user.HookProvider), new(*hook.Provider)),
-		wire.Bind(new(auth.HookProvider), new(*hook.Provider)),
+		wire.Bind(new(session.HookProvider), new(*hook.Provider)),
 	),
 
 	wire.NewSet(
-		sessionredis.DependencySet,
-		wire.Bind(new(session.Store), new(*sessionredis.Store)),
+		idpsession.DependencySet,
 
+		wire.Bind(new(session.IDPSessionResolver), new(*idpsession.Resolver)),
+		wire.Bind(new(session.IDPSessionManager), new(*idpsession.Manager)),
+		wire.Bind(new(oauth.ResolverSessionProvider), new(*idpsession.Provider)),
+		wire.Bind(new(oauthhandler.SessionProvider), new(*idpsession.Provider)),
+		wire.Bind(new(newinteraction.SessionProvider), new(*idpsession.Provider)),
+	),
+
+	wire.NewSet(
+		access.DependencySet,
 		session.DependencySet,
-		wire.Bind(new(auth.IDPSessionResolver), new(*session.Resolver)),
-		wire.Bind(new(auth.IDPSessionManager), new(*session.Manager)),
-		wire.Bind(new(oauth.ResolverSessionProvider), new(*session.Provider)),
-		wire.Bind(new(oauthhandler.SessionProvider), new(*session.Provider)),
-		wire.Bind(new(newinteraction.SessionProvider), new(*session.Provider)),
-	),
-
-	wire.NewSet(
-		authredis.DependencySet,
-		wire.Bind(new(auth.AccessEventStore), new(*authredis.EventStore)),
-
-		auth.DependencySet,
-		wire.Bind(new(session.AccessEventProvider), new(*auth.AccessEventProvider)),
+		wire.Bind(new(idpsession.AccessEventProvider), new(*access.EventProvider)),
 	),
 
 	wire.NewSet(
@@ -118,7 +113,7 @@ var commonDeps = wire.NewSet(
 
 	wire.NewSet(
 		user.DependencySet,
-		wire.Bind(new(auth.UserProvider), new(*user.Queries)),
+		wire.Bind(new(session.UserProvider), new(*user.Queries)),
 		wire.Bind(new(newinteraction.UserService), new(*user.Provider)),
 		wire.Bind(new(oidc.UserProvider), new(*user.Queries)),
 		wire.Bind(new(hook.UserProvider), new(*user.RawProvider)),
@@ -150,8 +145,8 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(oauth.OfflineGrantStore), new(*oauthredis.GrantStore)),
 
 		oauth.DependencySet,
-		wire.Bind(new(auth.AccessTokenSessionResolver), new(*oauth.Resolver)),
-		wire.Bind(new(auth.AccessTokenSessionManager), new(*oauth.SessionManager)),
+		wire.Bind(new(session.AccessTokenSessionResolver), new(*oauth.Resolver)),
+		wire.Bind(new(session.AccessTokenSessionManager), new(*oauth.SessionManager)),
 		wire.Bind(new(oauthhandler.OAuthURLProvider), new(*oauth.URLProvider)),
 		wire.Value(oauthhandler.TokenGenerator(oauth.GenerateToken)),
 	),

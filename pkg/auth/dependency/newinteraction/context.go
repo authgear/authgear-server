@@ -9,15 +9,16 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/sso"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/user"
-	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/lib/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/mfa"
 	"github.com/authgear/authgear-server/pkg/otp"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -92,8 +93,8 @@ type HookProvider interface {
 }
 
 type SessionProvider interface {
-	MakeSession(*authn.Attrs) (*session.IDPSession, string)
-	Create(*session.IDPSession) error
+	MakeSession(*session.Attrs) (*idpsession.IDPSession, string)
+	Create(*idpsession.IDPSession) error
 }
 
 type OAuthProviderFactory interface {
@@ -152,7 +153,7 @@ type Context struct {
 	Hooks                HookProvider
 	CookieFactory        CookieFactory
 	Sessions             SessionProvider
-	SessionCookie        session.CookieDef
+	SessionCookie        idpsession.CookieDef
 	MFADeviceTokenCookie mfa.CookieDef
 }
 

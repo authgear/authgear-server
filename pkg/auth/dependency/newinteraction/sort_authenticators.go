@@ -4,7 +4,7 @@ import (
 	"sort"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
-	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 

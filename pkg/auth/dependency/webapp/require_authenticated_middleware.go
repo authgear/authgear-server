@@ -4,14 +4,14 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 )
 
 type RequireAuthenticatedMiddleware struct{}
 
 func (m RequireAuthenticatedMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userID := auth.GetUserID(r.Context())
+		userID := session.GetUserID(r.Context())
 		if userID == nil {
 			// Trim scheme and host, retain path and query
 			redirectURI := *r.URL

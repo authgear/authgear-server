@@ -1,6 +1,8 @@
 package config
 
-import "github.com/authgear/authgear-server/pkg/core/authn"
+import (
+	"github.com/authgear/authgear-server/pkg/lib/authn"
+)
 
 var _ = Schema.Add("AuthenticationConfig", `
 {

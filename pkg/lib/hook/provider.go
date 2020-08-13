@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -182,7 +182,7 @@ func (provider *Provider) dispatchSyncUserEventIfNeeded() error {
 }
 
 func (provider *Provider) makeContext() event.Context {
-	userID := authn.GetUserID(provider.Context)
+	userID := session.GetUserID(provider.Context)
 
 	return event.Context{
 		Timestamp: provider.Clock.NowUTC().Unix(),

@@ -2,7 +2,7 @@ package authenticator
 
 import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
-	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )

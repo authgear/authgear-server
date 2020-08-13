@@ -3,17 +3,17 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
-	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/template"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -99,8 +99,8 @@ func (h *SettingsIdentityHandler) GetData(r *http.Request, state *webapp.State) 
 	}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
-	userID := auth.GetSession(r.Context()).AuthnAttrs().UserID
-	candidates, err := h.Identities.ListCandidates(userID)
+	userID := session.GetUserID(r.Context())
+	candidates, err := h.Identities.ListCandidates(*userID)
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +109,7 @@ func (h *SettingsIdentityHandler) GetData(r *http.Request, state *webapp.State) 
 	viewModel := SettingsIdentityViewModel{
 		VerificationStatuses: map[string]verification.Status{},
 	}
-	identities, err := h.Identities.ListByUser(userID)
+	identities, err := h.Identities.ListByUser(*userID)
 	if err != nil {
 		return nil, err
 	}
@@ -134,8 +134,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	redirectURI := httputil.HostRelative(r.URL).String()
 	providerAlias := r.Form.Get("x_provider_alias")
 	identityID := r.Form.Get("x_identity_id")
-	sess := auth.GetSession(r.Context())
-	userID := sess.AuthnAttrs().UserID
+	userID := session.GetUserID(r.Context())
 	nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
 
 	if r.Method == "GET" {
@@ -162,7 +161,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 			intent := &webapp.Intent{
 				StateID:     StateID(r),
 				RedirectURI: redirectURI,
-				Intent:      intents.NewIntentAddIdentity(userID),
+				Intent:      intents.NewIntentAddIdentity(*userID),
 			}
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
 				input = &SettingsIdentityLinkOAuth{
@@ -186,7 +185,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 			intent := &webapp.Intent{
 				StateID:     StateID(r),
 				RedirectURI: redirectURI,
-				Intent:      intents.NewIntentRemoveIdentity(userID),
+				Intent:      intents.NewIntentRemoveIdentity(*userID),
 			}
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
 				input = &SettingsIdentityUnlinkOAuth{
@@ -209,7 +208,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 				StateID:     StateID(r),
 				RedirectURI: redirectURI,
 				KeepState:   true,
-				Intent:      intents.NewIntentVerifyIdentity(userID, authn.IdentityTypeLoginID, identityID),
+				Intent:      intents.NewIntentVerifyIdentity(*userID, authn.IdentityTypeLoginID, identityID),
 			}
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
 				input = nil

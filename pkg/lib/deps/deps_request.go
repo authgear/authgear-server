@@ -3,7 +3,6 @@ package deps
 import (
 	"github.com/google/wire"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
 	identityservice "github.com/authgear/authgear-server/pkg/auth/dependency/identity/service"
@@ -20,6 +19,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 )
 
 func ProvideOAuthMetadataProviders(oauth *oauth.MetadataProvider, oidc *oidc.MetadataProvider) []handleroauth.MetadataProvider {
@@ -61,6 +61,6 @@ var requestDeps = wire.NewSet(
 	wire.Bind(new(handlerwebapp.SettingsIdentityService), new(*identityservice.Service)),
 	wire.Bind(new(handlerwebapp.SettingsVerificationService), new(*verification.Service)),
 	wire.Bind(new(handlerwebapp.PasswordPolicy), new(*password.Checker)),
-	wire.Bind(new(handlerwebapp.LogoutSessionManager), new(*auth.SessionManager)),
+	wire.Bind(new(handlerwebapp.LogoutSessionManager), new(*session.Manager)),
 	wire.Bind(new(handlerwebapp.WebAppService), new(*webapp.Service)),
 )

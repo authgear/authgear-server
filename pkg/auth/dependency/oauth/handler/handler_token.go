@@ -8,15 +8,15 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	interactionintents "github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
-	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/session/access"
+	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -34,11 +34,11 @@ var whitelistedGrantTypes = []string{
 }
 
 type IDTokenIssuer interface {
-	IssueIDToken(client config.OAuthClientConfig, session auth.AuthSession, nonce string) (token string, err error)
+	IssueIDToken(client config.OAuthClientConfig, session session.Session, nonce string) (token string, err error)
 }
 
 type SessionProvider interface {
-	Get(id string) (*session.IDPSession, error)
+	Get(id string) (*idpsession.IDPSession, error)
 }
 
 type TokenHandlerLogger struct{ *log.Logger }
@@ -58,7 +58,7 @@ type TokenHandler struct {
 	CodeGrants     oauth.CodeGrantStore
 	OfflineGrants  oauth.OfflineGrantStore
 	AccessGrants   oauth.AccessGrantStore
-	AccessEvents   auth.AccessEventProvider
+	AccessEvents   *access.EventProvider
 	Sessions       SessionProvider
 	Graphs         GraphService
 	IDTokenIssuer  IDTokenIssuer
@@ -191,7 +191,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 	}
 
 	sess, err := h.Sessions.Get(codeGrant.SessionID)
-	if errors.Is(err, session.ErrSessionNotFound) {
+	if errors.Is(err, idpsession.ErrSessionNotFound) {
 		return nil, errInvalidAuthzCode
 	} else if err != nil {
 		return nil, err
@@ -265,7 +265,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
 	var graph *newinteraction.Graph
-	var attrs *authn.Attrs
+	var attrs *session.Attrs
 	err := h.Graphs.DryRun("", func(ctx *newinteraction.Context) (*newinteraction.Graph, error) {
 		var err error
 		graph, err = h.Graphs.NewGraph(ctx, interactionintents.NewIntentLogin())
@@ -284,9 +284,8 @@ func (h *TokenHandler) handleAnonymousRequest(
 		}
 
 		for _, node := range graph.Nodes {
-			if a, ok := node.(interface{ AuthnAttrs() authn.Attrs }); ok {
-				at := a.AuthnAttrs()
-				attrs = &at
+			if a, ok := node.(interface{ SessionAttrs() *session.Attrs }); ok {
+				attrs = a.SessionAttrs()
 				break
 			}
 		}
@@ -347,7 +346,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 	client config.OAuthClientConfig,
 	code *oauth.CodeGrant,
 	authz *oauth.Authorization,
-	session *session.IDPSession,
+	s *idpsession.IDPSession,
 ) (protocol.TokenResponse, error) {
 	issueRefreshToken := false
 	issueIDToken := false
@@ -378,9 +377,9 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 
 	var sessionID string
 	var sessionKind oauth.GrantSessionKind
-	var atSession auth.AuthSession
+	var atSession session.Session
 	if issueRefreshToken {
-		offlineGrant, err := h.issueOfflineGrant(client, code.Scopes, authz.ID, session.AuthnAttrs(), resp)
+		offlineGrant, err := h.issueOfflineGrant(client, code.Scopes, authz.ID, s.SessionAttrs(), resp)
 		if err != nil {
 			return nil, err
 		}
@@ -388,8 +387,8 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 		sessionID = offlineGrant.ID
 		sessionKind = oauth.GrantSessionKindOffline
 	} else {
-		atSession = session
-		sessionID = session.ID
+		atSession = s
+		sessionID = s.ID
 		sessionKind = oauth.GrantSessionKindSession
 	}
 
@@ -452,12 +451,12 @@ func (h *TokenHandler) issueOfflineGrant(
 	client config.OAuthClientConfig,
 	scopes []string,
 	authzID string,
-	attrs *authn.Attrs,
+	attrs *session.Attrs,
 	resp protocol.TokenResponse,
 ) (*oauth.OfflineGrant, error) {
 	token := h.GenerateToken()
 	now := h.Clock.NowUTC()
-	accessEvent := auth.NewAccessEvent(now, h.Request, h.ServerConfig.TrustProxy)
+	accessEvent := access.NewEvent(now, h.Request, h.ServerConfig.TrustProxy)
 	offlineGrant := &oauth.OfflineGrant{
 		AppID:           string(h.AppID),
 		ID:              uuid.New(),
@@ -470,7 +469,7 @@ func (h *TokenHandler) issueOfflineGrant(
 		TokenHash: oauth.HashToken(token),
 
 		Attrs: *attrs,
-		AccessInfo: auth.AccessInfo{
+		AccessInfo: access.Info{
 			InitialAccess: accessEvent,
 			LastAccess:    accessEvent,
 		},
@@ -480,7 +479,7 @@ func (h *TokenHandler) issueOfflineGrant(
 		return nil, err
 	}
 
-	err = h.AccessEvents.InitStream(offlineGrant)
+	err = h.AccessEvents.InitStream(offlineGrant.ID, &offlineGrant.AccessInfo.InitialAccess)
 	if err != nil {
 		return nil, err
 	}

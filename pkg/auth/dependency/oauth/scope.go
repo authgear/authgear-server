@@ -4,16 +4,16 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
+	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 )
 
 const FullAccessScope = "https://authgear.com/scopes/full-access"
 
-func SessionScopes(s auth.AuthSession) []string {
+func SessionScopes(s session.Session) []string {
 	switch s := s.(type) {
-	case *session.IDPSession:
+	case *idpsession.IDPSession:
 		return []string{FullAccessScope}
 	case *OfflineGrant:
 		return s.Scopes
@@ -33,7 +33,7 @@ func RequireScope(scopes ...string) func(http.Handler) http.Handler {
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-			session := auth.GetSession(r.Context())
+			session := session.GetSession(r.Context())
 			status, errResp := checkAuthz(session, requiredScopes, scope)
 			if errResp != nil {
 				h := errResp.ToWWWAuthenticateHeader()
@@ -46,7 +46,7 @@ func RequireScope(scopes ...string) func(http.Handler) http.Handler {
 	}
 }
 
-func checkAuthz(session auth.AuthSession, requiredScopes map[string]struct{}, scope string) (int, protocol.ErrorResponse) {
+func checkAuthz(session session.Session, requiredScopes map[string]struct{}, scope string) (int, protocol.ErrorResponse) {
 	if session == nil {
 		return http.StatusUnauthorized, protocol.NewErrorResponse("invalid_token", "invalid access token")
 	}

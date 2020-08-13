@@ -9,8 +9,9 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
-	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 )
 
 func TestResolveHandler(t *testing.T) {
@@ -26,14 +27,14 @@ func TestResolveHandler(t *testing.T) {
 		}
 
 		Convey("should attach headers for valid sessions", func() {
-			s := &session.IDPSession{
+			s := &idpsession.IDPSession{
 				ID: "session-id",
-				Attrs: authn.Attrs{
+				Attrs: session.Attrs{
 					UserID: "user-id",
 				},
 			}
 			r, _ := http.NewRequest("POST", "/", nil)
-			r = r.WithContext(authn.WithAuthn(r.Context(), s))
+			r = r.WithContext(session.WithSession(r.Context(), s))
 
 			Convey("for normal user", func() {
 				userIdentities := []*identity.Info{
@@ -81,7 +82,7 @@ func TestResolveHandler(t *testing.T) {
 
 		Convey("should attach headers for invalid sessions", func() {
 			r, _ := http.NewRequest("POST", "/", nil)
-			r = r.WithContext(authn.WithInvalidAuthn(r.Context()))
+			r = r.WithContext(session.WithInvalidSession(r.Context()))
 			rw := httptest.NewRecorder()
 			h.ServeHTTP(rw, r)
 

@@ -3,7 +3,7 @@ package oob
 import (
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 )
 
 const (

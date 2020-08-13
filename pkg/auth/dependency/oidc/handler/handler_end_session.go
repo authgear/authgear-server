@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oidc"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oidc/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
 
@@ -24,7 +24,7 @@ type EndSessionHandler struct {
 	URLs      WebAppURLsProvider
 }
 
-func (h *EndSessionHandler) Handle(s auth.AuthSession, req protocol.EndSessionRequest, r *http.Request, rw http.ResponseWriter) error {
+func (h *EndSessionHandler) Handle(s session.Session, req protocol.EndSessionRequest, r *http.Request, rw http.ResponseWriter) error {
 	if s != nil {
 		endSessionURL := urlutil.WithQueryParamsAdded(
 			h.Endpoints.EndSessionEndpointURL(),

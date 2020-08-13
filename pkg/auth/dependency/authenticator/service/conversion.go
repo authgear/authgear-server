@@ -5,7 +5,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/totp"
-	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 )
 
 func passwordToAuthenticatorInfo(p *password.Authenticator) *authenticator.Info {

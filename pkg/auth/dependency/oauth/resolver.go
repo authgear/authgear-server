@@ -5,15 +5,16 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/session/access"
+	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 type ResolverSessionProvider interface {
-	Get(id string) (*session.IDPSession, error)
-	Update(*session.IDPSession) error
+	Get(id string) (*idpsession.IDPSession, error)
+	Update(*idpsession.IDPSession) error
 }
 
 type Resolver struct {
@@ -25,7 +26,7 @@ type Resolver struct {
 	Clock          clock.Clock
 }
 
-func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (auth.AuthSession, error) {
+func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Session, error) {
 	token := parseAuthorizationHeader(r)
 	if token == "" {
 		// No bearer token in Authorization header. Simply proceed.
@@ -34,13 +35,13 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (auth.AuthS
 
 	token, err := DecodeAccessToken(token)
 	if err != nil {
-		return nil, auth.ErrInvalidSession
+		return nil, session.ErrInvalidSession
 	}
 
 	tokenHash := HashToken(token)
 	grant, err := re.AccessGrants.GetAccessGrant(tokenHash)
 	if errors.Is(err, ErrGrantNotFound) {
-		return nil, auth.ErrInvalidSession
+		return nil, session.ErrInvalidSession
 	} else if err != nil {
 		return nil, err
 	}
@@ -48,19 +49,19 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (auth.AuthS
 	_, err = re.Authorizations.GetByID(grant.AuthorizationID)
 	if errors.Is(err, ErrAuthorizationNotFound) {
 		// Authorization does not exists (e.g. revoked)
-		return nil, auth.ErrInvalidSession
+		return nil, session.ErrInvalidSession
 	} else if err != nil {
 		return nil, err
 	}
 
-	var authSession auth.AuthSession
-	event := auth.NewAccessEvent(re.Clock.NowUTC(), r, re.ServerConfig.TrustProxy)
+	var authSession session.Session
+	event := access.NewEvent(re.Clock.NowUTC(), r, re.ServerConfig.TrustProxy)
 
 	switch grant.SessionKind {
 	case GrantSessionKindSession:
 		s, err := re.Sessions.Get(grant.SessionID)
-		if errors.Is(err, session.ErrSessionNotFound) {
-			return nil, auth.ErrInvalidSession
+		if errors.Is(err, idpsession.ErrSessionNotFound) {
+			return nil, session.ErrInvalidSession
 		} else if err != nil {
 			return nil, err
 		}
@@ -74,7 +75,7 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (auth.AuthS
 	case GrantSessionKindOffline:
 		g, err := re.OfflineGrants.GetOfflineGrant(grant.SessionID)
 		if errors.Is(err, ErrGrantNotFound) {
-			return nil, auth.ErrInvalidSession
+			return nil, session.ErrInvalidSession
 		} else if err != nil {
 			return nil, err
 		}
