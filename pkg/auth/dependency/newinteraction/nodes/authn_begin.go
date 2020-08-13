@@ -162,7 +162,7 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() []newinteraction.Edge
 	// We have to add after the sorting because
 	// recovery code is not an authenticator.
 	if n.Stage == newinteraction.AuthenticationStageSecondary {
-		edges = append(edges, &EdgeDoConsumeRecoveryCode{})
+		edges = append(edges, &EdgeConsumeRecoveryCode{})
 	}
 
 	return edges

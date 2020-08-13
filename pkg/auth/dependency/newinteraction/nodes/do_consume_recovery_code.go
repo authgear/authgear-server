@@ -11,14 +11,14 @@ func init() {
 	newinteraction.RegisterNode(&NodeDoConsumeRecoveryCode{})
 }
 
-type InputDoConsumeRecoveryCode interface {
+type InputConsumeRecoveryCode interface {
 	GetRecoveryCode() string
 }
 
-type EdgeDoConsumeRecoveryCode struct{}
+type EdgeConsumeRecoveryCode struct{}
 
-func (e *EdgeDoConsumeRecoveryCode) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
-	input, ok := rawInput.(InputDoConsumeRecoveryCode)
+func (e *EdgeConsumeRecoveryCode) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
+	input, ok := rawInput.(InputConsumeRecoveryCode)
 	if !ok {
 		return nil, newinteraction.ErrIncompatibleInput
 	}

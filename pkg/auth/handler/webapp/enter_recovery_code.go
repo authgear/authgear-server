@@ -82,9 +82,9 @@ type EnterRecoveryCodeInput struct {
 	Code string
 }
 
-var _ nodes.InputDoConsumeRecoveryCode = &EnterRecoveryCodeInput{}
+var _ nodes.InputConsumeRecoveryCode = &EnterRecoveryCodeInput{}
 
-// GetRecoveryCode implements InputDoConsumeRecoveryCode..
+// GetRecoveryCode implements InputConsumeRecoveryCode.
 func (i *EnterRecoveryCodeInput) GetRecoveryCode() string {
 	return i.Code
 }

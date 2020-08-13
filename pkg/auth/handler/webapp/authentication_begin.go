@@ -94,7 +94,7 @@ func (h *AuthenticationBeginHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 	h.Database.WithTx(func() error {
 		selectedEdge := edges[edgeIndex]
 		switch selectedEdge := selectedEdge.(type) {
-		case *nodes.EdgeDoConsumeRecoveryCode:
+		case *nodes.EdgeConsumeRecoveryCode:
 			http.Redirect(w, r, webapp.AttachStateID(state.ID, &url.URL{
 				Path: "/enter_recovery_code",
 			}).String(), http.StatusFound)
@@ -154,7 +154,7 @@ func DeriveAuthenticationAlternatives(stateID string, graph *newinteraction.Grap
 
 	for i, edge := range edges {
 		switch edge := edge.(type) {
-		case *nodes.EdgeDoConsumeRecoveryCode:
+		case *nodes.EdgeConsumeRecoveryCode:
 			typ := AuthenticationTypeRecoveryCode
 			if typ != currentType {
 				q := url.Values{}
