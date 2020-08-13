@@ -1,17 +1,19 @@
 package hook
 
 import (
-	"github.com/authgear/authgear-server/pkg/core/errors"
-	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"errors"
+	"fmt"
+
+	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 )
 
-var WebHookDisallowed = skyerr.Forbidden.WithReason("WebHookDisallowed")
+var WebHookDisallowed = apierrors.Forbidden.WithReason("WebHookDisallowed")
 
 var errDeliveryTimeout = errors.New("web-hook event delivery timed out")
 var errDeliveryInvalidStatusCode = errors.New("invalid status code")
 
 func newErrorDeliveryFailed(inner error) error {
-	return errors.Newf("web-hook event delivery failed: %w", inner)
+	return fmt.Errorf("web-hook event delivery failed: %w", inner)
 }
 
 type OperationDisallowedItem struct {

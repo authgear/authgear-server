@@ -3,9 +3,9 @@ package deps
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 
-	configsource "github.com/authgear/authgear-server/pkg/auth/config/source"
+	configsource "github.com/authgear/authgear-server/pkg/lib/config/source"
 )
 
 type RequestMiddleware struct {
@@ -19,7 +19,7 @@ func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		config, err := m.ConfigSource.ProvideConfig(r.Context(), r)
 		if err != nil {
-			if errors.Is(err, configsource.ErrAppNotFound) {
+			if errorutil.Is(err, configsource.ErrAppNotFound) {
 				http.Error(w, configsource.ErrAppNotFound.Error(), http.StatusNotFound)
 			} else {
 				logger.WithError(err).Error("failed to resolve config")

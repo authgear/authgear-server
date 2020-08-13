@@ -3,7 +3,7 @@ package event
 import (
 	"io"
 
-	"github.com/authgear/authgear-server/pkg/validation"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 /*

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/authgear/authgear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 type AccessTokenResp map[string]interface{}
@@ -99,7 +99,7 @@ func fetchAccessTokenResp(
 		defer resp.Body.Close()
 	}
 	if err != nil {
-		err = errors.WithSecondaryError(
+		err = errorutil.WithSecondaryError(
 			NewSSOFailed(NetworkFailed, "failed to connect authorization server"),
 			err,
 		)

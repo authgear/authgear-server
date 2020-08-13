@@ -8,9 +8,9 @@ import (
 	"github.com/lestrrat-go/jwx/jwk"
 	"gopkg.in/h2non/gock.v1"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/event"
-	"github.com/authgear/authgear-server/pkg/clock"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 
 	. "github.com/smartystreets/goconvey/convey"
 )

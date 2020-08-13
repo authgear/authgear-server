@@ -3,8 +3,8 @@ package otp
 import (
 	"crypto/subtle"
 
-	"github.com/authgear/authgear-server/pkg/core/base32"
-	"github.com/authgear/authgear-server/pkg/core/rand"
+	"github.com/authgear/authgear-server/pkg/util/base32"
+	"github.com/authgear/authgear-server/pkg/util/rand"
 )
 
 type Format struct {

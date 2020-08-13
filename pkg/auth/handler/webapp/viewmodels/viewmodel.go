@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"reflect"
 
-	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 )
 
 func sliceContains(slice []interface{}, value interface{}) bool {
@@ -17,9 +17,9 @@ func sliceContains(slice []interface{}, value interface{}) bool {
 	return false
 }
 
-func asAPIError(anyError interface{}) *skyerr.APIError {
+func asAPIError(anyError interface{}) *apierrors.APIError {
 	if err, ok := anyError.(error); ok {
-		return skyerr.AsAPIError(err)
+		return apierrors.AsAPIError(err)
 	}
 	return nil
 }

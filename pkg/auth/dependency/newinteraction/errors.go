@@ -1,15 +1,15 @@
 package newinteraction
 
-import "github.com/authgear/authgear-server/pkg/core/skyerr"
+import "github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 
 var (
-	ConfigurationViolated  = skyerr.Forbidden.WithReason("ConfigurationViolated")
-	InvalidCredentials     = skyerr.Unauthorized.WithReason("InvalidCredentials")
-	DuplicatedIdentity     = skyerr.AlreadyExists.WithReason("DuplicatedIdentity")
-	InvalidIdentityRequest = skyerr.Invalid.WithReason("InvalidIdentityRequest")
+	ConfigurationViolated  = apierrors.Forbidden.WithReason("ConfigurationViolated")
+	InvalidCredentials     = apierrors.Unauthorized.WithReason("InvalidCredentials")
+	DuplicatedIdentity     = apierrors.AlreadyExists.WithReason("DuplicatedIdentity")
+	InvalidIdentityRequest = apierrors.Invalid.WithReason("InvalidIdentityRequest")
 )
 
 var ErrInvalidCredentials = InvalidCredentials.New("invalid credentials")
 var ErrDuplicatedIdentity = DuplicatedIdentity.New("identity already exists")
-var ErrOAuthProviderNotFound = skyerr.NotFound.WithReason("OAuthProviderNotFound").New("oauth provider not found")
-var ErrCannotRemoveLastIdentity = InvalidIdentityRequest.NewWithCause("cannot remove last identity", skyerr.StringCause("IdentityRequired"))
+var ErrOAuthProviderNotFound = apierrors.NotFound.WithReason("OAuthProviderNotFound").New("oauth provider not found")
+var ErrCannotRemoveLastIdentity = InvalidIdentityRequest.NewWithCause("cannot remove last identity", apierrors.StringCause("IdentityRequired"))

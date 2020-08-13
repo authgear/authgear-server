@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
-	"github.com/authgear/authgear-server/pkg/db"
 	"github.com/jmoiron/sqlx"
+
+	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 )
 
 type AuthorizationStore struct {

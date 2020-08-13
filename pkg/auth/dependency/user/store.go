@@ -7,7 +7,7 @@ import (
 
 	"github.com/Masterminds/squirrel"
 
-	"github.com/authgear/authgear-server/pkg/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 )
 
 type store interface {

@@ -4,13 +4,13 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	taskspec "github.com/authgear/authgear-server/pkg/auth/task/spec"
-	"github.com/authgear/authgear-server/pkg/core/intl"
-	"github.com/authgear/authgear-server/pkg/mail"
-	"github.com/authgear/authgear-server/pkg/sms"
-	"github.com/authgear/authgear-server/pkg/task"
-	"github.com/authgear/authgear-server/pkg/template"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
+	"github.com/authgear/authgear-server/pkg/lib/infra/task"
+	"github.com/authgear/authgear-server/pkg/lib/infra/template"
+	"github.com/authgear/authgear-server/pkg/util/intl"
 )
 
 type EndpointsProvider interface {

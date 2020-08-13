@@ -7,17 +7,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
-	"github.com/authgear/authgear-server/pkg/clock"
-	"github.com/authgear/authgear-server/pkg/core/skyerr"
-	"github.com/authgear/authgear-server/pkg/core/utils"
-	"github.com/authgear/authgear-server/pkg/httputil"
-	"github.com/authgear/authgear-server/pkg/log"
+	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 const CodeGrantValidDuration = 5 * time.Minute
@@ -108,13 +108,13 @@ func (h *AuthorizationHandler) doHandle(
 
 	session := auth.GetSession(h.Context)
 	authnOptions := webapp.AuthenticateURLOptions{}
-	if utils.StringSliceContains(r.Prompt(), "login") {
+	if slice.ContainsString(r.Prompt(), "login") {
 		// Request login prompt => force re-authentication and retry
 		r2 := protocol.AuthorizationRequest{}
 		for k, v := range r {
 			r2[k] = v
 		}
-		prompt := utils.StringSliceExcept(r.Prompt(), []string{"login"})
+		prompt := slice.ExceptStrings(r.Prompt(), []string{"login"})
 		r2.SetPrompt(prompt)
 		authnOptions.Prompt = "login"
 
@@ -132,7 +132,7 @@ func (h *AuthorizationHandler) doHandle(
 		authnOptions.RedirectURI = authorizeURI.String()
 
 		resp, err := h.WebAppURLs.AuthenticateURL(authnOptions)
-		if skyerr.IsKind(err, newinteraction.InvalidCredentials) {
+		if apierrors.IsKind(err, newinteraction.InvalidCredentials) {
 			return nil, protocol.NewError("invalid_request", err.Error())
 		} else if err != nil {
 			return nil, err
@@ -204,7 +204,7 @@ func (h *AuthorizationHandler) validateRequest(
 		return protocol.NewError("invalid_request", "scope is required")
 	}
 
-	if utils.StringSliceContains(r.Prompt(), "none") && len(r.Prompt()) != 1 {
+	if slice.ContainsString(r.Prompt(), "none") && len(r.Prompt()) != 1 {
 		return protocol.NewError("invalid_request", "prompt cannot have other values when none is set")
 	}
 

@@ -6,10 +6,11 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/lib/pq"
+
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/core/authn"
-	"github.com/authgear/authgear-server/pkg/db"
-	"github.com/lib/pq"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 )
 
 type Store struct {

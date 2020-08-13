@@ -2,18 +2,19 @@ package redis
 
 import (
 	"encoding/json"
+	"fmt"
 	"sort"
 	"time"
 
 	goredis "github.com/gomodule/redigo/redis"
 	"github.com/sirupsen/logrus"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/session"
-	"github.com/authgear/authgear-server/pkg/clock"
-	"github.com/authgear/authgear-server/pkg/core/errors"
-	"github.com/authgear/authgear-server/pkg/log"
-	"github.com/authgear/authgear-server/pkg/redis"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
+	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
+	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 type Logger struct{ *log.Logger }
@@ -46,12 +47,12 @@ func (s *Store) Create(sess *session.IDPSession, expireAt time.Time) (err error)
 	err = s.Redis.WithConn(func(conn redis.Conn) error {
 		_, err = conn.Do("HSET", listKey, key, expiry)
 		if err != nil {
-			return errors.Newf("failed to update session list: %w", err)
+			return fmt.Errorf("failed to update session list: %w", err)
 		}
 
 		_, err = goredis.String(conn.Do("SET", key, json, "PX", toMilliseconds(ttl), "NX"))
-		if errors.Is(err, goredis.ErrNil) {
-			err = errors.Newf("duplicated session ID: %w", err)
+		if errorutil.Is(err, goredis.ErrNil) {
+			err = fmt.Errorf("duplicated session ID: %w", err)
 			return err
 		}
 
@@ -85,11 +86,11 @@ func (s *Store) Update(sess *session.IDPSession, expireAt time.Time) (err error)
 	err = s.Redis.WithConn(func(conn redis.Conn) error {
 		_, err = conn.Do("HSET", listKey, key, expiry)
 		if err != nil {
-			return errors.Newf("failed to update session list: %w", err)
+			return fmt.Errorf("failed to update session list: %w", err)
 		}
 
 		_, err = goredis.String(conn.Do("SET", key, data, "PX", toMilliseconds(ttl), "XX"))
-		if errors.Is(err, goredis.ErrNil) {
+		if errorutil.Is(err, goredis.ErrNil) {
 			return session.ErrSessionNotFound
 		}
 
@@ -111,7 +112,7 @@ func (s *Store) Get(id string) (sess *session.IDPSession, err error) {
 
 	err = s.Redis.WithConn(func(conn redis.Conn) error {
 		data, err := goredis.Bytes(conn.Do("GET", key))
-		if errors.Is(err, goredis.ErrNil) {
+		if errorutil.Is(err, goredis.ErrNil) {
 			return session.ErrSessionNotFound
 		} else if err != nil {
 			return err

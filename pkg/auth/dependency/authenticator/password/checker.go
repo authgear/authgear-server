@@ -15,14 +15,15 @@
 package password
 
 import (
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"regexp"
 	"strings"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
+
 	"github.com/nbutton23/zxcvbn-go"
 
-	corepassword "github.com/authgear/authgear-server/pkg/core/password"
-	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
+	corepassword "github.com/authgear/authgear-server/pkg/util/password"
 )
 
 func isUpperRune(r rune) bool {
@@ -323,7 +324,7 @@ func (pc *Checker) ValidatePassword(payload ValidatePayload) error {
 	userData := payload.UserData
 	authID := payload.AuthID
 
-	var violations []skyerr.Cause
+	var violations []apierrors.Cause
 	check := func(v *Policy) {
 		if v != nil {
 			violations = append(violations, *v)

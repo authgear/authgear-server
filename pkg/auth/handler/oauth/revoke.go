@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
-	"github.com/authgear/authgear-server/pkg/db"
-	"github.com/authgear/authgear-server/pkg/httproute"
-	"github.com/authgear/authgear-server/pkg/log"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 func ConfigureRevokeRoute(route httproute.Route) httproute.Route {

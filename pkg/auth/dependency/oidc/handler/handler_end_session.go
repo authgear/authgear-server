@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oidc"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oidc/protocol"
-	coreurl "github.com/authgear/authgear-server/pkg/core/url"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
 
 // TODO(oidc): write tests
@@ -26,7 +26,7 @@ type EndSessionHandler struct {
 
 func (h *EndSessionHandler) Handle(s auth.AuthSession, req protocol.EndSessionRequest, r *http.Request, rw http.ResponseWriter) error {
 	if s != nil {
-		endSessionURL := coreurl.WithQueryParamsAdded(
+		endSessionURL := urlutil.WithQueryParamsAdded(
 			h.Endpoints.EndSessionEndpointURL(),
 			req,
 		)
@@ -54,7 +54,7 @@ func (h *EndSessionHandler) Handle(s auth.AuthSession, req protocol.EndSessionRe
 		if err != nil {
 			return err
 		}
-		redirectURI = coreurl.WithQueryParamsAdded(uri, map[string]string{"state": state}).String()
+		redirectURI = urlutil.WithQueryParamsAdded(uri, map[string]string{"state": state}).String()
 	}
 
 	http.Redirect(rw, r, redirectURI, http.StatusFound)

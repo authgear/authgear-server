@@ -1,8 +1,10 @@
 package newinteraction
 
 import (
-	"github.com/authgear/authgear-server/pkg/core/errors"
-	"github.com/authgear/authgear-server/pkg/log"
+	"errors"
+
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
+	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 var ErrStateNotFound = errors.New("invalid state or state not found")
@@ -71,7 +73,7 @@ func (s *Service) DryRun(webStateID string, fn func(*Context) (*Graph, error)) (
 		rbErr := ctx.rollback()
 		if rbErr != nil {
 			s.Logger.WithError(rbErr).Error("cannot rollback")
-			err = errors.WithSecondaryError(err, rbErr)
+			err = errorutil.WithSecondaryError(err, rbErr)
 		}
 	}()
 
@@ -109,7 +111,7 @@ func (s *Service) Run(webStateID string, graph *Graph, preserveGraph bool) (err 
 			rbErr := ctx.rollback()
 			if rbErr != nil {
 				s.Logger.WithError(rbErr).Error("cannot rollback")
-				err = errors.WithSecondaryError(err, rbErr)
+				err = errorutil.WithSecondaryError(err, rbErr)
 			}
 		}
 	}()

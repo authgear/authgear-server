@@ -3,9 +3,9 @@ package forgotpassword
 import (
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/core/base32"
-	"github.com/authgear/authgear-server/pkg/core/crypto"
-	"github.com/authgear/authgear-server/pkg/core/rand"
+	"github.com/authgear/authgear-server/pkg/util/base32"
+	"github.com/authgear/authgear-server/pkg/util/crypto"
+	"github.com/authgear/authgear-server/pkg/util/rand"
 )
 
 type Code struct {
