@@ -1,6 +1,6 @@
 package event
 
-import "github.com/authgear/authgear-server/pkg/auth/model"
+import "github.com/authgear/authgear-server/pkg/lib/api/model"
 
 const (
 	BeforeSessionDelete Type = "before_session_delete"

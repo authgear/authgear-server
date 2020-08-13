@@ -9,8 +9,8 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/authgear/authgear-server/pkg/auth/model"
 	"github.com/authgear/authgear-server/pkg/lib/api/event"
+	"github.com/authgear/authgear-server/pkg/lib/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 )
 

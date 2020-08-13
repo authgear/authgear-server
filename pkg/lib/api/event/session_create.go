@@ -1,7 +1,7 @@
 package event
 
 import (
-	"github.com/authgear/authgear-server/pkg/auth/model"
+	"github.com/authgear/authgear-server/pkg/lib/api/model"
 )
 
 const (
