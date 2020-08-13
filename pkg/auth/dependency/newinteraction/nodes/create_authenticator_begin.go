@@ -264,16 +264,11 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []newinteraction
 		edges,
 		func(i int) newinteraction.SortableAuthenticator {
 			edge := edges[i]
-			switch edge := edge.(type) {
-			case *EdgeCreateAuthenticatorPassword:
-				return edge
-			case *EdgeCreateAuthenticatorTOTPSetup:
-				return edge
-			case *EdgeCreateAuthenticatorOOBSetup:
-				return edge
-			default:
+			a, ok := edge.(newinteraction.SortableAuthenticator)
+			if !ok {
 				panic(fmt.Sprintf("interaction: unknown edge: %T", edge))
 			}
+			return a
 		},
 	)
 

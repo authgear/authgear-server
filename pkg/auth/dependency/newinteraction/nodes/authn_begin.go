@@ -149,16 +149,11 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() []newinteraction.Edge
 		edges,
 		func(i int) newinteraction.SortableAuthenticator {
 			edge := edges[i]
-			switch edge := edge.(type) {
-			case *EdgeAuthenticationPassword:
-				return edge
-			case *EdgeAuthenticationTOTP:
-				return edge
-			case *EdgeAuthenticationOOBTrigger:
-				return edge
-			default:
+			a, ok := edge.(newinteraction.SortableAuthenticator)
+			if !ok {
 				panic(fmt.Sprintf("interaction: unknown edge: %T", edge))
 			}
+			return a
 		},
 	)
 
