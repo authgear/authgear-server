@@ -157,12 +157,17 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() []newinteraction.Edge
 		},
 	)
 
-	// If we reach here, there are at least one secondary authenticator
-	// so we have to allow the use of recovery code.
-	// We have to add after the sorting because
-	// recovery code is not an authenticator.
 	if n.Stage == newinteraction.AuthenticationStageSecondary {
+		// If we reach here, there are at least one secondary authenticator
+		// so we have to allow the use of recovery code.
+		// We have to add after the sorting because
+		// recovery code is not an authenticator.
 		edges = append(edges, &EdgeConsumeRecoveryCode{})
+
+		// Allow the use of device token.
+		if !n.AuthenticationConfig.DeviceToken.Disabled {
+			edges = append(edges, &EdgeUseDeviceToken{})
+		}
 	}
 
 	return edges

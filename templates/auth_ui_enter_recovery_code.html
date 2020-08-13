@@ -23,6 +23,8 @@
 
 <input class="input text-input primary-txt" type="text" name="x_code" placeholder="{{ localize "enter-recovery-code-placeholder" }}">
 
+<!-- device token checkbox is intentionally not supported here -->
+
 {{ range $.Alternatives }}
 {{ if eq .Type "totp" }}
 <a class="link align-self-flex-start" href="{{ .URL }}">{{ localize "enter-totp-instead" }}</a>

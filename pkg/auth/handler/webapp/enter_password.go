@@ -84,14 +84,21 @@ func (h *EnterPasswordHandler) GetData(r *http.Request, state *webapp.State, gra
 }
 
 type EnterPasswordInput struct {
-	Password string
+	Password    string
+	DeviceToken bool
 }
 
 var _ nodes.InputAuthenticationPassword = &EnterPasswordInput{}
+var _ nodes.InputCreateDeviceToken = &EnterPasswordInput{}
 
 // GetPassword implements InputAuthenticationPassword
 func (i *EnterPasswordInput) GetPassword() string {
 	return i.Password
+}
+
+// CreateDeviceToken implements InputCreateDeviceToken.
+func (i *EnterPasswordInput) CreateDeviceToken() bool {
+	return i.DeviceToken
 }
 
 func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -128,9 +135,11 @@ func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 				}
 
 				plainPassword := r.Form.Get("x_password")
+				deviceToken := r.Form.Get("x_device_token") == "true"
 
 				input = &EnterPasswordInput{
-					Password: plainPassword,
+					Password:    plainPassword,
+					DeviceToken: deviceToken,
 				}
 				return
 			})

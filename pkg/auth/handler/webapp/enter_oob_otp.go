@@ -127,12 +127,18 @@ type EnterOOBOTPResend struct{}
 func (i *EnterOOBOTPResend) DoResend() {}
 
 type EnterOOBOTPInput struct {
-	Code string
+	Code        string
+	DeviceToken bool
 }
 
 // GetOOBOTP implements InputAuthenticationOOB.
 func (i *EnterOOBOTPInput) GetOOBOTP() string {
 	return i.Code
+}
+
+// CreateDeviceToken implements InputCreateDeviceToken.
+func (i *EnterOOBOTPInput) CreateDeviceToken() bool {
+	return i.DeviceToken
 }
 
 func (h *EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -187,9 +193,11 @@ func (h *EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 
 				code := r.Form.Get("x_password")
+				deviceToken := r.Form.Get("x_device_token") == "true"
 
 				input = &EnterOOBOTPInput{
-					Code: code,
+					Code:        code,
+					DeviceToken: deviceToken,
 				}
 				return
 			})

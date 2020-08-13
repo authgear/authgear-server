@@ -146,12 +146,13 @@ type Context struct {
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
 	Verification             VerificationService
 
-	Challenges    ChallengeProvider
-	Users         UserService
-	Hooks         HookProvider
-	CookieFactory CookieFactory
-	Sessions      SessionProvider
-	SessionCookie session.CookieDef
+	Challenges           ChallengeProvider
+	Users                UserService
+	Hooks                HookProvider
+	CookieFactory        CookieFactory
+	Sessions             SessionProvider
+	SessionCookie        session.CookieDef
+	MFADeviceTokenCookie mfa.CookieDef
 }
 
 var interactionGraphSavePoint savePoint = "interaction_graph"

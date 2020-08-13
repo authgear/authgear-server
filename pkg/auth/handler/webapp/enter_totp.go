@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -78,12 +79,21 @@ func (h *EnterTOTPHandler) GetData(r *http.Request, state *webapp.State, graph *
 }
 
 type EnterTOTPInput struct {
-	Code string
+	Code        string
+	DeviceToken bool
 }
+
+var _ nodes.InputAuthenticationTOTP = &EnterTOTPInput{}
+var _ nodes.InputCreateDeviceToken = &EnterTOTPInput{}
 
 // GetTOTP implements InputAuthenticationTOTP.
 func (i *EnterTOTPInput) GetTOTP() string {
 	return i.Code
+}
+
+// CreateDeviceToken implements InputCreateDeviceToken.
+func (i *EnterTOTPInput) CreateDeviceToken() bool {
+	return i.DeviceToken
 }
 
 func (h *EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -120,9 +130,11 @@ func (h *EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 
 				code := r.Form.Get("x_code")
+				deviceToken := r.Form.Get("x_device_token") == "true"
 
 				input = &EnterTOTPInput{
-					Code: code,
+					Code:        code,
+					DeviceToken: deviceToken,
 				}
 				return
 			})
