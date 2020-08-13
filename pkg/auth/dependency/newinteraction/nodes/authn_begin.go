@@ -138,8 +138,8 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() []newinteraction.Edge
 	// No authenticators found, skip the authentication stage
 	if len(edges) == 0 {
 		edges = append(edges, &EdgeAuthenticationEnd{
-			Stage:    n.Stage,
-			Optional: true,
+			Stage:  n.Stage,
+			Result: AuthenticationResultOptional,
 		})
 		return edges
 	}
