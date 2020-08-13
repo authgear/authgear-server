@@ -7,7 +7,6 @@ import (
 	getsentry "github.com/getsentry/sentry-go"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
-	authtemplate "github.com/authgear/authgear-server/pkg/auth/template"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
@@ -88,7 +87,7 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, cfg *config.Config) *
 		cfg.SecretConfig.LookupData(config.RedisCredentialsKey).(*config.RedisCredentials),
 		loggerFactory,
 	)
-	templateEngine := authtemplate.NewEngineWithConfig(p.ServerConfig, cfg)
+	templateEngine := NewEngineWithConfig(p.ServerConfig, cfg)
 
 	return &AppProvider{
 		RootProvider:   p,

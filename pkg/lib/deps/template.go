@@ -1,4 +1,4 @@
-package template
+package deps
 
 import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"

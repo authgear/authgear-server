@@ -5,8 +5,8 @@ package server
 import (
 	"github.com/google/wire"
 
-	"github.com/authgear/authgear-server/pkg/deps"
 	configsource "github.com/authgear/authgear-server/pkg/lib/config/source"
+	"github.com/authgear/authgear-server/pkg/lib/deps"
 )
 
 func newConfigSource(p *deps.RootProvider) configsource.Source {

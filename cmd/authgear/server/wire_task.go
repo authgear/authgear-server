@@ -6,7 +6,7 @@ import (
 	"github.com/google/wire"
 
 	authtask "github.com/authgear/authgear-server/pkg/auth/task"
-	"github.com/authgear/authgear-server/pkg/deps"
+	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 )
 
