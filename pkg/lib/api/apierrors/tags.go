@@ -1,10 +1,10 @@
 package apierrors
 
 import (
-	"github.com/authgear/authgear-server/pkg/util/errors"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 const (
-	APIErrorDetail errors.DetailTag = "api"
-	TenantDetail   errors.DetailTag = "tenant"
+	APIErrorDetail errorutil.DetailTag = "api"
+	TenantDetail   errorutil.DetailTag = "tenant"
 )

@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/util/errors"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-type Details errors.Details
+type Details errorutil.Details
 
 type Cause interface{ Kind() string }
 
@@ -76,7 +76,7 @@ type skyerr struct {
 
 func (e *skyerr) Error() string { return e.msg }
 func (e *skyerr) Unwrap() error { return e.inner }
-func (e *skyerr) FillDetails(d errors.Details) {
+func (e *skyerr) FillDetails(d errorutil.Details) {
 	for key, value := range e.details {
 		d[key] = value
 	}
@@ -88,17 +88,17 @@ func IsAPIError(err error) bool {
 	}
 
 	var e *skyerr
-	if errors.As(err, &e) {
+	if errorutil.As(err, &e) {
 		return true
 	}
 
 	var c APIErrorConvertible
-	if errors.As(err, &c) {
+	if errorutil.As(err, &c) {
 		return true
 	}
 
 	var v *validation.AggregatedError
-	if errors.As(err, &v) {
+	if errorutil.As(err, &v) {
 		return true
 	}
 
@@ -111,28 +111,28 @@ func AsAPIError(err error) *APIError {
 	}
 
 	var apiError *APIError
-	if errors.As(err, &apiError) {
+	if errorutil.As(err, &apiError) {
 		return apiError
 	}
 
 	var e *skyerr
-	if errors.As(err, &e) {
-		details := errors.CollectDetails(err, nil)
+	if errorutil.As(err, &e) {
+		details := errorutil.CollectDetails(err, nil)
 		return &APIError{
 			Kind:    e.kind,
 			Message: e.Error(),
 			Code:    e.kind.Name.HTTPStatus(),
-			Info:    errors.FilterDetails(details, APIErrorDetail),
+			Info:    errorutil.FilterDetails(details, APIErrorDetail),
 		}
 	}
 
 	var c APIErrorConvertible
-	if errors.As(err, &c) {
+	if errorutil.As(err, &c) {
 		return c.AsAPIError()
 	}
 
 	var v *validation.AggregatedError
-	if errors.As(err, &v) {
+	if errorutil.As(err, &v) {
 		return &APIError{
 			Kind:    ValidationFailed,
 			Message: v.Message,

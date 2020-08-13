@@ -5,7 +5,7 @@ import (
 	"os"
 	"unicode/utf8"
 
-	"github.com/authgear/authgear-server/pkg/util/errors"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 type FileLoader struct{}
@@ -20,12 +20,12 @@ func (l *FileLoader) Load(absolutePath string) (templateContent string, err erro
 
 	content, err := ioutil.ReadAll(f)
 	if err != nil {
-		err = errors.HandledWithMessage(err, "failed to read template")
+		err = errorutil.HandledWithMessage(err, "failed to read template")
 		return
 	}
 
 	if !utf8.Valid(content) {
-		err = errors.New("expected content to be UTF-8 encoded")
+		err = errorutil.New("expected content to be UTF-8 encoded")
 		return
 	}
 

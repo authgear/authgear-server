@@ -5,7 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/errors"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -60,7 +60,7 @@ func (p *Provider) GetByValue(value string) ([]*Identity, error) {
 		}
 
 		i, err := p.Store.GetByLoginID(config.Key, normalizedloginID)
-		if errors.Is(err, identity.ErrIdentityNotFound) {
+		if errorutil.Is(err, identity.ErrIdentityNotFound) {
 			continue
 		} else if err != nil {
 			return nil, err
@@ -165,7 +165,7 @@ func (p *Provider) CheckDuplicated(uniqueKey string, standardClaims map[string]s
 	info, err := p.Store.GetByUniqueKey(uniqueKey)
 	if err == nil {
 		return info, identity.ErrIdentityAlreadyExists
-	} else if !errors.Is(err, identity.ErrIdentityNotFound) {
+	} else if !errorutil.Is(err, identity.ErrIdentityNotFound) {
 		return nil, err
 	}
 

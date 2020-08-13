@@ -1,5 +1,5 @@
 package db
 
-import "github.com/authgear/authgear-server/pkg/util/errors"
+import "github.com/authgear/authgear-server/pkg/util/errorutil"
 
-var ErrWriteConflict = errors.New("concurrent write conflict occurred")
+var ErrWriteConflict = errorutil.New("concurrent write conflict occurred")

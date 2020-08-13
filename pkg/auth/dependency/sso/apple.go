@@ -13,7 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
-	"github.com/authgear/authgear-server/pkg/util/errors"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 )
 
@@ -92,7 +92,7 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param
 
 	clientSecret, err := f.createClientSecret()
 	if err != nil {
-		err = errors.Newf("failed to create client secret: %w", err)
+		err = errorutil.Newf("failed to create client secret: %w", err)
 		return
 	}
 

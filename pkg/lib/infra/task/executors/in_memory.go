@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
-	"github.com/authgear/authgear-server/pkg/util/errors"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -39,7 +39,7 @@ func (e *InMemoryExecutor) Submit(taskCtx *task.Context, spec task.Spec) {
 				e.Logger.WithFields(map[string]interface{}{
 					"task_name": spec.Name,
 					"error":     rec,
-					"stack":     errors.Callers(8),
+					"stack":     errorutil.Callers(8),
 				}).Error("unexpected error occurred when running async task")
 			}
 		}()
@@ -49,7 +49,7 @@ func (e *InMemoryExecutor) Submit(taskCtx *task.Context, spec task.Spec) {
 			e.Logger.WithFields(map[string]interface{}{
 				"task_name": spec.Name,
 				"error":     err,
-				"stack":     errors.Callers(8),
+				"stack":     errorutil.Callers(8),
 			}).Error("error occurred when running async task")
 		}
 	}()

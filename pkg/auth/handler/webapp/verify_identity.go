@@ -11,7 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/template"
-	"github.com/authgear/authgear-server/pkg/util/errors"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -137,7 +137,7 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		id = r.Form.Get("state")
 
 		_, err := h.WebApp.GetState(id)
-		if errors.Is(err, webapp.ErrInvalidState) {
+		if errorutil.Is(err, webapp.ErrInvalidState) {
 			inInteraction = false
 		} else if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

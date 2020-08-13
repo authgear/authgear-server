@@ -5,7 +5,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/authgear/authgear-server/pkg/util/errors"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 type FormatHook struct {
@@ -21,7 +21,7 @@ func (h *FormatHook) Fire(entry *logrus.Entry) error {
 		for k, v := range entry.Data {
 			if err, ok := v.(error); ok {
 				// should be a safe JSON value (no need to mask)
-				details := errors.GetSafeDetails(err)
+				details := errorutil.GetSafeDetails(err)
 				if len(details) > 0 {
 					fields["details"] = details
 				}
@@ -46,7 +46,7 @@ func ensureJSON(d interface{}) (interface{}, error) {
 	case int, int32, int64, float32, float64, string, bool, nil:
 		return d, nil
 	case error:
-		return errors.Summary(d), nil
+		return errorutil.Summary(d), nil
 	default:
 		// round-trip to ensure JSON
 		b, err := json.Marshal(d)

@@ -1,4 +1,4 @@
-package errors
+package errorutil
 
 type errorBarrier struct {
 	inner error

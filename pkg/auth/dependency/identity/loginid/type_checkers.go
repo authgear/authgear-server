@@ -8,7 +8,7 @@ import (
 	"golang.org/x/text/secure/precis"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/errors"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -101,7 +101,7 @@ func (c *UsernameChecker) Validate(ctx *validation.Context, loginID string) {
 	for _, item := range c.Config.ExcludedKeywords {
 		cfItem, err := p.String(item)
 		if err != nil {
-			panic(errors.Newf("password: invalid exclude keywords: %s", item))
+			panic(errorutil.Newf("password: invalid exclude keywords: %s", item))
 		}
 
 		if strings.Contains(cfLoginID, cfItem) {

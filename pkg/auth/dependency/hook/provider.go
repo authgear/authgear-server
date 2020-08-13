@@ -10,7 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/errors"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -60,14 +60,14 @@ func (provider *Provider) DispatchEvent(payload event.Payload) (err error) {
 		if provider.Deliverer.WillDeliver(typedPayload.BeforeEventType()) {
 			seq, err = provider.Store.NextSequenceNumber()
 			if err != nil {
-				err = errors.HandledWithMessage(err, "failed to dispatch event")
+				err = errorutil.HandledWithMessage(err, "failed to dispatch event")
 				return
 			}
 			event := event.NewBeforeEvent(seq, typedPayload, provider.makeContext())
 			err = provider.Deliverer.DeliverBeforeEvent(event)
 			if err != nil {
 				if !apierrors.IsKind(err, WebHookDisallowed) {
-					err = errors.HandledWithMessage(err, "failed to dispatch event")
+					err = errorutil.HandledWithMessage(err, "failed to dispatch event")
 				}
 				return
 			}
@@ -108,7 +108,7 @@ func (provider *Provider) WillCommitTx() error {
 			if provider.Deliverer.WillDeliver(typedPayload.AfterEventType()) {
 				seq, err := provider.Store.NextSequenceNumber()
 				if err != nil {
-					err = errors.HandledWithMessage(err, "failed to persist event")
+					err = errorutil.HandledWithMessage(err, "failed to persist event")
 					return err
 				}
 				ev = event.NewAfterEvent(seq, typedPayload, provider.makeContext())
@@ -118,7 +118,7 @@ func (provider *Provider) WillCommitTx() error {
 			if provider.Deliverer.WillDeliver(typedPayload.EventType()) {
 				seq, err := provider.Store.NextSequenceNumber()
 				if err != nil {
-					err = errors.HandledWithMessage(err, "failed to persist event")
+					err = errorutil.HandledWithMessage(err, "failed to persist event")
 					return err
 				}
 				ev = event.NewEvent(seq, typedPayload, provider.makeContext())
@@ -136,7 +136,7 @@ func (provider *Provider) WillCommitTx() error {
 
 	err = provider.Store.AddEvents(events)
 	if err != nil {
-		err = errors.HandledWithMessage(err, "failed to persist event")
+		err = errorutil.HandledWithMessage(err, "failed to persist event")
 		return err
 	}
 	provider.persistentEventPayloads = nil

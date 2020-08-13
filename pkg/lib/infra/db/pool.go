@@ -6,7 +6,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"github.com/authgear/authgear-server/pkg/util/errors"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 type Pool struct {
@@ -34,7 +34,7 @@ func (p *Pool) Open(opts OpenOptions) (db *sqlx.DB, err error) {
 	p.closeMutex.RLock()
 	defer func() { p.closeMutex.RUnlock() }()
 	if p.closed {
-		return nil, errors.New("skydb: pool is closed")
+		return nil, errorutil.New("skydb: pool is closed")
 	}
 
 	p.cacheMutex.RLock()

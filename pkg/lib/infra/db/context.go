@@ -7,7 +7,7 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/errors"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -108,7 +108,7 @@ func (h *Handle) beginTx() error {
 		Isolation: sql.LevelRepeatableRead,
 	})
 	if err != nil {
-		return errors.HandledWithMessage(err, "failed to begin transaction")
+		return errorutil.HandledWithMessage(err, "failed to begin transaction")
 	}
 
 	h.tx = tx
@@ -125,7 +125,7 @@ func (h *Handle) commitTx() error {
 		err := hook.WillCommitTx()
 		if err != nil {
 			if rbErr := h.tx.Rollback(); rbErr != nil {
-				err = errors.WithSecondaryError(err, rbErr)
+				err = errorutil.WithSecondaryError(err, rbErr)
 			}
 			return err
 		}
@@ -133,7 +133,7 @@ func (h *Handle) commitTx() error {
 
 	err := h.tx.Commit()
 	if err != nil {
-		return errors.HandledWithMessage(err, "failed to commit transaction")
+		return errorutil.HandledWithMessage(err, "failed to commit transaction")
 	}
 	h.tx = nil
 
@@ -151,7 +151,7 @@ func (h *Handle) rollbackTx() error {
 
 	err := h.tx.Rollback()
 	if err != nil {
-		return errors.HandledWithMessage(err, "failed to rollback transaction")
+		return errorutil.HandledWithMessage(err, "failed to rollback transaction")
 	}
 
 	h.tx = nil
@@ -174,7 +174,7 @@ func (h *Handle) openDB() (*sqlx.DB, error) {
 
 		db, err := h.pool.Open(opts)
 		if err != nil {
-			return nil, errors.HandledWithMessage(err, "failed to connect to database")
+			return nil, errorutil.HandledWithMessage(err, "failed to connect to database")
 		}
 
 		h.db = db

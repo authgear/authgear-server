@@ -13,7 +13,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/errors"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 )
 
@@ -48,7 +48,7 @@ func FetchOIDCDiscoveryDocument(client *http.Client, endpoint string) (*OIDCDisc
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.Newf("unexpected status code: %d", resp.StatusCode)
+		return nil, errorutil.Newf("unexpected status code: %d", resp.StatusCode)
 	}
 	var document OIDCDiscoveryDocument
 	err = json.NewDecoder(resp.Body).Decode(&document)
@@ -83,7 +83,7 @@ func (d *OIDCDiscoveryDocument) FetchJWKs(client *http.Client) (*jwk.Set, error)
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.Newf("unexpected status code: %d", resp.StatusCode)
+		return nil, errorutil.Newf("unexpected status code: %d", resp.StatusCode)
 	}
 	return jwk.Parse(resp.Body)
 }

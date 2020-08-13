@@ -8,7 +8,7 @@ import (
 	redigo "github.com/gomodule/redigo/redis"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
-	"github.com/authgear/authgear-server/pkg/util/errors"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 type Store struct {
@@ -25,8 +25,8 @@ func (s *Store) Create(code *Code) (err error) {
 
 	err = s.Redis.WithConn(func(conn redis.Conn) error {
 		_, err := redigo.String(conn.Do("SET", key, bytes, "PX", codeExpire(code), "NX"))
-		if errors.Is(err, redigo.ErrNil) {
-			err = errors.Newf("duplicated forgot password code: %w", err)
+		if errorutil.Is(err, redigo.ErrNil) {
+			err = errorutil.Newf("duplicated forgot password code: %w", err)
 		}
 		return err
 	})
@@ -44,8 +44,8 @@ func (s *Store) Update(code *Code) (err error) {
 
 	err = s.Redis.WithConn(func(conn redis.Conn) error {
 		_, err := redigo.String(conn.Do("SET", key, bytes, "PX", codeExpire(code), "XX"))
-		if errors.Is(err, redigo.ErrNil) {
-			err = errors.Newf("non-existent forgot password code: %w", err)
+		if errorutil.Is(err, redigo.ErrNil) {
+			err = errorutil.Newf("non-existent forgot password code: %w", err)
 		}
 		return err
 	})
@@ -58,7 +58,7 @@ func (s *Store) Get(codeHash string) (code *Code, err error) {
 
 	err = s.Redis.WithConn(func(conn redis.Conn) error {
 		data, err := redigo.Bytes(conn.Do("GET", key))
-		if errors.Is(err, redigo.ErrNil) {
+		if errorutil.Is(err, redigo.ErrNil) {
 			err = ErrInvalidCode
 			return err
 		} else if err != nil {

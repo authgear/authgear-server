@@ -3,10 +3,10 @@ package template
 import (
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/util/errors"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
-var ErrUnknownURIScheme = errors.New("unknown URI scheme")
+var ErrUnknownURIScheme = errorutil.New("unknown URI scheme")
 
 type URILoader struct {
 	FileLoader *FileLoader
@@ -23,7 +23,7 @@ func NewURILoader() *URILoader {
 func (l *URILoader) Load(uri string) (templateContent string, err error) {
 	u, err := url.Parse(uri)
 	if err != nil {
-		err = errors.HandledWithMessage(err, "failed to parse template URI")
+		err = errorutil.HandledWithMessage(err, "failed to parse template URI")
 		return
 	}
 

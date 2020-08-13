@@ -4,10 +4,10 @@ import (
 	"github.com/sfreiberg/gotwilio"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/errors"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
-var ErrMissingTwilioConfiguration = errors.New("twilio: configuration is missing")
+var ErrMissingTwilioConfiguration = errorutil.New("twilio: configuration is missing")
 
 type TwilioClient struct {
 	TwilioClient *gotwilio.Twilio
@@ -29,11 +29,11 @@ func (t *TwilioClient) Send(from string, to string, body string) error {
 	}
 	_, exception, err := t.TwilioClient.SendSMS(from, to, body, "", "")
 	if err != nil {
-		return errors.Newf("twilio: %w", err)
+		return errorutil.Newf("twilio: %w", err)
 	}
 
 	if exception != nil {
-		err = errors.Newf("twilio: %s", exception.Message)
+		err = errorutil.Newf("twilio: %s", exception.Message)
 		return err
 	}
 

@@ -8,7 +8,7 @@ import (
 	"golang.org/x/text/unicode/norm"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/errors"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 type Normalizer interface {
@@ -53,7 +53,7 @@ func (n *EmailNormalizer) Normalize(loginID string) (string, error) {
 	p := precis.NewFreeform(precis.FoldCase())
 	domain, err = p.String(domain)
 	if err != nil {
-		return "", errors.HandledWithMessage(err, "failed to case fold email")
+		return "", errorutil.HandledWithMessage(err, "failed to case fold email")
 	}
 
 	// convert the local part
@@ -62,7 +62,7 @@ func (n *EmailNormalizer) Normalize(loginID string) (string, error) {
 	if !*n.Config.CaseSensitive {
 		local, err = p.String(local)
 		if err != nil {
-			return "", errors.HandledWithMessage(err, "failed to case fold email")
+			return "", errorutil.HandledWithMessage(err, "failed to case fold email")
 		}
 	}
 
@@ -99,7 +99,7 @@ func (n *UsernameNormalizer) Normalize(loginID string) (string, error) {
 		p := precis.NewIdentifier(precis.FoldCase())
 		loginID, err = p.String(loginID)
 		if err != nil {
-			return "", errors.HandledWithMessage(err, "failed to case fold username")
+			return "", errorutil.HandledWithMessage(err, "failed to case fold username")
 		}
 	}
 
