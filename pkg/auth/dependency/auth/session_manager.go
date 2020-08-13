@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"sort"
 
-	"github.com/authgear/authgear-server/pkg/httputil"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 
 	"github.com/authgear/authgear-server/pkg/auth/event"
 	"github.com/authgear/authgear-server/pkg/auth/model"

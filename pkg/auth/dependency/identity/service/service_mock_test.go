@@ -5,10 +5,10 @@
 package service
 
 import (
-	config "github.com/authgear/authgear-server/pkg/auth/config"
 	anonymous "github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
 	loginid "github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	oauth "github.com/authgear/authgear-server/pkg/auth/dependency/identity/oauth"
+	config "github.com/authgear/authgear-server/pkg/lib/config"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )

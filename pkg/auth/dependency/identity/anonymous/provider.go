@@ -11,9 +11,9 @@ import (
 	"github.com/lestrrat-go/jwx/jws"
 	"github.com/lestrrat-go/jwx/jwt"
 
-	"github.com/authgear/authgear-server/pkg/clock"
-	"github.com/authgear/authgear-server/pkg/core/uuid"
-	"github.com/authgear/authgear-server/pkg/jwtutil"
+	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/jwtutil"
+	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 type jwtClock struct {

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
 func ConfigureOIDCMetadataRoute(route httproute.Route) httproute.Route {

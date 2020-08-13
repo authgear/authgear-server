@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 func fetchUserProfile(
@@ -27,7 +27,7 @@ func fetchUserProfile(
 		defer resp.Body.Close()
 	}
 	if err != nil {
-		err = errors.WithSecondaryError(
+		err = errorutil.WithSecondaryError(
 			NewSSOFailed(NetworkFailed, "failed to connect authorization server"),
 			err,
 		)
@@ -40,7 +40,7 @@ func fetchUserProfile(
 	}
 
 	if resp.StatusCode != 200 {
-		err = errors.Newf("unexpected status code: %d", resp.StatusCode)
+		err = fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 		return
 	}
 

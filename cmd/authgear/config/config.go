@@ -7,8 +7,8 @@ import (
 
 	"github.com/lestrrat-go/jwx/jwk"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/core/uuid"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 func NewAppConfigFromOptions(opts *Options) *config.AppConfig {

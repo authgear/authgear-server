@@ -10,12 +10,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/core/authn"
-	"github.com/authgear/authgear-server/pkg/core/utils"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 const GraphLifetime = 5 * time.Minute
-
-var ErrInputRequired = errors.New("new input is required")
 
 type Graph struct {
 	// GraphID is the unique ID for a graph.
@@ -238,7 +236,7 @@ func (g *Graph) GetAMR() []string {
 }
 
 func (g *Graph) GetACR(amrValues []string) string {
-	if utils.StringSliceContains(amrValues, authn.AMRMFA) {
+	if slice.ContainsString(amrValues, authn.AMRMFA) {
 		return authn.ACRMFA
 	}
 
@@ -286,7 +284,7 @@ func (g *Graph) Accept(ctx *Context, input interface{}) (*Graph, []Edge, error) 
 				// so no need to update the graph.
 				// Continuing would keep traversing the same edge,
 				// so stop and request new input.
-				return graph.clone(), edges, ErrInputRequired
+				return graph.clone(), edges, &ErrInputRequired{Inner: err}
 			} else if err != nil {
 				return nil, nil, err
 			}
@@ -295,7 +293,7 @@ func (g *Graph) Accept(ctx *Context, input interface{}) (*Graph, []Edge, error) 
 
 		// No edges are followed, input is required
 		if nextNode == nil {
-			return graph, edges, ErrInputRequired
+			return graph, edges, &ErrInputRequired{}
 		}
 
 		// Follow the edge to nextNode

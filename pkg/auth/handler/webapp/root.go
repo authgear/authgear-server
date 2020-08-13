@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
-	"github.com/authgear/authgear-server/pkg/httproute"
-	"github.com/authgear/authgear-server/pkg/httputil"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func ConfigureRootRoute(route httproute.Route) httproute.Route {

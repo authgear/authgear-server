@@ -7,14 +7,14 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
-	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/authn"
-	"github.com/authgear/authgear-server/pkg/core/crypto"
-	"github.com/authgear/authgear-server/pkg/core/errors"
-	corerand "github.com/authgear/authgear-server/pkg/core/rand"
-	"github.com/authgear/authgear-server/pkg/core/uuid"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/crypto"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
+	corerand "github.com/authgear/authgear-server/pkg/util/rand"
+	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 const (
@@ -61,12 +61,12 @@ func (p *Provider) Create(session *IDPSession) error {
 	expiry := computeSessionStorageExpiry(session, p.Config)
 	err := p.Store.Create(session, expiry)
 	if err != nil {
-		return errors.HandledWithMessage(err, "failed to create session")
+		return errorutil.HandledWithMessage(err, "failed to create session")
 	}
 
 	err = p.AccessEvents.InitStream(session)
 	if err != nil {
-		return errors.HandledWithMessage(err, "failed to access session")
+		return errorutil.HandledWithMessage(err, "failed to access session")
 	}
 
 	return nil
@@ -80,8 +80,8 @@ func (p *Provider) GetByToken(token string) (*IDPSession, error) {
 
 	s, err := p.Store.Get(id)
 	if err != nil {
-		if !errors.Is(err, ErrSessionNotFound) {
-			err = errors.HandledWithMessage(err, "failed to get session")
+		if !errorutil.Is(err, ErrSessionNotFound) {
+			err = errorutil.HandledWithMessage(err, "failed to get session")
 		}
 		return nil, err
 	}
@@ -104,8 +104,8 @@ func (p *Provider) GetByToken(token string) (*IDPSession, error) {
 func (p *Provider) Get(id string) (*IDPSession, error) {
 	session, err := p.Store.Get(id)
 	if err != nil {
-		if !errors.Is(err, ErrSessionNotFound) {
-			err = errors.HandledWithMessage(err, "failed to get session")
+		if !errorutil.Is(err, ErrSessionNotFound) {
+			err = errorutil.HandledWithMessage(err, "failed to get session")
 		}
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func (p *Provider) Update(sess *IDPSession) error {
 	expiry := computeSessionStorageExpiry(sess, p.Config)
 	err := p.Store.Update(sess, expiry)
 	if err != nil {
-		err = errors.HandledWithMessage(err, "failed to update session")
+		err = errorutil.HandledWithMessage(err, "failed to update session")
 	}
 	return err
 }

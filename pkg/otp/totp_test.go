@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	coreimage "github.com/authgear/authgear-server/pkg/image"
 	"github.com/authgear/authgear-server/pkg/otp"
+	coreimage "github.com/authgear/authgear-server/pkg/util/image"
 
 	. "github.com/smartystreets/goconvey/convey"
 )

@@ -2,14 +2,15 @@ package newinteraction
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
 	goredis "github.com/gomodule/redigo/redis"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/core/errors"
-	"github.com/authgear/authgear-server/pkg/redis"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 type StoreRedis struct {
@@ -36,14 +37,14 @@ func (s *StoreRedis) create(graph *Graph, graphSetMode string) error {
 		instanceKey := redisInstanceKey(s.AppID, graph.InstanceID)
 		ttl := toMilliseconds(GraphLifetime)
 		_, err := goredis.String(conn.Do("SET", graphKey, []byte(graphKey), "PX", ttl, graphSetMode))
-		if errors.Is(err, goredis.ErrNil) {
+		if errorutil.Is(err, goredis.ErrNil) {
 			return ErrStateNotFound
 		} else if err != nil {
 			return err
 		}
 
 		_, err = goredis.String(conn.Do("SET", instanceKey, bytes, "PX", ttl, "NX"))
-		if errors.Is(err, goredis.ErrNil) {
+		if errorutil.Is(err, goredis.ErrNil) {
 			return errors.New("failed to create interaction graph instance")
 		} else if err != nil {
 			return err
@@ -58,7 +59,7 @@ func (s *StoreRedis) GetGraphInstance(instanceID string) (*Graph, error) {
 	var graph Graph
 	err := s.Redis.WithConn(func(conn redis.Conn) error {
 		data, err := goredis.Bytes(conn.Do("GET", instanceKey))
-		if errors.Is(err, goredis.ErrNil) {
+		if errorutil.Is(err, goredis.ErrNil) {
 			return ErrStateNotFound
 		} else if err != nil {
 			return err
@@ -71,7 +72,7 @@ func (s *StoreRedis) GetGraphInstance(instanceID string) (*Graph, error) {
 
 		graphKey := redisGraphKey(s.AppID, graph.GraphID)
 		_, err = goredis.String(conn.Do("GET", graphKey))
-		if errors.Is(err, goredis.ErrNil) {
+		if errorutil.Is(err, goredis.ErrNil) {
 			return ErrStateNotFound
 		} else if err != nil {
 			return err

@@ -3,6 +3,7 @@ package sso
 import (
 	"crypto/subtle"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"time"
@@ -11,10 +12,9 @@ import (
 	"github.com/lestrrat-go/jwx/jws"
 	"github.com/lestrrat-go/jwx/jwt"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/clock"
-	"github.com/authgear/authgear-server/pkg/core/errors"
-	"github.com/authgear/authgear-server/pkg/jwtutil"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 )
 
 type jwtClock struct {
@@ -48,7 +48,7 @@ func FetchOIDCDiscoveryDocument(client *http.Client, endpoint string) (*OIDCDisc
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.Newf("unexpected status code: %d", resp.StatusCode)
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 	var document OIDCDiscoveryDocument
 	err = json.NewDecoder(resp.Body).Decode(&document)
@@ -83,7 +83,7 @@ func (d *OIDCDiscoveryDocument) FetchJWKs(client *http.Client) (*jwk.Set, error)
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.Newf("unexpected status code: %d", resp.StatusCode)
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 	return jwk.Parse(resp.Body)
 }

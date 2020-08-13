@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/challenge"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
@@ -16,12 +15,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/verification"
 	"github.com/authgear/authgear-server/pkg/auth/event"
 	"github.com/authgear/authgear-server/pkg/auth/model"
-	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/authn"
-	"github.com/authgear/authgear-server/pkg/db"
-	"github.com/authgear/authgear-server/pkg/httputil"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/mfa"
 	"github.com/authgear/authgear-server/pkg/otp"
+	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type IdentityService interface {
@@ -125,6 +125,7 @@ type VerificationService interface {
 
 type CookieFactory interface {
 	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
+	ClearCookie(def *httputil.CookieDef) *http.Cookie
 }
 
 type Context struct {
@@ -146,12 +147,13 @@ type Context struct {
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
 	Verification             VerificationService
 
-	Challenges    ChallengeProvider
-	Users         UserService
-	Hooks         HookProvider
-	CookieFactory CookieFactory
-	Sessions      SessionProvider
-	SessionCookie session.CookieDef
+	Challenges           ChallengeProvider
+	Users                UserService
+	Hooks                HookProvider
+	CookieFactory        CookieFactory
+	Sessions             SessionProvider
+	SessionCookie        session.CookieDef
+	MFADeviceTokenCookie mfa.CookieDef
 }
 
 var interactionGraphSavePoint savePoint = "interaction_graph"

@@ -4,12 +4,12 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package service

@@ -1,8 +1,8 @@
 package identity
 
 import (
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 type Candidate map[string]interface{}

@@ -1,9 +1,9 @@
 package nodes
 
 import (
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func init() {

@@ -3,7 +3,7 @@ package webapp
 import (
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func FormToJSON(form url.Values) map[string]interface{} {

@@ -6,7 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
-	"github.com/authgear/authgear-server/pkg/httputil"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type mockURLsProvider struct{}

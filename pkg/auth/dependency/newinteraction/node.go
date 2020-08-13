@@ -2,14 +2,9 @@ package newinteraction
 
 import (
 	"reflect"
-
-	"github.com/authgear/authgear-server/pkg/core/errors"
 )
 
 //go:generate mockgen -source=node.go -destination=node_mock_test.go -package newinteraction_test
-
-var ErrIncompatibleInput = errors.New("incompatible input type for this node")
-var ErrSameNode = errors.New("the edge points to the same current node")
 
 type Node interface {
 	// Prepare the node with data required by DeriveEdges.

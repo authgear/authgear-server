@@ -6,7 +6,7 @@ package webapp
 
 import (
 	newinteraction "github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
-	httputil "github.com/authgear/authgear-server/pkg/httputil"
+	httputil "github.com/authgear/authgear-server/pkg/util/httputil"
 	gomock "github.com/golang/mock/gomock"
 	http "net/http"
 	reflect "reflect"

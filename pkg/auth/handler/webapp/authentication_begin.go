@@ -11,16 +11,27 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/core/authn"
-	corephone "github.com/authgear/authgear-server/pkg/core/phone"
-	"github.com/authgear/authgear-server/pkg/db"
-	"github.com/authgear/authgear-server/pkg/httproute"
-	"github.com/authgear/authgear-server/pkg/mail"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/mfa"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
+	corephone "github.com/authgear/authgear-server/pkg/util/phone"
 )
 
 func ConfigureAuthenticationBeginRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
 		WithPathPattern("/authentication_begin")
+}
+
+type AuthenticationBeginDeviceToken struct {
+	DeviceToken string
+}
+
+var _ nodes.InputUseDeviceToken = &AuthenticationBeginDeviceToken{}
+
+func (i *AuthenticationBeginDeviceToken) GetDeviceToken() string {
+	return i.DeviceToken
 }
 
 type AuthenticationBeginInput struct {
@@ -50,10 +61,15 @@ func (h *AuthenticationBeginHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 
 	var err error
 
+	var firstTimeEnterHere bool
+	deviceTokenCookie, _ := r.Cookie(mfa.CookieName)
+
 	edgeIndexString := r.Form.Get("x_edge")
 	if edgeIndexString == "" {
+		firstTimeEnterHere = true
 		edgeIndexString = "0"
 	}
+
 	edgeIndex, err := strconv.Atoi(edgeIndexString)
 	if err != nil {
 		edgeIndex = 0
@@ -86,12 +102,31 @@ func (h *AuthenticationBeginHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		panic("authentication_begin: expected graph has node implementing AuthenticationBeginNode")
 	}
 	edges := node.GetAuthenticationEdges()
-
 	if edgeIndex >= len(edges) {
 		edgeIndex = 0
 	}
 
 	h.Database.WithTx(func() error {
+		if firstTimeEnterHere && deviceTokenCookie != nil {
+			for _, edge := range edges {
+				if _, ok := edge.(*nodes.EdgeUseDeviceToken); ok {
+					result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
+						input = &AuthenticationBeginDeviceToken{
+							DeviceToken: deviceTokenCookie.Value,
+						}
+						return
+					})
+					if err != nil {
+						http.Error(w, err.Error(), http.StatusInternalServerError)
+						return err
+					}
+
+					result.WriteResponse(w, r)
+					return nil
+				}
+			}
+		}
+
 		selectedEdge := edges[edgeIndex]
 		switch selectedEdge := selectedEdge.(type) {
 		case *nodes.EdgeConsumeRecoveryCode:
@@ -136,6 +171,7 @@ const (
 	AuthenticationTypeTOTP                            = AuthenticationType(string(authn.AuthenticatorTypeTOTP))
 	AuthenticationTypeOOB                             = AuthenticationType(string(authn.AuthenticatorTypeOOB))
 	AuthenticationTypeRecoveryCode AuthenticationType = "recovery_code"
+	AuthenticationTypeDeviceToken  AuthenticationType = "device_token"
 )
 
 type AuthenticationAlternative struct {
@@ -154,6 +190,10 @@ func DeriveAuthenticationAlternatives(stateID string, graph *newinteraction.Grap
 
 	for i, edge := range edges {
 		switch edge := edge.(type) {
+		case *nodes.EdgeUseDeviceToken:
+			alternatives = append(alternatives, AuthenticationAlternative{
+				Type: string(AuthenticationTypeDeviceToken),
+			})
 		case *nodes.EdgeConsumeRecoveryCode:
 			typ := AuthenticationTypeRecoveryCode
 			if typ != currentType {

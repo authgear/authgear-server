@@ -9,11 +9,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
-	"github.com/authgear/authgear-server/pkg/core/base32"
-	corerand "github.com/authgear/authgear-server/pkg/core/rand"
-	"github.com/authgear/authgear-server/pkg/core/skyerr"
-	"github.com/authgear/authgear-server/pkg/httputil"
-	"github.com/authgear/authgear-server/pkg/log"
+	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/util/base32"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/log"
+	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 )
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package webapp
@@ -98,7 +98,7 @@ func (s *Service) GetState(stateID string) (*State, error) {
 }
 
 func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph *newinteraction.Graph, err error) {
-	var stateError *skyerr.APIError
+	var stateError *apierrors.APIError
 	if stateID != "" {
 		state, err = s.GetState(stateID)
 		if err != nil {
@@ -203,6 +203,7 @@ func (s *Service) PostIntent(intent *Intent, inputer func() (interface{}, error)
 
 	var graph *newinteraction.Graph
 	var edges []newinteraction.Edge
+	var clearCookie *newinteraction.ErrClearCookie
 	err = s.Graph.DryRun(state.ID, func(ctx *newinteraction.Context) (newGraph *newinteraction.Graph, err error) {
 		graph, err = s.Graph.NewGraph(ctx, intent.Intent)
 		if err != nil {
@@ -215,7 +216,11 @@ func (s *Service) PostIntent(intent *Intent, inputer func() (interface{}, error)
 		}
 
 		graph, edges, err = graph.Accept(ctx, input)
-		if errors.Is(err, newinteraction.ErrInputRequired) {
+
+		errors.As(err, &clearCookie)
+
+		var inputRequired *newinteraction.ErrInputRequired
+		if errors.As(err, &inputRequired) {
 			err = nil
 			newGraph = graph
 			return
@@ -229,7 +234,7 @@ func (s *Service) PostIntent(intent *Intent, inputer func() (interface{}, error)
 	})
 
 	// Regardless of err, we need to return result.
-	result, err = s.afterPost(state, graph, edges, err)
+	result, err = s.afterPost(state, graph, edges, err, clearCookie)
 	if err != nil {
 		return
 	}
@@ -256,6 +261,7 @@ func (s *Service) post(state *State, inputer func() (interface{}, error)) (resul
 		return nil, err
 	}
 
+	var clearCookie *newinteraction.ErrClearCookie
 	err = s.Graph.DryRun(state.ID, func(ctx *newinteraction.Context) (*newinteraction.Graph, error) {
 		input, err := inputer()
 		if err != nil {
@@ -269,7 +275,11 @@ func (s *Service) post(state *State, inputer func() (interface{}, error)) (resul
 
 		var newGraph *newinteraction.Graph
 		newGraph, edges, err = graph.Accept(ctx, input)
-		if errors.Is(err, newinteraction.ErrInputRequired) {
+
+		errors.As(err, &clearCookie)
+
+		var inputRequired *newinteraction.ErrInputRequired
+		if errors.As(err, &inputRequired) {
 			graph = newGraph
 			return newGraph, nil
 		} else if err != nil {
@@ -281,7 +291,7 @@ func (s *Service) post(state *State, inputer func() (interface{}, error)) (resul
 	})
 
 	// Regardless of err, we need to return result.
-	result, err = s.afterPost(state, graph, edges, err)
+	result, err = s.afterPost(state, graph, edges, err, clearCookie)
 	if err != nil {
 		return
 	}
@@ -289,7 +299,7 @@ func (s *Service) post(state *State, inputer func() (interface{}, error)) (resul
 	return
 }
 
-func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []newinteraction.Edge, inputError error) (*Result, error) {
+func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []newinteraction.Edge, inputError error, clearCookie *newinteraction.ErrClearCookie) (*Result, error) {
 	finished := graph != nil && len(edges) == 0 && inputError == nil
 	// The graph finished. Apply its effect permanently
 	if finished {
@@ -306,7 +316,13 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 		cookies = append(cookies, userAgentTokenCookie)
 	}
 
-	state.Error = skyerr.AsAPIError(inputError)
+	// Handle ErrClearCookie specifically.
+	// The main use case is to remove invalid device token.
+	if clearCookie != nil {
+		cookies = append(cookies, clearCookie.Cookies...)
+	}
+
+	state.Error = apierrors.AsAPIError(inputError)
 	if graph != nil {
 		state.GraphInstanceID = graph.InstanceID
 		state.Extra = s.collectExtras(graph.CurrentNode())
@@ -319,7 +335,7 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 
 	// Case: error
 	if state.Error != nil {
-		if !skyerr.IsAPIError(inputError) {
+		if !apierrors.IsAPIError(inputError) {
 			s.Logger.Errorf("afterPost error: %v", inputError)
 		}
 		if graph != nil {

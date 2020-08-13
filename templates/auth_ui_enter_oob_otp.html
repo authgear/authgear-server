@@ -33,6 +33,17 @@
 <input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_password" placeholder="{{ localize "oob-otp-placeholder" }}">
 
 {{ range $.AuthenticationAlternatives }}
+{{ if eq .Type "device_token" }}
+<div class="device-token-control align-self-flex-start">
+<input class="device-token-input" id="device-token" type="checkbox" name="x_device_token" value="true">
+<label class="device-token-label primary-txt" for="device-token">{{ localize "create-device-token-label" }}</label>
+</div>
+{{ end }}
+{{ end }}
+
+<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
+
+{{ range $.AuthenticationAlternatives }}
 {{ if eq .Type "totp" }}
 <a class="link align-self-flex-start" href="{{ .URL }}">{{ localize "enter-totp-instead" }}</a>
 {{ end }}
@@ -59,7 +70,6 @@
 {{ end }}
 {{ end }}
 
-<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
 </form>
 
 <form class="link oob-otp-trigger-form" method="post" novalidate>

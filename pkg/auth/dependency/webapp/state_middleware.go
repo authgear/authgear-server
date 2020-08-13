@@ -3,8 +3,8 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/core/intl"
-	"github.com/authgear/authgear-server/pkg/httputil"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/intl"
 )
 
 type StateMiddlewareStates interface {

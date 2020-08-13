@@ -7,20 +7,20 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
-	"github.com/authgear/authgear-server/pkg/clock"
 	"github.com/authgear/authgear-server/pkg/core/authn"
-	"github.com/authgear/authgear-server/pkg/db"
-	"github.com/authgear/authgear-server/pkg/httproute"
-	coreimage "github.com/authgear/authgear-server/pkg/image"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/template"
 	"github.com/authgear/authgear-server/pkg/otp"
-	"github.com/authgear/authgear-server/pkg/template"
-	"github.com/authgear/authgear-server/pkg/validation"
+	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
+	coreimage "github.com/authgear/authgear-server/pkg/util/image"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 const (

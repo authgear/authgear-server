@@ -1,10 +1,10 @@
 package sso
 
 import (
-	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 )
 
-var SSOFailed = skyerr.Unauthorized.WithReason("SSOFailed")
+var SSOFailed = apierrors.Unauthorized.WithReason("SSOFailed")
 
 type ssoFailCause string
 
@@ -17,5 +17,5 @@ const (
 )
 
 func NewSSOFailed(cause ssoFailCause, msg string) error {
-	return SSOFailed.NewWithCause(msg, skyerr.StringCause(cause))
+	return SSOFailed.NewWithCause(msg, apierrors.StringCause(cause))
 }

@@ -19,7 +19,7 @@ import (
 	handleroauth "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	viewmodelswebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
-	"github.com/authgear/authgear-server/pkg/middlewares"
+	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 )
 
 func ProvideOAuthMetadataProviders(oauth *oauth.MetadataProvider, oidc *oidc.MetadataProvider) []handleroauth.MetadataProvider {
@@ -39,7 +39,7 @@ var requestDeps = wire.NewSet(
 	oauthhandler.DependencySet,
 	oidchandler.DependencySet,
 
-	middlewares.DependencySet,
+	middleware.DependencySet,
 
 	handlerinternal.DependencySet,
 	wire.Bind(new(handlerinternal.IdentityService), new(*identityservice.Service)),

@@ -1,16 +1,16 @@
 package password
 
 import (
+	"fmt"
 	"sort"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	taskspec "github.com/authgear/authgear-server/pkg/auth/task/spec"
-	"github.com/authgear/authgear-server/pkg/clock"
-	"github.com/authgear/authgear-server/pkg/core/errors"
-	pwd "github.com/authgear/authgear-server/pkg/core/password"
-	"github.com/authgear/authgear-server/pkg/core/uuid"
-	"github.com/authgear/authgear-server/pkg/log"
-	"github.com/authgear/authgear-server/pkg/task"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/task"
+	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/log"
+	pwd "github.com/authgear/authgear-server/pkg/util/password"
+	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 type Logger struct{ *log.Logger }
@@ -172,7 +172,7 @@ func sortAuthenticators(as []*Authenticator) {
 func (p *Provider) populatePasswordHash(a *Authenticator, password string) *Authenticator {
 	hash, err := pwd.Hash([]byte(password))
 	if err != nil {
-		panic(errors.Newf("password: failed to hash password: %w", err))
+		panic(fmt.Errorf("password: failed to hash password: %w", err))
 	}
 
 	newAuthn := *a

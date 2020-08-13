@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/authgear/authgear-server/pkg/httputil"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func RemoveX(q url.Values) {

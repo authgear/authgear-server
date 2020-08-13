@@ -6,7 +6,7 @@ import (
 
 	"github.com/lib/pq"
 
-	"github.com/authgear/authgear-server/pkg/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 )
 
 type StoreRecoveryCodePQ struct {

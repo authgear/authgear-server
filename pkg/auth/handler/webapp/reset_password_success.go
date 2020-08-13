@@ -3,12 +3,12 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
-	"github.com/authgear/authgear-server/pkg/db"
-	"github.com/authgear/authgear-server/pkg/httproute"
-	"github.com/authgear/authgear-server/pkg/template"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/template"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
 const (

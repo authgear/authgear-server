@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/core/authn"
-	"github.com/authgear/authgear-server/pkg/core/phone"
-	"github.com/authgear/authgear-server/pkg/db"
-	"github.com/authgear/authgear-server/pkg/httproute"
-	"github.com/authgear/authgear-server/pkg/mail"
-	"github.com/authgear/authgear-server/pkg/template"
-	"github.com/authgear/authgear-server/pkg/validation"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/lib/infra/template"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/phone"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 const (
@@ -127,12 +127,18 @@ type EnterOOBOTPResend struct{}
 func (i *EnterOOBOTPResend) DoResend() {}
 
 type EnterOOBOTPInput struct {
-	Code string
+	Code        string
+	DeviceToken bool
 }
 
 // GetOOBOTP implements InputAuthenticationOOB.
 func (i *EnterOOBOTPInput) GetOOBOTP() string {
 	return i.Code
+}
+
+// CreateDeviceToken implements InputCreateDeviceToken.
+func (i *EnterOOBOTPInput) CreateDeviceToken() bool {
+	return i.DeviceToken
 }
 
 func (h *EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -187,9 +193,11 @@ func (h *EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 
 				code := r.Form.Get("x_password")
+				deviceToken := r.Form.Get("x_device_token") == "true"
 
 				input = &EnterOOBOTPInput{
-					Code: code,
+					Code:        code,
+					DeviceToken: deviceToken,
 				}
 				return
 			})

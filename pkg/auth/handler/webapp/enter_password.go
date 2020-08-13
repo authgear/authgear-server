@@ -3,15 +3,15 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
-	"github.com/authgear/authgear-server/pkg/db"
-	"github.com/authgear/authgear-server/pkg/httproute"
-	"github.com/authgear/authgear-server/pkg/template"
-	"github.com/authgear/authgear-server/pkg/validation"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/template"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 const (
@@ -84,14 +84,21 @@ func (h *EnterPasswordHandler) GetData(r *http.Request, state *webapp.State, gra
 }
 
 type EnterPasswordInput struct {
-	Password string
+	Password    string
+	DeviceToken bool
 }
 
 var _ nodes.InputAuthenticationPassword = &EnterPasswordInput{}
+var _ nodes.InputCreateDeviceToken = &EnterPasswordInput{}
 
 // GetPassword implements InputAuthenticationPassword
 func (i *EnterPasswordInput) GetPassword() string {
 	return i.Password
+}
+
+// CreateDeviceToken implements InputCreateDeviceToken.
+func (i *EnterPasswordInput) CreateDeviceToken() bool {
+	return i.DeviceToken
 }
 
 func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -128,9 +135,11 @@ func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 				}
 
 				plainPassword := r.Form.Get("x_password")
+				deviceToken := r.Form.Get("x_device_token") == "true"
 
 				input = &EnterPasswordInput{
-					Password: plainPassword,
+					Password:    plainPassword,
+					DeviceToken: deviceToken,
 				}
 				return
 			})

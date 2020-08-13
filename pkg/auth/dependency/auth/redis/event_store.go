@@ -3,9 +3,9 @@ package redis
 import (
 	"encoding/json"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
-	"github.com/authgear/authgear-server/pkg/redis"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 )
 
 // TODO(session): tune event persistence, maybe use other datastore

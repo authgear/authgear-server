@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/authgear/authgear-server/cmd/authgear/migrate"
-	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 var SecretConfigPath string

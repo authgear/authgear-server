@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/auth/event"
-	"github.com/authgear/authgear-server/pkg/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 )
 
 type Store struct {

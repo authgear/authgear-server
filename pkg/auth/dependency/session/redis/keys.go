@@ -3,7 +3,7 @@ package redis
 import (
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func sessionKey(appID config.AppID, sessionID string) string {

@@ -3,10 +3,10 @@ package session
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
-	"github.com/authgear/authgear-server/pkg/clock"
-	"github.com/authgear/authgear-server/pkg/core/errors"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 type Manager struct {
@@ -23,10 +23,10 @@ func (m *Manager) ClearCookie() *http.Cookie {
 
 func (m *Manager) Get(id string) (auth.AuthSession, error) {
 	s, err := m.Store.Get(id)
-	if errors.Is(err, ErrSessionNotFound) {
+	if errorutil.Is(err, ErrSessionNotFound) {
 		return nil, auth.ErrSessionNotFound
 	} else if err != nil {
-		return nil, errors.HandledWithMessage(err, "failed to get session")
+		return nil, errorutil.HandledWithMessage(err, "failed to get session")
 	}
 	return s, nil
 }
@@ -36,7 +36,7 @@ func (m *Manager) Update(session auth.AuthSession) error {
 	expiry := computeSessionStorageExpiry(s, m.Config)
 	err := m.Store.Update(s, expiry)
 	if err != nil {
-		return errors.HandledWithMessage(err, "failed to update session")
+		return errorutil.HandledWithMessage(err, "failed to update session")
 	}
 	return nil
 }
@@ -44,7 +44,7 @@ func (m *Manager) Update(session auth.AuthSession) error {
 func (m *Manager) Delete(session auth.AuthSession) error {
 	err := m.Store.Delete(session.(*IDPSession))
 	if err != nil {
-		return errors.HandledWithMessage(err, "failed to invalidate session")
+		return errorutil.HandledWithMessage(err, "failed to invalidate session")
 	}
 	return nil
 }
@@ -52,7 +52,7 @@ func (m *Manager) Delete(session auth.AuthSession) error {
 func (m *Manager) List(userID string) ([]auth.AuthSession, error) {
 	storedSessions, err := m.Store.List(userID)
 	if err != nil {
-		return nil, errors.HandledWithMessage(err, "failed to list sessions")
+		return nil, errorutil.HandledWithMessage(err, "failed to list sessions")
 	}
 
 	now := m.Clock.NowUTC()

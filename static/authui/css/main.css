@@ -350,6 +350,17 @@ a.btn {
   color: green;
 }
 
+.device-token-control {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.device-token-label {
+  padding: 4px;
+  font-size: 12px;
+}
+
 .settings-form {
   padding: 20px;
 }

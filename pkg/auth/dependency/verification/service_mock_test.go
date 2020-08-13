@@ -5,8 +5,8 @@
 package verification
 
 import (
-	config "github.com/authgear/authgear-server/pkg/auth/config"
 	authenticator "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
+	config "github.com/authgear/authgear-server/pkg/lib/config"
 	otp "github.com/authgear/authgear-server/pkg/otp"
 	gomock "github.com/golang/mock/gomock"
 	url "net/url"

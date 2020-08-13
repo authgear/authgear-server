@@ -1,15 +1,15 @@
 package loginid
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
 	confusable "github.com/skygeario/go-confusable-homoglyphs"
 	"golang.org/x/text/secure/precis"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/core/errors"
-	"github.com/authgear/authgear-server/pkg/validation"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 const usernameFormat = `^[a-zA-Z0-9_\-.]*$`
@@ -101,7 +101,7 @@ func (c *UsernameChecker) Validate(ctx *validation.Context, loginID string) {
 	for _, item := range c.Config.ExcludedKeywords {
 		cfItem, err := p.String(item)
 		if err != nil {
-			panic(errors.Newf("password: invalid exclude keywords: %s", item))
+			panic(fmt.Sprintf("password: invalid exclude keywords: %s", item))
 		}
 
 		if strings.Contains(cfLoginID, cfItem) {

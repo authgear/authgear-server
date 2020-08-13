@@ -3,11 +3,11 @@ package nodes
 import (
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func init() {
@@ -157,12 +157,17 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() []newinteraction.Edge
 		},
 	)
 
-	// If we reach here, there are at least one secondary authenticator
-	// so we have to allow the use of recovery code.
-	// We have to add after the sorting because
-	// recovery code is not an authenticator.
 	if n.Stage == newinteraction.AuthenticationStageSecondary {
+		// If we reach here, there are at least one secondary authenticator
+		// so we have to allow the use of recovery code.
+		// We have to add after the sorting because
+		// recovery code is not an authenticator.
 		edges = append(edges, &EdgeConsumeRecoveryCode{})
+
+		// Allow the use of device token.
+		if !n.AuthenticationConfig.DeviceToken.Disabled {
+			edges = append(edges, &EdgeUseDeviceToken{})
+		}
 	}
 
 	return edges

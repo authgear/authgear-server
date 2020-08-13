@@ -4,7 +4,7 @@ import (
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
-	coreurl "github.com/authgear/authgear-server/pkg/core/url"
+	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
 
 type URLProvider struct {
@@ -12,5 +12,5 @@ type URLProvider struct {
 }
 
 func (p *URLProvider) AuthorizeURL(r protocol.AuthorizationRequest) *url.URL {
-	return coreurl.WithQueryParamsAdded(p.Endpoints.AuthorizeEndpointURL(), r)
+	return urlutil.WithQueryParamsAdded(p.Endpoints.AuthorizeEndpointURL(), r)
 }

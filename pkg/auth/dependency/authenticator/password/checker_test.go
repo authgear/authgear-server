@@ -18,12 +18,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/authgear/authgear-server/pkg/core/skyerr"
-	. "github.com/authgear/authgear-server/pkg/core/skytest"
+	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
+	. "github.com/authgear/authgear-server/pkg/util/testing"
 )
 
 func TestPasswordCheckingFuncs(t *testing.T) {
@@ -176,7 +176,7 @@ func TestValidatePassword(t *testing.T) {
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
-				"causes": []skyerr.Cause{
+				"causes": []apierrors.Cause{
 					Policy{Name: PasswordTooShort, Info: map[string]interface{}{"min_length": 2, "pw_length": 1}},
 				},
 			},
@@ -194,7 +194,7 @@ func TestValidatePassword(t *testing.T) {
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
-				"causes": []skyerr.Cause{
+				"causes": []apierrors.Cause{
 					Policy{Name: PasswordUppercaseRequired},
 				},
 			},
@@ -212,7 +212,7 @@ func TestValidatePassword(t *testing.T) {
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
-				"causes": []skyerr.Cause{
+				"causes": []apierrors.Cause{
 					Policy{Name: PasswordLowercaseRequired},
 				},
 			},
@@ -230,7 +230,7 @@ func TestValidatePassword(t *testing.T) {
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
-				"causes": []skyerr.Cause{
+				"causes": []apierrors.Cause{
 					Policy{Name: PasswordDigitRequired},
 				},
 			},
@@ -248,7 +248,7 @@ func TestValidatePassword(t *testing.T) {
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
-				"causes": []skyerr.Cause{
+				"causes": []apierrors.Cause{
 					Policy{Name: PasswordSymbolRequired},
 				},
 			},
@@ -266,7 +266,7 @@ func TestValidatePassword(t *testing.T) {
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
-				"causes": []skyerr.Cause{
+				"causes": []apierrors.Cause{
 					Policy{Name: PasswordContainingExcludedKeywords},
 				},
 			},
@@ -289,7 +289,7 @@ func TestValidatePassword(t *testing.T) {
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
-				"causes": []skyerr.Cause{
+				"causes": []apierrors.Cause{
 					Policy{Name: PasswordContainingExcludedKeywords},
 				},
 			},
@@ -307,7 +307,7 @@ func TestValidatePassword(t *testing.T) {
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
-				"causes": []skyerr.Cause{
+				"causes": []apierrors.Cause{
 					Policy{Name: PasswordBelowGuessableLevel, Info: map[string]interface{}{"min_level": 5, "pw_level": 1}},
 				},
 			},
@@ -333,7 +333,7 @@ func TestValidatePassword(t *testing.T) {
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
-				"causes": []skyerr.Cause{
+				"causes": []apierrors.Cause{
 					Policy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": int(historyDays)}},
 				},
 			},
@@ -347,7 +347,7 @@ func TestValidatePassword(t *testing.T) {
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
-				"causes": []skyerr.Cause{
+				"causes": []apierrors.Cause{
 					Policy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": int(historyDays)}},
 				},
 			},
@@ -381,7 +381,7 @@ func TestValidatePassword(t *testing.T) {
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
-				"causes": []skyerr.Cause{
+				"causes": []apierrors.Cause{
 					Policy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": int(historyDays)}},
 				},
 			},
@@ -415,7 +415,7 @@ func TestValidatePassword(t *testing.T) {
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
-				"causes": []skyerr.Cause{
+				"causes": []apierrors.Cause{
 					Policy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": int(historyDays)}},
 				},
 			},

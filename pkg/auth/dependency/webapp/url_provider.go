@@ -7,11 +7,11 @@ import (
 	"path"
 	"strings"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
 	interactionintents "github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
-	coreurl "github.com/authgear/authgear-server/pkg/core/url"
-	"github.com/authgear/authgear-server/pkg/httputil"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
 
 type EndpointsProvider interface {
@@ -27,7 +27,7 @@ type URLProvider struct {
 }
 
 func (p *URLProvider) LogoutURL(redirectURI *url.URL) *url.URL {
-	return coreurl.WithQueryParamsAdded(
+	return urlutil.WithQueryParamsAdded(
 		p.Endpoints.LogoutEndpointURL(),
 		map[string]string{"redirect_uri": redirectURI.String()},
 	)
@@ -38,14 +38,14 @@ func (p *URLProvider) SettingsURL() *url.URL {
 }
 
 func (p *URLProvider) ResetPasswordURL(code string) *url.URL {
-	return coreurl.WithQueryParamsAdded(
+	return urlutil.WithQueryParamsAdded(
 		p.Endpoints.ResetPasswordEndpointURL(),
 		map[string]string{"code": code},
 	)
 }
 
 func (p *URLProvider) VerifyIdentityURL(code string, webStateID string) *url.URL {
-	return coreurl.WithQueryParamsAdded(
+	return urlutil.WithQueryParamsAdded(
 		p.Endpoints.VerifyIdentityEndpointURL(),
 		map[string]string{"code": code, "state": webStateID},
 	)

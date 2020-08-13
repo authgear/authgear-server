@@ -20,6 +20,8 @@ const (
 	// AuthenticationResultOptional means the authentication is optional.
 	// For example, OAuth identity does not require authenticator.
 	AuthenticationResultOptional AuthenticationResult = "optional"
+	// AuthenticationResultDeviceToken means the authentication is performed by a device token.
+	AuthenticationResultDeviceToken AuthenticationResult = "device_token"
 )
 
 type EdgeAuthenticationEnd struct {
@@ -64,6 +66,8 @@ func (n *NodeAuthenticationEnd) DeriveEdges(graph *newinteraction.Graph) ([]newi
 			return nil, newinteraction.ErrInvalidCredentials
 		}
 	case AuthenticationResultOptional:
+		break
+	case AuthenticationResultDeviceToken:
 		break
 	default:
 		panic("interaction: unknown authentication result: " + n.Result)

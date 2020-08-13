@@ -3,13 +3,13 @@ package webapp
 import (
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/core/skyerr"
+	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 )
 
 type State struct {
 	ID              string                 `json:"id"`
 	PrevID          string                 `json:"prev_id"`
-	Error           *skyerr.APIError       `json:"error"`
+	Error           *apierrors.APIError    `json:"error"`
 	RedirectURI     string                 `json:"redirect_uri,omitempty"`
 	KeepState       bool                   `json:"keep_state,omitempty"`
 	GraphInstanceID string                 `json:"graph_instance_id,omitempty"`

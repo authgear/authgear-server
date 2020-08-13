@@ -1,8 +1,8 @@
 package oauth
 
 import (
-	"github.com/authgear/authgear-server/pkg/core/crypto"
-	"github.com/authgear/authgear-server/pkg/core/rand"
+	"github.com/authgear/authgear-server/pkg/util/crypto"
+	"github.com/authgear/authgear-server/pkg/util/rand"
 )
 
 const (

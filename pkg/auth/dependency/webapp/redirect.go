@@ -3,7 +3,7 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/httputil"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 const DefaultRedirectURI = "/settings"

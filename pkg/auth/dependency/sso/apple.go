@@ -2,6 +2,7 @@ package sso
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -10,11 +11,10 @@ import (
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jwt"
 
-	"github.com/authgear/authgear-server/pkg/auth/config"
-	"github.com/authgear/authgear-server/pkg/clock"
-	"github.com/authgear/authgear-server/pkg/core/crypto"
-	"github.com/authgear/authgear-server/pkg/core/errors"
-	"github.com/authgear/authgear-server/pkg/jwtutil"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/crypto"
+	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 )
 
 var appleOIDCConfig = OIDCDiscoveryDocument{
@@ -92,7 +92,7 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param
 
 	clientSecret, err := f.createClientSecret()
 	if err != nil {
-		err = errors.Newf("failed to create client secret: %w", err)
+		err = fmt.Errorf("failed to create client secret: %w", err)
 		return
 	}
 
