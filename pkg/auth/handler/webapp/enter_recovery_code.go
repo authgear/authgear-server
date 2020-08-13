@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/config"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/db"
@@ -14,21 +15,21 @@ import (
 )
 
 const (
-	TemplateItemTypeAuthUIEnterTOTPHTML config.TemplateItemType = "auth_ui_enter_totp.html"
+	TemplateItemTypeAuthUIEnterRecoveryCodeHTML config.TemplateItemType = "auth_ui_enter_recovery_code.html"
 )
 
-var TemplateAuthUIEnterTOTPHTML = template.Spec{
-	Type:        TemplateItemTypeAuthUIEnterTOTPHTML,
+var TemplateAuthUIEnterRecoveryCodeHTML = template.Spec{
+	Type:        TemplateItemTypeAuthUIEnterRecoveryCodeHTML,
 	IsHTML:      true,
 	Translation: TemplateItemTypeAuthUITranslationJSON,
 	Defines:     defines,
 	Components:  components,
 }
 
-const EnterTOTPRequestSchema = "EnterTOTPRequestSchema"
+const EnterRecoveryCodeRequestSchema = "EnterRecoveryCodeRequestSchema"
 
-var EnterTOTPSchema = validation.NewMultipartSchema("").
-	Add(EnterTOTPRequestSchema, `
+var EnterRecoveryCodeSchema = validation.NewMultipartSchema("").
+	Add(EnterRecoveryCodeRequestSchema, `
 		{
 			"type": "object",
 			"properties": {
@@ -38,24 +39,24 @@ var EnterTOTPSchema = validation.NewMultipartSchema("").
 		}
 	`).Instantiate()
 
-func ConfigureEnterTOTPRoute(route httproute.Route) httproute.Route {
+func ConfigureEnterRecoveryCodeRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/enter_totp")
+		WithPathPattern("/enter_recovery_code")
 }
 
-type EnterTOTPViewModel struct {
+type EnterRecoveryCodeViewModel struct {
 	Alternatives []AuthenticationAlternative
 }
 
-type EnterTOTPHandler struct {
+type EnterRecoveryCodeHandler struct {
 	Database      *db.Handle
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
 	WebApp        WebAppService
 }
 
-func (h *EnterTOTPHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph) (map[string]interface{}, error) {
+func (h *EnterRecoveryCodeHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
@@ -63,11 +64,11 @@ func (h *EnterTOTPHandler) GetData(r *http.Request, state *webapp.State, graph *
 		// Use current state ID because the current node should be NodeAuthenticationBegin.
 		state.ID,
 		graph,
-		AuthenticationTypeTOTP,
+		AuthenticationTypeRecoveryCode,
 		"",
 	)
 
-	viewModel := EnterTOTPViewModel{
+	viewModel := EnterRecoveryCodeViewModel{
 		Alternatives: alternatives,
 	}
 
@@ -77,16 +78,18 @@ func (h *EnterTOTPHandler) GetData(r *http.Request, state *webapp.State, graph *
 	return data, nil
 }
 
-type EnterTOTPInput struct {
+type EnterRecoveryCodeInput struct {
 	Code string
 }
 
-// GetTOTP implements InputAuthenticationTOTP.
-func (i *EnterTOTPInput) GetTOTP() string {
+var _ nodes.InputConsumeRecoveryCode = &EnterRecoveryCodeInput{}
+
+// GetRecoveryCode implements InputConsumeRecoveryCode.
+func (i *EnterRecoveryCodeInput) GetRecoveryCode() string {
 	return i.Code
 }
 
-func (h *EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *EnterRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -106,7 +109,7 @@ func (h *EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIEnterTOTPHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIEnterRecoveryCodeHTML, data)
 			return nil
 		})
 	}
@@ -114,14 +117,14 @@ func (h *EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		h.Database.WithTx(func() error {
 			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
-				err = EnterTOTPSchema.PartValidator(EnterTOTPRequestSchema).ValidateValue(FormToJSON(r.Form))
+				err = EnterRecoveryCodeSchema.PartValidator(EnterRecoveryCodeRequestSchema).ValidateValue(FormToJSON(r.Form))
 				if err != nil {
 					return
 				}
 
 				code := r.Form.Get("x_code")
 
-				input = &EnterTOTPInput{
+				input = &EnterRecoveryCodeInput{
 					Code: code,
 				}
 				return

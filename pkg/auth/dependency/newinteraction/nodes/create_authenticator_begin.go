@@ -185,6 +185,10 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []newinteraction
 		return nil
 	}
 
+	// If we reach here, the user does not any authenticator.
+	// Therefore, the authenticator must have the default tag.
+	tag := []string{authenticator.TagDefaultAuthenticator}
+
 	// 3. Determine what secondary authenticator we allow the user to create.
 	// We have the following conditions to hold:
 	//   A. The secondary authenticator is allowed in the configuration.
@@ -221,11 +225,17 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []newinteraction
 		switch typ {
 		case authn.AuthenticatorTypePassword:
 			// Condition B.
-			edges = append(edges, &EdgeCreateAuthenticatorPassword{Stage: n.Stage})
+			edges = append(edges, &EdgeCreateAuthenticatorPassword{
+				Stage: n.Stage,
+				Tag:   tag,
+			})
 		case authn.AuthenticatorTypeTOTP:
 			// Condition B and C.
 			if totpCount < *n.AuthenticatorConfig.TOTP.Maximum {
-				edges = append(edges, &EdgeCreateAuthenticatorTOTPSetup{Stage: n.Stage})
+				edges = append(edges, &EdgeCreateAuthenticatorTOTPSetup{
+					Stage: n.Stage,
+					Tag:   tag,
+				})
 			}
 		case authn.AuthenticatorTypeOOB:
 			var allowedChannels []authn.AuthenticatorOOBChannel
@@ -240,6 +250,7 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []newinteraction
 			if len(allowedChannels) > 0 {
 				edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
 					Stage:           n.Stage,
+					Tag:             tag,
 					AllowedChannels: allowedChannels,
 				})
 			}
@@ -251,18 +262,13 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []newinteraction
 	newinteraction.SortAuthenticators(
 		n.AuthenticationConfig.SecondaryAuthenticators,
 		edges,
-		func(i int) authn.AuthenticatorType {
+		func(i int) newinteraction.SortableAuthenticator {
 			edge := edges[i]
-			switch edge.(type) {
-			case *EdgeCreateAuthenticatorPassword:
-				return authn.AuthenticatorTypePassword
-			case *EdgeCreateAuthenticatorTOTPSetup:
-				return authn.AuthenticatorTypeTOTP
-			case *EdgeCreateAuthenticatorOOBSetup:
-				return authn.AuthenticatorTypeOOB
-			default:
+			a, ok := edge.(newinteraction.SortableAuthenticator)
+			if !ok {
 				panic(fmt.Sprintf("interaction: unknown edge: %T", edge))
 			}
+			return a
 		},
 	)
 

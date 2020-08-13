@@ -122,6 +122,7 @@
 	"setup-password-instead": "Setup password instead",
 	"enter-totp-instead": "Enter 6-digit authenticator code instead",
 	"enter-password-instead": "Enter password instead",
+	"enter-recovery-code-instead": "Enter recovery code instead",
 	"enter-oob-otp-instead": "Send code to {0} instead",
 
 	"setup-oob-otp-title--sms": "Setup SMS 2-step verification",
@@ -140,6 +141,10 @@
 	"enter-totp-title": "2-step verification",
 	"enter-totp-description": "Enter the 6-digit code you see in the authenticator app / device",
 	"enter-totp-code-placeholder": "6-digit code from the authenticator app / device",
+
+	"enter-recovery-code-title": "2-step verification",
+	"enter-recovery-code-description": "Enter any unused 10-letter recovery code",
+	"enter-recovery-code-placeholder": "10-letter recovery code",
 
 	"recovery-code-title": "Recovery Code",
 	"recovery-code-storage-description": "Keep these recovery codes somewhere safe but accessible",

@@ -104,6 +104,7 @@ func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *httpro
 	router.Add(webapphandler.ConfigureEnterTOTPRoute(webappRoute), p.Handler(newWebAppEnterTOTPHandler))
 	router.Add(webapphandler.ConfigureSetupOOBOTPRoute(webappRoute), p.Handler(newWebAppSetupOOBOTPHandler))
 	router.Add(webapphandler.ConfigureEnterOOBOTPRoute(webappRoute), p.Handler(newWebAppEnterOOBOTPHandler))
+	router.Add(webapphandler.ConfigureEnterRecoveryCodeRoute(webappRoute), p.Handler(newWebAppEnterRecoveryCodeHandler))
 	router.Add(webapphandler.ConfigureSetupRecoveryCodeRoute(webappRoute), p.Handler(newWebAppSetupRecoveryCodeHandler))
 	router.Add(webapphandler.ConfigureVerifyIdentityRoute(webappRoute), p.Handler(newWebAppVerifyIdentityHandler))
 	router.Add(webapphandler.ConfigureVerifyIdentitySuccessRoute(webappRoute), p.Handler(newWebAppVerifyIdentitySuccessHandler))

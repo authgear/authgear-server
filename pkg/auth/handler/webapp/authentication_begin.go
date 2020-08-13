@@ -94,6 +94,10 @@ func (h *AuthenticationBeginHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 	h.Database.WithTx(func() error {
 		selectedEdge := edges[edgeIndex]
 		switch selectedEdge := selectedEdge.(type) {
+		case *nodes.EdgeConsumeRecoveryCode:
+			http.Redirect(w, r, webapp.AttachStateID(state.ID, &url.URL{
+				Path: "/enter_recovery_code",
+			}).String(), http.StatusFound)
 		case *nodes.EdgeAuthenticationPassword:
 			http.Redirect(w, r, webapp.AttachStateID(state.ID, &url.URL{
 				Path: "/enter_password",
@@ -125,13 +129,22 @@ func (h *AuthenticationBeginHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 	})
 }
 
+type AuthenticationType string
+
+const (
+	AuthenticationTypePassword                        = AuthenticationType(string(authn.AuthenticatorTypePassword))
+	AuthenticationTypeTOTP                            = AuthenticationType(string(authn.AuthenticatorTypeTOTP))
+	AuthenticationTypeOOB                             = AuthenticationType(string(authn.AuthenticatorTypeOOB))
+	AuthenticationTypeRecoveryCode AuthenticationType = "recovery_code"
+)
+
 type AuthenticationAlternative struct {
 	Type         string
 	URL          string
 	MaskedTarget string
 }
 
-func DeriveAuthenticationAlternatives(stateID string, graph *newinteraction.Graph, currentType authn.AuthenticatorType, currentTarget string) (alternatives []AuthenticationAlternative) {
+func DeriveAuthenticationAlternatives(stateID string, graph *newinteraction.Graph, currentType AuthenticationType, currentTarget string) (alternatives []AuthenticationAlternative) {
 	var node AuthenticationBeginNode
 	if !graph.FindLastNode(&node) {
 		panic("authentication_begin: expected graph has node implementing AuthenticationBeginNode")
@@ -141,8 +154,21 @@ func DeriveAuthenticationAlternatives(stateID string, graph *newinteraction.Grap
 
 	for i, edge := range edges {
 		switch edge := edge.(type) {
+		case *nodes.EdgeConsumeRecoveryCode:
+			typ := AuthenticationTypeRecoveryCode
+			if typ != currentType {
+				q := url.Values{}
+				q.Set("x_edge", strconv.Itoa(i))
+				alternatives = append(alternatives, AuthenticationAlternative{
+					Type: string(typ),
+					URL: webapp.AttachStateID(stateID, &url.URL{
+						Path:     "/authentication_begin",
+						RawQuery: q.Encode(),
+					}).String(),
+				})
+			}
 		case *nodes.EdgeAuthenticationPassword:
-			typ := authn.AuthenticatorTypePassword
+			typ := AuthenticationTypePassword
 			if typ != currentType {
 				q := url.Values{}
 				q.Set("x_edge", strconv.Itoa(i))
@@ -155,7 +181,7 @@ func DeriveAuthenticationAlternatives(stateID string, graph *newinteraction.Grap
 				})
 			}
 		case *nodes.EdgeAuthenticationTOTP:
-			typ := authn.AuthenticatorTypeTOTP
+			typ := AuthenticationTypeTOTP
 			if typ != currentType {
 				q := url.Values{}
 				q.Set("x_edge", strconv.Itoa(i))
@@ -168,7 +194,7 @@ func DeriveAuthenticationAlternatives(stateID string, graph *newinteraction.Grap
 				})
 			}
 		case *nodes.EdgeAuthenticationOOBTrigger:
-			typ := authn.AuthenticatorTypeOOB
+			typ := AuthenticationTypeOOB
 			if typ != currentType {
 				for j, a := range edge.Authenticators {
 					channel := a.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string)

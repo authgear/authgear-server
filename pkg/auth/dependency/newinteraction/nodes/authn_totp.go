@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/core/authn"
 )
 
 func init() {
@@ -18,6 +19,15 @@ type InputAuthenticationTOTP interface {
 type EdgeAuthenticationTOTP struct {
 	Stage          newinteraction.AuthenticationStage
 	Authenticators []*authenticator.Info
+}
+
+func (e *EdgeAuthenticationTOTP) AuthenticatorType() authn.AuthenticatorType {
+	return authn.AuthenticatorTypeTOTP
+}
+
+func (e *EdgeAuthenticationTOTP) HasDefaultTag() bool {
+	filtered := filterAuthenticators(e.Authenticators, authenticator.KeepTag(authenticator.TagDefaultAuthenticator))
+	return len(filtered) > 0
 }
 
 func (e *EdgeAuthenticationTOTP) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {

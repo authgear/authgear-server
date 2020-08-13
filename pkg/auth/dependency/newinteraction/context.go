@@ -73,9 +73,10 @@ type MFAService interface {
 	VerifyDeviceToken(userID string, token string) error
 	InvalidateAllDeviceTokens(userID string) error
 
+	GetRecoveryCode(userID string, code string) (*mfa.RecoveryCode, error)
+	ConsumeRecoveryCode(rc *mfa.RecoveryCode) error
 	GenerateRecoveryCodes() []string
 	ReplaceRecoveryCodes(userID string, codes []string) ([]*mfa.RecoveryCode, error)
-	ConsumeRecoveryCode(userID string, code string) error
 	ListRecoveryCodes(userID string) ([]*mfa.RecoveryCode, error)
 }
 

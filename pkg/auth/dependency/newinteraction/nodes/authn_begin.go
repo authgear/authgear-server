@@ -79,13 +79,39 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() []newinteraction.Edge
 		availableAuthenticators,
 		authenticator.KeepType(authn.AuthenticatorTypePassword),
 	)
+	newinteraction.SortAuthenticators(
+		nil,
+		passwords,
+		func(i int) newinteraction.SortableAuthenticator {
+			a := newinteraction.SortableAuthenticatorInfo(*passwords[i])
+			return &a
+		},
+	)
+
 	totps := filterAuthenticators(
 		availableAuthenticators,
 		authenticator.KeepType(authn.AuthenticatorTypeTOTP),
 	)
+	newinteraction.SortAuthenticators(
+		nil,
+		totps,
+		func(i int) newinteraction.SortableAuthenticator {
+			a := newinteraction.SortableAuthenticatorInfo(*totps[i])
+			return &a
+		},
+	)
+
 	oobs := filterAuthenticators(
 		availableAuthenticators,
 		authenticator.KeepType(authn.AuthenticatorTypeOOB),
+	)
+	newinteraction.SortAuthenticators(
+		nil,
+		totps,
+		func(i int) newinteraction.SortableAuthenticator {
+			a := newinteraction.SortableAuthenticatorInfo(*oobs[i])
+			return &a
+		},
 	)
 
 	if len(passwords) > 0 {
@@ -112,8 +138,8 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() []newinteraction.Edge
 	// No authenticators found, skip the authentication stage
 	if len(edges) == 0 {
 		edges = append(edges, &EdgeAuthenticationEnd{
-			Stage:    n.Stage,
-			Optional: true,
+			Stage:  n.Stage,
+			Result: AuthenticationResultOptional,
 		})
 		return edges
 	}
@@ -121,20 +147,23 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() []newinteraction.Edge
 	newinteraction.SortAuthenticators(
 		preferred,
 		edges,
-		func(i int) authn.AuthenticatorType {
+		func(i int) newinteraction.SortableAuthenticator {
 			edge := edges[i]
-			switch edge.(type) {
-			case *EdgeAuthenticationPassword:
-				return authn.AuthenticatorTypePassword
-			case *EdgeAuthenticationTOTP:
-				return authn.AuthenticatorTypeTOTP
-			case *EdgeAuthenticationOOBTrigger:
-				return authn.AuthenticatorTypeOOB
-			default:
+			a, ok := edge.(newinteraction.SortableAuthenticator)
+			if !ok {
 				panic(fmt.Sprintf("interaction: unknown edge: %T", edge))
 			}
+			return a
 		},
 	)
+
+	// If we reach here, there are at least one secondary authenticator
+	// so we have to allow the use of recovery code.
+	// We have to add after the sorting because
+	// recovery code is not an authenticator.
+	if n.Stage == newinteraction.AuthenticationStageSecondary {
+		edges = append(edges, &EdgeConsumeRecoveryCode{})
+	}
 
 	return edges
 }

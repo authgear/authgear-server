@@ -20,12 +20,21 @@ type InputCreateAuthenticatorOOBSetup interface {
 
 type EdgeCreateAuthenticatorOOBSetup struct {
 	Stage newinteraction.AuthenticationStage
+	Tag   []string
 
 	// Either have Channel and Target
 	Channel authn.AuthenticatorOOBChannel
 	Target  string
 	// Or have AllowedChannels
 	AllowedChannels []authn.AuthenticatorOOBChannel
+}
+
+func (e *EdgeCreateAuthenticatorOOBSetup) AuthenticatorType() authn.AuthenticatorType {
+	return authn.AuthenticatorTypeOOB
+}
+
+func (e *EdgeCreateAuthenticatorOOBSetup) HasDefaultTag() bool {
+	return false
 }
 
 func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *newinteraction.Context, graph *newinteraction.Graph, rawInput interface{}) (newinteraction.Node, error) {
@@ -106,6 +115,8 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *newinteraction.Contex
 			}
 		}
 	}
+
+	spec.Tag = append(spec.Tag, e.Tag...)
 
 	spec.Props[authenticator.AuthenticatorPropOOBOTPChannelType] = string(channel)
 	switch channel {

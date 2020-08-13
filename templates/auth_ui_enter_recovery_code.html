@@ -12,16 +12,16 @@
 	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
 </div>
 
-<div class="title primary-txt">{{ localize "enter-totp-title" }}</div>
+<div class="title primary-txt">{{ localize "enter-recovery-code-title" }}</div>
 
 {{ template "ERROR" . }}
 
-<p class="description primary-txt">{{ localize "enter-totp-description" }}</p>
+<p class="description primary-txt">{{ localize "enter-recovery-code-description" }}</p>
 
 <form class="vertical-form form-fields-container" method="post" novalidate>
 {{ $.CSRFField }}
 
-<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_code" placeholder="{{ localize "enter-totp-code-placeholder" }}">
+<input class="input text-input primary-txt" type="text" name="x_code" placeholder="{{ localize "enter-recovery-code-placeholder" }}">
 
 {{ range $.Alternatives }}
 {{ if eq .Type "totp" }}
