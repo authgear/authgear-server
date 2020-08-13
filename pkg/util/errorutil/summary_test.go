@@ -1,6 +1,8 @@
 package errorutil_test
 
 import (
+	"errors"
+	"fmt"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -10,11 +12,11 @@ import (
 
 func TestSummary(t *testing.T) {
 	Convey("Summary", t, func() {
-		err1 := errorutil.New("err a")
-		err2 := errorutil.Newf("err b: %w", err1)
+		err1 := errors.New("err a")
+		err2 := fmt.Errorf("err b: %w", err1)
 		err3 := errorutil.Wrap(err2, "err c")
 		err4 := errorutil.HandledWithMessage(err2, "err d")
-		err5 := errorutil.WithSecondaryError(errorutil.New("err e"), err2)
+		err5 := errorutil.WithSecondaryError(errors.New("err e"), err2)
 
 		So(errorutil.Summary(err1), ShouldEqual, "err a")
 		So(errorutil.Summary(err2), ShouldEqual, "err b: err a")

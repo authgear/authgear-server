@@ -2,6 +2,7 @@ package errorutil_test
 
 import (
 	"encoding/json"
+	"errors"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -10,7 +11,7 @@ import (
 )
 
 func TestDetails(t *testing.T) {
-	err1 := errorutil.New("error 1")
+	err1 := errors.New("error 1")
 	err2 := errorutil.WithDetails(err1, errorutil.Details{"data": 123})
 	err3 := errorutil.HandledWithMessage(err2, "error 2")
 	err := errorutil.WithDetails(err3, errorutil.Details{"data": 456, "value": errorutil.SafeDetail.Value("test")})

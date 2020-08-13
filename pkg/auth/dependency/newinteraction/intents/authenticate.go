@@ -1,6 +1,7 @@
 package intents
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
@@ -8,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 func init() {
@@ -83,7 +83,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *newinteraction.Graph, nod
 			}, nil
 		case IntentAuthenticateKindPromote:
 			if node.IdentityInfo == nil || node.IdentityInfo.Type != authn.IdentityTypeAnonymous {
-				return nil, errorutil.New("promote intent is used to select non-anonymous identity")
+				return nil, errors.New("promote intent is used to select non-anonymous identity")
 			}
 
 			return []newinteraction.Edge{

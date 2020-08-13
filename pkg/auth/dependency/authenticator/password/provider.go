@@ -1,13 +1,13 @@
 package password
 
 import (
+	"fmt"
 	"sort"
 
 	taskspec "github.com/authgear/authgear-server/pkg/auth/task/spec"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
@@ -172,7 +172,7 @@ func sortAuthenticators(as []*Authenticator) {
 func (p *Provider) populatePasswordHash(a *Authenticator, password string) *Authenticator {
 	hash, err := pwd.Hash([]byte(password))
 	if err != nil {
-		panic(errorutil.Newf("password: failed to hash password: %w", err))
+		panic(fmt.Errorf("password: failed to hash password: %w", err))
 	}
 
 	newAuthn := *a

@@ -1,6 +1,7 @@
 package errorutil_test
 
 import (
+	"errors"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -10,13 +11,13 @@ import (
 
 func TestErrorf(t *testing.T) {
 	Convey("Wrap", t, func() {
-		inner := errorutil.New("inner")
+		inner := errors.New("inner")
 		err := errorutil.Wrap(inner, "test")
 		So(err, ShouldBeError, "test")
 		So(errorutil.Is(err, inner), ShouldBeTrue)
 	})
 	Convey("Wrapf", t, func() {
-		inner := errorutil.New("inner")
+		inner := errors.New("inner")
 		err := errorutil.Wrapf(inner, "err %d", 1)
 		So(err, ShouldBeError, "err 1")
 		So(errorutil.Is(err, inner), ShouldBeTrue)

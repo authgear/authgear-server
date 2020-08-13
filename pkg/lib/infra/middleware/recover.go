@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/api"
@@ -37,7 +38,7 @@ func (m *RecoverMiddleware) Handle(next http.Handler) http.Handler {
 				if ee, isErr := err.(error); isErr {
 					e = ee
 				} else {
-					e = errorutil.Newf("%+v", err)
+					e = fmt.Errorf("%+v", err)
 				}
 
 				if errorType == errorTypeUnexpected {

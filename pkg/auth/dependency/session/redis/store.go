@@ -2,6 +2,7 @@ package redis
 
 import (
 	"encoding/json"
+	"fmt"
 	"sort"
 	"time"
 
@@ -46,12 +47,12 @@ func (s *Store) Create(sess *session.IDPSession, expireAt time.Time) (err error)
 	err = s.Redis.WithConn(func(conn redis.Conn) error {
 		_, err = conn.Do("HSET", listKey, key, expiry)
 		if err != nil {
-			return errorutil.Newf("failed to update session list: %w", err)
+			return fmt.Errorf("failed to update session list: %w", err)
 		}
 
 		_, err = goredis.String(conn.Do("SET", key, json, "PX", toMilliseconds(ttl), "NX"))
 		if errorutil.Is(err, goredis.ErrNil) {
-			err = errorutil.Newf("duplicated session ID: %w", err)
+			err = fmt.Errorf("duplicated session ID: %w", err)
 			return err
 		}
 
@@ -85,7 +86,7 @@ func (s *Store) Update(sess *session.IDPSession, expireAt time.Time) (err error)
 	err = s.Redis.WithConn(func(conn redis.Conn) error {
 		_, err = conn.Do("HSET", listKey, key, expiry)
 		if err != nil {
-			return errorutil.Newf("failed to update session list: %w", err)
+			return fmt.Errorf("failed to update session list: %w", err)
 		}
 
 		_, err = goredis.String(conn.Do("SET", key, data, "PX", toMilliseconds(ttl), "XX"))

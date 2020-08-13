@@ -2,11 +2,11 @@ package template
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	htmlTemplate "html/template"
 	"io"
 	textTemplate "text/template"
-
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 const MaxTemplateSize = 1024 * 1024 * 1
@@ -43,14 +43,14 @@ func RenderTextTemplate(opts RenderOptions) (out string, err error) {
 	// Parse the main template
 	_, err = template.Parse(opts.TemplateBody)
 	if err != nil {
-		err = errorutil.Newf("failed to parse template: %w", err)
+		err = fmt.Errorf("failed to parse template: %w", err)
 		return
 	}
 	// Parse defines
 	for _, define := range opts.Defines {
 		_, err = template.Parse(define)
 		if err != nil {
-			err = errorutil.Newf("failed to parse template: %w", err)
+			err = fmt.Errorf("failed to parse template: %w", err)
 			return
 		}
 	}
@@ -59,13 +59,13 @@ func RenderTextTemplate(opts RenderOptions) (out string, err error) {
 	validator := NewValidator(opts.ValidatorOpts...)
 	err = validator.ValidateTextTemplate(template)
 	if err != nil {
-		err = errorutil.Newf("failed to validate template: %w", err)
+		err = fmt.Errorf("failed to validate template: %w", err)
 		return
 	}
 
 	var buf bytes.Buffer
 	if err = template.Execute(&limitedWriter{w: &buf, n: MaxTemplateSize}, opts.Data); err != nil {
-		err = errorutil.Newf("failed to execute template: %w", err)
+		err = fmt.Errorf("failed to execute template: %w", err)
 		return
 	}
 
@@ -90,14 +90,14 @@ func RenderHTMLTemplate(opts RenderOptions) (out string, err error) {
 	// Parse the main template
 	_, err = template.Parse(opts.TemplateBody)
 	if err != nil {
-		err = errorutil.Newf("failed to parse template: %w", err)
+		err = fmt.Errorf("failed to parse template: %w", err)
 		return
 	}
 	// Parse defines
 	for _, define := range opts.Defines {
 		_, err = template.Parse(define)
 		if err != nil {
-			err = errorutil.Newf("failed to parse template: %w", err)
+			err = fmt.Errorf("failed to parse template: %w", err)
 			return
 		}
 	}
@@ -106,13 +106,13 @@ func RenderHTMLTemplate(opts RenderOptions) (out string, err error) {
 	validator := NewValidator(opts.ValidatorOpts...)
 	err = validator.ValidateHTMLTemplate(template)
 	if err != nil {
-		err = errorutil.Newf("failed to validate template: %w", err)
+		err = fmt.Errorf("failed to validate template: %w", err)
 		return
 	}
 
 	var buf bytes.Buffer
 	if err = template.Execute(&limitedWriter{w: &buf, n: MaxTemplateSize}, opts.Data); err != nil {
-		err = errorutil.Newf("failed to execute template: %w", err)
+		err = fmt.Errorf("failed to execute template: %w", err)
 		return
 	}
 
@@ -120,7 +120,7 @@ func RenderHTMLTemplate(opts RenderOptions) (out string, err error) {
 	return
 }
 
-var errLimitReached = errorutil.New("rendered template is too large")
+var errLimitReached = errors.New("rendered template is too large")
 
 type limitedWriter struct {
 	w io.Writer

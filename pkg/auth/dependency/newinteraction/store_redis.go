@@ -2,6 +2,7 @@ package newinteraction
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -44,7 +45,7 @@ func (s *StoreRedis) create(graph *Graph, graphSetMode string) error {
 
 		_, err = goredis.String(conn.Do("SET", instanceKey, bytes, "PX", ttl, "NX"))
 		if errorutil.Is(err, goredis.ErrNil) {
-			return errorutil.New("failed to create interaction graph instance")
+			return errors.New("failed to create interaction graph instance")
 		} else if err != nil {
 			return err
 		}

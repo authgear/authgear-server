@@ -1,12 +1,13 @@
 package template
 
 import (
+	"errors"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
-var ErrUnknownURIScheme = errorutil.New("unknown URI scheme")
+var ErrUnknownURIScheme = errors.New("unknown URI scheme")
 
 type URILoader struct {
 	FileLoader *FileLoader

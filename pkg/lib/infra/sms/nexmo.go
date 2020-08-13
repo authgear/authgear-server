@@ -1,13 +1,15 @@
 package sms
 
 import (
+	"errors"
+	"fmt"
+
 	nexmo "github.com/njern/gonexmo"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
-var ErrMissingNexmoConfiguration = errorutil.New("nexmo: configuration is missing")
+var ErrMissingNexmoConfiguration = errors.New("nexmo: configuration is missing")
 
 type NexmoClient struct {
 	NexmoClient *nexmo.Client
@@ -39,17 +41,17 @@ func (n *NexmoClient) Send(from string, to string, body string) error {
 
 	resp, err := n.NexmoClient.SMS.Send(&message)
 	if err != nil {
-		return errorutil.Newf("nexmo: %w", err)
+		return fmt.Errorf("nexmo: %w", err)
 	}
 
 	if resp.MessageCount == 0 {
-		err = errorutil.New("nexmo: no sms is sent")
+		err = errors.New("nexmo: no sms is sent")
 		return err
 	}
 
 	report := resp.Messages[0]
 	if report.ErrorText != "" {
-		err = errorutil.Newf("nexmo: %s", report.ErrorText)
+		err = fmt.Errorf("nexmo: %s", report.ErrorText)
 		return err
 	}
 

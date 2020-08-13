@@ -26,7 +26,7 @@ func (s *Store) Create(code *Code) (err error) {
 	err = s.Redis.WithConn(func(conn redis.Conn) error {
 		_, err := redigo.String(conn.Do("SET", key, bytes, "PX", codeExpire(code), "NX"))
 		if errorutil.Is(err, redigo.ErrNil) {
-			err = errorutil.Newf("duplicated forgot password code: %w", err)
+			err = fmt.Errorf("duplicated forgot password code: %w", err)
 		}
 		return err
 	})
@@ -45,7 +45,7 @@ func (s *Store) Update(code *Code) (err error) {
 	err = s.Redis.WithConn(func(conn redis.Conn) error {
 		_, err := redigo.String(conn.Do("SET", key, bytes, "PX", codeExpire(code), "XX"))
 		if errorutil.Is(err, redigo.ErrNil) {
-			err = errorutil.Newf("non-existent forgot password code: %w", err)
+			err = fmt.Errorf("non-existent forgot password code: %w", err)
 		}
 		return err
 	})

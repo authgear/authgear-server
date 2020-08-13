@@ -40,7 +40,7 @@ func fetchUserProfile(
 	}
 
 	if resp.StatusCode != 200 {
-		err = errorutil.Newf("unexpected status code: %d", resp.StatusCode)
+		err = fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 		return
 	}
 

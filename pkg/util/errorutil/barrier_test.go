@@ -1,6 +1,7 @@
 package errorutil_test
 
 import (
+	"errors"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -10,7 +11,7 @@ import (
 
 func TestBarrier(t *testing.T) {
 	Convey("Handled/HandledWithMessage", t, func() {
-		inner := errorutil.New("error")
+		inner := errors.New("error")
 
 		err1 := errorutil.Handled(inner)
 		So(err1, ShouldBeError, "error")

@@ -1,6 +1,7 @@
 package template
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
 	"unicode/utf8"
@@ -25,7 +26,7 @@ func (l *FileLoader) Load(absolutePath string) (templateContent string, err erro
 	}
 
 	if !utf8.Valid(content) {
-		err = errorutil.New("expected content to be UTF-8 encoded")
+		err = errors.New("expected content to be UTF-8 encoded")
 		return
 	}
 

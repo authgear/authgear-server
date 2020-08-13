@@ -1,6 +1,7 @@
 package errorutil_test
 
 import (
+	"errors"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -10,8 +11,8 @@ import (
 
 func TestSecondary(t *testing.T) {
 	Convey("WithSecondaryError", t, func() {
-		secondary := errorutil.WithDetails(errorutil.New("secondary"), errorutil.Details{"data1": 123})
-		primary := errorutil.WithDetails(errorutil.New("primary"), errorutil.Details{"data2": 456})
+		secondary := errorutil.WithDetails(errors.New("secondary"), errorutil.Details{"data1": 123})
+		primary := errorutil.WithDetails(errors.New("primary"), errorutil.Details{"data2": 456})
 		err := errorutil.WithSecondaryError(primary, secondary)
 
 		So(err, ShouldBeError, "primary")
