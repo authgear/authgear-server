@@ -3,9 +3,9 @@ package deps
 import (
 	"github.com/google/wire"
 
-	"github.com/authgear/authgear-server/pkg/auth/task"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
+	"github.com/authgear/authgear-server/pkg/worker/tasks"
 )
 
 var taskDeps = wire.NewSet(
@@ -15,7 +15,7 @@ var taskDeps = wire.NewSet(
 		sms.DependencySet,
 	),
 
-	task.DependencySet,
-	wire.Bind(new(task.MailSender), new(*mail.Sender)),
-	wire.Bind(new(task.SMSClient), new(*sms.Client)),
+	tasks.DependencySet,
+	wire.Bind(new(tasks.MailSender), new(*mail.Sender)),
+	wire.Bind(new(tasks.SMSClient), new(*sms.Client)),
 )

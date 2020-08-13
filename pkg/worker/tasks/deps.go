@@ -1,4 +1,4 @@
-package task
+package tasks
 
 import (
 	"github.com/google/wire"

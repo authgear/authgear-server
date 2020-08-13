@@ -9,19 +9,16 @@ import (
 	configsource "github.com/authgear/authgear-server/pkg/lib/config/source"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	"github.com/authgear/authgear-server/pkg/lib/infra/task/executors"
-	taskqueue "github.com/authgear/authgear-server/pkg/lib/infra/task/queue"
 )
 
 var rootDeps = wire.NewSet(
 	wire.FieldsOf(new(*RootProvider),
 		"ServerConfig",
-		"TaskExecutor",
 		"ReservedNameChecker",
 	),
 
 	ProvideCaptureTaskContext,
-	wire.Bind(new(taskqueue.Executor), new(*executors.InMemoryExecutor)),
+	ProvideRestoreTaskContext,
 
 	configsource.DependencySet,
 )
@@ -34,6 +31,7 @@ var appRootDeps = wire.NewSet(
 		"LoggerFactory",
 		"Database",
 		"Redis",
+		"TaskQueue",
 		"TemplateEngine",
 	),
 

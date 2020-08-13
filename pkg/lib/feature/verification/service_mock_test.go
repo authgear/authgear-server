@@ -5,14 +5,12 @@
 package verification
 
 import (
-	"net/url"
-	"reflect"
-
-	"github.com/golang/mock/gomock"
-
-	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/otp"
+	authenticator "github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
+	config "github.com/authgear/authgear-server/pkg/lib/config"
+	otp "github.com/authgear/authgear-server/pkg/otp"
+	gomock "github.com/golang/mock/gomock"
+	url "net/url"
+	reflect "reflect"
 )
 
 // MockAuthenticatorService is a mock of AuthenticatorService interface

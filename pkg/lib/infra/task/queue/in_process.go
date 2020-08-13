@@ -5,22 +5,24 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 )
 
-type CaptureTaskContext func() *task.Context
-
 type Executor interface {
-	Submit(ctx *task.Context, task task.Spec)
+	Run(ctx *task.Context, spec task.Spec)
 }
 
-type Queue struct {
+type InProcessQueue struct {
 	Database       *db.Handle
-	CaptureContext CaptureTaskContext
+	CaptureContext task.CaptureTaskContext
 	Executor       Executor
 
 	pendingTasks []task.Spec `wire:"-"`
 	hooked       bool        `wire:"-"`
 }
 
-func (s *Queue) Enqueue(spec task.Spec) {
+func (s *InProcessQueue) Enqueue(param task.Param) {
+	spec := task.Spec{
+		Name:  param.TaskName(),
+		Param: param,
+	}
 	if s.Database != nil && s.Database.HasTx() {
 		s.pendingTasks = append(s.pendingTasks, spec)
 		if !s.hooked {
@@ -28,22 +30,22 @@ func (s *Queue) Enqueue(spec task.Spec) {
 			s.hooked = true
 		}
 	} else {
-		// No transaction context -> submit immediately.
-		s.submit(spec)
+		// No transaction context -> run immediately.
+		s.run(spec)
 	}
 }
 
-func (s *Queue) WillCommitTx() error {
+func (s *InProcessQueue) WillCommitTx() error {
 	return nil
 }
 
-func (s *Queue) DidCommitTx() {
+func (s *InProcessQueue) DidCommitTx() {
 	for _, task := range s.pendingTasks {
-		s.submit(task)
+		s.run(task)
 	}
 	s.pendingTasks = nil
 }
 
-func (s *Queue) submit(spec task.Spec) {
-	s.Executor.Submit(s.CaptureContext(), spec)
+func (s *InProcessQueue) run(spec task.Spec) {
+	s.Executor.Run(s.CaptureContext(), spec)
 }

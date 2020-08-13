@@ -11,7 +11,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
-	taskexecutors "github.com/authgear/authgear-server/pkg/lib/infra/task/executors"
 	"github.com/authgear/authgear-server/pkg/lib/infra/template"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -24,11 +23,11 @@ type RootProvider struct {
 	SentryHub           *getsentry.Hub
 	DatabasePool        *db.Pool
 	RedisPool           *redis.Pool
-	TaskExecutor        *taskexecutors.InMemoryExecutor
+	TaskQueueFactory    TaskQueueFactory
 	ReservedNameChecker *loginid.ReservedNameChecker
 }
 
-func NewRootProvider(cfg *config.ServerConfig) (*RootProvider, error) {
+func NewRootProvider(cfg *config.ServerConfig, taskQueueFactory TaskQueueFactory) (*RootProvider, error) {
 	var p RootProvider
 
 	logLevel, err := log.ParseLevel(cfg.LogLevel)
@@ -49,7 +48,6 @@ func NewRootProvider(cfg *config.ServerConfig) (*RootProvider, error) {
 
 	dbPool := db.NewPool()
 	redisPool := redis.NewPool()
-	taskExecutor := taskexecutors.NewInMemoryExecutor(loggerFactory, ProvideRestoreTaskContext(&p))
 	reservedNameChecker, err := loginid.NewReservedNameChecker(cfg.ReservedNameFilePath)
 	if err != nil {
 		return nil, err
@@ -61,7 +59,7 @@ func NewRootProvider(cfg *config.ServerConfig) (*RootProvider, error) {
 		SentryHub:           sentryHub,
 		DatabasePool:        dbPool,
 		RedisPool:           redisPool,
-		TaskExecutor:        taskExecutor,
+		TaskQueueFactory:    taskQueueFactory,
 		ReservedNameChecker: reservedNameChecker,
 	}
 	return &p, nil
@@ -89,7 +87,7 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, cfg *config.Config) *
 	)
 	templateEngine := NewEngineWithConfig(p.ServerConfig, cfg)
 
-	return &AppProvider{
+	provider := &AppProvider{
 		RootProvider:   p,
 		Context:        ctx,
 		Config:         cfg,
@@ -98,6 +96,8 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, cfg *config.Config) *
 		Redis:          redis,
 		TemplateEngine: templateEngine,
 	}
+	provider.TaskQueue = p.TaskQueueFactory(provider)
+	return provider
 }
 
 func (p *RootProvider) Handler(factory func(*RequestProvider) http.Handler) http.Handler {
@@ -124,7 +124,7 @@ func (p *RootProvider) Middleware(factory func(*RequestProvider) httproute.Middl
 }
 
 func (p *RootProvider) Task(factory func(provider *TaskProvider) task.Task) task.Task {
-	return TaskFunc(func(ctx context.Context, param interface{}) error {
+	return TaskFunc(func(ctx context.Context, param task.Param) error {
 		p := getTaskProvider(ctx)
 		task := factory(p)
 		return task.Run(ctx, param)
@@ -139,6 +139,7 @@ type AppProvider struct {
 	LoggerFactory  *log.Factory
 	Database       *db.Handle
 	Redis          *redis.Handle
+	TaskQueue      task.Queue
 	TemplateEngine *template.Engine
 }
 

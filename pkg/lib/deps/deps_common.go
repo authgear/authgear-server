@@ -32,8 +32,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	"github.com/authgear/authgear-server/pkg/lib/infra/task"
-	taskqueue "github.com/authgear/authgear-server/pkg/lib/infra/task/queue"
 	"github.com/authgear/authgear-server/pkg/mfa"
 	"github.com/authgear/authgear-server/pkg/otp"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -49,11 +47,6 @@ var commonDeps = wire.NewSet(
 	wire.NewSet(
 		challenge.DependencySet,
 		wire.Bind(new(newinteraction.ChallengeProvider), new(*challenge.Provider)),
-	),
-
-	wire.NewSet(
-		taskqueue.DependencySet,
-		wire.Bind(new(task.Queue), new(*taskqueue.Queue)),
 	),
 
 	wire.NewSet(

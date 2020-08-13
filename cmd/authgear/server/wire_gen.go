@@ -33,7 +33,6 @@ import (
 	oauth2 "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	webapp2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
-	task2 "github.com/authgear/authgear-server/pkg/auth/task"
 	"github.com/authgear/authgear-server/pkg/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/config/source"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
@@ -42,10 +41,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
-	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
-	"github.com/authgear/authgear-server/pkg/lib/infra/task"
+	"github.com/authgear/authgear-server/pkg/lib/infra/task/executor"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task/queue"
 	"github.com/authgear/authgear-server/pkg/mfa"
 	"github.com/authgear/authgear-server/pkg/otp"
@@ -153,13 +150,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -167,7 +158,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -201,7 +192,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -356,13 +347,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -370,7 +355,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -399,7 +384,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      provider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -459,7 +444,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		URLs:           webappURLProvider,
 		TemplateEngine: engine,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 		Logger:         providerLogger,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -498,7 +483,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		MessagingConfig:       messagingConfig,
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+		TaskQueue:             queue,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -775,13 +760,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -789,7 +768,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -822,7 +801,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -882,7 +861,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		URLs:           urlProvider,
 		TemplateEngine: engine,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 		Logger:         providerLogger,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -921,7 +900,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		MessagingConfig:       messagingConfig,
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+		TaskQueue:             queue,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -1193,13 +1172,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -1207,7 +1180,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1236,7 +1209,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      provider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -1378,13 +1351,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -1392,7 +1359,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1421,7 +1388,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      provider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -1634,13 +1601,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -1648,7 +1609,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1678,7 +1639,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -1737,7 +1698,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		URLs:           urlProvider,
 		TemplateEngine: engine,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 		Logger:         providerLogger,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -1776,7 +1737,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		MessagingConfig:       messagingConfig,
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+		TaskQueue:             queue,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -2012,13 +1973,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -2026,7 +1981,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -2056,7 +2011,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -2115,7 +2070,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		URLs:           urlProvider,
 		TemplateEngine: engine,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 		Logger:         providerLogger,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -2154,7 +2109,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		MessagingConfig:       messagingConfig,
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+		TaskQueue:             queue,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -2390,13 +2345,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -2404,7 +2353,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -2434,7 +2383,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -2493,7 +2442,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		URLs:           urlProvider,
 		TemplateEngine: engine,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 		Logger:         providerLogger,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -2532,7 +2481,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		MessagingConfig:       messagingConfig,
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+		TaskQueue:             queue,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -2745,13 +2694,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -2759,7 +2702,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -2793,7 +2736,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -2853,7 +2796,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		URLs:           urlProvider,
 		TemplateEngine: engine,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 		Logger:         providerLogger,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -2892,7 +2835,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		MessagingConfig:       messagingConfig,
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+		TaskQueue:             queue,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -3120,13 +3063,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -3134,7 +3071,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -3164,7 +3101,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -3223,7 +3160,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		URLs:           urlProvider,
 		TemplateEngine: engine,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 		Logger:         providerLogger,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -3262,7 +3199,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		MessagingConfig:       messagingConfig,
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+		TaskQueue:             queue,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -3492,13 +3429,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -3506,7 +3437,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -3536,7 +3467,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -3595,7 +3526,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		URLs:           urlProvider,
 		TemplateEngine: engine,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 		Logger:         providerLogger,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -3634,7 +3565,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		MessagingConfig:       messagingConfig,
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+		TaskQueue:             queue,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -3864,13 +3795,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -3878,7 +3803,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -3908,7 +3833,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -3967,7 +3892,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		URLs:           urlProvider,
 		TemplateEngine: engine,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 		Logger:         providerLogger,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -4006,7 +3931,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		MessagingConfig:       messagingConfig,
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+		TaskQueue:             queue,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -4237,13 +4162,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -4251,7 +4170,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -4281,7 +4200,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -4340,7 +4259,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		URLs:           urlProvider,
 		TemplateEngine: engine,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 		Logger:         providerLogger,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -4379,7 +4298,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		MessagingConfig:       messagingConfig,
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+		TaskQueue:             queue,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -4611,13 +4530,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -4625,7 +4538,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -4655,7 +4568,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -4714,7 +4627,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		URLs:           urlProvider,
 		TemplateEngine: engine,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 		Logger:         providerLogger,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -4753,7 +4666,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		MessagingConfig:       messagingConfig,
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+		TaskQueue:             queue,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -4983,13 +4896,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -4997,7 +4904,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -5027,7 +4934,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -5086,7 +4993,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		URLs:           urlProvider,
 		TemplateEngine: engine,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 		Logger:         providerLogger,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -5125,7 +5032,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		MessagingConfig:       messagingConfig,
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+		TaskQueue:             queue,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -5355,13 +5262,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -5369,7 +5270,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -5399,7 +5300,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -5458,7 +5359,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		URLs:           urlProvider,
 		TemplateEngine: engine,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 		Logger:         providerLogger,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -5497,7 +5398,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		MessagingConfig:       messagingConfig,
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+		TaskQueue:             queue,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -5727,13 +5628,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -5741,7 +5636,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -5771,7 +5666,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -5830,7 +5725,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		URLs:           urlProvider,
 		TemplateEngine: engine,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 		Logger:         providerLogger,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -5869,7 +5764,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		MessagingConfig:       messagingConfig,
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+		TaskQueue:             queue,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -6099,13 +5994,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -6113,7 +6002,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -6143,7 +6032,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -6202,7 +6091,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		URLs:           urlProvider,
 		TemplateEngine: engine,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 		Logger:         providerLogger,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -6241,7 +6130,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		MessagingConfig:       messagingConfig,
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+		TaskQueue:             queue,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -6471,13 +6360,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -6485,7 +6368,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -6515,7 +6398,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -6574,7 +6457,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		URLs:           urlProvider,
 		TemplateEngine: engine,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 		Logger:         providerLogger,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -6613,7 +6496,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		MessagingConfig:       messagingConfig,
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+		TaskQueue:             queue,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -6843,13 +6726,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -6857,7 +6734,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -6887,7 +6764,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -6946,7 +6823,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:          clockClock,
 		URLs:           urlProvider,
 		TemplateEngine: engine,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 		Logger:         providerLogger,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -6985,7 +6862,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		MessagingConfig:       messagingConfig,
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+		TaskQueue:             queue,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -7219,13 +7096,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -7233,7 +7104,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -7263,7 +7134,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -7322,7 +7193,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		URLs:           urlProvider,
 		TemplateEngine: engine,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 		Logger:         providerLogger,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -7361,7 +7232,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		MessagingConfig:       messagingConfig,
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+		TaskQueue:             queue,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -7592,13 +7463,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -7606,7 +7471,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -7636,7 +7501,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -7695,7 +7560,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:          clockClock,
 		URLs:           urlProvider,
 		TemplateEngine: engine,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 		Logger:         providerLogger,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -7734,7 +7599,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		MessagingConfig:       messagingConfig,
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+		TaskQueue:             queue,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -7964,13 +7829,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -7978,7 +7837,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -8008,7 +7867,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -8067,7 +7926,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		URLs:           urlProvider,
 		TemplateEngine: engine,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 		Logger:         providerLogger,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -8106,7 +7965,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		MessagingConfig:       messagingConfig,
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+		TaskQueue:             queue,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -8337,13 +8196,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -8351,7 +8204,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -8381,7 +8234,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -8440,7 +8293,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock:          clockClock,
 		URLs:           urlProvider,
 		TemplateEngine: engine,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 		Logger:         providerLogger,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -8479,7 +8332,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		MessagingConfig:       messagingConfig,
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+		TaskQueue:             queue,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -8740,13 +8593,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -8754,7 +8601,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -8784,7 +8631,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -8843,7 +8690,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		URLs:           urlProvider,
 		TemplateEngine: engine,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 		Logger:         providerLogger,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -8882,7 +8729,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		MessagingConfig:       messagingConfig,
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+		TaskQueue:             queue,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -9097,13 +8944,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -9111,7 +8952,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -9144,7 +8985,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -9190,7 +9031,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		MessagingConfig:       messagingConfig,
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+		TaskQueue:             queue,
 	}
 	rawCommands := &user.RawCommands{
 		Store:                  store,
@@ -9372,13 +9213,7 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -9386,7 +9221,7 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -9420,7 +9255,7 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -9480,7 +9315,7 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		URLs:           urlProvider,
 		TemplateEngine: engine,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 		Logger:         providerLogger,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -9519,7 +9354,7 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		MessagingConfig:       messagingConfig,
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+		TaskQueue:             queue,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -9729,13 +9564,7 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -9743,7 +9572,7 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -9777,7 +9606,7 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -9837,7 +9666,7 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		Clock:          clockClock,
 		URLs:           urlProvider,
 		TemplateEngine: engine,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 		Logger:         providerLogger,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -9876,7 +9705,7 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		MessagingConfig:       messagingConfig,
 		WelcomeMessageConfig:  welcomeMessageConfig,
 		TemplateEngine:        engine,
-		TaskQueue:             queueQueue,
+		TaskQueue:             queue,
 	}
 	queries := &user.Queries{
 		Store:        userStore,
@@ -10222,13 +10051,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	captureTaskContext := deps.ProvideCaptureTaskContext(config)
-	inMemoryExecutor := rootProvider.TaskExecutor
-	queueQueue := &queue.Queue{
-		Database:       dbHandle,
-		CaptureContext: captureTaskContext,
-		Executor:       inMemoryExecutor,
-	}
+	queue := appProvider.TaskQueue
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -10236,7 +10059,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queueQueue,
+		TaskQueue:       queue,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -10269,7 +10092,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
 		Endpoints:      endpointsProvider,
-		TaskQueue:      queueQueue,
+		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
 		Config:           authenticatorOOBConfig,
@@ -10333,86 +10156,16 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 
 // Injectors from wire_task.go:
 
-func newPwHousekeeperTask(p *deps.TaskProvider) task.Task {
-	appProvider := p.AppProvider
-	handle := appProvider.Database
-	factory := appProvider.LoggerFactory
-	pwHousekeeperLogger := task2.NewPwHousekeeperLogger(factory)
-	clockClock := _wireSystemClockValue
-	config := appProvider.Config
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	appConfig := config.AppConfig
-	appID := appConfig.ID
-	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	context := p.Context
-	sqlExecutor := db.SQLExecutor{
-		Context:  context,
-		Database: handle,
+func newInProcessQueue(p *deps.AppProvider, e *executor.InProcessExecutor) *queue.InProcessQueue {
+	handle := p.Database
+	config := p.Config
+	captureTaskContext := deps.ProvideCaptureTaskContext(config)
+	inProcessQueue := &queue.InProcessQueue{
+		Database:       handle,
+		CaptureContext: captureTaskContext,
+		Executor:       e,
 	}
-	historyStore := &password.HistoryStore{
-		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	housekeeperLogger := password.NewHousekeeperLogger(factory)
-	authenticatorConfig := appConfig.Authenticator
-	authenticatorPasswordConfig := authenticatorConfig.Password
-	housekeeper := &password.Housekeeper{
-		Store:  historyStore,
-		Logger: housekeeperLogger,
-		Config: authenticatorPasswordConfig,
-	}
-	pwHousekeeperTask := &task2.PwHousekeeperTask{
-		Database:      handle,
-		Logger:        pwHousekeeperLogger,
-		PwHousekeeper: housekeeper,
-	}
-	return pwHousekeeperTask
-}
-
-func newSendMessagesTask(p *deps.TaskProvider) task.Task {
-	appProvider := p.AppProvider
-	factory := appProvider.LoggerFactory
-	logger := mail.NewLogger(factory)
-	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	config := appProvider.Config
-	appConfig := config.AppConfig
-	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
-	dialer := mail.NewGomailDialer(smtpServerCredentials)
-	context := p.Context
-	sender := &mail.Sender{
-		Logger:                    logger,
-		ServerConfig:              serverConfig,
-		LocalizationConfiguration: localizationConfig,
-		GomailDialer:              dialer,
-		Context:                   context,
-	}
-	smsLogger := sms.NewLogger(factory)
-	messagingConfig := appConfig.Messaging
-	twilioCredentials := deps.ProvideTwilioCredentials(secretConfig)
-	twilioClient := sms.NewTwilioClient(twilioCredentials)
-	nexmoCredentials := deps.ProvideNexmoCredentials(secretConfig)
-	nexmoClient := sms.NewNexmoClient(nexmoCredentials)
-	client := &sms.Client{
-		Context:            context,
-		Logger:             smsLogger,
-		ServerConfig:       serverConfig,
-		MessagingConfig:    messagingConfig,
-		LocalizationConfig: localizationConfig,
-		TwilioClient:       twilioClient,
-		NexmoClient:        nexmoClient,
-	}
-	sendMessagesLogger := task2.NewSendMessagesLogger(factory)
-	sendMessagesTask := &task2.SendMessagesTask{
-		EmailSender: sender,
-		SMSClient:   client,
-		Logger:      sendMessagesLogger,
-	}
-	return sendMessagesTask
+	return inProcessQueue
 }
 
 // wire_middleware.go:

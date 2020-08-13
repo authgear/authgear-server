@@ -5,17 +5,17 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
-	"github.com/authgear/authgear-server/pkg/lib/infra/task/executors"
-	"github.com/authgear/authgear-server/pkg/lib/infra/task/queue"
 )
 
-type TaskFunc func(ctx context.Context, param interface{}) error
+type TaskQueueFactory func(*AppProvider) task.Queue
 
-func (f TaskFunc) Run(ctx context.Context, param interface{}) error {
+type TaskFunc func(ctx context.Context, param task.Param) error
+
+func (f TaskFunc) Run(ctx context.Context, param task.Param) error {
 	return f(ctx, param)
 }
 
-func ProvideCaptureTaskContext(config *config.Config) queue.CaptureTaskContext {
+func ProvideCaptureTaskContext(config *config.Config) task.CaptureTaskContext {
 	return func() *task.Context {
 		return &task.Context{
 			Config: config,
@@ -23,7 +23,7 @@ func ProvideCaptureTaskContext(config *config.Config) queue.CaptureTaskContext {
 	}
 }
 
-func ProvideRestoreTaskContext(p *RootProvider) executors.RestoreTaskContext {
+func ProvideRestoreTaskContext(p *RootProvider) task.RestoreTaskContext {
 	return func(ctx context.Context, taskCtx *task.Context) context.Context {
 		rp := p.NewAppProvider(ctx, taskCtx.Config)
 		ctx = withProvider(ctx, rp)

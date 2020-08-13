@@ -7,13 +7,13 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
-	taskspec "github.com/authgear/authgear-server/pkg/auth/task/spec"
 	"github.com/authgear/authgear-server/pkg/core/authn"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/infra/template"
+	"github.com/authgear/authgear-server/pkg/lib/tasks"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -167,19 +167,16 @@ func (p *Provider) sendEmail(email string, code string) (err error) {
 		return
 	}
 
-	p.TaskQueue.Enqueue(task.Spec{
-		Name: taskspec.SendMessagesTaskName,
-		Param: taskspec.SendMessagesTaskParam{
-			EmailMessages: []mail.SendOptions{
-				{
-					MessageConfig: config.NewEmailMessageConfig(
-						p.Messaging.DefaultEmailMessage,
-						p.Config.EmailMessage,
-					),
-					Recipient: email,
-					TextBody:  textBody,
-					HTMLBody:  htmlBody,
-				},
+	p.TaskQueue.Enqueue(&tasks.SendMessagesParam{
+		EmailMessages: []mail.SendOptions{
+			{
+				MessageConfig: config.NewEmailMessageConfig(
+					p.Messaging.DefaultEmailMessage,
+					p.Config.EmailMessage,
+				),
+				Recipient: email,
+				TextBody:  textBody,
+				HTMLBody:  htmlBody,
 			},
 		},
 	})
@@ -206,18 +203,15 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 		return
 	}
 
-	p.TaskQueue.Enqueue(task.Spec{
-		Name: taskspec.SendMessagesTaskName,
-		Param: taskspec.SendMessagesTaskParam{
-			SMSMessages: []sms.SendOptions{
-				{
-					MessageConfig: config.NewSMSMessageConfig(
-						p.Messaging.DefaultSMSMessage,
-						p.Config.SMSMessage,
-					),
-					To:   phone,
-					Body: body,
-				},
+	p.TaskQueue.Enqueue(&tasks.SendMessagesParam{
+		SMSMessages: []sms.SendOptions{
+			{
+				MessageConfig: config.NewSMSMessageConfig(
+					p.Messaging.DefaultSMSMessage,
+					p.Config.SMSMessage,
+				),
+				To:   phone,
+				Body: body,
 			},
 		},
 	})

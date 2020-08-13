@@ -1,4 +1,4 @@
-package executors
+package executor
 
 import (
 	"context"
@@ -8,28 +8,27 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-type RestoreTaskContext func(context.Context, *task.Context) context.Context
+type InProcessExecutorLogger struct{ *log.Logger }
 
-type InMemoryExecutor struct {
-	Logger         *log.Logger
-	RestoreContext RestoreTaskContext
-
-	tasks map[string]task.Task
+func NewInProcessExecutorLogger(lf *log.Factory) InProcessExecutorLogger {
+	return InProcessExecutorLogger{lf.New("task-executor")}
 }
 
-func NewInMemoryExecutor(loggerFactory *log.Factory, restoreContext RestoreTaskContext) *InMemoryExecutor {
-	return &InMemoryExecutor{
-		Logger:         loggerFactory.New("task-executor"),
-		RestoreContext: restoreContext,
-		tasks:          map[string]task.Task{},
+type InProcessExecutor struct {
+	Logger         InProcessExecutorLogger
+	RestoreContext task.RestoreTaskContext
+
+	tasks map[string]task.Task `wire:"-"`
+}
+
+func (e *InProcessExecutor) Register(name string, t task.Task) {
+	if e.tasks == nil {
+		e.tasks = map[string]task.Task{}
 	}
+	e.tasks[name] = t
 }
 
-func (e *InMemoryExecutor) Register(name string, task task.Task) {
-	e.tasks[name] = task
-}
-
-func (e *InMemoryExecutor) Submit(taskCtx *task.Context, spec task.Spec) {
+func (e *InProcessExecutor) Run(taskCtx *task.Context, spec task.Spec) {
 	ctx := e.RestoreContext(context.Background(), taskCtx)
 	task := e.tasks[spec.Name]
 

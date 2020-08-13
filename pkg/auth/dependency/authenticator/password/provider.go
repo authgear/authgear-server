@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"sort"
 
-	taskspec "github.com/authgear/authgear-server/pkg/auth/task/spec"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
+	"github.com/authgear/authgear-server/pkg/lib/tasks"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
@@ -153,11 +153,8 @@ func (p *Provider) UpdatePassword(a *Authenticator) error {
 		return err
 	}
 
-	p.TaskQueue.Enqueue(task.Spec{
-		Name: taskspec.PwHousekeeperTaskName,
-		Param: taskspec.PwHousekeeperTaskParam{
-			AuthID: a.UserID,
-		},
+	p.TaskQueue.Enqueue(&tasks.PwHousekeeperParam{
+		UserID: a.UserID,
 	})
 
 	return nil

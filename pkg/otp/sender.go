@@ -4,12 +4,12 @@ import (
 	"context"
 	"net/url"
 
-	taskspec "github.com/authgear/authgear-server/pkg/auth/task/spec"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/infra/template"
+	"github.com/authgear/authgear-server/pkg/lib/tasks"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 )
 
@@ -87,19 +87,16 @@ func (s *MessageSender) SendEmail(email string, opts SendOptions, message config
 		return
 	}
 
-	s.TaskQueue.Enqueue(task.Spec{
-		Name: taskspec.SendMessagesTaskName,
-		Param: taskspec.SendMessagesTaskParam{
-			EmailMessages: []mail.SendOptions{
-				{
-					MessageConfig: config.NewEmailMessageConfig(
-						s.Messaging.DefaultEmailMessage,
-						message,
-					),
-					Recipient: ctx.Email,
-					TextBody:  textBody,
-					HTMLBody:  htmlBody,
-				},
+	s.TaskQueue.Enqueue(&tasks.SendMessagesParam{
+		EmailMessages: []mail.SendOptions{
+			{
+				MessageConfig: config.NewEmailMessageConfig(
+					s.Messaging.DefaultEmailMessage,
+					message,
+				),
+				Recipient: ctx.Email,
+				TextBody:  textBody,
+				HTMLBody:  htmlBody,
 			},
 		},
 	})
@@ -132,18 +129,15 @@ func (s *MessageSender) SendSMS(phone string, opts SendOptions, message config.S
 		return
 	}
 
-	s.TaskQueue.Enqueue(task.Spec{
-		Name: taskspec.SendMessagesTaskName,
-		Param: taskspec.SendMessagesTaskParam{
-			SMSMessages: []sms.SendOptions{
-				{
-					MessageConfig: config.NewSMSMessageConfig(
-						s.Messaging.DefaultSMSMessage,
-						message,
-					),
-					To:   ctx.Phone,
-					Body: body,
-				},
+	s.TaskQueue.Enqueue(&tasks.SendMessagesParam{
+		SMSMessages: []sms.SendOptions{
+			{
+				MessageConfig: config.NewSMSMessageConfig(
+					s.Messaging.DefaultSMSMessage,
+					message,
+				),
+				To:   ctx.Phone,
+				Body: body,
 			},
 		},
 	})

@@ -5,21 +5,19 @@ package server
 import (
 	"github.com/google/wire"
 
-	authtask "github.com/authgear/authgear-server/pkg/auth/task"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
-	"github.com/authgear/authgear-server/pkg/lib/infra/task"
+	"github.com/authgear/authgear-server/pkg/lib/infra/task/executor"
+	"github.com/authgear/authgear-server/pkg/lib/infra/task/queue"
 )
 
-func newPwHousekeeperTask(p *deps.TaskProvider) task.Task {
+func newInProcessQueue(p *deps.AppProvider, e *executor.InProcessExecutor) *queue.InProcessQueue {
 	panic(wire.Build(
-		deps.TaskDependencySet,
-		wire.Bind(new(task.Task), new(*authtask.PwHousekeeperTask)),
-	))
-}
-
-func newSendMessagesTask(p *deps.TaskProvider) task.Task {
-	panic(wire.Build(
-		deps.TaskDependencySet,
-		wire.Bind(new(task.Task), new(*authtask.SendMessagesTask)),
+		deps.RootDependencySet,
+		wire.FieldsOf(new(*deps.AppProvider),
+			"Config",
+			"Database",
+		),
+		queue.DependencySet,
+		wire.Bind(new(queue.Executor), new(*executor.InProcessExecutor)),
 	))
 }

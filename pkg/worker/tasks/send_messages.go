@@ -1,20 +1,20 @@
-package task
+package tasks
 
 import (
 	"context"
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/authgear/authgear-server/pkg/auth/task/spec"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
+	"github.com/authgear/authgear-server/pkg/lib/tasks"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
 func ConfigureSendMessagesTask(registry task.Registry, t task.Task) {
-	registry.Register(spec.SendMessagesTaskName, t)
+	registry.Register(tasks.SendMessages, t)
 }
 
 type MailSender interface {
@@ -28,7 +28,7 @@ type SMSClient interface {
 type SendMessagesLogger struct{ *log.Logger }
 
 func NewSendMessagesLogger(lf *log.Factory) SendMessagesLogger {
-	return SendMessagesLogger{lf.New("send_messages")}
+	return SendMessagesLogger{lf.New("send-messages")}
 }
 
 type SendMessagesTask struct {
@@ -37,8 +37,8 @@ type SendMessagesTask struct {
 	Logger      SendMessagesLogger
 }
 
-func (t *SendMessagesTask) Run(ctx context.Context, param interface{}) (err error) {
-	taskParam := param.(spec.SendMessagesTaskParam)
+func (t *SendMessagesTask) Run(ctx context.Context, param task.Param) (err error) {
+	taskParam := param.(*tasks.SendMessagesParam)
 
 	for _, emailMessage := range taskParam.EmailMessages {
 		err := t.EmailSender.Send(emailMessage)

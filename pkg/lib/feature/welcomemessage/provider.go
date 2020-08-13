@@ -4,11 +4,11 @@ import (
 	"context"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
-	taskspec "github.com/authgear/authgear-server/pkg/auth/task/spec"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/infra/template"
+	"github.com/authgear/authgear-server/pkg/lib/tasks"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 )
 
@@ -75,11 +75,8 @@ func (p *Provider) send(emails []string) (err error) {
 		})
 	}
 
-	p.TaskQueue.Enqueue(task.Spec{
-		Name: taskspec.SendMessagesTaskName,
-		Param: taskspec.SendMessagesTaskParam{
-			EmailMessages: emailMessages,
-		},
+	p.TaskQueue.Enqueue(&tasks.SendMessagesParam{
+		EmailMessages: emailMessages,
 	})
 
 	return
