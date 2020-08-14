@@ -1,24 +1,16 @@
 //+build wireinject
 
-package server
+package auth
 
 import (
 	"net/http"
 
 	"github.com/google/wire"
 
-	handlerinternal "github.com/authgear/authgear-server/pkg/auth/handler/internalserver"
 	handleroauth "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 )
-
-func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		deps.RequestDependencySet,
-		wire.Bind(new(http.Handler), new(*handlerinternal.ResolveHandler)),
-	))
-}
 
 func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(

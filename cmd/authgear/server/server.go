@@ -11,9 +11,11 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/auth"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
+	"github.com/authgear/authgear-server/pkg/resolver"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/version"
 	"github.com/authgear/authgear-server/pkg/worker"
@@ -66,10 +68,10 @@ func (c *Controller) Start() {
 	c.shutdown = shutdown
 
 	if c.ServePublic {
-		c.startServer(cfg, "public server", cfg.PublicListenAddr, setupRoutes(p, configSource))
+		c.startServer(cfg, "public server", cfg.PublicListenAddr, auth.NewRouter(p, configSource))
 	}
 	if c.ServeInternal {
-		c.startServer(cfg, "internal server", cfg.InternalListenAddr, setupInternalRoutes(p, configSource))
+		c.startServer(cfg, "internal server", cfg.InternalListenAddr, resolver.NewRouter(p, configSource))
 	}
 
 	sig := make(chan os.Signal, 1)

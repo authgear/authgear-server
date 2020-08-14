@@ -3,7 +3,6 @@ package deps
 import (
 	"github.com/google/wire"
 
-	handlerinternal "github.com/authgear/authgear-server/pkg/auth/handler/internalserver"
 	handleroauth "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	viewmodelswebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -20,6 +19,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	oidchandler "github.com/authgear/authgear-server/pkg/lib/oauth/oidc/handler"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	handlerinternal "github.com/authgear/authgear-server/pkg/resolver/handler"
 )
 
 func ProvideOAuthMetadataProviders(oauth *oauth.MetadataProvider, oidc *oidc.MetadataProvider) []handleroauth.MetadataProvider {
