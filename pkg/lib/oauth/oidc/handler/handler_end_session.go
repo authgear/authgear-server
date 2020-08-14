@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/oidc"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/oidc/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )

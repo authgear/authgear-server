@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"sort"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 )
 
 type (

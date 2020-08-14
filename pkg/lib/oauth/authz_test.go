@@ -3,8 +3,9 @@ package oauth_test
 import (
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 )
 
 func TestAuthorization(t *testing.T) {

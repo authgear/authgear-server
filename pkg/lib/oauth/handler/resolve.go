@@ -3,8 +3,8 @@ package handler
 import (
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 )
 
 type oauthRequest interface {

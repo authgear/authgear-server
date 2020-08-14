@@ -3,8 +3,8 @@ package oauth
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/oidc/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
