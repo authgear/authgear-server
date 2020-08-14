@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/user"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 )

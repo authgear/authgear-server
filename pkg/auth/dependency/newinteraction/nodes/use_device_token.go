@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
-	"github.com/authgear/authgear-server/pkg/mfa"
+	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 )
 
 type InputUseDeviceToken interface {

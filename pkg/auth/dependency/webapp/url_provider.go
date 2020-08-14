@@ -7,8 +7,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/identity/anonymous"
 	interactionintents "github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/urlutil"

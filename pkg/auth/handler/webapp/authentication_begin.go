@@ -6,14 +6,14 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
-	"github.com/authgear/authgear-server/pkg/mfa"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	corephone "github.com/authgear/authgear-server/pkg/util/phone"
 )

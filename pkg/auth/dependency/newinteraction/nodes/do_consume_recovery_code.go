@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
-	"github.com/authgear/authgear-server/pkg/mfa"
+	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 )
 
 func init() {

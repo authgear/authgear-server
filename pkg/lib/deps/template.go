@@ -2,11 +2,11 @@ package deps
 
 import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/lib/infra/template"
-	"github.com/authgear/authgear-server/pkg/otp"
 )
 
 func NewEngineWithConfig(

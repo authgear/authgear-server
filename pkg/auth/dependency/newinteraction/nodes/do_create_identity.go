@@ -3,9 +3,9 @@ package nodes
 import (
 	"errors"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/lib/api/event"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
 
 func init() {

@@ -3,8 +3,8 @@ package nodes
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 )
 
 func init() {

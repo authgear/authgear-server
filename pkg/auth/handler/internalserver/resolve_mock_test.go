@@ -5,7 +5,7 @@
 package internalserver
 
 import (
-	identity "github.com/authgear/authgear-server/pkg/auth/dependency/identity"
+	identity "github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
