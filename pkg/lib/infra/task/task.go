@@ -8,11 +8,6 @@ type Param interface {
 	TaskName() string
 }
 
-type Spec struct {
-	Name  string
-	Param Param
-}
-
 type Task interface {
 	Run(context context.Context, param Param) error
 }

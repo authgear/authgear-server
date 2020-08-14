@@ -6,7 +6,7 @@ import (
 )
 
 type Executor interface {
-	Run(ctx *task.Context, spec task.Spec)
+	Run(ctx *task.Context, param task.Param)
 }
 
 type InProcessQueue struct {
@@ -14,24 +14,20 @@ type InProcessQueue struct {
 	CaptureContext task.CaptureTaskContext
 	Executor       Executor
 
-	pendingTasks []task.Spec `wire:"-"`
-	hooked       bool        `wire:"-"`
+	pendingTasks []task.Param `wire:"-"`
+	hooked       bool         `wire:"-"`
 }
 
 func (s *InProcessQueue) Enqueue(param task.Param) {
-	spec := task.Spec{
-		Name:  param.TaskName(),
-		Param: param,
-	}
 	if s.Database != nil && s.Database.HasTx() {
-		s.pendingTasks = append(s.pendingTasks, spec)
+		s.pendingTasks = append(s.pendingTasks, param)
 		if !s.hooked {
 			s.Database.UseHook(s)
 			s.hooked = true
 		}
 	} else {
 		// No transaction context -> run immediately.
-		s.run(spec)
+		s.run(param)
 	}
 }
 
@@ -40,12 +36,12 @@ func (s *InProcessQueue) WillCommitTx() error {
 }
 
 func (s *InProcessQueue) DidCommitTx() {
-	for _, task := range s.pendingTasks {
-		s.run(task)
+	for _, param := range s.pendingTasks {
+		s.run(param)
 	}
 	s.pendingTasks = nil
 }
 
-func (s *InProcessQueue) run(spec task.Spec) {
-	s.Executor.Run(s.CaptureContext(), spec)
+func (s *InProcessQueue) run(param task.Param) {
+	s.Executor.Run(s.CaptureContext(), param)
 }

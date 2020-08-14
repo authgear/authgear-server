@@ -28,25 +28,25 @@ func (e *InProcessExecutor) Register(name string, t task.Task) {
 	e.tasks[name] = t
 }
 
-func (e *InProcessExecutor) Run(taskCtx *task.Context, spec task.Spec) {
+func (e *InProcessExecutor) Run(taskCtx *task.Context, param task.Param) {
 	ctx := e.RestoreContext(context.Background(), taskCtx)
-	task := e.tasks[spec.Name]
+	task := e.tasks[param.TaskName()]
 
 	go func() {
 		defer func() {
 			if rec := recover(); rec != nil {
 				e.Logger.WithFields(map[string]interface{}{
-					"task_name": spec.Name,
+					"task_name": param.TaskName(),
 					"error":     rec,
 					"stack":     errorutil.Callers(8),
 				}).Error("unexpected error occurred when running async task")
 			}
 		}()
 
-		err := task.Run(ctx, spec.Param)
+		err := task.Run(ctx, param)
 		if err != nil {
 			e.Logger.WithFields(map[string]interface{}{
-				"task_name": spec.Name,
+				"task_name": param.TaskName(),
 				"error":     err,
 				"stack":     errorutil.Callers(8),
 			}).Error("error occurred when running async task")
