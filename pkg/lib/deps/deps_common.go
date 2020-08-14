@@ -3,8 +3,8 @@ package deps
 import (
 	"github.com/google/wire"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/endpoints"
 	authenticatoroob "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	authenticatorpassword "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"

@@ -3,10 +3,10 @@ package server
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/internalserver"
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	webapphandler "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	configsource "github.com/authgear/authgear-server/pkg/lib/config/source"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"

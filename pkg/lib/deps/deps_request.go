@@ -3,11 +3,11 @@ package deps
 import (
 	"github.com/google/wire"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	handlerinternal "github.com/authgear/authgear-server/pkg/auth/handler/internalserver"
 	handleroauth "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	viewmodelswebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
