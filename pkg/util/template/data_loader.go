@@ -2,13 +2,10 @@ package template
 
 import (
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"strings"
 	"unicode/utf8"
 )
-
-var ErrInvalidDataURI = errors.New("unvalid data URI")
 
 type DataLoader struct{}
 
@@ -25,7 +22,7 @@ func (l *DataLoader) Load(dataURI string) (templateContent string, err error) {
 	}
 
 	if !utf8.Valid(bytes) {
-		err = errors.New("expected content to be UTF-8 encoded")
+		err = ErrInvalidUTF8
 		return
 	}
 

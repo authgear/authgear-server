@@ -1,12 +1,10 @@
 package template
 
 import (
-	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"unicode/utf8"
-
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 type FileLoader struct{}
@@ -21,12 +19,12 @@ func (l *FileLoader) Load(absolutePath string) (templateContent string, err erro
 
 	content, err := ioutil.ReadAll(f)
 	if err != nil {
-		err = errorutil.HandledWithMessage(err, "failed to read template")
+		err = fmt.Errorf("template: failed to read template: %w", err)
 		return
 	}
 
 	if !utf8.Valid(content) {
-		err = errors.New("expected content to be UTF-8 encoded")
+		err = ErrInvalidUTF8
 		return
 	}
 
