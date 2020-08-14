@@ -22,14 +22,21 @@ import (
 )
 
 type Controller struct {
-	ServePublic   bool
-	ServeInternal bool
+	ServeMain     bool
+	ServeResolver bool
 
 	logger   *log.Logger
 	ctx      context.Context
 	shutdown <-chan struct{}
 	wg       *sync.WaitGroup
 }
+
+type serverType string
+
+const (
+	serverMain     serverType = "Main Server"
+	serverResolver serverType = "Resolver Server"
+)
 
 func (c *Controller) Start() {
 	cfg, err := config.LoadServerConfigFromEnv()
@@ -67,11 +74,11 @@ func (c *Controller) Start() {
 	shutdown := make(chan struct{})
 	c.shutdown = shutdown
 
-	if c.ServePublic {
-		c.startServer(cfg, "public server", cfg.PublicListenAddr, auth.NewRouter(p, configSource))
+	if c.ServeMain {
+		c.startServer(cfg, serverMain, cfg.ListenAddr, auth.NewRouter(p, configSource))
 	}
-	if c.ServeInternal {
-		c.startServer(cfg, "internal server", cfg.InternalListenAddr, resolver.NewRouter(p, configSource))
+	if c.ServeResolver {
+		c.startServer(cfg, serverResolver, cfg.ResolverListenAddr, resolver.NewRouter(p, configSource))
 	}
 
 	sig := make(chan os.Signal, 1)
@@ -88,23 +95,23 @@ func (c *Controller) Start() {
 	c.wg.Wait()
 }
 
-func (c *Controller) startServer(cfg *config.ServerConfig, name string, addr string, handler http.Handler) {
+func (c *Controller) startServer(cfg *config.ServerConfig, t serverType, addr string, handler http.Handler) {
 	server := &http.Server{
 		Addr:    addr,
 		Handler: handler,
 	}
 
 	go func() {
-		c.logger.Infof("starting %s on %v", name, addr)
+		c.logger.Infof("starting %s on %v", t, addr)
 		var err error
-		if cfg.DevMode {
+		if cfg.DevMode && t == serverMain {
 			err = server.ListenAndServeTLS(cfg.TLSCertFilePath, cfg.TLSKeyFilePath)
 		} else {
 			err = server.ListenAndServe()
 		}
 
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
-			c.logger.WithError(err).Fatalf("failed to start %s", name)
+			c.logger.WithError(err).Fatalf("failed to start %s", t)
 		}
 	}()
 
@@ -116,11 +123,11 @@ func (c *Controller) startServer(cfg *config.ServerConfig, name string, addr str
 		case <-c.shutdown:
 			break
 		}
-		c.logger.Infof("stopping %s...", name)
+		c.logger.Infof("stopping %s...", t)
 
 		err := server.Shutdown(c.ctx)
 		if err != nil {
-			c.logger.WithError(err).Errorf("failed to stop %s gracefully", name)
+			c.logger.WithError(err).Errorf("failed to stop %s gracefully", t)
 		}
 	}()
 }

@@ -10,10 +10,11 @@ import (
 )
 
 type ServerConfig struct {
-	// PublicListenAddr sets the listen address of the public server
-	PublicListenAddr string `envconfig:"PUBLIC_LISTEN_ADDR" default:"0.0.0.0:3000"`
-	// InternalListenAddr sets the listen address of the internal server
-	InternalListenAddr string `envconfig:"INTERNAL_LISTEN_ADDR" default:"0.0.0.0:3001"`
+	// ListenAddr sets the listen address of the main server
+	ListenAddr string `envconfig:"LISTEN_ADDR" default:"0.0.0.0:3000"`
+	// ResolverListenAddr sets the listen address of the resolver server
+	ResolverListenAddr string `envconfig:"RESOLVER_LISTEN_ADDR" default:"0.0.0.0:3001"`
+
 	// TrustProxy sets whether HTTP headers from proxy are to be trusted
 	TrustProxy bool `envconfig:"TRUST_PROXY" default:"false"`
 	// DevMode sets whether the server would be run under development mode
