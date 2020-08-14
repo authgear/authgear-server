@@ -10,7 +10,6 @@ import (
 	webapp2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
@@ -85,18 +84,18 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
-	provider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
 	urlProvider := &oauth2.URLProvider{
-		Endpoints: provider,
+		Endpoints: endpointsProvider,
 	}
 	store := &anonymous.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	anonymousProvider := &anonymous.Provider{
+	provider := &anonymous.Provider{
 		Store: store,
 		Clock: clock,
 	}
@@ -144,7 +143,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Identity:       identityConfig,
 		LoginID:        loginidProvider,
 		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
+		Anonymous:      provider,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -195,7 +194,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
-		Endpoints:      provider,
+		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
@@ -211,13 +210,13 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	webappURLProvider := &webapp.URLProvider{
-		Endpoints: provider,
+		Endpoints: endpointsProvider,
 	}
 	userInfoDecoder := sso.UserInfoDecoder{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                provider,
+		Endpoints:                endpointsProvider,
 		IdentityConfig:           identityConfig,
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              webappURLProvider,
@@ -380,7 +379,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Config:                   appConfig,
 		Identities:               serviceService,
 		Authenticators:           service3,
-		AnonymousIdentities:      anonymousProvider,
+		AnonymousIdentities:      provider,
 		OOBAuthenticators:        oobProvider,
 		OAuthProviderFactory:     oAuthProviderFactory,
 		MFA:                      mfaService,
@@ -413,8 +412,8 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	authenticateURLProvider := &webapp.AuthenticateURLProvider{
-		Endpoints: provider,
-		Anonymous: anonymousProvider,
+		Endpoints: endpointsProvider,
+		Anonymous: provider,
 		Pages:     webappService,
 	}
 	scopesValidator := _wireScopesValidatorValue
@@ -599,7 +598,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	appMetadata := appConfig.Metadata
 	messagingConfig := appConfig.Messaging
 	engine := appProvider.TemplateEngine
-	endpointsProvider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -873,17 +872,17 @@ func newOAuthMetadataHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
-	provider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
 	metadataProvider := &oauth2.MetadataProvider{
-		Endpoints: provider,
+		Endpoints: endpointsProvider,
 	}
 	oidcMetadataProvider := &oidc.MetadataProvider{
-		Endpoints: provider,
+		Endpoints: endpointsProvider,
 	}
-	v := deps.ProvideOAuthMetadataProviders(metadataProvider, oidcMetadataProvider)
+	v := ProvideOAuthMetadataProviders(metadataProvider, oidcMetadataProvider)
 	metadataHandler := &oauth.MetadataHandler{
 		Providers: v,
 	}
@@ -900,7 +899,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
-	provider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -937,7 +936,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
-	loginidProvider := &loginid.Provider{
+	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
@@ -963,7 +962,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
-		LoginID:        loginidProvider,
+		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
 	}
@@ -1018,7 +1017,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
-		Endpoints:      provider,
+		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
@@ -1033,7 +1032,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	urlProvider := &webapp.URLProvider{
-		Endpoints: provider,
+		Endpoints: endpointsProvider,
 	}
 	redisHandle := appProvider.Redis
 	storeRedis := &verification.StoreRedis{
@@ -1058,7 +1057,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:   oidcKeyMaterials,
-		Endpoints: provider,
+		Endpoints: endpointsProvider,
 		Users:     queries,
 		Clock:     clockClock,
 	}
@@ -1080,7 +1079,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
-	provider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -1116,7 +1115,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
-	loginidProvider := &loginid.Provider{
+	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
@@ -1142,7 +1141,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
-		LoginID:        loginidProvider,
+		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
 	}
@@ -1197,7 +1196,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		AppMetadata:    appMetadata,
 		Messaging:      messagingConfig,
 		TemplateEngine: engine,
-		Endpoints:      provider,
+		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
 	oobProvider := &oob.Provider{
@@ -1212,7 +1211,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	urlProvider := &webapp.URLProvider{
-		Endpoints: provider,
+		Endpoints: endpointsProvider,
 	}
 	redisHandle := appProvider.Redis
 	storeRedis := &verification.StoreRedis{
@@ -1237,7 +1236,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets:   oidcKeyMaterials,
-		Endpoints: provider,
+		Endpoints: endpointsProvider,
 		Users:     queries,
 		Clock:     clockClock,
 	}
@@ -1260,16 +1259,16 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
-	provider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
 	urlProvider := &webapp.URLProvider{
-		Endpoints: provider,
+		Endpoints: endpointsProvider,
 	}
 	endSessionHandler := &handler2.EndSessionHandler{
 		Config:    oAuthConfig,
-		Endpoints: provider,
+		Endpoints: endpointsProvider,
 		URLs:      urlProvider,
 	}
 	oauthEndSessionHandler := &oauth.EndSessionHandler{
@@ -1437,7 +1436,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -1809,7 +1808,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -2181,7 +2180,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -2534,7 +2533,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	appMetadata := appConfig.Metadata
 	messagingConfig := appConfig.Messaging
 	engine := appProvider.TemplateEngine
-	endpointsProvider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -2899,7 +2898,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -3265,7 +3264,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -3631,7 +3630,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -3998,7 +3997,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -4366,7 +4365,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -4732,7 +4731,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -5098,7 +5097,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -5464,7 +5463,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -5830,7 +5829,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -6196,7 +6195,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -6562,7 +6561,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -6932,7 +6931,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -7299,7 +7298,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -7665,7 +7664,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -8032,7 +8031,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SQLExecutor: sqlExecutor,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -8429,7 +8428,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -8783,7 +8782,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	appMetadata := appConfig.Metadata
 	messagingConfig := appConfig.Messaging
 	engine := appProvider.TemplateEngine
-	endpointsProvider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -9053,7 +9052,7 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 	appMetadata := appConfig.Metadata
 	messagingConfig := appConfig.Messaging
 	engine := appProvider.TemplateEngine
-	endpointsProvider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -9404,7 +9403,7 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 	appMetadata := appConfig.Metadata
 	messagingConfig := appConfig.Messaging
 	engine := appProvider.TemplateEngine
-	endpointsProvider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}
@@ -9887,7 +9886,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appMetadata := appConfig.Metadata
 	messagingConfig := appConfig.Messaging
 	engine := appProvider.TemplateEngine
-	endpointsProvider := &endpoints.Provider{
+	endpointsProvider := &EndpointsProvider{
 		Request: request,
 		Config:  serverConfig,
 	}

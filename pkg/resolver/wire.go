@@ -32,21 +32,21 @@ func newRootRecoverMiddleware(p *deps.RootProvider) httproute.Middleware {
 
 func newRequestRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
-		deps.RequestDependencySet,
+		DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*middleware.RecoverMiddleware)),
 	))
 }
 
 func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
-		deps.RequestDependencySet,
+		DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*session.Middleware)),
 	))
 }
 
 func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
-		deps.RequestDependencySet,
+		DependencySet,
 		wire.Bind(new(http.Handler), new(*handler.ResolveHandler)),
 	))
 }

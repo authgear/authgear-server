@@ -3,7 +3,6 @@ package oob
 import (
 	"errors"
 	"fmt"
-	"net/url"
 	"sort"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn"
@@ -12,10 +11,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
-
-type EndpointsProvider interface {
-	BaseURL() *url.URL
-}
 
 type OTPMessageSender interface {
 	SendEmail(email string, opts otp.SendOptions, message config.EmailMessageConfig) error

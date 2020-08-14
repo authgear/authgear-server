@@ -6,8 +6,6 @@
 package resolver
 
 import (
-	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
@@ -237,10 +235,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appMetadata := appConfig.Metadata
 	messagingConfig := appConfig.Messaging
 	engine := appProvider.TemplateEngine
-	endpointsProvider := &endpoints.Provider{
-		Request: request,
-		Config:  serverConfig,
-	}
+	endpointsProvider := _wireEndpointsProviderValue
 	messageSender := &otp.MessageSender{
 		Context:        context,
 		ServerConfig:   serverConfig,
@@ -262,9 +257,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
-	urlProvider := &webapp.URLProvider{
-		Endpoints: endpointsProvider,
-	}
+	webAppURLProvider := _wireWebAppURLProviderValue
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: handle,
 		AppID: appID,
@@ -277,7 +270,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:            clock,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
-		WebAppURLs:       urlProvider,
+		WebAppURLs:       webAppURLProvider,
 		Store:            verificationStoreRedis,
 	}
 	queries := &user.Queries{
@@ -296,8 +289,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 }
 
 var (
-	_wireSystemClockValue = clock.NewSystemClock()
-	_wireRandValue        = idpsession.Rand(rand.SecureRand)
+	_wireSystemClockValue       = clock.NewSystemClock()
+	_wireRandValue              = idpsession.Rand(rand.SecureRand)
+	_wireEndpointsProviderValue = otp.EndpointsProvider(nil)
+	_wireWebAppURLProviderValue = verification.WebAppURLProvider(nil)
 )
 
 func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
@@ -411,10 +406,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	appMetadata := appConfig.Metadata
 	messagingConfig := appConfig.Messaging
 	engine := appProvider.TemplateEngine
-	endpointsProvider := &endpoints.Provider{
-		Request: request,
-		Config:  serverConfig,
-	}
+	endpointsProvider := _wireEndpointsProviderValue
 	messageSender := &otp.MessageSender{
 		Context:        context,
 		ServerConfig:   serverConfig,
@@ -436,9 +428,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
-	urlProvider := &webapp.URLProvider{
-		Endpoints: endpointsProvider,
-	}
+	webAppURLProvider := _wireWebAppURLProviderValue
 	redisHandle := appProvider.Redis
 	storeRedis := &verification.StoreRedis{
 		Redis: redisHandle,
@@ -452,7 +442,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Clock:            clockClock,
 		Authenticators:   service3,
 		OTPMessageSender: messageSender,
-		WebAppURLs:       urlProvider,
+		WebAppURLs:       webAppURLProvider,
 		Store:            storeRedis,
 	}
 	resolveHandlerLogger := handler.NewResolveHandlerLogger(factory)

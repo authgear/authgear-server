@@ -3,9 +3,6 @@ package deps
 import (
 	"github.com/google/wire"
 
-	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
-	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/endpoints"
 	authenticatoroob "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	authenticatorpassword "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
@@ -28,6 +25,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
+	oidchandler "github.com/authgear/authgear-server/pkg/lib/oauth/oidc/handler"
 	oauthpq "github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	oauthredis "github.com/authgear/authgear-server/pkg/lib/oauth/redis"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -36,7 +34,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
-var commonDeps = wire.NewSet(
+var CommonDependencySet = wire.NewSet(
 	configDeps,
 	utilsDeps,
 
@@ -99,7 +97,6 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(interaction.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
 		identityoauth.DependencySet,
 		identityanonymous.DependencySet,
-		wire.Bind(new(webapp.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 		wire.Bind(new(interaction.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 
 		identityservice.DependencySet,
@@ -149,29 +146,21 @@ var commonDeps = wire.NewSet(
 		wire.Bind(new(session.AccessTokenSessionManager), new(*oauth.SessionManager)),
 		wire.Bind(new(oauthhandler.OAuthURLProvider), new(*oauth.URLProvider)),
 		wire.Value(oauthhandler.TokenGenerator(oauth.GenerateToken)),
+
+		oauthhandler.DependencySet,
 	),
 
 	wire.NewSet(
 		oidc.DependencySet,
 		wire.Value(oauthhandler.ScopesValidator(oidc.ValidateScopes)),
 		wire.Bind(new(oauthhandler.IDTokenIssuer), new(*oidc.IDTokenIssuer)),
+
+		oidchandler.DependencySet,
 	),
 
 	wire.NewSet(
 		interaction.DependencySet,
-		wire.Bind(new(webapp.GraphService), new(*interaction.Service)),
 		wire.Bind(new(oauthhandler.GraphService), new(*interaction.Service)),
-	),
-
-	wire.NewSet(
-		endpoints.DependencySet,
-		wire.Bind(new(oauth.EndpointsProvider), new(*endpoints.Provider)),
-		wire.Bind(new(webapp.EndpointsProvider), new(*endpoints.Provider)),
-		wire.Bind(new(handlerwebapp.SetupTOTPEndpointsProvider), new(*endpoints.Provider)),
-		wire.Bind(new(authenticatoroob.EndpointsProvider), new(*endpoints.Provider)),
-		wire.Bind(new(oidc.EndpointsProvider), new(*endpoints.Provider)),
-		wire.Bind(new(sso.EndpointsProvider), new(*endpoints.Provider)),
-		wire.Bind(new(otp.EndpointsProvider), new(*endpoints.Provider)),
 	),
 
 	wire.NewSet(

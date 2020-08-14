@@ -30,49 +30,49 @@ func newRootRecoverMiddleware(p *deps.RootProvider) httproute.Middleware {
 
 func newRequestRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
-		deps.RequestDependencySet,
+		DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*middleware.RecoverMiddleware)),
 	))
 }
 
 func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
-		deps.RequestDependencySet,
+		DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*middleware.CORSMiddleware)),
 	))
 }
 
 func newCSPMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
-		deps.RequestDependencySet,
+		DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*webapp.CSPMiddleware)),
 	))
 }
 
 func newCSRFMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
-		deps.RequestDependencySet,
+		DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*webapp.CSRFMiddleware)),
 	))
 }
 
 func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
-		deps.RequestDependencySet,
+		DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*webapp.AuthEntryPointMiddleware)),
 	))
 }
 
 func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
-		deps.RequestDependencySet,
+		DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*session.Middleware)),
 	))
 }
 
 func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
-		deps.RequestDependencySet,
+		DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*webapp.StateMiddleware)),
 	))
 }

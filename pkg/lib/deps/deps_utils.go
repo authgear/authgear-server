@@ -5,7 +5,6 @@ import (
 
 	"github.com/google/wire"
 
-	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -17,7 +16,6 @@ var utilsDeps = wire.NewSet(
 		NewCookieFactory,
 		wire.Bind(new(idpsession.CookieFactory), new(*httputil.CookieFactory)),
 		wire.Bind(new(interaction.CookieFactory), new(*httputil.CookieFactory)),
-		wire.Bind(new(webapp.CookieFactory), new(*httputil.CookieFactory)),
 	),
 )
 
