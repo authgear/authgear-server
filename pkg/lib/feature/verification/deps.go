@@ -7,4 +7,5 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(Store), new(*StoreRedis)),
 	NewLogger,
 	wire.Struct(new(Service), "*"),
+	wire.Struct(new(CodeSender), "*"),
 )

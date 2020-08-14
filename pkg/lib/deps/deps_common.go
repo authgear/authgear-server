@@ -73,6 +73,7 @@ var CommonDependencySet = wire.NewSet(
 		authenticatorpassword.DependencySet,
 		authenticatoroob.DependencySet,
 		wire.Bind(new(interaction.OOBAuthenticatorProvider), new(*authenticatoroob.Provider)),
+		wire.Bind(new(interaction.OOBCodeSender), new(*authenticatoroob.CodeSender)),
 		authenticatortotp.DependencySet,
 
 		authenticatorservice.DependencySet,
@@ -167,6 +168,7 @@ var CommonDependencySet = wire.NewSet(
 		verification.DependencySet,
 		wire.Bind(new(user.VerificationService), new(*verification.Service)),
 		wire.Bind(new(interaction.VerificationService), new(*verification.Service)),
+		wire.Bind(new(interaction.VerificationCodeSender), new(*verification.CodeSender)),
 	),
 
 	wire.NewSet(

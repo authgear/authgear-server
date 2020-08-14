@@ -14,7 +14,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
-	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -231,47 +230,28 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	localizationConfig := appConfig.Localization
-	appMetadata := appConfig.Metadata
-	messagingConfig := appConfig.Messaging
-	engine := appProvider.TemplateEngine
-	endpointsProvider := _wireEndpointsProviderValue
-	messageSender := &otp.MessageSender{
-		Context:        context,
-		ServerConfig:   serverConfig,
-		Localization:   localizationConfig,
-		AppMetadata:    appMetadata,
-		Messaging:      messagingConfig,
-		TemplateEngine: engine,
-		Endpoints:      endpointsProvider,
-		TaskQueue:      queue,
-	}
 	oobProvider := &oob.Provider{
-		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clock,
-		OTPMessageSender: messageSender,
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clock,
 	}
 	service3 := &service2.Service{
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
-	webAppURLProvider := _wireWebAppURLProviderValue
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: handle,
 		AppID: appID,
 		Clock: clock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clock,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-		WebAppURLs:       webAppURLProvider,
-		Store:            verificationStoreRedis,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clock,
+		Authenticators: service3,
+		Store:          verificationStoreRedis,
 	}
 	queries := &user.Queries{
 		Store:        store,
@@ -289,10 +269,8 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 }
 
 var (
-	_wireSystemClockValue       = clock.NewSystemClock()
-	_wireRandValue              = idpsession.Rand(rand.SecureRand)
-	_wireEndpointsProviderValue = otp.EndpointsProvider(nil)
-	_wireWebAppURLProviderValue = verification.WebAppURLProvider(nil)
+	_wireSystemClockValue = clock.NewSystemClock()
+	_wireRandValue        = idpsession.Rand(rand.SecureRand)
 )
 
 func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
@@ -401,34 +379,16 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	serverConfig := rootProvider.ServerConfig
-	localizationConfig := appConfig.Localization
-	appMetadata := appConfig.Metadata
-	messagingConfig := appConfig.Messaging
-	engine := appProvider.TemplateEngine
-	endpointsProvider := _wireEndpointsProviderValue
-	messageSender := &otp.MessageSender{
-		Context:        context,
-		ServerConfig:   serverConfig,
-		Localization:   localizationConfig,
-		AppMetadata:    appMetadata,
-		Messaging:      messagingConfig,
-		TemplateEngine: engine,
-		Endpoints:      endpointsProvider,
-		TaskQueue:      queue,
-	}
 	oobProvider := &oob.Provider{
-		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
-		OTPMessageSender: messageSender,
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
-	webAppURLProvider := _wireWebAppURLProviderValue
 	redisHandle := appProvider.Redis
 	storeRedis := &verification.StoreRedis{
 		Redis: redisHandle,
@@ -436,14 +396,12 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           logger,
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-		WebAppURLs:       webAppURLProvider,
-		Store:            storeRedis,
+		Logger:         logger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
 	}
 	resolveHandlerLogger := handler.NewResolveHandlerLogger(factory)
 	resolveHandler := &handler.ResolveHandler{

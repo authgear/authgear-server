@@ -50,6 +50,9 @@ type AuthenticatorService interface {
 
 type OOBAuthenticatorProvider interface {
 	GenerateCode(secret string, channel authn.AuthenticatorOOBChannel) string
+}
+
+type OOBCodeSender interface {
 	SendCode(
 		channel authn.AuthenticatorOOBChannel,
 		target string,
@@ -121,6 +124,9 @@ type VerificationService interface {
 	GetCode(id string) (*verification.Code, error)
 	VerifyCode(id string, code string) (*verification.Code, error)
 	NewVerificationAuthenticator(code *verification.Code) (*authenticator.Info, error)
+}
+
+type VerificationCodeSender interface {
 	SendCode(code *verification.Code, webStateID string) (*otp.CodeSendResult, error)
 }
 
@@ -141,12 +147,14 @@ type Context struct {
 	Authenticators           AuthenticatorService
 	AnonymousIdentities      AnonymousIdentityProvider
 	OOBAuthenticators        OOBAuthenticatorProvider
+	OOBCodeSender            OOBCodeSender
 	OAuthProviderFactory     OAuthProviderFactory
 	MFA                      MFAService
 	ForgotPassword           ForgotPasswordService
 	ResetPassword            ResetPasswordService
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
 	Verification             VerificationService
+	VerificationCodeSender   VerificationCodeSender
 
 	Challenges           ChallengeProvider
 	Users                UserService

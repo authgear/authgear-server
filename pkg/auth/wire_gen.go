@@ -183,6 +183,16 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clock,
+	}
+	service3 := &service2.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
 	messagingConfig := appConfig.Messaging
@@ -197,16 +207,9 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
-	oobProvider := &oob.Provider{
+	codeSender := &oob.CodeSender{
 		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clock,
 		OTPMessageSender: messageSender,
-	}
-	service3 := &service2.Service{
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	webappURLProvider := &webapp.URLProvider{
@@ -268,14 +271,17 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clock,
+		Authenticators: service3,
+		Store:          storeRedis,
+	}
+	verificationCodeSender := &verification.CodeSender{
 		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clock,
-		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       webappURLProvider,
-		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -381,12 +387,14 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:           service3,
 		AnonymousIdentities:      provider,
 		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
 		MFA:                      mfaService,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -594,6 +602,16 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
+	}
+	service3 := &service2.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
 	messagingConfig := appConfig.Messaging
@@ -612,16 +630,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
-	oobProvider := &oob.Provider{
+	codeSender := &oob.CodeSender{
 		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
 		OTPMessageSender: messageSender,
-	}
-	service3 := &service2.Service{
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	urlProvider := &webapp.URLProvider{
@@ -683,14 +694,17 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          verificationStoreRedis,
+	}
+	verificationCodeSender := &verification.CodeSender{
 		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
-		Store:            verificationStoreRedis,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -771,12 +785,14 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:           service3,
 		AnonymousIdentities:      anonymousProvider,
 		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
 		MFA:                      mfaService,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -1006,33 +1022,15 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	localizationConfig := appConfig.Localization
-	appMetadata := appConfig.Metadata
-	messagingConfig := appConfig.Messaging
-	engine := appProvider.TemplateEngine
-	messageSender := &otp.MessageSender{
-		Context:        context,
-		ServerConfig:   serverConfig,
-		Localization:   localizationConfig,
-		AppMetadata:    appMetadata,
-		Messaging:      messagingConfig,
-		TemplateEngine: engine,
-		Endpoints:      endpointsProvider,
-		TaskQueue:      queue,
-	}
 	oobProvider := &oob.Provider{
-		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
-		OTPMessageSender: messageSender,
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
-	}
-	urlProvider := &webapp.URLProvider{
-		Endpoints: endpointsProvider,
 	}
 	redisHandle := appProvider.Redis
 	storeRedis := &verification.StoreRedis{
@@ -1041,14 +1039,12 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           logger,
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-		WebAppURLs:       urlProvider,
-		Store:            storeRedis,
+		Logger:         logger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
 	}
 	queries := &user.Queries{
 		Store:        store,
@@ -1185,33 +1181,15 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	localizationConfig := appConfig.Localization
-	appMetadata := appConfig.Metadata
-	messagingConfig := appConfig.Messaging
-	engine := appProvider.TemplateEngine
-	messageSender := &otp.MessageSender{
-		Context:        context,
-		ServerConfig:   serverConfig,
-		Localization:   localizationConfig,
-		AppMetadata:    appMetadata,
-		Messaging:      messagingConfig,
-		TemplateEngine: engine,
-		Endpoints:      endpointsProvider,
-		TaskQueue:      queue,
-	}
 	oobProvider := &oob.Provider{
-		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
-		OTPMessageSender: messageSender,
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
-	}
-	urlProvider := &webapp.URLProvider{
-		Endpoints: endpointsProvider,
 	}
 	redisHandle := appProvider.Redis
 	storeRedis := &verification.StoreRedis{
@@ -1220,14 +1198,12 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           logger,
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-		WebAppURLs:       urlProvider,
-		Store:            storeRedis,
+		Logger:         logger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
 	}
 	queries := &user.Queries{
 		Store:        store,
@@ -1435,6 +1411,16 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
+	}
+	service3 := &service2.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
 	messagingConfig := appConfig.Messaging
 	endpointsProvider := &EndpointsProvider{
 		Request: request,
@@ -1450,16 +1436,9 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
-	oobProvider := &oob.Provider{
+	codeSender := &oob.CodeSender{
 		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
 		OTPMessageSender: messageSender,
-	}
-	service3 := &service2.Service{
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	urlProvider := &webapp.URLProvider{
@@ -1520,14 +1499,17 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
+	}
+	verificationCodeSender := &verification.CodeSender{
 		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
-		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -1633,12 +1615,14 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:           service3,
 		AnonymousIdentities:      anonymousProvider,
 		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
 		MFA:                      mfaService,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -1807,6 +1791,16 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
+	}
+	service3 := &service2.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
 	messagingConfig := appConfig.Messaging
 	endpointsProvider := &EndpointsProvider{
 		Request: request,
@@ -1822,16 +1816,9 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
-	oobProvider := &oob.Provider{
+	codeSender := &oob.CodeSender{
 		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
 		OTPMessageSender: messageSender,
-	}
-	service3 := &service2.Service{
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	urlProvider := &webapp.URLProvider{
@@ -1892,14 +1879,17 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
+	}
+	verificationCodeSender := &verification.CodeSender{
 		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
-		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -2005,12 +1995,14 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:           service3,
 		AnonymousIdentities:      anonymousProvider,
 		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
 		MFA:                      mfaService,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -2179,6 +2171,16 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
+	}
+	service3 := &service2.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
 	messagingConfig := appConfig.Messaging
 	endpointsProvider := &EndpointsProvider{
 		Request: request,
@@ -2194,16 +2196,9 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
-	oobProvider := &oob.Provider{
+	codeSender := &oob.CodeSender{
 		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
 		OTPMessageSender: messageSender,
-	}
-	service3 := &service2.Service{
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	urlProvider := &webapp.URLProvider{
@@ -2264,14 +2259,17 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
+	}
+	verificationCodeSender := &verification.CodeSender{
 		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
-		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -2377,12 +2375,14 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:           service3,
 		AnonymousIdentities:      anonymousProvider,
 		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
 		MFA:                      mfaService,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -2528,6 +2528,16 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
+	}
+	service3 := &service2.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
 	serverConfig := rootProvider.ServerConfig
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
@@ -2547,16 +2557,9 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
-	oobProvider := &oob.Provider{
+	codeSender := &oob.CodeSender{
 		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
 		OTPMessageSender: messageSender,
-	}
-	service3 := &service2.Service{
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	urlProvider := &webapp.URLProvider{
@@ -2618,14 +2621,17 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
+	}
+	verificationCodeSender := &verification.CodeSender{
 		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
-		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -2731,12 +2737,14 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:           service3,
 		AnonymousIdentities:      anonymousProvider,
 		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
 		MFA:                      mfaService,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -2897,6 +2905,16 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
+	}
+	service3 := &service2.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
 	messagingConfig := appConfig.Messaging
 	endpointsProvider := &EndpointsProvider{
 		Request: request,
@@ -2912,16 +2930,9 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
-	oobProvider := &oob.Provider{
+	codeSender := &oob.CodeSender{
 		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
 		OTPMessageSender: messageSender,
-	}
-	service3 := &service2.Service{
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	urlProvider := &webapp.URLProvider{
@@ -2982,14 +2993,17 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
+	}
+	verificationCodeSender := &verification.CodeSender{
 		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
-		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -3095,12 +3109,14 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:           service3,
 		AnonymousIdentities:      anonymousProvider,
 		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
 		MFA:                      mfaService,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -3263,6 +3279,16 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
+	}
+	service3 := &service2.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
 	messagingConfig := appConfig.Messaging
 	endpointsProvider := &EndpointsProvider{
 		Request: request,
@@ -3278,16 +3304,9 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
-	oobProvider := &oob.Provider{
+	codeSender := &oob.CodeSender{
 		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
 		OTPMessageSender: messageSender,
-	}
-	service3 := &service2.Service{
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	urlProvider := &webapp.URLProvider{
@@ -3348,14 +3367,17 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
+	}
+	verificationCodeSender := &verification.CodeSender{
 		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
-		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -3461,12 +3483,14 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:           service3,
 		AnonymousIdentities:      anonymousProvider,
 		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
 		MFA:                      mfaService,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -3629,6 +3653,16 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
+	}
+	service3 := &service2.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
 	messagingConfig := appConfig.Messaging
 	endpointsProvider := &EndpointsProvider{
 		Request: request,
@@ -3644,16 +3678,9 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
-	oobProvider := &oob.Provider{
+	codeSender := &oob.CodeSender{
 		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
 		OTPMessageSender: messageSender,
-	}
-	service3 := &service2.Service{
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	urlProvider := &webapp.URLProvider{
@@ -3714,14 +3741,17 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
+	}
+	verificationCodeSender := &verification.CodeSender{
 		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
-		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -3827,12 +3857,14 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:           service3,
 		AnonymousIdentities:      anonymousProvider,
 		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
 		MFA:                      mfaService,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -3996,6 +4028,16 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
+	}
+	service3 := &service2.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
 	messagingConfig := appConfig.Messaging
 	endpointsProvider := &EndpointsProvider{
 		Request: request,
@@ -4011,16 +4053,9 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
-	oobProvider := &oob.Provider{
+	codeSender := &oob.CodeSender{
 		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
 		OTPMessageSender: messageSender,
-	}
-	service3 := &service2.Service{
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	urlProvider := &webapp.URLProvider{
@@ -4081,14 +4116,17 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
+	}
+	verificationCodeSender := &verification.CodeSender{
 		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
-		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -4194,12 +4232,14 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:           service3,
 		AnonymousIdentities:      anonymousProvider,
 		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
 		MFA:                      mfaService,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -4364,6 +4404,16 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
+	}
+	service3 := &service2.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
 	messagingConfig := appConfig.Messaging
 	endpointsProvider := &EndpointsProvider{
 		Request: request,
@@ -4379,16 +4429,9 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
-	oobProvider := &oob.Provider{
+	codeSender := &oob.CodeSender{
 		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
 		OTPMessageSender: messageSender,
-	}
-	service3 := &service2.Service{
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	urlProvider := &webapp.URLProvider{
@@ -4449,14 +4492,17 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
+	}
+	verificationCodeSender := &verification.CodeSender{
 		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
-		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -4562,12 +4608,14 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:           service3,
 		AnonymousIdentities:      anonymousProvider,
 		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
 		MFA:                      mfaService,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -4730,6 +4778,16 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
+	}
+	service3 := &service2.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
 	messagingConfig := appConfig.Messaging
 	endpointsProvider := &EndpointsProvider{
 		Request: request,
@@ -4745,16 +4803,9 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
-	oobProvider := &oob.Provider{
+	codeSender := &oob.CodeSender{
 		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
 		OTPMessageSender: messageSender,
-	}
-	service3 := &service2.Service{
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	urlProvider := &webapp.URLProvider{
@@ -4815,14 +4866,17 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
+	}
+	verificationCodeSender := &verification.CodeSender{
 		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
-		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -4928,12 +4982,14 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:           service3,
 		AnonymousIdentities:      anonymousProvider,
 		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
 		MFA:                      mfaService,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -5096,6 +5152,16 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
+	}
+	service3 := &service2.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
 	messagingConfig := appConfig.Messaging
 	endpointsProvider := &EndpointsProvider{
 		Request: request,
@@ -5111,16 +5177,9 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
-	oobProvider := &oob.Provider{
+	codeSender := &oob.CodeSender{
 		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
 		OTPMessageSender: messageSender,
-	}
-	service3 := &service2.Service{
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	urlProvider := &webapp.URLProvider{
@@ -5181,14 +5240,17 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
+	}
+	verificationCodeSender := &verification.CodeSender{
 		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
-		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -5294,12 +5356,14 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:           service3,
 		AnonymousIdentities:      anonymousProvider,
 		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
 		MFA:                      mfaService,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -5462,6 +5526,16 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
+	}
+	service3 := &service2.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
 	messagingConfig := appConfig.Messaging
 	endpointsProvider := &EndpointsProvider{
 		Request: request,
@@ -5477,16 +5551,9 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
-	oobProvider := &oob.Provider{
+	codeSender := &oob.CodeSender{
 		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
 		OTPMessageSender: messageSender,
-	}
-	service3 := &service2.Service{
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	urlProvider := &webapp.URLProvider{
@@ -5547,14 +5614,17 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
+	}
+	verificationCodeSender := &verification.CodeSender{
 		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
-		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -5660,12 +5730,14 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:           service3,
 		AnonymousIdentities:      anonymousProvider,
 		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
 		MFA:                      mfaService,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -5828,6 +5900,16 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
+	}
+	service3 := &service2.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
 	messagingConfig := appConfig.Messaging
 	endpointsProvider := &EndpointsProvider{
 		Request: request,
@@ -5843,16 +5925,9 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
-	oobProvider := &oob.Provider{
+	codeSender := &oob.CodeSender{
 		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
 		OTPMessageSender: messageSender,
-	}
-	service3 := &service2.Service{
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	urlProvider := &webapp.URLProvider{
@@ -5913,14 +5988,17 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
+	}
+	verificationCodeSender := &verification.CodeSender{
 		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
-		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -6026,12 +6104,14 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:           service3,
 		AnonymousIdentities:      anonymousProvider,
 		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
 		MFA:                      mfaService,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -6194,6 +6274,16 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
+	}
+	service3 := &service2.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
 	messagingConfig := appConfig.Messaging
 	endpointsProvider := &EndpointsProvider{
 		Request: request,
@@ -6209,16 +6299,9 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
-	oobProvider := &oob.Provider{
+	codeSender := &oob.CodeSender{
 		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
 		OTPMessageSender: messageSender,
-	}
-	service3 := &service2.Service{
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	urlProvider := &webapp.URLProvider{
@@ -6279,14 +6362,17 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
+	}
+	verificationCodeSender := &verification.CodeSender{
 		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
-		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -6392,12 +6478,14 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:           service3,
 		AnonymousIdentities:      anonymousProvider,
 		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
 		MFA:                      mfaService,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -6560,6 +6648,16 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
+	}
+	service3 := &service2.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
 	messagingConfig := appConfig.Messaging
 	endpointsProvider := &EndpointsProvider{
 		Request: request,
@@ -6575,16 +6673,9 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
-	oobProvider := &oob.Provider{
+	codeSender := &oob.CodeSender{
 		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
 		OTPMessageSender: messageSender,
-	}
-	service3 := &service2.Service{
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	urlProvider := &webapp.URLProvider{
@@ -6645,14 +6736,17 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
+	}
+	verificationCodeSender := &verification.CodeSender{
 		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
-		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -6758,12 +6852,14 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Authenticators:           service3,
 		AnonymousIdentities:      anonymousProvider,
 		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
 		MFA:                      mfaService,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -6930,6 +7026,16 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
+	}
+	service3 := &service2.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
 	messagingConfig := appConfig.Messaging
 	endpointsProvider := &EndpointsProvider{
 		Request: request,
@@ -6945,16 +7051,9 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
-	oobProvider := &oob.Provider{
+	codeSender := &oob.CodeSender{
 		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
 		OTPMessageSender: messageSender,
-	}
-	service3 := &service2.Service{
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	urlProvider := &webapp.URLProvider{
@@ -7015,14 +7114,17 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
+	}
+	verificationCodeSender := &verification.CodeSender{
 		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
-		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -7128,12 +7230,14 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:           service3,
 		AnonymousIdentities:      anonymousProvider,
 		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
 		MFA:                      mfaService,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -7297,6 +7401,16 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
+	}
+	service3 := &service2.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
 	messagingConfig := appConfig.Messaging
 	endpointsProvider := &EndpointsProvider{
 		Request: request,
@@ -7312,16 +7426,9 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
-	oobProvider := &oob.Provider{
+	codeSender := &oob.CodeSender{
 		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
 		OTPMessageSender: messageSender,
-	}
-	service3 := &service2.Service{
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	urlProvider := &webapp.URLProvider{
@@ -7382,14 +7489,17 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
+	}
+	verificationCodeSender := &verification.CodeSender{
 		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
-		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -7495,12 +7605,14 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Authenticators:           service3,
 		AnonymousIdentities:      anonymousProvider,
 		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
 		MFA:                      mfaService,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -7663,6 +7775,16 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
+	}
+	service3 := &service2.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
 	messagingConfig := appConfig.Messaging
 	endpointsProvider := &EndpointsProvider{
 		Request: request,
@@ -7678,16 +7800,9 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
-	oobProvider := &oob.Provider{
+	codeSender := &oob.CodeSender{
 		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
 		OTPMessageSender: messageSender,
-	}
-	service3 := &service2.Service{
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	urlProvider := &webapp.URLProvider{
@@ -7748,14 +7863,17 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
+	}
+	verificationCodeSender := &verification.CodeSender{
 		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
-		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -7861,12 +7979,14 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:           service3,
 		AnonymousIdentities:      anonymousProvider,
 		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
 		MFA:                      mfaService,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -8030,6 +8150,16 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
+	}
+	service3 := &service2.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
 	messagingConfig := appConfig.Messaging
 	endpointsProvider := &EndpointsProvider{
 		Request: request,
@@ -8045,16 +8175,9 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
-	oobProvider := &oob.Provider{
+	codeSender := &oob.CodeSender{
 		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
 		OTPMessageSender: messageSender,
-	}
-	service3 := &service2.Service{
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	urlProvider := &webapp.URLProvider{
@@ -8115,14 +8238,17 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
+	}
+	verificationCodeSender := &verification.CodeSender{
 		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
-		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -8228,12 +8354,14 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Authenticators:           service3,
 		AnonymousIdentities:      anonymousProvider,
 		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
 		MFA:                      mfaService,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -8427,6 +8555,16 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
+	}
+	service3 := &service2.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
 	messagingConfig := appConfig.Messaging
 	endpointsProvider := &EndpointsProvider{
 		Request: request,
@@ -8442,16 +8580,9 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
-	oobProvider := &oob.Provider{
+	codeSender := &oob.CodeSender{
 		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
 		OTPMessageSender: messageSender,
-	}
-	service3 := &service2.Service{
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	urlProvider := &webapp.URLProvider{
@@ -8512,14 +8643,17 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
+	}
+	verificationCodeSender := &verification.CodeSender{
 		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
-		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -8625,12 +8759,14 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:           service3,
 		AnonymousIdentities:      anonymousProvider,
 		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
 		MFA:                      mfaService,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -8778,37 +8914,15 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	localizationConfig := appConfig.Localization
-	appMetadata := appConfig.Metadata
-	messagingConfig := appConfig.Messaging
-	engine := appProvider.TemplateEngine
-	endpointsProvider := &EndpointsProvider{
-		Request: request,
-		Config:  serverConfig,
-	}
-	messageSender := &otp.MessageSender{
-		Context:        context,
-		ServerConfig:   serverConfig,
-		Localization:   localizationConfig,
-		AppMetadata:    appMetadata,
-		Messaging:      messagingConfig,
-		TemplateEngine: engine,
-		Endpoints:      endpointsProvider,
-		TaskQueue:      queue,
-	}
 	oobProvider := &oob.Provider{
-		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
-		OTPMessageSender: messageSender,
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
-	}
-	urlProvider := &webapp.URLProvider{
-		Endpoints: endpointsProvider,
 	}
 	redisHandle := appProvider.Redis
 	storeRedis := &verification.StoreRedis{
@@ -8817,14 +8931,12 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           logger,
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-		WebAppURLs:       urlProvider,
-		Store:            storeRedis,
+		Logger:         logger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
 	}
 	queries := &user.Queries{
 		Store:        store,
@@ -8832,7 +8944,11 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Verification: verificationService,
 	}
 	hookLogger := hook.NewLogger(factory)
+	localizationConfig := appConfig.Localization
+	appMetadata := appConfig.Metadata
+	messagingConfig := appConfig.Messaging
 	welcomeMessageConfig := appConfig.WelcomeMessage
+	engine := appProvider.TemplateEngine
 	welcomemessageProvider := &welcomemessage.Provider{
 		Context:               context,
 		LocalizationConfig:    localizationConfig,
@@ -9047,6 +9163,16 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
+	}
+	service3 := &service2.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
 	serverConfig := rootProvider.ServerConfig
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
@@ -9066,16 +9192,9 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
-	oobProvider := &oob.Provider{
+	codeSender := &oob.CodeSender{
 		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
 		OTPMessageSender: messageSender,
-	}
-	service3 := &service2.Service{
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	urlProvider := &webapp.URLProvider{
@@ -9137,14 +9256,17 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
+	}
+	verificationCodeSender := &verification.CodeSender{
 		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
-		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -9250,12 +9372,14 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:           service3,
 		AnonymousIdentities:      anonymousProvider,
 		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
 		MFA:                      mfaService,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -9398,6 +9522,16 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
+	}
+	service3 := &service2.Service{
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
 	serverConfig := rootProvider.ServerConfig
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
@@ -9417,16 +9551,9 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		Endpoints:      endpointsProvider,
 		TaskQueue:      queue,
 	}
-	oobProvider := &oob.Provider{
+	codeSender := &oob.CodeSender{
 		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
 		OTPMessageSender: messageSender,
-	}
-	service3 := &service2.Service{
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	urlProvider := &webapp.URLProvider{
@@ -9488,14 +9615,17 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          storeRedis,
+	}
+	verificationCodeSender := &verification.CodeSender{
 		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
-		Store:            storeRedis,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -9601,12 +9731,14 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		Authenticators:           service3,
 		AnonymousIdentities:      anonymousProvider,
 		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
 		MFA:                      mfaService,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -9882,37 +10014,15 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	localizationConfig := appConfig.Localization
-	appMetadata := appConfig.Metadata
-	messagingConfig := appConfig.Messaging
-	engine := appProvider.TemplateEngine
-	endpointsProvider := &EndpointsProvider{
-		Request: request,
-		Config:  serverConfig,
-	}
-	messageSender := &otp.MessageSender{
-		Context:        context,
-		ServerConfig:   serverConfig,
-		Localization:   localizationConfig,
-		AppMetadata:    appMetadata,
-		Messaging:      messagingConfig,
-		TemplateEngine: engine,
-		Endpoints:      endpointsProvider,
-		TaskQueue:      queue,
-	}
 	oobProvider := &oob.Provider{
-		Config:           authenticatorOOBConfig,
-		Store:            oobStore,
-		Clock:            clockClock,
-		OTPMessageSender: messageSender,
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
-	}
-	urlProvider := &webapp.URLProvider{
-		Endpoints: endpointsProvider,
 	}
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: handle,
@@ -9920,14 +10030,12 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
-		Logger:           verificationLogger,
-		Config:           verificationConfig,
-		LoginID:          loginIDConfig,
-		Clock:            clockClock,
-		Authenticators:   service3,
-		OTPMessageSender: messageSender,
-		WebAppURLs:       urlProvider,
-		Store:            verificationStoreRedis,
+		Logger:         verificationLogger,
+		Config:         verificationConfig,
+		LoginID:        loginIDConfig,
+		Clock:          clockClock,
+		Authenticators: service3,
+		Store:          verificationStoreRedis,
 	}
 	queries := &user.Queries{
 		Store:        store,
