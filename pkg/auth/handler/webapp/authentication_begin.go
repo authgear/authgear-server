@@ -6,14 +6,14 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	corephone "github.com/authgear/authgear-server/pkg/util/phone"
 )
@@ -45,7 +45,7 @@ func (i *AuthenticationBeginInput) GetOOBAuthenticatorIndex() int {
 }
 
 type AuthenticationBeginNode interface {
-	GetAuthenticationEdges() []newinteraction.Edge
+	GetAuthenticationEdges() []interaction.Edge
 }
 
 type AuthenticationBeginHandler struct {
@@ -85,7 +85,7 @@ func (h *AuthenticationBeginHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 	}
 
 	var state *webapp.State
-	var graph *newinteraction.Graph
+	var graph *interaction.Graph
 
 	h.Database.WithTx(func() error {
 		state, graph, err = h.WebApp.Get(StateID(r))
@@ -180,7 +180,7 @@ type AuthenticationAlternative struct {
 	MaskedTarget string
 }
 
-func DeriveAuthenticationAlternatives(stateID string, graph *newinteraction.Graph, currentType AuthenticationType, currentTarget string) (alternatives []AuthenticationAlternative) {
+func DeriveAuthenticationAlternatives(stateID string, graph *interaction.Graph, currentType AuthenticationType, currentTarget string) (alternatives []AuthenticationAlternative) {
 	var node AuthenticationBeginNode
 	if !graph.FindLastNode(&node) {
 		panic("authentication_begin: expected graph has node implementing AuthenticationBeginNode")

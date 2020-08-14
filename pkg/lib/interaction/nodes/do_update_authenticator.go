@@ -1,0 +1,55 @@
+package nodes
+
+import (
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
+)
+
+func init() {
+	interaction.RegisterNode(&NodeDoUpdateAuthenticator{})
+}
+
+type EdgeDoUpdateAuthenticator struct {
+	Stage                     interaction.AuthenticationStage
+	AuthenticatorBeforeUpdate *authenticator.Info
+	AuthenticatorAfterUpdate  *authenticator.Info
+}
+
+func (e *EdgeDoUpdateAuthenticator) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+	return &NodeDoUpdateAuthenticator{
+		AuthenticatorBeforeUpdate: e.AuthenticatorBeforeUpdate,
+		AuthenticatorAfterUpdate:  e.AuthenticatorAfterUpdate,
+	}, nil
+}
+
+type NodeDoUpdateAuthenticator struct {
+	Stage                     interaction.AuthenticationStage `json:"stage"`
+	AuthenticatorBeforeUpdate *authenticator.Info             `json:"authenticator_before_update"`
+	AuthenticatorAfterUpdate  *authenticator.Info             `json:"authenticator_after_update"`
+}
+
+func (n *NodeDoUpdateAuthenticator) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+	return nil
+}
+
+func (n *NodeDoUpdateAuthenticator) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
+	err := perform(interaction.EffectRun(func(ctx *interaction.Context) error {
+		return ctx.Authenticators.Update(n.AuthenticatorAfterUpdate)
+	}))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (n *NodeDoUpdateAuthenticator) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(graph, n)
+}
+
+func (n *NodeDoUpdateAuthenticator) UserAuthenticator(stage interaction.AuthenticationStage) (*authenticator.Info, bool) {
+	if n.Stage == stage && n.AuthenticatorAfterUpdate != nil {
+		return n.AuthenticatorAfterUpdate, true
+	}
+	return nil, false
+}

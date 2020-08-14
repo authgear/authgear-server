@@ -5,13 +5,13 @@ import (
 	"mime"
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/template"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -60,7 +60,7 @@ type SetupRecoveryCodeHandler struct {
 	WebApp        WebAppService
 }
 
-func (h *SetupRecoveryCodeHandler) MakeViewModel(graph *newinteraction.Graph) SetupRecoveryCodeViewModel {
+func (h *SetupRecoveryCodeHandler) MakeViewModel(graph *interaction.Graph) SetupRecoveryCodeViewModel {
 	var node SetupRecoveryCodeNode
 	if !graph.FindLastNode(&node) {
 		panic(fmt.Errorf("setup_recovery_code: expected graph has node implementing SetupRecoveryCodeNode"))
@@ -74,7 +74,7 @@ func (h *SetupRecoveryCodeHandler) MakeViewModel(graph *newinteraction.Graph) Se
 	}
 }
 
-func (h *SetupRecoveryCodeHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph) (map[string]interface{}, error) {
+func (h *SetupRecoveryCodeHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	var anyError interface{}

@@ -1,7 +1,7 @@
 package webapp
 
 import (
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
 type Intent struct {
@@ -16,5 +16,5 @@ type Intent struct {
 	// If it is true, then the state is attached to RedirectURI.
 	KeepState bool
 	UILocales string
-	Intent    newinteraction.Intent
+	Intent    interaction.Intent
 }

@@ -7,8 +7,6 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
@@ -17,6 +15,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/template"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	coreimage "github.com/authgear/authgear-server/pkg/util/image"
@@ -94,7 +94,7 @@ type SetupTOTPHandler struct {
 	Endpoints     SetupTOTPEndpointsProvider
 }
 
-func (h *SetupTOTPHandler) MakeViewModel(stateID string, graph *newinteraction.Graph) (*SetupTOTPViewModel, error) {
+func (h *SetupTOTPHandler) MakeViewModel(stateID string, graph *interaction.Graph) (*SetupTOTPViewModel, error) {
 	var node SetupTOTPNode
 	if !graph.FindLastNode(&node) {
 		panic(fmt.Errorf("setup_totp: expected graph has node implementing SetupTOTPNode"))
@@ -147,7 +147,7 @@ func (h *SetupTOTPHandler) MakeViewModel(stateID string, graph *newinteraction.G
 	}, nil
 }
 
-func (h *SetupTOTPHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph) (map[string]interface{}, error) {
+func (h *SetupTOTPHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	var anyError interface{}

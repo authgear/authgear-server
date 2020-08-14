@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
-	interactionintents "github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -264,16 +264,16 @@ func (h *TokenHandler) handleAnonymousRequest(
 	client config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
-	var graph *newinteraction.Graph
+	var graph *interaction.Graph
 	var attrs *session.Attrs
-	err := h.Graphs.DryRun("", func(ctx *newinteraction.Context) (*newinteraction.Graph, error) {
+	err := h.Graphs.DryRun("", func(ctx *interaction.Context) (*interaction.Graph, error) {
 		var err error
 		graph, err = h.Graphs.NewGraph(ctx, interactionintents.NewIntentLogin())
 		if err != nil {
 			return nil, err
 		}
 
-		var edges []newinteraction.Edge
+		var edges []interaction.Edge
 		graph, edges, err = graph.Accept(ctx, &anonymousTokenInput{
 			JWT: r.JWT(),
 		})
@@ -296,9 +296,9 @@ func (h *TokenHandler) handleAnonymousRequest(
 		return graph, nil
 	})
 
-	if apierrors.IsKind(err, newinteraction.ConfigurationViolated) {
+	if apierrors.IsKind(err, interaction.ConfigurationViolated) {
 		return nil, protocol.NewError("unauthorized_client", err.Error())
-	} else if errors.Is(err, newinteraction.ErrInvalidCredentials) {
+	} else if errors.Is(err, interaction.ErrInvalidCredentials) {
 		return nil, protocol.NewError("invalid_grant", err.Error())
 	} else if err != nil {
 		return nil, err

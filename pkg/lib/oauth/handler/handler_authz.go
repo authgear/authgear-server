@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -132,7 +132,7 @@ func (h *AuthorizationHandler) doHandle(
 		authnOptions.RedirectURI = authorizeURI.String()
 
 		resp, err := h.WebAppURLs.AuthenticateURL(authnOptions)
-		if apierrors.IsKind(err, newinteraction.InvalidCredentials) {
+		if apierrors.IsKind(err, interaction.InvalidCredentials) {
 			return nil, protocol.NewError("invalid_request", err.Error())
 		} else if err != nil {
 			return nil, err

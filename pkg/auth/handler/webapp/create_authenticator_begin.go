@@ -6,11 +6,11 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -27,7 +27,7 @@ var _ nodes.InputCreateAuthenticatorTOTPSetup = &CreateAuthenticatorBeginSetupTO
 func (i *CreateAuthenticatorBeginSetupTOTP) SetupTOTP() {}
 
 type CreateAuthenticatorBeginNode interface {
-	GetCreateAuthenticatorEdges() ([]newinteraction.Edge, error)
+	GetCreateAuthenticatorEdges() ([]interaction.Edge, error)
 }
 
 type CreateAuthenticatorBeginHandler struct {
@@ -53,7 +53,7 @@ func (h *CreateAuthenticatorBeginHandler) ServeHTTP(w http.ResponseWriter, r *ht
 	}
 
 	var state *webapp.State
-	var graph *newinteraction.Graph
+	var graph *interaction.Graph
 
 	h.Database.WithTx(func() error {
 		state, graph, err = h.WebApp.Get(StateID(r))
@@ -113,7 +113,7 @@ type CreateAuthenticatorAlternative struct {
 	URL  string
 }
 
-func DeriveCreateAuthenticatorAlternatives(stateID string, graph *newinteraction.Graph, currentType authn.AuthenticatorType) (alternatives []CreateAuthenticatorAlternative, err error) {
+func DeriveCreateAuthenticatorAlternatives(stateID string, graph *interaction.Graph, currentType authn.AuthenticatorType) (alternatives []CreateAuthenticatorAlternative, err error) {
 	var node CreateAuthenticatorBeginNode
 	if !graph.FindLastNode(&node) {
 		panic("create_authenticator_begin: expected graph has node implementing CreateAuthenticatorBeginNode")

@@ -3,15 +3,15 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
 	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
 // nolint:golint
 type WebAppService interface {
 	GetState(stateID string) (*webapp.State, error)
-	GetIntent(webappIntent *webapp.Intent, stateID string) (*webapp.State, *newinteraction.Graph, error)
-	Get(stateID string) (*webapp.State, *newinteraction.Graph, error)
+	GetIntent(webappIntent *webapp.Intent, stateID string) (*webapp.State, *interaction.Graph, error)
+	Get(stateID string) (*webapp.State, *interaction.Graph, error)
 	PostIntent(webappIntent *webapp.Intent, inputer func() (interface{}, error)) (*webapp.Result, error)
 	PostInput(stateID string, inputer func() (interface{}, error)) (*webapp.Result, error)
 }

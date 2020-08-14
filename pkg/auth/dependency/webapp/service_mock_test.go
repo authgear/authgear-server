@@ -5,7 +5,7 @@
 package webapp
 
 import (
-	newinteraction "github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
+	interaction "github.com/authgear/authgear-server/pkg/lib/interaction"
 	httputil "github.com/authgear/authgear-server/pkg/util/httputil"
 	gomock "github.com/golang/mock/gomock"
 	http "net/http"
@@ -199,10 +199,10 @@ func (m *MockGraphService) EXPECT() *MockGraphServiceMockRecorder {
 }
 
 // NewGraph mocks base method
-func (m *MockGraphService) NewGraph(ctx *newinteraction.Context, intent newinteraction.Intent) (*newinteraction.Graph, error) {
+func (m *MockGraphService) NewGraph(ctx *interaction.Context, intent interaction.Intent) (*interaction.Graph, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NewGraph", ctx, intent)
-	ret0, _ := ret[0].(*newinteraction.Graph)
+	ret0, _ := ret[0].(*interaction.Graph)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -214,10 +214,10 @@ func (mr *MockGraphServiceMockRecorder) NewGraph(ctx, intent interface{}) *gomoc
 }
 
 // Get mocks base method
-func (m *MockGraphService) Get(instanceID string) (*newinteraction.Graph, error) {
+func (m *MockGraphService) Get(instanceID string) (*interaction.Graph, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", instanceID)
-	ret0, _ := ret[0].(*newinteraction.Graph)
+	ret0, _ := ret[0].(*interaction.Graph)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -229,7 +229,7 @@ func (mr *MockGraphServiceMockRecorder) Get(instanceID interface{}) *gomock.Call
 }
 
 // DryRun mocks base method
-func (m *MockGraphService) DryRun(webStateID string, fn func(*newinteraction.Context) (*newinteraction.Graph, error)) error {
+func (m *MockGraphService) DryRun(webStateID string, fn func(*interaction.Context) (*interaction.Graph, error)) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DryRun", webStateID, fn)
 	ret0, _ := ret[0].(error)
@@ -243,7 +243,7 @@ func (mr *MockGraphServiceMockRecorder) DryRun(webStateID, fn interface{}) *gomo
 }
 
 // Run mocks base method
-func (m *MockGraphService) Run(webStateID string, graph *newinteraction.Graph, preserveGraph bool) error {
+func (m *MockGraphService) Run(webStateID string, graph *interaction.Graph, preserveGraph bool) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Run", webStateID, graph, preserveGraph)
 	ret0, _ := ret[0].(error)

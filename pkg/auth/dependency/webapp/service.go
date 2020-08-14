@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
 	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/base32"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -36,10 +36,10 @@ type Store interface {
 }
 
 type GraphService interface {
-	NewGraph(ctx *newinteraction.Context, intent newinteraction.Intent) (*newinteraction.Graph, error)
-	Get(instanceID string) (*newinteraction.Graph, error)
-	DryRun(webStateID string, fn func(*newinteraction.Context) (*newinteraction.Graph, error)) error
-	Run(webStateID string, graph *newinteraction.Graph, preserveGraph bool) error
+	NewGraph(ctx *interaction.Context, intent interaction.Intent) (*interaction.Graph, error)
+	Get(instanceID string) (*interaction.Graph, error)
+	DryRun(webStateID string, fn func(*interaction.Context) (*interaction.Graph, error)) error
+	Run(webStateID string, graph *interaction.Graph, preserveGraph bool) error
 }
 
 type CookieFactory interface {
@@ -97,7 +97,7 @@ func (s *Service) GetState(stateID string) (*State, error) {
 	return state, nil
 }
 
-func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph *newinteraction.Graph, err error) {
+func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph *interaction.Graph, err error) {
 	var stateError *apierrors.APIError
 	if stateID != "" {
 		state, err = s.GetState(stateID)
@@ -112,7 +112,7 @@ func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph
 		}
 		state.SetID(newID)
 		graph, err = s.get(state)
-		if err == nil || !errors.Is(err, newinteraction.ErrStateNotFound) {
+		if err == nil || !errors.Is(err, interaction.ErrStateNotFound) {
 			return
 		}
 
@@ -125,7 +125,7 @@ func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph
 		newStateID = NewID()
 	}
 
-	err = s.Graph.DryRun(newStateID, func(ctx *newinteraction.Context) (*newinteraction.Graph, error) {
+	err = s.Graph.DryRun(newStateID, func(ctx *interaction.Context) (*interaction.Graph, error) {
 		graph, err = s.Graph.NewGraph(ctx, intent.Intent)
 		if err != nil {
 			return nil, err
@@ -147,7 +147,7 @@ func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph
 	return
 }
 
-func (s *Service) Get(stateID string) (state *State, graph *newinteraction.Graph, err error) {
+func (s *Service) Get(stateID string) (state *State, graph *interaction.Graph, err error) {
 	state, err = s.GetState(stateID)
 	if err != nil {
 		return
@@ -157,13 +157,13 @@ func (s *Service) Get(stateID string) (state *State, graph *newinteraction.Graph
 	return
 }
 
-func (s *Service) get(state *State) (graph *newinteraction.Graph, err error) {
+func (s *Service) get(state *State) (graph *interaction.Graph, err error) {
 	graph, err = s.Graph.Get(state.GraphInstanceID)
 	if err != nil {
 		return
 	}
 
-	err = s.Graph.DryRun(state.ID, func(ctx *newinteraction.Context) (*newinteraction.Graph, error) {
+	err = s.Graph.DryRun(state.ID, func(ctx *interaction.Context) (*interaction.Graph, error) {
 		err = graph.Apply(ctx)
 		if err != nil {
 			return nil, err
@@ -187,7 +187,7 @@ func (s *Service) PostIntent(intent *Intent, inputer func() (interface{}, error)
 		}
 
 		result, err = s.post(state, inputer)
-		if err == nil || !errors.Is(err, newinteraction.ErrStateNotFound) {
+		if err == nil || !errors.Is(err, interaction.ErrStateNotFound) {
 			return result, err
 		}
 
@@ -201,10 +201,10 @@ func (s *Service) PostIntent(intent *Intent, inputer func() (interface{}, error)
 		UILocales:   intent.UILocales,
 	}
 
-	var graph *newinteraction.Graph
-	var edges []newinteraction.Edge
-	var clearCookie *newinteraction.ErrClearCookie
-	err = s.Graph.DryRun(state.ID, func(ctx *newinteraction.Context) (newGraph *newinteraction.Graph, err error) {
+	var graph *interaction.Graph
+	var edges []interaction.Edge
+	var clearCookie *interaction.ErrClearCookie
+	err = s.Graph.DryRun(state.ID, func(ctx *interaction.Context) (newGraph *interaction.Graph, err error) {
 		graph, err = s.Graph.NewGraph(ctx, intent.Intent)
 		if err != nil {
 			return
@@ -219,7 +219,7 @@ func (s *Service) PostIntent(intent *Intent, inputer func() (interface{}, error)
 
 		errors.As(err, &clearCookie)
 
-		var inputRequired *newinteraction.ErrInputRequired
+		var inputRequired *interaction.ErrInputRequired
 		if errors.As(err, &inputRequired) {
 			err = nil
 			newGraph = graph
@@ -255,14 +255,14 @@ func (s *Service) post(state *State, inputer func() (interface{}, error)) (resul
 	// Immutable state
 	state.SetID(NewID())
 
-	var edges []newinteraction.Edge
+	var edges []interaction.Edge
 	graph, err := s.Graph.Get(state.GraphInstanceID)
 	if err != nil {
 		return nil, err
 	}
 
-	var clearCookie *newinteraction.ErrClearCookie
-	err = s.Graph.DryRun(state.ID, func(ctx *newinteraction.Context) (*newinteraction.Graph, error) {
+	var clearCookie *interaction.ErrClearCookie
+	err = s.Graph.DryRun(state.ID, func(ctx *interaction.Context) (*interaction.Graph, error) {
 		input, err := inputer()
 		if err != nil {
 			return nil, err
@@ -273,12 +273,12 @@ func (s *Service) post(state *State, inputer func() (interface{}, error)) (resul
 			return nil, err
 		}
 
-		var newGraph *newinteraction.Graph
+		var newGraph *interaction.Graph
 		newGraph, edges, err = graph.Accept(ctx, input)
 
 		errors.As(err, &clearCookie)
 
-		var inputRequired *newinteraction.ErrInputRequired
+		var inputRequired *interaction.ErrInputRequired
 		if errors.As(err, &inputRequired) {
 			graph = newGraph
 			return newGraph, nil
@@ -299,7 +299,7 @@ func (s *Service) post(state *State, inputer func() (interface{}, error)) (resul
 	return
 }
 
-func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []newinteraction.Edge, inputError error, clearCookie *newinteraction.ErrClearCookie) (*Result, error) {
+func (s *Service) afterPost(state *State, graph *interaction.Graph, edges []interaction.Edge, inputError error, clearCookie *interaction.ErrClearCookie) (*Result, error) {
 	finished := graph != nil && len(edges) == 0 && inputError == nil
 	// The graph finished. Apply its effect permanently
 	if finished {
@@ -421,7 +421,7 @@ func (s *Service) afterPost(state *State, graph *newinteraction.Graph, edges []n
 }
 
 // nolint:gocyclo
-func (s *Service) deriveRedirectPath(graph *newinteraction.Graph) (path string) {
+func (s *Service) deriveRedirectPath(graph *interaction.Graph) (path string) {
 	switch graph.CurrentNode().(type) {
 	case *nodes.NodeSelectIdentityBegin:
 		switch intent := graph.Intent.(type) {
@@ -483,7 +483,7 @@ func (s *Service) deriveRedirectPath(graph *newinteraction.Graph) (path string) 
 	return
 }
 
-func (s *Service) collectExtras(node newinteraction.Node) map[string]interface{} {
+func (s *Service) collectExtras(node interaction.Node) map[string]interface{} {
 	switch node := node.(type) {
 	case *nodes.NodeForgotPasswordEnd:
 		return map[string]interface{}{
