@@ -3,7 +3,6 @@ package oob
 import (
 	"errors"
 	"fmt"
-	"net/url"
 	"sort"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn"
@@ -13,20 +12,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
-type EndpointsProvider interface {
-	BaseURL() *url.URL
-}
-
-type OTPMessageSender interface {
-	SendEmail(email string, opts otp.SendOptions, message config.EmailMessageConfig) error
-	SendSMS(phone string, opts otp.SendOptions, message config.SMSMessageConfig) error
-}
-
 type Provider struct {
-	Config           *config.AuthenticatorOOBConfig
-	Store            *Store
-	Clock            clock.Clock
-	OTPMessageSender OTPMessageSender
+	Config *config.AuthenticatorOOBConfig
+	Store  *Store
+	Clock  clock.Clock
 }
 
 func (p *Provider) Get(userID string, id string) (*Authenticator, error) {
@@ -96,39 +85,6 @@ func (p *Provider) GenerateCode(secret string, channel authn.AuthenticatorOOBCha
 	}
 
 	return code
-}
-
-func (p *Provider) SendCode(
-	channel authn.AuthenticatorOOBChannel,
-	target string,
-	code string,
-	messageType otp.MessageType,
-) (result *otp.CodeSendResult, err error) {
-	opts := otp.SendOptions{
-		OTP:         code,
-		URL:         "", // FIXME: send a login link to email?
-		MessageType: messageType,
-	}
-	switch channel {
-	case authn.AuthenticatorOOBChannelEmail:
-		err = p.OTPMessageSender.SendEmail(target, opts, p.Config.Email.Message)
-	case authn.AuthenticatorOOBChannelSMS:
-		err = p.OTPMessageSender.SendSMS(target, opts, p.Config.SMS.Message)
-	default:
-		panic("oob: unknown channel type: " + channel)
-	}
-
-	if err != nil {
-		return
-	}
-
-	result = &otp.CodeSendResult{
-		Target:       target,
-		Channel:      string(channel),
-		CodeLength:   len(code),
-		SendCooldown: OOBOTPSendCooldownSeconds,
-	}
-	return
 }
 
 func sortAuthenticators(as []*Authenticator) {

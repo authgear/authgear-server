@@ -107,8 +107,7 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context) (*otp.CodeSendRe
 		}
 	}
 
-	// TODO: generate verification link
-	result, err := ctx.Verification.SendCode(code, ctx.WebStateID)
+	result, err := ctx.VerificationCodeSender.SendCode(code, ctx.WebStateID)
 	if err != nil {
 		return nil, err
 	}

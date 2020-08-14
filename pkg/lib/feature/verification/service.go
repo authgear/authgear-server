@@ -2,7 +2,6 @@ package verification
 
 import (
 	"errors"
-	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -20,15 +19,6 @@ type AuthenticatorService interface {
 	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
 }
 
-type OTPMessageSender interface {
-	SendEmail(email string, opts otp.SendOptions, message config.EmailMessageConfig) error
-	SendSMS(phone string, opts otp.SendOptions, message config.SMSMessageConfig) error
-}
-
-type WebAppURLProvider interface {
-	VerifyIdentityURL(code string, webStateID string) *url.URL
-}
-
 type Store interface {
 	Create(code *Code) error
 	Get(id string) (*Code, error)
@@ -40,14 +30,12 @@ type Logger struct{ *log.Logger }
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("verification")} }
 
 type Service struct {
-	Logger           Logger
-	Config           *config.VerificationConfig
-	LoginID          *config.LoginIDConfig
-	Clock            clock.Clock
-	Authenticators   AuthenticatorService
-	OTPMessageSender OTPMessageSender
-	WebAppURLs       WebAppURLProvider
-	Store            Store
+	Logger         Logger
+	Config         *config.VerificationConfig
+	LoginID        *config.LoginIDConfig
+	Clock          clock.Clock
+	Authenticators AuthenticatorService
+	Store          Store
 }
 
 func (s *Service) isLoginIDKeyVerifiable(key string) bool {
@@ -267,27 +255,4 @@ func (s *Service) NewVerificationAuthenticator(code *Code) (*authenticator.Info,
 	}
 
 	return s.Authenticators.New(spec, "")
-}
-
-func (s *Service) SendCode(code *Code, webStateID string) (*otp.CodeSendResult, error) {
-	opts := otp.SendOptions{
-		OTP:         code.Code,
-		URL:         s.WebAppURLs.VerifyIdentityURL(code.Code, webStateID).String(),
-		MessageType: otp.MessageTypeVerification,
-	}
-
-	var err error
-	switch config.LoginIDKeyType(code.LoginIDType) {
-	case config.LoginIDKeyTypeEmail:
-		err = s.OTPMessageSender.SendEmail(code.LoginID, opts, s.Config.Email.Message)
-	case config.LoginIDKeyTypePhone:
-		err = s.OTPMessageSender.SendSMS(code.LoginID, opts, s.Config.SMS.Message)
-	default:
-		panic("verification: unsupported login ID type: " + code.LoginIDType)
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	return code.SendResult(), nil
 }

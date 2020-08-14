@@ -1,4 +1,4 @@
-package internalserver
+package handler
 
 import (
 	"net/http"
@@ -16,7 +16,7 @@ func ConfigureResolveRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/resolve")
 }
 
-//go:generate mockgen -source=resolve.go -destination=resolve_mock_test.go -package internalserver
+//go:generate mockgen -source=resolve.go -destination=resolve_mock_test.go -package handler
 
 type IdentityService interface {
 	ListByUser(userID string) ([]*identity.Info, error)

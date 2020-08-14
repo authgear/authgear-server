@@ -1,9 +1,8 @@
-package server
+package auth
 
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/auth/handler/internalserver"
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	webapphandler "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -14,33 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-func setupInternalRoutes(p *deps.RootProvider, configSource configsource.Source) *httproute.Router {
-	router := httproute.NewRouter()
-
-	router.Add(httproute.Route{
-		Methods:     []string{"GET"},
-		PathPattern: "/healthz",
-	}, http.HandlerFunc(httputil.HealthCheckHandler))
-
-	chain := httproute.Chain(
-		p.RootMiddleware(newRootRecoverMiddleware),
-		p.RootMiddleware(newSentryMiddleware),
-		&deps.RequestMiddleware{
-			RootProvider: p,
-			ConfigSource: configSource,
-		},
-		p.Middleware(newRequestRecoverMiddleware),
-		p.Middleware(newSessionMiddleware),
-	)
-
-	route := httproute.Route{Middleware: chain}
-
-	router.Add(internalserver.ConfigureResolveRoute(route), p.Handler(newSessionResolveHandler))
-
-	return router
-}
-
-func setupRoutes(p *deps.RootProvider, configSource configsource.Source) *httproute.Router {
+func NewRouter(p *deps.RootProvider, configSource configsource.Source) *httproute.Router {
 	router := httproute.NewRouter()
 
 	router.Add(httproute.Route{

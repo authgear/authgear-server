@@ -70,7 +70,7 @@ func sendOOBCode(
 	}
 
 	code := ctx.OOBAuthenticators.GenerateCode(secret, channel)
-	return ctx.OOBAuthenticators.SendCode(channel, target, code, messageType)
+	return ctx.OOBCodeSender.SendCode(channel, target, code, messageType)
 }
 
 func stageToAuthenticatorTag(stage interaction.AuthenticationStage) []string {

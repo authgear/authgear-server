@@ -55,7 +55,6 @@ var RequestDependencySet = wire.NewSet(
 		"Request",
 	),
 	ProvideRequestContext,
-	requestDeps,
 )
 
 var TaskDependencySet = wire.NewSet(
@@ -64,5 +63,4 @@ var TaskDependencySet = wire.NewSet(
 		"AppProvider",
 		"Context",
 	),
-	taskDeps,
 )

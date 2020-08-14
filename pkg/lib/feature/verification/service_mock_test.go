@@ -6,10 +6,7 @@ package verification
 
 import (
 	authenticator "github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	otp "github.com/authgear/authgear-server/pkg/lib/authn/otp"
-	config "github.com/authgear/authgear-server/pkg/lib/config"
 	gomock "github.com/golang/mock/gomock"
-	url "net/url"
 	reflect "reflect"
 )
 
@@ -69,94 +66,6 @@ func (m *MockAuthenticatorService) New(spec *authenticator.Spec, secret string) 
 func (mr *MockAuthenticatorServiceMockRecorder) New(spec, secret interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockAuthenticatorService)(nil).New), spec, secret)
-}
-
-// MockOTPMessageSender is a mock of OTPMessageSender interface
-type MockOTPMessageSender struct {
-	ctrl     *gomock.Controller
-	recorder *MockOTPMessageSenderMockRecorder
-}
-
-// MockOTPMessageSenderMockRecorder is the mock recorder for MockOTPMessageSender
-type MockOTPMessageSenderMockRecorder struct {
-	mock *MockOTPMessageSender
-}
-
-// NewMockOTPMessageSender creates a new mock instance
-func NewMockOTPMessageSender(ctrl *gomock.Controller) *MockOTPMessageSender {
-	mock := &MockOTPMessageSender{ctrl: ctrl}
-	mock.recorder = &MockOTPMessageSenderMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockOTPMessageSender) EXPECT() *MockOTPMessageSenderMockRecorder {
-	return m.recorder
-}
-
-// SendEmail mocks base method
-func (m *MockOTPMessageSender) SendEmail(email string, opts otp.SendOptions, message config.EmailMessageConfig) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendEmail", email, opts, message)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SendEmail indicates an expected call of SendEmail
-func (mr *MockOTPMessageSenderMockRecorder) SendEmail(email, opts, message interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendEmail", reflect.TypeOf((*MockOTPMessageSender)(nil).SendEmail), email, opts, message)
-}
-
-// SendSMS mocks base method
-func (m *MockOTPMessageSender) SendSMS(phone string, opts otp.SendOptions, message config.SMSMessageConfig) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendSMS", phone, opts, message)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SendSMS indicates an expected call of SendSMS
-func (mr *MockOTPMessageSenderMockRecorder) SendSMS(phone, opts, message interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendSMS", reflect.TypeOf((*MockOTPMessageSender)(nil).SendSMS), phone, opts, message)
-}
-
-// MockWebAppURLProvider is a mock of WebAppURLProvider interface
-type MockWebAppURLProvider struct {
-	ctrl     *gomock.Controller
-	recorder *MockWebAppURLProviderMockRecorder
-}
-
-// MockWebAppURLProviderMockRecorder is the mock recorder for MockWebAppURLProvider
-type MockWebAppURLProviderMockRecorder struct {
-	mock *MockWebAppURLProvider
-}
-
-// NewMockWebAppURLProvider creates a new mock instance
-func NewMockWebAppURLProvider(ctrl *gomock.Controller) *MockWebAppURLProvider {
-	mock := &MockWebAppURLProvider{ctrl: ctrl}
-	mock.recorder = &MockWebAppURLProviderMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockWebAppURLProvider) EXPECT() *MockWebAppURLProviderMockRecorder {
-	return m.recorder
-}
-
-// VerifyIdentityURL mocks base method
-func (m *MockWebAppURLProvider) VerifyIdentityURL(code, webStateID string) *url.URL {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyIdentityURL", code, webStateID)
-	ret0, _ := ret[0].(*url.URL)
-	return ret0
-}
-
-// VerifyIdentityURL indicates an expected call of VerifyIdentityURL
-func (mr *MockWebAppURLProviderMockRecorder) VerifyIdentityURL(code, webStateID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyIdentityURL", reflect.TypeOf((*MockWebAppURLProvider)(nil).VerifyIdentityURL), code, webStateID)
 }
 
 // MockStore is a mock of Store interface

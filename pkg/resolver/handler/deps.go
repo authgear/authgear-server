@@ -1,4 +1,4 @@
-package internalserver
+package handler
 
 import (
 	"github.com/google/wire"

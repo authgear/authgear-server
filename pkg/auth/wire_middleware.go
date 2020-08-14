@@ -1,6 +1,6 @@
 //+build wireinject
 
-package server
+package auth
 
 import (
 	"github.com/google/wire"
@@ -12,17 +12,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
-var rootMiddlewareDependencySet = wire.NewSet(
-	deps.RootDependencySet,
-)
-
-var middlewareDependencySet = wire.NewSet(
-	deps.RequestDependencySet,
-)
-
 func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	panic(wire.Build(
-		rootMiddlewareDependencySet,
+		deps.RootDependencySet,
 		middleware.DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*middleware.SentryMiddleware)),
 	))
@@ -30,7 +22,7 @@ func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 
 func newRootRecoverMiddleware(p *deps.RootProvider) httproute.Middleware {
 	panic(wire.Build(
-		rootMiddlewareDependencySet,
+		deps.RootDependencySet,
 		middleware.DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*middleware.RecoverMiddleware)),
 	))
@@ -38,49 +30,49 @@ func newRootRecoverMiddleware(p *deps.RootProvider) httproute.Middleware {
 
 func newRequestRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
-		middlewareDependencySet,
+		DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*middleware.RecoverMiddleware)),
 	))
 }
 
 func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
-		middlewareDependencySet,
+		DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*middleware.CORSMiddleware)),
 	))
 }
 
 func newCSPMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
-		middlewareDependencySet,
+		DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*webapp.CSPMiddleware)),
 	))
 }
 
 func newCSRFMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
-		middlewareDependencySet,
+		DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*webapp.CSRFMiddleware)),
 	))
 }
 
 func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
-		middlewareDependencySet,
+		DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*webapp.AuthEntryPointMiddleware)),
 	))
 }
 
 func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
-		middlewareDependencySet,
+		DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*session.Middleware)),
 	))
 }
 
 func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
-		middlewareDependencySet,
+		DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*webapp.StateMiddleware)),
 	))
 }

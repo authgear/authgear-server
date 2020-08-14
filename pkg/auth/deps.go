@@ -1,33 +1,53 @@
-package deps
+package auth
 
 import (
 	"github.com/google/wire"
 
-	handlerinternal "github.com/authgear/authgear-server/pkg/auth/handler/internalserver"
 	handleroauth "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	viewmodelswebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
+	identityanonymous "github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
+	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	oidchandler "github.com/authgear/authgear-server/pkg/lib/oauth/oidc/handler"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func ProvideOAuthMetadataProviders(oauth *oauth.MetadataProvider, oidc *oidc.MetadataProvider) []handleroauth.MetadataProvider {
 	return []handleroauth.MetadataProvider{oauth, oidc}
 }
 
-var requestDeps = wire.NewSet(
-	commonDeps,
+var DependencySet = wire.NewSet(
+	deps.RequestDependencySet,
+	deps.CommonDependencySet,
+
+	wire.Bind(new(webapp.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
+	wire.Bind(new(webapp.GraphService), new(*interaction.Service)),
+	wire.Bind(new(webapp.CookieFactory), new(*httputil.CookieFactory)),
+
+	wire.NewSet(
+		wire.Struct(new(EndpointsProvider), "*"),
+
+		wire.Bind(new(oauth.EndpointsProvider), new(*EndpointsProvider)),
+		wire.Bind(new(webapp.EndpointsProvider), new(*EndpointsProvider)),
+		wire.Bind(new(handlerwebapp.SetupTOTPEndpointsProvider), new(*EndpointsProvider)),
+		wire.Bind(new(oidc.EndpointsProvider), new(*EndpointsProvider)),
+		wire.Bind(new(sso.EndpointsProvider), new(*EndpointsProvider)),
+		wire.Bind(new(otp.EndpointsProvider), new(*EndpointsProvider)),
+	),
 
 	webapp.DependencySet,
 	wire.Bind(new(oauthhandler.WebAppAuthenticateURLProvider), new(*webapp.AuthenticateURLProvider)),
@@ -36,14 +56,7 @@ var requestDeps = wire.NewSet(
 	wire.Bind(new(forgotpassword.URLProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(verification.WebAppURLProvider), new(*webapp.URLProvider)),
 
-	oauthhandler.DependencySet,
-	oidchandler.DependencySet,
-
 	middleware.DependencySet,
-
-	handlerinternal.DependencySet,
-	wire.Bind(new(handlerinternal.IdentityService), new(*identityservice.Service)),
-	wire.Bind(new(handlerinternal.VerificationService), new(*verification.Service)),
 
 	handleroauth.DependencySet,
 	wire.Bind(new(handleroauth.ProtocolAuthorizeHandler), new(*oauthhandler.AuthorizationHandler)),
