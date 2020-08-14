@@ -14,6 +14,8 @@ type ServerConfig struct {
 	ListenAddr string `envconfig:"LISTEN_ADDR" default:"0.0.0.0:3000"`
 	// ResolverListenAddr sets the listen address of the resolver server
 	ResolverListenAddr string `envconfig:"RESOLVER_LISTEN_ADDR" default:"0.0.0.0:3001"`
+	// AdminListenAddr sets the listen address of the admin API server
+	AdminListenAddr string `envconfig:"ADMIN_LISTEN_ADDR" default:"0.0.0.0:3002"`
 
 	// TrustProxy sets whether HTTP headers from proxy are to be trusted
 	TrustProxy bool `envconfig:"TRUST_PROXY" default:"false"`

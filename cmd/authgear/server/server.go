@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/admin"
 	"github.com/authgear/authgear-server/pkg/auth"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
@@ -24,6 +25,7 @@ import (
 type Controller struct {
 	ServeMain     bool
 	ServeResolver bool
+	ServeAdmin    bool
 
 	logger   *log.Logger
 	ctx      context.Context
@@ -36,6 +38,7 @@ type serverType string
 const (
 	serverMain     serverType = "Main Server"
 	serverResolver serverType = "Resolver Server"
+	serverAdminAPI serverType = "Admin API Server"
 )
 
 func (c *Controller) Start() {
@@ -79,6 +82,9 @@ func (c *Controller) Start() {
 	}
 	if c.ServeResolver {
 		c.startServer(cfg, serverResolver, cfg.ResolverListenAddr, resolver.NewRouter(p, configSource))
+	}
+	if c.ServeAdmin {
+		c.startServer(cfg, serverAdminAPI, cfg.AdminListenAddr, admin.NewRouter(p, configSource))
 	}
 
 	sig := make(chan os.Signal, 1)

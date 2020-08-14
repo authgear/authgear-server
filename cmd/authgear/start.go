@@ -9,7 +9,7 @@ import (
 )
 
 var cmdStart = &cobra.Command{
-	Use:   "start [main|resolver]...",
+	Use:   "start [main|resolver|admin]...",
 	Short: "Start specified servers",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctrl := &server.Controller{}
@@ -25,6 +25,8 @@ var cmdStart = &cobra.Command{
 				ctrl.ServeMain = true
 			case "resolver":
 				ctrl.ServeResolver = true
+			case "admin":
+				ctrl.ServeAdmin = true
 			default:
 				log.Fatalf("unknown server type: %s", typ)
 			}
