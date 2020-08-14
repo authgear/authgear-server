@@ -27,6 +27,7 @@ func NewRouter(p *deps.RootProvider, configSource configsource.Source) *httprout
 		&deps.RequestMiddleware{
 			RootProvider: p,
 			ConfigSource: configSource,
+			ServerType:   configsource.ServerTypeMain,
 		},
 		p.Middleware(newRequestRecoverMiddleware),
 		p.Middleware(newSessionMiddleware),

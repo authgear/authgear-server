@@ -58,18 +58,26 @@ func (s *LocalFile) Close() error {
 	return nil
 }
 
-func (s *LocalFile) ProvideConfig(ctx context.Context, r *http.Request) (*config.Config, error) {
+func (s *LocalFile) ProvideConfig(ctx context.Context, r *http.Request, server ServerType) (*config.Config, error) {
 	if s.ServerConfig.DevMode {
 		// Accept all hosts under development mode
 		return s.config, nil
 	}
 
+	var acceptHosts []string
+	switch server {
+	case ServerTypeMain, ServerTypeResolver:
+		acceptHosts = s.config.AppConfig.HTTP.Hosts
+	case ServerTypeAdminAPI:
+		acceptHosts = s.config.AppConfig.HTTP.AdminHosts
+	}
+
 	host := httputil.GetHost(r, s.ServerConfig.TrustProxy)
-	for _, h := range s.config.AppConfig.HTTP.Hosts {
+	for _, h := range acceptHosts {
 		if h == host {
 			return s.config, nil
 		}
 	}
-	s.Logger.Debugf("expected host %v, got %s", s.config.AppConfig.HTTP.Hosts, host)
+	s.Logger.Debugf("expected host %v, got %s", acceptHosts, host)
 	return nil, fmt.Errorf("request host is not valid: %w", ErrAppNotFound)
 }
