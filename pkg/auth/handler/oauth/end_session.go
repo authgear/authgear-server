@@ -3,9 +3,9 @@ package oauth
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/oidc/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -23,7 +23,7 @@ func NewEndSessionHandlerLogger(lf *log.Factory) EndSessionHandlerLogger {
 }
 
 type ProtocolEndSessionHandler interface {
-	Handle(auth.AuthSession, protocol.EndSessionRequest, *http.Request, http.ResponseWriter) error
+	Handle(session.Session, protocol.EndSessionRequest, *http.Request, http.ResponseWriter) error
 }
 
 type EndSessionHandler struct {
@@ -45,7 +45,7 @@ func (h *EndSessionHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	err = h.Database.WithTx(func() error {
-		sess := auth.GetSession(r.Context())
+		sess := session.GetSession(r.Context())
 		return h.EndSessionHandler.Handle(sess, req, r, rw)
 	})
 

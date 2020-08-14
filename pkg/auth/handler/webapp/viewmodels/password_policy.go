@@ -1,7 +1,7 @@
 package viewmodels
 
 import (
-	"github.com/authgear/authgear-server/pkg/auth/dependency/authenticator/password"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 )
 
 type PasswordPolicyViewModel struct {

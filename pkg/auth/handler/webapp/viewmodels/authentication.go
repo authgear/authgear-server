@@ -1,9 +1,9 @@
 package viewmodels
 
 import (
-	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
-	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
 // Ideally we should use type alias to present
@@ -33,7 +33,7 @@ type AuthenticationViewModel struct {
 	LoginPageTextLoginIDInputType string
 }
 
-func NewAuthenticationViewModelWithGraph(graph *newinteraction.Graph) AuthenticationViewModel {
+func NewAuthenticationViewModelWithGraph(graph *interaction.Graph) AuthenticationViewModel {
 	var node IdentityCandidatesGetter
 	if !graph.FindLastNode(&node) {
 		panic("webapp: no node with identity candidates found")

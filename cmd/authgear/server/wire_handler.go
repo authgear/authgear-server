@@ -10,7 +10,7 @@ import (
 	handlerinternal "github.com/authgear/authgear-server/pkg/auth/handler/internalserver"
 	handleroauth "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
-	"github.com/authgear/authgear-server/pkg/deps"
+	"github.com/authgear/authgear-server/pkg/lib/deps"
 )
 
 func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {

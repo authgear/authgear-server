@@ -4,13 +4,12 @@ import (
 	"context"
 )
 
-type Spec struct {
-	Name  string
-	Param interface{}
+type Param interface {
+	TaskName() string
 }
 
 type Task interface {
-	Run(context context.Context, param interface{}) error
+	Run(context context.Context, param Param) error
 }
 
 type Registry interface {
@@ -18,5 +17,5 @@ type Registry interface {
 }
 
 type Queue interface {
-	Enqueue(spec Spec)
+	Enqueue(taskParam Param)
 }

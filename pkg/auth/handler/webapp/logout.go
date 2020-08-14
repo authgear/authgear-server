@@ -3,12 +3,12 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/template"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -31,7 +31,7 @@ func ConfigureLogoutRoute(route httproute.Route) httproute.Route {
 }
 
 type LogoutSessionManager interface {
-	Logout(auth.AuthSession, http.ResponseWriter) error
+	Logout(session.Session, http.ResponseWriter) error
 }
 
 type LogoutHandler struct {
@@ -56,7 +56,7 @@ func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 		h.Database.WithTx(func() error {
-			sess := auth.GetSession(r.Context())
+			sess := session.GetSession(r.Context())
 			h.SessionManager.Logout(sess, w)
 			redirectURI := webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy)
 			http.Redirect(w, r, redirectURI, http.StatusFound)

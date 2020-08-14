@@ -6,8 +6,8 @@ import (
 
 	"github.com/lestrrat-go/jwx/jwt"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -19,7 +19,7 @@ func ConfigureUserInfoRoute(route httproute.Route) httproute.Route {
 }
 
 type ProtocolUserInfoProvider interface {
-	LoadUserClaims(auth.AuthSession) (jwt.Token, error)
+	LoadUserClaims(session.Session) (jwt.Token, error)
 }
 
 type UserInfoHandlerLogger struct{ *log.Logger }
@@ -35,10 +35,10 @@ type UserInfoHandler struct {
 }
 
 func (h *UserInfoHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	session := auth.GetSession(r.Context())
+	s := session.GetSession(r.Context())
 	var claims jwt.Token
 	err := h.Database.WithTx(func() (err error) {
-		claims, err = h.UserInfoProvider.LoadUserClaims(session)
+		claims, err = h.UserInfoProvider.LoadUserClaims(s)
 		return
 	})
 

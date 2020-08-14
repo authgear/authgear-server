@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
-	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/template"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -84,7 +84,7 @@ type SetupOOBOTPViewModel struct {
 	Alternatives []CreateAuthenticatorAlternative
 }
 
-func NewSetupOOBOTPViewModel(stateID string, graph *newinteraction.Graph, inputType string) (*SetupOOBOTPViewModel, error) {
+func NewSetupOOBOTPViewModel(stateID string, graph *interaction.Graph, inputType string) (*SetupOOBOTPViewModel, error) {
 	var node SetupOOBOTPNode
 	if !graph.FindLastNode(&node) {
 		panic("setup_oob_otp: expected graph has node implementing SetupOOBOTPNode")
@@ -172,7 +172,7 @@ type SetupOOBOTPHandler struct {
 	WebApp        WebAppService
 }
 
-func (h *SetupOOBOTPHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph) (map[string]interface{}, error) {
+func (h *SetupOOBOTPHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	var anyError interface{}

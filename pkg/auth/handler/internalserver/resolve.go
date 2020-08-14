@@ -3,9 +3,9 @@ package internalserver
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/auth"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
-	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -46,16 +46,18 @@ func (h *ResolveHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		http.Error(rw, "internal error", http.StatusInternalServerError)
 		return
 	}
-	info.PopulateHeaders(rw)
+	if info != nil {
+		info.PopulateHeaders(rw)
+	}
 }
 
-func (h *ResolveHandler) resolve(r *http.Request) (*authn.Info, error) {
-	valid := auth.IsValidAuthn(r.Context())
-	userID := auth.GetUserID(r.Context())
-	session := auth.GetSession(r.Context())
+func (h *ResolveHandler) resolve(r *http.Request) (*session.Info, error) {
+	valid := session.HasValidSession(r.Context())
+	userID := session.GetUserID(r.Context())
+	s := session.GetSession(r.Context())
 
-	var info *authn.Info
-	if valid && userID != nil && session != nil {
+	var info *session.Info
+	if valid && userID != nil && s != nil {
 		identities, err := h.Identities.ListByUser(*userID)
 		if err != nil {
 			return nil, err
@@ -74,9 +76,9 @@ func (h *ResolveHandler) resolve(r *http.Request) (*authn.Info, error) {
 			return nil, err
 		}
 
-		info = authn.NewAuthnInfo(session.AuthnAttrs(), isAnonymous, isVerified)
+		info = session.NewInfo(s.SessionAttrs(), isAnonymous, isVerified)
 	} else if !valid {
-		info = &authn.Info{IsValid: false}
+		info = &session.Info{IsValid: false}
 	}
 
 	return info, nil
