@@ -16,9 +16,13 @@ type SQLBuilder struct {
 	forTenant bool
 }
 
+func newSQLBuilder() sq.StatementBuilderType {
+	return sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+}
+
 func NewSQLBuilder(namespace string, schema string, appID string) SQLBuilder {
 	return SQLBuilder{
-		builder:   sq.StatementBuilder.PlaceholderFormat(sq.Dollar),
+		builder:   newSQLBuilder(),
 		namespace: namespace,
 		schema:    schema,
 		appID:     appID,

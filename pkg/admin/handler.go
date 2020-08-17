@@ -23,8 +23,10 @@ var graphqlHandler = handler.New(&handler.Config{
 })
 
 type GraphQLHandler struct {
+	GraphQLContext *graphql.Context
 }
 
 func (h *GraphQLHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	graphqlHandler.ContextHandler(r.Context(), rw, r)
+	ctx := graphql.WithContext(r.Context(), h.GraphQLContext)
+	graphqlHandler.ContextHandler(ctx, rw, r)
 }
