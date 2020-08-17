@@ -54,21 +54,17 @@ In addition to the template language tag, sometimes it is preferred to localize 
 
 For example, `auth_ui_login.html` defines the HTML structure and is used for all languages. What the developer wants to localize is the text.
 
-## localize
-
-A special function named `localize` can be used to format a localized string.
+Each translation key is parsed as template so you can just use `{{ template }}` to refer it. This allows HTML in the translation.
 
 ```html
-<input type="password" placeholder="{{ localize "enter.password" }}">
+<input type="password" placeholder="{{ template "enter.password" }}">
 <!-- <input type="password placeholder="Enter Password"> -->
 ```
 
 ```html
-<p>{{ localize "email.sent" .email .name }}</p>
+<p>{{ template "email.sent" (makemap "email" .email "name" .name) }}</p>
 <!-- <p>Hi John, an email has been sent to john.doe@example.com</p -->
 ```
-
-`localize` takes a translation key, followed any arguments required by that translation key. If the key is not found, the key itself is returned.
 
 ## Translation file
 
