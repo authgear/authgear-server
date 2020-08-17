@@ -204,6 +204,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	graphQLHandler := &GraphQLHandler{
 		GraphQLContext: graphqlContext,
+		Database:       handle,
 	}
 	return graphQLHandler
 }
