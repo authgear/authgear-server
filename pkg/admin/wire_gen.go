@@ -202,8 +202,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	graphqlContext := &graphql.Context{
 		Users: userLoader,
 	}
+	serverConfig := rootProvider.ServerConfig
 	graphQLHandler := &GraphQLHandler{
 		GraphQLContext: graphqlContext,
+		Config:         serverConfig,
 		Database:       handle,
 	}
 	return graphQLHandler
