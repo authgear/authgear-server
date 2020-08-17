@@ -14,6 +14,9 @@ require (
 	github.com/google/wire v0.4.0
 	github.com/gopherjs/gopherjs v0.0.0-20190430165422-3e4dfb77656c // indirect
 	github.com/gorilla/csrf v1.7.0
+	github.com/graphql-go/graphql v0.7.9
+	github.com/graphql-go/handler v0.2.3
+	github.com/graphql-go/relay v0.0.0-20171208134043-54350098cfe5
 	github.com/iawaknahc/gomessageformat v0.0.0-20200812041905-0386aa24db28
 	github.com/iawaknahc/jsonschema v0.0.0-20200626071738-c1e8a657d1a9
 	github.com/iawaknahc/originmatcher v0.0.0-20200622040912-c5bfd3560192

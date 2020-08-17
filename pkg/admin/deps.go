@@ -12,4 +12,6 @@ var DependencySet = wire.NewSet(
 	deps.CommonDependencySet,
 
 	middleware.DependencySet,
+
+	wire.Struct(new(GraphQLHandler), "*"),
 )

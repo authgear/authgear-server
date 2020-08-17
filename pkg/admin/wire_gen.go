@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"net/http"
 )
 
 // Injectors from wire.go:
@@ -40,4 +41,9 @@ func newRequestRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Logger: recoveryLogger,
 	}
 	return recoverMiddleware
+}
+
+func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
+	graphQLHandler := &GraphQLHandler{}
+	return graphQLHandler
 }

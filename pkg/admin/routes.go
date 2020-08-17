@@ -30,12 +30,7 @@ func NewRouter(p *deps.RootProvider, configSource configsource.Source) *httprout
 
 	route := httproute.Route{Middleware: chain}
 
-	router.Add(
-		route.WithMethods("GET").WithPathPattern("/"),
-		http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-			writer.Write([]byte("Hello World!"))
-		}),
-	)
+	router.Add(ConfigureGraphQLRoute(route), p.Handler(newGraphQLHandler))
 
 	return router
 }
