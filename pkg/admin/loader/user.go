@@ -17,15 +17,10 @@ func (l *UserLoader) Get(id string) (interface{}, error) {
 }
 
 func (l *UserLoader) QueryPage(args PageArgs) (*PageResult, error) {
-	count, err := l.Users.Count()
-	if err != nil {
-		return nil, err
-	}
-
 	values, err := l.Users.QueryPage(args.After, args.Before, args.First, args.Last)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewPageResult(args, values, count), nil
+	return NewPageResult(args, values, l.Users.Count), nil
 }

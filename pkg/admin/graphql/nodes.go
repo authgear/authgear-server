@@ -47,7 +47,7 @@ func node(schema *graphql.Object, modelType interface{}, resolver NodeResolver) 
 type Connection struct {
 	Edges      []*relay.Edge  `json:"edges"`
 	PageInfo   relay.PageInfo `json:"pageInfo"`
-	TotalCount uint64         `json:"totalCount"`
+	TotalCount interface{}    `json:"totalCount"`
 }
 
 func NewConnection(result *loader.PageResult) *Connection {

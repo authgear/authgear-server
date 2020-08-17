@@ -48,14 +48,16 @@ func NewPageArgs(args relay.ConnectionArguments) PageArgs {
 	return pageArgs
 }
 
+type TotalCountFunc func() (uint64, error)
+
 type PageResult struct {
 	HasPreviousPage bool
 	HasNextPage     bool
-	TotalCount      uint64
+	TotalCount      interface{}
 	Values          []model.PageItem
 }
 
-func NewPageResult(args PageArgs, values []model.PageItem, totalCount uint64) *PageResult {
+func NewPageResult(args PageArgs, values []model.PageItem, totalCount TotalCountFunc) *PageResult {
 	hasPreviousPage := true
 	hasNextPage := true
 
@@ -76,7 +78,9 @@ func NewPageResult(args PageArgs, values []model.PageItem, totalCount uint64) *P
 	return &PageResult{
 		HasPreviousPage: hasPreviousPage,
 		HasNextPage:     hasNextPage,
-		TotalCount:      totalCount,
-		Values:          values,
+		TotalCount: func() (interface{}, error) {
+			return totalCount()
+		},
+		Values: values,
 	}
 }
