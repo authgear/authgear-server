@@ -9,15 +9,15 @@
 <div class="simple-form vertical-form form-fields-container">
 
 <div class="nav-bar">
-	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
+	<button class="btn back-btn" type="button" title="{{ template "back-button-title" }}"></button>
 </div>
 
 <div class="title primary-txt">
 	{{ if eq $.InputType "phone" }}
-	{{ localize "setup-oob-otp-title--sms" }}
+	{{ template "setup-oob-otp-title--sms" }}
 	{{ end }}
 	{{ if eq $.InputType "email" }}
-	{{ localize "setup-oob-otp-title--email" }}
+	{{ template "setup-oob-otp-title--email" }}
 	{{ end }}
 </div>
 
@@ -41,37 +41,37 @@
 		</option>
 		{{ end }}
 	</select>
-	<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
+	<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_national_number" placeholder="{{ template "phone-number-placeholder" }}">
 </div>
 {{ else }}
-<input class="input text-input primary-txt" type="{{ $.InputType }}" name="x_email" placeholder="{{ localize "email-placeholder" }}">
+<input class="input text-input primary-txt" type="{{ $.InputType }}" name="x_email" placeholder="{{ template "email-placeholder" }}">
 {{ end }}
 
 {{ if eq $.InputType "email" }}
 <a class="link align-self-flex-start" href="{{ call $.MakeURLState "" "x_input_type" "phone" }}">
-	{{ localize "setup-oob-otp-use-phone-description" }}
+	{{ template "setup-oob-otp-use-phone-description" }}
 </a>
 {{ end }}
 
 {{ if eq $.InputType "phone" }}
 <a class="link align-self-flex-start" href="{{ call $.MakeURLState "" "x_input_type" "email" }}">
-	{{ localize "setup-oob-otp-use-email-description" }}
+	{{ template "setup-oob-otp-use-email-description" }}
 </a>
 {{ end }}
 
 {{ range $.Alternatives }}
 {{ if eq .Type "totp" }}
-<a class="link align-self-flex-start" href="{{ .URL }}">{{ localize "setup-totp-instead" }}</a>
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "setup-totp-instead" }}</a>
 {{ end }}
 {{ if eq .Type "oob_otp" }}
-<a class="link align-self-flex-start" href="{{ .URL }}">{{ localize "setup-oob-otp-instead" }}</a>
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "setup-oob-otp-instead" }}</a>
 {{ end }}
 {{ if eq .Type "password" }}
-<a class="link align-self-flex-start" href="{{ .URL }}">{{ localize "setup-password-instead" }}</a>
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "setup-password-instead" }}</a>
 {{ end }}
 {{ end }}
 
-<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
+<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
 
 </form>
 

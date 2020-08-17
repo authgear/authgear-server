@@ -12,19 +12,19 @@
 				{{ $.CSRFField }}
 				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_provider_alias" value="{{ .provider_alias }}" data-form-xhr="false">
 					{{- if eq .provider_type "apple" -}}
-					{{ localize "sign-up-apple" }}
+					{{ template "sign-up-apple" }}
 					{{- end -}}
 					{{- if eq .provider_type "google" -}}
-					{{ localize "sign-up-google" }}
+					{{ template "sign-up-google" }}
 					{{- end -}}
 					{{- if eq .provider_type "facebook" -}}
-					{{ localize "sign-up-facebook" }}
+					{{ template "sign-up-facebook" }}
 					{{- end -}}
 					{{- if eq .provider_type "linkedin" -}}
-					{{ localize "sign-up-linkedin" }}
+					{{ template "sign-up-linkedin" }}
 					{{- end -}}
 					{{- if eq .provider_type "azureadv2" -}}
-					{{ localize "sign-up-azureadv2" }}
+					{{ template "sign-up-azureadv2" }}
 					{{- end -}}
 				</button>
 				</form>
@@ -43,7 +43,7 @@
 				{{ end }}
 			{{ end }}
 			{{ if $has_oauth }}{{ if $has_login_id }}
-			<div class="primary-txt sso-loginid-separator">{{ localize "sso-login-id-separator" }}</div>
+			<div class="primary-txt sso-loginid-separator">{{ template "sso-login-id-separator" }}</div>
 			{{ end }}{{ end }}
 
 			{{ template "ERROR" . }}
@@ -69,7 +69,7 @@
 							</option>
 							{{ end }}
 						</select>
-						<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
+						<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_national_number" placeholder="{{ template "phone-number-placeholder" }}">
 					</div>
 				{{ else }}
 					<input class="input text-input primary-txt" type="{{ $.x_login_id_input_type }}" name="x_login_id" placeholder="{{ .login_id_type }}">
@@ -81,13 +81,13 @@
 				{{ if eq .type "login_id" }}{{ if not (eq .login_id_key $.x_login_id_key) }}
 					<a class="link align-self-flex-start"
 						href="{{ call $.MakeURLState "" "x_login_id_key" .login_id_key "x_login_id_input_type" .login_id_input_type}}">
-						{{ localize "use-login-id-key" .login_id_key }}
+						{{ template "use-login-id-key" (makemap "key" .login_id_key) }}
 					</a>
 				{{ end }}{{ end }}
 				{{ end }}
 
 				<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">
-					{{ localize "next-button-label" }}
+					{{ template "next-button-label" }}
 				</button>
 			</form>
 		</div>

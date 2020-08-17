@@ -10,14 +10,14 @@
 
 {{ if $.IdentityDisplayID }}
 <div class="nav-bar">
-	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
+	<button class="btn back-btn" type="button" title="{{ template "back-button-title" }}"></button>
 </div>
 
 {{ if eq $.VerificationCodeChannel "sms" }}
-<div class="title primary-txt">{{ localize "verify-user-page-title--sms" }}</div>
+<div class="title primary-txt">{{ template "verify-user-page-title--sms" }}</div>
 {{ end }}
 {{ if eq $.VerificationCodeChannel "email" }}
-<div class="title primary-txt">{{ localize "verify-user-page-title--email" }}</div>
+<div class="title primary-txt">{{ template "verify-user-page-title--email" }}</div>
 {{ end }}
 
 {{ end }}
@@ -25,23 +25,23 @@
 {{ template "ERROR" . }}
 
 {{ if $.IdentityDisplayID }}
-<div class="description primary-txt">{{ localize "verify-user-description" $.VerificationCodeLength $.IdentityDisplayID }}</div>
+<div class="description primary-txt">{{ template "verify-user-description" (makemap "length" $.VerificationCodeLength "target" $.IdentityDisplayID) }}</div>
 
 <form class="vertical-form form-fields-container" method="post" novalidate>
 {{ $.CSRFField }}
 
-<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_password" placeholder="{{ localize "verify-user-placeholder" }}" value="{{ $.VerificationCode }}">
-<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
+<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_password" placeholder="{{ template "verify-user-placeholder" }}" value="{{ $.VerificationCode }}">
+<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
 </form>
 
 <form class="link verify-user-trigger-form" method="post" novalidate>
 {{ $.CSRFField }}
 
-<span class="primary-txt">{{ localize "verify-user-resend-button-hint" }}</span>
+<span class="primary-txt">{{ template "verify-user-resend-button-hint" }}</span>
 <button id="resend-button" class="anchor" type="submit" name="trigger" value="true"
 	data-cooldown="{{ $.VerificationCodeSendCooldown }}"
-	data-label="{{ localize "verify-user-resend-button-label" }}"
-	data-label-unit="{{ localize "verify-user-resend-button-label--unit" }}">{{ localize "verify-user-resend-button-label" }}</button>
+	data-label="{{ template "verify-user-resend-button-label" }}"
+	data-label-unit="{{ template "verify-user-resend-button-label--unit" }}">{{ template "verify-user-resend-button-label" }}</button>
 </form>
 
 {{ end }}

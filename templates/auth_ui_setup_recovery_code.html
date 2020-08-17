@@ -9,11 +9,11 @@
 <div class="simple-form vertical-form form-fields-container">
 
 <div class="nav-bar">
-	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
+	<button class="btn back-btn" type="button" title="{{ template "back-button-title" }}"></button>
 </div>
 
 <div class="title primary-txt">
-	{{ localize "recovery-code-title" }}
+	{{ template "recovery-code-title" }}
 </div>
 
 {{ template "ERROR" . }}
@@ -22,7 +22,7 @@
 
 {{ $.CSRFField }}
 
-<p class="description primary-txt">{{ localize "recovery-code-storage-description" }}</p>
+<p class="description primary-txt">{{ template "recovery-code-storage-description" }}</p>
 
 <div class="recovery-codes">
 	{{ range $.RecoveryCodes }}
@@ -30,11 +30,11 @@
 	{{ end }}
 </div>
 
-<p class="description primary-txt">{{ localize "recovery-code-consumption-description" }}</p>
+<p class="description primary-txt">{{ template "recovery-code-consumption-description" }}</p>
 
 <div class="setup-recovery-code-buttons">
-	<button class="btn primary-btn" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
-	<a class="btn primary-btn" target="_blank" href="{{ call $.MakeURLState "" "download" "true" }}">{{ localize "download-button-label" }}</a>
+	<button class="btn primary-btn" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
+	<a class="btn primary-btn" target="_blank" href="{{ call $.MakeURLState "" "download" "true" }}">{{ template "download-button-label" }}</a>
 </div>
 
 </form>

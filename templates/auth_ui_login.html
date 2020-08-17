@@ -12,19 +12,19 @@
 				{{ $.CSRFField }}
 				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_provider_alias" value="{{ .provider_alias }}" data-form-xhr="false">
 					{{- if eq .provider_type "apple" -}}
-					{{ localize "sign-in-apple" }}
+					{{ template "sign-in-apple" }}
 					{{- end -}}
 					{{- if eq .provider_type "google" -}}
-					{{ localize "sign-in-google" }}
+					{{ template "sign-in-google" }}
 					{{- end -}}
 					{{- if eq .provider_type "facebook" -}}
-					{{ localize "sign-in-facebook" }}
+					{{ template "sign-in-facebook" }}
 					{{- end -}}
 					{{- if eq .provider_type "linkedin" -}}
-					{{ localize "sign-in-linkedin" }}
+					{{ template "sign-in-linkedin" }}
 					{{- end -}}
 					{{- if eq .provider_type "azureadv2" -}}
-					{{ localize "sign-in-azureadv2" }}
+					{{ template "sign-in-azureadv2" }}
 					{{- end -}}
 				</button>
 				</form>
@@ -43,7 +43,7 @@
 				{{ end }}
 			{{ end }}
 			{{ if $has_oauth }}{{ if $has_login_id }}
-			<div class="primary-txt sso-loginid-separator">{{ localize "sso-login-id-separator" }}</div>
+			<div class="primary-txt sso-loginid-separator">{{ template "sso-login-id-separator" }}</div>
 			{{ end }}{{ end }}
 
 			{{ template "ERROR" . }}
@@ -65,33 +65,33 @@
 						</option>
 						{{ end }}
 					</select>
-					<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
+					<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_national_number" placeholder="{{ template "phone-number-placeholder" }}">
 				</div>
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if $.x_login_id_input_type }}{{ if not (eq $.x_login_id_input_type "phone") }}{{ if (not (eq $.LoginPageTextLoginIDVariant "none")) }}
-				<input class="input text-input primary-txt" type="{{ $.LoginPageTextLoginIDInputType }}" name="x_login_id" placeholder="{{ localize "login-id-placeholder" $.LoginPageTextLoginIDVariant }}">
+				<input class="input text-input primary-txt" type="{{ $.LoginPageTextLoginIDInputType }}" name="x_login_id" placeholder="{{ template "login-id-placeholder" (makemap "variant" $.LoginPageTextLoginIDVariant) }}">
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if (not (eq $.LoginPageTextLoginIDVariant "none")) }}
-				<a class="link align-self-flex-start" href="{{ call $.MakeURL "" "x_login_id_input_type" $.LoginPageTextLoginIDInputType }}">{{ localize "use-text-login-id-description" $.LoginPageTextLoginIDVariant }}</a>
+				<a class="link align-self-flex-start" href="{{ call $.MakeURL "" "x_login_id_input_type" $.LoginPageTextLoginIDInputType }}">{{ template "use-text-login-id-description" (makemap "variant" $.LoginPageTextLoginIDVariant) }}</a>
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if $.x_login_id_input_type }}{{ if not (eq $.x_login_id_input_type "phone") }}{{ if $.LoginPageLoginIDHasPhone }}
-				<a class="link align-self-flex-start" href="{{ call $.MakeURLState "" "x_login_id_input_type" "phone" }}">{{ localize "use-phone-login-id-description" }}</a>
+				<a class="link align-self-flex-start" href="{{ call $.MakeURLState "" "x_login_id_input_type" "phone" }}">{{ template "use-phone-login-id-description" }}</a>
 				{{ end }}{{ end }}{{ end }}
 
 				<div class="link">
-					<span class="primary-text">{{ localize "signup-button-hint" }}</span>
-					<a href="{{ call $.MakeURLState "/signup" }}">{{ localize "signup-button-label" }}</a>
+					<span class="primary-text">{{ template "signup-button-hint" }}</span>
+					<a href="{{ call $.MakeURLState "/signup" }}">{{ template "signup-button-label" }}</a>
 				</div>
 
 				{{ if $.ForgotPasswordEnabled }}
-				<a class="link align-self-flex-start" href="{{ call $.MakeURL "/forgot_password" }}">{{ localize "forgot-password-button-label" }}</a>
+				<a class="link align-self-flex-start" href="{{ call $.MakeURL "/forgot_password" }}">{{ template "forgot-password-button-label" }}</a>
 				{{ end }}
 
 				{{ if or $.LoginPageLoginIDHasPhone (not (eq $.LoginPageTextLoginIDVariant "none")) }}
-				<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
+				<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
 				{{ end }}
 			</form>
 		</div>
