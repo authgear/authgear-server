@@ -51,15 +51,7 @@ func (e *Engine) renderHTML(ctx *RenderContext, resolved *Resolved, data interfa
 	// This is required by the documentation.
 	t.Funcs(htmltemplate.FuncMap{
 		messageformat.TemplateRuntimeFuncName: messageformat.TemplateRuntimeFunc,
-		"makemap": func(pairs ...interface{}) map[string]interface{} {
-			out := make(map[string]interface{})
-			for i := 0; i < len(pairs); i += 2 {
-				key := pairs[i].(string)
-				value := pairs[i+1]
-				out[key] = value
-			}
-			return out
-		},
+		"makemap":                             MakeMap,
 	})
 
 	// Parse the main template.
