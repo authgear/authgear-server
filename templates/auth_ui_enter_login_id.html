@@ -9,14 +9,14 @@
 <div class="simple-form vertical-form form-fields-container">
 
 <div class="nav-bar">
-	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
+	<button class="btn back-btn" type="button" title="{{ template "back-button-title" }}"></button>
 </div>
 
 <div class="title primary-txt">
 	{{ if $.IdentityID }}
-	{{ localize "enter-login-id-page-title--change" $.LoginIDKey }}
+	{{ template "enter-login-id-page-title--change" (makemap "key" $.LoginIDKey) }}
 	{{ else }}
-	{{ localize "enter-login-id-page-title--add" $.LoginIDKey }}
+	{{ template "enter-login-id-page-title--add" (makemap "key" $.LoginIDKey) }}
 	{{ end }}
 </div>
 
@@ -40,17 +40,17 @@
 		</option>
 		{{ end }}
 	</select>
-	<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_national_number" placeholder="{{ localize "phone-number-placeholder" }}">
+	<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_national_number" placeholder="{{ template "phone-number-placeholder" }}">
 </div>
 {{ else }}
-<input class="input text-input primary-txt" type="{{ .LoginIDInputType }}" name="x_login_id" placeholder="{{ localize "login-id-placeholder" .LoginIDType }}">
+<input class="input text-input primary-txt" type="{{ .LoginIDInputType }}" name="x_login_id" placeholder="{{ template "login-id-placeholder" (makemap "variant" .LoginIDType) }}">
 {{ end }}
 
 <div class="enter-login-id-buttons">
-	<button form="main-form" class="btn primary-btn" type="submit" name="x_action" value="add_or_update">{{ localize "next-button-label" }}</button>
+	<button form="main-form" class="btn primary-btn" type="submit" name="x_action" value="add_or_update">{{ template "next-button-label" }}</button>
 
 	{{ if .IdentityID }}
-	<button form="remove-form" class="anchor" type="submit" name="x_action" value="remove">{{ localize "disconnect-button-label" }}</button>
+	<button form="remove-form" class="anchor" type="submit" name="x_action" value="remove">{{ template "disconnect-button-label" }}</button>
 	{{ end }}
 </div>
 

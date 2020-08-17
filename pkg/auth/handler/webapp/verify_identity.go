@@ -3,29 +3,28 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/identity"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/intents"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
-	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	"github.com/authgear/authgear-server/pkg/lib/infra/template"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 const (
-	TemplateItemTypeAuthUIVerifyIdentityHTML config.TemplateItemType = "auth_ui_verify_identity.html"
+	TemplateItemTypeAuthUIVerifyIdentityHTML string = "auth_ui_verify_identity.html"
 )
 
-var TemplateAuthUIVerifyIdentityHTML = template.Spec{
-	Type:        TemplateItemTypeAuthUIVerifyIdentityHTML,
-	IsHTML:      true,
-	Translation: TemplateItemTypeAuthUITranslationJSON,
-	Defines:     defines,
-	Components:  components,
+var TemplateAuthUIVerifyIdentityHTML = template.T{
+	Type:                    TemplateItemTypeAuthUIVerifyIdentityHTML,
+	IsHTML:                  true,
+	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
+	Defines:                 defines,
+	ComponentTemplateTypes:  components,
 }
 
 const VerifyIdentityRequestSchema = "VerifyIdentityRequestSchema"
@@ -78,7 +77,7 @@ func (h *VerifyIdentityHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	}
 }
 
-func (h *VerifyIdentityHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph) (map[string]interface{}, error) {
+func (h *VerifyIdentityHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)

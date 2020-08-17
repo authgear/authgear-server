@@ -1,14 +1,13 @@
 package webapp
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/template"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 const (
-	TemplateItemTypeAuthUIHTMLHeadHTML config.TemplateItemType = "auth_ui_html_head.html"
-	TemplateItemTypeAuthUIHeaderHTML   config.TemplateItemType = "auth_ui_header.html"
-	TemplateItemTypeAuthUIFooterHTML   config.TemplateItemType = "auth_ui_footer.html"
+	TemplateItemTypeAuthUIHTMLHeadHTML string = "auth_ui_html_head.html"
+	TemplateItemTypeAuthUIHeaderHTML   string = "auth_ui_header.html"
+	TemplateItemTypeAuthUIFooterHTML   string = "auth_ui_footer.html"
 )
 
 // nolint: gosec
@@ -19,63 +18,63 @@ const definePasswordPolicy = `
 {{ range .PasswordPolicies }}
   {{ if eq .Name "PasswordTooShort" }}
   <li class="primary-txt password-policy length {{ template "PASSWORD_POLICY_CLASS" . }}" data-min-length="{{ .Info.min_length}}">
-    {{ localize "password-policy-minimum-length" .Info.min_length }}
+    {{ template "password-policy-minimum-length" (makemap "length" .Info.min_length) }}
   </li>
   {{ end }}
   {{ if eq .Name "PasswordUppercaseRequired" }}
   <li class="primary-txt password-policy uppercase {{ template "PASSWORD_POLICY_CLASS" . }}">
-    {{ localize "password-policy-uppercase" }}
+    {{ template "password-policy-uppercase" }}
   </li>
   {{ end }}
   {{ if eq .Name "PasswordLowercaseRequired" }}
   <li class="primary-txt password-policy lowercase {{ template "PASSWORD_POLICY_CLASS" . }}">
-    {{ localize "password-policy-lowercase" }}
+    {{ template "password-policy-lowercase" }}
   </li>
   {{ end }}
   {{ if eq .Name "PasswordDigitRequired" }}
   <li class="primary-txt password-policy digit {{ template "PASSWORD_POLICY_CLASS" . }}">
-    {{ localize "password-policy-digit" }}
+    {{ template "password-policy-digit" }}
   </li>
   {{ end }}
   {{ if eq .Name "PasswordSymbolRequired" }}
   <li class="primary-txt password-policy symbol {{ template "PASSWORD_POLICY_CLASS" . }}">
-    {{ localize "password-policy-symbol" }}
+    {{ template "password-policy-symbol" }}
   </li>
   {{ end }}
   {{ if eq .Name "PasswordContainingExcludedKeywords" }}
   <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
-    {{ localize "password-policy-banned-words" }}
+    {{ template "password-policy-banned-words" }}
   </li>
   {{ end }}
   {{ if eq .Name "PasswordReused" }}
   <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
-    {{ localize "password-policy-reuse" .Info.history_size .Info.history_days }}
+    {{ template "password-policy-reuse" (makemap "size" .Info.history_size "day" .Info.history_days) }}
   </li>
   {{ end }}
   {{ if eq .Name "PasswordBelowGuessableLevel" }}
     {{ if eq .Info.min_level 1 }}
     <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
-      {{ localize "password-policy-guessable-level-1" }}
+      {{ template "password-policy-guessable-level-1" }}
     </li>
     {{ end }}
     {{ if eq .Info.min_level 2 }}
     <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
-      {{ localize "password-policy-guessable-level-2" }}
+      {{ template "password-policy-guessable-level-2" }}
     </li>
     {{ end }}
     {{ if eq .Info.min_level 3 }}
     <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
-      {{ localize "password-policy-guessable-level-3" }}
+      {{ template "password-policy-guessable-level-3" }}
     </li>
     {{ end }}
     {{ if eq .Info.min_level 4 }}
     <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
-      {{ localize "password-policy-guessable-level-4" }}
+      {{ template "password-policy-guessable-level-4" }}
     </li>
     {{ end }}
     {{ if eq .Info.min_level 5 }}
     <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
-      {{ localize "password-policy-guessable-level-5" }}
+      {{ template "password-policy-guessable-level-5" }}
     </li>
     {{ end }}
   {{ end }}
@@ -106,23 +105,23 @@ const defineError = `
 		{{ range .Error.info.causes }}
 		{{ if (eq .kind "required") }}
 			{{ if (call $.SliceContains .details.missing "x_login_id" ) }}
-			<li class="error-txt">{{ localize "error-login-id-required" $.LoginPageTextLoginIDVariant }}</li>
+			<li class="error-txt">{{ template "error-login-id-required" (makemap "variant" $.LoginPageTextLoginIDVariant) }}</li>
 			{{ else if (call $.SliceContains .details.missing "x_password" ) }}
-			<li class="error-txt">{{ localize "error-password-or-code-required" }}</li>
+			<li class="error-txt">{{ template "error-password-or-code-required" }}</li>
 			{{ else if (call $.SliceContains .details.missing "x_calling_code" ) }}
-			<li class="error-txt">{{ localize "error-calling-code-required" }}</li>
+			<li class="error-txt">{{ template "error-calling-code-required" }}</li>
 			{{ else if (call $.SliceContains .details.missing "x_national_number" ) }}
-			<li class="error-txt">{{ localize "error-phone-number-required" }}</li>
+			<li class="error-txt">{{ template "error-phone-number-required" }}</li>
 			{{ else }}
 			<li class="error-txt">{{ . }}</li>
 			{{ end }}
 		{{ else if (eq .kind "format") }}
 			{{ if (eq .details.format "phone") }}
-			<li class="error-txt">{{ localize "error-phone-number-format" }}</li>
+			<li class="error-txt">{{ template "error-phone-number-format" }}</li>
 			{{ else if (eq .details.format "email") }}
-			<li class="error-txt">{{ localize "error-invalid-email" }}</li>
+			<li class="error-txt">{{ template "error-invalid-email" }}</li>
 			{{ else if (eq .details.format "username") }}
-			<li class="error-txt">{{ localize "error-invalid-username" }}</li>
+			<li class="error-txt">{{ template "error-invalid-username" }}</li>
 			{{ else }}
 			<li class="error-txt">{{ . }}</li>
 			{{ end }}
@@ -131,15 +130,15 @@ const defineError = `
 		{{ end }}
 		{{ end }}
 	{{ else if eq .Error.reason "InvalidCredentials" }}
-		<li class="error-txt">{{ localize "error-invalid-credentials" }}</li>
+		<li class="error-txt">{{ template "error-invalid-credentials" }}</li>
 	{{ else if eq .Error.reason "PasswordPolicyViolated" }}
 		<!-- This error is handled differently -->
 	{{ else if eq .Error.reason "PasswordResetFailed" }}
-		<li class="error-txt">{{ localize "error-password-reset-failed" }}</li>
+		<li class="error-txt">{{ template "error-password-reset-failed" }}</li>
 	{{ else if eq .Error.reason "DuplicatedIdentity" }}
-		<li class="error-txt">{{ localize "error-duplicated-identity" }}</li>
+		<li class="error-txt">{{ template "error-duplicated-identity" }}</li>
 	{{ else if eq .Error.reason "InvalidIdentityRequest" }}
-		<li class="error-txt">{{ localize "error-remove-last-identity" }}</li>
+		<li class="error-txt">{{ template "error-remove-last-identity" }}</li>
 	{{ else }}
 		<li class="error-txt">{{ .Error.message }}</li>
 	{{ end }}
@@ -154,22 +153,22 @@ var defines = []string{
 	definePasswordPolicyClass,
 }
 
-var TemplateAuthUIHTMLHeadHTML = template.Spec{
+var TemplateAuthUIHTMLHeadHTML = template.T{
 	Type:   TemplateItemTypeAuthUIHTMLHeadHTML,
 	IsHTML: true,
 }
 
-var TemplateAuthUIHeaderHTML = template.Spec{
+var TemplateAuthUIHeaderHTML = template.T{
 	Type:   TemplateItemTypeAuthUIHeaderHTML,
 	IsHTML: true,
 }
 
-var TemplateAuthUIFooterHTML = template.Spec{
+var TemplateAuthUIFooterHTML = template.T{
 	Type:   TemplateItemTypeAuthUIFooterHTML,
 	IsHTML: true,
 }
 
-var components = []config.TemplateItemType{
+var components = []string{
 	TemplateItemTypeAuthUIHTMLHeadHTML,
 	TemplateItemTypeAuthUIHeaderHTML,
 	TemplateItemTypeAuthUIFooterHTML,

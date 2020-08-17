@@ -9,64 +9,64 @@
 <div class="simple-form vertical-form form-fields-container">
 
 <div class="nav-bar">
-	<button class="btn back-btn" type="button" title="{{ localize "back-button-title" }}"></button>
+	<button class="btn back-btn" type="button" title="{{ template "back-button-title" }}"></button>
 </div>
 
 {{ if $.OOBOTPChannel }}
 {{ if eq $.OOBOTPChannel "sms" }}
-<div class="title primary-txt">{{ localize "oob-otp-page-title--sms" }}</div>
+<div class="title primary-txt">{{ template "oob-otp-page-title--sms" }}</div>
 {{ end }}
 {{ if eq $.OOBOTPChannel "email" }}
-<div class="title primary-txt">{{ localize "oob-otp-page-title--email" }}</div>
+<div class="title primary-txt">{{ template "oob-otp-page-title--email" }}</div>
 {{ end }}
 {{ end }}
 
 {{ template "ERROR" . }}
 
 {{ if $.OOBOTPTarget }}
-<div class="description primary-txt">{{ localize "oob-otp-description" $.OOBOTPCodeLength $.OOBOTPTarget }}</div>
+<div class="description primary-txt">{{ template "oob-otp-description" (makemap "length" $.OOBOTPCodeLength "target" $.OOBOTPTarget) }}</div>
 {{ end }}
 
 <form class="vertical-form form-fields-container" method="post" novalidate>
 {{ $.CSRFField }}
 
-<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_password" placeholder="{{ localize "oob-otp-placeholder" }}">
+<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_password" placeholder="{{ template "oob-otp-placeholder" }}">
 
 {{ range $.AuthenticationAlternatives }}
 {{ if eq .Type "device_token" }}
 <div class="device-token-control align-self-flex-start">
 <input class="device-token-input" id="device-token" type="checkbox" name="x_device_token" value="true">
-<label class="device-token-label primary-txt" for="device-token">{{ localize "create-device-token-label" }}</label>
+<label class="device-token-label primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
 </div>
 {{ end }}
 {{ end }}
 
-<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ localize "next-button-label" }}</button>
+<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
 
 {{ range $.AuthenticationAlternatives }}
 {{ if eq .Type "totp" }}
-<a class="link align-self-flex-start" href="{{ .URL }}">{{ localize "enter-totp-instead" }}</a>
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "enter-totp-instead" }}</a>
 {{ end }}
 {{ if eq .Type "password" }}
-<a class="link align-self-flex-start" href="{{ .URL }}">{{ localize "enter-password-instead" }}</a>
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "enter-password-instead" }}</a>
 {{ end }}
 {{ if eq .Type "oob_otp" }}
-<a class="link align-self-flex-start" href="{{ .URL }}">{{ localize "enter-oob-otp-instead" .MaskedTarget }}</a>
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "enter-oob-otp-instead" (makemap "target" .MaskedTarget) }}</a>
 {{ end }}
 {{ if eq .Type "recovery_code" }}
-<a class="link align-self-flex-start" href="{{ .URL }}">{{ localize "enter-recovery-code-instead" }}</a>
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "enter-recovery-code-instead" }}</a>
 {{ end }}
 {{ end }}
 
 {{ range $.CreateAuthenticatorAlternatives }}
 {{ if eq .Type "totp" }}
-<a class="link align-self-flex-start" href="{{ .URL }}">{{ localize "setup-totp-instead" }}</a>
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "setup-totp-instead" }}</a>
 {{ end }}
 {{ if eq .Type "oob_otp" }}
-<a class="link align-self-flex-start" href="{{ .URL }}">{{ localize "setup-oob-otp-instead" }}</a>
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "setup-oob-otp-instead" }}</a>
 {{ end }}
 {{ if eq .Type "password" }}
-<a class="link align-self-flex-start" href="{{ .URL }}">{{ localize "setup-password-instead" }}</a>
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "setup-password-instead" }}</a>
 {{ end }}
 {{ end }}
 
@@ -75,11 +75,11 @@
 <form class="link oob-otp-trigger-form" method="post" novalidate>
 {{ $.CSRFField }}
 
-<span class="primary-txt">{{ localize "oob-otp-resend-button-hint" }}</span>
+<span class="primary-txt">{{ template "oob-otp-resend-button-hint" }}</span>
 <button id="resend-button" class="anchor" type="submit" name="trigger" value="true"
 	data-cooldown="{{ $.OOBOTPCodeSendCooldown }}"
-	data-label="{{ localize "oob-otp-resend-button-label" }}"
-	data-label-unit="{{ localize "oob-otp-resend-button-label--unit" }}">{{ localize "oob-otp-resend-button-label" }}</button>
+	data-label="{{ template "oob-otp-resend-button-label" }}"
+	data-label-unit="{{ template "oob-otp-resend-button-label--unit" }}">{{ template "oob-otp-resend-button-label" }}</button>
 </form>
 
 </div>

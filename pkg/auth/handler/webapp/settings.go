@@ -4,21 +4,20 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
-	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/template"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 const (
-	TemplateItemTypeAuthUISettingsHTML config.TemplateItemType = "auth_ui_settings.html"
+	TemplateItemTypeAuthUISettingsHTML string = "auth_ui_settings.html"
 )
 
-var TemplateAuthUISettingsHTML = template.Spec{
-	Type:        TemplateItemTypeAuthUISettingsHTML,
-	IsHTML:      true,
-	Translation: TemplateItemTypeAuthUITranslationJSON,
-	Defines:     defines,
-	Components:  components,
+var TemplateAuthUISettingsHTML = template.T{
+	Type:                    TemplateItemTypeAuthUISettingsHTML,
+	IsHTML:                  true,
+	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
+	Defines:                 defines,
+	ComponentTemplateTypes:  components,
 }
 
 func ConfigureSettingsRoute(route httproute.Route) httproute.Route {

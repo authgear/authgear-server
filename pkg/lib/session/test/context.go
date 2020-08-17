@@ -1,0 +1,59 @@
+package test
+
+import (
+	"context"
+	"net/http"
+	"time"
+
+	"github.com/authgear/authgear-server/pkg/lib/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/session/access"
+)
+
+type MockSession struct {
+	Type  session.Type
+	ID    string
+	Attrs *session.Attrs
+}
+
+func NewMockSession() *MockSession {
+	return &MockSession{
+		Type: session.TypeIdentityProvider,
+		ID:   "session-id",
+		Attrs: &session.Attrs{
+			UserID: "user-id",
+		},
+	}
+}
+
+func (m MockSession) SessionAttrs() *session.Attrs { return m.Attrs }
+
+func (m MockSession) SessionID() string { return m.ID }
+
+func (m MockSession) SessionType() session.Type { return m.Type }
+
+func (m MockSession) GetClientID() string { return "" }
+
+func (m MockSession) GetCreatedAt() time.Time { return time.Time{} }
+
+func (m MockSession) GetAccessInfo() *access.Info { return nil }
+
+func (m MockSession) ToAPIModel() *model.Session { return nil }
+
+func (m *MockSession) SetUserID(id string) *MockSession {
+	m.Attrs.UserID = id
+	return m
+}
+
+func (m *MockSession) SetSessionID(id string) *MockSession {
+	m.ID = id
+	return m
+}
+
+func (m *MockSession) ToRequest(r *http.Request) *http.Request {
+	return r.WithContext(m.ToContext(r.Context()))
+}
+
+func (m *MockSession) ToContext(ctx context.Context) context.Context {
+	return session.WithSession(ctx, m)
+}

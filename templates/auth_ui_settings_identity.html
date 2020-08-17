@@ -7,7 +7,7 @@
 {{ template "auth_ui_header.html" . }}
 
 <div class="settings-identity">
-  <h1 class="title primary-txt">{{ localize "settings-identity-title" }}</h1>
+  <h1 class="title primary-txt">{{ template "settings-identity-title" }}</h1>
 
   {{ template "ERROR" . }}
 
@@ -23,33 +23,33 @@
       <h2 class="identity-name primary-txt">
          {{ if eq .type "oauth" }}
            {{ if eq .provider_type "google" }}
-           {{ localize "settings-identity-oauth-google" }}
+           {{ template "settings-identity-oauth-google" }}
            {{ end }}
            {{ if eq .provider_type "apple" }}
-           {{ localize "settings-identity-oauth-apple" }}
+           {{ template "settings-identity-oauth-apple" }}
            {{ end }}
            {{ if eq .provider_type "facebook" }}
-           {{ localize "settings-identity-oauth-facebook" }}
+           {{ template "settings-identity-oauth-facebook" }}
            {{ end }}
            {{ if eq .provider_type "linkedin" }}
-           {{ localize "settings-identity-oauth-linkedin" }}
+           {{ template "settings-identity-oauth-linkedin" }}
            {{ end }}
            {{ if eq .provider_type "azureadv2" }}
-           {{ localize "settings-identity-oauth-azureadv2" }}
+           {{ template "settings-identity-oauth-azureadv2" }}
            {{ end }}
          {{ end }}
          {{ if eq .type "login_id" }}
            {{ if eq .login_id_type "email" }}
-           {{ localize "settings-identity-login-id-email" }}
+           {{ template "settings-identity-login-id-email" }}
            {{ end }}
            {{ if eq .login_id_type "phone" }}
-           {{ localize "settings-identity-login-id-phone" }}
+           {{ template "settings-identity-login-id-phone" }}
            {{ end }}
            {{ if eq .login_id_type "username" }}
-           {{ localize "settings-identity-login-id-username" }}
+           {{ template "settings-identity-login-id-username" }}
            {{ end }}
            {{ if eq .login_id_type "raw" }}
-           {{ localize "settings-identity-login-id-raw" }}
+           {{ template "settings-identity-login-id-raw" }}
            {{ end }}
          {{ end }}
       </h2>
@@ -68,29 +68,29 @@
         <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
         <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
         {{ if .identity_id }}
-        <button class="btn destructive-btn" type="submit" name="x_action" value="unlink_oauth">{{ localize "disconnect-button-label" }}</button>
+        <button class="btn destructive-btn" type="submit" name="x_action" value="unlink_oauth">{{ template "disconnect-button-label" }}</button>
         {{ else }}
-        <button class="btn primary-btn" type="submit" name="x_action" value="link_oauth" data-form-xhr="false">{{ localize "connect-button-label" }}</button>
+        <button class="btn primary-btn" type="submit" name="x_action" value="link_oauth" data-form-xhr="false">{{ template "connect-button-label" }}</button>
         {{ end }}
         </form>
       {{ end }}
 
       {{ if eq .type "login_id" }}
         {{ if .identity_id }}
-        <a class="btn secondary-btn" href="{{ call $.MakeURL "/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type "x_identity_id" .identity_id }}">{{ localize "change-button-label" }}</a>
+        <a class="btn secondary-btn" href="{{ call $.MakeURL "/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type "x_identity_id" .identity_id }}">{{ template "change-button-label" }}</a>
 
         {{ if or (eq $verification_status "pending") (eq $verification_status "required") }}
           <form method="post" novalidate>
             {{ $.CSRFField }}
             <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
-            <button class="btn secondary-btn" type="submit" name="x_action" value="verify_login_id">{{ localize "verify-button-label" }}</button>
+            <button class="btn secondary-btn" type="submit" name="x_action" value="verify_login_id">{{ template "verify-button-label" }}</button>
           </form>
         {{ else if eq $verification_status "verified" }}
-          <span class="identity-verified">{{ localize "verification-status-label--verified" }}</span>
+          <span class="identity-verified">{{ template "verification-status-label--verified" }}</span>
         {{ end }}
 
         {{ else }}
-        <a class="btn secondary-btn" href="{{ call $.MakeURL "/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type }}">{{ localize "connect-button-label" }}</a>
+        <a class="btn secondary-btn" href="{{ call $.MakeURL "/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type }}">{{ template "connect-button-label" }}</a>
         {{ end }}
       {{ end }}
     </div>

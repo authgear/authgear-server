@@ -11,10 +11,14 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/deps"
+	"github.com/authgear/authgear-server/pkg/auth"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/infra/task"
+	"github.com/authgear/authgear-server/pkg/resolver"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/version"
+	"github.com/authgear/authgear-server/pkg/worker"
 )
 
 type Controller struct {
@@ -33,10 +37,17 @@ func (c *Controller) Start() {
 		golog.Fatalf("failed to load server config: %s", err)
 	}
 
-	p, err := deps.NewRootProvider(cfg)
+	var wrk *worker.Worker
+	taskQueueFactory := deps.TaskQueueFactory(func(provider *deps.AppProvider) task.Queue {
+		return newInProcessQueue(provider, wrk.Executor)
+	})
+
+	p, err := deps.NewRootProvider(cfg, taskQueueFactory)
 	if err != nil {
 		golog.Fatalf("failed to setup server: %s", err)
 	}
+
+	wrk = worker.NewWorker(p)
 
 	// From now, we should use c.logger to log.
 	c.logger = p.LoggerFactory.New("server")
@@ -56,12 +67,11 @@ func (c *Controller) Start() {
 	shutdown := make(chan struct{})
 	c.shutdown = shutdown
 
-	setupTasks(p.TaskExecutor, p)
 	if c.ServePublic {
-		c.startServer(cfg, "public server", cfg.PublicListenAddr, setupRoutes(p, configSource))
+		c.startServer(cfg, "public server", cfg.PublicListenAddr, auth.NewRouter(p, configSource))
 	}
 	if c.ServeInternal {
-		c.startServer(cfg, "internal server", cfg.InternalListenAddr, setupInternalRoutes(p, configSource))
+		c.startServer(cfg, "internal server", cfg.InternalListenAddr, resolver.NewRouter(p, configSource))
 	}
 
 	sig := make(chan os.Signal, 1)

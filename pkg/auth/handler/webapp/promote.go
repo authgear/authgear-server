@@ -3,29 +3,29 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/newinteraction/nodes"
-	"github.com/authgear/authgear-server/pkg/auth/dependency/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
-	"github.com/authgear/authgear-server/pkg/core/authn"
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	"github.com/authgear/authgear-server/pkg/lib/infra/template"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 const (
-	TemplateItemTypeAuthUIPromoteHTML config.TemplateItemType = "auth_ui_promote.html"
+	TemplateItemTypeAuthUIPromoteHTML string = "auth_ui_promote.html"
 )
 
-var TemplateAuthUIPromoteHTML = template.Spec{
-	Type:        TemplateItemTypeAuthUIPromoteHTML,
-	IsHTML:      true,
-	Translation: TemplateItemTypeAuthUITranslationJSON,
-	Defines:     defines,
-	Components:  components,
+var TemplateAuthUIPromoteHTML = template.T{
+	Type:                    TemplateItemTypeAuthUIPromoteHTML,
+	IsHTML:                  true,
+	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
+	Defines:                 defines,
+	ComponentTemplateTypes:  components,
 }
 
 const PromoteWithLoginIDRequestSchema = "PromoteWithLoginIDRequestSchema"
@@ -82,7 +82,7 @@ type PromoteHandler struct {
 	WebApp        WebAppService
 }
 
-func (h *PromoteHandler) GetData(r *http.Request, state *webapp.State, graph *newinteraction.Graph) (map[string]interface{}, error) {
+func (h *PromoteHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	var anyError interface{}
 	if state != nil {
