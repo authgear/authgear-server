@@ -8,25 +8,25 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	"github.com/authgear/authgear-server/pkg/lib/infra/template"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 const (
-	TemplateItemTypeAuthUISignupHTML config.TemplateItemType = "auth_ui_signup.html"
+	TemplateItemTypeAuthUISignupHTML string = "auth_ui_signup.html"
 )
 
-var TemplateAuthUISignupHTML = template.Spec{
-	Type:        TemplateItemTypeAuthUISignupHTML,
-	IsHTML:      true,
-	Translation: TemplateItemTypeAuthUITranslationJSON,
-	Defines:     defines,
-	Components:  components,
+var TemplateAuthUISignupHTML = template.T{
+	Type:                    TemplateItemTypeAuthUISignupHTML,
+	IsHTML:                  true,
+	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
+	Defines:                 defines,
+	ComponentTemplateTypes:  components,
 }
 
 const SignupWithLoginIDRequestSchema = "SignupWithLoginIDRequestSchema"

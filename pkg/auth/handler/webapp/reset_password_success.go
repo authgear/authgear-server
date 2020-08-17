@@ -5,23 +5,22 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	"github.com/authgear/authgear-server/pkg/lib/infra/template"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 const (
 	// nolint: gosec
-	TemplateItemTypeAuthUIResetPasswordSuccessHTML config.TemplateItemType = "auth_ui_reset_password_success.html"
+	TemplateItemTypeAuthUIResetPasswordSuccessHTML string = "auth_ui_reset_password_success.html"
 )
 
-var TemplateAuthUIResetPasswordSuccessHTML = template.Spec{
-	Type:        TemplateItemTypeAuthUIResetPasswordSuccessHTML,
-	IsHTML:      true,
-	Translation: TemplateItemTypeAuthUITranslationJSON,
-	Defines:     defines,
-	Components:  components,
+var TemplateAuthUIResetPasswordSuccessHTML = template.T{
+	Type:                    TemplateItemTypeAuthUIResetPasswordSuccessHTML,
+	IsHTML:                  true,
+	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
+	Defines:                 defines,
+	ComponentTemplateTypes:  components,
 }
 
 func ConfigureResetPasswordSuccessRoute(route httproute.Route) httproute.Route {

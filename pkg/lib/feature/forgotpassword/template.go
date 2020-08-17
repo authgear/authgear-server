@@ -1,25 +1,24 @@
 package forgotpassword
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/template"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 const (
-	TemplateItemTypeForgotPasswordEmailTXT  config.TemplateItemType = "forgot_password_email.txt"
-	TemplateItemTypeForgotPasswordEmailHTML config.TemplateItemType = "forgot_password_email.html"
-	TemplateItemTypeForgotPasswordSMSTXT    config.TemplateItemType = "forgot_password_sms.txt"
+	TemplateItemTypeForgotPasswordEmailTXT  string = "forgot_password_email.txt"
+	TemplateItemTypeForgotPasswordEmailHTML string = "forgot_password_email.html"
+	TemplateItemTypeForgotPasswordSMSTXT    string = "forgot_password_sms.txt"
 )
 
-var TemplateForgotPasswordEmailTXT = template.Spec{
+var TemplateForgotPasswordEmailTXT = template.T{
 	Type: TemplateItemTypeForgotPasswordEmailTXT,
 }
 
-var TemplateForgotPasswordEmailHTML = template.Spec{
+var TemplateForgotPasswordEmailHTML = template.T{
 	Type:   TemplateItemTypeForgotPasswordEmailHTML,
 	IsHTML: true,
 }
 
-var TemplateForgotPasswordSMSTXT = template.Spec{
+var TemplateForgotPasswordSMSTXT = template.T{
 	Type: TemplateItemTypeForgotPasswordSMSTXT,
 }

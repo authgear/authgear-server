@@ -12,11 +12,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
-	"github.com/authgear/authgear-server/pkg/lib/infra/template"
 	"github.com/authgear/authgear-server/pkg/lib/tasks"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 type AuthenticatorService interface {
@@ -151,7 +151,12 @@ func (p *Provider) sendEmail(email string, code string) (err error) {
 	preferredLanguageTags := intl.GetPreferredLanguageTags(p.Context)
 	data["appname"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.Localization.FallbackLanguage), p.AppMetadata, "app_name")
 
-	textBody, err := p.TemplateEngine.RenderTemplate(
+	renderCtx := &template.RenderContext{
+		PreferredLanguageTags: preferredLanguageTags,
+	}
+
+	textBody, err := p.TemplateEngine.Render(
+		renderCtx,
 		TemplateItemTypeForgotPasswordEmailTXT,
 		data,
 	)
@@ -159,7 +164,8 @@ func (p *Provider) sendEmail(email string, code string) (err error) {
 		return
 	}
 
-	htmlBody, err := p.TemplateEngine.RenderTemplate(
+	htmlBody, err := p.TemplateEngine.Render(
+		renderCtx,
 		TemplateItemTypeForgotPasswordEmailHTML,
 		data,
 	)
@@ -195,7 +201,12 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 	preferredLanguageTags := intl.GetPreferredLanguageTags(p.Context)
 	data["appname"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.Localization.FallbackLanguage), p.AppMetadata, "app_name")
 
-	body, err := p.TemplateEngine.RenderTemplate(
+	renderCtx := &template.RenderContext{
+		PreferredLanguageTags: preferredLanguageTags,
+	}
+
+	body, err := p.TemplateEngine.Render(
+		renderCtx,
 		TemplateItemTypeForgotPasswordSMSTXT,
 		data,
 	)

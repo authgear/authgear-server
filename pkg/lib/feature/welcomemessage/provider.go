@@ -7,9 +7,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
-	"github.com/authgear/authgear-server/pkg/lib/infra/template"
 	"github.com/authgear/authgear-server/pkg/lib/tasks"
 	"github.com/authgear/authgear-server/pkg/util/intl"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 type Provider struct {
@@ -46,8 +46,13 @@ func (p *Provider) send(emails []string) (err error) {
 		preferredLanguageTags := intl.GetPreferredLanguageTags(p.Context)
 		data["appname"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfig.FallbackLanguage), p.MetadataConfiguration, "app_name")
 
+		renderCtx := &template.RenderContext{
+			PreferredLanguageTags: preferredLanguageTags,
+		}
+
 		var textBody string
-		textBody, err = p.TemplateEngine.RenderTemplate(
+		textBody, err = p.TemplateEngine.Render(
+			renderCtx,
 			TemplateItemTypeWelcomeEmailTXT,
 			data,
 		)
@@ -56,7 +61,8 @@ func (p *Provider) send(emails []string) (err error) {
 		}
 
 		var htmlBody string
-		htmlBody, err = p.TemplateEngine.RenderTemplate(
+		htmlBody, err = p.TemplateEngine.Render(
+			renderCtx,
 			TemplateItemTypeWelcomeEmailHTML,
 			data,
 		)

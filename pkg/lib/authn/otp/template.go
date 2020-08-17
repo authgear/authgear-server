@@ -1,8 +1,7 @@
 package otp
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/template"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 type MessageType string
@@ -26,45 +25,45 @@ type MessageTemplateContext struct {
 }
 
 const (
-	TemplateItemTypeVerificationSMSTXT    config.TemplateItemType = "verification_sms.txt"
-	TemplateItemTypeVerificationEmailTXT  config.TemplateItemType = "verification_email.txt"
-	TemplateItemTypeVerificationEmailHTML config.TemplateItemType = "verification_email.html"
+	TemplateItemTypeVerificationSMSTXT    string = "verification_sms.txt"
+	TemplateItemTypeVerificationEmailTXT  string = "verification_email.txt"
+	TemplateItemTypeVerificationEmailHTML string = "verification_email.html"
 
-	TemplateItemTypeSetupPrimaryOOBSMSTXT    config.TemplateItemType = "setup_primary_oob_sms.txt"
-	TemplateItemTypeSetupPrimaryOOBEmailTXT  config.TemplateItemType = "setup_primary_oob_email.txt"
-	TemplateItemTypeSetupPrimaryOOBEmailHTML config.TemplateItemType = "setup_primary_oob_email.html"
+	TemplateItemTypeSetupPrimaryOOBSMSTXT    string = "setup_primary_oob_sms.txt"
+	TemplateItemTypeSetupPrimaryOOBEmailTXT  string = "setup_primary_oob_email.txt"
+	TemplateItemTypeSetupPrimaryOOBEmailHTML string = "setup_primary_oob_email.html"
 
-	TemplateItemTypeSetupSecondaryOOBSMSTXT    config.TemplateItemType = "setup_secondary_oob_sms.txt"
-	TemplateItemTypeSetupSecondaryOOBEmailTXT  config.TemplateItemType = "setup_secondary_oob_email.txt"
-	TemplateItemTypeSetupSecondaryOOBEmailHTML config.TemplateItemType = "setup_secondary_oob_email.html"
+	TemplateItemTypeSetupSecondaryOOBSMSTXT    string = "setup_secondary_oob_sms.txt"
+	TemplateItemTypeSetupSecondaryOOBEmailTXT  string = "setup_secondary_oob_email.txt"
+	TemplateItemTypeSetupSecondaryOOBEmailHTML string = "setup_secondary_oob_email.html"
 
-	TemplateItemTypeAuthenticatePrimaryOOBSMSTXT    config.TemplateItemType = "authenticate_primary_oob_sms.txt"
-	TemplateItemTypeAuthenticatePrimaryOOBEmailTXT  config.TemplateItemType = "authenticate_primary_oob_email.txt"
-	TemplateItemTypeAuthenticatePrimaryOOBEmailHTML config.TemplateItemType = "authenticate_primary_oob_email.html"
+	TemplateItemTypeAuthenticatePrimaryOOBSMSTXT    string = "authenticate_primary_oob_sms.txt"
+	TemplateItemTypeAuthenticatePrimaryOOBEmailTXT  string = "authenticate_primary_oob_email.txt"
+	TemplateItemTypeAuthenticatePrimaryOOBEmailHTML string = "authenticate_primary_oob_email.html"
 
-	TemplateItemTypeAuthenticateSecondaryOOBSMSTXT    config.TemplateItemType = "authenticate_secondary_oob_sms.txt"
-	TemplateItemTypeAuthenticateSecondaryOOBEmailTXT  config.TemplateItemType = "authenticate_secondary_oob_email.txt"
-	TemplateItemTypeAuthenticateSecondaryOOBEmailHTML config.TemplateItemType = "authenticate_secondary_oob_email.html"
+	TemplateItemTypeAuthenticateSecondaryOOBSMSTXT    string = "authenticate_secondary_oob_sms.txt"
+	TemplateItemTypeAuthenticateSecondaryOOBEmailTXT  string = "authenticate_secondary_oob_email.txt"
+	TemplateItemTypeAuthenticateSecondaryOOBEmailHTML string = "authenticate_secondary_oob_email.html"
 )
 
 var (
-	TemplateVerificationSMSTXT    = template.Spec{Type: TemplateItemTypeVerificationSMSTXT}
-	TemplateVerificationEmailTXT  = template.Spec{Type: TemplateItemTypeVerificationEmailTXT}
-	TemplateVerificationEmailHTML = template.Spec{Type: TemplateItemTypeVerificationEmailHTML, IsHTML: true}
+	TemplateVerificationSMSTXT    = template.T{Type: TemplateItemTypeVerificationSMSTXT}
+	TemplateVerificationEmailTXT  = template.T{Type: TemplateItemTypeVerificationEmailTXT}
+	TemplateVerificationEmailHTML = template.T{Type: TemplateItemTypeVerificationEmailHTML, IsHTML: true}
 
-	TemplateSetupPrimaryOOBSMSTXT    = template.Spec{Type: TemplateItemTypeSetupPrimaryOOBSMSTXT}
-	TemplateSetupPrimaryOOBEmailTXT  = template.Spec{Type: TemplateItemTypeSetupPrimaryOOBEmailTXT}
-	TemplateSetupPrimaryOOBEmailHTML = template.Spec{Type: TemplateItemTypeSetupPrimaryOOBEmailHTML, IsHTML: true}
+	TemplateSetupPrimaryOOBSMSTXT    = template.T{Type: TemplateItemTypeSetupPrimaryOOBSMSTXT}
+	TemplateSetupPrimaryOOBEmailTXT  = template.T{Type: TemplateItemTypeSetupPrimaryOOBEmailTXT}
+	TemplateSetupPrimaryOOBEmailHTML = template.T{Type: TemplateItemTypeSetupPrimaryOOBEmailHTML, IsHTML: true}
 
-	TemplateSetupSecondaryOOBSMSTXT    = template.Spec{Type: TemplateItemTypeSetupSecondaryOOBSMSTXT}
-	TemplateSetupSecondaryOOBEmailTXT  = template.Spec{Type: TemplateItemTypeSetupSecondaryOOBEmailTXT}
-	TemplateSetupSecondaryOOBEmailHTML = template.Spec{Type: TemplateItemTypeSetupSecondaryOOBEmailHTML, IsHTML: true}
+	TemplateSetupSecondaryOOBSMSTXT    = template.T{Type: TemplateItemTypeSetupSecondaryOOBSMSTXT}
+	TemplateSetupSecondaryOOBEmailTXT  = template.T{Type: TemplateItemTypeSetupSecondaryOOBEmailTXT}
+	TemplateSetupSecondaryOOBEmailHTML = template.T{Type: TemplateItemTypeSetupSecondaryOOBEmailHTML, IsHTML: true}
 
-	TemplateAuthenticatePrimaryOOBSMSTXT    = template.Spec{Type: TemplateItemTypeAuthenticatePrimaryOOBSMSTXT}
-	TemplateAuthenticatePrimaryOOBEmailTXT  = template.Spec{Type: TemplateItemTypeAuthenticatePrimaryOOBEmailTXT}
-	TemplateAuthenticatePrimaryOOBEmailHTML = template.Spec{Type: TemplateItemTypeAuthenticatePrimaryOOBEmailHTML, IsHTML: true}
+	TemplateAuthenticatePrimaryOOBSMSTXT    = template.T{Type: TemplateItemTypeAuthenticatePrimaryOOBSMSTXT}
+	TemplateAuthenticatePrimaryOOBEmailTXT  = template.T{Type: TemplateItemTypeAuthenticatePrimaryOOBEmailTXT}
+	TemplateAuthenticatePrimaryOOBEmailHTML = template.T{Type: TemplateItemTypeAuthenticatePrimaryOOBEmailHTML, IsHTML: true}
 
-	TemplateAuthenticateSecondaryOOBSMSTXT    = template.Spec{Type: TemplateItemTypeAuthenticateSecondaryOOBSMSTXT}
-	TemplateAuthenticateSecondaryOOBEmailTXT  = template.Spec{Type: TemplateItemTypeAuthenticateSecondaryOOBEmailTXT}
-	TemplateAuthenticateSecondaryOOBEmailHTML = template.Spec{Type: TemplateItemTypeAuthenticateSecondaryOOBEmailHTML, IsHTML: true}
+	TemplateAuthenticateSecondaryOOBSMSTXT    = template.T{Type: TemplateItemTypeAuthenticateSecondaryOOBSMSTXT}
+	TemplateAuthenticateSecondaryOOBEmailTXT  = template.T{Type: TemplateItemTypeAuthenticateSecondaryOOBEmailTXT}
+	TemplateAuthenticateSecondaryOOBEmailHTML = template.T{Type: TemplateItemTypeAuthenticateSecondaryOOBEmailHTML, IsHTML: true}
 )

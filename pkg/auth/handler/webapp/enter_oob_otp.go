@@ -7,27 +7,26 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
-	"github.com/authgear/authgear-server/pkg/lib/infra/template"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/phone"
+	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 const (
-	TemplateItemTypeAuthUIEnterOOBOTPHTML config.TemplateItemType = "auth_ui_enter_oob_otp.html"
+	TemplateItemTypeAuthUIEnterOOBOTPHTML string = "auth_ui_enter_oob_otp.html"
 )
 
-var TemplateAuthUIEnterOOBOTPHTML = template.Spec{
-	Type:        TemplateItemTypeAuthUIEnterOOBOTPHTML,
-	IsHTML:      true,
-	Translation: TemplateItemTypeAuthUITranslationJSON,
-	Defines:     defines,
-	Components:  components,
+var TemplateAuthUIEnterOOBOTPHTML = template.T{
+	Type:                    TemplateItemTypeAuthUIEnterOOBOTPHTML,
+	IsHTML:                  true,
+	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
+	Defines:                 defines,
+	ComponentTemplateTypes:  components,
 }
 
 const EnterOOBOTPRequestSchema = "EnterOOBOTPRequestSchema"

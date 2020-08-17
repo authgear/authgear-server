@@ -1,14 +1,13 @@
 package webapp
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/template"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 const (
-	TemplateItemTypeAuthUITranslationJSON config.TemplateItemType = "auth_ui_translation.json"
+	TemplateItemTypeAuthUITranslationJSON string = "auth_ui_translation.json"
 )
 
-var TemplateAuthUITranslationJSON = template.Spec{
+var TemplateAuthUITranslationJSON = template.T{
 	Type: TemplateItemTypeAuthUITranslationJSON,
 }

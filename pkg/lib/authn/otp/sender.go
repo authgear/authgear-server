@@ -8,9 +8,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
-	"github.com/authgear/authgear-server/pkg/lib/infra/template"
 	"github.com/authgear/authgear-server/pkg/lib/tasks"
 	"github.com/authgear/authgear-server/pkg/util/intl"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 type EndpointsProvider interface {
@@ -34,7 +34,7 @@ type SendOptions struct {
 	MessageType MessageType
 }
 
-func (s *MessageSender) makeContext(opts SendOptions) *MessageTemplateContext {
+func (s *MessageSender) makeData(opts SendOptions) *MessageTemplateContext {
 	preferredLanguageTags := intl.GetPreferredLanguageTags(s.Context)
 	appName := intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(s.Localization.FallbackLanguage), s.AppMetadata, "app_name")
 
@@ -53,10 +53,10 @@ func (s *MessageSender) makeContext(opts SendOptions) *MessageTemplateContext {
 }
 
 func (s *MessageSender) SendEmail(email string, opts SendOptions, message config.EmailMessageConfig) (err error) {
-	ctx := s.makeContext(opts)
-	ctx.Email = email
+	data := s.makeData(opts)
+	data.Email = email
 
-	var textTemplate, htmlTemplate config.TemplateItemType
+	var textTemplate, htmlTemplate string
 	switch opts.MessageType {
 	case MessageTypeVerification:
 		textTemplate = TemplateItemTypeVerificationEmailTXT
@@ -77,12 +77,17 @@ func (s *MessageSender) SendEmail(email string, opts SendOptions, message config
 		panic("otp: unknown message type: " + opts.MessageType)
 	}
 
-	textBody, err := s.TemplateEngine.RenderTemplate(textTemplate, ctx)
+	preferredLanguageTags := intl.GetPreferredLanguageTags(s.Context)
+	renderCtx := &template.RenderContext{
+		PreferredLanguageTags: preferredLanguageTags,
+	}
+
+	textBody, err := s.TemplateEngine.Render(renderCtx, textTemplate, data)
 	if err != nil {
 		return
 	}
 
-	htmlBody, err := s.TemplateEngine.RenderTemplate(htmlTemplate, ctx)
+	htmlBody, err := s.TemplateEngine.Render(renderCtx, htmlTemplate, data)
 	if err != nil {
 		return
 	}
@@ -94,7 +99,7 @@ func (s *MessageSender) SendEmail(email string, opts SendOptions, message config
 					s.Messaging.DefaultEmailMessage,
 					message,
 				),
-				Recipient: ctx.Email,
+				Recipient: data.Email,
 				TextBody:  textBody,
 				HTMLBody:  htmlBody,
 			},
@@ -105,10 +110,10 @@ func (s *MessageSender) SendEmail(email string, opts SendOptions, message config
 }
 
 func (s *MessageSender) SendSMS(phone string, opts SendOptions, message config.SMSMessageConfig) (err error) {
-	ctx := s.makeContext(opts)
-	ctx.Phone = phone
+	data := s.makeData(opts)
+	data.Phone = phone
 
-	var templateType config.TemplateItemType
+	var templateType string
 	switch opts.MessageType {
 	case MessageTypeVerification:
 		templateType = TemplateItemTypeVerificationSMSTXT
@@ -124,7 +129,12 @@ func (s *MessageSender) SendSMS(phone string, opts SendOptions, message config.S
 		panic("otp: unknown message type: " + opts.MessageType)
 	}
 
-	body, err := s.TemplateEngine.RenderTemplate(templateType, ctx)
+	preferredLanguageTags := intl.GetPreferredLanguageTags(s.Context)
+	renderCtx := &template.RenderContext{
+		PreferredLanguageTags: preferredLanguageTags,
+	}
+
+	body, err := s.TemplateEngine.Render(renderCtx, templateType, data)
 	if err != nil {
 		return
 	}
@@ -136,7 +146,7 @@ func (s *MessageSender) SendSMS(phone string, opts SendOptions, message config.S
 					s.Messaging.DefaultSMSMessage,
 					message,
 				),
-				To:   ctx.Phone,
+				To:   data.Phone,
 				Body: body,
 			},
 		},

@@ -1,20 +1,19 @@
 package welcomemessage
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/template"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 const (
-	TemplateItemTypeWelcomeEmailTXT  config.TemplateItemType = "welcome_email.txt"
-	TemplateItemTypeWelcomeEmailHTML config.TemplateItemType = "welcome_email.html"
+	TemplateItemTypeWelcomeEmailTXT  string = "welcome_email.txt"
+	TemplateItemTypeWelcomeEmailHTML string = "welcome_email.html"
 )
 
-var TemplateWelcomeEmailTXT = template.Spec{
+var TemplateWelcomeEmailTXT = template.T{
 	Type: TemplateItemTypeWelcomeEmailTXT,
 }
 
-var TemplateWelcomeEmailHTML = template.Spec{
+var TemplateWelcomeEmailHTML = template.T{
 	Type:   TemplateItemTypeWelcomeEmailHTML,
 	IsHTML: true,
 }

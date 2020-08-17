@@ -1,14 +1,13 @@
 package webapp
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/template"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 const (
-	TemplateItemTypeAuthUIHTMLHeadHTML config.TemplateItemType = "auth_ui_html_head.html"
-	TemplateItemTypeAuthUIHeaderHTML   config.TemplateItemType = "auth_ui_header.html"
-	TemplateItemTypeAuthUIFooterHTML   config.TemplateItemType = "auth_ui_footer.html"
+	TemplateItemTypeAuthUIHTMLHeadHTML string = "auth_ui_html_head.html"
+	TemplateItemTypeAuthUIHeaderHTML   string = "auth_ui_header.html"
+	TemplateItemTypeAuthUIFooterHTML   string = "auth_ui_footer.html"
 )
 
 // nolint: gosec
@@ -154,22 +153,22 @@ var defines = []string{
 	definePasswordPolicyClass,
 }
 
-var TemplateAuthUIHTMLHeadHTML = template.Spec{
+var TemplateAuthUIHTMLHeadHTML = template.T{
 	Type:   TemplateItemTypeAuthUIHTMLHeadHTML,
 	IsHTML: true,
 }
 
-var TemplateAuthUIHeaderHTML = template.Spec{
+var TemplateAuthUIHeaderHTML = template.T{
 	Type:   TemplateItemTypeAuthUIHeaderHTML,
 	IsHTML: true,
 }
 
-var TemplateAuthUIFooterHTML = template.Spec{
+var TemplateAuthUIFooterHTML = template.T{
 	Type:   TemplateItemTypeAuthUIFooterHTML,
 	IsHTML: true,
 }
 
-var components = []config.TemplateItemType{
+var components = []string{
 	TemplateItemTypeAuthUIHTMLHeadHTML,
 	TemplateItemTypeAuthUIHeaderHTML,
 	TemplateItemTypeAuthUIFooterHTML,

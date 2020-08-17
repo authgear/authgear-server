@@ -6,74 +6,86 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
-	"github.com/authgear/authgear-server/pkg/lib/infra/template"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 func NewEngineWithConfig(
 	serverConfig *config.ServerConfig,
 	c *config.Config,
 ) *template.Engine {
-	e := template.NewEngine(template.NewEngineOptions{
+	var refs []template.Reference
+	for _, item := range c.AppConfig.Template.Items {
+		refs = append(refs, template.Reference{
+			Type:        string(item.Type),
+			LanguageTag: item.LanguageTag,
+			URI:         item.URI,
+		})
+	}
+
+	resolver := template.NewResolver(template.NewResolverOptions{
 		DefaultTemplatesDirectory: serverConfig.DefaultTemplateDirectory,
-		TemplateItems:             c.AppConfig.Template.Items,
-		FallbackLanguage:          c.AppConfig.Localization.FallbackLanguage,
+		References:                refs,
+		FallbackLanguageTag:       c.AppConfig.Localization.FallbackLanguage,
 	})
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 
-	e.Register(welcomemessage.TemplateWelcomeEmailTXT)
-	e.Register(welcomemessage.TemplateWelcomeEmailHTML)
+	resolver.Register(welcomemessage.TemplateWelcomeEmailTXT)
+	resolver.Register(welcomemessage.TemplateWelcomeEmailHTML)
 
-	e.Register(otp.TemplateVerificationSMSTXT)
-	e.Register(otp.TemplateVerificationEmailTXT)
-	e.Register(otp.TemplateVerificationEmailHTML)
-	e.Register(otp.TemplateSetupPrimaryOOBSMSTXT)
-	e.Register(otp.TemplateSetupPrimaryOOBEmailTXT)
-	e.Register(otp.TemplateSetupPrimaryOOBEmailHTML)
-	e.Register(otp.TemplateSetupSecondaryOOBSMSTXT)
-	e.Register(otp.TemplateSetupSecondaryOOBEmailTXT)
-	e.Register(otp.TemplateSetupSecondaryOOBEmailHTML)
-	e.Register(otp.TemplateAuthenticatePrimaryOOBSMSTXT)
-	e.Register(otp.TemplateAuthenticatePrimaryOOBEmailTXT)
-	e.Register(otp.TemplateAuthenticatePrimaryOOBEmailHTML)
-	e.Register(otp.TemplateAuthenticateSecondaryOOBSMSTXT)
-	e.Register(otp.TemplateAuthenticateSecondaryOOBEmailTXT)
-	e.Register(otp.TemplateAuthenticateSecondaryOOBEmailHTML)
+	resolver.Register(otp.TemplateVerificationSMSTXT)
+	resolver.Register(otp.TemplateVerificationEmailTXT)
+	resolver.Register(otp.TemplateVerificationEmailHTML)
+	resolver.Register(otp.TemplateSetupPrimaryOOBSMSTXT)
+	resolver.Register(otp.TemplateSetupPrimaryOOBEmailTXT)
+	resolver.Register(otp.TemplateSetupPrimaryOOBEmailHTML)
+	resolver.Register(otp.TemplateSetupSecondaryOOBSMSTXT)
+	resolver.Register(otp.TemplateSetupSecondaryOOBEmailTXT)
+	resolver.Register(otp.TemplateSetupSecondaryOOBEmailHTML)
+	resolver.Register(otp.TemplateAuthenticatePrimaryOOBSMSTXT)
+	resolver.Register(otp.TemplateAuthenticatePrimaryOOBEmailTXT)
+	resolver.Register(otp.TemplateAuthenticatePrimaryOOBEmailHTML)
+	resolver.Register(otp.TemplateAuthenticateSecondaryOOBSMSTXT)
+	resolver.Register(otp.TemplateAuthenticateSecondaryOOBEmailTXT)
+	resolver.Register(otp.TemplateAuthenticateSecondaryOOBEmailHTML)
 
 	// Auth UI
-	e.Register(webapp.TemplateAuthUITranslationJSON)
+	resolver.Register(webapp.TemplateAuthUITranslationJSON)
 
-	e.Register(webapp.TemplateAuthUIHTMLHeadHTML)
-	e.Register(webapp.TemplateAuthUIHeaderHTML)
-	e.Register(webapp.TemplateAuthUIFooterHTML)
+	resolver.Register(webapp.TemplateAuthUIHTMLHeadHTML)
+	resolver.Register(webapp.TemplateAuthUIHeaderHTML)
+	resolver.Register(webapp.TemplateAuthUIFooterHTML)
 
-	e.Register(webapp.TemplateAuthUILoginHTML)
-	e.Register(webapp.TemplateAuthUISignupHTML)
-	e.Register(webapp.TemplateAuthUIPromoteHTML)
+	resolver.Register(webapp.TemplateAuthUILoginHTML)
+	resolver.Register(webapp.TemplateAuthUISignupHTML)
+	resolver.Register(webapp.TemplateAuthUIPromoteHTML)
 
-	e.Register(webapp.TemplateAuthUIEnterPasswordHTML)
-	e.Register(webapp.TemplateAuthUICreatePasswordHTML)
-	e.Register(webapp.TemplateAuthUISetupTOTPHTML)
-	e.Register(webapp.TemplateAuthUIEnterTOTPHTML)
-	e.Register(webapp.TemplateAuthUISetupOOBOTPHTML)
-	e.Register(webapp.TemplateAuthUIEnterOOBOTPHTML)
-	e.Register(webapp.TemplateAuthUIEnterLoginIDHTML)
-	e.Register(webapp.TemplateAuthUIEnterRecoveryCodeHTML)
-	e.Register(webapp.TemplateAuthUISetupRecoveryCodeHTML)
-	e.Register(webapp.TemplateAuthUIDownloadRecoveryCodeTXT)
-	e.Register(webapp.TemplateAuthUIVerifyIdentityHTML)
-	e.Register(webapp.TemplateAuthUIVerifyIdentitySuccessHTML)
+	resolver.Register(webapp.TemplateAuthUIEnterPasswordHTML)
+	resolver.Register(webapp.TemplateAuthUICreatePasswordHTML)
+	resolver.Register(webapp.TemplateAuthUISetupTOTPHTML)
+	resolver.Register(webapp.TemplateAuthUIEnterTOTPHTML)
+	resolver.Register(webapp.TemplateAuthUISetupOOBOTPHTML)
+	resolver.Register(webapp.TemplateAuthUIEnterOOBOTPHTML)
+	resolver.Register(webapp.TemplateAuthUIEnterLoginIDHTML)
+	resolver.Register(webapp.TemplateAuthUIEnterRecoveryCodeHTML)
+	resolver.Register(webapp.TemplateAuthUISetupRecoveryCodeHTML)
+	resolver.Register(webapp.TemplateAuthUIDownloadRecoveryCodeTXT)
+	resolver.Register(webapp.TemplateAuthUIVerifyIdentityHTML)
+	resolver.Register(webapp.TemplateAuthUIVerifyIdentitySuccessHTML)
 
-	e.Register(webapp.TemplateAuthUIForgotPasswordHTML)
-	e.Register(webapp.TemplateAuthUIForgotPasswordSuccessHTML)
-	e.Register(webapp.TemplateAuthUIResetPasswordHTML)
-	e.Register(webapp.TemplateAuthUIResetPasswordSuccessHTML)
-	e.Register(webapp.TemplateAuthUILogoutHTML)
+	resolver.Register(webapp.TemplateAuthUIForgotPasswordHTML)
+	resolver.Register(webapp.TemplateAuthUIForgotPasswordSuccessHTML)
+	resolver.Register(webapp.TemplateAuthUIResetPasswordHTML)
+	resolver.Register(webapp.TemplateAuthUIResetPasswordSuccessHTML)
+	resolver.Register(webapp.TemplateAuthUILogoutHTML)
 
-	e.Register(webapp.TemplateAuthUISettingsHTML)
-	e.Register(webapp.TemplateAuthUISettingsIdentityHTML)
+	resolver.Register(webapp.TemplateAuthUISettingsHTML)
+	resolver.Register(webapp.TemplateAuthUISettingsIdentityHTML)
 
-	e.Register(forgotpassword.TemplateForgotPasswordEmailTXT)
-	e.Register(forgotpassword.TemplateForgotPasswordEmailHTML)
-	e.Register(forgotpassword.TemplateForgotPasswordSMSTXT)
+	resolver.Register(forgotpassword.TemplateForgotPasswordEmailTXT)
+	resolver.Register(forgotpassword.TemplateForgotPasswordEmailHTML)
+	resolver.Register(forgotpassword.TemplateForgotPasswordSMSTXT)
 
-	return e
+	return engine
 }
