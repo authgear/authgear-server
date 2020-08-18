@@ -1,0 +1,40 @@
+html,
+body {
+  min-height: 100vh;
+}
+
+html {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica",
+    "Arial", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+button {
+  appearance: none;
+  background-color: transparent;
+  border: none;
+}
+
+button:not([disabled]):hover {
+  cursor: pointer;
+}
+
+button[disabled] {
+  cursor: not-allowed;
+}
+
+a {
+  text-decoration: none;
+  cursor: pointer;
+}
+
+select {
+  appearance: none;
+}

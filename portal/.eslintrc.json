@@ -1,0 +1,20 @@
+{
+  "plugins": ["@oursky"],
+  "parserOptions": {
+    "sourceType": "module",
+    "project": "./tsconfig.json"
+  },
+  "extends": [
+    "plugin:@oursky/eslint",
+    "plugin:@oursky/oursky",
+    "plugin:@oursky/typescript",
+    "plugin:@oursky/react",
+    "plugin:@oursky/react-hooks"
+  ],
+  "env": {
+    "browser": true
+  },
+  "rules": {
+    "react/jsx-no-bind": "off"
+  }
+}
