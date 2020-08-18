@@ -21,14 +21,14 @@ type ServerConfig struct {
 	TrustProxy bool `envconfig:"TRUST_PROXY" default:"false"`
 	// DevMode sets whether the server would be run under development mode
 	DevMode bool `envconfig:"DEV_MODE" default:"false"`
+
 	// TLSCertFilePath sets the file path of TLS certificate.
-	// It is required when development mode is enabled.
 	// It is only used when development mode is enabled.
 	TLSCertFilePath string `envconfig:"TLS_CERT_FILE_PATH" default:"tls-cert.pem"`
 	// TLSKeyFilePath sets the file path of TLS private key.
-	// It is required when development mode is enabled.
 	// It is only used when development mode is enabled.
 	TLSKeyFilePath string `envconfig:"TLS_KEY_FILE_PATH" default:"tls-key.pem"`
+
 	// AdminAPIAuth indicates the authorization mode of Admin API
 	AdminAPIAuth AdminAPIAuth `envconfig:"ADMIN_API_AUTH" default:"jwt"`
 	// LogLevel sets the global log level

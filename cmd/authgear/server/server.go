@@ -66,25 +66,48 @@ func (c *Controller) Start() {
 	var specs []server.Spec
 
 	if c.ServeMain {
-		specs = append(specs, server.Spec{
+		u, err := server.ParseListenAddress(cfg.ListenAddr)
+		if err != nil {
+			c.logger.WithError(err).Fatal("failed to parse main server listen address")
+		}
+
+		spec := server.Spec{
 			Name:          string(serverMain),
-			ListenAddress: cfg.ListenAddr,
+			ListenAddress: u.Host,
 			Handler:       auth.NewRouter(p, configSource),
-		})
+		}
+
+		if cfg.DevMode && u.Scheme == "https" {
+			spec.HTTPS = true
+			spec.CertFilePath = cfg.TLSCertFilePath
+			spec.KeyFilePath = cfg.TLSKeyFilePath
+		}
+
+		specs = append(specs, spec)
 	}
 
 	if c.ServeResolver {
+		u, err := server.ParseListenAddress(cfg.ResolverListenAddr)
+		if err != nil {
+			c.logger.WithError(err).Fatal("failed to parse resolver server listen address")
+		}
+
 		specs = append(specs, server.Spec{
 			Name:          string(serverResolver),
-			ListenAddress: cfg.ResolverListenAddr,
+			ListenAddress: u.Host,
 			Handler:       resolver.NewRouter(p, configSource),
 		})
 	}
 
 	if c.ServeAdmin {
+		u, err := server.ParseListenAddress(cfg.AdminListenAddr)
+		if err != nil {
+			c.logger.WithError(err).Fatal("failed to parse admin API server listen address")
+		}
+
 		specs = append(specs, server.Spec{
 			Name:          string(serverAdminAPI),
-			ListenAddress: cfg.AdminListenAddr,
+			ListenAddress: u.Host,
 			Handler:       admin.NewRouter(p, configSource),
 		})
 	}

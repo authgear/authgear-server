@@ -35,23 +35,10 @@ func (c *Controller) Start() {
 	}
 
 	var specs []server.Spec
-
-	if cfg.DevMode {
-		specs = append(specs, server.Spec{
-			Name:          "public server",
-			ListenAddress: cfg.ListenAddr,
-			HTTPS:         true,
-			CertFilePath:  cfg.TLSCertFilePath,
-			KeyFilePath:   cfg.TLSKeyFilePath,
-			Handler:       portal.NewRouter(p),
-		})
-	} else {
-		specs = append(specs, server.Spec{
-			Name:          "public server",
-			ListenAddress: cfg.ListenAddr,
-			Handler:       portal.NewRouter(p),
-		})
-	}
-
+	specs = append(specs, server.Spec{
+		Name:          "portal server",
+		ListenAddress: cfg.PortalListenAddr,
+		Handler:       portal.NewRouter(p),
+	})
 	server.Start(c.logger, specs)
 }

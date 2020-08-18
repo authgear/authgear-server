@@ -37,11 +37,12 @@ func Start(logger *log.Logger, specs []Spec) {
 		}
 
 		go func() {
-			logger.Infof("starting %v on %v", spec.Name, spec.ListenAddress)
 			var err error
 			if spec.HTTPS {
+				logger.Infof("starting %v on https://%v", spec.Name, spec.ListenAddress)
 				err = httpServer.ListenAndServeTLS(spec.CertFilePath, spec.KeyFilePath)
 			} else {
+				logger.Infof("starting %v on http://%v", spec.Name, spec.ListenAddress)
 				err = httpServer.ListenAndServe()
 			}
 
