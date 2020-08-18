@@ -3,6 +3,7 @@ package admin
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/admin/transport"
 	configsource "github.com/authgear/authgear-server/pkg/lib/config/source"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -30,7 +31,7 @@ func NewRouter(p *deps.RootProvider, configSource configsource.Source) *httprout
 
 	route := httproute.Route{Middleware: chain}
 
-	router.Add(ConfigureGraphQLRoute(route), p.Handler(newGraphQLHandler))
+	router.Add(transport.ConfigureGraphQLRoute(route), p.Handler(newGraphQLHandler))
 
 	return router
 }

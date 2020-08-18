@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/wire"
 
+	"github.com/authgear/authgear-server/pkg/admin/transport"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -38,6 +39,6 @@ func newRequestRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
 func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(http.Handler), new(*GraphQLHandler)),
+		wire.Bind(new(http.Handler), new(*transport.GraphQLHandler)),
 	))
 }

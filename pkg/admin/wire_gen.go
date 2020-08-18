@@ -8,6 +8,7 @@ package admin
 import (
 	"github.com/authgear/authgear-server/pkg/admin/graphql"
 	"github.com/authgear/authgear-server/pkg/admin/loader"
+	"github.com/authgear/authgear-server/pkg/admin/transport"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
@@ -203,7 +204,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Users: userLoader,
 	}
 	serverConfig := rootProvider.ServerConfig
-	graphQLHandler := &GraphQLHandler{
+	graphQLHandler := &transport.GraphQLHandler{
 		GraphQLContext: graphqlContext,
 		Config:         serverConfig,
 		Database:       handle,
