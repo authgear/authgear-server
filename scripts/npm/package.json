@@ -2,8 +2,12 @@
   "name": "node",
   "description": "Install binaries from the node/npm ecosystem",
   "version": "0.1.0",
+  "scripts": {
+    "export-graphql-schema": "node export-graphql-schema.js"
+  },
   "devDependencies": {
     "cssnano": "4.1.10",
+    "graphql": "15.3.0",
     "mjml": "4.6.2",
     "postcss": "7.0.27",
     "postcss-cli": "7.1.0",

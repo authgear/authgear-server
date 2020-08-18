@@ -90,6 +90,7 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 
 	require(DatabaseCredentialsKey, "database credentials")
 	require(RedisCredentialsKey, "redis credentials")
+	require(AdminAPIAuthKeyKey, "admin API auth key materials")
 
 	if len(appConfig.Identity.OAuth.Providers) > 0 {
 		require(OAuthClientCredentialsKey, "OAuth client credentials")
@@ -123,6 +124,7 @@ type SecretKey string
 const (
 	DatabaseCredentialsKey    SecretKey = "db"
 	RedisCredentialsKey       SecretKey = "redis"
+	AdminAPIAuthKeyKey        SecretKey = "admin-api.auth"
 	OAuthClientCredentialsKey SecretKey = "sso.oauth.client"
 	SMTPServerCredentialsKey  SecretKey = "mail.smtp"
 	TwilioCredentialsKey      SecretKey = "sms.twilio"
@@ -144,6 +146,7 @@ type secretKeyDef struct {
 var secretItemKeys = map[SecretKey]secretKeyDef{
 	DatabaseCredentialsKey:    {"DatabaseCredentials", func() SecretItemData { return &DatabaseCredentials{} }},
 	RedisCredentialsKey:       {"RedisCredentials", func() SecretItemData { return &RedisCredentials{} }},
+	AdminAPIAuthKeyKey:        {"AdminAPIAuthKey", func() SecretItemData { return &AdminAPIAuthKey{} }},
 	OAuthClientCredentialsKey: {"OAuthClientCredentials", func() SecretItemData { return &OAuthClientCredentials{} }},
 	SMTPServerCredentialsKey:  {"SMTPServerCredentials", func() SecretItemData { return &SMTPServerCredentials{} }},
 	TwilioCredentialsKey:      {"TwilioCredentials", func() SecretItemData { return &TwilioCredentials{} }},

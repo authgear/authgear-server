@@ -330,3 +330,13 @@ type WebhookKeyMaterials struct {
 func (c *WebhookKeyMaterials) SensitiveStrings() []string {
 	return nil
 }
+
+var _ = SecretConfigSchema.Add("AdminAPIAuthKey", `{ "$ref": "#/$defs/JWS" }`)
+
+type AdminAPIAuthKey struct {
+	jwk.Set `json:",inline"`
+}
+
+func (c *AdminAPIAuthKey) SensitiveStrings() []string {
+	return nil
+}

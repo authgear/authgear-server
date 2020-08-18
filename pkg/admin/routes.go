@@ -1,11 +1,11 @@
-package resolver
+package admin
 
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/admin/transport"
 	configsource "github.com/authgear/authgear-server/pkg/lib/config/source"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
-	"github.com/authgear/authgear-server/pkg/resolver/handler"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -24,15 +24,15 @@ func NewRouter(p *deps.RootProvider, configSource configsource.Source) *httprout
 		&deps.RequestMiddleware{
 			RootProvider: p,
 			ConfigSource: configSource,
-			ServerType:   configsource.ServerTypeResolver,
+			ServerType:   configsource.ServerTypeAdminAPI,
 		},
 		p.Middleware(newRequestRecoverMiddleware),
-		p.Middleware(newSessionMiddleware),
+		p.Middleware(newAuthorizationMiddleware),
 	)
 
 	route := httproute.Route{Middleware: chain}
 
-	router.Add(handler.ConfigureResolveRoute(route), p.Handler(newSessionResolveHandler))
+	router.Add(transport.ConfigureGraphQLRoute(route), p.Handler(newGraphQLHandler))
 
 	return router
 }

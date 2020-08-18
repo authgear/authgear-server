@@ -9,22 +9,24 @@ import (
 )
 
 var cmdStart = &cobra.Command{
-	Use:   "start [public|internal]...",
-	Short: "Start public / internal server",
+	Use:   "start [main|resolver|admin]...",
+	Short: "Start specified servers",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctrl := &server.Controller{}
 
 		serverTypes := args
 		if len(serverTypes) == 0 {
-			// Default to start both server
-			serverTypes = []string{"public", "internal"}
+			// Default to start both main & resolver servers
+			serverTypes = []string{"main", "resolver"}
 		}
 		for _, typ := range serverTypes {
 			switch typ {
-			case "public":
-				ctrl.ServePublic = true
-			case "internal":
-				ctrl.ServeInternal = true
+			case "main":
+				ctrl.ServeMain = true
+			case "resolver":
+				ctrl.ServeResolver = true
+			case "admin":
+				ctrl.ServeAdmin = true
 			default:
 				log.Fatalf("unknown server type: %s", typ)
 			}

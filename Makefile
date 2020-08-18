@@ -82,3 +82,4 @@ static:
 export-schemas:
 	go run ./scripts/exportschemas -s app-config -o tmp/app-config.schema.json
 	go run ./scripts/exportschemas -s secrets-config -o tmp/secrets-config.schema.json
+	npm run --silent --prefix ./scripts/npm export-graphql-schema > tmp/schema.graphql

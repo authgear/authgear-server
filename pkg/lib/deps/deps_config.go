@@ -42,6 +42,7 @@ var configDeps = wire.NewSet(
 var secretDeps = wire.NewSet(
 	ProvideDatabaseCredentials,
 	ProvideRedisCredentials,
+	ProvideAdminAPIAuthKeyMaterials,
 	ProvideOAuthClientCredentials,
 	ProvideSMTPServerCredentials,
 	ProvideTwilioCredentials,
@@ -58,6 +59,11 @@ func ProvideDatabaseCredentials(c *config.SecretConfig) *config.DatabaseCredenti
 
 func ProvideRedisCredentials(c *config.SecretConfig) *config.RedisCredentials {
 	s, _ := c.LookupData(config.RedisCredentialsKey).(*config.RedisCredentials)
+	return s
+}
+
+func ProvideAdminAPIAuthKeyMaterials(c *config.SecretConfig) *config.AdminAPIAuthKey {
+	s, _ := c.LookupData(config.AdminAPIAuthKeyKey).(*config.AdminAPIAuthKey)
 	return s
 }
 
