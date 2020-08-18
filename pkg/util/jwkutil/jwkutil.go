@@ -21,12 +21,16 @@ func PublicKeySet(set *jwk.Set) (*jwk.Set, error) {
 			return nil, err
 		}
 
-		key, err = jwk.New(pk)
+		pkey, err := jwk.New(pk)
 		if err != nil {
 			return nil, err
 		}
 
-		jwks.Keys = append(jwks.Keys, key)
+		if kid := key.KeyID(); kid != "" {
+			pkey.Set(jwk.KeyIDKey, kid)
+		}
+
+		jwks.Keys = append(jwks.Keys, pkey)
 	}
 	return jwks, nil
 }

@@ -58,6 +58,32 @@ func newRequestRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	return recoverMiddleware
 }
 
+func newAuthorizationMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	authorizationMiddlewareLogger := transport.NewAuthorizationMiddlewareLogger(factory)
+	rootProvider := appProvider.RootProvider
+	serverConfig := rootProvider.ServerConfig
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	secretConfig := config.SecretConfig
+	adminAPIAuthKey := deps.ProvideAdminAPIAuthKeyMaterials(secretConfig)
+	clock := _wireSystemClockValue
+	authorizationMiddleware := &transport.AuthorizationMiddleware{
+		Logger:  authorizationMiddlewareLogger,
+		Config:  serverConfig,
+		AppID:   appID,
+		AuthKey: adminAPIAuthKey,
+		Clock:   clock,
+	}
+	return authorizationMiddleware
+}
+
+var (
+	_wireSystemClockValue = clock.NewSystemClock()
+)
+
 func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	config := appProvider.Config
@@ -107,10 +133,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	clock := _wireSystemClockValue
+	clockClock := _wireSystemClockValue
 	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
-		Clock: clock,
+		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilder,
@@ -118,7 +144,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	anonymousProvider := &anonymous.Provider{
 		Store: anonymousStore,
-		Clock: clock,
+		Clock: clockClock,
 	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
@@ -138,7 +164,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorPasswordConfig := authenticatorConfig.Password
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
-		Clock:       clock,
+		Clock:       clockClock,
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -147,7 +173,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
-		Clock:           clock,
+		Clock:           clockClock,
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
@@ -161,7 +187,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	totpProvider := &totp.Provider{
 		Store:  totpStore,
 		Config: authenticatorTOTPConfig,
-		Clock:  clock,
+		Clock:  clockClock,
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
@@ -171,7 +197,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	oobProvider := &oob.Provider{
 		Config: authenticatorOOBConfig,
 		Store:  oobStore,
-		Clock:  clock,
+		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
 		Password: passwordProvider,
@@ -182,13 +208,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	storeRedis := &verification.StoreRedis{
 		Redis: redisHandle,
 		AppID: appID,
-		Clock: clock,
+		Clock: clockClock,
 	}
 	verificationService := &verification.Service{
 		Logger:         logger,
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
-		Clock:          clock,
+		Clock:          clockClock,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -211,7 +237,3 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	return graphQLHandler
 }
-
-var (
-	_wireSystemClockValue = clock.NewSystemClock()
-)

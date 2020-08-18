@@ -27,6 +27,7 @@ func NewRouter(p *deps.RootProvider, configSource configsource.Source) *httprout
 			ServerType:   configsource.ServerTypeAdminAPI,
 		},
 		p.Middleware(newRequestRecoverMiddleware),
+		p.Middleware(newAuthorizationMiddleware),
 	)
 
 	route := httproute.Route{Middleware: chain}

@@ -36,6 +36,13 @@ func newRequestRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	))
 }
 
+func newAuthorizationMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*transport.AuthorizationMiddleware)),
+	))
+}
+
 func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

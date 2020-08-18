@@ -52,6 +52,11 @@ func NewSecretConfigFromOptions(opts *SecretOptions) *config.SecretConfig {
 		Data: &config.WebhookKeyMaterials{Set: generateOctetKey()},
 	})
 
+	items = append(items, config.SecretItem{
+		Key:  config.AdminAPIAuthKeyKey,
+		Data: &config.AdminAPIAuthKey{Set: generateRSAKey()},
+	})
+
 	marshalSecretData(items)
 	return &config.SecretConfig{Secrets: items}
 }

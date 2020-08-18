@@ -29,6 +29,8 @@ type ServerConfig struct {
 	// It is required when development mode is enabled.
 	// It is only used when development mode is enabled.
 	TLSKeyFilePath string `envconfig:"TLS_KEY_FILE_PATH" default:"tls-key.pem"`
+	// AdminAPIAuth indicates the authorization mode of Admin API
+	AdminAPIAuth AdminAPIAuth `envconfig:"ADMIN_API_AUTH" default:"jwt"`
 	// LogLevel sets the global log level
 	LogLevel string `envconfig:"LOG_LEVEL" default:"warn"`
 	// ConfigSource configures the source of app configurations
@@ -64,6 +66,15 @@ func LoadServerConfigFromEnv() (*ServerConfig, error) {
 func (c *ServerConfig) Validate() error {
 	ctx := &validation.Context{}
 
+	switch c.AdminAPIAuth {
+	case AdminAPIAuthNone, AdminAPIAuthJWT:
+		break
+	default:
+		ctx.Child("ADMIN_API_AUTH").EmitErrorMessage(
+			"invalid admin API auth mode: must be one of 'none' or 'jwt'",
+		)
+	}
+
 	if c.StaticAsset.ServingEnabled && c.StaticAsset.URLPrefix == "" {
 		ctx.Child("STATIC_ASSET_URL_PREFIX").EmitErrorMessage(
 			"static asset URL prefix must be set when static assets are not served",
@@ -85,6 +96,13 @@ func (c *ServerConfig) Validate() error {
 
 	return ctx.Error("invalid server configuration")
 }
+
+type AdminAPIAuth string
+
+const (
+	AdminAPIAuthNone AdminAPIAuth = "none"
+	AdminAPIAuthJWT  AdminAPIAuth = "jwt"
+)
 
 type ServerStaticAssetConfig struct {
 	// ServingEnabled sets whether serving static assets is enabled
