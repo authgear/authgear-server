@@ -3,15 +3,18 @@
 package portal
 
 import (
+	"net/http"
+
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/upstreamapp"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
+	"github.com/authgear/authgear-server/pkg/portal/transport"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
-func newRecoverMiddleware(p *deps.RootProvider) httproute.Middleware {
+func newRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		deps.DependencySet,
 		middleware.NewRecoveryLogger,
@@ -20,9 +23,16 @@ func newRecoverMiddleware(p *deps.RootProvider) httproute.Middleware {
 	))
 }
 
-func newSessionInfoMiddleware(p *deps.RootProvider) httproute.Middleware {
+func newSessionInfoMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		upstreamapp.DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*upstreamapp.Middleware)),
+	))
+}
+
+func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.GraphQLHandler)),
 	))
 }

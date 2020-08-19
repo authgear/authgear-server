@@ -1,6 +1,8 @@
 package deps
 
 import (
+	"net/http"
+
 	getsentry "github.com/getsentry/sentry-go"
 
 	"github.com/authgear/authgear-server/pkg/portal/config"
@@ -39,6 +41,32 @@ func NewRootProvider(cfg *config.ServerConfig) (*RootProvider, error) {
 	}, nil
 }
 
-func (p *RootProvider) Middleware(f func(*RootProvider) httproute.Middleware) httproute.Middleware {
-	return f(p)
+type RequestProvider struct {
+	RootProvider *RootProvider
+	Request      *http.Request
+}
+
+func (p *RootProvider) Middleware(f func(*RequestProvider) httproute.Middleware) httproute.Middleware {
+	return httproute.MiddlewareFunc(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			requestProvider := &RequestProvider{
+				RootProvider: p,
+				Request:      r,
+			}
+			m := f(requestProvider)
+			h := m.Handle(next)
+			h.ServeHTTP(w, r)
+		})
+	})
+}
+
+func (p *RootProvider) Handler(f func(*RequestProvider) http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestProvider := &RequestProvider{
+			RootProvider: p,
+			Request:      r,
+		}
+		h := f(requestProvider)
+		h.ServeHTTP(w, r)
+	})
 }

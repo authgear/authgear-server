@@ -9,13 +9,18 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/upstreamapp"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
+	"github.com/authgear/authgear-server/pkg/portal/graphql"
+	"github.com/authgear/authgear-server/pkg/portal/loader"
+	"github.com/authgear/authgear-server/pkg/portal/transport"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"net/http"
 )
 
-// Injectors from wire_middleware.go:
+// Injectors from wire.go:
 
-func newRecoverMiddleware(p *deps.RootProvider) httproute.Middleware {
-	factory := p.LoggerFactory
+func newRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	rootProvider := p.RootProvider
+	factory := rootProvider.LoggerFactory
 	recoveryLogger := middleware.NewRecoveryLogger(factory)
 	recoverMiddleware := &middleware.RecoverMiddleware{
 		Logger: recoveryLogger,
@@ -23,7 +28,25 @@ func newRecoverMiddleware(p *deps.RootProvider) httproute.Middleware {
 	return recoverMiddleware
 }
 
-func newSessionInfoMiddleware(p *deps.RootProvider) httproute.Middleware {
+func newSessionInfoMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	upstreamappMiddleware := &upstreamapp.Middleware{}
 	return upstreamappMiddleware
+}
+
+func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
+	rootProvider := p.RootProvider
+	serverConfig := rootProvider.ServerConfig
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
+	viewerLoader := &loader.ViewerLoader{
+		Context: context,
+	}
+	graphqlContext := &graphql.Context{
+		Viewer: viewerLoader,
+	}
+	graphQLHandler := &transport.GraphQLHandler{
+		Config:         serverConfig,
+		GraphQLContext: graphqlContext,
+	}
+	return graphQLHandler
 }
