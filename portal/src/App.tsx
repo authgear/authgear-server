@@ -54,9 +54,11 @@ const ShowLoading: React.FC = function ShowLoading() {
   return <div>Loading...</div>;
 };
 
+interface Empty {}
+
 const App: React.FC = function App() {
   return (
-    <QueryRenderer
+    <QueryRenderer<{ variables: Empty; response: AppQueryResponse }>
       environment={environment}
       query={query}
       variables={{}}
@@ -67,7 +69,6 @@ const App: React.FC = function App() {
         if (!props) {
           return <ShowLoading />;
         }
-        // @ts-expect-error
         return <ShowQueryResult {...props} />;
       }}
     />
