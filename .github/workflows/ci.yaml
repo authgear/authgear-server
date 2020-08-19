@@ -11,6 +11,37 @@ on:
     - '!gh-pages'
 
 jobs:
+  portal-test:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v1
+      with:
+        node-version: "12.18.3"
+    - run: npm ci
+      working-directory: ./portal
+    - run: npm run typecheck
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+    - run: npm run eslint
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+    - run: npm run stylelint
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+    - run: npm run fmt
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+    - run: npm run relay
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+    - run: make check-tidy
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+    - run: npm run build
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+
   test:
     runs-on: ubuntu-18.04
     steps:
@@ -20,7 +51,7 @@ jobs:
         go-version: "1.14.4"
     - uses: actions/setup-node@v1
       with:
-        node-version: "12.18.0"
+        node-version: "12.18.3"
     - run: make vendor
     - run: make lint
       if: ${{ !cancelled() }}
@@ -28,6 +59,7 @@ jobs:
       if: ${{ !cancelled() }}
     - run: make check-tidy
       if: ${{ !cancelled() }}
+
   image:
     runs-on: ubuntu-18.04
     needs: test

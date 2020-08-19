@@ -4,7 +4,7 @@ Work in progress
 
 ## HTTPS setup
 
-You must use HTTPS locally due to
+If you are testing external OAuth provider, you must enable TLS.
 
 1. Cookie is only included in third party redirect if it has SameSite=None attribute.
 2. Cookie with SameSite=None attribute without Secure attribute is rejected.
