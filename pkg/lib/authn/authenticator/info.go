@@ -2,18 +2,21 @@ package authenticator
 
 import (
 	"crypto/subtle"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 type Info struct {
-	ID     string                  `json:"id"`
-	UserID string                  `json:"user_id"`
-	Type   authn.AuthenticatorType `json:"type"`
-	Secret string                  `json:"secret"`
-	Tag    []string                `json:"tag,omitempty"`
-	Props  map[string]interface{}  `json:"props"`
+	ID        string                  `json:"id"`
+	UserID    string                  `json:"user_id"`
+	CreatedAt time.Time               `json:"created_at"`
+	UpdatedAt time.Time               `json:"updated_at"`
+	Type      authn.AuthenticatorType `json:"type"`
+	Secret    string                  `json:"secret"`
+	Tag       []string                `json:"tag,omitempty"`
+	Props     map[string]interface{}  `json:"props"`
 }
 
 func (i *Info) ToSpec() Spec {

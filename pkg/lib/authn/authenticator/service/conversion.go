@@ -10,12 +10,14 @@ import (
 
 func passwordToAuthenticatorInfo(p *password.Authenticator) *authenticator.Info {
 	return &authenticator.Info{
-		Type:   authn.AuthenticatorTypePassword,
-		ID:     p.ID,
-		UserID: p.UserID,
-		Secret: string(p.PasswordHash),
-		Props:  map[string]interface{}{},
-		Tag:    p.Tag,
+		Type:      authn.AuthenticatorTypePassword,
+		ID:        p.ID,
+		UserID:    p.UserID,
+		CreatedAt: p.CreatedAt,
+		UpdatedAt: p.UpdatedAt,
+		Secret:    string(p.PasswordHash),
+		Props:     map[string]interface{}{},
+		Tag:       p.Tag,
 	}
 }
 
@@ -23,6 +25,8 @@ func passwordFromAuthenticatorInfo(a *authenticator.Info) *password.Authenticato
 	return &password.Authenticator{
 		ID:           a.ID,
 		UserID:       a.UserID,
+		CreatedAt:    a.CreatedAt,
+		UpdatedAt:    a.UpdatedAt,
 		PasswordHash: []byte(a.Secret),
 		Tag:          a.Tag,
 	}
@@ -30,10 +34,12 @@ func passwordFromAuthenticatorInfo(a *authenticator.Info) *password.Authenticato
 
 func totpToAuthenticatorInfo(t *totp.Authenticator) *authenticator.Info {
 	return &authenticator.Info{
-		Type:   authn.AuthenticatorTypeTOTP,
-		ID:     t.ID,
-		UserID: t.UserID,
-		Secret: t.Secret,
+		Type:      authn.AuthenticatorTypeTOTP,
+		ID:        t.ID,
+		UserID:    t.UserID,
+		CreatedAt: t.CreatedAt,
+		UpdatedAt: t.UpdatedAt,
+		Secret:    t.Secret,
 		Props: map[string]interface{}{
 			authenticator.AuthenticatorPropTOTPDisplayName: t.DisplayName,
 		},
@@ -45,6 +51,8 @@ func totpFromAuthenticatorInfo(a *authenticator.Info) *totp.Authenticator {
 	return &totp.Authenticator{
 		ID:          a.ID,
 		UserID:      a.UserID,
+		CreatedAt:   a.CreatedAt,
+		UpdatedAt:   a.UpdatedAt,
 		Secret:      a.Secret,
 		DisplayName: a.Props[authenticator.AuthenticatorPropTOTPDisplayName].(string),
 		Tag:         a.Tag,
@@ -53,10 +61,12 @@ func totpFromAuthenticatorInfo(a *authenticator.Info) *totp.Authenticator {
 
 func oobotpToAuthenticatorInfo(o *oob.Authenticator) *authenticator.Info {
 	return &authenticator.Info{
-		Type:   authn.AuthenticatorTypeOOB,
-		ID:     o.ID,
-		UserID: o.UserID,
-		Secret: "",
+		Type:      authn.AuthenticatorTypeOOB,
+		ID:        o.ID,
+		UserID:    o.UserID,
+		CreatedAt: o.CreatedAt,
+		UpdatedAt: o.UpdatedAt,
+		Secret:    "",
 		Props: map[string]interface{}{
 			authenticator.AuthenticatorPropOOBOTPID:          o.ID,
 			authenticator.AuthenticatorPropOOBOTPChannelType: string(o.Channel),
@@ -69,11 +79,13 @@ func oobotpToAuthenticatorInfo(o *oob.Authenticator) *authenticator.Info {
 
 func oobotpFromAuthenticatorInfo(a *authenticator.Info) *oob.Authenticator {
 	return &oob.Authenticator{
-		ID:      a.ID,
-		UserID:  a.UserID,
-		Channel: authn.AuthenticatorOOBChannel(a.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string)),
-		Phone:   a.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string),
-		Email:   a.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string),
-		Tag:     a.Tag,
+		ID:        a.ID,
+		UserID:    a.UserID,
+		CreatedAt: a.CreatedAt,
+		UpdatedAt: a.UpdatedAt,
+		Channel:   authn.AuthenticatorOOBChannel(a.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string)),
+		Phone:     a.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string),
+		Email:     a.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string),
+		Tag:       a.Tag,
 	}
 }

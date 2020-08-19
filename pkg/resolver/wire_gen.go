@@ -166,6 +166,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clock,
 	}
 	oauthStore := &oauth2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -308,17 +309,18 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
+	clockClock := _wireSystemClockValue
 	provider := &loginid.Provider{
 		Store:             store,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth2.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	clockClock := _wireSystemClockValue
 	oauthProvider := &oauth2.Provider{
 		Store: oauthStore,
 		Clock: clockClock,

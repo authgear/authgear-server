@@ -2,6 +2,7 @@ package identity
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
@@ -9,11 +10,12 @@ import (
 )
 
 type Info struct {
-	UserID   string                 `json:"user_id"`
-	ID       string                 `json:"id"`
-	Type     authn.IdentityType     `json:"type"`
-	Claims   map[string]interface{} `json:"claims"`
-	Identity interface{}            `json:"-"`
+	UserID    string                 `json:"user_id"`
+	ID        string                 `json:"id"`
+	CreatedAt time.Time              `json:"created_at"`
+	UpdatedAt time.Time              `json:"updated_at"`
+	Type      authn.IdentityType     `json:"type"`
+	Claims    map[string]interface{} `json:"claims"`
 }
 
 func (i *Info) ToSpec() Spec {

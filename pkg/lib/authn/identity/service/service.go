@@ -418,11 +418,12 @@ func (s *Service) toIdentityInfo(o *oauth.Identity) *identity.Info {
 	}
 
 	return &identity.Info{
-		UserID:   o.UserID,
-		Type:     authn.IdentityTypeOAuth,
-		ID:       o.ID,
-		Claims:   claims,
-		Identity: o,
+		UserID:    o.UserID,
+		ID:        o.ID,
+		CreatedAt: o.CreatedAt,
+		UpdatedAt: o.UpdatedAt,
+		Type:      authn.IdentityTypeOAuth,
+		Claims:    claims,
 	}
 }
 

@@ -19,6 +19,8 @@ func (s *Store) selectQuery() db.SelectBuilder {
 		Select(
 			"p.id",
 			"p.user_id",
+			"p.created_at",
+			"p.updated_at",
 			"a.key_id",
 			"a.key",
 		).
@@ -31,6 +33,8 @@ func (s *Store) scan(scn db.Scanner) (*Identity, error) {
 	err := scn.Scan(
 		&i.ID,
 		&i.UserID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 		&i.KeyID,
 		&i.Key,
 	)
@@ -116,11 +120,15 @@ func (s *Store) Create(i *Identity) error {
 			"id",
 			"type",
 			"user_id",
+			"created_at",
+			"updated_at",
 		).
 		Values(
 			i.ID,
 			authn.IdentityTypeAnonymous,
 			i.UserID,
+			i.CreatedAt,
+			i.UpdatedAt,
 		)
 
 	_, err := s.SQLExecutor.ExecWith(builder)

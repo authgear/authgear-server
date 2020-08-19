@@ -34,11 +34,16 @@ func (s *IDPSession) ToAPIModel() *model.Session {
 	acr, _ := s.Attrs.GetACR()
 	amr, _ := s.Attrs.GetAMR()
 	return &model.Session{
-		ID: s.ID,
+		Meta: model.Meta{
+			ID:        s.ID,
+			CreatedAt: s.CreatedAt,
+			// FIXME(session): when would a session be updated?
+			UpdatedAt: s.AccessInfo.LastAccess.Timestamp,
+		},
 
-		ACR:              acr,
-		AMR:              amr,
-		CreatedAt:        s.CreatedAt,
+		ACR: acr,
+		AMR: amr,
+
 		LastAccessedAt:   s.AccessInfo.LastAccess.Timestamp,
 		CreatedByIP:      s.AccessInfo.InitialAccess.RemoteIP,
 		LastAccessedByIP: s.AccessInfo.LastAccess.RemoteIP,

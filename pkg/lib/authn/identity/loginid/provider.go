@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -14,6 +15,7 @@ type Provider struct {
 	Config            *config.LoginIDConfig
 	Checker           *Checker
 	NormalizerFactory *NormalizerFactory
+	Clock             clock.Clock
 }
 
 func (p *Provider) List(userID string) ([]*Identity, error) {
@@ -188,10 +190,15 @@ func (p *Provider) CheckDuplicated(uniqueKey string, standardClaims map[string]s
 }
 
 func (p *Provider) Create(i *Identity) error {
+	now := p.Clock.NowUTC()
+	i.CreatedAt = now
+	i.UpdatedAt = now
 	return p.Store.Create(i)
 }
 
 func (p *Provider) Update(i *Identity) error {
+	now := p.Clock.NowUTC()
+	i.UpdatedAt = now
 	return p.Store.Update(i)
 }
 

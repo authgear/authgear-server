@@ -123,17 +123,18 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
+	clockClock := _wireSystemClockValue
 	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	clockClock := _wireSystemClockValue
 	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,

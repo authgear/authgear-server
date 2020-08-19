@@ -56,7 +56,7 @@ func (p *Provider) New(userID string, displayName string, tag []string) *Authent
 func (p *Provider) Create(a *Authenticator) error {
 	now := p.Clock.NowUTC()
 	a.CreatedAt = now
-
+	a.UpdatedAt = now
 	return p.Store.Create(a)
 }
 

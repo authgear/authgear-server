@@ -129,6 +129,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
@@ -540,6 +541,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
@@ -952,17 +954,18 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
+	clockClock := _wireSystemClockValue
 	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	clockClock := _wireSystemClockValue
 	oauthProvider := &oauth3.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
@@ -1111,17 +1114,18 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
+	clockClock := _wireSystemClockValue
 	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	clockClock := _wireSystemClockValue
 	oauthProvider := &oauth3.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
@@ -1349,6 +1353,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1729,6 +1734,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
@@ -2109,6 +2115,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
@@ -2466,6 +2473,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
@@ -2843,6 +2851,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
@@ -3217,6 +3226,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
@@ -3591,6 +3601,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
@@ -3966,6 +3977,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
@@ -4342,6 +4354,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
@@ -4716,6 +4729,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
@@ -5090,6 +5104,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
@@ -5464,6 +5479,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
@@ -5838,6 +5854,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
@@ -6212,6 +6229,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
@@ -6586,6 +6604,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
@@ -6964,6 +6983,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
@@ -7339,6 +7359,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
@@ -7713,6 +7734,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
@@ -8088,6 +8110,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
@@ -8493,6 +8516,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
@@ -8843,17 +8867,18 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
+	clockClock := _wireSystemClockValue
 	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	clockClock := _wireSystemClockValue
 	oauthProvider := &oauth3.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
@@ -9101,6 +9126,7 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
@@ -9460,6 +9486,7 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,
@@ -9950,6 +9977,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
 		SQLBuilder:  sqlBuilder,

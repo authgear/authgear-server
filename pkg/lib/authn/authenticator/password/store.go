@@ -20,6 +20,8 @@ func (s *Store) selectQuery() db.SelectBuilder {
 		Select(
 			"a.id",
 			"a.user_id",
+			"a.created_at",
+			"a.updated_at",
 			"a.tag",
 			"ap.password_hash",
 		).
@@ -34,6 +36,8 @@ func (s *Store) scan(scn db.Scanner) (*Authenticator, error) {
 	err := scn.Scan(
 		&a.ID,
 		&a.UserID,
+		&a.CreatedAt,
+		&a.UpdatedAt,
 		&tag,
 		&a.PasswordHash,
 	)
@@ -114,12 +118,16 @@ func (s *Store) Create(a *Authenticator) error {
 			"id",
 			"type",
 			"user_id",
+			"created_at",
+			"updated_at",
 			"tag",
 		).
 		Values(
 			a.ID,
 			authn.AuthenticatorTypePassword,
 			a.UserID,
+			a.CreatedAt,
+			a.UpdatedAt,
 			tag,
 		)
 	_, err = s.SQLExecutor.ExecWith(q)
@@ -151,6 +159,16 @@ func (s *Store) UpdatePasswordHash(a *Authenticator) error {
 		Set("password_hash", a.PasswordHash).
 		Where("id = ?", a.ID)
 	_, err := s.SQLExecutor.ExecWith(q)
+	if err != nil {
+		return err
+	}
+
+	q = s.SQLBuilder.Tenant().
+		Update(s.SQLBuilder.FullTableName("authenticator")).
+		Set("updated_at", a.UpdatedAt).
+		Where("id = ?", a.ID)
+
+	_, err = s.SQLExecutor.ExecWith(q)
 	if err != nil {
 		return err
 	}

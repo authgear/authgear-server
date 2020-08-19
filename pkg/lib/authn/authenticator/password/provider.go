@@ -97,6 +97,10 @@ func (p *Provider) WithPassword(a *Authenticator, password string) (*Authenticat
 }
 
 func (p *Provider) Create(a *Authenticator) error {
+	now := p.Clock.NowUTC()
+	a.CreatedAt = now
+	a.UpdatedAt = now
+
 	err := p.Store.Create(a)
 	if err != nil {
 		return err
@@ -143,6 +147,9 @@ func (p *Provider) isPasswordAllowed(userID string, password string) error {
 }
 
 func (p *Provider) UpdatePassword(a *Authenticator) error {
+	now := p.Clock.NowUTC()
+	a.UpdatedAt = now
+
 	err := p.Store.UpdatePasswordHash(a)
 	if err != nil {
 		return err

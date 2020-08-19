@@ -24,13 +24,13 @@ func (s *Store) selectQuery() db.SelectBuilder {
 		Select(
 			"p.id",
 			"p.user_id",
+			"p.created_at",
+			"p.updated_at",
 			"o.provider_type",
 			"o.provider_keys",
 			"o.provider_user_id",
 			"o.profile",
 			"o.claims",
-			"o.created_at",
-			"o.updated_at",
 		).
 		From(s.SQLBuilder.FullTableName("identity"), "p").
 		Join(s.SQLBuilder.FullTableName("identity_oauth"), "o", "p.id = o.id")
@@ -45,13 +45,13 @@ func (s *Store) scan(scn db.Scanner) (*Identity, error) {
 	err := scn.Scan(
 		&i.ID,
 		&i.UserID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 		&i.ProviderID.Type,
 		&providerKeys,
 		&i.ProviderSubjectID,
 		&profile,
 		&claims,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, identity.ErrIdentityNotFound
@@ -166,11 +166,15 @@ func (s *Store) Create(i *Identity) error {
 			"id",
 			"type",
 			"user_id",
+			"created_at",
+			"updated_at",
 		).
 		Values(
 			i.ID,
 			authn.IdentityTypeOAuth,
 			i.UserID,
+			i.CreatedAt,
+			i.UpdatedAt,
 		)
 
 	_, err := s.SQLExecutor.ExecWith(builder)
@@ -200,8 +204,6 @@ func (s *Store) Create(i *Identity) error {
 			"provider_user_id",
 			"profile",
 			"claims",
-			"created_at",
-			"updated_at",
 		).
 		Values(
 			i.ID,
@@ -210,8 +212,6 @@ func (s *Store) Create(i *Identity) error {
 			i.ProviderSubjectID,
 			profile,
 			claims,
-			i.CreatedAt,
-			i.UpdatedAt,
 		)
 
 	_, err = s.SQLExecutor.ExecWith(q)
@@ -230,7 +230,6 @@ func (s *Store) Update(i *Identity) error {
 	q := s.SQLBuilder.Tenant().
 		Update(s.SQLBuilder.FullTableName("identity_oauth")).
 		Set("profile", profile).
-		Set("updated_at", i.UpdatedAt).
 		Where("id = ?", i.ID)
 
 	result, err := s.SQLExecutor.ExecWith(q)
@@ -247,6 +246,16 @@ func (s *Store) Update(i *Identity) error {
 		return identity.ErrIdentityNotFound
 	} else if rowsAffected > 1 {
 		panic(fmt.Sprintf("identity_oauth: want 1 row updated, got %v", rowsAffected))
+	}
+
+	q = s.SQLBuilder.Tenant().
+		Update(s.SQLBuilder.FullTableName("identity")).
+		Set("updated_at", i.UpdatedAt).
+		Where("id = ?", i.ID)
+
+	_, err = s.SQLExecutor.ExecWith(q)
+	if err != nil {
+		return err
 	}
 
 	return nil

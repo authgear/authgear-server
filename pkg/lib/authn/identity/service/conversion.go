@@ -22,19 +22,22 @@ func loginIDToIdentityInfo(l *loginid.Identity) *identity.Info {
 	}
 
 	return &identity.Info{
-		UserID:   l.UserID,
-		Type:     authn.IdentityTypeLoginID,
-		ID:       l.ID,
-		Claims:   claims,
-		Identity: l,
+		UserID:    l.UserID,
+		ID:        l.ID,
+		CreatedAt: l.CreatedAt,
+		UpdatedAt: l.UpdatedAt,
+		Type:      authn.IdentityTypeLoginID,
+		Claims:    claims,
 	}
 }
 
 func loginIDFromIdentityInfo(i *identity.Info) *loginid.Identity {
 	l := &loginid.Identity{
-		ID:     i.ID,
-		UserID: i.UserID,
-		Claims: map[string]string{},
+		ID:        i.ID,
+		CreatedAt: i.CreatedAt,
+		UpdatedAt: i.UpdatedAt,
+		UserID:    i.UserID,
+		Claims:    map[string]string{},
 	}
 	for k, v := range i.Claims {
 		switch k {
@@ -57,9 +60,11 @@ func loginIDFromIdentityInfo(i *identity.Info) *loginid.Identity {
 
 func oauthFromIdentityInfo(i *identity.Info) *oauth.Identity {
 	o := &oauth.Identity{
-		ID:     i.ID,
-		UserID: i.UserID,
-		Claims: map[string]interface{}{},
+		ID:        i.ID,
+		CreatedAt: i.CreatedAt,
+		UpdatedAt: i.UpdatedAt,
+		UserID:    i.UserID,
+		Claims:    map[string]interface{}{},
 	}
 	for k, v := range i.Claims {
 		switch k {
@@ -83,18 +88,21 @@ func anonymousToIdentityInfo(a *anonymous.Identity) *identity.Info {
 	}
 
 	return &identity.Info{
-		UserID:   a.UserID,
-		Type:     authn.IdentityTypeAnonymous,
-		ID:       a.ID,
-		Claims:   claims,
-		Identity: a,
+		UserID:    a.UserID,
+		ID:        a.ID,
+		CreatedAt: a.CreatedAt,
+		UpdatedAt: a.UpdatedAt,
+		Type:      authn.IdentityTypeAnonymous,
+		Claims:    claims,
 	}
 }
 
 func anonymousFromIdentityInfo(i *identity.Info) *anonymous.Identity {
 	a := &anonymous.Identity{
-		ID:     i.ID,
-		UserID: i.UserID,
+		ID:        i.ID,
+		CreatedAt: i.CreatedAt,
+		UpdatedAt: i.UpdatedAt,
+		UserID:    i.UserID,
 	}
 	for k, v := range i.Claims {
 		switch k {

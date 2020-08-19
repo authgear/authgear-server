@@ -29,8 +29,11 @@ func newUserModel(
 	}
 
 	return &model.User{
-		ID:          user.ID,
-		CreatedAt:   user.CreatedAt,
+		Meta: model.Meta{
+			ID:        user.ID,
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
+		},
 		LastLoginAt: user.LastLoginAt,
 		IsAnonymous: isAnonymous,
 		IsVerified:  isVerified,
