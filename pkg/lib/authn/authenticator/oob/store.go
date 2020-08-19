@@ -20,8 +20,9 @@ func (s *Store) selectQuery() db.SelectBuilder {
 		Select(
 			"a.id",
 			"a.user_id",
+			"a.created_at",
+			"a.updated_at",
 			"a.tag",
-			"ao.created_at",
 			"ao.channel",
 			"ao.phone",
 			"ao.email",
@@ -37,8 +38,9 @@ func (s *Store) scan(scn db.Scanner) (*Authenticator, error) {
 	err := scn.Scan(
 		&a.ID,
 		&a.UserID,
-		&tag,
 		&a.CreatedAt,
+		&a.UpdatedAt,
+		&tag,
 		&a.Channel,
 		&a.Phone,
 		&a.Email,
@@ -120,12 +122,16 @@ func (s *Store) Create(a *Authenticator) error {
 			"id",
 			"type",
 			"user_id",
+			"created_at",
+			"updated_at",
 			"tag",
 		).
 		Values(
 			a.ID,
 			authn.AuthenticatorTypeOOB,
 			a.UserID,
+			a.CreatedAt,
+			a.UpdatedAt,
 			tag,
 		)
 	_, err = s.SQLExecutor.ExecWith(q)
@@ -137,14 +143,12 @@ func (s *Store) Create(a *Authenticator) error {
 		Insert(s.SQLBuilder.FullTableName("authenticator_oob")).
 		Columns(
 			"id",
-			"created_at",
 			"channel",
 			"phone",
 			"email",
 		).
 		Values(
 			a.ID,
-			a.CreatedAt,
 			a.Channel,
 			a.Phone,
 			a.Email,

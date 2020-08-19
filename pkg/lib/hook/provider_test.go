@@ -50,7 +50,7 @@ func TestDispatchEvent(t *testing.T) {
 
 		Convey("dispatching operation events", func() {
 			user := model.User{
-				ID: "user-id",
+				Meta: model.Meta{ID: "user-id"},
 			}
 			payload := &event.SessionCreateEvent{
 				Reason: "login",
@@ -166,7 +166,7 @@ func TestDispatchEvent(t *testing.T) {
 
 		Convey("dispatching notification events", func() {
 			user := model.User{
-				ID: "user-id",
+				Meta: model.Meta{ID: "user-id"},
 			}
 			payload := &event.UserSyncEvent{
 				User: user,
@@ -187,12 +187,12 @@ func TestDispatchEvent(t *testing.T) {
 				provider.persistentEventPayloads = []event.Payload{
 					&event.SessionCreateEvent{
 						User: model.User{
-							ID: "user-id",
+							Meta: model.Meta{ID: "user-id"},
 						},
 					},
 				}
 				users.EXPECT().Get("user-id").Return(&model.User{
-					ID: "user-id",
+					Meta: model.Meta{ID: "user-id"},
 				}, nil)
 				deliverer.EXPECT().WillDeliver(event.UserSync).Return(true)
 				deliverer.EXPECT().WillDeliver(event.AfterSessionCreate).Return(true)
@@ -203,7 +203,7 @@ func TestDispatchEvent(t *testing.T) {
 						Seq:  1,
 						Payload: &event.SessionCreateEvent{
 							User: model.User{
-								ID: "user-id",
+								Meta: model.Meta{ID: "user-id"},
 							},
 						},
 						Context: event.Context{
@@ -217,7 +217,7 @@ func TestDispatchEvent(t *testing.T) {
 						Seq:  2,
 						Payload: &event.UserSyncEvent{
 							User: model.User{
-								ID: "user-id",
+								Meta: model.Meta{ID: "user-id"},
 							},
 						},
 						Context: event.Context{
@@ -237,12 +237,12 @@ func TestDispatchEvent(t *testing.T) {
 				provider.persistentEventPayloads = []event.Payload{
 					&event.SessionCreateEvent{
 						User: model.User{
-							ID: "user-id",
+							Meta: model.Meta{ID: "user-id"},
 						},
 					},
 				}
 				users.EXPECT().Get("user-id").Return(&model.User{
-					ID: "user-id",
+					Meta: model.Meta{ID: "user-id"},
 				}, nil)
 				deliverer.EXPECT().WillDeliver(event.UserSync).Return(true)
 				deliverer.EXPECT().WillDeliver(event.AfterSessionCreate).Return(false)
@@ -253,7 +253,7 @@ func TestDispatchEvent(t *testing.T) {
 						Seq:  1,
 						Payload: &event.UserSyncEvent{
 							User: model.User{
-								ID: "user-id",
+								Meta: model.Meta{ID: "user-id"},
 							},
 						},
 						Context: event.Context{

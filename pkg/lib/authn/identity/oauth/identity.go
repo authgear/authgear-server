@@ -8,11 +8,11 @@ import (
 
 type Identity struct {
 	ID                string
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
 	UserID            string
 	ProviderID        config.ProviderID
 	ProviderSubjectID string
 	UserProfile       map[string]interface{}
 	Claims            map[string]interface{}
-	CreatedAt         time.Time
-	UpdatedAt         time.Time
 }

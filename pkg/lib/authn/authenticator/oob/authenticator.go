@@ -18,6 +18,7 @@ type Authenticator struct {
 	ID        string
 	UserID    string
 	CreatedAt time.Time
+	UpdatedAt time.Time
 	Channel   authn.AuthenticatorOOBChannel
 	Phone     string
 	Email     string

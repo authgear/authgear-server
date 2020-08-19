@@ -17,7 +17,7 @@ type StoreRecoveryCode interface {
 	Get(userID string, code string) (*RecoveryCode, error)
 	DeleteAll(userID string) error
 	CreateAll(codes []*RecoveryCode) error
-	MarkConsumed(code *RecoveryCode) error
+	UpdateConsumed(code *RecoveryCode) error
 }
 
 type Service struct {
@@ -99,7 +99,10 @@ func (s *Service) GetRecoveryCode(userID string, code string) (*RecoveryCode, er
 }
 
 func (s *Service) ConsumeRecoveryCode(rc *RecoveryCode) error {
-	if err := s.RecoveryCodes.MarkConsumed(rc); err != nil {
+	rc.Consumed = true
+	rc.UpdatedAt = s.Clock.NowUTC()
+
+	if err := s.RecoveryCodes.UpdateConsumed(rc); err != nil {
 		return err
 	}
 

@@ -72,6 +72,9 @@ func (p *Provider) New(
 }
 
 func (p *Provider) Create(i *Identity) error {
+	now := p.Clock.NowUTC()
+	i.CreatedAt = now
+	i.UpdatedAt = now
 	return p.Store.Create(i)
 }
 

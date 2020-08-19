@@ -21,6 +21,7 @@ func (s *StoreRecoveryCodePQ) List(userID string) ([]*RecoveryCode, error) {
 			"rc.user_id",
 			"rc.code",
 			"rc.created_at",
+			"rc.updated_at",
 			"rc.consumed",
 		).
 		From(s.SQLBuilder.FullTableName("recovery_code"), "rc").
@@ -40,6 +41,7 @@ func (s *StoreRecoveryCodePQ) List(userID string) ([]*RecoveryCode, error) {
 			&rc.UserID,
 			&rc.Code,
 			&rc.CreatedAt,
+			&rc.UpdatedAt,
 			&rc.Consumed,
 		)
 		if err != nil {
@@ -58,6 +60,7 @@ func (s *StoreRecoveryCodePQ) Get(userID string, code string) (*RecoveryCode, er
 			"rc.user_id",
 			"rc.code",
 			"rc.created_at",
+			"rc.updated_at",
 			"rc.consumed",
 		).
 		From(s.SQLBuilder.FullTableName("recovery_code"), "rc").
@@ -74,6 +77,7 @@ func (s *StoreRecoveryCodePQ) Get(userID string, code string) (*RecoveryCode, er
 		&rc.UserID,
 		&rc.Code,
 		&rc.CreatedAt,
+		&rc.UpdatedAt,
 		&rc.Consumed,
 	)
 
@@ -137,6 +141,7 @@ func (s *StoreRecoveryCodePQ) CreateAll(codes []*RecoveryCode) error {
 			"user_id",
 			"code",
 			"created_at",
+			"updated_at",
 			"consumed",
 		)
 
@@ -146,6 +151,7 @@ func (s *StoreRecoveryCodePQ) CreateAll(codes []*RecoveryCode) error {
 			a.UserID,
 			a.Code,
 			a.CreatedAt,
+			a.UpdatedAt,
 			a.Consumed,
 		)
 	}
@@ -158,16 +164,16 @@ func (s *StoreRecoveryCodePQ) CreateAll(codes []*RecoveryCode) error {
 	return nil
 }
 
-func (s *StoreRecoveryCodePQ) MarkConsumed(code *RecoveryCode) error {
+func (s *StoreRecoveryCodePQ) UpdateConsumed(code *RecoveryCode) error {
 	q := s.SQLBuilder.Tenant().
 		Update(s.SQLBuilder.FullTableName("recovery_code")).
 		Where("id = ?", code.ID).
-		Set("consumed", true)
+		Set("consumed", code.Consumed).
+		Set("updated_at", code.UpdatedAt)
 	_, err := s.SQLExecutor.ExecWith(q)
 	if err != nil {
 		return err
 	}
 
-	code.Consumed = true
 	return nil
 }
