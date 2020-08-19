@@ -53,23 +53,13 @@ func (p *Queries) QueryPage(after, before model.PageCursor, first, last *uint64)
 	}
 
 	var models = make([]model.PageItem, len(users))
-	for i, u := range users {
-		identities, err := p.Identities.ListByUser(u.ID)
+	for i, ref := range users {
+		cursor, err := model.NewCursor(ref.CreatedAt.Format(time.RFC3339Nano), ref.ID)
 		if err != nil {
 			return nil, err
 		}
 
-		isVerified, err := p.Verification.IsUserVerified(identities, u.ID)
-		if err != nil {
-			return nil, err
-		}
-
-		user := newUserModel(u, identities, isVerified)
-		cursor, err := model.NewCursor(u.CreatedAt.Format(time.RFC3339Nano), u.ID)
-		if err != nil {
-			return nil, err
-		}
-		models[i] = model.PageItem{Value: user, Cursor: cursor}
+		models[i] = model.PageItem{Value: ref, Cursor: cursor}
 	}
 	return models, nil
 }

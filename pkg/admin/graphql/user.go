@@ -9,15 +9,18 @@ import (
 
 const typeUser = "User"
 
-var nodeUser = node(
+var nodeUser = entity(
 	graphql.NewObject(graphql.ObjectConfig{
 		Name:        typeUser,
 		Description: "Authgear user",
 		Interfaces: []*graphql.Interface{
 			nodeDefs.NodeInterface,
+			entityInterface,
 		},
 		Fields: graphql.Fields{
-			"id": relay.GlobalIDField(typeUser, nil),
+			"id":        relay.GlobalIDField(typeUser, nil),
+			"createdAt": entityCreatedAtField,
+			"updatedAt": entityUpdatedAtField,
 		},
 	}),
 	&model.User{},

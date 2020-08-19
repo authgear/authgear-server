@@ -15,7 +15,7 @@ type store interface {
 	Create(u *User) error
 	Get(userID string) (*User, error)
 	Count() (uint64, error)
-	QueryPage(after, before model.PageCursor, first, last *uint64) ([]*User, error)
+	QueryPage(after, before model.PageCursor, first, last *uint64) ([]*Ref, error)
 	UpdateLoginTime(userID string, loginAt time.Time) error
 }
 
@@ -112,7 +112,7 @@ func (s *Store) Count() (uint64, error) {
 	return count, nil
 }
 
-func (s *Store) QueryPage(after, before model.PageCursor, first, last *uint64) ([]*User, error) {
+func (s *Store) QueryPage(after, before model.PageCursor, first, last *uint64) ([]*Ref, error) {
 	afterKey, err := after.AsDBKey()
 	if err != nil {
 		return nil, err
@@ -122,7 +122,11 @@ func (s *Store) QueryPage(after, before model.PageCursor, first, last *uint64) (
 		return nil, err
 	}
 
-	query, err := queryPage(s.selectQuery(), afterKey, beforeKey, first, last)
+	selectQuery := s.SQLBuilder.Tenant().
+		Select("id", "created_at", "updated_at").
+		From(s.SQLBuilder.FullTableName("user"))
+
+	query, err := queryPage(selectQuery, afterKey, beforeKey, first, last)
 	if err != nil {
 		return nil, err
 	}
@@ -133,13 +137,17 @@ func (s *Store) QueryPage(after, before model.PageCursor, first, last *uint64) (
 	}
 	defer rows.Close()
 
-	var users []*User
+	var users []*Ref
 	for rows.Next() {
-		u, err := s.scan(rows)
-		if err != nil {
+		ref := &Ref{}
+		if err := rows.Scan(
+			&ref.ID,
+			&ref.CreatedAt,
+			&ref.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
-		users = append(users, u)
+		users = append(users, ref)
 	}
 
 	return users, nil
