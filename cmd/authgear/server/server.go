@@ -23,14 +23,6 @@ type Controller struct {
 	logger *log.Logger
 }
 
-type serverType string
-
-const (
-	serverMain     serverType = "Main Server"
-	serverResolver serverType = "Resolver Server"
-	serverAdminAPI serverType = "Admin API Server"
-)
-
 func (c *Controller) Start() {
 	cfg, err := config.LoadServerConfigFromEnv()
 	if err != nil {
@@ -72,7 +64,7 @@ func (c *Controller) Start() {
 		}
 
 		spec := server.Spec{
-			Name:          string(serverMain),
+			Name:          "Main Server",
 			ListenAddress: u.Host,
 			Handler:       auth.NewRouter(p, configSource),
 		}
@@ -93,7 +85,7 @@ func (c *Controller) Start() {
 		}
 
 		specs = append(specs, server.Spec{
-			Name:          string(serverResolver),
+			Name:          "Resolver Server",
 			ListenAddress: u.Host,
 			Handler:       resolver.NewRouter(p, configSource),
 		})
@@ -106,7 +98,7 @@ func (c *Controller) Start() {
 		}
 
 		specs = append(specs, server.Spec{
-			Name:          string(serverAdminAPI),
+			Name:          "Admin API Server",
 			ListenAddress: u.Host,
 			Handler:       admin.NewRouter(p, configSource),
 		})
