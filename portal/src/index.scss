@@ -1,13 +1,20 @@
+/* Ensure the page is least as tall as the viewport */
 html,
 body {
   min-height: 100vh;
 }
 
+/* Ensure the default page font is compatible with common operation systems */
 html {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica",
     "Arial", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
 }
 
+/* NOTE(portal): Later on when we introduce a styling framework */
+/* we may need to remove some of the following rules */
+
+/* Turn on border-box which is a much more sensible default */
+/* Set the margin and padding of all elements to 0 so they are predicatable */
 *,
 *::before,
 *::after {
@@ -16,12 +23,14 @@ html {
   box-sizing: border-box;
 }
 
+/* Make button looks like div */
 button {
   appearance: none;
   background-color: transparent;
   border: none;
 }
 
+/* Make button cursor looks "correct" */
 button:not([disabled]):hover {
   cursor: pointer;
 }
@@ -30,11 +39,13 @@ button[disabled] {
   cursor: not-allowed;
 }
 
+/* Remove underline of anchor */
 a {
   text-decoration: none;
   cursor: pointer;
 }
 
+/* Make select looks like div */
 select {
   appearance: none;
 }
