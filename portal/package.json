@@ -5,7 +5,7 @@
     "start": "parcel serve --no-cache ./src/index.html",
     "build": "PARCEL_BUNDLE_ANALYZER=1 parcel build --no-cache ./src/index.html",
     "clean": "rm -rf ./dist/ ./parcel-bundle-reports/",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc",
     "fmt": "prettier --list-different --write './src/**/*.{js,ts,jsx,tsx,css,scss,html}'",
     "eslint": "eslint './src/**/*.{js,ts,jsx,tsx}'",
     "stylelint": "stylelint './src/**/*.{css,scss}'",
