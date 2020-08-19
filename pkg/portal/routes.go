@@ -3,8 +3,8 @@ package portal
 import (
 	"fmt"
 	"net/http"
-	gohttputil "net/http/httputil"
 
+	"github.com/authgear/authgear-server/pkg/lib/upstreamapp"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -17,17 +17,22 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 		PathPattern: "/healthz",
 	}, http.HandlerFunc(httputil.HealthCheckHandler))
 
-	router.Add(httproute.Route{
-		Methods:     []string{"GET"},
-		PathPattern: "/api",
-	}, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// TODO(portal): Install a middleware to take headers from request and put the info in context.
-		bytes, err := gohttputil.DumpRequest(r, true)
-		if err == nil {
-			fmt.Printf("%v\n", string(bytes))
-		}
+	rootChain := httproute.Chain(
+		p.Middleware(newRecoverMiddleware),
+		// FIXME(portal): add sentry middleware.
+		// We cannot add it now because it depends pkg/lib/config.ServerConfig.TrustProxy.
+		p.Middleware(newSessionInfoMiddleware),
+	)
 
-		w.Write([]byte("Hello, World"))
+	rootRoute := httproute.Route{Middleware: rootChain}
+
+	router.Add(rootRoute.WithMethods("GET").WithPathPattern("/api"), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sessionInfo := upstreamapp.GetValidSessionInfo(r.Context())
+		if sessionInfo == nil {
+			w.Write([]byte("No session"))
+		} else {
+			w.Write([]byte(fmt.Sprintf("User ID: %v", sessionInfo.UserID)))
+		}
 	}))
 
 	return router

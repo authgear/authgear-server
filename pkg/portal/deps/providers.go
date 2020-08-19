@@ -4,6 +4,7 @@ import (
 	getsentry "github.com/getsentry/sentry-go"
 
 	"github.com/authgear/authgear-server/pkg/portal/config"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/sentry"
 )
@@ -36,4 +37,8 @@ func NewRootProvider(cfg *config.ServerConfig) (*RootProvider, error) {
 		LoggerFactory: loggerFactory,
 		SentryHub:     sentryHub,
 	}, nil
+}
+
+func (p *RootProvider) Middleware(f func(*RootProvider) httproute.Middleware) httproute.Middleware {
+	return f(p)
 }
