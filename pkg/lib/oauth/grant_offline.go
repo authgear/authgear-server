@@ -43,12 +43,16 @@ func (g *OfflineGrant) ToAPIModel() *model.Session {
 	amr, _ := g.Attrs.GetAMR()
 	acr, _ := g.Attrs.GetACR()
 	return &model.Session{
-		ID: g.ID,
+		Meta: model.Meta{
+			ID:        g.ID,
+			CreatedAt: g.CreatedAt,
+			// FIXME(session): when would a session be updated?
+			UpdatedAt: g.AccessInfo.LastAccess.Timestamp,
+		},
 
 		AMR: amr,
 		ACR: acr,
 
-		CreatedAt:        g.CreatedAt,
 		LastAccessedAt:   g.AccessInfo.LastAccess.Timestamp,
 		CreatedByIP:      g.AccessInfo.InitialAccess.RemoteIP,
 		LastAccessedByIP: g.AccessInfo.LastAccess.RemoteIP,

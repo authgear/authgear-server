@@ -5,12 +5,11 @@ import (
 )
 
 type Session struct {
-	ID string `json:"id"`
+	Meta
 
 	ACR string   `json:"acr,omitempty"`
 	AMR []string `json:"amr,omitempty"`
 
-	CreatedAt        time.Time `json:"created_at"`
 	LastAccessedAt   time.Time `json:"last_accessed_at"`
 	CreatedByIP      string    `json:"created_by_ip"`
 	LastAccessedByIP string    `json:"last_accessed_by_ip"`
