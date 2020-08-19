@@ -47,5 +47,30 @@ func TestInfo(t *testing.T) {
 				})
 			})
 		})
+
+		Convey("PopulateHeaders and NewInfoFromHeaders are inverse", func() {
+			test := func(info *session.Info) {
+				rw := httptest.NewRecorder()
+				info.PopulateHeaders(rw)
+				expected, err := session.NewInfoFromHeaders(rw.Header())
+				So(err, ShouldBeNil)
+				So(expected, ShouldResemble, info)
+			}
+
+			test(nil)
+
+			test(&session.Info{})
+
+			test(&session.Info{IsValid: false})
+
+			test(&session.Info{
+				IsValid:       true,
+				UserID:        "user-id",
+				UserAnonymous: true,
+				UserVerified:  true,
+				SessionACR:    "http://schemas.openid.net/pape/policies/2007/06/multi-factor",
+				SessionAMR:    []string{"pwd", "mfa", "otp"},
+			})
+		})
 	})
 }
