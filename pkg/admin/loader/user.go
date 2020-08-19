@@ -1,9 +1,12 @@
 package loader
 
-import "github.com/authgear/authgear-server/pkg/lib/api/model"
+import (
+	"github.com/authgear/authgear-server/pkg/lib/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+)
 
 type UserService interface {
-	Get(id string) (*model.User, error)
+	GetRaw(id string) (*user.User, error)
 	Count() (uint64, error)
 	QueryPage(after, before model.PageCursor, first, last *uint64) ([]model.PageItem, error)
 }
@@ -12,8 +15,8 @@ type UserLoader struct {
 	Users UserService
 }
 
-func (l *UserLoader) Get(id string) (interface{}, error) {
-	return l.Users.Get(id)
+func (l *UserLoader) Get(id string) (*user.User, error) {
+	return l.Users.GetRaw(id)
 }
 
 func (l *UserLoader) QueryPage(args PageArgs) (*PageResult, error) {

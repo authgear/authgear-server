@@ -42,6 +42,10 @@ func (p *Queries) Get(id string) (*model.User, error) {
 	return newUserModel(user, identities, isVerified), nil
 }
 
+func (p *Queries) GetRaw(id string) (*User, error) {
+	return p.Store.Get(id)
+}
+
 func (p *Queries) Count() (uint64, error) {
 	return p.Store.Count()
 }

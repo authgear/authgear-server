@@ -4,10 +4,11 @@ import (
 	"context"
 
 	"github.com/authgear/authgear-server/pkg/admin/loader"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 )
 
 type UserLoader interface {
-	Get(id string) (interface{}, error)
+	Get(id string) (*user.User, error)
 	QueryPage(args loader.PageArgs) (*loader.PageResult, error)
 }
 
