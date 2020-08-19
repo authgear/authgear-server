@@ -8,7 +8,7 @@ import (
 )
 
 type UserLoader interface {
-	Get(id string) (*user.User, error)
+	Get(id string) func() (*user.User, error)
 	QueryPage(args loader.PageArgs) (*loader.PageResult, error)
 }
 

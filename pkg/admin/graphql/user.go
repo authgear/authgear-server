@@ -27,18 +27,24 @@ var nodeUser = entity(
 				Description: "The last login time of user",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					ref := p.Source.(*user.Ref)
-					user, err := GQLContext(p.Context).Users.Get(ref.ID)
-					if err != nil {
-						return nil, err
-					}
-					return user.LastLoginAt, nil
+					thunk := GQLContext(p.Context).Users.Get(ref.ID)
+					return func() (interface{}, error) {
+						user, err := thunk()
+						if err != nil {
+							return nil, err
+						}
+						return user.LastLoginAt, nil
+					}, nil
 				},
 			},
 		},
 	}),
 	&model.User{},
 	func(ctx *Context, id string) (interface{}, error) {
-		return ctx.Users.Get(id)
+		thunk := ctx.Users.Get(id)
+		return func() (interface{}, error) {
+			return thunk()
+		}, nil
 	},
 )
 
