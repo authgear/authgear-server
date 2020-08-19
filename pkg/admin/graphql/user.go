@@ -2,9 +2,7 @@ package graphql
 
 import (
 	"github.com/graphql-go/graphql"
-	"github.com/graphql-go/relay"
 
-	"github.com/authgear/authgear-server/pkg/lib/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 )
 
@@ -19,27 +17,21 @@ var nodeUser = entity(
 			entityInterface,
 		},
 		Fields: graphql.Fields{
-			"id":        relay.GlobalIDField(typeUser, nil),
+			"id": globalIDField(typeUser, func(obj interface{}) (string, error) {
+				return obj.(*user.User).ID, nil
+			}),
 			"createdAt": entityCreatedAtField,
 			"updatedAt": entityUpdatedAtField,
 			"lastLoginAt": &graphql.Field{
 				Type:        graphql.DateTime,
 				Description: "The last login time of user",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					ref := p.Source.(*user.Ref)
-					thunk := GQLContext(p.Context).Users.Get(ref.ID)
-					return func() (interface{}, error) {
-						user, err := thunk()
-						if err != nil {
-							return nil, err
-						}
-						return user.LastLoginAt, nil
-					}, nil
+					return p.Source.(*user.User).LastLoginAt, nil
 				},
 			},
 		},
 	}),
-	&model.User{},
+	&user.User{},
 	func(ctx *Context, id string) (interface{}, error) {
 		thunk := ctx.Users.Get(id)
 		return func() (interface{}, error) {

@@ -57,13 +57,13 @@ func (p *Queries) QueryPage(after, before model.PageCursor, first, last *uint64)
 	}
 
 	var models = make([]model.PageItem, len(users))
-	for i, ref := range users {
-		cursor, err := model.NewCursor(ref.CreatedAt.Format(time.RFC3339Nano), ref.ID)
+	for i, u := range users {
+		cursor, err := model.NewCursor(u.CreatedAt.Format(time.RFC3339Nano), u.ID)
 		if err != nil {
 			return nil, err
 		}
 
-		models[i] = model.PageItem{Value: ref, Cursor: cursor}
+		models[i] = model.PageItem{Value: u, Cursor: cursor}
 	}
 	return models, nil
 }

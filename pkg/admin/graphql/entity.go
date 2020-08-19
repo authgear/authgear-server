@@ -33,6 +33,15 @@ var nodeDefs = relay.NewNodeDefinitions(relay.NodeDefinitionsConfig{
 	},
 })
 
+func globalIDField(typeName string, fn func(obj interface{}) (string, error)) *graphql.Field {
+	return relay.GlobalIDField(
+		typeName,
+		func(obj interface{}, info graphql.ResolveInfo, ctx context.Context) (string, error) {
+			return fn(obj)
+		},
+	)
+}
+
 var entityInterface = graphql.NewInterface(graphql.InterfaceConfig{
 	Name: "Entity",
 	Fields: graphql.Fields{

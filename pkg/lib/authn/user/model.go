@@ -8,17 +8,19 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
 
-type Ref struct {
-	model.Meta
-}
-
-func (r *Ref) GetMeta() model.Meta { return r.Meta }
-
 type User struct {
 	ID          string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	LastLoginAt *time.Time
+}
+
+func (u *User) GetMeta() model.Meta {
+	return model.Meta{
+		ID:        u.ID,
+		CreatedAt: u.CreatedAt,
+		UpdatedAt: u.UpdatedAt,
+	}
 }
 
 func newUserModel(
