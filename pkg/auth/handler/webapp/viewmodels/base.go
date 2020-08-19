@@ -63,7 +63,10 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, anyError interface{}) BaseV
 			for i := 0; i < len(pairs); i += 2 {
 				inQuery.Set(pairs[i], pairs[i+1])
 			}
-			inQuery.Set("x_sid", r.Form.Get("x_sid"))
+			sid := r.Form.Get("x_sid")
+			if sid != "" {
+				inQuery.Set("x_sid", sid)
+			}
 			return webapp.MakeURL(u, path, inQuery).String()
 		},
 		ForgotPasswordEnabled: *m.ForgotPassword.Enabled,
