@@ -2,7 +2,7 @@
   "name": "authgear-portal",
   "version": "0.1.0",
   "scripts": {
-    "start": "parcel serve --no-cache ./src/index.html",
+    "start": "parcel serve --port 1234 --no-cache ./src/index.html",
     "build": "PARCEL_BUNDLE_ANALYZER=1 parcel build --no-cache ./src/index.html",
     "clean": "rm -rf ./dist/ ./parcel-bundle-reports/",
     "typecheck": "tsc",
