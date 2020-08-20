@@ -68,7 +68,6 @@ func oobotpToAuthenticatorInfo(o *oob.Authenticator) *authenticator.Info {
 		UpdatedAt: o.UpdatedAt,
 		Secret:    "",
 		Props: map[string]interface{}{
-			authenticator.AuthenticatorPropOOBOTPID:          o.ID,
 			authenticator.AuthenticatorPropOOBOTPChannelType: string(o.Channel),
 			authenticator.AuthenticatorPropOOBOTPEmail:       o.Email,
 			authenticator.AuthenticatorPropOOBOTPPhone:       o.Phone,
