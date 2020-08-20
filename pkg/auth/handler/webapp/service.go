@@ -10,7 +10,7 @@ import (
 // nolint:golint
 type WebAppService interface {
 	GetState(stateID string) (*webapp.State, error)
-	GetIntent(webappIntent *webapp.Intent, stateID string) (*webapp.State, *interaction.Graph, error)
+	GetIntent(webappIntent *webapp.Intent) (*webapp.State, *interaction.Graph, error)
 	Get(stateID string) (*webapp.State, *interaction.Graph, error)
 	PostIntent(webappIntent *webapp.Intent, inputer func() (interface{}, error)) (*webapp.Result, error)
 	PostInput(stateID string, inputer func() (interface{}, error)) (*webapp.Result, error)

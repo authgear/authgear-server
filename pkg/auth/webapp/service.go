@@ -90,35 +90,19 @@ func (s *Service) GetState(stateID string) (*State, error) {
 	return state, nil
 }
 
-func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph *interaction.Graph, err error) {
-	var stateError *apierrors.APIError
-	if stateID != "" {
-		state, err = s.GetState(stateID)
+func (s *Service) GetIntent(intent *Intent) (state *State, graph *interaction.Graph, err error) {
+	state = NewState(intent)
+	if intent.OldStateID != "" {
+		var oldState *State
+		oldState, err = s.GetState(intent.OldStateID)
 		if err != nil {
 			return
 		}
 
-		// Ignore the intent, reuse the existing state.
-		newID := intent.StateID
-		if newID == "" {
-			newID = NewID()
-		}
-		state.SetID(newID)
-		graph, err = s.get(state)
-		if err == nil || !errors.Is(err, interaction.ErrStateNotFound) {
-			return
-		}
-
-		// If graph is not found: use the intent, with same state error
-		stateError = state.Error
+		state.RestoreFrom(oldState)
 	}
 
-	newStateID := intent.StateID
-	if newStateID == "" {
-		newStateID = NewID()
-	}
-
-	err = s.Graph.DryRun(newStateID, func(ctx *interaction.Context) (*interaction.Graph, error) {
+	err = s.Graph.DryRun(state.ID, func(ctx *interaction.Context) (*interaction.Graph, error) {
 		graph, err = s.Graph.NewGraph(ctx, intent.Intent)
 		if err != nil {
 			return nil, err
@@ -129,13 +113,7 @@ func (s *Service) GetIntent(intent *Intent, stateID string) (state *State, graph
 		return
 	}
 
-	state = &State{
-		ID:              newStateID,
-		RedirectURI:     intent.RedirectURI,
-		GraphInstanceID: graph.InstanceID,
-		Extra:           map[string]interface{}{},
-		Error:           stateError,
-	}
+	state.GraphInstanceID = graph.InstanceID
 
 	return
 }
@@ -171,27 +149,16 @@ func (s *Service) get(state *State) (graph *interaction.Graph, err error) {
 }
 
 func (s *Service) PostIntent(intent *Intent, inputer func() (interface{}, error)) (result *Result, err error) {
-	stateID := intent.StateID
-	if stateID != "" {
+	state := NewState(intent)
+
+	if intent.OldStateID != "" {
 		// Ignore the intent, reuse the existing state.
-		state, err := s.Store.Get(stateID)
+		oldState, err := s.Store.Get(intent.OldStateID)
 		if err != nil {
 			return nil, err
 		}
 
-		result, err = s.post(state, inputer)
-		if err == nil || !errors.Is(err, interaction.ErrStateNotFound) {
-			return result, err
-		}
-
-		// If graph is not found: use the intent
-	}
-
-	state := &State{
-		ID:          NewID(),
-		RedirectURI: intent.RedirectURI,
-		KeepState:   intent.KeepState,
-		UILocales:   intent.UILocales,
+		state.RestoreFrom(oldState)
 	}
 
 	var graph *interaction.Graph

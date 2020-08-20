@@ -171,7 +171,6 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			enterLoginIDViewModel := NewEnterLoginIDViewModel(r)
 
 			intent := &webapp.Intent{
-				StateID:     StateID(r),
 				RedirectURI: "/settings/identity",
 				Intent:      intents.NewIntentRemoveIdentity(*userID),
 			}
@@ -196,7 +195,6 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			enterLoginIDViewModel := NewEnterLoginIDViewModel(r)
 
 			intent := &webapp.Intent{
-				StateID:     StateID(r),
 				RedirectURI: "/settings/identity",
 			}
 

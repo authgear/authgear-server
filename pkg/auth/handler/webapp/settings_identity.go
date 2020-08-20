@@ -160,7 +160,6 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	if r.Method == "POST" && r.Form.Get("x_action") == "link_oauth" {
 		h.Database.WithTx(func() error {
 			intent := &webapp.Intent{
-				StateID:     StateID(r),
 				RedirectURI: redirectURI,
 				Intent:      intents.NewIntentAddIdentity(*userID),
 			}
@@ -184,7 +183,6 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	if r.Method == "POST" && r.Form.Get("x_action") == "unlink_oauth" {
 		h.Database.WithTx(func() error {
 			intent := &webapp.Intent{
-				StateID:     StateID(r),
 				RedirectURI: redirectURI,
 				Intent:      intents.NewIntentRemoveIdentity(*userID),
 			}
@@ -206,7 +204,6 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	if r.Method == "POST" && r.Form.Get("x_action") == "verify_login_id" {
 		h.Database.WithTx(func() error {
 			intent := &webapp.Intent{
-				StateID:     StateID(r),
 				RedirectURI: redirectURI,
 				KeepState:   true,
 				Intent:      intents.NewIntentVerifyIdentity(*userID, authn.IdentityTypeLoginID, identityID),
