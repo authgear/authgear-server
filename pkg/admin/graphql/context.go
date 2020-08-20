@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/admin/loader"
 	"github.com/authgear/authgear-server/pkg/admin/utils"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
 
 type UserLoader interface {
@@ -12,8 +13,14 @@ type UserLoader interface {
 	QueryPage(args loader.PageArgs) (*loader.PageResult, error)
 }
 
+type IdentityLoader interface {
+	Get(ref *identity.Ref) *utils.Lazy
+	List(userID string) *utils.Lazy
+}
+
 type Context struct {
-	Users UserLoader
+	Users      UserLoader
+	Identities IdentityLoader
 }
 
 type contextKeyType struct{}

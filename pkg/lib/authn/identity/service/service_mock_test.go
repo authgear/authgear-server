@@ -51,6 +51,21 @@ func (mr *MockLoginIDIdentityProviderMockRecorder) Get(userID, id interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).Get), userID, id)
 }
 
+// GetMany mocks base method
+func (m *MockLoginIDIdentityProvider) GetMany(ids []string) ([]*loginid.Identity, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMany", ids)
+	ret0, _ := ret[0].([]*loginid.Identity)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMany indicates an expected call of GetMany
+func (mr *MockLoginIDIdentityProviderMockRecorder) GetMany(ids interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMany", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).GetMany), ids)
+}
+
 // List mocks base method
 func (m *MockLoginIDIdentityProvider) List(userID string) ([]*loginid.Identity, error) {
 	m.ctrl.T.Helper()
@@ -221,6 +236,21 @@ func (mr *MockOAuthIdentityProviderMockRecorder) Get(userID, id interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).Get), userID, id)
 }
 
+// GetMany mocks base method
+func (m *MockOAuthIdentityProvider) GetMany(ids []string) ([]*oauth.Identity, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMany", ids)
+	ret0, _ := ret[0].([]*oauth.Identity)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMany indicates an expected call of GetMany
+func (mr *MockOAuthIdentityProviderMockRecorder) GetMany(ids interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMany", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).GetMany), ids)
+}
+
 // List mocks base method
 func (m *MockOAuthIdentityProvider) List(userID string) ([]*oauth.Identity, error) {
 	m.ctrl.T.Helper()
@@ -388,6 +418,21 @@ func (m *MockAnonymousIdentityProvider) Get(userID, id string) (*anonymous.Ident
 func (mr *MockAnonymousIdentityProviderMockRecorder) Get(userID, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockAnonymousIdentityProvider)(nil).Get), userID, id)
+}
+
+// GetMany mocks base method
+func (m *MockAnonymousIdentityProvider) GetMany(ids []string) ([]*anonymous.Identity, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMany", ids)
+	ret0, _ := ret[0].([]*anonymous.Identity)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMany indicates an expected call of GetMany
+func (mr *MockAnonymousIdentityProviderMockRecorder) GetMany(ids interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMany", reflect.TypeOf((*MockAnonymousIdentityProvider)(nil).GetMany), ids)
 }
 
 // GetByKeyID mocks base method

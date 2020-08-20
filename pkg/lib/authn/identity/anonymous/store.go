@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/Masterminds/squirrel"
+
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -45,6 +47,36 @@ func (s *Store) scan(scn db.Scanner) (*Identity, error) {
 	}
 
 	return i, nil
+}
+
+func (s *Store) GetMany(ids []string) ([]*Identity, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	iids := make([]interface{}, len(ids))
+	for i, id := range ids {
+		iids[i] = id
+	}
+	builder := s.selectQuery().
+		Where("p.id IN ("+squirrel.Placeholders(len(ids))+")", iids...)
+
+	rows, err := s.SQLExecutor.QueryWith(builder)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var is []*Identity
+	for rows.Next() {
+		i, err := s.scan(rows)
+		if err != nil {
+			return nil, err
+		}
+		is = append(is, i)
+	}
+
+	return is, nil
 }
 
 func (s *Store) List(userID string) ([]*Identity, error) {

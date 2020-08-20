@@ -57,6 +57,10 @@ func (p *Provider) GetByKeyID(keyID string) (*Identity, error) {
 	return p.Store.GetByKeyID(keyID)
 }
 
+func (p *Provider) GetMany(ids []string) ([]*Identity, error) {
+	return p.Store.GetMany(ids)
+}
+
 func (p *Provider) New(
 	userID string,
 	keyID string,

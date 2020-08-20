@@ -78,6 +78,10 @@ func (p *Provider) GetByValue(value string) ([]*Identity, error) {
 	return is, nil
 }
 
+func (p *Provider) GetMany(ids []string) ([]*Identity, error) {
+	return p.Store.GetMany(ids)
+}
+
 func (p *Provider) IsLoginIDKeyType(loginIDKey string, loginIDKeyType config.LoginIDKeyType) bool {
 	return p.Checker.CheckType(loginIDKey, loginIDKeyType)
 }

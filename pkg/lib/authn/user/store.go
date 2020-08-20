@@ -97,6 +97,10 @@ func (s *Store) Get(userID string) (*User, error) {
 }
 
 func (s *Store) GetByIDs(userIDs []string) ([]*User, error) {
+	if len(userIDs) == 0 {
+		return nil, nil
+	}
+
 	ids := make([]interface{}, len(userIDs))
 	for i, id := range userIDs {
 		ids[i] = id

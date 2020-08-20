@@ -105,6 +105,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
+	serviceStore := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
 	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -150,6 +154,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          serviceStore,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
@@ -227,8 +232,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	userLoader := &loader.UserLoader{
 		Users: queries,
 	}
+	identityLoader := &loader.IdentityLoader{
+		Identities: serviceService,
+	}
 	graphqlContext := &graphql.Context{
-		Users: userLoader,
+		Users:      userLoader,
+		Identities: identityLoader,
 	}
 	serverConfig := rootProvider.ServerConfig
 	graphQLHandler := &transport.GraphQLHandler{

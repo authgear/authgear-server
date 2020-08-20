@@ -2,7 +2,9 @@ package graphql
 
 import (
 	"github.com/graphql-go/graphql"
+	"github.com/graphql-go/relay"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 )
 
@@ -25,6 +27,23 @@ var nodeUser = entity(
 				Description: "The last login time of user",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					return p.Source.(*user.User).LastLoginAt, nil
+				},
+			},
+			"identities": &graphql.Field{
+				Type: connIdentity.ConnectionType,
+				Args: relay.ConnectionArgs,
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					ref := p.Source.(*user.User)
+					identities := GQLContext(p.Context).Identities.List(ref.ID)
+					result := identities.Map(func(value interface{}) (interface{}, error) {
+						var identities []interface{}
+						for _, i := range value.([]*identity.Ref) {
+							identities = append(identities, i)
+						}
+						args := relay.NewConnectionArguments(p.Args)
+						return NewConnectionFromArray(identities, args), nil
+					})
+					return result.Value, nil
 				},
 			},
 		},

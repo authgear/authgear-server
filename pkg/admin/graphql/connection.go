@@ -38,6 +38,15 @@ func NewConnection(result *loader.PageResult) *Connection {
 	}
 }
 
+func NewConnectionFromArray(data []interface{}, args relay.ConnectionArguments) *Connection {
+	conn := relay.ConnectionFromArray(data, args)
+	return &Connection{
+		Edges:      conn.Edges,
+		PageInfo:   conn.PageInfo,
+		TotalCount: len(data),
+	}
+}
+
 func connection(schema *graphql.Object) *relay.GraphQLConnectionDefinitions {
 	return relay.ConnectionDefinitions(relay.ConnectionConfig{
 		Name:     schema.Name(),
