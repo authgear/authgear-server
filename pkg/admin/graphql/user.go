@@ -17,11 +17,9 @@ var nodeUser = entity(
 			entityInterface,
 		},
 		Fields: graphql.Fields{
-			"id": globalIDField(typeUser, func(obj interface{}) (string, error) {
-				return obj.(*user.User).ID, nil
-			}),
-			"createdAt": entityCreatedAtField,
-			"updatedAt": entityUpdatedAtField,
+			"id":        entityIDField(typeUser, nil),
+			"createdAt": entityCreatedAtField(nil),
+			"updatedAt": entityUpdatedAtField(nil),
 			"lastLoginAt": &graphql.Field{
 				Type:        graphql.DateTime,
 				Description: "The last login time of user",
@@ -33,10 +31,7 @@ var nodeUser = entity(
 	}),
 	&user.User{},
 	func(ctx *Context, id string) (interface{}, error) {
-		thunk := ctx.Users.Get(id)
-		return func() (interface{}, error) {
-			return thunk()
-		}, nil
+		return ctx.Users.Get(id).Value, nil
 	},
 )
 

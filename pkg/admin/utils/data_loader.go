@@ -2,26 +2,23 @@ package utils
 
 type LoadFunc func(keys []interface{}) ([]interface{}, error)
 
-type promise struct {
-	key     interface{}
-	settled bool
-
-	value interface{}
-	err   error
+type dataLoaderTask struct {
+	key    interface{}
+	settle func(value interface{}, err error)
 }
 
 type DataLoader struct {
 	MaxBatch int
 	loadFn   LoadFunc
-	cache    map[interface{}]*promise
-	queue    []*promise
+	cache    map[interface{}]*Lazy
+	queue    []dataLoaderTask
 }
 
 func NewDataLoader(loadFn LoadFunc) *DataLoader {
 	return &DataLoader{
 		MaxBatch: 20,
 		loadFn:   loadFn,
-		cache:    make(map[interface{}]*promise),
+		cache:    make(map[interface{}]*Lazy),
 	}
 }
 
@@ -32,28 +29,40 @@ func (l *DataLoader) run() {
 	}
 	values, err := l.loadFn(keys)
 	for i, p := range l.queue {
-		p.value = values[i]
-		p.err = err
-		p.settled = true
+		if err != nil {
+			p.settle(nil, err)
+		} else {
+			p.settle(values[i], nil)
+		}
 	}
 	l.queue = nil
 }
 
-func (l *DataLoader) Load(key interface{}) func() (interface{}, error) {
+func (l *DataLoader) Load(key interface{}) *Lazy {
 	p, ok := l.cache[key]
 	if !ok {
 		if len(l.queue) >= l.MaxBatch {
 			l.run()
 		}
 
-		p = &promise{key: key}
-		l.queue = append(l.queue, p)
-		l.cache[p.key] = p
+		settled := false
+		var value interface{}
+		var err error
+		p = NewLazy(func() (interface{}, error) {
+			if !settled {
+				l.run()
+			}
+			return value, err
+		})
+		l.queue = append(l.queue, dataLoaderTask{
+			key: key,
+			settle: func(v interface{}, e error) {
+				value = v
+				err = e
+				settled = true
+			},
+		})
+		l.cache[key] = p
 	}
-	return func() (interface{}, error) {
-		if !p.settled {
-			l.run()
-		}
-		return p.value, p.err
-	}
+	return p
 }

@@ -4,11 +4,11 @@ import (
 	"context"
 
 	"github.com/authgear/authgear-server/pkg/admin/loader"
-	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/admin/utils"
 )
 
 type UserLoader interface {
-	Get(id string) func() (*user.User, error)
+	Get(id string) *utils.Lazy
 	QueryPage(args loader.PageArgs) (*loader.PageResult, error)
 }
 

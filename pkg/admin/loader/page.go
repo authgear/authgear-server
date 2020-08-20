@@ -5,6 +5,7 @@ import (
 
 	"github.com/graphql-go/relay"
 
+	"github.com/authgear/authgear-server/pkg/admin/utils"
 	"github.com/authgear/authgear-server/pkg/lib/api/model"
 )
 
@@ -53,11 +54,11 @@ type TotalCountFunc func() (uint64, error)
 type PageResult struct {
 	HasPreviousPage bool
 	HasNextPage     bool
-	TotalCount      interface{}
+	TotalCount      *utils.Lazy
 	Values          []model.PageItem
 }
 
-func NewPageResult(args PageArgs, values []model.PageItem, totalCount TotalCountFunc) *PageResult {
+func NewPageResult(args PageArgs, values []model.PageItem, totalCount *utils.Lazy) *PageResult {
 	hasPreviousPage := true
 	hasNextPage := true
 
@@ -78,9 +79,7 @@ func NewPageResult(args PageArgs, values []model.PageItem, totalCount TotalCount
 	return &PageResult{
 		HasPreviousPage: hasPreviousPage,
 		HasNextPage:     hasNextPage,
-		TotalCount: func() (interface{}, error) {
-			return totalCount()
-		},
-		Values: values,
+		TotalCount:      totalCount,
+		Values:          values,
 	}
 }

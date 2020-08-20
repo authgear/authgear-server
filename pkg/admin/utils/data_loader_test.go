@@ -23,15 +23,22 @@ func TestDataLoader(t *testing.T) {
 				values[i] = "value " + ids[i]
 			}
 			loadedIDs = append(loadedIDs, ids)
-			return values, loaderErr
+
+			if loaderErr != nil {
+				return nil, loaderErr
+			}
+			return values, nil
 		})
 		loader.MaxBatch = 2
 
 		load := func(id string) func() (string, error) {
-			thunk := loader.Load(id)
+			l := loader.Load(id)
 			return func() (string, error) {
-				value, err := thunk()
-				return value.(string), err
+				value, err := l.Value()
+				if err != nil {
+					return "", err
+				}
+				return value.(string), nil
 			}
 		}
 

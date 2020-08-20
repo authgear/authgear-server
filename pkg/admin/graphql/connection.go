@@ -34,7 +34,7 @@ func NewConnection(result *loader.PageResult) *Connection {
 	return &Connection{
 		Edges:      edges,
 		PageInfo:   pageInfo,
-		TotalCount: result.TotalCount,
+		TotalCount: result.TotalCount.Value,
 	}
 }
 

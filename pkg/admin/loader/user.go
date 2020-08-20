@@ -17,7 +17,7 @@ type UserLoader struct {
 	loader *utils.DataLoader `wire:"-"`
 }
 
-func (l *UserLoader) Get(id string) func() (*user.User, error) {
+func (l *UserLoader) Get(id string) *utils.Lazy {
 	if l.loader == nil {
 		l.loader = utils.NewDataLoader(func(keys []interface{}) ([]interface{}, error) {
 			ids := make([]string, len(keys))
@@ -41,14 +41,7 @@ func (l *UserLoader) Get(id string) func() (*user.User, error) {
 			return values, nil
 		})
 	}
-	thunk := l.loader.Load(id)
-	return func() (*user.User, error) {
-		u, err := thunk()
-		if err != nil {
-			return nil, err
-		}
-		return u.(*user.User), nil
-	}
+	return l.loader.Load(id)
 }
 
 func (l *UserLoader) QueryPage(args PageArgs) (*PageResult, error) {
@@ -57,5 +50,7 @@ func (l *UserLoader) QueryPage(args PageArgs) (*PageResult, error) {
 		return nil, err
 	}
 
-	return NewPageResult(args, values, l.Users.Count), nil
+	return NewPageResult(args, values, utils.NewLazy(func() (interface{}, error) {
+		return l.Users.Count()
+	})), nil
 }

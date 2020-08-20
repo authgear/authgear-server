@@ -9,6 +9,7 @@ import (
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/relay"
 
+	"github.com/authgear/authgear-server/pkg/admin/utils"
 	"github.com/authgear/authgear-server/pkg/lib/api/model"
 )
 
@@ -32,15 +33,6 @@ var nodeDefs = relay.NewNodeDefinitions(relay.NodeDefinitionsConfig{
 		return objType
 	},
 })
-
-func globalIDField(typeName string, fn func(obj interface{}) (string, error)) *graphql.Field {
-	return relay.GlobalIDField(
-		typeName,
-		func(obj interface{}, info graphql.ResolveInfo, ctx context.Context) (string, error) {
-			return fn(obj)
-		},
-	)
-}
 
 var entityInterface = graphql.NewInterface(graphql.InterfaceConfig{
 	Name: "Entity",
@@ -82,21 +74,51 @@ type EntityRef interface {
 	GetMeta() model.Meta
 }
 
-var (
-	entityCreatedAtField = &graphql.Field{
+func entityIDField(typeName string, idFn func(obj interface{}) (string, error)) *graphql.Field {
+	return relay.GlobalIDField(
+		typeName,
+		func(obj interface{}, info graphql.ResolveInfo, ctx context.Context) (string, error) {
+			if idFn != nil {
+				return idFn(obj)
+			}
+			meta := obj.(EntityRef).GetMeta()
+			return meta.ID, nil
+		},
+	)
+}
+
+func entityCreatedAtField(objFn func(ctx context.Context, obj interface{}) *utils.Lazy) *graphql.Field {
+	return &graphql.Field{
 		Type:        graphql.NewNonNull(graphql.DateTime),
 		Description: "The creation time of entity",
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			meta := p.Source.(EntityRef).GetMeta()
-			return meta.CreatedAt, nil
+			obj := utils.NewLazyValue(p.Source)
+			if objFn != nil {
+				obj = objFn(p.Context, p.Source)
+			}
+			obj = obj.Map(func(value interface{}) (interface{}, error) {
+				meta := value.(EntityRef).GetMeta()
+				return meta.CreatedAt, nil
+			})
+			return obj.Value, nil
 		},
 	}
-	entityUpdatedAtField = &graphql.Field{
+}
+
+func entityUpdatedAtField(objFn func(ctx context.Context, obj interface{}) *utils.Lazy) *graphql.Field {
+	return &graphql.Field{
 		Type:        graphql.NewNonNull(graphql.DateTime),
 		Description: "The update time of entity",
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			meta := p.Source.(EntityRef).GetMeta()
-			return meta.UpdatedAt, nil
+			obj := utils.NewLazyValue(p.Source)
+			if objFn != nil {
+				obj = objFn(p.Context, p.Source)
+			}
+			obj = obj.Map(func(value interface{}) (interface{}, error) {
+				meta := value.(EntityRef).GetMeta()
+				return meta.UpdatedAt, nil
+			})
+			return obj.Value, nil
 		},
 	}
-)
+}
