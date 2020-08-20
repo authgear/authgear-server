@@ -39,10 +39,25 @@ var nodeIdentity = entity(
 			},
 			"claims": &graphql.Field{
 				Type: graphql.NewNonNull(JSONObject),
+				Args: map[string]*graphql.ArgumentConfig{
+					"names": {Type: graphql.NewList(graphql.NewNonNull(graphql.String))},
+				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					names, hasNames := p.Args["names"].([]interface{})
 					info := loadIdentity(p.Context, p.Source)
 					claims := info.Map(func(value interface{}) (interface{}, error) {
-						return value.(*identity.Info).Claims, nil
+						claims := value.(*identity.Info).Claims
+						if hasNames {
+							filteredClaims := make(map[string]interface{})
+							for _, name := range names {
+								name := name.(string)
+								if value, ok := claims[name]; ok {
+									filteredClaims[name] = value
+								}
+							}
+							claims = filteredClaims
+						}
+						return claims, nil
 					})
 					return claims.Value, nil
 				},
