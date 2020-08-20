@@ -16,8 +16,9 @@ func ConfigureSSOCallbackRoute(route httproute.Route) httproute.Route {
 }
 
 type SSOCallbackHandler struct {
-	Database *db.Handle
-	WebApp   WebAppService
+	Database   *db.Handle
+	WebApp     WebAppService
+	CSRFCookie webapp.CSRFCookieDef
 }
 
 type SSOCallbackInput struct {
@@ -62,7 +63,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
+	nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
 
 	stateID := r.Form.Get("state")
 	data := SSOCallbackInput{

@@ -25,7 +25,7 @@ type Resolver struct {
 }
 
 func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Session, error) {
-	cookie, err := r.Cookie(CookieName)
+	cookie, err := r.Cookie(re.Cookie.Def.Name)
 	if err != nil {
 		// No cookie. Simply proceed.
 		return nil, nil

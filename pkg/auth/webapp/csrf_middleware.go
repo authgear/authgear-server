@@ -12,6 +12,7 @@ import (
 
 type CSRFMiddleware struct {
 	Secret *config.CSRFKeyMaterials
+	Cookie CSRFCookieDef
 	Config *config.ServerConfig
 }
 
@@ -19,9 +20,9 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		secure := httputil.GetProto(r, m.Config.TrustProxy) == "https"
 		options := []csrf.Option{
+			csrf.CookieName(m.Cookie.Name),
 			csrf.Path("/"),
 			csrf.Secure(secure),
-			csrf.CookieName(CSRFCookieName),
 		}
 
 		useragent := r.UserAgent()

@@ -80,6 +80,7 @@ type PromoteHandler struct {
 	FormPrefiller *FormPrefiller
 	Renderer      Renderer
 	WebApp        WebAppService
+	CSRFCookie    webapp.CSRFCookieDef
 }
 
 func (h *PromoteHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -182,7 +183,7 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" && providerAlias != "" {
 		h.Database.WithTx(func() error {
-			nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
+			nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
 			stateID := StateID(r)
 			result, err := h.WebApp.PostInput(stateID, func() (input interface{}, err error) {
 				input = &PromoteOAuth{
