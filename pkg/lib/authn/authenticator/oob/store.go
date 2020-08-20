@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/Masterminds/squirrel"
+	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -72,16 +72,7 @@ func (s *Store) Get(userID string, id string) (*Authenticator, error) {
 }
 
 func (s *Store) GetMany(ids []string) ([]*Authenticator, error) {
-	if len(ids) == 0 {
-		return nil, nil
-	}
-
-	iids := make([]interface{}, len(ids))
-	for i, id := range ids {
-		iids[i] = id
-	}
-	builder := s.selectQuery().
-		Where("a.id IN ("+squirrel.Placeholders(len(ids))+")", iids...)
+	builder := s.selectQuery().Where("a.id = ANY (?)", pq.Array(ids))
 
 	rows, err := s.SQLExecutor.QueryWith(builder)
 	if err != nil {

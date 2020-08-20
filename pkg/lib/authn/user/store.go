@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/lib/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -97,16 +98,7 @@ func (s *Store) Get(userID string) (*User, error) {
 }
 
 func (s *Store) GetByIDs(userIDs []string) ([]*User, error) {
-	if len(userIDs) == 0 {
-		return nil, nil
-	}
-
-	ids := make([]interface{}, len(userIDs))
-	for i, id := range userIDs {
-		ids[i] = id
-	}
-	builder := s.selectQuery().
-		Where("id IN ("+squirrel.Placeholders(len(ids))+")", ids...)
+	builder := s.selectQuery().Where("id = ANY (?)", pq.Array(userIDs))
 
 	rows, err := s.SQLExecutor.QueryWith(builder)
 	if err != nil {

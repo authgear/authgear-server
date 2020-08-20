@@ -3,7 +3,7 @@ package password
 import (
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
+	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -80,7 +80,7 @@ func (p *HistoryStore) RemovePasswordHistory(userID string, historySize int, his
 	builder := p.SQLBuilder.Tenant().
 		Delete(p.SQLBuilder.FullTableName("password_history")).
 		Where("user_id = ?", userID).
-		Where("id NOT IN ("+sq.Placeholders(len(ids))+")", ids...).
+		Where("id != ALL (?)", pq.Array(ids)).
 		Where("created_at < ?", oldestTime)
 
 	_, err = p.SQLExecutor.ExecWith(builder)

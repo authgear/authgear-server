@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/Masterminds/squirrel"
+	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -31,13 +31,9 @@ func (s *Store) Count(userID string) (uint64, error) {
 }
 
 func (s *Store) ListRefsByUsers(userIDs []string) ([]*authenticator.Ref, error) {
-	ids := make([]interface{}, len(userIDs))
-	for i, id := range userIDs {
-		ids[i] = id
-	}
 	builder := s.SQLBuilder.Tenant().
 		Select("id", "type", "user_id", "created_at", "updated_at").
-		Where("user_id IN ("+squirrel.Placeholders(len(ids))+")", ids...).
+		Where("user_id = ANY (?)", pq.Array(userIDs)).
 		From(s.SQLBuilder.FullTableName("authenticator"))
 
 	rows, err := s.SQLExecutor.QueryWith(builder)
