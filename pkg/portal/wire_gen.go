@@ -50,3 +50,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	return graphQLHandler
 }
+
+func newRuntimeConfigHandler(p *deps.RequestProvider) http.Handler {
+	rootProvider := p.RootProvider
+	serverConfig := rootProvider.ServerConfig
+	runtimeConfigHandler := &transport.RuntimeConfigHandler{
+		Config: serverConfig,
+	}
+	return runtimeConfigHandler
+}

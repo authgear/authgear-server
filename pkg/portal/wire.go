@@ -36,3 +36,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		wire.Bind(new(http.Handler), new(*transport.GraphQLHandler)),
 	))
 }
+
+func newRuntimeConfigHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.RuntimeConfigHandler)),
+	))
+}
