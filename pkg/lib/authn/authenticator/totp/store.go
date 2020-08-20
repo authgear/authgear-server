@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/lib/pq"
+
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -58,6 +60,27 @@ func (s *Store) scan(scn db.Scanner) (*Authenticator, error) {
 	}
 
 	return a, nil
+}
+
+func (s *Store) GetMany(ids []string) ([]*Authenticator, error) {
+	builder := s.selectQuery().Where("a.id = ANY (?)", pq.Array(ids))
+
+	rows, err := s.SQLExecutor.QueryWith(builder)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var as []*Authenticator
+	for rows.Next() {
+		a, err := s.scan(rows)
+		if err != nil {
+			return nil, err
+		}
+		as = append(as, a)
+	}
+
+	return as, nil
 }
 
 func (s *Store) Get(userID string, id string) (*Authenticator, error) {

@@ -31,6 +31,10 @@ func (p *Provider) Get(userID string, id string) (*Authenticator, error) {
 	return p.Store.Get(userID, id)
 }
 
+func (p *Provider) GetMany(ids []string) ([]*Authenticator, error) {
+	return p.Store.GetMany(ids)
+}
+
 func (p *Provider) Delete(a *Authenticator) error {
 	return p.Store.Delete(a.ID)
 }

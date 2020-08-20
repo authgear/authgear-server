@@ -46,6 +46,10 @@ func (p *Provider) GetByUserProvider(userID string, provider config.ProviderID) 
 	return p.Store.GetByUserProvider(userID, provider)
 }
 
+func (p *Provider) GetMany(ids []string) ([]*Identity, error) {
+	return p.Store.GetMany(ids)
+}
+
 func (p *Provider) New(
 	userID string,
 	provider config.ProviderID,

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/lib/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -14,6 +15,7 @@ import (
 type store interface {
 	Create(u *User) error
 	Get(userID string) (*User, error)
+	GetByIDs(userIDs []string) ([]*User, error)
 	Count() (uint64, error)
 	QueryPage(after, before model.PageCursor, first, last *uint64) ([]*User, error)
 	UpdateLoginTime(userID string, loginAt time.Time) error
@@ -95,6 +97,27 @@ func (s *Store) Get(userID string) (*User, error) {
 	return u, nil
 }
 
+func (s *Store) GetByIDs(userIDs []string) ([]*User, error) {
+	builder := s.selectQuery().Where("id = ANY (?)", pq.Array(userIDs))
+
+	rows, err := s.SQLExecutor.QueryWith(builder)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []*User
+	for rows.Next() {
+		u, err := s.scan(rows)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, u)
+	}
+
+	return users, nil
+}
+
 func (s *Store) Count() (uint64, error) {
 	builder := s.SQLBuilder.Tenant().
 		Select("count(*)").
@@ -122,7 +145,9 @@ func (s *Store) QueryPage(after, before model.PageCursor, first, last *uint64) (
 		return nil, err
 	}
 
-	query, err := queryPage(s.selectQuery(), afterKey, beforeKey, first, last)
+	selectQuery := s.selectQuery()
+
+	query, err := queryPage(selectQuery, afterKey, beforeKey, first, last)
 	if err != nil {
 		return nil, err
 	}

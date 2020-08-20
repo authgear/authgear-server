@@ -65,6 +65,27 @@ func (s *Store) scan(scn db.Scanner) (*Identity, error) {
 	return i, nil
 }
 
+func (s *Store) GetMany(ids []string) ([]*Identity, error) {
+	builder := s.selectQuery().Where("p.id = ANY (?)", pq.Array(ids))
+
+	rows, err := s.SQLExecutor.QueryWith(builder)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var is []*Identity
+	for rows.Next() {
+		i, err := s.scan(rows)
+		if err != nil {
+			return nil, err
+		}
+		is = append(is, i)
+	}
+
+	return is, nil
+}
+
 func (s *Store) List(userID string) ([]*Identity, error) {
 	q := s.selectQuery().Where("p.user_id = ?", userID)
 

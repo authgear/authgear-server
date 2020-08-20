@@ -16,6 +16,7 @@ import (
 
 type LoginIDIdentityProvider interface {
 	Get(userID, id string) (*loginid.Identity, error)
+	GetMany(ids []string) ([]*loginid.Identity, error)
 	List(userID string) ([]*loginid.Identity, error)
 	GetByValue(loginIDValue string) ([]*loginid.Identity, error)
 	ListByClaim(name string, value string) ([]*loginid.Identity, error)
@@ -29,6 +30,7 @@ type LoginIDIdentityProvider interface {
 
 type OAuthIdentityProvider interface {
 	Get(userID, id string) (*oauth.Identity, error)
+	GetMany(ids []string) ([]*oauth.Identity, error)
 	List(userID string) ([]*oauth.Identity, error)
 	GetByProviderSubject(provider config.ProviderID, subjectID string) (*oauth.Identity, error)
 	GetByUserProvider(userID string, provider config.ProviderID) (*oauth.Identity, error)
@@ -48,6 +50,7 @@ type OAuthIdentityProvider interface {
 
 type AnonymousIdentityProvider interface {
 	Get(userID, id string) (*anonymous.Identity, error)
+	GetMany(ids []string) ([]*anonymous.Identity, error)
 	GetByKeyID(keyID string) (*anonymous.Identity, error)
 	List(userID string) ([]*anonymous.Identity, error)
 	ListByClaim(name string, value string) ([]*anonymous.Identity, error)
@@ -59,6 +62,7 @@ type AnonymousIdentityProvider interface {
 type Service struct {
 	Authentication *config.AuthenticationConfig
 	Identity       *config.IdentityConfig
+	Store          *Store
 	LoginID        LoginIDIdentityProvider
 	OAuth          OAuthIdentityProvider
 	Anonymous      AnonymousIdentityProvider
@@ -89,6 +93,50 @@ func (s *Service) Get(userID string, typ authn.IdentityType, id string) (*identi
 	}
 
 	panic("identity: unknown identity type " + typ)
+}
+
+func (s *Service) GetMany(refs []*identity.Ref) ([]*identity.Info, error) {
+	var loginIDs, oauthIDs, anonymousIDs []string
+	for _, ref := range refs {
+		switch ref.Type {
+		case authn.IdentityTypeLoginID:
+			loginIDs = append(loginIDs, ref.ID)
+		case authn.IdentityTypeOAuth:
+			oauthIDs = append(oauthIDs, ref.ID)
+		case authn.IdentityTypeAnonymous:
+			anonymousIDs = append(anonymousIDs, ref.ID)
+		default:
+			panic("identity: unknown identity type " + ref.Type)
+		}
+	}
+
+	var infos []*identity.Info
+
+	l, err := s.LoginID.GetMany(loginIDs)
+	if err != nil {
+		return nil, err
+	}
+	for _, i := range l {
+		infos = append(infos, loginIDToIdentityInfo(i))
+	}
+
+	o, err := s.OAuth.GetMany(oauthIDs)
+	if err != nil {
+		return nil, err
+	}
+	for _, i := range o {
+		infos = append(infos, s.toIdentityInfo(i))
+	}
+
+	a, err := s.Anonymous.GetMany(anonymousIDs)
+	if err != nil {
+		return nil, err
+	}
+	for _, i := range a {
+		infos = append(infos, anonymousToIdentityInfo(i))
+	}
+
+	return infos, nil
 }
 
 // GetBySpec return user ID and information about the identity that matches the provided spec.
@@ -155,6 +203,14 @@ func (s *Service) ListByUser(userID string) ([]*identity.Info, error) {
 	}
 
 	return infos, nil
+}
+
+func (s *Service) Count(userID string) (uint64, error) {
+	return s.Store.Count(userID)
+}
+
+func (s *Service) ListRefsByUsers(userIDs []string) ([]*identity.Ref, error) {
+	return s.Store.ListRefsByUsers(userIDs)
 }
 
 func (s *Service) ListByClaim(name string, value string) ([]*identity.Info, error) {

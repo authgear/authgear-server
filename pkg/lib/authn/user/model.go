@@ -15,6 +15,14 @@ type User struct {
 	LastLoginAt *time.Time
 }
 
+func (u *User) GetMeta() model.Meta {
+	return model.Meta{
+		ID:        u.ID,
+		CreatedAt: u.CreatedAt,
+		UpdatedAt: u.UpdatedAt,
+	}
+}
+
 func newUserModel(
 	user *User,
 	identities []*identity.Info,

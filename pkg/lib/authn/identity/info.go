@@ -22,6 +22,26 @@ func (i *Info) ToSpec() Spec {
 	return Spec{Type: i.Type, Claims: i.Claims}
 }
 
+func (i *Info) ToRef() *Ref {
+	return &Ref{
+		Meta: model.Meta{
+			ID:        i.ID,
+			CreatedAt: i.CreatedAt,
+			UpdatedAt: i.UpdatedAt,
+		},
+		UserID: i.UserID,
+		Type:   i.Type,
+	}
+}
+
+func (i *Info) GetMeta() model.Meta {
+	return model.Meta{
+		ID:        i.ID,
+		CreatedAt: i.CreatedAt,
+		UpdatedAt: i.UpdatedAt,
+	}
+}
+
 func (i *Info) ToModel() model.Identity {
 	claims := make(map[string]interface{})
 	for key, value := range i.Claims {
@@ -51,6 +71,7 @@ func (i *Info) ToModel() model.Identity {
 	}
 
 	return model.Identity{
+		Meta:   i.GetMeta(),
 		Type:   string(i.Type),
 		Claims: claims,
 	}

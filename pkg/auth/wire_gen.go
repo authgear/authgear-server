@@ -107,6 +107,10 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	interactionLogger := interaction.NewLogger(factory)
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
+	serviceStore := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
 	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -142,9 +146,14 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          serviceStore,
 		LoginID:        loginidProvider,
 		OAuth:          oauthProvider,
 		Anonymous:      provider,
+	}
+	store2 := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -190,6 +199,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clock,
 	}
 	service3 := &service2.Service{
+		Store:    store2,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -519,7 +529,11 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	interactionLogger := interaction.NewLogger(factory)
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
-	store := &loginid.Store{
+	store := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -537,7 +551,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Config: loginIDConfig,
 	}
 	loginidProvider := &loginid.Provider{
-		Store:             store,
+		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
@@ -562,9 +576,14 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          store,
 		LoginID:        loginidProvider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+	}
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -610,6 +629,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    serviceStore,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -937,6 +957,10 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
+	serviceStore := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
 	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -981,12 +1005,17 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          serviceStore,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
 	}
 	logger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	store2 := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -1031,6 +1060,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    store2,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -1097,6 +1127,10 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
+	serviceStore := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
 	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -1141,12 +1175,17 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          serviceStore,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
 	}
 	logger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	store2 := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -1191,6 +1230,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    store2,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -1332,7 +1372,11 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	store := &loginid.Store{
+	store := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -1349,7 +1393,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Config: loginIDConfig,
 	}
 	provider := &loginid.Provider{
-		Store:             store,
+		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
@@ -1374,9 +1418,14 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          store,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+	}
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1422,6 +1471,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    serviceStore,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -1713,7 +1763,11 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	store := &loginid.Store{
+	store := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -1730,7 +1784,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Config: loginIDConfig,
 	}
 	provider := &loginid.Provider{
-		Store:             store,
+		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
@@ -1755,9 +1809,14 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          store,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+	}
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1803,6 +1862,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    serviceStore,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -2094,7 +2154,11 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	store := &loginid.Store{
+	store := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -2111,7 +2175,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Config: loginIDConfig,
 	}
 	provider := &loginid.Provider{
-		Store:             store,
+		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
@@ -2136,9 +2200,14 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          store,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+	}
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -2184,6 +2253,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    serviceStore,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -2450,7 +2520,11 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	store := &loginid.Store{
+	store := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -2469,7 +2543,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Config: loginIDConfig,
 	}
 	provider := &loginid.Provider{
-		Store:             store,
+		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
@@ -2494,9 +2568,14 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          store,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+	}
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -2542,6 +2621,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    serviceStore,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -2829,7 +2909,11 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	store := &loginid.Store{
+	store := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -2847,7 +2931,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Config: loginIDConfig,
 	}
 	provider := &loginid.Provider{
-		Store:             store,
+		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
@@ -2872,9 +2956,14 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          store,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+	}
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -2920,6 +3009,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    serviceStore,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -3204,7 +3294,11 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	store := &loginid.Store{
+	store := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -3222,7 +3316,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: loginIDConfig,
 	}
 	provider := &loginid.Provider{
-		Store:             store,
+		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
@@ -3247,9 +3341,14 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          store,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+	}
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -3295,6 +3394,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    serviceStore,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -3579,7 +3679,11 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	store := &loginid.Store{
+	store := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -3597,7 +3701,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: loginIDConfig,
 	}
 	provider := &loginid.Provider{
-		Store:             store,
+		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
@@ -3622,9 +3726,14 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          store,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+	}
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -3670,6 +3779,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    serviceStore,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -3955,7 +4065,11 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	store := &loginid.Store{
+	store := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -3973,7 +4087,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: loginIDConfig,
 	}
 	provider := &loginid.Provider{
-		Store:             store,
+		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
@@ -3998,9 +4112,14 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          store,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+	}
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -4046,6 +4165,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    serviceStore,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -4332,7 +4452,11 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	store := &loginid.Store{
+	store := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -4350,7 +4474,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: loginIDConfig,
 	}
 	provider := &loginid.Provider{
-		Store:             store,
+		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
@@ -4375,9 +4499,14 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          store,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+	}
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -4423,6 +4552,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    serviceStore,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -4707,7 +4837,11 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	store := &loginid.Store{
+	store := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -4725,7 +4859,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: loginIDConfig,
 	}
 	provider := &loginid.Provider{
-		Store:             store,
+		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
@@ -4750,9 +4884,14 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          store,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+	}
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -4798,6 +4937,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    serviceStore,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -5082,7 +5222,11 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	store := &loginid.Store{
+	store := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -5100,7 +5244,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: loginIDConfig,
 	}
 	provider := &loginid.Provider{
-		Store:             store,
+		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
@@ -5125,9 +5269,14 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          store,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+	}
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -5173,6 +5322,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    serviceStore,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -5457,7 +5607,11 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	store := &loginid.Store{
+	store := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -5475,7 +5629,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Config: loginIDConfig,
 	}
 	provider := &loginid.Provider{
-		Store:             store,
+		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
@@ -5500,9 +5654,14 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          store,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+	}
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -5548,6 +5707,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    serviceStore,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -5832,7 +5992,11 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	store := &loginid.Store{
+	store := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -5850,7 +6014,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Config: loginIDConfig,
 	}
 	provider := &loginid.Provider{
-		Store:             store,
+		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
@@ -5875,9 +6039,14 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          store,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+	}
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -5923,6 +6092,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    serviceStore,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -6207,7 +6377,11 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	store := &loginid.Store{
+	store := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -6225,7 +6399,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Config: loginIDConfig,
 	}
 	provider := &loginid.Provider{
-		Store:             store,
+		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
@@ -6250,9 +6424,14 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          store,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+	}
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -6298,6 +6477,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    serviceStore,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -6582,7 +6762,11 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	store := &loginid.Store{
+	store := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -6600,7 +6784,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Config: loginIDConfig,
 	}
 	provider := &loginid.Provider{
-		Store:             store,
+		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
@@ -6625,9 +6809,14 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          store,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+	}
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -6673,6 +6862,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    serviceStore,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -6962,7 +7152,11 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	store := &loginid.Store{
+	store := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -6979,7 +7173,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: loginIDConfig,
 	}
 	provider := &loginid.Provider{
-		Store:             store,
+		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
@@ -7004,9 +7198,14 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          store,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+	}
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -7052,6 +7251,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    serviceStore,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -7337,7 +7537,11 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	store := &loginid.Store{
+	store := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -7355,7 +7559,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Config: loginIDConfig,
 	}
 	provider := &loginid.Provider{
-		Store:             store,
+		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
@@ -7380,9 +7584,14 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          store,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+	}
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -7428,6 +7637,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    serviceStore,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -7712,7 +7922,11 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	store := &loginid.Store{
+	store := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -7730,7 +7944,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: loginIDConfig,
 	}
 	provider := &loginid.Provider{
-		Store:             store,
+		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
@@ -7755,9 +7969,14 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          store,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+	}
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -7803,6 +8022,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    serviceStore,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -8088,7 +8308,11 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	store := &loginid.Store{
+	store := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -8106,7 +8330,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Config: loginIDConfig,
 	}
 	provider := &loginid.Provider{
-		Store:             store,
+		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
@@ -8131,9 +8355,14 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          store,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+	}
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -8179,6 +8408,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    serviceStore,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -8494,7 +8724,11 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	store := &loginid.Store{
+	store := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -8512,7 +8746,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Config: loginIDConfig,
 	}
 	provider := &loginid.Provider{
-		Store:             store,
+		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
@@ -8537,9 +8771,14 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          store,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+	}
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -8585,6 +8824,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    serviceStore,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -8850,6 +9090,10 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
+	serviceStore := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
 	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -8894,6 +9138,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          serviceStore,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
@@ -8901,6 +9146,10 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	factory := appProvider.LoggerFactory
 	logger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	store2 := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -8945,6 +9194,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    store2,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -9103,7 +9353,11 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	store := &loginid.Store{
+	store := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -9122,7 +9376,7 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		Config: loginIDConfig,
 	}
 	provider := &loginid.Provider{
-		Store:             store,
+		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
@@ -9147,9 +9401,14 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          store,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+	}
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -9195,6 +9454,7 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    serviceStore,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -9463,7 +9723,11 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	store := &loginid.Store{
+	store := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -9482,7 +9746,7 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		Config: loginIDConfig,
 	}
 	provider := &loginid.Provider{
-		Store:             store,
+		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
 		NormalizerFactory: normalizerFactory,
@@ -9507,9 +9771,14 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          store,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+	}
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
@@ -9555,6 +9824,7 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    serviceStore,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -9955,6 +10225,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
+	serviceStore := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
 	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -9998,12 +10272,17 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
+		Store:          serviceStore,
 		LoginID:        loginidProvider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	store2 := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -10048,6 +10327,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    store2,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,

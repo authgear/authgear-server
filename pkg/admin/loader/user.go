@@ -1,19 +1,47 @@
 package loader
 
-import "github.com/authgear/authgear-server/pkg/lib/api/model"
+import (
+	"github.com/authgear/authgear-server/pkg/lib/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
+)
 
 type UserService interface {
-	Get(id string) (*model.User, error)
+	GetManyRaw(id []string) ([]*user.User, error)
 	Count() (uint64, error)
 	QueryPage(after, before model.PageCursor, first, last *uint64) ([]model.PageItem, error)
 }
 
 type UserLoader struct {
-	Users UserService
+	Users  UserService
+	loader *graphqlutil.DataLoader `wire:"-"`
 }
 
-func (l *UserLoader) Get(id string) (interface{}, error) {
-	return l.Users.Get(id)
+func (l *UserLoader) Get(id string) *graphqlutil.Lazy {
+	if l.loader == nil {
+		l.loader = graphqlutil.NewDataLoader(func(keys []interface{}) ([]interface{}, error) {
+			ids := make([]string, len(keys))
+			for i, id := range keys {
+				ids[i] = id.(string)
+			}
+
+			users, err := l.Users.GetManyRaw(ids)
+			if err != nil {
+				return nil, err
+			}
+
+			userMap := make(map[string]interface{})
+			for _, u := range users {
+				userMap[u.ID] = u
+			}
+			values := make([]interface{}, len(keys))
+			for i, id := range ids {
+				values[i] = userMap[id]
+			}
+			return values, nil
+		})
+	}
+	return l.loader.Load(id)
 }
 
 func (l *UserLoader) QueryPage(args PageArgs) (*PageResult, error) {
@@ -22,5 +50,7 @@ func (l *UserLoader) QueryPage(args PageArgs) (*PageResult, error) {
 		return nil, err
 	}
 
-	return NewPageResult(args, values, l.Users.Count), nil
+	return NewPageResult(args, values, graphqlutil.NewLazy(func() (interface{}, error) {
+		return l.Users.Count()
+	})), nil
 }
