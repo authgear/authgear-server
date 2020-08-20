@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { graphql, QueryRenderer } from "react-relay";
 import authgear from "@authgear/web";
 import { environment } from "./relay";
@@ -93,16 +93,55 @@ const ShowLoading: React.FC = function ShowLoading() {
 interface Empty {}
 
 const App: React.FC = function App() {
+  const [configured, setConfigured] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<null | unknown>(null);
+
+  useEffect(() => {
+    if (!configured && !loading && error == null) {
+      setLoading(true);
+
+      fetch("/api/runtime-config.json")
+        .then(async (response) => {
+          const runtimeConfig = await response.json();
+          await authgear.configure({
+            clientID: runtimeConfig.authgear_client_id,
+            endpoint: runtimeConfig.authgear_endpoint,
+          });
+          setConfigured(true);
+        })
+        .then(
+          () => {
+            setLoading(false);
+          },
+          (err) => {
+            setLoading(false);
+            setError(err);
+          }
+        );
+    }
+  }, [configured, loading, error]);
+
+  if (error != null) {
+    return (
+      <p>Failed to initialize the app. Please refresh this page to retry.</p>
+    );
+  }
+
+  if (loading) {
+    return <ShowLoading />;
+  }
+
   return (
     <QueryRenderer<{ variables: Empty; response: AppQueryResponse }>
       environment={environment}
       query={query}
       variables={{}}
       render={({ error, props }) => {
-        if (error) {
+        if (error != null) {
           return <ShowError error={error} />;
         }
-        if (!props) {
+        if (props == null) {
           return <ShowLoading />;
         }
         return <ShowQueryResult {...props} />;
