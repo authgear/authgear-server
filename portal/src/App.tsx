@@ -5,12 +5,8 @@ import { AppQueryResponse } from "./__generated__/AppQuery.graphql";
 
 const query = graphql`
   query AppQuery {
-    users {
-      edges {
-        node {
-          id
-        }
-      }
+    viewer {
+      id
     }
   }
 `;
@@ -18,13 +14,7 @@ const query = graphql`
 const ShowQueryResult: React.FC<AppQueryResponse> = function ShowQueryResult(
   props: AppQueryResponse
 ) {
-  return (
-    <div>
-      {props.users.edges?.map((edge, i) => {
-        return <div key={i}>{edge?.node?.id}</div>;
-      })}
-    </div>
-  );
+  return <div>{props.viewer?.id}</div>;
 };
 
 interface ShowErrorProps {

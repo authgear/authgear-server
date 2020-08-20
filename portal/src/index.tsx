@@ -16,12 +16,4 @@ import { render } from "react-dom";
 
 import App from "./App";
 
-fetch("/api").then(
-  (response) => {
-    console.log(response);
-    render(<App />, document.getElementById("react-app-root"));
-  },
-  (err) => {
-    console.error(err);
-  }
-);
+render(<App />, document.getElementById("react-app-root"));

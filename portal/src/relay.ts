@@ -10,22 +10,21 @@ import {
 } from "relay-runtime";
 
 function fetchQuery(
-  _request: RequestParameters,
-  _variables: Variables
+  request: RequestParameters,
+  variables: Variables
 ): ObservableFromValue<GraphQLResponse> {
-  throw new Error("TODO: call backend GraphQL endpoint");
-  // return fetch("/graphql", {
-  //   method: "POST",
-  //   headers: {
-  //     "Content-Type": "application/json",
-  //   },
-  //   body: JSON.stringify({
-  //     query: request.text,
-  //     variables,
-  //   }),
-  // }).then(async (response) => {
-  //   return response.json();
-  // });
+  return fetch("/api/graphql", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      query: request.text,
+      variables,
+    }),
+  }).then(async (response) => {
+    return response.json();
+  });
 }
 
 const source = new RecordSource();
