@@ -3,8 +3,8 @@ package loader
 import (
 	"sort"
 
-	"github.com/authgear/authgear-server/pkg/admin/utils"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type IdentityService interface {
@@ -15,13 +15,13 @@ type IdentityService interface {
 
 type IdentityLoader struct {
 	Identities IdentityService
-	loader     *utils.DataLoader `wire:"-"`
-	listLoader *utils.DataLoader `wire:"-"`
+	loader     *graphqlutil.DataLoader `wire:"-"`
+	listLoader *graphqlutil.DataLoader `wire:"-"`
 }
 
-func (l *IdentityLoader) Get(ref *identity.Ref) *utils.Lazy {
+func (l *IdentityLoader) Get(ref *identity.Ref) *graphqlutil.Lazy {
 	if l.loader == nil {
-		l.loader = utils.NewDataLoader(func(keys []interface{}) ([]interface{}, error) {
+		l.loader = graphqlutil.NewDataLoader(func(keys []interface{}) ([]interface{}, error) {
 			refs := make([]*identity.Ref, len(keys))
 			for i, id := range keys {
 				refs[i] = id.(*identity.Ref)
@@ -46,9 +46,9 @@ func (l *IdentityLoader) Get(ref *identity.Ref) *utils.Lazy {
 	return l.loader.Load(ref)
 }
 
-func (l *IdentityLoader) List(userID string) *utils.Lazy {
+func (l *IdentityLoader) List(userID string) *graphqlutil.Lazy {
 	if l.listLoader == nil {
-		l.listLoader = utils.NewDataLoader(func(keys []interface{}) ([]interface{}, error) {
+		l.listLoader = graphqlutil.NewDataLoader(func(keys []interface{}) ([]interface{}, error) {
 			ids := make([]string, len(keys))
 			for i, id := range keys {
 				ids[i] = id.(string)

@@ -1,4 +1,4 @@
-package utils_test
+package graphqlutil_test
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/authgear/authgear-server/pkg/admin/utils"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 func TestDataLoader(t *testing.T) {
@@ -14,7 +14,7 @@ func TestDataLoader(t *testing.T) {
 		loadCounter := 0
 		var loadedIDs [][]string
 		var loaderErr error
-		loader := utils.NewDataLoader(func(keys []interface{}) ([]interface{}, error) {
+		loader := graphqlutil.NewDataLoader(func(keys []interface{}) ([]interface{}, error) {
 			loadCounter++
 			ids := make([]string, len(keys))
 			values := make([]interface{}, len(keys))

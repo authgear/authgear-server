@@ -3,8 +3,8 @@ package loader
 import (
 	"sort"
 
-	"github.com/authgear/authgear-server/pkg/admin/utils"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type AuthenticatorService interface {
@@ -15,13 +15,13 @@ type AuthenticatorService interface {
 
 type AuthenticatorLoader struct {
 	Authenticators AuthenticatorService
-	loader         *utils.DataLoader `wire:"-"`
-	listLoader     *utils.DataLoader `wire:"-"`
+	loader         *graphqlutil.DataLoader `wire:"-"`
+	listLoader     *graphqlutil.DataLoader `wire:"-"`
 }
 
-func (l *AuthenticatorLoader) Get(ref *authenticator.Ref) *utils.Lazy {
+func (l *AuthenticatorLoader) Get(ref *authenticator.Ref) *graphqlutil.Lazy {
 	if l.loader == nil {
-		l.loader = utils.NewDataLoader(func(keys []interface{}) ([]interface{}, error) {
+		l.loader = graphqlutil.NewDataLoader(func(keys []interface{}) ([]interface{}, error) {
 			refs := make([]*authenticator.Ref, len(keys))
 			for i, id := range keys {
 				refs[i] = id.(*authenticator.Ref)
@@ -46,9 +46,9 @@ func (l *AuthenticatorLoader) Get(ref *authenticator.Ref) *utils.Lazy {
 	return l.loader.Load(ref)
 }
 
-func (l *AuthenticatorLoader) List(userID string) *utils.Lazy {
+func (l *AuthenticatorLoader) List(userID string) *graphqlutil.Lazy {
 	if l.listLoader == nil {
-		l.listLoader = utils.NewDataLoader(func(keys []interface{}) ([]interface{}, error) {
+		l.listLoader = graphqlutil.NewDataLoader(func(keys []interface{}) ([]interface{}, error) {
 			ids := make([]string, len(keys))
 			for i, id := range keys {
 				ids[i] = id.(string)

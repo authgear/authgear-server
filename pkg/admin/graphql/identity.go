@@ -8,10 +8,10 @@ import (
 
 	"github.com/graphql-go/graphql"
 
-	"github.com/authgear/authgear-server/pkg/admin/utils"
 	"github.com/authgear/authgear-server/pkg/lib/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 const typeIdentity = "Identity"
@@ -95,10 +95,10 @@ func decodeIdentityID(id string) (*identity.Ref, error) {
 	}, nil
 }
 
-func loadIdentity(ctx context.Context, obj interface{}) *utils.Lazy {
+func loadIdentity(ctx context.Context, obj interface{}) *graphqlutil.Lazy {
 	switch obj := obj.(type) {
 	case *identity.Info:
-		return utils.NewLazyValue(obj)
+		return graphqlutil.NewLazyValue(obj)
 	case *identity.Ref:
 		return GQLContext(ctx).Identities.Get(obj)
 	default:

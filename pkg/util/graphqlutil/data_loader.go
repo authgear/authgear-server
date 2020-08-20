@@ -1,4 +1,4 @@
-package utils
+package graphqlutil
 
 type LoadFunc func(keys []interface{}) ([]interface{}, error)
 

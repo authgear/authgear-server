@@ -1,9 +1,9 @@
 package loader
 
 import (
-	"github.com/authgear/authgear-server/pkg/admin/utils"
 	"github.com/authgear/authgear-server/pkg/lib/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type UserService interface {
@@ -14,12 +14,12 @@ type UserService interface {
 
 type UserLoader struct {
 	Users  UserService
-	loader *utils.DataLoader `wire:"-"`
+	loader *graphqlutil.DataLoader `wire:"-"`
 }
 
-func (l *UserLoader) Get(id string) *utils.Lazy {
+func (l *UserLoader) Get(id string) *graphqlutil.Lazy {
 	if l.loader == nil {
-		l.loader = utils.NewDataLoader(func(keys []interface{}) ([]interface{}, error) {
+		l.loader = graphqlutil.NewDataLoader(func(keys []interface{}) ([]interface{}, error) {
 			ids := make([]string, len(keys))
 			for i, id := range keys {
 				ids[i] = id.(string)
@@ -50,7 +50,7 @@ func (l *UserLoader) QueryPage(args PageArgs) (*PageResult, error) {
 		return nil, err
 	}
 
-	return NewPageResult(args, values, utils.NewLazy(func() (interface{}, error) {
+	return NewPageResult(args, values, graphqlutil.NewLazy(func() (interface{}, error) {
 		return l.Users.Count()
 	})), nil
 }

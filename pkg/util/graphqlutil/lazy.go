@@ -1,4 +1,4 @@
-package utils
+package graphqlutil
 
 type Lazy struct {
 	init  func() (interface{}, error)

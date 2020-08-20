@@ -4,24 +4,24 @@ import (
 	"context"
 
 	"github.com/authgear/authgear-server/pkg/admin/loader"
-	"github.com/authgear/authgear-server/pkg/admin/utils"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type UserLoader interface {
-	Get(id string) *utils.Lazy
+	Get(id string) *graphqlutil.Lazy
 	QueryPage(args loader.PageArgs) (*loader.PageResult, error)
 }
 
 type IdentityLoader interface {
-	Get(ref *identity.Ref) *utils.Lazy
-	List(userID string) *utils.Lazy
+	Get(ref *identity.Ref) *graphqlutil.Lazy
+	List(userID string) *graphqlutil.Lazy
 }
 
 type AuthenticatorLoader interface {
-	Get(ref *authenticator.Ref) *utils.Lazy
-	List(userID string) *utils.Lazy
+	Get(ref *authenticator.Ref) *graphqlutil.Lazy
+	List(userID string) *graphqlutil.Lazy
 }
 
 type Context struct {

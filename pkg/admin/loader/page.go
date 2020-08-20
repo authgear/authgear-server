@@ -5,8 +5,8 @@ import (
 
 	"github.com/graphql-go/relay"
 
-	"github.com/authgear/authgear-server/pkg/admin/utils"
 	"github.com/authgear/authgear-server/pkg/lib/api/model"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 const MaxPageSize uint64 = 20
@@ -54,11 +54,11 @@ type TotalCountFunc func() (uint64, error)
 type PageResult struct {
 	HasPreviousPage bool
 	HasNextPage     bool
-	TotalCount      *utils.Lazy
+	TotalCount      *graphqlutil.Lazy
 	Values          []model.PageItem
 }
 
-func NewPageResult(args PageArgs, values []model.PageItem, totalCount *utils.Lazy) *PageResult {
+func NewPageResult(args PageArgs, values []model.PageItem, totalCount *graphqlutil.Lazy) *PageResult {
 	hasPreviousPage := true
 	hasNextPage := true
 

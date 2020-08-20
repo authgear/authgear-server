@@ -9,8 +9,8 @@ import (
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/relay"
 
-	"github.com/authgear/authgear-server/pkg/admin/utils"
 	"github.com/authgear/authgear-server/pkg/lib/api/model"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 var nodeDefs = relay.NewNodeDefinitions(relay.NodeDefinitionsConfig{
@@ -87,12 +87,12 @@ func entityIDField(typeName string, idFn func(obj interface{}) (string, error)) 
 	)
 }
 
-func entityCreatedAtField(objFn func(ctx context.Context, obj interface{}) *utils.Lazy) *graphql.Field {
+func entityCreatedAtField(objFn func(ctx context.Context, obj interface{}) *graphqlutil.Lazy) *graphql.Field {
 	return &graphql.Field{
 		Type:        graphql.NewNonNull(graphql.DateTime),
 		Description: "The creation time of entity",
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			obj := utils.NewLazyValue(p.Source)
+			obj := graphqlutil.NewLazyValue(p.Source)
 			if objFn != nil {
 				obj = objFn(p.Context, p.Source)
 			}
@@ -105,12 +105,12 @@ func entityCreatedAtField(objFn func(ctx context.Context, obj interface{}) *util
 	}
 }
 
-func entityUpdatedAtField(objFn func(ctx context.Context, obj interface{}) *utils.Lazy) *graphql.Field {
+func entityUpdatedAtField(objFn func(ctx context.Context, obj interface{}) *graphqlutil.Lazy) *graphql.Field {
 	return &graphql.Field{
 		Type:        graphql.NewNonNull(graphql.DateTime),
 		Description: "The update time of entity",
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			obj := utils.NewLazyValue(p.Source)
+			obj := graphqlutil.NewLazyValue(p.Source)
 			if objFn != nil {
 				obj = objFn(p.Context, p.Source)
 			}
