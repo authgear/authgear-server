@@ -18,9 +18,27 @@ type State struct {
 	UILocales       string                 `json:"ui_locales,omitempty"`
 }
 
+func NewState(intent *Intent) *State {
+	return &State{
+		ID:          NewID(),
+		RedirectURI: intent.RedirectURI,
+		KeepState:   intent.KeepState,
+		Extra:       make(map[string]interface{}),
+		UILocales:   intent.UILocales,
+	}
+}
+
 func (s *State) SetID(id string) {
 	s.PrevID = s.ID
 	s.ID = id
+}
+
+func (s *State) RestoreFrom(s2 *State) {
+	s.RedirectURI = s2.RedirectURI
+	s.KeepState = s2.KeepState
+	s.UILocales = s2.UILocales
+	s.UserAgentToken = s2.UserAgentToken
+	s.Error = s2.Error
 }
 
 func AttachStateID(id string, input *url.URL) *url.URL {

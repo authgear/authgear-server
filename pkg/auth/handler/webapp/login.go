@@ -136,7 +136,7 @@ func (i *LoginLoginID) GetLoginID() string {
 
 func (h *LoginHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	return &webapp.Intent{
-		StateID:     StateID(r),
+		OldStateID:  StateID(r),
 		RedirectURI: webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy),
 		Intent:      intents.NewIntentLogin(),
 	}
@@ -154,7 +154,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "GET" {
 		h.Database.WithTx(func() error {
-			state, graph, err := h.WebApp.GetIntent(intent, StateID(r))
+			state, graph, err := h.WebApp.GetIntent(intent)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err

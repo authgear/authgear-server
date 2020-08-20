@@ -5,10 +5,9 @@ import (
 )
 
 type Intent struct {
-	// StateID indicates the state ID.
-	// If it is empty, a new state is generated.
-	// If it is not empty, the existing state with specified ID would be used; the given intent is ignored.
-	StateID string
+	// OldStateID indicates the old state ID.
+	// If it is not empty, some fields from the existing state would be restored.
+	OldStateID string
 	// RedirectURI indicates the location to redirect after the interaction finishes.
 	RedirectURI string
 	// KeepState indicates whether the state should be kept after the interaction finishes.

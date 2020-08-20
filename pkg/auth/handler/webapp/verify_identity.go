@@ -70,7 +70,6 @@ type VerifyIdentityNode interface {
 
 func (h *VerifyIdentityHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	return &webapp.Intent{
-		StateID:     StateID(r),
 		RedirectURI: "/verify_identity/success",
 		KeepState:   true,
 		Intent:      intents.NewIntentVerifyIdentityResume(r.Form.Get("state")),
@@ -168,7 +167,7 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 	if r.Method == "GET" && !inInteraction {
 		h.Database.WithTx(func() error {
-			state, graph, err := h.WebApp.GetIntent(h.MakeIntent(r), "")
+			state, graph, err := h.WebApp.GetIntent(h.MakeIntent(r))
 			var data map[string]interface{}
 			if err != nil {
 				data, err = h.GetErrorData(r, err)
