@@ -33,6 +33,7 @@
     "typescript": "3.9.7"
   },
   "dependencies": {
+    "@authgear/web": "0.1.0",
     "react": "17.0.0-rc.0",
     "react-dom": "17.0.0-rc.0",
     "react-relay": "10.0.1",
