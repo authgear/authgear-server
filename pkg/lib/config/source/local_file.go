@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"path/filepath"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -25,7 +26,9 @@ type LocalFile struct {
 }
 
 func (s *LocalFile) Open() error {
-	appConfigYAML, err := ioutil.ReadFile(s.ServerConfig.ConfigSource.AppConfigPath)
+	dir := s.ServerConfig.ConfigSource.ConfigDirectory
+
+	appConfigYAML, err := ioutil.ReadFile(filepath.Join(dir, AuthgearYAML))
 	if err != nil {
 		return fmt.Errorf("cannot read app config file: %w", err)
 	}
@@ -34,7 +37,7 @@ func (s *LocalFile) Open() error {
 		return fmt.Errorf("cannot parse app config: %w", err)
 	}
 
-	secretConfigYAML, err := ioutil.ReadFile(s.ServerConfig.ConfigSource.SecretConfigPath)
+	secretConfigYAML, err := ioutil.ReadFile(filepath.Join(dir, AuthgearSecretYAML))
 	if err != nil {
 		return fmt.Errorf("cannot read secret config file: %w", err)
 	}

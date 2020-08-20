@@ -127,8 +127,6 @@ type ConfigurationSourceConfig struct {
 	// Type sets the type of configuration source
 	Type SourceType `envconfig:"TYPE" default:"local_file"`
 
-	// AppConfigPath sets the path to app configuration YAML file for local file source
-	AppConfigPath string `envconfig:"APP_CONFIG_PATH" default:"authgear.yaml"`
-	// SecretConfigPath sets the path to secret configuration YAML file for local file source
-	SecretConfigPath string `envconfig:"SECRET_CONFIG_PATH" default:"authgear.secrets.yaml"`
+	// ConfigDirectory sets the path to app configuration directory file for local file source
+	ConfigDirectory string `envconfig:"APP_CONFIG_DIR" default:"."`
 }
