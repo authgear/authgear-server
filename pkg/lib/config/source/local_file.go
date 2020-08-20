@@ -26,7 +26,10 @@ type LocalFile struct {
 }
 
 func (s *LocalFile) Open() error {
-	dir := s.ServerConfig.ConfigSource.ConfigDirectory
+	dir, err := filepath.Abs(s.ServerConfig.ConfigSource.ConfigDirectory)
+	if err != nil {
+		return err
+	}
 
 	appConfigYAML, err := ioutil.ReadFile(filepath.Join(dir, AuthgearYAML))
 	if err != nil {
@@ -51,8 +54,9 @@ func (s *LocalFile) Open() error {
 	}
 
 	s.config = &config.Config{
-		AppConfig:    appConfig,
-		SecretConfig: secretConfig,
+		BaseDirectory: dir,
+		AppConfig:     appConfig,
+		SecretConfig:  secretConfig,
 	}
 	return nil
 }

@@ -12,6 +12,7 @@ type Loader interface {
 }
 
 type NewResolverOptions struct {
+	BaseDirectory             string
 	DefaultTemplatesDirectory string
 	References                []Reference
 	FallbackLanguageTag       string
@@ -31,7 +32,7 @@ type Resolver struct {
 }
 
 func NewResolver(opts NewResolverOptions) *Resolver {
-	uriLoader := NewURILoader()
+	uriLoader := NewURILoader(opts.BaseDirectory)
 	defaultLoader := &DefaultLoaderFS{Directory: opts.DefaultTemplatesDirectory}
 	return &Resolver{
 		Loader:              uriLoader,
