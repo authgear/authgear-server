@@ -1,4 +1,4 @@
-package session_test
+package model_test
 
 import (
 	"net/http"
@@ -7,16 +7,16 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/api/model"
 )
 
-func TestInfo(t *testing.T) {
-	Convey("Info", t, func() {
+func TestSessionInfo(t *testing.T) {
+	Convey("SessionInfo", t, func() {
 		Convey("should write to HTTP headers correctly", func() {
 			rw := httptest.NewRecorder()
 
 			Convey("invalid auth", func() {
-				var i = &session.Info{
+				var i = &model.SessionInfo{
 					IsValid: false,
 				}
 
@@ -27,7 +27,7 @@ func TestInfo(t *testing.T) {
 			})
 
 			Convey("valid auth", func() {
-				var i = &session.Info{
+				var i = &model.SessionInfo{
 					IsValid:       true,
 					UserID:        "user-id",
 					UserAnonymous: true,
@@ -48,22 +48,22 @@ func TestInfo(t *testing.T) {
 			})
 		})
 
-		Convey("PopulateHeaders and NewInfoFromHeaders are inverse", func() {
-			test := func(info *session.Info) {
+		Convey("PopulateHeaders and NewSessionInfoFromHeaders are inverse", func() {
+			test := func(info *model.SessionInfo) {
 				rw := httptest.NewRecorder()
 				info.PopulateHeaders(rw)
-				expected, err := session.NewInfoFromHeaders(rw.Header())
+				expected, err := model.NewSessionInfoFromHeaders(rw.Header())
 				So(err, ShouldBeNil)
 				So(expected, ShouldResemble, info)
 			}
 
 			test(nil)
 
-			test(&session.Info{})
+			test(&model.SessionInfo{})
 
-			test(&session.Info{IsValid: false})
+			test(&model.SessionInfo{IsValid: false})
 
-			test(&session.Info{
+			test(&model.SessionInfo{
 				IsValid:       true,
 				UserID:        "user-id",
 				UserAnonymous: true,

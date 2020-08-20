@@ -3,8 +3,8 @@ package loader
 import (
 	"context"
 
-	"github.com/authgear/authgear-server/pkg/lib/upstreamapp"
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/portal/session"
 )
 
 type ViewerLoader struct {
@@ -12,7 +12,7 @@ type ViewerLoader struct {
 }
 
 func (l *ViewerLoader) Get() (interface{}, error) {
-	sessionInfo := upstreamapp.GetValidSessionInfo(l.Context)
+	sessionInfo := session.GetValidSessionInfo(l.Context)
 	if sessionInfo == nil {
 		return nil, nil
 	}

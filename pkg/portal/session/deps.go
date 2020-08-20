@@ -1,4 +1,4 @@
-package upstreamapp
+package session
 
 import (
 	"github.com/google/wire"

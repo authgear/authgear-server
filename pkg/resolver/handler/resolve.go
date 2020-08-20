@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/lib/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -51,12 +52,12 @@ func (h *ResolveHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *ResolveHandler) resolve(r *http.Request) (*session.Info, error) {
+func (h *ResolveHandler) resolve(r *http.Request) (*model.SessionInfo, error) {
 	valid := session.HasValidSession(r.Context())
 	userID := session.GetUserID(r.Context())
 	s := session.GetSession(r.Context())
 
-	var info *session.Info
+	var info *model.SessionInfo
 	if valid && userID != nil && s != nil {
 		identities, err := h.Identities.ListByUser(*userID)
 		if err != nil {
@@ -78,7 +79,7 @@ func (h *ResolveHandler) resolve(r *http.Request) (*session.Info, error) {
 
 		info = session.NewInfo(s.SessionAttrs(), isAnonymous, isVerified)
 	} else if !valid {
-		info = &session.Info{IsValid: false}
+		info = &model.SessionInfo{IsValid: false}
 	}
 
 	return info, nil

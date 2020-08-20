@@ -1,9 +1,9 @@
-package upstreamapp
+package session
 
 import (
 	"context"
 
-	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/api/model"
 )
 
 type contextKeyType struct{}
@@ -11,10 +11,10 @@ type contextKeyType struct{}
 var contextKey = contextKeyType{}
 
 type contextValue struct {
-	SessionInfo *session.Info
+	SessionInfo *model.SessionInfo
 }
 
-func WithSessionInfo(ctx context.Context, info *session.Info) context.Context {
+func WithSessionInfo(ctx context.Context, info *model.SessionInfo) context.Context {
 	val := &contextValue{
 		SessionInfo: info,
 	}
@@ -26,7 +26,7 @@ func getContextValue(ctx context.Context) *contextValue {
 	return val
 }
 
-func GetValidSessionInfo(ctx context.Context) *session.Info {
+func GetValidSessionInfo(ctx context.Context) *model.SessionInfo {
 	val := getContextValue(ctx)
 	if val == nil || val.SessionInfo == nil || !val.SessionInfo.IsValid {
 		return nil

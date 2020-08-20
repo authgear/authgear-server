@@ -1,16 +1,16 @@
-package upstreamapp
+package session
 
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/api/model"
 )
 
 type Middleware struct{}
 
 func (m *Middleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sessionInfo, err := session.NewInfoFromHeaders(r.Header)
+		sessionInfo, err := model.NewSessionInfoFromHeaders(r.Header)
 		if err != nil {
 			panic(err)
 		}

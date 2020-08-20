@@ -8,8 +8,8 @@ import (
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
-	"github.com/authgear/authgear-server/pkg/lib/upstreamapp"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
+	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/portal/transport"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
@@ -25,8 +25,8 @@ func newRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
 
 func newSessionInfoMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
-		upstreamapp.DependencySet,
-		wire.Bind(new(httproute.Middleware), new(*upstreamapp.Middleware)),
+		session.DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*session.Middleware)),
 	))
 }
 

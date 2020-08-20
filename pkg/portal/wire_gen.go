@@ -7,10 +7,10 @@ package portal
 
 import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
-	"github.com/authgear/authgear-server/pkg/lib/upstreamapp"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/graphql"
 	"github.com/authgear/authgear-server/pkg/portal/loader"
+	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/portal/transport"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"net/http"
@@ -29,8 +29,8 @@ func newRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
 }
 
 func newSessionInfoMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	upstreamappMiddleware := &upstreamapp.Middleware{}
-	return upstreamappMiddleware
+	sessionMiddleware := &session.Middleware{}
+	return sessionMiddleware
 }
 
 func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
