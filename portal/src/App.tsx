@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useCallback, useEffect } from "react";
 import { graphql, QueryRenderer } from "react-relay";
+import authgear from "@authgear/web";
 import { environment } from "./relay";
 import { AppQueryResponse } from "./__generated__/AppQuery.graphql";
+import styles from "./App.module.scss";
 
 const query = graphql`
   query AppQuery {
@@ -14,7 +16,48 @@ const query = graphql`
 const ShowQueryResult: React.FC<AppQueryResponse> = function ShowQueryResult(
   props: AppQueryResponse
 ) {
-  return <div>{props.viewer?.id}</div>;
+  const { viewer } = props;
+  const onClickLogout = useCallback(() => {
+    authgear
+      .logout({
+        redirectURI: window.location.href,
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }, []);
+  useEffect(() => {
+    if (viewer == null) {
+      // Normally we should call endAuthorization after being redirected back to here.
+      // But we know that we are first party app and are using response_type=none so
+      // we can skip that.
+      authgear
+        .startAuthorization({
+          prompt: "login",
+          redirectURI: window.location.href,
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    }
+  }, [viewer]);
+
+  if (viewer != null) {
+    return (
+      <div className={styles.app}>
+        <p>You are logged in as {viewer.id}</p>
+        <button
+          type="button"
+          className={styles.logoutButton}
+          onClick={onClickLogout}
+        >
+          Click here to logout
+        </button>
+      </div>
+    );
+  }
+
+  return null;
 };
 
 interface ShowErrorProps {
