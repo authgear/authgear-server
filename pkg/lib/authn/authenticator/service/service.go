@@ -10,6 +10,7 @@ import (
 
 type PasswordAuthenticatorProvider interface {
 	Get(userID, id string) (*password.Authenticator, error)
+	GetMany(ids []string) ([]*password.Authenticator, error)
 	List(userID string) ([]*password.Authenticator, error)
 	New(userID string, password string, tag []string) (*password.Authenticator, error)
 	// WithPassword returns new authenticator pointer if password is changed
@@ -23,6 +24,7 @@ type PasswordAuthenticatorProvider interface {
 
 type TOTPAuthenticatorProvider interface {
 	Get(userID, id string) (*totp.Authenticator, error)
+	GetMany(ids []string) ([]*totp.Authenticator, error)
 	List(userID string) ([]*totp.Authenticator, error)
 	New(userID string, displayName string, tag []string) *totp.Authenticator
 	Create(*totp.Authenticator) error
@@ -32,6 +34,7 @@ type TOTPAuthenticatorProvider interface {
 
 type OOBOTPAuthenticatorProvider interface {
 	Get(userID, id string) (*oob.Authenticator, error)
+	GetMany(ids []string) ([]*oob.Authenticator, error)
 	List(userID string) ([]*oob.Authenticator, error)
 	New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string, tag []string) *oob.Authenticator
 	Create(*oob.Authenticator) error
@@ -40,6 +43,7 @@ type OOBOTPAuthenticatorProvider interface {
 }
 
 type Service struct {
+	Store    *Store
 	Password PasswordAuthenticatorProvider
 	TOTP     TOTPAuthenticatorProvider
 	OOBOTP   OOBOTPAuthenticatorProvider
@@ -70,6 +74,50 @@ func (s *Service) Get(userID string, typ authn.AuthenticatorType, id string) (*a
 	}
 
 	panic("authenticator: unknown authenticator type " + typ)
+}
+
+func (s *Service) GetMany(refs []*authenticator.Ref) ([]*authenticator.Info, error) {
+	var passwordIDs, totpIDs, oobIDs []string
+	for _, ref := range refs {
+		switch ref.Type {
+		case authn.AuthenticatorTypePassword:
+			passwordIDs = append(passwordIDs, ref.ID)
+		case authn.AuthenticatorTypeTOTP:
+			totpIDs = append(totpIDs, ref.ID)
+		case authn.AuthenticatorTypeOOB:
+			oobIDs = append(oobIDs, ref.ID)
+		default:
+			panic("authenticator: unknown authenticator type " + ref.Type)
+		}
+	}
+
+	var infos []*authenticator.Info
+
+	p, err := s.Password.GetMany(passwordIDs)
+	if err != nil {
+		return nil, err
+	}
+	for _, a := range p {
+		infos = append(infos, passwordToAuthenticatorInfo(a))
+	}
+
+	t, err := s.TOTP.GetMany(totpIDs)
+	if err != nil {
+		return nil, err
+	}
+	for _, a := range t {
+		infos = append(infos, totpToAuthenticatorInfo(a))
+	}
+
+	o, err := s.OOBOTP.GetMany(oobIDs)
+	if err != nil {
+		return nil, err
+	}
+	for _, a := range o {
+		infos = append(infos, oobotpToAuthenticatorInfo(a))
+	}
+
+	return infos, nil
 }
 
 func (s *Service) List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error) {
@@ -117,6 +165,14 @@ func (s *Service) List(userID string, filters ...authenticator.Filter) ([]*authe
 	}
 
 	return filtered, nil
+}
+
+func (s *Service) Count(userID string) (uint64, error) {
+	return s.Store.Count(userID)
+}
+
+func (s *Service) ListRefsByUsers(userIDs []string) ([]*authenticator.Ref, error) {
+	return s.Store.ListRefsByUsers(userIDs)
 }
 
 func (s *Service) New(spec *authenticator.Spec, secret string) (*authenticator.Info, error) {

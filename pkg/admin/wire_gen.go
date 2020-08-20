@@ -162,6 +162,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	factory := appProvider.LoggerFactory
 	logger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	store2 := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -206,6 +210,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 	}
 	service3 := &service2.Service{
+		Store:    store2,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
@@ -235,9 +240,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	identityLoader := &loader.IdentityLoader{
 		Identities: serviceService,
 	}
+	authenticatorLoader := &loader.AuthenticatorLoader{
+		Authenticators: service3,
+	}
 	graphqlContext := &graphql.Context{
-		Users:      userLoader,
-		Identities: identityLoader,
+		Users:          userLoader,
+		Identities:     identityLoader,
+		Authenticators: authenticatorLoader,
 	}
 	serverConfig := rootProvider.ServerConfig
 	graphQLHandler := &transport.GraphQLHandler{

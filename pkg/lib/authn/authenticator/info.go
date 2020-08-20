@@ -4,6 +4,7 @@ import (
 	"crypto/subtle"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/lib/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
@@ -25,6 +26,26 @@ func (i *Info) ToSpec() Spec {
 		Type:   i.Type,
 		Tag:    i.Tag,
 		Props:  i.Props,
+	}
+}
+
+func (i *Info) ToRef() *Ref {
+	return &Ref{
+		Meta: model.Meta{
+			ID:        i.ID,
+			CreatedAt: i.CreatedAt,
+			UpdatedAt: i.UpdatedAt,
+		},
+		UserID: i.UserID,
+		Type:   i.Type,
+	}
+}
+
+func (i *Info) GetMeta() model.Meta {
+	return model.Meta{
+		ID:        i.ID,
+		CreatedAt: i.CreatedAt,
+		UpdatedAt: i.UpdatedAt,
 	}
 }
 

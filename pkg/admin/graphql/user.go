@@ -4,6 +4,7 @@ import (
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/relay"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 )
@@ -42,6 +43,23 @@ var nodeUser = entity(
 						}
 						args := relay.NewConnectionArguments(p.Args)
 						return NewConnectionFromArray(identities, args), nil
+					})
+					return result.Value, nil
+				},
+			},
+			"authenticators": &graphql.Field{
+				Type: connAuthenticator.ConnectionType,
+				Args: relay.ConnectionArgs,
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					ref := p.Source.(*user.User)
+					authenticators := GQLContext(p.Context).Authenticators.List(ref.ID)
+					result := authenticators.Map(func(value interface{}) (interface{}, error) {
+						var authenticators []interface{}
+						for _, i := range value.([]*authenticator.Ref) {
+							authenticators = append(authenticators, i)
+						}
+						args := relay.NewConnectionArguments(p.Args)
+						return NewConnectionFromArray(authenticators, args), nil
 					})
 					return result.Value, nil
 				},
