@@ -17,12 +17,12 @@ import (
 func newConfigSource(p *deps.RootProvider) source.Source {
 	serverConfig := p.ServerConfig
 	factory := p.LoggerFactory
-	localFileLogger := source.NewLocalFileLogger(factory)
-	localFile := &source.LocalFile{
-		Logger:       localFileLogger,
+	localFSLogger := source.NewLocalFSLogger(factory)
+	localFS := &source.LocalFS{
+		Logger:       localFSLogger,
 		ServerConfig: serverConfig,
 	}
-	sourceSource := source.NewSource(serverConfig, localFile)
+	sourceSource := source.NewSource(serverConfig, localFS)
 	return sourceSource
 }
 

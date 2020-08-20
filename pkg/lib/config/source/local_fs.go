@@ -15,14 +15,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-type LocalFileLogger struct{ *log.Logger }
+type LocalFSLogger struct{ *log.Logger }
 
-func NewLocalFileLogger(lf *log.Factory) LocalFileLogger {
-	return LocalFileLogger{lf.New("local-file-config")}
+func NewLocalFSLogger(lf *log.Factory) LocalFSLogger {
+	return LocalFSLogger{lf.New("local-fs-config")}
 }
 
-type LocalFile struct {
-	Logger       LocalFileLogger
+type LocalFS struct {
+	Logger       LocalFSLogger
 	ServerConfig *config.ServerConfig
 
 	appConfigPath    string            `wire:"-"`
@@ -32,8 +32,8 @@ type LocalFile struct {
 	done             chan<- struct{}   `wire:"-"`
 }
 
-func (s *LocalFile) Open() error {
-	dir, err := filepath.Abs(s.ServerConfig.ConfigSource.ConfigDirectory)
+func (s *LocalFS) Open() error {
+	dir, err := filepath.Abs(s.ServerConfig.ConfigSource.Directory)
 	if err != nil {
 		return err
 	}
@@ -88,7 +88,7 @@ func (s *LocalFile) Open() error {
 	return nil
 }
 
-func (s *LocalFile) Close() error {
+func (s *LocalFS) Close() error {
 	if s.watcher != nil {
 		close(s.done)
 		return s.watcher.Close()
@@ -96,7 +96,7 @@ func (s *LocalFile) Close() error {
 	return nil
 }
 
-func (s *LocalFile) watch(done <-chan struct{}) {
+func (s *LocalFS) watch(done <-chan struct{}) {
 	for {
 		select {
 		case event, ok := <-s.watcher.Events:
@@ -129,7 +129,7 @@ func (s *LocalFile) watch(done <-chan struct{}) {
 	}
 }
 
-func (s *LocalFile) reload(filename string) error {
+func (s *LocalFS) reload(filename string) error {
 	newConfig := *s.config.Load().(*config.Config)
 
 	switch filename {
@@ -162,7 +162,7 @@ func (s *LocalFile) reload(filename string) error {
 	return nil
 }
 
-func (s *LocalFile) ProvideConfig(ctx context.Context, r *http.Request, server ServerType) (*config.Config, error) {
+func (s *LocalFS) ProvideConfig(ctx context.Context, r *http.Request, server ServerType) (*config.Config, error) {
 	cfg := s.config.Load().(*config.Config)
 
 	if s.ServerConfig.DevMode {

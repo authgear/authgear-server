@@ -23,10 +23,10 @@ type Source interface {
 
 func NewSource(
 	cfg *config.ServerConfig,
-	lf *LocalFile,
+	lf *LocalFS,
 ) Source {
 	switch cfg.ConfigSource.Type {
-	case config.SourceTypeLocalFile:
+	case config.SourceTypeLocalFS:
 		return lf
 	default:
 		panic("config_source: invalid config source type")
