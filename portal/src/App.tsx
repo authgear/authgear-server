@@ -17,15 +17,18 @@ const ShowQueryResult: React.FC<AppQueryResponse> = function ShowQueryResult(
   props: AppQueryResponse
 ) {
   const { viewer } = props;
+  const redirectURI = window.location.origin + "/";
+
   const onClickLogout = useCallback(() => {
     authgear
       .logout({
-        redirectURI: window.location.href,
+        redirectURI,
       })
       .catch((err) => {
         console.error(err);
       });
-  }, []);
+  }, [redirectURI]);
+
   useEffect(() => {
     if (viewer == null) {
       // Normally we should call endAuthorization after being redirected back to here.
@@ -33,14 +36,14 @@ const ShowQueryResult: React.FC<AppQueryResponse> = function ShowQueryResult(
       // we can skip that.
       authgear
         .startAuthorization({
+          redirectURI,
           prompt: "login",
-          redirectURI: window.location.href,
         })
         .catch((err) => {
           console.error(err);
         });
     }
-  }, [viewer]);
+  }, [viewer, redirectURI]);
 
   if (viewer != null) {
     return (
