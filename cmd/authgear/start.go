@@ -16,8 +16,8 @@ var cmdStart = &cobra.Command{
 
 		serverTypes := args
 		if len(serverTypes) == 0 {
-			// Default to start both main & resolver servers
-			serverTypes = []string{"main", "resolver"}
+			// Default to start all servers
+			serverTypes = []string{"main", "resolver", "admin"}
 		}
 		for _, typ := range serverTypes {
 			switch typ {
