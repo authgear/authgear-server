@@ -11,15 +11,13 @@ type CookieFactory interface {
 	ClearCookie(def *httputil.CookieDef) *http.Cookie
 }
 
-const CookieName = "session"
-
 type CookieDef struct {
 	Def *httputil.CookieDef
 }
 
-func NewSessionCookieDef(sessionCfg *config.SessionConfig) CookieDef {
+func NewSessionCookieDef(httpCfg *config.HTTPConfig, sessionCfg *config.SessionConfig) CookieDef {
 	def := &httputil.CookieDef{
-		Name:     CookieName,
+		Name:     httpCfg.CookiePrefix + "session",
 		Path:     "/",
 		SameSite: http.SameSiteLaxMode,
 	}

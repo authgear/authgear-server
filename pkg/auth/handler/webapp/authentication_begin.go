@@ -49,8 +49,9 @@ type AuthenticationBeginNode interface {
 }
 
 type AuthenticationBeginHandler struct {
-	Database *db.Handle
-	WebApp   WebAppService
+	Database             *db.Handle
+	WebApp               WebAppService
+	MFADeviceTokenCookie mfa.CookieDef
 }
 
 func (h *AuthenticationBeginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -62,7 +63,7 @@ func (h *AuthenticationBeginHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 	var err error
 
 	var firstTimeEnterHere bool
-	deviceTokenCookie, _ := r.Cookie(mfa.CookieName)
+	deviceTokenCookie, _ := r.Cookie(h.MFADeviceTokenCookie.Def.Name)
 
 	edgeIndexString := r.Form.Get("x_edge")
 	if edgeIndexString == "" {

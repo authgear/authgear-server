@@ -7,15 +7,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-const CookieName = "mfa_device_token"
-
 type CookieDef struct {
 	Def *httputil.CookieDef
 }
 
-func NewDeviceTokenCookieDef(r *http.Request, cfg *config.AuthenticationConfig) CookieDef {
+func NewDeviceTokenCookieDef(httpCfg *config.HTTPConfig, cfg *config.AuthenticationConfig) CookieDef {
 	def := &httputil.CookieDef{
-		Name:     CookieName,
+		Name:     httpCfg.CookiePrefix + "mfa_device_token",
 		Path:     "/",
 		SameSite: http.SameSiteStrictMode,
 	}

@@ -46,7 +46,7 @@ func TestResolver(t *testing.T) {
 	Convey("Resolver", t, func() {
 		cookie := CookieDef{
 			&httputil.CookieDef{
-				Name:   CookieName,
+				Name:   "session",
 				Path:   "/",
 				Domain: "app.test",
 				MaxAge: nil,
@@ -84,7 +84,7 @@ func TestResolver(t *testing.T) {
 		Convey("resolve with invalid session cookie", func() {
 			rw := httptest.NewRecorder()
 			r, _ := http.NewRequest("POST", "/", nil)
-			r.AddCookie(&http.Cookie{Name: CookieName, Value: "invalid"})
+			r.AddCookie(&http.Cookie{Name: "session", Value: "invalid"})
 			s, err := resolver.Resolve(rw, r)
 
 			So(s, ShouldBeNil)
@@ -96,7 +96,7 @@ func TestResolver(t *testing.T) {
 		Convey("resolve with valid session cookie", func() {
 			rw := httptest.NewRecorder()
 			r, _ := http.NewRequest("POST", "/", nil)
-			r.AddCookie(&http.Cookie{Name: CookieName, Value: "token"})
+			r.AddCookie(&http.Cookie{Name: "session", Value: "token"})
 			session, err := resolver.Resolve(rw, r)
 
 			So(session, ShouldNotBeNil)

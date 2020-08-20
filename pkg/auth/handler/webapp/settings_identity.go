@@ -57,6 +57,7 @@ type SettingsIdentityHandler struct {
 	WebApp        WebAppService
 	Identities    SettingsIdentityService
 	Verification  SettingsVerificationService
+	CSRFCookie    webapp.CSRFCookieDef
 }
 
 type SettingsIdentityLinkOAuth struct {
@@ -135,7 +136,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	providerAlias := r.Form.Get("x_provider_alias")
 	identityID := r.Form.Get("x_identity_id")
 	userID := session.GetUserID(r.Context())
-	nonceSource, _ := r.Cookie(webapp.CSRFCookieName)
+	nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
 
 	if r.Method == "GET" {
 		h.Database.WithTx(func() error {

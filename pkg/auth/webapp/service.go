@@ -52,24 +52,17 @@ func NewServiceLogger(lf *log.Factory) ServiceLogger {
 	return ServiceLogger{lf.New("webapp-service")}
 }
 
-var UserAgentTokenCookie = &httputil.CookieDef{
-	Name:              "ua-token",
-	Path:              "/",
-	AllowScriptAccess: false,
-	SameSite:          http.SameSiteNoneMode, // Ensure resume-able after redirecting from external site
-	MaxAge:            nil,                   // Use HTTP session cookie; expires when browser closes
-}
-
 type Service struct {
 	Logger        ServiceLogger
 	Request       *http.Request
 	Store         Store
 	Graph         GraphService
 	CookieFactory CookieFactory
+	UATokenCookie CookieDef
 }
 
 func (s *Service) getUserAgentToken() string {
-	token, err := s.Request.Cookie(UserAgentTokenCookie.Name)
+	token, err := s.Request.Cookie(s.UATokenCookie.Def.Name)
 	if err != nil {
 		return ""
 	}
@@ -78,7 +71,7 @@ func (s *Service) getUserAgentToken() string {
 
 func (s *Service) generateUserAgentToken() (string, *http.Cookie) {
 	token := corerand.StringWithAlphabet(32, base32.Alphabet, corerand.SecureRand)
-	cookie := s.CookieFactory.ValueCookie(UserAgentTokenCookie, token)
+	cookie := s.CookieFactory.ValueCookie(s.UATokenCookie.Def, token)
 	return token, cookie
 }
 

@@ -71,8 +71,9 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	cookieFactory := deps.NewCookieFactory(request, serverConfig)
 	config := appProvider.Config
 	appConfig := config.AppConfig
+	httpConfig := appConfig.HTTP
 	sessionConfig := appConfig.Session
-	cookieDef := idpsession.NewSessionCookieDef(sessionConfig)
+	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	handle := appProvider.Redis
 	appID := appConfig.ID
 	clock := _wireSystemClockValue
