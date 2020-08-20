@@ -24,8 +24,15 @@ var nodeUser = node(
 	}),
 	&model.User{},
 	func(ctx context.Context, id string) (interface{}, error) {
-		// FIXME(portal): check id
 		gqlCtx := GQLContext(ctx)
-		return gqlCtx.Viewer.Get()
+		iUser, err := gqlCtx.Viewer.Get()
+		if err != nil {
+			return nil, err
+		}
+		user := iUser.(*model.User)
+		if user.ID != id {
+			return nil, nil
+		}
+		return user, nil
 	},
 )
