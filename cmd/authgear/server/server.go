@@ -54,6 +54,7 @@ func (c *Controller) Start() {
 	if err != nil {
 		c.logger.WithError(err).Fatal("cannot open configuration")
 	}
+	defer configSource.Close()
 
 	var specs []server.Spec
 

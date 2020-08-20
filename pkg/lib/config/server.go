@@ -127,6 +127,8 @@ type ConfigurationSourceConfig struct {
 	// Type sets the type of configuration source
 	Type SourceType `envconfig:"TYPE" default:"local_file"`
 
+	// Watch indicates whether the configuration source would watch for changes and reload automatically
+	Watch bool `envconfig:"WATCH" default:"true"`
 	// ConfigDirectory sets the path to app configuration directory file for local file source
 	ConfigDirectory string `envconfig:"APP_CONFIG_DIR" default:"."`
 }
