@@ -21,6 +21,9 @@ type ServerConfig struct {
 	// ConfigSource configures the source of app configurations
 	ConfigSource ConfigurationSourceConfig `envconfig:"CONFIG_SOURCE"`
 
+	// Authgear configures Authgear acting as authentication server for the portal.
+	Authgear AuthgearConfig `envconfig:"AUTHGEAR"`
+
 	// SentryDSN sets the sentry DSN.
 	SentryDSN string `envconfig:"SENTRY_DSN"`
 }
@@ -57,6 +60,13 @@ func (c *ServerConfig) Validate() error {
 		)
 	}
 
+	if c.Authgear.ClientID == "" {
+		ctx.Child("AUTHGEAR_CLIENT_ID").EmitErrorMessage("missing authgear client ID")
+	}
+	if c.Authgear.Endpoint == "" {
+		ctx.Child("AUTHGEAR_ENDPOINT").EmitErrorMessage("missing authgear endpoint")
+	}
+
 	return ctx.Error("invalid server configuration")
 }
 
@@ -78,4 +88,9 @@ type ConfigurationSourceConfig struct {
 	AppConfigPath string `envconfig:"APP_CONFIG_PATH" default:"authgear.yaml"`
 	// SecretConfigPath sets the path to secret configuration YAML file for local file source
 	SecretConfigPath string `envconfig:"SECRET_CONFIG_PATH" default:"authgear.secrets.yaml"`
+}
+
+type AuthgearConfig struct {
+	ClientID string `envconfig:"CLIENT_ID"`
+	Endpoint string `envconfig:"ENDPOINT"`
 }

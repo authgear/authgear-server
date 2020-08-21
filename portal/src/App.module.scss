@@ -1,0 +1,15 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.app > * {
+  margin: 6px;
+}
+
+.logoutButton {
+  padding: 6px;
+  background-color: orange;
+  border-radius: 2px;
+}

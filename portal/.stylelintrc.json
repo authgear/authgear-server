@@ -2,7 +2,7 @@
   "extends": ["@oursky/stylelint-oursky/config/oursky"],
   "rules": {
     "plugin/no-unsupported-browser-features": [true, {
-      "ignore": ["viewport-units", "css-appearance", "css3-cursors"]
+      "ignore": ["viewport-units", "css-appearance", "css3-cursors", "flexbox"]
     }]
   }
 }

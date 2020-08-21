@@ -2,7 +2,7 @@
   "name": "authgear-portal",
   "version": "0.1.0",
   "scripts": {
-    "start": "parcel serve --no-cache ./src/index.html",
+    "start": "parcel serve --port 1234 --no-cache ./src/index.html",
     "build": "PARCEL_BUNDLE_ANALYZER=1 parcel build --no-cache ./src/index.html",
     "clean": "rm -rf ./dist/ ./parcel-bundle-reports/",
     "typecheck": "tsc",
@@ -12,7 +12,7 @@
     "relay": "relay-compiler"
   },
   "devDependencies": {
-    "@oursky/eslint-plugin": "3.3.0",
+    "@oursky/eslint-plugin": "3.3.1",
     "@oursky/stylelint-oursky": "1.0.1",
     "@types/react": "16.9.46",
     "@types/react-dom": "16.9.8",
@@ -33,6 +33,7 @@
     "typescript": "3.9.7"
   },
   "dependencies": {
+    "@authgear/web": "0.1.0",
     "react": "17.0.0-rc.0",
     "react-dom": "17.0.0-rc.0",
     "react-relay": "10.0.1",

@@ -9,7 +9,8 @@
 <form class="logout-form" method="post" novalidate>
   {{ $.CSRFField }}
   <p class="primary-txt">{{ template "logout-button-hint" }}</p>
-  <button class="btn primary-btn align-self-center" type="submit" name="x_action" value="logout">{{ template "logout-button-label" }}</button>
+  <!-- We need to disable XHR for this request because after logout it could possibly redirect to external website with post_logout_uri -->
+  <button class="btn primary-btn align-self-center" type="submit" name="x_action" value="logout" data-form-xhr="false">{{ template "logout-button-label" }}</button>
 </form>
 
 {{ template "auth_ui_footer.html" . }}

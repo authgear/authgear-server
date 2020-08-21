@@ -8,7 +8,6 @@ import "core-js/stable";
 import "regenerator-runtime/runtime";
 
 import "normalize.css";
-
 import "./index.scss";
 
 import React from "react";

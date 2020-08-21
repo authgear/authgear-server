@@ -5,7 +5,7 @@ const {
     printSchema,
 } = require("graphql/utilities");
 
-const { stdout, stderr } = spawnSync("go", ["run", "../graphqlschema/main.go"], {
+const { stdout, stderr } = spawnSync("go", ["run", "../graphqlschema/main.go", process.argv[2] || "unset"], {
     input: getIntrospectionQuery(),
 })
 if (stderr.length > 0) {

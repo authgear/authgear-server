@@ -5,13 +5,9 @@
 import { ConcreteRequest } from "relay-runtime";
 export type AppQueryVariables = {};
 export type AppQueryResponse = {
-    readonly users: {
-        readonly edges: ReadonlyArray<{
-            readonly node: {
-                readonly id: string;
-            } | null;
-        } | null> | null;
-    };
+    readonly viewer: {
+        readonly id: string;
+    } | null;
 };
 export type AppQuery = {
     readonly response: AppQueryResponse;
@@ -22,12 +18,8 @@ export type AppQuery = {
 
 /*
 query AppQuery {
-  users {
-    edges {
-      node {
-        id
-      }
-    }
+  viewer {
+    id
   }
 }
 */
@@ -37,38 +29,16 @@ var v0 = [
   {
     "alias": null,
     "args": null,
-    "concreteType": "UserConnection",
+    "concreteType": "User",
     "kind": "LinkedField",
-    "name": "users",
+    "name": "viewer",
     "plural": false,
     "selections": [
       {
         "alias": null,
         "args": null,
-        "concreteType": "UserEdge",
-        "kind": "LinkedField",
-        "name": "edges",
-        "plural": true,
-        "selections": [
-          {
-            "alias": null,
-            "args": null,
-            "concreteType": "User",
-            "kind": "LinkedField",
-            "name": "node",
-            "plural": false,
-            "selections": [
-              {
-                "alias": null,
-                "args": null,
-                "kind": "ScalarField",
-                "name": "id",
-                "storageKey": null
-              }
-            ],
-            "storageKey": null
-          }
-        ],
+        "kind": "ScalarField",
+        "name": "id",
         "storageKey": null
       }
     ],
@@ -93,14 +63,14 @@ return {
     "selections": (v0/*: any*/)
   },
   "params": {
-    "cacheID": "7c02defcba721472c84309da1d6fda4f",
+    "cacheID": "6a4120e875d5038c5ffcdc036c70a38d",
     "id": null,
     "metadata": {},
     "name": "AppQuery",
     "operationKind": "query",
-    "text": "query AppQuery {\n  users {\n    edges {\n      node {\n        id\n      }\n    }\n  }\n}\n"
+    "text": "query AppQuery {\n  viewer {\n    id\n  }\n}\n"
   }
 };
 })();
-(node as any).hash = '7d5d97274476f5ba47b37d9e1afa21a7';
+(node as any).hash = '1c19db752baf3ec97c7b454f2dd10241';
 export default node;
