@@ -53,6 +53,7 @@ interface Props {
   children?: React.ReactElement;
 }
 
+// CAVEAT: <Authenticated><Route path="/foobar/:id"/></Authenticated> will cause useParams to return empty object :(
 const Authenticated: React.FC<Props> = function Authenticated(ownProps: Props) {
   return (
     <QueryRenderer<{ variables: Empty; response: AuthenticatedQueryResponse }>

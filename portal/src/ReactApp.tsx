@@ -4,6 +4,7 @@ import authgear from "@authgear/web";
 import Authenticated from "./Authenticated";
 import ShowLoading from "./ShowLoading";
 import AppsScreen from "./AppsScreen";
+import AppScreen from "./AppScreen";
 
 // ReactAppRoutes defines the routes.
 const ReactAppRoutes: React.FC = function ReactAppRoutes() {
@@ -11,9 +12,8 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Navigate to="/apps" replace={true} />} />
-        <Authenticated>
-          <Route path="/apps" element={<AppsScreen />} />
-        </Authenticated>
+        <Route path="/apps" element={<AppsScreen />} />
+        <Route path="/apps/:appID" element={<AppScreen />} />
       </Routes>
     </BrowserRouter>
   );
@@ -60,7 +60,11 @@ const ReactApp: React.FC = function ReactApp() {
     return <ShowLoading />;
   }
 
-  return <ReactAppRoutes />;
+  return (
+    <Authenticated>
+      <ReactAppRoutes />
+    </Authenticated>
+  );
 };
 
 export default ReactApp;

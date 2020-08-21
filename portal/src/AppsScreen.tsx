@@ -1,5 +1,6 @@
 import React from "react";
 import { graphql, QueryRenderer } from "react-relay";
+import { Link } from "react-router-dom";
 import { AppsScreenQueryResponse } from "./__generated__/AppsScreenQuery.graphql";
 import { environment } from "./relay";
 import ScreenHeader from "./ScreenHeader";
@@ -27,11 +28,11 @@ const AppList: React.FC<AppsScreenQueryResponse> = function AppList(
   return (
     <div className={styles.appList}>
       {props.apps?.edges?.map((edge) => {
-        const appID = edge?.node?.id;
+        const appID = String(edge?.node?.id);
         return (
-          <div key={appID} className={styles.appItem}>
+          <Link to={"/apps/" + appID} key={appID} className={styles.appItem}>
             {appID}
-          </div>
+          </Link>
         );
       })}
     </div>
