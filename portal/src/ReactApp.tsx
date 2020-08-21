@@ -1,33 +1,11 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import authgear from "@authgear/web";
 import Authenticated from "./Authenticated";
+import AppsScreen from "./AppsScreen";
 
 const ShowLoading: React.FC = function ShowLoading() {
   return <div>Loading...</div>;
-};
-
-const Apps: React.FC = function Apps() {
-  const redirectURI = window.location.origin + "/";
-
-  const onClickLogout = useCallback(() => {
-    authgear
-      .logout({
-        redirectURI,
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-  }, [redirectURI]);
-
-  return (
-    <div>
-      <p>This is /apps</p>
-      <button type="button" onClick={onClickLogout}>
-        Click here to logout
-      </button>
-    </div>
-  );
 };
 
 // ReactAppRoutes defines the routes.
@@ -37,7 +15,7 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
       <Routes>
         <Route path="/" element={<Navigate to="/apps" replace={true} />} />
         <Authenticated>
-          <Route path="/apps" element={<Apps />} />
+          <Route path="/apps" element={<AppsScreen />} />
         </Authenticated>
       </Routes>
     </BrowserRouter>
