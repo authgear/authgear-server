@@ -44,13 +44,13 @@ func (l *UserLoader) Get(id string) *graphqlutil.Lazy {
 	return l.loader.Load(id)
 }
 
-func (l *UserLoader) QueryPage(args PageArgs) (*PageResult, error) {
-	values, err := l.Users.QueryPage(args.After, args.Before, args.First, args.Last)
+func (l *UserLoader) QueryPage(args graphqlutil.PageArgs) (*graphqlutil.PageResult, error) {
+	values, err := l.Users.QueryPage(model.PageCursor(args.After), model.PageCursor(args.Before), args.First, args.Last)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewPageResult(args, values, graphqlutil.NewLazy(func() (interface{}, error) {
+	return graphqlutil.NewPageResult(args, ConvertItems(values), graphqlutil.NewLazy(func() (interface{}, error) {
 		return l.Users.Count()
 	})), nil
 }

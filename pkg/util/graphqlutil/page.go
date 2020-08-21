@@ -1,27 +1,26 @@
-package loader
+package graphqlutil
 
 import (
 	"reflect"
 
 	"github.com/graphql-go/relay"
-
-	"github.com/authgear/authgear-server/pkg/lib/api/model"
-	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 const MaxPageSize uint64 = 20
 
+type Cursor string
+
 type PageArgs struct {
-	Before model.PageCursor
-	After  model.PageCursor
+	Before Cursor
+	After  Cursor
 	First  *uint64
 	Last   *uint64
 }
 
 func NewPageArgs(args relay.ConnectionArguments) PageArgs {
 	pageArgs := PageArgs{
-		Before: model.PageCursor(args.Before),
-		After:  model.PageCursor(args.After),
+		Before: Cursor(args.Before),
+		After:  Cursor(args.After),
 	}
 
 	var first, last *uint64
@@ -49,16 +48,19 @@ func NewPageArgs(args relay.ConnectionArguments) PageArgs {
 	return pageArgs
 }
 
-type TotalCountFunc func() (uint64, error)
+type PageItem struct {
+	Value  interface{}
+	Cursor Cursor
+}
 
 type PageResult struct {
 	HasPreviousPage bool
 	HasNextPage     bool
-	TotalCount      *graphqlutil.Lazy
-	Values          []model.PageItem
+	TotalCount      *Lazy
+	Values          []PageItem
 }
 
-func NewPageResult(args PageArgs, values []model.PageItem, totalCount *graphqlutil.Lazy) *PageResult {
+func NewPageResult(args PageArgs, values []PageItem, totalCount *Lazy) *PageResult {
 	hasPreviousPage := true
 	hasNextPage := true
 

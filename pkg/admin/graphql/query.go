@@ -4,7 +4,7 @@ import (
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/relay"
 
-	"github.com/authgear/authgear-server/pkg/admin/loader"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 var query = graphql.NewObject(graphql.ObjectConfig{
@@ -17,11 +17,11 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 			Args:        relay.ConnectionArgs,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				args := relay.NewConnectionArguments(p.Args)
-				result, err := GQLContext(p.Context).Users.QueryPage(loader.NewPageArgs(args))
+				result, err := GQLContext(p.Context).Users.QueryPage(graphqlutil.NewPageArgs(args))
 				if err != nil {
 					return nil, err
 				}
-				return NewConnection(result), nil
+				return graphqlutil.NewConnection(result), nil
 			},
 		},
 	},

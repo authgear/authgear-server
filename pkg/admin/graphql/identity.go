@@ -38,7 +38,7 @@ var nodeIdentity = entity(
 				},
 			},
 			"claims": &graphql.Field{
-				Type: graphql.NewNonNull(JSONObject),
+				Type: graphql.NewNonNull(graphqlutil.JSONObject),
 				Args: map[string]*graphql.ArgumentConfig{
 					"names": {Type: graphql.NewList(graphql.NewNonNull(graphql.String))},
 				},
