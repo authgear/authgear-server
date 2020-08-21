@@ -28,7 +28,7 @@ func (e *EdgeCreateAuthenticatorTOTP) Instantiate(ctx *interaction.Context, grap
 	}
 
 	info := cloneAuthenticator(e.Authenticator)
-	info.Props[authenticator.AuthenticatorPropTOTPDisplayName] = input.GetTOTPDisplayName()
+	info.Claims[authenticator.AuthenticatorClaimTOTPDisplayName] = input.GetTOTPDisplayName()
 
 	err := ctx.Authenticators.VerifySecret(info, nil, input.GetTOTP())
 	if errors.Is(err, authenticator.ErrInvalidCredentials) {

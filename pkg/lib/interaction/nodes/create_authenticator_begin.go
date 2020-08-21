@@ -206,7 +206,7 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 		case authn.AuthenticatorTypeTOTP:
 			totpCount++
 		case authn.AuthenticatorTypeOOB:
-			channel := a.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string)
+			channel := a.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType].(string)
 			switch authn.AuthenticatorOOBChannel(channel) {
 			case authn.AuthenticatorOOBChannelEmail:
 				oobEmailCount++

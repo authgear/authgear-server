@@ -38,7 +38,7 @@ func (e *EdgeCreateAuthenticatorPassword) Instantiate(ctx *interaction.Context, 
 		UserID: userID,
 		Tag:    stageToAuthenticatorTag(e.Stage),
 		Type:   authn.AuthenticatorTypePassword,
-		Props:  map[string]interface{}{},
+		Claims: map[string]interface{}{},
 	}
 	spec.Tag = append(spec.Tag, e.Tag...)
 

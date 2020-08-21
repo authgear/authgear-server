@@ -185,18 +185,18 @@ func (s *Service) New(spec *authenticator.Spec, secret string) (*authenticator.I
 		return passwordToAuthenticatorInfo(p), nil
 
 	case authn.AuthenticatorTypeTOTP:
-		displayName := spec.Props[authenticator.AuthenticatorPropTOTPDisplayName].(string)
+		displayName := spec.Claims[authenticator.AuthenticatorClaimTOTPDisplayName].(string)
 		t := s.TOTP.New(spec.UserID, displayName, spec.Tag)
 		return totpToAuthenticatorInfo(t), nil
 
 	case authn.AuthenticatorTypeOOB:
-		channel := spec.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string)
+		channel := spec.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType].(string)
 		var phone, email string
 		switch authn.AuthenticatorOOBChannel(channel) {
 		case authn.AuthenticatorOOBChannelSMS:
-			phone = spec.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string)
+			phone = spec.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string)
 		case authn.AuthenticatorOOBChannelEmail:
-			email = spec.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string)
+			email = spec.Claims[authenticator.AuthenticatorClaimOOBOTPEmail].(string)
 		}
 		o := s.OOBOTP.New(spec.UserID, authn.AuthenticatorOOBChannel(channel), phone, email, spec.Tag)
 		return oobotpToAuthenticatorInfo(o), nil

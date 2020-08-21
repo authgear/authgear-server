@@ -197,8 +197,8 @@ func TestGraphGetAMRACR(t *testing.T) {
 					Stage: interaction.AuthenticationStagePrimary,
 					Authenticator: &authenticator.Info{
 						Type: authn.AuthenticatorTypeOOB,
-						Props: map[string]interface{}{
-							authenticator.AuthenticatorPropOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
+						Claims: map[string]interface{}{
+							authenticator.AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
 						},
 					},
 				},
@@ -221,8 +221,8 @@ func TestGraphGetAMRACR(t *testing.T) {
 					Stage: interaction.AuthenticationStageSecondary,
 					Authenticator: &authenticator.Info{
 						Type: authn.AuthenticatorTypeOOB,
-						Props: map[string]interface{}{
-							authenticator.AuthenticatorPropOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
+						Claims: map[string]interface{}{
+							authenticator.AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
 						},
 					},
 				},
@@ -245,8 +245,8 @@ func TestGraphGetAMRACR(t *testing.T) {
 					Stage: interaction.AuthenticationStageSecondary,
 					Authenticator: &authenticator.Info{
 						Type: authn.AuthenticatorTypeOOB,
-						Props: map[string]interface{}{
-							authenticator.AuthenticatorPropOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
+						Claims: map[string]interface{}{
+							authenticator.AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
 						},
 					},
 				},

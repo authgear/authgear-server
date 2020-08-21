@@ -16,7 +16,7 @@ func passwordToAuthenticatorInfo(p *password.Authenticator) *authenticator.Info 
 		CreatedAt: p.CreatedAt,
 		UpdatedAt: p.UpdatedAt,
 		Secret:    string(p.PasswordHash),
-		Props:     map[string]interface{}{},
+		Claims:    map[string]interface{}{},
 		Tag:       p.Tag,
 	}
 }
@@ -40,8 +40,8 @@ func totpToAuthenticatorInfo(t *totp.Authenticator) *authenticator.Info {
 		CreatedAt: t.CreatedAt,
 		UpdatedAt: t.UpdatedAt,
 		Secret:    t.Secret,
-		Props: map[string]interface{}{
-			authenticator.AuthenticatorPropTOTPDisplayName: t.DisplayName,
+		Claims: map[string]interface{}{
+			authenticator.AuthenticatorClaimTOTPDisplayName: t.DisplayName,
 		},
 		Tag: t.Tag,
 	}
@@ -54,7 +54,7 @@ func totpFromAuthenticatorInfo(a *authenticator.Info) *totp.Authenticator {
 		CreatedAt:   a.CreatedAt,
 		UpdatedAt:   a.UpdatedAt,
 		Secret:      a.Secret,
-		DisplayName: a.Props[authenticator.AuthenticatorPropTOTPDisplayName].(string),
+		DisplayName: a.Claims[authenticator.AuthenticatorClaimTOTPDisplayName].(string),
 		Tag:         a.Tag,
 	}
 }
@@ -67,10 +67,10 @@ func oobotpToAuthenticatorInfo(o *oob.Authenticator) *authenticator.Info {
 		CreatedAt: o.CreatedAt,
 		UpdatedAt: o.UpdatedAt,
 		Secret:    "",
-		Props: map[string]interface{}{
-			authenticator.AuthenticatorPropOOBOTPChannelType: string(o.Channel),
-			authenticator.AuthenticatorPropOOBOTPEmail:       o.Email,
-			authenticator.AuthenticatorPropOOBOTPPhone:       o.Phone,
+		Claims: map[string]interface{}{
+			authenticator.AuthenticatorClaimOOBOTPChannelType: string(o.Channel),
+			authenticator.AuthenticatorClaimOOBOTPEmail:       o.Email,
+			authenticator.AuthenticatorClaimOOBOTPPhone:       o.Phone,
 		},
 		Tag: o.Tag,
 	}
@@ -82,9 +82,9 @@ func oobotpFromAuthenticatorInfo(a *authenticator.Info) *oob.Authenticator {
 		UserID:    a.UserID,
 		CreatedAt: a.CreatedAt,
 		UpdatedAt: a.UpdatedAt,
-		Channel:   authn.AuthenticatorOOBChannel(a.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string)),
-		Phone:     a.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string),
-		Email:     a.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string),
+		Channel:   authn.AuthenticatorOOBChannel(a.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType].(string)),
+		Phone:     a.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string),
+		Email:     a.Claims[authenticator.AuthenticatorClaimOOBOTPEmail].(string),
 		Tag:       a.Tag,
 	}
 }

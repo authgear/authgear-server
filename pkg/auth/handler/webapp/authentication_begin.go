@@ -238,17 +238,17 @@ func DeriveAuthenticationAlternatives(stateID string, graph *interaction.Graph, 
 			typ := AuthenticationTypeOOB
 			if typ != currentType {
 				for j, a := range edge.Authenticators {
-					channel := a.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string)
+					channel := a.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType].(string)
 
 					var target string
 					var maskedTarget string
 					switch channel {
 					case string(authn.AuthenticatorOOBChannelSMS):
-						phone := a.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string)
+						phone := a.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string)
 						target = phone
 						maskedTarget = corephone.Mask(phone)
 					case string(authn.AuthenticatorOOBChannelEmail):
-						email := a.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string)
+						email := a.Claims[authenticator.AuthenticatorClaimOOBOTPEmail].(string)
 						target = email
 						maskedTarget = mail.MaskAddress(email)
 					default:

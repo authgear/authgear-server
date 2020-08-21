@@ -88,23 +88,23 @@ func TestService(t *testing.T) {
 			So(must(service.GetVerificationStatus(identityOfType(authn.IdentityTypeOAuth))), ShouldEqual, StatusVerified)
 
 			authenticators.EXPECT().List("user-id").Return([]*authenticator.Info{{
-				ID:    "email",
-				Type:  authn.AuthenticatorTypeOOB,
-				Props: map[string]interface{}{authenticator.AuthenticatorPropOOBOTPEmail: "foo@example.com"},
+				ID:     "email",
+				Type:   authn.AuthenticatorTypeOOB,
+				Claims: map[string]interface{}{authenticator.AuthenticatorClaimOOBOTPEmail: "foo@example.com"},
 			}}, nil)
 			So(must(service.GetVerificationStatus(identityLoginID("email", "foo@example.com"))), ShouldEqual, StatusVerified)
 
 			authenticators.EXPECT().List("user-id").Return([]*authenticator.Info{{
-				ID:    "phone",
-				Type:  authn.AuthenticatorTypeOOB,
-				Props: map[string]interface{}{authenticator.AuthenticatorPropOOBOTPPhone: "+85200000000"},
+				ID:     "phone",
+				Type:   authn.AuthenticatorTypeOOB,
+				Claims: map[string]interface{}{authenticator.AuthenticatorClaimOOBOTPPhone: "+85200000000"},
 			}}, nil)
 			So(must(service.GetVerificationStatus(identityLoginID("email", "foo@example.com"))), ShouldEqual, StatusPending)
 
 			So(must(service.GetVerificationStatus(identityLoginID("phone", "+85200000000"))), ShouldEqual, StatusDisabled)
 
 			authenticators.EXPECT().List("user-id").Return([]*authenticator.Info{
-				{ID: "phone", Props: map[string]interface{}{"test-id": "login-id-+85200000000"}},
+				{ID: "phone", Claims: map[string]interface{}{"test-id": "login-id-+85200000000"}},
 			}, nil)
 			So(must(service.GetVerificationStatus(identityLoginID("username", "bar"))), ShouldEqual, StatusRequired)
 		})
@@ -144,9 +144,9 @@ func TestService(t *testing.T) {
 						identityOfType(authn.IdentityTypeOAuth),
 					},
 					Authenticators: []*authenticator.Info{{
-						ID:    "email",
-						Type:  authn.AuthenticatorTypeOOB,
-						Props: map[string]interface{}{authenticator.AuthenticatorPropOOBOTPEmail: "foo@example.com"},
+						ID:     "email",
+						Type:   authn.AuthenticatorTypeOOB,
+						Claims: map[string]interface{}{authenticator.AuthenticatorClaimOOBOTPEmail: "foo@example.com"},
 					}},
 					AnyResult: true, AllResult: true,
 				},
@@ -155,9 +155,9 @@ func TestService(t *testing.T) {
 						identityLoginID("phone", "+85200000000"),
 					},
 					Authenticators: []*authenticator.Info{{
-						ID:    "phone",
-						Type:  authn.AuthenticatorTypeOOB,
-						Props: map[string]interface{}{authenticator.AuthenticatorPropOOBOTPPhone: "+85200000000"},
+						ID:     "phone",
+						Type:   authn.AuthenticatorTypeOOB,
+						Claims: map[string]interface{}{authenticator.AuthenticatorClaimOOBOTPPhone: "+85200000000"},
 					}},
 					AnyResult: false, AllResult: false,
 				},
@@ -167,9 +167,9 @@ func TestService(t *testing.T) {
 						identityLoginID("phone", "+85200000000"),
 					},
 					Authenticators: []*authenticator.Info{{
-						ID:    "email",
-						Type:  authn.AuthenticatorTypeOOB,
-						Props: map[string]interface{}{authenticator.AuthenticatorPropOOBOTPEmail: "foo@example.com"},
+						ID:     "email",
+						Type:   authn.AuthenticatorTypeOOB,
+						Claims: map[string]interface{}{authenticator.AuthenticatorClaimOOBOTPEmail: "foo@example.com"},
 					}},
 					AnyResult: true, AllResult: true,
 				},

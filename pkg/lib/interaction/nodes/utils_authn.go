@@ -9,9 +9,9 @@ import (
 
 func cloneAuthenticator(info *authenticator.Info) *authenticator.Info {
 	newInfo := *info
-	newInfo.Props = map[string]interface{}{}
-	for k, v := range info.Props {
-		newInfo.Props[k] = v
+	newInfo.Claims = map[string]interface{}{}
+	for k, v := range info.Claims {
+		newInfo.Claims[k] = v
 	}
 	return &newInfo
 }
@@ -41,7 +41,7 @@ func sendOOBCode(
 ) (*otp.CodeSendResult, error) {
 	// TODO(interaction): handle rate limits
 
-	channel := authn.AuthenticatorOOBChannel(authenticatorInfo.Props[authenticator.AuthenticatorPropOOBOTPChannelType].(string))
+	channel := authn.AuthenticatorOOBChannel(authenticatorInfo.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType].(string))
 
 	var messageType otp.MessageType
 	switch stage {
@@ -64,9 +64,9 @@ func sendOOBCode(
 	var target string
 	switch channel {
 	case authn.AuthenticatorOOBChannelSMS:
-		target = authenticatorInfo.Props[authenticator.AuthenticatorPropOOBOTPPhone].(string)
+		target = authenticatorInfo.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string)
 	case authn.AuthenticatorOOBChannelEmail:
-		target = authenticatorInfo.Props[authenticator.AuthenticatorPropOOBOTPEmail].(string)
+		target = authenticatorInfo.Claims[authenticator.AuthenticatorClaimOOBOTPEmail].(string)
 	}
 
 	code := ctx.OOBAuthenticators.GenerateCode(secret, channel)
