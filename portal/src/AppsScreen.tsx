@@ -1,25 +1,12 @@
-import React, { useCallback } from "react";
-import authgear from "@authgear/web";
+import React from "react";
+
+import ScreenHeader from "./ScreenHeader";
 
 const AppsScreen: React.FC = function AppsScreen() {
-  const redirectURI = window.location.origin + "/";
-
-  const onClickLogout = useCallback(() => {
-    authgear
-      .logout({
-        redirectURI,
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-  }, [redirectURI]);
-
+  // TODO: Fetch and render the list of apps
   return (
     <div>
-      <p>This is /apps</p>
-      <button type="button" onClick={onClickLogout}>
-        Click here to logout
-      </button>
+      <ScreenHeader />
     </div>
   );
 };
