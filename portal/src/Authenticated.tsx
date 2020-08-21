@@ -3,6 +3,8 @@ import { graphql, QueryRenderer } from "react-relay";
 import authgear from "@authgear/web";
 import { AuthenticatedQueryResponse } from "./__generated__/AuthenticatedQuery.graphql";
 import { environment } from "./relay";
+import ShowError from "./ShowError";
+import ShowLoading from "./ShowLoading";
 
 const query = graphql`
   query AuthenticatedQuery {
@@ -43,33 +45,6 @@ const ShowQueryResult: React.FC<ShowQueryResultProps> = function ShowQueryResult
   }
 
   return null;
-};
-
-interface ShowErrorProps {
-  error: unknown;
-}
-
-const ShowError: React.FC<ShowErrorProps> = function ShowError(
-  props: ShowErrorProps
-) {
-  const { error } = props;
-  if (error instanceof Error) {
-    return (
-      <div
-        style={{
-          whiteSpace: "pre",
-        }}
-      >
-        {error.name}: {error.message}
-        <br /> {error.stack}
-      </div>
-    );
-  }
-  return <div>Non-Error error: {String(error)}</div>;
-};
-
-const ShowLoading: React.FC = function ShowLoading() {
-  return <div>Loading...</div>;
 };
 
 interface Empty {}

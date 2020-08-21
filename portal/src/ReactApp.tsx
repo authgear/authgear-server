@@ -2,11 +2,8 @@ import React, { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import authgear from "@authgear/web";
 import Authenticated from "./Authenticated";
+import ShowLoading from "./ShowLoading";
 import AppsScreen from "./AppsScreen";
-
-const ShowLoading: React.FC = function ShowLoading() {
-  return <div>Loading...</div>;
-};
 
 // ReactAppRoutes defines the routes.
 const ReactAppRoutes: React.FC = function ReactAppRoutes() {
