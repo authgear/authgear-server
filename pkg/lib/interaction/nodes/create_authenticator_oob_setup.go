@@ -69,7 +69,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 			UserID: identityInfo.UserID,
 			Tag:    stageToAuthenticatorTag(e.Stage),
 			Type:   authn.AuthenticatorTypeOOB,
-			Props:  map[string]interface{}{},
+			Claims: map[string]interface{}{},
 		}
 
 		// Ignore given OOB target, use channel & target inferred from identity
@@ -96,7 +96,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 			UserID: userID,
 			Tag:    stageToAuthenticatorTag(e.Stage),
 			Type:   authn.AuthenticatorTypeOOB,
-			Props:  map[string]interface{}{},
+			Claims: map[string]interface{}{},
 		}
 
 		// Normalize the target.
@@ -118,12 +118,12 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 
 	spec.Tag = append(spec.Tag, e.Tag...)
 
-	spec.Props[authenticator.AuthenticatorPropOOBOTPChannelType] = string(channel)
+	spec.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType] = string(channel)
 	switch channel {
 	case authn.AuthenticatorOOBChannelSMS:
-		spec.Props[authenticator.AuthenticatorPropOOBOTPPhone] = target
+		spec.Claims[authenticator.AuthenticatorClaimOOBOTPPhone] = target
 	case authn.AuthenticatorOOBChannelEmail:
-		spec.Props[authenticator.AuthenticatorPropOOBOTPEmail] = target
+		spec.Claims[authenticator.AuthenticatorClaimOOBOTPEmail] = target
 	}
 
 	info, err := ctx.Authenticators.New(spec, "")

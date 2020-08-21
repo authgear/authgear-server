@@ -38,9 +38,9 @@ func (e *EdgeCreateAuthenticatorTOTPSetup) Instantiate(ctx *interaction.Context,
 		UserID: userID,
 		Tag:    stageToAuthenticatorTag(e.Stage),
 		Type:   authn.AuthenticatorTypeTOTP,
-		Props: map[string]interface{}{
+		Claims: map[string]interface{}{
 			// The display name will be filled in in a later node.
-			authenticator.AuthenticatorPropTOTPDisplayName: "",
+			authenticator.AuthenticatorClaimTOTPDisplayName: "",
 		},
 	}
 	spec.Tag = append(spec.Tag, e.Tag...)

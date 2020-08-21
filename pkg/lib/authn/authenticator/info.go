@@ -17,7 +17,7 @@ type Info struct {
 	Type      authn.AuthenticatorType `json:"type"`
 	Secret    string                  `json:"secret"`
 	Tag       []string                `json:"tag,omitempty"`
-	Props     map[string]interface{}  `json:"props"`
+	Claims    map[string]interface{}  `json:"claims"`
 }
 
 func (i *Info) ToSpec() Spec {
@@ -25,7 +25,7 @@ func (i *Info) ToSpec() Spec {
 		UserID: i.UserID,
 		Type:   i.Type,
 		Tag:    i.Tag,
-		Props:  i.Props,
+		Claims: i.Claims,
 	}
 }
 
@@ -57,7 +57,7 @@ func (i *Info) AMR() []string {
 		return []string{authn.AMROTP}
 	case authn.AuthenticatorTypeOOB:
 		out := []string{authn.AMROTP}
-		channel := i.Props[AuthenticatorPropOOBOTPChannelType].(string)
+		channel := i.Claims[AuthenticatorClaimOOBOTPChannelType].(string)
 		switch authn.AuthenticatorOOBChannel(channel) {
 		case authn.AuthenticatorOOBChannelSMS:
 			out = append(out, authn.AMRSMS)
@@ -104,21 +104,21 @@ func (i *Info) Equal(that *Info) bool {
 			return false
 		}
 
-		iChannel := i.Props[AuthenticatorPropOOBOTPChannelType].(string)
-		thatChannel := that.Props[AuthenticatorPropOOBOTPChannelType].(string)
+		iChannel := i.Claims[AuthenticatorClaimOOBOTPChannelType].(string)
+		thatChannel := that.Claims[AuthenticatorClaimOOBOTPChannelType].(string)
 		if iChannel != thatChannel {
 			return false
 		}
 
 		switch authn.AuthenticatorOOBChannel(iChannel) {
 		case authn.AuthenticatorOOBChannelEmail:
-			iEmail := i.Props[AuthenticatorPropOOBOTPEmail].(string)
-			thatEmail := that.Props[AuthenticatorPropOOBOTPEmail].(string)
+			iEmail := i.Claims[AuthenticatorClaimOOBOTPEmail].(string)
+			thatEmail := that.Claims[AuthenticatorClaimOOBOTPEmail].(string)
 			return iEmail == thatEmail
 		case authn.AuthenticatorOOBChannelSMS:
 			// Interesting identifier :)
-			iPhone := i.Props[AuthenticatorPropOOBOTPPhone].(string)
-			thatPhone := that.Props[AuthenticatorPropOOBOTPPhone].(string)
+			iPhone := i.Claims[AuthenticatorClaimOOBOTPPhone].(string)
+			thatPhone := that.Claims[AuthenticatorClaimOOBOTPPhone].(string)
 			return iPhone == thatPhone
 		default:
 			panic("authenticator: unknown OOB channel: " + iChannel)

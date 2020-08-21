@@ -38,8 +38,8 @@ func KeepPrimaryAuthenticatorOfIdentity(ii *identity.Info) Filter {
 				switch {
 				case ii.Type == authn.IdentityTypeLoginID && ai.Type == authn.AuthenticatorTypeOOB:
 					loginID := ii.Claims[identity.IdentityClaimLoginIDValue]
-					email, _ := ai.Props[AuthenticatorPropOOBOTPEmail].(string)
-					phone, _ := ai.Props[AuthenticatorPropOOBOTPPhone].(string)
+					email, _ := ai.Claims[AuthenticatorClaimOOBOTPEmail].(string)
+					phone, _ := ai.Claims[AuthenticatorClaimOOBOTPPhone].(string)
 					if loginID == email || loginID == phone {
 						return true
 					}
@@ -63,8 +63,8 @@ func KeepMatchingAuthenticatorOfIdentity(ii *identity.Info) Filter {
 				case ii.Type == authn.IdentityTypeLoginID && ai.Type == authn.AuthenticatorTypeOOB:
 					loginIDType, _ := ii.Claims[identity.IdentityClaimLoginIDType].(string)
 					loginID, _ := ii.Claims[identity.IdentityClaimLoginIDValue].(string)
-					email, _ := ai.Props[AuthenticatorPropOOBOTPEmail].(string)
-					phone, _ := ai.Props[AuthenticatorPropOOBOTPPhone].(string)
+					email, _ := ai.Claims[AuthenticatorClaimOOBOTPEmail].(string)
+					phone, _ := ai.Claims[AuthenticatorClaimOOBOTPPhone].(string)
 					switch loginIDType {
 					case string(config.LoginIDKeyTypeEmail):
 						return loginID == email

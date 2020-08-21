@@ -241,15 +241,15 @@ func (s *Service) NewVerificationAuthenticator(code *Code) (*authenticator.Info,
 	spec := &authenticator.Spec{
 		UserID: code.UserID,
 		Type:   authn.AuthenticatorTypeOOB,
-		Props:  map[string]interface{}{},
+		Claims: map[string]interface{}{},
 	}
 	switch config.LoginIDKeyType(code.LoginIDType) {
 	case config.LoginIDKeyTypeEmail:
-		spec.Props[authenticator.AuthenticatorPropOOBOTPChannelType] = string(authn.AuthenticatorOOBChannelEmail)
-		spec.Props[authenticator.AuthenticatorPropOOBOTPEmail] = code.LoginID
+		spec.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType] = string(authn.AuthenticatorOOBChannelEmail)
+		spec.Claims[authenticator.AuthenticatorClaimOOBOTPEmail] = code.LoginID
 	case config.LoginIDKeyTypePhone:
-		spec.Props[authenticator.AuthenticatorPropOOBOTPChannelType] = string(authn.AuthenticatorOOBChannelSMS)
-		spec.Props[authenticator.AuthenticatorPropOOBOTPPhone] = code.LoginID
+		spec.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType] = string(authn.AuthenticatorOOBChannelSMS)
+		spec.Claims[authenticator.AuthenticatorClaimOOBOTPPhone] = code.LoginID
 	default:
 		panic("verification: unsupported login ID type: " + code.LoginIDType)
 	}

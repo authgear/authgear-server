@@ -85,10 +85,10 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 					Tag: []string{
 						TagPrimaryAuthenticator,
 					},
-					Props: map[string]interface{}{
-						AuthenticatorPropOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
-						AuthenticatorPropOOBOTPEmail:       "user@example",
-						AuthenticatorPropOOBOTPPhone:       "",
+					Claims: map[string]interface{}{
+						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
+						AuthenticatorClaimOOBOTPEmail:       "user@example",
+						AuthenticatorClaimOOBOTPPhone:       "",
 					},
 				},
 				&Info{
@@ -96,10 +96,10 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 					Tag: []string{
 						TagPrimaryAuthenticator,
 					},
-					Props: map[string]interface{}{
-						AuthenticatorPropOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
-						AuthenticatorPropOOBOTPEmail:       "user@example",
-						AuthenticatorPropOOBOTPPhone:       "",
+					Claims: map[string]interface{}{
+						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
+						AuthenticatorClaimOOBOTPEmail:       "user@example",
+						AuthenticatorClaimOOBOTPPhone:       "",
 					},
 				},
 			},
@@ -110,10 +110,10 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 					Tag: []string{
 						TagPrimaryAuthenticator,
 					},
-					Props: map[string]interface{}{
-						AuthenticatorPropOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
-						AuthenticatorPropOOBOTPEmail:       "",
-						AuthenticatorPropOOBOTPPhone:       "+85299887766",
+					Claims: map[string]interface{}{
+						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
+						AuthenticatorClaimOOBOTPEmail:       "",
+						AuthenticatorClaimOOBOTPPhone:       "+85299887766",
 					},
 				},
 				&Info{
@@ -121,10 +121,10 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 					Tag: []string{
 						TagPrimaryAuthenticator,
 					},
-					Props: map[string]interface{}{
-						AuthenticatorPropOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
-						AuthenticatorPropOOBOTPEmail:       "",
-						AuthenticatorPropOOBOTPPhone:       "+85299887766",
+					Claims: map[string]interface{}{
+						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
+						AuthenticatorClaimOOBOTPEmail:       "",
+						AuthenticatorClaimOOBOTPPhone:       "+85299887766",
 					},
 				},
 			},
@@ -135,10 +135,10 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 					Tag: []string{
 						TagSecondaryAuthenticator,
 					},
-					Props: map[string]interface{}{
-						AuthenticatorPropOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
-						AuthenticatorPropOOBOTPEmail:       "user@example",
-						AuthenticatorPropOOBOTPPhone:       "",
+					Claims: map[string]interface{}{
+						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
+						AuthenticatorClaimOOBOTPEmail:       "user@example",
+						AuthenticatorClaimOOBOTPPhone:       "",
 					},
 				},
 				&Info{
@@ -146,10 +146,10 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 					Tag: []string{
 						TagSecondaryAuthenticator,
 					},
-					Props: map[string]interface{}{
-						AuthenticatorPropOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
-						AuthenticatorPropOOBOTPEmail:       "user@example",
-						AuthenticatorPropOOBOTPPhone:       "",
+					Claims: map[string]interface{}{
+						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
+						AuthenticatorClaimOOBOTPEmail:       "user@example",
+						AuthenticatorClaimOOBOTPPhone:       "",
 					},
 				},
 			},
@@ -160,10 +160,10 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 					Tag: []string{
 						TagSecondaryAuthenticator,
 					},
-					Props: map[string]interface{}{
-						AuthenticatorPropOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
-						AuthenticatorPropOOBOTPEmail:       "",
-						AuthenticatorPropOOBOTPPhone:       "+85299887766",
+					Claims: map[string]interface{}{
+						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
+						AuthenticatorClaimOOBOTPEmail:       "",
+						AuthenticatorClaimOOBOTPPhone:       "+85299887766",
 					},
 				},
 				&Info{
@@ -171,10 +171,10 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 					Tag: []string{
 						TagSecondaryAuthenticator,
 					},
-					Props: map[string]interface{}{
-						AuthenticatorPropOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
-						AuthenticatorPropOOBOTPEmail:       "",
-						AuthenticatorPropOOBOTPPhone:       "+85299887766",
+					Claims: map[string]interface{}{
+						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
+						AuthenticatorClaimOOBOTPEmail:       "",
+						AuthenticatorClaimOOBOTPPhone:       "+85299887766",
 					},
 				},
 			},
@@ -243,10 +243,10 @@ func TestAuthenticatorEqualFalse(t *testing.T) {
 					Tag: []string{
 						TagPrimaryAuthenticator,
 					},
-					Props: map[string]interface{}{
-						AuthenticatorPropOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
-						AuthenticatorPropOOBOTPEmail:       "user1@example",
-						AuthenticatorPropOOBOTPPhone:       "",
+					Claims: map[string]interface{}{
+						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
+						AuthenticatorClaimOOBOTPEmail:       "user1@example",
+						AuthenticatorClaimOOBOTPPhone:       "",
 					},
 				},
 				&Info{
@@ -254,10 +254,10 @@ func TestAuthenticatorEqualFalse(t *testing.T) {
 					Tag: []string{
 						TagPrimaryAuthenticator,
 					},
-					Props: map[string]interface{}{
-						AuthenticatorPropOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
-						AuthenticatorPropOOBOTPEmail:       "user2@example",
-						AuthenticatorPropOOBOTPPhone:       "",
+					Claims: map[string]interface{}{
+						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
+						AuthenticatorClaimOOBOTPEmail:       "user2@example",
+						AuthenticatorClaimOOBOTPPhone:       "",
 					},
 				},
 			},

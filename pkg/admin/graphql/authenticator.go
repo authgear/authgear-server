@@ -37,7 +37,7 @@ var nodeAuthenticator = entity(
 					return string(ref.Type), nil
 				},
 			},
-			"props": &graphql.Field{
+			"claims": &graphql.Field{
 				Type: graphql.NewNonNull(JSONObject),
 				Args: map[string]*graphql.ArgumentConfig{
 					"names": {Type: graphql.NewList(graphql.NewNonNull(graphql.String))},
@@ -46,18 +46,18 @@ var nodeAuthenticator = entity(
 					names, hasNames := p.Args["names"].([]interface{})
 					info := loadAuthenticator(p.Context, p.Source)
 					claims := info.Map(func(value interface{}) (interface{}, error) {
-						props := value.(*authenticator.Info).Props
+						claims := value.(*authenticator.Info).Claims
 						if hasNames {
-							filteredProps := make(map[string]interface{})
+							filteredClaims := make(map[string]interface{})
 							for _, name := range names {
 								name := name.(string)
-								if value, ok := props[name]; ok {
-									filteredProps[name] = value
+								if value, ok := claims[name]; ok {
+									filteredClaims[name] = value
 								}
 							}
-							props = filteredProps
+							claims = filteredClaims
 						}
-						return props, nil
+						return claims, nil
 					})
 					return claims.Value, nil
 				},
