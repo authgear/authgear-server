@@ -1,22 +1,13 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { graphql, QueryRenderer } from "react-relay";
+import React, { useEffect, useState, useCallback } from "react";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import authgear from "@authgear/web";
-import { environment } from "./relay";
-import { AppQueryResponse } from "./__generated__/AppQuery.graphql";
-import styles from "./App.module.scss";
+import Authenticated from "./Authenticated";
 
-const query = graphql`
-  query AppQuery {
-    viewer {
-      id
-    }
-  }
-`;
+const ShowLoading: React.FC = function ShowLoading() {
+  return <div>Loading...</div>;
+};
 
-const ShowQueryResult: React.FC<AppQueryResponse> = function ShowQueryResult(
-  props: AppQueryResponse
-) {
-  const { viewer } = props;
+const Root: React.FC = function Root() {
   const redirectURI = window.location.origin + "/";
 
   const onClickLogout = useCallback(() => {
@@ -29,68 +20,40 @@ const ShowQueryResult: React.FC<AppQueryResponse> = function ShowQueryResult(
       });
   }, [redirectURI]);
 
-  useEffect(() => {
-    if (viewer == null) {
-      // Normally we should call endAuthorization after being redirected back to here.
-      // But we know that we are first party app and are using response_type=none so
-      // we can skip that.
-      authgear
-        .startAuthorization({
-          redirectURI,
-          prompt: "login",
-        })
-        .catch((err) => {
-          console.error(err);
-        });
-    }
-  }, [viewer, redirectURI]);
-
-  if (viewer != null) {
-    return (
-      <div className={styles.app}>
-        <p>You are logged in as {viewer.id}</p>
-        <button
-          type="button"
-          className={styles.logoutButton}
-          onClick={onClickLogout}
-        >
-          Click here to logout
-        </button>
-      </div>
-    );
-  }
-
-  return null;
+  return (
+    <div>
+      <p>This is /</p>
+      <Link to="/apps">Go to /apps</Link>
+      <button type="button" onClick={onClickLogout}>
+        Click here to logout
+      </button>
+    </div>
+  );
 };
 
-interface ShowErrorProps {
-  error: unknown;
-}
+const Apps: React.FC = function Apps() {
+  const redirectURI = window.location.origin + "/";
 
-const ShowError: React.FC<ShowErrorProps> = function ShowError(
-  props: ShowErrorProps
-) {
-  const { error } = props;
-  if (error instanceof Error) {
-    return (
-      <div
-        style={{
-          whiteSpace: "pre",
-        }}
-      >
-        {error.name}: {error.message}
-        <br /> {error.stack}
-      </div>
-    );
-  }
-  return <div>Non-Error error: {String(error)}</div>;
+  const onClickLogout = useCallback(() => {
+    authgear
+      .logout({
+        redirectURI,
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }, [redirectURI]);
+
+  return (
+    <div>
+      <p>This is /apps</p>
+      <Link to="/">Go to /</Link>
+      <button type="button" onClick={onClickLogout}>
+        Click here to logout
+      </button>
+    </div>
+  );
 };
-
-const ShowLoading: React.FC = function ShowLoading() {
-  return <div>Loading...</div>;
-};
-
-interface Empty {}
 
 const App: React.FC = function App() {
   const [configured, setConfigured] = useState(false);
@@ -133,20 +96,16 @@ const App: React.FC = function App() {
   }
 
   return (
-    <QueryRenderer<{ variables: Empty; response: AppQueryResponse }>
-      environment={environment}
-      query={query}
-      variables={{}}
-      render={({ error, props }) => {
-        if (error != null) {
-          return <ShowError error={error} />;
-        }
-        if (props == null) {
-          return <ShowLoading />;
-        }
-        return <ShowQueryResult {...props} />;
-      }}
-    />
+    <BrowserRouter>
+      <Routes>
+        <Authenticated>
+          <Route path="/" element={<Root />} />
+        </Authenticated>
+        <Authenticated>
+          <Route path="/apps" element={<Apps />} />
+        </Authenticated>
+      </Routes>
+    </BrowserRouter>
   );
 };
 
