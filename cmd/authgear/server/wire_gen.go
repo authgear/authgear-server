@@ -14,7 +14,7 @@ import (
 
 // Injectors from wire.go:
 
-func newConfigSource(p *deps.RootProvider) source.Source {
+func newConfigSourceController(p *deps.RootProvider) *source.Controller {
 	serverConfig := p.ServerConfig
 	factory := p.LoggerFactory
 	localFSLogger := source.NewLocalFSLogger(factory)
@@ -22,8 +22,8 @@ func newConfigSource(p *deps.RootProvider) source.Source {
 		Logger:       localFSLogger,
 		ServerConfig: serverConfig,
 	}
-	sourceSource := source.NewSource(serverConfig, localFS)
-	return sourceSource
+	controller := source.NewController(serverConfig, localFS)
+	return controller
 }
 
 func newInProcessQueue(p *deps.AppProvider, e *executor.InProcessExecutor) *queue.InProcessQueue {

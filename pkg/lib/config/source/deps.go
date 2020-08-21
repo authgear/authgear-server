@@ -6,5 +6,5 @@ var DependencySet = wire.NewSet(
 	NewLocalFSLogger,
 	wire.Struct(new(LocalFS), "*"),
 
-	NewSource,
+	NewController,
 )
