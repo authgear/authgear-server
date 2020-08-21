@@ -25,14 +25,13 @@ var nodeUser = node(
 	&model.User{},
 	func(ctx context.Context, id string) (interface{}, error) {
 		gqlCtx := GQLContext(ctx)
-		iUser, err := gqlCtx.Viewer.Get()
-		if err != nil {
-			return nil, err
-		}
-		user := iUser.(*model.User)
-		if user.ID != id {
-			return nil, nil
-		}
-		return user, nil
+		lazy := gqlCtx.Viewer.Get()
+		return lazy.Map(func(value interface{}) (interface{}, error) {
+			user := value.(*model.User)
+			if user.ID != id {
+				return nil, nil
+			}
+			return user, nil
+		}), nil
 	},
 )
