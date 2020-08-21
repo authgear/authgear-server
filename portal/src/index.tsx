@@ -13,6 +13,6 @@ import "./index.scss";
 import React from "react";
 import { render } from "react-dom";
 
-import App from "./App";
+import ReactApp from "./ReactApp";
 
-render(<App />, document.getElementById("react-app-root"));
+render(<ReactApp />, document.getElementById("react-app-root"));

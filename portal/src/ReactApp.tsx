@@ -1,34 +1,10 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import authgear from "@authgear/web";
 import Authenticated from "./Authenticated";
 
 const ShowLoading: React.FC = function ShowLoading() {
   return <div>Loading...</div>;
-};
-
-const Root: React.FC = function Root() {
-  const redirectURI = window.location.origin + "/";
-
-  const onClickLogout = useCallback(() => {
-    authgear
-      .logout({
-        redirectURI,
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-  }, [redirectURI]);
-
-  return (
-    <div>
-      <p>This is /</p>
-      <Link to="/apps">Go to /apps</Link>
-      <button type="button" onClick={onClickLogout}>
-        Click here to logout
-      </button>
-    </div>
-  );
 };
 
 const Apps: React.FC = function Apps() {
@@ -47,7 +23,6 @@ const Apps: React.FC = function Apps() {
   return (
     <div>
       <p>This is /apps</p>
-      <Link to="/">Go to /</Link>
       <button type="button" onClick={onClickLogout}>
         Click here to logout
       </button>
@@ -55,7 +30,22 @@ const Apps: React.FC = function Apps() {
   );
 };
 
-const App: React.FC = function App() {
+// ReactAppRoutes defines the routes.
+const ReactAppRoutes: React.FC = function ReactAppRoutes() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Navigate to="/apps" replace={true} />} />
+        <Authenticated>
+          <Route path="/apps" element={<Apps />} />
+        </Authenticated>
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
+// ReactApp is responsible for fetching runtime config and initialize authgear SDK.
+const ReactApp: React.FC = function ReactApp() {
   const [configured, setConfigured] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<null | unknown>(null);
@@ -95,18 +85,7 @@ const App: React.FC = function App() {
     return <ShowLoading />;
   }
 
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Authenticated>
-          <Route path="/" element={<Root />} />
-        </Authenticated>
-        <Authenticated>
-          <Route path="/apps" element={<Apps />} />
-        </Authenticated>
-      </Routes>
-    </BrowserRouter>
-  );
+  return <ReactAppRoutes />;
 };
 
-export default App;
+export default ReactApp;
