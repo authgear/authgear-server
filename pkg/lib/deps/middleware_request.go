@@ -17,7 +17,7 @@ func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
 	logger := m.RootProvider.LoggerFactory.New("request")
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		config, err := m.ConfigSource.ProvideConfig(r)
+		appCtx, err := m.ConfigSource.ProvideContext(r)
 		if err != nil {
 			if errorutil.Is(err, configsource.ErrAppNotFound) {
 				http.Error(w, configsource.ErrAppNotFound.Error(), http.StatusNotFound)
@@ -28,7 +28,7 @@ func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
 			return
 		}
 
-		ap := m.RootProvider.NewAppProvider(r.Context(), config)
+		ap := m.RootProvider.NewAppProvider(r.Context(), appCtx)
 		r = r.WithContext(withProvider(r.Context(), ap))
 		next.ServeHTTP(w, r)
 	})

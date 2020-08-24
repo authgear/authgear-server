@@ -22,7 +22,11 @@ type ConfigGetter struct {
 }
 
 func (g *ConfigGetter) GetConfig() (*config.Config, error) {
-	return g.ConfigSource.ProvideConfig(g.Request)
+	appCtx, err := g.ConfigSource.ProvideContext(g.Request)
+	if err != nil {
+		return nil, err
+	}
+	return appCtx.Config, nil
 }
 
 var DependencySet = wire.NewSet(

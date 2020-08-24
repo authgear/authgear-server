@@ -72,7 +72,8 @@ func NewRootProvider(
 	return &p, nil
 }
 
-func (p *RootProvider) NewAppProvider(ctx context.Context, cfg *config.Config) *AppProvider {
+func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppContext) *AppProvider {
+	cfg := appCtx.Config
 	loggerFactory := p.LoggerFactory.ReplaceHooks(
 		log.NewDefaultMaskLogHook(),
 		config.NewSecretMaskLogHook(cfg.SecretConfig),
@@ -92,7 +93,11 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, cfg *config.Config) *
 		cfg.SecretConfig.LookupData(config.RedisCredentialsKey).(*config.RedisCredentials),
 		loggerFactory,
 	)
-	templateEngine := NewEngineWithConfig(p.EnvironmentConfig.DefaultTemplateDirectory, cfg)
+	templateEngine := NewEngineWithConfig(
+		appCtx.Fs,
+		p.EnvironmentConfig.DefaultTemplateDirectory,
+		cfg,
+	)
 
 	provider := &AppProvider{
 		RootProvider:   p,

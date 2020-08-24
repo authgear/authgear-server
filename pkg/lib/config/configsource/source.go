@@ -10,8 +10,8 @@ type AppIDResolver interface {
 	ResolveAppID(r *http.Request) (appID string, err error)
 }
 
-type ConfigGetter interface {
-	GetConfig(appID string) (*config.Config, error)
+type ContextResolver interface {
+	ResolveContext(appID string) (*config.AppContext, error)
 }
 
 type Handle interface {
@@ -20,22 +20,22 @@ type Handle interface {
 }
 
 type ConfigSource struct {
-	AppIDResolver AppIDResolver
-	ConfigGetter  ConfigGetter
+	AppIDResolver   AppIDResolver
+	ContextResolver ContextResolver
 }
 
-func (s *ConfigSource) ProvideConfig(r *http.Request) (*config.Config, error) {
+func (s *ConfigSource) ProvideContext(r *http.Request) (*config.AppContext, error) {
 	appID, err := s.AppIDResolver.ResolveAppID(r)
 	if err != nil {
 		return nil, err
 	}
-	return s.ConfigGetter.GetConfig(appID)
+	return s.ContextResolver.ResolveContext(appID)
 }
 
 type Controller struct {
-	Handle        Handle
-	AppIDResolver AppIDResolver
-	ConfigGetter  ConfigGetter
+	Handle          Handle
+	AppIDResolver   AppIDResolver
+	ContextResolver ContextResolver
 }
 
 func NewController(
@@ -45,9 +45,9 @@ func NewController(
 	switch cfg.Type {
 	case TypeLocalFS:
 		return &Controller{
-			Handle:        lf,
-			AppIDResolver: lf,
-			ConfigGetter:  lf,
+			Handle:          lf,
+			AppIDResolver:   lf,
+			ContextResolver: lf,
 		}
 	default:
 		panic("config_source: invalid config source type")
@@ -64,7 +64,7 @@ func (c *Controller) Close() error {
 
 func (c *Controller) GetConfigSource() *ConfigSource {
 	return &ConfigSource{
-		AppIDResolver: c.AppIDResolver,
-		ConfigGetter:  c.ConfigGetter,
+		AppIDResolver:   c.AppIDResolver,
+		ContextResolver: c.ContextResolver,
 	}
 }

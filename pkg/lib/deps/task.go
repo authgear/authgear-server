@@ -25,7 +25,9 @@ func ProvideCaptureTaskContext(config *config.Config) task.CaptureTaskContext {
 
 func ProvideRestoreTaskContext(p *RootProvider) task.RestoreTaskContext {
 	return func(ctx context.Context, taskCtx *task.Context) context.Context {
-		rp := p.NewAppProvider(ctx, taskCtx.Config)
+		rp := p.NewAppProvider(ctx, &config.AppContext{
+			Config: taskCtx.Config,
+		})
 		ctx = withProvider(ctx, rp)
 		return ctx
 	}

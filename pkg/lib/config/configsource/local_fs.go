@@ -7,9 +7,11 @@ import (
 	"path/filepath"
 	"sync/atomic"
 
+	"github.com/spf13/afero"
 	"gopkg.in/fsnotify.v1"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/fs"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -60,10 +62,12 @@ func (s *LocalFS) Open() error {
 		return fmt.Errorf("invalid secret config: %w", err)
 	}
 
-	s.config.Store(&config.Config{
-		BaseDirectory: dir,
-		AppConfig:     appConfig,
-		SecretConfig:  secretConfig,
+	s.config.Store(&config.AppContext{
+		Fs: &fs.AferoFs{Fs: afero.NewBasePathFs(afero.NewOsFs(), dir)},
+		Config: &config.Config{
+			AppConfig:    appConfig,
+			SecretConfig: secretConfig,
+		},
 	})
 
 	if s.Config.Watch {
@@ -128,7 +132,8 @@ func (s *LocalFS) watch(done <-chan struct{}) {
 }
 
 func (s *LocalFS) reload(filename string) error {
-	newConfig := *s.config.Load().(*config.Config)
+	appCtx := s.config.Load().(*config.AppContext)
+	newConfig := *appCtx.Config
 
 	switch filename {
 	case s.appConfigPath:
@@ -156,7 +161,11 @@ func (s *LocalFS) reload(filename string) error {
 		return fmt.Errorf("invalid secret config: %w", err)
 	}
 
-	s.config.Store(&newConfig)
+	appCtx = &config.AppContext{
+		Fs:     appCtx.Fs,
+		Config: &newConfig,
+	}
+	s.config.Store(appCtx)
 	return nil
 }
 
@@ -165,8 +174,8 @@ func (s *LocalFS) ResolveAppID(r *http.Request) (appID string, err error) {
 	return
 }
 
-func (s *LocalFS) GetConfig(_appID string) (*config.Config, error) {
+func (s *LocalFS) ResolveContext(_appID string) (*config.AppContext, error) {
 	// In single mode, appID is ignored.
-	cfg := s.config.Load().(*config.Config)
-	return cfg, nil
+	ctx := s.config.Load().(*config.AppContext)
+	return ctx, nil
 }
