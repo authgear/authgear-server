@@ -6,6 +6,7 @@ import (
 
 	"github.com/kelseyhightower/envconfig"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -25,7 +26,7 @@ type ServerConfig struct {
 	Authgear AuthgearConfig `envconfig:"AUTHGEAR"`
 
 	// SentryDSN sets the sentry DSN.
-	SentryDSN string `envconfig:"SENTRY_DSN"`
+	SentryDSN config.SentryDSN `envconfig:"SENTRY_DSN"`
 }
 
 func LoadServerConfigFromEnv() (*ServerConfig, error) {

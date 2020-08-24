@@ -47,7 +47,7 @@ func TestProvider(t *testing.T) {
 			Request:      req,
 			Store:        store,
 			AccessEvents: &mockAccessEventProvider{},
-			ServerConfig: &config.ServerConfig{},
+			TrustProxy:   true,
 			Config:       &config.SessionConfig{},
 			Clock:        clock,
 			Random:       rand.New(rand.NewSource(0)),

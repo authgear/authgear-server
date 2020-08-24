@@ -76,7 +76,7 @@ func ConfigureSignupRoute(route httproute.Route) httproute.Route {
 }
 
 type SignupHandler struct {
-	ServerConfig  *config.ServerConfig
+	TrustProxy    config.TrustProxy
 	Database      *db.Handle
 	BaseViewModel *viewmodels.BaseViewModeler
 	FormPrefiller *FormPrefiller
@@ -157,7 +157,7 @@ func (i *SignupLoginID) GetOOBTarget() string {
 func (h *SignupHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	return &webapp.Intent{
 		OldStateID:  StateID(r),
-		RedirectURI: webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy),
+		RedirectURI: webapp.GetRedirectURI(r, bool(h.TrustProxy)),
 		Intent:      intents.NewIntentSignup(),
 	}
 }

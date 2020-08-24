@@ -5,7 +5,7 @@ import (
 )
 
 func NewHub(dsn string) (*sentry.Hub, error) {
-	client, err := sentry.NewClient(sentry.ClientOptions{Dsn: dsn, Debug: true})
+	client, err := sentry.NewClient(sentry.ClientOptions{Dsn: string(dsn), Debug: true})
 	if err != nil {
 		return nil, err
 	}

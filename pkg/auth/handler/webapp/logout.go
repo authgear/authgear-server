@@ -36,7 +36,7 @@ type LogoutSessionManager interface {
 
 type LogoutHandler struct {
 	Database       *db.Handle
-	ServerConfig   *config.ServerConfig
+	TrustProxy     config.TrustProxy
 	SessionManager LogoutSessionManager
 	BaseViewModel  *viewmodels.BaseViewModeler
 	Renderer       Renderer
@@ -58,7 +58,7 @@ func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.Database.WithTx(func() error {
 			sess := session.GetSession(r.Context())
 			h.SessionManager.Logout(sess, w)
-			redirectURI := webapp.GetRedirectURI(r, h.ServerConfig.TrustProxy)
+			redirectURI := webapp.GetRedirectURI(r, bool(h.TrustProxy))
 			http.Redirect(w, r, redirectURI, http.StatusFound)
 			return nil
 		})

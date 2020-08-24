@@ -28,7 +28,7 @@ func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("sms-client")} }
 type Client struct {
 	Context            context.Context
 	Logger             Logger
-	ServerConfig       *config.ServerConfig
+	DevMode            config.DevMode
 	MessagingConfig    *config.MessagingConfig
 	LocalizationConfig *config.LocalizationConfig
 	TwilioClient       *TwilioClient
@@ -36,7 +36,7 @@ type Client struct {
 }
 
 func (c *Client) Send(opts SendOptions) error {
-	if c.ServerConfig.DevMode {
+	if c.DevMode {
 		c.Logger.
 			WithField("recipient", opts.To).
 			WithField("body", opts.Body).

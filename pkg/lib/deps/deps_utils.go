@@ -19,9 +19,9 @@ var utilsDeps = wire.NewSet(
 	),
 )
 
-func NewCookieFactory(r *http.Request, serverConfig *config.ServerConfig) *httputil.CookieFactory {
+func NewCookieFactory(r *http.Request, trustProxy config.TrustProxy) *httputil.CookieFactory {
 	return &httputil.CookieFactory{
 		Request:    r,
-		TrustProxy: serverConfig.TrustProxy,
+		TrustProxy: bool(trustProxy),
 	}
 }

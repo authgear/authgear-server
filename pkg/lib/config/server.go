@@ -18,9 +18,9 @@ type ServerConfig struct {
 	AdminListenAddr string `envconfig:"ADMIN_LISTEN_ADDR" default:"0.0.0.0:3002"`
 
 	// TrustProxy sets whether HTTP headers from proxy are to be trusted
-	TrustProxy bool `envconfig:"TRUST_PROXY" default:"false"`
+	TrustProxy TrustProxy `envconfig:"TRUST_PROXY" default:"false"`
 	// DevMode sets whether the server would be run under development mode
-	DevMode bool `envconfig:"DEV_MODE" default:"false"`
+	DevMode DevMode `envconfig:"DEV_MODE" default:"false"`
 
 	// TLSCertFilePath sets the file path of TLS certificate.
 	// It is only used when development mode is enabled.
@@ -44,7 +44,7 @@ type ServerConfig struct {
 	StaticAsset ServerStaticAssetConfig `envconfig:"STATIC_ASSET"`
 
 	// SentryDSN sets the sentry DSN.
-	SentryDSN string `envconfig:"SENTRY_DSN"`
+	SentryDSN SentryDSN `envconfig:"SENTRY_DSN"`
 }
 
 func LoadServerConfigFromEnv() (*ServerConfig, error) {

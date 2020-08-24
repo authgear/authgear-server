@@ -14,14 +14,14 @@ type OriginProvider interface {
 }
 
 type MainOriginProvider struct {
-	Request *http.Request
-	Config  *config.ServerConfig
+	Request    *http.Request
+	TrustProxy config.TrustProxy
 }
 
 func (p *MainOriginProvider) Origin() *url.URL {
 	return &url.URL{
-		Host:   httputil.GetHost(p.Request, p.Config.TrustProxy),
-		Scheme: httputil.GetProto(p.Request, p.Config.TrustProxy),
+		Host:   httputil.GetHost(p.Request, bool(p.TrustProxy)),
+		Scheme: httputil.GetProto(p.Request, bool(p.TrustProxy)),
 	}
 }
 

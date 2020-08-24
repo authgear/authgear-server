@@ -37,9 +37,10 @@ import (
 func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	hub := p.SentryHub
 	serverConfig := p.ServerConfig
+	trustProxy := serverConfig.TrustProxy
 	sentryMiddleware := &middleware.SentryMiddleware{
-		SentryHub:    hub,
-		ServerConfig: serverConfig,
+		SentryHub:  hub,
+		TrustProxy: trustProxy,
 	}
 	return sentryMiddleware
 }
@@ -68,7 +69,8 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	trustProxy := serverConfig.TrustProxy
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
@@ -97,7 +99,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Request:      request,
 		Store:        storeRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clock,
 		Random:       rand,
@@ -106,7 +108,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		CookieFactory: cookieFactory,
 		Cookie:        cookieDef,
 		Provider:      provider,
-		Config:        serverConfig,
+		TrustProxy:    trustProxy,
 		Clock:         clock,
 	}
 	secretConfig := config.SecretConfig
@@ -132,7 +134,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:       clock,
 	}
 	oauthResolver := &oauth.Resolver{
-		ServerConfig:   serverConfig,
+		TrustProxy:     trustProxy,
 		Authorizations: authorizationStore,
 		AccessGrants:   grantStore,
 		OfflineGrants:  grantStore,

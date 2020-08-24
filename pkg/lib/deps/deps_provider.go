@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/wire"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	configsource "github.com/authgear/authgear-server/pkg/lib/config/source"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -15,6 +16,11 @@ var rootDeps = wire.NewSet(
 	wire.FieldsOf(new(*RootProvider),
 		"ServerConfig",
 		"ReservedNameChecker",
+	),
+	wire.FieldsOf(new(*config.ServerConfig),
+		"TrustProxy",
+		"DevMode",
+		"SentryDSN",
 	),
 
 	ProvideCaptureTaskContext,

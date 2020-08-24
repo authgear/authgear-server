@@ -84,9 +84,10 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
+	trustProxy := serverConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -365,7 +366,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -386,7 +387,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Request:      request,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clock,
 		Random:       rand,
@@ -483,6 +484,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	oAuthConfig := appConfig.OAuth
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
+	trustProxy := serverConfig.TrustProxy
 	handlerTokenHandlerLogger := handler.NewTokenHandlerLogger(factory)
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -527,7 +529,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Request:      request,
 		Store:        storeRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clockClock,
 		Random:       idpsessionRand,
@@ -645,8 +647,8 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	messagingConfig := appConfig.Messaging
 	engine := appProvider.TemplateEngine
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -805,7 +807,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
@@ -854,7 +856,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		AppID:          appID,
 		Config:         oAuthConfig,
-		ServerConfig:   serverConfig,
+		TrustProxy:     trustProxy,
 		Logger:         handlerTokenHandlerLogger,
 		Authorizations: authorizationStore,
 		CodeGrants:     grantStore,
@@ -920,9 +922,10 @@ func newOAuthMetadataHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
+	trustProxy := serverConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -950,9 +953,10 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
+	trustProxy := serverConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -1124,9 +1128,10 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
+	trustProxy := serverConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -1298,9 +1303,10 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
+	trustProxy := serverConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -1348,6 +1354,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
+	trustProxy := serverConfig.TrustProxy
 	handle := appProvider.Database
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -1500,8 +1507,8 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messagingConfig := appConfig.Messaging
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -1659,7 +1666,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -1680,7 +1687,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Request:      request,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clockClock,
 		Random:       idpsessionRand,
@@ -1732,7 +1739,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	loginHandler := &webapp2.LoginHandler{
-		ServerConfig:  serverConfig,
+		TrustProxy:    trustProxy,
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
 		FormPrefiller: formPrefiller,
@@ -1747,6 +1754,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
+	trustProxy := serverConfig.TrustProxy
 	handle := appProvider.Database
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -1899,8 +1907,8 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messagingConfig := appConfig.Messaging
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -2058,7 +2066,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -2079,7 +2087,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Request:      request,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clockClock,
 		Random:       idpsessionRand,
@@ -2131,7 +2139,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	signupHandler := &webapp2.SignupHandler{
-		ServerConfig:  serverConfig,
+		TrustProxy:    trustProxy,
 		Database:      handle,
 		BaseViewModel: baseViewModeler,
 		FormPrefiller: formPrefiller,
@@ -2297,9 +2305,10 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
+	trustProxy := serverConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -2457,7 +2466,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -2478,7 +2487,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Request:      request,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clockClock,
 		Random:       idpsessionRand,
@@ -2677,9 +2686,10 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	appMetadata := appConfig.Metadata
 	messagingConfig := appConfig.Messaging
 	engine := appProvider.TemplateEngine
+	trustProxy := serverConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -2838,7 +2848,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -2859,7 +2869,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Request:      request,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clockClock,
 		Random:       idpsessionRand,
@@ -3069,9 +3079,10 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
+	trustProxy := serverConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -3229,7 +3240,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -3250,7 +3261,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Request:      request,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clockClock,
 		Random:       idpsessionRand,
@@ -3460,9 +3471,10 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
+	trustProxy := serverConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -3620,7 +3632,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -3641,7 +3653,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Request:      request,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clockClock,
 		Random:       idpsessionRand,
@@ -3851,9 +3863,10 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
+	trustProxy := serverConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -4011,7 +4024,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -4032,7 +4045,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Request:      request,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clockClock,
 		Random:       idpsessionRand,
@@ -4243,9 +4256,10 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
+	trustProxy := serverConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -4403,7 +4417,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -4424,7 +4438,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Request:      request,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clockClock,
 		Random:       idpsessionRand,
@@ -4636,9 +4650,10 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
+	trustProxy := serverConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -4796,7 +4811,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -4817,7 +4832,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Request:      request,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clockClock,
 		Random:       idpsessionRand,
@@ -5027,9 +5042,10 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
+	trustProxy := serverConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -5187,7 +5203,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -5208,7 +5224,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Request:      request,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clockClock,
 		Random:       idpsessionRand,
@@ -5418,9 +5434,10 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
+	trustProxy := serverConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -5578,7 +5595,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -5599,7 +5616,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Request:      request,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clockClock,
 		Random:       idpsessionRand,
@@ -5809,9 +5826,10 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
+	trustProxy := serverConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -5969,7 +5987,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -5990,7 +6008,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Request:      request,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clockClock,
 		Random:       idpsessionRand,
@@ -6200,9 +6218,10 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
+	trustProxy := serverConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -6360,7 +6379,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -6381,7 +6400,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Request:      request,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clockClock,
 		Random:       idpsessionRand,
@@ -6591,9 +6610,10 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
+	trustProxy := serverConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -6751,7 +6771,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -6772,7 +6792,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Request:      request,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clockClock,
 		Random:       idpsessionRand,
@@ -6982,9 +7002,10 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
+	trustProxy := serverConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -7142,7 +7163,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -7163,7 +7184,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Request:      request,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clockClock,
 		Random:       idpsessionRand,
@@ -7377,9 +7398,10 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
+	trustProxy := serverConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -7537,7 +7559,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -7558,7 +7580,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Request:      request,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clockClock,
 		Random:       idpsessionRand,
@@ -7769,9 +7791,10 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
+	trustProxy := serverConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -7929,7 +7952,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -7950,7 +7973,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Request:      request,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clockClock,
 		Random:       idpsessionRand,
@@ -8160,9 +8183,10 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
+	trustProxy := serverConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -8320,7 +8344,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -8341,7 +8365,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Request:      request,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clockClock,
 		Random:       idpsessionRand,
@@ -8552,9 +8576,10 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
+	trustProxy := serverConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -8712,7 +8737,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -8733,7 +8758,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Request:      request,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clockClock,
 		Random:       idpsessionRand,
@@ -8974,9 +8999,10 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
+	trustProxy := serverConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -9134,7 +9160,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -9155,7 +9181,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Request:      request,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clockClock,
 		Random:       idpsessionRand,
@@ -9224,6 +9250,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
+	trustProxy := serverConfig.TrustProxy
 	config := appProvider.Config
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -9427,7 +9454,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	manager := &idpsession.Manager{
@@ -9472,7 +9499,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logoutHandler := &webapp2.LogoutHandler{
 		Database:       handle,
-		ServerConfig:   serverConfig,
+		TrustProxy:     trustProxy,
 		SessionManager: manager2,
 		BaseViewModel:  baseViewModeler,
 		Renderer:       responseRenderer,
@@ -9617,9 +9644,10 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 	appMetadata := appConfig.Metadata
 	messagingConfig := appConfig.Messaging
 	engine := appProvider.TemplateEngine
+	trustProxy := serverConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -9778,7 +9806,7 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -9799,7 +9827,7 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		Request:      request,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clockClock,
 		Random:       idpsessionRand,
@@ -9994,9 +10022,10 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 	appMetadata := appConfig.Metadata
 	messagingConfig := appConfig.Messaging
 	engine := appProvider.TemplateEngine
+	trustProxy := serverConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
-		Request: request,
-		Config:  serverConfig,
+		Request:    request,
+		TrustProxy: trustProxy,
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
@@ -10155,7 +10184,7 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -10176,7 +10205,7 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		Request:      request,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clockClock,
 		Random:       idpsessionRand,
@@ -10238,9 +10267,10 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	hub := p.SentryHub
 	serverConfig := p.ServerConfig
+	trustProxy := serverConfig.TrustProxy
 	sentryMiddleware := &middleware.SentryMiddleware{
-		SentryHub:    hub,
-		ServerConfig: serverConfig,
+		SentryHub:  hub,
+		TrustProxy: trustProxy,
 	}
 	return sentryMiddleware
 }
@@ -10296,10 +10326,11 @@ func newCSRFMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
+	trustProxy := serverConfig.TrustProxy
 	csrfMiddleware := &webapp.CSRFMiddleware{
-		Secret: csrfKeyMaterials,
-		Cookie: csrfCookieDef,
-		Config: serverConfig,
+		Secret:     csrfKeyMaterials,
+		Cookie:     csrfCookieDef,
+		TrustProxy: trustProxy,
 	}
 	return csrfMiddleware
 }
@@ -10308,8 +10339,9 @@ func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
+	trustProxy := serverConfig.TrustProxy
 	authEntryPointMiddleware := &webapp.AuthEntryPointMiddleware{
-		ServerConfig: serverConfig,
+		TrustProxy: trustProxy,
 	}
 	return authEntryPointMiddleware
 }
@@ -10319,7 +10351,8 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
-	cookieFactory := deps.NewCookieFactory(request, serverConfig)
+	trustProxy := serverConfig.TrustProxy
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
@@ -10348,7 +10381,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Request:      request,
 		Store:        storeRedis,
 		AccessEvents: eventProvider,
-		ServerConfig: serverConfig,
+		TrustProxy:   trustProxy,
 		Config:       sessionConfig,
 		Clock:        clockClock,
 		Random:       idpsessionRand,
@@ -10357,7 +10390,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		CookieFactory: cookieFactory,
 		Cookie:        cookieDef,
 		Provider:      provider,
-		Config:        serverConfig,
+		TrustProxy:    trustProxy,
 		Clock:         clockClock,
 	}
 	secretConfig := config.SecretConfig
@@ -10383,7 +10416,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:       clockClock,
 	}
 	oauthResolver := &oauth2.Resolver{
-		ServerConfig:   serverConfig,
+		TrustProxy:     trustProxy,
 		Authorizations: authorizationStore,
 		AccessGrants:   grantStore,
 		OfflineGrants:  grantStore,

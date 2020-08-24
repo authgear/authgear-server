@@ -35,7 +35,7 @@ func NewRootProvider(cfg *config.ServerConfig, taskQueueFactory TaskQueueFactory
 		return nil, err
 	}
 
-	sentryHub, err := sentry.NewHub(cfg.SentryDSN)
+	sentryHub, err := sentry.NewHub(string(cfg.SentryDSN))
 	if err != nil {
 		return nil, err
 	}

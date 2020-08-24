@@ -78,6 +78,7 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	logger := mail.NewLogger(factory)
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
+	devMode := serverConfig.DevMode
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	localizationConfig := appConfig.Localization
@@ -87,7 +88,7 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	context := p.Context
 	sender := &mail.Sender{
 		Logger:                    logger,
-		ServerConfig:              serverConfig,
+		DevMode:                   devMode,
 		LocalizationConfiguration: localizationConfig,
 		GomailDialer:              dialer,
 		Context:                   context,
@@ -101,7 +102,7 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	client := &sms.Client{
 		Context:            context,
 		Logger:             smsLogger,
-		ServerConfig:       serverConfig,
+		DevMode:            devMode,
 		MessagingConfig:    messagingConfig,
 		LocalizationConfig: localizationConfig,
 		TwilioClient:       twilioClient,

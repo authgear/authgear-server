@@ -23,7 +23,7 @@ func NewRootProvider(cfg *config.ServerConfig) (*RootProvider, error) {
 		return nil, err
 	}
 
-	sentryHub, err := sentry.NewHub(cfg.SentryDSN)
+	sentryHub, err := sentry.NewHub(string(cfg.SentryDSN))
 	if err != nil {
 		return nil, err
 	}

@@ -32,9 +32,10 @@ import (
 func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	hub := p.SentryHub
 	serverConfig := p.ServerConfig
+	trustProxy := serverConfig.TrustProxy
 	sentryMiddleware := &middleware.SentryMiddleware{
-		SentryHub:    hub,
-		ServerConfig: serverConfig,
+		SentryHub:  hub,
+		TrustProxy: trustProxy,
 	}
 	return sentryMiddleware
 }
@@ -249,9 +250,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: authenticatorLoader,
 	}
 	serverConfig := rootProvider.ServerConfig
+	devMode := serverConfig.DevMode
 	graphQLHandler := &transport.GraphQLHandler{
 		GraphQLContext: graphqlContext,
-		Config:         serverConfig,
+		DevMode:        devMode,
 		Database:       handle,
 	}
 	return graphQLHandler
