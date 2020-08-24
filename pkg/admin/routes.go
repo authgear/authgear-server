@@ -10,7 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-func NewRouter(p *deps.RootProvider, configSource configsource.Source) *httproute.Router {
+func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *httproute.Router {
 	router := httproute.NewRouter()
 
 	router.Add(httproute.Route{
@@ -24,7 +24,6 @@ func NewRouter(p *deps.RootProvider, configSource configsource.Source) *httprout
 		&deps.RequestMiddleware{
 			RootProvider: p,
 			ConfigSource: configSource,
-			ServerType:   configsource.ServerTypeAdminAPI,
 		},
 		p.Middleware(newRequestRecoverMiddleware),
 		p.Middleware(newAuthorizationMiddleware),

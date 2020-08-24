@@ -3,8 +3,8 @@ package source
 import "github.com/google/wire"
 
 var DependencySet = wire.NewSet(
-	NewLocalFileLogger,
-	wire.Struct(new(LocalFile), "*"),
+	NewLocalFSLogger,
+	wire.Struct(new(LocalFS), "*"),
 
-	NewSource,
+	NewController,
 )

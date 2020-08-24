@@ -82,7 +82,7 @@ func (c *ServerConfig) Validate() error {
 	}
 
 	switch c.ConfigSource.Type {
-	case SourceTypeLocalFile:
+	case SourceTypeLocalFS:
 		break
 	default:
 		sourceTypes := make([]string, len(SourceTypes))
@@ -116,19 +116,19 @@ type ServerStaticAssetConfig struct {
 type SourceType string
 
 const (
-	SourceTypeLocalFile SourceType = "local_file"
+	SourceTypeLocalFS SourceType = "local_fs"
 )
 
 var SourceTypes = []SourceType{
-	SourceTypeLocalFile,
+	SourceTypeLocalFS,
 }
 
 type ConfigurationSourceConfig struct {
 	// Type sets the type of configuration source
-	Type SourceType `envconfig:"TYPE" default:"local_file"`
+	Type SourceType `envconfig:"TYPE" default:"local_fs"`
 
-	// AppConfigPath sets the path to app configuration YAML file for local file source
-	AppConfigPath string `envconfig:"APP_CONFIG_PATH" default:"authgear.yaml"`
-	// SecretConfigPath sets the path to secret configuration YAML file for local file source
-	SecretConfigPath string `envconfig:"SECRET_CONFIG_PATH" default:"authgear.secrets.yaml"`
+	// Watch indicates whether the configuration source would watch for changes and reload automatically
+	Watch bool `envconfig:"WATCH" default:"true"`
+	// Directory sets the path to app configuration directory file for local FS sources
+	Directory string `envconfig:"DIRECTORY" default:"."`
 }

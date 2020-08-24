@@ -13,9 +13,11 @@ type URILoader struct {
 	DataLoader *DataLoader
 }
 
-func NewURILoader() *URILoader {
+func NewURILoader(baseDirectory string) *URILoader {
 	return &URILoader{
-		FileLoader: &FileLoader{},
+		FileLoader: &FileLoader{
+			BaseDirectory: baseDirectory,
+		},
 		DataLoader: &DataLoader{},
 	}
 }

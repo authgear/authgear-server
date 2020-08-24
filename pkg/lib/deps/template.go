@@ -23,6 +23,7 @@ func NewEngineWithConfig(
 	}
 
 	resolver := template.NewResolver(template.NewResolverOptions{
+		BaseDirectory:             c.BaseDirectory,
 		DefaultTemplatesDirectory: serverConfig.DefaultTemplateDirectory,
 		References:                refs,
 		FallbackLanguageTag:       c.AppConfig.Localization.FallbackLanguage,

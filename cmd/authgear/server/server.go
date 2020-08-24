@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/admin"
 	"github.com/authgear/authgear-server/pkg/auth"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	configsource "github.com/authgear/authgear-server/pkg/lib/config/source"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/resolver"
@@ -49,11 +50,12 @@ func (c *Controller) Start() {
 		c.logger.Warn("development mode is ON - do not use in production")
 	}
 
-	configSource := newConfigSource(p)
-	err = configSource.Open()
+	configSrcController := newConfigSourceController(p)
+	err = configSrcController.Open()
 	if err != nil {
 		c.logger.WithError(err).Fatal("cannot open configuration")
 	}
+	defer configSrcController.Close()
 
 	var specs []server.Spec
 
@@ -66,7 +68,7 @@ func (c *Controller) Start() {
 		spec := server.Spec{
 			Name:          "Main Server",
 			ListenAddress: u.Host,
-			Handler:       auth.NewRouter(p, configSource),
+			Handler:       auth.NewRouter(p, configSrcController.ForServer(configsource.ServerTypeMain)),
 		}
 
 		if cfg.DevMode && u.Scheme == "https" {
@@ -87,7 +89,7 @@ func (c *Controller) Start() {
 		specs = append(specs, server.Spec{
 			Name:          "Resolver Server",
 			ListenAddress: u.Host,
-			Handler:       resolver.NewRouter(p, configSource),
+			Handler:       resolver.NewRouter(p, configSrcController.ForServer(configsource.ServerTypeResolver)),
 		})
 	}
 
@@ -100,7 +102,7 @@ func (c *Controller) Start() {
 		specs = append(specs, server.Spec{
 			Name:          "Admin API Server",
 			ListenAddress: u.Host,
-			Handler:       admin.NewRouter(p, configSource),
+			Handler:       admin.NewRouter(p, configSrcController.ForServer(configsource.ServerTypeAdminAPI)),
 		})
 	}
 

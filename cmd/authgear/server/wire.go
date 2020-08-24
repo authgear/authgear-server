@@ -11,7 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/task/queue"
 )
 
-func newConfigSource(p *deps.RootProvider) configsource.Source {
+func newConfigSourceController(p *deps.RootProvider) *configsource.Controller {
 	panic(wire.Build(deps.RootDependencySet))
 }
 
