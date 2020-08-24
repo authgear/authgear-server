@@ -1,16 +1,48 @@
 package db
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
+var InvalidCursor = apierrors.Invalid.WithReason("InvalidCursor")
+var ErrInvalidCursor = InvalidCursor.New("invalid pagination cursor")
+
 type PageKey struct {
-	Key string
-	ID  string
+	Key string `json:"key"`
+	ID  string `json:"id"`
+}
+
+func NewFromPageCursor(k model.PageCursor) (*PageKey, error) {
+	if k == "" {
+		return nil, nil
+	}
+
+	data, err := base64.RawURLEncoding.DecodeString(string(k))
+	if err != nil {
+		return nil, ErrInvalidCursor
+	}
+
+	var pageKey PageKey
+	if err := json.Unmarshal(data, &pageKey); err != nil {
+		return nil, ErrInvalidCursor
+	}
+
+	return &pageKey, nil
+}
+
+func (k *PageKey) ToPageCursor() (model.PageCursor, error) {
+	cursor, err := json.Marshal(k)
+	if err != nil {
+		return "", err
+	}
+	return model.PageCursor(base64.RawURLEncoding.EncodeToString(cursor)), nil
 }
 
 var InvalidQuery = apierrors.BadRequest.WithReason("InvalidQuery")

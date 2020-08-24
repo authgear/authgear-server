@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 )
 
 type IdentityService interface {
@@ -58,7 +59,11 @@ func (p *Queries) QueryPage(after, before model.PageCursor, first, last *uint64)
 
 	var models = make([]model.PageItem, len(users))
 	for i, u := range users {
-		cursor, err := model.NewCursor(u.CreatedAt.Format(time.RFC3339Nano), u.ID)
+		pageKey := db.PageKey{
+			Key: u.CreatedAt.Format(time.RFC3339Nano),
+			ID:  u.ID,
+		}
+		cursor, err := pageKey.ToPageCursor()
 		if err != nil {
 			return nil, err
 		}
