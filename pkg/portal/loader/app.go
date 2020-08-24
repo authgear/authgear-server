@@ -6,7 +6,7 @@ import (
 )
 
 type AppService interface {
-	GetManyRaw(id []string) ([]*model.App, error)
+	GetMany(id []string) ([]*model.App, error)
 	Count() (uint64, error)
 	QueryPage(after, before graphqlutil.Cursor, first, last *uint64) ([]graphqlutil.PageItem, error)
 }
@@ -24,7 +24,7 @@ func (l *AppLoader) Get(id string) *graphqlutil.Lazy {
 				ids[i] = id.(string)
 			}
 
-			items, err := l.Apps.GetManyRaw(ids)
+			items, err := l.Apps.GetMany(ids)
 			if err != nil {
 				return nil, err
 			}

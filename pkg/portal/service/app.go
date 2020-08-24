@@ -51,7 +51,7 @@ func NewLibConfig(serverConfig *portalconfig.ServerConfig) (c *libconfig.Config,
 	return
 }
 
-func (s *AppService) GetManyRaw(ids []string) (out []*model.App, err error) {
+func (s *AppService) GetMany(ids []string) (out []*model.App, err error) {
 	for _, id := range ids {
 		if id == string(s.Config.AppConfig.ID) {
 			out = append(out, &model.App{
