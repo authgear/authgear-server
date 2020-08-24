@@ -68,7 +68,7 @@ func NewRootProvider(cfg *config.ServerConfig, taskQueueFactory TaskQueueFactory
 func (p *RootProvider) NewAppProvider(ctx context.Context, cfg *config.Config) *AppProvider {
 	loggerFactory := p.LoggerFactory.ReplaceHooks(
 		log.NewDefaultMaskLogHook(),
-		log.NewSecretMaskLogHook(cfg.SecretConfig),
+		config.NewSecretMaskLogHook(cfg.SecretConfig),
 		sentry.NewLogHookFromContext(ctx),
 	)
 	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID

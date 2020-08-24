@@ -2,8 +2,6 @@ package log
 
 import (
 	"github.com/sirupsen/logrus"
-
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 var defaultPatterns = []MaskPattern{
@@ -15,23 +13,6 @@ var defaultPatterns = []MaskPattern{
 
 func NewDefaultMaskLogHook() logrus.Hook {
 	patterns := defaultPatterns[:]
-
-	return &FormatHook{
-		MaskPatterns: patterns,
-		Mask:         "********",
-	}
-}
-
-func NewSecretMaskLogHook(cfg *config.SecretConfig) logrus.Hook {
-	var patterns []MaskPattern
-	for _, item := range cfg.Secrets {
-		for _, s := range item.Data.SensitiveStrings() {
-			if len(s) == 0 {
-				continue
-			}
-			patterns = append(patterns, NewPlainMaskPattern(s))
-		}
-	}
 
 	return &FormatHook{
 		MaskPatterns: patterns,
