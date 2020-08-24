@@ -5,7 +5,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 
-	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
 type PageKey struct {

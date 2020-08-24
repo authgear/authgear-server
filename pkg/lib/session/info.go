@@ -1,7 +1,7 @@
 package session
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/api/model"
+	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
 func NewInfo(attrs *Attrs, isAnonymous bool, isVerified bool) *model.SessionInfo {

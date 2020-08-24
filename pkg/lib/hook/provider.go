@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/lib/api/event"
-	"github.com/authgear/authgear-server/pkg/lib/api/model"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"

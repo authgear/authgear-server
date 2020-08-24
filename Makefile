@@ -28,14 +28,15 @@ test:
 .PHONY: lint
 lint:
 	-golangci-lint run ./cmd/... ./pkg/...
-	-go run ./devtools/importlinter admin lib util
-	-go run ./devtools/importlinter auth lib util
-	-go run ./devtools/importlinter lib util
-	-go run ./devtools/importlinter portal lib util
-	-go run ./devtools/importlinter resolver lib util
-	-go run ./devtools/importlinter util util
+	-go run ./devtools/importlinter api api
+	-go run ./devtools/importlinter lib api util
+	-go run ./devtools/importlinter admin api lib util
+	-go run ./devtools/importlinter auth api lib util
+	-go run ./devtools/importlinter portal api lib util
+	-go run ./devtools/importlinter resolver api lib util
+	-go run ./devtools/importlinter util api util
 	-go run ./devtools/importlinter version version
-	-go run ./devtools/importlinter worker lib util
+	-go run ./devtools/importlinter worker api lib util
 
 .PHONY: fmt
 fmt:

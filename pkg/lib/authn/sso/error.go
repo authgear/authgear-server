@@ -1,7 +1,7 @@
 package sso
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
 var SSOFailed = apierrors.Unauthorized.WithReason("SSOFailed")

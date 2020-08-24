@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"sort"
 
-	"github.com/authgear/authgear-server/pkg/lib/api/event"
-	"github.com/authgear/authgear-server/pkg/lib/api/model"
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
