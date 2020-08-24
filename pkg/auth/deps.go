@@ -39,6 +39,8 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(webapp.CookieFactory), new(*httputil.CookieFactory)),
 
 	wire.NewSet(
+		wire.Struct(new(MainOriginProvider), "*"),
+		wire.Bind(new(OriginProvider), new(*MainOriginProvider)),
 		wire.Struct(new(EndpointsProvider), "*"),
 
 		wire.Bind(new(oauth.EndpointsProvider), new(*EndpointsProvider)),
