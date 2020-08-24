@@ -1,4 +1,4 @@
-package source
+package configsource
 
 const (
 	AuthgearYAML       = "authgear.yaml"

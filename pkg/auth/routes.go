@@ -6,14 +6,14 @@ import (
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	webapphandler "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	configsource "github.com/authgear/authgear-server/pkg/lib/config/source"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *httproute.Router {
+func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, staticAsset StaticAssetConfig) *httproute.Router {
 	router := httproute.NewRouter()
 
 	router.Add(httproute.Route{
@@ -107,8 +107,8 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	router.Add(oauthhandler.ConfigureUserInfoRoute(scopedRoute), p.Handler(newOAuthUserInfoHandler))
 
-	if p.ServerConfig.StaticAsset.ServingEnabled {
-		fileServer := http.FileServer(http.Dir(p.ServerConfig.StaticAsset.Dir))
+	if staticAsset.ServingEnabled {
+		fileServer := http.FileServer(http.Dir(staticAsset.Directory))
 		staticRoute := httproute.Route{
 			Methods:     []string{"HEAD", "GET"},
 			PathPattern: "/static/*all",

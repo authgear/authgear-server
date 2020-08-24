@@ -8,6 +8,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
@@ -18,7 +19,8 @@ import (
 )
 
 type RootProvider struct {
-	ServerConfig        *config.ServerConfig
+	EnvironmentConfig   *config.EnvironmentConfig
+	ConfigSourceConfig  *configsource.Config
 	LoggerFactory       *log.Factory
 	SentryHub           *getsentry.Hub
 	DatabasePool        *db.Pool
@@ -27,7 +29,11 @@ type RootProvider struct {
 	ReservedNameChecker *loginid.ReservedNameChecker
 }
 
-func NewRootProvider(cfg *config.ServerConfig, taskQueueFactory TaskQueueFactory) (*RootProvider, error) {
+func NewRootProvider(
+	cfg *config.EnvironmentConfig,
+	configSourceConfig *configsource.Config,
+	taskQueueFactory TaskQueueFactory,
+) (*RootProvider, error) {
 	var p RootProvider
 
 	logLevel, err := log.ParseLevel(cfg.LogLevel)
@@ -35,7 +41,7 @@ func NewRootProvider(cfg *config.ServerConfig, taskQueueFactory TaskQueueFactory
 		return nil, err
 	}
 
-	sentryHub, err := sentry.NewHub(cfg.SentryDSN)
+	sentryHub, err := sentry.NewHub(string(cfg.SentryDSN))
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +60,8 @@ func NewRootProvider(cfg *config.ServerConfig, taskQueueFactory TaskQueueFactory
 	}
 
 	p = RootProvider{
-		ServerConfig:        cfg,
+		EnvironmentConfig:   cfg,
+		ConfigSourceConfig:  configSourceConfig,
 		LoggerFactory:       loggerFactory,
 		SentryHub:           sentryHub,
 		DatabasePool:        dbPool,
@@ -68,7 +75,7 @@ func NewRootProvider(cfg *config.ServerConfig, taskQueueFactory TaskQueueFactory
 func (p *RootProvider) NewAppProvider(ctx context.Context, cfg *config.Config) *AppProvider {
 	loggerFactory := p.LoggerFactory.ReplaceHooks(
 		log.NewDefaultMaskLogHook(),
-		log.NewSecretMaskLogHook(cfg.SecretConfig),
+		config.NewSecretMaskLogHook(cfg.SecretConfig),
 		sentry.NewLogHookFromContext(ctx),
 	)
 	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
@@ -85,7 +92,7 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, cfg *config.Config) *
 		cfg.SecretConfig.LookupData(config.RedisCredentialsKey).(*config.RedisCredentials),
 		loggerFactory,
 	)
-	templateEngine := NewEngineWithConfig(p.ServerConfig, cfg)
+	templateEngine := NewEngineWithConfig(p.EnvironmentConfig.DefaultTemplateDirectory, cfg)
 
 	provider := &AppProvider{
 		RootProvider:   p,

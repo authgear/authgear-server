@@ -20,7 +20,7 @@ type Resolver struct {
 	CookieFactory CookieFactory
 	Cookie        CookieDef
 	Provider      resolverProvider
-	Config        *config.ServerConfig
+	TrustProxy    config.TrustProxy
 	Clock         clock.Clock
 }
 
@@ -41,7 +41,7 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Se
 		return nil, err
 	}
 
-	s.AccessInfo.LastAccess = access.NewEvent(re.Clock.NowUTC(), r, re.Config.TrustProxy)
+	s.AccessInfo.LastAccess = access.NewEvent(re.Clock.NowUTC(), r, bool(re.TrustProxy))
 	if err = re.Provider.Update(s); err != nil {
 		return nil, err
 	}

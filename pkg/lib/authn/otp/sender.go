@@ -18,14 +18,14 @@ type EndpointsProvider interface {
 }
 
 type MessageSender struct {
-	Context        context.Context
-	ServerConfig   *config.ServerConfig
-	Localization   *config.LocalizationConfig
-	AppMetadata    config.AppMetadata
-	Messaging      *config.MessagingConfig
-	TemplateEngine *template.Engine
-	Endpoints      EndpointsProvider
-	TaskQueue      task.Queue
+	Context              context.Context
+	StaticAssetURLPrefix config.StaticAssetURLPrefix
+	Localization         *config.LocalizationConfig
+	AppMetadata          config.AppMetadata
+	Messaging            *config.MessagingConfig
+	TemplateEngine       *template.Engine
+	Endpoints            EndpointsProvider
+	TaskQueue            task.Queue
 }
 
 type SendOptions struct {
@@ -46,7 +46,7 @@ func (s *MessageSender) makeData(opts SendOptions) *MessageTemplateContext {
 		Code:                 opts.OTP,
 		URL:                  opts.URL,
 		Host:                 s.Endpoints.BaseURL().Host,
-		StaticAssetURLPrefix: s.ServerConfig.StaticAsset.URLPrefix,
+		StaticAssetURLPrefix: string(s.StaticAssetURLPrefix),
 	}
 
 	return ctx

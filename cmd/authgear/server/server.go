@@ -5,8 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/admin"
 	"github.com/authgear/authgear-server/pkg/auth"
-	"github.com/authgear/authgear-server/pkg/lib/config"
-	configsource "github.com/authgear/authgear-server/pkg/lib/config/source"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/resolver"
@@ -25,7 +24,7 @@ type Controller struct {
 }
 
 func (c *Controller) Start() {
-	cfg, err := config.LoadServerConfigFromEnv()
+	cfg, err := LoadConfigFromEnv()
 	if err != nil {
 		golog.Fatalf("failed to load server config: %s", err)
 	}
@@ -35,7 +34,7 @@ func (c *Controller) Start() {
 		return newInProcessQueue(provider, wrk.Executor)
 	})
 
-	p, err := deps.NewRootProvider(cfg, taskQueueFactory)
+	p, err := deps.NewRootProvider(cfg.EnvironmentConfig, cfg.ConfigSource, taskQueueFactory)
 	if err != nil {
 		golog.Fatalf("failed to setup server: %s", err)
 	}
@@ -60,7 +59,7 @@ func (c *Controller) Start() {
 	var specs []server.Spec
 
 	if c.ServeMain {
-		u, err := server.ParseListenAddress(cfg.ListenAddr)
+		u, err := server.ParseListenAddress(cfg.MainListenAddr)
 		if err != nil {
 			c.logger.WithError(err).Fatal("failed to parse main server listen address")
 		}
@@ -68,7 +67,14 @@ func (c *Controller) Start() {
 		spec := server.Spec{
 			Name:          "Main Server",
 			ListenAddress: u.Host,
-			Handler:       auth.NewRouter(p, configSrcController.ForServer(configsource.ServerTypeMain)),
+			Handler: auth.NewRouter(
+				p,
+				configSrcController.ForServer(configsource.ServerTypeMain),
+				auth.StaticAssetConfig{
+					ServingEnabled: cfg.StaticAsset.ServingEnabled,
+					Directory:      cfg.StaticAsset.Dir,
+				},
+			),
 		}
 
 		if cfg.DevMode && u.Scheme == "https" {
@@ -102,7 +108,11 @@ func (c *Controller) Start() {
 		specs = append(specs, server.Spec{
 			Name:          "Admin API Server",
 			ListenAddress: u.Host,
-			Handler:       admin.NewRouter(p, configSrcController.ForServer(configsource.ServerTypeAdminAPI)),
+			Handler: admin.NewRouter(
+				p,
+				configSrcController.ForServer(configsource.ServerTypeAdminAPI),
+				cfg.AdminAPIAuth,
+			),
 		})
 	}
 

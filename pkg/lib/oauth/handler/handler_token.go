@@ -48,11 +48,11 @@ func NewTokenHandlerLogger(lf *log.Factory) TokenHandlerLogger {
 }
 
 type TokenHandler struct {
-	Request      *http.Request
-	AppID        config.AppID
-	Config       *config.OAuthConfig
-	ServerConfig *config.ServerConfig
-	Logger       TokenHandlerLogger
+	Request    *http.Request
+	AppID      config.AppID
+	Config     *config.OAuthConfig
+	TrustProxy config.TrustProxy
+	Logger     TokenHandlerLogger
 
 	Authorizations oauth.AuthorizationStore
 	CodeGrants     oauth.CodeGrantStore
@@ -456,7 +456,7 @@ func (h *TokenHandler) issueOfflineGrant(
 ) (*oauth.OfflineGrant, error) {
 	token := h.GenerateToken()
 	now := h.Clock.NowUTC()
-	accessEvent := access.NewEvent(now, h.Request, h.ServerConfig.TrustProxy)
+	accessEvent := access.NewEvent(now, h.Request, bool(h.TrustProxy))
 	offlineGrant := &oauth.OfflineGrant{
 		AppID:           string(h.AppID),
 		ID:              uuid.New(),

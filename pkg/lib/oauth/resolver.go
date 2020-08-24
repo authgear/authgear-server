@@ -18,7 +18,7 @@ type ResolverSessionProvider interface {
 }
 
 type Resolver struct {
-	ServerConfig   *config.ServerConfig
+	TrustProxy     config.TrustProxy
 	Authorizations AuthorizationStore
 	AccessGrants   AccessGrantStore
 	OfflineGrants  OfflineGrantStore
@@ -55,7 +55,7 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Se
 	}
 
 	var authSession session.Session
-	event := access.NewEvent(re.Clock.NowUTC(), r, re.ServerConfig.TrustProxy)
+	event := access.NewEvent(re.Clock.NowUTC(), r, bool(re.TrustProxy))
 
 	switch grant.SessionKind {
 	case GrantSessionKindSession:

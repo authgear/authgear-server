@@ -24,7 +24,7 @@ var errRollback = errors.New("rollback transaction")
 
 type GraphQLHandler struct {
 	GraphQLContext *graphql.Context
-	Config         *config.ServerConfig
+	DevMode        config.DevMode
 	Database       *db.Handle
 }
 
@@ -33,8 +33,8 @@ func (h *GraphQLHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		doRollback := false
 		graphqlHandler := handler.New(&handler.Config{
 			Schema:   graphql.Schema,
-			Pretty:   h.Config.DevMode,
-			GraphiQL: h.Config.DevMode,
+			Pretty:   bool(h.DevMode),
+			GraphiQL: bool(h.DevMode),
 			ResultCallbackFn: func(ctx context.Context, params *gographql.Params, result *gographql.Result, responseBody []byte) {
 				if result.HasErrors() {
 					doRollback = true

@@ -32,7 +32,7 @@ type Provider struct {
 	Request      *http.Request
 	Store        Store
 	AccessEvents AccessEventProvider
-	ServerConfig *config.ServerConfig
+	TrustProxy   config.TrustProxy
 	Config       *config.SessionConfig
 	Clock        clock.Clock
 	Random       Rand
@@ -40,7 +40,7 @@ type Provider struct {
 
 func (p *Provider) MakeSession(attrs *session.Attrs) (*IDPSession, string) {
 	now := p.Clock.NowUTC()
-	accessEvent := access.NewEvent(now, p.Request, p.ServerConfig.TrustProxy)
+	accessEvent := access.NewEvent(now, p.Request, bool(p.TrustProxy))
 	// NOTE(louis): remember to update the mock provider
 	// if session has new fields.
 	session := &IDPSession{

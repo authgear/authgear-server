@@ -18,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -31,10 +32,11 @@ import (
 
 func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	hub := p.SentryHub
-	serverConfig := p.ServerConfig
+	environmentConfig := p.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	sentryMiddleware := &middleware.SentryMiddleware{
-		SentryHub:    hub,
-		ServerConfig: serverConfig,
+		SentryHub:  hub,
+		TrustProxy: trustProxy,
 	}
 	return sentryMiddleware
 }
@@ -58,21 +60,19 @@ func newRequestRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	return recoverMiddleware
 }
 
-func newAuthorizationMiddleware(p *deps.RequestProvider) httproute.Middleware {
+func newAuthorizationMiddleware(p *deps.RequestProvider, auth config.AdminAPIAuth) httproute.Middleware {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	authorizationMiddlewareLogger := transport.NewAuthorizationMiddlewareLogger(factory)
-	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	config := appProvider.Config
-	appConfig := config.AppConfig
+	configConfig := appProvider.Config
+	appConfig := configConfig.AppConfig
 	appID := appConfig.ID
-	secretConfig := config.SecretConfig
+	secretConfig := configConfig.SecretConfig
 	adminAPIAuthKey := deps.ProvideAdminAPIAuthKeyMaterials(secretConfig)
 	clock := _wireSystemClockValue
 	authorizationMiddleware := &transport.AuthorizationMiddleware{
 		Logger:  authorizationMiddlewareLogger,
-		Config:  serverConfig,
+		Auth:    auth,
 		AppID:   appID,
 		AuthKey: adminAPIAuthKey,
 		Clock:   clock,
@@ -86,10 +86,10 @@ var (
 
 func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	config := appProvider.Config
-	secretConfig := config.SecretConfig
+	configConfig := appProvider.Config
+	secretConfig := configConfig.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	appConfig := config.AppConfig
+	appConfig := configConfig.AppConfig
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
 	request := p.Request
@@ -248,10 +248,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityLoader,
 		Authenticators: authenticatorLoader,
 	}
-	serverConfig := rootProvider.ServerConfig
+	environmentConfig := rootProvider.EnvironmentConfig
+	devMode := environmentConfig.DevMode
 	graphQLHandler := &transport.GraphQLHandler{
 		GraphQLContext: graphqlContext,
-		Config:         serverConfig,
+		DevMode:        devMode,
 		Database:       handle,
 	}
 	return graphQLHandler

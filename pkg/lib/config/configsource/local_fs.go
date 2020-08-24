@@ -1,4 +1,4 @@
-package source
+package configsource
 
 import (
 	"context"
@@ -21,8 +21,8 @@ func NewLocalFSLogger(lf *log.Factory) LocalFSLogger {
 }
 
 type LocalFS struct {
-	Logger       LocalFSLogger
-	ServerConfig *config.ServerConfig
+	Logger LocalFSLogger
+	Config *Config
 
 	appConfigPath    string            `wire:"-"`
 	secretConfigPath string            `wire:"-"`
@@ -32,7 +32,7 @@ type LocalFS struct {
 }
 
 func (s *LocalFS) Open() error {
-	dir, err := filepath.Abs(s.ServerConfig.ConfigSource.Directory)
+	dir, err := filepath.Abs(s.Config.Directory)
 	if err != nil {
 		return err
 	}
@@ -67,7 +67,7 @@ func (s *LocalFS) Open() error {
 		SecretConfig:  secretConfig,
 	})
 
-	if s.ServerConfig.ConfigSource.Watch {
+	if s.Config.Watch {
 		s.watcher, err = fsnotify.NewWatcher()
 		if err != nil {
 			return err

@@ -8,7 +8,7 @@ import (
 )
 
 type AuthEntryPointMiddleware struct {
-	ServerConfig *config.ServerConfig
+	TrustProxy config.TrustProxy
 }
 
 func (m AuthEntryPointMiddleware) Handle(next http.Handler) http.Handler {
@@ -16,7 +16,7 @@ func (m AuthEntryPointMiddleware) Handle(next http.Handler) http.Handler {
 		userID := session.GetUserID(r.Context())
 		hasState := r.URL.Query().Get("x_sid") != ""
 		if userID != nil && !hasState {
-			redirectURI := GetRedirectURI(r, m.ServerConfig.TrustProxy)
+			redirectURI := GetRedirectURI(r, bool(m.TrustProxy))
 			http.Redirect(w, r, redirectURI, http.StatusFound)
 		} else {
 			next.ServeHTTP(w, r)

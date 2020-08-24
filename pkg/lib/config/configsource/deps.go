@@ -1,4 +1,4 @@
-package source
+package configsource
 
 import "github.com/google/wire"
 

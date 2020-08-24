@@ -10,14 +10,14 @@ import (
 )
 
 type SentryMiddleware struct {
-	SentryHub    *getsentry.Hub
-	ServerConfig *config.ServerConfig
+	SentryHub  *getsentry.Hub
+	TrustProxy config.TrustProxy
 }
 
 func (m *SentryMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		hub := m.SentryHub.Clone()
-		hub.Scope().SetRequest(sentry.MakeMinimalRequest(r, m.ServerConfig.TrustProxy))
+		hub.Scope().SetRequest(sentry.MakeMinimalRequest(r, bool(m.TrustProxy)))
 		r = r.WithContext(getsentry.SetHubOnContext(r.Context(), hub))
 		next.ServeHTTP(w, r)
 	})

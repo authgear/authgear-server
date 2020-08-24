@@ -32,7 +32,7 @@ func NewAuthorizationMiddlewareLogger(lf *log.Factory) AuthorizationMiddlewareLo
 
 type AuthorizationMiddleware struct {
 	Logger  AuthorizationMiddlewareLogger
-	Config  *config.ServerConfig
+	Auth    config.AdminAPIAuth
 	AppID   config.AppID
 	AuthKey *config.AdminAPIAuthKey
 	Clock   clock.Clock
@@ -41,7 +41,7 @@ type AuthorizationMiddleware struct {
 func (m *AuthorizationMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authorized := false
-		switch m.Config.AdminAPIAuth {
+		switch m.Auth {
 		case config.AdminAPIAuthNone:
 			authorized = true
 

@@ -3,8 +3,6 @@ package log
 import (
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
-
 	"github.com/sirupsen/logrus"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -57,39 +55,6 @@ func TestLogHooks(t *testing.T) {
 						"Access":  "********",
 						"Refresh": "********",
 					},
-				},
-			})
-		})
-	})
-
-	Convey("secret log hook", t, func() {
-		h := NewSecretMaskLogHook(&config.SecretConfig{
-			Secrets: []config.SecretItem{
-				{
-					Key: config.DatabaseCredentialsKey,
-					Data: &config.DatabaseCredentials{
-						DatabaseURL:    "postgres://user:password@localhost:5432",
-						DatabaseSchema: "public",
-					},
-				},
-			},
-		})
-		Convey("should mask secret values", func() {
-			e := &logrus.Entry{
-				Message: "logged in",
-				Level:   logrus.ErrorLevel,
-				Data: logrus.Fields{
-					"err": "cannot connect to postgres://user:password@localhost:5432",
-				},
-			}
-			err := h.Fire(e)
-
-			So(err, ShouldBeNil)
-			So(e, ShouldResemble, &logrus.Entry{
-				Message: "logged in",
-				Level:   logrus.ErrorLevel,
-				Data: logrus.Fields{
-					"err": "cannot connect to ********",
 				},
 			})
 		})

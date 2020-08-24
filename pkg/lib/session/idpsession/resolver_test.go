@@ -7,7 +7,6 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -67,7 +66,7 @@ func TestResolver(t *testing.T) {
 			CookieFactory: &mockCookieFactory{},
 			Cookie:        cookie,
 			Provider:      provider,
-			Config:        &config.ServerConfig{TrustProxy: true},
+			TrustProxy:    true,
 			Clock:         clock.NewMockClock(),
 		}
 
