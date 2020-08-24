@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
@@ -24,23 +23,4 @@ func (r *Response) MarshalJSON() ([]byte, error) {
 // the error, without changing the response.
 type HandledError struct {
 	Error error
-}
-
-func WriteResponse(rw http.ResponseWriter, response *Response) {
-	httpStatus := http.StatusOK
-	encoder := json.NewEncoder(rw)
-	err := apierrors.AsAPIError(response.Error)
-
-	if err != nil {
-		httpStatus = err.Code
-	}
-
-	rw.Header().Set("Content-Type", "application/json")
-	rw.WriteHeader(httpStatus)
-	encoder.Encode(response)
-
-	if err != nil && err.Code >= 500 && err.Code < 600 {
-		// delegate logging to panic recovery
-		panic(HandledError{response.Error})
-	}
 }
