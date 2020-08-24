@@ -27,16 +27,17 @@ test:
 
 .PHONY: lint
 lint:
-	-golangci-lint run ./cmd/... ./pkg/...
-	-go run ./devtools/importlinter api api
-	-go run ./devtools/importlinter lib api util
-	-go run ./devtools/importlinter admin api lib util
-	-go run ./devtools/importlinter auth api lib util
-	-go run ./devtools/importlinter portal api lib util
-	-go run ./devtools/importlinter resolver api lib util
-	-go run ./devtools/importlinter util api util
-	-go run ./devtools/importlinter version version
-	-go run ./devtools/importlinter worker api lib util
+	golangci-lint run ./cmd/... ./pkg/...
+	-go run ./devtools/importlinter api api >.make-lint-expect 2>&1
+	-go run ./devtools/importlinter lib api util >> .make-lint-expect 2>&1
+	-go run ./devtools/importlinter admin api lib util >> .make-lint-expect 2>&1
+	-go run ./devtools/importlinter auth api lib util >> .make-lint-expect 2>&1
+	-go run ./devtools/importlinter portal api lib util >> .make-lint-expect 2>&1
+	-go run ./devtools/importlinter resolver api lib util >> .make-lint-expect 2>&1
+	-go run ./devtools/importlinter util api util >> .make-lint-expect 2>&1
+	-go run ./devtools/importlinter version version >> .make-lint-expect 2>&1
+	-go run ./devtools/importlinter worker api lib util >> .make-lint-expect 2>&1
+	git status --porcelain | grep '.*'; test $$? -eq 1
 
 .PHONY: fmt
 fmt:
