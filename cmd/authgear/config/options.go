@@ -1,10 +1,8 @@
 package config
 
-import "strings"
-
 type Options struct {
-	AppID string
-	Hosts []string
+	AppID        string
+	PublicOrigin string
 }
 
 func ReadOptionsFromConsole() *Options {
@@ -15,10 +13,10 @@ func ReadOptionsFromConsole() *Options {
 		DefaultValue: "my-app",
 	}.Prompt()
 
-	opts.Hosts = strings.Split(promptString{
-		Title:        "Host name of authgear",
-		DefaultValue: "localhost:3000",
-	}.Prompt(), ";")
+	opts.PublicOrigin = promptString{
+		Title:        "HTTP origin of authgear",
+		DefaultValue: "http://localhost:3000",
+	}.Prompt()
 
 	return opts
 }

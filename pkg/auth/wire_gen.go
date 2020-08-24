@@ -84,9 +84,12 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	urlProvider := &oauth2.URLProvider{
 		Endpoints: endpointsProvider,
@@ -641,9 +644,12 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	appMetadata := appConfig.Metadata
 	messagingConfig := appConfig.Messaging
 	engine := appProvider.TemplateEngine
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -914,9 +920,12 @@ func newOAuthMetadataHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	metadataProvider := &oauth2.MetadataProvider{
 		Endpoints: endpointsProvider,
@@ -941,9 +950,12 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appConfig := config.AppConfig
@@ -1112,9 +1124,12 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appConfig := config.AppConfig
@@ -1283,9 +1298,12 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
@@ -1481,9 +1499,12 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -1877,9 +1898,12 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -2273,9 +2297,12 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -2650,9 +2677,12 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	appMetadata := appConfig.Metadata
 	messagingConfig := appConfig.Messaging
 	engine := appProvider.TemplateEngine
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -3039,9 +3069,12 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -3427,9 +3460,12 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -3815,9 +3851,12 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -4204,9 +4243,12 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -4594,9 +4636,12 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -4982,9 +5027,12 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -5370,9 +5418,12 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -5758,9 +5809,12 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -6146,9 +6200,12 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -6534,9 +6591,12 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -6922,9 +6982,12 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -7314,9 +7377,12 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -7703,9 +7769,12 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -8091,9 +8160,12 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -8480,9 +8552,12 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -8899,9 +8974,12 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -9539,9 +9617,12 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 	appMetadata := appConfig.Metadata
 	messagingConfig := appConfig.Messaging
 	engine := appProvider.TemplateEngine
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,
@@ -9913,9 +9994,12 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 	appMetadata := appConfig.Metadata
 	messagingConfig := appConfig.Messaging
 	engine := appProvider.TemplateEngine
-	endpointsProvider := &EndpointsProvider{
+	mainOriginProvider := &MainOriginProvider{
 		Request: request,
 		Config:  serverConfig,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	messageSender := &otp.MessageSender{
 		Context:        context,

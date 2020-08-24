@@ -9,16 +9,28 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-type EndpointsProvider struct {
+type OriginProvider interface {
+	Origin() *url.URL
+}
+
+type MainOriginProvider struct {
 	Request *http.Request
 	Config  *config.ServerConfig
 }
 
-func (p *EndpointsProvider) BaseURL() *url.URL {
+func (p *MainOriginProvider) Origin() *url.URL {
 	return &url.URL{
 		Host:   httputil.GetHost(p.Request, p.Config.TrustProxy),
 		Scheme: httputil.GetProto(p.Request, p.Config.TrustProxy),
 	}
+}
+
+type EndpointsProvider struct {
+	OriginProvider OriginProvider
+}
+
+func (p *EndpointsProvider) BaseURL() *url.URL {
+	return p.OriginProvider.Origin()
 }
 
 func (p *EndpointsProvider) urlOf(relPath string) *url.URL {

@@ -11,7 +11,6 @@ import (
 	"gopkg.in/fsnotify.v1"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -165,25 +164,5 @@ func (s *LocalFS) reload(filename string) error {
 func (s *LocalFS) ProvideConfig(ctx context.Context, r *http.Request, server ServerType) (*config.Config, error) {
 	cfg := s.config.Load().(*config.Config)
 
-	if s.ServerConfig.DevMode {
-		// Accept all hosts under development mode
-		return cfg, nil
-	}
-
-	var acceptHosts []string
-	switch server {
-	case ServerTypeMain, ServerTypeResolver:
-		acceptHosts = cfg.AppConfig.HTTP.Hosts
-	case ServerTypeAdminAPI:
-		acceptHosts = cfg.AppConfig.HTTP.AdminHosts
-	}
-
-	host := httputil.GetHost(r, s.ServerConfig.TrustProxy)
-	for _, h := range acceptHosts {
-		if h == host {
-			return cfg, nil
-		}
-	}
-	s.Logger.Debugf("expected host %v, got %s", acceptHosts, host)
-	return nil, fmt.Errorf("request host is not valid: %w", ErrAppNotFound)
+	return cfg, nil
 }

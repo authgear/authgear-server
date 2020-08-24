@@ -14,7 +14,7 @@ import (
 func NewAppConfigFromOptions(opts *Options) *config.AppConfig {
 	return &config.AppConfig{
 		ID:   config.AppID(opts.AppID),
-		HTTP: &config.HTTPConfig{Hosts: opts.Hosts},
+		HTTP: &config.HTTPConfig{PublicOrigin: opts.PublicOrigin},
 	}
 }
 
