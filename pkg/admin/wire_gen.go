@@ -65,6 +65,7 @@ func newAuthorizationMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	authorizationMiddlewareLogger := transport.NewAuthorizationMiddlewareLogger(factory)
 	rootProvider := appProvider.RootProvider
 	serverConfig := rootProvider.ServerConfig
+	adminAPIAuth := serverConfig.AdminAPIAuth
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -73,7 +74,7 @@ func newAuthorizationMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	clock := _wireSystemClockValue
 	authorizationMiddleware := &transport.AuthorizationMiddleware{
 		Logger:  authorizationMiddlewareLogger,
-		Config:  serverConfig,
+		Auth:    adminAPIAuth,
 		AppID:   appID,
 		AuthKey: adminAPIAuthKey,
 		Clock:   clock,

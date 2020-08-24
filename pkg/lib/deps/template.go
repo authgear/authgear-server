@@ -10,7 +10,7 @@ import (
 )
 
 func NewEngineWithConfig(
-	serverConfig *config.ServerConfig,
+	defaultDir string,
 	c *config.Config,
 ) *template.Engine {
 	var refs []template.Reference
@@ -24,7 +24,7 @@ func NewEngineWithConfig(
 
 	resolver := template.NewResolver(template.NewResolverOptions{
 		BaseDirectory:             c.BaseDirectory,
-		DefaultTemplatesDirectory: serverConfig.DefaultTemplateDirectory,
+		DefaultTemplatesDirectory: defaultDir,
 		References:                refs,
 		FallbackLanguageTag:       c.AppConfig.Localization.FallbackLanguage,
 	})

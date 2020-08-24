@@ -30,11 +30,11 @@ type BaseViewModel struct {
 }
 
 type BaseViewModeler struct {
-	ServerConfig   *config.ServerConfig
-	AuthUI         *config.UIConfig
-	Localization   *config.LocalizationConfig
-	ForgotPassword *config.ForgotPasswordConfig
-	Metadata       config.AppMetadata
+	StaticAssetURLPrefix config.StaticAssetURLPrefix
+	AuthUI               *config.UIConfig
+	Localization         *config.LocalizationConfig
+	ForgotPassword       *config.ForgotPasswordConfig
+	Metadata             config.AppMetadata
 }
 
 func (m *BaseViewModeler) ViewModel(r *http.Request, anyError interface{}) BaseViewModel {
@@ -47,7 +47,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, anyError interface{}) BaseV
 		AppName:              intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(m.Localization.FallbackLanguage), m.Metadata, "app_name"),
 		LogoURI:              intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(m.Localization.FallbackLanguage), m.Metadata, "logo_uri"),
 		CountryCallingCodes:  m.AuthUI.CountryCallingCode.Values,
-		StaticAssetURLPrefix: m.ServerConfig.StaticAsset.URLPrefix,
+		StaticAssetURLPrefix: string(m.StaticAssetURLPrefix),
 		SliceContains:        sliceContains,
 		MakeURL: func(path string, pairs ...string) string {
 			u := r.URL

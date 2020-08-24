@@ -40,12 +40,12 @@ func NewProviderLogger(lf *log.Factory) ProviderLogger {
 }
 
 type Provider struct {
-	Context      context.Context
-	ServerConfig *config.ServerConfig
-	Localization *config.LocalizationConfig
-	AppMetadata  config.AppMetadata
-	Messaging    *config.MessagingConfig
-	Config       *config.ForgotPasswordConfig
+	Context              context.Context
+	StaticAssetURLPrefix config.StaticAssetURLPrefix
+	Localization         *config.LocalizationConfig
+	AppMetadata          config.AppMetadata
+	Messaging            *config.MessagingConfig
+	Config               *config.ForgotPasswordConfig
 
 	Store          *Store
 	Clock          clock.Clock
@@ -142,7 +142,7 @@ func (p *Provider) sendEmail(email string, code string) (err error) {
 	u := p.URLs.ResetPasswordURL(code)
 
 	data := map[string]interface{}{
-		"static_asset_url_prefix": p.ServerConfig.StaticAsset.URLPrefix,
+		"static_asset_url_prefix": string(p.StaticAssetURLPrefix),
 		"email":                   email,
 		"code":                    code,
 		"link":                    u.String(),

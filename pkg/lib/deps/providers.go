@@ -85,7 +85,7 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, cfg *config.Config) *
 		cfg.SecretConfig.LookupData(config.RedisCredentialsKey).(*config.RedisCredentials),
 		loggerFactory,
 	)
-	templateEngine := NewEngineWithConfig(p.ServerConfig, cfg)
+	templateEngine := NewEngineWithConfig(p.ServerConfig.DefaultTemplateDirectory, cfg)
 
 	provider := &AppProvider{
 		RootProvider:   p,

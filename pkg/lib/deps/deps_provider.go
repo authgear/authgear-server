@@ -21,6 +21,11 @@ var rootDeps = wire.NewSet(
 		"TrustProxy",
 		"DevMode",
 		"SentryDSN",
+		"AdminAPIAuth",
+		"StaticAsset",
+	),
+	wire.FieldsOf(new(*config.ServerStaticAssetConfig),
+		"URLPrefix",
 	),
 
 	ProvideCaptureTaskContext,
