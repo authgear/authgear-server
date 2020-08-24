@@ -75,7 +75,7 @@ var nodeAuthenticator = entity(
 	},
 )
 
-var connAuthenticator = connection(nodeAuthenticator)
+var connAuthenticator = graphqlutil.NewConnectionDef(nodeAuthenticator)
 
 func encodeAuthenticatorID(ref *authenticator.Ref) string {
 	return strings.Join([]string{

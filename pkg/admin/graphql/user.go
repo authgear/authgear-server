@@ -73,4 +73,4 @@ var nodeUser = entity(
 	},
 )
 
-var connUser = connection(nodeUser)
+var connUser = graphqlutil.NewConnectionDef(nodeUser)

@@ -37,4 +37,4 @@ var nodeApp = node(
 	},
 )
 
-var connApp = connection(nodeApp)
+var connApp = graphqlutil.NewConnectionDef(nodeApp)

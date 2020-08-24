@@ -75,7 +75,7 @@ var nodeIdentity = entity(
 	},
 )
 
-var connIdentity = connection(nodeIdentity)
+var connIdentity = graphqlutil.NewConnectionDef(nodeIdentity)
 
 func encodeIdentityID(ref *identity.Ref) string {
 	return strings.Join([]string{
