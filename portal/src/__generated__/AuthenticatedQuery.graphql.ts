@@ -3,21 +3,21 @@
 // @ts-nocheck
 
 import { ConcreteRequest } from "relay-runtime";
-export type AppQueryVariables = {};
-export type AppQueryResponse = {
+export type AuthenticatedQueryVariables = {};
+export type AuthenticatedQueryResponse = {
     readonly viewer: {
         readonly id: string;
     } | null;
 };
-export type AppQuery = {
-    readonly response: AppQueryResponse;
-    readonly variables: AppQueryVariables;
+export type AuthenticatedQuery = {
+    readonly response: AuthenticatedQueryResponse;
+    readonly variables: AuthenticatedQueryVariables;
 };
 
 
 
 /*
-query AppQuery {
+query AuthenticatedQuery {
   viewer {
     id
   }
@@ -50,7 +50,7 @@ return {
     "argumentDefinitions": [],
     "kind": "Fragment",
     "metadata": null,
-    "name": "AppQuery",
+    "name": "AuthenticatedQuery",
     "selections": (v0/*: any*/),
     "type": "Query",
     "abstractKey": null
@@ -59,18 +59,18 @@ return {
   "operation": {
     "argumentDefinitions": [],
     "kind": "Operation",
-    "name": "AppQuery",
+    "name": "AuthenticatedQuery",
     "selections": (v0/*: any*/)
   },
   "params": {
-    "cacheID": "6a4120e875d5038c5ffcdc036c70a38d",
+    "cacheID": "f733183efba3dcb614f30d2cfff08ba1",
     "id": null,
     "metadata": {},
-    "name": "AppQuery",
+    "name": "AuthenticatedQuery",
     "operationKind": "query",
-    "text": "query AppQuery {\n  viewer {\n    id\n  }\n}\n"
+    "text": "query AuthenticatedQuery {\n  viewer {\n    id\n  }\n}\n"
   }
 };
 })();
-(node as any).hash = '1c19db752baf3ec97c7b454f2dd10241';
+(node as any).hash = '2e4de737e9bd88ffcb12e77fb1138060';
 export default node;

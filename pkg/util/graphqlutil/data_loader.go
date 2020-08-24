@@ -1,5 +1,13 @@
 package graphqlutil
 
+// LoadFunc must satisfy the following conditions.
+//
+// 1. The length of the result must match that of keys.
+// 2. If a given key resolves to nothing, nil must be returned instead.
+// 3. The order of the result must match that of keys.
+//
+// So it is the responsibility of LoadFunc to satisfy these conditions.
+// The underlying implementation used by LoadFunc may not satisfy the conditions.
 type LoadFunc func(keys []interface{}) ([]interface{}, error)
 
 type dataLoaderTask struct {

@@ -1,0 +1,12 @@
+.appList {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.appItem {
+  display: flex;
+  padding: 6px;
+  margin: 6px;
+  border: 1px solid gray;
+}

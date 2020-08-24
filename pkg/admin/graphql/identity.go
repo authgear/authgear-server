@@ -38,7 +38,7 @@ var nodeIdentity = entity(
 				},
 			},
 			"claims": &graphql.Field{
-				Type: graphql.NewNonNull(JSONObject),
+				Type: graphql.NewNonNull(graphqlutil.JSONObject),
 				Args: map[string]*graphql.ArgumentConfig{
 					"names": {Type: graphql.NewList(graphql.NewNonNull(graphql.String))},
 				},
@@ -75,7 +75,7 @@ var nodeIdentity = entity(
 	},
 )
 
-var connIdentity = connection(nodeIdentity)
+var connIdentity = graphqlutil.NewConnectionDef(nodeIdentity)
 
 func encodeIdentityID(ref *identity.Ref) string {
 	return strings.Join([]string{

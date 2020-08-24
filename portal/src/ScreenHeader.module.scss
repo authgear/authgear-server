@@ -1,0 +1,20 @@
+.header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid gray;
+}
+
+.title {
+  padding: 6px;
+  margin: 6px;
+}
+
+.logoutButton {
+  display: block;
+  padding: 6px;
+  margin: 6px;
+  border-radius: 2px;
+  background-color: orange;
+}

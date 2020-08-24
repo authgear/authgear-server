@@ -6,4 +6,5 @@ import (
 
 var DependencySet = wire.NewSet(
 	wire.Struct(new(ViewerLoader), "*"),
+	wire.Struct(new(AppLoader), "*"),
 )

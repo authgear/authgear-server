@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/graphql"
 	"github.com/authgear/authgear-server/pkg/portal/loader"
+	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/portal/transport"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -33,7 +34,7 @@ func newSessionInfoMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	return sessionMiddleware
 }
 
-func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
+func newGraphQLHandler(p *deps.RequestProvider) (http.Handler, error) {
 	rootProvider := p.RootProvider
 	serverConfig := rootProvider.ServerConfig
 	request := p.Request
@@ -41,14 +42,25 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	viewerLoader := &loader.ViewerLoader{
 		Context: context,
 	}
+	config, err := service.NewLibConfig(serverConfig)
+	if err != nil {
+		return nil, err
+	}
+	appService := &service.AppService{
+		Config: config,
+	}
+	appLoader := &loader.AppLoader{
+		Apps: appService,
+	}
 	graphqlContext := &graphql.Context{
 		Viewer: viewerLoader,
+		Apps:   appLoader,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		Config:         serverConfig,
 		GraphQLContext: graphqlContext,
 	}
-	return graphQLHandler
+	return graphQLHandler, nil
 }
 
 func newRuntimeConfigHandler(p *deps.RequestProvider) http.Handler {

@@ -1,5 +1,8 @@
 """"""
 type Query {
+  """All apps accessible by the viewer"""
+  apps(first: Int, last: Int, before: String, after: String): AppConnection
+
   """Fetches an object given its ID"""
   node(
     """The ID of an object"""
@@ -20,5 +23,56 @@ type User implements Node {
 interface Node {
   """The id of the object"""
   id: ID!
+}
+
+"""A connection to a list of items."""
+type AppConnection {
+  """Information to aid in pagination."""
+  edges: [AppEdge]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Total number of nodes in the connection."""
+  totalCount: Int
+}
+
+"""The `JSONObject` scalar type represents an arbitrary JSON object"""
+scalar JSONObject
+
+"""An edge in a connection"""
+type AppEdge {
+  """ cursor for use in pagination"""
+  cursor: String!
+
+  """The item at the end of the edge"""
+  node: App
+}
+
+"""Information about pagination in a connection."""
+type PageInfo {
+  """When paginating forwards, the cursor to continue."""
+  endCursor: String
+
+  """When paginating forwards, are there more items?"""
+  hasNextPage: Boolean!
+
+  """When paginating backwards, are there more items?"""
+  hasPreviousPage: Boolean!
+
+  """When paginating backwards, the cursor to continue."""
+  startCursor: String
+}
+
+"""Authgear app"""
+type App implements Node {
+  """"""
+  appConfig: JSONObject!
+
+  """The ID of an object"""
+  id: ID!
+
+  """"""
+  secretConfig: JSONObject!
 }
 

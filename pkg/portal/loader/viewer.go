@@ -5,19 +5,19 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/session"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type ViewerLoader struct {
 	Context context.Context
 }
 
-func (l *ViewerLoader) Get() (interface{}, error) {
+func (l *ViewerLoader) Get() *graphqlutil.Lazy {
 	sessionInfo := session.GetValidSessionInfo(l.Context)
 	if sessionInfo == nil {
-		return nil, nil
+		return graphqlutil.NewLazyValue(nil)
 	}
-
-	return &model.User{
+	return graphqlutil.NewLazyValue(&model.User{
 		ID: sessionInfo.UserID,
-	}, nil
+	})
 }

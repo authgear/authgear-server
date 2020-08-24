@@ -1,10 +1,8 @@
-package graphql
+package graphqlutil
 
 import (
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/relay"
-
-	"github.com/authgear/authgear-server/pkg/admin/loader"
 )
 
 type Connection struct {
@@ -13,7 +11,7 @@ type Connection struct {
 	TotalCount interface{}    `json:"totalCount"`
 }
 
-func NewConnection(result *loader.PageResult) *Connection {
+func NewConnection(result *PageResult) *Connection {
 	var edges = make([]*relay.Edge, len(result.Values))
 	for i, item := range result.Values {
 		edges[i] = &relay.Edge{
@@ -47,7 +45,7 @@ func NewConnectionFromArray(data []interface{}, args relay.ConnectionArguments) 
 	}
 }
 
-func connection(schema *graphql.Object) *relay.GraphQLConnectionDefinitions {
+func NewConnectionDef(schema *graphql.Object) *relay.GraphQLConnectionDefinitions {
 	return relay.ConnectionDefinitions(relay.ConnectionConfig{
 		Name:     schema.Name(),
 		NodeType: schema,

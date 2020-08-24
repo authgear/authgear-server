@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 const typeUser = "User"
@@ -42,7 +43,7 @@ var nodeUser = entity(
 							identities = append(identities, i)
 						}
 						args := relay.NewConnectionArguments(p.Args)
-						return NewConnectionFromArray(identities, args), nil
+						return graphqlutil.NewConnectionFromArray(identities, args), nil
 					})
 					return result.Value, nil
 				},
@@ -59,7 +60,7 @@ var nodeUser = entity(
 							authenticators = append(authenticators, i)
 						}
 						args := relay.NewConnectionArguments(p.Args)
-						return NewConnectionFromArray(authenticators, args), nil
+						return graphqlutil.NewConnectionFromArray(authenticators, args), nil
 					})
 					return result.Value, nil
 				},
@@ -72,4 +73,4 @@ var nodeUser = entity(
 	},
 )
 
-var connUser = connection(nodeUser)
+var connUser = graphqlutil.NewConnectionDef(nodeUser)

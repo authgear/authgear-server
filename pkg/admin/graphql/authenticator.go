@@ -38,7 +38,7 @@ var nodeAuthenticator = entity(
 				},
 			},
 			"claims": &graphql.Field{
-				Type: graphql.NewNonNull(JSONObject),
+				Type: graphql.NewNonNull(graphqlutil.JSONObject),
 				Args: map[string]*graphql.ArgumentConfig{
 					"names": {Type: graphql.NewList(graphql.NewNonNull(graphql.String))},
 				},
@@ -75,7 +75,7 @@ var nodeAuthenticator = entity(
 	},
 )
 
-var connAuthenticator = connection(nodeAuthenticator)
+var connAuthenticator = graphqlutil.NewConnectionDef(nodeAuthenticator)
 
 func encodeAuthenticatorID(ref *authenticator.Ref) string {
 	return strings.Join([]string{

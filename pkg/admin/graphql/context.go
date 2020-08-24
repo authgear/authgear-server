@@ -3,7 +3,6 @@ package graphql
 import (
 	"context"
 
-	"github.com/authgear/authgear-server/pkg/admin/loader"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -11,7 +10,7 @@ import (
 
 type UserLoader interface {
 	Get(id string) *graphqlutil.Lazy
-	QueryPage(args loader.PageArgs) (*loader.PageResult, error)
+	QueryPage(args graphqlutil.PageArgs) (*graphqlutil.PageResult, error)
 }
 
 type IdentityLoader interface {
