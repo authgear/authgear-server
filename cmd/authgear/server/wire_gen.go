@@ -6,7 +6,7 @@
 package server
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/config/source"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task/executor"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task/queue"
@@ -14,15 +14,15 @@ import (
 
 // Injectors from wire.go:
 
-func newConfigSourceController(p *deps.RootProvider) *source.Controller {
+func newConfigSourceController(p *deps.RootProvider) *configsource.Controller {
 	serverConfig := p.ServerConfig
 	factory := p.LoggerFactory
-	localFSLogger := source.NewLocalFSLogger(factory)
-	localFS := &source.LocalFS{
+	localFSLogger := configsource.NewLocalFSLogger(factory)
+	localFS := &configsource.LocalFS{
 		Logger:       localFSLogger,
 		ServerConfig: serverConfig,
 	}
-	controller := source.NewController(serverConfig, localFS)
+	controller := configsource.NewController(serverConfig, localFS)
 	return controller
 }
 

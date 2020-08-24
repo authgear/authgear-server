@@ -6,7 +6,7 @@ import (
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	webapphandler "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	configsource "github.com/authgear/authgear-server/pkg/lib/config/source"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/util/httproute"

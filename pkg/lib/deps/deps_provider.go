@@ -7,7 +7,7 @@ import (
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	configsource "github.com/authgear/authgear-server/pkg/lib/config/source"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 )

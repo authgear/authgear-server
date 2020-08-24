@@ -5,7 +5,7 @@ package server
 import (
 	"github.com/google/wire"
 
-	configsource "github.com/authgear/authgear-server/pkg/lib/config/source"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task/executor"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task/queue"

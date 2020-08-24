@@ -6,7 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/admin"
 	"github.com/authgear/authgear-server/pkg/auth"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	configsource "github.com/authgear/authgear-server/pkg/lib/config/source"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/resolver"
