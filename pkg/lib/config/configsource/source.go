@@ -35,11 +35,11 @@ type Controller struct {
 }
 
 func NewController(
-	cfg *config.ServerConfig,
+	cfg *Config,
 	lf *LocalFS,
 ) *Controller {
-	switch cfg.ConfigSource.Type {
-	case config.SourceTypeLocalFS:
+	switch cfg.Type {
+	case TypeLocalFS:
 		return &Controller{src: lf}
 	default:
 		panic("config_source: invalid config source type")

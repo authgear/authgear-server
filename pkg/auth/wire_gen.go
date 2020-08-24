@@ -83,8 +83,8 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clock,
 	}
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	trustProxy := serverConfig.TrustProxy
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -208,8 +208,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
 	messagingConfig := appConfig.Messaging
@@ -485,8 +484,8 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	oAuthConfig := appConfig.OAuth
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	trustProxy := serverConfig.TrustProxy
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	handlerTokenHandlerLogger := handler.NewTokenHandlerLogger(factory)
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -644,8 +643,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
 	messagingConfig := appConfig.Messaging
@@ -925,8 +923,8 @@ func newOAuthMetadataHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	trustProxy := serverConfig.TrustProxy
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -956,8 +954,8 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	oidcKeyMaterials := deps.ProvideOIDCKeyMaterials(secretConfig)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	trustProxy := serverConfig.TrustProxy
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -1131,8 +1129,8 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	oidcKeyMaterials := deps.ProvideOIDCKeyMaterials(secretConfig)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	trustProxy := serverConfig.TrustProxy
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -1306,8 +1304,8 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	oAuthConfig := appConfig.OAuth
 	request := p.Request
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	trustProxy := serverConfig.TrustProxy
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -1357,11 +1355,10 @@ func newWebAppRootHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	trustProxy := serverConfig.TrustProxy
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	handle := appProvider.Database
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
@@ -1759,11 +1756,10 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	trustProxy := serverConfig.TrustProxy
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	handle := appProvider.Database
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
@@ -2162,9 +2158,8 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
@@ -2315,7 +2310,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	trustProxy := serverConfig.TrustProxy
+	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -2691,14 +2686,13 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
-	serverConfig := rootProvider.ServerConfig
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
 	messagingConfig := appConfig.Messaging
 	engine := appProvider.TemplateEngine
-	trustProxy := serverConfig.TrustProxy
+	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -2944,9 +2938,8 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
@@ -3093,7 +3086,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	trustProxy := serverConfig.TrustProxy
+	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -3338,9 +3331,8 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
@@ -3487,7 +3479,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	trustProxy := serverConfig.TrustProxy
+	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -3732,9 +3724,8 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
@@ -3881,7 +3872,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	trustProxy := serverConfig.TrustProxy
+	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -4127,9 +4118,8 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
@@ -4276,7 +4266,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	trustProxy := serverConfig.TrustProxy
+	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -4523,9 +4513,8 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
@@ -4672,7 +4661,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	trustProxy := serverConfig.TrustProxy
+	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -4917,9 +4906,8 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
@@ -5066,7 +5054,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	trustProxy := serverConfig.TrustProxy
+	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -5311,9 +5299,8 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
@@ -5460,7 +5447,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	trustProxy := serverConfig.TrustProxy
+	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -5705,9 +5692,8 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
@@ -5854,7 +5840,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	trustProxy := serverConfig.TrustProxy
+	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -6099,9 +6085,8 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
@@ -6248,7 +6233,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	trustProxy := serverConfig.TrustProxy
+	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -6493,9 +6478,8 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
@@ -6642,7 +6626,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	trustProxy := serverConfig.TrustProxy
+	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -6887,9 +6871,8 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	appProvider := p.AppProvider
 	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
@@ -7036,7 +7019,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	trustProxy := serverConfig.TrustProxy
+	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -7281,9 +7264,8 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
@@ -7434,7 +7416,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	trustProxy := serverConfig.TrustProxy
+	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -7680,9 +7662,8 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	appProvider := p.AppProvider
 	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
@@ -7829,7 +7810,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	trustProxy := serverConfig.TrustProxy
+	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -8074,9 +8055,8 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
@@ -8223,7 +8203,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	trustProxy := serverConfig.TrustProxy
+	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -8469,9 +8449,8 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	appProvider := p.AppProvider
 	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
@@ -8618,7 +8597,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	trustProxy := serverConfig.TrustProxy
+	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -8862,9 +8841,8 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
@@ -8896,9 +8874,8 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
@@ -9045,7 +9022,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:   oobProvider,
 	}
 	messagingConfig := appConfig.Messaging
-	trustProxy := serverConfig.TrustProxy
+	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -9294,8 +9271,8 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	trustProxy := serverConfig.TrustProxy
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	config := appProvider.Config
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -9528,8 +9505,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions:         manager,
 		AccessTokenSessions: sessionManager,
 	}
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	uiConfig := appConfig.UI
 	forgotPasswordConfig := appConfig.ForgotPassword
 	baseViewModeler := &viewmodels.BaseViewModeler{
@@ -9686,14 +9662,13 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
-	serverConfig := rootProvider.ServerConfig
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
 	messagingConfig := appConfig.Messaging
 	engine := appProvider.TemplateEngine
-	trustProxy := serverConfig.TrustProxy
+	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -10066,14 +10041,13 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
-	serverConfig := rootProvider.ServerConfig
-	serverStaticAssetConfig := &serverConfig.StaticAsset
-	staticAssetURLPrefix := serverStaticAssetConfig.URLPrefix
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	localizationConfig := appConfig.Localization
 	appMetadata := appConfig.Metadata
 	messagingConfig := appConfig.Messaging
 	engine := appProvider.TemplateEngine
-	trustProxy := serverConfig.TrustProxy
+	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -10317,8 +10291,8 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 
 func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	hub := p.SentryHub
-	serverConfig := p.ServerConfig
-	trustProxy := serverConfig.TrustProxy
+	environmentConfig := p.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	sentryMiddleware := &middleware.SentryMiddleware{
 		SentryHub:  hub,
 		TrustProxy: trustProxy,
@@ -10376,8 +10350,8 @@ func newCSRFMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	httpConfig := appConfig.HTTP
 	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	trustProxy := serverConfig.TrustProxy
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	csrfMiddleware := &webapp.CSRFMiddleware{
 		Secret:     csrfKeyMaterials,
 		Cookie:     csrfCookieDef,
@@ -10389,8 +10363,8 @@ func newCSRFMiddleware(p *deps.RequestProvider) httproute.Middleware {
 func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	trustProxy := serverConfig.TrustProxy
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	authEntryPointMiddleware := &webapp.AuthEntryPointMiddleware{
 		TrustProxy: trustProxy,
 	}
@@ -10401,8 +10375,8 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	request := p.Request
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	trustProxy := serverConfig.TrustProxy
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	config := appProvider.Config
 	appConfig := config.AppConfig

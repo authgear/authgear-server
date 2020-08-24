@@ -77,8 +77,8 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	factory := appProvider.LoggerFactory
 	logger := mail.NewLogger(factory)
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	devMode := serverConfig.DevMode
+	environmentConfig := rootProvider.EnvironmentConfig
+	devMode := environmentConfig.DevMode
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	localizationConfig := appConfig.Localization

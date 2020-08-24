@@ -14,18 +14,15 @@ import (
 
 var rootDeps = wire.NewSet(
 	wire.FieldsOf(new(*RootProvider),
-		"ServerConfig",
+		"EnvironmentConfig",
+		"ConfigSourceConfig",
 		"ReservedNameChecker",
 	),
-	wire.FieldsOf(new(*config.ServerConfig),
+	wire.FieldsOf(new(*config.EnvironmentConfig),
 		"TrustProxy",
 		"DevMode",
 		"SentryDSN",
-		"AdminAPIAuth",
-		"StaticAsset",
-	),
-	wire.FieldsOf(new(*config.ServerStaticAssetConfig),
-		"URLPrefix",
+		"StaticAssetURLPrefix",
 	),
 
 	ProvideCaptureTaskContext,

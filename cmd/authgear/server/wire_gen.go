@@ -15,14 +15,14 @@ import (
 // Injectors from wire.go:
 
 func newConfigSourceController(p *deps.RootProvider) *configsource.Controller {
-	serverConfig := p.ServerConfig
+	config := p.ConfigSourceConfig
 	factory := p.LoggerFactory
 	localFSLogger := configsource.NewLocalFSLogger(factory)
 	localFS := &configsource.LocalFS{
-		Logger:       localFSLogger,
-		ServerConfig: serverConfig,
+		Logger: localFSLogger,
+		Config: config,
 	}
-	controller := configsource.NewController(serverConfig, localFS)
+	controller := configsource.NewController(config, localFS)
 	return controller
 }
 

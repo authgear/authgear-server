@@ -4,13 +4,14 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/admin/transport"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *httproute.Router {
+func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, auth config.AdminAPIAuth) *httproute.Router {
 	router := httproute.NewRouter()
 
 	router.Add(httproute.Route{
@@ -26,7 +27,9 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 			ConfigSource: configSource,
 		},
 		p.Middleware(newRequestRecoverMiddleware),
-		p.Middleware(newAuthorizationMiddleware),
+		p.Middleware(func(p *deps.RequestProvider) httproute.Middleware {
+			return newAuthorizationMiddleware(p, auth)
+		}),
 	)
 
 	route := httproute.Route{Middleware: chain}

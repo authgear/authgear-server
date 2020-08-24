@@ -8,6 +8,7 @@ import (
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/admin/transport"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -36,7 +37,7 @@ func newRequestRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	))
 }
 
-func newAuthorizationMiddleware(p *deps.RequestProvider) httproute.Middleware {
+func newAuthorizationMiddleware(p *deps.RequestProvider, auth config.AdminAPIAuth) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*transport.AuthorizationMiddleware)),

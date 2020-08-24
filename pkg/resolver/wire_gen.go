@@ -36,8 +36,8 @@ import (
 
 func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	hub := p.SentryHub
-	serverConfig := p.ServerConfig
-	trustProxy := serverConfig.TrustProxy
+	environmentConfig := p.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	sentryMiddleware := &middleware.SentryMiddleware{
 		SentryHub:  hub,
 		TrustProxy: trustProxy,
@@ -68,8 +68,8 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	request := p.Request
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
-	serverConfig := rootProvider.ServerConfig
-	trustProxy := serverConfig.TrustProxy
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	config := appProvider.Config
 	appConfig := config.AppConfig
