@@ -1,6 +1,7 @@
 id: test
 metadata: {}
-http: {}
+http:
+  public_origin: ""
 database:
   max_open_connection: 2
   max_idle_connection: 2
