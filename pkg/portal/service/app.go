@@ -59,8 +59,6 @@ func (s *AppService) GetMany(ids []string) (out []*model.App, err error) {
 				AppConfig:    s.Config.AppConfig,
 				SecretConfig: s.Config.SecretConfig,
 			})
-		} else {
-			out = append(out, nil)
 		}
 	}
 
