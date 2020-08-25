@@ -214,11 +214,9 @@ func (k *Kubernetes) newController(
 
 	fifo := cache.NewDeltaFIFO(cache.MetaNamespaceKeyFunc, nil)
 	ctrl := cache.New(&cache.Config{
-		Queue:            fifo,
-		ListerWatcher:    listWatch,
-		ObjectType:       objType,
-		FullResyncPeriod: time.Hour,
-		RetryOnError:     false,
+		Queue:         fifo,
+		ListerWatcher: listWatch,
+		ObjectType:    objType,
 
 		Process: func(obj interface{}) error {
 			for _, d := range obj.(cache.Deltas) {
