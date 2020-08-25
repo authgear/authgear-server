@@ -13,6 +13,7 @@ import (
 var DependencySet = wire.NewSet(
 	deps.DependencySet,
 	service.DependencySet,
+	wire.Bind(new(service.ConfigGetter), new(*deps.ConfigGetter)),
 
 	loader.DependencySet,
 	wire.Bind(new(loader.AppService), new(*service.AppService)),

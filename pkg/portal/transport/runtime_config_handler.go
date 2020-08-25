@@ -19,13 +19,13 @@ type RuntimeConfig struct {
 }
 
 type RuntimeConfigHandler struct {
-	Config *config.ServerConfig
+	AuthgearConfig *config.AuthgearConfig
 }
 
 func (h *RuntimeConfigHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c := RuntimeConfig{
-		AuthgearClientID: h.Config.Authgear.ClientID,
-		AuthgearEndpoint: h.Config.Authgear.Endpoint,
+		AuthgearClientID: h.AuthgearConfig.ClientID,
+		AuthgearEndpoint: h.AuthgearConfig.Endpoint,
 	}
 
 	b, err := json.Marshal(c)

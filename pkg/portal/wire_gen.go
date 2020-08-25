@@ -36,18 +36,22 @@ func newSessionInfoMiddleware(p *deps.RequestProvider) httproute.Middleware {
 
 func newGraphQLHandler(p *deps.RequestProvider) (http.Handler, error) {
 	rootProvider := p.RootProvider
-	serverConfig := rootProvider.ServerConfig
+	environmentConfig := rootProvider.EnvironmentConfig
+	devMode := environmentConfig.DevMode
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
 	viewerLoader := &loader.ViewerLoader{
 		Context: context,
 	}
-	config, err := service.NewLibConfig(serverConfig)
-	if err != nil {
-		return nil, err
+	controller := rootProvider.ConfigSourceController
+	configSource := deps.ProvideConfigSource(controller)
+	configGetter := &deps.ConfigGetter{
+		Context:      context,
+		Request:      request,
+		ConfigSource: configSource,
 	}
 	appService := &service.AppService{
-		Config: config,
+		ConfigGetter: configGetter,
 	}
 	appLoader := &loader.AppLoader{
 		Apps: appService,
@@ -57,7 +61,7 @@ func newGraphQLHandler(p *deps.RequestProvider) (http.Handler, error) {
 		Apps:   appLoader,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
-		Config:         serverConfig,
+		DevMode:        devMode,
 		GraphQLContext: graphqlContext,
 	}
 	return graphQLHandler, nil
@@ -65,9 +69,9 @@ func newGraphQLHandler(p *deps.RequestProvider) (http.Handler, error) {
 
 func newRuntimeConfigHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
-	serverConfig := rootProvider.ServerConfig
+	authgearConfig := rootProvider.AuthgearConfig
 	runtimeConfigHandler := &transport.RuntimeConfigHandler{
-		Config: serverConfig,
+		AuthgearConfig: authgearConfig,
 	}
 	return runtimeConfigHandler
 }

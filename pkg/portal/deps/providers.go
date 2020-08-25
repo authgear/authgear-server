@@ -5,19 +5,29 @@ import (
 
 	getsentry "github.com/getsentry/sentry-go"
 
-	"github.com/authgear/authgear-server/pkg/portal/config"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/sentry"
 )
 
 type RootProvider struct {
-	ServerConfig  *config.ServerConfig
-	LoggerFactory *log.Factory
-	SentryHub     *getsentry.Hub
+	EnvironmentConfig  *config.EnvironmentConfig
+	ConfigSourceConfig *configsource.Config
+	AuthgearConfig     *portalconfig.AuthgearConfig
+	LoggerFactory      *log.Factory
+	SentryHub          *getsentry.Hub
+
+	ConfigSourceController *configsource.Controller
 }
 
-func NewRootProvider(cfg *config.ServerConfig) (*RootProvider, error) {
+func NewRootProvider(
+	cfg *config.EnvironmentConfig,
+	configSourceConfig *configsource.Config,
+	authgearConfig *portalconfig.AuthgearConfig,
+) (*RootProvider, error) {
 	logLevel, err := log.ParseLevel(cfg.LogLevel)
 	if err != nil {
 		return nil, err
@@ -35,9 +45,11 @@ func NewRootProvider(cfg *config.ServerConfig) (*RootProvider, error) {
 	)
 
 	return &RootProvider{
-		ServerConfig:  cfg,
-		LoggerFactory: loggerFactory,
-		SentryHub:     sentryHub,
+		EnvironmentConfig:  cfg,
+		ConfigSourceConfig: configSourceConfig,
+		AuthgearConfig:     authgearConfig,
+		LoggerFactory:      loggerFactory,
+		SentryHub:          sentryHub,
 	}, nil
 }
 
