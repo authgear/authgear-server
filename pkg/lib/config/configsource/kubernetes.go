@@ -91,6 +91,7 @@ func (k *Kubernetes) Open() error {
 	secretCtrl := k.newController(corev1.ResourceSecrets, &corev1.Secret{}, k.onUpdate, k.onDelete)
 	go configMapCtrl.Run(done)
 	go secretCtrl.Run(done)
+	go k.cleanupCache(done)
 
 	return nil
 }
@@ -142,6 +143,30 @@ func (k *Kubernetes) updateHostMap(data []byte) {
 func (k *Kubernetes) invalidateApp(appID string) {
 	k.appMap.Delete(appID)
 	k.Logger.WithField("app_id", appID).Info("invalidated cached config")
+}
+
+func (k *Kubernetes) cleanupCache(done <-chan struct{}) {
+	for {
+		select {
+		case <-done:
+			return
+
+		case <-time.After(time.Minute):
+			now := k.Clock.NowMonotonic().Unix()
+			numDel := 0
+			k.appMap.Range(func(key, value interface{}) bool {
+				app := value.(*k8sApp)
+				if atomic.LoadInt64(&app.lastUsedAt) < now-60 {
+					k.appMap.Delete(key)
+					numDel++
+				}
+				return true
+			})
+			if numDel > 0 {
+				k.Logger.WithField("deleted", numDel).Info("cleaned cached app configs")
+			}
+		}
+	}
 }
 
 func (k *Kubernetes) Close() error {
@@ -244,7 +269,7 @@ func (a *k8sApp) Load(k *Kubernetes) (*config.AppContext, error) {
 			a.appCtx, a.err = a.doLoad(k)
 		})
 	}
-	atomic.StoreInt64(&a.lastUsedAt, k.Clock.NowMonotonic().UnixNano())
+	atomic.StoreInt64(&a.lastUsedAt, k.Clock.NowMonotonic().Unix())
 	return a.appCtx, a.err
 }
 
