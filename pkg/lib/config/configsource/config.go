@@ -20,8 +20,8 @@ type Config struct {
 	KubeConfig string `envconfig:"KUBECONFIG"`
 	// KubeNamespace indicates the namespace where the app index & configs resides
 	KubeNamespace string `envconfig:"KUBE_NAMESPACE"`
-	// KubeIndexName indicates the name of app index ConfigMap
-	KubeIndexName string `envconfig:"KUBE_INDEX_NAME" default:"app-index"`
+	// KubeAppHostMapName indicates the name of app host mapping ConfigMap
+	KubeAppHostMapName string `envconfig:"KUBE_APP_HOST_MAP_NAME" default:"app-hosts"`
 	// KubeAppConfigPattern sets the RegEx that matches the app ID in ConfigMap/Secret name
 	KubeAppConfigPattern string `envconfig:"KUBE_APP_CONFIG_PATTERN" default:"^app-data-(.+)$"`
 
