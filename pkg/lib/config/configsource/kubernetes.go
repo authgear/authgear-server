@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -107,15 +108,25 @@ func (k *Kubernetes) onUpdate(resource metav1.Object) {
 				return
 			}
 			k.updateHostMap([]byte(data))
+		} else if strings.HasPrefix(resource.Name, k.Config.KubeAppConfigPrefix) {
+			appID := strings.TrimPrefix(resource.Name, k.Config.KubeAppConfigPrefix)
+			k.invalidateApp(appID)
 		}
 	case *corev1.Secret:
+		if strings.HasPrefix(resource.Name, k.Config.KubeAppConfigPrefix) {
+			appID := strings.TrimPrefix(resource.Name, k.Config.KubeAppConfigPrefix)
+			k.invalidateApp(appID)
+		}
 	default:
 		panic(fmt.Sprintf("k8s_config: unexpected resource type: %T", resource))
 	}
 }
 
 func (k *Kubernetes) onDelete(resource metav1.Object) {
-	fmt.Printf("delete %v\n", resource)
+	if strings.HasPrefix(resource.GetName(), k.Config.KubeAppConfigPrefix) {
+		appID := strings.TrimPrefix(resource.GetName(), k.Config.KubeAppConfigPrefix)
+		k.invalidateApp(appID)
+	}
 }
 
 func (k *Kubernetes) updateHostMap(data []byte) {
@@ -126,6 +137,11 @@ func (k *Kubernetes) updateHostMap(data []byte) {
 	}
 	k.hostMap.Store(hostMap)
 	k.Logger.Info("host map reloaded")
+}
+
+func (k *Kubernetes) invalidateApp(appID string) {
+	k.appMap.Delete(appID)
+	k.Logger.WithField("app_id", appID).Info("invalidated cached config")
 }
 
 func (k *Kubernetes) Close() error {
