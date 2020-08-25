@@ -38,7 +38,7 @@ func newSessionInfoMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	))
 }
 
-func newGraphQLHandler(p *deps.RequestProvider) (http.Handler, error) {
+func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*transport.GraphQLHandler)),

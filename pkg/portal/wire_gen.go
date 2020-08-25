@@ -46,7 +46,7 @@ func newSessionInfoMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	return sessionMiddleware
 }
 
-func newGraphQLHandler(p *deps.RequestProvider) (http.Handler, error) {
+func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	devMode := environmentConfig.DevMode
@@ -75,7 +75,7 @@ func newGraphQLHandler(p *deps.RequestProvider) (http.Handler, error) {
 		DevMode:        devMode,
 		GraphQLContext: graphqlContext,
 	}
-	return graphQLHandler, nil
+	return graphQLHandler
 }
 
 func newRuntimeConfigHandler(p *deps.RequestProvider) http.Handler {

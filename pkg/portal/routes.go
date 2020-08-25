@@ -25,7 +25,7 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 	rootRoute := httproute.Route{Middleware: rootChain}
 
 	router.Add(transport.ConfigureRuntimeConfigRoute(rootRoute), p.Handler(newRuntimeConfigHandler))
-	router.Add(transport.ConfigureGraphQLRoute(rootRoute), p.HandlerError(newGraphQLHandler))
+	router.Add(transport.ConfigureGraphQLRoute(rootRoute), p.Handler(newGraphQLHandler))
 
 	return router
 }

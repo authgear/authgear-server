@@ -82,17 +82,3 @@ func (p *RootProvider) Handler(f func(*RequestProvider) http.Handler) http.Handl
 		h.ServeHTTP(w, r)
 	})
 }
-
-func (p *RootProvider) HandlerError(f func(*RequestProvider) (http.Handler, error)) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		requestProvider := &RequestProvider{
-			RootProvider: p,
-			Request:      r,
-		}
-		h, err := f(requestProvider)
-		if err != nil {
-			panic(err)
-		}
-		h.ServeHTTP(w, r)
-	})
-}
