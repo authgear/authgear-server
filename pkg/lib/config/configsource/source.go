@@ -1,37 +1,41 @@
 package configsource
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-type ServerType string
+type AppIDResolver interface {
+	ResolveAppID(r *http.Request) (appID string, err error)
+}
 
-const (
-	ServerTypeMain     ServerType = "main"
-	ServerTypeResolver ServerType = "resolver"
-	ServerTypeAdminAPI ServerType = "admin_api"
-)
+type ConfigGetter interface {
+	GetConfig(appID string) (*config.Config, error)
+}
 
-type source interface {
+type Handle interface {
 	Open() error
 	Close() error
-	ProvideConfig(ctx context.Context, r *http.Request, server ServerType) (*config.Config, error)
 }
 
 type ConfigSource struct {
-	src        source
-	serverType ServerType
+	AppIDResolver AppIDResolver
+	ConfigGetter  ConfigGetter
 }
 
-func (s *ConfigSource) ProvideConfig(ctx context.Context, r *http.Request) (*config.Config, error) {
-	return s.src.ProvideConfig(ctx, r, s.serverType)
+func (s *ConfigSource) ProvideConfig(r *http.Request) (*config.Config, error) {
+	appID, err := s.AppIDResolver.ResolveAppID(r)
+	if err != nil {
+		return nil, err
+	}
+	return s.ConfigGetter.GetConfig(appID)
 }
 
 type Controller struct {
-	src source
+	Handle        Handle
+	AppIDResolver AppIDResolver
+	ConfigGetter  ConfigGetter
 }
 
 func NewController(
@@ -40,20 +44,27 @@ func NewController(
 ) *Controller {
 	switch cfg.Type {
 	case TypeLocalFS:
-		return &Controller{src: lf}
+		return &Controller{
+			Handle:        lf,
+			AppIDResolver: lf,
+			ConfigGetter:  lf,
+		}
 	default:
 		panic("config_source: invalid config source type")
 	}
 }
 
 func (c *Controller) Open() error {
-	return c.src.Open()
+	return c.Handle.Open()
 }
 
 func (c *Controller) Close() error {
-	return c.src.Close()
+	return c.Handle.Close()
 }
 
-func (c *Controller) ForServer(server ServerType) *ConfigSource {
-	return &ConfigSource{src: c.src, serverType: server}
+func (c *Controller) GetConfigSource() *ConfigSource {
+	return &ConfigSource{
+		AppIDResolver: c.AppIDResolver,
+		ConfigGetter:  c.ConfigGetter,
+	}
 }

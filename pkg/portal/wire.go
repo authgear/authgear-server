@@ -23,6 +23,14 @@ func newRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	))
 }
 
+func newSentryMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		deps.DependencySet,
+		wire.Struct(new(middleware.SentryMiddleware), "*"),
+		wire.Bind(new(httproute.Middleware), new(*middleware.SentryMiddleware)),
+	))
+}
+
 func newSessionInfoMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		session.DependencySet,

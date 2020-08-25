@@ -5,6 +5,5 @@ import (
 )
 
 var DependencySet = wire.NewSet(
-	NewLibConfig,
 	wire.Struct(new(AppService), "*"),
 )

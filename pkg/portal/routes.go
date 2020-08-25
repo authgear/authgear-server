@@ -18,8 +18,7 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 
 	rootChain := httproute.Chain(
 		p.Middleware(newRecoverMiddleware),
-		// FIXME(portal): add sentry middleware.
-		// We cannot add it now because it depends pkg/lib/config.ServerConfig.TrustProxy.
+		p.Middleware(newSentryMiddleware),
 		p.Middleware(newSessionInfoMiddleware),
 	)
 

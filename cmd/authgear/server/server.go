@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/admin"
 	"github.com/authgear/authgear-server/pkg/auth"
-	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/resolver"
@@ -69,7 +68,7 @@ func (c *Controller) Start() {
 			ListenAddress: u.Host,
 			Handler: auth.NewRouter(
 				p,
-				configSrcController.ForServer(configsource.ServerTypeMain),
+				configSrcController.GetConfigSource(),
 				auth.StaticAssetConfig{
 					ServingEnabled: cfg.StaticAsset.ServingEnabled,
 					Directory:      cfg.StaticAsset.Dir,
@@ -95,7 +94,7 @@ func (c *Controller) Start() {
 		specs = append(specs, server.Spec{
 			Name:          "Resolver Server",
 			ListenAddress: u.Host,
-			Handler:       resolver.NewRouter(p, configSrcController.ForServer(configsource.ServerTypeResolver)),
+			Handler:       resolver.NewRouter(p, configSrcController.GetConfigSource()),
 		})
 	}
 
@@ -110,7 +109,7 @@ func (c *Controller) Start() {
 			ListenAddress: u.Host,
 			Handler: admin.NewRouter(
 				p,
-				configSrcController.ForServer(configsource.ServerTypeAdminAPI),
+				configSrcController.GetConfigSource(),
 				cfg.AdminAPIAuth,
 			),
 		})
