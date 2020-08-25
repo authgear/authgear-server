@@ -36,7 +36,7 @@ require (
 	github.com/skygeario/go-confusable-homoglyphs v0.0.0-20191212061114-e2b2a60df110
 	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4
-	github.com/spf13/afero v1.1.2
+	github.com/spf13/afero v1.2.2
 	github.com/spf13/cobra v1.0.0
 	github.com/ua-parser/uap-go v0.0.0-20200325213135-e1c09f13e2fe
 	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
@@ -47,5 +47,8 @@ require (
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 	gopkg.in/h2non/gock.v1 v1.0.15
 	gopkg.in/yaml.v2 v2.3.0
+	k8s.io/api v0.17.0
+	k8s.io/apimachinery v0.17.0
+	k8s.io/client-go v0.17.0
 	sigs.k8s.io/yaml v1.2.0
 )

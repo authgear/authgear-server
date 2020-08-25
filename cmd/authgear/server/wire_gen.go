@@ -22,7 +22,11 @@ func newConfigSourceController(p *deps.RootProvider) *configsource.Controller {
 		Logger: localFSLogger,
 		Config: config,
 	}
-	controller := configsource.NewController(config, localFS)
+	kubernetes := &configsource.Kubernetes{
+		Logger: localFSLogger,
+		Config: config,
+	}
+	controller := configsource.NewController(config, localFS, kubernetes)
 	return controller
 }
 

@@ -41,6 +41,7 @@ type Controller struct {
 func NewController(
 	cfg *Config,
 	lf *LocalFS,
+	k8s *Kubernetes,
 ) *Controller {
 	switch cfg.Type {
 	case TypeLocalFS:
@@ -48,6 +49,12 @@ func NewController(
 			Handle:          lf,
 			AppIDResolver:   lf,
 			ContextResolver: lf,
+		}
+	case TypeKubernetes:
+		return &Controller{
+			Handle:          k8s,
+			AppIDResolver:   k8s,
+			ContextResolver: k8s,
 		}
 	default:
 		panic("config_source: invalid config source type")
