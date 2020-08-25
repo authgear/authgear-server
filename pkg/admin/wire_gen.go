@@ -64,7 +64,7 @@ func newRequestRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
 func newAuthorizationMiddleware(p *deps.RequestProvider, auth config.AdminAPIAuth) httproute.Middleware {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authzLogger := authz.NewAuthzLogger(factory)
+	logger := authz.NewLogger(factory)
 	configConfig := appProvider.Config
 	appConfig := configConfig.AppConfig
 	appID := appConfig.ID
@@ -72,7 +72,7 @@ func newAuthorizationMiddleware(p *deps.RequestProvider, auth config.AdminAPIAut
 	adminAPIAuthKey := deps.ProvideAdminAPIAuthKeyMaterials(secretConfig)
 	clock := _wireSystemClockValue
 	authzMiddleware := &authz.Middleware{
-		Logger:  authzLogger,
+		Logger:  logger,
 		Auth:    auth,
 		AppID:   appID,
 		AuthKey: adminAPIAuthKey,

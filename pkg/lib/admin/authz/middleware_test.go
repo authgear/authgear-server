@@ -1,6 +1,8 @@
 package authz_test
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -22,7 +24,7 @@ func TestMiddleware(t *testing.T) {
 
 		Convey("no auth", func() {
 			m := adminauthz.Middleware{
-				Logger: adminauthz.AuthzLogger{
+				Logger: adminauthz.Logger{
 					log.Null,
 				},
 				Auth: config.AdminAPIAuthNone,
@@ -36,16 +38,21 @@ func TestMiddleware(t *testing.T) {
 			So(string(recorder.Body.Bytes()), ShouldEqual, "good")
 		})
 
-		SkipConvey("jwt auth", func() {
-			key, err := jwk.New([]byte("secret"))
+		Convey("jwt auth", func() {
+			// nolint:gosec
+			privKey, err := rsa.GenerateKey(rand.Reader, 512)
 			So(err, ShouldBeNil)
 
+			jwkKey, err := jwk.New(privKey)
+			So(err, ShouldBeNil)
+			jwkKey.Set("kid", "mykey")
+
 			set := jwk.Set{
-				Keys: []jwk.Key{key},
+				Keys: []jwk.Key{jwkKey},
 			}
 
 			m := adminauthz.Middleware{
-				Logger: adminauthz.AuthzLogger{
+				Logger: adminauthz.Logger{
 					log.Null,
 				},
 				Auth:  config.AdminAPIAuthJWT,
@@ -57,6 +64,14 @@ func TestMiddleware(t *testing.T) {
 			}
 
 			r, _ := http.NewRequest("GET", "/", nil)
+
+			authzAdder := adminauthz.AuthzAdder{
+				Clock: m.Clock,
+			}
+
+			err = authzAdder.AddAuthz(m.Auth, m.AppID, m.AuthKey, r.Header)
+			So(err, ShouldBeNil)
+
 			recorder := httptest.NewRecorder()
 			handler := m.Handle(h)
 			handler.ServeHTTP(recorder, r)

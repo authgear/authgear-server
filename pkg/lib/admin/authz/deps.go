@@ -5,6 +5,7 @@ import (
 )
 
 var DependencySet = wire.NewSet(
-	NewAuthzLogger,
+	NewLogger,
 	wire.Struct(new(Middleware), "*"),
+	wire.Struct(new(AuthzAdder), "*"),
 )
