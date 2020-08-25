@@ -4,7 +4,7 @@ import (
 	"crypto/subtle"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/lib/api/model"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )

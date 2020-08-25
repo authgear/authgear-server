@@ -3,7 +3,7 @@ package nodes
 import (
 	"errors"
 
-	"github.com/authgear/authgear-server/pkg/lib/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )

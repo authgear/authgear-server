@@ -5,8 +5,8 @@
 package hook
 
 import (
-	event "github.com/authgear/authgear-server/pkg/lib/api/event"
-	model "github.com/authgear/authgear-server/pkg/lib/api/model"
+	event "github.com/authgear/authgear-server/pkg/api/event"
+	model "github.com/authgear/authgear-server/pkg/api/model"
 	db "github.com/authgear/authgear-server/pkg/lib/infra/db"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"

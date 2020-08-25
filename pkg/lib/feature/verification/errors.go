@@ -1,7 +1,7 @@
 package verification
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
 var InvalidVerificationCode = apierrors.Forbidden.WithReason("InvalidVerificationCode")

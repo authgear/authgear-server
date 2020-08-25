@@ -1,12 +1,14 @@
-package api
+package httputil
 
 import (
+	"encoding/json"
 	"io"
 	"mime"
 	"net/http"
 	"strings"
 
-	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -62,4 +64,23 @@ func BindJSONBody(r *http.Request, w http.ResponseWriter, v *validation.SchemaVa
 		}
 		return validation.ValidateValueWithMessage(value, errorMessage)
 	}, payload)
+}
+
+func WriteResponse(rw http.ResponseWriter, response *api.Response) {
+	httpStatus := http.StatusOK
+	encoder := json.NewEncoder(rw)
+	err := apierrors.AsAPIError(response.Error)
+
+	if err != nil {
+		httpStatus = err.Code
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	rw.WriteHeader(httpStatus)
+	encoder.Encode(response)
+
+	if err != nil && err.Code >= 500 && err.Code < 600 {
+		// delegate logging to panic recovery
+		panic(api.HandledError{Error: response.Error})
+	}
 }

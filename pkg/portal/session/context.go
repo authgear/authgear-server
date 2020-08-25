@@ -3,7 +3,7 @@ package session
 import (
 	"context"
 
-	"github.com/authgear/authgear-server/pkg/lib/api/model"
+	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
 type contextKeyType struct{}

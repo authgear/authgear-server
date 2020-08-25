@@ -63,3 +63,29 @@ func TestQueryPage(t *testing.T) {
 		So(args, ShouldResemble, []interface{}{"my-app", "1", "1", "2", "9", "9", "10"})
 	})
 }
+
+func TestPageKey(t *testing.T) {
+	Convey("PageKey", t, func() {
+		Convey("should round-trip correctly", func() {
+			pageKey := db.PageKey{
+				Key: "query-key",
+				ID:  "id",
+			}
+			cursor, err := pageKey.ToPageCursor()
+			So(err, ShouldBeNil)
+			So(cursor, ShouldEqual, "eyJrZXkiOiJxdWVyeS1rZXkiLCJpZCI6ImlkIn0")
+
+			key, err := db.NewFromPageCursor(cursor)
+			So(err, ShouldBeNil)
+			So(key, ShouldResemble, &db.PageKey{
+				Key: "query-key",
+				ID:  "id",
+			})
+		})
+		Convey("should return nil DB key if empty", func() {
+			key, err := db.NewFromPageCursor("")
+			So(err, ShouldBeNil)
+			So(key, ShouldBeNil)
+		})
+	})
+}

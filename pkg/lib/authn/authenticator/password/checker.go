@@ -22,7 +22,7 @@ import (
 
 	"github.com/nbutton23/zxcvbn-go"
 
-	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	corepassword "github.com/authgear/authgear-server/pkg/util/password"
 )
 

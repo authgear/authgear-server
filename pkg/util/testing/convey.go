@@ -9,7 +9,7 @@ import (
 
 	"github.com/smartystreets/goconvey/convey"
 
-	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
 // ShouldEqualAPIError asserts the equality of apierrors.APIError

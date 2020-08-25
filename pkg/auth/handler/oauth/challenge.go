@@ -4,9 +4,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/lib/api"
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -85,15 +86,15 @@ type ChallengeHandler struct {
 func (h *ChallengeHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	result, err := h.Handle(resp, req)
 	if err == nil {
-		api.WriteResponse(resp, &api.Response{Result: result})
+		httputil.WriteResponse(resp, &api.Response{Result: result})
 	} else {
-		api.WriteResponse(resp, &api.Response{Error: err})
+		httputil.WriteResponse(resp, &api.Response{Error: err})
 	}
 }
 
 func (h *ChallengeHandler) Handle(resp http.ResponseWriter, req *http.Request) (*ChallengeResponse, error) {
 	var payload ChallengeRequest
-	if err := api.BindJSONBody(req, resp, ChallengeAPISchema.PartValidator(ChallengeAPISchemaIDRequest), &payload); err != nil {
+	if err := httputil.BindJSONBody(req, resp, ChallengeAPISchema.PartValidator(ChallengeAPISchemaIDRequest), &payload); err != nil {
 		return nil, err
 	}
 

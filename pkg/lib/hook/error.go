@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
 var WebHookDisallowed = apierrors.Forbidden.WithReason("WebHookDisallowed")

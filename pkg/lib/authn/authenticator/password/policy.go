@@ -1,7 +1,7 @@
 package password
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
 var PasswordPolicyViolated apierrors.Kind = apierrors.Invalid.WithReason("PasswordPolicyViolated")

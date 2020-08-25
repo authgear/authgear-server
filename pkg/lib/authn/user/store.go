@@ -8,7 +8,7 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/lib/pq"
 
-	"github.com/authgear/authgear-server/pkg/lib/api/model"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 )
 
@@ -136,11 +136,11 @@ func (s *Store) Count() (uint64, error) {
 }
 
 func (s *Store) QueryPage(after, before model.PageCursor, first, last *uint64) ([]*User, error) {
-	afterKey, err := after.AsDBKey()
+	afterKey, err := db.NewFromPageCursor(after)
 	if err != nil {
 		return nil, err
 	}
-	beforeKey, err := before.AsDBKey()
+	beforeKey, err := db.NewFromPageCursor(before)
 	if err != nil {
 		return nil, err
 	}

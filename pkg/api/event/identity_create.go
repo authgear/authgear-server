@@ -1,6 +1,6 @@
 package event
 
-import "github.com/authgear/authgear-server/pkg/lib/api/model"
+import "github.com/authgear/authgear-server/pkg/api/model"
 
 const (
 	BeforeIdentityCreate Type = "before_identity_create"

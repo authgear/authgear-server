@@ -3,7 +3,7 @@ package webapp
 import (
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/lib/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
 type State struct {
