@@ -1,33 +1,23 @@
 package configsource
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-type ServerType string
-
-const (
-	ServerTypeMain     ServerType = "main"
-	ServerTypeResolver ServerType = "resolver"
-	ServerTypeAdminAPI ServerType = "admin_api"
-)
-
 type source interface {
 	Open() error
 	Close() error
-	ProvideConfig(ctx context.Context, r *http.Request, server ServerType) (*config.Config, error)
+	ProvideConfig(r *http.Request) (*config.Config, error)
 }
 
 type ConfigSource struct {
-	src        source
-	serverType ServerType
+	src source
 }
 
-func (s *ConfigSource) ProvideConfig(ctx context.Context, r *http.Request) (*config.Config, error) {
-	return s.src.ProvideConfig(ctx, r, s.serverType)
+func (s *ConfigSource) ProvideConfig(r *http.Request) (*config.Config, error) {
+	return s.src.ProvideConfig(r)
 }
 
 type Controller struct {
@@ -54,6 +44,6 @@ func (c *Controller) Close() error {
 	return c.src.Close()
 }
 
-func (c *Controller) ForServer(server ServerType) *ConfigSource {
-	return &ConfigSource{src: c.src, serverType: server}
+func (c *Controller) GetConfigSource() *ConfigSource {
+	return &ConfigSource{src: c.src}
 }

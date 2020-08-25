@@ -1,7 +1,6 @@
 package configsource
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -161,7 +160,7 @@ func (s *LocalFS) reload(filename string) error {
 	return nil
 }
 
-func (s *LocalFS) ProvideConfig(ctx context.Context, r *http.Request, server ServerType) (*config.Config, error) {
+func (s *LocalFS) ProvideConfig(r *http.Request) (*config.Config, error) {
 	cfg := s.config.Load().(*config.Config)
 
 	return cfg, nil

@@ -13,17 +13,16 @@ import (
 func ProvideRequestContext(r *http.Request) context.Context { return r.Context() }
 
 func ProvideConfigSource(ctrl *configsource.Controller) *configsource.ConfigSource {
-	return ctrl.ForServer(configsource.ServerTypeMain)
+	return ctrl.GetConfigSource()
 }
 
 type ConfigGetter struct {
-	Context      context.Context
 	Request      *http.Request
 	ConfigSource *configsource.ConfigSource
 }
 
 func (g *ConfigGetter) GetConfig() (*config.Config, error) {
-	return g.ConfigSource.ProvideConfig(g.Context, g.Request)
+	return g.ConfigSource.ProvideConfig(g.Request)
 }
 
 var DependencySet = wire.NewSet(
