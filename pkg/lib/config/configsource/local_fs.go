@@ -160,8 +160,13 @@ func (s *LocalFS) reload(filename string) error {
 	return nil
 }
 
-func (s *LocalFS) ProvideConfig(r *http.Request) (*config.Config, error) {
-	cfg := s.config.Load().(*config.Config)
+func (s *LocalFS) ResolveAppID(r *http.Request) (appID string, err error) {
+	// In single mode, appID is ignored.
+	return
+}
 
+func (s *LocalFS) GetConfig(_appID string) (*config.Config, error) {
+	// In single mode, appID is ignored.
+	cfg := s.config.Load().(*config.Config)
 	return cfg, nil
 }

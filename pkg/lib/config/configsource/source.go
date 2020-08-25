@@ -6,22 +6,36 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-type source interface {
+type AppIDResolver interface {
+	ResolveAppID(r *http.Request) (appID string, err error)
+}
+
+type ConfigGetter interface {
+	GetConfig(appID string) (*config.Config, error)
+}
+
+type Handle interface {
 	Open() error
 	Close() error
-	ProvideConfig(r *http.Request) (*config.Config, error)
 }
 
 type ConfigSource struct {
-	src source
+	AppIDResolver AppIDResolver
+	ConfigGetter  ConfigGetter
 }
 
 func (s *ConfigSource) ProvideConfig(r *http.Request) (*config.Config, error) {
-	return s.src.ProvideConfig(r)
+	appID, err := s.AppIDResolver.ResolveAppID(r)
+	if err != nil {
+		return nil, err
+	}
+	return s.ConfigGetter.GetConfig(appID)
 }
 
 type Controller struct {
-	src source
+	Handle        Handle
+	AppIDResolver AppIDResolver
+	ConfigGetter  ConfigGetter
 }
 
 func NewController(
@@ -30,20 +44,27 @@ func NewController(
 ) *Controller {
 	switch cfg.Type {
 	case TypeLocalFS:
-		return &Controller{src: lf}
+		return &Controller{
+			Handle:        lf,
+			AppIDResolver: lf,
+			ConfigGetter:  lf,
+		}
 	default:
 		panic("config_source: invalid config source type")
 	}
 }
 
 func (c *Controller) Open() error {
-	return c.src.Open()
+	return c.Handle.Open()
 }
 
 func (c *Controller) Close() error {
-	return c.src.Close()
+	return c.Handle.Close()
 }
 
 func (c *Controller) GetConfigSource() *ConfigSource {
-	return &ConfigSource{src: c.src}
+	return &ConfigSource{
+		AppIDResolver: c.AppIDResolver,
+		ConfigGetter:  c.ConfigGetter,
+	}
 }
