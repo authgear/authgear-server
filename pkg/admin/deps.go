@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/admin/graphql"
 	"github.com/authgear/authgear-server/pkg/admin/loader"
 	"github.com/authgear/authgear-server/pkg/admin/transport"
+	adminauthz "github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -30,4 +31,5 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.AuthenticatorLoader), new(*loader.AuthenticatorLoader)),
 
 	transport.DependencySet,
+	adminauthz.DependencySet,
 )

@@ -1,4 +1,4 @@
-package transport
+package authz
 
 import (
 	"fmt"
@@ -24,21 +24,21 @@ func (c jwtClock) Now() time.Time {
 	return c.Clock.NowUTC()
 }
 
-type AuthorizationMiddlewareLogger struct{ *log.Logger }
+type AuthzLogger struct{ *log.Logger }
 
-func NewAuthorizationMiddlewareLogger(lf *log.Factory) AuthorizationMiddlewareLogger {
-	return AuthorizationMiddlewareLogger{lf.New("admin-api-authz")}
+func NewAuthzLogger(lf *log.Factory) AuthzLogger {
+	return AuthzLogger{lf.New("admin-api-authz")}
 }
 
-type AuthorizationMiddleware struct {
-	Logger  AuthorizationMiddlewareLogger
+type Middleware struct {
+	Logger  AuthzLogger
 	Auth    config.AdminAPIAuth
 	AppID   config.AppID
 	AuthKey *config.AdminAPIAuthKey
 	Clock   clock.Clock
 }
 
-func (m *AuthorizationMiddleware) Handle(next http.Handler) http.Handler {
+func (m *Middleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authorized := false
 		switch m.Auth {

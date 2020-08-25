@@ -1,9 +1,10 @@
-package transport
+package authz
 
 import (
 	"github.com/google/wire"
 )
 
 var DependencySet = wire.NewSet(
-	wire.Struct(new(GraphQLHandler), "*"),
+	NewAuthzLogger,
+	wire.Struct(new(Middleware), "*"),
 )
