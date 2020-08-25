@@ -29,6 +29,18 @@ func newRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	return recoverMiddleware
 }
 
+func newSentryMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	rootProvider := p.RootProvider
+	hub := rootProvider.SentryHub
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	sentryMiddleware := &middleware.SentryMiddleware{
+		SentryHub:  hub,
+		TrustProxy: trustProxy,
+	}
+	return sentryMiddleware
+}
+
 func newSessionInfoMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	sessionMiddleware := &session.Middleware{}
 	return sessionMiddleware
