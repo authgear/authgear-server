@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
+	"sync"
 	"sync/atomic"
 	"time"
 
+	"github.com/spf13/afero"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -21,6 +23,8 @@ import (
 	"k8s.io/client-go/util/homedir"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/fs"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -35,12 +39,15 @@ func NewKubernetesLogger(lf *log.Factory) KubernetesLogger {
 
 type Kubernetes struct {
 	Logger     LocalFSLogger
+	Clock      clock.Clock
 	TrustProxy config.TrustProxy
 	Config     *Config
 
-	client  *kubernetes.Clientset `wire:"-"`
-	done    chan<- struct{}       `wire:"-"`
-	hostMap *atomic.Value         `wire:"-"`
+	namespace string                `wire:"-"`
+	client    *kubernetes.Clientset `wire:"-"`
+	done      chan<- struct{}       `wire:"-"`
+	hostMap   *atomic.Value         `wire:"-"`
+	appMap    *sync.Map             `wire:"-"`
 }
 
 func (k *Kubernetes) Open() error {
@@ -67,8 +74,14 @@ func (k *Kubernetes) Open() error {
 		return err
 	}
 
+	k.namespace = k.Config.KubeNamespace
+	if k.namespace == "" {
+		k.namespace = corev1.NamespaceDefault
+	}
+
 	k.hostMap = &atomic.Value{}
 	k.hostMap.Store(map[string]string{})
+	k.appMap = &sync.Map{}
 
 	done := make(chan struct{})
 	k.done = done
@@ -132,7 +145,12 @@ func (k *Kubernetes) ResolveAppID(r *http.Request) (string, error) {
 }
 
 func (k *Kubernetes) ResolveContext(appID string) (*config.AppContext, error) {
-	return nil, ErrAppNotFound
+	value, _ := k.appMap.LoadOrStore(appID, &k8sApp{
+		appID: appID,
+		load:  &sync.Once{},
+	})
+	app := value.(*k8sApp)
+	return app.Load(k)
 }
 
 func (k *Kubernetes) newController(
@@ -141,15 +159,10 @@ func (k *Kubernetes) newController(
 	onUpdate func(metav1.Object),
 	onDelete func(metav1.Object),
 ) cache.Controller {
-	ns := k.Config.KubeNamespace
-	if ns == "" {
-		ns = corev1.NamespaceDefault
-	}
-
 	listWatch := cache.NewListWatchFromClient(
 		k.client.CoreV1().RESTClient(),
 		string(resource),
-		ns,
+		k.namespace,
 		fields.Everything(),
 	)
 	if !k.Config.Watch {
@@ -179,6 +192,69 @@ func (k *Kubernetes) newController(
 		},
 	})
 	return ctrl
+}
+
+func makeAppFs(configMap *corev1.ConfigMap, secret *corev1.Secret) fs.Fs {
+	appFs := afero.NewMemMapFs()
+	create := func(name string, data []byte) {
+		file, _ := appFs.Create(name)
+		_, _ = file.Write(data)
+	}
+
+	for path, data := range configMap.Data {
+		create(path, []byte(data))
+	}
+	for path, data := range configMap.BinaryData {
+		create(path, data)
+	}
+	for path, data := range secret.Data {
+		create(path, data)
+	}
+
+	return &fs.AferoFs{Fs: appFs}
+}
+
+type k8sApp struct {
+	appID      string
+	load       *sync.Once
+	appCtx     *config.AppContext
+	err        error
+	lastUsedAt int64
+}
+
+func (a *k8sApp) Load(k *Kubernetes) (*config.AppContext, error) {
+	if a.load != nil {
+		a.load.Do(func() {
+			a.appCtx, a.err = a.doLoad(k)
+		})
+	}
+	atomic.StoreInt64(&a.lastUsedAt, k.Clock.NowMonotonic().UnixNano())
+	return a.appCtx, a.err
+}
+
+func (a *k8sApp) doLoad(k *Kubernetes) (*config.AppContext, error) {
+	resourceName := k.Config.KubeAppConfigPrefix + a.appID
+
+	configMap, err := k.client.CoreV1().ConfigMaps(k.namespace).
+		Get(resourceName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	secret, err := k.client.CoreV1().Secrets(k.namespace).
+		Get(resourceName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	appFs := makeAppFs(configMap, secret)
+	appConfig, err := loadConfig(appFs)
+	if err != nil {
+		return nil, err
+	}
+	return &config.AppContext{
+		Fs:     appFs,
+		Config: appConfig,
+	}, nil
 }
 
 type emptyWatch chan watch.Event

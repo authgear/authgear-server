@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task/executor"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task/queue"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 // Injectors from wire.go:
@@ -22,16 +23,22 @@ func newConfigSourceController(p *deps.RootProvider) *configsource.Controller {
 		Logger: localFSLogger,
 		Config: config,
 	}
+	clock := _wireSystemClockValue
 	environmentConfig := p.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	kubernetes := &configsource.Kubernetes{
 		Logger:     localFSLogger,
+		Clock:      clock,
 		TrustProxy: trustProxy,
 		Config:     config,
 	}
 	controller := configsource.NewController(config, localFS, kubernetes)
 	return controller
 }
+
+var (
+	_wireSystemClockValue = clock.NewSystemClock()
+)
 
 func newInProcessQueue(p *deps.AppProvider, e *executor.InProcessExecutor) *queue.InProcessQueue {
 	handle := p.Database

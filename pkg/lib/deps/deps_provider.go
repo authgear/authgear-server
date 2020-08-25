@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 var rootDeps = wire.NewSet(
@@ -28,6 +29,7 @@ var rootDeps = wire.NewSet(
 	ProvideCaptureTaskContext,
 	ProvideRestoreTaskContext,
 
+	clock.DependencySet,
 	configsource.DependencySet,
 )
 
