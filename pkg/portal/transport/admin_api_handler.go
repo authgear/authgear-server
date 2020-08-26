@@ -5,6 +5,8 @@ import (
 	"net/http/httputil"
 	"net/url"
 
+	"github.com/graphql-go/relay"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
@@ -32,7 +34,13 @@ type AdminAPIHandler struct {
 }
 
 func (h *AdminAPIHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	appID := httproute.GetParam(r, "appid")
+	resolved := relay.FromGlobalID(httproute.GetParam(r, "appid"))
+	if resolved == nil || resolved.Type != "App" {
+		http.Error(w, "invalid app ID", http.StatusBadRequest)
+		return
+	}
+
+	appID := resolved.ID
 
 	cfg, err := h.ConfigResolver.ResolveConfig(appID)
 	if err != nil {
