@@ -27,7 +27,7 @@ func (s *AdminAPIService) ResolveConfig(appID string) (*config.Config, error) {
 
 func (s *AdminAPIService) ResolveEndpoint(appID string) (*url.URL, error) {
 	switch s.AdminAPIConfig.Type {
-	case portalconfig.AdminAPITypeLocal:
+	case portalconfig.AdminAPITypeStatic:
 		endpoint, err := url.Parse(s.AdminAPIConfig.Endpoint)
 		if err != nil {
 			return nil, err
