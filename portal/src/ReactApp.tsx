@@ -4,7 +4,7 @@ import authgear from "@authgear/web";
 import ShowLoading from "./ShowLoading";
 import Authenticated from "./graphql/portal/Authenticated";
 import AppsScreen from "./graphql/portal/AppsScreen";
-import AppScreen from "./graphql/portal/AppScreen";
+import AppRoot from "./AppRoot";
 
 // ReactAppRoutes defines the routes.
 const ReactAppRoutes: React.FC = function ReactAppRoutes() {
@@ -13,7 +13,7 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
       <Routes>
         <Route path="/" element={<Navigate to="/apps" replace={true} />} />
         <Route path="/apps" element={<AppsScreen />} />
-        <Route path="/apps/:appID" element={<AppScreen />} />
+        <Route path="/apps/:appID" element={<AppRoot />} />
       </Routes>
     </BrowserRouter>
   );
