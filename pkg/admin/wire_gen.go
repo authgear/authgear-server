@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/admin/graphql"
 	"github.com/authgear/authgear-server/pkg/admin/loader"
 	"github.com/authgear/authgear-server/pkg/admin/transport"
+	"github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
@@ -63,21 +64,21 @@ func newRequestRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
 func newAuthorizationMiddleware(p *deps.RequestProvider, auth config.AdminAPIAuth) httproute.Middleware {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	authorizationMiddlewareLogger := transport.NewAuthorizationMiddlewareLogger(factory)
+	logger := authz.NewLogger(factory)
 	configConfig := appProvider.Config
 	appConfig := configConfig.AppConfig
 	appID := appConfig.ID
 	secretConfig := configConfig.SecretConfig
 	adminAPIAuthKey := deps.ProvideAdminAPIAuthKeyMaterials(secretConfig)
 	clock := _wireSystemClockValue
-	authorizationMiddleware := &transport.AuthorizationMiddleware{
-		Logger:  authorizationMiddlewareLogger,
+	authzMiddleware := &authz.Middleware{
+		Logger:  logger,
 		Auth:    auth,
 		AppID:   appID,
 		AuthKey: adminAPIAuthKey,
 		Clock:   clock,
 	}
-	return authorizationMiddleware
+	return authzMiddleware
 }
 
 var (

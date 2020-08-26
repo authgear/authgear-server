@@ -17,6 +17,7 @@ type RootProvider struct {
 	EnvironmentConfig  *config.EnvironmentConfig
 	ConfigSourceConfig *configsource.Config
 	AuthgearConfig     *portalconfig.AuthgearConfig
+	AdminAPIConfig     *portalconfig.AdminAPIConfig
 	LoggerFactory      *log.Factory
 	SentryHub          *getsentry.Hub
 
@@ -27,6 +28,7 @@ func NewRootProvider(
 	cfg *config.EnvironmentConfig,
 	configSourceConfig *configsource.Config,
 	authgearConfig *portalconfig.AuthgearConfig,
+	adminAPIConfig *portalconfig.AdminAPIConfig,
 ) (*RootProvider, error) {
 	logLevel, err := log.ParseLevel(cfg.LogLevel)
 	if err != nil {
@@ -48,6 +50,7 @@ func NewRootProvider(
 		EnvironmentConfig:  cfg,
 		ConfigSourceConfig: configSourceConfig,
 		AuthgearConfig:     authgearConfig,
+		AdminAPIConfig:     adminAPIConfig,
 		LoggerFactory:      loggerFactory,
 		SentryHub:          sentryHub,
 	}, nil
@@ -79,20 +82,6 @@ func (p *RootProvider) Handler(f func(*RequestProvider) http.Handler) http.Handl
 			Request:      r,
 		}
 		h := f(requestProvider)
-		h.ServeHTTP(w, r)
-	})
-}
-
-func (p *RootProvider) HandlerError(f func(*RequestProvider) (http.Handler, error)) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		requestProvider := &RequestProvider{
-			RootProvider: p,
-			Request:      r,
-		}
-		h, err := f(requestProvider)
-		if err != nil {
-			panic(err)
-		}
 		h.ServeHTTP(w, r)
 	})
 }

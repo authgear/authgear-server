@@ -6,6 +6,7 @@
 package portal
 
 import (
+	"github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/graphql"
@@ -13,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/portal/transport"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"net/http"
 )
@@ -46,7 +48,7 @@ func newSessionInfoMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	return sessionMiddleware
 }
 
-func newGraphQLHandler(p *deps.RequestProvider) (http.Handler, error) {
+func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	devMode := environmentConfig.DevMode
@@ -75,7 +77,7 @@ func newGraphQLHandler(p *deps.RequestProvider) (http.Handler, error) {
 		DevMode:        devMode,
 		GraphQLContext: graphqlContext,
 	}
-	return graphQLHandler, nil
+	return graphQLHandler
 }
 
 func newRuntimeConfigHandler(p *deps.RequestProvider) http.Handler {
@@ -86,3 +88,29 @@ func newRuntimeConfigHandler(p *deps.RequestProvider) http.Handler {
 	}
 	return runtimeConfigHandler
 }
+
+func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
+	rootProvider := p.RootProvider
+	adminAPIConfig := rootProvider.AdminAPIConfig
+	controller := rootProvider.ConfigSourceController
+	configSource := deps.ProvideConfigSource(controller)
+	clock := _wireSystemClockValue
+	adder := &authz.Adder{
+		Clock: clock,
+	}
+	adminAPIService := &service.AdminAPIService{
+		AdminAPIConfig: adminAPIConfig,
+		ConfigSource:   configSource,
+		AuthzAdder:     adder,
+	}
+	adminAPIHandler := &transport.AdminAPIHandler{
+		ConfigResolver:   adminAPIService,
+		EndpointResolver: adminAPIService,
+		AuthzAdder:       adminAPIService,
+	}
+	return adminAPIHandler
+}
+
+var (
+	_wireSystemClockValue = clock.NewSystemClock()
+)
