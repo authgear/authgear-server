@@ -38,7 +38,7 @@ func TestMiddleware(t *testing.T) {
 			So(string(recorder.Body.Bytes()), ShouldEqual, "good")
 		})
 
-		Convey("jwt auth", func() {
+		Convey("jwt auth success", func() {
 			// nolint:gosec
 			privKey, err := rsa.GenerateKey(rand.Reader, 512)
 			So(err, ShouldBeNil)
@@ -77,6 +77,40 @@ func TestMiddleware(t *testing.T) {
 			handler.ServeHTTP(recorder, r)
 
 			So(string(recorder.Body.Bytes()), ShouldEqual, "good")
+		})
+
+		Convey("jwt auth failure", func() {
+			// nolint:gosec
+			privKey, err := rsa.GenerateKey(rand.Reader, 512)
+			So(err, ShouldBeNil)
+
+			jwkKey, err := jwk.New(privKey)
+			So(err, ShouldBeNil)
+			jwkKey.Set("kid", "mykey")
+
+			set := jwk.Set{
+				Keys: []jwk.Key{jwkKey},
+			}
+
+			m := adminauthz.Middleware{
+				Logger: adminauthz.Logger{
+					log.Null,
+				},
+				Auth:  config.AdminAPIAuthJWT,
+				AppID: "app-id",
+				AuthKey: &config.AdminAPIAuthKey{
+					Set: set,
+				},
+				Clock: clock.NewMockClock(),
+			}
+
+			r, _ := http.NewRequest("GET", "/", nil)
+
+			recorder := httptest.NewRecorder()
+			handler := m.Handle(h)
+			handler.ServeHTTP(recorder, r)
+
+			So(recorder.Result().StatusCode, ShouldEqual, http.StatusForbidden)
 		})
 	})
 }
