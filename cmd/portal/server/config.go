@@ -19,6 +19,8 @@ type Config struct {
 	ConfigSource *configsource.Config `envconfig:"CONFIG_SOURCE"`
 	// Authgear configures Authgear acting as authentication server for the portal.
 	Authgear portalconfig.AuthgearConfig `envconfig:"AUTHGEAR"`
+	// AdminAPI configures how portal interacts with Authgear Admin API.
+	AdminAPI portalconfig.AdminAPIConfig `envconfig:"ADMIN_API"`
 
 	*config.EnvironmentConfig
 }

@@ -6,6 +6,7 @@
 package portal
 
 import (
+	"github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/graphql"
@@ -13,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/portal/transport"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"net/http"
 )
@@ -86,3 +88,29 @@ func newRuntimeConfigHandler(p *deps.RequestProvider) http.Handler {
 	}
 	return runtimeConfigHandler
 }
+
+func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
+	rootProvider := p.RootProvider
+	adminAPIConfig := rootProvider.AdminAPIConfig
+	controller := rootProvider.ConfigSourceController
+	configSource := deps.ProvideConfigSource(controller)
+	clock := _wireSystemClockValue
+	authzAdder := &authz.AuthzAdder{
+		Clock: clock,
+	}
+	adminAPIService := &service.AdminAPIService{
+		AdminAPIConfig: adminAPIConfig,
+		ConfigSource:   configSource,
+		AuthzAdder:     authzAdder,
+	}
+	adminAPIHandler := &transport.AdminAPIHandler{
+		ConfigResolver:   adminAPIService,
+		EndpointResolver: adminAPIService,
+		AuthzAdder:       adminAPIService,
+	}
+	return adminAPIHandler
+}
+
+var (
+	_wireSystemClockValue = clock.NewSystemClock()
+)
