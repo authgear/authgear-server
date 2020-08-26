@@ -86,7 +86,7 @@ func generateOctetKey() jwk.Set {
 		panic(err)
 	}
 
-	jwkKey.Set(jwk.KeyIDKey, uuid.New())
+	_ = jwkKey.Set(jwk.KeyIDKey, uuid.New())
 
 	keySet := jwk.Set{
 		Keys: []jwk.Key{jwkKey},
@@ -104,9 +104,9 @@ func generateRSAKey() jwk.Set {
 	if err != nil {
 		panic(err)
 	}
-	jwkKey.Set(jwk.KeyIDKey, uuid.New())
-	jwkKey.Set(jwk.KeyUsageKey, jwk.ForSignature)
-	jwkKey.Set(jwk.AlgorithmKey, "RS256")
+	_ = jwkKey.Set(jwk.KeyIDKey, uuid.New())
+	_ = jwkKey.Set(jwk.KeyUsageKey, jwk.ForSignature)
+	_ = jwkKey.Set(jwk.AlgorithmKey, "RS256")
 
 	keySet := jwk.Set{
 		Keys: []jwk.Key{jwkKey},

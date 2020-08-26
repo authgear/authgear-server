@@ -60,7 +60,10 @@ func (r *ResponseRenderer) Render(w http.ResponseWriter, req *http.Request, temp
 	if beforeWrite != nil {
 		beforeWrite(w)
 	}
-	w.Write(body)
+	_, err = w.Write(body)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (r *ResponseRenderer) RenderHTML(w http.ResponseWriter, req *http.Request, templateType string, data interface{}) {

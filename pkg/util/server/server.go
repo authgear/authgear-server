@@ -56,10 +56,7 @@ func Start(logger *log.Logger, specs []Spec) {
 		go func() {
 			defer waitGroup.Done()
 
-			select {
-			case <-shutdown:
-				break
-			}
+			<-shutdown
 
 			logger.Infof("stopping %v...", spec.Name)
 
@@ -70,13 +67,12 @@ func Start(logger *log.Logger, specs []Spec) {
 		}()
 	}
 
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
-	select {
-	case sig := <-sig:
-		logger.Infof("received signal %s, shutting down...", sig.String())
-	}
+	sig := <-sigChan
+	logger.Infof("received signal %s, shutting down...", sig.String())
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	close(shutdown)

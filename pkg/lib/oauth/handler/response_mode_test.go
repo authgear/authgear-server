@@ -20,7 +20,7 @@ func TestWriteResponse(t *testing.T) {
 				"state": "this_is_the_state",
 			}
 			writeResponse(w, r, redirectURI, responseMode, response)
-			So(string(w.Body.Bytes()), ShouldEqual, expected)
+			So(w.Body.String(), ShouldEqual, expected)
 		}
 
 		test("", `<!DOCTYPE html>

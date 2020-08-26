@@ -13,7 +13,6 @@ type SQLBuilder struct {
 	namespace string
 	schema    string
 	appID     string
-	forTenant bool
 }
 
 func newSQLBuilder() sq.StatementBuilderType {

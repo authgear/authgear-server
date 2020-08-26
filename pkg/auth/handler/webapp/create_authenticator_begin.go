@@ -37,7 +37,7 @@ type CreateAuthenticatorBeginHandler struct {
 
 func (h *CreateAuthenticatorBeginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -55,15 +55,17 @@ func (h *CreateAuthenticatorBeginHandler) ServeHTTP(w http.ResponseWriter, r *ht
 	var state *webapp.State
 	var graph *interaction.Graph
 
-	h.Database.WithTx(func() error {
+	err = h.Database.WithTx(func() error {
 		state, graph, err = h.WebApp.Get(StateID(r))
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return err
 		}
 
 		return nil
 	})
+	if err != nil {
+		panic(err)
+	}
 
 	var node CreateAuthenticatorBeginNode
 	if !graph.FindLastNode(&node) {
@@ -71,15 +73,14 @@ func (h *CreateAuthenticatorBeginHandler) ServeHTTP(w http.ResponseWriter, r *ht
 	}
 	edges, err := node.GetCreateAuthenticatorEdges()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		panic(err)
 	}
 
 	if edgeIndex >= len(edges) {
 		edgeIndex = 0
 	}
 
-	h.Database.WithTx(func() error {
+	err = h.Database.WithTx(func() error {
 		selectedEdge := edges[edgeIndex]
 		switch selectedEdge := selectedEdge.(type) {
 		case *nodes.EdgeCreateAuthenticatorPassword:
@@ -96,7 +97,6 @@ func (h *CreateAuthenticatorBeginHandler) ServeHTTP(w http.ResponseWriter, r *ht
 				return
 			})
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 			result.WriteResponse(w, r)
@@ -106,6 +106,9 @@ func (h *CreateAuthenticatorBeginHandler) ServeHTTP(w http.ResponseWriter, r *ht
 
 		return nil
 	})
+	if err != nil {
+		panic(err)
+	}
 }
 
 type CreateAuthenticatorAlternative struct {

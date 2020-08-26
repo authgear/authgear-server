@@ -34,7 +34,7 @@ func TestSign(t *testing.T) {
 
 	Convey("Sign with RSA jwk.Key with kid", t, func() {
 		payload := jwt.New()
-		payload.Set("foobar", 42)
+		_ = payload.Set("foobar", 42)
 
 		alg := jwa.RS256
 		// nolint: gosec
@@ -43,7 +43,7 @@ func TestSign(t *testing.T) {
 
 		jwkKey, err := jwk.New(privKey)
 		So(err, ShouldBeNil)
-		jwkKey.Set("kid", "mykey")
+		_ = jwkKey.Set("kid", "mykey")
 
 		token, err := Sign(payload, alg, jwkKey)
 		So(err, ShouldBeNil)
@@ -53,7 +53,7 @@ func TestSign(t *testing.T) {
 
 	Convey("Sign with RSA jwk.Key WITHOUT kid", t, func() {
 		payload := jwt.New()
-		payload.Set("foobar", 42)
+		_ = payload.Set("foobar", 42)
 
 		alg := jwa.RS256
 		// nolint: gosec
@@ -71,7 +71,7 @@ func TestSign(t *testing.T) {
 
 	Convey("Sign with ECDSA jwk.Key with kid", t, func() {
 		payload := jwt.New()
-		payload.Set("foobar", 42)
+		_ = payload.Set("foobar", 42)
 
 		alg := jwa.ES256
 		privKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
@@ -88,7 +88,7 @@ func TestSign(t *testing.T) {
 
 	Convey("Sign with raw key", t, func() {
 		payload := jwt.New()
-		payload.Set("foobar", 42)
+		_ = payload.Set("foobar", 42)
 
 		alg := jwa.RS256
 		// nolint: gosec
@@ -103,7 +103,7 @@ func TestSign(t *testing.T) {
 
 	Convey("Sign with octet key", t, func() {
 		payload := jwt.New()
-		payload.Set("foobar", 42)
+		_ = payload.Set("foobar", 42)
 
 		alg := jwa.HS256
 		key := []byte("secret")

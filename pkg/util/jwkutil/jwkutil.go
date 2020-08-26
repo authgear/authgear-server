@@ -27,7 +27,7 @@ func PublicKeySet(set *jwk.Set) (*jwk.Set, error) {
 		}
 
 		if kid := key.KeyID(); kid != "" {
-			pkey.Set(jwk.KeyIDKey, kid)
+			_ = pkey.Set(jwk.KeyIDKey, kid)
 		}
 
 		jwks.Keys = append(jwks.Keys, pkey)

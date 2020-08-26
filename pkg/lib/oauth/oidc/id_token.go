@@ -43,14 +43,14 @@ func (ti *IDTokenIssuer) IssueIDToken(client config.OAuthClientConfig, s session
 
 	now := ti.Clock.NowUTC()
 
-	claims.Set(jwt.AudienceKey, client.ClientID())
-	claims.Set(jwt.IssuedAtKey, now.Unix())
-	claims.Set(jwt.ExpirationKey, now.Add(IDTokenValidDuration).Unix())
+	_ = claims.Set(jwt.AudienceKey, client.ClientID())
+	_ = claims.Set(jwt.IssuedAtKey, now.Unix())
+	_ = claims.Set(jwt.ExpirationKey, now.Add(IDTokenValidDuration).Unix())
 	for key, value := range s.SessionAttrs().Claims {
-		claims.Set(string(key), value)
+		_ = claims.Set(string(key), value)
 	}
 	if nonce != "" {
-		claims.Set("nonce", nonce)
+		_ = claims.Set("nonce", nonce)
 	}
 
 	jwk := ti.Secrets.Set.Keys[0]
@@ -70,10 +70,10 @@ func (ti *IDTokenIssuer) LoadUserClaims(s session.Session) (jwt.Token, error) {
 	}
 
 	claims := jwt.New()
-	claims.Set(jwt.IssuerKey, ti.Endpoints.BaseURL().String())
-	claims.Set(jwt.SubjectKey, s.SessionAttrs().UserID)
-	claims.Set(string(authn.ClaimUserIsAnonymous), user.IsAnonymous)
-	claims.Set(string(authn.ClaimUserIsVerified), user.IsVerified)
+	_ = claims.Set(jwt.IssuerKey, ti.Endpoints.BaseURL().String())
+	_ = claims.Set(jwt.SubjectKey, s.SessionAttrs().UserID)
+	_ = claims.Set(string(authn.ClaimUserIsAnonymous), user.IsAnonymous)
+	_ = claims.Set(string(authn.ClaimUserIsVerified), user.IsVerified)
 
 	return claims, nil
 }

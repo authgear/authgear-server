@@ -60,13 +60,13 @@ func TestExtractOctetKey(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-		key1.Set("kid", "key-1")
+		_ = key1.Set("kid", "key-1")
 
 		key2, err := jwk.New([]byte("secret2"))
 		if err != nil {
 			panic(err)
 		}
-		key2.Set("kid", "key-2")
+		_ = key2.Set("kid", "key-2")
 
 		set := &jwk.Set{
 			Keys: []jwk.Key{key1, key2},

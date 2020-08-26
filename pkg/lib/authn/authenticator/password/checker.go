@@ -112,10 +112,7 @@ func checkPasswordExcludedKeywords(password string, keywords []string) bool {
 		return false
 	}
 	loc := re.FindStringIndex(password)
-	if loc == nil {
-		return true
-	}
-	return false
+	return loc == nil
 }
 
 func checkPasswordGuessableLevel(password string, minLevel int, userInputs []string) (int, bool) {

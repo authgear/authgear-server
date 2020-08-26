@@ -26,5 +26,5 @@ func main() {
 		log.Printf("failed to load .env file: %s", err)
 	}
 
-	cmdRoot.Execute()
+	_ = cmdRoot.Execute()
 }

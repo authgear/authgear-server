@@ -77,7 +77,9 @@ func WriteResponse(rw http.ResponseWriter, response *api.Response) {
 
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(httpStatus)
-	encoder.Encode(response)
+	if err := encoder.Encode(response); err != nil {
+		panic(err)
+	}
 
 	if err != nil && err.Code >= 500 && err.Code < 600 {
 		// delegate logging to panic recovery

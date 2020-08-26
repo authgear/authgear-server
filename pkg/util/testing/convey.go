@@ -15,7 +15,7 @@ import (
 // ShouldEqualAPIError asserts the equality of apierrors.APIError
 func ShouldEqualAPIError(actual interface{}, expected ...interface{}) string {
 	if len(expected) < 1 || len(expected) > 2 {
-		return fmt.Sprintf("ShouldEqualSkyError receives 1 to 2 arguments")
+		return "ShouldEqualSkyError receives 1 to 2 arguments"
 	}
 
 	apiErr, ok := actual.(apierrors.APIError)
@@ -57,7 +57,7 @@ func ShouldEqualAPIError(actual interface{}, expected ...interface{}) string {
 // by considering them as string set
 func ShouldEqualStringSliceWithoutOrder(actual interface{}, expected ...interface{}) string {
 	if len(expected) != 1 {
-		return fmt.Sprintf("ShouldEqualStringSliceWithoutOrder receives only expected argument")
+		return "ShouldEqualStringSliceWithoutOrder receives only expected argument"
 	}
 
 	l, ok := actual.([]string)
@@ -100,7 +100,7 @@ func ShouldEqualStringSliceWithoutOrder(actual interface{}, expected ...interfac
 // key-value pairs
 func ShouldEqualJSON(actual interface{}, expected ...interface{}) string {
 	if len(expected) != 1 {
-		return fmt.Sprintf("ShouldEqualJSON receives only one expected argument")
+		return "ShouldEqualJSON receives only one expected argument"
 	}
 
 	actualBytes, err := interfaceToByteSlice(actual)

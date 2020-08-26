@@ -11,5 +11,5 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	w.Header().Set("Content-Length", strconv.Itoa(len(body)))
 	w.WriteHeader(http.StatusOK)
-	w.Write(body)
+	_, _ = w.Write(body)
 }

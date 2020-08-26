@@ -41,17 +41,17 @@ func (f *AppleImpl) createClientSecret() (clientSecret string, err error) {
 	now := f.Clock.NowUTC()
 
 	payload := jwt.New()
-	payload.Set(jwt.IssuerKey, f.ProviderConfig.TeamID)
-	payload.Set(jwt.IssuedAtKey, now.Unix())
-	payload.Set(jwt.ExpirationKey, now.Add(5*time.Minute).Unix())
-	payload.Set(jwt.AudienceKey, "https://appleid.apple.com")
-	payload.Set(jwt.SubjectKey, f.ProviderConfig.ClientID)
+	_ = payload.Set(jwt.IssuerKey, f.ProviderConfig.TeamID)
+	_ = payload.Set(jwt.IssuedAtKey, now.Unix())
+	_ = payload.Set(jwt.ExpirationKey, now.Add(5*time.Minute).Unix())
+	_ = payload.Set(jwt.AudienceKey, "https://appleid.apple.com")
+	_ = payload.Set(jwt.SubjectKey, f.ProviderConfig.ClientID)
 
 	jwkKey, err := jwk.New(key)
 	if err != nil {
 		return
 	}
-	jwkKey.Set("kid", f.ProviderConfig.KeyID)
+	_ = jwkKey.Set("kid", f.ProviderConfig.KeyID)
 
 	token, err := jwtutil.Sign(payload, jwa.ES256, jwkKey)
 	if err != nil {
