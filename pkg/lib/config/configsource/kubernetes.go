@@ -39,7 +39,7 @@ func NewKubernetesLogger(lf *log.Factory) KubernetesLogger {
 }
 
 type Kubernetes struct {
-	Logger     LocalFSLogger
+	Logger     KubernetesLogger
 	Clock      clock.Clock
 	TrustProxy config.TrustProxy
 	Config     *Config
