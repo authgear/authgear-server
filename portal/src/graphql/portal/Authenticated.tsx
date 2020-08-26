@@ -3,8 +3,8 @@ import { graphql, QueryRenderer } from "react-relay";
 import authgear from "@authgear/web";
 import { AuthenticatedQueryResponse } from "./__generated__/AuthenticatedQuery.graphql";
 import { environment } from "./relay";
-import ShowError from "./ShowError";
-import ShowLoading from "./ShowLoading";
+import ShowError from "../../ShowError";
+import ShowLoading from "../../ShowLoading";
 
 const query = graphql`
   query AuthenticatedQuery {

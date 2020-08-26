@@ -3,9 +3,9 @@ import { graphql, QueryRenderer } from "react-relay";
 import { Link } from "react-router-dom";
 import { AppsScreenQueryResponse } from "./__generated__/AppsScreenQuery.graphql";
 import { environment } from "./relay";
-import ScreenHeader from "./ScreenHeader";
-import ShowError from "./ShowError";
-import ShowLoading from "./ShowLoading";
+import ScreenHeader from "../../ScreenHeader";
+import ShowError from "../../ShowError";
+import ShowLoading from "../../ShowLoading";
 import styles from "./AppsScreen.module.scss";
 
 const query = graphql`

@@ -1,6 +1,6 @@
 {
-  "src": "./src",
-  "schema": "./src/schema.graphql",
+  "src": "./src/graphql/portal",
+  "schema": "./src/graphql/portal/schema.graphql",
   "exclude": ["**/node_modules/**", "**/__mocks__/**", "**/__generated__/**"],
   "extensions": ["js", "jsx", "ts", "tsx"],
   "language": "typescript"

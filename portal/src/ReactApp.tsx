@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import authgear from "@authgear/web";
-import Authenticated from "./Authenticated";
 import ShowLoading from "./ShowLoading";
-import AppsScreen from "./AppsScreen";
-import AppScreen from "./AppScreen";
+import Authenticated from "./graphql/portal/Authenticated";
+import AppsScreen from "./graphql/portal/AppsScreen";
+import AppScreen from "./graphql/portal/AppScreen";
 
 // ReactAppRoutes defines the routes.
 const ReactAppRoutes: React.FC = function ReactAppRoutes() {
