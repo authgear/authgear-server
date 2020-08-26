@@ -37,7 +37,7 @@ lint:
 	-go run ./devtools/importlinter util api util >> .make-lint-expect 2>&1
 	-go run ./devtools/importlinter version version >> .make-lint-expect 2>&1
 	-go run ./devtools/importlinter worker api lib util >> .make-lint-expect 2>&1
-	git status --porcelain | grep '.*'; test $$? -eq 1
+	git diff --exit-code .make-lint-expect > /dev/null 2>&1
 
 .PHONY: fmt
 fmt:
