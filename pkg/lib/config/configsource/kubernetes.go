@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -28,6 +27,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/fs"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+)
+
+const (
+	LabelHostMapping = "authgear.com/host-mapping"
+	LabelConfigAppID = "authgear.com/config-app-id"
 )
 
 const HostMapJSON = "hosts.json"
@@ -99,7 +103,7 @@ func (k *Kubernetes) Open() error {
 func (k *Kubernetes) onUpdate(resource metav1.Object) {
 	switch resource := resource.(type) {
 	case *corev1.ConfigMap:
-		if resource.Name == k.Config.KubeAppHostMapName {
+		if value, ok := resource.Labels[LabelHostMapping]; ok && value == "true" {
 			data, ok := resource.Data[HostMapJSON]
 			if !ok {
 				k.Logger.
@@ -109,13 +113,11 @@ func (k *Kubernetes) onUpdate(resource metav1.Object) {
 				return
 			}
 			k.updateHostMap([]byte(data))
-		} else if strings.HasPrefix(resource.Name, k.Config.KubeAppConfigPrefix) {
-			appID := strings.TrimPrefix(resource.Name, k.Config.KubeAppConfigPrefix)
+		} else if appID, ok := resource.Labels[LabelConfigAppID]; ok && appID != "" {
 			k.invalidateApp(appID)
 		}
 	case *corev1.Secret:
-		if strings.HasPrefix(resource.Name, k.Config.KubeAppConfigPrefix) {
-			appID := strings.TrimPrefix(resource.Name, k.Config.KubeAppConfigPrefix)
+		if appID, ok := resource.Labels[LabelConfigAppID]; ok && appID != "" {
 			k.invalidateApp(appID)
 		}
 	default:
@@ -124,8 +126,7 @@ func (k *Kubernetes) onUpdate(resource metav1.Object) {
 }
 
 func (k *Kubernetes) onDelete(resource metav1.Object) {
-	if strings.HasPrefix(resource.GetName(), k.Config.KubeAppConfigPrefix) {
-		appID := strings.TrimPrefix(resource.GetName(), k.Config.KubeAppConfigPrefix)
+	if appID, ok := resource.GetLabels()[LabelConfigAppID]; ok && appID != "" {
 		k.invalidateApp(appID)
 	}
 }
@@ -272,20 +273,37 @@ func (a *k8sApp) Load(k *Kubernetes) (*config.AppContext, error) {
 }
 
 func (a *k8sApp) doLoad(k *Kubernetes) (*config.AppContext, error) {
-	resourceName := k.Config.KubeAppConfigPrefix + a.appID
-
-	configMap, err := k.client.CoreV1().ConfigMaps(k.namespace).
-		Get(resourceName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-	secret, err := k.client.CoreV1().Secrets(k.namespace).
-		Get(resourceName, metav1.GetOptions{})
+	labelSelector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
+		MatchLabels: map[string]string{LabelConfigAppID: a.appID},
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	appFs := makeAppFs(configMap, secret)
+	configMaps, err := k.client.CoreV1().ConfigMaps(k.namespace).
+		List(metav1.ListOptions{
+			LabelSelector: labelSelector.String(),
+		})
+	if err != nil {
+		return nil, err
+	}
+	secrets, err := k.client.CoreV1().Secrets(k.namespace).
+		List(metav1.ListOptions{
+			LabelSelector: labelSelector.String(),
+		})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(configMaps.Items) != 1 || len(secrets.Items) != 1 {
+		return nil, fmt.Errorf(
+			"failed to query config resources (ConfigMaps: %d, Secrets: %d)",
+			len(configMaps.Items),
+			len(secrets.Items),
+		)
+	}
+
+	appFs := makeAppFs(&configMaps.Items[0], &secrets.Items[0])
 	appConfig, err := loadConfig(appFs)
 	if err != nil {
 		return nil, err

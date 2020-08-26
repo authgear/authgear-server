@@ -20,10 +20,6 @@ type Config struct {
 	KubeConfig string `envconfig:"KUBECONFIG"`
 	// KubeNamespace indicates the namespace where the app index & configs resides
 	KubeNamespace string `envconfig:"KUBE_NAMESPACE"`
-	// KubeAppHostMapName indicates the name of app host mapping ConfigMap
-	KubeAppHostMapName string `envconfig:"KUBE_APP_HOST_MAP_NAME" default:"app-hosts"`
-	// KubeAppConfigPrefix sets the name prefix of app ConfigMap/Secret name
-	KubeAppConfigPrefix string `envconfig:"KUBE_APP_CONFIG_PREFIX" default:"app-data-"`
 
 	// Watch indicates whether the configuration source would watch for changes and reload automatically
 	Watch bool `envconfig:"WATCH" default:"true"`
