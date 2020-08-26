@@ -56,7 +56,7 @@ func TestAuthorizationHandler(t *testing.T) {
 			Convey("missing client ID", func() {
 				resp := handle(protocol.AuthorizationRequest{})
 				So(resp.Result().StatusCode, ShouldEqual, 400)
-				So(string(resp.Body.Bytes()), ShouldEqual,
+				So(resp.Body.String(), ShouldEqual,
 					"Invalid OAuth authorization request:\n"+
 						"error: unauthorized_client\n"+
 						"error_description: invalid client ID\n")
@@ -67,7 +67,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					"redirect_uri": "https://example.com",
 				})
 				So(resp.Result().StatusCode, ShouldEqual, 400)
-				So(string(resp.Body.Bytes()), ShouldEqual,
+				So(resp.Body.String(), ShouldEqual,
 					"Invalid OAuth authorization request:\n"+
 						"error: invalid_request\n"+
 						"error_description: redirect URI is not allowed\n")

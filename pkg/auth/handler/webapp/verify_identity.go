@@ -124,7 +124,7 @@ func (i *VerificationCodeInput) GetVerificationCode() string {
 
 func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -138,8 +138,7 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		if errorutil.Is(err, webapp.ErrInvalidState) {
 			inInteraction = false
 		} else if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			panic(err)
 		} else {
 			// State still valid, resume the interaction
 			inInteraction = true
@@ -147,26 +146,27 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	}
 
 	if r.Method == "GET" && inInteraction {
-		h.Database.WithTx(func() error {
+		err := h.Database.WithTx(func() error {
 			state, graph, err := h.WebApp.Get(id)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
 			data, err := h.GetData(r, state, graph)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
 			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIVerifyIdentityHTML, data)
 			return nil
 		})
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	if r.Method == "GET" && !inInteraction {
-		h.Database.WithTx(func() error {
+		err := h.Database.WithTx(func() error {
 			state, graph, err := h.WebApp.GetIntent(h.MakeIntent(r))
 			var data map[string]interface{}
 			if err != nil {
@@ -176,35 +176,39 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 			}
 
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
 			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIVerifyIdentityHTML, data)
 			return nil
 		})
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	trigger := r.Form.Get("trigger") == "true"
 
 	if r.Method == "POST" && trigger {
-		h.Database.WithTx(func() error {
+		err := h.Database.WithTx(func() error {
 			result, err := h.WebApp.PostInput(id, func() (input interface{}, err error) {
 				input = &VerificationCodeResend{}
 				return
 			})
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 			result.WriteResponse(w, r)
 			return nil
 		})
+		if err != nil {
+			panic(err)
+		}
 		return
 	}
 
 	if r.Method == "POST" {
-		h.Database.WithTx(func() error {
+		err := h.Database.WithTx(func() error {
 			inputer := func() (input interface{}, err error) {
 				err = VerifyIdentitySchema.PartValidator(VerifyIdentityRequestSchema).ValidateValue(FormToJSON(r.Form))
 				if err != nil {
@@ -227,11 +231,13 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				result, err = h.WebApp.PostIntent(h.MakeIntent(r), inputer)
 			}
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 			result.WriteResponse(w, r)
 			return nil
 		})
+		if err != nil {
+			panic(err)
+		}
 	}
 }

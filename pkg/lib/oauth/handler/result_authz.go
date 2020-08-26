@@ -21,9 +21,6 @@ type (
 		InternalError bool
 		Response      protocol.ErrorResponse
 	}
-	authorizationResultRequireAuthn struct {
-		AuthenticateURI *url.URL
-	}
 )
 
 func (a authorizationResultCode) WriteResponse(rw http.ResponseWriter, r *http.Request) {
@@ -56,12 +53,4 @@ func (a authorizationResultError) WriteResponse(rw http.ResponseWriter, r *http.
 
 func (a authorizationResultError) IsInternalError() bool {
 	return a.InternalError
-}
-
-func (a authorizationResultRequireAuthn) WriteResponse(rw http.ResponseWriter, r *http.Request) {
-	http.Redirect(rw, r, a.AuthenticateURI.String(), http.StatusFound)
-}
-
-func (a authorizationResultRequireAuthn) IsInternalError() bool {
-	return false
 }

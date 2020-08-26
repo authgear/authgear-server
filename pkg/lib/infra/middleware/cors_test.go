@@ -26,7 +26,7 @@ func TestCORSMiddleware(t *testing.T) {
 			},
 		}
 		h = m.Handle(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Write(testBody)
+			_, _ = w.Write(testBody)
 		}))
 
 		return

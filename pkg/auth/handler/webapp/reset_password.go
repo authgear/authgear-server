@@ -96,33 +96,34 @@ func (i *ResetPasswordInput) GetNewPassword() string {
 
 func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	intent := h.MakeIntent(r)
 
 	if r.Method == "GET" {
-		h.Database.WithTx(func() error {
+		err := h.Database.WithTx(func() error {
 			state, graph, err := h.WebApp.GetIntent(intent)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
 			data, err := h.GetData(r, state, graph)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
 			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIResetPasswordHTML, data)
 			return nil
 		})
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	if r.Method == "POST" {
-		h.Database.WithTx(func() error {
+		err := h.Database.WithTx(func() error {
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
 				err = ResetPasswordSchema.PartValidator(ResetPasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
 				if err != nil {
@@ -139,11 +140,13 @@ func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 				return
 			})
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 			result.WriteResponse(w, r)
 			return nil
 		})
+		if err != nil {
+			panic(err)
+		}
 	}
 }

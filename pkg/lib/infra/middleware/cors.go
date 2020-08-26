@@ -43,7 +43,6 @@ func (m *CORSMiddleware) Handle(next http.Handler) http.Handler {
 		requestMethod := r.Method
 		if requestMethod == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte{})
 		} else {
 			next.ServeHTTP(w, r)
 		}

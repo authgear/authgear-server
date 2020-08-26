@@ -56,7 +56,7 @@ type AuthenticationBeginHandler struct {
 
 func (h *AuthenticationBeginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -88,15 +88,17 @@ func (h *AuthenticationBeginHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 	var state *webapp.State
 	var graph *interaction.Graph
 
-	h.Database.WithTx(func() error {
+	err = h.Database.WithTx(func() error {
 		state, graph, err = h.WebApp.Get(StateID(r))
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return err
 		}
 
 		return nil
 	})
+	if err != nil {
+		panic(err)
+	}
 
 	var node AuthenticationBeginNode
 	if !graph.FindLastNode(&node) {
@@ -107,7 +109,7 @@ func (h *AuthenticationBeginHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		edgeIndex = 0
 	}
 
-	h.Database.WithTx(func() error {
+	err = h.Database.WithTx(func() error {
 		if firstTimeEnterHere && deviceTokenCookie != nil {
 			for _, edge := range edges {
 				if _, ok := edge.(*nodes.EdgeUseDeviceToken); ok {
@@ -118,7 +120,6 @@ func (h *AuthenticationBeginHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 						return
 					})
 					if err != nil {
-						http.Error(w, err.Error(), http.StatusInternalServerError)
 						return err
 					}
 
@@ -153,7 +154,6 @@ func (h *AuthenticationBeginHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 				return
 			})
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 			result.WriteResponse(w, r)
@@ -163,6 +163,9 @@ func (h *AuthenticationBeginHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 
 		return nil
 	})
+	if err != nil {
+		panic(err)
+	}
 }
 
 type AuthenticationType string

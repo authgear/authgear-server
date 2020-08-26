@@ -29,7 +29,7 @@ type GraphQLHandler struct {
 }
 
 func (h *GraphQLHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	h.Database.WithTx(func() error {
+	err := h.Database.WithTx(func() error {
 		doRollback := false
 		graphqlHandler := handler.New(&handler.Config{
 			Schema:   graphql.Schema,
@@ -50,4 +50,7 @@ func (h *GraphQLHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		}
 		return nil
 	})
+	if err != nil && !errors.Is(err, errRollback) {
+		panic(err)
+	}
 }

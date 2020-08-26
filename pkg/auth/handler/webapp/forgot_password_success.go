@@ -58,26 +58,27 @@ func (h *ForgotPasswordSuccessHandler) GetData(r *http.Request, state *webapp.St
 
 func (h *ForgotPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	if r.Method == "GET" {
-		h.Database.WithTx(func() error {
+		err := h.Database.WithTx(func() error {
 			state, err := h.WebApp.GetState(StateID(r))
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
 			data, err := h.GetData(r, state)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
 			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIForgotPasswordSuccessHTML, data)
 			return nil
 		})
+		if err != nil {
+			panic(err)
+		}
 	}
 }

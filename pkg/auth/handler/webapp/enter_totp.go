@@ -97,31 +97,32 @@ func (i *EnterTOTPInput) CreateDeviceToken() bool {
 
 func (h *EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	if r.Method == "GET" {
-		h.Database.WithTx(func() error {
+		err := h.Database.WithTx(func() error {
 			state, graph, err := h.WebApp.Get(StateID(r))
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
 			data, err := h.GetData(r, state, graph)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
 			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIEnterTOTPHTML, data)
 			return nil
 		})
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	if r.Method == "POST" {
-		h.Database.WithTx(func() error {
+		err := h.Database.WithTx(func() error {
 			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
 				err = EnterTOTPSchema.PartValidator(EnterTOTPRequestSchema).ValidateValue(FormToJSON(r.Form))
 				if err != nil {
@@ -138,11 +139,13 @@ func (h *EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return
 			})
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 			result.WriteResponse(w, r)
 			return nil
 		})
+		if err != nil {
+			panic(err)
+		}
 	}
 }

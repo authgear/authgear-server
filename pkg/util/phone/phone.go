@@ -32,8 +32,7 @@ func Parse(nationalNumber string, callingCode string) (e164 string, err error) {
 	if !strings.HasPrefix(callingCode, "+") {
 		callingCode = fmt.Sprintf("+%s", callingCode)
 	}
-	var rawInput string
-	rawInput = fmt.Sprintf("%s%s", callingCode, nationalNumber)
+	rawInput := fmt.Sprintf("%s%s", callingCode, nationalNumber)
 	num, err := phonenumbers.Parse(rawInput, "")
 	if err != nil {
 		return

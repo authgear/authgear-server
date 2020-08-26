@@ -9,7 +9,7 @@ import (
 )
 
 type testNode struct {
-	x int
+	_ int
 }
 
 func (t testNode) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {

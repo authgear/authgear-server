@@ -13,9 +13,9 @@ func TestDataURIWriter(t *testing.T) {
 		w, err := DataURIWriter("text/plain", &buf)
 		So(err, ShouldBeNil)
 
-		w.Write([]byte("Hello, World"))
-		w.Close()
+		_, _ = w.Write([]byte("Hello, World"))
+		_ = w.Close()
 
-		So(string(buf.Bytes()), ShouldResemble, "data:text/plain;base64,SGVsbG8sIFdvcmxk")
+		So(buf.String(), ShouldResemble, "data:text/plain;base64,SGVsbG8sIFdvcmxk")
 	})
 }

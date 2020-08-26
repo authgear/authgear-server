@@ -81,7 +81,7 @@ func TestHandleOptions(t *testing.T) {
 	Convey("OPTIONS are not handled", t, func() {
 		router := NewRouter()
 		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Write([]byte("handled by handler"))
+			_, _ = w.Write([]byte("handled by handler"))
 		})
 
 		router.Add(Route{
@@ -94,7 +94,7 @@ func TestHandleOptions(t *testing.T) {
 
 		router.ServeHTTP(w, r)
 
-		So(string(w.Body.Bytes()), ShouldEqual, "handled by handler")
+		So(w.Body.String(), ShouldEqual, "handled by handler")
 	})
 }
 

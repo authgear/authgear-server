@@ -55,12 +55,19 @@ func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "POST" {
-		h.Database.WithTx(func() error {
+		err := h.Database.WithTx(func() error {
 			sess := session.GetSession(r.Context())
-			h.SessionManager.Logout(sess, w)
+			err := h.SessionManager.Logout(sess, w)
+			if err != nil {
+				return err
+			}
+
 			redirectURI := webapp.GetRedirectURI(r, bool(h.TrustProxy))
 			http.Redirect(w, r, redirectURI, http.StatusFound)
 			return nil
 		})
+		if err != nil {
+			panic(err)
+		}
 	}
 }

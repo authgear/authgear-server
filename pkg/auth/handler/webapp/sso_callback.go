@@ -59,7 +59,7 @@ var _ nodes.InputUseIdentityOAuthUserInfo = &SSOCallbackInput{}
 
 func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -76,16 +76,18 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ErrorDescription: r.Form.Get("error_description"),
 	}
 
-	h.Database.WithTx(func() error {
+	err := h.Database.WithTx(func() error {
 		result, err := h.WebApp.PostInput(stateID, func() (input interface{}, err error) {
 			input = &data
 			return
 		})
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return err
 		}
 		result.WriteResponse(w, r)
 		return nil
 	})
+	if err != nil {
+		panic(err)
+	}
 }

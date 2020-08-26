@@ -3,13 +3,16 @@ linters:
   enable:
   - deadcode
   - gocyclo
-  - gofmt
   - golint
   - gosec
   - govet
   - ineffassign
   - misspell
   - staticcheck
+  - errcheck
+  - unused
+  - gosimple
+  - varcheck
 
 linters-settings:
   gofmt:

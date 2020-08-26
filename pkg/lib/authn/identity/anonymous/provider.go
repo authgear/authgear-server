@@ -127,7 +127,7 @@ func (p *Provider) ParseRequestUnverified(requestJWT string) (r *Request, err er
 		// The client does include alg in the JWK.
 		// Fix it by copying alg in the header.
 		if key.Algorithm() == "" {
-			key.Set(jws.AlgorithmKey, hdr.Algorithm())
+			_ = key.Set(jws.AlgorithmKey, hdr.Algorithm())
 		}
 	} else if kid := hdr.KeyID(); kid != "" {
 		key = nil

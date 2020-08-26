@@ -16,7 +16,9 @@ type SimpleSchema struct {
 
 func NewSimpleSchema(schema string) *SimpleSchema {
 	col := jsonschema.NewCollection()
-	col.AddSchema(strings.NewReader(schema), "")
+	if err := col.AddSchema(strings.NewReader(schema), ""); err != nil {
+		panic(fmt.Sprintf("validation: invalid schema: %s", err))
+	}
 	return &SimpleSchema{
 		col: col,
 	}
@@ -95,7 +97,10 @@ func (s *MultipartSchema) Instantiate() *MultipartSchema {
 	// Do not forget the parts so that we can dump the schema later.
 	// s.parts = nil
 	s.col = jsonschema.NewCollection()
-	s.col.AddSchema(strings.NewReader(schemaString), "")
+	err = s.col.AddSchema(strings.NewReader(schemaString), "")
+	if err != nil {
+		panic("validation: invalid JSON schema: " + err.Error())
+	}
 	return s
 }
 

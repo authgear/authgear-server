@@ -126,7 +126,7 @@ func (h *SettingsIdentityHandler) GetData(r *http.Request, state *webapp.State) 
 
 func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -137,26 +137,27 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
 
 	if r.Method == "GET" {
-		h.Database.WithTx(func() error {
+		err := h.Database.WithTx(func() error {
 			state, err := h.WebApp.GetState(StateID(r))
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
 			data, err := h.GetData(r, state)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 
 			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUISettingsIdentityHTML, data)
 			return nil
 		})
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	if r.Method == "POST" && r.Form.Get("x_action") == "link_oauth" {
-		h.Database.WithTx(func() error {
+		err := h.Database.WithTx(func() error {
 			intent := &webapp.Intent{
 				RedirectURI: redirectURI,
 				Intent:      intents.NewIntentAddIdentity(*userID),
@@ -170,16 +171,18 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 				return
 			})
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 			result.WriteResponse(w, r)
 			return nil
 		})
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	if r.Method == "POST" && r.Form.Get("x_action") == "unlink_oauth" {
-		h.Database.WithTx(func() error {
+		err := h.Database.WithTx(func() error {
 			intent := &webapp.Intent{
 				RedirectURI: redirectURI,
 				Intent:      intents.NewIntentRemoveIdentity(*userID),
@@ -191,16 +194,18 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 				return
 			})
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 			result.WriteResponse(w, r)
 			return nil
 		})
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	if r.Method == "POST" && r.Form.Get("x_action") == "verify_login_id" {
-		h.Database.WithTx(func() error {
+		err := h.Database.WithTx(func() error {
 			intent := &webapp.Intent{
 				RedirectURI: redirectURI,
 				KeepState:   true,
@@ -211,11 +216,13 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 				return
 			})
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 			result.WriteResponse(w, r)
 			return nil
 		})
+		if err != nil {
+			panic(err)
+		}
 	}
 }

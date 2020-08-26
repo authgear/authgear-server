@@ -98,11 +98,7 @@ func IsAPIError(err error) bool {
 	}
 
 	var v *validation.AggregatedError
-	if errorutil.As(err, &v) {
-		return true
-	}
-
-	return false
+	return errorutil.As(err, &v)
 }
 
 func AsAPIError(err error) *APIError {
