@@ -1,22 +1,22 @@
 package configsource
 
 import (
-	"fmt"
-	"io/ioutil"
 	"net/http"
 	"path/filepath"
 	"sync/atomic"
 
+	"github.com/spf13/afero"
 	"gopkg.in/fsnotify.v1"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/fs"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 type LocalFSLogger struct{ *log.Logger }
 
 func NewLocalFSLogger(lf *log.Factory) LocalFSLogger {
-	return LocalFSLogger{lf.New("local-fs-config")}
+	return LocalFSLogger{lf.New("configsource-local-fs")}
 }
 
 type LocalFS struct {
@@ -36,34 +36,16 @@ func (s *LocalFS) Open() error {
 		return err
 	}
 
-	s.appConfigPath = filepath.Join(dir, AuthgearYAML)
-	appConfigYAML, err := ioutil.ReadFile(s.appConfigPath)
+	appFs := &fs.AferoFs{Fs: afero.NewBasePathFs(afero.NewOsFs(), dir)}
+
+	cfg, err := loadConfig(appFs)
 	if err != nil {
-		return fmt.Errorf("cannot read app config file: %w", err)
-	}
-	appConfig, err := config.Parse(appConfigYAML)
-	if err != nil {
-		return fmt.Errorf("cannot parse app config: %w", err)
+		return err
 	}
 
-	s.secretConfigPath = filepath.Join(dir, AuthgearSecretYAML)
-	secretConfigYAML, err := ioutil.ReadFile(s.secretConfigPath)
-	if err != nil {
-		return fmt.Errorf("cannot read secret config file: %w", err)
-	}
-	secretConfig, err := config.ParseSecret(secretConfigYAML)
-	if err != nil {
-		return fmt.Errorf("cannot parse secret config: %w", err)
-	}
-
-	if err = secretConfig.Validate(appConfig); err != nil {
-		return fmt.Errorf("invalid secret config: %w", err)
-	}
-
-	s.config.Store(&config.Config{
-		BaseDirectory: dir,
-		AppConfig:     appConfig,
-		SecretConfig:  secretConfig,
+	s.config.Store(&config.AppContext{
+		Fs:     appFs,
+		Config: cfg,
 	})
 
 	if s.Config.Watch {
@@ -108,7 +90,7 @@ func (s *LocalFS) watch(done <-chan struct{}) {
 				WithField("file", event.Name).
 				Info("change detected, reloading...")
 
-			if err := s.reload(event.Name); err != nil {
+			if err := s.reload(); err != nil {
 				s.Logger.
 					WithError(err).
 					WithField("file", event.Name).
@@ -127,36 +109,19 @@ func (s *LocalFS) watch(done <-chan struct{}) {
 	}
 }
 
-func (s *LocalFS) reload(filename string) error {
-	newConfig := *s.config.Load().(*config.Config)
+func (s *LocalFS) reload() error {
+	appCtx := s.config.Load().(*config.AppContext)
 
-	switch filename {
-	case s.appConfigPath:
-		appConfigYAML, err := ioutil.ReadFile(s.appConfigPath)
-		if err != nil {
-			return fmt.Errorf("cannot read app config file: %w", err)
-		}
-		newConfig.AppConfig, err = config.Parse(appConfigYAML)
-		if err != nil {
-			return fmt.Errorf("cannot parse app config: %w", err)
-		}
-
-	case s.secretConfigPath:
-		secretConfigYAML, err := ioutil.ReadFile(s.secretConfigPath)
-		if err != nil {
-			return fmt.Errorf("cannot read secret config file: %w", err)
-		}
-		newConfig.SecretConfig, err = config.ParseSecret(secretConfigYAML)
-		if err != nil {
-			return fmt.Errorf("cannot parse secret config: %w", err)
-		}
+	newConfig, err := loadConfig(appCtx.Fs)
+	if err != nil {
+		return err
 	}
 
-	if err := newConfig.SecretConfig.Validate(newConfig.AppConfig); err != nil {
-		return fmt.Errorf("invalid secret config: %w", err)
+	appCtx = &config.AppContext{
+		Fs:     appCtx.Fs,
+		Config: newConfig,
 	}
-
-	s.config.Store(&newConfig)
+	s.config.Store(appCtx)
 	return nil
 }
 
@@ -165,8 +130,8 @@ func (s *LocalFS) ResolveAppID(r *http.Request) (appID string, err error) {
 	return
 }
 
-func (s *LocalFS) GetConfig(_appID string) (*config.Config, error) {
+func (s *LocalFS) ResolveContext(_appID string) (*config.AppContext, error) {
 	// In single mode, appID is ignored.
-	cfg := s.config.Load().(*config.Config)
-	return cfg, nil
+	ctx := s.config.Load().(*config.AppContext)
+	return ctx, nil
 }

@@ -1,0 +1,19 @@
+version: "3"
+services:
+  etcd:
+    image: quay.io/coreos/etcd:latest
+    volumes:
+      - etcd_data:/data
+    command: /usr/local/bin/etcd -advertise-client-urls=http://0.0.0.0:2379 -listen-client-urls=http://0.0.0.0:2379 --data-dir /data
+
+  api-server:
+    image: gcr.io/google_containers/kube-apiserver-amd64:v1.16.0
+    command: kube-apiserver --etcd-servers=http://etcd:2379 --service-cluster-ip-range=10.2.0.0/16 --insecure-port=8081 --insecure-bind-address=0.0.0.0
+    ports:
+      - 8081:8081
+    depends_on:
+      - etcd
+
+volumes:
+  etcd_data:
+    driver: local

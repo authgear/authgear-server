@@ -75,14 +75,16 @@ func (c *Config) Validate() error {
 		)
 	}
 
-	switch c.ConfigSource.Type {
-	case configsource.TypeLocalFS:
-		break
-	default:
-		sourceTypes := make([]string, len(configsource.Types))
-		for i, t := range configsource.Types {
-			sourceTypes[i] = string(t)
+	sourceTypes := make([]string, len(configsource.Types))
+	ok := false
+	for i, t := range configsource.Types {
+		if t == c.ConfigSource.Type {
+			ok = true
+			break
 		}
+		sourceTypes[i] = string(t)
+	}
+	if !ok {
 		ctx.Child("CONFIG_SOURCE_TYPE").EmitErrorMessage(
 			"invalid configuration source type; available: " + strings.Join(sourceTypes, ", "),
 		)

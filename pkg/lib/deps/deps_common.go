@@ -31,14 +31,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
-	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 var CommonDependencySet = wire.NewSet(
 	configDeps,
 	utilsDeps,
 
-	clock.DependencySet,
 	db.DependencySet,
 
 	wire.NewSet(

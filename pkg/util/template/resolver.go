@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/util/fs"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 )
 
@@ -12,7 +13,7 @@ type Loader interface {
 }
 
 type NewResolverOptions struct {
-	BaseDirectory             string
+	AppFs                     fs.Fs
 	DefaultTemplatesDirectory string
 	References                []Reference
 	FallbackLanguageTag       string
@@ -32,7 +33,7 @@ type Resolver struct {
 }
 
 func NewResolver(opts NewResolverOptions) *Resolver {
-	uriLoader := NewURILoader(opts.BaseDirectory)
+	uriLoader := NewURILoader(opts.AppFs)
 	defaultLoader := &DefaultLoaderFS{Directory: opts.DefaultTemplatesDirectory}
 	return &Resolver{
 		Loader:              uriLoader,

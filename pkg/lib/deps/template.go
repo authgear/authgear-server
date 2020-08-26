@@ -6,10 +6,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
+	"github.com/authgear/authgear-server/pkg/util/fs"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 func NewEngineWithConfig(
+	appFs fs.Fs,
 	defaultDir string,
 	c *config.Config,
 ) *template.Engine {
@@ -23,7 +25,7 @@ func NewEngineWithConfig(
 	}
 
 	resolver := template.NewResolver(template.NewResolverOptions{
-		BaseDirectory:             c.BaseDirectory,
+		AppFs:                     appFs,
 		DefaultTemplatesDirectory: defaultDir,
 		References:                refs,
 		FallbackLanguageTag:       c.AppConfig.Localization.FallbackLanguage,

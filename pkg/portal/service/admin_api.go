@@ -22,7 +22,11 @@ type AdminAPIService struct {
 }
 
 func (s *AdminAPIService) ResolveConfig(appID string) (*config.Config, error) {
-	return s.ConfigSource.ConfigGetter.GetConfig(appID)
+	appCtx, err := s.ConfigSource.ContextResolver.ResolveContext(appID)
+	if err != nil {
+		return nil, err
+	}
+	return appCtx.Config, nil
 }
 
 func (s *AdminAPIService) ResolveEndpoint(appID string) (*url.URL, error) {

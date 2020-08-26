@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+
+	"github.com/authgear/authgear-server/pkg/util/fs"
 )
 
 var ErrUnknownURIScheme = errors.New("template: unknown URI scheme")
@@ -13,11 +15,9 @@ type URILoader struct {
 	DataLoader *DataLoader
 }
 
-func NewURILoader(baseDirectory string) *URILoader {
+func NewURILoader(fs fs.Fs) *URILoader {
 	return &URILoader{
-		FileLoader: &FileLoader{
-			BaseDirectory: baseDirectory,
-		},
+		FileLoader: &FileLoader{Fs: fs},
 		DataLoader: &DataLoader{},
 	}
 }
