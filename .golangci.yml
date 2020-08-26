@@ -17,3 +17,6 @@ linters:
 linters-settings:
   gofmt:
     simplify: false
+
+run:
+  timeout: 5m
