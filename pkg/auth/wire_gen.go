@@ -291,6 +291,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -733,6 +734,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          verificationStoreRedis,
 	}
@@ -1098,6 +1100,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -1272,6 +1275,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -1593,6 +1597,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -1994,6 +1999,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -2395,6 +2401,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -2778,6 +2785,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -3171,6 +3179,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -3564,6 +3573,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -3957,6 +3967,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -4351,6 +4362,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -4746,6 +4758,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -5139,6 +5152,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -5532,6 +5546,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -5925,6 +5940,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -6318,6 +6334,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -6711,6 +6728,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -7104,6 +7122,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -7501,6 +7520,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -7895,6 +7915,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -8288,6 +8309,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -8682,6 +8704,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -9107,6 +9130,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -9411,6 +9435,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -9754,6 +9779,7 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -10133,6 +10159,7 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
@@ -10571,6 +10598,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          verificationStoreRedis,
 	}

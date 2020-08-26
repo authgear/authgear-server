@@ -264,6 +264,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          verificationStoreRedis,
 	}
@@ -425,6 +426,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}

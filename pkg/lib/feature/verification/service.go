@@ -14,6 +14,10 @@ import (
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package verification
 
+type IdentityService interface {
+	ListByUser(userID string) ([]*identity.Info, error)
+}
+
 type AuthenticatorService interface {
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
@@ -34,6 +38,7 @@ type Service struct {
 	Config         *config.VerificationConfig
 	LoginID        *config.LoginIDConfig
 	Clock          clock.Clock
+	Identities     IdentityService
 	Authenticators AuthenticatorService
 	Store          Store
 }
@@ -68,42 +73,63 @@ func (s *Service) IsIdentityVerifiable(i *identity.Info) bool {
 	}
 }
 
-func (s *Service) getVerificationStatus(i *identity.Info, ais []*authenticator.Info) Status {
-	if !s.IsIdentityVerifiable(i) {
-		return StatusDisabled
-	}
-
-	var isVerified bool
-	var isRequired bool
-	switch i.Type {
-	case authn.IdentityTypeLoginID:
-		isVerified = false
-		filter := authenticator.KeepMatchingAuthenticatorOfIdentity(i)
-		for _, a := range ais {
-			if filter.Keep(a) {
-				isVerified = true
-				break
-			}
+func (s *Service) getVerificationStatus(i *identity.Info, iis []*identity.Info, ais []*authenticator.Info) Status {
+	visited := map[string]bool{}
+	var getStatus func(i *identity.Info) Status
+	getStatus = func(i *identity.Info) Status {
+		visited[i.ID] = true
+		if !s.IsIdentityVerifiable(i) {
+			return StatusDisabled
 		}
 
-		loginIDKey := i.Claims[identity.IdentityClaimLoginIDKey].(string)
-		isRequired = s.isLoginIDKeyRequired(loginIDKey)
-	case authn.IdentityTypeOAuth:
-		isVerified = true
-		isRequired = false
-	default:
-		isVerified = false
-		isRequired = false
+		var isVerified bool
+		var isRequired bool
+		switch i.Type {
+		case authn.IdentityTypeLoginID:
+			isVerified = false
+			filter := authenticator.KeepMatchingAuthenticatorOfIdentity(i)
+			for _, a := range ais {
+				if filter.Keep(a) {
+					isVerified = true
+					break
+				}
+			}
+
+			if email, ok := i.Claims[identity.StandardClaimEmail].(string); ok {
+				for _, si := range iis {
+					if si.ID == i.ID || visited[si.ID] || si.Claims[identity.StandardClaimEmail] != email {
+						continue
+					}
+
+					status := getStatus(si)
+					if status == StatusVerified {
+						isVerified = true
+						break
+					}
+				}
+			}
+
+			loginIDKey := i.Claims[identity.IdentityClaimLoginIDKey].(string)
+			isRequired = s.isLoginIDKeyRequired(loginIDKey)
+		case authn.IdentityTypeOAuth:
+			isVerified = true
+			isRequired = false
+		default:
+			isVerified = false
+			isRequired = false
+		}
+
+		switch {
+		case isVerified:
+			return StatusVerified
+		case isRequired:
+			return StatusRequired
+		default:
+			return StatusPending
+		}
 	}
 
-	switch {
-	case isVerified:
-		return StatusVerified
-	case isRequired:
-		return StatusRequired
-	default:
-		return StatusPending
-	}
+	return getStatus(i)
 }
 
 func (s *Service) GetVerificationStatus(i *identity.Info) (Status, error) {
@@ -111,12 +137,17 @@ func (s *Service) GetVerificationStatus(i *identity.Info) (Status, error) {
 		return StatusDisabled, nil
 	}
 
+	identities, err := s.Identities.ListByUser(i.UserID)
+	if err != nil {
+		return "", err
+	}
+
 	authenticators, err := s.Authenticators.List(i.UserID)
 	if err != nil {
 		return "", err
 	}
 
-	return s.getVerificationStatus(i, authenticators), nil
+	return s.getVerificationStatus(i, identities, authenticators), nil
 }
 
 func (s *Service) GetVerificationStatuses(is []*identity.Info) (map[string]Status, error) {
@@ -130,13 +161,17 @@ func (s *Service) GetVerificationStatuses(is []*identity.Info) (map[string]Statu
 	if err != nil {
 		return nil, err
 	}
+	identities, err := s.Identities.ListByUser(userID)
+	if err != nil {
+		return nil, err
+	}
 
 	statuses := map[string]Status{}
 	for _, i := range is {
 		if i.UserID != userID {
 			panic("verification: expect all user ID is same")
 		}
-		statuses[i.ID] = s.getVerificationStatus(i, authenticators)
+		statuses[i.ID] = s.getVerificationStatus(i, identities, authenticators)
 	}
 	return statuses, nil
 }
@@ -154,7 +189,7 @@ func (s *Service) IsVerified(identities []*identity.Info, authenticators []*auth
 	numVerifiable := 0
 	numVerified := 0
 	for _, i := range identities {
-		status := s.getVerificationStatus(i, authenticators)
+		status := s.getVerificationStatus(i, identities, authenticators)
 		switch status {
 		case StatusVerified:
 			numVerifiable++

@@ -226,6 +226,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Config:         verificationConfig,
 		LoginID:        loginIDConfig,
 		Clock:          clockClock,
+		Identities:     serviceService,
 		Authenticators: service3,
 		Store:          storeRedis,
 	}
