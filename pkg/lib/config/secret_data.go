@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/lestrrat-go/jwx/jwk"
 
@@ -47,26 +46,23 @@ var _ = SecretConfigSchema.Add("RedisCredentials", `
 		"host": { "type": "string" },
 		"port": { "type": "integer" },
 		"password": { "type": "string" },
-		"db": { "type": "integer" },
-		"sentinel": { "$ref": "#/$defs/RedisSentinelConfig" }
+		"db": { "type": "integer" }
 	}
 }
 `)
 
 type RedisCredentials struct {
-	Host     string               `json:"host,omitempty"`
-	Port     int                  `json:"port,omitempty"`
-	Password string               `json:"password,omitempty"`
-	DB       int                  `json:"db,omitempty"`
-	Sentinel *RedisSentinelConfig `json:"sentinel,omitempty"`
+	Host     string `json:"host,omitempty"`
+	Port     int    `json:"port,omitempty"`
+	Password string `json:"password,omitempty"`
+	DB       int    `json:"db,omitempty"`
 }
 
 func (c *RedisCredentials) SensitiveStrings() []string {
-	return append([]string{
+	return []string{
 		c.Host,
 		c.Password,
-		c.Sentinel.MasterName,
-	}, c.Sentinel.Addrs...)
+	}
 }
 
 func (c *RedisCredentials) SetDefaults() {
@@ -76,48 +72,16 @@ func (c *RedisCredentials) SetDefaults() {
 }
 
 func (c *RedisCredentials) Validate(ctx *validation.Context) {
-	if c.Sentinel.Enabled {
-		if len(c.Sentinel.Addrs) == 0 {
-			ctx.Child("sentinel", "addrs").EmitErrorMessage("redis sentinel addrs are not provided")
-		}
-	} else {
-		if c.Host == "" {
-			ctx.Child("host").EmitErrorMessage("redis host is not provided")
-		}
+	if c.Host == "" {
+		ctx.Child("host").EmitErrorMessage("redis host is not provided")
 	}
 }
 
 func (c *RedisCredentials) ConnKey() string {
-	if c.Sentinel.Enabled {
-		return fmt.Sprintf("sentinel/%s;%s/%d",
-			c.Sentinel.MasterName,
-			strings.Join(c.Sentinel.Addrs, ";"),
-			c.DB,
-		)
-	}
 	return fmt.Sprintf("redis/%s:%s/%d",
 		c.Host,
 		c.Password,
-		c.DB,
-	)
-}
-
-var _ = SecretConfigSchema.Add("RedisSentinelConfig", `
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"enabled": { "type": "boolean" },
-		"addrs": { "type": "array", "items": { "type": "string" } },
-		"master_name": { "type": "string" }
-	}
-}
-`)
-
-type RedisSentinelConfig struct {
-	Enabled    bool     `json:"enabled,omitempty"`
-	Addrs      []string `json:"addrs,omitempty"`
-	MasterName string   `json:"master_name,omitempty"`
+		c.DB)
 }
 
 var _ = SecretConfigSchema.Add("SMTPMode", `

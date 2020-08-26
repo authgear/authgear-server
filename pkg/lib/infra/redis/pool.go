@@ -1,12 +1,10 @@
 package redis
 
 import (
-	"errors"
 	"fmt"
 	"sync"
 	"time"
 
-	"github.com/FZambia/sentinel"
 	"github.com/gomodule/redigo/redis"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -66,10 +64,6 @@ func (p *Pool) Close() (err error) {
 }
 
 func (p *Pool) openRedis(cfg *config.RedisConfig, credentials *config.RedisCredentials) *redis.Pool {
-	if credentials.Sentinel.Enabled {
-		return p.newSentinelPool(cfg, credentials)
-	}
-
 	hostPort := fmt.Sprintf("%s:%d", credentials.Host, credentials.Port)
 	dialFunc := func() (conn redis.Conn, err error) {
 		conn, err = redis.Dial(
@@ -89,54 +83,6 @@ func (p *Pool) openRedis(cfg *config.RedisConfig, credentials *config.RedisCrede
 		cfg,
 		dialFunc,
 		testOnBorrowFunc,
-	)
-}
-
-func (p *Pool) newSentinelPool(cfg *config.RedisConfig, c *config.RedisCredentials) *redis.Pool {
-	s := &sentinel.Sentinel{
-		Addrs:      c.Sentinel.Addrs,
-		MasterName: c.Sentinel.MasterName,
-		Dial: func(addr string) (redis.Conn, error) {
-			dialConnectTimeout := 3 * time.Second
-			timeout := 500 * time.Millisecond
-			c, err := redis.Dial(
-				"tcp",
-				addr,
-				redis.DialConnectTimeout(dialConnectTimeout),
-				redis.DialReadTimeout(timeout),
-				redis.DialWriteTimeout(timeout),
-			)
-			if err != nil {
-				return nil, err
-			}
-			return c, nil
-		},
-	}
-
-	return p.newPool(
-		cfg,
-		func() (redis.Conn, error) {
-			masterAddr, err := s.MasterAddr()
-			if err != nil {
-				return nil, err
-			}
-			c, err := redis.Dial(
-				"tcp",
-				masterAddr,
-				redis.DialDatabase(c.DB),
-				redis.DialPassword(c.Password),
-			)
-			if err != nil {
-				return nil, err
-			}
-			return c, nil
-		},
-		func(c redis.Conn, t time.Time) error {
-			if !sentinel.TestRole(c, "master") {
-				return errors.New("Role check failed")
-			}
-			return nil
-		},
 	)
 }
 
