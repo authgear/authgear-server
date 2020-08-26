@@ -25,6 +25,8 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 	rootRoute := httproute.Route{Middleware: rootChain}
 
 	router.Add(transport.ConfigureRuntimeConfigRoute(rootRoute), p.Handler(newRuntimeConfigHandler))
+
+	// FIXME(portal): require authentication to access the following routes.
 	router.Add(transport.ConfigureGraphQLRoute(rootRoute), p.Handler(newGraphQLHandler))
 	router.Add(transport.ConfigureAdminAPIRoute(rootRoute), p.Handler(newAdminAPIHandler))
 
