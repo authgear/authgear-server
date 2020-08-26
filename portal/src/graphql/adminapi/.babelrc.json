@@ -1,0 +1,10 @@
+{
+  "plugins": [
+    ["babel-plugin-relay", {
+      "src": ".",
+      "schema": "./schema.graphql",
+      "extensions": ["tsx"],
+      "language": "typescript"
+    }]
+  ]
+}

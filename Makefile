@@ -92,5 +92,5 @@ static:
 export-schemas:
 	go run ./scripts/exportschemas -s app-config -o tmp/app-config.schema.json
 	go run ./scripts/exportschemas -s secrets-config -o tmp/secrets-config.schema.json
-	npm run --silent --prefix ./scripts/npm export-graphql-schema admin > tmp/admin-schema.graphql
-	npm run --silent --prefix ./scripts/npm export-graphql-schema portal > tmp/portal-schema.graphql
+	npm run --silent --prefix ./scripts/npm export-graphql-schema admin > portal/src/graphql/adminapi/schema.graphql
+	npm run --silent --prefix ./scripts/npm export-graphql-schema portal > portal/src/graphql/portal/schema.graphql

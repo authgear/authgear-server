@@ -26,3 +26,9 @@ oauth:
     grant_types: []
     response_types: ["none"]
 ```
+
+# Two graphql schemas
+
+We have two graphql schemas.
+We take advantage of [Babel 7 File-relative configuration](https://babeljs.io/docs/en/config-files#file-relative-configuration) to configure `babel-plugin-relay` differently.
+In this setup `relay-config` is useless to us.
