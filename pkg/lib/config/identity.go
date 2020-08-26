@@ -146,29 +146,22 @@ var _ = Schema.Add("LoginIDKeyConfig", `
 	"properties": {
 		"key": { "type": "string" },
 		"type": { "$ref": "#/$defs/LoginIDKeyType" },
-		"maximum": { "type": "integer" },
-		"verification": { "$ref": "#/$defs/VerificationLoginIDKeyConfig" }
+		"maximum": { "type": "integer" }
 	},
 	"required": ["key", "type"]
 }
 `)
 
 type LoginIDKeyConfig struct {
-	Key          string                        `json:"key,omitempty"`
-	Type         LoginIDKeyType                `json:"type,omitempty"`
-	Maximum      *int                          `json:"maximum,omitempty"`
-	Verification *VerificationLoginIDKeyConfig `json:"verification,omitempty"`
+	Key     string         `json:"key,omitempty"`
+	Type    LoginIDKeyType `json:"type,omitempty"`
+	Maximum *int           `json:"maximum,omitempty"`
 }
 
 func (c *LoginIDKeyConfig) SetDefaults() {
 	if c.Maximum == nil {
 		c.Maximum = newInt(1)
 	}
-
-	if c.Verification == nil {
-		c.Verification = &VerificationLoginIDKeyConfig{}
-	}
-	c.Verification.SetDefaults(c.Type)
 }
 
 var _ = Schema.Add("LoginIDKeyType", `

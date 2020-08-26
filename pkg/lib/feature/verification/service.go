@@ -36,36 +36,19 @@ func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("verification")} }
 type Service struct {
 	Logger         Logger
 	Config         *config.VerificationConfig
-	LoginID        *config.LoginIDConfig
 	Clock          clock.Clock
 	Identities     IdentityService
 	Authenticators AuthenticatorService
 	Store          Store
 }
 
-func (s *Service) isLoginIDKeyVerifiable(key string) bool {
-	for _, c := range s.LoginID.Keys {
-		if c.Key == key {
-			return *c.Verification.Enabled
-		}
-	}
-	return false
-}
-
-func (s *Service) isLoginIDKeyRequired(key string) bool {
-	for _, c := range s.LoginID.Keys {
-		if c.Key == key {
-			return *c.Verification.Required
-		}
-	}
-	return false
-}
-
 func (s *Service) IsIdentityVerifiable(i *identity.Info) bool {
 	switch i.Type {
 	case authn.IdentityTypeLoginID:
-		key := i.Claims[identity.IdentityClaimLoginIDKey].(string)
-		return s.isLoginIDKeyVerifiable(key)
+		_, hasEmail := i.Claims[identity.StandardClaimEmail]
+		_, hasPhoneNumber := i.Claims[identity.StandardClaimPhoneNumber]
+		return (hasEmail && *s.Config.Claims.Email.Enabled) ||
+			(hasPhoneNumber && *s.Config.Claims.PhoneNumber.Enabled)
 	case authn.IdentityTypeOAuth:
 		return true
 	default:
@@ -109,8 +92,10 @@ func (s *Service) getVerificationStatus(i *identity.Info, iis []*identity.Info, 
 				}
 			}
 
-			loginIDKey := i.Claims[identity.IdentityClaimLoginIDKey].(string)
-			isRequired = s.isLoginIDKeyRequired(loginIDKey)
+			_, hasEmail := i.Claims[identity.StandardClaimEmail]
+			_, hasPhoneNumber := i.Claims[identity.StandardClaimPhoneNumber]
+			isRequired = (hasEmail && *s.Config.Claims.Email.Required) ||
+				(hasPhoneNumber && *s.Config.Claims.PhoneNumber.Required)
 		case authn.IdentityTypeOAuth:
 			isVerified = true
 			isRequired = false
