@@ -19,7 +19,7 @@ var DependencySet = wire.NewSet(
 	clock.DependencySet,
 
 	wire.Bind(new(service.ConfigGetter), new(*deps.ConfigGetter)),
-	wire.Bind(new(service.AuthzAdder), new(*adminauthz.AuthzAdder)),
+	wire.Bind(new(service.AuthzAdder), new(*adminauthz.Adder)),
 
 	loader.DependencySet,
 	wire.Bind(new(loader.AppService), new(*service.AppService)),

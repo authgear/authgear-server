@@ -95,13 +95,13 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	controller := rootProvider.ConfigSourceController
 	configSource := deps.ProvideConfigSource(controller)
 	clock := _wireSystemClockValue
-	authzAdder := &authz.AuthzAdder{
+	adder := &authz.Adder{
 		Clock: clock,
 	}
 	adminAPIService := &service.AdminAPIService{
 		AdminAPIConfig: adminAPIConfig,
 		ConfigSource:   configSource,
-		AuthzAdder:     authzAdder,
+		AuthzAdder:     adder,
 	}
 	adminAPIHandler := &transport.AdminAPIHandler{
 		ConfigResolver:   adminAPIService,
