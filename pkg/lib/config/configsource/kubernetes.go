@@ -39,7 +39,7 @@ const HostMapJSON = "hosts.json"
 type KubernetesLogger struct{ *log.Logger }
 
 func NewKubernetesLogger(lf *log.Factory) KubernetesLogger {
-	return KubernetesLogger{lf.New("kubernetes-config")}
+	return KubernetesLogger{lf.New("configsource-kubernetes")}
 }
 
 type Kubernetes struct {

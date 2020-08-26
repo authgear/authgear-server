@@ -16,7 +16,7 @@ import (
 type LocalFSLogger struct{ *log.Logger }
 
 func NewLocalFSLogger(lf *log.Factory) LocalFSLogger {
-	return LocalFSLogger{lf.New("local-fs-config")}
+	return LocalFSLogger{lf.New("configsource-local-fs")}
 }
 
 type LocalFS struct {
