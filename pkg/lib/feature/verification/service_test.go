@@ -19,6 +19,7 @@ func TestService(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
+		identities := NewMockIdentityService(ctrl)
 		authenticators := NewMockAuthenticatorService(ctrl)
 		t := true
 		f := false
@@ -40,6 +41,7 @@ func TestService(t *testing.T) {
 					},
 				},
 			},
+			Identities:     identities,
 			Authenticators: authenticators,
 		}
 
@@ -81,13 +83,16 @@ func TestService(t *testing.T) {
 			So(service.IsIdentityVerifiable(identityLoginID("username", "bar")), ShouldBeTrue)
 		})
 
-		Convey("IsIdentityVerified", func() {
+		Convey("GetVerificationStatus", func() {
 			// TODO: add test for infinite recursion prevention
+
 			So(must(service.GetVerificationStatus(identityOfType(authn.IdentityTypeAnonymous))), ShouldEqual, StatusDisabled)
 
+			identities.EXPECT().ListByUser("user-id").Return([]*identity.Info{identityOfType(authn.IdentityTypeOAuth)}, nil)
 			authenticators.EXPECT().List("user-id").Return(nil, nil)
 			So(must(service.GetVerificationStatus(identityOfType(authn.IdentityTypeOAuth))), ShouldEqual, StatusVerified)
 
+			identities.EXPECT().ListByUser("user-id").Return([]*identity.Info{identityLoginID("email", "foo@example.com")}, nil)
 			authenticators.EXPECT().List("user-id").Return([]*authenticator.Info{{
 				ID:     "email",
 				Type:   authn.AuthenticatorTypeOOB,
@@ -95,6 +100,7 @@ func TestService(t *testing.T) {
 			}}, nil)
 			So(must(service.GetVerificationStatus(identityLoginID("email", "foo@example.com"))), ShouldEqual, StatusVerified)
 
+			identities.EXPECT().ListByUser("user-id").Return([]*identity.Info{identityLoginID("email", "foo@example.com")}, nil)
 			authenticators.EXPECT().List("user-id").Return([]*authenticator.Info{{
 				ID:     "phone",
 				Type:   authn.AuthenticatorTypeOOB,
@@ -104,10 +110,45 @@ func TestService(t *testing.T) {
 
 			So(must(service.GetVerificationStatus(identityLoginID("phone", "+85200000000"))), ShouldEqual, StatusDisabled)
 
+			identities.EXPECT().ListByUser("user-id").Return([]*identity.Info{identityLoginID("username", "bar")}, nil)
 			authenticators.EXPECT().List("user-id").Return([]*authenticator.Info{
 				{ID: "phone", Claims: map[string]interface{}{"test-id": "login-id-+85200000000"}},
 			}, nil)
 			So(must(service.GetVerificationStatus(identityLoginID("username", "bar"))), ShouldEqual, StatusRequired)
+
+			identities.EXPECT().ListByUser("user-id").Return([]*identity.Info{
+				{
+					UserID: "user-id",
+					ID:     "login-id",
+					Type:   authn.IdentityTypeLoginID,
+					Claims: map[string]interface{}{
+						identity.IdentityClaimLoginIDKey:   "email",
+						identity.IdentityClaimLoginIDType:  "email",
+						identity.IdentityClaimLoginIDValue: "foo@example.com",
+						identity.StandardClaimEmail:        "foo@example.com",
+					},
+				},
+				{
+					UserID: "user-id",
+					ID:     "oauth",
+					Type:   authn.IdentityTypeOAuth,
+					Claims: map[string]interface{}{
+						identity.StandardClaimEmail: "foo@example.com",
+					},
+				},
+			}, nil)
+			authenticators.EXPECT().List("user-id").Return(nil, nil)
+			So(must(service.GetVerificationStatus(&identity.Info{
+				UserID: "user-id",
+				ID:     "login-id",
+				Type:   authn.IdentityTypeLoginID,
+				Claims: map[string]interface{}{
+					identity.IdentityClaimLoginIDKey:   "email",
+					identity.IdentityClaimLoginIDType:  "email",
+					identity.IdentityClaimLoginIDValue: "foo@example.com",
+					identity.StandardClaimEmail:        "foo@example.com",
+				},
+			})), ShouldEqual, StatusVerified)
 		})
 
 		Convey("IsVerified", func() {
