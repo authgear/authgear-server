@@ -74,55 +74,62 @@ func (s *Service) IsIdentityVerifiable(i *identity.Info) bool {
 }
 
 func (s *Service) getVerificationStatus(i *identity.Info, iis []*identity.Info, ais []*authenticator.Info) Status {
-	if !s.IsIdentityVerifiable(i) {
-		return StatusDisabled
-	}
-
-	var isVerified bool
-	var isRequired bool
-	switch i.Type {
-	case authn.IdentityTypeLoginID:
-		isVerified = false
-		filter := authenticator.KeepMatchingAuthenticatorOfIdentity(i)
-		for _, a := range ais {
-			if filter.Keep(a) {
-				isVerified = true
-				break
-			}
+	visited := map[string]bool{}
+	var getStatus func(i *identity.Info) Status
+	getStatus = func(i *identity.Info) Status {
+		visited[i.ID] = true
+		if !s.IsIdentityVerifiable(i) {
+			return StatusDisabled
 		}
 
-		if email, ok := i.Claims[identity.StandardClaimEmail].(string); ok {
-			for _, si := range iis {
-				if si.ID == i.ID || si.Claims[identity.StandardClaimEmail] != email {
-					continue
-				}
-
-				status := s.getVerificationStatus(si, iis, ais)
-				if status == StatusVerified {
+		var isVerified bool
+		var isRequired bool
+		switch i.Type {
+		case authn.IdentityTypeLoginID:
+			isVerified = false
+			filter := authenticator.KeepMatchingAuthenticatorOfIdentity(i)
+			for _, a := range ais {
+				if filter.Keep(a) {
 					isVerified = true
 					break
 				}
 			}
+
+			if email, ok := i.Claims[identity.StandardClaimEmail].(string); ok {
+				for _, si := range iis {
+					if si.ID == i.ID || visited[si.ID] || si.Claims[identity.StandardClaimEmail] != email {
+						continue
+					}
+
+					status := getStatus(si)
+					if status == StatusVerified {
+						isVerified = true
+						break
+					}
+				}
+			}
+
+			loginIDKey := i.Claims[identity.IdentityClaimLoginIDKey].(string)
+			isRequired = s.isLoginIDKeyRequired(loginIDKey)
+		case authn.IdentityTypeOAuth:
+			isVerified = true
+			isRequired = false
+		default:
+			isVerified = false
+			isRequired = false
 		}
 
-		loginIDKey := i.Claims[identity.IdentityClaimLoginIDKey].(string)
-		isRequired = s.isLoginIDKeyRequired(loginIDKey)
-	case authn.IdentityTypeOAuth:
-		isVerified = true
-		isRequired = false
-	default:
-		isVerified = false
-		isRequired = false
+		switch {
+		case isVerified:
+			return StatusVerified
+		case isRequired:
+			return StatusRequired
+		default:
+			return StatusPending
+		}
 	}
 
-	switch {
-	case isVerified:
-		return StatusVerified
-	case isRequired:
-		return StatusRequired
-	default:
-		return StatusPending
-	}
+	return getStatus(i)
 }
 
 func (s *Service) GetVerificationStatus(i *identity.Info) (Status, error) {
