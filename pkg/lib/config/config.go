@@ -130,18 +130,6 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 		ctx.Child("ui", "country_calling_code", "default").
 			EmitErrorMessage("default country calling code is unlisted")
 	}
-
-	for i, loginIDKey := range c.Identity.LoginID.Keys {
-		switch loginIDKey.Type {
-		case LoginIDKeyTypeEmail, LoginIDKeyTypePhone:
-			break
-		default:
-			if *loginIDKey.Verification.Enabled {
-				ctx.Child("identity", "login_id", "keys", strconv.Itoa(i)).
-					EmitErrorMessage("verification for this login ID type is not supported")
-			}
-		}
-	}
 }
 
 func Parse(inputYAML []byte) (*AppConfig, error) {

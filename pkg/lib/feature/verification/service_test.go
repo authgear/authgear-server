@@ -25,38 +25,44 @@ func TestService(t *testing.T) {
 		f := false
 		service := &Service{
 			Config: &config.VerificationConfig{
-				Criteria: config.VerificationCriteriaAny,
-			},
-			LoginID: &config.LoginIDConfig{
-				Keys: []config.LoginIDKeyConfig{
-					{
-						Key:          "email",
-						Type:         "email",
-						Verification: &config.VerificationLoginIDKeyConfig{Enabled: &t, Required: &f},
+				Claims: &config.VerificationClaimsConfig{
+					Email: &config.VerificationClaimConfig{
+						Enabled:  &t,
+						Required: &f,
 					},
-					{
-						Key:          "username",
-						Type:         "username",
-						Verification: &config.VerificationLoginIDKeyConfig{Enabled: &t, Required: &t},
+					PhoneNumber: &config.VerificationClaimConfig{
+						Enabled:  &t,
+						Required: &t,
 					},
 				},
+				Criteria: config.VerificationCriteriaAny,
 			},
 			Identities:     identities,
 			Authenticators: authenticators,
 		}
 
 		identityLoginID := func(loginIDKey string, loginIDValue string) *identity.Info {
-			return &identity.Info{
+			i := &identity.Info{
 				UserID: "user-id",
 				ID:     "login-id-" + loginIDValue,
 				Type:   authn.IdentityTypeLoginID,
 				Claims: map[string]interface{}{
 					"test-id":                          "login-id-" + loginIDValue,
+					loginIDKey:                         loginIDValue,
 					identity.IdentityClaimLoginIDKey:   loginIDKey,
 					identity.IdentityClaimLoginIDType:  loginIDKey,
 					identity.IdentityClaimLoginIDValue: loginIDValue,
 				},
 			}
+			switch loginIDKey {
+			case "email":
+				i.Claims[identity.StandardClaimEmail] = loginIDValue
+			case "phone":
+				i.Claims[identity.StandardClaimPhoneNumber] = loginIDValue
+			case "username":
+				i.Claims[identity.StandardClaimPreferredUsername] = loginIDValue
+			}
+			return i
 		}
 
 		identityOfType := func(t authn.IdentityType) *identity.Info {
@@ -79,8 +85,8 @@ func TestService(t *testing.T) {
 			So(service.IsIdentityVerifiable(identityOfType(authn.IdentityTypeOAuth)), ShouldBeTrue)
 			So(service.IsIdentityVerifiable(identityOfType(authn.IdentityTypeAnonymous)), ShouldBeFalse)
 			So(service.IsIdentityVerifiable(identityLoginID("email", "foo@example.com")), ShouldBeTrue)
-			So(service.IsIdentityVerifiable(identityLoginID("phone", "+85200000000")), ShouldBeFalse)
-			So(service.IsIdentityVerifiable(identityLoginID("username", "bar")), ShouldBeTrue)
+			So(service.IsIdentityVerifiable(identityLoginID("phone", "+85200000000")), ShouldBeTrue)
+			So(service.IsIdentityVerifiable(identityLoginID("username", "bar")), ShouldBeFalse)
 		})
 
 		Convey("GetVerificationStatus", func() {
@@ -108,13 +114,13 @@ func TestService(t *testing.T) {
 			}}, nil)
 			So(must(service.GetVerificationStatus(identityLoginID("email", "foo@example.com"))), ShouldEqual, StatusPending)
 
-			So(must(service.GetVerificationStatus(identityLoginID("phone", "+85200000000"))), ShouldEqual, StatusDisabled)
+			So(must(service.GetVerificationStatus(identityLoginID("username", "foo"))), ShouldEqual, StatusDisabled)
 
-			identities.EXPECT().ListByUser("user-id").Return([]*identity.Info{identityLoginID("username", "bar")}, nil)
+			identities.EXPECT().ListByUser("user-id").Return([]*identity.Info{identityLoginID("phone", "+85200000000")}, nil)
 			authenticators.EXPECT().List("user-id").Return([]*authenticator.Info{
-				{ID: "phone", Claims: map[string]interface{}{"test-id": "login-id-+85200000000"}},
+				{ID: "email", Claims: map[string]interface{}{"test-id": "login-id-foo@example.com"}},
 			}, nil)
-			So(must(service.GetVerificationStatus(identityLoginID("username", "bar"))), ShouldEqual, StatusRequired)
+			So(must(service.GetVerificationStatus(identityLoginID("phone", "+85200000000"))), ShouldEqual, StatusRequired)
 
 			identities.EXPECT().ListByUser("user-id").Return([]*identity.Info{
 				{
@@ -122,10 +128,7 @@ func TestService(t *testing.T) {
 					ID:     "login-id",
 					Type:   authn.IdentityTypeLoginID,
 					Claims: map[string]interface{}{
-						identity.IdentityClaimLoginIDKey:   "email",
-						identity.IdentityClaimLoginIDType:  "email",
-						identity.IdentityClaimLoginIDValue: "foo@example.com",
-						identity.StandardClaimEmail:        "foo@example.com",
+						identity.StandardClaimEmail: "foo@example.com",
 					},
 				},
 				{
@@ -143,10 +146,7 @@ func TestService(t *testing.T) {
 				ID:     "login-id",
 				Type:   authn.IdentityTypeLoginID,
 				Claims: map[string]interface{}{
-					identity.IdentityClaimLoginIDKey:   "email",
-					identity.IdentityClaimLoginIDType:  "email",
-					identity.IdentityClaimLoginIDValue: "foo@example.com",
-					identity.StandardClaimEmail:        "foo@example.com",
+					identity.StandardClaimEmail: "foo@example.com",
 				},
 			})), ShouldEqual, StatusVerified)
 		})
@@ -194,7 +194,7 @@ func TestService(t *testing.T) {
 				},
 				{
 					Identities: []*identity.Info{
-						identityLoginID("phone", "+85200000000"),
+						identityLoginID("username", "foo"),
 					},
 					Authenticators: []*authenticator.Info{{
 						ID:     "phone",
@@ -206,7 +206,7 @@ func TestService(t *testing.T) {
 				{
 					Identities: []*identity.Info{
 						identityLoginID("email", "foo@example.com"),
-						identityLoginID("phone", "+85200000000"),
+						identityLoginID("username", "foo"),
 					},
 					Authenticators: []*authenticator.Info{{
 						ID:     "email",

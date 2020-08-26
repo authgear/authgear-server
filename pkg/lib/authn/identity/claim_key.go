@@ -36,5 +36,7 @@ const (
 )
 
 const (
-	StandardClaimEmail string = "email"
+	StandardClaimEmail             string = "email"
+	StandardClaimPhoneNumber       string = "phone_number"
+	StandardClaimPreferredUsername string = "preferred_username"
 )

@@ -117,8 +117,8 @@ func (p *Provider) New(userID string, spec Spec) (*Identity, error) {
 	}
 
 	claims := map[string]string{}
-	if standardKey, ok := p.Checker.LoginIDKeyType(spec.Key); ok {
-		claims[string(standardKey)] = normalized
+	if claimName, ok := p.Checker.LoginIDKeyClaimName(spec.Key); ok {
+		claims[claimName] = normalized
 	}
 
 	iden := &Identity{
@@ -153,8 +153,8 @@ func (p *Provider) WithValue(iden *Identity, value string) (*Identity, error) {
 	}
 
 	claims := map[string]string{}
-	if standardKey, ok := p.Checker.LoginIDKeyType(spec.Key); ok {
-		claims[string(standardKey)] = normalized
+	if claimName, ok := p.Checker.LoginIDKeyClaimName(spec.Key); ok {
+		claims[claimName] = normalized
 	}
 
 	newIden := *iden

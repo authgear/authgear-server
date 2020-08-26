@@ -289,7 +289,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -732,7 +731,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -1098,7 +1096,6 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	verificationService := &verification.Service{
 		Logger:         logger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -1273,7 +1270,6 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	verificationService := &verification.Service{
 		Logger:         logger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -1595,7 +1591,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -1997,7 +1992,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -2399,7 +2393,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -2783,7 +2776,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -3177,7 +3169,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -3571,7 +3562,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -3965,7 +3955,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -4360,7 +4349,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -4756,7 +4744,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -5150,7 +5137,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -5544,7 +5530,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -5938,7 +5923,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -6332,7 +6316,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -6726,7 +6709,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -7120,7 +7102,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -7518,7 +7499,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -7913,7 +7893,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -8307,7 +8286,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -8702,7 +8680,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -9128,7 +9105,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -9433,7 +9409,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	verificationService := &verification.Service{
 		Logger:         logger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -9777,7 +9752,6 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -10157,7 +10131,6 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
@@ -10596,7 +10569,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
-		LoginID:        loginIDConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
