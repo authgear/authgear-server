@@ -28,9 +28,9 @@ func (a *Adder) AddAuthz(auth config.AdminAPIAuth, appID config.AppID, authKey *
 
 		now := a.Clock.NowUTC()
 		payload := jwt.New()
-		payload.Set(jwt.AudienceKey, string(appID))
-		payload.Set(jwt.IssuedAtKey, now.Unix())
-		payload.Set(jwt.ExpirationKey, now.Add(5*time.Minute).Unix())
+		_ = payload.Set(jwt.AudienceKey, string(appID))
+		_ = payload.Set(jwt.IssuedAtKey, now.Unix())
+		_ = payload.Set(jwt.ExpirationKey, now.Add(5*time.Minute).Unix())
 
 		key := authKey.Set.Keys[0]
 

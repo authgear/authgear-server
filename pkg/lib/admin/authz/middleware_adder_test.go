@@ -19,7 +19,7 @@ import (
 func TestMiddleware(t *testing.T) {
 	Convey("Middleware", t, func() {
 		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Write([]byte("good"))
+			_, _ = w.Write([]byte("good"))
 		})
 
 		Convey("no auth", func() {
@@ -35,7 +35,7 @@ func TestMiddleware(t *testing.T) {
 			handler := m.Handle(h)
 			handler.ServeHTTP(recorder, r)
 
-			So(string(recorder.Body.Bytes()), ShouldEqual, "good")
+			So(recorder.Body.String(), ShouldEqual, "good")
 		})
 
 		Convey("jwt auth success", func() {
@@ -45,7 +45,7 @@ func TestMiddleware(t *testing.T) {
 
 			jwkKey, err := jwk.New(privKey)
 			So(err, ShouldBeNil)
-			jwkKey.Set("kid", "mykey")
+			_ = jwkKey.Set("kid", "mykey")
 
 			set := jwk.Set{
 				Keys: []jwk.Key{jwkKey},
@@ -76,7 +76,7 @@ func TestMiddleware(t *testing.T) {
 			handler := m.Handle(h)
 			handler.ServeHTTP(recorder, r)
 
-			So(string(recorder.Body.Bytes()), ShouldEqual, "good")
+			So(recorder.Body.String(), ShouldEqual, "good")
 		})
 
 		Convey("jwt auth failure", func() {
@@ -86,7 +86,7 @@ func TestMiddleware(t *testing.T) {
 
 			jwkKey, err := jwk.New(privKey)
 			So(err, ShouldBeNil)
-			jwkKey.Set("kid", "mykey")
+			_ = jwkKey.Set("kid", "mykey")
 
 			set := jwk.Set{
 				Keys: []jwk.Key{jwkKey},
