@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"strconv"
 )
 
 type prompt struct {
@@ -61,29 +60,6 @@ func (p promptString) Prompt() string {
 		},
 	}
 	return ps.Prompt().(string)
-}
-
-type promptInt struct {
-	Title        string
-	DefaultValue int
-	Validate     func(value int) error
-}
-
-func (p promptInt) Prompt() int {
-	var ps = prompt{
-		Title:        p.Title,
-		DefaultValue: p.DefaultValue,
-		Coerce: func(value string) (interface{}, error) {
-			return strconv.Atoi(value)
-		},
-		Validate: func(value interface{}) error {
-			if p.Validate != nil {
-				return p.Validate(value.(int))
-			}
-			return nil
-		},
-	}
-	return ps.Prompt().(int)
 }
 
 type promptURL struct {

@@ -24,9 +24,7 @@ func ReadOptionsFromConsole() *Options {
 type SecretOptions struct {
 	DatabaseURL    string
 	DatabaseSchema string
-	RedisHost      string
-	RedisPort      int
-	RedisPassword  string
+	RedisURL       string
 }
 
 func ReadSecretOptionsFromConsole() *SecretOptions {
@@ -42,19 +40,9 @@ func ReadSecretOptionsFromConsole() *SecretOptions {
 		DefaultValue: "public",
 	}.Prompt()
 
-	opts.RedisHost = promptURL{
-		Title:        "Redis host",
-		DefaultValue: "localhost",
-	}.Prompt()
-
-	opts.RedisPort = promptInt{
-		Title:        "Redis port",
-		DefaultValue: 6379,
-	}.Prompt()
-
-	opts.RedisPassword = promptString{
-		Title:        "Redis password",
-		DefaultValue: "",
+	opts.RedisURL = promptURL{
+		Title:        "Redis URL",
+		DefaultValue: "redis://localhost",
 	}.Prompt()
 
 	return opts

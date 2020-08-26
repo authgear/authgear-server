@@ -7,7 +7,7 @@
 /tls-key.pem
 
 # docker
-docker-compose.override.yml
+docker-compose.override.yaml
 
 # vs code
 .vscode
