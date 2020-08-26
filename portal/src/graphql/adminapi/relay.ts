@@ -9,21 +9,24 @@ import {
   GraphQLResponse,
 } from "relay-runtime";
 
-export function makeEnvironment(appID: string): Environment {
+export function makeEnvironment(graphqlOpaqueAppID: string): Environment {
   function fetchQuery(
     request: RequestParameters,
     variables: Variables
   ): ObservableFromValue<GraphQLResponse> {
-    return fetch(`/api/apps/${encodeURIComponent(appID)}/graphql`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        query: request.text,
-        variables,
-      }),
-    }).then(async (response) => {
+    return fetch(
+      `/api/apps/${encodeURIComponent(graphqlOpaqueAppID)}/graphql`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: request.text,
+          variables,
+        }),
+      }
+    ).then(async (response) => {
       return response.json();
     });
   }

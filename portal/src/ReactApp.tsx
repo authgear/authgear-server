@@ -13,7 +13,7 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
       <Routes>
         <Route path="/" element={<Navigate to="/apps" replace={true} />} />
         <Route path="/apps" element={<AppsScreen />} />
-        <Route path="/apps/:appID" element={<AppRoot />} />
+        <Route path="/apps/:appID/*" element={<AppRoot />} />
       </Routes>
     </BrowserRouter>
   );
