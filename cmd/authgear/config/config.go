@@ -31,9 +31,7 @@ func NewSecretConfigFromOptions(opts *SecretOptions) *config.SecretConfig {
 	items = append(items, config.SecretItem{
 		Key: config.RedisCredentialsKey,
 		Data: &config.RedisCredentials{
-			Host:     opts.RedisHost,
-			Port:     opts.RedisPort,
-			Password: opts.RedisPassword,
+			RedisURL: opts.RedisURL,
 		},
 	})
 

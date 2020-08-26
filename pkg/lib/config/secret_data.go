@@ -1,11 +1,7 @@
 package config
 
 import (
-	"fmt"
-
 	"github.com/lestrrat-go/jwx/jwk"
-
-	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 var _ = SecretConfigSchema.Add("DatabaseCredentials", `
@@ -43,45 +39,22 @@ var _ = SecretConfigSchema.Add("RedisCredentials", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"host": { "type": "string" },
-		"port": { "type": "integer" },
-		"password": { "type": "string" },
-		"db": { "type": "integer" }
-	}
+		"redis_url": { "type": "string" }
+	},
+	"required": ["redis_url"]
 }
 `)
 
 type RedisCredentials struct {
-	Host     string `json:"host,omitempty"`
-	Port     int    `json:"port,omitempty"`
-	Password string `json:"password,omitempty"`
-	DB       int    `json:"db,omitempty"`
+	RedisURL string `json:"redis_url,omitempty"`
 }
 
 func (c *RedisCredentials) SensitiveStrings() []string {
-	return []string{
-		c.Host,
-		c.Password,
-	}
-}
-
-func (c *RedisCredentials) SetDefaults() {
-	if c.Port == 0 {
-		c.Port = 6379
-	}
-}
-
-func (c *RedisCredentials) Validate(ctx *validation.Context) {
-	if c.Host == "" {
-		ctx.Child("host").EmitErrorMessage("redis host is not provided")
-	}
+	return []string{c.RedisURL}
 }
 
 func (c *RedisCredentials) ConnKey() string {
-	return fmt.Sprintf("redis/%s:%s/%d",
-		c.Host,
-		c.Password,
-		c.DB)
+	return c.RedisURL
 }
 
 var _ = SecretConfigSchema.Add("SMTPMode", `

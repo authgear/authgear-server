@@ -1,7 +1,6 @@
 package redis
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -64,14 +63,8 @@ func (p *Pool) Close() (err error) {
 }
 
 func (p *Pool) openRedis(cfg *config.RedisConfig, credentials *config.RedisCredentials) *redis.Pool {
-	hostPort := fmt.Sprintf("%s:%d", credentials.Host, credentials.Port)
 	dialFunc := func() (conn redis.Conn, err error) {
-		conn, err = redis.Dial(
-			"tcp",
-			hostPort,
-			redis.DialDatabase(credentials.DB),
-			redis.DialPassword(credentials.Password),
-		)
+		conn, err = redis.DialURL(credentials.RedisURL)
 		return
 	}
 	testOnBorrowFunc := func(conn redis.Conn, t time.Time) (err error) {
