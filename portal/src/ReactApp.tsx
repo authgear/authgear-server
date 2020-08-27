@@ -7,6 +7,7 @@ import Authenticated from "./graphql/portal/Authenticated";
 import AppsScreen from "./graphql/portal/AppsScreen";
 import AppRoot from "./AppRoot";
 import MESSAGES from "./locale-data/en.json";
+import styles from "./ReactApp.module.scss";
 
 // ReactAppRoutes defines the routes.
 const ReactAppRoutes: React.FC = function ReactAppRoutes() {
@@ -72,7 +73,7 @@ const ReactApp: React.FC = function ReactApp() {
 
   return (
     <LocaleProvider locale="en" messageByID={MESSAGES}>
-      {children}
+      <div className={styles.root}>{children}</div>
     </LocaleProvider>
   );
 };

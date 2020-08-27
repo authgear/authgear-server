@@ -1,6 +1,13 @@
+:root {
+  --color-background: white;
+  --color-primary: #176df3;
+  --color-text: #323130;
+}
+
 /* Ensure the page is least as tall as the viewport */
 html,
-body {
+body,
+:global(#react-app-root) {
   min-height: 100vh;
 }
 
@@ -48,10 +55,4 @@ a {
 /* Make select looks like div */
 select {
   appearance: none;
-}
-
-:root {
-  --color-background: white;
-  --color-primary: #176df3;
-  --color-text: #323130;
 }
