@@ -30,7 +30,11 @@ const AppList: React.FC<AppsScreenQueryResponse> = function AppList(
       {props.apps?.edges?.map((edge) => {
         const appID = String(edge?.node?.id);
         return (
-          <Link to={"/apps/" + appID} key={appID} className={styles.appItem}>
+          <Link
+            to={"/apps/" + encodeURIComponent(appID)}
+            key={appID}
+            className={styles.appItem}
+          >
             {appID}
           </Link>
         );
