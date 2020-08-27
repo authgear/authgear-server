@@ -12,8 +12,7 @@ import "./index.scss";
 
 import React from "react";
 import { render } from "react-dom";
-import { initializeIcons } from "@fluentui/react";
-import { loadTheme } from "@fluentui/react/lib/Styling";
+import { initializeIcons, loadTheme } from "@fluentui/react";
 
 import ReactApp from "./ReactApp";
 import { theme } from "./theme";

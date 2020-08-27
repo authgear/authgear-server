@@ -1,4 +1,4 @@
-import { createTheme } from "@fluentui/react/lib/Styling";
+import { createTheme } from "@fluentui/react";
 
 // Generated with Fluent UI theme Designer with
 // Primary color: #176df3
