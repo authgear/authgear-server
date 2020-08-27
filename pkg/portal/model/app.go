@@ -5,7 +5,6 @@ import (
 )
 
 type App struct {
-	ID           string               `json:"id"`
-	AppConfig    *config.AppConfig    `json:"appConfig"`
-	SecretConfig *config.SecretConfig `json:"secretConfig"`
+	ID      string
+	Context *config.AppContext
 }

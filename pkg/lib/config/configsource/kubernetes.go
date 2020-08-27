@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
+	"sort"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -52,6 +53,7 @@ type Kubernetes struct {
 	client    *kubernetes.Clientset `wire:"-"`
 	done      chan<- struct{}       `wire:"-"`
 	hostMap   *atomic.Value         `wire:"-"`
+	appIDs    *atomic.Value         `wire:"-"`
 	appMap    *sync.Map             `wire:"-"`
 }
 
@@ -86,6 +88,8 @@ func (k *Kubernetes) Open() error {
 
 	k.hostMap = &atomic.Value{}
 	k.hostMap.Store(map[string]string{})
+	k.appIDs = &atomic.Value{}
+	k.appIDs.Store([]string{})
 	k.appMap = &sync.Map{}
 
 	done := make(chan struct{})
@@ -137,7 +141,19 @@ func (k *Kubernetes) updateHostMap(data []byte) {
 		k.Logger.WithError(err).Error("failed to parse host map")
 		return
 	}
+
+	appIDMap := make(map[string]struct{})
+	for _, appID := range hostMap {
+		appIDMap[appID] = struct{}{}
+	}
+	appIDs := make([]string, 0, len(appIDMap))
+	for appID := range appIDMap {
+		appIDs = append(appIDs, appID)
+	}
+	sort.Strings(appIDs)
+
 	k.hostMap.Store(hostMap)
+	k.appIDs.Store(appIDs)
 	k.Logger.Info("host map reloaded")
 }
 
@@ -173,6 +189,11 @@ func (k *Kubernetes) cleanupCache(done <-chan struct{}) {
 func (k *Kubernetes) Close() error {
 	close(k.done)
 	return nil
+}
+
+func (k *Kubernetes) AllAppIDs() ([]string, error) {
+	appIDs := k.appIDs.Load().([]string)
+	return appIDs, nil
 }
 
 func (k *Kubernetes) ResolveAppID(r *http.Request) (string, error) {

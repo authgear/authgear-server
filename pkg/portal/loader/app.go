@@ -7,8 +7,7 @@ import (
 
 type AppService interface {
 	GetMany(id []string) ([]*model.App, error)
-	Count() (uint64, error)
-	QueryPage(after, before graphqlutil.Cursor, first, last *uint64) ([]graphqlutil.PageItem, error)
+	List(userID string) ([]*model.App, error)
 }
 
 type AppLoader struct {
@@ -43,13 +42,8 @@ func (l *AppLoader) Get(id string) *graphqlutil.Lazy {
 	return l.loader.Load(id)
 }
 
-func (l *AppLoader) QueryPage(args graphqlutil.PageArgs) (*graphqlutil.PageResult, error) {
-	values, err := l.Apps.QueryPage(args.After, args.Before, args.First, args.Last)
-	if err != nil {
-		return nil, err
-	}
-
-	return graphqlutil.NewPageResult(args, values, graphqlutil.NewLazy(func() (interface{}, error) {
-		return l.Apps.Count()
-	})), nil
+func (l *AppLoader) List(userID string) *graphqlutil.Lazy {
+	return graphqlutil.NewLazy(func() (interface{}, error) {
+		return l.Apps.List(userID)
+	})
 }
