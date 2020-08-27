@@ -3,6 +3,7 @@ import authgear from "@authgear/web";
 import { IconButton } from "@fluentui/react";
 import styles from "./ScreenHeader.module.scss";
 import srcLogo from "./image/screen-header-logo@3x.png";
+import { invertedTheme } from "./theme";
 
 const iconProps = {
   iconName: "SignOut",
@@ -30,6 +31,7 @@ const ScreenHeader: React.FC = function ScreenHeader() {
         onClick={onClickLogout}
         title="Logout"
         ariaLabel="Logout"
+        theme={invertedTheme}
       />
     </header>
   );

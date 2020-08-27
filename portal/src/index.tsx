@@ -16,12 +16,9 @@ import { initializeIcons } from "@fluentui/react";
 import { loadTheme } from "@fluentui/react/lib/Styling";
 
 import ReactApp from "./ReactApp";
+import { theme } from "./theme";
 
 initializeIcons();
-loadTheme({
-  palette: {
-    themePrimary: "white",
-    themeSecondary: "#176df3",
-  },
-});
+
+loadTheme(theme);
 render(<ReactApp />, document.getElementById("react-app-root"));
