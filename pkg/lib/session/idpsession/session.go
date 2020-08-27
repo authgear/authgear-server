@@ -37,7 +37,7 @@ func (s *IDPSession) ToAPIModel() *model.Session {
 		Meta: model.Meta{
 			ID:        s.ID,
 			CreatedAt: s.CreatedAt,
-			// FIXME(session): when would a session be updated?
+			// TODO(session): Session Updated At should be the time user actively updates it.
 			UpdatedAt: s.AccessInfo.LastAccess.Timestamp,
 		},
 
