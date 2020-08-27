@@ -14,7 +14,7 @@ func NewExternalClient(timeout time.Duration) *http.Client {
 }
 
 func NewExternalClientWithOptions(timeout time.Duration, opts ExternalClientOptions) *http.Client {
-	// TODO(http): prevent SSRF
+	// SECURITY(http): prevent SSRF
 	client := &http.Client{}
 	if !opts.FollowRedirect {
 		client.CheckRedirect = noFollowRedirectPolicy
