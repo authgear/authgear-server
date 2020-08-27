@@ -1,5 +1,6 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useContext } from "react";
 import { Link } from "react-router-dom";
+import { Context } from "@oursky/react-messageformat";
 import authgear from "@authgear/web";
 import { IconButton } from "@fluentui/react";
 import styles from "./ScreenHeader.module.scss";
@@ -11,6 +12,10 @@ const iconProps = {
 };
 
 const ScreenHeader: React.FC = function ScreenHeader() {
+  const { renderToString } = useContext(Context);
+
+  const labelSignOut = renderToString("header.sign-out");
+
   const redirectURI = window.location.origin + "/";
 
   const onClickLogout = useCallback(() => {
@@ -32,8 +37,8 @@ const ScreenHeader: React.FC = function ScreenHeader() {
         type="button"
         iconProps={iconProps}
         onClick={onClickLogout}
-        title="Logout"
-        ariaLabel="Logout"
+        title={labelSignOut}
+        ariaLabel={labelSignOut}
         theme={invertedTheme}
       />
     </header>

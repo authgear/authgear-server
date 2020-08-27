@@ -1,10 +1,14 @@
-import React, { useMemo, useCallback } from "react";
+import React, { useMemo, useCallback, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Context } from "@oursky/react-messageformat";
 import { Nav, INavLink, INavLinkGroup, INavProps } from "@fluentui/react";
 
 const ScreenNav: React.FC = function ScreenNav() {
   const { appID } = useParams();
   const navigate = useNavigate();
+  const { renderToString } = useContext(Context);
+
+  const labelDashboard = renderToString("nav.dashboard");
 
   const navGroups: INavLinkGroup[] = useMemo(() => {
     const appRootURL = `/apps/${encodeURIComponent(appID)}`;
@@ -13,7 +17,7 @@ const ScreenNav: React.FC = function ScreenNav() {
         links: [
           {
             key: "dashboard",
-            name: "Dashboard",
+            name: labelDashboard,
             url: appRootURL,
             icon: "Rocket",
           },
@@ -26,7 +30,7 @@ const ScreenNav: React.FC = function ScreenNav() {
         ],
       },
     ];
-  }, [appID]);
+  }, [appID, labelDashboard]);
 
   const onLinkClick: INavProps["onLinkClick"] = useCallback(
     (ev?: React.MouseEvent<HTMLElement>, item?: INavLink) => {

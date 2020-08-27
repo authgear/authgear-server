@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { LocaleProvider, FormattedMessage } from "@oursky/react-messageformat";
 import authgear from "@authgear/web";
 import ShowLoading from "./ShowLoading";
 import Authenticated from "./graphql/portal/Authenticated";
 import AppsScreen from "./graphql/portal/AppsScreen";
 import AppRoot from "./AppRoot";
+import MESSAGES from "./locale-data/en.json";
 
 // ReactAppRoutes defines the routes.
 const ReactAppRoutes: React.FC = function ReactAppRoutes() {
@@ -50,20 +52,28 @@ const ReactApp: React.FC = function ReactApp() {
     }
   }, [configured, loading, error]);
 
+  let children: React.ReactElement;
+
   if (error != null) {
-    return (
-      <p>Failed to initialize the app. Please refresh this page to retry.</p>
+    children = (
+      <p>
+        <FormattedMessage id="error.failed-to-initialize-app" />
+      </p>
+    );
+  } else if (loading) {
+    children = <ShowLoading />;
+  } else {
+    children = (
+      <Authenticated>
+        <ReactAppRoutes />
+      </Authenticated>
     );
   }
 
-  if (loading) {
-    return <ShowLoading />;
-  }
-
   return (
-    <Authenticated>
-      <ReactAppRoutes />
-    </Authenticated>
+    <LocaleProvider locale="en" messageByID={MESSAGES}>
+      {children}
+    </LocaleProvider>
   );
 };
 
