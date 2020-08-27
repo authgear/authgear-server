@@ -70,7 +70,7 @@ func QueryPage(config QueryPageConfig) PageQuery {
 
 		switch {
 		case first != nil && last != nil:
-			// NOTE: Relay spec discourage using first & last simultaneously,
+			// Relay spec discourage using first & last simultaneously,
 			// and implementing this requires complex SQL. Therefore, forbid this
 			// combination for now.
 			return nil, InvalidQuery.New("first & last is mutually exclusive")

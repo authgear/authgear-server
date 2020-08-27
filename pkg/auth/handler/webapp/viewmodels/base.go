@@ -42,7 +42,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, anyError interface{}) BaseV
 
 	model := BaseViewModel{
 		CSRFField: csrf.TemplateField(r),
-		// NOTE(authui): We assume the CSS provided by the developer is trusted.
+		// We assume the CSS provided by the developer is trusted.
 		CSS:                  htmltemplate.CSS(m.AuthUI.CustomCSS),
 		AppName:              intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(m.Localization.FallbackLanguage), m.Metadata, "app_name"),
 		LogoURI:              intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(m.Localization.FallbackLanguage), m.Metadata, "logo_uri"),

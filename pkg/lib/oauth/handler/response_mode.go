@@ -78,7 +78,8 @@ func writeResponse(w http.ResponseWriter, r *http.Request, redirectURI *url.URL,
 
 func htmlRedirect(rw http.ResponseWriter, redirectURI string) {
 	rw.Header().Set("Content-Type", "text/html; charset=utf-8")
-	// NOTE(authui): XHR and redirect
+	// XHR and redirect.
+	//
 	// Normally we should use HTTP 302 to redirect.
 	// However, when XHR is used, redirect is followed automatically.
 	// The final redirect URI may be custom URI which is considered unsecure by user agent.
