@@ -6,11 +6,7 @@ import AppScreen from "./graphql/portal/AppScreen";
 import ScreenLayout from "./ScreenLayout";
 
 const DummyScreen: React.FC = function DummyScreen() {
-  return (
-    <ScreenLayout>
-      <p>This is dummy</p>
-    </ScreenLayout>
-  );
+  return <p>This is dummy</p>;
 };
 
 const AppRoot: React.FC = function AppRoot() {
@@ -20,10 +16,12 @@ const AppRoot: React.FC = function AppRoot() {
   }, [appID]);
   return (
     <AppContext.Provider value={environment}>
-      <Routes>
-        <Route path="/" element={<AppScreen />} />
-        <Route path="/dummy" element={<DummyScreen />} />
-      </Routes>
+      <ScreenLayout>
+        <Routes>
+          <Route path="/" element={<AppScreen />} />
+          <Route path="/dummy" element={<DummyScreen />} />
+        </Routes>
+      </ScreenLayout>
     </AppContext.Provider>
   );
 };
