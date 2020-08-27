@@ -6,9 +6,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
-type Middleware struct{}
+// nolint:golint
+type SessionInfoMiddleware struct{}
 
-func (m *Middleware) Handle(next http.Handler) http.Handler {
+func (m *SessionInfoMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sessionInfo, err := model.NewSessionInfoFromHeaders(r.Header)
 		if err != nil {

@@ -44,8 +44,13 @@ func newSentryMiddleware(p *deps.RequestProvider) httproute.Middleware {
 }
 
 func newSessionInfoMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	sessionMiddleware := &session.Middleware{}
-	return sessionMiddleware
+	sessionInfoMiddleware := &session.SessionInfoMiddleware{}
+	return sessionInfoMiddleware
+}
+
+func newSessionRequiredMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	sessionRequiredMiddleware := &session.SessionRequiredMiddleware{}
+	return sessionRequiredMiddleware
 }
 
 func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
