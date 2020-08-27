@@ -263,7 +263,7 @@ window.addEventListener("load", function() {
           var name = field.name;
           var value = field.value;
 
-          // TODO(form-submission): Step 5.6 <select>
+          // Step 5.6 <select> is omitted for now.
 
           // Step 5.7
           if (field instanceof HTMLInputElement && (field.type === "checkbox" || field.type === "radio")) {
@@ -275,7 +275,7 @@ window.addEventListener("load", function() {
           // Step 5.8 is ignored because we do not use file upload.
           // Step 5.9 is ignored because we do not use <object>.
           // Step 5.10 is ignored because we do ot use <input type="hidden" name="_charset_">.
-          // TODO(form-submission): Step 5.11 <textarea>
+          // Step 5.11 <textarea> is omitted for now.
 
           // Step 5.12
           entryList.push([name, value]);

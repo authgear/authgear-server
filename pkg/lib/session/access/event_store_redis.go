@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 )
 
-// TODO(session): tune event persistence, maybe use other datastore
 const maxEventStreamLength = 10
 
 const eventTypeAccessEvent = "access"
