@@ -48,6 +48,11 @@ func newSessionInfoMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	return sessionInfoMiddleware
 }
 
+func newSessionRequiredMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	sessionRequiredMiddleware := &session.SessionRequiredMiddleware{}
+	return sessionRequiredMiddleware
+}
+
 func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
