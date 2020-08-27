@@ -47,3 +47,10 @@ To create new migration:
 # go run ./cmd/authgear migrate new <migration name>
 go run ./cmd/authgear migrate new add user table
 ```
+
+## Comment tags
+
+- `FIXME`: Should be fixed as soon as possible
+- `TODO`: Should be done when someone really needs it.
+- `OPTIMIZE`: Should be done when it really becomes a performance issue.
+- `SECURITY`: Known potential security issue.
