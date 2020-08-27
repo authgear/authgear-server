@@ -5,5 +5,7 @@
 
   "header.sign-out": "Sign out",
 
-  "nav.dashboard": "Dashboard"
+  "nav.dashboard": "Dashboard",
+
+  "show-error.retry": "Retry"
 }
