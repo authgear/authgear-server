@@ -1,4 +1,5 @@
 import React, { useCallback } from "react";
+import { Link } from "react-router-dom";
 import authgear from "@authgear/web";
 import { IconButton } from "@fluentui/react";
 import styles from "./ScreenHeader.module.scss";
@@ -24,7 +25,9 @@ const ScreenHeader: React.FC = function ScreenHeader() {
 
   return (
     <header className={styles.header}>
-      <img className={styles.logo} alt="Authgear" src={srcLogo} />
+      <Link to="/">
+        <img className={styles.logo} alt="Authgear" src={srcLogo} />
+      </Link>
       <IconButton
         type="button"
         iconProps={iconProps}
