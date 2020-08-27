@@ -12,7 +12,16 @@ import "./index.scss";
 
 import React from "react";
 import { render } from "react-dom";
+import { initializeIcons } from "@fluentui/react";
+import { loadTheme } from "@fluentui/react/lib/Styling";
 
 import ReactApp from "./ReactApp";
 
+initializeIcons();
+loadTheme({
+  palette: {
+    themePrimary: "white",
+    themeSecondary: "#176df3",
+  },
+});
 render(<ReactApp />, document.getElementById("react-app-root"));
