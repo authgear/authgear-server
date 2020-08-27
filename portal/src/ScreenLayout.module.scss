@@ -6,12 +6,7 @@
 }
 
 .body {
-  /* flex: 1 0 0% is an idiom */
-  /* If it is flex: 1 0 0, we will have this bug https://github.com/philipwalton/flexbugs#flexbug-4 */
-  /* If it is flex: 1 0 0px, we have another lint rule to disable zero value with unit */
-  /* Some CSS minifier also transforms 0px to 0 */
-  /* Therefore it must 0% */
-  flex: 1 0 0%;
+  flex: 1 0 0;
   min-width: 0;
   min-height: 0;
 
@@ -28,7 +23,7 @@
 }
 
 .content {
-  flex: 1 0 0%;
+  flex: 1 0 0;
   min-width: 0;
   min-height: 0;
 
