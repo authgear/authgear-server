@@ -22,7 +22,7 @@ func (f *Azureadv2Impl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error)
 
 	tenant := f.ProviderConfig.Tenant
 	var endpoint string
-	// GUIDE(sso): Azure special tenant
+	// NOTE(sso): Azure special tenant
 	// If the azure tenant is `organizations` or `common`,
 	// the developer should make use of `before_user_create` and `before_identity_create` hook
 	// to disallow any undesire identity.
