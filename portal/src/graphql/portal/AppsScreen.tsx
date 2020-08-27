@@ -3,7 +3,7 @@ import { graphql, QueryRenderer } from "react-relay";
 import { Link } from "react-router-dom";
 import { AppsScreenQueryResponse } from "./__generated__/AppsScreenQuery.graphql";
 import { environment } from "./relay";
-import ScreenHeader from "../../ScreenHeader";
+import ScreenLayout from "../../ScreenLayout";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import styles from "./AppsScreen.module.scss";
@@ -41,8 +41,7 @@ const AppList: React.FC<AppsScreenQueryResponse> = function AppList(
 
 const AppsScreen: React.FC = function AppsScreen() {
   return (
-    <div>
-      <ScreenHeader />
+    <ScreenLayout>
       <QueryRenderer<{ variables: Empty; response: AppsScreenQueryResponse }>
         environment={environment}
         query={query}
@@ -57,7 +56,7 @@ const AppsScreen: React.FC = function AppsScreen() {
           return <AppList {...props} />;
         }}
       />
-    </div>
+    </ScreenLayout>
   );
 };
 
