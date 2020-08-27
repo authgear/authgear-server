@@ -1,14 +1,16 @@
 .header {
+  background-color: var(--color-primary);
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid gray;
+  height: 48px;
 }
 
-.title {
-  padding: 6px;
-  margin: 6px;
+.logo {
+  height: 24px;
+  margin: 12px;
 }
 
 .logoutButton {

@@ -3,6 +3,7 @@
   "rules": {
     "plugin/no-unsupported-browser-features": [true, {
       "ignore": ["viewport-units", "css-appearance", "css3-cursors", "flexbox"]
-    }]
+    }],
+    "oursky/flex": null
   }
 }

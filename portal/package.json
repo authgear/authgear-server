@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@authgear/web": "0.1.0",
+    "@fluentui/react": "7.132.0",
     "history": "5.0.0",
     "react": "17.0.0-rc.0",
     "react-dom": "17.0.0-rc.0",

@@ -12,7 +12,12 @@ import "./index.scss";
 
 import React from "react";
 import { render } from "react-dom";
+import { initializeIcons, loadTheme } from "@fluentui/react";
 
 import ReactApp from "./ReactApp";
+import { theme } from "./theme";
 
+initializeIcons();
+
+loadTheme(theme);
 render(<ReactApp />, document.getElementById("react-app-root"));
