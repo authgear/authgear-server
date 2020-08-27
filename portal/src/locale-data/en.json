@@ -1,3 +1,9 @@
 {
-  "error.failed-to-initialize-app": "Failed to initialize the app. Please refresh this page to retry."
+  "error.failed-to-initialize-app": "Failed to initialize the app. Please refresh this page to retry.",
+
+  "loading": "Loading...",
+
+  "header.sign-out": "Sign out",
+
+  "nav.dashboard": "Dashboard"
 }
