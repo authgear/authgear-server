@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import authgear from "@authgear/web";
-import Authenticated from "./Authenticated";
 import ShowLoading from "./ShowLoading";
-import AppsScreen from "./AppsScreen";
-import AppScreen from "./AppScreen";
+import Authenticated from "./graphql/portal/Authenticated";
+import AppsScreen from "./graphql/portal/AppsScreen";
+import AppRoot from "./AppRoot";
 
 // ReactAppRoutes defines the routes.
 const ReactAppRoutes: React.FC = function ReactAppRoutes() {
@@ -13,7 +13,7 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
       <Routes>
         <Route path="/" element={<Navigate to="/apps" replace={true} />} />
         <Route path="/apps" element={<AppsScreen />} />
-        <Route path="/apps/:appID" element={<AppScreen />} />
+        <Route path="/apps/:appID/*" element={<AppRoot />} />
       </Routes>
     </BrowserRouter>
   );

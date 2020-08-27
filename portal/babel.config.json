@@ -1,7 +1,6 @@
 {
   "presets": ["@babel/preset-env"],
   "plugins": [
-    "babel-plugin-relay",
     ["@babel/plugin-transform-typescript", {"isTSX": true}],
     "@babel/plugin-transform-react-jsx"
   ]

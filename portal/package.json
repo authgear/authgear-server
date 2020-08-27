@@ -9,7 +9,7 @@
     "fmt": "prettier --list-different --write './src/**/*.{js,ts,jsx,tsx,css,scss,html}'",
     "eslint": "eslint './src/**/*.{js,ts,jsx,tsx}'",
     "stylelint": "stylelint './src/**/*.{css,scss}'",
-    "relay": "relay-compiler"
+    "relay": "relay-compiler --src ./src/graphql/portal --schema ./src/graphql/portal/schema.graphql --extensions tsx --language typescript && relay-compiler --src ./src/graphql/adminapi --schema ./src/graphql/adminapi/schema.graphql --extensions tsx --language typescript"
   },
   "devDependencies": {
     "@oursky/eslint-plugin": "3.3.1",
@@ -27,7 +27,6 @@
     "prettier": "2.0.5",
     "relay-compiler": "10.0.1",
     "relay-compiler-language-typescript": "13.0.1",
-    "relay-config": "10.0.1",
     "sass": "1.26.10",
     "stylelint": "13.6.1",
     "typescript": "3.9.7"

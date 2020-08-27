@@ -3,9 +3,10 @@ import { graphql, QueryRenderer } from "react-relay";
 import { useParams } from "react-router-dom";
 import { AppScreenQueryResponse } from "./__generated__/AppScreenQuery.graphql";
 import { environment } from "./relay";
-import ScreenHeader from "./ScreenHeader";
-import ShowError from "./ShowError";
-import ShowLoading from "./ShowLoading";
+import ScreenHeader from "../../ScreenHeader";
+import UserList from "../adminapi/UserList";
+import ShowError from "../../ShowError";
+import ShowLoading from "../../ShowLoading";
 
 const query = graphql`
   query AppScreenQuery($id: ID!) {
@@ -26,7 +27,13 @@ interface Variables {
 const ShowApp: React.FC<AppScreenQueryResponse> = function ShowApp(
   props: AppScreenQueryResponse
 ) {
-  return <pre>{JSON.stringify(props.node, null, 2)}</pre>;
+  return (
+    <div>
+      <pre>{JSON.stringify(props.node, null, 2)}</pre>
+      <br />
+      <UserList />
+    </div>
+  );
 };
 
 const AppScreen: React.FC = function AppScreen() {
