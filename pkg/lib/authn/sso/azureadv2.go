@@ -18,11 +18,12 @@ type Azureadv2Impl struct {
 }
 
 func (f *Azureadv2Impl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error) {
-	// TODO(sso): Cache OpenID configuration
+	// OPTIMIZE(sso): Cache OpenID configuration
 
 	tenant := f.ProviderConfig.Tenant
 	var endpoint string
-	// GUIDE(sso): Azure special tenant
+	// Azure special tenant
+	//
 	// If the azure tenant is `organizations` or `common`,
 	// the developer should make use of `before_user_create` and `before_identity_create` hook
 	// to disallow any undesire identity.
@@ -94,7 +95,7 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, p
 		err = NewSSOFailed(NetworkFailed, "failed to get OIDC discovery document")
 		return
 	}
-	// TODO(sso): Cache JWKs
+	// OPTIMIZE(sso): Cache JWKs
 	keySet, err := c.FetchJWKs(http.DefaultClient)
 	if err != nil {
 		err = NewSSOFailed(NetworkFailed, "failed to get OIDC JWKs")

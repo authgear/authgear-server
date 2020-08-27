@@ -90,8 +90,6 @@ func TestService(t *testing.T) {
 		})
 
 		Convey("GetVerificationStatus", func() {
-			// TODO: add test for infinite recursion prevention
-
 			So(must(service.GetVerificationStatus(identityOfType(authn.IdentityTypeAnonymous))), ShouldEqual, StatusDisabled)
 
 			identities.EXPECT().ListByUser("user-id").Return([]*identity.Info{identityOfType(authn.IdentityTypeOAuth)}, nil)

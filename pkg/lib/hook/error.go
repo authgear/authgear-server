@@ -22,8 +22,7 @@ type OperationDisallowedItem struct {
 }
 
 func newErrorOperationDisallowed(items []OperationDisallowedItem) error {
-	// NOTE(error): These are not causes. Causes are pre-defined,
-	// and reasons are provided by hook handlers.
+	// These are not causes. Causes are pre-defined, and reasons are provided by hook handlers.
 	return WebHookDisallowed.NewWithInfo(
 		"disallowed by web-hook event handler",
 		map[string]interface{}{"reasons": items},

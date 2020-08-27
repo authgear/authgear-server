@@ -11,8 +11,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
 
-// TODO(oidc): write tests
-
 type WebAppURLsProvider interface {
 	LogoutURL(redirectURI *url.URL) *url.URL
 	SettingsURL() *url.URL

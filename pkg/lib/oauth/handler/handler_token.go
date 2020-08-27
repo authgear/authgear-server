@@ -23,8 +23,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
-// TODO(oauth): write tests
-
 const AnonymousRequestGrantType = "urn:authgear:params:oauth:grant-type:anonymous-request"
 
 // whitelistedGrantTypes is a list of grant types that would be always allowed

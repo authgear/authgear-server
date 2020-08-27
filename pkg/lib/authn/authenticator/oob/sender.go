@@ -24,7 +24,7 @@ func (s *CodeSender) SendCode(
 ) (result *otp.CodeSendResult, err error) {
 	opts := otp.SendOptions{
 		OTP:         code,
-		URL:         "", // FIXME: send a login link to email?
+		URL:         "", // TODO(interaction): Include login link in email.
 		MessageType: messageType,
 	}
 	switch channel {

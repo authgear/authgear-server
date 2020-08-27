@@ -8,8 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 )
 
-// TODO(oauth): write tests
-
 type RevokeHandler struct {
 	OfflineGrants oauth.OfflineGrantStore
 	AccessGrants  oauth.AccessGrantStore

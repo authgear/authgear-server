@@ -54,7 +54,7 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, para
 		err = NewSSOFailed(NetworkFailed, "failed to get OIDC discovery document")
 		return
 	}
-	// TODO(sso): Cache JWKs
+	// OPTIMIZE(sso): Cache JWKs
 	keySet, err := d.FetchJWKs(http.DefaultClient)
 	if err != nil {
 		err = NewSSOFailed(NetworkFailed, "failed to get OIDC JWKs")

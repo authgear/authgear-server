@@ -22,7 +22,6 @@ func (p Purpose) IsValid() bool {
 }
 
 func (p Purpose) ValidityPeriod() time.Duration {
-	// TODO(challenge): allow customization?
 	switch p {
 	case PurposeAnonymousRequest:
 		return time.Minute * 5

@@ -27,20 +27,17 @@ import (
 )
 
 func isUpperRune(r rune) bool {
-	// NOTE: Intentionally not use unicode.IsUpper
-	// because it take other languages into account.
+	// unicode.IsUpper is not used intentionally because it takes other languages into account.
 	return r >= 'A' && r <= 'Z'
 }
 
 func isLowerRune(r rune) bool {
-	// NOTE: Intentionally not use unicode.IsLower
-	// because it take other languages into account.
+	// unicode.IsLower is not used intentionally because it takes other languages into account.
 	return r >= 'a' && r <= 'z'
 }
 
 func isDigitRune(r rune) bool {
-	// NOTE: Intentionally not use unicode.IsDigit
-	// because it take other languages into account.
+	// unicode.IsDigit is not used intentionally because it takes other languages into account.
 	return r >= '0' && r <= '9'
 }
 
