@@ -1,42 +1,34 @@
 import React, { useContext } from "react";
-import { graphql, QueryRenderer } from "react-relay";
-import { UsersScreenQueryResponse } from "./__generated__/UsersScreenQuery.graphql";
+import { QueryRenderer } from "react-relay";
+import { RelayUsersList, query } from "./UsersList";
+import {
+  UsersListQueryVariables,
+  UsersListQueryResponse,
+} from "./__generated__/UsersListQuery.graphql";
 import AppContext from "../../AppContext";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 
-const query = graphql`
-  query UsersScreenQuery {
-    users {
-      edges {
-        node {
-          id
-          createdAt
-        }
-      }
-    }
-  }
-`;
-
-interface Empty {}
-
 const UsersScreen: React.FC = function UsersScreen() {
-  // FIXME(portal): Use Pagination Container
-  // FIXME(portal): Use DetailsList
   const environment = useContext(AppContext);
+  const pageSize = 1;
   return (
-    <QueryRenderer<{ variables: Empty; response: UsersScreenQueryResponse }>
+    <QueryRenderer<{
+      variables: UsersListQueryVariables;
+      response: UsersListQueryResponse;
+    }>
       environment={environment}
       query={query}
-      variables={{}}
+      variables={{ pageSize }}
       render={({ error, props, retry }) => {
         if (error != null) {
           return <ShowError error={error} onRetry={retry} />;
         }
         if (props == null) {
+          // FIXME(portal): Use Skimmer
           return <ShowLoading />;
         }
-        return null;
+        return <RelayUsersList users={props} pageSize={1} />;
       }}
     />
   );
