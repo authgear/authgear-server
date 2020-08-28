@@ -23,7 +23,19 @@ function fetchQuery(
       variables,
     }),
   }).then(async (response) => {
-    return response.json();
+    // Discard data when errors is present
+    // See https://github.com/facebook/relay/issues/1913
+    const { data, errors, ...rest } = await response.json();
+    if (errors != null) {
+      return {
+        ...rest,
+        errors,
+      };
+    }
+    return {
+      ...rest,
+      data,
+    };
   });
 }
 
