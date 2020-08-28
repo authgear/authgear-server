@@ -20,12 +20,20 @@ var nodeApp = node(
 			nodeDefs.NodeInterface,
 		},
 		Fields: graphql.Fields{
-			"id": relay.GlobalIDField(typeApp, nil),
+			"id": relay.GlobalIDField(typeApp, func(obj interface{}, info graphql.ResolveInfo, ctx context.Context) (string, error) {
+				return obj.(*model.App).ID, nil
+			}),
 			"appConfig": &graphql.Field{
 				Type: graphql.NewNonNull(graphqlutil.JSONObject),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					return p.Source.(*model.App).Context.Config.AppConfig, nil
+				},
 			},
 			"secretConfig": &graphql.Field{
 				Type: graphql.NewNonNull(graphqlutil.JSONObject),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					return p.Source.(*model.App).Context.Config.SecretConfig, nil
+				},
 			},
 		},
 	}),

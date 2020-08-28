@@ -35,6 +35,14 @@ func (l *Lazy) Map(mapFn func(interface{}) (interface{}, error)) *Lazy {
 		if err != nil {
 			return nil, err
 		}
-		return mapFn(value)
+		value, err = mapFn(value)
+		if err != nil {
+			return nil, err
+		}
+
+		if lazy, ok := value.(*Lazy); ok {
+			return lazy.Value()
+		}
+		return value, nil
 	})
 }

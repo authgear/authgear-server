@@ -12,7 +12,7 @@ type ViewerLoader interface {
 
 type AppLoader interface {
 	Get(id string) *graphqlutil.Lazy
-	QueryPage(args graphqlutil.PageArgs) (*graphqlutil.PageResult, error)
+	List(userID string) *graphqlutil.Lazy
 }
 
 type contextKeyType struct{}

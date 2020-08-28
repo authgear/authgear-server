@@ -7,6 +7,7 @@ import (
 )
 
 type AppIDResolver interface {
+	AllAppIDs() ([]string, error)
 	ResolveAppID(r *http.Request) (appID string, err error)
 }
 

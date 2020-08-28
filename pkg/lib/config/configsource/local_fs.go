@@ -125,6 +125,12 @@ func (s *LocalFS) reload() error {
 	return nil
 }
 
+func (s *LocalFS) AllAppIDs() ([]string, error) {
+	ctx := s.config.Load().(*config.AppContext)
+	appID := string(ctx.Config.AppConfig.ID)
+	return []string{appID}, nil
+}
+
 func (s *LocalFS) ResolveAppID(r *http.Request) (appID string, err error) {
 	// In single mode, appID is ignored.
 	return

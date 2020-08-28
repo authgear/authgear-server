@@ -64,12 +64,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controller := rootProvider.ConfigSourceController
 	configSource := deps.ProvideConfigSource(controller)
-	configGetter := &deps.ConfigGetter{
-		Request:      request,
+	authzService := &service.AuthzService{
 		ConfigSource: configSource,
 	}
 	appService := &service.AppService{
-		ConfigGetter: configGetter,
+		ConfigSource: configSource,
+		AppAuthz:     authzService,
 	}
 	appLoader := &loader.AppLoader{
 		Apps: appService,
