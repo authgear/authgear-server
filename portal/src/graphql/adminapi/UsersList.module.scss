@@ -2,3 +2,9 @@
   display: flex;
   flex-direction: column;
 }
+
+.pagination {
+  align-self: flex-end;
+  display: flex;
+  flex-direction: row;
+}
