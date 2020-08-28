@@ -1,12 +1,12 @@
 import React, { useContext } from "react";
 import { graphql, QueryRenderer } from "react-relay";
-import { UserListQueryResponse } from "./__generated__/UserListQuery.graphql";
+import { UsersScreenQueryResponse } from "./__generated__/UsersScreenQuery.graphql";
 import AppContext from "../../AppContext";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 
 const query = graphql`
-  query UserListQuery {
+  query UsersScreenQuery {
     users {
       edges {
         node {
@@ -18,18 +18,14 @@ const query = graphql`
   }
 `;
 
-const RawUserList: React.FC<UserListQueryResponse> = function RawUserList(
-  props: UserListQueryResponse
-) {
-  return <pre>{JSON.stringify(props.users, null, 2)}</pre>;
-};
-
 interface Empty {}
 
-const UserList: React.FC = function UserList() {
+const UsersScreen: React.FC = function UsersScreen() {
+  // FIXME(portal): Use Pagination Container
+  // FIXME(portal): Use DetailsList
   const environment = useContext(AppContext);
   return (
-    <QueryRenderer<{ variables: Empty; response: UserListQueryResponse }>
+    <QueryRenderer<{ variables: Empty; response: UsersScreenQueryResponse }>
       environment={environment}
       query={query}
       variables={{}}
@@ -40,10 +36,10 @@ const UserList: React.FC = function UserList() {
         if (props == null) {
           return <ShowLoading />;
         }
-        return <RawUserList {...props} />;
+        return null;
       }}
     />
   );
 };
 
-export default UserList;
+export default UsersScreen;

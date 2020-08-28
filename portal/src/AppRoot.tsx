@@ -1,13 +1,9 @@
 import React, { useMemo } from "react";
-import { Routes, Route, useParams } from "react-router-dom";
+import { Routes, Route, useParams, Navigate } from "react-router-dom";
 import { makeEnvironment } from "./graphql/adminapi/relay";
 import AppContext from "./AppContext";
-import AppScreen from "./graphql/portal/AppScreen";
 import ScreenLayout from "./ScreenLayout";
-
-const DummyScreen: React.FC = function DummyScreen() {
-  return <p>This is dummy</p>;
-};
+import UsersScreen from "./graphql/adminapi/UsersScreen";
 
 const AppRoot: React.FC = function AppRoot() {
   const { appID } = useParams();
@@ -18,8 +14,8 @@ const AppRoot: React.FC = function AppRoot() {
     <AppContext.Provider value={environment}>
       <ScreenLayout>
         <Routes>
-          <Route path="/" element={<AppScreen />} />
-          <Route path="/dummy" element={<DummyScreen />} />
+          <Route path="/" element={<Navigate to="users" replace={true} />} />
+          <Route path="/users" element={<UsersScreen />} />
         </Routes>
       </ScreenLayout>
     </AppContext.Provider>

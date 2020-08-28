@@ -3,8 +3,8 @@
 // @ts-nocheck
 
 import { ConcreteRequest } from "relay-runtime";
-export type UserListQueryVariables = {};
-export type UserListQueryResponse = {
+export type UsersScreenQueryVariables = {};
+export type UsersScreenQueryResponse = {
     readonly users: {
         readonly edges: ReadonlyArray<{
             readonly node: {
@@ -14,15 +14,15 @@ export type UserListQueryResponse = {
         } | null> | null;
     } | null;
 };
-export type UserListQuery = {
-    readonly response: UserListQueryResponse;
-    readonly variables: UserListQueryVariables;
+export type UsersScreenQuery = {
+    readonly response: UsersScreenQueryResponse;
+    readonly variables: UsersScreenQueryVariables;
 };
 
 
 
 /*
-query UserListQuery {
+query UsersScreenQuery {
   users {
     edges {
       node {
@@ -89,7 +89,7 @@ return {
     "argumentDefinitions": [],
     "kind": "Fragment",
     "metadata": null,
-    "name": "UserListQuery",
+    "name": "UsersScreenQuery",
     "selections": (v0/*: any*/),
     "type": "Query",
     "abstractKey": null
@@ -98,18 +98,18 @@ return {
   "operation": {
     "argumentDefinitions": [],
     "kind": "Operation",
-    "name": "UserListQuery",
+    "name": "UsersScreenQuery",
     "selections": (v0/*: any*/)
   },
   "params": {
-    "cacheID": "d1ab994b61423a98ab7c6322ad8dc80f",
+    "cacheID": "52b8b27fab19b9abf95c0966cc66f0f8",
     "id": null,
     "metadata": {},
-    "name": "UserListQuery",
+    "name": "UsersScreenQuery",
     "operationKind": "query",
-    "text": "query UserListQuery {\n  users {\n    edges {\n      node {\n        id\n        createdAt\n      }\n    }\n  }\n}\n"
+    "text": "query UsersScreenQuery {\n  users {\n    edges {\n      node {\n        id\n        createdAt\n      }\n    }\n  }\n}\n"
   }
 };
 })();
-(node as any).hash = '690d4f6db73ddeb4d9caa65c99ecf4ea';
+(node as any).hash = 'e7716396ca7db1a1b827e260585805dd';
 export default node;
