@@ -1,6 +1,14 @@
-import React from "react";
+import React, { useMemo, useContext } from "react";
 import { graphql, RelayRefetchProp, createRefetchContainer } from "react-relay";
+import {
+  DetailsList,
+  DetailsListLayoutMode,
+  SelectionMode,
+  IColumn,
+} from "@fluentui/react";
+import { Context } from "@oursky/react-messageformat";
 import { UsersList_users } from "./__generated__/UsersList_users.graphql";
+import styles from "./UsersList.module.scss";
 
 interface Props {
   users: UsersList_users;
@@ -9,9 +17,55 @@ interface Props {
 }
 
 const UsersList: React.FC<Props> = function UsersList(props: Props) {
-  // FIXME(portal): Use DetailsList
-  console.log("louis#props", props);
-  return null;
+  const { renderToString } = useContext(Context);
+
+  const columns: IColumn[] = [
+    {
+      key: "id",
+      fieldName: "id",
+      name: renderToString("UsersList.column.id"),
+      minWidth: 400,
+      maxWidth: 400,
+    },
+    {
+      key: "createdAt",
+      fieldName: "createdAt",
+      name: renderToString("UsersList.column.created-at"),
+      minWidth: 300,
+    },
+  ];
+
+  const edges = props.users.users?.edges;
+
+  const items: {
+    id: string;
+    createdAt: unknown;
+  }[] = useMemo(() => {
+    const items = [];
+    if (edges != null) {
+      for (const edge of edges) {
+        const node = edge?.node;
+        if (node != null) {
+          items.push({
+            id: node.id,
+            createdAt: node.createdAt,
+          });
+        }
+      }
+    }
+    return items;
+  }, [edges]);
+
+  return (
+    <div className={styles.root}>
+      <DetailsList
+        selectionMode={SelectionMode.none}
+        layoutMode={DetailsListLayoutMode.justified}
+        columns={columns}
+        items={items}
+      />
+    </div>
+  );
 };
 
 const query = graphql`
