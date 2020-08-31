@@ -16,6 +16,7 @@ import (
 // nolint:golint
 type TemplateResolver interface {
 	Resolve(ctx *ResolveContext, typ string) (*Resolved, error)
+	ResolveTranslations(ctx *ResolveContext, typ string) (map[string]Translation, error)
 }
 
 type RenderContext struct {
@@ -25,6 +26,23 @@ type RenderContext struct {
 
 type Engine struct {
 	Resolver TemplateResolver
+}
+
+func (e *Engine) RenderTranslation(ctx *RenderContext, typ string, key string, data interface{}) (string, error) {
+	translations, err := e.Resolver.ResolveTranslations(
+		&ResolveContext{PreferredLanguageTags: ctx.PreferredLanguageTags},
+		typ,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return e.renderText(ctx, &Resolved{
+		T:                 T{},
+		Content:           fmt.Sprintf("{{ template %q . }}", key),
+		Translations:      translations,
+		ComponentContents: nil,
+	}, data)
 }
 
 func (e *Engine) Render(ctx *RenderContext, typ string, data interface{}) (out string, err error) {

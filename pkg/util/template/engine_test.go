@@ -73,3 +73,33 @@ component-a
 </html>`)
 	})
 }
+
+func TestEngineRenderTranslation(t *testing.T) {
+	Convey("Engine.RenderTranslation", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		resolver := NewMockTemplateResolver(ctrl)
+		engine := &Engine{Resolver: resolver}
+
+		resolver.EXPECT().ResolveTranslations(gomock.Any(), "translation.json").Return(map[string]Translation{
+			`"greeting"`: {
+				LanguageTag: "en",
+				Value:       `<a href="{URL}">Hi</a>`,
+			},
+		}, nil)
+
+		out, err := engine.RenderTranslation(&RenderContext{
+			ValidatorOptions: []ValidatorOption{
+				AllowRangeNode(true),
+				AllowTemplateNode(true),
+				AllowDeclaration(true),
+				MaxDepth(15),
+			},
+		}, "translation.json", `"greeting"`, map[string]interface{}{
+			"URL": "http://www.example.com",
+		})
+		So(err, ShouldBeNil)
+		So(out, ShouldEqual, `<a href="http://www.example.com">Hi</a>`)
+	})
+}

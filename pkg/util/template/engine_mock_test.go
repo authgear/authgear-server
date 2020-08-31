@@ -46,3 +46,18 @@ func (mr *MockTemplateResolverMockRecorder) Resolve(ctx, typ interface{}) *gomoc
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Resolve", reflect.TypeOf((*MockTemplateResolver)(nil).Resolve), ctx, typ)
 }
+
+// ResolveTranslations mocks base method
+func (m *MockTemplateResolver) ResolveTranslations(ctx *ResolveContext, typ string) (map[string]Translation, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResolveTranslations", ctx, typ)
+	ret0, _ := ret[0].(map[string]Translation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ResolveTranslations indicates an expected call of ResolveTranslations
+func (mr *MockTemplateResolverMockRecorder) ResolveTranslations(ctx, typ interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveTranslations", reflect.TypeOf((*MockTemplateResolver)(nil).ResolveTranslations), ctx, typ)
+}
