@@ -42,7 +42,7 @@ jobs:
       working-directory: ./portal
       if: ${{ !cancelled() }}
 
-  test:
+  authgear-test:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
@@ -60,18 +60,18 @@ jobs:
     - run: make check-tidy
       if: ${{ !cancelled() }}
 
-  image:
+  authgear-image:
     runs-on: ubuntu-18.04
-    needs: test
+    needs: authgear-test
     steps:
     - uses: actions/checkout@v2
-    - run: make build-image
-    - run: make tag-image
+    - run: make build-image TARGET=authgear IMAGE_NAME=authgear-server
+    - run: make tag-image IMAGE_NAME=authgear-server
     - name: docker login
       if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
       env:
         QUAY_IO_USERNAME: ${{ secrets.QUAY_IO_USERNAME }}
         QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
       run: docker login -u "$QUAY_IO_USERNAME" -p "$QUAY_IO_PASSWORD" quay.io
-    - run: make push-image
+    - run: make push-image IMAGE_NAME=authgear-server
       if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
