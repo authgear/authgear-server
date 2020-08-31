@@ -19,14 +19,17 @@ COPY . .
 RUN make static GIT_HASH=$GIT_HASH
 RUN make html-email && rm ./templates/*.mjml
 
+# Stage 3: Prepare the actual fs we use to run the program
 FROM debian:buster-slim
 ARG GIT_HASH
 WORKDIR /app
-# /etc/ssl/certs
-# /etc/mime.types
+# /etc/mime.types (mime-support)
+# /usr/share/ca-certificates/*/* (ca-certificates)
+# /usr/share/zoneinfo/ (tzdata)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     mime-support \
+    tzdata \
     && rm -rf /var/lib/apt/lists/*
 RUN update-ca-certificates
 COPY ./reserved_name.txt .
