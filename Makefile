@@ -54,6 +54,7 @@ build:
 check-tidy:
 	$(MAKE) generate
 	$(MAKE) html-email
+	$(MAKE) export-schemas
 	go mod tidy
 	git status --porcelain | grep '.*'; test $$? -eq 1
 
