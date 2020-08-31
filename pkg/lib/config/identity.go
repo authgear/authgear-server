@@ -41,9 +41,7 @@ type LoginIDConfig struct {
 func (c *LoginIDConfig) SetDefaults() {
 	if len(c.Keys) == 0 {
 		c.Keys = []LoginIDKeyConfig{
-			{Key: "email", Type: LoginIDKeyTypeEmail},
-			{Key: "phone", Type: LoginIDKeyTypePhone},
-			{Key: "username", Type: LoginIDKeyTypeUsername},
+			{Type: LoginIDKeyTypeEmail},
 		}
 		for i := range c.Keys {
 			c.Keys[i].SetDefaults()
