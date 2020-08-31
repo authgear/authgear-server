@@ -61,7 +61,8 @@ check-tidy:
 
 .PHONY: build-image
 build-image:
-	docker build --file ./cmd/$(TARGET)/Dockerfile --tag $(IMAGE_NAME) --build-arg GIT_HASH=$(GIT_HASH) .
+	# Add --pull so that we are using the latest base image.
+	docker build --pull --file ./cmd/$(TARGET)/Dockerfile --tag $(IMAGE_NAME) --build-arg GIT_HASH=$(GIT_HASH) .
 
 .PHONY: tag-image
 tag-image: DOCKER_IMAGE = quay.io/theauthgear/$(IMAGE_NAME)
