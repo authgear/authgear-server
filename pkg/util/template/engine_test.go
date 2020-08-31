@@ -89,17 +89,38 @@ func TestEngineRenderTranslation(t *testing.T) {
 			},
 		}, nil)
 
-		out, err := engine.RenderTranslation(&RenderContext{
+		ctx := &RenderContext{
 			ValidatorOptions: []ValidatorOption{
 				AllowRangeNode(true),
 				AllowTemplateNode(true),
 				AllowDeclaration(true),
 				MaxDepth(15),
 			},
-		}, "translation.json", `"greeting"`, map[string]interface{}{
-			"URL": "http://www.example.com",
+		}
+
+		Convey("should render translation entry", func() {
+			out, err := engine.RenderTranslation(
+				ctx,
+				"translation.json",
+				`"greeting"`,
+				map[string]interface{}{
+					"URL": "http://www.example.com",
+				},
+			)
+			So(err, ShouldBeNil)
+			So(out, ShouldEqual, `<a href="http://www.example.com">Hi</a>`)
 		})
-		So(err, ShouldBeNil)
-		So(out, ShouldEqual, `<a href="http://www.example.com">Hi</a>`)
+
+		Convey("should fail when rendering non-existing translation entry", func() {
+			_, err := engine.RenderTranslation(
+				ctx,
+				"translation.json",
+				"none",
+				map[string]interface{}{
+					"URL": "http://www.example.com",
+				},
+			)
+			So(IsNotFound(err), ShouldBeTrue)
+		})
 	})
 }

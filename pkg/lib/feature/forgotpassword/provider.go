@@ -1,7 +1,6 @@
 package forgotpassword
 
 import (
-	"context"
 	"fmt"
 	"net/url"
 
@@ -13,10 +12,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/tasks"
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/log"
-	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 type AuthenticatorService interface {
@@ -33,6 +31,12 @@ type URLProvider interface {
 	ResetPasswordURL(code string) *url.URL
 }
 
+type TranslationService interface {
+	AppMetadata() (*translation.AppMetadata, error)
+	EmailMessageData(msg *translation.MessageSpec, args interface{}) (*translation.EmailMessageData, error)
+	SMSMessageData(msg *translation.MessageSpec, args interface{}) (*translation.SMSMessageData, error)
+}
+
 type ProviderLogger struct{ *log.Logger }
 
 func NewProviderLogger(lf *log.Factory) ProviderLogger {
@@ -40,18 +44,14 @@ func NewProviderLogger(lf *log.Factory) ProviderLogger {
 }
 
 type Provider struct {
-	Context              context.Context
 	StaticAssetURLPrefix config.StaticAssetURLPrefix
-	Localization         *config.LocalizationConfig
-	AppMetadata          config.AppMetadata
-	Messaging            *config.MessagingConfig
+	Translation          TranslationService
 	Config               *config.ForgotPasswordConfig
 
-	Store          *Store
-	Clock          clock.Clock
-	URLs           URLProvider
-	TemplateEngine *template.Engine
-	TaskQueue      task.Queue
+	Store     *Store
+	Clock     clock.Clock
+	URLs      URLProvider
+	TaskQueue task.Queue
 
 	Logger ProviderLogger
 
@@ -138,91 +138,68 @@ func (p *Provider) newCode(userID string) (code *Code, codeStr string) {
 	return
 }
 
-func (p *Provider) sendEmail(email string, code string) (err error) {
+func (p *Provider) sendEmail(email string, code string) error {
 	u := p.URLs.ResetPasswordURL(code)
+
+	appMeta, err := p.Translation.AppMetadata()
+	if err != nil {
+		return err
+	}
 
 	data := map[string]interface{}{
 		"static_asset_url_prefix": string(p.StaticAssetURLPrefix),
 		"email":                   email,
 		"code":                    code,
 		"link":                    u.String(),
+		"appname":                 appMeta.AppName,
 	}
 
-	preferredLanguageTags := intl.GetPreferredLanguageTags(p.Context)
-	data["appname"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.Localization.FallbackLanguage), p.AppMetadata, "app_name")
-
-	renderCtx := &template.RenderContext{
-		PreferredLanguageTags: preferredLanguageTags,
-	}
-
-	textBody, err := p.TemplateEngine.Render(
-		renderCtx,
-		TemplateItemTypeForgotPasswordEmailTXT,
-		data,
-	)
+	msg, err := p.Translation.EmailMessageData(messageForgotPassword, data)
 	if err != nil {
-		return
-	}
-
-	htmlBody, err := p.TemplateEngine.Render(
-		renderCtx,
-		TemplateItemTypeForgotPasswordEmailHTML,
-		data,
-	)
-	if err != nil {
-		return
+		return err
 	}
 
 	p.TaskQueue.Enqueue(&tasks.SendMessagesParam{
 		EmailMessages: []mail.SendOptions{
 			{
-				MessageConfig: config.NewEmailMessageConfig(
-					p.Messaging.DefaultEmailMessage,
-					p.Config.EmailMessage,
-				),
+				Sender:    msg.Sender,
+				ReplyTo:   msg.ReplyTo,
+				Subject:   msg.Subject,
 				Recipient: email,
-				TextBody:  textBody,
-				HTMLBody:  htmlBody,
+				TextBody:  msg.TextBody,
+				HTMLBody:  msg.HTMLBody,
 			},
 		},
 	})
 
-	return
+	return nil
 }
 
 func (p *Provider) sendSMS(phone string, code string) (err error) {
 	u := p.URLs.ResetPasswordURL(code)
 
-	data := map[string]interface{}{
-		"code": code,
-		"link": u.String(),
-	}
-
-	preferredLanguageTags := intl.GetPreferredLanguageTags(p.Context)
-	data["appname"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.Localization.FallbackLanguage), p.AppMetadata, "app_name")
-
-	renderCtx := &template.RenderContext{
-		PreferredLanguageTags: preferredLanguageTags,
-	}
-
-	body, err := p.TemplateEngine.Render(
-		renderCtx,
-		TemplateItemTypeForgotPasswordSMSTXT,
-		data,
-	)
+	appMeta, err := p.Translation.AppMetadata()
 	if err != nil {
-		return
+		return err
+	}
+
+	data := map[string]interface{}{
+		"code":    code,
+		"link":    u.String(),
+		"appname": appMeta.AppName,
+	}
+
+	msg, err := p.Translation.SMSMessageData(messageForgotPassword, data)
+	if err != nil {
+		return err
 	}
 
 	p.TaskQueue.Enqueue(&tasks.SendMessagesParam{
 		SMSMessages: []sms.SendOptions{
 			{
-				MessageConfig: config.NewSMSMessageConfig(
-					p.Messaging.DefaultSMSMessage,
-					p.Config.SMSMessage,
-				),
-				To:   phone,
-				Body: body,
+				Sender: msg.Sender,
+				To:     phone,
+				Body:   msg.Body,
 			},
 		},
 	})

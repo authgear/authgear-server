@@ -37,6 +37,10 @@ func (e *Engine) RenderTranslation(ctx *RenderContext, typ string, key string, d
 		return "", err
 	}
 
+	if _, ok := translations[key]; !ok {
+		return "", &errNotFound{name: key}
+	}
+
 	return e.renderText(ctx, &Resolved{
 		T:                 T{},
 		Content:           fmt.Sprintf("{{ template %q . }}", key),

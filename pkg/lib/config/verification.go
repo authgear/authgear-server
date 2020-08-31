@@ -21,9 +21,7 @@ var _ = Schema.Add("VerificationConfig", `
 	"properties": {
 		"claims": { "$ref": "#/$defs/VerificationClaimsConfig" },
 		"criteria": { "$ref": "#/$defs/VerificationCriteria" },
-		"code_expiry_seconds": { "$ref": "#/$defs/DurationSeconds" },
-		"sms": { "$ref": "#/$defs/VerificationSMSConfig" },
-		"email": { "$ref": "#/$defs/VerificationEmailConfig" }
+		"code_expiry_seconds": { "$ref": "#/$defs/DurationSeconds" }
 	}
 }
 `)
@@ -32,8 +30,6 @@ type VerificationConfig struct {
 	Claims     *VerificationClaimsConfig `json:"claims,omitempty"`
 	Criteria   VerificationCriteria      `json:"criteria,omitempty"`
 	CodeExpiry DurationSeconds           `json:"code_expiry_seconds,omitempty"`
-	SMS        *VerificationSMSConfig    `json:"sms,omitempty"`
-	Email      *VerificationEmailConfig  `json:"email,omitempty"`
 }
 
 func (c *VerificationConfig) SetDefaults() {
@@ -42,40 +38,6 @@ func (c *VerificationConfig) SetDefaults() {
 	}
 	if c.CodeExpiry == 0 {
 		c.CodeExpiry = DurationSeconds(3600)
-	}
-}
-
-var _ = Schema.Add("VerificationSMSConfig", `
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"message": { "$ref": "#/$defs/SMSMessageConfig" }
-	}
-}
-`)
-
-type VerificationSMSConfig struct {
-	Message SMSMessageConfig `json:"message,omitempty"`
-}
-
-var _ = Schema.Add("VerificationEmailConfig", `
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"message": { "$ref": "#/$defs/EmailMessageConfig" }
-	}
-}
-`)
-
-type VerificationEmailConfig struct {
-	Message EmailMessageConfig `json:"message,omitempty"`
-}
-
-func (c *VerificationEmailConfig) SetDefaults() {
-	if c.Message["subject"] == "" {
-		c.Message["subject"] = "Email Verification Instruction"
 	}
 }
 

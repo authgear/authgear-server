@@ -1,7 +1,6 @@
 package otp
 
 import (
-	"context"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -9,21 +8,22 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/tasks"
-	"github.com/authgear/authgear-server/pkg/util/intl"
-	"github.com/authgear/authgear-server/pkg/util/template"
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 )
 
 type EndpointsProvider interface {
 	BaseURL() *url.URL
 }
 
+type TranslationService interface {
+	AppMetadata() (*translation.AppMetadata, error)
+	EmailMessageData(msg *translation.MessageSpec, args interface{}) (*translation.EmailMessageData, error)
+	SMSMessageData(msg *translation.MessageSpec, args interface{}) (*translation.SMSMessageData, error)
+}
+
 type MessageSender struct {
-	Context              context.Context
 	StaticAssetURLPrefix config.StaticAssetURLPrefix
-	Localization         *config.LocalizationConfig
-	AppMetadata          config.AppMetadata
-	Messaging            *config.MessagingConfig
-	TemplateEngine       *template.Engine
+	Translation          TranslationService
 	Endpoints            EndpointsProvider
 	TaskQueue            task.Queue
 }
@@ -34,12 +34,14 @@ type SendOptions struct {
 	MessageType MessageType
 }
 
-func (s *MessageSender) makeData(opts SendOptions) *MessageTemplateContext {
-	preferredLanguageTags := intl.GetPreferredLanguageTags(s.Context)
-	appName := intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(s.Localization.FallbackLanguage), s.AppMetadata, "app_name")
+func (s *MessageSender) makeData(opts SendOptions) (*MessageTemplateContext, error) {
+	appMeta, err := s.Translation.AppMetadata()
+	if err != nil {
+		return nil, err
+	}
 
 	ctx := &MessageTemplateContext{
-		AppName: appName,
+		AppName: appMeta.AppName,
 		// To be filled by caller
 		Email:                "",
 		Phone:                "",
@@ -49,105 +51,87 @@ func (s *MessageSender) makeData(opts SendOptions) *MessageTemplateContext {
 		StaticAssetURLPrefix: string(s.StaticAssetURLPrefix),
 	}
 
-	return ctx
+	return ctx, nil
 }
 
-func (s *MessageSender) SendEmail(email string, opts SendOptions, message config.EmailMessageConfig) (err error) {
-	data := s.makeData(opts)
+func (s *MessageSender) SendEmail(email string, opts SendOptions) error {
+	data, err := s.makeData(opts)
+	if err != nil {
+		return err
+	}
 	data.Email = email
 
-	var textTemplate, htmlTemplate string
+	var spec *translation.MessageSpec
 	switch opts.MessageType {
 	case MessageTypeVerification:
-		textTemplate = TemplateItemTypeVerificationEmailTXT
-		htmlTemplate = TemplateItemTypeVerificationEmailHTML
+		spec = messageVerification
 	case MessageTypeSetupPrimaryOOB:
-		textTemplate = TemplateItemTypeSetupPrimaryOOBEmailTXT
-		htmlTemplate = TemplateItemTypeSetupPrimaryOOBEmailHTML
+		spec = messageSetupPrimaryOOB
 	case MessageTypeSetupSecondaryOOB:
-		textTemplate = TemplateItemTypeSetupSecondaryOOBEmailTXT
-		htmlTemplate = TemplateItemTypeSetupSecondaryOOBEmailHTML
+		spec = messageSetupSecondaryOOB
 	case MessageTypeAuthenticatePrimaryOOB:
-		textTemplate = TemplateItemTypeAuthenticatePrimaryOOBEmailTXT
-		htmlTemplate = TemplateItemTypeAuthenticatePrimaryOOBEmailHTML
+		spec = messageAuthenticatePrimaryOOB
 	case MessageTypeAuthenticateSecondaryOOB:
-		textTemplate = TemplateItemTypeAuthenticateSecondaryOOBEmailTXT
-		htmlTemplate = TemplateItemTypeAuthenticateSecondaryOOBEmailHTML
+		spec = messageAuthenticateSecondaryOOB
 	default:
 		panic("otp: unknown message type: " + opts.MessageType)
 	}
 
-	preferredLanguageTags := intl.GetPreferredLanguageTags(s.Context)
-	renderCtx := &template.RenderContext{
-		PreferredLanguageTags: preferredLanguageTags,
-	}
-
-	textBody, err := s.TemplateEngine.Render(renderCtx, textTemplate, data)
+	msg, err := s.Translation.EmailMessageData(spec, data)
 	if err != nil {
-		return
-	}
-
-	htmlBody, err := s.TemplateEngine.Render(renderCtx, htmlTemplate, data)
-	if err != nil {
-		return
+		return err
 	}
 
 	s.TaskQueue.Enqueue(&tasks.SendMessagesParam{
 		EmailMessages: []mail.SendOptions{
 			{
-				MessageConfig: config.NewEmailMessageConfig(
-					s.Messaging.DefaultEmailMessage,
-					message,
-				),
+				Sender:    msg.Sender,
+				ReplyTo:   msg.ReplyTo,
+				Subject:   msg.Subject,
 				Recipient: data.Email,
-				TextBody:  textBody,
-				HTMLBody:  htmlBody,
+				TextBody:  msg.TextBody,
+				HTMLBody:  msg.HTMLBody,
 			},
 		},
 	})
 
-	return
+	return nil
 }
 
-func (s *MessageSender) SendSMS(phone string, opts SendOptions, message config.SMSMessageConfig) (err error) {
-	data := s.makeData(opts)
+func (s *MessageSender) SendSMS(phone string, opts SendOptions) (err error) {
+	data, err := s.makeData(opts)
+	if err != nil {
+		return err
+	}
 	data.Phone = phone
 
-	var templateType string
+	var spec *translation.MessageSpec
 	switch opts.MessageType {
 	case MessageTypeVerification:
-		templateType = TemplateItemTypeVerificationSMSTXT
+		spec = messageVerification
 	case MessageTypeSetupPrimaryOOB:
-		templateType = TemplateItemTypeSetupPrimaryOOBSMSTXT
+		spec = messageSetupPrimaryOOB
 	case MessageTypeSetupSecondaryOOB:
-		templateType = TemplateItemTypeSetupSecondaryOOBSMSTXT
+		spec = messageSetupSecondaryOOB
 	case MessageTypeAuthenticatePrimaryOOB:
-		templateType = TemplateItemTypeAuthenticatePrimaryOOBSMSTXT
+		spec = messageAuthenticatePrimaryOOB
 	case MessageTypeAuthenticateSecondaryOOB:
-		templateType = TemplateItemTypeAuthenticateSecondaryOOBSMSTXT
+		spec = messageAuthenticateSecondaryOOB
 	default:
 		panic("otp: unknown message type: " + opts.MessageType)
 	}
 
-	preferredLanguageTags := intl.GetPreferredLanguageTags(s.Context)
-	renderCtx := &template.RenderContext{
-		PreferredLanguageTags: preferredLanguageTags,
-	}
-
-	body, err := s.TemplateEngine.Render(renderCtx, templateType, data)
+	msg, err := s.Translation.SMSMessageData(spec, data)
 	if err != nil {
-		return
+		return err
 	}
 
 	s.TaskQueue.Enqueue(&tasks.SendMessagesParam{
 		SMSMessages: []sms.SendOptions{
 			{
-				MessageConfig: config.NewSMSMessageConfig(
-					s.Messaging.DefaultSMSMessage,
-					message,
-				),
-				To:   data.Phone,
-				Body: body,
+				Sender: msg.Sender,
+				To:     data.Phone,
+				Body:   msg.Body,
 			},
 		},
 	})

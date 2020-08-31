@@ -23,6 +23,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	oidchandler "github.com/authgear/authgear-server/pkg/lib/oauth/oidc/handler"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
@@ -71,6 +72,7 @@ var DependencySet = wire.NewSet(
 	ProvideOAuthMetadataProviders,
 
 	viewmodelswebapp.DependencySet,
+	wire.Bind(new(viewmodelswebapp.TranslationService), new(*translation.Service)),
 
 	handlerwebapp.DependencySet,
 	wire.Bind(new(handlerwebapp.SettingsIdentityService), new(*identityservice.Service)),

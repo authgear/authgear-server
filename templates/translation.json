@@ -1,0 +1,15 @@
+{
+  "app.app-name": "Authgear",
+  "app.logo-uri": "",
+  "email.default.sender": "no-reply@authgear.com",
+  "email.default.reply-to": "",
+  "email.default.subject": "",
+  "sms.default.sender": "",
+  "email.welcome-message.subject": "Welcome!",
+  "email.forgot-password.subject": "Reset password instruction",
+  "email.verification.subject": "Email Verification Instruction",
+  "email.setup-primary-oob.subject": "Signing up at {AppName}",
+  "email.setup-secondary-oob.subject": "Signing up at {AppName}",
+  "email.authenticate-primary-oob.subject": "Logging in to {AppName}",
+  "email.authenticate-secondary-oob.subject": "Logging in to {AppName}"
+}

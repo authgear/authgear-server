@@ -8,8 +8,8 @@ import (
 )
 
 type OTPMessageSender interface {
-	SendEmail(email string, opts otp.SendOptions, message config.EmailMessageConfig) error
-	SendSMS(phone string, opts otp.SendOptions, message config.SMSMessageConfig) error
+	SendEmail(email string, opts otp.SendOptions) error
+	SendSMS(phone string, opts otp.SendOptions) error
 }
 
 type WebAppURLProvider interface {
@@ -17,7 +17,6 @@ type WebAppURLProvider interface {
 }
 
 type CodeSender struct {
-	Config           *config.VerificationConfig
 	OTPMessageSender OTPMessageSender
 	WebAppURLs       WebAppURLProvider
 }
@@ -32,9 +31,9 @@ func (s *CodeSender) SendCode(code *Code, webStateID string) (*otp.CodeSendResul
 	var err error
 	switch config.LoginIDKeyType(code.LoginIDType) {
 	case config.LoginIDKeyTypeEmail:
-		err = s.OTPMessageSender.SendEmail(code.LoginID, opts, s.Config.Email.Message)
+		err = s.OTPMessageSender.SendEmail(code.LoginID, opts)
 	case config.LoginIDKeyTypePhone:
-		err = s.OTPMessageSender.SendSMS(code.LoginID, opts, s.Config.SMS.Message)
+		err = s.OTPMessageSender.SendSMS(code.LoginID, opts)
 	default:
 		panic("verification: unsupported login ID type: " + code.LoginIDType)
 	}

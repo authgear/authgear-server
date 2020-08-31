@@ -1,6 +1,7 @@
 package otp
 
 import (
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -66,4 +67,37 @@ var (
 	TemplateAuthenticateSecondaryOOBSMSTXT    = template.Register(template.T{Type: TemplateItemTypeAuthenticateSecondaryOOBSMSTXT})
 	TemplateAuthenticateSecondaryOOBEmailTXT  = template.Register(template.T{Type: TemplateItemTypeAuthenticateSecondaryOOBEmailTXT})
 	TemplateAuthenticateSecondaryOOBEmailHTML = template.Register(template.T{Type: TemplateItemTypeAuthenticateSecondaryOOBEmailHTML, IsHTML: true})
+)
+
+var (
+	messageVerification = &translation.MessageSpec{
+		Name:          "verification",
+		TXTEmailType:  TemplateItemTypeVerificationEmailTXT,
+		HTMLEmailType: TemplateItemTypeVerificationEmailHTML,
+		SMSType:       TemplateItemTypeVerificationSMSTXT,
+	}
+	messageSetupPrimaryOOB = &translation.MessageSpec{
+		Name:          "setup-primary-oob",
+		TXTEmailType:  TemplateItemTypeSetupPrimaryOOBEmailTXT,
+		HTMLEmailType: TemplateItemTypeSetupPrimaryOOBEmailHTML,
+		SMSType:       TemplateItemTypeSetupPrimaryOOBSMSTXT,
+	}
+	messageSetupSecondaryOOB = &translation.MessageSpec{
+		Name:          "setup-secondary-oob",
+		TXTEmailType:  TemplateItemTypeSetupSecondaryOOBEmailTXT,
+		HTMLEmailType: TemplateItemTypeSetupSecondaryOOBEmailHTML,
+		SMSType:       TemplateItemTypeSetupSecondaryOOBSMSTXT,
+	}
+	messageAuthenticatePrimaryOOB = &translation.MessageSpec{
+		Name:          "authenticate-primary-oob",
+		TXTEmailType:  TemplateItemTypeAuthenticatePrimaryOOBEmailTXT,
+		HTMLEmailType: TemplateItemTypeAuthenticatePrimaryOOBEmailHTML,
+		SMSType:       TemplateItemTypeAuthenticatePrimaryOOBSMSTXT,
+	}
+	messageAuthenticateSecondaryOOB = &translation.MessageSpec{
+		Name:          "authenticate-secondary-oob",
+		TXTEmailType:  TemplateItemTypeAuthenticateSecondaryOOBEmailTXT,
+		HTMLEmailType: TemplateItemTypeAuthenticateSecondaryOOBEmailHTML,
+		SMSType:       TemplateItemTypeAuthenticateSecondaryOOBSMSTXT,
+	}
 )

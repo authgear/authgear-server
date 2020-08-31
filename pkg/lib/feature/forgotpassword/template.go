@@ -1,6 +1,7 @@
 package forgotpassword
 
 import (
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -22,3 +23,10 @@ var TemplateForgotPasswordEmailHTML = template.Register(template.T{
 var TemplateForgotPasswordSMSTXT = template.Register(template.T{
 	Type: TemplateItemTypeForgotPasswordSMSTXT,
 })
+
+var messageForgotPassword = &translation.MessageSpec{
+	Name:          "forgot-password",
+	TXTEmailType:  TemplateItemTypeForgotPasswordEmailTXT,
+	HTMLEmailType: TemplateItemTypeForgotPasswordEmailHTML,
+	SMSType:       TemplateItemTypeForgotPasswordSMSTXT,
+}
