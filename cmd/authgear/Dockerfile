@@ -10,7 +10,7 @@ RUN make build BIN_NAME=authgear TARGET=authgear GIT_HASH=$GIT_HASH
 RUN readelf -d ./authgear | grep 'There is no dynamic section in this file'
 
 # Stage 2: Build the static files
-FROM node:12.18.0-buster as stage2
+FROM node:12.18.3-buster as stage2
 ARG GIT_HASH
 WORKDIR /src
 COPY ./scripts/npm/package.json ./scripts/npm/package-lock.json ./scripts/npm/
