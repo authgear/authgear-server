@@ -42,10 +42,11 @@ const AppScreen: React.FC = function AppScreen() {
       environment={environment}
       query={query}
       variables={{ id: appID }}
-      render={({ error, props }) => {
+      render={({ error, props, retry }) => {
         if (error != null) {
-          return <ShowError error={error} />;
+          return <ShowError error={error} onRetry={retry} />;
         }
+
         if (props == null) {
           return <ShowLoading />;
         }

@@ -33,9 +33,9 @@ const UserList: React.FC = function UserList() {
       environment={environment}
       query={query}
       variables={{}}
-      render={({ error, props }) => {
+      render={({ error, props, retry }) => {
         if (error != null) {
-          return <ShowError error={error} />;
+          return <ShowError error={error} onRetry={retry} />;
         }
         if (props == null) {
           return <ShowLoading />;
