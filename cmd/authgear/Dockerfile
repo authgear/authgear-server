@@ -1,11 +1,11 @@
 # Stage 1: Build the Go binary
-FROM golang:1.14.4-buster as stage1
+FROM golang:1.15.0-buster as stage1
 ARG GIT_HASH
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN make build GIT_HASH=$GIT_HASH
+RUN make build BIN_NAME=authgear TARGET=authgear GIT_HASH=$GIT_HASH
 # Check if the binary is really static
 RUN readelf -d ./authgear | grep 'There is no dynamic section in this file'
 

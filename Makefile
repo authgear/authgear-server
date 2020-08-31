@@ -42,12 +42,14 @@ lint:
 fmt:
 	go fmt ./...
 
-# The -tags builds static binary on linux.
-# On macOS the binary is NOT static though.
-# https://github.com/golang/go/issues/26492#issuecomment-635563222
+# osusergo: https://godoc.org/github.com/golang/go/src/os/user
+# netgo: https://golang.org/doc/go1.5#net
+# static_build: https://github.com/golang/go/issues/26492#issuecomment-635563222
+#   The binary is static on Linux only. It is not static on macOS.
+# timetzdata: https://golang.org/doc/go1.15#time/tzdata
 .PHONY: build
 build:
-	go build -o authgear -tags 'osusergo netgo static_build' -ldflags ${LDFLAGS} ./cmd/authgear
+	go build -o $(BIN_NAME) -tags 'osusergo netgo static_build timetzdata' -ldflags ${LDFLAGS} ./cmd/$(TARGET)
 
 .PHONY: check-tidy
 check-tidy:
