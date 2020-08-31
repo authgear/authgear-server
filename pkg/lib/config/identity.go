@@ -148,7 +148,7 @@ var _ = Schema.Add("LoginIDKeyConfig", `
 		"type": { "$ref": "#/$defs/LoginIDKeyType" },
 		"maximum": { "type": "integer" }
 	},
-	"required": ["key", "type"]
+	"required": ["type"]
 }
 `)
 
@@ -161,6 +161,9 @@ type LoginIDKeyConfig struct {
 func (c *LoginIDKeyConfig) SetDefaults() {
 	if c.Maximum == nil {
 		c.Maximum = newInt(1)
+	}
+	if c.Key == "" {
+		c.Key = string(c.Type)
 	}
 }
 
