@@ -41,9 +41,7 @@ type LoginIDConfig struct {
 func (c *LoginIDConfig) SetDefaults() {
 	if len(c.Keys) == 0 {
 		c.Keys = []LoginIDKeyConfig{
-			{Key: "email", Type: LoginIDKeyTypeEmail},
-			{Key: "phone", Type: LoginIDKeyTypePhone},
-			{Key: "username", Type: LoginIDKeyTypeUsername},
+			{Type: LoginIDKeyTypeEmail},
 		}
 		for i := range c.Keys {
 			c.Keys[i].SetDefaults()
@@ -148,7 +146,7 @@ var _ = Schema.Add("LoginIDKeyConfig", `
 		"type": { "$ref": "#/$defs/LoginIDKeyType" },
 		"maximum": { "type": "integer" }
 	},
-	"required": ["key", "type"]
+	"required": ["type"]
 }
 `)
 
@@ -162,19 +160,21 @@ func (c *LoginIDKeyConfig) SetDefaults() {
 	if c.Maximum == nil {
 		c.Maximum = newInt(1)
 	}
+	if c.Key == "" {
+		c.Key = string(c.Type)
+	}
 }
 
 var _ = Schema.Add("LoginIDKeyType", `
 {
 	"type": "string",
-	"enum": ["raw", "email", "phone", "username"]
+	"enum": ["email", "phone", "username"]
 }
 `)
 
 type LoginIDKeyType string
 
 const (
-	LoginIDKeyTypeRaw      LoginIDKeyType = "raw"
 	LoginIDKeyTypeEmail    LoginIDKeyType = "email"
 	LoginIDKeyTypePhone    LoginIDKeyType = "phone"
 	LoginIDKeyTypeUsername LoginIDKeyType = "username"
