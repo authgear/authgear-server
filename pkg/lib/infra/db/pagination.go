@@ -2,8 +2,8 @@ package db
 
 import (
 	"encoding/base64"
-	"encoding/json"
-	"fmt"
+	"strconv"
+	"strings"
 
 	sq "github.com/Masterminds/squirrel"
 
@@ -15,9 +15,10 @@ var InvalidCursor = apierrors.Invalid.WithReason("InvalidCursor")
 var ErrInvalidCursor = InvalidCursor.New("invalid pagination cursor")
 
 type PageKey struct {
-	Key string `json:"key"`
-	ID  string `json:"id"`
+	Offset uint64
 }
+
+const pageCursorPrefix = "offset:"
 
 func NewFromPageCursor(k model.PageCursor) (*PageKey, error) {
 	if k == "" {
@@ -29,25 +30,27 @@ func NewFromPageCursor(k model.PageCursor) (*PageKey, error) {
 		return nil, ErrInvalidCursor
 	}
 
-	var pageKey PageKey
-	if err := json.Unmarshal(data, &pageKey); err != nil {
+	if !strings.HasPrefix(string(data), pageCursorPrefix) {
+		return nil, ErrInvalidCursor
+	}
+	cursor := strings.TrimPrefix(string(data), pageCursorPrefix)
+
+	offset, err := strconv.ParseUint(cursor, 10, 64)
+	if err != nil {
 		return nil, ErrInvalidCursor
 	}
 
-	return &pageKey, nil
+	return &PageKey{Offset: offset}, nil
 }
 
 func (k *PageKey) ToPageCursor() (model.PageCursor, error) {
-	cursor, err := json.Marshal(k)
-	if err != nil {
-		return "", err
-	}
-	return model.PageCursor(base64.RawURLEncoding.EncodeToString(cursor)), nil
+	cursor := pageCursorPrefix + strconv.FormatUint(k.Offset, 10)
+	return model.PageCursor(base64.RawURLEncoding.EncodeToString([]byte(cursor))), nil
 }
 
 var InvalidQuery = apierrors.BadRequest.WithReason("InvalidQuery")
 
-type PageQuery func(builder SelectBuilder, after, before *PageKey, first, last *uint64) (sq.Sqlizer, error)
+type PageQuery func(builder SelectBuilder, after, before *PageKey, first, last *uint64) (sq.Sqlizer, uint64, error)
 
 type QueryPageConfig struct {
 	KeyColumn string
@@ -58,44 +61,40 @@ func QueryPage(config QueryPageConfig) PageQuery {
 	keyColumn := config.KeyColumn
 	idColumn := config.IDColumn
 
-	return func(builder SelectBuilder, after, before *PageKey, first, last *uint64) (sq.Sqlizer, error) {
+	return func(builder SelectBuilder, after, before *PageKey, first, last *uint64) (sq.Sqlizer, uint64, error) {
 		query := builder.builder
 
-		if after != nil {
-			query = query.Where(fmt.Sprintf("%s > ? OR (%s = ? AND %s > ?)", keyColumn, keyColumn, idColumn), after.Key, after.Key, after.ID)
-		}
-		if before != nil {
-			query = query.Where(fmt.Sprintf("%s < ? OR (%s = ? AND %s < ?)", keyColumn, keyColumn, idColumn), before.Key, before.Key, before.ID)
-		}
-
+		var offset uint64
 		switch {
-		case first != nil && last != nil:
-			// Relay spec discourage using first & last simultaneously,
-			// and implementing this requires complex SQL. Therefore, forbid this
-			// combination for now.
-			return nil, InvalidQuery.New("first & last is mutually exclusive")
+		case after == nil && before == nil && first == nil && last == nil:
+			offset = 0
 
-		case last != nil:
-			query = newSQLBuilder().
-				Select("page.*").
-				FromSelect(
-					query.
-						OrderBy(keyColumn+" DESC", idColumn+" DESC").
-						Limit(*last),
-					"page",
-				).
-				OrderBy(keyColumn, idColumn)
+		case after == nil && before == nil && first != nil && last == nil:
+			offset = 0
+			query = query.Limit(*first)
 
-		case first != nil:
-			query = query.
-				OrderBy(keyColumn, idColumn).
-				Limit(*first)
+		case after != nil && before == nil && first != nil && last == nil:
+			offset = after.Offset + 1
+			query = query.Limit(*first).Offset(offset)
+
+		case after != nil && before != nil:
+			offset = after.Offset + 1
+			limit := before.Offset - offset
+			if first != nil && *first < limit {
+				limit = *first
+			}
+			if last != nil && *last < limit {
+				delta := limit - *last
+				offset += delta
+				limit -= delta
+			}
+			query = query.Limit(limit).Offset(offset)
 
 		default:
-			query = query.
-				OrderBy(keyColumn, idColumn)
+			return nil, 0, InvalidQuery.New("unsupported pagination")
 		}
+		query = query.OrderBy(keyColumn, idColumn)
 
-		return query, nil
+		return query, offset, nil
 	}
 }

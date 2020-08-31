@@ -1,26 +1,5 @@
-"""An edge in a connection"""
-type AuthenticatorEdge {
-  """ cursor for use in pagination"""
-  cursor: String!
-
-  """The item at the end of the edge"""
-  node: Authenticator
-}
-
-"""A connection to a list of items."""
-type IdentityConnection {
-  """Information to aid in pagination."""
-  edges: [IdentityEdge]
-
-  """Information to aid in pagination."""
-  pageInfo: PageInfo!
-
-  """Total number of nodes in the connection."""
-  totalCount: Int
-}
-
 """"""
-type Identity implements Node & Entity {
+type Authenticator implements Entity & Node {
   """"""
   claims(names: [String!]): JSONObject!
 
@@ -38,9 +17,9 @@ type Identity implements Node & Entity {
 }
 
 """A connection to a list of items."""
-type UserConnection {
+type AuthenticatorConnection {
   """Information to aid in pagination."""
-  edges: [UserEdge]
+  edges: [AuthenticatorEdge]
 
   """Information to aid in pagination."""
   pageInfo: PageInfo!
@@ -49,10 +28,36 @@ type UserConnection {
   totalCount: Int
 }
 
-"""Authgear user"""
-type User implements Node & Entity {
+"""An edge in a connection"""
+type AuthenticatorEdge {
+  """ cursor for use in pagination"""
+  cursor: String!
+
+  """The item at the end of the edge"""
+  node: Authenticator
+}
+
+"""
+The `DateTime` scalar type represents a DateTime. The DateTime is serialized as an RFC 3339 quoted string
+"""
+scalar DateTime
+
+""""""
+interface Entity {
+  """The creation time of entity"""
+  createdAt: DateTime!
+
+  """The ID of entity"""
+  id: ID!
+
+  """The update time of entity"""
+  updatedAt: DateTime!
+}
+
+""""""
+type Identity implements Entity & Node {
   """"""
-  authenticators(before: String, after: String, first: Int, last: Int): AuthenticatorConnection
+  claims(names: [String!]): JSONObject!
 
   """The creation time of entity"""
   createdAt: DateTime!
@@ -61,25 +66,22 @@ type User implements Node & Entity {
   id: ID!
 
   """"""
-  identities(before: String, after: String, first: Int, last: Int): IdentityConnection
-
-  """The last login time of user"""
-  lastLoginAt: DateTime
+  type: String!
 
   """The update time of entity"""
   updatedAt: DateTime!
 }
 
-""""""
-interface Entity {
-  """The ID of entity"""
-  id: ID!
+"""A connection to a list of items."""
+type IdentityConnection {
+  """Information to aid in pagination."""
+  edges: [IdentityEdge]
 
-  """The creation time of entity"""
-  createdAt: DateTime!
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
 
-  """The update time of entity"""
-  updatedAt: DateTime!
+  """Total number of nodes in the connection."""
+  totalCount: Int
 }
 
 """An edge in a connection"""
@@ -89,6 +91,15 @@ type IdentityEdge {
 
   """The item at the end of the edge"""
   node: Identity
+}
+
+"""The `JSONObject` scalar type represents an arbitrary JSON object"""
+scalar JSONObject
+
+"""An object with an ID"""
+interface Node {
+  """The id of the object"""
+  id: ID!
 }
 
 """Information about pagination in a connection."""
@@ -106,21 +117,6 @@ type PageInfo {
   startCursor: String
 }
 
-"""A connection to a list of items."""
-type AuthenticatorConnection {
-  """Information to aid in pagination."""
-  edges: [AuthenticatorEdge]
-
-  """Information to aid in pagination."""
-  pageInfo: PageInfo!
-
-  """Total number of nodes in the connection."""
-  totalCount: Int
-}
-
-"""The `JSONObject` scalar type represents an arbitrary JSON object"""
-scalar JSONObject
-
 """"""
 type Query {
   """Fetches an object given its ID"""
@@ -130,7 +126,40 @@ type Query {
   ): Node
 
   """All users"""
-  users(before: String, after: String, first: Int, last: Int): UserConnection
+  users(after: String, before: String, first: Int, last: Int): UserConnection
+}
+
+"""Authgear user"""
+type User implements Entity & Node {
+  """"""
+  authenticators(after: String, before: String, first: Int, last: Int): AuthenticatorConnection
+
+  """The creation time of entity"""
+  createdAt: DateTime!
+
+  """The ID of an object"""
+  id: ID!
+
+  """"""
+  identities(after: String, before: String, first: Int, last: Int): IdentityConnection
+
+  """The last login time of user"""
+  lastLoginAt: DateTime
+
+  """The update time of entity"""
+  updatedAt: DateTime!
+}
+
+"""A connection to a list of items."""
+type UserConnection {
+  """Information to aid in pagination."""
+  edges: [UserEdge]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Total number of nodes in the connection."""
+  totalCount: Int
 }
 
 """An edge in a connection"""
@@ -140,34 +169,5 @@ type UserEdge {
 
   """The item at the end of the edge"""
   node: User
-}
-
-"""
-The `DateTime` scalar type represents a DateTime. The DateTime is serialized as an RFC 3339 quoted string
-"""
-scalar DateTime
-
-""""""
-type Authenticator implements Node & Entity {
-  """"""
-  claims(names: [String!]): JSONObject!
-
-  """The creation time of entity"""
-  createdAt: DateTime!
-
-  """The ID of an object"""
-  id: ID!
-
-  """"""
-  type: String!
-
-  """The update time of entity"""
-  updatedAt: DateTime!
-}
-
-"""An object with an ID"""
-interface Node {
-  """The id of the object"""
-  id: ID!
 }
 
