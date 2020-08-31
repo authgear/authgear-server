@@ -20,13 +20,13 @@ const (
 	TemplateItemTypeAuthUIEnterLoginIDHTML string = "auth_ui_enter_login_id.html"
 )
 
-var TemplateAuthUIEnterLoginIDHTML = template.T{
+var TemplateAuthUIEnterLoginIDHTML = template.Register(template.T{
 	Type:                    TemplateItemTypeAuthUIEnterLoginIDHTML,
 	IsHTML:                  true,
 	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
 	Defines:                 defines,
 	ComponentTemplateTypes:  components,
-}
+})
 
 type EnterLoginIDViewModel struct {
 	LoginIDKey       string

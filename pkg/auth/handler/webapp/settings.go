@@ -12,13 +12,13 @@ const (
 	TemplateItemTypeAuthUISettingsHTML string = "auth_ui_settings.html"
 )
 
-var TemplateAuthUISettingsHTML = template.T{
+var TemplateAuthUISettingsHTML = template.Register(template.T{
 	Type:                    TemplateItemTypeAuthUISettingsHTML,
 	IsHTML:                  true,
 	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
 	Defines:                 defines,
 	ComponentTemplateTypes:  components,
-}
+})
 
 func ConfigureSettingsRoute(route httproute.Route) httproute.Route {
 	return route.

@@ -17,13 +17,13 @@ const (
 	TemplateItemTypeAuthUIEnterRecoveryCodeHTML string = "auth_ui_enter_recovery_code.html"
 )
 
-var TemplateAuthUIEnterRecoveryCodeHTML = template.T{
+var TemplateAuthUIEnterRecoveryCodeHTML = template.Register(template.T{
 	Type:                    TemplateItemTypeAuthUIEnterRecoveryCodeHTML,
 	IsHTML:                  true,
 	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
 	Defines:                 defines,
 	ComponentTemplateTypes:  components,
-}
+})
 
 const EnterRecoveryCodeRequestSchema = "EnterRecoveryCodeRequestSchema"
 

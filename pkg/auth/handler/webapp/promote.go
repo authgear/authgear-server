@@ -20,13 +20,13 @@ const (
 	TemplateItemTypeAuthUIPromoteHTML string = "auth_ui_promote.html"
 )
 
-var TemplateAuthUIPromoteHTML = template.T{
+var TemplateAuthUIPromoteHTML = template.Register(template.T{
 	Type:                    TemplateItemTypeAuthUIPromoteHTML,
 	IsHTML:                  true,
 	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
 	Defines:                 defines,
 	ComponentTemplateTypes:  components,
-}
+})
 
 const PromoteWithLoginIDRequestSchema = "PromoteWithLoginIDRequestSchema"
 

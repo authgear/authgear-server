@@ -10,15 +10,15 @@ const (
 	TemplateItemTypeForgotPasswordSMSTXT    string = "forgot_password_sms.txt"
 )
 
-var TemplateForgotPasswordEmailTXT = template.T{
+var TemplateForgotPasswordEmailTXT = template.Register(template.T{
 	Type: TemplateItemTypeForgotPasswordEmailTXT,
-}
+})
 
-var TemplateForgotPasswordEmailHTML = template.T{
+var TemplateForgotPasswordEmailHTML = template.Register(template.T{
 	Type:   TemplateItemTypeForgotPasswordEmailHTML,
 	IsHTML: true,
-}
+})
 
-var TemplateForgotPasswordSMSTXT = template.T{
+var TemplateForgotPasswordSMSTXT = template.Register(template.T{
 	Type: TemplateItemTypeForgotPasswordSMSTXT,
-}
+})

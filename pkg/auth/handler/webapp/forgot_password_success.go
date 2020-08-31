@@ -15,13 +15,13 @@ const (
 	TemplateItemTypeAuthUIForgotPasswordSuccessHTML string = "auth_ui_forgot_password_success.html"
 )
 
-var TemplateAuthUIForgotPasswordSuccessHTML = template.T{
+var TemplateAuthUIForgotPasswordSuccessHTML = template.Register(template.T{
 	Type:                    TemplateItemTypeAuthUIForgotPasswordSuccessHTML,
 	IsHTML:                  true,
 	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
 	Defines:                 defines,
 	ComponentTemplateTypes:  components,
-}
+})
 
 func ConfigureForgotPasswordSuccessRoute(route httproute.Route) httproute.Route {
 	return route.

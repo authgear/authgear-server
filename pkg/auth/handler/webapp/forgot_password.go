@@ -18,13 +18,13 @@ const (
 	TemplateItemTypeAuthUIForgotPasswordHTML string = "auth_ui_forgot_password.html"
 )
 
-var TemplateAuthUIForgotPasswordHTML = template.T{
+var TemplateAuthUIForgotPasswordHTML = template.Register(template.T{
 	Type:                    TemplateItemTypeAuthUIForgotPasswordHTML,
 	IsHTML:                  true,
 	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
 	Defines:                 defines,
 	ComponentTemplateTypes:  components,
-}
+})
 
 const ForgotPasswordRequestSchema = "ForgotPasswordRequestSchema"
 

@@ -153,20 +153,20 @@ var defines = []string{
 	definePasswordPolicyClass,
 }
 
-var TemplateAuthUIHTMLHeadHTML = template.T{
+var TemplateAuthUIHTMLHeadHTML = template.Register(template.T{
 	Type:   TemplateItemTypeAuthUIHTMLHeadHTML,
 	IsHTML: true,
-}
+})
 
-var TemplateAuthUIHeaderHTML = template.T{
+var TemplateAuthUIHeaderHTML = template.Register(template.T{
 	Type:   TemplateItemTypeAuthUIHeaderHTML,
 	IsHTML: true,
-}
+})
 
-var TemplateAuthUIFooterHTML = template.T{
+var TemplateAuthUIFooterHTML = template.Register(template.T{
 	Type:   TemplateItemTypeAuthUIFooterHTML,
 	IsHTML: true,
-}
+})
 
 var components = []string{
 	TemplateItemTypeAuthUIHTMLHeadHTML,

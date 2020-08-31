@@ -17,13 +17,13 @@ const (
 	TemplateItemTypeAuthUIEnterTOTPHTML string = "auth_ui_enter_totp.html"
 )
 
-var TemplateAuthUIEnterTOTPHTML = template.T{
+var TemplateAuthUIEnterTOTPHTML = template.Register(template.T{
 	Type:                    TemplateItemTypeAuthUIEnterTOTPHTML,
 	IsHTML:                  true,
 	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
 	Defines:                 defines,
 	ComponentTemplateTypes:  components,
-}
+})
 
 const EnterTOTPRequestSchema = "EnterTOTPRequestSchema"
 

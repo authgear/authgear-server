@@ -47,23 +47,23 @@ const (
 )
 
 var (
-	TemplateVerificationSMSTXT    = template.T{Type: TemplateItemTypeVerificationSMSTXT}
-	TemplateVerificationEmailTXT  = template.T{Type: TemplateItemTypeVerificationEmailTXT}
-	TemplateVerificationEmailHTML = template.T{Type: TemplateItemTypeVerificationEmailHTML, IsHTML: true}
+	TemplateVerificationSMSTXT    = template.Register(template.T{Type: TemplateItemTypeVerificationSMSTXT})
+	TemplateVerificationEmailTXT  = template.Register(template.T{Type: TemplateItemTypeVerificationEmailTXT})
+	TemplateVerificationEmailHTML = template.Register(template.T{Type: TemplateItemTypeVerificationEmailHTML, IsHTML: true})
 
-	TemplateSetupPrimaryOOBSMSTXT    = template.T{Type: TemplateItemTypeSetupPrimaryOOBSMSTXT}
-	TemplateSetupPrimaryOOBEmailTXT  = template.T{Type: TemplateItemTypeSetupPrimaryOOBEmailTXT}
-	TemplateSetupPrimaryOOBEmailHTML = template.T{Type: TemplateItemTypeSetupPrimaryOOBEmailHTML, IsHTML: true}
+	TemplateSetupPrimaryOOBSMSTXT    = template.Register(template.T{Type: TemplateItemTypeSetupPrimaryOOBSMSTXT})
+	TemplateSetupPrimaryOOBEmailTXT  = template.Register(template.T{Type: TemplateItemTypeSetupPrimaryOOBEmailTXT})
+	TemplateSetupPrimaryOOBEmailHTML = template.Register(template.T{Type: TemplateItemTypeSetupPrimaryOOBEmailHTML, IsHTML: true})
 
-	TemplateSetupSecondaryOOBSMSTXT    = template.T{Type: TemplateItemTypeSetupSecondaryOOBSMSTXT}
-	TemplateSetupSecondaryOOBEmailTXT  = template.T{Type: TemplateItemTypeSetupSecondaryOOBEmailTXT}
-	TemplateSetupSecondaryOOBEmailHTML = template.T{Type: TemplateItemTypeSetupSecondaryOOBEmailHTML, IsHTML: true}
+	TemplateSetupSecondaryOOBSMSTXT    = template.Register(template.T{Type: TemplateItemTypeSetupSecondaryOOBSMSTXT})
+	TemplateSetupSecondaryOOBEmailTXT  = template.Register(template.T{Type: TemplateItemTypeSetupSecondaryOOBEmailTXT})
+	TemplateSetupSecondaryOOBEmailHTML = template.Register(template.T{Type: TemplateItemTypeSetupSecondaryOOBEmailHTML, IsHTML: true})
 
-	TemplateAuthenticatePrimaryOOBSMSTXT    = template.T{Type: TemplateItemTypeAuthenticatePrimaryOOBSMSTXT}
-	TemplateAuthenticatePrimaryOOBEmailTXT  = template.T{Type: TemplateItemTypeAuthenticatePrimaryOOBEmailTXT}
-	TemplateAuthenticatePrimaryOOBEmailHTML = template.T{Type: TemplateItemTypeAuthenticatePrimaryOOBEmailHTML, IsHTML: true}
+	TemplateAuthenticatePrimaryOOBSMSTXT    = template.Register(template.T{Type: TemplateItemTypeAuthenticatePrimaryOOBSMSTXT})
+	TemplateAuthenticatePrimaryOOBEmailTXT  = template.Register(template.T{Type: TemplateItemTypeAuthenticatePrimaryOOBEmailTXT})
+	TemplateAuthenticatePrimaryOOBEmailHTML = template.Register(template.T{Type: TemplateItemTypeAuthenticatePrimaryOOBEmailHTML, IsHTML: true})
 
-	TemplateAuthenticateSecondaryOOBSMSTXT    = template.T{Type: TemplateItemTypeAuthenticateSecondaryOOBSMSTXT}
-	TemplateAuthenticateSecondaryOOBEmailTXT  = template.T{Type: TemplateItemTypeAuthenticateSecondaryOOBEmailTXT}
-	TemplateAuthenticateSecondaryOOBEmailHTML = template.T{Type: TemplateItemTypeAuthenticateSecondaryOOBEmailHTML, IsHTML: true}
+	TemplateAuthenticateSecondaryOOBSMSTXT    = template.Register(template.T{Type: TemplateItemTypeAuthenticateSecondaryOOBSMSTXT})
+	TemplateAuthenticateSecondaryOOBEmailTXT  = template.Register(template.T{Type: TemplateItemTypeAuthenticateSecondaryOOBEmailTXT})
+	TemplateAuthenticateSecondaryOOBEmailHTML = template.Register(template.T{Type: TemplateItemTypeAuthenticateSecondaryOOBEmailHTML, IsHTML: true})
 )

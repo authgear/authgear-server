@@ -19,13 +19,13 @@ const (
 	TemplateItemTypeAuthUIVerifyIdentityHTML string = "auth_ui_verify_identity.html"
 )
 
-var TemplateAuthUIVerifyIdentityHTML = template.T{
+var TemplateAuthUIVerifyIdentityHTML = template.Register(template.T{
 	Type:                    TemplateItemTypeAuthUIVerifyIdentityHTML,
 	IsHTML:                  true,
 	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
 	Defines:                 defines,
 	ComponentTemplateTypes:  components,
-}
+})
 
 const VerifyIdentityRequestSchema = "VerifyIdentityRequestSchema"
 

@@ -9,11 +9,11 @@ const (
 	TemplateItemTypeWelcomeEmailHTML string = "welcome_email.html"
 )
 
-var TemplateWelcomeEmailTXT = template.T{
+var TemplateWelcomeEmailTXT = template.Register(template.T{
 	Type: TemplateItemTypeWelcomeEmailTXT,
-}
+})
 
-var TemplateWelcomeEmailHTML = template.T{
+var TemplateWelcomeEmailHTML = template.Register(template.T{
 	Type:   TemplateItemTypeWelcomeEmailHTML,
 	IsHTML: true,
-}
+})

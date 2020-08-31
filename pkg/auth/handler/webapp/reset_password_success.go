@@ -15,13 +15,13 @@ const (
 	TemplateItemTypeAuthUIResetPasswordSuccessHTML string = "auth_ui_reset_password_success.html"
 )
 
-var TemplateAuthUIResetPasswordSuccessHTML = template.T{
+var TemplateAuthUIResetPasswordSuccessHTML = template.Register(template.T{
 	Type:                    TemplateItemTypeAuthUIResetPasswordSuccessHTML,
 	IsHTML:                  true,
 	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
 	Defines:                 defines,
 	ComponentTemplateTypes:  components,
-}
+})
 
 func ConfigureResetPasswordSuccessRoute(route httproute.Route) httproute.Route {
 	return route.

@@ -18,13 +18,13 @@ const (
 	TemplateItemTypeAuthUIEnterPasswordHTML string = "auth_ui_enter_password.html"
 )
 
-var TemplateAuthUIEnterPasswordHTML = template.T{
+var TemplateAuthUIEnterPasswordHTML = template.Register(template.T{
 	Type:                    TemplateItemTypeAuthUIEnterPasswordHTML,
 	IsHTML:                  true,
 	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
 	Defines:                 defines,
 	ComponentTemplateTypes:  components,
-}
+})
 
 const EnterPasswordRequestSchema = "EnterPasswordRequestSchema"
 
