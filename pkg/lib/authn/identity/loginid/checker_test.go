@@ -42,7 +42,7 @@ func TestLoginIDChecker(t *testing.T) {
 		Convey("Validate by config: username (0-1), email (0-1)", func() {
 			reservedNameChecker, _ := NewReservedNameChecker("../../../../../reserved_name.txt")
 			keysConfig := []config.LoginIDKeyConfig{
-				newLoginIDKeyConfig("username", config.LoginIDKeyTypeRaw, 1),
+				newLoginIDKeyConfig("username", config.LoginIDKeyTypeUsername, 1),
 				newLoginIDKeyConfig("email", config.LoginIDKeyTypeEmail, 1),
 				newLoginIDKeyConfig("phone", config.LoginIDKeyTypePhone, 1),
 			}
@@ -61,13 +61,13 @@ func TestLoginIDChecker(t *testing.T) {
 			var loginIDs []Spec
 
 			loginIDs = []Spec{
-				{Key: "username", Type: config.LoginIDKeyTypeRaw, Value: "johndoe"},
+				{Key: "username", Type: config.LoginIDKeyTypeUsername, Value: "johndoe"},
 				{Key: "email", Type: config.LoginIDKeyTypeEmail, Value: "johndoe@example.com"},
 			}
 			So(checker.Validate(loginIDs), ShouldBeNil)
 
 			loginIDs = []Spec{
-				{Key: "username", Type: config.LoginIDKeyTypeRaw, Value: "johndoe"},
+				{Key: "username", Type: config.LoginIDKeyTypeUsername, Value: "johndoe"},
 			}
 			So(checker.Validate(loginIDs), ShouldBeNil)
 

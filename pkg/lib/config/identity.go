@@ -168,14 +168,13 @@ func (c *LoginIDKeyConfig) SetDefaults() {
 var _ = Schema.Add("LoginIDKeyType", `
 {
 	"type": "string",
-	"enum": ["raw", "email", "phone", "username"]
+	"enum": ["email", "phone", "username"]
 }
 `)
 
 type LoginIDKeyType string
 
 const (
-	LoginIDKeyTypeRaw      LoginIDKeyType = "raw"
 	LoginIDKeyTypeEmail    LoginIDKeyType = "email"
 	LoginIDKeyTypePhone    LoginIDKeyType = "phone"
 	LoginIDKeyTypeUsername LoginIDKeyType = "username"
