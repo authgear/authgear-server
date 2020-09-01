@@ -269,12 +269,6 @@ identity:
       - key: email
         type: email
         maximum: 1
-      - key: phone
-        type: phone
-        maximum: 1
-      - key: username
-        type: username
-        maximum: 1
   oauth: {}
   on_conflict:
     promotion: error

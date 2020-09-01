@@ -1,8 +1,6 @@
 package user
 
 import (
-	"time"
-
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -52,17 +50,14 @@ func (p *Queries) Count() (uint64, error) {
 }
 
 func (p *Queries) QueryPage(after, before model.PageCursor, first, last *uint64) ([]model.PageItem, error) {
-	users, err := p.Store.QueryPage(after, before, first, last)
+	users, offset, err := p.Store.QueryPage(after, before, first, last)
 	if err != nil {
 		return nil, err
 	}
 
 	var models = make([]model.PageItem, len(users))
 	for i, u := range users {
-		pageKey := db.PageKey{
-			Key: u.CreatedAt.Format(time.RFC3339Nano),
-			ID:  u.ID,
-		}
+		pageKey := db.PageKey{Offset: offset + uint64(i)}
 		cursor, err := pageKey.ToPageCursor()
 		if err != nil {
 			return nil, err

@@ -3,9 +3,14 @@
 
   "loading": "Loading...",
 
+  "next": "Next",
+
   "header.sign-out": "Sign out",
 
-  "nav.dashboard": "Dashboard",
+  "nav.users": "Users",
 
-  "show-error.retry": "Retry"
+  "show-error.retry": "Retry",
+
+  "UsersList.column.id": "ID",
+  "UsersList.column.created-at": "Created At"
 }

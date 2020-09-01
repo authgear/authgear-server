@@ -17,7 +17,7 @@ type store interface {
 	Get(userID string) (*User, error)
 	GetByIDs(userIDs []string) ([]*User, error)
 	Count() (uint64, error)
-	QueryPage(after, before model.PageCursor, first, last *uint64) ([]*User, error)
+	QueryPage(after, before model.PageCursor, first, last *uint64) ([]*User, uint64, error)
 	UpdateLoginTime(userID string, loginAt time.Time) error
 }
 
@@ -135,26 +135,26 @@ func (s *Store) Count() (uint64, error) {
 	return count, nil
 }
 
-func (s *Store) QueryPage(after, before model.PageCursor, first, last *uint64) ([]*User, error) {
+func (s *Store) QueryPage(after, before model.PageCursor, first, last *uint64) ([]*User, uint64, error) {
 	afterKey, err := db.NewFromPageCursor(after)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	beforeKey, err := db.NewFromPageCursor(before)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	selectQuery := s.selectQuery()
 
-	query, err := queryPage(selectQuery, afterKey, beforeKey, first, last)
+	query, offset, err := queryPage(selectQuery, afterKey, beforeKey, first, last)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	rows, err := s.SQLExecutor.QueryWith(query)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer rows.Close()
 
@@ -162,12 +162,12 @@ func (s *Store) QueryPage(after, before model.PageCursor, first, last *uint64) (
 	for rows.Next() {
 		u, err := s.scan(rows)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		users = append(users, u)
 	}
 
-	return users, nil
+	return users, offset, nil
 }
 
 func (s *Store) UpdateLoginTime(userID string, loginAt time.Time) error {

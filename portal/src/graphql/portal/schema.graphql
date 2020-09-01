@@ -1,3 +1,45 @@
+"""Authgear app"""
+type App implements Node {
+  """"""
+  appConfig: JSONObject!
+
+  """The ID of an object"""
+  id: ID!
+
+  """"""
+  secretConfig: JSONObject!
+}
+
+"""A connection to a list of items."""
+type AppConnection {
+  """Information to aid in pagination."""
+  edges: [AppEdge]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Total number of nodes in the connection."""
+  totalCount: Int
+}
+
+"""An edge in a connection"""
+type AppEdge {
+  """ cursor for use in pagination"""
+  cursor: String!
+
+  """The item at the end of the edge"""
+  node: App
+}
+
+"""The `JSONObject` scalar type represents an arbitrary JSON object"""
+scalar JSONObject
+
+"""An object with an ID"""
+interface Node {
+  """The id of the object"""
+  id: ID!
+}
+
 """Information about pagination in a connection."""
 type PageInfo {
   """When paginating forwards, the cursor to continue."""
@@ -13,46 +55,10 @@ type PageInfo {
   startCursor: String
 }
 
-"""An edge in a connection"""
-type AppEdge {
-  """ cursor for use in pagination"""
-  cursor: String!
-
-  """The item at the end of the edge"""
-  node: App
-}
-
-"""An object with an ID"""
-interface Node {
-  """The id of the object"""
-  id: ID!
-}
-
-"""Authgear app"""
-type App implements Node {
-  """"""
-  appConfig: JSONObject!
-
-  """The ID of an object"""
-  id: ID!
-
-  """"""
-  secretConfig: JSONObject!
-}
-
-"""Portal User"""
-type User implements Node {
-  """The ID of an object"""
-  id: ID!
-}
-
-"""The `JSONObject` scalar type represents an arbitrary JSON object"""
-scalar JSONObject
-
 """"""
 type Query {
   """All apps accessible by the viewer"""
-  apps(before: String, after: String, first: Int, last: Int): AppConnection
+  apps(after: String, before: String, first: Int, last: Int): AppConnection
 
   """Fetches an object given its ID"""
   node(
@@ -64,15 +70,9 @@ type Query {
   viewer: User
 }
 
-"""A connection to a list of items."""
-type AppConnection {
-  """Information to aid in pagination."""
-  edges: [AppEdge]
-
-  """Information to aid in pagination."""
-  pageInfo: PageInfo!
-
-  """Total number of nodes in the connection."""
-  totalCount: Int
+"""Portal User"""
+type User implements Node {
+  """The ID of an object"""
+  id: ID!
 }
 

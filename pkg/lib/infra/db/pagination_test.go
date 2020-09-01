@@ -18,69 +18,62 @@ func TestQueryPage(t *testing.T) {
 			KeyColumn: "value",
 			IDColumn:  "id",
 		})
-		query := func(after, before *db.PageKey, first, last *uint64) (string, []interface{}) {
-			query, err := doQuery(builder, after, before, first, last)
+		query := func(after, before, first, last *uint64) (string, uint64) {
+			var a, b *db.PageKey
+			if after != nil {
+				a = &db.PageKey{Offset: *after}
+			}
+			if before != nil {
+				b = &db.PageKey{Offset: *before}
+			}
+			query, offset, err := doQuery(builder, a, b, first, last)
 			if err != nil {
 				panic(err)
 			}
-			sql, args, err := query.ToSql()
+			sql, _, err := query.ToSql()
 			if err != nil {
 				panic(err)
 			}
-			return sql, args
+			return sql, offset
 		}
 		newInt := func(v uint64) *uint64 { return &v }
 
 		var sql string
-		var args []interface{}
+		var offset uint64
 
-		sql, args = query(nil, nil, nil, nil)
+		sql, offset = query(nil, nil, nil, nil)
 		So(sql, ShouldEqual, `SELECT id, value FROM values WHERE app_id = $1 ORDER BY value, id`)
-		So(args, ShouldResemble, []interface{}{"my-app"})
+		So(offset, ShouldEqual, 0)
 
-		sql, args = query(nil, nil, newInt(0), nil)
+		sql, offset = query(nil, nil, newInt(0), nil)
 		So(sql, ShouldEqual, `SELECT id, value FROM values WHERE app_id = $1 ORDER BY value, id LIMIT 0`)
-		So(args, ShouldResemble, []interface{}{"my-app"})
+		So(offset, ShouldEqual, 0)
 
-		sql, args = query(nil, nil, newInt(10), nil)
+		sql, offset = query(nil, nil, newInt(10), nil)
 		So(sql, ShouldEqual, `SELECT id, value FROM values WHERE app_id = $1 ORDER BY value, id LIMIT 10`)
-		So(args, ShouldResemble, []interface{}{"my-app"})
+		So(offset, ShouldEqual, 0)
 
-		sql, args = query(&db.PageKey{Key: "1", ID: "2"}, nil, newInt(10), nil)
-		So(sql, ShouldEqual, `SELECT id, value FROM values WHERE app_id = $1 AND value > $2 OR (value = $3 AND id > $4) ORDER BY value, id LIMIT 10`)
-		So(args, ShouldResemble, []interface{}{"my-app", "1", "1", "2"})
+		sql, offset = query(newInt(9), nil, newInt(10), nil)
+		So(sql, ShouldEqual, `SELECT id, value FROM values WHERE app_id = $1 ORDER BY value, id LIMIT 10 OFFSET 10`)
+		So(offset, ShouldEqual, 10)
 
-		sql, args = query(nil, nil, nil, newInt(10))
-		So(sql, ShouldEqual, `SELECT page.* FROM (SELECT id, value FROM values WHERE app_id = $1 ORDER BY value DESC, id DESC LIMIT 10) AS page ORDER BY value, id`)
-		So(args, ShouldResemble, []interface{}{"my-app"})
-
-		sql, args = query(nil, &db.PageKey{Key: "3", ID: "4"}, nil, newInt(10))
-		So(sql, ShouldEqual, `SELECT page.* FROM (SELECT id, value FROM values WHERE app_id = $1 AND value < $2 OR (value = $3 AND id < $4) ORDER BY value DESC, id DESC LIMIT 10) AS page ORDER BY value, id`)
-		So(args, ShouldResemble, []interface{}{"my-app", "3", "3", "4"})
-
-		sql, args = query(&db.PageKey{Key: "1", ID: "2"}, &db.PageKey{Key: "9", ID: "10"}, nil, nil)
-		So(sql, ShouldEqual, `SELECT id, value FROM values WHERE app_id = $1 AND value > $2 OR (value = $3 AND id > $4) AND value < $5 OR (value = $6 AND id < $7) ORDER BY value, id`)
-		So(args, ShouldResemble, []interface{}{"my-app", "1", "1", "2", "9", "9", "10"})
+		sql, offset = query(newInt(9), newInt(20), nil, nil)
+		So(sql, ShouldEqual, `SELECT id, value FROM values WHERE app_id = $1 ORDER BY value, id LIMIT 10 OFFSET 10`)
+		So(offset, ShouldEqual, 10)
 	})
 }
 
 func TestPageKey(t *testing.T) {
 	Convey("PageKey", t, func() {
 		Convey("should round-trip correctly", func() {
-			pageKey := db.PageKey{
-				Key: "query-key",
-				ID:  "id",
-			}
+			pageKey := db.PageKey{Offset: 10}
 			cursor, err := pageKey.ToPageCursor()
 			So(err, ShouldBeNil)
-			So(cursor, ShouldEqual, "eyJrZXkiOiJxdWVyeS1rZXkiLCJpZCI6ImlkIn0")
+			So(cursor, ShouldEqual, "b2Zmc2V0OjEw")
 
 			key, err := db.NewFromPageCursor(cursor)
 			So(err, ShouldBeNil)
-			So(key, ShouldResemble, &db.PageKey{
-				Key: "query-key",
-				ID:  "id",
-			})
+			So(key, ShouldResemble, &db.PageKey{Offset: 10})
 		})
 		Convey("should return nil DB key if empty", func() {
 			key, err := db.NewFromPageCursor("")
