@@ -31,10 +31,18 @@ func resolveFormat(hash []byte) (passwordFormat, error) {
 }
 
 func Hash(password []byte) ([]byte, error) {
+	if len(password) > MaxLength {
+		password = password[:MaxLength]
+	}
+
 	return latestFormat.Hash(password)
 }
 
 func Compare(password, hash []byte) error {
+	if len(password) > MaxLength {
+		password = password[:MaxLength]
+	}
+
 	fmt, err := resolveFormat(hash)
 	if err != nil {
 		return err
@@ -43,6 +51,10 @@ func Compare(password, hash []byte) error {
 }
 
 func TryMigrate(password []byte, hash *[]byte) (migrated bool, err error) {
+	if len(password) > MaxLength {
+		password = password[:MaxLength]
+	}
+
 	fmt, err := resolveFormat(*hash)
 	if err != nil {
 		return
