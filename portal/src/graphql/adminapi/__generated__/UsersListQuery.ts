@@ -16,7 +16,7 @@ export interface UsersListQuery_users_edges_node {
   /**
    * The creation time of entity
    */
-  createdAt: any;
+  createdAt: GQL_DateTime;
 }
 
 export interface UsersListQuery_users_edges {
