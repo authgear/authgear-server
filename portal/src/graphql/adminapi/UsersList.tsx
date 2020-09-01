@@ -8,38 +8,21 @@ import {
   DefaultButton,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import {
+  UsersListQuery,
+  UsersListQueryVariables,
+  UsersListQuery_users_pageInfo,
+} from "./__generated__/UsersListQuery";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import styles from "./UsersList.module.scss";
-
-interface Data {
-  users?: {
-    edges?: ({
-      node?: {
-        id: string;
-        createdAt: string;
-      };
-    } | null)[];
-    pageInfo: PageInfo;
-  };
-}
-
-interface Variables {
-  pageSize: number;
-  cursor: string | null;
-}
-
-interface PageInfo {
-  hasNextPage: boolean;
-  endCursor: string | null;
-}
 
 interface State {
   cursor: string | null;
 }
 
-interface Props extends Data {
-  onClickNext: (pageInfo: PageInfo) => void;
+interface Props extends UsersListQuery {
+  onClickNext: (pageInfo: UsersListQuery_users_pageInfo) => void;
 }
 
 const UsersList: React.FC<Props> = function UsersList(props: Props) {
@@ -139,7 +122,7 @@ const RelayUsersList: React.FC = function RelayUsersList() {
     cursor: null,
   });
 
-  const onClickNext = useCallback((pageInfo: PageInfo) => {
+  const onClickNext = useCallback((pageInfo: UsersListQuery_users_pageInfo) => {
     if (pageInfo.endCursor != null) {
       setState({
         cursor: pageInfo.endCursor,
@@ -147,7 +130,10 @@ const RelayUsersList: React.FC = function RelayUsersList() {
     }
   }, []);
 
-  const { loading, error, data, refetch } = useQuery<Data, Variables>(query, {
+  const { loading, error, data, refetch } = useQuery<
+    UsersListQuery,
+    UsersListQueryVariables
+  >(query, {
     variables: {
       pageSize: 1,
       cursor,
@@ -163,7 +149,7 @@ const RelayUsersList: React.FC = function RelayUsersList() {
     return <ShowError error={error} onRetry={refetch} />;
   }
 
-  return <UsersList {...data} onClickNext={onClickNext} />;
+  return <UsersList users={data?.users ?? null} onClickNext={onClickNext} />;
 };
 
 export default RelayUsersList;

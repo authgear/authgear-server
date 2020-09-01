@@ -3,6 +3,7 @@ import { gql, useQuery } from "@apollo/client";
 import { Link } from "react-router-dom";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
+import { AppsScreenQuery } from "./__generated__/AppsScreenQuery";
 import styles from "./AppsScreen.module.scss";
 
 const query = gql`
@@ -17,19 +18,9 @@ const query = gql`
   }
 `;
 
-interface Data {
-  apps?: {
-    edges?: ({
-      node?: {
-        id: string;
-      };
-    } | null)[];
-  };
-}
-
-interface Variables {}
-
-const AppList: React.FC<Data> = function AppList(props: Data) {
+const AppList: React.FC<AppsScreenQuery> = function AppList(
+  props: AppsScreenQuery
+) {
   return (
     <div className={styles.appList}>
       {props.apps?.edges?.map((edge) => {
@@ -49,7 +40,7 @@ const AppList: React.FC<Data> = function AppList(props: Data) {
 };
 
 const AppsScreen: React.FC = function AppsScreen() {
-  const { loading, error, data, refetch } = useQuery<Data, Variables>(query);
+  const { loading, error, data, refetch } = useQuery<AppsScreenQuery>(query);
 
   if (loading) {
     return <ShowLoading />;
@@ -59,7 +50,7 @@ const AppsScreen: React.FC = function AppsScreen() {
     return <ShowError error={error} onRetry={refetch} />;
   }
 
-  return <AppList {...data} />;
+  return <AppList apps={data?.apps ?? null} />;
 };
 
 export default AppsScreen;

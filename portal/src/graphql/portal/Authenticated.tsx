@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { gql, useQuery } from "@apollo/client";
 import authgear from "@authgear/web";
+import { AuthenticatedQuery } from "./__generated__/AuthenticatedQuery";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 
@@ -12,13 +13,7 @@ const query = gql`
   }
 `;
 
-interface Data {
-  viewer?: {
-    id: string;
-  };
-}
-
-interface ShowQueryResultProps extends Data {
+interface ShowQueryResultProps extends AuthenticatedQuery {
   children?: React.ReactElement;
 }
 
@@ -51,15 +46,13 @@ const ShowQueryResult: React.FC<ShowQueryResultProps> = function ShowQueryResult
   return null;
 };
 
-interface Variables {}
-
 interface Props {
   children?: React.ReactElement;
 }
 
 // CAVEAT: <Authenticated><Route path="/foobar/:id"/></Authenticated> will cause useParams to return empty object :(
 const Authenticated: React.FC<Props> = function Authenticated(ownProps: Props) {
-  const { loading, error, data, refetch } = useQuery<Data, Variables>(query);
+  const { loading, error, data, refetch } = useQuery<AuthenticatedQuery>(query);
 
   if (loading) {
     return <ShowLoading />;
@@ -69,7 +62,7 @@ const Authenticated: React.FC<Props> = function Authenticated(ownProps: Props) {
     return <ShowError error={error} onRetry={refetch} />;
   }
 
-  return <ShowQueryResult {...data} {...ownProps} />;
+  return <ShowQueryResult viewer={data?.viewer ?? null} {...ownProps} />;
 };
 
 export default Authenticated;
