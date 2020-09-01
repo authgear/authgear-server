@@ -21,6 +21,8 @@ type Config struct {
 	Authgear portalconfig.AuthgearConfig `envconfig:"AUTHGEAR"`
 	// AdminAPI configures how portal interacts with Authgear Admin API.
 	AdminAPI portalconfig.AdminAPIConfig `envconfig:"ADMIN_API"`
+	// StaticAsset configures serving static asset
+	StaticAsset StaticAssetConfig `envconfig:"STATIC_ASSET"`
 
 	*config.EnvironmentConfig
 }
@@ -67,4 +69,11 @@ func (c *Config) Validate() error {
 	}
 
 	return ctx.Error("invalid server configuration")
+}
+
+type StaticAssetConfig struct {
+	// ServingEnabled sets whether serving static assets is enabled
+	ServingEnabled bool `envconfig:"SERVING_ENABLED" default:"false"`
+	// Dir sets the local directory of static assets
+	Dir string `envconfig:"DIR" default:"./static"`
 }

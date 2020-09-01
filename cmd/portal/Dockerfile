@@ -33,7 +33,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 RUN update-ca-certificates
 COPY --from=stage1 /src/authgear-portal /usr/local/bin/
-# FIXME(portal): Serve static asset
+COPY --from=stage2 /usr/src/app/dist/ ./static/
+ENV STATIC_ASSET_SERVING_ENABLED true
 USER nobody
 EXPOSE 3003
 CMD ["authgear-portal", "start"]

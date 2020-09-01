@@ -68,6 +68,10 @@ func (r *Router) Add(route Route, h http.Handler) {
 	}
 }
 
+func (r *Router) NotFound(h http.Handler) {
+	r.router.NotFound = h
+}
+
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	r.router.ServeHTTP(w, req)
 }
