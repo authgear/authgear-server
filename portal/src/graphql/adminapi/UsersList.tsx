@@ -1,5 +1,5 @@
 import React, { useMemo, useContext, useState, useCallback } from "react";
-import { graphql, QueryRenderer } from "react-relay";
+import { useQuery, gql } from "@apollo/client";
 import {
   DetailsList,
   DetailsListLayoutMode,
@@ -8,29 +8,24 @@ import {
   DefaultButton,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import AppContext from "../../AppContext";
 import {
+  UsersListQuery,
   UsersListQueryVariables,
-  UsersListQueryResponse,
-} from "./__generated__/UsersListQuery.graphql";
+  UsersListQuery_users_pageInfo,
+} from "./__generated__/UsersListQuery";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import styles from "./UsersList.module.scss";
-
-interface PageInfo {
-  hasNextPage: boolean;
-  endCursor: string | null;
-}
 
 interface State {
   cursor: string | null;
 }
 
-interface Props extends UsersListQueryResponse {
-  onClickNext: (pageInfo: PageInfo) => void;
+interface Props extends UsersListQuery {
+  onClickNext: (pageInfo: UsersListQuery_users_pageInfo) => void;
 }
 
-const UsersList: React.FC<Props> = function UsersList(props: Props) {
+const PlainUsersList: React.FC<Props> = function PlainUsersList(props: Props) {
   const edges = props.users?.edges;
   const pageInfo = props.users?.pageInfo;
   const { onClickNext } = props;
@@ -98,7 +93,7 @@ const UsersList: React.FC<Props> = function UsersList(props: Props) {
   );
 };
 
-const query = graphql`
+const query = gql`
   query UsersListQuery($pageSize: Int!, $cursor: String) {
     users(first: $pageSize, after: $cursor) {
       edges {
@@ -116,20 +111,14 @@ const query = graphql`
   }
 `;
 
-// There is createRefetchContainer and createPaginationContainer.
-// But the hasMore() createPaginationContainer for some reason always return false even hasNextPage is true.
-// createRefetchContainer appends the refetch result. So it is not applicable too.
-// So here we are using QueryRenderer to do pagination ourselves.
 // FIXME(portal): However, the users query supports on infinite pagination.
 // So we can only render a next button.
-const RelayUsersList: React.FC = function RelayUsersList() {
-  const environment = useContext(AppContext);
-
+const UsersList: React.FC = function UsersList() {
   const [{ cursor }, setState] = useState<State>({
     cursor: null,
   });
 
-  const onClickNext = useCallback((pageInfo: PageInfo) => {
+  const onClickNext = useCallback((pageInfo: UsersListQuery_users_pageInfo) => {
     if (pageInfo.endCursor != null) {
       setState({
         cursor: pageInfo.endCursor,
@@ -137,29 +126,28 @@ const RelayUsersList: React.FC = function RelayUsersList() {
     }
   }, []);
 
+  const { loading, error, data, refetch } = useQuery<
+    UsersListQuery,
+    UsersListQueryVariables
+  >(query, {
+    variables: {
+      pageSize: 1,
+      cursor,
+    },
+  });
+
+  if (loading) {
+    // FIXME(portal): Use Skimmer
+    return <ShowLoading />;
+  }
+
+  if (error != null) {
+    return <ShowError error={error} onRetry={refetch} />;
+  }
+
   return (
-    <QueryRenderer<{
-      variables: UsersListQueryVariables;
-      response: UsersListQueryResponse;
-    }>
-      environment={environment}
-      query={query}
-      variables={{
-        pageSize: 1,
-        cursor,
-      }}
-      render={({ error, props, retry }) => {
-        if (error != null) {
-          return <ShowError error={error} onRetry={retry} />;
-        }
-        if (props == null) {
-          // FIXME(portal): Use Skimmer
-          return <ShowLoading />;
-        }
-        return <UsersList {...props} onClickNext={onClickNext} />;
-      }}
-    />
+    <PlainUsersList users={data?.users ?? null} onClickNext={onClickNext} />
   );
 };
 
-export default RelayUsersList;
+export default UsersList;

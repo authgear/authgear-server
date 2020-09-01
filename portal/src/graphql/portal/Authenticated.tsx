@@ -1,12 +1,11 @@
 import React, { useEffect } from "react";
-import { graphql, QueryRenderer } from "react-relay";
+import { gql, useQuery } from "@apollo/client";
 import authgear from "@authgear/web";
-import { AuthenticatedQueryResponse } from "./__generated__/AuthenticatedQuery.graphql";
-import { environment } from "./relay";
+import { AuthenticatedQuery } from "./__generated__/AuthenticatedQuery";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 
-const query = graphql`
+const query = gql`
   query AuthenticatedQuery {
     viewer {
       id
@@ -14,9 +13,9 @@ const query = graphql`
   }
 `;
 
-type ShowQueryResultProps = AuthenticatedQueryResponse & {
+interface ShowQueryResultProps extends AuthenticatedQuery {
   children?: React.ReactElement;
-};
+}
 
 const ShowQueryResult: React.FC<ShowQueryResultProps> = function ShowQueryResult(
   props: ShowQueryResultProps
@@ -47,30 +46,23 @@ const ShowQueryResult: React.FC<ShowQueryResultProps> = function ShowQueryResult
   return null;
 };
 
-interface Empty {}
-
 interface Props {
   children?: React.ReactElement;
 }
 
 // CAVEAT: <Authenticated><Route path="/foobar/:id"/></Authenticated> will cause useParams to return empty object :(
 const Authenticated: React.FC<Props> = function Authenticated(ownProps: Props) {
-  return (
-    <QueryRenderer<{ variables: Empty; response: AuthenticatedQueryResponse }>
-      environment={environment}
-      query={query}
-      variables={{}}
-      render={({ error, props, retry }) => {
-        if (error != null) {
-          return <ShowError error={error} onRetry={retry} />;
-        }
-        if (props == null) {
-          return <ShowLoading />;
-        }
-        return <ShowQueryResult {...props} {...ownProps} />;
-      }}
-    />
-  );
+  const { loading, error, data, refetch } = useQuery<AuthenticatedQuery>(query);
+
+  if (loading) {
+    return <ShowLoading />;
+  }
+
+  if (error != null) {
+    return <ShowError error={error} onRetry={refetch} />;
+  }
+
+  return <ShowQueryResult viewer={data?.viewer ?? null} {...ownProps} />;
 };
 
 export default Authenticated;

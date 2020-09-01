@@ -32,7 +32,7 @@ jobs:
     - run: npm run fmt
       working-directory: ./portal
       if: ${{ !cancelled() }}
-    - run: npm run relay
+    - run: npm run gentype
       working-directory: ./portal
       if: ${{ !cancelled() }}
     - run: make check-tidy

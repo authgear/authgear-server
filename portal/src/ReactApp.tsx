@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LocaleProvider, FormattedMessage } from "@oursky/react-messageformat";
+import { ApolloProvider } from "@apollo/client";
 import authgear from "@authgear/web";
 import ShowLoading from "./ShowLoading";
 import Authenticated from "./graphql/portal/Authenticated";
 import AppsScreen from "./graphql/portal/AppsScreen";
 import AppRoot from "./AppRoot";
 import MESSAGES from "./locale-data/en.json";
+import { client } from "./graphql/portal/apollo";
 import styles from "./ReactApp.module.scss";
 
 // ReactAppRoutes defines the routes.
@@ -73,7 +75,9 @@ const ReactApp: React.FC = function ReactApp() {
 
   return (
     <LocaleProvider locale="en" messageByID={MESSAGES}>
-      <div className={styles.root}>{children}</div>
+      <ApolloProvider client={client}>
+        <div className={styles.root}>{children}</div>
+      </ApolloProvider>
     </LocaleProvider>
   );
 };
