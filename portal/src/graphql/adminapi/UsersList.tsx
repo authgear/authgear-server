@@ -25,7 +25,7 @@ interface Props extends UsersListQuery {
   onClickNext: (pageInfo: UsersListQuery_users_pageInfo) => void;
 }
 
-const UsersList: React.FC<Props> = function UsersList(props: Props) {
+const PlainUsersList: React.FC<Props> = function PlainUsersList(props: Props) {
   const edges = props.users?.edges;
   const pageInfo = props.users?.pageInfo;
   const { onClickNext } = props;
@@ -111,13 +111,9 @@ const query = gql`
   }
 `;
 
-// There is createRefetchContainer and createPaginationContainer.
-// But the hasMore() createPaginationContainer for some reason always return false even hasNextPage is true.
-// createRefetchContainer appends the refetch result. So it is not applicable too.
-// So here we are using QueryRenderer to do pagination ourselves.
 // FIXME(portal): However, the users query supports on infinite pagination.
 // So we can only render a next button.
-const RelayUsersList: React.FC = function RelayUsersList() {
+const UsersList: React.FC = function UsersList() {
   const [{ cursor }, setState] = useState<State>({
     cursor: null,
   });
@@ -149,7 +145,9 @@ const RelayUsersList: React.FC = function RelayUsersList() {
     return <ShowError error={error} onRetry={refetch} />;
   }
 
-  return <UsersList users={data?.users ?? null} onClickNext={onClickNext} />;
+  return (
+    <PlainUsersList users={data?.users ?? null} onClickNext={onClickNext} />
+  );
 };
 
-export default RelayUsersList;
+export default UsersList;
