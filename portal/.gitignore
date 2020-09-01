@@ -2,3 +2,4 @@ node_modules/
 dist/
 .parcel-cache/
 parcel-bundle-reports/
+build/

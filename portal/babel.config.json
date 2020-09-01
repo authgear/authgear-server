@@ -1,5 +1,9 @@
 {
-  "presets": ["@babel/preset-env"],
+  "presets": [
+    ["@babel/preset-env", {
+      "modules": false
+    }]
+  ],
   "plugins": [
     ["@babel/plugin-transform-typescript", {"isTSX": true}],
     "@babel/plugin-transform-react-jsx"

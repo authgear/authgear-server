@@ -1,0 +1,25 @@
+{
+  "mount": {
+    "src": "/_dist_",
+    "public": "/"
+  },
+  "plugins": [
+    "@snowpack/plugin-babel",
+    ["@snowpack/plugin-build-script", {
+      "cmd": "postcss",
+      "input": [".css", ".scss"],
+      "output": [".css"]
+    }],
+    ["@snowpack/plugin-webpack", {
+      "sourceMap": true
+    }]
+  ],
+  "devOptions": {
+    "port": 1234,
+    "open": "none"
+  },
+  "buildOptions": {
+    "clean": true,
+    "sourceMaps": true
+  }
+}

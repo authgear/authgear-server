@@ -7,7 +7,7 @@
 /* Ensure the page is least as tall as the viewport */
 html,
 body,
-:global(#react-app-root) {
+#react-app-root {
   min-height: 100vh;
 }
 
