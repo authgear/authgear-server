@@ -75,12 +75,12 @@ func (s *Service) AppMetadata() (*AppMetadata, error) {
 		"StaticAssetURLPrefix": s.EnvironmentConfig.StaticAssetURLPrefix,
 	}
 
-	appName, err := t.Render("app.app-name", args)
+	appName, err := t.RenderText("app.app-name", args)
 	if err != nil {
 		return nil, err
 	}
 
-	logoURI, err := t.Render("app.logo-uri", args)
+	logoURI, err := t.RenderText("app.logo-uri", args)
 	if err != nil {
 		return nil, err
 	}
@@ -97,25 +97,25 @@ func (s *Service) emailMessageHeader(name string, args interface{}) (sender, rep
 		return
 	}
 
-	sender, err = t.Render(fmt.Sprintf("email.%s.sender", name), args)
+	sender, err = t.RenderText(fmt.Sprintf("email.%s.sender", name), args)
 	if template.IsNotFound(err) {
-		sender, err = t.Render("email.default.sender", args)
+		sender, err = t.RenderText("email.default.sender", args)
 	}
 	if err != nil {
 		return
 	}
 
-	replyTo, err = t.Render(fmt.Sprintf("email.%s.reply-to", name), args)
+	replyTo, err = t.RenderText(fmt.Sprintf("email.%s.reply-to", name), args)
 	if template.IsNotFound(err) {
-		replyTo, err = t.Render("email.default.reply-to", args)
+		replyTo, err = t.RenderText("email.default.reply-to", args)
 	}
 	if err != nil {
 		return
 	}
 
-	subject, err = t.Render(fmt.Sprintf("email.%s.subject", name), args)
+	subject, err = t.RenderText(fmt.Sprintf("email.%s.subject", name), args)
 	if template.IsNotFound(err) {
-		subject, err = t.Render("email.default.subject", args)
+		subject, err = t.RenderText("email.default.subject", args)
 	}
 	if err != nil {
 		return
@@ -155,9 +155,9 @@ func (s *Service) smsMessageHeader(name string, args interface{}) (sender string
 		return
 	}
 
-	sender, err = t.Render(fmt.Sprintf("sms.%s.sender", name), args)
+	sender, err = t.RenderText(fmt.Sprintf("sms.%s.sender", name), args)
 	if template.IsNotFound(err) {
-		sender, err = t.Render("sms.default.sender", args)
+		sender, err = t.RenderText("sms.default.sender", args)
 	}
 	if err != nil {
 		return

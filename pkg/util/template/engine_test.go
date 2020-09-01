@@ -85,7 +85,7 @@ func TestEngineTranslation(t *testing.T) {
 		resolver.EXPECT().ResolveTranslations(gomock.Any(), "translation.json").Return(map[string]Translation{
 			`"greeting"`: {
 				LanguageTag: "en",
-				Value:       `<a href="{URL}">Hi</a>`,
+				Value:       `Hello, {Name}`,
 			},
 		}, nil)
 
@@ -102,21 +102,30 @@ func TestEngineTranslation(t *testing.T) {
 			translations, err := engine.Translation(ctx, "translation.json")
 			So(err, ShouldBeNil)
 
-			out, err := translations.Render(
+			out, err := translations.RenderText(
 				`"greeting"`,
 				map[string]interface{}{
-					"URL": "http://www.example.com",
+					"Name": "<User>",
 				},
 			)
 			So(err, ShouldBeNil)
-			So(out, ShouldEqual, `<a href="http://www.example.com">Hi</a>`)
+			So(out, ShouldEqual, `Hello, <User>`)
+
+			out, err = translations.RenderHTML(
+				`"greeting"`,
+				map[string]interface{}{
+					"Name": "<User>",
+				},
+			)
+			So(err, ShouldBeNil)
+			So(out, ShouldEqual, `Hello, &lt;User&gt;`)
 		})
 
 		Convey("should fail when rendering non-existing translation entry", func() {
 			translations, err := engine.Translation(ctx, "translation.json")
 			So(err, ShouldBeNil)
 
-			_, err = translations.Render(
+			_, err = translations.RenderText(
 				"none",
 				map[string]interface{}{
 					"URL": "http://www.example.com",

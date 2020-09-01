@@ -37,16 +37,8 @@ func (e *Engine) Translation(ctx *RenderContext, typ string) (*TranslationMap, e
 		return nil, err
 	}
 
-	t := texttemplate.New("")
-
-	// Inject the funcs map before parsing any templates.
-	// This is required by the documentation.
-	t.Funcs(texttemplate.FuncMap{
-		messageformat.TemplateRuntimeFuncName: messageformat.TemplateRuntimeFunc,
-		"makemap":                             MakeMap,
-	})
-
 	// Parse translations.
+	var items = make(map[string]*parse.Tree)
 	for key, translation := range translations {
 		var tree *parse.Tree
 		tag := language.Make(translation.LanguageTag)
@@ -55,20 +47,12 @@ func (e *Engine) Translation(ctx *RenderContext, typ string) (*TranslationMap, e
 			return nil, fmt.Errorf("template: failed to parse messageformat: %w", err)
 		}
 
-		_, err = t.AddParseTree(key, tree)
-		if err != nil {
-			return nil, fmt.Errorf("template: failed to add messageformat parse tree: %w", err)
-		}
+		items[key] = tree
 	}
 
-	// Validate template.
 	validator := NewValidator(ctx.ValidatorOptions...)
-	err = validator.ValidateTextTemplate(t)
-	if err != nil {
-		return nil, fmt.Errorf("template: failed to validate html template: %w", err)
-	}
 
-	return &TranslationMap{template: t}, nil
+	return &TranslationMap{items: items, validator: validator}, nil
 }
 
 func (e *Engine) Render(ctx *RenderContext, typ string, data interface{}) (out string, err error) {
