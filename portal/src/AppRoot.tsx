@@ -1,24 +1,24 @@
 import React, { useMemo } from "react";
 import { Routes, Route, useParams, Navigate } from "react-router-dom";
-import { makeEnvironment } from "./graphql/adminapi/relay";
-import AppContext from "./AppContext";
+import { ApolloProvider } from "@apollo/client";
+import { makeClient } from "./graphql/adminapi/apollo";
 import ScreenLayout from "./ScreenLayout";
 import UsersScreen from "./graphql/adminapi/UsersScreen";
 
 const AppRoot: React.FC = function AppRoot() {
   const { appID } = useParams();
-  const environment = useMemo(() => {
-    return makeEnvironment(appID);
+  const client = useMemo(() => {
+    return makeClient(appID);
   }, [appID]);
   return (
-    <AppContext.Provider value={environment}>
+    <ApolloProvider client={client}>
       <ScreenLayout>
         <Routes>
           <Route path="/" element={<Navigate to="users" replace={true} />} />
           <Route path="/users" element={<UsersScreen />} />
         </Routes>
       </ScreenLayout>
-    </AppContext.Provider>
+    </ApolloProvider>
   );
 };
 

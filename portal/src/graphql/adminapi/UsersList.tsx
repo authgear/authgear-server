@@ -1,5 +1,5 @@
 import React, { useMemo, useContext, useState, useCallback } from "react";
-import { graphql, QueryRenderer } from "react-relay";
+import { useQuery, gql } from "@apollo/client";
 import {
   DetailsList,
   DetailsListLayoutMode,
@@ -8,14 +8,26 @@ import {
   DefaultButton,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import AppContext from "../../AppContext";
-import {
-  UsersListQueryVariables,
-  UsersListQueryResponse,
-} from "./__generated__/UsersListQuery.graphql";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import styles from "./UsersList.module.scss";
+
+interface Data {
+  users?: {
+    edges?: ({
+      node?: {
+        id: string;
+        createdAt: string;
+      };
+    } | null)[];
+    pageInfo: PageInfo;
+  };
+}
+
+interface Variables {
+  pageSize: number;
+  cursor: string | null;
+}
 
 interface PageInfo {
   hasNextPage: boolean;
@@ -26,7 +38,7 @@ interface State {
   cursor: string | null;
 }
 
-interface Props extends UsersListQueryResponse {
+interface Props extends Data {
   onClickNext: (pageInfo: PageInfo) => void;
 }
 
@@ -98,7 +110,7 @@ const UsersList: React.FC<Props> = function UsersList(props: Props) {
   );
 };
 
-const query = graphql`
+const query = gql`
   query UsersListQuery($pageSize: Int!, $cursor: String) {
     users(first: $pageSize, after: $cursor) {
       edges {
@@ -123,8 +135,6 @@ const query = graphql`
 // FIXME(portal): However, the users query supports on infinite pagination.
 // So we can only render a next button.
 const RelayUsersList: React.FC = function RelayUsersList() {
-  const environment = useContext(AppContext);
-
   const [{ cursor }, setState] = useState<State>({
     cursor: null,
   });
@@ -137,29 +147,23 @@ const RelayUsersList: React.FC = function RelayUsersList() {
     }
   }, []);
 
-  return (
-    <QueryRenderer<{
-      variables: UsersListQueryVariables;
-      response: UsersListQueryResponse;
-    }>
-      environment={environment}
-      query={query}
-      variables={{
-        pageSize: 1,
-        cursor,
-      }}
-      render={({ error, props, retry }) => {
-        if (error != null) {
-          return <ShowError error={error} onRetry={retry} />;
-        }
-        if (props == null) {
-          // FIXME(portal): Use Skimmer
-          return <ShowLoading />;
-        }
-        return <UsersList {...props} onClickNext={onClickNext} />;
-      }}
-    />
-  );
+  const { loading, error, data, refetch } = useQuery<Data, Variables>(query, {
+    variables: {
+      pageSize: 1,
+      cursor,
+    },
+  });
+
+  if (loading) {
+    // FIXME(portal): Use Skimmer
+    return <ShowLoading />;
+  }
+
+  if (error != null) {
+    return <ShowError error={error} onRetry={refetch} />;
+  }
+
+  return <UsersList {...data} onClickNext={onClickNext} />;
 };
 
 export default RelayUsersList;

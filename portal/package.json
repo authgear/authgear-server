@@ -8,38 +8,31 @@
     "typecheck": "tsc",
     "fmt": "prettier --list-different --write './src/**/*.{js,ts,jsx,tsx,css,scss,html}'",
     "eslint": "eslint './src/**/*.{js,ts,jsx,tsx}'",
-    "stylelint": "stylelint './src/**/*.{css,scss}'",
-    "relay": "relay-compiler --src ./src/graphql/portal --schema ./src/graphql/portal/schema.graphql --extensions tsx --language typescript && relay-compiler --src ./src/graphql/adminapi --schema ./src/graphql/adminapi/schema.graphql --extensions tsx --language typescript"
+    "stylelint": "stylelint './src/**/*.{css,scss}'"
   },
   "devDependencies": {
     "@oursky/eslint-plugin": "3.3.1",
     "@oursky/stylelint-oursky": "1.0.1",
     "@types/react": "16.9.46",
     "@types/react-dom": "16.9.8",
-    "@types/react-relay": "7.0.8",
-    "@types/relay-runtime": "10.0.3",
-    "babel-plugin-relay": "10.0.1",
     "eslint": "7.7.0",
     "graphql": "15.3.0",
     "normalize.css": "8.0.1",
     "parcel": "2.0.0-beta.1",
     "postcss-modules": "3.2.0",
     "prettier": "2.0.5",
-    "relay-compiler": "10.0.1",
-    "relay-compiler-language-typescript": "13.0.1",
     "sass": "1.26.10",
     "stylelint": "13.6.1",
     "typescript": "3.9.7"
   },
   "dependencies": {
+    "@apollo/client": "3.1.4",
     "@authgear/web": "0.1.0",
     "@fluentui/react": "7.132.0",
     "@oursky/react-messageformat": "0.10.0",
     "history": "5.0.0",
     "react": "17.0.0-rc.0",
     "react-dom": "17.0.0-rc.0",
-    "react-relay": "10.0.1",
-    "react-router-dom": "6.0.0-beta.0",
-    "relay-runtime": "10.0.1"
+    "react-router-dom": "6.0.0-beta.0"
   }
 }

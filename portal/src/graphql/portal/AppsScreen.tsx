@@ -1,13 +1,11 @@
 import React from "react";
-import { graphql, QueryRenderer } from "react-relay";
+import { gql, useQuery } from "@apollo/client";
 import { Link } from "react-router-dom";
-import { AppsScreenQueryResponse } from "./__generated__/AppsScreenQuery.graphql";
-import { environment } from "./relay";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import styles from "./AppsScreen.module.scss";
 
-const query = graphql`
+const query = gql`
   query AppsScreenQuery {
     apps {
       edges {
@@ -19,11 +17,19 @@ const query = graphql`
   }
 `;
 
-interface Empty {}
+interface Data {
+  apps?: {
+    edges?: ({
+      node?: {
+        id: string;
+      };
+    } | null)[];
+  };
+}
 
-const AppList: React.FC<AppsScreenQueryResponse> = function AppList(
-  props: AppsScreenQueryResponse
-) {
+interface Variables {}
+
+const AppList: React.FC<Data> = function AppList(props: Data) {
   return (
     <div className={styles.appList}>
       {props.apps?.edges?.map((edge) => {
@@ -43,22 +49,17 @@ const AppList: React.FC<AppsScreenQueryResponse> = function AppList(
 };
 
 const AppsScreen: React.FC = function AppsScreen() {
-  return (
-    <QueryRenderer<{ variables: Empty; response: AppsScreenQueryResponse }>
-      environment={environment}
-      query={query}
-      variables={{}}
-      render={({ error, props, retry }) => {
-        if (error != null) {
-          return <ShowError error={error} onRetry={retry} />;
-        }
-        if (props == null) {
-          return <ShowLoading />;
-        }
-        return <AppList {...props} />;
-      }}
-    />
-  );
+  const { loading, error, data, refetch } = useQuery<Data, Variables>(query);
+
+  if (loading) {
+    return <ShowLoading />;
+  }
+
+  if (error != null) {
+    return <ShowError error={error} onRetry={refetch} />;
+  }
+
+  return <AppList {...data} />;
 };
 
 export default AppsScreen;
