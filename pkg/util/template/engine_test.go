@@ -74,8 +74,8 @@ component-a
 	})
 }
 
-func TestEngineRenderTranslation(t *testing.T) {
-	Convey("Engine.RenderTranslation", t, func() {
+func TestEngineTranslation(t *testing.T) {
+	Convey("Engine.Translation", t, func() {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
@@ -99,9 +99,10 @@ func TestEngineRenderTranslation(t *testing.T) {
 		}
 
 		Convey("should render translation entry", func() {
-			out, err := engine.RenderTranslation(
-				ctx,
-				"translation.json",
+			translations, err := engine.Translation(ctx, "translation.json")
+			So(err, ShouldBeNil)
+
+			out, err := translations.Render(
 				`"greeting"`,
 				map[string]interface{}{
 					"URL": "http://www.example.com",
@@ -112,9 +113,10 @@ func TestEngineRenderTranslation(t *testing.T) {
 		})
 
 		Convey("should fail when rendering non-existing translation entry", func() {
-			_, err := engine.RenderTranslation(
-				ctx,
-				"translation.json",
+			translations, err := engine.Translation(ctx, "translation.json")
+			So(err, ShouldBeNil)
+
+			_, err = translations.Render(
 				"none",
 				map[string]interface{}{
 					"URL": "http://www.example.com",

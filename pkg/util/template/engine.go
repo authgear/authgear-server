@@ -28,25 +28,47 @@ type Engine struct {
 	Resolver TemplateResolver
 }
 
-func (e *Engine) RenderTranslation(ctx *RenderContext, typ string, key string, data interface{}) (string, error) {
+func (e *Engine) Translation(ctx *RenderContext, typ string) (*TranslationMap, error) {
 	translations, err := e.Resolver.ResolveTranslations(
 		&ResolveContext{PreferredLanguageTags: ctx.PreferredLanguageTags},
 		typ,
 	)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	if _, ok := translations[key]; !ok {
-		return "", &errNotFound{name: key}
+	t := texttemplate.New("")
+
+	// Inject the funcs map before parsing any templates.
+	// This is required by the documentation.
+	t.Funcs(texttemplate.FuncMap{
+		messageformat.TemplateRuntimeFuncName: messageformat.TemplateRuntimeFunc,
+		"makemap":                             MakeMap,
+	})
+
+	// Parse translations.
+	for key, translation := range translations {
+		var tree *parse.Tree
+		tag := language.Make(translation.LanguageTag)
+		tree, err = messageformat.FormatTemplateParseTree(tag, translation.Value)
+		if err != nil {
+			return nil, fmt.Errorf("template: failed to parse messageformat: %w", err)
+		}
+
+		_, err = t.AddParseTree(key, tree)
+		if err != nil {
+			return nil, fmt.Errorf("template: failed to add messageformat parse tree: %w", err)
+		}
 	}
 
-	return e.renderText(ctx, &Resolved{
-		T:                 T{},
-		Content:           fmt.Sprintf("{{ template %q . }}", key),
-		Translations:      translations,
-		ComponentContents: nil,
-	}, data)
+	// Validate template.
+	validator := NewValidator(ctx.ValidatorOptions...)
+	err = validator.ValidateTextTemplate(t)
+	if err != nil {
+		return nil, fmt.Errorf("template: failed to validate html template: %w", err)
+	}
+
+	return &TranslationMap{template: t}, nil
 }
 
 func (e *Engine) Render(ctx *RenderContext, typ string, data interface{}) (out string, err error) {
@@ -144,15 +166,7 @@ func (e *Engine) renderText(ctx *RenderContext, resolved *Resolved, data interfa
 	// This is required by the documentation.
 	t.Funcs(texttemplate.FuncMap{
 		messageformat.TemplateRuntimeFuncName: messageformat.TemplateRuntimeFunc,
-		"makemap": func(pairs ...interface{}) map[string]interface{} {
-			out := make(map[string]interface{})
-			for i := 0; i < len(pairs); i += 2 {
-				key := pairs[i].(string)
-				value := pairs[i+1]
-				out[key] = value
-			}
-			return out
-		},
+		"makemap":                             MakeMap,
 	})
 
 	// Parse the main template.
