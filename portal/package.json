@@ -12,6 +12,7 @@
     "gentype": "apollo client:codegen --config ./apollo.portal.config.js --target typescript --customScalarsPrefix GQL_ && apollo client:codegen --config ./apollo.adminapi.config.js --target typescript --customScalarsPrefix GQL_"
   },
   "devDependencies": {
+    "@babel/preset-typescript": "7.10.4",
     "@oursky/eslint-plugin": "3.3.1",
     "@oursky/stylelint-oursky": "1.0.1",
     "@types/react": "16.9.46",
