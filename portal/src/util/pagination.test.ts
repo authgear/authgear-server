@@ -10,10 +10,10 @@ describe("getPaginationRenderData", () => {
       })
     ).toEqual({
       currentOffset: 0,
-      offsets: [0, 5],
+      offsets: [0],
       firstPageButtonEnabled: false,
       prevPageButtonEnabled: false,
-      nextPageButtonEnabled: true,
+      nextPageButtonEnabled: false,
       lastPageButtonEnabled: false,
     });
   });
@@ -26,10 +26,10 @@ describe("getPaginationRenderData", () => {
       })
     ).toEqual({
       currentOffset: 5,
-      offsets: [0, 5, 10],
-      firstPageButtonEnabled: true,
-      prevPageButtonEnabled: true,
-      nextPageButtonEnabled: true,
+      offsets: [5],
+      firstPageButtonEnabled: false,
+      prevPageButtonEnabled: false,
+      nextPageButtonEnabled: false,
       lastPageButtonEnabled: false,
     });
   });

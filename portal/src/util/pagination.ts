@@ -38,25 +38,12 @@ export function getPaginationRenderData(
   }
 
   if (totalCount == null) {
-    const offsets = [];
-    for (
-      let i = offset - ADDITIONAL_PAGE_TO_SHOW * pageSize;
-      i <= offset + pageSize;
-      i += pageSize
-    ) {
-      if (i >= 0) {
-        offsets.push(i);
-      }
-    }
-
-    // Allow going to first page if it is not at the first page.
-    const firstPageButtonEnabled = offset !== 0;
-    // Disallow going to last page because we do not have information to determine the last page.
+    const offsets = [offset];
+    // Disallow everything when totalCount is unknown.
+    const firstPageButtonEnabled = false;
     const lastPageButtonEnabled = false;
-    // Allow going to previous page if it is not at the first page;
-    const prevPageButtonEnabled = offset !== 0;
-    // Allow going to next page because we do not have information to conclude there is no next page.
-    const nextPageButtonEnabled = true;
+    const prevPageButtonEnabled = false;
+    const nextPageButtonEnabled = false;
 
     return {
       currentOffset: offset,
