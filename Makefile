@@ -1,9 +1,8 @@
 # GIT_NAME could be empty.
 GIT_NAME ?= $(shell git describe --exact-match 2>/dev/null)
 GIT_HASH ?= git-$(shell git rev-parse --short=12 HEAD)
+
 LDFLAGS ?= "-X github.com/authgear/authgear-server/pkg/version.Version=${GIT_HASH}"
-DOCKER_TEMP_TAG ?= authgear-server
-DOCKER_IMAGE ?= quay.io/theauthgear/authgear-server
 
 .PHONY: start
 start:
@@ -43,12 +42,14 @@ lint:
 fmt:
 	go fmt ./...
 
-# The -tags builds static binary on linux.
-# On macOS the binary is NOT static though.
-# https://github.com/golang/go/issues/26492#issuecomment-635563222
+# osusergo: https://godoc.org/github.com/golang/go/src/os/user
+# netgo: https://golang.org/doc/go1.5#net
+# static_build: https://github.com/golang/go/issues/26492#issuecomment-635563222
+#   The binary is static on Linux only. It is not static on macOS.
+# timetzdata: https://golang.org/doc/go1.15#time/tzdata
 .PHONY: build
 build:
-	go build -o authgear -tags 'osusergo netgo static_build' -ldflags ${LDFLAGS} ./cmd/authgear
+	go build -o $(BIN_NAME) -tags 'osusergo netgo static_build timetzdata' -ldflags ${LDFLAGS} ./cmd/$(TARGET)
 
 .PHONY: check-tidy
 check-tidy:
@@ -60,15 +61,18 @@ check-tidy:
 
 .PHONY: build-image
 build-image:
-	docker build --tag $(DOCKER_TEMP_TAG) --build-arg GIT_HASH=$(GIT_HASH) .
+	# Add --pull so that we are using the latest base image.
+	docker build --pull --file ./cmd/$(TARGET)/Dockerfile --tag $(IMAGE_NAME) --build-arg GIT_HASH=$(GIT_HASH) .
 
 .PHONY: tag-image
+tag-image: DOCKER_IMAGE = quay.io/theauthgear/$(IMAGE_NAME)
 tag-image:
-	docker tag $(DOCKER_TEMP_TAG) $(DOCKER_IMAGE):latest
-	docker tag $(DOCKER_TEMP_TAG) $(DOCKER_IMAGE):$(GIT_HASH)
-	if [ ! -z $(GIT_NAME) ]; then docker tag $(DOCKER_TEMP_TAG) $(DOCKER_IMAGE):$(GIT_NAME); fi
+	docker tag $(IMAGE_NAME) $(DOCKER_IMAGE):latest
+	docker tag $(IMAGE_NAME) $(DOCKER_IMAGE):$(GIT_HASH)
+	if [ ! -z $(GIT_NAME) ]; then docker tag $(IMAGE_NAME) $(DOCKER_IMAGE):$(GIT_NAME); fi
 
 .PHONY: push-image
+push-image: DOCKER_IMAGE = quay.io/theauthgear/$(IMAGE_NAME)
 push-image:
 	docker push $(DOCKER_IMAGE):latest
 	docker push $(DOCKER_IMAGE):$(GIT_HASH)

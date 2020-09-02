@@ -9,7 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-func NewRouter(p *deps.RootProvider) *httproute.Router {
+func NewRouter(p *deps.RootProvider, staticAsset StaticAssetConfig) *httproute.Router {
 	router := httproute.NewRouter()
 	router.Add(httproute.Route{
 		Methods:     []string{"GET"},
@@ -37,6 +37,13 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 
 	// FIXME(portal): Access control to admin API.
 	router.Add(transport.ConfigureAdminAPIRoute(sessionRequiredRoute), p.Handler(newAdminAPIHandler))
+
+	if staticAsset.ServingEnabled {
+		router.NotFound(http.FileServer(&httputil.TryFileSystem{
+			Fallback: "/index.html",
+			FS:       http.Dir(staticAsset.Directory),
+		}))
+	}
 
 	return router
 }

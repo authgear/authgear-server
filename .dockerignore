@@ -3,4 +3,6 @@
 **/vendor
 **/dist
 **/node_modules
+**/.parcel-cache
+**/parcel-bundle-reports
 authgear

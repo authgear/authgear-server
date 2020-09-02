@@ -20,35 +20,48 @@ jobs:
         node-version: "12.18.3"
     - run: npm ci
       working-directory: ./portal
-    - run: npm run typecheck
+    - &portal_test_run_always
+      run: npm run typecheck
       working-directory: ./portal
       if: ${{ !cancelled() }}
-    - run: npm run eslint
-      working-directory: ./portal
-      if: ${{ !cancelled() }}
-    - run: npm run stylelint
-      working-directory: ./portal
-      if: ${{ !cancelled() }}
-    - run: npm run fmt
-      working-directory: ./portal
-      if: ${{ !cancelled() }}
-    - run: npm run gentype
-      working-directory: ./portal
-      if: ${{ !cancelled() }}
-    - run: make check-tidy
-      working-directory: ./portal
-      if: ${{ !cancelled() }}
-    - run: npm run build
-      working-directory: ./portal
-      if: ${{ !cancelled() }}
+    - <<: *portal_test_run_always
+      run: npm run eslint
+    - <<: *portal_test_run_always
+      run: npm run stylelint
+    - <<: *portal_test_run_always
+      run: npm run fmt
+    - <<: *portal_test_run_always
+      run: npm run gentype
+    - <<: *portal_test_run_always
+      run: make check-tidy
+    - <<: *portal_test_run_always
+      run: npm run build
 
-  test:
+  portal-image:
+    runs-on: ubuntu-18.04
+    needs: portal-test
+    env:
+      TARGET: portal
+      IMAGE_NAME: authgear-portal
+    steps: &image_steps
+    - uses: actions/checkout@v2
+    - run: make build-image TARGET=$TARGET IMAGE_NAME=$IMAGE_NAME
+    - run: make tag-image IMAGE_NAME=$IMAGE_NAME
+    - name: docker login
+      if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
+      env:
+        QUAY_IO_USERNAME: ${{ secrets.QUAY_IO_USERNAME }}
+        QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
+      run: docker login -u "$QUAY_IO_USERNAME" -p "$QUAY_IO_PASSWORD" quay.io
+    - run: make push-image IMAGE_NAME=$IMAGE_NAME
+
+  authgear-test:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-go@v2
       with:
-        go-version: "1.14.4"
+        go-version: "1.15.0"
     - uses: actions/setup-node@v1
       with:
         node-version: "12.18.3"
@@ -60,18 +73,10 @@ jobs:
     - run: make check-tidy
       if: ${{ !cancelled() }}
 
-  image:
+  authgear-image:
     runs-on: ubuntu-18.04
-    needs: test
-    steps:
-    - uses: actions/checkout@v2
-    - run: make build-image
-    - run: make tag-image
-    - name: docker login
-      if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
-      env:
-        QUAY_IO_USERNAME: ${{ secrets.QUAY_IO_USERNAME }}
-        QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
-      run: docker login -u "$QUAY_IO_USERNAME" -p "$QUAY_IO_PASSWORD" quay.io
-    - run: make push-image
-      if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
+    needs: authgear-test
+    env:
+      TARGET: authgear
+      IMAGE_NAME: authgear-server
+    steps: *image_steps
