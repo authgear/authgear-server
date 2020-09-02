@@ -30,7 +30,7 @@ func TestWriteResponse(t *testing.T) {
 </head>
 <body>
 <script>
-window.location.href = "https:\/\/example.com?code=this_is_the_code\x26state=this_is_the_state"
+window.location.href = "https:\/\/example.com?code=this_is_the_code\u0026state=this_is_the_state"
 </script>
 </body>
 </html>
@@ -43,7 +43,7 @@ window.location.href = "https:\/\/example.com?code=this_is_the_code\x26state=thi
 </head>
 <body>
 <script>
-window.location.href = "https:\/\/example.com?code=this_is_the_code\x26state=this_is_the_state"
+window.location.href = "https:\/\/example.com?code=this_is_the_code\u0026state=this_is_the_state"
 </script>
 </body>
 </html>
@@ -56,7 +56,7 @@ window.location.href = "https:\/\/example.com?code=this_is_the_code\x26state=thi
 </head>
 <body>
 <script>
-window.location.href = "https:\/\/example.com#code=this_is_the_code\x26state=this_is_the_state"
+window.location.href = "https:\/\/example.com#code=this_is_the_code\u0026state=this_is_the_state"
 </script>
 </body>
 </html>
