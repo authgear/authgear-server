@@ -59,6 +59,7 @@ jobs:
         QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
       run: docker login -u "$QUAY_IO_USERNAME" -p "$QUAY_IO_PASSWORD" quay.io
     - run: make push-image IMAGE_NAME=$IMAGE_NAME
+      if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
 
   authgear-test:
     runs-on: ubuntu-18.04
@@ -95,3 +96,4 @@ jobs:
         QUAY_IO_PASSWORD: ${{ secrets.QUAY_IO_PASSWORD }}
       run: docker login -u "$QUAY_IO_USERNAME" -p "$QUAY_IO_PASSWORD" quay.io
     - run: make push-image IMAGE_NAME=$IMAGE_NAME
+      if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
