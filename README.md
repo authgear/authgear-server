@@ -39,16 +39,43 @@ Note that there is a local .tool-versions in project root. For the following set
    ```sh
    make vendor
    ```
-2. Create a schema:
+2. Setup environment variables (in `.env`):
+   ```sh
+   cp .env.example .env
+   ```
+
+3. start db container
+   ```sh
+   docker-compose up db
+   ```
+
+4. Create a schema:
+
+   Run the following SQL command with command line to such as `psql` or DB viewer such as `Postico`
+
    ```sql
    CREATE SCHEMA app;
    ```
-3. Setup environment variables (in `.env`):
+
+5. Initialize app
+
+   To generate the necessary config and secret yaml file, run
+
+   ```sh
+   go run ./cmd/authgear init config
+   go run ./cmd/authgear init secrets
+   ```
+
+   then follow the instructions. For database URL and schema, use the following,
    ```
    DATABASE_URL=postgres://postgres@127.0.0.1:5432/postgres?sslmode=disable
-   DATABASE_SCHEMA=app  
+   DATABASE_SCHEMA=app
    ```
-4. Apply database schema migrations:
+
+6. Apply database schema migrations:
+
+   make sure the db container is running
+
    ```sh
    go run ./cmd/authgear migrate up
    ```
