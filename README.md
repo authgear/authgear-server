@@ -86,6 +86,21 @@ To create new migration:
 go run ./cmd/authgear migrate new add user table
 ```
 
+## Run server
+
+To run development server, we need to start `db` and `redis` container
+
+```sh
+docker-compose up -d db redis
+```
+
+Then run the command
+
+```sh
+# in project root
+go run ./cmd/authgear start
+```
+
 ## Comment tags
 
 - `FIXME`: Should be fixed as soon as possible
