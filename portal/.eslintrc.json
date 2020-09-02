@@ -16,6 +16,7 @@
   },
   "rules": {
     "react/jsx-no-bind": "off",
-    "no-mixed-operators": "off"
+    "no-mixed-operators": "off",
+    "no-undefined": "off"
   }
 }
