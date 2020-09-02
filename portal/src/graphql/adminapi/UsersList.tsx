@@ -1,7 +1,7 @@
 import React, { useMemo, useContext, useState, useCallback } from "react";
 import { useQuery, gql } from "@apollo/client";
 import {
-  DetailsList,
+  ShimmeredDetailsList,
   DetailsListLayoutMode,
   SelectionMode,
   IColumn,
@@ -13,12 +13,12 @@ import {
   UsersListQueryVariables,
 } from "./__generated__/UsersListQuery";
 import ShowError from "../../ShowError";
-import ShowLoading from "../../ShowLoading";
 import PaginationWidget from "../../PaginationWidget";
 import { encodeOffsetToCursor } from "../../util/pagination";
 import styles from "./UsersList.module.scss";
 
 interface Props {
+  loading: boolean;
   users: UsersListQuery_users | null;
   offset: number;
   pageSize: number;
@@ -27,7 +27,7 @@ interface Props {
 }
 
 const PlainUsersList: React.FC<Props> = function PlainUsersList(props: Props) {
-  const { offset, pageSize, totalCount, onChangeOffset } = props;
+  const { loading, offset, pageSize, totalCount, onChangeOffset } = props;
   const edges = props.users?.edges;
 
   const { renderToString } = useContext(Context);
@@ -69,7 +69,8 @@ const PlainUsersList: React.FC<Props> = function PlainUsersList(props: Props) {
 
   return (
     <div className={styles.root}>
-      <DetailsList
+      <ShimmeredDetailsList
+        enableShimmer={loading}
         selectionMode={SelectionMode.none}
         layoutMode={DetailsListLayoutMode.justified}
         columns={columns}
@@ -129,17 +130,13 @@ const UsersList: React.FC = function UsersList() {
     },
   });
 
-  if (loading) {
-    // FIXME(portal): Use Skimmer
-    return <ShowLoading />;
-  }
-
   if (error != null) {
     return <ShowError error={error} onRetry={refetch} />;
   }
 
   return (
     <PlainUsersList
+      loading={loading}
       users={data?.users ?? null}
       offset={offset}
       pageSize={pageSize}
