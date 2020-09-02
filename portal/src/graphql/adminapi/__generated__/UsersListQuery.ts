@@ -27,28 +27,12 @@ export interface UsersListQuery_users_edges {
   node: UsersListQuery_users_edges_node | null;
 }
 
-export interface UsersListQuery_users_pageInfo {
-  __typename: "PageInfo";
-  /**
-   * When paginating forwards, are there more items?
-   */
-  hasNextPage: boolean;
-  /**
-   * When paginating forwards, the cursor to continue.
-   */
-  endCursor: string | null;
-}
-
 export interface UsersListQuery_users {
   __typename: "UserConnection";
   /**
    * Information to aid in pagination.
    */
   edges: (UsersListQuery_users_edges | null)[] | null;
-  /**
-   * Information to aid in pagination.
-   */
-  pageInfo: UsersListQuery_users_pageInfo;
   /**
    * Total number of nodes in the connection.
    */

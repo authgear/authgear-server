@@ -5,36 +5,30 @@ import {
   DetailsListLayoutMode,
   SelectionMode,
   IColumn,
-  DefaultButton,
 } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Context } from "@oursky/react-messageformat";
 import {
   UsersListQuery,
+  UsersListQuery_users,
   UsersListQueryVariables,
-  UsersListQuery_users_pageInfo,
 } from "./__generated__/UsersListQuery";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
+import PaginationWidget from "../../PaginationWidget";
+import { encodeOffsetToCursor } from "../../util/pagination";
 import styles from "./UsersList.module.scss";
 
-interface State {
-  cursor: string | null;
-}
-
-interface Props extends UsersListQuery {
-  onClickNext: (pageInfo: UsersListQuery_users_pageInfo) => void;
+interface Props {
+  users: UsersListQuery_users | null;
+  offset: number;
+  pageSize: number;
+  totalCount?: number;
+  onChangeOffset?: (offset: number) => void;
 }
 
 const PlainUsersList: React.FC<Props> = function PlainUsersList(props: Props) {
+  const { offset, pageSize, totalCount, onChangeOffset } = props;
   const edges = props.users?.edges;
-  const pageInfo = props.users?.pageInfo;
-  const { onClickNext } = props;
-
-  const thisOnClickNext = useCallback(() => {
-    if (pageInfo != null) {
-      onClickNext(pageInfo);
-    }
-  }, [pageInfo, onClickNext]);
 
   const { renderToString } = useContext(Context);
 
@@ -81,14 +75,13 @@ const PlainUsersList: React.FC<Props> = function PlainUsersList(props: Props) {
         columns={columns}
         items={items}
       />
-      <div className={styles.pagination}>
-        <DefaultButton
-          onClick={thisOnClickNext}
-          disabled={!(pageInfo?.hasNextPage ?? false)}
-        >
-          <FormattedMessage id="next" />
-        </DefaultButton>
-      </div>
+      <PaginationWidget
+        className={styles.pagination}
+        offset={offset}
+        pageSize={pageSize}
+        totalCount={totalCount}
+        onChangeOffset={onChangeOffset}
+      />
     </div>
   );
 };
@@ -102,28 +95,28 @@ const query = gql`
           createdAt
         }
       }
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
       totalCount
     }
   }
 `;
 
-// FIXME(portal): However, the users query supports on infinite pagination.
-// So we can only render a next button.
-const UsersList: React.FC = function UsersList() {
-  const [{ cursor }, setState] = useState<State>({
-    cursor: null,
-  });
+const pageSize = 10;
 
-  const onClickNext = useCallback((pageInfo: UsersListQuery_users_pageInfo) => {
-    if (pageInfo.endCursor != null) {
-      setState({
-        cursor: pageInfo.endCursor,
-      });
+const UsersList: React.FC = function UsersList() {
+  const [offset, setOffset] = useState(0);
+
+  // after: is exclusive so if we pass it "offset:0",
+  // The first item is excluded.
+  // Therefore we have adjust it by -1.
+  const cursor = useMemo(() => {
+    if (offset === 0) {
+      return null;
     }
+    return encodeOffsetToCursor(offset - 1);
+  }, [offset]);
+
+  const onChangeOffset = useCallback((offset) => {
+    setOffset(offset);
   }, []);
 
   const { loading, error, data, refetch } = useQuery<
@@ -131,7 +124,7 @@ const UsersList: React.FC = function UsersList() {
     UsersListQueryVariables
   >(query, {
     variables: {
-      pageSize: 1,
+      pageSize,
       cursor,
     },
   });
@@ -146,7 +139,13 @@ const UsersList: React.FC = function UsersList() {
   }
 
   return (
-    <PlainUsersList users={data?.users ?? null} onClickNext={onClickNext} />
+    <PlainUsersList
+      users={data?.users ?? null}
+      offset={offset}
+      pageSize={pageSize}
+      totalCount={data?.users?.totalCount ?? undefined}
+      onChangeOffset={onChangeOffset}
+    />
   );
 };
 
