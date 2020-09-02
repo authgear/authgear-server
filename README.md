@@ -22,6 +22,17 @@ mkcert -cert-file tls-cert.pem -key-file tls-key.pem localhost 127.0.0.1 ::1
 
 One caveat is HTTP redirect to HTTPS is not supported, you have to type in https in the browser address bar manually.
 
+## Prerequisite
+
+Note that there is a local .tool-versions in project root. For the following setup to work, we need to
+
+1. Install asdf
+
+2. Run the following to install all dependencies in .tool-versions
+   ```sh
+   asdf install
+   ```
+
 ## Database setup
 
 1. Setup dependencies:
