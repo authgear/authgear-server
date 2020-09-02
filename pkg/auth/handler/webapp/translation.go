@@ -8,6 +8,6 @@ const (
 	TemplateItemTypeAuthUITranslationJSON string = "auth_ui_translation.json"
 )
 
-var TemplateAuthUITranslationJSON = template.T{
+var TemplateAuthUITranslationJSON = template.Register(template.T{
 	Type: TemplateItemTypeAuthUITranslationJSON,
-}
+})

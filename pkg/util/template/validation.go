@@ -56,6 +56,9 @@ func (v *Validator) ValidateTextTemplate(template *text.Template) error {
 	})
 
 	for _, tpl := range tpls {
+		if tpl.Tree == nil {
+			continue
+		}
 		if err := v.validateTree(tpl.Tree); err != nil {
 			return err
 		}
@@ -70,6 +73,9 @@ func (v *Validator) ValidateHTMLTemplate(template *html.Template) error {
 	})
 
 	for _, tpl := range tpls {
+		if tpl.Tree == nil {
+			continue
+		}
 		if err := v.validateTree(tpl.Tree); err != nil {
 			return err
 		}

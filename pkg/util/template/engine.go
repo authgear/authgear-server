@@ -16,6 +16,7 @@ import (
 // nolint:golint
 type TemplateResolver interface {
 	Resolve(ctx *ResolveContext, typ string) (*Resolved, error)
+	ResolveTranslations(ctx *ResolveContext, typ string) (map[string]Translation, error)
 }
 
 type RenderContext struct {
@@ -25,6 +26,33 @@ type RenderContext struct {
 
 type Engine struct {
 	Resolver TemplateResolver
+}
+
+func (e *Engine) Translation(ctx *RenderContext, typ string) (*TranslationMap, error) {
+	translations, err := e.Resolver.ResolveTranslations(
+		&ResolveContext{PreferredLanguageTags: ctx.PreferredLanguageTags},
+		typ,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse translations.
+	var items = make(map[string]*parse.Tree)
+	for key, translation := range translations {
+		var tree *parse.Tree
+		tag := language.Make(translation.LanguageTag)
+		tree, err = messageformat.FormatTemplateParseTree(tag, translation.Value)
+		if err != nil {
+			return nil, fmt.Errorf("template: failed to parse messageformat: %w", err)
+		}
+
+		items[key] = tree
+	}
+
+	validator := NewValidator(ctx.ValidatorOptions...)
+
+	return &TranslationMap{items: items, validator: validator}, nil
 }
 
 func (e *Engine) Render(ctx *RenderContext, typ string, data interface{}) (out string, err error) {
@@ -122,15 +150,7 @@ func (e *Engine) renderText(ctx *RenderContext, resolved *Resolved, data interfa
 	// This is required by the documentation.
 	t.Funcs(texttemplate.FuncMap{
 		messageformat.TemplateRuntimeFuncName: messageformat.TemplateRuntimeFunc,
-		"makemap": func(pairs ...interface{}) map[string]interface{} {
-			out := make(map[string]interface{})
-			for i := 0; i < len(pairs); i += 2 {
-				key := pairs[i].(string)
-				value := pairs[i+1]
-				out[key] = value
-			}
-			return out
-		},
+		"makemap":                             MakeMap,
 	})
 
 	// Parse the main template.

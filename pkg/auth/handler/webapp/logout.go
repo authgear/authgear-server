@@ -16,13 +16,13 @@ const (
 	TemplateItemTypeAuthUILogoutHTML string = "auth_ui_logout.html"
 )
 
-var TemplateAuthUILogoutHTML = template.T{
+var TemplateAuthUILogoutHTML = template.Register(template.T{
 	Type:                    TemplateItemTypeAuthUILogoutHTML,
 	IsHTML:                  true,
 	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
 	Defines:                 defines,
 	ComponentTemplateTypes:  components,
-}
+})
 
 func ConfigureLogoutRoute(route httproute.Route) httproute.Route {
 	return route.

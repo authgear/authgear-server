@@ -23,7 +23,6 @@ var _ = Schema.Add("AppConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"id": { "type": "string" },
-		"metadata": { "$ref": "#/$defs/AppMetadata" },
 		"http": { "$ref": "#/$defs/HTTPConfig" },
 		"database": { "$ref": "#/$defs/DatabaseConfig" },
 		"redis": { "$ref": "#/$defs/RedisConfig" },
@@ -46,8 +45,7 @@ var _ = Schema.Add("AppConfig", `
 `)
 
 type AppConfig struct {
-	ID       AppID       `json:"id"`
-	Metadata AppMetadata `json:"metadata,omitempty"`
+	ID AppID `json:"id"`
 
 	HTTP     *HTTPConfig     `json:"http,omitempty"`
 	Database *DatabaseConfig `json:"database,omitempty"`

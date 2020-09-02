@@ -14,6 +14,7 @@ type Loader interface {
 
 type NewResolverOptions struct {
 	AppFs                     fs.Fs
+	Registry                  *Registry
 	DefaultTemplatesDirectory string
 	References                []Reference
 	FallbackLanguageTag       string
@@ -27,7 +28,7 @@ type ResolveContext struct {
 type Resolver struct {
 	Loader              Loader
 	DefaultLoader       DefaultLoader
-	Registry            map[string]T
+	Registry            *Registry
 	References          []Reference
 	FallbackLanguageTag string
 }
@@ -38,19 +39,14 @@ func NewResolver(opts NewResolverOptions) *Resolver {
 	return &Resolver{
 		Loader:              uriLoader,
 		DefaultLoader:       defaultLoader,
-		Registry:            make(map[string]T),
+		Registry:            opts.Registry,
 		References:          opts.References,
 		FallbackLanguageTag: opts.FallbackLanguageTag,
 	}
 }
 
-// Register registers t.
-func (r *Resolver) Register(t T) {
-	r.Registry[t.Type] = t
-}
-
 func (r *Resolver) Resolve(ctx *ResolveContext, typ string) (resolved *Resolved, err error) {
-	t, ok := r.Registry[typ]
+	t, ok := r.Registry.Lookup(typ)
 	if !ok {
 		panic("template: unregistered template type: " + typ)
 	}
@@ -62,7 +58,7 @@ func (r *Resolver) Resolve(ctx *ResolveContext, typ string) (resolved *Resolved,
 
 	var translations map[string]Translation
 	if t.TranslationTemplateType != "" {
-		translations, err = r.resolveTranslations(ctx, t.TranslationTemplateType)
+		translations, err = r.ResolveTranslations(ctx, t.TranslationTemplateType)
 		if err != nil {
 			return
 		}
@@ -133,8 +129,8 @@ func (r *Resolver) resolveReference(ctx *ResolveContext, t T) (reference *Refere
 	return
 }
 
-func (r *Resolver) resolveTranslations(ctx *ResolveContext, typ string) (translations map[string]Translation, err error) {
-	t, ok := r.Registry[typ]
+func (r *Resolver) ResolveTranslations(ctx *ResolveContext, typ string) (translations map[string]Translation, err error) {
+	t, ok := r.Registry.Lookup(typ)
 	if !ok {
 		panic("template: unregistered template type: " + typ)
 	}
@@ -228,7 +224,7 @@ func (r *Resolver) resolveComponents(ctx *ResolveContext, types []string) (conte
 				continue
 			}
 
-			t, ok := r.Registry[typ]
+			t, ok := r.Registry.Lookup(typ)
 			if !ok {
 				panic("template: unregistered template type: " + typ)
 			}

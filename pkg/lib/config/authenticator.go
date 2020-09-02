@@ -108,16 +108,14 @@ var _ = Schema.Add("AuthenticatorOOBSMSConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"maximum": { "type": "integer" },
-		"message": { "$ref": "#/$defs/SMSMessageConfig" },
 		"code_digits": { "type": "integer", "minimum": 4, "maximum": 8 }
 	}
 }
 `)
 
 type AuthenticatorOOBSMSConfig struct {
-	Maximum    *int             `json:"maximum,omitempty"`
-	Message    SMSMessageConfig `json:"message,omitempty"`
-	CodeDigits int              `json:"code_digits,omitempty"`
+	Maximum    *int `json:"maximum,omitempty"`
+	CodeDigits int  `json:"code_digits,omitempty"`
 }
 
 func (c *AuthenticatorOOBSMSConfig) SetDefaults() {
@@ -142,17 +140,13 @@ var _ = Schema.Add("AuthenticatorOOBEmailConfig", `
 `)
 
 type AuthenticatorOOBEmailConfig struct {
-	Maximum    *int               `json:"maximum,omitempty"`
-	Message    EmailMessageConfig `json:"message,omitempty"`
-	CodeDigits int                `json:"code_digits,omitempty"`
+	Maximum    *int `json:"maximum,omitempty"`
+	CodeDigits int  `json:"code_digits,omitempty"`
 }
 
 func (c *AuthenticatorOOBEmailConfig) SetDefaults() {
 	if c.Maximum == nil {
 		c.Maximum = newInt(99)
-	}
-	if c.Message["subject"] == "" {
-		c.Message["subject"] = "Email Verification Instruction"
 	}
 	if c.CodeDigits == 0 {
 		c.CodeDigits = 6

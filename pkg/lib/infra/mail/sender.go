@@ -1,23 +1,23 @@
 package mail
 
 import (
-	"context"
 	"errors"
 
 	"github.com/go-gomail/gomail"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 var ErrMissingSMTPConfiguration = errors.New("mail: configuration is missing")
 
 type SendOptions struct {
-	MessageConfig config.EmailMessageConfig
-	Recipient     string
-	TextBody      string
-	HTMLBody      string
+	Sender    string
+	ReplyTo   string
+	Subject   string
+	Recipient string
+	TextBody  string
+	HTMLBody  string
 }
 
 type Logger struct{ *log.Logger }
@@ -25,11 +25,9 @@ type Logger struct{ *log.Logger }
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("mail-sender")} }
 
 type Sender struct {
-	Logger                    Logger
-	DevMode                   config.DevMode
-	LocalizationConfiguration *config.LocalizationConfig
-	GomailDialer              *gomail.Dialer
-	Context                   context.Context
+	Logger       Logger
+	DevMode      config.DevMode
+	GomailDialer *gomail.Dialer
 }
 
 func NewGomailDialer(smtp *config.SMTPServerCredentials) *gomail.Dialer {
@@ -53,6 +51,9 @@ func (s *Sender) Send(opts SendOptions) (err error) {
 		s.Logger.
 			WithField("recipient", opts.Recipient).
 			WithField("body", opts.TextBody).
+			WithField("sender", opts.Sender).
+			WithField("subject", opts.Subject).
+			WithField("reply_to", opts.ReplyTo).
 			Warn("skip sending email in development mode")
 		return nil
 	}
@@ -88,12 +89,7 @@ func (s *Sender) Send(opts SendOptions) (err error) {
 }
 
 func (s *Sender) applyFrom(opts *SendOptions, message *gomail.Message) error {
-	tags := intl.GetPreferredLanguageTags(s.Context)
-	sender := intl.LocalizeStringMap(tags, intl.Fallback(s.LocalizationConfiguration.FallbackLanguage), opts.MessageConfig, "sender")
-	if sender == "" {
-		return errors.New("mail: sender address is missing")
-	}
-	message.SetHeader("From", sender)
+	message.SetHeader("From", opts.Sender)
 	return nil
 }
 
@@ -107,24 +103,12 @@ func applyTo(opts *SendOptions, message *gomail.Message) error {
 }
 
 func (s *Sender) applyReplyTo(opts *SendOptions, message *gomail.Message) error {
-	tags := intl.GetPreferredLanguageTags(s.Context)
-	replyTo := intl.LocalizeStringMap(tags, intl.Fallback(s.LocalizationConfiguration.FallbackLanguage), opts.MessageConfig, "reply_to")
-	if replyTo == "" {
-		return nil
-	}
-
-	message.SetHeader("Reply-To", replyTo)
+	message.SetHeader("Reply-To", opts.ReplyTo)
 	return nil
 }
 
 func (s *Sender) applySubject(opts *SendOptions, message *gomail.Message) error {
-	tags := intl.GetPreferredLanguageTags(s.Context)
-	subject := intl.LocalizeStringMap(tags, intl.Fallback(s.LocalizationConfiguration.FallbackLanguage), opts.MessageConfig, "subject")
-	if subject == "" {
-		return errors.New("mail: subject is missing")
-	}
-
-	message.SetHeader("Subject", subject)
+	message.SetHeader("Subject", opts.Subject)
 	return nil
 }
 

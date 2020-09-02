@@ -31,6 +31,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 )
 
 var CommonDependencySet = wire.NewSet(
@@ -174,5 +175,12 @@ var CommonDependencySet = wire.NewSet(
 		otp.DependencySet,
 		wire.Bind(new(authenticatoroob.OTPMessageSender), new(*otp.MessageSender)),
 		wire.Bind(new(verification.OTPMessageSender), new(*otp.MessageSender)),
+	),
+
+	wire.NewSet(
+		translation.DependencySet,
+		wire.Bind(new(otp.TranslationService), new(*translation.Service)),
+		wire.Bind(new(forgotpassword.TranslationService), new(*translation.Service)),
+		wire.Bind(new(welcomemessage.TranslationService), new(*translation.Service)),
 	),
 )

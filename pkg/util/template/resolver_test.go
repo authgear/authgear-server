@@ -72,10 +72,11 @@ func TestResolverResolve(t *testing.T) {
 				References:          references,
 				FallbackLanguageTag: "en",
 			})
+			resolver.Registry = NewRegistry()
 			resolver.Loader = &uriLoader{}
 			resolver.DefaultLoader = loader
 			for _, t := range ts {
-				resolver.Register(t)
+				resolver.Registry.Register(t)
 			}
 
 			ctx := &ResolveContext{

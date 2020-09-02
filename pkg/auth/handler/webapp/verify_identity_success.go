@@ -14,13 +14,13 @@ const (
 	TemplateItemTypeAuthUIVerifyIdentitySuccessHTML string = "auth_ui_verify_identity_success.html"
 )
 
-var TemplateAuthUIVerifyIdentitySuccessHTML = template.T{
+var TemplateAuthUIVerifyIdentitySuccessHTML = template.Register(template.T{
 	Type:                    TemplateItemTypeAuthUIVerifyIdentitySuccessHTML,
 	IsHTML:                  true,
 	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
 	Defines:                 defines,
 	ComponentTemplateTypes:  components,
-}
+})
 
 func ConfigureVerifyIdentitySuccessRoute(route httproute.Route) httproute.Route {
 	return route.

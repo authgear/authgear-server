@@ -10,7 +10,6 @@ var configDeps = wire.NewSet(
 	wire.FieldsOf(new(*config.Config), "AppConfig", "SecretConfig"),
 	wire.FieldsOf(new(*config.AppConfig),
 		"ID",
-		"Metadata",
 		"HTTP",
 		"Hook",
 		"Template",

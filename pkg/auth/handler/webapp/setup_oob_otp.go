@@ -21,13 +21,13 @@ const (
 	TemplateItemTypeAuthUISetupOOBOTPHTML string = "auth_ui_setup_oob_otp.html"
 )
 
-var TemplateAuthUISetupOOBOTPHTML = template.T{
+var TemplateAuthUISetupOOBOTPHTML = template.Register(template.T{
 	Type:                    TemplateItemTypeAuthUISetupOOBOTPHTML,
 	IsHTML:                  true,
 	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
 	Defines:                 defines,
 	ComponentTemplateTypes:  components,
-}
+})
 
 const SetupOOBOTPRequestSchema = "SetupOOBOTPRequestSchema"
 

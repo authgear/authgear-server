@@ -22,13 +22,13 @@ const (
 	TemplateItemTypeAuthUILoginHTML string = "auth_ui_login.html"
 )
 
-var TemplateAuthUILoginHTML = template.T{
+var TemplateAuthUILoginHTML = template.Register(template.T{
 	Type:                    TemplateItemTypeAuthUILoginHTML,
 	IsHTML:                  true,
 	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
 	Defines:                 defines,
 	ComponentTemplateTypes:  components,
-}
+})
 
 const LoginWithLoginIDRequestSchema = "LoginWithLoginIDRequestSchema"
 

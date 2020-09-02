@@ -1,30 +1,29 @@
 package welcomemessage
 
 import (
-	"context"
-
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/tasks"
-	"github.com/authgear/authgear-server/pkg/util/intl"
-	"github.com/authgear/authgear-server/pkg/util/template"
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 )
 
-type Provider struct {
-	Context               context.Context
-	LocalizationConfig    *config.LocalizationConfig
-	MetadataConfiguration config.AppMetadata
-	MessagingConfig       *config.MessagingConfig
-	WelcomeMessageConfig  *config.WelcomeMessageConfig
-	TemplateEngine        *template.Engine
-	TaskQueue             task.Queue
+type TranslationService interface {
+	AppMetadata() (*translation.AppMetadata, error)
+	EmailMessageData(msg *translation.MessageSpec, args interface{}) (*translation.EmailMessageData, error)
+	SMSMessageData(msg *translation.MessageSpec, args interface{}) (*translation.SMSMessageData, error)
 }
 
-func (p *Provider) send(emails []string) (err error) {
+type Provider struct {
+	Translation          TranslationService
+	WelcomeMessageConfig *config.WelcomeMessageConfig
+	TaskQueue            task.Queue
+}
+
+func (p *Provider) send(emails []string) error {
 	if !p.WelcomeMessageConfig.Enabled {
-		return
+		return nil
 	}
 
 	if p.WelcomeMessageConfig.Destination == config.WelcomeMessageDestinationFirst {
@@ -34,50 +33,33 @@ func (p *Provider) send(emails []string) (err error) {
 	}
 
 	if len(emails) <= 0 {
-		return
+		return nil
+	}
+
+	appMeta, err := p.Translation.AppMetadata()
+	if err != nil {
+		return err
 	}
 
 	var emailMessages []mail.SendOptions
 	for _, email := range emails {
 		data := map[string]interface{}{
-			"email": email,
+			"email":   email,
+			"appname": appMeta.AppName,
 		}
 
-		preferredLanguageTags := intl.GetPreferredLanguageTags(p.Context)
-		data["appname"] = intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(p.LocalizationConfig.FallbackLanguage), p.MetadataConfiguration, "app_name")
-
-		renderCtx := &template.RenderContext{
-			PreferredLanguageTags: preferredLanguageTags,
-		}
-
-		var textBody string
-		textBody, err = p.TemplateEngine.Render(
-			renderCtx,
-			TemplateItemTypeWelcomeEmailTXT,
-			data,
-		)
+		msg, err := p.Translation.EmailMessageData(messageWelcomeMessage, data)
 		if err != nil {
-			return
-		}
-
-		var htmlBody string
-		htmlBody, err = p.TemplateEngine.Render(
-			renderCtx,
-			TemplateItemTypeWelcomeEmailHTML,
-			data,
-		)
-		if err != nil {
-			return
+			return err
 		}
 
 		emailMessages = append(emailMessages, mail.SendOptions{
-			MessageConfig: config.NewEmailMessageConfig(
-				p.MessagingConfig.DefaultEmailMessage,
-				p.WelcomeMessageConfig.EmailMessage,
-			),
+			Sender:    msg.Sender,
+			ReplyTo:   msg.ReplyTo,
+			Subject:   msg.Subject,
 			Recipient: email,
-			TextBody:  textBody,
-			HTMLBody:  htmlBody,
+			TextBody:  msg.TextBody,
+			HTMLBody:  msg.HTMLBody,
 		})
 	}
 
@@ -85,7 +67,7 @@ func (p *Provider) send(emails []string) (err error) {
 		EmailMessages: emailMessages,
 	})
 
-	return
+	return nil
 }
 
 func (p *Provider) SendToIdentityInfos(infos []*identity.Info) (err error) {

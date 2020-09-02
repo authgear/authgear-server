@@ -33,7 +33,6 @@ func TestDumpSecretConfigSchema(t *testing.T) {
 
 func TestAppConfigSchema(t *testing.T) {
 	testFiles := []string{
-		"testdata/messaging_tests.yaml",
 		"testdata/hook_tests.yaml",
 		"testdata/database_tests.yaml",
 		"testdata/redis_tests.yaml",

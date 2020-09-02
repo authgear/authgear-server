@@ -80,33 +80,27 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	environmentConfig := rootProvider.EnvironmentConfig
 	devMode := environmentConfig.DevMode
 	config := appProvider.Config
-	appConfig := config.AppConfig
-	localizationConfig := appConfig.Localization
 	secretConfig := config.SecretConfig
 	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
-	context := p.Context
 	sender := &mail.Sender{
-		Logger:                    logger,
-		DevMode:                   devMode,
-		LocalizationConfiguration: localizationConfig,
-		GomailDialer:              dialer,
-		Context:                   context,
+		Logger:       logger,
+		DevMode:      devMode,
+		GomailDialer: dialer,
 	}
 	smsLogger := sms.NewLogger(factory)
+	appConfig := config.AppConfig
 	messagingConfig := appConfig.Messaging
 	twilioCredentials := deps.ProvideTwilioCredentials(secretConfig)
 	twilioClient := sms.NewTwilioClient(twilioCredentials)
 	nexmoCredentials := deps.ProvideNexmoCredentials(secretConfig)
 	nexmoClient := sms.NewNexmoClient(nexmoCredentials)
 	client := &sms.Client{
-		Context:            context,
-		Logger:             smsLogger,
-		DevMode:            devMode,
-		MessagingConfig:    messagingConfig,
-		LocalizationConfig: localizationConfig,
-		TwilioClient:       twilioClient,
-		NexmoClient:        nexmoClient,
+		Logger:          smsLogger,
+		DevMode:         devMode,
+		MessagingConfig: messagingConfig,
+		TwilioClient:    twilioClient,
+		NexmoClient:     nexmoClient,
 	}
 	sendMessagesLogger := tasks.NewSendMessagesLogger(factory)
 	sendMessagesTask := &tasks.SendMessagesTask{

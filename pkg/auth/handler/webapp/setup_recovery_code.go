@@ -19,17 +19,17 @@ const (
 	TemplateItemTypeAuthUIDownloadRecoveryCodeTXT string = "auth_ui_download_recovery_code.txt"
 )
 
-var TemplateAuthUISetupRecoveryCodeHTML = template.T{
+var TemplateAuthUISetupRecoveryCodeHTML = template.Register(template.T{
 	Type:                    TemplateItemTypeAuthUISetupRecoveryCodeHTML,
 	IsHTML:                  true,
 	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
 	Defines:                 defines,
 	ComponentTemplateTypes:  components,
-}
+})
 
-var TemplateAuthUIDownloadRecoveryCodeTXT = template.T{
+var TemplateAuthUIDownloadRecoveryCodeTXT = template.Register(template.T{
 	Type: TemplateItemTypeAuthUIDownloadRecoveryCodeTXT,
-}
+})
 
 func ConfigureSetupRecoveryCodeRoute(route httproute.Route) httproute.Route {
 	return route.

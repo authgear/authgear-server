@@ -11,7 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/intl"
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 )
 
 // BaseViewModel contains data that are common to all pages.
@@ -29,23 +29,29 @@ type BaseViewModel struct {
 	ForgotPasswordEnabled bool
 }
 
+type TranslationService interface {
+	AppMetadata() (*translation.AppMetadata, error)
+}
+
 type BaseViewModeler struct {
 	StaticAssetURLPrefix config.StaticAssetURLPrefix
 	AuthUI               *config.UIConfig
-	Localization         *config.LocalizationConfig
+	Translation          TranslationService
 	ForgotPassword       *config.ForgotPasswordConfig
-	Metadata             config.AppMetadata
 }
 
 func (m *BaseViewModeler) ViewModel(r *http.Request, anyError interface{}) BaseViewModel {
-	preferredLanguageTags := intl.GetPreferredLanguageTags(r.Context())
+	appMeta, err := m.Translation.AppMetadata()
+	if err != nil {
+		panic(err)
+	}
 
 	model := BaseViewModel{
 		CSRFField: csrf.TemplateField(r),
 		// We assume the CSS provided by the developer is trusted.
 		CSS:                  htmltemplate.CSS(m.AuthUI.CustomCSS),
-		AppName:              intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(m.Localization.FallbackLanguage), m.Metadata, "app_name"),
-		LogoURI:              intl.LocalizeJSONObject(preferredLanguageTags, intl.Fallback(m.Localization.FallbackLanguage), m.Metadata, "logo_uri"),
+		AppName:              appMeta.AppName,
+		LogoURI:              appMeta.LogoURI,
 		CountryCallingCodes:  m.AuthUI.CountryCallingCode.Values,
 		StaticAssetURLPrefix: string(m.StaticAssetURLPrefix),
 		SliceContains:        sliceContains,

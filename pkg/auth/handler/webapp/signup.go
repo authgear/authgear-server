@@ -21,13 +21,13 @@ const (
 	TemplateItemTypeAuthUISignupHTML string = "auth_ui_signup.html"
 )
 
-var TemplateAuthUISignupHTML = template.T{
+var TemplateAuthUISignupHTML = template.Register(template.T{
 	Type:                    TemplateItemTypeAuthUISignupHTML,
 	IsHTML:                  true,
 	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
 	Defines:                 defines,
 	ComponentTemplateTypes:  components,
-}
+})
 
 const SignupWithLoginIDRequestSchema = "SignupWithLoginIDRequestSchema"
 

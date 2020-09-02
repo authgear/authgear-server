@@ -1,6 +1,7 @@
 package welcomemessage
 
 import (
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -9,11 +10,17 @@ const (
 	TemplateItemTypeWelcomeEmailHTML string = "welcome_email.html"
 )
 
-var TemplateWelcomeEmailTXT = template.T{
+var TemplateWelcomeEmailTXT = template.Register(template.T{
 	Type: TemplateItemTypeWelcomeEmailTXT,
-}
+})
 
-var TemplateWelcomeEmailHTML = template.T{
+var TemplateWelcomeEmailHTML = template.Register(template.T{
 	Type:   TemplateItemTypeWelcomeEmailHTML,
 	IsHTML: true,
+})
+
+var messageWelcomeMessage = &translation.MessageSpec{
+	Name:          "welcome-message",
+	TXTEmailType:  TemplateItemTypeWelcomeEmailTXT,
+	HTMLEmailType: TemplateItemTypeWelcomeEmailHTML,
 }

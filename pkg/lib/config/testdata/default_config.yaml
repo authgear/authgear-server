@@ -1,5 +1,4 @@
 id: test
-metadata: {}
 http:
   public_origin: ""
 database:

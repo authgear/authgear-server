@@ -26,13 +26,13 @@ const (
 	TemplateItemTypeAuthUISetupTOTPHTML string = "auth_ui_setup_totp.html"
 )
 
-var TemplateAuthUISetupTOTPHTML = template.T{
+var TemplateAuthUISetupTOTPHTML = template.Register(template.T{
 	Type:                    TemplateItemTypeAuthUISetupTOTPHTML,
 	IsHTML:                  true,
 	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
 	Defines:                 defines,
 	ComponentTemplateTypes:  components,
-}
+})
 
 const SetupTOTPRequestSchema = "SetupTOTPRequestSchema"
 
