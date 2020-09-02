@@ -1,5 +1,5 @@
 /* global describe, it, expect */
-import { getPaginationRenderData } from "./pagination";
+import { getPaginationRenderData, encodeOffsetToCursor } from "./pagination";
 
 describe("getPaginationRenderData", () => {
   it("no total count; 1st page", () => {
@@ -140,5 +140,11 @@ describe("getPaginationRenderData", () => {
       lastPageButtonEnabled: false,
       maxOffset: 20,
     });
+  });
+});
+
+describe("encodeOffsetToCursor", () => {
+  it("encode with URL encoding without padding", () => {
+    expect(encodeOffsetToCursor(0)).toEqual("b2Zmc2V0OjA");
   });
 });

@@ -123,3 +123,10 @@ export function getPaginationRenderData(
     maxOffset,
   };
 }
+
+export function encodeOffsetToCursor(offset: number): string {
+  return btoa("offset:" + String(offset))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+}
