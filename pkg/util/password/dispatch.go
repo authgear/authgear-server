@@ -1,9 +1,13 @@
 package password
 
+import "errors"
+
 var latestFormat passwordFormat
 
 var defaultFormat passwordFormat
 var supportedFormats map[string]passwordFormat
+
+var ErrTooLong = errors.New("password is too long")
 
 func init() {
 	latestFormat = bcryptSHA512Password{}
@@ -31,17 +35,17 @@ func resolveFormat(hash []byte) (passwordFormat, error) {
 }
 
 func Hash(password []byte) ([]byte, error) {
+	// Reject if new password is too long
 	if len(password) > MaxLength {
-		password = password[:MaxLength]
+		return nil, ErrTooLong
 	}
 
 	return latestFormat.Hash(password)
 }
 
 func Compare(password, hash []byte) error {
-	if len(password) > MaxLength {
-		password = password[:MaxLength]
-	}
+	// Do not enforce password length limit: we do not want users
+	// to be locked out.
 
 	fmt, err := resolveFormat(hash)
 	if err != nil {
@@ -51,9 +55,8 @@ func Compare(password, hash []byte) error {
 }
 
 func TryMigrate(password []byte, hash *[]byte) (migrated bool, err error) {
-	if len(password) > MaxLength {
-		password = password[:MaxLength]
-	}
+	// Do not enforce password length limit: migration of old password should
+	// not fail due to length limit
 
 	fmt, err := resolveFormat(*hash)
 	if err != nil {
