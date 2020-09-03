@@ -84,25 +84,56 @@ const PlainUsersList: React.FC<Props> = function PlainUsersList(props: Props) {
       maxWidth: 400,
     },
     {
-      key: "createdAt",
-      fieldName: "createdAt",
-      name: renderToString("UsersList.column.created-at"),
-      minWidth: 300,
+      key: "username",
+      fieldName: "username",
+      name: renderToString("UsersList.column.username"),
+      minWidth: 150,
+    },
+    {
+      key: "email",
+      fieldName: "email",
+      name: renderToString("UsersList.column.email"),
+      minWidth: 150,
+    },
+    {
+      key: "phone",
+      fieldName: "phone",
+      name: renderToString("UsersList.column.phone"),
+      minWidth: 150,
+    },
+    {
+      key: "signedUp",
+      fieldName: "signedUp",
+      name: renderToString("UsersList.column.signed-up"),
+      minWidth: 200,
+    },
+    {
+      key: "lastLoginAt",
+      fieldName: "lastLoginAt",
+      name: renderToString("UsersList.column.last-login-at"),
+      minWidth: 200,
     },
   ];
 
   const items: {
     id: string;
-    createdAt: unknown;
+    signedUp: string;
+    username: string;
+    phone: string;
+    email: string;
+    lastLoginAt: string | null;
   }[] = useMemo(() => {
     const items = [];
     if (edges != null) {
       for (const edge of edges) {
         const node = edge?.node;
         if (node != null) {
+          const userInfo = extractUserInfoFromIdentities(node.identities);
           items.push({
             id: node.id,
-            createdAt: node.createdAt,
+            signedUp: node.createdAt,
+            lastLoginAt: node.lastLoginAt,
+            ...userInfo,
           });
         }
       }

@@ -14,7 +14,11 @@
   "UsersScreen.title": "Users",
 
   "UsersList.column.id": "ID",
-  "UsersList.column.created-at": "Created At",
+  "UsersList.column.username": "Username",
+  "UsersList.column.email": "Email",
+  "UsersList.column.phone": "Phone",
+  "UsersList.column.signed-up": "Signed Up",
+  "UsersList.column.last-login-at": "Last Login",
 
   "PaginationWidget.First": "Go to the first page",
   "PaginationWidget.Prev": "Go to the previous page",
