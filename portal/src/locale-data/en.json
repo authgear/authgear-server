@@ -11,6 +11,8 @@
 
   "show-error.retry": "Retry",
 
+  "UsersScreen.title": "Users",
+
   "UsersList.column.id": "ID",
   "UsersList.column.created-at": "Created At",
 
