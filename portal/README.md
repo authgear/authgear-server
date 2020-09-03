@@ -70,6 +70,28 @@ oauth:
       response_types: ["none"]
 ```
 
+## Sign-up
+
+When you try to access the portal through proxy `http://localhost:8000` (port 8000), you will be redirected to authgear sign up / sign in page in port 3000 (hosted by authgear main server)
+
+NOTE: make sure the authgear server is in development mode, which skips sending actual email
+
+Follow the instruction on the webpage,
+
+1. Click `Create One` link
+2. Input an email address
+3. The website will ask for verification code, to get verified, inspect the log from authgear main server
+
+   - Find the line with `WARN`, you will find a link for verifying the account in the log
+   - For example: `http://localhost:3000/verify_identity?code=SJDN080N&state=W3X8GNP6N1ZBCQKD0J582MAS369FYKC6`
+   - Using this link, the verification code will be automatically filled in, then we can proceed to creating password
+
+4. Enter new password to complete the signup flow.
+
+## Visit authgear portal page
+
+Make sure you go to authgear portal page, use `http://localhost:8000` (access through proxy), the webpage needs to call graphQL server with the same domain and port. The api call fails if we access through port 1234 directly.
+
 # Two graphql schemas
 
 We have two graphql schemas.
