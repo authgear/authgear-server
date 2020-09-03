@@ -23,6 +23,7 @@ import {
 import ShowError from "../../ShowError";
 import PaginationWidget from "../../PaginationWidget";
 import { encodeOffsetToCursor } from "../../util/pagination";
+import { formatDatetime } from "../../util/formatDatetime";
 import styles from "./UsersList.module.scss";
 
 interface Props {
@@ -73,7 +74,7 @@ const PlainUsersList: React.FC<Props> = function PlainUsersList(props: Props) {
   const { loading, offset, pageSize, totalCount, onChangeOffset } = props;
   const edges = props.users?.edges;
 
-  const { renderToString } = useContext(Context);
+  const { renderToString, locale } = useContext(Context);
 
   const columns: IColumn[] = [
     {
@@ -117,7 +118,7 @@ const PlainUsersList: React.FC<Props> = function PlainUsersList(props: Props) {
 
   const items: {
     id: string;
-    signedUp: string;
+    signedUp: string | null;
     username: string;
     phone: string;
     email: string;
@@ -131,15 +132,15 @@ const PlainUsersList: React.FC<Props> = function PlainUsersList(props: Props) {
           const userInfo = extractUserInfoFromIdentities(node.identities);
           items.push({
             id: node.id,
-            signedUp: node.createdAt,
-            lastLoginAt: node.lastLoginAt,
+            signedUp: formatDatetime(locale, node.createdAt),
+            lastLoginAt: formatDatetime(locale, node.lastLoginAt),
             ...userInfo,
           });
         }
       }
     }
     return items;
-  }, [edges]);
+  }, [edges, locale]);
 
   return (
     <div className={styles.root}>
