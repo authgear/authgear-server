@@ -101,6 +101,17 @@ Then run the command
 go run ./cmd/authgear start
 ```
 
+To run graphql server
+
+```sh
+# in project root
+go run ./cmd/portal start
+```
+
+## Setup portal
+
+Please refer to [Portal setup guide](./portal/README.md)
+
 ## Comment tags
 
 - `FIXME`: Should be fixed as soon as possible
