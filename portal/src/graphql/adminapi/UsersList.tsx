@@ -101,6 +101,15 @@ const query = gql`
         node {
           id
           createdAt
+          lastLoginAt
+          identities {
+            edges {
+              node {
+                id
+                claims
+              }
+            }
+          }
         }
       }
       totalCount
