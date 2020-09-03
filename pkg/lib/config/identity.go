@@ -165,7 +165,11 @@ func (c *LoginIDKeyConfig) SetDefaults() {
 	if c.MaxLength == nil {
 		switch c.Type {
 		case LoginIDKeyTypeUsername:
-			// An arbitrary default limit.
+			// Facebook is 50.
+			// GitHub is 39.
+			// Instagram is 30.
+			// Telegram is 32.
+			// Seems average is around about ~40 characters.
 			c.MaxLength = newInt(40)
 
 		case LoginIDKeyTypePhone:
