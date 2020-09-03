@@ -22,22 +22,60 @@ mkcert -cert-file tls-cert.pem -key-file tls-key.pem localhost 127.0.0.1 ::1
 
 One caveat is HTTP redirect to HTTPS is not supported, you have to type in https in the browser address bar manually.
 
+## Prerequisite
+
+Note that there is a local .tool-versions in project root. For the following setup to work, we need to
+
+1. Install asdf
+
+2. Run the following to install all dependencies in .tool-versions
+   ```sh
+   asdf install
+   ```
+
 ## Database setup
 
 1. Setup dependencies:
    ```sh
    make vendor
    ```
-2. Create a schema:
+2. Setup environment variables (in `.env`):
+   ```sh
+   cp .env.example .env
+   ```
+
+3. start db container
+   ```sh
+   docker-compose up db
+   ```
+
+4. Create a schema:
+
+   Run the following SQL command with command line to such as `psql` or DB viewer such as `Postico`
+
    ```sql
    CREATE SCHEMA app;
    ```
-3. Setup environment variables (in `.env`):
+
+5. Initialize app
+
+   To generate the necessary config and secret yaml file, run
+
+   ```sh
+   go run ./cmd/authgear init config
+   go run ./cmd/authgear init secrets
+   ```
+
+   then follow the instructions. For database URL and schema, use the following,
    ```
    DATABASE_URL=postgres://postgres@127.0.0.1:5432/postgres?sslmode=disable
-   DATABASE_SCHEMA=app  
+   DATABASE_SCHEMA=app
    ```
-4. Apply database schema migrations:
+
+6. Apply database schema migrations:
+
+   make sure the db container is running
+
    ```sh
    go run ./cmd/authgear migrate up
    ```
@@ -47,6 +85,32 @@ To create new migration:
 # go run ./cmd/authgear migrate new <migration name>
 go run ./cmd/authgear migrate new add user table
 ```
+
+## Run server
+
+To run development server, we need to start `db` and `redis` container
+
+```sh
+docker-compose up -d db redis
+```
+
+Then run the command
+
+```sh
+# in project root
+go run ./cmd/authgear start
+```
+
+To run graphql server
+
+```sh
+# in project root
+go run ./cmd/portal start
+```
+
+## Setup portal
+
+Please refer to [Portal setup guide](./portal/README.md)
 
 ## Comment tags
 
