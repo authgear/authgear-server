@@ -6,6 +6,7 @@ import React, {
   useRef,
   useEffect,
 } from "react";
+import cn from "classnames";
 import { useQuery, gql } from "@apollo/client";
 import {
   ShimmeredDetailsList,
@@ -30,7 +31,8 @@ import styles from "./UsersList.module.scss";
 import { extractUserInfoFromIdentities } from "../../util/user";
 import { nonNullable } from "../../util/types";
 
-interface Props {
+interface PlainUsersListProps {
+  className?: string;
   loading: boolean;
   users: UsersListQuery_users | null;
   offset: number;
@@ -39,8 +41,17 @@ interface Props {
   onChangeOffset?: (offset: number) => void;
 }
 
-const PlainUsersList: React.FC<Props> = function PlainUsersList(props: Props) {
-  const { loading, offset, pageSize, totalCount, onChangeOffset } = props;
+const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
+  props: PlainUsersListProps
+) {
+  const {
+    className,
+    loading,
+    offset,
+    pageSize,
+    totalCount,
+    onChangeOffset,
+  } = props;
   const edges = props.users?.edges;
 
   const { renderToString, locale } = useContext(Context);
@@ -120,7 +131,7 @@ const PlainUsersList: React.FC<Props> = function PlainUsersList(props: Props) {
   }, [edges, locale]);
 
   return (
-    <div className={styles.root}>
+    <div className={cn(styles.root, className)}>
       <ShimmeredDetailsList
         enableShimmer={loading}
         selectionMode={SelectionMode.none}
@@ -164,7 +175,12 @@ const query = gql`
 
 const pageSize = 10;
 
-const UsersList: React.FC = function UsersList() {
+interface Props {
+  className?: string;
+}
+
+const UsersList: React.FC<Props> = function UsersList(props: Props) {
+  const { className } = props;
   const [offset, setOffset] = useState(0);
 
   // after: is exclusive so if we pass it "offset:0",
@@ -203,6 +219,7 @@ const UsersList: React.FC = function UsersList() {
 
   return (
     <PlainUsersList
+      className={className}
       loading={loading}
       users={data?.users ?? null}
       offset={offset}

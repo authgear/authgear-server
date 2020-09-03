@@ -1,0 +1,9 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.usersList {
+  flex: 1 0 0%;
+}
