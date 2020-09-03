@@ -18,6 +18,7 @@ import {
   UsersListQuery,
   UsersListQuery_users,
   UsersListQueryVariables,
+  UsersListQuery_users_edges_node_identities,
 } from "./__generated__/UsersListQuery";
 import ShowError from "../../ShowError";
 import PaginationWidget from "../../PaginationWidget";
@@ -31,6 +32,41 @@ interface Props {
   pageSize: number;
   totalCount?: number;
   onChangeOffset?: (offset: number) => void;
+}
+
+interface UserInfo {
+  username: string;
+  phone: string;
+  email: string;
+}
+
+function extractUserInfoFromIdentities(
+  identities: UsersListQuery_users_edges_node_identities | null
+): UserInfo {
+  const placeholder = "-";
+  const claimsList: unknown[] = [];
+
+  (identities?.edges ?? []).forEach((edge) => {
+    if (edge?.node?.claims == null) {
+      return;
+    }
+    claimsList.push(edge.node.claims);
+  });
+
+  // TODO: consider update UI design to allow multiple email, username and phone number
+  const email =
+    claimsList.map((claims) => (claims as any).email).filter(Boolean)[0] ||
+    placeholder;
+  const username =
+    claimsList
+      .map((claims) => (claims as any).preferred_username)
+      .filter(Boolean)[0] || placeholder;
+  const phone =
+    claimsList
+      .map((claims) => (claims as any).phone_number)
+      .filter(Boolean)[0] || placeholder;
+
+  return { email, username, phone };
 }
 
 const PlainUsersList: React.FC<Props> = function PlainUsersList(props: Props) {
