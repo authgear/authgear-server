@@ -1,4 +1,11 @@
-import React, { useMemo, useContext, useState, useCallback } from "react";
+import React, {
+  useMemo,
+  useContext,
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+} from "react";
 import { useQuery, gql } from "@apollo/client";
 import {
   ShimmeredDetailsList,
@@ -130,6 +137,12 @@ const UsersList: React.FC = function UsersList() {
     },
   });
 
+  const prevDataRef = useRef<UsersListQuery | undefined>();
+  useEffect(() => {
+    prevDataRef.current = data;
+  });
+  const prevData = prevDataRef.current;
+
   if (error != null) {
     return <ShowError error={error} onRetry={refetch} />;
   }
@@ -140,7 +153,7 @@ const UsersList: React.FC = function UsersList() {
       users={data?.users ?? null}
       offset={offset}
       pageSize={pageSize}
-      totalCount={data?.users?.totalCount ?? undefined}
+      totalCount={(data ?? prevData)?.users?.totalCount ?? undefined}
       onChangeOffset={onChangeOffset}
     />
   );
