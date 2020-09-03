@@ -19,10 +19,16 @@ import {
   UsersListQuery_users,
   UsersListQueryVariables,
 } from "./__generated__/UsersListQuery";
+
 import ShowError from "../../ShowError";
 import PaginationWidget from "../../PaginationWidget";
+
 import { encodeOffsetToCursor } from "../../util/pagination";
+import { formatDatetime } from "../../util/formatDatetime";
+
 import styles from "./UsersList.module.scss";
+import { extractUserInfoFromIdentities } from "../../util/user";
+import { nonNullable } from "../../util/types";
 
 interface Props {
   loading: boolean;
@@ -37,7 +43,7 @@ const PlainUsersList: React.FC<Props> = function PlainUsersList(props: Props) {
   const { loading, offset, pageSize, totalCount, onChangeOffset } = props;
   const edges = props.users?.edges;
 
-  const { renderToString } = useContext(Context);
+  const { renderToString, locale } = useContext(Context);
 
   const columns: IColumn[] = [
     {
@@ -48,31 +54,70 @@ const PlainUsersList: React.FC<Props> = function PlainUsersList(props: Props) {
       maxWidth: 400,
     },
     {
-      key: "createdAt",
-      fieldName: "createdAt",
-      name: renderToString("UsersList.column.created-at"),
-      minWidth: 300,
+      key: "username",
+      fieldName: "username",
+      name: renderToString("UsersList.column.username"),
+      minWidth: 150,
+    },
+    {
+      key: "email",
+      fieldName: "email",
+      name: renderToString("UsersList.column.email"),
+      minWidth: 150,
+    },
+    {
+      key: "phone",
+      fieldName: "phone",
+      name: renderToString("UsersList.column.phone"),
+      minWidth: 150,
+    },
+    {
+      key: "signedUp",
+      fieldName: "signedUp",
+      name: renderToString("UsersList.column.signed-up"),
+      minWidth: 200,
+    },
+    {
+      key: "lastLoginAt",
+      fieldName: "lastLoginAt",
+      name: renderToString("UsersList.column.last-login-at"),
+      minWidth: 200,
     },
   ];
 
+  // TODO: consider update UI design to allow multiple email, username and phone number
   const items: {
     id: string;
-    createdAt: unknown;
+    signedUp: string | null;
+    username: string;
+    phone: string;
+    email: string;
+    lastLoginAt: string | null;
   }[] = useMemo(() => {
     const items = [];
     if (edges != null) {
       for (const edge of edges) {
         const node = edge?.node;
         if (node != null) {
+          const identities =
+            node.identities?.edges
+              ?.map((edge) => edge?.node)
+              ?.filter(nonNullable) ?? [];
+          const userInfo = extractUserInfoFromIdentities(identities);
+          const placeholder = "-";
           items.push({
             id: node.id,
-            createdAt: node.createdAt,
+            signedUp: formatDatetime(locale, node.createdAt),
+            lastLoginAt: formatDatetime(locale, node.lastLoginAt),
+            username: userInfo.username ?? placeholder,
+            phone: userInfo.phone ?? placeholder,
+            email: userInfo.email ?? placeholder,
           });
         }
       }
     }
     return items;
-  }, [edges]);
+  }, [edges, locale]);
 
   return (
     <div className={styles.root}>
@@ -101,6 +146,15 @@ const query = gql`
         node {
           id
           createdAt
+          lastLoginAt
+          identities {
+            edges {
+              node {
+                id
+                claims
+              }
+            }
+          }
         }
       }
       totalCount
