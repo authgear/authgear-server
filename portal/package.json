@@ -37,8 +37,10 @@
     "@authgear/web": "0.1.0",
     "@fluentui/react": "7.132.0",
     "@oursky/react-messageformat": "0.10.0",
+    "@types/luxon": "^1.24.4",
     "classnames": "2.2.6",
     "history": "5.0.0",
+    "luxon": "^1.25.0",
     "react": "17.0.0-rc.0",
     "react-dom": "17.0.0-rc.0",
     "react-router-dom": "6.0.0-beta.0"
