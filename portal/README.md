@@ -26,7 +26,7 @@ We need to setup the environment variable `AUTHGEAR_CLIENT_ID=portal` and `AUTHG
 ## Setup graphQL server
 
 ```sh
-AUTHGEAR_CLIENT_ID=portal AUTHGEAR_ENDPOINT=http://localhost:3000 go run ./cmd/portal start
+go run ./cmd/portal start
 ```
 
 ## Setup portal development server
