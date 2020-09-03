@@ -18,7 +18,6 @@ import {
   UsersListQuery,
   UsersListQuery_users,
   UsersListQueryVariables,
-  UsersListQuery_users_edges_node_identities,
 } from "./__generated__/UsersListQuery";
 
 import ShowError from "../../ShowError";
@@ -28,6 +27,8 @@ import { encodeOffsetToCursor } from "../../util/pagination";
 import { formatDatetime } from "../../util/formatDatetime";
 
 import styles from "./UsersList.module.scss";
+import { extractUserInfoFromIdentities } from "../../util/user";
+import { nonNullable } from "../../util/types";
 
 interface Props {
   loading: boolean;
@@ -36,44 +37,6 @@ interface Props {
   pageSize: number;
   totalCount?: number;
   onChangeOffset?: (offset: number) => void;
-}
-
-interface UserInfo {
-  username: string;
-  phone: string;
-  email: string;
-}
-
-interface IdentityClaims extends GQL_JSONObject {
-  email?: string;
-  preferred_username?: string;
-  phone_number?: string;
-}
-
-function extractUserInfoFromIdentities(
-  identities: UsersListQuery_users_edges_node_identities | null
-): UserInfo {
-  const placeholder = "-";
-  const claimsList: IdentityClaims[] = [];
-
-  (identities?.edges ?? []).forEach((edge) => {
-    if (edge?.node?.claims == null) {
-      return;
-    }
-    claimsList.push(edge.node.claims);
-  });
-
-  // TODO: consider update UI design to allow multiple email, username and phone number
-  const email =
-    claimsList.map((claims) => claims.email).filter(Boolean)[0] ?? placeholder;
-  const username =
-    claimsList.map((claims) => claims.preferred_username).filter(Boolean)[0] ??
-    placeholder;
-  const phone =
-    claimsList.map((claims) => claims.phone_number).filter(Boolean)[0] ??
-    placeholder;
-
-  return { email, username, phone };
 }
 
 const PlainUsersList: React.FC<Props> = function PlainUsersList(props: Props) {
@@ -122,6 +85,7 @@ const PlainUsersList: React.FC<Props> = function PlainUsersList(props: Props) {
     },
   ];
 
+  // TODO: consider update UI design to allow multiple email, username and phone number
   const items: {
     id: string;
     signedUp: string | null;
@@ -135,12 +99,19 @@ const PlainUsersList: React.FC<Props> = function PlainUsersList(props: Props) {
       for (const edge of edges) {
         const node = edge?.node;
         if (node != null) {
-          const userInfo = extractUserInfoFromIdentities(node.identities);
+          const identities =
+            node.identities?.edges
+              ?.map((edge) => edge?.node)
+              ?.filter(nonNullable) ?? [];
+          const userInfo = extractUserInfoFromIdentities(identities);
+          const placeholder = "-";
           items.push({
             id: node.id,
             signedUp: formatDatetime(locale, node.createdAt),
             lastLoginAt: formatDatetime(locale, node.lastLoginAt),
-            ...userInfo,
+            username: userInfo.username ?? placeholder,
+            phone: userInfo.phone ?? placeholder,
+            email: userInfo.email ?? placeholder,
           });
         }
       }
