@@ -12,5 +12,11 @@
   "show-error.retry": "Retry",
 
   "UsersList.column.id": "ID",
-  "UsersList.column.created-at": "Created At"
+  "UsersList.column.created-at": "Created At",
+
+  "PaginationWidget.First": "Go to the first page",
+  "PaginationWidget.Prev": "Go to the previous page",
+  "PaginationWidget.Next": "Go to the next page",
+  "PaginationWidget.Last": "Go to the last page",
+  "PaginationWidget.Page": "Go to page {PAGE}"
 }
