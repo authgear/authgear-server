@@ -144,21 +144,42 @@ var _ = Schema.Add("LoginIDKeyConfig", `
 	"properties": {
 		"key": { "type": "string" },
 		"type": { "$ref": "#/$defs/LoginIDKeyType" },
-		"maximum": { "type": "integer" }
+		"max_amount": { "type": "integer" },
+		"max_length": { "type": "integer" }
 	},
 	"required": ["type"]
 }
 `)
 
 type LoginIDKeyConfig struct {
-	Key     string         `json:"key,omitempty"`
-	Type    LoginIDKeyType `json:"type,omitempty"`
-	Maximum *int           `json:"maximum,omitempty"`
+	Key       string         `json:"key,omitempty"`
+	Type      LoginIDKeyType `json:"type,omitempty"`
+	MaxAmount *int           `json:"max_amount,omitempty"`
+	MaxLength *int           `json:"max_length,omitempty"`
 }
 
 func (c *LoginIDKeyConfig) SetDefaults() {
-	if c.Maximum == nil {
-		c.Maximum = newInt(1)
+	if c.MaxAmount == nil {
+		c.MaxAmount = newInt(1)
+	}
+	if c.MaxLength == nil {
+		switch c.Type {
+		case LoginIDKeyTypeUsername:
+			// Facebook is 50.
+			// GitHub is 39.
+			// Instagram is 30.
+			// Telegram is 32.
+			// Seems average is around about ~40 characters.
+			c.MaxLength = newInt(40)
+
+		case LoginIDKeyTypePhone:
+			c.MaxLength = newInt(40)
+
+		default:
+			// Maximum length of email address:
+			// https://tools.ietf.org/html/rfc3696#section-3
+			c.MaxLength = newInt(320)
+		}
 	}
 	if c.Key == "" {
 		c.Key = string(c.Type)

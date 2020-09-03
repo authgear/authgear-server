@@ -31,6 +31,11 @@ func newRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	return recoverMiddleware
 }
 
+func newBodyLimitMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	bodyLimitMiddleware := &middleware.BodyLimitMiddleware{}
+	return bodyLimitMiddleware
+}
+
 func newSentryMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	rootProvider := p.RootProvider
 	hub := rootProvider.SentryHub

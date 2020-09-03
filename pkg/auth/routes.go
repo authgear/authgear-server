@@ -23,6 +23,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 
 	rootChain := httproute.Chain(
 		p.RootMiddleware(newRootRecoverMiddleware),
+		p.RootMiddleware(newBodyLimitMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
 		&deps.RequestMiddleware{
 			RootProvider: p,

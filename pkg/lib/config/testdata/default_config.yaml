@@ -267,7 +267,8 @@ identity:
     keys:
       - key: email
         type: email
-        maximum: 1
+        max_amount: 1
+        max_length: 320
   oauth: {}
   on_conflict:
     promotion: error

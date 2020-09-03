@@ -10004,6 +10004,11 @@ func newRootRecoverMiddleware(p *deps.RootProvider) httproute.Middleware {
 	return recoverMiddleware
 }
 
+func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
+	bodyLimitMiddleware := &middleware.BodyLimitMiddleware{}
+	return bodyLimitMiddleware
+}
+
 func newRequestRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
