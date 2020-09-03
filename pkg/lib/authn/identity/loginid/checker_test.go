@@ -8,11 +8,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-func newLoginIDKeyConfig(key string, t config.LoginIDKeyType, max int) config.LoginIDKeyConfig {
+func newLoginIDKeyConfig(key string, t config.LoginIDKeyType, maxAmount int, maxLength int) config.LoginIDKeyConfig {
 	return config.LoginIDKeyConfig{
-		Key:     key,
-		Type:    t,
-		Maximum: &max,
+		Key:       key,
+		Type:      t,
+		MaxAmount: &maxAmount,
+		MaxLength: &maxLength,
 	}
 }
 
@@ -42,9 +43,9 @@ func TestLoginIDChecker(t *testing.T) {
 		Convey("Validate by config: username (0-1), email (0-1)", func() {
 			reservedNameChecker, _ := NewReservedNameChecker("../../../../../reserved_name.txt")
 			keysConfig := []config.LoginIDKeyConfig{
-				newLoginIDKeyConfig("username", config.LoginIDKeyTypeUsername, 1),
-				newLoginIDKeyConfig("email", config.LoginIDKeyTypeEmail, 1),
-				newLoginIDKeyConfig("phone", config.LoginIDKeyTypePhone, 1),
+				newLoginIDKeyConfig("username", config.LoginIDKeyTypeUsername, 1, 10),
+				newLoginIDKeyConfig("email", config.LoginIDKeyTypeEmail, 1, 30),
+				newLoginIDKeyConfig("phone", config.LoginIDKeyTypePhone, 1, 12),
 			}
 			typesConfig := newLoginIDTypesConfig()
 			cfg := &config.LoginIDConfig{
@@ -86,6 +87,11 @@ func TestLoginIDChecker(t *testing.T) {
 				{Key: "nickname", Type: "", Value: "johndoe"},
 			}
 			So(checker.Validate(loginIDs), ShouldBeError, "invalid login IDs:\n/0: login ID key is not allowed")
+
+			loginIDs = []Spec{
+				{Key: "username", Type: config.LoginIDKeyTypeUsername, Value: "foobarexample"},
+			}
+			So(checker.Validate(loginIDs), ShouldBeError, "invalid login IDs:\n/0: maxLength\n  map[actual:13 expected:10]")
 
 			loginIDs = []Spec{
 				{Key: "email", Type: config.LoginIDKeyTypeEmail, Value: ""},

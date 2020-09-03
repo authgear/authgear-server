@@ -25,7 +25,7 @@ func (c *Checker) Validate(specs []Spec) error {
 
 	for _, keyConfig := range c.Config.Keys {
 		amount := amounts[keyConfig.Key]
-		if amount > *keyConfig.Maximum {
+		if amount > *keyConfig.MaxAmount {
 			ctx.EmitErrorMessage("too many login IDs")
 		}
 	}
@@ -47,6 +47,14 @@ func (c *Checker) validateOne(ctx *validation.Context, loginID Spec) {
 	allowed := false
 	for _, keyConfig := range c.Config.Keys {
 		if keyConfig.Key == loginID.Key {
+			if len(loginID.Value) > *keyConfig.MaxLength {
+				ctx.EmitError("maxLength", map[string]interface{}{
+					"expected": *keyConfig.MaxLength,
+					"actual":   len(loginID.Value),
+				})
+				return
+			}
+
 			allowed = true
 		}
 	}
