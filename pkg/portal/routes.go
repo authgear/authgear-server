@@ -18,6 +18,7 @@ func NewRouter(p *deps.RootProvider, staticAsset StaticAssetConfig) *httproute.R
 
 	rootChain := httproute.Chain(
 		p.Middleware(newRecoverMiddleware),
+		p.Middleware(newBodyLimitMiddleware),
 		p.Middleware(newSentryMiddleware),
 		p.Middleware(newSessionInfoMiddleware),
 	)

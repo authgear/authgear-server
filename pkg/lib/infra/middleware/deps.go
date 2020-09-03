@@ -9,4 +9,5 @@ var DependencySet = wire.NewSet(
 	NewRecoveryLogger,
 	wire.Struct(new(RecoverMiddleware), "*"),
 	wire.Struct(new(SentryMiddleware), "*"),
+	wire.Struct(new(BodyLimitMiddleware), "*"),
 )

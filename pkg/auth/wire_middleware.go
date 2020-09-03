@@ -28,6 +28,13 @@ func newRootRecoverMiddleware(p *deps.RootProvider) httproute.Middleware {
 	))
 }
 
+func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
+	panic(wire.Build(
+		middleware.DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*middleware.BodyLimitMiddleware)),
+	))
+}
+
 func newRequestRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,
