@@ -20,10 +20,13 @@ import {
   UsersListQueryVariables,
   UsersListQuery_users_edges_node_identities,
 } from "./__generated__/UsersListQuery";
+
 import ShowError from "../../ShowError";
 import PaginationWidget from "../../PaginationWidget";
+
 import { encodeOffsetToCursor } from "../../util/pagination";
 import { formatDatetime } from "../../util/formatDatetime";
+
 import styles from "./UsersList.module.scss";
 
 interface Props {
@@ -41,11 +44,17 @@ interface UserInfo {
   email: string;
 }
 
+interface IdentityClaims extends GQL_JSONObject {
+  email?: string;
+  preferred_username?: string;
+  phone_number?: string;
+}
+
 function extractUserInfoFromIdentities(
   identities: UsersListQuery_users_edges_node_identities | null
 ): UserInfo {
   const placeholder = "-";
-  const claimsList: unknown[] = [];
+  const claimsList: IdentityClaims[] = [];
 
   (identities?.edges ?? []).forEach((edge) => {
     if (edge?.node?.claims == null) {
@@ -56,16 +65,13 @@ function extractUserInfoFromIdentities(
 
   // TODO: consider update UI design to allow multiple email, username and phone number
   const email =
-    claimsList.map((claims) => (claims as any).email).filter(Boolean)[0] ||
-    placeholder;
+    claimsList.map((claims) => claims.email).filter(Boolean)[0] ?? placeholder;
   const username =
-    claimsList
-      .map((claims) => (claims as any).preferred_username)
-      .filter(Boolean)[0] || placeholder;
+    claimsList.map((claims) => claims.preferred_username).filter(Boolean)[0] ??
+    placeholder;
   const phone =
-    claimsList
-      .map((claims) => (claims as any).phone_number)
-      .filter(Boolean)[0] || placeholder;
+    claimsList.map((claims) => claims.phone_number).filter(Boolean)[0] ??
+    placeholder;
 
   return { email, username, phone };
 }
