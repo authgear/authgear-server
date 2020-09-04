@@ -38,9 +38,14 @@ func TestNormalization(t *testing.T) {
 			So(result, ShouldEqual, "A04Q")
 			So(err, ShouldBeNil)
 
+			result, err = Normalize(" a O 4 Q ")
+			So(result, ShouldEqual, "A04Q")
+			So(err, ShouldBeNil)
+
 			result, err = Normalize("gA49-0ikL-maQO-EWMe")
 			So(result, ShouldEqual, "GA4901K1MAQ0EWME")
 			So(err, ShouldBeNil)
+
 		})
 
 		Convey("should fail for invalid characters", func() {

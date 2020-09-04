@@ -65,12 +65,14 @@ func (s *Service) GenerateRecoveryCodes() []string {
 
 func (s *Service) ReplaceRecoveryCodes(userID string, codes []string) ([]*RecoveryCode, error) {
 	codeModels := make([]*RecoveryCode, len(codes))
+	now := s.Clock.NowUTC()
 	for i, code := range codes {
 		codeModels[i] = &RecoveryCode{
 			ID:        uuid.New(),
 			UserID:    userID,
 			Code:      code,
-			CreatedAt: s.Clock.NowUTC(),
+			CreatedAt: now,
+			UpdatedAt: now,
 			Consumed:  false,
 		}
 	}
@@ -86,6 +88,12 @@ func (s *Service) ReplaceRecoveryCodes(userID string, codes []string) ([]*Recove
 }
 
 func (s *Service) GetRecoveryCode(userID string, code string) (*RecoveryCode, error) {
+	code, err := NormalizeRecoveryCode(code)
+	if err != nil {
+		err = ErrRecoveryCodeNotFound
+		return nil, err
+	}
+
 	rc, err := s.RecoveryCodes.Get(userID, code)
 	if err != nil {
 		return nil, err
