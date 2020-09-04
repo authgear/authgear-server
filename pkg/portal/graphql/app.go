@@ -5,7 +5,9 @@ import (
 
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/relay"
+	"sigs.k8s.io/yaml"
 
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -26,13 +28,37 @@ var nodeApp = node(
 			"appConfig": &graphql.Field{
 				Type: graphql.NewNonNull(AppConfig),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					return p.Source.(*model.App).Context.Config.AppConfig, nil
+					app := p.Source.(*model.App)
+					data, err := app.LoadFile(configsource.AuthgearYAML)
+					if err != nil {
+						return nil, err
+					}
+					var jsonData interface{}
+					if err := yaml.Unmarshal(data, &jsonData); err != nil {
+						return nil, err
+					}
+					return jsonData, nil
 				},
 			},
 			"secretConfig": &graphql.Field{
 				Type: graphql.NewNonNull(SecretConfig),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					return p.Source.(*model.App).Context.Config.SecretConfig, nil
+					app := p.Source.(*model.App)
+					data, err := app.LoadFile(configsource.AuthgearSecretYAML)
+					if err != nil {
+						return nil, err
+					}
+					var jsonData interface{}
+					if err := yaml.Unmarshal(data, &jsonData); err != nil {
+						return nil, err
+					}
+					return jsonData, nil
+				},
+			},
+			"appConfigEffective": &graphql.Field{
+				Type: graphql.NewNonNull(AppConfig),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					return p.Source.(*model.App).Context.Config.AppConfig, nil
 				},
 			},
 		},

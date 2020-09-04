@@ -3,6 +3,9 @@ type App implements Node {
   """"""
   appConfig: AppConfig!
 
+  """"""
+  appConfigEffective: AppConfig!
+
   """The ID of an object"""
   id: ID!
 
