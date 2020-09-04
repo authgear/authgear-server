@@ -30,6 +30,24 @@
   "AuthenticationScreen.login-id.title": "Login ID",
   "AuthenticationScreen.authenticator.title": "Authenticator",
 
+  "AuthenticationWidget.usernameTitle": "Username",
+  "AuthenticationWidget.blockReservedUsername": "Block Reserved Username",
+  "AuthenticationWidget.includeDefaultList": "Include default list",
+  "AuthenticationWidget.includeDefaultList.reservedUsernameHelp": "Include defult list of reserved username",
+  "AuthenticationWidget.includeDefaultList.excludeKeywordsHelp": "Include default list of keywords to be excluded from username",
+  "AuthenticationWidget.excludeKeywords": "Exclude Keyword",
+  "AuthenticationWidget.caseSensitive": "Case Sensitive",
+  "AuthenticationWidget.asciiOnly": "ASCII Only",
+
+  "AuthenticationWidget.emailAddressTitle": "Email Address",
+  "AuthenticationWidget.blockReservedKeywords": "Block Reserved Keywords",
+  "AuthenticationWidget.blockDomian": "Block Domains",
+  "AuthenticationWidget.includeFreeEmailDomain": "Include all free email hosting provider domains",
+  "AuthenticationWidget.ignoreDotLocal": "Ignore dot sign in local parameter",
+  "AuthenticationWidget.allowPlus": "Allow + sign in email",
+
+  "AuthenticationWidget.phoneNumberTitle": "Phone Number",
+
   "PaginationWidget.First": "Go to the first page",
   "PaginationWidget.Prev": "Go to the previous page",
   "PaginationWidget.Next": "Go to the next page",

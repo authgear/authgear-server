@@ -4,3 +4,5 @@ export interface PortalAPIApp {
   effectiveAppConfig?: Record<string, unknown>;
   secretConfig?: Record<string, unknown>;
 }
+
+export type LoginIDKeyType = "raw" | "email" | "phone" | "username";
