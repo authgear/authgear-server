@@ -38,7 +38,7 @@ var nodeAuthenticator = entity(
 				},
 			},
 			"claims": &graphql.Field{
-				Type: graphql.NewNonNull(graphqlutil.JSONObject),
+				Type: graphql.NewNonNull(AuthenticatorClaims),
 				Args: map[string]*graphql.ArgumentConfig{
 					"names": {Type: graphql.NewList(graphql.NewNonNull(graphql.String))},
 				},

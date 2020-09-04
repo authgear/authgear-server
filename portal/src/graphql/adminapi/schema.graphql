@@ -1,7 +1,7 @@
 """"""
 type Authenticator implements Entity & Node {
   """"""
-  claims(names: [String!]): JSONObject!
+  claims(names: [String!]): AuthenticatorClaims!
 
   """The creation time of entity"""
   createdAt: DateTime!
@@ -15,6 +15,11 @@ type Authenticator implements Entity & Node {
   """The update time of entity"""
   updatedAt: DateTime!
 }
+
+"""
+The `AuthenticatorClaims` scalar type represents a set of claims belonging to an authenticator
+"""
+scalar AuthenticatorClaims
 
 """A connection to a list of items."""
 type AuthenticatorConnection {
@@ -57,7 +62,7 @@ interface Entity {
 """"""
 type Identity implements Entity & Node {
   """"""
-  claims(names: [String!]): JSONObject!
+  claims(names: [String!]): IdentityClaims!
 
   """The creation time of entity"""
   createdAt: DateTime!
@@ -71,6 +76,11 @@ type Identity implements Entity & Node {
   """The update time of entity"""
   updatedAt: DateTime!
 }
+
+"""
+The `IdentityClaims` scalar type represents a set of claims belonging to an identity
+"""
+scalar IdentityClaims
 
 """A connection to a list of items."""
 type IdentityConnection {
@@ -92,9 +102,6 @@ type IdentityEdge {
   """The item at the end of the edge"""
   node: Identity
 }
-
-"""The `JSONObject` scalar type represents an arbitrary JSON object"""
-scalar JSONObject
 
 """An object with an ID"""
 interface Node {
