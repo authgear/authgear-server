@@ -27,6 +27,8 @@
   "UsersList.column.last-login-at": "Last Login",
 
   "AuthenticationScreen.title": "Authentication",
+  "AuthenticationScreen.login-id.title": "Login ID",
+  "AuthenticationScreen.authenticator.title": "Authenticator",
 
   "PaginationWidget.First": "Go to the first page",
   "PaginationWidget.Prev": "Go to the previous page",
