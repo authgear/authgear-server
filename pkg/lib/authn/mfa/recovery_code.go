@@ -1,6 +1,7 @@
 package mfa
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/util/base32"
@@ -30,5 +31,11 @@ func NormalizeRecoveryCode(code string) (normalized string, err error) {
 	if err != nil {
 		return
 	}
+	return
+}
+
+func FormatRecoveryCode(code string) (formatted string) {
+	halfLength := len(code) / 2
+	formatted = fmt.Sprintf("%s-%s", code[:halfLength], code[halfLength:])
 	return
 }
