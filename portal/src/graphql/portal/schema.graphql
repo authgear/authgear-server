@@ -1,16 +1,16 @@
 """Authgear app"""
 type App implements Node {
   """"""
-  appConfig: AppConfig!
-
-  """"""
-  appConfigEffective: AppConfig!
+  effectiveAppConfig: AppConfig!
 
   """The ID of an object"""
   id: ID!
 
   """"""
-  secretConfig: SecretConfig!
+  rawAppConfig: AppConfig!
+
+  """"""
+  rawSecretConfig: SecretConfig!
 }
 
 """The `AppConfig` scalar type represents an app config JSON object"""

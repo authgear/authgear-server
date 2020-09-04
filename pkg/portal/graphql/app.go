@@ -25,7 +25,7 @@ var nodeApp = node(
 			"id": relay.GlobalIDField(typeApp, func(obj interface{}, info graphql.ResolveInfo, ctx context.Context) (string, error) {
 				return obj.(*model.App).ID, nil
 			}),
-			"appConfig": &graphql.Field{
+			"rawAppConfig": &graphql.Field{
 				Type: graphql.NewNonNull(AppConfig),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					app := p.Source.(*model.App)
@@ -40,7 +40,7 @@ var nodeApp = node(
 					return jsonData, nil
 				},
 			},
-			"secretConfig": &graphql.Field{
+			"rawSecretConfig": &graphql.Field{
 				Type: graphql.NewNonNull(SecretConfig),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					app := p.Source.(*model.App)
@@ -55,7 +55,7 @@ var nodeApp = node(
 					return jsonData, nil
 				},
 			},
-			"appConfigEffective": &graphql.Field{
+			"effectiveAppConfig": &graphql.Field{
 				Type: graphql.NewNonNull(AppConfig),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					return p.Source.(*model.App).Context.Config.AppConfig, nil
