@@ -1,14 +1,17 @@
 """Authgear app"""
 type App implements Node {
   """"""
-  appConfig: JSONObject!
+  appConfig: AppConfig!
 
   """The ID of an object"""
   id: ID!
 
   """"""
-  secretConfig: JSONObject!
+  secretConfig: SecretConfig!
 }
+
+"""The `AppConfig` scalar type represents an app config JSON object"""
+scalar AppConfig
 
 """A connection to a list of items."""
 type AppConnection {
@@ -30,9 +33,6 @@ type AppEdge {
   """The item at the end of the edge"""
   node: App
 }
-
-"""The `JSONObject` scalar type represents an arbitrary JSON object"""
-scalar JSONObject
 
 """An object with an ID"""
 interface Node {
@@ -69,6 +69,9 @@ type Query {
   """The current viewer"""
   viewer: User
 }
+
+"""The `SecretConfig` scalar type represents a secret config JSON object"""
+scalar SecretConfig
 
 """Portal User"""
 type User implements Node {

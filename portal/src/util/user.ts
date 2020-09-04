@@ -4,7 +4,7 @@ export interface UserInfo {
   email: string | null;
 }
 
-export interface IdentityClaims extends GQL_JSONObject {
+export interface IdentityClaims {
   email?: string;
   preferred_username?: string;
   phone_number?: string;

@@ -24,13 +24,13 @@ var nodeApp = node(
 				return obj.(*model.App).ID, nil
 			}),
 			"appConfig": &graphql.Field{
-				Type: graphql.NewNonNull(graphqlutil.JSONObject),
+				Type: graphql.NewNonNull(AppConfig),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					return p.Source.(*model.App).Context.Config.AppConfig, nil
 				},
 			},
 			"secretConfig": &graphql.Field{
-				Type: graphql.NewNonNull(graphqlutil.JSONObject),
+				Type: graphql.NewNonNull(SecretConfig),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					return p.Source.(*model.App).Context.Config.SecretConfig, nil
 				},

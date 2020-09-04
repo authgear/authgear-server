@@ -13,7 +13,7 @@ export interface UsersListQuery_users_edges_node_identities_edges_node {
    * The ID of an object
    */
   id: string;
-  claims: GQL_JSONObject;
+  claims: GQL_IdentityClaims;
 }
 
 export interface UsersListQuery_users_edges_node_identities_edges {
