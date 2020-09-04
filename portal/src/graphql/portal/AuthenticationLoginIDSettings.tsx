@@ -2,7 +2,14 @@ import React from "react";
 
 import styles from "./AuthenticationLoginIDSettings.module.scss";
 
-const AuthenticationLoginIDSettings: React.FC = function AuthenticationLoginIDSettings() {
+interface Props {
+  appConfig: Record<string, unknown> | null;
+}
+
+const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLoginIDSettings(
+  props: Props
+) {
+  console.log(props.appConfig);
   return <div className={styles.root}></div>;
 };
 

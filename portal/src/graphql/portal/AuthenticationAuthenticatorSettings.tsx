@@ -2,7 +2,14 @@ import React from "react";
 
 import styles from "./AuthenticationAuthenticatorSettings.module.scss";
 
-const AuthenticationAuthenticatorSettings: React.FC = function AuthenticationAuthenticatorSettings() {
+interface Props {
+  appConfig: Record<string, unknown> | null;
+}
+
+const AuthenticationAuthenticatorSettings: React.FC<Props> = function AuthenticationAuthenticatorSettings(
+  props: Props
+) {
+  console.log(props.appConfig);
   return <div className={styles.root}></div>;
 };
 
