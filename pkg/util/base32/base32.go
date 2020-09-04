@@ -5,8 +5,8 @@ package base32
 // Alphabet of base32 encoding
 const Alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
 
-// Separator permitted in base32-encoded string, it will be removed in normalization
-const Separator = '-'
+// Separators permitted in base32-encoded string, they will be removed in normalization.
+var Separators = []rune{' ', '-'}
 
 // Input string contains invalid base32 character
 type InvalidBase32Character rune
@@ -35,9 +35,17 @@ func Normalize(value string) (normalizedValue string, err error) {
 	normalizedDigits := make([]rune, len(value))
 	i := 0
 	for _, digit := range value {
-		if digit == Separator {
+		isSep := false
+		for _, sep := range Separators {
+			if digit == sep {
+				isSep = true
+				break
+			}
+		}
+		if isSep {
 			continue
 		}
+
 		normalizedDigit, isValid := normalizationMap[digit]
 		if !isValid {
 			err = InvalidBase32Character(digit)
