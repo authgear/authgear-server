@@ -283,7 +283,21 @@ var _ = Schema.Add("OAuthSSOProviderConfig", `
 		"key_id": { "type": "string" },
 		"team_id": { "type": "string" }
 	},
-	"required": ["type", "client_id"]
+	"required": ["type", "client_id"],
+	"allOf": [
+		{
+			"if": { "properties": { "type": { "const": "apple" } } },
+			"then": {
+				"required": ["type", "client_id", "key_id", "team_id"]
+			}
+		},
+		{
+			"if": { "properties": { "type": { "const": "azureadv2" } } },
+			"then": {
+				"required": ["type", "client_id", "tenant"]
+			}
+		}
+	]
 }
 `)
 
