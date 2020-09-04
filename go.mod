@@ -17,7 +17,7 @@ require (
 	github.com/graphql-go/handler v0.2.3
 	github.com/graphql-go/relay v0.0.0-20171208134043-54350098cfe5
 	github.com/iawaknahc/gomessageformat v0.0.0-20200812041905-0386aa24db28
-	github.com/iawaknahc/jsonschema v0.0.0-20200626071738-c1e8a657d1a9
+	github.com/iawaknahc/jsonschema v0.0.0-20200904034036-e811a776237e
 	github.com/iawaknahc/originmatcher v0.0.0-20200622040912-c5bfd3560192
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/joho/godotenv v1.3.0
