@@ -50,7 +50,13 @@
 	<button form="main-form" class="btn primary-btn" type="submit" name="x_action" value="add_or_update">{{ template "next-button-label" }}</button>
 
 	{{ if .IdentityID }}
-	<button form="remove-form" class="anchor" type="submit" name="x_action" value="remove">{{ template "disconnect-button-label" }}</button>
+	<button form="remove-form" class="anchor" type="submit" name="x_action" value="remove">
+		{{ if eq .LoginIDType "username" }}
+		{{ template "remove-button-label" }}
+		{{ else }}
+		{{ template "disconnect-button-label" }}
+		{{ end }}
+	</button>
 	{{ end }}
 </div>
 
