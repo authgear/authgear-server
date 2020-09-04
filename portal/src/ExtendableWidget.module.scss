@@ -1,0 +1,38 @@
+@import "./styles/variable.scss";
+
+.root {
+  box-shadow: $widget-box-shadow;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+.extendButton {
+  padding: 5px;
+  margin: -5px;
+}
+
+.downArrow {
+  transition: transform 150ms ease;
+}
+
+.downArrowExtended {
+  transform: rotate(-180deg);
+}
+
+.contentContainer {
+  overflow: hidden;
+  height: 0;
+  transition: height 300ms linear;
+}
+
+.contentContainerExtended {
+  height: auto;
+}
+
+.content {
+  padding: 20px;
+}
