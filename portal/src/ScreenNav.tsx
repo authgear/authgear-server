@@ -8,7 +8,6 @@ const ScreenNav: React.FC = function ScreenNav() {
   const { renderToString } = useContext(Context);
 
   const label = renderToString("ScreenNav.label");
-  const labelUsers = renderToString("ScreenNav.users");
 
   const navGroups: INavLinkGroup[] = useMemo(() => {
     return [
@@ -16,14 +15,20 @@ const ScreenNav: React.FC = function ScreenNav() {
         links: [
           {
             key: "users",
-            name: labelUsers,
+            name: renderToString("ScreenNav.users"),
             url: "users",
             icon: "People",
+          },
+          {
+            key: "authentication",
+            name: renderToString("ScreenNav.authentication"),
+            url: "configuration/authentication",
+            icon: "Shield",
           },
         ],
       },
     ];
-  }, [labelUsers]);
+  }, [renderToString]);
 
   const onLinkClick: INavProps["onLinkClick"] = useCallback(
     (ev?: React.MouseEvent<HTMLElement>, item?: INavLink) => {

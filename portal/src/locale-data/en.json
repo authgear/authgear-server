@@ -7,10 +7,13 @@
 
   "header.sign-out": "Sign out",
 
+  "nav.users": "Users",
+
   "show-error.retry": "Retry",
 
   "ScreenNav.label": "Top-level tab navigation",
   "ScreenNav.users": "Users",
+  "ScreenNav.authentication": "Authentication",
 
   "NavBreadcrumb.label": "Nested navigation",
 
@@ -22,6 +25,8 @@
   "UsersList.column.phone": "Phone",
   "UsersList.column.signed-up": "Signed Up",
   "UsersList.column.last-login-at": "Last Login",
+
+  "AuthenticationScreen.title": "Authentication",
 
   "PaginationWidget.First": "Go to the first page",
   "PaginationWidget.Prev": "Go to the previous page",
