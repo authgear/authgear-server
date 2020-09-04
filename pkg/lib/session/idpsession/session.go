@@ -30,7 +30,6 @@ func (s *IDPSession) GetAccessInfo() *access.Info { return &s.AccessInfo }
 
 func (s *IDPSession) ToAPIModel() *model.Session {
 	ua := model.ParseUserAgent(s.AccessInfo.LastAccess.UserAgent)
-	ua.DeviceName = s.AccessInfo.LastAccess.Extra.DeviceName()
 	acr, _ := s.Attrs.GetACR()
 	amr, _ := s.Attrs.GetAMR()
 	return &model.Session{

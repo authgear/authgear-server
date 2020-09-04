@@ -39,7 +39,6 @@ func (g *OfflineGrant) GetAccessInfo() *access.Info { return &g.AccessInfo }
 
 func (g *OfflineGrant) ToAPIModel() *model.Session {
 	ua := model.ParseUserAgent(g.AccessInfo.LastAccess.UserAgent)
-	ua.DeviceName = g.AccessInfo.LastAccess.Extra.DeviceName()
 	amr, _ := g.Attrs.GetAMR()
 	acr, _ := g.Attrs.GetACR()
 	return &model.Session{
