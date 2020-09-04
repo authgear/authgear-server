@@ -1,8 +1,6 @@
 package access
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"net/http"
 	"regexp"
 	"strings"
@@ -12,18 +10,15 @@ import (
 var forwardedForRegex = regexp.MustCompile(`for=([^;]*)(?:[; ]|$)`)
 var ipRegex = regexp.MustCompile(`^(?:(\d+\.\d+\.\d+\.\d+)|\[(.*)\])(?::\d+)?$`)
 
-const HeaderSessionExtraInfo = "x-authgear-extra-info"
-
 type Info struct {
 	InitialAccess Event `json:"initial_access"`
 	LastAccess    Event `json:"last_access"`
 }
 
 type Event struct {
-	Timestamp time.Time      `json:"time"`
-	RemoteIP  string         `json:"ip,omitempty"`
-	UserAgent string         `json:"user_agent,omitempty"`
-	Extra     EventExtraInfo `json:"extra,omitempty"`
+	Timestamp time.Time `json:"time"`
+	RemoteIP  string    `json:"ip,omitempty"`
+	UserAgent string    `json:"user_agent,omitempty"`
 }
 
 func NewEvent(timestamp time.Time, req *http.Request, trustProxy bool) Event {
@@ -34,18 +29,10 @@ func NewEvent(timestamp time.Time, req *http.Request, trustProxy bool) Event {
 		Forwarded:     req.Header.Get("Forwarded"),
 	}
 
-	extra := EventExtraInfo{}
-	extraData, err := base64.StdEncoding.DecodeString(req.Header.Get(HeaderSessionExtraInfo))
-	const extraDataSizeLimit = 1024
-	if err == nil && len(extraData) <= extraDataSizeLimit {
-		_ = json.Unmarshal(extraData, &extra)
-	}
-
 	return Event{
 		Timestamp: timestamp,
 		RemoteIP:  remote.IP(trustProxy),
 		UserAgent: req.UserAgent(),
-		Extra:     extra,
 	}
 }
 
@@ -85,11 +72,4 @@ func (i EventConnInfo) IP(trustProxy bool) (ip string) {
 	}
 	ip = i.RemoteAddr
 	return
-}
-
-type EventExtraInfo map[string]interface{}
-
-func (i EventExtraInfo) DeviceName() string {
-	deviceName, _ := i["device_name"].(string)
-	return deviceName
 }

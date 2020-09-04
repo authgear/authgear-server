@@ -1,8 +1,6 @@
 package access
 
 import (
-	"encoding/base64"
-	"fmt"
 	"net/http"
 	"testing"
 	"time"
@@ -38,32 +36,6 @@ func TestNewAccessEvent(t *testing.T) {
 
 			event := NewEvent(now, req, true)
 			So(event.UserAgent, ShouldEqual, "SDK")
-		})
-		Convey("should populate extra info", func() {
-			req, _ := http.NewRequest("POST", "", nil)
-			req.Header.Set("X-Authgear-Extra-Info", "eyAiZGV2aWNlX25hbWUiOiAiRGV2aWNlIiB9")
-
-			event := NewEvent(now, req, true)
-			So(event.Extra, ShouldResemble, EventExtraInfo{
-				"device_name": "Device",
-			})
-		})
-		Convey("should not populate extra info if too large", func() {
-			extra := "{ "
-			for i := 0; i < 1000; i++ {
-				if i != 0 {
-					extra += ", "
-				}
-				extra += fmt.Sprintf(`"info_%d": %d`, i, i)
-			}
-			extra += " }"
-			extra = base64.StdEncoding.EncodeToString([]byte(extra))
-
-			req, _ := http.NewRequest("POST", "", nil)
-			req.Header.Set("X-Authgear-Extra-Info", extra)
-
-			event := NewEvent(now, req, true)
-			So(event.Extra, ShouldResemble, EventExtraInfo{})
 		})
 	})
 }

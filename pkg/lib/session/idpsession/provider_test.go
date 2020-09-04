@@ -34,13 +34,9 @@ func TestProvider(t *testing.T) {
 
 		req, _ := http.NewRequest("POST", "", nil)
 		req.Header.Set("User-Agent", "SDK")
-		req.Header.Set("X-Authgear-Extra-Info", "eyAiZGV2aWNlX25hbWUiOiAiRGV2aWNlIiB9")
 		accessEvent := access.Event{
 			Timestamp: initialTime,
 			UserAgent: "SDK",
-			Extra: access.EventExtraInfo{
-				"device_name": "Device",
-			},
 		}
 
 		provider := &Provider{
