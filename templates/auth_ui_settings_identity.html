@@ -90,7 +90,13 @@
         {{ end }}
 
         {{ else }}
-        <a class="btn secondary-btn" href="{{ call $.MakeURL "/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type }}">{{ template "connect-button-label" }}</a>
+        <a class="btn secondary-btn" href="{{ call $.MakeURL "/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type }}">
+          {{ if eq .login_id_type "username" }}
+          {{ template "setup-button-label" }}
+          {{ else }}
+          {{ template "connect-button-label" }}
+          {{ end }}
+        </a>
         {{ end }}
       {{ end }}
     </div>
