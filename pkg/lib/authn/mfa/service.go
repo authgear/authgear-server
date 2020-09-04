@@ -86,6 +86,12 @@ func (s *Service) ReplaceRecoveryCodes(userID string, codes []string) ([]*Recove
 }
 
 func (s *Service) GetRecoveryCode(userID string, code string) (*RecoveryCode, error) {
+	code, err := NormalizeRecoveryCode(code)
+	if err != nil {
+		err = ErrRecoveryCodeNotFound
+		return nil, err
+	}
+
 	rc, err := s.RecoveryCodes.Get(userID, code)
 	if err != nil {
 		return nil, err

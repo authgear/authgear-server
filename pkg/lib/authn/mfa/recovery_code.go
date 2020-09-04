@@ -24,3 +24,11 @@ func GenerateRecoveryCode() string {
 	code := rand.StringWithAlphabet(recoveryCodeLength, base32.Alphabet, rand.SecureRand)
 	return code
 }
+
+func NormalizeRecoveryCode(code string) (normalized string, err error) {
+	normalized, err = base32.Normalize(code)
+	if err != nil {
+		return
+	}
+	return
+}
