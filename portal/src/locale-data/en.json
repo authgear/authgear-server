@@ -7,9 +7,12 @@
 
   "header.sign-out": "Sign out",
 
-  "nav.users": "Users",
-
   "show-error.retry": "Retry",
+
+  "ScreenNav.label": "Top-level tab navigation",
+  "ScreenNav.users": "Users",
+
+  "NavBreadcrumb.label": "Nested navigation",
 
   "UsersScreen.title": "Users",
 

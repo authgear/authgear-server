@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useContext } from "react";
 import { useHref } from "react-router-dom";
 import cn from "classnames";
 import { Breadcrumb, IBreadcrumbItem, IRenderFunction } from "@fluentui/react";
+import { Context } from "@oursky/react-messageformat";
 import useNavIsActive from "./hook/useNavIsActive";
 import styles from "./NavBreadcrumb.module.scss";
 
@@ -31,6 +32,7 @@ const FuncLink: React.FC<FuncLinkProps> = function FuncLink(
     return renderFunc({
       ...item,
       href: undefined,
+      as: "h1",
     });
   }
 
@@ -59,6 +61,7 @@ function onRenderItem(
 // And then we render a function component, which allows us to use hooks.
 const NavBreadcrumb: React.FC<Props> = function NavBreadcrumb(props: Props) {
   const { className, items } = props;
+  const { renderToString } = useContext(Context);
 
   const breadcrumbItems: IBreadcrumbItem[] = [];
   for (const item of items) {
@@ -70,8 +73,11 @@ const NavBreadcrumb: React.FC<Props> = function NavBreadcrumb(props: Props) {
     });
   }
 
+  const label = renderToString("NavBreadcrumb.label");
+
   return (
     <Breadcrumb
+      ariaLabel={label}
       className={cn(className, styles.root)}
       items={breadcrumbItems}
       onRenderItem={onRenderItem}

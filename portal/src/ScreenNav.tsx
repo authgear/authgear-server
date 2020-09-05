@@ -7,7 +7,8 @@ const ScreenNav: React.FC = function ScreenNav() {
   const navigate = useNavigate();
   const { renderToString } = useContext(Context);
 
-  const labelUsers = renderToString("nav.users");
+  const label = renderToString("ScreenNav.label");
+  const labelUsers = renderToString("ScreenNav.users");
 
   const navGroups: INavLinkGroup[] = useMemo(() => {
     return [
@@ -35,7 +36,7 @@ const ScreenNav: React.FC = function ScreenNav() {
     [navigate]
   );
 
-  return <Nav groups={navGroups} onLinkClick={onLinkClick} />;
+  return <Nav ariaLabel={label} groups={navGroups} onLinkClick={onLinkClick} />;
 };
 
 export default ScreenNav;

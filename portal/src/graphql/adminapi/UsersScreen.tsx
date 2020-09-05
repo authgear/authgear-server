@@ -9,10 +9,10 @@ const UsersScreen: React.FC = function UsersScreen() {
     return [{ to: ".", label: <FormattedMessage id="UsersScreen.title" /> }];
   }, []);
   return (
-    <div className={styles.root}>
+    <main className={styles.root}>
       <NavBreadcrumb items={items} />
       <UsersList className={styles.usersList} />
-    </div>
+    </main>
   );
 };
 
