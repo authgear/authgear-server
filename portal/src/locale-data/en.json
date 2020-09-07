@@ -4,6 +4,7 @@
   "loading": "Loading...",
 
   "next": "Next",
+  "save": "Save",
 
   "header.sign-out": "Sign out",
 
@@ -41,8 +42,9 @@
 
   "AuthenticationWidget.emailAddressTitle": "Email Address",
   "AuthenticationWidget.blockReservedKeywords": "Block Reserved Keywords",
-  "AuthenticationWidget.blockDomian": "Block Domains",
-  "AuthenticationWidget.includeFreeEmailDomain": "Include all free email hosting provider domains",
+  "AuthenticationWidget.blockDomains": "Block Domains",
+  "AuthenticationWidget.includeFreeEmailDomains": "Include all free email hosting provider domains",
+  "AuthenticationWidget.includeFreeEmailDomainsHelp": "Include all free email hosting provider domains",
   "AuthenticationWidget.ignoreDotLocal": "Ignore dot sign in local parameter",
   "AuthenticationWidget.allowPlus": "Allow + sign in email",
 

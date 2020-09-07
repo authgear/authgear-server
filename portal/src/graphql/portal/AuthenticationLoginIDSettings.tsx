@@ -1,5 +1,5 @@
 import React from "react";
-import { Checkbox, Toggle, TextField } from "@fluentui/react";
+import { Checkbox, Toggle, TextField, PrimaryButton } from "@fluentui/react";
 
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
@@ -7,7 +7,6 @@ import ExtendableWidget from "../../ExtendableWidget";
 import CheckboxWithTooltip from "../../CheckboxWithTooltip";
 import CheckboxWithContent from "../../CheckboxWithContent";
 import { useTextField, useCheckbox } from "../../hook/useInput";
-import { LoginIDKeyType } from "../../types";
 
 import styles from "./AuthenticationLoginIDSettings.module.scss";
 
@@ -19,6 +18,30 @@ interface WidgetHeaderProps {
   enabled: boolean;
   setEnabled: (enabled: boolean) => void;
   titleId: string;
+}
+
+interface AuthenticationLoginIDSettingsState {
+  usernameEnabled: boolean;
+  emailEnabled: boolean;
+  phoneNumberEnabled: boolean;
+
+  reservedUsername: string;
+  excludedKeywords: string;
+  isBlockReservedUsername: boolean;
+  isIncludeDefaultReservedUsernameList: boolean;
+  isExcludeKeywords: boolean;
+  isIncludeDefaultKeywordList: boolean;
+  isUsernameCaseSensitive: boolean;
+  isAsciiOnly: boolean;
+
+  reservedKeywords: string;
+  blockedDomains: string;
+  isBlockReservedKeywords: boolean;
+  isBlockDomains: boolean;
+  isIncludeFreeEmailDomains: boolean;
+  isEmailCaseSensitive: boolean;
+  isIgnoreDotLocal: boolean;
+  isAllowPlus: boolean;
 }
 
 const switchStyle = { root: { margin: "0" } };
@@ -33,23 +56,59 @@ const WidgetHeader: React.FC<WidgetHeaderProps> = function (
         checked={props.enabled}
         onChanged={props.setEnabled}
       />
-      <span className={styles.widgetHeaderText}>
+      <header className={styles.widgetHeaderText}>
         <FormattedMessage id={props.titleId} />
-      </span>
+      </header>
     </div>
   );
 };
+
+function extractConfigFromLoginIdKeys(
+  loginIdKeys: any[]
+): { [key: string]: boolean } {
+  const usernameEnabledConfig =
+    loginIdKeys.find((key: any) => key.type === "username")?.verification
+      ?.enabled ?? false;
+  const emailEnabledConfig =
+    loginIdKeys.find((key: any) => key.type === "email")?.verification
+      ?.enabled ?? false;
+  const phoneNumberEnabledConfig =
+    loginIdKeys.find((key: any) => key.type === "phone")?.verification
+      ?.enabled ?? false;
+
+  return {
+    usernameEnabledConfig,
+    emailEnabledConfig,
+    phoneNumberEnabledConfig,
+  };
+}
+
+function constructAppConfigFromState(
+  appConfig: Record<string, unknown>,
+  screenState: AuthenticationLoginIDSettingsState
+): Record<string, unknown> {
+  // TODO: to be implemented
+  console.log(appConfig, screenState);
+  return {};
+}
 
 const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLoginIDSettings(
   props: Props
 ) {
   const { appConfig } = props;
-  console.log(appConfig);
   const { renderToString } = React.useContext(Context);
   const loginIdKeys = (appConfig?.identity as any)?.login_id?.keys ?? [];
+  const {
+    usernameEnabledConfig,
+    emailEnabledConfig,
+    phoneNumberEnabledConfig,
+  } = extractConfigFromLoginIdKeys(loginIdKeys);
   const [usernameEnabled, setUsernameEnabled] = React.useState(
-    loginIdKeys.find((key: any) => key.type === "username")?.verification
-      ?.enabled ?? false
+    usernameEnabledConfig
+  );
+  const [emailEnabled, setEmailEnabled] = React.useState(emailEnabledConfig);
+  const [phoneNumberEnabled, setPhoneNumberEnabled] = React.useState(
+    phoneNumberEnabledConfig
   );
 
   // username widget
@@ -83,12 +142,103 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     onChange: onIsIncludeDefaultKeywordListChange,
   } = useCheckbox(false);
   const {
-    value: isCaseSensitive,
-    onChange: onIsCaseSensitiveChange,
+    value: isUsernameCaseSensitive,
+    onChange: onIsUsernameCaseSensitiveChange,
   } = useCheckbox(!!usernameConfig?.case_sensitive);
   const { value: isAsciiOnly, onChange: onIsAsciiOnlyChange } = useCheckbox(
     !!usernameConfig?.ascii_only
   );
+
+  // email widget
+  const emailConfig = (appConfig?.identity as any)?.login_id?.types?.email;
+  const reservedKeywordsConfig = emailConfig?.reserved_keywords ?? [];
+  const blockedDomainsConfig = emailConfig?.blocked_domains ?? [];
+
+  const {
+    value: reservedKeywords,
+    onChange: onReservedKeywordsChange,
+  } = useTextField(reservedKeywordsConfig.join(", "));
+  const {
+    value: blockedDomains,
+    onChange: onBlockedDomainsChange,
+  } = useTextField(blockedDomainsConfig.join(", "));
+  const {
+    value: isBlockReservedKeywords,
+    onChange: onIsBlockReservedKeywordsChange,
+  } = useCheckbox(reservedKeywordsConfig.length > 0);
+  const {
+    value: isBlockDomains,
+    onChange: onIsBlockDomainsChange,
+  } = useCheckbox(blockedDomainsConfig.length > 0);
+  const {
+    value: isIncludeFreeEmailDomains,
+    onChange: onIsIncludeFreeEmailDomainsChange,
+  } = useCheckbox(false);
+  const {
+    value: isEmailCaseSensitive,
+    onChange: onIsEmailCaseSensitiveChange,
+  } = useCheckbox(!!emailConfig?.case_sensitive);
+  const {
+    value: isIgnoreDotLocal,
+    onChange: onIsIgnoreDotLocalChange,
+  } = useCheckbox(!!emailConfig?.ignore_dot_sign);
+  const { value: isAllowPlus, onChange: onIsAllowPlusChange } = useCheckbox(
+    !emailConfig?.block_plus_sign
+  );
+
+  const onSaveButtonClicked = React.useCallback(() => {
+    if (props.appConfig == null) {
+      return;
+    }
+    const screenState = {
+      usernameEnabled,
+      emailEnabled,
+      phoneNumberEnabled,
+
+      reservedUsername,
+      excludedKeywords,
+      isBlockReservedUsername,
+      isIncludeDefaultReservedUsernameList,
+      isExcludeKeywords,
+      isIncludeDefaultKeywordList,
+      isUsernameCaseSensitive,
+      isAsciiOnly,
+
+      reservedKeywords,
+      blockedDomains,
+      isBlockReservedKeywords,
+      isBlockDomains,
+      isIncludeFreeEmailDomains,
+      isEmailCaseSensitive,
+      isIgnoreDotLocal,
+      isAllowPlus,
+    };
+    constructAppConfigFromState(props.appConfig, screenState);
+  }, [
+    props.appConfig,
+
+    usernameEnabled,
+    emailEnabled,
+    phoneNumberEnabled,
+
+    reservedUsername,
+    excludedKeywords,
+    isBlockReservedUsername,
+    isIncludeDefaultReservedUsernameList,
+    isExcludeKeywords,
+    isIncludeDefaultKeywordList,
+    isUsernameCaseSensitive,
+    isAsciiOnly,
+
+    reservedKeywords,
+    blockedDomains,
+    isBlockReservedKeywords,
+    isBlockDomains,
+    isIncludeFreeEmailDomains,
+    isEmailCaseSensitive,
+    isIgnoreDotLocal,
+    isAllowPlus,
+  ]);
 
   return (
     <div className={styles.root}>
@@ -161,8 +311,8 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
             <Checkbox
               label={renderToString("AuthenticationWidget.caseSensitive")}
               className={styles.widgetCheckbox}
-              checked={isCaseSensitive}
-              onChange={onIsCaseSensitiveChange}
+              checked={isUsernameCaseSensitive}
+              onChange={onIsUsernameCaseSensitiveChange}
             />
 
             <Checkbox
@@ -173,6 +323,103 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
             />
           </div>
         </ExtendableWidget>
+      </div>
+
+      <div className={styles.widgetContainer}>
+        <ExtendableWidget
+          extendable={emailEnabled}
+          HeaderComponent={
+            <WidgetHeader
+              enabled={emailEnabled}
+              setEnabled={setEmailEnabled}
+              titleId={"AuthenticationWidget.emailAddressTitle"}
+            />
+          }
+        >
+          <CheckboxWithContent
+            checked={isBlockReservedKeywords}
+            onChange={onIsBlockReservedKeywordsChange}
+            className={styles.checkboxWithContent}
+          >
+            <div className={styles.checkboxLabel}>
+              <FormattedMessage id="AuthenticationWidget.blockReservedKeywords" />
+            </div>
+            <TextField
+              className={styles.widgetInputField}
+              disabled={!isBlockReservedKeywords}
+              value={reservedKeywords}
+              onChange={onReservedKeywordsChange}
+            />
+          </CheckboxWithContent>
+
+          <CheckboxWithContent
+            checked={isBlockDomains}
+            onChange={onIsBlockDomainsChange}
+            className={styles.checkboxWithContent}
+          >
+            <div className={styles.checkboxLabel}>
+              <FormattedMessage id="AuthenticationWidget.blockDomains" />
+            </div>
+            <TextField
+              className={styles.widgetInputField}
+              disabled={!isBlockDomains}
+              value={blockedDomains}
+              onChange={onBlockedDomainsChange}
+            />
+            <CheckboxWithTooltip
+              label={renderToString(
+                "AuthenticationWidget.includeFreeEmailDomains"
+              )}
+              helpText={renderToString(
+                "AuthenticationWidget.includeFreeEmailDomainsHelp"
+              )}
+              disabled={!isBlockDomains}
+              checked={isIncludeFreeEmailDomains}
+              onChange={onIsIncludeFreeEmailDomainsChange}
+            />
+          </CheckboxWithContent>
+
+          <Checkbox
+            label={renderToString("AuthenticationWidget.caseSensitive")}
+            className={styles.widgetCheckbox}
+            checked={isEmailCaseSensitive}
+            onChange={onIsEmailCaseSensitiveChange}
+          />
+
+          <Checkbox
+            label={renderToString("AuthenticationWidget.ignoreDotLocal")}
+            className={styles.widgetCheckbox}
+            checked={isIgnoreDotLocal}
+            onChange={onIsIgnoreDotLocalChange}
+          />
+
+          <Checkbox
+            label={renderToString("AuthenticationWidget.allowPlus")}
+            className={styles.widgetCheckbox}
+            checked={isAllowPlus}
+            onChange={onIsAllowPlusChange}
+          />
+        </ExtendableWidget>
+      </div>
+
+      <div className={styles.widgetContainer}>
+        <ExtendableWidget
+          extendable={phoneNumberEnabled}
+          HeaderComponent={
+            <WidgetHeader
+              enabled={phoneNumberEnabled}
+              setEnabled={setPhoneNumberEnabled}
+              titleId={"AuthenticationWidget.phoneNumberTitle"}
+            />
+          }
+        >
+          <div>TODO: To be implemented</div>
+        </ExtendableWidget>
+      </div>
+      <div className={styles.saveButtonContainer}>
+        <PrimaryButton onClick={onSaveButtonClicked}>
+          <FormattedMessage id="save" />
+        </PrimaryButton>
       </div>
     </div>
   );

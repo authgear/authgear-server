@@ -1,11 +1,11 @@
 @import "../../styles/variable.scss";
 
 .root {
-  min-width: 750px;
+  width: 700px;
+  padding-right: 30px;
 }
 
 .widgetContainer {
-  width: 700px;
   margin-top: 20px;
 }
 
@@ -41,4 +41,11 @@
 .widgetCheckbox {
   margin-bottom: 15px;
   margin-right: 8px;
+}
+
+.saveButtonContainer {
+  width: 100%;
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
 }
