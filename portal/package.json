@@ -38,6 +38,7 @@
     "@fluentui/react": "7.132.0",
     "@oursky/react-messageformat": "0.10.0",
     "@types/luxon": "1.24.4",
+    "axe-core": "4.0.1",
     "classnames": "2.2.6",
     "history": "5.0.0",
     "luxon": "1.25.0",
