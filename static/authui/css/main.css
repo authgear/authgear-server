@@ -148,8 +148,7 @@ select {
 }
 
 .secondary-btn {
-  color: #323130;
-  border: 1px solid #8A8886;
+  color: #166bef;
   min-width: 100px;
 }
 
@@ -184,11 +183,14 @@ a.btn {
 
 .content {
   background-color: white;
+  display: flex;
+  flex-direction: column;
 }
 
 .logo {
   /* The logo is intended to be fixed height */
   height: 90px;
+  margin: 6px;
   background-image: url("../image/ic_app_logo.png");
   background-position: center;
   background-size: 60px 60px;
@@ -196,13 +198,22 @@ a.btn {
   background-color: #eaf1fc;
 }
 
+.pane {
+  box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  padding: 8px;
+  margin: 6px;
+}
+
+.nav-bar {
+  margin: 6px;
+  display: flex;
+  flex-direction: row;
+}
+
 .back-btn {
-  width: 36px;
-  height: 36px;
-  background-color: #f3f2f1;
-  border-radius: 18px;
-  background-image: url("../image/ic_back_arrow.png");
-  background-position: center;
+  /* background-image: url("../image/ic_back_arrow.png"); */
+  background-position: 6px;
   background-size: 16px auto;
   background-repeat: no-repeat;
 }
@@ -212,6 +223,9 @@ a.btn {
 }
 
 @media (min-width: 320px) {
+  .content {
+    padding: 6px;
+  }
 }
 
 @media (min-width: 1025px) {
@@ -222,10 +236,7 @@ a.btn {
     align-items: flex-start;
   }
   .content {
-    margin: 52px 0 0 0;
-    width: 416px;
-    border-radius: 2px;
-    box-shadow: 0 0.3px 0.9px 0 rgba(0, 0, 0, 0.11), 0 1.6px 3.6px 0 rgba(0, 0, 0, 0.13);
+    width: 546px;
   }
 }
 
@@ -246,13 +257,12 @@ a.btn {
 .authorize-form {
   display: flex;
   flex-direction: column;
-  padding: 10px;
 }
 
 .authorize-idp-section {
   display: flex;
   flex-direction: column;
-  margin: 10px;
+  margin: 8px;
 }
 
 .authorize-idp-form {
@@ -263,7 +273,7 @@ a.btn {
 .authorize-loginid-form {
   display: flex;
   flex-direction: column;
-  margin: 10px;
+  margin: 8px;
 }
 
 .authorize-loginid-form .link {
@@ -316,7 +326,7 @@ a.btn {
 
 .sso-loginid-separator {
   text-align: center;
-  margin: 10px;
+  margin: 8px;
 }
 
 .password-visibility-btn {
@@ -351,12 +361,7 @@ a.btn {
   font-size: 12px;
 }
 
-.settings-form {
-  padding: 20px;
-}
-
 .logout-form {
-  padding: 20px;
   display: flex;
   flex-direction: column;
 }

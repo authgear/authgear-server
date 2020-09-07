@@ -6,11 +6,9 @@
 
 {{ template "auth_ui_header.html" . }}
 
-<div class="simple-form vertical-form form-fields-container">
+{{ template "auth_ui_nav_bar.html" . }}
 
-<div class="nav-bar">
-	<button class="btn back-btn" type="button" title="{{ template "back-button-title" }}"></button>
-</div>
+<div class="simple-form vertical-form form-fields-container pane">
 
 <div class="title primary-txt">
 	{{ template "recovery-code-title" }}

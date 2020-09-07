@@ -6,7 +6,7 @@
 
 {{ template "auth_ui_header.html" . }}
 
-<form class="logout-form" method="post" novalidate>
+<form class="logout-form pane" method="post" novalidate>
   {{ $.CSRFField }}
   <p class="primary-txt">{{ template "logout-button-hint" }}</p>
   <!-- We need to disable XHR for this request because after logout it could possibly redirect to external website with post_logout_uri -->
