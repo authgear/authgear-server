@@ -17,7 +17,7 @@ export interface AppConfigQuery_node_App {
    * The ID of an object
    */
   id: string;
-  appConfig: GQL_JSONObject;
+  effectiveAppConfig: GQL_AppConfig;
 }
 
 export type AppConfigQuery_node = AppConfigQuery_node_User | AppConfigQuery_node_App;
