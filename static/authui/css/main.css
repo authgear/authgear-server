@@ -187,13 +187,11 @@ a.btn {
 }
 
 .logo {
-  /* The logo is intended to be 21:9 */
-  /* When padding-top is given as percentage, it is the percentage of the width of the container */
-  /* So 9 / 21 == 42.86% */
-  padding-top: 42.86%;
+  /* The logo is intended to be fixed height */
+  height: 90px;
   background-image: url("../image/ic_app_logo.png");
   background-position: center;
-  background-size: 66px 66px;
+  background-size: 60px 60px;
   background-repeat: no-repeat;
   background-color: #eaf1fc;
 }
