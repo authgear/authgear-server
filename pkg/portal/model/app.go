@@ -25,3 +25,8 @@ func (a *App) LoadFile(path string) ([]byte, error) {
 
 	return data, nil
 }
+
+type AppConfigFile struct {
+	Path    string
+	Content string
+}

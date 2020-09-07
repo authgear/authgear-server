@@ -1,6 +1,9 @@
 package service
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 )
@@ -36,4 +39,10 @@ func (s *AppService) List(userID string) ([]*model.App, error) {
 	}
 
 	return s.GetMany(appIDs)
+}
+
+func (s *AppService) UpdateConfig(app *model.App, updateFiles []*model.AppConfigFile, deleteFiles []string) error {
+	// TODO(portal): validate & update files
+	fmt.Printf("%v %#v %#v\n", app, updateFiles, deleteFiles)
+	return errors.New("??e")
 }

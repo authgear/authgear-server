@@ -8,7 +8,8 @@ var Schema *graphql.Schema
 
 func init() {
 	schema, err := graphql.NewSchema(graphql.SchemaConfig{
-		Query: query,
+		Query:    query,
+		Mutation: mutation,
 	})
 	if err != nil {
 		panic(err)

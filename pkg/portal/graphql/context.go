@@ -3,6 +3,7 @@ package graphql
 import (
 	"context"
 
+	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -13,6 +14,7 @@ type ViewerLoader interface {
 type AppLoader interface {
 	Get(id string) *graphqlutil.Lazy
 	List(userID string) *graphqlutil.Lazy
+	UpdateConfig(app *model.App, updateFiles []*model.AppConfigFile, deleteFiles []string) *graphqlutil.Lazy
 }
 
 type contextKeyType struct{}
