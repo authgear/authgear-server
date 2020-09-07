@@ -21,6 +21,7 @@ type OpenOptions struct {
 	MaxOpenConns    int
 	MaxIdleConns    int
 	ConnMaxLifetime time.Duration
+	ConnMaxIdleTime time.Duration
 }
 
 func NewPool() *Pool {
@@ -78,5 +79,6 @@ func (p *Pool) openPostgresDB(opts OpenOptions) (db *sqlx.DB, err error) {
 	db.SetMaxOpenConns(opts.MaxOpenConns)
 	db.SetMaxIdleConns(opts.MaxIdleConns)
 	db.SetConnMaxLifetime(opts.ConnMaxLifetime)
+	db.SetConnMaxIdleTime(opts.ConnMaxIdleTime)
 	return
 }

@@ -165,11 +165,13 @@ func (h *Handle) openDB() (*sqlx.DB, error) {
 			MaxOpenConns:    *h.cfg.MaxOpenConnection,
 			MaxIdleConns:    *h.cfg.MaxIdleConnection,
 			ConnMaxLifetime: h.cfg.MaxConnectionLifetime.Duration(),
+			ConnMaxIdleTime: h.cfg.IdleConnectionTimeout.Duration(),
 		}
 		h.logger.WithFields(map[string]interface{}{
-			"max_open_conns":            opts.MaxOpenConns,
-			"max_idle_conns":            opts.MaxIdleConns,
-			"conn_max_lifetime_seconds": opts.ConnMaxLifetime.Seconds(),
+			"max_open_conns":             opts.MaxOpenConns,
+			"max_idle_conns":             opts.MaxIdleConns,
+			"conn_max_lifetime_seconds":  opts.ConnMaxLifetime.Seconds(),
+			"conn_max_idle_time_seconds": opts.ConnMaxIdleTime.Seconds(),
 		}).Debug("open database")
 
 		db, err := h.pool.Open(opts)

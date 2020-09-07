@@ -10,6 +10,7 @@ error: null
 value:
   max_open_connection: 5
   max_idle_connection: 5
+  idle_connection_timeout_seconds: 300
   max_connection_lifetime_seconds: 1200
 
 ---
@@ -19,13 +20,16 @@ error: null
 value:
   max_open_connection: 0
   max_idle_connection: 0
-  max_connection_lifetime_seconds: 0
+  idle_connection_timeout_seconds: 0
+  max_connection_lifetime_seconds: 1200
 
 ---
 part: DatabaseConfig
 name: negative-values-are-invalid
 error: |-
   invalid value:
+  /idle_connection_timeout_seconds: minimum
+    map[actual:-1 minimum:0]
   /max_connection_lifetime_seconds: minimum
     map[actual:-1 minimum:0]
   /max_idle_connection: minimum
@@ -35,4 +39,5 @@ error: |-
 value:
   max_open_connection: -1
   max_idle_connection: -1
+  idle_connection_timeout_seconds: -1
   max_connection_lifetime_seconds: -1
