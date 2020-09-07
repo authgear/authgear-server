@@ -1,4 +1,5 @@
 import React from "react";
+import produce from "immer";
 import { Checkbox, Toggle, TextField, PrimaryButton } from "@fluentui/react";
 
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -7,6 +8,7 @@ import ExtendableWidget from "../../ExtendableWidget";
 import CheckboxWithTooltip from "../../CheckboxWithTooltip";
 import CheckboxWithContent from "../../CheckboxWithContent";
 import { useTextField, useCheckbox } from "../../hook/useInput";
+import { LoginIDKeyType } from "../../types";
 
 import styles from "./AuthenticationLoginIDSettings.module.scss";
 
@@ -83,13 +85,126 @@ function extractConfigFromLoginIdKeys(
   };
 }
 
+function getListFromCommaSeparatedString(
+  commaSeparatedString: string,
+  optionEnabled: boolean = true,
+  useDefaultList: boolean = false,
+  defaultList: string[] = []
+): string[] {
+  if (!optionEnabled) {
+    return [];
+  }
+  const list = commaSeparatedString.split(",");
+  const sanitizedList = list.map((item) => item.trim()).filter(Boolean);
+  return useDefaultList ? [...sanitizedList, ...defaultList] : sanitizedList;
+}
+
+function setFieldIfListNonEmpty(
+  map: Record<string, unknown>,
+  field: string,
+  list: (string | number | boolean)[]
+): void {
+  if (list.length === 0) {
+    delete map[field];
+  } else {
+    map[field] = list;
+  }
+}
+function getOrCreateLoginIdKey(
+  loginIdKeys: Record<string, unknown>[],
+  keyType: LoginIDKeyType
+): Record<string, unknown> {
+  const loginIdKey = loginIdKeys.find((key: any) => key.type === keyType);
+  if (loginIdKey != null) {
+    return loginIdKey;
+  }
+  const newLoginIdKey = { type: keyType };
+  loginIdKeys.push(newLoginIdKey);
+  return newLoginIdKey;
+}
+
+function setLoginIdKeyEnabled(
+  loginIdKey: Record<string, unknown>,
+  enabled: boolean
+) {
+  loginIdKey.verification = loginIdKey.verification || {};
+  (loginIdKey.verification as Record<string, unknown>).enabled = enabled;
+}
+
 function constructAppConfigFromState(
   appConfig: Record<string, unknown>,
   screenState: AuthenticationLoginIDSettingsState
 ): Record<string, unknown> {
-  // TODO: to be implemented
-  console.log(appConfig, screenState);
-  return {};
+  const newAppConfig = produce(appConfig, (draftConfig) => {
+    const loginIdKeys = (draftConfig.identity as any)?.login_id?.keys ?? [];
+    const loginIdUsernameKey = getOrCreateLoginIdKey(loginIdKeys, "username");
+    const loginIdEmailKey = getOrCreateLoginIdKey(loginIdKeys, "email");
+    const loginIdPhoneNumberKey = getOrCreateLoginIdKey(loginIdKeys, "phone");
+
+    setLoginIdKeyEnabled(loginIdUsernameKey, screenState.usernameEnabled);
+    setLoginIdKeyEnabled(loginIdEmailKey, screenState.emailEnabled);
+    setLoginIdKeyEnabled(loginIdPhoneNumberKey, screenState.phoneNumberEnabled);
+
+    const loginIdTypes = (draftConfig.identity as any)?.login_id?.types;
+
+    if (loginIdTypes == null) {
+      return;
+    }
+
+    // username config
+    loginIdTypes.username = loginIdTypes.username || {};
+    const usernameConfig = loginIdTypes.username;
+
+    const reservedUsernameList = getListFromCommaSeparatedString(
+      screenState.reservedUsername,
+      screenState.isBlockReservedUsername,
+      screenState.isIncludeDefaultReservedUsernameList
+    );
+    const excludedKeywordList = getListFromCommaSeparatedString(
+      screenState.excludedKeywords,
+      screenState.isExcludeKeywords,
+      screenState.isIncludeDefaultKeywordList
+    );
+
+    setFieldIfListNonEmpty(
+      usernameConfig,
+      "reserved_usernames",
+      reservedUsernameList
+    );
+    setFieldIfListNonEmpty(
+      usernameConfig,
+      "excluded_keywords",
+      excludedKeywordList
+    );
+    usernameConfig.case_sensitive = screenState.isUsernameCaseSensitive;
+    usernameConfig.ascii_only = screenState.isAsciiOnly;
+
+    // email config
+    loginIdTypes.email = loginIdTypes.email || {};
+    const emailConfig = loginIdTypes.email;
+
+    const reservedKeywordList = getListFromCommaSeparatedString(
+      screenState.reservedKeywords,
+      screenState.isBlockReservedKeywords
+    );
+    const blockedDomainList = getListFromCommaSeparatedString(
+      screenState.blockedDomains,
+      screenState.isBlockDomains,
+      screenState.isIncludeFreeEmailDomains
+    );
+
+    setFieldIfListNonEmpty(
+      emailConfig,
+      "reserved_keywords",
+      reservedKeywordList
+    );
+    setFieldIfListNonEmpty(emailConfig, "blocked_domains", blockedDomainList);
+    emailConfig.case_sensitive = screenState.isEmailCaseSensitive;
+    emailConfig.ignore_dot_sign = screenState.isIgnoreDotLocal;
+    emailConfig.block_plus_sign = !screenState.isAllowPlus;
+  });
+
+  return newAppConfig;
 }
 
 const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLoginIDSettings(
@@ -213,7 +328,13 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
       isIgnoreDotLocal,
       isAllowPlus,
     };
-    constructAppConfigFromState(props.appConfig, screenState);
+
+    const newAppConfig = constructAppConfigFromState(
+      props.appConfig,
+      screenState
+    );
+    // TODO: call mutation to save config
+    console.log(newAppConfig);
   }, [
     props.appConfig,
 
