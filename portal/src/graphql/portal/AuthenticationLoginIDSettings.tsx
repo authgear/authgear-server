@@ -9,6 +9,12 @@ import CheckboxWithTooltip from "../../CheckboxWithTooltip";
 import CheckboxWithContent from "../../CheckboxWithContent";
 import { useTextField, useCheckbox } from "../../hook/useInput";
 import { LoginIDKeyType } from "../../types";
+import {
+  ValidationRule,
+  renderErrorMessage,
+  isValidEmailDomain,
+  validateInput,
+} from "../../util/validation";
 
 import styles from "./AuthenticationLoginIDSettings.module.scss";
 
@@ -45,6 +51,38 @@ interface AuthenticationLoginIDSettingsState {
   isIgnoreDotLocal: boolean;
   isAllowPlus: boolean;
 }
+
+interface AuthenticationLoginIDSettingErrorState {
+  reservedUsername?: string;
+  excludedKeywords?: string;
+  reservedKeywords?: string;
+  blockedDomains?: string;
+}
+
+interface ValidationData {
+  reservedUsername: string;
+  excludedKeywords: string;
+  reservedKeywords: string;
+  blockedDomains: string;
+}
+
+const validationRules: ValidationRule<
+  ValidationData,
+  AuthenticationLoginIDSettingErrorState
+>[] = [
+  {
+    inputKey: "blockedDomains",
+    errorKey: "blockedDomains",
+    errorMessageId: "AuthenticationWidget.error.blockDomains",
+    condition: (blockedDomainString: string) => {
+      const list = blockedDomainString
+        .split(",")
+        .map((domain) => domain.trim());
+      const isValid = list.map((domain) => isValidEmailDomain(domain));
+      return isValid.every(Boolean);
+    },
+  },
+];
 
 const switchStyle = { root: { margin: "0" } };
 
@@ -212,6 +250,9 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
 ) {
   const { appConfig } = props;
   const { renderToString } = React.useContext(Context);
+  const [errorState, setErrorState] = React.useState<
+    AuthenticationLoginIDSettingErrorState
+  >({});
   const loginIdKeys = (appConfig?.identity as any)?.login_id?.keys ?? [];
   const {
     usernameEnabledConfig,
@@ -305,6 +346,23 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     if (props.appConfig == null) {
       return;
     }
+
+    const validationData = {
+      reservedUsername,
+      excludedKeywords,
+      reservedKeywords,
+      blockedDomains,
+    };
+
+    const { errorResult, isValid } = validateInput(
+      validationData,
+      validationRules
+    );
+    setErrorState(errorResult);
+    if (!isValid) {
+      return;
+    }
+
     const screenState = {
       usernameEnabled,
       emailEnabled,
@@ -388,6 +446,10 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
                 disabled={!isBlockReservedUsername}
                 value={reservedUsername}
                 onChange={onReservedUsernameChange}
+                errorMessage={renderErrorMessage(
+                  renderToString,
+                  errorState.reservedUsername
+                )}
               />
               <CheckboxWithTooltip
                 label={renderToString(
@@ -415,6 +477,10 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
                 disabled={!isExcludeKeywords}
                 value={excludedKeywords}
                 onChange={onExcludedKeywordsChange}
+                errorMessage={renderErrorMessage(
+                  renderToString,
+                  errorState.excludedKeywords
+                )}
               />
               <CheckboxWithTooltip
                 label={renderToString(
@@ -470,6 +536,10 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
               disabled={!isBlockReservedKeywords}
               value={reservedKeywords}
               onChange={onReservedKeywordsChange}
+              errorMessage={renderErrorMessage(
+                renderToString,
+                errorState.reservedKeywords
+              )}
             />
           </CheckboxWithContent>
 
@@ -486,6 +556,10 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
               disabled={!isBlockDomains}
               value={blockedDomains}
               onChange={onBlockedDomainsChange}
+              errorMessage={renderErrorMessage(
+                renderToString,
+                errorState.blockedDomains
+              )}
             />
             <CheckboxWithTooltip
               label={renderToString(
