@@ -49,6 +49,7 @@ func (p *Provider) New(userID string, displayName string, tag []string) *Authent
 
 	a := &Authenticator{
 		ID:          uuid.New(),
+		Labels:      make(map[string]interface{}),
 		UserID:      userID,
 		Secret:      secret,
 		DisplayName: displayName,

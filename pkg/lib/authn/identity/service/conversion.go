@@ -23,6 +23,7 @@ func loginIDToIdentityInfo(l *loginid.Identity) *identity.Info {
 
 	return &identity.Info{
 		UserID:    l.UserID,
+		Labels:    l.Labels,
 		ID:        l.ID,
 		CreatedAt: l.CreatedAt,
 		UpdatedAt: l.UpdatedAt,
@@ -34,6 +35,7 @@ func loginIDToIdentityInfo(l *loginid.Identity) *identity.Info {
 func loginIDFromIdentityInfo(i *identity.Info) *loginid.Identity {
 	l := &loginid.Identity{
 		ID:        i.ID,
+		Labels:    i.Labels,
 		CreatedAt: i.CreatedAt,
 		UpdatedAt: i.UpdatedAt,
 		UserID:    i.UserID,
@@ -61,6 +63,7 @@ func loginIDFromIdentityInfo(i *identity.Info) *loginid.Identity {
 func oauthFromIdentityInfo(i *identity.Info) *oauth.Identity {
 	o := &oauth.Identity{
 		ID:        i.ID,
+		Labels:    i.Labels,
 		CreatedAt: i.CreatedAt,
 		UpdatedAt: i.UpdatedAt,
 		UserID:    i.UserID,
@@ -88,8 +91,9 @@ func anonymousToIdentityInfo(a *anonymous.Identity) *identity.Info {
 	}
 
 	return &identity.Info{
-		UserID:    a.UserID,
 		ID:        a.ID,
+		Labels:    a.Labels,
+		UserID:    a.UserID,
 		CreatedAt: a.CreatedAt,
 		UpdatedAt: a.UpdatedAt,
 		Type:      authn.IdentityTypeAnonymous,
@@ -100,6 +104,7 @@ func anonymousToIdentityInfo(a *anonymous.Identity) *identity.Info {
 func anonymousFromIdentityInfo(i *identity.Info) *anonymous.Identity {
 	a := &anonymous.Identity{
 		ID:        i.ID,
+		Labels:    i.Labels,
 		CreatedAt: i.CreatedAt,
 		UpdatedAt: i.UpdatedAt,
 		UserID:    i.UserID,

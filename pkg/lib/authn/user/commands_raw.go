@@ -19,14 +19,20 @@ type RawCommands struct {
 	Queries                *Queries
 }
 
-func (c *RawCommands) Create(userID string) (*User, error) {
+func (c *RawCommands) New(userID string) *User {
 	now := c.Clock.NowUTC()
 	user := &User{
 		ID:          userID,
+		Labels:      make(map[string]interface{}),
 		CreatedAt:   now,
 		UpdatedAt:   now,
 		LastLoginAt: nil,
 	}
+	return user
+}
+
+func (c *RawCommands) Create(userID string) (*User, error) {
+	user := c.New(userID)
 
 	err := c.Store.Create(user)
 	if err != nil {
