@@ -198,14 +198,6 @@ a.btn {
   background-color: #eaf1fc;
 }
 
-.authgear-logo {
-  height: 80px;
-  background-position: center;
-  background-size: 100px auto;
-  background-repeat: no-repeat;
-  background-image: url("../image/ic_footer_authgear.png");
-}
-
 .back-btn {
   width: 36px;
   height: 36px;
