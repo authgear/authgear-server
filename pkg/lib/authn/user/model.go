@@ -10,6 +10,7 @@ import (
 
 type User struct {
 	ID          string
+	Labels      map[string]interface{}
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	LastLoginAt *time.Time

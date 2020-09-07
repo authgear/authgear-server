@@ -11,6 +11,7 @@ import (
 
 type Info struct {
 	ID        string                  `json:"id"`
+	Labels    map[string]interface{}  `json:"labels"`
 	UserID    string                  `json:"user_id"`
 	CreatedAt time.Time               `json:"created_at"`
 	UpdatedAt time.Time               `json:"updated_at"`

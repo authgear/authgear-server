@@ -21,6 +21,7 @@ func (s *Store) selectQuery() db.SelectBuilder {
 	return s.SQLBuilder.Tenant().
 		Select(
 			"a.id",
+			"a.labels",
 			"a.user_id",
 			"a.created_at",
 			"a.updated_at",
@@ -33,10 +34,12 @@ func (s *Store) selectQuery() db.SelectBuilder {
 
 func (s *Store) scan(scn db.Scanner) (*Authenticator, error) {
 	a := &Authenticator{}
+	var labels []byte
 	var tag []byte
 
 	err := scn.Scan(
 		&a.ID,
+		&labels,
 		&a.UserID,
 		&a.CreatedAt,
 		&a.UpdatedAt,
@@ -46,6 +49,10 @@ func (s *Store) scan(scn db.Scanner) (*Authenticator, error) {
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, authenticator.ErrAuthenticatorNotFound
 	} else if err != nil {
+		return nil, err
+	}
+
+	if err = json.Unmarshal(labels, &a.Labels); err != nil {
 		return nil, err
 	}
 
@@ -130,6 +137,11 @@ func (s *Store) Delete(id string) error {
 }
 
 func (s *Store) Create(a *Authenticator) error {
+	labels, err := json.Marshal(a.Labels)
+	if err != nil {
+		return err
+	}
+
 	tag, err := json.Marshal(a.Tag)
 	if err != nil {
 		return err
@@ -139,6 +151,7 @@ func (s *Store) Create(a *Authenticator) error {
 		Insert(s.SQLBuilder.FullTableName("authenticator")).
 		Columns(
 			"id",
+			"labels",
 			"type",
 			"user_id",
 			"created_at",
@@ -147,6 +160,7 @@ func (s *Store) Create(a *Authenticator) error {
 		).
 		Values(
 			a.ID,
+			labels,
 			authn.AuthenticatorTypePassword,
 			a.UserID,
 			a.CreatedAt,

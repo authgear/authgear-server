@@ -46,6 +46,7 @@ func (p *Provider) New(userID string, channel authn.AuthenticatorOOBChannel, pho
 	}
 	a := &Authenticator{
 		ID:      uuid.New(),
+		Labels:  make(map[string]interface{}),
 		UserID:  userID,
 		Channel: channel,
 		Phone:   phone,

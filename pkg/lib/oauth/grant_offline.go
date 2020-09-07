@@ -9,10 +9,11 @@ import (
 )
 
 type OfflineGrant struct {
-	AppID           string `json:"app_id"`
-	ID              string `json:"id"`
-	ClientID        string `json:"client_id"`
-	AuthorizationID string `json:"authz_id"`
+	AppID           string                 `json:"app_id"`
+	ID              string                 `json:"id"`
+	Labels          map[string]interface{} `json:"labels"`
+	ClientID        string                 `json:"client_id"`
+	AuthorizationID string                 `json:"authz_id"`
 
 	CreatedAt time.Time `json:"created_at"`
 	ExpireAt  time.Time `json:"expire_at"`

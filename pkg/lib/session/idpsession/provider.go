@@ -41,9 +41,9 @@ type Provider struct {
 func (p *Provider) MakeSession(attrs *session.Attrs) (*IDPSession, string) {
 	now := p.Clock.NowUTC()
 	accessEvent := access.NewEvent(now, p.Request, bool(p.TrustProxy))
-	// Remember to update the mock provider if session has new fields.
 	session := &IDPSession{
 		ID:        uuid.New(),
+		Labels:    make(map[string]interface{}),
 		CreatedAt: now,
 		Attrs:     *attrs,
 		AccessInfo: access.Info{

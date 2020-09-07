@@ -170,6 +170,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					So(authzStore.authzs, ShouldHaveLength, 1)
 					So(authzStore.authzs[0], ShouldResemble, oauth.Authorization{
 						ID:        authzStore.authzs[0].ID,
+						Labels:    make(map[string]interface{}),
 						AppID:     "app-id",
 						ClientID:  "client-id",
 						UserID:    "user-id",
@@ -298,6 +299,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					So(authzStore.authzs, ShouldHaveLength, 1)
 					So(authzStore.authzs[0], ShouldResemble, oauth.Authorization{
 						ID:        authzStore.authzs[0].ID,
+						Labels:    make(map[string]interface{}),
 						AppID:     "app-id",
 						ClientID:  "client-id",
 						UserID:    "user-id",

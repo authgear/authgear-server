@@ -2,6 +2,7 @@ package user
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -32,22 +33,29 @@ type Store struct {
 }
 
 func (s *Store) Create(u *User) error {
+	labels, err := json.Marshal(u.Labels)
+	if err != nil {
+		return err
+	}
+
 	builder := s.SQLBuilder.Tenant().
 		Insert(s.SQLBuilder.FullTableName("user")).
 		Columns(
 			"id",
+			"labels",
 			"created_at",
 			"updated_at",
 			"last_login_at",
 		).
 		Values(
 			u.ID,
+			labels,
 			u.CreatedAt,
 			u.UpdatedAt,
 			u.LastLoginAt,
 		)
 
-	_, err := s.SQLExecutor.ExecWith(builder)
+	_, err = s.SQLExecutor.ExecWith(builder)
 	if err != nil {
 		return err
 	}
@@ -59,6 +67,7 @@ func (s *Store) selectQuery() db.SelectBuilder {
 	return s.SQLBuilder.Tenant().
 		Select(
 			"id",
+			"labels",
 			"created_at",
 			"updated_at",
 			"last_login_at",
@@ -68,12 +77,20 @@ func (s *Store) selectQuery() db.SelectBuilder {
 
 func (s *Store) scan(scn db.Scanner) (*User, error) {
 	u := &User{}
+
+	var labels []byte
+
 	if err := scn.Scan(
 		&u.ID,
+		&labels,
 		&u.CreatedAt,
 		&u.UpdatedAt,
 		&u.LastLoginAt,
 	); err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(labels, &u.Labels); err != nil {
 		return nil, err
 	}
 

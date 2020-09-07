@@ -9,8 +9,9 @@ import (
 )
 
 type IDPSession struct {
-	ID    string `json:"id"`
-	AppID string `json:"app_id"`
+	ID     string                 `json:"id"`
+	Labels map[string]interface{} `json:"labels"`
+	AppID  string                 `json:"app_id"`
 
 	CreatedAt time.Time     `json:"created_at"`
 	Attrs     session.Attrs `json:"attrs"`
