@@ -47,7 +47,7 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
     if (!isPortalApiApp(node)) {
       return null;
     }
-    return node?.effectiveAppConfig ?? null;
+    return node.effectiveAppConfig ?? null;
   }, [data]);
 
   if (loading) {
