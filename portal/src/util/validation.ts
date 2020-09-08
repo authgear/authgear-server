@@ -22,8 +22,8 @@ export function validateInput<Data, ErrorState>(
     (validationRule: ValidationRule<Data, ErrorState>) => {
       if (!validationRule.condition(data[validationRule.inputKey])) {
         errorResult[validationRule.errorKey] = validationRule.errorMessageId;
+        isValid = false;
       }
-      isValid = false;
     }
   );
   return { errorResult, isValid };
