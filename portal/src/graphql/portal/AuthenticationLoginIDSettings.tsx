@@ -8,7 +8,11 @@ import ExtendableWidget from "../../ExtendableWidget";
 import CheckboxWithTooltip from "../../CheckboxWithTooltip";
 import CheckboxWithContent from "../../CheckboxWithContent";
 import { useTextField, useCheckbox } from "../../hook/useInput";
-import { LoginIDKeyType } from "../../types";
+import {
+  LoginIDKeyType,
+  LoginIDKeyConfig,
+  PortalAPIAppConfig,
+} from "../../types";
 import {
   ValidationRule,
   renderErrorMessage,
@@ -19,7 +23,7 @@ import {
 import styles from "./AuthenticationLoginIDSettings.module.scss";
 
 interface Props {
-  appConfig: Record<string, unknown> | null;
+  appConfig: PortalAPIAppConfig | null;
 }
 
 interface WidgetHeaderProps {
@@ -104,17 +108,17 @@ const WidgetHeader: React.FC<WidgetHeaderProps> = function (
 };
 
 function extractConfigFromLoginIdKeys(
-  loginIdKeys: any[]
+  loginIdKeys: LoginIDKeyConfig[]
 ): { [key: string]: boolean } {
   const usernameEnabledConfig =
-    loginIdKeys.find((key: any) => key.type === "username")?.verification
-      ?.enabled ?? false;
+    loginIdKeys.find((key) => key.type === "username")?.verification?.enabled ??
+    false;
   const emailEnabledConfig =
-    loginIdKeys.find((key: any) => key.type === "email")?.verification
-      ?.enabled ?? false;
+    loginIdKeys.find((key) => key.type === "email")?.verification?.enabled ??
+    false;
   const phoneNumberEnabledConfig =
-    loginIdKeys.find((key: any) => key.type === "phone")?.verification
-      ?.enabled ?? false;
+    loginIdKeys.find((key) => key.type === "phone")?.verification?.enabled ??
+    false;
 
   return {
     usernameEnabledConfig,
@@ -149,9 +153,9 @@ function setFieldIfListNonEmpty(
   }
 }
 function getOrCreateLoginIdKey(
-  loginIdKeys: Record<string, unknown>[],
+  loginIdKeys: LoginIDKeyConfig[],
   keyType: LoginIDKeyType
-): Record<string, unknown> {
+): LoginIDKeyConfig {
   const loginIdKey = loginIdKeys.find((key: any) => key.type === keyType);
   if (loginIdKey != null) {
     return loginIdKey;
@@ -161,20 +165,17 @@ function getOrCreateLoginIdKey(
   return newLoginIdKey;
 }
 
-function setLoginIdKeyEnabled(
-  loginIdKey: Record<string, unknown>,
-  enabled: boolean
-) {
-  loginIdKey.verification = loginIdKey.verification || {};
-  (loginIdKey.verification as Record<string, unknown>).enabled = enabled;
+function setLoginIdKeyEnabled(loginIdKey: LoginIDKeyConfig, enabled: boolean) {
+  loginIdKey.verification = loginIdKey.verification ?? { enabled: false };
+  loginIdKey.verification.enabled = enabled;
 }
 
 function constructAppConfigFromState(
-  appConfig: Record<string, unknown>,
+  appConfig: PortalAPIAppConfig,
   screenState: AuthenticationLoginIDSettingsState
-): Record<string, unknown> {
+): PortalAPIAppConfig {
   const newAppConfig = produce(appConfig, (draftConfig) => {
-    const loginIdKeys = (draftConfig.identity as any)?.login_id?.keys ?? [];
+    const loginIdKeys = draftConfig.identity?.login_id?.keys ?? [];
     const loginIdUsernameKey = getOrCreateLoginIdKey(loginIdKeys, "username");
     const loginIdEmailKey = getOrCreateLoginIdKey(loginIdKeys, "email");
     const loginIdPhoneNumberKey = getOrCreateLoginIdKey(loginIdKeys, "phone");
@@ -183,14 +184,14 @@ function constructAppConfigFromState(
     setLoginIdKeyEnabled(loginIdEmailKey, screenState.emailEnabled);
     setLoginIdKeyEnabled(loginIdPhoneNumberKey, screenState.phoneNumberEnabled);
 
-    const loginIdTypes = (draftConfig.identity as any)?.login_id?.types;
+    const loginIdTypes = draftConfig.identity?.login_id?.types;
 
     if (loginIdTypes == null) {
       return;
     }
 
     // username config
-    loginIdTypes.username = loginIdTypes.username || {};
+    loginIdTypes.username = loginIdTypes.username ?? {};
     const usernameConfig = loginIdTypes.username;
 
     const reservedUsernameList = getListFromCommaSeparatedString(
@@ -218,7 +219,7 @@ function constructAppConfigFromState(
     usernameConfig.ascii_only = screenState.isAsciiOnly;
 
     // email config
-    loginIdTypes.email = loginIdTypes.email || {};
+    loginIdTypes.email = loginIdTypes.email ?? {};
     const emailConfig = loginIdTypes.email;
 
     const reservedKeywordList = getListFromCommaSeparatedString(
@@ -253,7 +254,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
   const [errorState, setErrorState] = React.useState<
     AuthenticationLoginIDSettingErrorState
   >({});
-  const loginIdKeys = (appConfig?.identity as any)?.login_id?.keys ?? [];
+  const loginIdKeys = appConfig?.identity?.login_id?.keys ?? [];
   const {
     usernameEnabledConfig,
     emailEnabledConfig,
@@ -268,8 +269,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
   );
 
   // username widget
-  const usernameConfig = (appConfig?.identity as any)?.login_id?.types
-    ?.username;
+  const usernameConfig = appConfig?.identity?.login_id?.types.username;
   const reservedUsernamesConfig = usernameConfig?.reserved_usernames ?? [];
   const excludedKeywordsConfig = usernameConfig?.excluded_keywords ?? [];
 
@@ -306,7 +306,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
   );
 
   // email widget
-  const emailConfig = (appConfig?.identity as any)?.login_id?.types?.email;
+  const emailConfig = appConfig?.identity?.login_id?.types.email;
   const reservedKeywordsConfig = emailConfig?.reserved_keywords ?? [];
   const blockedDomainsConfig = emailConfig?.blocked_domains ?? [];
 

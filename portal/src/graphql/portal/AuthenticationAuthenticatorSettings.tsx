@@ -1,9 +1,10 @@
 import React from "react";
+import { PortalAPIAppConfig } from "../../types";
 
 import styles from "./AuthenticationAuthenticatorSettings.module.scss";
 
 interface Props {
-  appConfig: Record<string, unknown> | null;
+  appConfig: PortalAPIAppConfig | null;
 }
 
 const AuthenticationAuthenticatorSettings: React.FC<Props> = function AuthenticationAuthenticatorSettings(
