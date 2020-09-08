@@ -22,6 +22,7 @@
 	"verify-button-label": "Verify",
 	"setup-button-label": "Setup",
 	"remove-button-label": "Remove",
+	"details-button-label": "Details",
 	"verification-status-label--verified": "Verified",
 	
 	"create-device-token-label": "Do not ask again on this device",
@@ -107,7 +108,8 @@
 	"logout-button-hint": "To logout, please click the button below.",
 	"logout-button-label": "Logout",
 
-	"settings-identity-title": "Account settings",
+	"settings-identity-title": "Connected Identities",
+	"settings-identity-description": "Manage your list of connected identities",
 	"settings-identity-oauth-google": "Google",
 	"settings-identity-oauth-apple": "Apple",
 	"settings-identity-oauth-facebook": "Facebook",

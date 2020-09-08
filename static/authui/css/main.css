@@ -201,7 +201,7 @@ a.btn {
 .pane {
   box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.25);
   border-radius: 6px;
-  padding: 8px;
+  padding: 6px;
   margin: 6px;
 }
 
@@ -262,7 +262,8 @@ a.btn {
 .authorize-idp-section {
   display: flex;
   flex-direction: column;
-  margin: 8px;
+  margin: 6px;
+  padding: 6px;
 }
 
 .authorize-idp-form {
@@ -273,7 +274,8 @@ a.btn {
 .authorize-loginid-form {
   display: flex;
   flex-direction: column;
-  margin: 8px;
+  margin: 6px;
+  padding: 6px;
 }
 
 .authorize-loginid-form .link {
@@ -326,7 +328,8 @@ a.btn {
 
 .sso-loginid-separator {
   text-align: center;
-  margin: 8px;
+  margin: 6px;
+  padding: 6px;
 }
 
 .password-visibility-btn {
@@ -521,4 +524,24 @@ a.btn {
 
 .setup-recovery-code-buttons > * {
   margin: 0 6px;
+}
+
+.content-row {
+  margin: 2px;
+  padding: 2px;
+}
+
+.content-row-layout-2x2 {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+}
+
+.content-row-title {
+  font-size: 1rem;
+}
+
+.content-row-item {
+  margin: 4px;
+  padding: 4px;
 }
