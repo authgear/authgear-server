@@ -12,7 +12,7 @@
 }
 
 .downArrow {
-  transition: transform 150ms ease;
+  transition: transform 200ms ease;
 }
 
 .downArrowExtended {
@@ -22,7 +22,7 @@
 .contentContainer {
   overflow: hidden;
   height: 0;
-  transition: height 300ms linear;
+  transition: height 200ms ease;
 }
 
 .contentContainerExtended {
