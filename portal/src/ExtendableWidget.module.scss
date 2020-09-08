@@ -36,3 +36,8 @@
 .content {
   padding: 0 20px 20px;
 }
+
+.readOnly {
+  pointer-events: none;
+  opacity: 0.5;
+}

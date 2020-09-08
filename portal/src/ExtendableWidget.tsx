@@ -7,6 +7,7 @@ import styles from "./ExtendableWidget.module.scss";
 interface ExtendableWidgetProps {
   HeaderComponent: React.ReactNode;
   extendable: boolean;
+  readOnly?: boolean;
   children: React.ReactNode;
 }
 
@@ -56,7 +57,10 @@ const ExtendableWidget: React.FC<ExtendableWidgetProps> = function ExtendableWid
         className={styles.contentContainer}
         style={{ height: contentHeight }}
       >
-        <div ref={contentDivRef} className={styles.content}>
+        <div
+          ref={contentDivRef}
+          className={cn(styles.content, { [styles.readOnly]: props.readOnly })}
+        >
           {props.children}
         </div>
       </div>
