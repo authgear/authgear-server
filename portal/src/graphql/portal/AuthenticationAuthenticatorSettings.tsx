@@ -6,6 +6,7 @@ import {
   ICheckboxProps,
   PrimaryButton,
 } from "@fluentui/react";
+import produce from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import DetailsListWithOrdering, {
@@ -126,6 +127,12 @@ const constructListData = (
   };
 };
 
+function getActivatedKeyListFromState(state: AuthenticatorListItem[]) {
+  return state
+    .filter((authenticator) => authenticator.activated)
+    .map((authenticator) => authenticator.key);
+}
+
 const AuthenticationAuthenticatorSettings: React.FC<Props> = function AuthenticationAuthenticatorSettings(
   props: Props
 ) {
@@ -187,9 +194,26 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
   );
 
   const onSaveButtonClicked = React.useCallback(() => {
-    console.log("save");
-    console.log(primaryAuthenticatorState, secondaryAuthenticatorState);
-  }, [primaryAuthenticatorState, secondaryAuthenticatorState]);
+    if (props.appConfig == null) {
+      return;
+    }
+
+    const activatedPrimaryKeyList = getActivatedKeyListFromState(
+      primaryAuthenticatorState
+    );
+    const activatedSecondaryKeyList = getActivatedKeyListFromState(
+      secondaryAuthenticatorState
+    );
+
+    const newAppConfig = produce(props.appConfig, (draftConfig) => {
+      const authentication = draftConfig.authentication;
+      authentication.primary_authenticators = activatedPrimaryKeyList;
+      authentication.secondary_authenticators = activatedSecondaryKeyList;
+    });
+
+    // TODO: call mutation to save config
+    console.log(newAppConfig);
+  }, [props.appConfig, primaryAuthenticatorState, secondaryAuthenticatorState]);
 
   return (
     <div className={styles.root}>
