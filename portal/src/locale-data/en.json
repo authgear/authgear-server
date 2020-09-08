@@ -46,6 +46,9 @@
 
   "AuthenticationWidget.error.blockDomains": "Invalid domains",
 
+  "AuthenticationAuthenticator.activateHeader": "Activate",
+  "AuthenticationAuthenticator.authenticatorHeader": "Authenticator",
+
   "PaginationWidget.First": "Go to the first page",
   "PaginationWidget.Prev": "Go to the previous page",
   "PaginationWidget.Next": "Go to the next page",
