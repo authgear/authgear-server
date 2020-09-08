@@ -4,6 +4,7 @@ import { ApolloProvider } from "@apollo/client";
 import { makeClient } from "./graphql/adminapi/apollo";
 import ScreenLayout from "./ScreenLayout";
 import UsersScreen from "./graphql/adminapi/UsersScreen";
+import UserDetailsScreen from "./graphql/adminapi/UserDetailsScreen";
 import AuthenticationConfigurationScreen from "./graphql/portal/AuthenticationConfigurationScreen";
 
 const AppRoot: React.FC = function AppRoot() {
@@ -17,6 +18,10 @@ const AppRoot: React.FC = function AppRoot() {
         <Routes>
           <Route path="/" element={<Navigate to="users" replace={true} />} />
           <Route path="/users" element={<UsersScreen />} />
+          <Route
+            path="/users/:userID/details"
+            element={<UserDetailsScreen />}
+          />
           <Route
             path="/configuration/authentication"
             element={<AuthenticationConfigurationScreen />}
