@@ -1,13 +1,15 @@
 package service
 
-import "github.com/authgear/authgear-server/pkg/lib/config/configsource"
+type AuthzConfigService interface {
+	ListAllAppIDs() ([]string, error)
+}
 
 type AuthzService struct {
-	ConfigSource *configsource.ConfigSource
+	AppConfigs AuthzConfigService
 }
 
 func (s *AuthzService) ListAuthorizedApps(userID string) ([]string, error) {
 	// FIXME(authz): extract authorized app from user labels
-	appIDs, err := s.ConfigSource.AppIDResolver.AllAppIDs()
+	appIDs, err := s.AppConfigs.ListAllAppIDs()
 	return appIDs, err
 }

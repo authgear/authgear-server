@@ -49,8 +49,8 @@ type Kubernetes struct {
 	TrustProxy config.TrustProxy
 	Config     *Config
 
-	namespace string                `wire:"-"`
-	client    *kubernetes.Clientset `wire:"-"`
+	Namespace string                `wire:"-"`
+	Client    *kubernetes.Clientset `wire:"-"`
 	done      chan<- struct{}       `wire:"-"`
 	hostMap   *atomic.Value         `wire:"-"`
 	appIDs    *atomic.Value         `wire:"-"`
@@ -76,14 +76,14 @@ func (k *Kubernetes) Open() error {
 		}
 	}
 
-	k.client, err = kubernetes.NewForConfig(kubeConfig)
+	k.Client, err = kubernetes.NewForConfig(kubeConfig)
 	if err != nil {
 		return err
 	}
 
-	k.namespace = k.Config.KubeNamespace
-	if k.namespace == "" {
-		k.namespace = corev1.NamespaceDefault
+	k.Namespace = k.Config.KubeNamespace
+	if k.Namespace == "" {
+		k.Namespace = corev1.NamespaceDefault
 	}
 
 	k.hostMap = &atomic.Value{}
@@ -216,6 +216,16 @@ func (k *Kubernetes) ResolveContext(appID string) (*config.AppContext, error) {
 	return app.Load(k)
 }
 
+func (k *Kubernetes) AppSelector(appID string) (string, error) {
+	labelSelector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
+		MatchLabels: map[string]string{LabelConfigAppID: appID},
+	})
+	if err != nil {
+		return "", err
+	}
+	return labelSelector.String(), nil
+}
+
 func (k *Kubernetes) newController(
 	resource corev1.ResourceName,
 	objType runtime.Object,
@@ -223,9 +233,9 @@ func (k *Kubernetes) newController(
 	onDelete func(metav1.Object),
 ) cache.Controller {
 	listWatch := cache.NewListWatchFromClient(
-		k.client.CoreV1().RESTClient(),
+		k.Client.CoreV1().RESTClient(),
 		string(resource),
-		k.namespace,
+		k.Namespace,
 		fields.Everything(),
 	)
 	if !k.Config.Watch {
@@ -294,24 +304,18 @@ func (a *k8sApp) Load(k *Kubernetes) (*config.AppContext, error) {
 }
 
 func (a *k8sApp) doLoad(k *Kubernetes) (*config.AppContext, error) {
-	labelSelector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
-		MatchLabels: map[string]string{LabelConfigAppID: a.appID},
-	})
+	labelSelector, err := k.AppSelector(a.appID)
 	if err != nil {
 		return nil, err
 	}
 
-	configMaps, err := k.client.CoreV1().ConfigMaps(k.namespace).
-		List(metav1.ListOptions{
-			LabelSelector: labelSelector.String(),
-		})
+	configMaps, err := k.Client.CoreV1().ConfigMaps(k.Namespace).
+		List(metav1.ListOptions{LabelSelector: labelSelector})
 	if err != nil {
 		return nil, err
 	}
-	secrets, err := k.client.CoreV1().Secrets(k.namespace).
-		List(metav1.ListOptions{
-			LabelSelector: labelSelector.String(),
-		})
+	secrets, err := k.Client.CoreV1().Secrets(k.Namespace).
+		List(metav1.ListOptions{LabelSelector: labelSelector})
 	if err != nil {
 		return nil, err
 	}

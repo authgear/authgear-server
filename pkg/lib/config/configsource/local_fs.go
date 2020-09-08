@@ -23,6 +23,7 @@ type LocalFS struct {
 	Logger LocalFSLogger
 	Config *Config
 
+	Fs               afero.Fs          `wire:"-"`
 	appConfigPath    string            `wire:"-"`
 	secretConfigPath string            `wire:"-"`
 	config           atomic.Value      `wire:"-"`
@@ -36,7 +37,8 @@ func (s *LocalFS) Open() error {
 		return err
 	}
 
-	appFs := &fs.AferoFs{Fs: afero.NewBasePathFs(afero.NewOsFs(), dir)}
+	s.Fs = afero.NewBasePathFs(afero.NewOsFs(), dir)
+	appFs := &fs.AferoFs{Fs: s.Fs}
 
 	cfg, err := loadConfig(appFs)
 	if err != nil {

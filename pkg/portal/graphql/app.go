@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"context"
+	"errors"
 
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/relay"
@@ -118,9 +119,15 @@ var _ = registerMutationField(
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			input := p.Args["input"].(map[string]interface{})
-			appID := input["appID"].(string)
+			appNodeID := input["appID"].(string)
 			updateFiles, _ := input["updateFiles"].([]interface{})
 			deleteFiles, _ := input["deleteFiles"].([]interface{})
+
+			resolvedNodeID := relay.FromGlobalID(appNodeID)
+			if resolvedNodeID.Type != typeApp {
+				return nil, errors.New("invalid app ID")
+			}
+			appID := resolvedNodeID.ID
 
 			gqlCtx := GQLContext(p.Context)
 			lazy := gqlCtx.Apps.Get(appID)

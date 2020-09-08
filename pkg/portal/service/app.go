@@ -10,18 +10,23 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/model"
 )
 
+type AppConfigService interface {
+	ResolveContext(appID string) (*config.AppContext, error)
+	UpdateConfig(appID string, updateFiles []*model.AppConfigFile, deleteFiles []string) error
+}
+
 type AppAuthzService interface {
 	ListAuthorizedApps(userID string) ([]string, error)
 }
 
 type AppService struct {
-	ConfigSource *configsource.ConfigSource
-	AppAuthz     AppAuthzService
+	AppConfigs AppConfigService
+	AppAuthz   AppAuthzService
 }
 
 func (s *AppService) GetMany(ids []string) (out []*model.App, err error) {
 	for _, id := range ids {
-		appCtx, err := s.ConfigSource.ContextResolver.ResolveContext(id)
+		appCtx, err := s.AppConfigs.ResolveContext(id)
 		if err != nil {
 			return nil, err
 		}
@@ -48,9 +53,8 @@ func (s *AppService) UpdateConfig(app *model.App, updateFiles []*model.AppConfig
 	if err != nil {
 		return err
 	}
-	// TODO(portal): update files
-	fmt.Printf("%v %#v %#v\n", app, updateFiles, deleteFiles)
-	return errors.New("??e")
+	err = s.AppConfigs.UpdateConfig(app.ID, updateFiles, deleteFiles)
+	return err
 }
 
 const ConfigFileMaxSize = 100 * 1024
