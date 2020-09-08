@@ -78,9 +78,9 @@ var appConfigFile = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name:        "AppConfigFile",
 	Description: "A configuration file to update/create.",
 	Fields: graphql.InputObjectConfigFieldMap{
-		"path": &graphql.InputObjectFieldConfig{
+		"name": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewNonNull(graphql.String),
-			Description: "Path of the file.",
+			Description: "Name of the file.",
 		},
 		"content": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewNonNull(graphql.String),
@@ -102,7 +102,7 @@ var updateAppConfigInput = graphql.NewInputObject(graphql.InputObjectConfig{
 		},
 		"deleteFiles": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewList(graphql.NewNonNull(graphql.String)),
-			Description: "Path to configuration files to delete.",
+			Description: "Name of configuration files to delete.",
 		},
 	},
 })
@@ -138,10 +138,10 @@ var _ = registerMutationField(
 					var deleteConfigFiles []string
 					for _, f := range updateFiles {
 						f := f.(map[string]interface{})
-						path := f["path"].(string)
+						name := f["name"].(string)
 						content := f["content"].(string)
 						updateConfigFiles = append(updateConfigFiles, &model.AppConfigFile{
-							Path:    path,
+							Name:    name,
 							Content: content,
 						})
 					}

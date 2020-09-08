@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/spf13/afero"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -80,19 +79,17 @@ func (s *ConfigService) updateKubernetes(k *configsource.Kubernetes, appID strin
 	updatedSecret := false
 
 	for _, file := range updateFiles {
-		path := strings.TrimPrefix(file.Path, "/")
-		if path == configsource.AuthgearSecretYAML {
-			secret.Data[path] = []byte(file.Content)
+		if file.Name == configsource.AuthgearSecretYAML {
+			secret.Data[file.Name] = []byte(file.Content)
 			updatedSecret = true
 		} else {
-			configMap.Data[path] = file.Content
+			configMap.Data[file.Name] = file.Content
 			updatedConfigMap = true
 		}
 	}
-	for _, path := range deleteFiles {
-		path := strings.Trim(path, "/")
-		if _, ok := configMap.Data[path]; ok {
-			delete(configMap.Data, path)
+	for _, name := range deleteFiles {
+		if _, ok := configMap.Data[name]; ok {
+			delete(configMap.Data, name)
 			updatedConfigMap = true
 		}
 	}
@@ -116,17 +113,17 @@ func (s *ConfigService) updateKubernetes(k *configsource.Kubernetes, appID strin
 func (s *ConfigService) updateLocalFS(l *configsource.LocalFS, appID string, updateFiles []*model.AppConfigFile, deleteFiles []string) error {
 	fs := l.Fs
 	for _, file := range updateFiles {
-		err := fs.MkdirAll(filepath.Dir(file.Path), 0777)
+		err := fs.MkdirAll(filepath.Dir(file.Name), 0777)
 		if err != nil {
 			return err
 		}
-		err = afero.WriteFile(fs, file.Path, []byte(file.Content), 0666)
+		err = afero.WriteFile(fs, file.Name, []byte(file.Content), 0666)
 		if err != nil {
 			return err
 		}
 	}
-	for _, path := range deleteFiles {
-		err := fs.Remove(path)
+	for _, name := range deleteFiles {
+		err := fs.Remove(name)
 		// Ignore file not found errors
 		if err != nil && !os.IsNotExist(err) {
 			return err

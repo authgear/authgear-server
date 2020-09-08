@@ -27,6 +27,6 @@ func (a *App) LoadFile(path string) ([]byte, error) {
 }
 
 type AppConfigFile struct {
-	Path    string
+	Name    string
 	Content string
 }

@@ -16,6 +16,15 @@ type App implements Node {
 """The `AppConfig` scalar type represents an app config JSON object"""
 scalar AppConfig
 
+"""A configuration file to update/create."""
+input AppConfigFile {
+  """New content of the file."""
+  content: String!
+
+  """Name of the file."""
+  name: String!
+}
+
 """A connection to a list of items."""
 type AppConnection {
   """Information to aid in pagination."""
@@ -35,6 +44,12 @@ type AppEdge {
 
   """The item at the end of the edge"""
   node: App
+}
+
+""""""
+type Mutation {
+  """Update app configuration files"""
+  updateAppConfig(input: UpdateAppConfigInput!): App!
 }
 
 """An object with an ID"""
@@ -75,6 +90,18 @@ type Query {
 
 """The `SecretConfig` scalar type represents a secret config JSON object"""
 scalar SecretConfig
+
+""""""
+input UpdateAppConfigInput {
+  """App ID to update."""
+  appID: String!
+
+  """Name of configuration files to delete."""
+  deleteFiles: [String!]
+
+  """Configuration files to update/create."""
+  updateFiles: [AppConfigFile!]
+}
 
 """Portal User"""
 type User implements Node {
