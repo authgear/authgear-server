@@ -14,6 +14,7 @@
   "env": {
     "browser": true
   },
+  "globals": { "Set": "readonly" },
   "rules": {
     "react/jsx-no-bind": "off",
     "no-mixed-operators": "off",
