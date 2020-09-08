@@ -1,3 +1,10 @@
 $box-shadow-color: rgba(0, 0, 0, 0.1);
 $widget-box-shadow: 0 0.5px 1px $box-shadow-color,
   0 1.5px 3.5px $box-shadow-color;
+
+@mixin widget-header-text {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+}

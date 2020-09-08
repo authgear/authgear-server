@@ -48,6 +48,8 @@
 
   "AuthenticationAuthenticator.activateHeader": "Activate",
   "AuthenticationAuthenticator.authenticatorHeader": "Authenticator",
+  "AuthenticationAuthenticator.widgetHeader.primary": "Primary Authenticator",
+  "AuthenticationAuthenticator.widgetHeader.secondary": "Secondary Authenticator",
 
   "PaginationWidget.First": "Go to the first page",
   "PaginationWidget.Prev": "Go to the previous page",

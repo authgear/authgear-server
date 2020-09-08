@@ -14,10 +14,7 @@
 }
 
 .widgetHeaderText {
-  display: flex;
-  align-items: center;
-  font-size: 14px;
-  font-weight: 600;
+  @include widget-header-text;
   padding-left: 12px;
 }
 

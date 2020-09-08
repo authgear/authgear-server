@@ -4,8 +4,9 @@ import {
   Checkbox,
   SelectionMode,
   ICheckboxProps,
+  PrimaryButton,
 } from "@fluentui/react";
-import { Context } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import DetailsListWithOrdering, {
   useOnSwapClicked,
@@ -136,8 +137,8 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
       fieldName: "activated",
       name: renderToString("AuthenticationAuthenticator.activateHeader"),
       className: styles.authenticatorColumn,
-      minWidth: 150,
-      maxWidth: 150,
+      minWidth: 120,
+      maxWidth: 120,
     },
     {
       key: "key",
@@ -185,22 +186,44 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
     onSecondaryActivateClicked
   );
 
+  const onSaveButtonClicked = React.useCallback(() => {
+    console.log("save");
+    console.log(primaryAuthenticatorState, secondaryAuthenticatorState);
+  }, [primaryAuthenticatorState, secondaryAuthenticatorState]);
+
   return (
     <div className={styles.root}>
-      <DetailsListWithOrdering
-        items={primaryAuthenticatorState}
-        columns={authenticatorColumns}
-        onRenderItemColumn={renderPrimaryItemColumn}
-        onSwapClicked={onPrimarySwapClicked}
-        selectionMode={SelectionMode.none}
-      />
-      <DetailsListWithOrdering
-        items={secondaryAuthenticatorState}
-        columns={authenticatorColumns}
-        onRenderItemColumn={renderSecondaryItemColumn}
-        onSwapClicked={onSecondarySwapClicked}
-        selectionMode={SelectionMode.none}
-      />
+      <div className={styles.widget}>
+        <div className={styles.widgetHeader}>
+          <FormattedMessage id="AuthenticationAuthenticator.widgetHeader.primary" />
+        </div>
+        <DetailsListWithOrdering
+          items={primaryAuthenticatorState}
+          columns={authenticatorColumns}
+          onRenderItemColumn={renderPrimaryItemColumn}
+          onSwapClicked={onPrimarySwapClicked}
+          selectionMode={SelectionMode.none}
+        />
+      </div>
+
+      <div className={styles.widget}>
+        <div className={styles.widgetHeader}>
+          <FormattedMessage id="AuthenticationAuthenticator.widgetHeader.secondary" />
+        </div>
+        <DetailsListWithOrdering
+          items={secondaryAuthenticatorState}
+          columns={authenticatorColumns}
+          onRenderItemColumn={renderSecondaryItemColumn}
+          onSwapClicked={onSecondarySwapClicked}
+          selectionMode={SelectionMode.none}
+        />
+      </div>
+
+      <div className={styles.saveButtonContainer}>
+        <PrimaryButton onClick={onSaveButtonClicked}>
+          <FormattedMessage id="save" />
+        </PrimaryButton>
+      </div>
     </div>
   );
 };
