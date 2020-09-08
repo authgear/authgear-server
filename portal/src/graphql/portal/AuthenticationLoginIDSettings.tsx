@@ -13,11 +13,6 @@ import {
   LoginIDKeyConfig,
   PortalAPIAppConfig,
 } from "../../types";
-import {
-  ValidationRule,
-  isValidEmailDomain,
-  validateInput,
-} from "../../util/validation";
 
 import styles from "./AuthenticationLoginIDSettings.module.scss";
 
@@ -54,37 +49,6 @@ interface AuthenticationLoginIDSettingsState {
   isIgnoreDotLocal: boolean;
   isAllowPlus: boolean;
 }
-
-interface AuthenticationLoginIDSettingErrorState {
-  reservedUsernames?: string;
-  excludedKeywords?: string;
-  reservedKeywords?: string;
-  blockedDomains?: string;
-}
-
-interface ValidationData {
-  reservedUsernames: string[];
-  excludedKeywords: string[];
-  reservedKeywords: string[];
-  blockedDomains: string[];
-}
-
-const validationRules: ValidationRule<
-  ValidationData,
-  AuthenticationLoginIDSettingErrorState
->[] = [
-  {
-    inputKey: "blockedDomains",
-    errorKey: "blockedDomains",
-    errorMessageId: "AuthenticationWidget.error.blockDomains",
-    condition: (blockedDomains: string[]) => {
-      const isValid = blockedDomains
-        .map((domain) => domain.trim())
-        .map((domain) => isValidEmailDomain(domain));
-      return isValid.every(Boolean);
-    },
-  },
-];
 
 const switchStyle = { root: { margin: "0" } };
 
@@ -265,9 +229,6 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
 ) {
   const { appConfig } = props;
   const { renderToString } = React.useContext(Context);
-  const [errorState, setErrorState] = React.useState<
-    AuthenticationLoginIDSettingErrorState
-  >({});
   const loginIdKeys = appConfig?.identity?.login_id?.keys ?? [];
   const {
     usernameEnabledConfig,
@@ -366,22 +327,6 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
 
   const onSaveButtonClicked = React.useCallback(() => {
     if (props.appConfig == null) {
-      return;
-    }
-
-    const validationData = {
-      reservedUsernames,
-      excludedKeywords,
-      reservedKeywords,
-      blockedDomains,
-    };
-
-    const { errorResult, isValid } = validateInput(
-      validationData,
-      validationRules
-    );
-    setErrorState(errorResult);
-    if (!isValid) {
       return;
     }
 
