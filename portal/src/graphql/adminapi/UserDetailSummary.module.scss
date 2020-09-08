@@ -1,0 +1,30 @@
+.root {
+  display: flex;
+  align-content: center;
+  min-width: 600px;
+}
+
+.profilePic {
+  width: 75px;
+  height: 75px;
+  margin: auto 0;
+}
+
+.userData {
+  margin-left: 17px;
+  padding-right: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.userInfo {
+  margin-top: 5px;
+  margin-bottom: 20px;
+}
+
+.userInfoRow {
+  font-size: 13px;
+  font-weight: 300;
+  margin-bottom: 5px;
+}

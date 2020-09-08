@@ -28,6 +28,9 @@
   "UsersList.column.signed-up": "Signed Up",
   "UsersList.column.last-login-at": "Last Login",
 
+  "UserDetails.signed-up": "Signed Up: {datetime}",
+  "UserDetails.last-login-at": "Last Login: {datetime}",
+
   "AuthenticationScreen.title": "Authentication",
   "AuthenticationScreen.login-id.title": "Login ID",
   "AuthenticationScreen.authenticator.title": "Authenticator",

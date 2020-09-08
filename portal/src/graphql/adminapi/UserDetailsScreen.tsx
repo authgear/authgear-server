@@ -11,9 +11,13 @@ import {
 import NavBreadcrumb from "../../NavBreadcrumb";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-import { isUserDetails } from "../../util/types";
+import UserDetailSummary from "./UserDetailSummary";
+
+import { isUserDetails, nonNullable } from "../../util/types";
+import { extractUserInfoFromIdentities } from "../../util/user";
 
 import styles from "./UserDetailsScreen.module.scss";
+
 interface UserDetailsProps {
   data: UserDetailsScreenQuery_node_User | null;
   loading: boolean;
@@ -23,10 +27,25 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
 ) {
   const { data, loading } = props;
+
   if (loading) {
     return <ShowLoading />;
   }
-  return <div className={styles.root}></div>;
+
+  const identities =
+    data?.identities?.edges?.map((edge) => edge?.node).filter(nonNullable) ??
+    [];
+  const userInfo = extractUserInfoFromIdentities(identities);
+
+  return (
+    <div className={styles.userDetails}>
+      <UserDetailSummary
+        userInfo={userInfo}
+        createdAtISO={data?.createdAt ?? null}
+        lastLoginAtISO={data?.lastLoginAt ?? null}
+      />
+    </div>
+  );
 };
 
 const query = gql`
