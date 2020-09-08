@@ -5,7 +5,6 @@ import { Checkbox, Toggle, PrimaryButton, TagPicker } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import ExtendableWidget from "../../ExtendableWidget";
-import CheckboxWithTooltip from "../../CheckboxWithTooltip";
 import CheckboxWithContent from "../../CheckboxWithContent";
 import { useCheckbox, useTagPickerWithNewTags } from "../../hook/useInput";
 import {
@@ -31,20 +30,12 @@ interface AuthenticationLoginIDSettingsState {
   emailEnabled: boolean;
   phoneNumberEnabled: boolean;
 
-  reservedUsernames: string[];
   excludedKeywords: string[];
   isBlockReservedUsername: boolean;
-  isIncludeDefaultReservedUsernameList: boolean;
   isExcludeKeywords: boolean;
-  isIncludeDefaultKeywordList: boolean;
   isUsernameCaseSensitive: boolean;
   isAsciiOnly: boolean;
 
-  reservedKeywords: string[];
-  blockedDomains: string[];
-  isBlockReservedKeywords: boolean;
-  isBlockDomains: boolean;
-  isIncludeFreeEmailDomains: boolean;
   isEmailCaseSensitive: boolean;
   isIgnoreDotLocal: boolean;
   isAllowPlus: boolean;
@@ -159,28 +150,15 @@ function constructAppConfigFromState(
     loginIdTypes.username = loginIdTypes.username ?? {};
     const usernameConfig = loginIdTypes.username;
 
-    const reservedUsernameList = handleStringListInput(
-      screenState.reservedUsernames,
-      {
-        optionEnabled: screenState.isBlockReservedUsername,
-        useDefaultList: screenState.isIncludeDefaultReservedUsernameList,
-        defaultList: [],
-      }
-    );
     const excludedKeywordList = handleStringListInput(
       screenState.excludedKeywords,
       {
         optionEnabled: screenState.isExcludeKeywords,
-        useDefaultList: screenState.isIncludeDefaultKeywordList,
+        useDefaultList: false,
         defaultList: [],
       }
     );
 
-    setFieldIfListNonEmpty(
-      usernameConfig,
-      "reserved_usernames",
-      reservedUsernameList
-    );
     setFieldIfListNonEmpty(
       usernameConfig,
       "excluded_keywords",
@@ -193,29 +171,6 @@ function constructAppConfigFromState(
     loginIdTypes.email = loginIdTypes.email ?? {};
     const emailConfig = loginIdTypes.email;
 
-    const reservedKeywordList = handleStringListInput(
-      screenState.reservedKeywords,
-      {
-        optionEnabled: screenState.isBlockReservedKeywords,
-        useDefaultList: false,
-        defaultList: [],
-      }
-    );
-    const blockedDomainList = handleStringListInput(
-      screenState.blockedDomains,
-      {
-        optionEnabled: screenState.isBlockDomains,
-        useDefaultList: screenState.isIncludeFreeEmailDomains,
-        defaultList: [],
-      }
-    );
-
-    setFieldIfListNonEmpty(
-      emailConfig,
-      "reserved_keywords",
-      reservedKeywordList
-    );
-    setFieldIfListNonEmpty(emailConfig, "blocked_domains", blockedDomainList);
     emailConfig.case_sensitive = screenState.isEmailCaseSensitive;
     emailConfig.ignore_dot_sign = screenState.isIgnoreDotLocal;
     emailConfig.block_plus_sign = !screenState.isAllowPlus;
@@ -245,15 +200,8 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
 
   // username widget
   const usernameConfig = appConfig?.identity?.login_id?.types.username;
-  const reservedUsernamesConfig = usernameConfig?.reserved_usernames ?? [];
   const excludedKeywordsConfig = usernameConfig?.excluded_keywords ?? [];
 
-  const {
-    list: reservedUsernames,
-    onChange: onReservedUsernamesChange,
-    defaultSelectedItems: defaultSelectedReservedUsernames,
-    onResolveSuggestions: onResolveReservedUsernameSuggestions,
-  } = useTagPickerWithNewTags(reservedUsernamesConfig);
   const {
     list: excludedKeywords,
     onChange: onExcludedKeywordsChange,
@@ -265,17 +213,9 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     onChange: onIsBlockReservedUsernameChange,
   } = useCheckbox(!!usernameConfig?.block_reserved_usernames);
   const {
-    value: isIncludeDefaultReservedUsernameList,
-    onChange: onIsIncludeDefaultReservedUsernameListChange,
-  } = useCheckbox(false);
-  const {
     value: isExcludeKeywords,
     onChange: onIsExcludeKeywordsChange,
   } = useCheckbox(excludedKeywordsConfig.length > 0);
-  const {
-    value: isIncludeDefaultKeywordList,
-    onChange: onIsIncludeDefaultKeywordListChange,
-  } = useCheckbox(false);
   const {
     value: isUsernameCaseSensitive,
     onChange: onIsUsernameCaseSensitiveChange,
@@ -286,33 +226,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
 
   // email widget
   const emailConfig = appConfig?.identity?.login_id?.types.email;
-  const reservedKeywordsConfig = emailConfig?.reserved_keywords ?? [];
-  const blockedDomainsConfig = emailConfig?.blocked_domains ?? [];
 
-  const {
-    list: reservedKeywords,
-    onChange: onReservedKeywordsChange,
-    defaultSelectedItems: defaultSelectedReservedKeywords,
-    onResolveSuggestions: onResolveReservedKeywordSuggestions,
-  } = useTagPickerWithNewTags(reservedKeywordsConfig);
-  const {
-    list: blockedDomains,
-    onChange: onBlockedDomainsChange,
-    defaultSelectedItems: defaultSelectedBlockedDomains,
-    onResolveSuggestions: onResolveBlockedDomainSuggestions,
-  } = useTagPickerWithNewTags(blockedDomainsConfig);
-  const {
-    value: isBlockReservedKeywords,
-    onChange: onIsBlockReservedKeywordsChange,
-  } = useCheckbox(reservedKeywordsConfig.length > 0);
-  const {
-    value: isBlockDomains,
-    onChange: onIsBlockDomainsChange,
-  } = useCheckbox(blockedDomainsConfig.length > 0);
-  const {
-    value: isIncludeFreeEmailDomains,
-    onChange: onIsIncludeFreeEmailDomainsChange,
-  } = useCheckbox(false);
   const {
     value: isEmailCaseSensitive,
     onChange: onIsEmailCaseSensitiveChange,
@@ -335,20 +249,12 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
       emailEnabled,
       phoneNumberEnabled,
 
-      reservedUsernames,
       excludedKeywords,
       isBlockReservedUsername,
-      isIncludeDefaultReservedUsernameList,
       isExcludeKeywords,
-      isIncludeDefaultKeywordList,
       isUsernameCaseSensitive,
       isAsciiOnly,
 
-      reservedKeywords,
-      blockedDomains,
-      isBlockReservedKeywords,
-      isBlockDomains,
-      isIncludeFreeEmailDomains,
       isEmailCaseSensitive,
       isIgnoreDotLocal,
       isAllowPlus,
@@ -367,20 +273,12 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     emailEnabled,
     phoneNumberEnabled,
 
-    reservedUsernames,
     excludedKeywords,
     isBlockReservedUsername,
-    isIncludeDefaultReservedUsernameList,
     isExcludeKeywords,
-    isIncludeDefaultKeywordList,
     isUsernameCaseSensitive,
     isAsciiOnly,
 
-    reservedKeywords,
-    blockedDomains,
-    isBlockReservedKeywords,
-    isBlockDomains,
-    isIncludeFreeEmailDomains,
     isEmailCaseSensitive,
     isIgnoreDotLocal,
     isAllowPlus,
@@ -401,33 +299,14 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
           }
         >
           <div className={styles.usernameWidgetContent}>
-            <CheckboxWithContent
+            <Checkbox
+              label={renderToString(
+                "AuthenticationWidget.blockReservedUsername"
+              )}
               checked={isBlockReservedUsername}
               onChange={onIsBlockReservedUsernameChange}
               className={styles.checkboxWithContent}
-            >
-              <div className={styles.checkboxLabel}>
-                <FormattedMessage id="AuthenticationWidget.blockReservedUsername" />
-              </div>
-              <TagPicker
-                className={styles.widgetInputField}
-                disabled={!isBlockReservedUsername}
-                onChange={onReservedUsernamesChange}
-                defaultSelectedItems={defaultSelectedReservedUsernames}
-                onResolveSuggestions={onResolveReservedUsernameSuggestions}
-              />
-              <CheckboxWithTooltip
-                label={renderToString(
-                  "AuthenticationWidget.includeDefaultList"
-                )}
-                helpText={renderToString(
-                  "AuthenticationWidget.includeDefaultList.reservedUsernameHelp"
-                )}
-                disabled={!isBlockReservedUsername}
-                checked={isIncludeDefaultReservedUsernameList}
-                onChange={onIsIncludeDefaultReservedUsernameListChange}
-              />
-            </CheckboxWithContent>
+            />
 
             <CheckboxWithContent
               checked={isExcludeKeywords}
@@ -443,17 +322,6 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
                 onChange={onExcludedKeywordsChange}
                 defaultSelectedItems={defaultSelectedExcludedKeywords}
                 onResolveSuggestions={onResolveExcludedKeywordSuggestions}
-              />
-              <CheckboxWithTooltip
-                label={renderToString(
-                  "AuthenticationWidget.includeDefaultList"
-                )}
-                helpText={renderToString(
-                  "AuthenticationWidget.includeDefaultList.excludeKeywordsHelp"
-                )}
-                disabled={!isExcludeKeywords}
-                checked={isIncludeDefaultKeywordList}
-                onChange={onIsIncludeDefaultKeywordListChange}
               />
             </CheckboxWithContent>
 
@@ -486,51 +354,6 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
             />
           }
         >
-          <CheckboxWithContent
-            checked={isBlockReservedKeywords}
-            onChange={onIsBlockReservedKeywordsChange}
-            className={styles.checkboxWithContent}
-          >
-            <div className={styles.checkboxLabel}>
-              <FormattedMessage id="AuthenticationWidget.blockReservedKeywords" />
-            </div>
-            <TagPicker
-              className={styles.widgetInputField}
-              disabled={!isBlockReservedKeywords}
-              onChange={onReservedKeywordsChange}
-              defaultSelectedItems={defaultSelectedReservedKeywords}
-              onResolveSuggestions={onResolveReservedKeywordSuggestions}
-            />
-          </CheckboxWithContent>
-
-          <CheckboxWithContent
-            checked={isBlockDomains}
-            onChange={onIsBlockDomainsChange}
-            className={styles.checkboxWithContent}
-          >
-            <div className={styles.checkboxLabel}>
-              <FormattedMessage id="AuthenticationWidget.blockDomains" />
-            </div>
-            <TagPicker
-              className={styles.widgetInputField}
-              disabled={!isBlockDomains}
-              onChange={onBlockedDomainsChange}
-              defaultSelectedItems={defaultSelectedBlockedDomains}
-              onResolveSuggestions={onResolveBlockedDomainSuggestions}
-            />
-            <CheckboxWithTooltip
-              label={renderToString(
-                "AuthenticationWidget.includeFreeEmailDomains"
-              )}
-              helpText={renderToString(
-                "AuthenticationWidget.includeFreeEmailDomainsHelp"
-              )}
-              disabled={!isBlockDomains}
-              checked={isIncludeFreeEmailDomains}
-              onChange={onIsIncludeFreeEmailDomainsChange}
-            />
-          </CheckboxWithContent>
-
           <Checkbox
             label={renderToString("AuthenticationWidget.caseSensitive")}
             className={styles.widgetCheckbox}

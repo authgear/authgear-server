@@ -33,18 +33,11 @@
 
   "AuthenticationWidget.usernameTitle": "Username",
   "AuthenticationWidget.blockReservedUsername": "Block Reserved Username",
-  "AuthenticationWidget.includeDefaultList": "Include default list",
-  "AuthenticationWidget.includeDefaultList.reservedUsernameHelp": "Include defult list of reserved username",
-  "AuthenticationWidget.includeDefaultList.excludeKeywordsHelp": "Include default list of keywords to be excluded from username",
   "AuthenticationWidget.excludeKeywords": "Exclude Keyword",
   "AuthenticationWidget.caseSensitive": "Case Sensitive",
   "AuthenticationWidget.asciiOnly": "ASCII Only",
 
   "AuthenticationWidget.emailAddressTitle": "Email Address",
-  "AuthenticationWidget.blockReservedKeywords": "Block Reserved Keywords",
-  "AuthenticationWidget.blockDomains": "Block Domains",
-  "AuthenticationWidget.includeFreeEmailDomains": "Include all free email hosting provider domains",
-  "AuthenticationWidget.includeFreeEmailDomainsHelp": "Include all free email hosting provider domains",
   "AuthenticationWidget.ignoreDotLocal": "Ignore dot sign in local parameter",
   "AuthenticationWidget.allowPlus": "Allow + sign in email",
 

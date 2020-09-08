@@ -16,8 +16,6 @@ export interface LoginIDKeyConfig {
 
 // LoginIDTypesConfig
 interface LoginIDEmailConfig {
-  reserved_keywords?: string[];
-  blocked_domains?: string[];
   block_plus_sign?: boolean;
   case_sensitive?: boolean;
   ignore_dot_sign?: boolean;
@@ -25,7 +23,6 @@ interface LoginIDEmailConfig {
 
 interface LoginIDUsernameConfig {
   block_reserved_usernames?: boolean;
-  reserved_usernames?: string[];
   excluded_keywords?: string[];
   ascii_only?: boolean;
   case_sensitive?: boolean;
