@@ -364,15 +364,6 @@ a.btn {
   font-size: 12px;
 }
 
-.logout-form {
-  display: flex;
-  flex-direction: column;
-}
-
-.logout-form .logout-btn {
-  align-self: center;
-}
-
 .simple-form {
   padding: 10px;
 }
@@ -535,6 +526,12 @@ a.btn {
   display: grid;
   grid-template-columns: 1fr auto;
   grid-template-rows: auto auto;
+}
+
+.content-row-layout-1x2 {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto;
 }
 
 .content-row-title {

@@ -105,8 +105,8 @@
 	"reset-password-success-page-title": "Password Reset",
 	"reset-password-success-description": "You have successfully reset your password. You can now sign in with it.",
 
-	"logout-button-hint": "To logout, please click the button below.",
-	"logout-button-label": "Logout",
+	"logout-button-hint": "Click the button to sign out",
+	"logout-button-label": "Sign out",
 
 	"settings-identity-title": "Connected Identities",
 	"settings-identity-description": "Manage your list of connected identities",
