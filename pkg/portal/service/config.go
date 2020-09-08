@@ -38,12 +38,23 @@ func (s *ConfigService) ListAllAppIDs() ([]string, error) {
 func (s *ConfigService) UpdateConfig(appID string, updateFiles []*model.AppConfigFile, deleteFiles []string) error {
 	switch src := s.Controller.Handle.(type) {
 	case *configsource.Kubernetes:
-		return s.updateKubernetes(src, appID, updateFiles, deleteFiles)
+		err := s.updateKubernetes(src, appID, updateFiles, deleteFiles)
+		if err != nil {
+			return err
+		}
+		s.Controller.ReloadApp(appID)
+
 	case *configsource.LocalFS:
-		return s.updateLocalFS(src, appID, updateFiles, deleteFiles)
+		err := s.updateLocalFS(src, appID, updateFiles, deleteFiles)
+		if err != nil {
+			return err
+		}
+		s.Controller.ReloadApp(appID)
+
 	default:
 		return errors.New("unsupported configuration source")
 	}
+	return nil
 }
 
 func (s *ConfigService) updateKubernetes(k *configsource.Kubernetes, appID string, updateFiles []*model.AppConfigFile, deleteFiles []string) error {

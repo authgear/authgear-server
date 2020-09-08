@@ -143,3 +143,11 @@ func (s *LocalFS) ResolveContext(_appID string) (*config.AppContext, error) {
 	ctx := s.config.Load().(*config.AppContext)
 	return ctx, nil
 }
+
+func (s *LocalFS) ReloadApp(appID string) {
+	// In single mode, appID is ignored.
+	err := s.reload()
+	s.Logger.
+		WithError(err).
+		Error("reload failed")
+}

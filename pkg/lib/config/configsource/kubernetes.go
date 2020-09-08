@@ -216,6 +216,10 @@ func (k *Kubernetes) ResolveContext(appID string) (*config.AppContext, error) {
 	return app.Load(k)
 }
 
+func (k *Kubernetes) ReloadApp(appID string) {
+	k.invalidateApp(appID)
+}
+
 func (k *Kubernetes) AppSelector(appID string) (string, error) {
 	labelSelector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
 		MatchLabels: map[string]string{LabelConfigAppID: appID},

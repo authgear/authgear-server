@@ -56,6 +56,7 @@ func (l *AppLoader) UpdateConfig(app *model.App, updateFiles []*model.AppConfigF
 			return nil, err
 		}
 
+		l.loader.Reset(app.ID)
 		return l.Get(app.ID), nil
 	})
 }
