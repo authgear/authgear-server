@@ -1,5 +1,5 @@
 import React from "react";
-import { IconButton } from "@fluentui/react";
+import { IconButton, DefaultEffects } from "@fluentui/react";
 import cn from "classnames";
 
 import styles from "./ExtendableWidget.module.scss";
@@ -41,7 +41,7 @@ const ExtendableWidget: React.FC<ExtendableWidgetProps> = function ExtendableWid
   }, [props.extendable, extended, onExtendClicked]);
 
   return (
-    <div className={styles.root}>
+    <div style={{ boxShadow: DefaultEffects.elevation4 }}>
       <div className={styles.header}>
         <div className={styles.propsHeader}>{HeaderComponent}</div>
         <IconButton
