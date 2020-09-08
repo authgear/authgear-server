@@ -25,6 +25,10 @@ func (l *Lazy) Value() (interface{}, error) {
 	if l.init != nil {
 		l.value, l.err = l.init()
 		l.init = nil
+
+		if lazy, ok := l.value.(*Lazy); ok {
+			l.value, l.err = lazy.Value()
+		}
 	}
 	return l.value, l.err
 }
