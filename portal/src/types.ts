@@ -43,8 +43,43 @@ interface IdentityConfig {
   login_id?: LoginIDConfig;
 }
 
+// AuthenticatorConfig
+
+interface AuthenticatorConfig {
+  oob_otp?: Record<string, unknown>;
+  password?: Record<string, unknown>;
+  totp?: Record<string, unknown>;
+}
+
+export const primaryAuthenticatorTypes = ["password", "oob_otp"] as const;
+export type PrimaryAuthenticatorType = typeof primaryAuthenticatorTypes[number];
+export function isPrimaryAuthenticatorType(
+  type: any
+): type is PrimaryAuthenticatorType {
+  return primaryAuthenticatorTypes.includes(type);
+}
+
+export const secondaryAuthenticatorTypes = [
+  "password",
+  "oob_otp",
+  "totp",
+] as const;
+export type SecondaryAuthenticatorType = typeof secondaryAuthenticatorTypes[number];
+export function isSecondaryAuthenticatorType(
+  type: any
+): type is SecondaryAuthenticatorType {
+  return secondaryAuthenticatorTypes.includes(type);
+}
+
+interface AuthenticationConfig {
+  primary_authenticators: PrimaryAuthenticatorType[];
+  secondary_authenticators: SecondaryAuthenticatorType[];
+}
+
 export interface PortalAPIAppConfig {
   identity?: IdentityConfig;
+  authenticator: AuthenticatorConfig;
+  authentication: AuthenticationConfig;
 }
 
 export interface PortalAPIApp {

@@ -12,7 +12,13 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import DetailsListWithOrdering, {
   useOnSwapClicked,
 } from "../../DetailsListWithOrdering";
-import { PortalAPIAppConfig } from "../../types";
+import {
+  PortalAPIAppConfig,
+  primaryAuthenticatorTypes,
+  secondaryAuthenticatorTypes,
+  PrimaryAuthenticatorType,
+  SecondaryAuthenticatorType,
+} from "../../types";
 
 import styles from "./AuthenticationAuthenticatorSettings.module.scss";
 
@@ -25,9 +31,9 @@ interface AuthenticatorCheckboxProps extends ICheckboxProps {
   onAuthticatorCheckboxChange: (key: string, checked: boolean) => void;
 }
 
-interface AuthenticatorListItem {
+interface AuthenticatorListItem<KeyType> {
   activated: boolean;
-  key: string;
+  key: KeyType;
 }
 
 const AuthenticatorCheckbox: React.FC<AuthenticatorCheckboxProps> = function AuthenticatorCheckbox(
@@ -43,11 +49,15 @@ const AuthenticatorCheckbox: React.FC<AuthenticatorCheckboxProps> = function Aut
   return <Checkbox {...props} onChange={onChange} />;
 };
 
-function useRenderItemColumn(
+function useRenderItemColumn<KeyType extends string>(
   onCheckboxClicked: (key: string, checked: boolean) => void
 ) {
   const renderItemColumn = React.useCallback(
-    (item: AuthenticatorListItem, _index?: number, column?: IColumn) => {
+    (
+      item: AuthenticatorListItem<KeyType>,
+      _index?: number,
+      column?: IColumn
+    ) => {
       switch (column?.key) {
         case "activated":
           return (
@@ -70,9 +80,11 @@ function useRenderItemColumn(
   return renderItemColumn;
 }
 
-function useOnActivateClicked(
-  state: AuthenticatorListItem[],
-  setState: React.Dispatch<React.SetStateAction<AuthenticatorListItem[]>>
+function useOnActivateClicked<KeyType extends string>(
+  state: AuthenticatorListItem<KeyType>[],
+  setState: React.Dispatch<
+    React.SetStateAction<AuthenticatorListItem<KeyType>[]>
+  >
 ) {
   const onActivateClicked = React.useCallback(
     (key: string, checked: boolean) => {
@@ -82,7 +94,7 @@ function useOnActivateClicked(
       if (itemIndex < 0) {
         return;
       }
-      setState((prev: AuthenticatorListItem[]) => {
+      setState((prev: AuthenticatorListItem<KeyType>[]) => {
         prev[itemIndex].activated = checked;
         return [...prev];
       });
@@ -95,10 +107,9 @@ function useOnActivateClicked(
 const constructListData = (
   appConfig: PortalAPIAppConfig | null
 ): {
-  primaryAuthenticators: AuthenticatorListItem[];
-  secondaryAuthenticators: AuthenticatorListItem[];
+  primaryAuthenticators: AuthenticatorListItem<PrimaryAuthenticatorType>[];
+  secondaryAuthenticators: AuthenticatorListItem<SecondaryAuthenticatorType>[];
 } => {
-  const authenticators = appConfig?.authenticator ?? {};
   const authentication = appConfig?.authentication;
   const primaryAuthenticatorKeys = new Set(
     authentication?.primary_authenticators
@@ -106,15 +117,14 @@ const constructListData = (
   const secondaryAuthenticatorKeys = new Set(
     authentication?.secondary_authenticators
   );
-  const availableAuthenticatorKeys = Object.keys(authenticators);
 
-  const primaryAuthenticators = availableAuthenticatorKeys.map((key) => {
+  const primaryAuthenticators = primaryAuthenticatorTypes.map((key) => {
     return {
       activated: primaryAuthenticatorKeys.has(key),
       key,
     };
   });
-  const secondaryAuthenticators = availableAuthenticatorKeys.map((key) => {
+  const secondaryAuthenticators = secondaryAuthenticatorTypes.map((key) => {
     return {
       activated: secondaryAuthenticatorKeys.has(key),
       key,
@@ -127,7 +137,9 @@ const constructListData = (
   };
 };
 
-function getActivatedKeyListFromState(state: AuthenticatorListItem[]) {
+function getActivatedKeyListFromState<KeyType>(
+  state: AuthenticatorListItem<KeyType>[]
+) {
   return state
     .filter((authenticator) => authenticator.activated)
     .map((authenticator) => authenticator.key);
