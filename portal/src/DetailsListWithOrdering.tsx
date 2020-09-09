@@ -23,6 +23,7 @@ interface DetailsListWithOrderingProps extends IDetailsListProps {
 
 interface OrderColumnButtonsProps {
   index?: number;
+  itemCount: number;
   onSwapClicked: (index1: number, index2: number) => void;
 }
 
@@ -45,11 +46,13 @@ const OrderColumnButtons: React.FC<OrderColumnButtonsProps> = function OrderColu
     <div>
       <IconButton
         className={styles.orderColumnButton}
+        disabled={props.index === props.itemCount - 1}
         onClick={onDownClicked}
         iconProps={{ iconName: "ChevronDown" }}
       />
       <IconButton
         className={styles.orderColumnButton}
+        disabled={props.index === 0}
         onClick={onUpClicked}
         iconProps={{ iconName: "ChevronUp" }}
       />
@@ -84,6 +87,7 @@ const DetailsListWithOrdering: React.FC<DetailsListWithOrderingProps> = function
         return (
           <OrderColumnButtons
             index={index}
+            itemCount={props.items.length}
             onSwapClicked={props.onSwapClicked}
           />
         );
