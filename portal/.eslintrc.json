@@ -18,6 +18,7 @@
   "rules": {
     "react/jsx-no-bind": "off",
     "no-mixed-operators": "off",
-    "no-undefined": "off"
+    "no-undefined": "off",
+    "no-console": ["warn", { "allow": ["warn", "error"] }]
   }
 }

@@ -224,14 +224,13 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
       secondaryAuthenticatorState
     );
 
-    const newAppConfig = produce(props.appConfig, (draftConfig) => {
+    produce(props.appConfig, (draftConfig) => {
       const authentication = draftConfig.authentication;
       authentication.primary_authenticators = activatedPrimaryKeyList;
       authentication.secondary_authenticators = activatedSecondaryKeyList;
     });
 
     // TODO: call mutation to save config
-    console.log(newAppConfig);
   }, [props.appConfig, primaryAuthenticatorState, secondaryAuthenticatorState]);
 
   return (
