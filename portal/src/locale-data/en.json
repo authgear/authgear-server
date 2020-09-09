@@ -8,6 +8,7 @@
   "details": "Details",
   "activated": "Activated",
   "remove": "Remove",
+  "disable": "Disable",
 
   "header.sign-out": "Sign out",
 
@@ -33,6 +34,9 @@
 
   "UserDetails.signed-up": "Signed Up: {datetime}",
   "UserDetails.last-login-at": "Last Login: {datetime}",
+
+  "UserDetails.command-bar.login-as-user": "Login as this user",
+  "UserDetails.command-bar.invalidate-sessions": "Invalidate all sessions",
 
   "UserDetails.account-security.header": "Account Security",
   "UserDetails.account-security.last-updated": "Last updated at {datetime}",

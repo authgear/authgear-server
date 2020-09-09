@@ -1,6 +1,11 @@
-import React from "react";
+import React, { useContext } from "react";
 import { useParams } from "react-router-dom";
-import { Pivot, PivotItem } from "@fluentui/react";
+import {
+  Pivot,
+  PivotItem,
+  CommandBar,
+  ICommandBarItemProps,
+} from "@fluentui/react";
 import { useQuery, gql } from "@apollo/client";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 
@@ -115,6 +120,7 @@ const query = gql`
 
 const UserDetailsScreen: React.FC = function UserDetailsScreen() {
   const { userID } = useParams();
+  const { renderToString } = useContext(Context);
   const { loading, error, data, refetch } = useQuery<
     UserDetailsScreenQuery,
     UserDetailsScreenQueryVariables
@@ -136,14 +142,49 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
     return isUserDetails(node) ? node : null;
   }, [data]);
 
+  const commandBarItems: ICommandBarItemProps[] = [
+    {
+      key: "remove",
+      text: renderToString("remove"),
+      iconProps: { iconName: "Delete" },
+    },
+
+    {
+      key: "loginAsUser",
+      text: renderToString("UserDetails.command-bar.login-as-user"),
+      iconProps: { iconName: "FollowUser" },
+    },
+
+    {
+      key: "invalidateSessions",
+      text: renderToString("UserDetails.command-bar.invalidate-sessions"),
+      iconProps: {
+        iconName: "CircleAddition",
+        className: styles.invalidateIcon,
+      },
+    },
+    {
+      key: "disable",
+      text: renderToString("disable"),
+      iconProps: { iconName: "CircleStop" },
+    },
+  ];
+
   if (error != null) {
     return <ShowError error={error} onRetry={refetch} />;
   }
 
   return (
     <div className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumItems} />
-      <UserDetails data={userDetails} loading={loading} />
+      <CommandBar
+        className={styles.commandBar}
+        items={[]}
+        farItems={commandBarItems}
+      />
+      <div className={styles.screenContent}>
+        <NavBreadcrumb items={navBreadcrumItems} />
+        <UserDetails data={userDetails} loading={loading} />
+      </div>
     </div>
   );
 };
