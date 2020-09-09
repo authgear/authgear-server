@@ -1,5 +1,3 @@
-@import "../../styles/variable.scss";
-
 .root {
   width: 700px;
   padding-right: 30px;
@@ -14,7 +12,10 @@
 }
 
 .widgetHeaderText {
-  @include widget-header-text;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
   padding-left: 12px;
 }
 

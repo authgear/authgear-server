@@ -1,5 +1,3 @@
-@import "../../styles/variable.scss";
-
 .root {
   margin: 23px 0;
   padding: 0 10px;
@@ -7,13 +5,15 @@
 }
 
 .widget {
-  box-shadow: $widget-box-shadow;
   margin-bottom: 15px;
   padding: 15px 15px 25px;
 }
 
 .widgetHeader {
-  @include widget-header-text;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
   padding: 8px 0 0 10px;
 }
 

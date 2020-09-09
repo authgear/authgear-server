@@ -5,6 +5,7 @@ import {
   SelectionMode,
   ICheckboxProps,
   PrimaryButton,
+  DefaultEffects,
 } from "@fluentui/react";
 import produce from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -235,10 +236,13 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
 
   return (
     <div className={styles.root}>
-      <div className={styles.widget}>
-        <div className={styles.widgetHeader}>
+      <div
+        className={styles.widget}
+        style={{ boxShadow: DefaultEffects.elevation4 }}
+      >
+        <h2 className={styles.widgetHeader}>
           <FormattedMessage id="AuthenticationAuthenticator.widgetHeader.primary" />
-        </div>
+        </h2>
         <DetailsListWithOrdering
           items={primaryAuthenticatorState}
           columns={authenticatorColumns}
@@ -248,10 +252,13 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
         />
       </div>
 
-      <div className={styles.widget}>
-        <div className={styles.widgetHeader}>
+      <div
+        className={styles.widget}
+        style={{ boxShadow: DefaultEffects.elevation4 }}
+      >
+        <h2 className={styles.widgetHeader}>
           <FormattedMessage id="AuthenticationAuthenticator.widgetHeader.secondary" />
-        </div>
+        </h2>
         <DetailsListWithOrdering
           items={secondaryAuthenticatorState}
           columns={authenticatorColumns}
