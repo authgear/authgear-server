@@ -1,12 +1,29 @@
 {
   "extends": ["@oursky/stylelint-oursky/config/oursky"],
   "rules": {
-    "plugin/no-unsupported-browser-features": [true, {
-      "ignore": ["viewport-units", "css-appearance", "css3-cursors", "flexbox"]
-    }],
+    "plugin/no-unsupported-browser-features": [
+      true,
+      {
+        "ignore": [
+          "viewport-units",
+          "css-appearance",
+          "css3-cursors",
+          "flexbox"
+        ]
+      }
+    ],
     "oursky/flex": null,
-    "selector-pseudo-class-no-unknown": [true, {
-      "ignorePseudoClasses": ["global"]
-    }]
+    "selector-pseudo-class-no-unknown": [
+      true,
+      {
+        "ignorePseudoClasses": ["global"]
+      }
+    ],
+    "at-rule-no-unknown": [
+      true,
+      {
+        "ignoreAtRules": ["mixin", "include"]
+      }
+    ]
   }
 }

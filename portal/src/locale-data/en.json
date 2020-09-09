@@ -4,13 +4,17 @@
   "loading": "Loading...",
 
   "next": "Next",
+  "save": "Save",
 
   "header.sign-out": "Sign out",
+
+  "nav.users": "Users",
 
   "show-error.retry": "Retry",
 
   "ScreenNav.label": "Top-level tab navigation",
   "ScreenNav.users": "Users",
+  "ScreenNav.authentication": "Authentication",
 
   "NavBreadcrumb.label": "Nested navigation",
 
@@ -22,6 +26,24 @@
   "UsersList.column.phone": "Phone",
   "UsersList.column.signed-up": "Signed Up",
   "UsersList.column.last-login-at": "Last Login",
+
+  "AuthenticationScreen.title": "Authentication",
+  "AuthenticationScreen.login-id.title": "Login ID",
+  "AuthenticationScreen.authenticator.title": "Authenticator",
+
+  "AuthenticationWidget.usernameTitle": "Username",
+  "AuthenticationWidget.blockReservedUsername": "Block Reserved Username",
+  "AuthenticationWidget.excludeKeywords": "Exclude Keyword",
+  "AuthenticationWidget.caseSensitive": "Case Sensitive",
+  "AuthenticationWidget.asciiOnly": "ASCII Only",
+
+  "AuthenticationWidget.emailAddressTitle": "Email Address",
+  "AuthenticationWidget.ignoreDotLocal": "Ignore dot sign in local parameter",
+  "AuthenticationWidget.allowPlus": "Allow + sign in email",
+
+  "AuthenticationWidget.phoneNumberTitle": "Phone Number",
+
+  "AuthenticationWidget.error.blockDomains": "Invalid domains",
 
   "PaginationWidget.First": "Go to the first page",
   "PaginationWidget.Prev": "Go to the previous page",

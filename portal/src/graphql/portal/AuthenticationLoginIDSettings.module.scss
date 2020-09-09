@@ -1,0 +1,51 @@
+@import "../../styles/variable.scss";
+
+.root {
+  width: 700px;
+  padding-right: 30px;
+}
+
+.widgetContainer {
+  margin-top: 20px;
+}
+
+.widgetHeader {
+  display: flex;
+}
+
+.widgetHeaderText {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  padding-left: 12px;
+}
+
+.checkboxLabel {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  -webkit-font-smoothing: antialiased;
+  margin-bottom: 5px;
+}
+
+.widgetInputField {
+  width: 490px;
+  margin-bottom: 10px;
+}
+
+.checkboxWithContent {
+  margin-bottom: 15px;
+}
+
+.widgetCheckbox {
+  margin-bottom: 15px;
+  margin-right: 8px;
+}
+
+.saveButtonContainer {
+  width: 100%;
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}

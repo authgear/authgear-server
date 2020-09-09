@@ -1,0 +1,18 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.content {
+  margin: 30px 20px;
+}
+
+.title {
+  margin: 0 8px;
+  font-size: 18px;
+}
+
+.tabsContainer {
+  margin-top: 10px;
+}

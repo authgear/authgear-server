@@ -1,0 +1,39 @@
+@import "./styles/variable.scss";
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+.extendButton {
+  padding: 5px;
+  margin: -5px;
+}
+
+.downArrow {
+  transition: transform 200ms ease;
+}
+
+.downArrowExtended {
+  transform: rotate(-180deg);
+}
+
+.contentContainer {
+  overflow: hidden;
+  height: 0;
+  transition: height 200ms ease;
+}
+
+.contentContainerExtended {
+  height: auto;
+}
+
+.content {
+  padding: 0 20px 20px;
+}
+
+.readOnly {
+  pointer-events: none;
+  opacity: 0.5;
+}
