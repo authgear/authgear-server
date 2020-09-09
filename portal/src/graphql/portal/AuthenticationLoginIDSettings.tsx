@@ -63,15 +63,13 @@ const WidgetHeader: React.FC<WidgetHeaderProps> = function (
 function extractConfigFromLoginIdKeys(
   loginIdKeys: LoginIDKeyConfig[]
 ): { [key: string]: boolean } {
+  // We consider them as enabled if they are listed as allowed login ID keys.
   const usernameEnabledConfig =
-    loginIdKeys.find((key) => key.type === "username")?.verification?.enabled ??
-    false;
+    loginIdKeys.find((key) => key.type === "username") != null;
   const emailEnabledConfig =
-    loginIdKeys.find((key) => key.type === "email")?.verification?.enabled ??
-    false;
+    loginIdKeys.find((key) => key.type === "email") != null;
   const phoneNumberEnabledConfig =
-    loginIdKeys.find((key) => key.type === "phone")?.verification?.enabled ??
-    false;
+    loginIdKeys.find((key) => key.type === "phone") != null;
 
   return {
     usernameEnabledConfig,
