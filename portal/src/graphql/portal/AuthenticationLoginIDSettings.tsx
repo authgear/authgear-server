@@ -286,6 +286,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     <div className={styles.root}>
       <div className={styles.widgetContainer}>
         <ExtendableWidget
+          initiallyExtended={usernameEnabled}
           extendable={true}
           readOnly={!usernameEnabled}
           HeaderComponent={
@@ -342,6 +343,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
 
       <div className={styles.widgetContainer}>
         <ExtendableWidget
+          initiallyExtended={emailEnabled}
           extendable={true}
           readOnly={!emailEnabled}
           HeaderComponent={
@@ -377,6 +379,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
 
       <div className={styles.widgetContainer}>
         <ExtendableWidget
+          initiallyExtended={phoneNumberEnabled}
           extendable={true}
           readOnly={!phoneNumberEnabled}
           HeaderComponent={
