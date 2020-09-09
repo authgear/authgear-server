@@ -47,6 +47,9 @@
   "UserDetails.connected-identities.header": "Connected Identities",
   "UserDetails.connected-identities.connected-on": "Connected on {datetime}",
   "UserDetails.session.header": "Session",
+  "UserDetails.session.devices": "Devices",
+  "UserDetails.session.last-activity": "Last Activity",
+  "UserDetails.session.ip-address": "IP Address",
 
   "AuthenticationScreen.title": "Authentication",
   "AuthenticationScreen.login-id.title": "Login ID",
