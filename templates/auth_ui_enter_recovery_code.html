@@ -19,7 +19,13 @@
 <form class="vertical-form form-fields-container" method="post" novalidate>
 {{ $.CSRFField }}
 
-<input class="input text-input primary-txt" type="text" name="x_code" placeholder="{{ template "enter-recovery-code-placeholder" }}">
+<input
+	class="input text-input primary-txt"
+	type="text"
+	autocomplete="one-time-code"
+	name="x_code"
+	placeholder="{{ template "enter-recovery-code-placeholder" }}"
+>
 
 <!-- device token checkbox is intentionally not supported here -->
 

@@ -72,10 +72,24 @@
 							</option>
 							{{ end }}
 						</select>
-						<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_national_number" placeholder="{{ template "phone-number-placeholder" }}">
+						<input
+							class="input text-input primary-txt"
+							type="text"
+							inputmode="numeric"
+							pattern="[0-9]*"
+							autocomplete="tel-national"
+							name="x_national_number"
+							placeholder="{{ template "phone-number-placeholder" }}"
+						>
 					</div>
 				{{ else }}
-					<input class="input text-input primary-txt" type="{{ $.x_login_id_input_type }}" name="x_login_id" placeholder="{{ .login_id_type }}">
+					<input
+						class="input text-input primary-txt"
+						type="{{ $.x_login_id_input_type }}"
+						name="x_login_id"
+						autocomplete="username"
+						placeholder="{{ .login_id_type }}"
+					>
 				{{ end }}
 				{{ end }}{{ end }}
 				{{ end }}

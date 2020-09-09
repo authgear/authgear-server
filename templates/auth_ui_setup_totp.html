@@ -30,7 +30,15 @@
 
 <p class="description primary-txt white-space-pre">{{ template "setup-totp-code-description" }}</p>
 
-<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_code" placeholder="{{ template "setup-totp-code-placeholder" }}">
+<input
+	class="input text-input primary-txt"
+	type="text"
+	inputmode="numeric"
+	pattern="[0-9]*"
+	autocomplete="one-time-code"
+	name="x_code"
+	placeholder="{{ template "setup-totp-code-placeholder" }}"
+>
 
 {{ range $.Alternatives }}
 {{ if eq .Type "totp" }}
