@@ -30,6 +30,9 @@
 
   "UserDetails.signed-up": "Signed Up: {datetime}",
   "UserDetails.last-login-at": "Last Login: {datetime}",
+  "UserDetails.account-security.header": "Account Security",
+  "UserDetails.connected-identities.header": "Connected Identities",
+  "UserDetails.session.header": "Session",
 
   "AuthenticationScreen.title": "Authentication",
   "AuthenticationScreen.login-id.title": "Login ID",

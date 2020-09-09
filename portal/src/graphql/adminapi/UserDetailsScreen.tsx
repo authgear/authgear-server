@@ -1,7 +1,8 @@
 import React from "react";
 import { useParams } from "react-router-dom";
+import { Pivot, PivotItem } from "@fluentui/react";
 import { useQuery, gql } from "@apollo/client";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "@oursky/react-messageformat";
 
 import {
   UserDetailsScreenQuery,
@@ -12,6 +13,9 @@ import NavBreadcrumb from "../../NavBreadcrumb";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import UserDetailSummary from "./UserDetailSummary";
+import UserDetailsAccountSecurity from "./UserDetailsAccountSecurity";
+import UserDetailsConnectedIdentities from "./UserDetailsConnectedIdentities";
+import UserDetailsSession from "./UserDetailsSession";
 
 import { isUserDetails, nonNullable } from "../../util/types";
 import { extractUserInfoFromIdentities } from "../../util/user";
@@ -27,6 +31,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
 ) {
   const { data, loading } = props;
+  const { renderToString } = React.useContext(Context);
 
   if (loading) {
     return <ShowLoading />;
@@ -44,6 +49,25 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
         createdAtISO={data?.createdAt ?? null}
         lastLoginAtISO={data?.lastLoginAt ?? null}
       />
+      <div className={styles.userDetailsTab}>
+        <Pivot>
+          <PivotItem
+            headerText={renderToString("UserDetails.account-security.header")}
+          >
+            <UserDetailsAccountSecurity />
+          </PivotItem>
+          <PivotItem
+            headerText={renderToString(
+              "UserDetails.connected-identities.header"
+            )}
+          >
+            <UserDetailsConnectedIdentities />
+          </PivotItem>
+          <PivotItem headerText={renderToString("UserDetails.session.header")}>
+            <UserDetailsSession />
+          </PivotItem>
+        </Pivot>
+      </div>
     </div>
   );
 };
