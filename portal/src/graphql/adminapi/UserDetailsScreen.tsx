@@ -42,6 +42,11 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
     [];
   const userInfo = extractUserInfoFromIdentities(identities);
 
+  const authenticators =
+    data?.authenticators?.edges
+      ?.map((edge) => edge?.node)
+      .filter(nonNullable) ?? [];
+
   return (
     <div className={styles.userDetails}>
       <UserDetailSummary
@@ -54,7 +59,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
           <PivotItem
             headerText={renderToString("UserDetails.account-security.header")}
           >
-            <UserDetailsAccountSecurity />
+            <UserDetailsAccountSecurity authenticators={authenticators} />
           </PivotItem>
           <PivotItem
             headerText={renderToString(

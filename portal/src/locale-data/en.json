@@ -5,6 +5,9 @@
 
   "next": "Next",
   "save": "Save",
+  "details": "Details",
+  "activated": "Activated",
+  "remove": "Remove",
 
   "header.sign-out": "Sign out",
 
@@ -30,7 +33,17 @@
 
   "UserDetails.signed-up": "Signed Up: {datetime}",
   "UserDetails.last-login-at": "Last Login: {datetime}",
+
   "UserDetails.account-security.header": "Account Security",
+  "UserDetails.account-security.last-updated": "Last updated at {datetime}",
+  "UserDetails.account-security.primary": "Primary Authenticators",
+  "UserDetails.account-security.primary.password": "Password",
+  "UserDetails.account-security.primary.oob-otp": "Passwordless via SMS / Email",
+  "UserDetails.account-security.secondary": "Multi-factor Authentications",
+  "UserDetails.account-security.secondary.totp": "Authenticator Apps / Devices",
+  "UserDetails.account-security.secondary.oob-otp": "Verification code via SMS / Email",
+  "UserDetails.account-security.secondary.password": "Additional Password",
+
   "UserDetails.connected-identities.header": "Connected Identities",
   "UserDetails.session.header": "Session",
 
