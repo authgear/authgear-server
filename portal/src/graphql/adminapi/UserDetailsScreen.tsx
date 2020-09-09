@@ -66,7 +66,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
               "UserDetails.connected-identities.header"
             )}
           >
-            <UserDetailsConnectedIdentities />
+            <UserDetailsConnectedIdentities identities={identities} />
           </PivotItem>
           <PivotItem headerText={renderToString("UserDetails.session.header")}>
             <UserDetailsSession />

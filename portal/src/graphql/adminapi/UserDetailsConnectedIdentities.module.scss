@@ -1,0 +1,42 @@
+.root {
+  margin-top: 25px;
+  margin-left: 10px;
+  width: 640px;
+}
+
+.header {
+  font-size: 14px;
+}
+
+.cellInfo {
+  display: flex;
+  padding: 5px 0 3px;
+}
+
+.cellIcon {
+  padding: 3px;
+}
+
+.cellDetail {
+  padding: 0 10px;
+  font-weight: 300;
+  font-size: 13px;
+}
+
+.cellName {
+  padding-bottom: 3px;
+}
+
+.cellDesc {
+  color: #888888;
+}
+
+.removeButton {
+  margin-right: 3px;
+  background-color: #ff0000;
+  border: 1px solid #990000;
+  &:hover {
+    background-color: #e80000;
+    border: 1px solid #990000;
+  }
+}

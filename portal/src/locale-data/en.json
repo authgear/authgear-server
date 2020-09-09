@@ -45,6 +45,7 @@
   "UserDetails.account-security.secondary.password": "Additional Password",
 
   "UserDetails.connected-identities.header": "Connected Identities",
+  "UserDetails.connected-identities.connected-on": "Connected on {datetime}",
   "UserDetails.session.header": "Session",
 
   "AuthenticationScreen.title": "Authentication",
