@@ -10,7 +10,7 @@ import { Context } from "@oursky/react-messageformat";
 import styles from "./DetailsListWithOrdering.module.scss";
 
 interface DetailsListWithOrderingProps extends IDetailsListProps {
-  onSwapClicked: (swapUpward: boolean, index?: number) => void;
+  onSwapClicked: (index1: number, index2: number) => void;
   columns: IColumn[];
   onRenderItemColumn: (
     item?: any,
@@ -23,17 +23,23 @@ interface DetailsListWithOrderingProps extends IDetailsListProps {
 
 interface OrderColumnButtonsProps {
   index?: number;
-  onSwapClicked: (swapUpward: boolean, index?: number) => void;
+  onSwapClicked: (index1: number, index2: number) => void;
 }
 
 const OrderColumnButtons: React.FC<OrderColumnButtonsProps> = function OrderColumnButtons(
   props: OrderColumnButtonsProps
 ) {
   const onUpClicked = React.useCallback(() => {
-    props.onSwapClicked(true, props.index);
+    if (props.index == null) {
+      return;
+    }
+    props.onSwapClicked(props.index, props.index - 1);
   }, [props]);
   const onDownClicked = React.useCallback(() => {
-    props.onSwapClicked(false, props.index);
+    if (props.index == null) {
+      return;
+    }
+    props.onSwapClicked(props.index, props.index + 1);
   }, [props]);
   return (
     <div>
@@ -51,36 +57,21 @@ const OrderColumnButtons: React.FC<OrderColumnButtonsProps> = function OrderColu
   );
 };
 
-export function useOnSwapClicked<T>(
-  state: T[],
-  setState: React.Dispatch<React.SetStateAction<T[]>>
-): (swapUpward: boolean, index?: number) => void {
-  const onSwapClicked = React.useCallback(
-    (swapUpward: boolean, index?: number) => {
-      if (index == null) {
-        return;
-      }
-      if (swapUpward && index > 0) {
-        setState((prev: T[]) => {
-          const target = prev[index - 1];
-          prev[index - 1] = prev[index];
-          prev[index] = target;
-          return [...prev];
-        });
-        return;
-      }
-      if (!swapUpward && index < state.length - 1) {
-        setState((prev: T[]) => {
-          const target = prev[index + 1];
-          prev[index + 1] = prev[index];
-          prev[index] = target;
-          return [...prev];
-        });
-      }
-    },
-    [state, setState]
-  );
-  return onSwapClicked;
+export function swap<T>(items: T[], index1: number, index2: number): T[] {
+  const newItems = [...items];
+  const thisItem = newItems[index1];
+  const thatItem = newItems[index2];
+  if (
+    index1 < 0 ||
+    index2 < 0 ||
+    index1 >= items.length ||
+    index2 >= items.length
+  ) {
+    return items;
+  }
+  newItems[index1] = thatItem;
+  newItems[index2] = thisItem;
+  return newItems;
 }
 
 const DetailsListWithOrdering: React.FC<DetailsListWithOrderingProps> = function DetailsListWithOrdering(
@@ -107,7 +98,7 @@ const DetailsListWithOrdering: React.FC<DetailsListWithOrderingProps> = function
     {
       key: "order",
       fieldName: "order",
-      name: renderToString("order"),
+      name: renderToString("DetailsListWithOrdering.order"),
       minWidth: props.orderColumnMinWidth ?? 200,
       maxWidth: props.orderColumnMaxWidth ?? 200,
     },

@@ -9,9 +9,7 @@ import {
 import produce from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
-import DetailsListWithOrdering, {
-  useOnSwapClicked,
-} from "../../DetailsListWithOrdering";
+import DetailsListWithOrdering, { swap } from "../../DetailsListWithOrdering";
 import {
   PortalAPIAppConfig,
   primaryAuthenticatorTypes,
@@ -182,13 +180,21 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
     setSecondaryAuthenticatorState,
   ] = React.useState(secondaryAuthenticators);
 
-  const onPrimarySwapClicked = useOnSwapClicked(
-    primaryAuthenticators,
-    setPrimaryAuthenticatorState
+  const onPrimarySwapClicked = React.useCallback(
+    (index1: number, index2: number) => {
+      setPrimaryAuthenticatorState(
+        swap(primaryAuthenticatorState, index1, index2)
+      );
+    },
+    [primaryAuthenticatorState]
   );
-  const onSecondarySwapClicked = useOnSwapClicked(
-    secondaryAuthenticators,
-    setSecondaryAuthenticatorState
+  const onSecondarySwapClicked = React.useCallback(
+    (index1: number, index2: number) => {
+      setSecondaryAuthenticatorState(
+        swap(secondaryAuthenticatorState, index1, index2)
+      );
+    },
+    [secondaryAuthenticatorState]
   );
 
   const onPrimaryActivateClicked = useOnActivateClicked(

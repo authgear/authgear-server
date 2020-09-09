@@ -5,7 +5,6 @@
 
   "next": "Next",
   "save": "Save",
-  "order": "Order",
 
   "header.sign-out": "Sign out",
 
@@ -55,5 +54,7 @@
   "PaginationWidget.Prev": "Go to the previous page",
   "PaginationWidget.Next": "Go to the next page",
   "PaginationWidget.Last": "Go to the last page",
-  "PaginationWidget.Page": "Go to page {PAGE}"
+  "PaginationWidget.Page": "Go to page {PAGE}",
+
+  "DetailsListWithOrdering.order": "Order"
 }
