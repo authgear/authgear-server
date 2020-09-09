@@ -99,8 +99,8 @@ const DetailsListWithOrdering: React.FC<DetailsListWithOrderingProps> = function
       key: "order",
       fieldName: "order",
       name: renderToString("DetailsListWithOrdering.order"),
-      minWidth: props.orderColumnMinWidth ?? 200,
-      maxWidth: props.orderColumnMaxWidth ?? 200,
+      minWidth: props.orderColumnMinWidth ?? 100,
+      maxWidth: props.orderColumnMaxWidth ?? 100,
     },
   ];
 
