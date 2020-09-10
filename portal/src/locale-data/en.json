@@ -83,6 +83,8 @@
   "AuthenticationAuthenticator.widgetHeader.secondary": "Secondary Authenticator",
 
   "AnonymousUsersConfigurationScreen.title": "Anonymous Users",
+  "AnonymousUsersConfigurationScreen.enable.label": "Enable anonymous users?",
+  "AnonymousUsersConfigurationScreen.conflict-droplist.label": "User identity conflict when promote to normal user",
 
   "PaginationWidget.First": "Go to the first page",
   "PaginationWidget.Prev": "Go to the previous page",
