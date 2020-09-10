@@ -19,6 +19,10 @@ const AppRoot: React.FC = function AppRoot() {
           <Route path="/" element={<Navigate to="users" replace={true} />} />
           <Route path="/users" element={<UsersScreen />} />
           <Route
+            path="/users/:userID"
+            element={<Navigate to="details" replace={true} />}
+          />
+          <Route
             path="/users/:userID/details"
             element={<UserDetailsScreen />}
           />
