@@ -527,15 +527,28 @@ a.btn {
   margin: 0 6px;
 }
 
-.content-row {
-  margin: 2px;
-  padding: 2px;
+.logout-row {
+  margin: 14px 18px;
 }
 
-.content-row-layout-2x2 {
+.logout-section {
   display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-rows: auto auto;
+  grid: "title  action" auto
+      /   1fr    auto;
+}
+
+.logout-section > * {
+  margin: 0;
+}
+
+.logout-section .title {
+  grid-area: title;
+  font-size: 1rem;
+  align-self: center;
+}
+
+.logout-section .action {
+  grid-area: action;
 }
 
 .settings-row {
