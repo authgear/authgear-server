@@ -16,18 +16,18 @@ const AppRoot: React.FC = function AppRoot() {
     <ApolloProvider client={client}>
       <ScreenLayout>
         <Routes>
-          <Route path="/" element={<Navigate to="users" replace={true} />} />
-          <Route path="/users" element={<UsersScreen />} />
+          <Route path="/" element={<Navigate to="users/" replace={true} />} />
+          <Route path="/users/" element={<UsersScreen />} />
           <Route
-            path="/users/:userID"
-            element={<Navigate to="details" replace={true} />}
+            path="/users/:userID/"
+            element={<Navigate to="details/" replace={true} />}
           />
           <Route
-            path="/users/:userID/details"
+            path="/users/:userID/details/"
             element={<UserDetailsScreen />}
           />
           <Route
-            path="/configuration/authentication"
+            path="/configuration/authentication/"
             element={<AuthenticationConfigurationScreen />}
           />
         </Routes>
