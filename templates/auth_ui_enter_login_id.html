@@ -10,13 +10,13 @@
 
 <div class="simple-form vertical-form form-fields-container pane">
 
-<div class="title primary-txt">
+<h1 class="title primary-txt">
 	{{ if $.IdentityID }}
 	{{ template "enter-login-id-page-title--change" (makemap "key" $.LoginIDKey) }}
 	{{ else }}
 	{{ template "enter-login-id-page-title--add" (makemap "key" $.LoginIDKey) }}
 	{{ end }}
-</div>
+</h1>
 
 {{ template "ERROR" . }}
 

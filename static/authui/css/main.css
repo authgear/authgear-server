@@ -48,6 +48,12 @@ select {
   -webkit-appearance: none;
 }
 
+/* Use 600 for heading */
+/* https://developer.microsoft.com/en-us/fluentui#/styles/web/typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+}
+
 .white-space-pre {
   white-space: pre;
 }
@@ -375,7 +381,6 @@ a.btn {
 
 .simple-form .title {
   font-size: 24px;
-  font-weight: 600;
 }
 
 .simple-form .description {

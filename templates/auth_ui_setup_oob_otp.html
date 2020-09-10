@@ -10,14 +10,14 @@
 
 <div class="simple-form vertical-form form-fields-container pane">
 
-<div class="title primary-txt">
+<h1 class="title primary-txt">
 	{{ if eq $.InputType "phone" }}
 	{{ template "setup-oob-otp-title--sms" }}
 	{{ end }}
 	{{ if eq $.InputType "email" }}
 	{{ template "setup-oob-otp-title--email" }}
 	{{ end }}
-</div>
+</h1>
 
 {{ template "ERROR" . }}
 

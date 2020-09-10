@@ -16,10 +16,10 @@
 
 {{ if $.IdentityDisplayID }}
 {{ if eq $.VerificationCodeChannel "sms" }}
-<div class="title primary-txt">{{ template "verify-user-page-title--sms" }}</div>
+<h1 class="title primary-txt">{{ template "verify-user-page-title--sms" }}</h1>
 {{ end }}
 {{ if eq $.VerificationCodeChannel "email" }}
-<div class="title primary-txt">{{ template "verify-user-page-title--email" }}</div>
+<h1 class="title primary-txt">{{ template "verify-user-page-title--email" }}</h1>
 {{ end }}
 {{ end }}
 
