@@ -8,6 +8,6 @@ declare interface GQL_IdentityClaims extends Record<string, unknown> {
 
 declare type GQL_AuthenticatorClaims = Record<string, unknown>;
 
-declare type GQL_AppConfig = Record<string, unknown>;
+declare type GQL_AppConfig = PortalAPIAppConfig;
 
 declare type GQL_SecretConfig = Record<string, unknown>;
