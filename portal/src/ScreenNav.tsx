@@ -32,6 +32,12 @@ const ScreenNav: React.FC = function ScreenNav() {
             url: "configuration/anonymous-users",
             icon: "Color",
           },
+          {
+            key: "singleSignOn",
+            name: renderToString("ScreenNav.single-sign-on"),
+            url: "configuration/single-sign-on",
+            icon: "PlugConnected",
+          },
         ],
       },
     ];

@@ -25,6 +25,7 @@
   "ScreenNav.users": "Users",
   "ScreenNav.authentication": "Authentication",
   "ScreenNav.anonymous-users": "Anonymous Users",
+  "ScreenNav.single-sign-on": "Single-Sign On",
 
   "NavBreadcrumb.label": "Nested navigation",
 
@@ -90,6 +91,8 @@
   "AnonymousUsersConfigurationScreen.title": "Anonymous Users",
   "AnonymousUsersConfigurationScreen.enable.label": "Enable anonymous users?",
   "AnonymousUsersConfigurationScreen.conflict-droplist.label": "User identity conflict when promote to normal user",
+
+  "SingleSignOnConfigurationScreen.title": "Single-Sign On",
 
   "PaginationWidget.First": "Go to the first page",
   "PaginationWidget.Prev": "Go to the previous page",

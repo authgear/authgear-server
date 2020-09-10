@@ -7,6 +7,7 @@ import UsersScreen from "./graphql/adminapi/UsersScreen";
 import UserDetailsScreen from "./graphql/adminapi/UserDetailsScreen";
 import AuthenticationConfigurationScreen from "./graphql/portal/AuthenticationConfigurationScreen";
 import AnonymousUsersConfigurationScreen from "./graphql/portal/AnonymousUsersConfigurationScreen";
+import SingleSignOnConfigurationScreen from "./graphql/portal/SingleSignOnConfigurationScreen";
 
 const AppRoot: React.FC = function AppRoot() {
   const { appID } = useParams();
@@ -34,6 +35,10 @@ const AppRoot: React.FC = function AppRoot() {
           <Route
             path="/configuration/anonymous-users"
             element={<AnonymousUsersConfigurationScreen />}
+          />
+          <Route
+            path="/configuration/single-sign-on"
+            element={<SingleSignOnConfigurationScreen />}
           />
         </Routes>
       </ScreenLayout>
