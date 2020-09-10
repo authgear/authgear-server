@@ -132,7 +132,7 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
 
   const navBreadcrumbItems = React.useMemo(() => {
     return [
-      { to: "../../", label: <FormattedMessage id="UsersScreen.title" /> },
+      { to: "../..", label: <FormattedMessage id="UsersScreen.title" /> },
       { to: ".", label: <FormattedMessage id="UserDetailsScreen.title" /> },
     ];
   }, []);
