@@ -17,6 +17,7 @@ interface DetailsListWithOrderingProps extends IDetailsListProps {
     index?: number,
     column?: IColumn
   ) => React.ReactNode;
+  renderAriaLabel: (index?: number) => string;
   orderColumnMinWidth?: number;
   orderColumnMaxWidth?: number;
 }
@@ -25,36 +26,49 @@ interface OrderColumnButtonsProps {
   index?: number;
   itemCount: number;
   onSwapClicked: (index1: number, index2: number) => void;
+  renderAriaLabel: (index?: number) => string;
 }
 
 const OrderColumnButtons: React.FC<OrderColumnButtonsProps> = function OrderColumnButtons(
   props: OrderColumnButtonsProps
 ) {
+  const { index, itemCount, onSwapClicked, renderAriaLabel } = props;
+  const { renderToString } = React.useContext(Context);
   const onUpClicked = React.useCallback(() => {
-    if (props.index == null) {
+    if (index == null) {
       return;
     }
-    props.onSwapClicked(props.index, props.index - 1);
-  }, [props]);
+    onSwapClicked(index, index - 1);
+  }, [index, onSwapClicked]);
   const onDownClicked = React.useCallback(() => {
-    if (props.index == null) {
+    if (index == null) {
       return;
     }
-    props.onSwapClicked(props.index, props.index + 1);
-  }, [props]);
+    onSwapClicked(index, index + 1);
+  }, [index, onSwapClicked]);
+
+  const ariaLabelUp = React.useMemo(() => {
+    return [renderAriaLabel(index), renderToString("up")].join(" | ");
+  }, [renderAriaLabel, index, renderToString]);
+  const ariaLabelDown = React.useMemo(() => {
+    return [renderAriaLabel(index), renderToString("down")].join(" | ");
+  }, [renderAriaLabel, index, renderToString]);
+
   return (
     <div>
       <IconButton
         className={styles.orderColumnButton}
-        disabled={props.index === props.itemCount - 1}
+        disabled={index === itemCount - 1}
         onClick={onDownClicked}
         iconProps={{ iconName: "ChevronDown" }}
+        ariaLabel={ariaLabelDown}
       />
       <IconButton
         className={styles.orderColumnButton}
-        disabled={props.index === 0}
+        disabled={index === 0}
         onClick={onUpClicked}
         iconProps={{ iconName: "ChevronUp" }}
+        ariaLabel={ariaLabelUp}
       />
     </div>
   );
@@ -89,6 +103,7 @@ const DetailsListWithOrdering: React.FC<DetailsListWithOrderingProps> = function
             index={index}
             itemCount={props.items.length}
             onSwapClicked={props.onSwapClicked}
+            renderAriaLabel={props.renderAriaLabel}
           />
         );
       }

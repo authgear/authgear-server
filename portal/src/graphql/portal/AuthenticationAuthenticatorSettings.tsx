@@ -61,6 +61,7 @@ function useRenderItemColumn<KeyType extends string>(
         case "activated":
           return (
             <AuthenticatorCheckbox
+              ariaLabel={item.key}
               authenticatorKey={item.key}
               checked={item.activated}
               onAuthticatorCheckboxChange={onCheckboxClicked}
@@ -212,6 +213,19 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
     onSecondaryActivateClicked
   );
 
+  const renderPrimaryAriaLabel = React.useCallback(
+    (index?: number): string => {
+      return index != null ? primaryAuthenticatorState[index].key : "";
+    },
+    [primaryAuthenticatorState]
+  );
+  const renderSecondaryAriaLabel = React.useCallback(
+    (index?: number): string => {
+      return index != null ? secondaryAuthenticatorState[index].key : "";
+    },
+    [secondaryAuthenticatorState]
+  );
+
   const onSaveButtonClicked = React.useCallback(() => {
     if (props.appConfig == null) {
       return;
@@ -248,6 +262,7 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
           onRenderItemColumn={renderPrimaryItemColumn}
           onSwapClicked={onPrimarySwapClicked}
           selectionMode={SelectionMode.none}
+          renderAriaLabel={renderPrimaryAriaLabel}
         />
       </div>
 
@@ -264,6 +279,7 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
           onRenderItemColumn={renderSecondaryItemColumn}
           onSwapClicked={onSecondarySwapClicked}
           selectionMode={SelectionMode.none}
+          renderAriaLabel={renderSecondaryAriaLabel}
         />
       </div>
 

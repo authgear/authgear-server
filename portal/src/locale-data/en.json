@@ -9,6 +9,8 @@
   "activated": "Activated",
   "remove": "Remove",
   "disable": "Disable",
+  "up": "Up",
+  "down": "Down",
 
   "header.sign-out": "Sign out",
 
