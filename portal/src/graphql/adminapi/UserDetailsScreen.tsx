@@ -32,12 +32,6 @@ interface UserDetailsProps {
   loading: boolean;
 }
 
-function isUserDetails(value: any): value is UserDetailsScreenQuery_node_User {
-  if (!(value instanceof Object)) {
-    return false;
-  }
-  return value.__typename === "User";
-}
 const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
 ) {
@@ -145,7 +139,7 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
 
   const userDetails = React.useMemo(() => {
     const node = data?.node;
-    return isUserDetails(node) ? node : null;
+    return node?.__typename === "User" ? node : null;
   }, [data]);
 
   const commandBarItems: ICommandBarItemProps[] = [
