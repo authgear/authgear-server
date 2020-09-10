@@ -19,6 +19,7 @@
   "ScreenNav.label": "Top-level tab navigation",
   "ScreenNav.users": "Users",
   "ScreenNav.authentication": "Authentication",
+  "ScreenNav.anonymous-users": "Anonymous Users",
 
   "NavBreadcrumb.label": "Nested navigation",
 
@@ -80,6 +81,8 @@
   "AuthenticationAuthenticator.authenticatorHeader": "Authenticator",
   "AuthenticationAuthenticator.widgetHeader.primary": "Primary Authenticator",
   "AuthenticationAuthenticator.widgetHeader.secondary": "Secondary Authenticator",
+
+  "AnonymousUsersConfigurationScreen.title": "Anonymous Users",
 
   "PaginationWidget.First": "Go to the first page",
   "PaginationWidget.Prev": "Go to the previous page",
