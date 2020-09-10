@@ -130,7 +130,7 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
     },
   });
 
-  const navBreadcrumItems = React.useMemo(() => {
+  const navBreadcrumbItems = React.useMemo(() => {
     return [
       { to: "../../", label: <FormattedMessage id="UsersScreen.title" /> },
       { to: ".", label: <FormattedMessage id="UserDetailsScreen.title" /> },
@@ -182,7 +182,7 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
         farItems={commandBarItems}
       />
       <div className={styles.screenContent}>
-        <NavBreadcrumb items={navBreadcrumItems} />
+        <NavBreadcrumb items={navBreadcrumbItems} />
         <UserDetails data={userDetails} loading={loading} />
       </div>
     </main>
