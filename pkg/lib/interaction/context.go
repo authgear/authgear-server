@@ -87,7 +87,7 @@ type MFAService interface {
 type UserService interface {
 	Get(id string) (*model.User, error)
 	Create(userID string) (*user.User, error)
-	AfterCreate(user *user.User, identities []*identity.Info, authenticators []*authenticator.Info) error
+	AfterCreate(user *user.User, identities []*identity.Info) error
 	UpdateLoginTime(user *model.User, lastLoginAt time.Time) error
 }
 
@@ -119,11 +119,13 @@ type LoginIDNormalizerFactory interface {
 }
 
 type VerificationService interface {
-	GetVerificationStatus(i *identity.Info) (verification.Status, error)
+	GetIdentityVerificationStatus(i *identity.Info) ([]verification.ClaimStatus, error)
 	CreateNewCode(id string, info *identity.Info) (*verification.Code, error)
 	GetCode(id string) (*verification.Code, error)
 	VerifyCode(id string, code string) (*verification.Code, error)
-	NewVerificationAuthenticator(code *verification.Code) (*authenticator.Info, error)
+	NewVerifiedClaim(userID string, claimName string, claimValue string) *verification.Claim
+	MarkClaimVerified(claim *verification.Claim) error
+	MarkClaimUnverified(userID string, claimName string, claimValue string) error
 }
 
 type VerificationCodeSender interface {

@@ -43,7 +43,7 @@ func (i *IntentVerifyIdentity) DeriveEdgesForNode(graph *interaction.Graph, node
 		return []interaction.Edge{
 			&nodes.EdgeDoVerifyIdentity{
 				Identity:         node.Identity,
-				NewAuthenticator: node.NewAuthenticator,
+				NewVerifiedClaim: node.NewVerifiedClaim,
 			},
 		}, nil
 

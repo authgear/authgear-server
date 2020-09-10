@@ -36,7 +36,7 @@ func ConfigureSettingsIdentityRoute(route httproute.Route) httproute.Route {
 }
 
 type SettingsIdentityViewModel struct {
-	VerificationStatuses map[string]verification.Status
+	VerificationStatuses map[string][]verification.ClaimStatus
 }
 
 type SettingsIdentityService interface {
@@ -45,7 +45,7 @@ type SettingsIdentityService interface {
 }
 
 type SettingsVerificationService interface {
-	GetVerificationStatuses(is []*identity.Info) (map[string]verification.Status, error)
+	GetVerificationStatuses(is []*identity.Info) (map[string][]verification.ClaimStatus, error)
 }
 
 type SettingsIdentityHandler struct {
@@ -105,9 +105,7 @@ func (h *SettingsIdentityHandler) GetData(r *http.Request, state *webapp.State) 
 	}
 	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithCandidates(candidates)
 
-	viewModel := SettingsIdentityViewModel{
-		VerificationStatuses: map[string]verification.Status{},
-	}
+	viewModel := SettingsIdentityViewModel{}
 	identities, err := h.Identities.ListByUser(*userID)
 	if err != nil {
 		return nil, err

@@ -4,24 +4,15 @@ import (
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package verification
-
-type IdentityService interface {
-	ListByUser(userID string) ([]*identity.Info, error)
-}
-
-type AuthenticatorService interface {
-	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
-	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
-}
 
 type CodeStore interface {
 	Create(code *Code) error
@@ -42,166 +33,152 @@ type Logger struct{ *log.Logger }
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("verification")} }
 
 type Service struct {
-	Logger         Logger
-	Config         *config.VerificationConfig
-	Clock          clock.Clock
-	Identities     IdentityService
-	Authenticators AuthenticatorService
-	CodeStore      CodeStore
-	ClaimStore     ClaimStore
+	Logger     Logger
+	Config     *config.VerificationConfig
+	Clock      clock.Clock
+	CodeStore  CodeStore
+	ClaimStore ClaimStore
 }
 
-func (s *Service) IsIdentityVerifiable(i *identity.Info) bool {
-	switch i.Type {
-	case authn.IdentityTypeLoginID:
-		_, hasEmail := i.Claims[identity.StandardClaimEmail]
-		_, hasPhoneNumber := i.Claims[identity.StandardClaimPhoneNumber]
-		return (hasEmail && *s.Config.Claims.Email.Enabled) ||
-			(hasPhoneNumber && *s.Config.Claims.PhoneNumber.Enabled)
-	case authn.IdentityTypeOAuth:
-		return true
+func (s *Service) claimVerificationConfig(claimName string) *config.VerificationClaimConfig {
+	switch claimName {
+	case identity.StandardClaimEmail:
+		return s.Config.Claims.Email
+	case identity.StandardClaimPhoneNumber:
+		return s.Config.Claims.PhoneNumber
 	default:
-		return false
+		return nil
 	}
 }
 
-func (s *Service) getVerificationStatus(i *identity.Info, iis []*identity.Info, ais []*authenticator.Info) Status {
-	visited := map[string]bool{}
-	var getStatus func(i *identity.Info) Status
-	getStatus = func(i *identity.Info) Status {
-		visited[i.ID] = true
-		if !s.IsIdentityVerifiable(i) {
-			return StatusDisabled
-		}
-
-		var isVerified bool
-		var isRequired bool
-		switch i.Type {
-		case authn.IdentityTypeLoginID:
-			isVerified = false
-			filter := authenticator.KeepMatchingAuthenticatorOfIdentity(i)
-			for _, a := range ais {
-				if filter.Keep(a) {
-					isVerified = true
-					break
-				}
-			}
-
-			if email, ok := i.Claims[identity.StandardClaimEmail].(string); ok {
-				for _, si := range iis {
-					if si.ID == i.ID || visited[si.ID] || si.Claims[identity.StandardClaimEmail] != email {
-						continue
-					}
-
-					status := getStatus(si)
-					if status == StatusVerified {
-						isVerified = true
-						break
-					}
-				}
-			}
-
-			_, hasEmail := i.Claims[identity.StandardClaimEmail]
-			_, hasPhoneNumber := i.Claims[identity.StandardClaimPhoneNumber]
-			isRequired = (hasEmail && *s.Config.Claims.Email.Required) ||
-				(hasPhoneNumber && *s.Config.Claims.PhoneNumber.Required)
-		case authn.IdentityTypeOAuth:
-			isVerified = true
-			isRequired = false
-		default:
-			isVerified = false
-			isRequired = false
-		}
-
-		switch {
-		case isVerified:
-			return StatusVerified
-		case isRequired:
-			return StatusRequired
-		default:
-			return StatusPending
-		}
+func (s *Service) IsClaimVerifiable(claimName string) bool {
+	if c := s.claimVerificationConfig(claimName); c != nil && *c.Enabled {
+		return true
 	}
-
-	return getStatus(i)
+	return false
 }
 
-func (s *Service) GetVerificationStatus(i *identity.Info) (Status, error) {
-	if !s.IsIdentityVerifiable(i) {
+func (s *Service) GetClaimVerificationStatus(userID string, name string, value string) (Status, error) {
+	c := s.claimVerificationConfig(name)
+	if c == nil || !*c.Enabled {
 		return StatusDisabled, nil
 	}
 
-	identities, err := s.Identities.ListByUser(i.UserID)
-	if err != nil {
+	_, err := s.ClaimStore.Get(userID, name, value)
+	if errors.Is(err, ErrClaimUnverified) {
+		if *c.Required {
+			return StatusRequired, nil
+		}
+		return StatusPending, nil
+	} else if err != nil {
 		return "", err
 	}
 
-	authenticators, err := s.Authenticators.List(i.UserID)
-	if err != nil {
-		return "", err
-	}
-
-	return s.getVerificationStatus(i, identities, authenticators), nil
+	return StatusVerified, nil
 }
 
-func (s *Service) GetVerificationStatuses(is []*identity.Info) (map[string]Status, error) {
+func (s *Service) getVerificationStatus(i *identity.Info, verifiedClaims map[claim]struct{}) []ClaimStatus {
+	var statuses []ClaimStatus
+	for claimName, claimValue := range i.Claims {
+		c := s.claimVerificationConfig(claimName)
+		if c == nil || !*c.Enabled {
+			continue
+		}
+
+		value, ok := claimValue.(string)
+		if !ok {
+			continue
+		}
+
+		var status Status
+		if _, verified := verifiedClaims[claim{claimName, value}]; verified {
+			status = StatusVerified
+		} else if *c.Required {
+			status = StatusRequired
+		} else {
+			status = StatusPending
+		}
+
+		if status != StatusDisabled {
+			statuses = append(statuses, ClaimStatus{
+				Name:   claimName,
+				Status: status,
+			})
+		}
+	}
+	return statuses
+}
+
+func (s *Service) GetIdentityVerificationStatus(i *identity.Info) ([]ClaimStatus, error) {
+	claims, err := s.ClaimStore.ListByUser(i.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	verifiedClaims := make(map[claim]struct{})
+	for _, c := range claims {
+		verifiedClaims[claim{c.Name, c.Value}] = struct{}{}
+	}
+
+	return s.getVerificationStatus(i, verifiedClaims), nil
+}
+
+func (s *Service) GetVerificationStatuses(is []*identity.Info) (map[string][]ClaimStatus, error) {
 	if len(is) == 0 {
 		return nil, nil
 	}
 
 	// Assuming user ID of all identities is same
 	userID := is[0].UserID
-	authenticators, err := s.Authenticators.List(userID)
-	if err != nil {
-		return nil, err
-	}
-	identities, err := s.Identities.ListByUser(userID)
+	claims, err := s.ClaimStore.ListByUser(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	statuses := map[string]Status{}
+	verifiedClaims := make(map[claim]struct{})
+	for _, c := range claims {
+		verifiedClaims[claim{c.Name, c.Value}] = struct{}{}
+	}
+
+	statuses := map[string][]ClaimStatus{}
 	for _, i := range is {
 		if i.UserID != userID {
 			panic("verification: expect all user ID is same")
 		}
-		statuses[i.ID] = s.getVerificationStatus(i, identities, authenticators)
+		statuses[i.ID] = s.getVerificationStatus(i, verifiedClaims)
 	}
 	return statuses, nil
 }
 
-func (s *Service) IsUserVerified(identities []*identity.Info, userID string) (bool, error) {
-	as, err := s.Authenticators.List(userID)
+func (s *Service) IsUserVerified(identities []*identity.Info) (bool, error) {
+	statuses, err := s.GetVerificationStatuses(identities)
 	if err != nil {
 		return false, err
 	}
 
-	return s.IsVerified(identities, as), nil
-}
-
-func (s *Service) IsVerified(identities []*identity.Info, authenticators []*authenticator.Info) bool {
 	numVerifiable := 0
 	numVerified := 0
-	for _, i := range identities {
-		status := s.getVerificationStatus(i, identities, authenticators)
-		switch status {
-		case StatusVerified:
-			numVerifiable++
-			numVerified++
-		case StatusPending, StatusRequired:
-			numVerifiable++
-		case StatusDisabled:
-			break
-		default:
-			panic("verification: unknown status:" + status)
+	for _, claimStatuses := range statuses {
+		for _, claim := range claimStatuses {
+			switch claim.Status {
+			case StatusVerified:
+				numVerifiable++
+				numVerified++
+			case StatusPending, StatusRequired:
+				numVerifiable++
+			case StatusDisabled:
+				break
+			default:
+				panic("verification: unknown status:" + claim.Status)
+			}
 		}
 	}
 
 	switch s.Config.Criteria {
 	case config.VerificationCriteriaAny:
-		return numVerifiable > 0 && numVerified >= 1
+		return numVerifiable > 0 && numVerified >= 1, nil
 	case config.VerificationCriteriaAll:
-		return numVerifiable > 0 && numVerified == numVerifiable
+		return numVerifiable > 0 && numVerified == numVerifiable, nil
 	default:
 		panic("verification: unknown criteria " + s.Config.Criteria)
 	}
@@ -266,22 +243,32 @@ func (s *Service) VerifyCode(id string, code string) (*Code, error) {
 	return codeModel, nil
 }
 
-func (s *Service) NewVerificationAuthenticator(code *Code) (*authenticator.Info, error) {
-	spec := &authenticator.Spec{
-		UserID: code.UserID,
-		Type:   authn.AuthenticatorTypeOOB,
-		Claims: map[string]interface{}{},
+func (s *Service) NewVerifiedClaim(userID string, claimName string, claimValue string) *Claim {
+	return &Claim{
+		ID:     uuid.New(),
+		UserID: userID,
+		Name:   claimName,
+		Value:  claimValue,
 	}
-	switch config.LoginIDKeyType(code.LoginIDType) {
-	case config.LoginIDKeyTypeEmail:
-		spec.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType] = string(authn.AuthenticatorOOBChannelEmail)
-		spec.Claims[authenticator.AuthenticatorClaimOOBOTPEmail] = code.LoginID
-	case config.LoginIDKeyTypePhone:
-		spec.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType] = string(authn.AuthenticatorOOBChannelSMS)
-		spec.Claims[authenticator.AuthenticatorClaimOOBOTPPhone] = code.LoginID
-	default:
-		panic("verification: unsupported login ID type: " + code.LoginIDType)
+}
+
+func (s *Service) MarkClaimVerified(claim *Claim) error {
+	claim.CreatedAt = s.Clock.NowUTC()
+	return s.ClaimStore.Create(claim)
+}
+
+func (s *Service) MarkClaimUnverified(userID string, claimName string, claimValue string) error {
+	claim, err := s.ClaimStore.Get(userID, claimName, claimValue)
+	if errors.Is(err, ErrClaimUnverified) {
+		return nil
+	} else if err != nil {
+		return err
 	}
 
-	return s.Authenticators.New(spec, "")
+	err = s.ClaimStore.Delete(claim.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

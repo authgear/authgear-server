@@ -72,16 +72,16 @@ func (m *MockVerificationService) EXPECT() *MockVerificationServiceMockRecorder 
 }
 
 // IsUserVerified mocks base method
-func (m *MockVerificationService) IsUserVerified(identities []*identity.Info, userID string) (bool, error) {
+func (m *MockVerificationService) IsUserVerified(identities []*identity.Info) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsUserVerified", identities, userID)
+	ret := m.ctrl.Call(m, "IsUserVerified", identities)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // IsUserVerified indicates an expected call of IsUserVerified
-func (mr *MockVerificationServiceMockRecorder) IsUserVerified(identities, userID interface{}) *gomock.Call {
+func (mr *MockVerificationServiceMockRecorder) IsUserVerified(identities interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsUserVerified", reflect.TypeOf((*MockVerificationService)(nil).IsUserVerified), identities, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsUserVerified", reflect.TypeOf((*MockVerificationService)(nil).IsUserVerified), identities)
 }
