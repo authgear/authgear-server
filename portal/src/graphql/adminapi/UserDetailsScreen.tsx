@@ -175,7 +175,7 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
   }
 
   return (
-    <div className={styles.root}>
+    <main className={styles.root} role="main">
       <CommandBar
         className={styles.commandBar}
         items={[]}
@@ -185,7 +185,7 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
         <NavBreadcrumb items={navBreadcrumItems} />
         <UserDetails data={userDetails} loading={loading} />
       </div>
-    </div>
+    </main>
   );
 };
 
