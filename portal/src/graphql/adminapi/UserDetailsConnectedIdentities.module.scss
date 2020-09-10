@@ -9,29 +9,37 @@
   margin: 0;
 }
 
-.cellInfo {
-  display: flex;
-  padding: 5px 0 3px;
+.list {
+  padding: 5px 0 0;
+}
+
+.cellContainer {
+  font-weight: 300;
+  font-size: 13px;
+  display: grid;
+  grid-gap: 3px 0;
+  grid-template:
+    "icon    name    remove"
+    "icon    desc    remove"
+    / 35px auto 90px;
 }
 
 .cellIcon {
   padding: 3px;
-}
-
-.cellDetail {
-  padding: 0 10px;
-  font-weight: 300;
-  font-size: 13px;
+  grid-area: icon;
 }
 
 .cellName {
-  padding-bottom: 3px;
+  grid-area: name;
 }
 
 .cellDesc {
   color: #888888;
+  grid-area: desc;
 }
 
 .removeButton {
-  margin-right: 3px;
+  margin-right: 5px;
+  grid-area: remove;
+  place-self: center;
 }

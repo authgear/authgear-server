@@ -11,21 +11,30 @@
   font-size: 14px;
 }
 
-.cellInfo {
+.cell {
   font-size: 13px;
-  padding: 3px 0;
+  display: grid;
+  grid-gap: 3px 0;
+  grid-template:
+    "label       details"
+    "desc        details"
+    / auto 90px;
 }
 
 .cellLabel {
   margin-bottom: 5px;
+  grid-area: label;
 }
 
 .cellDesc {
   color: #888888;
+  grid-area: desc;
 }
 
 .detailsButton {
   align-self: center;
+  grid-area: details;
+  place-self: center;
 }
 
 .activated {

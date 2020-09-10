@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback, useContext } from "react";
 import cn from "classnames";
-import { List, PrimaryButton } from "@fluentui/react";
+import { List, PrimaryButton, Text } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 
 import ListCellLayout from "../../ListCellLayout";
@@ -124,13 +124,11 @@ const AuthenticatorDetailListCell: React.FC<{
     return null;
   }
   return (
-    <ListCellLayout>
-      <div className={styles.cellInfo}>
-        <div className={styles.cellLabel}>{item.label}</div>
-        <div className={cn(styles.cellDesc, item.descriptionClassName)}>
-          {item.description}
-        </div>
-      </div>
+    <ListCellLayout className={styles.cell}>
+      <Text className={styles.cellLabel}>{item.label}</Text>
+      <Text className={cn(styles.cellDesc, item.descriptionClassName)}>
+        {item.description}
+      </Text>
       <PrimaryButton
         className={styles.detailsButton}
         onClick={item.onDetailButtonClick}

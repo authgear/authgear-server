@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback } from "react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
-import { List, PrimaryButton } from "@fluentui/react";
+import { List, PrimaryButton, Text } from "@fluentui/react";
 
 import ListCellLayout from "../../ListCellLayout";
 import { formatDatetime } from "../../util/formatDatetime";
@@ -39,19 +39,15 @@ const IdentityListCell: React.FC<{
     return null;
   }
   return (
-    <ListCellLayout>
-      <div className={styles.cellInfo}>
-        <div className={styles.cellIcon}>{item.icon}</div>
-        <div className={styles.cellDetail}>
-          <div className={styles.cellName}>{item.identityName}</div>
-          <div className={styles.cellDesc}>
-            <FormattedMessage
-              id="UserDetails.connected-identities.connected-on"
-              values={{ datetime: item.connectedOn }}
-            />
-          </div>
-        </div>
-      </div>
+    <ListCellLayout className={styles.cellContainer}>
+      <div className={styles.cellIcon}>{item.icon}</div>
+      <Text className={styles.cellName}>{item.identityName}</Text>
+      <Text className={styles.cellDesc}>
+        <FormattedMessage
+          id="UserDetails.connected-identities.connected-on"
+          values={{ datetime: item.connectedOn }}
+        />
+      </Text>
       <PrimaryButton
         className={styles.removeButton}
         theme={destructiveTheme}
@@ -97,7 +93,11 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
       <h1 className={styles.header}>
         <FormattedMessage id="UserDetails.connected-identities.header" />
       </h1>
-      <List items={identityListItems} onRenderCell={onRenderIdentityCell} />
+      <List
+        className={styles.list}
+        items={identityListItems}
+        onRenderCell={onRenderIdentityCell}
+      />
     </div>
   );
 };
