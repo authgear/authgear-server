@@ -1,27 +1,36 @@
 .root {
-  display: flex;
-  align-content: center;
-  min-width: 600px;
+  width: 600px;
+  font-size: 13px;
+  font-weight: 300;
+  display: grid;
+  grid-gap: 5px;
+  grid-template:
+    "pic         email"
+    "pic      username"
+    "pic             ." 10px
+    "pic     createdAt"
+    "pic   lastLoginAt"
+    / 74px auto;
 }
 
 .profilePic {
-  margin: auto 0 auto 15px;
+  grid-area: pic;
+  place-self: center;
+  padding-left: 15px;
 }
 
-.userData {
-  padding-right: 30px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+.email {
+  grid-area: email;
 }
 
-.userInfo {
-  margin-top: 5px;
-  margin-bottom: 20px;
+.username {
+  grid-area: username;
 }
 
-.userInfoRow {
-  font-size: 13px;
-  font-weight: 300;
-  margin-bottom: 5px;
+.createdAt {
+  grid-area: createdAt;
+}
+
+.lastLoginAt {
+  grid-area: lastLoginAt;
 }
