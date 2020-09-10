@@ -19,10 +19,11 @@
 	"connect-button-label": "Connect",
 	"disconnect-button-label": "Disconnect",
 	"change-button-label": "Change",
-	"verify-button-label": "Verify",
 	"setup-button-label": "Setup",
 	"remove-button-label": "Remove",
 	"details-button-label": "Details",
+	"resend-verification-code-button-label": "Resend verification code",
+	"verification-status-label--unverified": "Not verified",
 	"verification-status-label--verified": "Verified",
 	
 	"create-device-token-label": "Do not ask again on this device",

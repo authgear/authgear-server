@@ -105,7 +105,7 @@ h1, h2, h3, h4, h5, h6 {
   border: none;
   border-radius: 0;
   /* NOTE(1) */
-  font-size: 16px;
+  font-size: 1rem;
   border-bottom-style: solid;
   border-bottom-width: 1px;
   border-bottom-color: #a19f9d;
@@ -142,7 +142,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .btn {
   /* NOTE(1) */
-  font-size: 16px;
+  font-size: 1rem;
   height: 32px;
   border-radius: 2px;
 }
@@ -159,9 +159,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .destructive-btn {
-  color: #323130;
-  background-color: #CACACA;
-  min-width: 100px;
+  color: #E23D3D;
 }
 
 .link {
@@ -173,6 +171,8 @@ button.link {
 }
 
 button.anchor {
+  /* NOTE(1) */
+  font-size: 1rem;
   color: #166bef;
 }
 
@@ -424,72 +424,6 @@ a.btn {
   justify-content: space-between;
 }
 
-.settings-identity {
-  display: flex;
-  flex-direction: column;
-  padding: 10px;
-}
-
-.settings-identity .title {
-  margin: 0;
-  padding: 10px;
-  font-size: 24px;
-}
-
-.settings-identity .identity {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  min-height: 70px;
-  border: solid 1px #d8d8d8;
-  margin: 5px 10px;
-  padding: 6px;
-}
-
-.settings-identity .icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 4px;
-  background-position: center;
-  background-repeat: no-repeat;
-  margin: 6px;
-}
-
-.settings-identity .icon.oauth {
-  background-size: 24px auto;
-}
-
-.settings-identity .icon.login_id {
-  background-size: 40px auto;
-}
-
-.settings-identity .identity-info {
-  margin: 2px;
-  flex: 1;
-}
-
-.settings-identity .identity-name,
-.settings-identity .identity-claim {
-  margin: 0;
-  padding: 2px;
-  font-size: 14px;
-}
-
-.settings-identity .identity-actions {
-  display: flex;
-  flex-direction: column;
-}
-
-.settings-identity .identity .btn {
-  margin: 6px;
-}
-
-.settings-identity .identity-verified {
-  text-align: center;
-  font-size: 14px;
-  color: #008000;
-}
-
 .login_id.email {
   background-image: url("../image/ic_login_id_email.png");
 }
@@ -581,4 +515,88 @@ a.btn {
   grid-area: action;
 }
 
+.settings-identity-row {
+  margin: 10px 14px 0px 14px;
+  padding: 0 0 10px 0;
+}
+
+.settings-identity-row:not(:last-child) {
+  border-bottom: 1px solid #E5E5E5;
+}
+
+.settings-identity-title-section {
+  display: grid;
+  grid: "title"
+        "desc";
+  gap: 8px;
+}
+
+.settings-identity-title-section > * {
+  margin: 0;
+}
+
+.settings-identity-title-section .title {
+  grid-area: title;
+  font-size: 1rem;
+}
+
+.settings-identity-title-section .description {
+  grid-area: desc;
+  font-size: smaller;
+}
+
+.settings-identity-identity-section {
+  display: grid;
+  grid: "icon  name   action1" auto
+        "....  claim  action2" auto
+      /  auto   1fr    auto;
+  font-size: 1rem;
+}
+
+.settings-identity-identity-section > * {
+  margin: 0;
+}
+
+.settings-identity-identity-section .icon {
+  grid-area: icon;
+  background-repeat: no-repeat;
+  background-size: 24px 24px;
+  background-position: center;
+  width: 24px;
+  height: 24px;
+  margin: 6px;
+}
+
+.settings-identity-identity-section .name {
+  grid-area: name;
+  align-self: center;
+  justify-self: start;
+  font-size: inherit;
+}
+
+.settings-identity-identity-section .claim {
+  grid-area: claim;
+  align-self: center;
+  justify-self: start;
+  font-size: smaller;
+}
+
+.settings-identity-identity-section .claim .verified {
+  color: #58CA9A;
+}
+
+.settings-identity-identity-section .claim .unverified {
+  color: #FBCA4E;
+}
+
+.settings-identity-identity-section .primary-action {
+  grid-area: action1;
+  align-self: center;
+  justify-self: end;
+}
+
+.settings-identity-identity-section .secondary-action {
+  grid-area: action2;
+  align-self: center;
+  justify-self: end;
 }
