@@ -219,6 +219,10 @@ a.btn {
   background-repeat: no-repeat;
 }
 
+.back-btn[disabled] {
+  visibility: hidden;
+}
+
 .password-visibility-btn.hide-password {
   display: none;
 }

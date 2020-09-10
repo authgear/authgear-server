@@ -4,6 +4,9 @@
 <body class="page">
 	<div class="content">
 		{{ template "auth_ui_header.html" . }}
+
+		{{ template "auth_ui_nav_bar.html" true }}
+
 		<div class="authorize-form pane">
 			<div class="authorize-idp-section">
 				{{ range $.IdentityCandidates }}

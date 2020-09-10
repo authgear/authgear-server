@@ -7,7 +7,9 @@
 {{ template "auth_ui_header.html" . }}
 
 {{ if $.IdentityDisplayID }}
-{{ template "auth_ui_nav_bar.html" . }}
+{{ template "auth_ui_nav_bar.html" }}
+{{ else }}
+{{ template "auth_ui_nav_bar.html" true }}
 {{ end }}
 
 <div class="simple-form vertical-form form-fields-container pane">
