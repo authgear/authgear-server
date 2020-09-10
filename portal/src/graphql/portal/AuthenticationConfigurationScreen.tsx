@@ -55,11 +55,11 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
   }
 
   return (
-    <div className={styles.root}>
+    <main className={styles.root} role="main">
       <div className={styles.content}>
-        <div className={styles.title}>
+        <h1 className={styles.title}>
           <FormattedMessage id="AuthenticationScreen.title" />
-        </div>
+        </h1>
         <div className={styles.tabsContainer}>
           <Pivot>
             <PivotItem
@@ -77,7 +77,7 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
           </Pivot>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

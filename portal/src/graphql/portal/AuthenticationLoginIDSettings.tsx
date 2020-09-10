@@ -46,16 +46,17 @@ const switchStyle = { root: { margin: "0" } };
 const WidgetHeader: React.FC<WidgetHeaderProps> = function (
   props: WidgetHeaderProps
 ) {
+  const { renderToString } = React.useContext(Context);
+
   return (
     <div className={styles.widgetHeader}>
       <Toggle
+        label={renderToString(props.titleId)}
+        inlineLabel={true}
         styles={switchStyle}
         checked={props.enabled}
         onChanged={props.setEnabled}
       />
-      <header className={styles.widgetHeaderText}>
-        <FormattedMessage id={props.titleId} />
-      </header>
     </div>
   );
 };
@@ -285,6 +286,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
           initiallyExtended={usernameEnabled}
           extendable={true}
           readOnly={!usernameEnabled}
+          extendButtonAriaLabelId={"AuthenticationWidget.usernameExtend"}
           HeaderComponent={
             <WidgetHeader
               enabled={usernameEnabled}
@@ -304,6 +306,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
             />
 
             <CheckboxWithContent
+              ariaLabel={renderToString("AuthenticationWidget.excludeKeywords")}
               checked={isExcludeKeywords}
               onChange={onIsExcludeKeywordsChange}
               className={styles.checkboxWithContent}
@@ -312,6 +315,11 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
                 <FormattedMessage id="AuthenticationWidget.excludeKeywords" />
               </div>
               <TagPicker
+                inputProps={{
+                  "aria-label": renderToString(
+                    "AuthenticationWidget.excludeKeywords"
+                  ),
+                }}
                 className={styles.widgetInputField}
                 disabled={!isExcludeKeywords}
                 onChange={onExcludedKeywordsChange}
@@ -342,6 +350,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
           initiallyExtended={emailEnabled}
           extendable={true}
           readOnly={!emailEnabled}
+          extendButtonAriaLabelId={"AuthenticationWidget.emailAddressExtend"}
           HeaderComponent={
             <WidgetHeader
               enabled={emailEnabled}
@@ -378,6 +387,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
           initiallyExtended={phoneNumberEnabled}
           extendable={true}
           readOnly={!phoneNumberEnabled}
+          extendButtonAriaLabelId={"AuthenticationWidget.phoneNumberExtend"}
           HeaderComponent={
             <WidgetHeader
               enabled={phoneNumberEnabled}
