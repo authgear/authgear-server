@@ -212,6 +212,7 @@ a.btn {
 }
 
 .back-btn {
+  /* FIXME(ui): add back button icon */
   /* background-image: url("../image/ic_back_arrow.png"); */
   background-position: 6px;
   background-size: 16px auto;
