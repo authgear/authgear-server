@@ -8,6 +8,15 @@ import { formatDatetime } from "../../util/formatDatetime";
 
 import styles from "./UserDetailsAccountSecurity.module.scss";
 
+// authenticator type recognized by portal
+enum AuthenticatorType {
+  Password = "password",
+  OneTimePassword = "oob_otp",
+  TimeBasedOneTimePassword = "totp",
+}
+
+type AuthenticatorKind = "primary" | "secondary";
+
 interface Authenticator {
   id: string;
   type: string;
@@ -26,18 +35,6 @@ interface AuthenticatorListItem {
   description: React.ReactNode;
   descriptionClassName?: string;
   onDetailButtonClick?: () => void;
-}
-
-// authenticator type recognized by portal
-enum AuthenticatorType {
-  Password = "password",
-  OneTimePassword = "oob_otp",
-  TimeBasedOneTimePassword = "totp",
-}
-
-enum AuthenticatorKind {
-  Primary = "primary",
-  Secondary = "secondary",
 }
 
 const primaryAuthenticatorTypeLocaleKeyMap: { [key: string]: string } = {
@@ -60,9 +57,9 @@ function getLocaleKeyWithAuthenticatorType(
   kind: AuthenticatorKind
 ) {
   switch (kind) {
-    case AuthenticatorKind.Primary:
+    case "primary":
       return primaryAuthenticatorTypeLocaleKeyMap[type];
-    case AuthenticatorKind.Secondary:
+    case "secondary":
       return secondaryAuthenticatorTypeLocaleKeyMap[type];
   }
   return null;
@@ -74,11 +71,11 @@ function getAuthenticatorWithKind(
 ): Authenticator[] {
   switch (kind) {
     // TODO: add flag and modify this function
-    case AuthenticatorKind.Primary:
+    case "primary":
       return authenticators.filter(
         (authenticator) => !authenticator.is_secondary
       );
-    case AuthenticatorKind.Secondary:
+    case "secondary":
       return authenticators.filter(
         (authenticator) => !!authenticator.is_secondary
       );
@@ -112,7 +109,7 @@ function getDescriptionFromAuthenticator(
 function getLabelFromAuthenticator(authenticator: Authenticator) {
   const labelLocaleKey = getLocaleKeyWithAuthenticatorType(
     authenticator.type,
-    AuthenticatorKind.Primary
+    "primary"
   );
   return labelLocaleKey ? <FormattedMessage id={labelLocaleKey} /> : null;
 }
@@ -152,11 +149,11 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
 
   const primaryAuthenticators = getAuthenticatorWithKind(
     authenticators,
-    AuthenticatorKind.Primary
+    "primary"
   );
   const secondaryAuthenticators = getAuthenticatorWithKind(
     authenticators,
-    AuthenticatorKind.Secondary
+    "secondary"
   );
 
   const primaryAuthenticatorListItems: AuthenticatorListItem[] = useMemo(() => {
