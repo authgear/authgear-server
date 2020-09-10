@@ -62,4 +62,35 @@ const invertedTheme = createTheme({
   },
 });
 
-export { theme, invertedTheme };
+// Generated with Fluent UI theme Designer with
+// Primary color: #ee0000
+// Text color: #323130
+// Background color: #ffffff
+const destructiveTheme = createTheme({
+  palette: {
+    themePrimary: "#ee0000",
+    themeLighterAlt: "#fef4f4",
+    themeLighter: "#fcd4d4",
+    themeLight: "#faafaf",
+    themeTertiary: "#f46262",
+    themeSecondary: "#ef1d1d",
+    themeDarkAlt: "#d50000",
+    themeDark: "#b40000",
+    themeDarker: "#850000",
+    neutralLighterAlt: "#f8f8f8",
+    neutralLighter: "#f4f4f4",
+    neutralLight: "#eaeaea",
+    neutralQuaternaryAlt: "#dadada",
+    neutralQuaternary: "#d0d0d0",
+    neutralTertiaryAlt: "#c8c8c8",
+    neutralTertiary: "#a19f9d",
+    neutralSecondary: "#605e5c",
+    neutralPrimaryAlt: "#3b3a39",
+    neutralPrimary: "#323130",
+    neutralDark: "#201f1e",
+    black: "#000000",
+    white: "#ffffff",
+  },
+});
+
+export { theme, invertedTheme, destructiveTheme };

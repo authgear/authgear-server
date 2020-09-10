@@ -4,6 +4,7 @@ import { List, PrimaryButton } from "@fluentui/react";
 
 import ListCellLayout from "../../ListCellLayout";
 import { formatDatetime } from "../../util/formatDatetime";
+import { destructiveTheme } from "../../theme";
 
 import styles from "./UserDetailsConnectedIdentities.module.scss";
 
@@ -53,6 +54,7 @@ const IdentityListCell: React.FC<{
       </div>
       <PrimaryButton
         className={styles.removeButton}
+        theme={destructiveTheme}
         onClick={item.onRemoveClicked}
       >
         <FormattedMessage id="remove" />
