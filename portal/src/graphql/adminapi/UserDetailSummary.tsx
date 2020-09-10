@@ -1,8 +1,7 @@
 import React from "react";
 import cn from "classnames";
+import { Persona } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-
-import proPicPlaceholder from "../../image/profile-pic-placeholder.svg";
 
 import { formatDatetime } from "../../util/formatDatetime";
 import { UserInfo } from "../../util/user";
@@ -32,7 +31,7 @@ const UserDetailSummary: React.FC<UserDetailSummaryProps> = function UserDetailS
 
   return (
     <div className={cn(styles.root, className)}>
-      <img src={proPicPlaceholder} className={styles.profilePic} />
+      <Persona className={styles.profilePic} />
       <div className={styles.userData}>
         <div className={styles.userInfo}>
           {email && <div className={styles.userInfoRow}>{email}</div>}
