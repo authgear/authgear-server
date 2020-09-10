@@ -53,7 +53,7 @@ interface UserListItem {
   lastLoginAt: string | null;
 }
 
-const isUserListItem = (value: any): value is UserListItem => {
+const isUserListItem = (value: unknown): value is UserListItem => {
   if (!(value instanceof Object)) {
     return false;
   }
