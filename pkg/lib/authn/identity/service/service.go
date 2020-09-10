@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
@@ -59,6 +60,11 @@ type AnonymousIdentityProvider interface {
 	Delete(i *anonymous.Identity) error
 }
 
+type AuthenticatorService interface {
+	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
+	Delete(authenticatorInfo *authenticator.Info) error
+}
+
 type Service struct {
 	Authentication *config.AuthenticationConfig
 	Identity       *config.IdentityConfig
@@ -66,6 +72,7 @@ type Service struct {
 	LoginID        LoginIDIdentityProvider
 	OAuth          OAuthIdentityProvider
 	Anonymous      AnonymousIdentityProvider
+	Authenticators AuthenticatorService
 }
 
 func (s *Service) Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error) {
@@ -317,27 +324,59 @@ func (s *Service) UpdateWithSpec(info *identity.Info, spec *identity.Spec) (*ide
 
 }
 
-func (s *Service) Update(info *identity.Info) error {
-	switch info.Type {
+func (s *Service) Update(before, after *identity.Info) error {
+	// FIXME(authenticator): delete only orphaned authenticators,
+	//                       leave authenticators still having matching identities alone.
+	ais, err := s.Authenticators.List(
+		before.UserID,
+		authenticator.KeepMatchingAuthenticatorOfIdentity(before),
+	)
+	if err != nil {
+		return err
+	}
+	for _, ai := range ais {
+		err := s.Authenticators.Delete(ai)
+		if err != nil {
+			return err
+		}
+	}
+
+	switch after.Type {
 	case authn.IdentityTypeLoginID:
-		i := loginIDFromIdentityInfo(info)
+		i := loginIDFromIdentityInfo(after)
 		if err := s.LoginID.Update(i); err != nil {
 			return err
 		}
 	case authn.IdentityTypeOAuth:
-		i := oauthFromIdentityInfo(info)
+		i := oauthFromIdentityInfo(after)
 		if err := s.OAuth.Update(i); err != nil {
 			return err
 		}
 	case authn.IdentityTypeAnonymous:
-		panic("identity: update no support for identity type " + info.Type)
+		panic("identity: update no support for identity type " + after.Type)
 	default:
-		panic("identity: unknown identity type " + info.Type)
+		panic("identity: unknown identity type " + after.Type)
 	}
 	return nil
 }
 
 func (s *Service) Delete(info *identity.Info) error {
+	// FIXME(authenticator): delete only orphaned authenticators,
+	//                       leave authenticators still having matching identities alone.
+	ais, err := s.Authenticators.List(
+		info.UserID,
+		authenticator.KeepMatchingAuthenticatorOfIdentity(info),
+	)
+	if err != nil {
+		return err
+	}
+	for _, ai := range ais {
+		err := s.Authenticators.Delete(ai)
+		if err != nil {
+			return err
+		}
+	}
+
 	switch info.Type {
 	case authn.IdentityTypeLoginID:
 		i := loginIDFromIdentityInfo(info)

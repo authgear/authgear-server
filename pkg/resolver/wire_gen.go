@@ -6,6 +6,10 @@
 package resolver
 
 import (
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
+	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
@@ -193,13 +197,67 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Store: anonymousStore,
 		Clock: clock,
 	}
-	serviceService := &service.Service{
+	store2 := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	passwordLogger := password.NewLogger(factory)
+	historyStore := &password.HistoryStore{
+		Clock:       clock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
+	queue := appProvider.TaskQueue
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clock,
+		Logger:          passwordLogger,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+		TaskQueue:       queue,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clock,
+	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clock,
+	}
+	serviceService := &service2.Service{
+		Store:    store2,
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
+	service3 := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
 		Store:          serviceStore,
 		LoginID:        loginidProvider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -221,7 +279,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	queries := &user.Queries{
 		Store:        store,
-		Identities:   serviceService,
+		Identities:   service3,
 		Verification: verificationService,
 	}
 	sessionMiddleware := &session.Middleware{
@@ -302,16 +360,70 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
-	serviceService := &service.Service{
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	factory := appProvider.LoggerFactory
+	logger := password.NewLogger(factory)
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
+	queue := appProvider.TaskQueue
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		Logger:          logger,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+		TaskQueue:       queue,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	oobProvider := &oob.Provider{
+		Config: authenticatorOOBConfig,
+		Store:  oobStore,
+		Clock:  clockClock,
+	}
+	serviceService := &service2.Service{
+		Store:    serviceStore,
+		Password: passwordProvider,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
+	service3 := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
 		Store:          store,
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
 	}
-	factory := appProvider.LoggerFactory
-	logger := verification.NewLogger(factory)
+	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	redisHandle := appProvider.Redis
 	storeRedis := &verification.StoreRedis{
@@ -324,7 +436,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     logger,
+		Logger:     verificationLogger,
 		Config:     verificationConfig,
 		Clock:      clockClock,
 		CodeStore:  storeRedis,
@@ -332,7 +444,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	}
 	resolveHandlerLogger := handler.NewResolveHandlerLogger(factory)
 	resolveHandler := &handler.ResolveHandler{
-		Identities:   serviceService,
+		Identities:   service3,
 		Verification: verificationService,
 		Logger:       resolveHandlerLogger,
 	}
