@@ -195,9 +195,9 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
     <div className={styles.root}>
       {primaryAuthenticatorListItems.length > 0 && (
         <div className={styles.authenticatorContainer}>
-          <h1 className={styles.authenticatorHeader}>
+          <h2 className={styles.authenticatorHeader}>
             <FormattedMessage id="UserDetails.account-security.primary" />
-          </h1>
+          </h2>
           <List
             items={primaryAuthenticatorListItems}
             onRenderCell={onRenderAuthenticatorDetailCell}
@@ -206,9 +206,9 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
       )}
       {secondaryAuthenticatorListItems.length > 0 && (
         <div className={styles.authenticatorContainer}>
-          <h3 className={styles.authenticatorHeader}>
+          <h2 className={styles.authenticatorHeader}>
             <FormattedMessage id="UserDetails.account-security.secondary" />
-          </h3>
+          </h2>
           <List
             items={secondaryAuthenticatorListItems}
             onRenderCell={onRenderAuthenticatorDetailCell}

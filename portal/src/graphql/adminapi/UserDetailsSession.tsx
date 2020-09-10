@@ -68,9 +68,9 @@ const UserDetailsSession: React.FC = function UserDetailsSession() {
 
   return (
     <div className={styles.root}>
-      <h1 className={styles.header}>
+      <h2 className={styles.header}>
         <FormattedMessage id="UserDetails.session.header" />
-      </h1>
+      </h2>
       <DetailsList
         items={sessionListItems}
         columns={sessionColumns}
