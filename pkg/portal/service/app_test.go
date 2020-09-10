@@ -32,15 +32,24 @@ func TestValidateConfig(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 
-		Convey("validate file names", func() {
+		Convey("normalize paths", func() {
 			updateFiles := []*model.AppConfigFile{
 				{
-					Name:    "./test.yaml",
+					Path:    "./foo/test.yaml",
+					Content: "test",
+				},
+				{
+					Path:    "foo/../bar/test.yaml",
 					Content: "test",
 				},
 			}
-			err := ValidateConfig(app, updateFiles, nil)
-			So(err, ShouldBeError, "invalid file name: ./test.yaml")
+			deleteFiles := []string{"../../test.yaml", "/"}
+			_ = ValidateConfig(app, updateFiles, deleteFiles)
+
+			So(updateFiles[0].Path, ShouldEqual, "/foo/test.yaml")
+			So(updateFiles[1].Path, ShouldEqual, "/bar/test.yaml")
+			So(deleteFiles[0], ShouldEqual, "/test.yaml")
+			So(deleteFiles[1], ShouldEqual, "/")
 		})
 
 		Convey("forbid deleting configuration YAML", func() {
@@ -55,41 +64,41 @@ func TestValidateConfig(t *testing.T) {
 
 		Convey("validate file size", func() {
 			updateFiles := []*model.AppConfigFile{{
-				Name:    "authgear.yaml",
+				Path:    "authgear.yaml",
 				Content: "id: " + string(make([]byte, 1024*1024)),
 			}}
 			err := ValidateConfig(app, updateFiles, nil)
-			So(err, ShouldBeError, `authgear.yaml is too large: 1048580 > 102400`)
+			So(err, ShouldBeError, `/authgear.yaml is too large: 1048580 > 102400`)
 		})
 
 		Convey("validate configuration YAML", func() {
 			updateFiles := []*model.AppConfigFile{{
-				Name:    "authgear.yaml",
+				Path:    "authgear.yaml",
 				Content: `{}`,
 			}}
 			err := ValidateConfig(app, updateFiles, nil)
-			So(err, ShouldBeError, `authgear.yaml is invalid: invalid configuration:
+			So(err, ShouldBeError, `/authgear.yaml is invalid: invalid configuration:
 <root>: required
   map[actual:<nil> expected:[id] missing:[id]]`)
 
 			updateFiles = []*model.AppConfigFile{{
-				Name:    "authgear.yaml",
+				Path:    "authgear.yaml",
 				Content: `id: test`,
 			}}
 			err = ValidateConfig(app, updateFiles, nil)
-			So(err, ShouldBeError, `authgear.yaml is invalid: invalid app ID`)
+			So(err, ShouldBeError, `/authgear.yaml is invalid: invalid app ID`)
 
 			updateFiles = []*model.AppConfigFile{{
-				Name:    "authgear.secrets.yaml",
+				Path:    "authgear.secrets.yaml",
 				Content: `{}`,
 			}}
 			err = ValidateConfig(app, updateFiles, nil)
-			So(err, ShouldBeError, `authgear.secrets.yaml is invalid: invalid secrets:
+			So(err, ShouldBeError, `/authgear.secrets.yaml is invalid: invalid secrets:
 <root>: required
   map[actual:<nil> expected:[secrets] missing:[secrets]]`)
 
 			updateFiles = []*model.AppConfigFile{{
-				Name:    "authgear.secrets.yaml",
+				Path:    "authgear.secrets.yaml",
 				Content: `secrets: []`,
 			}}
 			err = ValidateConfig(app, updateFiles, nil)

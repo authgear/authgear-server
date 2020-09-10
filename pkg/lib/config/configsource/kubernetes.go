@@ -269,24 +269,32 @@ func (k *Kubernetes) newController(
 	return ctrl
 }
 
-func makeAppFs(configMap *corev1.ConfigMap, secret *corev1.Secret) fs.Fs {
+func makeAppFs(configMap *corev1.ConfigMap, secret *corev1.Secret) (fs.Fs, error) {
 	appFs := afero.NewMemMapFs()
 	create := func(name string, data []byte) {
 		file, _ := appFs.Create(name)
 		_, _ = file.Write(data)
 	}
 
-	for path, data := range configMap.Data {
+	for key, data := range configMap.Data {
+		path, err := UnescapePath(key)
+		if err != nil {
+			return nil, err
+		}
 		create(path, []byte(data))
 	}
-	for path, data := range configMap.BinaryData {
+	for key, data := range configMap.BinaryData {
+		path, err := UnescapePath(key)
+		if err != nil {
+			return nil, err
+		}
 		create(path, data)
 	}
 	for path, data := range secret.Data {
 		create(path, data)
 	}
 
-	return &fs.AferoFs{Fs: appFs}
+	return &fs.AferoFs{Fs: appFs}, nil
 }
 
 type k8sApp struct {
@@ -332,7 +340,10 @@ func (a *k8sApp) doLoad(k *Kubernetes) (*config.AppContext, error) {
 		)
 	}
 
-	appFs := makeAppFs(&configMaps.Items[0], &secrets.Items[0])
+	appFs, err := makeAppFs(&configMaps.Items[0], &secrets.Items[0])
+	if err != nil {
+		return nil, err
+	}
 	appConfig, err := loadConfig(appFs)
 	if err != nil {
 		return nil, err

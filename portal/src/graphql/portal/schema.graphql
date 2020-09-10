@@ -21,8 +21,8 @@ input AppConfigFile {
   """New content of the file."""
   content: String!
 
-  """Name of the file."""
-  name: String!
+  """Path of the file."""
+  path: String!
 }
 
 """A connection to a list of items."""
@@ -96,7 +96,7 @@ input UpdateAppConfigInput {
   """App ID to update."""
   appID: String!
 
-  """Name of configuration files to delete."""
+  """Path to configuration files to delete."""
   deleteFiles: [String!]
 
   """Configuration files to update/create."""

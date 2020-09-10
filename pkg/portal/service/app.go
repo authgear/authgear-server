@@ -3,7 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
-	"path/filepath"
+	"path"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
@@ -60,21 +60,17 @@ func (s *AppService) UpdateConfig(app *model.App, updateFiles []*model.AppConfig
 const ConfigFileMaxSize = 100 * 1024
 
 func ValidateConfig(app *model.App, updateFiles []*model.AppConfigFile, deleteFiles []string) error {
-	// Validate the file names.
+	// Normalize the paths.
 	for _, file := range updateFiles {
-		if filepath.Base(file.Name) != file.Name {
-			return fmt.Errorf("invalid file name: %s", file.Name)
-		}
+		file.Path = path.Clean("/" + file.Path)
 	}
-	for _, fileName := range deleteFiles {
-		if filepath.Base(fileName) != fileName {
-			return fmt.Errorf("invalid file name: %s", fileName)
-		}
+	for i, p := range deleteFiles {
+		deleteFiles[i] = path.Clean("/" + p)
 	}
 
 	// Forbid deleting configuration YAML.
-	for _, name := range deleteFiles {
-		if name == configsource.AuthgearYAML || name == configsource.AuthgearSecretYAML {
+	for _, p := range deleteFiles {
+		if p == "/"+configsource.AuthgearYAML || p == "/"+configsource.AuthgearSecretYAML {
 			return errors.New("cannot delete main configuration YAML files")
 		}
 	}
@@ -82,25 +78,25 @@ func ValidateConfig(app *model.App, updateFiles []*model.AppConfigFile, deleteFi
 	// Validate file size.
 	for _, f := range updateFiles {
 		if len(f.Content) > ConfigFileMaxSize {
-			return fmt.Errorf("%s is too large: %v > %v", f.Name, len(f.Content), ConfigFileMaxSize)
+			return fmt.Errorf("%s is too large: %v > %v", f.Path, len(f.Content), ConfigFileMaxSize)
 		}
 	}
 
 	// Validate configuration YAML.
 	cfg := *app.Context.Config
 	for _, file := range updateFiles {
-		if file.Name == configsource.AuthgearYAML {
+		if file.Path == "/"+configsource.AuthgearYAML {
 			appConfig, err := config.Parse([]byte(file.Content))
 			if err != nil {
-				return fmt.Errorf("%s is invalid: %w", file.Name, err)
+				return fmt.Errorf("%s is invalid: %w", file.Path, err)
 			} else if string(appConfig.ID) != app.ID {
-				return fmt.Errorf("%s is invalid: invalid app ID", file.Name)
+				return fmt.Errorf("%s is invalid: invalid app ID", file.Path)
 			}
 			cfg.AppConfig = appConfig
-		} else if file.Name == configsource.AuthgearSecretYAML {
+		} else if file.Path == "/"+configsource.AuthgearSecretYAML {
 			secretConfig, err := config.ParseSecret([]byte(file.Content))
 			if err != nil {
-				return fmt.Errorf("%s is invalid: %w", file.Name, err)
+				return fmt.Errorf("%s is invalid: %w", file.Path, err)
 			}
 			cfg.SecretConfig = secretConfig
 		}
