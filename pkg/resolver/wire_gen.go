@@ -265,13 +265,18 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AppID: appID,
 		Clock: clock,
 	}
+	storePQ := &verification.StorePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
 	verificationService := &verification.Service{
 		Logger:         verificationLogger,
 		Config:         verificationConfig,
 		Clock:          clock,
 		Identities:     serviceService,
 		Authenticators: service3,
-		Store:          verificationStoreRedis,
+		CodeStore:      verificationStoreRedis,
+		ClaimStore:     storePQ,
 	}
 	queries := &user.Queries{
 		Store:        store,
@@ -426,13 +431,18 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	storePQ := &verification.StorePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
 	verificationService := &verification.Service{
 		Logger:         logger,
 		Config:         verificationConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
-		Store:          storeRedis,
+		CodeStore:      storeRedis,
+		ClaimStore:     storePQ,
 	}
 	resolveHandlerLogger := handler.NewResolveHandlerLogger(factory)
 	resolveHandler := &handler.ResolveHandler{

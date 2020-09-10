@@ -23,9 +23,17 @@ type AuthenticatorService interface {
 	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
 }
 
-type Store interface {
+type CodeStore interface {
 	Create(code *Code) error
 	Get(id string) (*Code, error)
+	Delete(id string) error
+}
+
+type ClaimStore interface {
+	ListByUser(userID string) ([]*Claim, error)
+	ListByClaimName(userID string, claimName string) ([]*Claim, error)
+	Get(userID string, claimName string, claimValue string) (*Claim, error)
+	Create(claim *Claim) error
 	Delete(id string) error
 }
 
@@ -39,7 +47,8 @@ type Service struct {
 	Clock          clock.Clock
 	Identities     IdentityService
 	Authenticators AuthenticatorService
-	Store          Store
+	CodeStore      CodeStore
+	ClaimStore     ClaimStore
 }
 
 func (s *Service) IsIdentityVerifiable(i *identity.Info) bool {
@@ -226,7 +235,7 @@ func (s *Service) CreateNewCode(id string, info *identity.Info) (*Code, error) {
 		ExpireAt:     s.Clock.NowUTC().Add(s.Config.CodeExpiry.Duration()),
 	}
 
-	err := s.Store.Create(codeModel)
+	err := s.CodeStore.Create(codeModel)
 	if err != nil {
 		return nil, err
 	}
@@ -235,11 +244,11 @@ func (s *Service) CreateNewCode(id string, info *identity.Info) (*Code, error) {
 }
 
 func (s *Service) GetCode(id string) (*Code, error) {
-	return s.Store.Get(id)
+	return s.CodeStore.Get(id)
 }
 
 func (s *Service) VerifyCode(id string, code string) (*Code, error) {
-	codeModel, err := s.Store.Get(id)
+	codeModel, err := s.CodeStore.Get(id)
 	if errors.Is(err, ErrCodeNotFound) {
 		return nil, ErrInvalidVerificationCode
 	} else if err != nil {
@@ -250,7 +259,7 @@ func (s *Service) VerifyCode(id string, code string) (*Code, error) {
 		return nil, ErrInvalidVerificationCode
 	}
 
-	if err = s.Store.Delete(id); err != nil {
+	if err = s.CodeStore.Delete(id); err != nil {
 		s.Logger.WithError(err).Error("failed to delete code after verification")
 	}
 

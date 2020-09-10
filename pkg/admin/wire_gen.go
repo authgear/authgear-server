@@ -228,13 +228,18 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	storePQ := &verification.StorePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
 	verificationService := &verification.Service{
 		Logger:         logger,
 		Config:         verificationConfig,
 		Clock:          clockClock,
 		Identities:     serviceService,
 		Authenticators: service3,
-		Store:          storeRedis,
+		CodeStore:      storeRedis,
+		ClaimStore:     storePQ,
 	}
 	queries := &user.Queries{
 		Store:        store,
