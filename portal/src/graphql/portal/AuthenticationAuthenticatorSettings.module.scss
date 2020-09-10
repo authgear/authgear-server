@@ -1,0 +1,31 @@
+.root {
+  margin: 23px 0;
+  padding: 0 10px;
+  width: 630px;
+}
+
+.widget {
+  margin-bottom: 15px;
+  padding: 15px 15px 25px;
+}
+
+.widgetHeader {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 0 0 10px;
+}
+
+.authenticatorColumn {
+  justify-content: flex-start;
+  align-items: center;
+  display: flex;
+}
+
+.saveButtonContainer {
+  width: 100%;
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}

@@ -258,12 +258,8 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
       isAllowPlus,
     };
 
-    const newAppConfig = constructAppConfigFromState(
-      props.appConfig,
-      screenState
-    );
+    constructAppConfigFromState(props.appConfig, screenState);
     // TODO: call mutation to save config
-    console.log(newAppConfig);
   }, [
     props.appConfig,
 

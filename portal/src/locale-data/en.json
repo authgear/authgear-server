@@ -45,9 +45,16 @@
 
   "AuthenticationWidget.error.blockDomains": "Invalid domains",
 
+  "AuthenticationAuthenticator.activateHeader": "Activate",
+  "AuthenticationAuthenticator.authenticatorHeader": "Authenticator",
+  "AuthenticationAuthenticator.widgetHeader.primary": "Primary Authenticator",
+  "AuthenticationAuthenticator.widgetHeader.secondary": "Secondary Authenticator",
+
   "PaginationWidget.First": "Go to the first page",
   "PaginationWidget.Prev": "Go to the previous page",
   "PaginationWidget.Next": "Go to the next page",
   "PaginationWidget.Last": "Go to the last page",
-  "PaginationWidget.Page": "Go to page {PAGE}"
+  "PaginationWidget.Page": "Go to page {PAGE}",
+
+  "DetailsListWithOrdering.order": "Order"
 }
