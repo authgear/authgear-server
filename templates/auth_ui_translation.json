@@ -108,8 +108,10 @@
 	"logout-button-hint": "Click the button to sign out",
 	"logout-button-label": "Sign out",
 
+	"settings-item-identity-description": "Manage your list of connected identities",
+
 	"settings-identity-title": "Connected Identities",
-	"settings-identity-description": "Manage your list of connected identities",
+	"settings-identity-description": "These are the login identities and third party services connected to your account for signing in",
 	"settings-identity-oauth-google": "Google",
 	"settings-identity-oauth-apple": "Apple",
 	"settings-identity-oauth-facebook": "Facebook",

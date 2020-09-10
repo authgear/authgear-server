@@ -538,17 +538,34 @@ a.btn {
   grid-template-rows: auto auto;
 }
 
-.content-row-layout-1x2 {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-rows: auto;
+.settings-row {
+  margin: 14px 18px;
 }
 
-.content-row-title {
+.settings-section {
+  display: grid;
+  grid: "title    action" auto
+        "desc     ......" auto
+      /  1fr       auto;
+  gap: 8px;
+}
+
+.settings-section > * {
+  margin: 0;
+}
+
+.settings-section .title {
+  grid-area: title;
   font-size: 1rem;
 }
 
-.content-row-item {
-  margin: 4px;
-  padding: 4px;
+.settings-section .description {
+  grid-area: desc;
+  font-size: smaller;
+}
+
+.settings-section .action {
+  grid-area: action;
+}
+
 }
