@@ -6,19 +6,17 @@
 
 {{ template "auth_ui_header.html" . }}
 
-<div class="simple-form vertical-form form-fields-container">
+{{ template "auth_ui_nav_bar.html" }}
 
-<div class="nav-bar">
-	<button class="btn back-btn" type="button" title="{{ template "back-button-title" }}"></button>
-</div>
+<div class="simple-form vertical-form form-fields-container pane">
 
-<div class="title primary-txt">
+<h1 class="title primary-txt">
 	{{ if $.IdentityID }}
 	{{ template "enter-login-id-page-title--change" (makemap "key" $.LoginIDKey) }}
 	{{ else }}
 	{{ template "enter-login-id-page-title--add" (makemap "key" $.LoginIDKey) }}
 	{{ end }}
-</div>
+</h1>
 
 {{ template "ERROR" . }}
 
@@ -67,7 +65,6 @@
 </form>
 
 </div>
-{{ template "auth_ui_footer.html" . }}
 
 </div>
 </body>

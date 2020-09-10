@@ -19,7 +19,6 @@
   <mj-section>
     <mj-column>
       <mj-text font-weight="light" font-size="12px" padding="20px">If you are not logging in your account please ignore this email.</mj-text>
-      <mj-image width="65px" height="15px" padding="60px" src="{{ .StaticAssetURLPrefix }}/authui/image/ic_footer_authgear.png" />
     </mj-column>
   </mj-section>
 </mj-body>

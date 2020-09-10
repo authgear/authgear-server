@@ -46,7 +46,7 @@ The templates are first resolved by matching the type, and then select the best 
 
 Some template may depend on other templates which are included during rendering. This enables customizing a particular component of a template. The dependency is expressed by a whitelist that is hard-coded by the Authgear developer. It can be assumed there is no dependency cycle.
 
-For example, `auth_ui_login.html` depend on `auth_ui_header.html` and `auth_ui_footer.html` to provide the header and footer. If the developer just wants to customize the header, they do not need to provide customized templates for ALL pages. They just need to provide `auth_ui_header.html`.
+For example, `auth_ui_login.html` depend on `auth_ui_header.html` to provide the header. If the developer just wants to customize the header, they do not need to provide customized templates for ALL pages. They just need to provide `auth_ui_header.html`.
 
 ## Localization of the text of the template
 

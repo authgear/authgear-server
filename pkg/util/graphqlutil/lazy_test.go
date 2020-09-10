@@ -40,6 +40,12 @@ func TestLazy(t *testing.T) {
 			lazy3 := NewLazyValue(123)
 			So(must(lazy3.Value()), ShouldEqual, 123)
 		})
+		Convey("should resolve value recursively", func() {
+			lazy := NewLazyValue(func() (interface{}, error) {
+				return NewLazyValue(123), nil
+			})
+			So(must(lazy.Value()), ShouldEqual, 123)
+		})
 		Convey("should map values", func() {
 			eval := 0
 			lazy1 := NewLazyValue(func() (interface{}, error) {

@@ -8,6 +8,7 @@ import (
 type AppService interface {
 	GetMany(id []string) ([]*model.App, error)
 	List(userID string) ([]*model.App, error)
+	UpdateConfig(app *model.App, updateFiles []*model.AppConfigFile, deleteFiles []string) error
 }
 
 type AppLoader struct {
@@ -45,5 +46,17 @@ func (l *AppLoader) Get(id string) *graphqlutil.Lazy {
 func (l *AppLoader) List(userID string) *graphqlutil.Lazy {
 	return graphqlutil.NewLazy(func() (interface{}, error) {
 		return l.Apps.List(userID)
+	})
+}
+
+func (l *AppLoader) UpdateConfig(app *model.App, updateFiles []*model.AppConfigFile, deleteFiles []string) *graphqlutil.Lazy {
+	return graphqlutil.NewLazy(func() (interface{}, error) {
+		err := l.Apps.UpdateConfig(app, updateFiles, deleteFiles)
+		if err != nil {
+			return nil, err
+		}
+
+		l.loader.Reset(app.ID)
+		return l.Get(app.ID), nil
 	})
 }

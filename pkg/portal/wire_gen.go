@@ -67,14 +67,21 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	viewerLoader := &loader.ViewerLoader{
 		Context: context,
 	}
+	factory := rootProvider.LoggerFactory
+	configServiceLogger := service.NewConfigServiceLogger(factory)
 	controller := rootProvider.ConfigSourceController
 	configSource := deps.ProvideConfigSource(controller)
-	authzService := &service.AuthzService{
+	configService := &service.ConfigService{
+		Logger:       configServiceLogger,
+		Controller:   controller,
 		ConfigSource: configSource,
 	}
+	authzService := &service.AuthzService{
+		AppConfigs: configService,
+	}
 	appService := &service.AppService{
-		ConfigSource: configSource,
-		AppAuthz:     authzService,
+		AppConfigs: configService,
+		AppAuthz:   authzService,
 	}
 	appLoader := &loader.AppLoader{
 		Apps: appService,

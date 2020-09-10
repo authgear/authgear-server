@@ -23,6 +23,7 @@ type LocalFS struct {
 	Logger LocalFSLogger
 	Config *Config
 
+	Fs               afero.Fs          `wire:"-"`
 	appConfigPath    string            `wire:"-"`
 	secretConfigPath string            `wire:"-"`
 	config           atomic.Value      `wire:"-"`
@@ -36,7 +37,8 @@ func (s *LocalFS) Open() error {
 		return err
 	}
 
-	appFs := &fs.AferoFs{Fs: afero.NewBasePathFs(afero.NewOsFs(), dir)}
+	s.Fs = afero.NewBasePathFs(afero.NewOsFs(), dir)
+	appFs := &fs.AferoFs{Fs: s.Fs}
 
 	cfg, err := loadConfig(appFs)
 	if err != nil {
@@ -140,4 +142,12 @@ func (s *LocalFS) ResolveContext(_appID string) (*config.AppContext, error) {
 	// In single mode, appID is ignored.
 	ctx := s.config.Load().(*config.AppContext)
 	return ctx, nil
+}
+
+func (s *LocalFS) ReloadApp(appID string) {
+	// In single mode, appID is ignored.
+	err := s.reload()
+	s.Logger.
+		WithError(err).
+		Error("reload failed")
 }

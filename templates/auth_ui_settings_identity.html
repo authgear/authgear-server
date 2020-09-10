@@ -6,7 +6,9 @@
 
 {{ template "auth_ui_header.html" . }}
 
-<div class="settings-identity">
+{{ template "auth_ui_nav_bar.html" }}
+
+<div class="settings-identity pane">
   <h1 class="title primary-txt">{{ template "settings-identity-title" }}</h1>
 
   {{ template "ERROR" . }}
@@ -103,8 +105,6 @@
   </div>
   {{ end }}
 </div>
-
-{{ template "auth_ui_footer.html" . }}
 
 </div>
 </body>

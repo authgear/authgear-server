@@ -1,0 +1,13 @@
+{{ define "auth_ui_nav_bar.html" }}
+<div class="nav-bar">
+	{{ if . }}
+	<button class="btn back-btn secondary-btn" type="button" title="{{ template "back-button-title" }}" disabled>
+		{{ template "back-button-title" }}
+	</button>
+	{{ else }}
+	<button class="btn back-btn secondary-btn" type="button" title="{{ template "back-button-title" }}">
+		{{ template "back-button-title" }}
+	</button>
+	{{ end }}
+</div>
+{{ end }}

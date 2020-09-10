@@ -7,7 +7,7 @@ import (
 const (
 	TemplateItemTypeAuthUIHTMLHeadHTML string = "auth_ui_html_head.html"
 	TemplateItemTypeAuthUIHeaderHTML   string = "auth_ui_header.html"
-	TemplateItemTypeAuthUIFooterHTML   string = "auth_ui_footer.html"
+	TemplateItemTypeAuthUINavBarHTML   string = "auth_ui_nav_bar.html"
 )
 
 // nolint: gosec
@@ -163,13 +163,13 @@ var TemplateAuthUIHeaderHTML = template.Register(template.T{
 	IsHTML: true,
 })
 
-var TemplateAuthUIFooterHTML = template.Register(template.T{
-	Type:   TemplateItemTypeAuthUIFooterHTML,
+var TemplateAuthUINavBarHTML = template.Register(template.T{
+	Type:   TemplateItemTypeAuthUINavBarHTML,
 	IsHTML: true,
 })
 
 var components = []string{
 	TemplateItemTypeAuthUIHTMLHeadHTML,
 	TemplateItemTypeAuthUIHeaderHTML,
-	TemplateItemTypeAuthUIFooterHTML,
+	TemplateItemTypeAuthUINavBarHTML,
 }

@@ -6,18 +6,16 @@
 
 {{ template "auth_ui_header.html" . }}
 
-<div class="simple-form vertical-form form-fields-container">
+{{ template "auth_ui_nav_bar.html" }}
 
-<div class="nav-bar">
-	<button class="btn back-btn" type="button" title="{{ template "back-button-title" }}"></button>
-</div>
+<div class="simple-form vertical-form form-fields-container pane">
 
 {{ if $.OOBOTPChannel }}
 {{ if eq $.OOBOTPChannel "sms" }}
-<div class="title primary-txt">{{ template "oob-otp-page-title--sms" }}</div>
+<h1 class="title primary-txt">{{ template "oob-otp-page-title--sms" }}</h1>
 {{ end }}
 {{ if eq $.OOBOTPChannel "email" }}
-<div class="title primary-txt">{{ template "oob-otp-page-title--email" }}</div>
+<h1 class="title primary-txt">{{ template "oob-otp-page-title--email" }}</h1>
 {{ end }}
 {{ end }}
 
@@ -83,7 +81,6 @@
 </form>
 
 </div>
-{{ template "auth_ui_footer.html" . }}
 
 </div>
 </body>

@@ -6,14 +6,19 @@
 
 {{ template "auth_ui_header.html" . }}
 
-<form class="logout-form" method="post" novalidate>
-  {{ $.CSRFField }}
-  <p class="primary-txt">{{ template "logout-button-hint" }}</p>
-  <!-- We need to disable XHR for this request because after logout it could possibly redirect to external website with post_logout_uri -->
-  <button class="btn primary-btn align-self-center" type="submit" name="x_action" value="logout" data-form-xhr="false">{{ template "logout-button-label" }}</button>
-</form>
+{{ template "auth_ui_nav_bar.html" }}
 
-{{ template "auth_ui_footer.html" . }}
+<form class="pane" method="post" novalidate>
+  {{ $.CSRFField }}
+
+  <div class="content-row content-row-layout-1x2">
+    <h2 class="content-row-title content-row-item primary-txt">
+      {{ template "logout-button-hint" }}
+    </h2>
+    <!-- We need to disable XHR for this request because after logout it could possibly redirect to external website with post_logout_uri -->
+    <button class="btn secondary-btn" type="submit" name="x_action" value="logout" data-form-xhr="false">{{ template "logout-button-label" }}</button>
+  </div>
+</form>
 
 </div>
 </body>

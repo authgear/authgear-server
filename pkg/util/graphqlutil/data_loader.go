@@ -46,6 +46,10 @@ func (l *DataLoader) run() {
 	l.queue = nil
 }
 
+func (l *DataLoader) Reset(key interface{}) {
+	delete(l.cache, key)
+}
+
 func (l *DataLoader) Load(key interface{}) *Lazy {
 	p, ok := l.cache[key]
 	if !ok {

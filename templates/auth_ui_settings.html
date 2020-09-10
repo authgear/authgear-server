@@ -6,11 +6,25 @@
 
 {{ template "auth_ui_header.html" . }}
 
-<div class="settings-form primary-txt">
-  You are authenticated. To logout, please visit <a href="/logout">here</a>.
-</div>
+{{ template "auth_ui_nav_bar.html" true }}
 
-{{ template "auth_ui_footer.html" . }}
+<p class="align-self-center primary-txt">
+  Click <a href="/logout">here</a> to sign out.
+</p>
+
+<div class="pane">
+  <div class="content-row content-row-layout-2x2">
+    <h2 class="content-row-title content-row-item primary-txt">
+      {{ template "settings-identity-title" }}
+    </h2>
+    <a class="content-row-item" href="/settings/identity">
+      {{ template "details-button-label" }}
+    </a>
+    <p class="content-row-item secondary-txt">
+      {{ template "settings-identity-description" }}
+    </p>
+  </div>
+</div>
 
 </div>
 </body>

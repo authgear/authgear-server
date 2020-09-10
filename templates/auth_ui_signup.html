@@ -4,7 +4,10 @@
 <body class="page">
 	<div class="content">
 		{{ template "auth_ui_header.html" . }}
-		<div class="authorize-form">
+
+		{{ template "auth_ui_nav_bar.html" true }}
+
+		<div class="authorize-form pane">
 			<div class="authorize-idp-section">
 				{{ range $.IdentityCandidates }}
 				{{ if eq .type "oauth" }}
@@ -100,7 +103,6 @@
 				</button>
 			</form>
 		</div>
-		{{ template "auth_ui_footer.html" . }}
 	</div>
 </body>
 </html>
