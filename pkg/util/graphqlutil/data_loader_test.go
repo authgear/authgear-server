@@ -167,5 +167,39 @@ func TestDataLoader(t *testing.T) {
 				{"1"}, {"2"}, {"3"},
 			})
 		})
+
+		Convey("should reset cached value", func() {
+			So(loadCounter, ShouldEqual, 0)
+			thunk1 := load("1")
+
+			So(loadCounter, ShouldEqual, 0)
+			value1, err := thunk1()
+			So(err, ShouldBeNil)
+			So(value1, ShouldEqual, "value 1")
+
+			So(loadCounter, ShouldEqual, 1)
+			thunk2 := load("1")
+
+			So(loadCounter, ShouldEqual, 1)
+			value2, err := thunk2()
+			So(err, ShouldBeNil)
+			So(value2, ShouldEqual, "value 1")
+
+			So(loadCounter, ShouldEqual, 1)
+			loader.Reset("1")
+
+			So(loadCounter, ShouldEqual, 1)
+			thunk3 := load("1")
+
+			So(loadCounter, ShouldEqual, 1)
+			value3, err := thunk3()
+			So(err, ShouldBeNil)
+			So(value3, ShouldEqual, "value 1")
+
+			So(loadCounter, ShouldEqual, 2)
+			So(loadedIDs, ShouldResemble, [][]string{
+				{"1"}, {"1"},
+			})
+		})
 	})
 }
