@@ -22,7 +22,7 @@ import UserDetailsAccountSecurity from "./UserDetailsAccountSecurity";
 import UserDetailsConnectedIdentities from "./UserDetailsConnectedIdentities";
 import UserDetailsSession from "./UserDetailsSession";
 
-import { isUserDetails, nonNullable } from "../../util/types";
+import { nonNullable } from "../../util/types";
 import { extractUserInfoFromIdentities } from "../../util/user";
 
 import styles from "./UserDetailsScreen.module.scss";
@@ -32,6 +32,12 @@ interface UserDetailsProps {
   loading: boolean;
 }
 
+function isUserDetails(value: any): value is UserDetailsScreenQuery_node_User {
+  if (!(value instanceof Object)) {
+    return false;
+  }
+  return value.__typename === "User";
+}
 const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
 ) {

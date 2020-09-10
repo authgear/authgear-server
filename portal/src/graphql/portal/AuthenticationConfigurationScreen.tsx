@@ -11,8 +11,8 @@ import AuthenticationLoginIDSettings from "./AuthenticationLoginIDSettings";
 import AuthenticationAuthenticatorSettings from "./AuthenticationAuthenticatorSettings";
 
 import { client } from "../portal/apollo";
-import { isPortalApiApp } from "../../util/types";
 import { AppConfigQuery } from "./__generated__/AppConfigQuery";
+import { PortalAPIApp } from "../../types";
 
 import styles from "./AuthenticationConfigurationScreen.module.scss";
 
@@ -27,6 +27,16 @@ const authenticationScreenQuery = gql`
     }
   }
 `;
+
+function isPortalApiApp(value: any): value is PortalAPIApp {
+  if (!(value instanceof Object)) {
+    return false;
+  }
+  if (!value.id) {
+    return false;
+  }
+  return value.__typename === "App";
+}
 
 const AuthenticationScreen: React.FC = function AuthenticationScreen() {
   const { renderToString } = React.useContext(Context);
