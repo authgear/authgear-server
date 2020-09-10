@@ -46,7 +46,7 @@ interface PlainUsersListProps {
 
 interface UserListItem {
   id: string;
-  signedUp: string | null;
+  createdAt: string | null;
   username: string;
   phone: string;
   email: string;
@@ -104,8 +104,8 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
       minWidth: 150,
     },
     {
-      key: "signedUp",
-      fieldName: "signedUp",
+      key: "createdAt",
+      fieldName: "createdAt",
       name: renderToString("UsersList.column.signed-up"),
       minWidth: 200,
     },
@@ -132,7 +132,7 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
           const placeholder = "-";
           items.push({
             id: node.id,
-            signedUp: formatDatetime(locale, node.createdAt),
+            createdAt: formatDatetime(locale, node.createdAt),
             lastLoginAt: formatDatetime(locale, node.lastLoginAt),
             username: userInfo.username ?? placeholder,
             phone: userInfo.phone ?? placeholder,
