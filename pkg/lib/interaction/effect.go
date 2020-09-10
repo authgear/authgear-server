@@ -7,13 +7,16 @@ type Effect interface {
 type EffectRun func(ctx *Context) error
 
 func (e EffectRun) apply(ctx *Context) error {
+	if ctx.IsCommitting {
+		return nil
+	}
 	return e(ctx)
 }
 
 type EffectOnCommit func(ctx *Context) error
 
 func (e EffectOnCommit) apply(ctx *Context) error {
-	if ctx.IsDryRun {
+	if ctx.IsDryRun || !ctx.IsCommitting {
 		return nil
 	}
 

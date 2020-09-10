@@ -138,8 +138,9 @@ type CookieFactory interface {
 }
 
 type Context struct {
-	IsDryRun   bool   `wire:"-"`
-	WebStateID string `wire:"-"`
+	IsDryRun     bool   `wire:"-"`
+	IsCommitting bool   `wire:"-"`
+	WebStateID   string `wire:"-"`
 
 	Database db.SQLExecutor
 	Clock    clock.Clock
