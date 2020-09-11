@@ -10,12 +10,14 @@ import AuthenticationLoginIDSettings from "./AuthenticationLoginIDSettings";
 import AuthenticationAuthenticatorSettings from "./AuthenticationAuthenticatorSettings";
 
 import { useAppConfigQuery } from "./query/appConfigQuery";
+import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
 
 import styles from "./AuthenticationConfigurationScreen.module.scss";
 
 const AuthenticationScreen: React.FC = function AuthenticationScreen() {
   const { renderToString } = React.useContext(Context);
   const { appID } = useParams();
+  const { updateAppConfig } = useUpdateAppConfigMutation(appID);
 
   const { loading, error, data, refetch } = useAppConfigQuery(appID);
 
@@ -54,6 +56,7 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
               <AuthenticationLoginIDSettings
                 effectiveAppConfig={effectiveAppConfig}
                 rawAppConfig={rawAppConfig}
+                updateAppConfig={updateAppConfig}
               />
             </PivotItem>
             <PivotItem
@@ -64,6 +67,7 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
               <AuthenticationAuthenticatorSettings
                 effectiveAppConfig={effectiveAppConfig}
                 rawAppConfig={rawAppConfig}
+                updateAppConfig={updateAppConfig}
               />
             </PivotItem>
           </Pivot>

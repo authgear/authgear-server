@@ -17,6 +17,7 @@ import {
   LoginIDKeyType,
   LoginIDKeyConfig,
   PortalAPIAppConfig,
+  PortalAPIApp,
 } from "../../types";
 import { setFieldIfChanged, isArrayEqualInOrder } from "../../util/misc";
 
@@ -25,6 +26,7 @@ import styles from "./AuthenticationLoginIDSettings.module.scss";
 interface Props {
   effectiveAppConfig: PortalAPIAppConfig | null;
   rawAppConfig: PortalAPIAppConfig | null;
+  updateAppConfig: (appConfigYaml: string) => Promise<PortalAPIApp | null>;
 }
 
 interface WidgetHeaderProps {

@@ -18,6 +18,7 @@ import {
   secondaryAuthenticatorTypes,
   PrimaryAuthenticatorType,
   SecondaryAuthenticatorType,
+  PortalAPIApp,
 } from "../../types";
 import { isArrayEqualInOrder } from "../../util/misc";
 
@@ -26,6 +27,7 @@ import styles from "./AuthenticationAuthenticatorSettings.module.scss";
 interface Props {
   effectiveAppConfig: PortalAPIAppConfig | null;
   rawAppConfig: PortalAPIAppConfig | null;
+  updateAppConfig: (appConfigYaml: string) => Promise<PortalAPIApp | null>;
 }
 
 interface AuthenticatorCheckboxProps extends ICheckboxProps {
