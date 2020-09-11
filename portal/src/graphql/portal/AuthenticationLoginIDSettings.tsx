@@ -46,12 +46,10 @@ const switchStyle = { root: { margin: "0" } };
 const WidgetHeader: React.FC<WidgetHeaderProps> = function (
   props: WidgetHeaderProps
 ) {
-  const { renderToString } = React.useContext(Context);
-
   return (
     <div className={styles.widgetHeader}>
       <Toggle
-        label={renderToString(props.titleId)}
+        label={<FormattedMessage id={props.titleId} />}
         inlineLabel={true}
         styles={switchStyle}
         checked={props.enabled}
