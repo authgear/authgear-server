@@ -8,6 +8,8 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(FormPrefiller), "*"),
 	wire.Bind(new(Renderer), new(*ResponseRenderer)),
 
+	wire.Struct(new(PanicMiddleware), "*"),
+
 	wire.Struct(new(RootHandler), "*"),
 	wire.Struct(new(LoginHandler), "*"),
 	wire.Struct(new(SignupHandler), "*"),
