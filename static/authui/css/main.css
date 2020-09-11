@@ -8,13 +8,37 @@ html, body {
   min-height: 100vh;
 }
 
-html {
-  font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
+/* Load fluentui font */
+/* The URLs are observed in browser console */
+/* The font weights are from https://developer.microsoft.com/en-us/fluentui#/styles/web/typography */
+@font-face {
+  font-family: "Segoe UI Web";
+  src: url(//static2.sharepointonline.com/files/fabric/assets/fonts/segoeui-westeuropean/segoeui-regular.woff2) format("woff2");
+  font-weight: 400;
+}
+@font-face {
+  font-family: "Segoe UI Web";
+  src: url(//static2.sharepointonline.com/files/fabric/assets/fonts/segoeui-westeuropean/segoeui-semibold.woff2) format("woff2");
+  font-weight: 600;
+}
+@font-face {
+  font-family: "Segoe UI Web";
+  src: url(//static2.sharepointonline.com/files/fabric/assets/fonts/segoeui-westeuropean/segoeui-bold.woff2) format("woff2");
+  font-weight: 700;
+}
+
+body {
+  font-family: "Segoe UI Web",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+}
+
+input, select, textarea, button {
+  font-family: inherit;
 }
 
 *, *::before, *::after {
   box-sizing: border-box;
 }
+
 
 button {
   -moz-appearance: none;
