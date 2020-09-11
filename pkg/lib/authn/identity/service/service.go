@@ -290,6 +290,7 @@ func (s *Service) New(userID string, spec *identity.Spec) (*identity.Info, error
 }
 
 func (s *Service) Create(info *identity.Info) error {
+	// TODO(verification): make OAuth verified according to config.
 	switch info.Type {
 	case authn.IdentityTypeLoginID:
 		i := loginIDFromIdentityInfo(info)
