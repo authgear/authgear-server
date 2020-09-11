@@ -6,6 +6,7 @@ import {
   ICheckboxProps,
   PrimaryButton,
   DefaultEffects,
+  Text,
 } from "@fluentui/react";
 import produce from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -61,6 +62,7 @@ function useRenderItemColumn<KeyType extends string>(
         case "activated":
           return (
             <AuthenticatorCheckbox
+              ariaLabel={item.key}
               authenticatorKey={item.key}
               checked={item.activated}
               onAuthticatorCheckboxChange={onCheckboxClicked}
@@ -212,6 +214,19 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
     onSecondaryActivateClicked
   );
 
+  const renderPrimaryAriaLabel = React.useCallback(
+    (index?: number): string => {
+      return index != null ? primaryAuthenticatorState[index].key : "";
+    },
+    [primaryAuthenticatorState]
+  );
+  const renderSecondaryAriaLabel = React.useCallback(
+    (index?: number): string => {
+      return index != null ? secondaryAuthenticatorState[index].key : "";
+    },
+    [secondaryAuthenticatorState]
+  );
+
   const onSaveButtonClicked = React.useCallback(() => {
     if (props.appConfig == null) {
       return;
@@ -239,15 +254,16 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
         className={styles.widget}
         style={{ boxShadow: DefaultEffects.elevation4 }}
       >
-        <h2 className={styles.widgetHeader}>
+        <Text as="h2" className={styles.widgetHeader}>
           <FormattedMessage id="AuthenticationAuthenticator.widgetHeader.primary" />
-        </h2>
+        </Text>
         <DetailsListWithOrdering
           items={primaryAuthenticatorState}
           columns={authenticatorColumns}
           onRenderItemColumn={renderPrimaryItemColumn}
           onSwapClicked={onPrimarySwapClicked}
           selectionMode={SelectionMode.none}
+          renderAriaLabel={renderPrimaryAriaLabel}
         />
       </div>
 
@@ -255,15 +271,16 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
         className={styles.widget}
         style={{ boxShadow: DefaultEffects.elevation4 }}
       >
-        <h2 className={styles.widgetHeader}>
+        <Text as="h2" className={styles.widgetHeader}>
           <FormattedMessage id="AuthenticationAuthenticator.widgetHeader.secondary" />
-        </h2>
+        </Text>
         <DetailsListWithOrdering
           items={secondaryAuthenticatorState}
           columns={authenticatorColumns}
           onRenderItemColumn={renderSecondaryItemColumn}
           onSwapClicked={onSecondarySwapClicked}
           selectionMode={SelectionMode.none}
+          renderAriaLabel={renderSecondaryAriaLabel}
         />
       </div>
 

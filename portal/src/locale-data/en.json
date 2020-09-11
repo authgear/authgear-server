@@ -60,16 +60,19 @@
   "AuthenticationScreen.authenticator.title": "Authenticator",
 
   "AuthenticationWidget.usernameTitle": "Username",
+  "AuthenticationWidget.usernameExtend": "Extend username",
   "AuthenticationWidget.blockReservedUsername": "Block Reserved Username",
   "AuthenticationWidget.excludeKeywords": "Exclude Keyword",
   "AuthenticationWidget.caseSensitive": "Case Sensitive",
   "AuthenticationWidget.asciiOnly": "ASCII Only",
 
   "AuthenticationWidget.emailAddressTitle": "Email Address",
+  "AuthenticationWidget.emailAddressExtend": "Extend email address",
   "AuthenticationWidget.ignoreDotLocal": "Ignore dot sign in local parameter",
   "AuthenticationWidget.allowPlus": "Allow + sign in email",
 
   "AuthenticationWidget.phoneNumberTitle": "Phone Number",
+  "AuthenticationWidget.phoneNumberExtend": "Extend phone number",
 
   "AuthenticationWidget.error.blockDomains": "Invalid domains",
 
@@ -84,5 +87,7 @@
   "PaginationWidget.Last": "Go to the last page",
   "PaginationWidget.Page": "Go to page {PAGE}",
 
-  "DetailsListWithOrdering.order": "Order"
+  "DetailsListWithOrdering.order": "Order",
+  "DetailsListWithOrdering.move-up": "Move {key} up",
+  "DetailsListWithOrdering.move-down": "Move {key} down"
 }

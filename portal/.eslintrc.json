@@ -17,6 +17,10 @@
   "globals": { "Set": "readonly" },
   "rules": {
     "react/jsx-no-bind": "off",
+    "react/forbid-elements": [
+      1,
+      { "forbid": ["h1", "h2", "h3", "h4", "h5", "h6"] }
+    ],
     "no-mixed-operators": "off",
     "no-undefined": "off",
     "no-console": ["warn", { "allow": ["warn", "error"] }]

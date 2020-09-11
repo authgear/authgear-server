@@ -90,9 +90,9 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
 
   return (
     <div className={styles.root}>
-      <h2 className={styles.header}>
+      <Text as="h2" className={styles.header}>
         <FormattedMessage id="UserDetails.connected-identities.header" />
-      </h2>
+      </Text>
       <List
         className={styles.list}
         items={identityListItems}

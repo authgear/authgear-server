@@ -1,14 +1,23 @@
-import React, { createRef, useState, useCallback, useEffect } from "react";
+import React, {
+  createRef,
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useContext,
+} from "react";
 import { IconButton, DefaultEffects } from "@fluentui/react";
 import cn from "classnames";
 
 import styles from "./ExtendableWidget.module.scss";
+import { Context } from "@oursky/react-messageformat";
 
 interface ExtendableWidgetProps {
   HeaderComponent: React.ReactNode;
   initiallyExtended: boolean;
   extendable: boolean;
   readOnly?: boolean;
+  extendButtonAriaLabelId: string;
   children: React.ReactNode;
 }
 
@@ -25,6 +34,7 @@ const ExtendableWidget: React.FC<ExtendableWidgetProps> = function ExtendableWid
     extendable,
     readOnly,
     children,
+    extendButtonAriaLabelId,
   } = props;
 
   const contentDivRef = createRef<HTMLDivElement>();
@@ -32,6 +42,8 @@ const ExtendableWidget: React.FC<ExtendableWidgetProps> = function ExtendableWid
   const [contentHeight, setContentHeight] = useState(
     initiallyExtended ? "auto" : "0"
   );
+
+  const { renderToString } = useContext(Context);
 
   const onExtendClicked = useCallback(() => {
     const stateAftertoggle = !extended;
@@ -54,6 +66,11 @@ const ExtendableWidget: React.FC<ExtendableWidgetProps> = function ExtendableWid
     }
   }, [extendable, extended, onExtendClicked]);
 
+  const buttonAriaLabel = useMemo(
+    () => renderToString(extendButtonAriaLabelId),
+    [extendButtonAriaLabelId, renderToString]
+  );
+
   return (
     <div style={{ boxShadow: DefaultEffects.elevation4 }}>
       <div className={styles.header}>
@@ -62,6 +79,7 @@ const ExtendableWidget: React.FC<ExtendableWidgetProps> = function ExtendableWid
           className={cn(styles.downArrow, {
             [styles.downArrowExtended]: extended,
           })}
+          ariaLabel={buttonAriaLabel}
           onClick={onExtendClicked}
           disabled={!extendable}
           iconProps={ICON_PROPS}

@@ -1,6 +1,12 @@
 import React from "react";
 import produce from "immer";
-import { Checkbox, Toggle, PrimaryButton, TagPicker } from "@fluentui/react";
+import {
+  Checkbox,
+  Toggle,
+  PrimaryButton,
+  TagPicker,
+  Label,
+} from "@fluentui/react";
 
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
@@ -49,13 +55,12 @@ const WidgetHeader: React.FC<WidgetHeaderProps> = function (
   return (
     <div className={styles.widgetHeader}>
       <Toggle
+        label={<FormattedMessage id={props.titleId} />}
+        inlineLabel={true}
         styles={switchStyle}
         checked={props.enabled}
         onChanged={props.setEnabled}
       />
-      <header className={styles.widgetHeaderText}>
-        <FormattedMessage id={props.titleId} />
-      </header>
     </div>
   );
 };
@@ -285,6 +290,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
           initiallyExtended={usernameEnabled}
           extendable={true}
           readOnly={!usernameEnabled}
+          extendButtonAriaLabelId={"AuthenticationWidget.usernameExtend"}
           HeaderComponent={
             <WidgetHeader
               enabled={usernameEnabled}
@@ -304,14 +310,20 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
             />
 
             <CheckboxWithContent
+              ariaLabel={renderToString("AuthenticationWidget.excludeKeywords")}
               checked={isExcludeKeywords}
               onChange={onIsExcludeKeywordsChange}
               className={styles.checkboxWithContent}
             >
-              <div className={styles.checkboxLabel}>
+              <Label className={styles.checkboxLabel}>
                 <FormattedMessage id="AuthenticationWidget.excludeKeywords" />
-              </div>
+              </Label>
               <TagPicker
+                inputProps={{
+                  "aria-label": renderToString(
+                    "AuthenticationWidget.excludeKeywords"
+                  ),
+                }}
                 className={styles.widgetInputField}
                 disabled={!isExcludeKeywords}
                 onChange={onExcludedKeywordsChange}
@@ -342,6 +354,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
           initiallyExtended={emailEnabled}
           extendable={true}
           readOnly={!emailEnabled}
+          extendButtonAriaLabelId={"AuthenticationWidget.emailAddressExtend"}
           HeaderComponent={
             <WidgetHeader
               enabled={emailEnabled}
@@ -378,6 +391,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
           initiallyExtended={phoneNumberEnabled}
           extendable={true}
           readOnly={!phoneNumberEnabled}
+          extendButtonAriaLabelId={"AuthenticationWidget.phoneNumberExtend"}
           HeaderComponent={
             <WidgetHeader
               enabled={phoneNumberEnabled}

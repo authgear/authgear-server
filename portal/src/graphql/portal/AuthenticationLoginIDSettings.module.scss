@@ -11,20 +11,11 @@
   display: flex;
 }
 
-.widgetHeaderText {
-  display: flex;
-  align-items: center;
-  font-size: 14px;
-  font-weight: 600;
-  padding-left: 12px;
-}
-
 .checkboxLabel {
   font-size: 14px;
   font-weight: 400;
-  line-height: 20px;
-  -webkit-font-smoothing: antialiased;
   margin-bottom: 5px;
+  padding: 2px 0;
 }
 
 .widgetInputField {

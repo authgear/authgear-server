@@ -1,7 +1,7 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import { gql, useQuery } from "@apollo/client";
-import { Pivot, PivotItem } from "@fluentui/react";
+import { Pivot, PivotItem, Text } from "@fluentui/react";
 
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 
@@ -55,11 +55,11 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
   }
 
   return (
-    <div className={styles.root}>
+    <main className={styles.root}>
       <div className={styles.content}>
-        <div className={styles.title}>
+        <Text as="h1" className={styles.title}>
           <FormattedMessage id="AuthenticationScreen.title" />
-        </div>
+        </Text>
         <div className={styles.tabsContainer}>
           <Pivot>
             <PivotItem
@@ -77,7 +77,7 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
           </Pivot>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 
