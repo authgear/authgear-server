@@ -88,6 +88,8 @@
 					name="x_login_id"
 					placeholder="{{ template "login-id-placeholder" (makemap "variant" $.LoginPageTextLoginIDVariant) }}"
 				>
+				<!-- This field is for Chrome and Safari to consider the above field as username for autocomplete -->
+				<input style="display: none" aria-hidden="true" type="password" autocomplete="current-password" name="">
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if (not (eq $.LoginPageTextLoginIDVariant "none")) }}
