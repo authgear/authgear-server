@@ -29,11 +29,11 @@ func newPanicEndMiddleware(p *deps.RequestProvider) httproute.Middleware {
 func newPanicLogMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	rootProvider := p.RootProvider
 	factory := rootProvider.LoggerFactory
-	logPanicMiddlewareLogger := middleware.NewLogPanicMiddlewareLogger(factory)
-	logPanicMiddleware := &middleware.LogPanicMiddleware{
-		Logger: logPanicMiddlewareLogger,
+	panicLogMiddlewareLogger := middleware.NewPanicLogMiddlewareLogger(factory)
+	panicLogMiddleware := &middleware.PanicLogMiddleware{
+		Logger: panicLogMiddlewareLogger,
 	}
-	return logPanicMiddleware
+	return panicLogMiddleware
 }
 
 func newBodyLimitMiddleware(p *deps.RequestProvider) httproute.Middleware {

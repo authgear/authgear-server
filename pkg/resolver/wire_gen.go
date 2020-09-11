@@ -58,11 +58,11 @@ func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
 func newPanicLogMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	logPanicMiddlewareLogger := middleware.NewLogPanicMiddlewareLogger(factory)
-	logPanicMiddleware := &middleware.LogPanicMiddleware{
-		Logger: logPanicMiddlewareLogger,
+	panicLogMiddlewareLogger := middleware.NewPanicLogMiddlewareLogger(factory)
+	panicLogMiddleware := &middleware.PanicLogMiddleware{
+		Logger: panicLogMiddlewareLogger,
 	}
-	return logPanicMiddleware
+	return panicLogMiddleware
 }
 
 func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {

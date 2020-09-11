@@ -8,17 +8,17 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-type LogPanicMiddlewareLogger struct{ *log.Logger }
+type PanicLogMiddlewareLogger struct{ *log.Logger }
 
-func NewLogPanicMiddlewareLogger(lf *log.Factory) LogPanicMiddlewareLogger {
-	return LogPanicMiddlewareLogger{lf.New("log-panic")}
+func NewPanicLogMiddlewareLogger(lf *log.Factory) PanicLogMiddlewareLogger {
+	return PanicLogMiddlewareLogger{lf.New("log-panic")}
 }
 
-type LogPanicMiddleware struct {
-	Logger LogPanicMiddlewareLogger
+type PanicLogMiddleware struct {
+	Logger PanicLogMiddlewareLogger
 }
 
-func (m *LogPanicMiddleware) Handle(next http.Handler) http.Handler {
+func (m *PanicLogMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {

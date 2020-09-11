@@ -7,8 +7,8 @@ import (
 var DependencySet = wire.NewSet(
 	wire.Struct(new(CORSMiddleware), "*"),
 
-	NewLogPanicMiddlewareLogger,
-	wire.Struct(new(LogPanicMiddleware), "*"),
+	NewPanicLogMiddlewareLogger,
+	wire.Struct(new(PanicLogMiddleware), "*"),
 
 	wire.Struct(new(PanicWriteAPIResponseMiddleware), "*"),
 
