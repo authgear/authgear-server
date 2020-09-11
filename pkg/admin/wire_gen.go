@@ -212,15 +212,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          serviceStore,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	redisHandle := appProvider.Redis
@@ -239,6 +230,16 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:      clockClock,
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
+	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          serviceStore,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	queries := &user.Queries{
 		Store:        store,

@@ -125,7 +125,6 @@ type VerificationService interface {
 	VerifyCode(id string, code string) (*verification.Code, error)
 	NewVerifiedClaim(userID string, claimName string, claimValue string) *verification.Claim
 	MarkClaimVerified(claim *verification.Claim) error
-	MarkClaimUnverified(userID string, claimName string, claimValue string) error
 }
 
 type VerificationCodeSender interface {

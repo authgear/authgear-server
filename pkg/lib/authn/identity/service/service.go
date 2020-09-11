@@ -65,6 +65,10 @@ type AuthenticatorService interface {
 	Delete(authenticatorInfo *authenticator.Info) error
 }
 
+type VerificationService interface {
+	RemoveOrphanedClaims(identities []*identity.Info) error
+}
+
 type Service struct {
 	Authentication *config.AuthenticationConfig
 	Identity       *config.IdentityConfig
@@ -73,6 +77,7 @@ type Service struct {
 	OAuth          OAuthIdentityProvider
 	Anonymous      AnonymousIdentityProvider
 	Authenticators AuthenticatorService
+	Verification   VerificationService
 }
 
 func (s *Service) Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error) {
@@ -357,6 +362,15 @@ func (s *Service) Update(before, after *identity.Info) error {
 	default:
 		panic("identity: unknown identity type " + after.Type)
 	}
+
+	identities, err := s.ListByUser(before.UserID)
+	if err != nil {
+		return err
+	}
+	if err := s.Verification.RemoveOrphanedClaims(identities); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -396,6 +410,15 @@ func (s *Service) Delete(info *identity.Info) error {
 	default:
 		panic("identity: unknown identity type " + info.Type)
 	}
+
+	identities, err := s.ListByUser(info.UserID)
+	if err != nil {
+		return err
+	}
+	if err := s.Verification.RemoveOrphanedClaims(identities); err != nil {
+		return err
+	}
+
 	return nil
 }
 

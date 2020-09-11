@@ -257,18 +257,37 @@ func (s *Service) MarkClaimVerified(claim *Claim) error {
 	return s.ClaimStore.Create(claim)
 }
 
-func (s *Service) MarkClaimUnverified(userID string, claimName string, claimValue string) error {
-	claim, err := s.ClaimStore.Get(userID, claimName, claimValue)
-	if errors.Is(err, ErrClaimUnverified) {
-		return nil
-	} else if err != nil {
-		return err
-	}
-
-	err = s.ClaimStore.Delete(claim.ID)
+func (s *Service) RemoveOrphanedClaims(identities []*identity.Info) error {
+	// Assuming user ID of all identities is same
+	userID := identities[0].UserID
+	claims, err := s.ClaimStore.ListByUser(userID)
 	if err != nil {
 		return err
 	}
 
+	orphans := make(map[claim]*Claim)
+	for _, c := range claims {
+		orphans[claim{c.Name, c.Value}] = c
+	}
+
+	for _, i := range identities {
+		if i.UserID != userID {
+			panic("verification: expect all user ID is same")
+		}
+		for claimName, claimValue := range i.Claims {
+			value, ok := claimValue.(string)
+			if !ok {
+				continue
+			}
+			delete(orphans, claim{claimName, value})
+		}
+	}
+
+	for _, claim := range orphans {
+		err = s.ClaimStore.Delete(claim.ID)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
