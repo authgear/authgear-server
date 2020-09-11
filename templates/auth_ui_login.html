@@ -14,21 +14,28 @@
 				<form class="authorize-idp-form" method="post" novalidate>
 				{{ $.CSRFField }}
 				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_provider_alias" value="{{ .provider_alias }}" data-form-xhr="false">
+					<span class="sso-btn-content">
 					{{- if eq .provider_type "apple" -}}
-					{{ template "sign-in-apple" }}
+					<i class="fab fa-apple" aria-hidden="true"></i>
+					<span class="title">{{ template "sign-in-apple" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "google" -}}
-					{{ template "sign-in-google" }}
+					<i class="fab fa-google" aria-hidden="true"></i>
+					<span class="title">{{ template "sign-in-google" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "facebook" -}}
-					{{ template "sign-in-facebook" }}
+					<i class="fab fa-facebook-f" aria-hidden="true"></i>
+					<span class="title">{{ template "sign-in-facebook" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "linkedin" -}}
-					{{ template "sign-in-linkedin" }}
+					<i class="fab fa-linkedin-in" aria-hidden="true"></i>
+					<span class="title">{{ template "sign-in-linkedin" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "azureadv2" -}}
-					{{ template "sign-in-azureadv2" }}
+					<i class="fab fa-microsoft" aria-hidden="true"></i>
+					<span class="title">{{ template "sign-in-azureadv2" }}</span>
 					{{- end -}}
+					</span>
 				</button>
 				</form>
 				{{ end }}

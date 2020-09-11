@@ -8,13 +8,37 @@ html, body {
   min-height: 100vh;
 }
 
-html {
-  font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
+/* Load fluentui font */
+/* The URLs are observed in browser console */
+/* The font weights are from https://developer.microsoft.com/en-us/fluentui#/styles/web/typography */
+@font-face {
+  font-family: "Segoe UI Web";
+  src: url(//static2.sharepointonline.com/files/fabric/assets/fonts/segoeui-westeuropean/segoeui-regular.woff2) format("woff2");
+  font-weight: 400;
+}
+@font-face {
+  font-family: "Segoe UI Web";
+  src: url(//static2.sharepointonline.com/files/fabric/assets/fonts/segoeui-westeuropean/segoeui-semibold.woff2) format("woff2");
+  font-weight: 600;
+}
+@font-face {
+  font-family: "Segoe UI Web";
+  src: url(//static2.sharepointonline.com/files/fabric/assets/fonts/segoeui-westeuropean/segoeui-bold.woff2) format("woff2");
+  font-weight: 700;
+}
+
+body {
+  font-family: "Segoe UI Web",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+}
+
+input, select, textarea, button {
+  font-family: inherit;
 }
 
 *, *::before, *::after {
   box-sizing: border-box;
 }
+
 
 button {
   -moz-appearance: none;
@@ -155,7 +179,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .secondary-btn {
   color: #166bef;
-  min-width: 100px;
 }
 
 .destructive-btn {
@@ -163,7 +186,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .link {
-  font-size: 12px;
+  font-size: smaller;
 }
 
 button.link {
@@ -215,14 +238,6 @@ a.btn {
   margin: 6px;
   display: flex;
   flex-direction: row;
-}
-
-.back-btn {
-  /* FIXME(ui): add back button icon */
-  /* background-image: url("../image/ic_back_arrow.png"); */
-  background-position: 6px;
-  background-size: 16px auto;
-  background-repeat: no-repeat;
 }
 
 .back-btn[disabled] {
@@ -295,46 +310,58 @@ a.btn {
 }
 
 .sso-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 36px;
+  margin: 4px 0;
   border-radius: 2px;
   border: solid 1px #d8d8d8;
-  margin: 4px 0;
-  background-position: 6px center;
-  background-size: 24px 24px;
-  background-repeat: no-repeat;
+  height: 36px;
+}
+
+/* Safari button cannot have display being set to other value */
+/* Therefore we have to wrap the content in a span */
+/* However, other sizing properties still need to be declared on the button itself */
+/* Otherwise, the content will overflow the button */
+.sso-btn-content {
+  display: grid;
+  grid: "icon title" auto
+      /  36px 1fr;
+}
+
+.sso-btn .fab {
+  grid-area: icon;
+  align-self: center;
+  justify-self: center;
+}
+
+.sso-btn .title {
+  grid-area: title;
+  align-self: center;
+  justify-self: center;
+  margin: 0 0 0 -36px;
 }
 
 .apple {
   color: white;
   background-color: black;
-  background-image: url("../image/ic_idp_apple.png");
 }
 
 .google {
   color: #333333;
   background-color: white;
-  background-image: url("../image/ic_idp_google.png");
 }
 
 .facebook {
   color: white;
   background-color: #3b5998;
-  background-image: url("../image/ic_idp_facebook.png");
 }
 
 .linkedin {
   color: white;
   background-color: #187fb8;
-  background-image: url("../image/ic_idp_linkedin.png");
 }
 
 .azureadv2 {
   color: #333333;
   background-color: #e2e2e2;
-  background-image: url("../image/ic_idp_azuread.png");
 }
 
 .sso-loginid-separator {
@@ -372,7 +399,7 @@ a.btn {
 
 .device-token-label {
   padding: 4px;
-  font-size: 12px;
+  font-size: smaller;
 }
 
 .simple-form {
@@ -380,11 +407,11 @@ a.btn {
 }
 
 .simple-form .title {
-  font-size: 24px;
+  font-size: larger;
 }
 
 .simple-form .description {
-  font-size: 12px;
+  font-size: smaller;
 }
 
 .simple-form .nav-bar {
@@ -424,14 +451,6 @@ a.btn {
   justify-content: space-between;
 }
 
-.login_id.email {
-  background-image: url("../image/ic_login_id_email.png");
-}
-
-.login_id.phone {
-  background-image: url("../image/ic_login_id_phone.png");
-}
-
 .setup-totp .totp-image {
   width: 200px;
   height: 200px;
@@ -447,7 +466,7 @@ a.btn {
 .recovery-codes .recovery-code {
   white-space: pre;
   font-family: monospace;
-  font-size: 18px;
+  font-size: larger;
   margin: 0;
   padding: 0;
 }
@@ -548,8 +567,8 @@ a.btn {
 .settings-identity-identity-section {
   display: grid;
   grid: "icon  name   action1" auto
-        "....  claim  action2" auto
-      /  auto   1fr    auto;
+        "icon  claim  action2" auto
+      /  32px   1fr    auto;
   font-size: 1rem;
 }
 
@@ -558,26 +577,27 @@ a.btn {
 }
 
 .settings-identity-identity-section .icon {
+  align-self: start;
+  justify-self: center;
   grid-area: icon;
-  background-repeat: no-repeat;
-  background-size: 24px 24px;
-  background-position: center;
-  width: 24px;
-  height: 24px;
-  margin: 6px;
+  margin: 2px;
 }
 
 .settings-identity-identity-section .name {
   grid-area: name;
   align-self: center;
-  justify-self: start;
+  /* We must keep using the dfault value justify-self: stretch */
+  /* So that this element takes exact 1fr width */
+  /* Otherwise it could overflow */
   font-size: inherit;
 }
 
 .settings-identity-identity-section .claim {
   grid-area: claim;
   align-self: center;
-  justify-self: start;
+  /* We must keep using the dfault value justify-self: stretch */
+  /* So that this element takes exact 1fr width */
+  /* Otherwise it could overflow */
   font-size: smaller;
 }
 
