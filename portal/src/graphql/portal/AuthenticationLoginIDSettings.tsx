@@ -136,19 +136,21 @@ function getOrCreateLoginIdKey(
   if (loginIdKey != null) {
     return loginIdKey;
   }
-  const newLoginIdKey = { type: keyType };
+  const newLoginIdKey = { type: keyType, key: keyType };
   loginIdKeys.push(newLoginIdKey);
   return newLoginIdKey;
 }
 
 function setLoginIdKeyEnabled(
-  loginIdKey: LoginIDKeyConfig,
+  loginIdKeys: LoginIDKeyConfig[],
+  field: LoginIDKeyType,
   enabled: boolean,
   initialEnabled: boolean
 ) {
   if (enabled === initialEnabled) {
     return;
   }
+  const loginIdKey = getOrCreateLoginIdKey(loginIdKeys, field);
   loginIdKey.verification = loginIdKey.verification ?? { enabled: false };
   loginIdKey.verification.enabled = enabled;
 }
@@ -193,31 +195,33 @@ function constructAppConfigFromState(
   screenState: AuthenticationLoginIDSettingsState
 ): PortalAPIAppConfig {
   const newAppConfig = produce(rawAppConfig, (draftConfig) => {
-    const loginIdKeys = draftConfig.identity?.login_id?.keys ?? [];
-    const loginIdUsernameKey = getOrCreateLoginIdKey(loginIdKeys, "username");
-    const loginIdEmailKey = getOrCreateLoginIdKey(loginIdKeys, "email");
-    const loginIdPhoneNumberKey = getOrCreateLoginIdKey(loginIdKeys, "phone");
-
-    setLoginIdKeyEnabled(
-      loginIdUsernameKey,
-      screenState.usernameEnabled,
-      initialScreenState.usernameEnabled
-    );
-    setLoginIdKeyEnabled(
-      loginIdEmailKey,
-      screenState.emailEnabled,
-      initialScreenState.emailEnabled
-    );
-    setLoginIdKeyEnabled(
-      loginIdPhoneNumberKey,
-      screenState.phoneNumberEnabled,
-      initialScreenState.phoneNumberEnabled
-    );
-
     draftConfig.identity = draftConfig.identity ?? {};
     draftConfig.identity.login_id = draftConfig.identity.login_id ?? {};
     draftConfig.identity.login_id.types =
       draftConfig.identity.login_id.types ?? {};
+    draftConfig.identity.login_id.keys =
+      draftConfig.identity.login_id.keys ?? [];
+
+    const loginIdKeys = draftConfig.identity.login_id.keys;
+
+    setLoginIdKeyEnabled(
+      loginIdKeys,
+      "username",
+      screenState.usernameEnabled,
+      initialScreenState.usernameEnabled
+    );
+    setLoginIdKeyEnabled(
+      loginIdKeys,
+      "email",
+      screenState.emailEnabled,
+      initialScreenState.emailEnabled
+    );
+    setLoginIdKeyEnabled(
+      loginIdKeys,
+      "phone",
+      screenState.phoneNumberEnabled,
+      initialScreenState.phoneNumberEnabled
+    );
 
     const loginIdTypes = draftConfig.identity.login_id.types;
 

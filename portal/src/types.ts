@@ -8,7 +8,7 @@ interface VerificationLoginIDKeyConfig {
 }
 
 export interface LoginIDKeyConfig {
-  key?: string;
+  key: string;
   maximum?: number;
   type: LoginIDKeyType;
   verification?: VerificationLoginIDKeyConfig;
