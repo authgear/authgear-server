@@ -19,9 +19,17 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
 
   const { loading, error, data, refetch } = useAppConfigQuery(appID);
 
-  const appConfig = React.useMemo(() => {
+  const { effectiveAppConfig, rawAppConfig } = React.useMemo(() => {
     const node = data?.node;
-    return node?.__typename === "App" ? node.effectiveAppConfig : null;
+    return node?.__typename === "App"
+      ? {
+          effectiveAppConfig: node.effectiveAppConfig,
+          rawAppConfig: node.rawAppConfig,
+        }
+      : {
+          effectiveAppConfig: null,
+          rawAppConfig: null,
+        };
   }, [data]);
 
   if (loading) {
@@ -43,14 +51,20 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
             <PivotItem
               headerText={renderToString("AuthenticationScreen.login-id.title")}
             >
-              <AuthenticationLoginIDSettings appConfig={appConfig} />
+              <AuthenticationLoginIDSettings
+                effectiveAppConfig={effectiveAppConfig}
+                rawAppConfig={rawAppConfig}
+              />
             </PivotItem>
             <PivotItem
               headerText={renderToString(
                 "AuthenticationScreen.authenticator.title"
               )}
             >
-              <AuthenticationAuthenticatorSettings appConfig={appConfig} />
+              <AuthenticationAuthenticatorSettings
+                effectiveAppConfig={effectiveAppConfig}
+                rawAppConfig={rawAppConfig}
+              />
             </PivotItem>
           </Pivot>
         </div>

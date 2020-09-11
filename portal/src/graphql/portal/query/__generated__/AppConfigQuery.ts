@@ -18,6 +18,7 @@ export interface AppConfigQuery_node_App {
    */
   id: string;
   effectiveAppConfig: GQL_AppConfig;
+  rawAppConfig: GQL_AppConfig;
 }
 
 export type AppConfigQuery_node = AppConfigQuery_node_User | AppConfigQuery_node_App;

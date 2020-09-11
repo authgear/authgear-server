@@ -22,7 +22,8 @@ import {
 import styles from "./AuthenticationLoginIDSettings.module.scss";
 
 interface Props {
-  appConfig: PortalAPIAppConfig | null;
+  effectiveAppConfig: PortalAPIAppConfig | null;
+  rawAppConfig: PortalAPIAppConfig | null;
 }
 
 interface WidgetHeaderProps {
@@ -137,10 +138,11 @@ function setLoginIdKeyEnabled(loginIdKey: LoginIDKeyConfig, enabled: boolean) {
 }
 
 function constructAppConfigFromState(
-  appConfig: PortalAPIAppConfig,
+  rawAppConfig: PortalAPIAppConfig,
+  effectiveAppConfig: PortalAPIAppConfig,
   screenState: AuthenticationLoginIDSettingsState
 ): PortalAPIAppConfig {
-  const newAppConfig = produce(appConfig, (draftConfig) => {
+  const newAppConfig = produce(rawAppConfig, (draftConfig) => {
     const loginIdKeys = draftConfig.identity?.login_id?.keys ?? [];
     const loginIdUsernameKey = getOrCreateLoginIdKey(loginIdKeys, "username");
     const loginIdEmailKey = getOrCreateLoginIdKey(loginIdKeys, "email");
@@ -192,9 +194,9 @@ function constructAppConfigFromState(
 const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLoginIDSettings(
   props: Props
 ) {
-  const { appConfig } = props;
+  const { effectiveAppConfig, rawAppConfig } = props;
   const { renderToString } = React.useContext(Context);
-  const loginIdKeys = appConfig?.identity?.login_id?.keys ?? [];
+  const loginIdKeys = effectiveAppConfig?.identity?.login_id?.keys ?? [];
   const {
     usernameEnabledConfig,
     emailEnabledConfig,
@@ -209,7 +211,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
   );
 
   // username widget
-  const usernameConfig = appConfig?.identity?.login_id?.types.username;
+  const usernameConfig = effectiveAppConfig?.identity?.login_id?.types.username;
   const excludedKeywordsConfig = usernameConfig?.excluded_keywords ?? [];
 
   const {
@@ -235,7 +237,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
   );
 
   // email widget
-  const emailConfig = appConfig?.identity?.login_id?.types.email;
+  const emailConfig = effectiveAppConfig?.identity?.login_id?.types.email;
 
   const {
     value: isEmailCaseSensitive,
@@ -250,7 +252,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
   );
 
   const onSaveButtonClicked = React.useCallback(() => {
-    if (props.appConfig == null) {
+    if (effectiveAppConfig == null || rawAppConfig == null) {
       return;
     }
 
@@ -270,10 +272,11 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
       isAllowPlus,
     };
 
-    constructAppConfigFromState(props.appConfig, screenState);
+    constructAppConfigFromState(rawAppConfig, effectiveAppConfig, screenState);
     // TODO: call mutation to save config
   }, [
-    props.appConfig,
+    effectiveAppConfig,
+    rawAppConfig,
 
     usernameEnabled,
     emailEnabled,

@@ -23,7 +23,8 @@ import {
 import styles from "./AuthenticationAuthenticatorSettings.module.scss";
 
 interface Props {
-  appConfig: PortalAPIAppConfig | null;
+  effectiveAppConfig: PortalAPIAppConfig | null;
+  rawAppConfig: PortalAPIAppConfig | null;
 }
 
 interface AuthenticatorCheckboxProps extends ICheckboxProps {
@@ -149,6 +150,7 @@ function getActivatedKeyListFromState<KeyType>(
 const AuthenticationAuthenticatorSettings: React.FC<Props> = function AuthenticationAuthenticatorSettings(
   props: Props
 ) {
+  const { effectiveAppConfig, rawAppConfig } = props;
   const { renderToString } = React.useContext(Context);
 
   const authenticatorColumns: IColumn[] = [
@@ -171,7 +173,7 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
   ];
 
   const { primaryAuthenticators, secondaryAuthenticators } = constructListData(
-    props.appConfig
+    effectiveAppConfig
   );
 
   const [
@@ -228,7 +230,7 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
   );
 
   const onSaveButtonClicked = React.useCallback(() => {
-    if (props.appConfig == null) {
+    if (effectiveAppConfig == null || rawAppConfig == null) {
       return;
     }
 
@@ -239,14 +241,19 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
       secondaryAuthenticatorState
     );
 
-    produce(props.appConfig, (draftConfig) => {
+    produce(rawAppConfig, (draftConfig) => {
       const authentication = draftConfig.authentication;
       authentication.primary_authenticators = activatedPrimaryKeyList;
       authentication.secondary_authenticators = activatedSecondaryKeyList;
     });
 
     // TODO: call mutation to save config
-  }, [props.appConfig, primaryAuthenticatorState, secondaryAuthenticatorState]);
+  }, [
+    rawAppConfig,
+    effectiveAppConfig,
+    primaryAuthenticatorState,
+    secondaryAuthenticatorState,
+  ]);
 
   return (
     <div className={styles.root}>

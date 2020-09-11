@@ -9,6 +9,7 @@ export const appConfigQuery = gql`
       ... on App {
         id
         effectiveAppConfig
+        rawAppConfig
       }
     }
   }
