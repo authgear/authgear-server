@@ -19,7 +19,11 @@ import {
   PortalAPIAppConfig,
   PortalAPIApp,
 } from "../../types";
-import { setFieldIfChanged, isArrayEqualInOrder } from "../../util/misc";
+import {
+  setFieldIfChanged,
+  isArrayEqualInOrder,
+  clearEmptyObject,
+} from "../../util/misc";
 
 import styles from "./AuthenticationLoginIDSettings.module.scss";
 
@@ -276,6 +280,8 @@ function constructAppConfigFromState(
       !initialScreenState.isAllowPlus,
       !screenState.isAllowPlus
     );
+
+    clearEmptyObject(draftConfig);
   });
 
   return newAppConfig;

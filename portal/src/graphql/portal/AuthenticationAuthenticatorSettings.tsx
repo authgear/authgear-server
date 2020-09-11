@@ -20,7 +20,7 @@ import {
   SecondaryAuthenticatorType,
   PortalAPIApp,
 } from "../../types";
-import { isArrayEqualInOrder } from "../../util/misc";
+import { isArrayEqualInOrder, clearEmptyObject } from "../../util/misc";
 
 import styles from "./AuthenticationAuthenticatorSettings.module.scss";
 
@@ -273,6 +273,8 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
       ) {
         authentication.secondary_authenticators = activatedSecondaryKeyList;
       }
+
+      clearEmptyObject(draftConfig);
     });
 
     // TODO: call mutation to save config
