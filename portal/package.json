@@ -10,7 +10,7 @@
     "fmt": "prettier --list-different --write './src/**/*.{js,ts,jsx,tsx,css,scss,html}'",
     "eslint": "eslint './src/**/*.{js,ts,jsx,tsx}'",
     "stylelint": "stylelint './src/**/*.{css,scss}'",
-    "gentype": "apollo client:codegen --config ./apollo.portal.config.js --target typescript --customScalarsPrefix GQL_ && apollo client:codegen --config ./apollo.adminapi.config.js --target typescript --customScalarsPrefix GQL_"
+    "gentype": "apollo client:codegen --config ./apollo.portal.config.js --target typescript --customScalarsPrefix GQL_ --globalTypesFile ./src/graphql/portal/__generated__/globalTypes.ts && apollo client:codegen --config ./apollo.adminapi.config.js --target typescript --customScalarsPrefix GQL_ --globalTypesFile ./src/graphql/adminapi/__generated__/globalTypes.ts"
   },
   "devDependencies": {
     "@babel/preset-typescript": "7.10.4",
