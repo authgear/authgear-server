@@ -186,7 +186,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .link {
-  font-size: 12px;
+  font-size: smaller;
 }
 
 button.link {
@@ -392,7 +392,7 @@ a.btn {
 
 .device-token-label {
   padding: 4px;
-  font-size: 12px;
+  font-size: smaller;
 }
 
 .simple-form {
@@ -400,11 +400,11 @@ a.btn {
 }
 
 .simple-form .title {
-  font-size: 24px;
+  font-size: larger;
 }
 
 .simple-form .description {
-  font-size: 12px;
+  font-size: smaller;
 }
 
 .simple-form .nav-bar {
@@ -459,7 +459,7 @@ a.btn {
 .recovery-codes .recovery-code {
   white-space: pre;
   font-family: monospace;
-  font-size: 18px;
+  font-size: larger;
   margin: 0;
   padding: 0;
 }
