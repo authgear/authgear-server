@@ -14,6 +14,7 @@
 				<form class="authorize-idp-form" method="post" novalidate>
 				{{ $.CSRFField }}
 				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_provider_alias" value="{{ .provider_alias }}" data-form-xhr="false">
+					<span class="sso-btn-content">
 					{{- if eq .provider_type "apple" -}}
 					<i class="fab fa-apple" aria-hidden="true"></i>
 					<span class="title">{{ template "sign-up-apple" }}</span>
@@ -34,6 +35,7 @@
 					<i class="fab fa-microsoft" aria-hidden="true"></i>
 					<span class="title">{{ template "sign-up-azureadv2" }}</span>
 					{{- end -}}
+					</span>
 				</button>
 				</form>
 				{{ end }}

@@ -310,13 +310,20 @@ a.btn {
 }
 
 .sso-btn {
+  margin: 4px 0;
+  border-radius: 2px;
+  border: solid 1px #d8d8d8;
+  height: 36px;
+}
+
+/* Safari button cannot have display being set to other value */
+/* Therefore we have to wrap the content in a span */
+/* However, other sizing properties still need to be declared on the button itself */
+/* Otherwise, the content will overflow the button */
+.sso-btn-content {
   display: grid;
   grid: "icon title" auto
       /  36px 1fr;
-  height: 36px;
-  border-radius: 2px;
-  border: solid 1px #d8d8d8;
-  margin: 4px 0;
 }
 
 .sso-btn .fab {
