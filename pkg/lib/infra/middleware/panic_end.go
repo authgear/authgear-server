@@ -13,6 +13,11 @@ func (m *PanicEndMiddleware) Handle(next http.Handler) http.Handler {
 				_ = err
 				// Do NOT rethrow to consume the panic
 				// It is assumed that downstream middlewares have handled it somehow.
+
+				// In case the downstream middlewares do not produce a response,
+				// We write a HTTP 500 here.
+				// If the response has been written, this has effect but will trigger a warning.
+				w.WriteHeader(http.StatusInternalServerError)
 			}
 		}()
 
