@@ -9,8 +9,6 @@
   "activated": "Activated",
   "remove": "Remove",
   "disable": "Disable",
-  "up": "Up",
-  "down": "Down",
 
   "header.sign-out": "Sign out",
 
@@ -89,5 +87,7 @@
   "PaginationWidget.Last": "Go to the last page",
   "PaginationWidget.Page": "Go to page {PAGE}",
 
-  "DetailsListWithOrdering.order": "Order"
+  "DetailsListWithOrdering.order": "Order",
+  "DetailsListWithOrdering.move-up": "Move {key} up",
+  "DetailsListWithOrdering.move-down": "Move {key} down"
 }

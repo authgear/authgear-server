@@ -48,10 +48,14 @@ const OrderColumnButtons: React.FC<OrderColumnButtonsProps> = function OrderColu
   }, [index, onSwapClicked]);
 
   const ariaLabelUp = React.useMemo(() => {
-    return [renderAriaLabel(index), renderToString("up")].join(" | ");
+    return renderToString("DetailsListWithOrdering.move-up", {
+      key: renderAriaLabel(index),
+    });
   }, [renderAriaLabel, index, renderToString]);
   const ariaLabelDown = React.useMemo(() => {
-    return [renderAriaLabel(index), renderToString("down")].join(" | ");
+    return renderToString("DetailsListWithOrdering.move-down", {
+      key: renderAriaLabel(index),
+    });
   }, [renderAriaLabel, index, renderToString]);
 
   return (
