@@ -13,6 +13,7 @@ import (
 
 var utilsDeps = wire.NewSet(
 	wire.NewSet(
+		httputil.DependencySet,
 		NewCookieFactory,
 		wire.Bind(new(idpsession.CookieFactory), new(*httputil.CookieFactory)),
 		wire.Bind(new(interaction.CookieFactory), new(*httputil.CookieFactory)),

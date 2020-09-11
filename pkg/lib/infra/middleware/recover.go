@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -24,13 +23,9 @@ func (m *RecoverMiddleware) Handle(next http.Handler) http.Handler {
 		defer func() {
 			if err := recover(); err != nil {
 				const errorTypeUnexpected = 0
-				const errorTypeHandled = 1
 				const errorTypeConflict = 2
 				errorType := errorTypeUnexpected
-				if herr, ok := err.(api.HandledError); ok {
-					errorType = errorTypeHandled
-					err = herr.Error
-				} else if err, ok := err.(error); ok && errorutil.Is(err, db.ErrWriteConflict) {
+				if err, ok := err.(error); ok && errorutil.Is(err, db.ErrWriteConflict) {
 					errorType = errorTypeConflict
 				}
 
@@ -46,8 +41,6 @@ func (m *RecoverMiddleware) Handle(next http.Handler) http.Handler {
 						WithField("stack", errorutil.Callers(8)).
 						Error("panic occurred")
 					w.WriteHeader(http.StatusInternalServerError)
-				} else if errorType == errorTypeHandled {
-					m.Logger.WithError(e).Error("unexpected error occurred")
 				} else if errorType == errorTypeConflict {
 					w.WriteHeader(http.StatusConflict)
 				}

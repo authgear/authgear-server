@@ -64,6 +64,10 @@ type ChallengeProvider interface {
 	Create(purpose challenge.Purpose) (*challenge.Challenge, error)
 }
 
+type JSONResponseWriter interface {
+	WriteResponse(rw http.ResponseWriter, resp *api.Response)
+}
+
 /*
 	@Operation POST /challenge - Obtain new challenge
 		Obtain a new challenge for challenge-based OAuth authentication.
@@ -81,14 +85,15 @@ type ChallengeProvider interface {
 */
 type ChallengeHandler struct {
 	Challenges ChallengeProvider
+	JSON       JSONResponseWriter
 }
 
 func (h *ChallengeHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	result, err := h.Handle(resp, req)
 	if err == nil {
-		httputil.WriteResponse(resp, &api.Response{Result: result})
+		h.JSON.WriteResponse(resp, &api.Response{Result: result})
 	} else {
-		httputil.WriteResponse(resp, &api.Response{Error: err})
+		h.JSON.WriteResponse(resp, &api.Response{Error: err})
 	}
 }
 

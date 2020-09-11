@@ -43,6 +43,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/rand"
 	"net/http"
 )
@@ -1318,8 +1319,14 @@ func newOAuthChallengeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	factory := appProvider.LoggerFactory
+	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
+	jsonResponseWriter := &httputil.JSONResponseWriter{
+		Logger: jsonResponseWriterLogger,
+	}
 	challengeHandler := &oauth.ChallengeHandler{
 		Challenges: provider,
+		JSON:       jsonResponseWriter,
 	}
 	return challengeHandler
 }
