@@ -175,7 +175,7 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
   }
 
   return (
-    <main className={styles.root} role="main">
+    <main className={styles.root}>
       <CommandBar
         className={styles.commandBar}
         items={[]}

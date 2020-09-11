@@ -55,7 +55,7 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
   }
 
   return (
-    <main className={styles.root} role="main">
+    <main className={styles.root}>
       <div className={styles.content}>
         <h1 className={styles.title}>
           <FormattedMessage id="AuthenticationScreen.title" />
