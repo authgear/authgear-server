@@ -1,0 +1,36 @@
+.root {
+  width: 600px;
+  font-size: 13px;
+  font-weight: 300;
+  display: grid;
+  grid-gap: 5px;
+  grid-template:
+    "pic         email"
+    "pic      username"
+    "pic             ." 10px
+    "pic     createdAt"
+    "pic   lastLoginAt"
+    / 74px auto;
+}
+
+.profilePic {
+  grid-area: pic;
+  place-self: center;
+  padding-left: 15px;
+}
+
+.email {
+  grid-area: email;
+}
+
+.username {
+  grid-area: username;
+}
+
+.createdAt {
+  grid-area: createdAt;
+}
+
+.lastLoginAt {
+  grid-area: lastLoginAt;
+}

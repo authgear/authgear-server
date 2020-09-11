@@ -11,7 +11,6 @@ import AuthenticationLoginIDSettings from "./AuthenticationLoginIDSettings";
 import AuthenticationAuthenticatorSettings from "./AuthenticationAuthenticatorSettings";
 
 import { client } from "../portal/apollo";
-import { isPortalApiApp } from "../../util/types";
 import { AppConfigQuery } from "./__generated__/AppConfigQuery";
 
 import styles from "./AuthenticationConfigurationScreen.module.scss";
@@ -44,10 +43,7 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
 
   const appConfig = React.useMemo(() => {
     const node = data?.node;
-    if (!isPortalApiApp(node)) {
-      return null;
-    }
-    return node.effectiveAppConfig ?? null;
+    return node?.__typename === "App" ? node.effectiveAppConfig : null;
   }, [data]);
 
   if (loading) {

@@ -1,0 +1,43 @@
+.root {
+  margin: 10px 8px;
+  width: 640px;
+}
+
+.authenticatorContainer {
+  padding: 15px 0;
+}
+
+.authenticatorHeader {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.cell {
+  font-size: 13px;
+  display: grid;
+  grid-gap: 3px 0;
+  grid-template:
+    "label       details"
+    "desc        details"
+    / auto 90px;
+}
+
+.cellLabel {
+  margin-bottom: 5px;
+  grid-area: label;
+}
+
+.cellDesc {
+  color: #888888;
+  grid-area: desc;
+}
+
+.detailsButton {
+  align-self: center;
+  grid-area: details;
+  place-self: center;
+}
+
+.activated {
+  color: #33ba89;
+}

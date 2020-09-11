@@ -13,8 +13,11 @@ import {
   DetailsListLayoutMode,
   SelectionMode,
   IColumn,
+  IDetailsRowProps,
+  DetailsRow,
 } from "@fluentui/react";
 import { Context } from "@oursky/react-messageformat";
+import { Link } from "react-router-dom";
 import {
   UsersListQuery,
   UsersListQuery_users,
@@ -40,6 +43,24 @@ interface PlainUsersListProps {
   totalCount?: number;
   onChangeOffset?: (offset: number) => void;
 }
+
+interface UserListItem {
+  id: string;
+  createdAt: string | null;
+  username: string;
+  phone: string;
+  email: string;
+  lastLoginAt: string | null;
+}
+
+const isUserListItem = (value: unknown): value is UserListItem => {
+  if (!(value instanceof Object)) {
+    return false;
+  }
+  return (
+    "id" in value && "username" in value && "phone" in value && "email" in value
+  );
+};
 
 const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
   props: PlainUsersListProps
@@ -83,8 +104,8 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
       minWidth: 150,
     },
     {
-      key: "signedUp",
-      fieldName: "signedUp",
+      key: "createdAt",
+      fieldName: "createdAt",
       name: renderToString("UsersList.column.signed-up"),
       minWidth: 200,
     },
@@ -97,14 +118,7 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
   ];
 
   // TODO: consider update UI design to allow multiple email, username and phone number
-  const items: {
-    id: string;
-    signedUp: string | null;
-    username: string;
-    phone: string;
-    email: string;
-    lastLoginAt: string | null;
-  }[] = useMemo(() => {
+  const items: UserListItem[] = useMemo(() => {
     const items = [];
     if (edges != null) {
       for (const edge of edges) {
@@ -118,7 +132,7 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
           const placeholder = "-";
           items.push({
             id: node.id,
-            signedUp: formatDatetime(locale, node.createdAt),
+            createdAt: formatDatetime(locale, node.createdAt),
             lastLoginAt: formatDatetime(locale, node.lastLoginAt),
             username: userInfo.username ?? placeholder,
             phone: userInfo.phone ?? placeholder,
@@ -130,10 +144,25 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
     return items;
   }, [edges, locale]);
 
+  const onRenderUserRow = React.useCallback((props?: IDetailsRowProps) => {
+    if (props == null) {
+      return null;
+    }
+    const targetPath = isUserListItem(props.item)
+      ? `./${props.item.id}/details`
+      : ".";
+    return (
+      <Link to={targetPath}>
+        <DetailsRow {...props} />
+      </Link>
+    );
+  }, []);
+
   return (
     <div className={cn(styles.root, className)}>
       <ShimmeredDetailsList
         enableShimmer={loading}
+        onRenderRow={onRenderUserRow}
         selectionMode={SelectionMode.none}
         layoutMode={DetailsListLayoutMode.justified}
         columns={columns}

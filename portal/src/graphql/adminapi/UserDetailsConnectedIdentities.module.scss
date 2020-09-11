@@ -1,0 +1,46 @@
+.root {
+  margin-top: 25px;
+  margin-left: 10px;
+  width: 640px;
+}
+
+.header {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.list {
+  padding: 5px 0 0;
+}
+
+.cellContainer {
+  font-weight: 300;
+  font-size: 13px;
+  display: grid;
+  grid-gap: 3px 0;
+  grid-template:
+    "icon    name    remove"
+    "icon    desc    remove"
+    / 35px auto 90px;
+}
+
+.cellIcon {
+  padding: 3px;
+  grid-area: icon;
+}
+
+.cellName {
+  grid-area: name;
+}
+
+.cellDesc {
+  color: #888888;
+  grid-area: desc;
+}
+
+.removeButton {
+  margin-right: 5px;
+  grid-area: remove;
+  place-self: center;
+}

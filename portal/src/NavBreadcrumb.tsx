@@ -1,4 +1,5 @@
-import React, { useContext } from "react";
+import React, { useContext, useCallback } from "react";
+import { useNavigate } from "react-router";
 import { useHref } from "react-router-dom";
 import cn from "classnames";
 import { Breadcrumb, IBreadcrumbItem, IRenderFunction } from "@fluentui/react";
@@ -28,6 +29,16 @@ const FuncLink: React.FC<FuncLinkProps> = function FuncLink(
   const href = useHref(item.href!);
   const isActive = useNavIsActive(item.href!);
 
+  const navigate = useNavigate();
+  const onLinkClicked = useCallback(
+    (ev?: React.MouseEvent<HTMLElement>, _item?: IBreadcrumbItem) => {
+      ev?.stopPropagation();
+      ev?.preventDefault();
+      navigate(href);
+    },
+    [navigate, href]
+  );
+
   if (isActive) {
     return renderFunc({
       ...item,
@@ -39,6 +50,7 @@ const FuncLink: React.FC<FuncLinkProps> = function FuncLink(
   return renderFunc({
     ...item,
     href,
+    onClick: onLinkClicked,
   });
 };
 

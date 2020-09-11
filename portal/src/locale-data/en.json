@@ -5,6 +5,10 @@
 
   "next": "Next",
   "save": "Save",
+  "details": "Details",
+  "activated": "Activated",
+  "remove": "Remove",
+  "disable": "Disable",
 
   "header.sign-out": "Sign out",
 
@@ -19,6 +23,7 @@
   "NavBreadcrumb.label": "Nested navigation",
 
   "UsersScreen.title": "Users",
+  "UserDetailsScreen.title": "User Details",
 
   "UsersList.column.id": "ID",
   "UsersList.column.username": "Username",
@@ -26,6 +31,29 @@
   "UsersList.column.phone": "Phone",
   "UsersList.column.signed-up": "Signed Up",
   "UsersList.column.last-login-at": "Last Login",
+
+  "UserDetails.signed-up": "Signed Up: {datetime}",
+  "UserDetails.last-login-at": "Last Login: {datetime}",
+
+  "UserDetails.command-bar.login-as-user": "Login as this user",
+  "UserDetails.command-bar.invalidate-sessions": "Invalidate all sessions",
+
+  "UserDetails.account-security.header": "Account Security",
+  "UserDetails.account-security.last-updated": "Last updated at {datetime}",
+  "UserDetails.account-security.primary": "Primary Authenticators",
+  "UserDetails.account-security.primary.password": "Password",
+  "UserDetails.account-security.primary.oob-otp": "Passwordless via SMS / Email",
+  "UserDetails.account-security.secondary": "Multi-factor Authentications",
+  "UserDetails.account-security.secondary.totp": "Authenticator Apps / Devices",
+  "UserDetails.account-security.secondary.oob-otp": "Verification code via SMS / Email",
+  "UserDetails.account-security.secondary.password": "Additional Password",
+
+  "UserDetails.connected-identities.header": "Connected Identities",
+  "UserDetails.connected-identities.connected-on": "Connected on {datetime}",
+  "UserDetails.session.header": "Session",
+  "UserDetails.session.devices": "Devices",
+  "UserDetails.session.last-activity": "Last Activity",
+  "UserDetails.session.ip-address": "IP Address",
 
   "AuthenticationScreen.title": "Authentication",
   "AuthenticationScreen.login-id.title": "Login ID",

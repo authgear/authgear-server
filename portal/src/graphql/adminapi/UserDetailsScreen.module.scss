@@ -1,0 +1,27 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.commandBar {
+  border-bottom: 1px solid #edebe9;
+}
+
+.invalidateIcon {
+  transform: rotate(45deg);
+  margin: 5px 2px 3px;
+}
+
+.screenContent {
+  margin: 0 10px;
+}
+
+.userDetails {
+  margin: 5px 15px;
+}
+
+.userDetailsTab {
+  margin-top: 15px;
+  margin-left: -5px;
+}
