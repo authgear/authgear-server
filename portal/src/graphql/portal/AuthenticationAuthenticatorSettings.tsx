@@ -6,6 +6,7 @@ import {
   ICheckboxProps,
   PrimaryButton,
   DefaultEffects,
+  Text,
 } from "@fluentui/react";
 import produce from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -253,9 +254,9 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
         className={styles.widget}
         style={{ boxShadow: DefaultEffects.elevation4 }}
       >
-        <h2 className={styles.widgetHeader}>
+        <Text as="h2" className={styles.widgetHeader}>
           <FormattedMessage id="AuthenticationAuthenticator.widgetHeader.primary" />
-        </h2>
+        </Text>
         <DetailsListWithOrdering
           items={primaryAuthenticatorState}
           columns={authenticatorColumns}
@@ -270,9 +271,9 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
         className={styles.widget}
         style={{ boxShadow: DefaultEffects.elevation4 }}
       >
-        <h2 className={styles.widgetHeader}>
+        <Text as="h2" className={styles.widgetHeader}>
           <FormattedMessage id="AuthenticationAuthenticator.widgetHeader.secondary" />
-        </h2>
+        </Text>
         <DetailsListWithOrdering
           items={secondaryAuthenticatorState}
           columns={authenticatorColumns}

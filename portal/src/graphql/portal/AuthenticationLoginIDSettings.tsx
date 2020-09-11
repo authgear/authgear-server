@@ -1,6 +1,12 @@
 import React from "react";
 import produce from "immer";
-import { Checkbox, Toggle, PrimaryButton, TagPicker } from "@fluentui/react";
+import {
+  Checkbox,
+  Toggle,
+  PrimaryButton,
+  TagPicker,
+  Label,
+} from "@fluentui/react";
 
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
@@ -309,9 +315,9 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
               onChange={onIsExcludeKeywordsChange}
               className={styles.checkboxWithContent}
             >
-              <div className={styles.checkboxLabel}>
+              <Label className={styles.checkboxLabel}>
                 <FormattedMessage id="AuthenticationWidget.excludeKeywords" />
-              </div>
+              </Label>
               <TagPicker
                 inputProps={{
                   "aria-label": renderToString(

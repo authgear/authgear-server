@@ -1,7 +1,7 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import { gql, useQuery } from "@apollo/client";
-import { Pivot, PivotItem } from "@fluentui/react";
+import { Pivot, PivotItem, Text } from "@fluentui/react";
 
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 
@@ -57,9 +57,9 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
   return (
     <main className={styles.root}>
       <div className={styles.content}>
-        <h1 className={styles.title}>
+        <Text as="h1" className={styles.title}>
           <FormattedMessage id="AuthenticationScreen.title" />
-        </h1>
+        </Text>
         <div className={styles.tabsContainer}>
           <Pivot>
             <PivotItem

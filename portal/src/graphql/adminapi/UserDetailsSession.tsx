@@ -1,5 +1,5 @@
 import React, { useContext, useMemo } from "react";
-import { DetailsList, IColumn, SelectionMode } from "@fluentui/react";
+import { DetailsList, IColumn, SelectionMode, Text } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import { formatDatetime } from "../../util/formatDatetime";
@@ -68,9 +68,9 @@ const UserDetailsSession: React.FC = function UserDetailsSession() {
 
   return (
     <div className={styles.root}>
-      <h2 className={styles.header}>
+      <Text as="h2" className={styles.header}>
         <FormattedMessage id="UserDetails.session.header" />
-      </h2>
+      </Text>
       <DetailsList
         items={sessionListItems}
         columns={sessionColumns}
