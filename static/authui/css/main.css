@@ -586,14 +586,18 @@ a.btn {
 .settings-identity-identity-section .name {
   grid-area: name;
   align-self: center;
-  justify-self: start;
+  /* We must keep using the dfault value justify-self: stretch */
+  /* So that this element takes exact 1fr width */
+  /* Otherwise it could overflow */
   font-size: inherit;
 }
 
 .settings-identity-identity-section .claim {
   grid-area: claim;
   align-self: center;
-  justify-self: start;
+  /* We must keep using the dfault value justify-self: stretch */
+  /* So that this element takes exact 1fr width */
+  /* Otherwise it could overflow */
   font-size: smaller;
 }
 
