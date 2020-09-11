@@ -5,6 +5,7 @@ import { Pivot, PivotItem, Text } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 
 import ShowLoading from "../../ShowLoading";
+import LoadingModal from "../../LoadingModal";
 import ShowError from "../../ShowError";
 import AuthenticationLoginIDSettings from "./AuthenticationLoginIDSettings";
 import AuthenticationAuthenticatorSettings from "./AuthenticationAuthenticatorSettings";
@@ -13,13 +14,22 @@ import { useAppConfigQuery } from "./query/appConfigQuery";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
 
 import styles from "./AuthenticationConfigurationScreen.module.scss";
+import { useSimpleRPC } from "../../hook/misc";
 
 const AuthenticationScreen: React.FC = function AuthenticationScreen() {
   const { renderToString } = React.useContext(Context);
   const { appID } = useParams();
-  const { updateAppConfig } = useUpdateAppConfigMutation(appID);
+  const {
+    updateAppConfig: updateAppConfigMutation,
+  } = useUpdateAppConfigMutation(appID);
 
   const { loading, error, data, refetch } = useAppConfigQuery(appID);
+
+  const {
+    loading: updatingAppConfig,
+    error: updateAppConfigError,
+    rpc: updateAppConfig,
+  } = useSimpleRPC(updateAppConfigMutation);
 
   const { effectiveAppConfig, rawAppConfig } = React.useMemo(() => {
     const node = data?.node;
@@ -44,6 +54,8 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
 
   return (
     <main className={styles.root}>
+      {updateAppConfigError && <ShowError error={updateAppConfigError} />}
+      <LoadingModal loading={updatingAppConfig} />
       <div className={styles.content}>
         <Text as="h1" className={styles.title}>
           <FormattedMessage id="AuthenticationScreen.title" />

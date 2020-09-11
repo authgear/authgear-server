@@ -1,5 +1,6 @@
 import React from "react";
 import produce from "immer";
+import yaml from "js-yaml";
 import {
   Checkbox,
   Toggle,
@@ -290,8 +291,9 @@ function constructAppConfigFromState(
 const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLoginIDSettings(
   props: Props
 ) {
-  const { effectiveAppConfig, rawAppConfig } = props;
+  const { effectiveAppConfig, rawAppConfig, updateAppConfig } = props;
   const { renderToString } = React.useContext(Context);
+
   const initialState = React.useMemo(() => {
     return constructStateFromAppConfig(effectiveAppConfig);
   }, [effectiveAppConfig]);
@@ -343,7 +345,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
   );
 
   // on save
-  const onSaveButtonClicked = React.useCallback(() => {
+  const onSaveButtonClicked = React.useCallback(async () => {
     if (rawAppConfig == null) {
       return;
     }
@@ -364,10 +366,18 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
       isAllowPlus,
     };
 
-    constructAppConfigFromState(rawAppConfig, initialState, screenState);
-    // TODO: call mutation to save config
+    const newAppConfig = constructAppConfigFromState(
+      rawAppConfig,
+      initialState,
+      screenState
+    );
+
+    const newAppConfigYaml = yaml.safeDump(newAppConfig);
+
+    await updateAppConfig(newAppConfigYaml);
   }, [
     rawAppConfig,
+    updateAppConfig,
     initialState,
 
     usernameEnabled,

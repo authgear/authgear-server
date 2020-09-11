@@ -9,6 +9,7 @@ import {
   Text,
 } from "@fluentui/react";
 import produce from "immer";
+import yaml from "js-yaml";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import DetailsListWithOrdering, { swap } from "../../DetailsListWithOrdering";
@@ -158,7 +159,7 @@ function getActivatedKeyListFromState<KeyType>(
 const AuthenticationAuthenticatorSettings: React.FC<Props> = function AuthenticationAuthenticatorSettings(
   props: Props
 ) {
-  const { effectiveAppConfig, rawAppConfig } = props;
+  const { effectiveAppConfig, rawAppConfig, updateAppConfig } = props;
   const { renderToString } = React.useContext(Context);
 
   const authenticatorColumns: IColumn[] = [
@@ -237,7 +238,7 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
     [secondaryAuthenticatorState]
   );
 
-  const onSaveButtonClicked = React.useCallback(() => {
+  const onSaveButtonClicked = React.useCallback(async () => {
     if (effectiveAppConfig == null || rawAppConfig == null) {
       return;
     }
@@ -254,7 +255,7 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
       secondaryAuthenticatorState
     );
 
-    produce(rawAppConfig, (draftConfig) => {
+    const newAppConfig = produce(rawAppConfig, (draftConfig) => {
       draftConfig.authentication = draftConfig.authentication ?? {};
       const { authentication } = draftConfig;
       if (
@@ -277,10 +278,13 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
       clearEmptyObject(draftConfig);
     });
 
-    // TODO: call mutation to save config
+    const newAppConfigYaml = yaml.safeDump(newAppConfig);
+
+    await updateAppConfig(newAppConfigYaml);
   }, [
     rawAppConfig,
     effectiveAppConfig,
+    updateAppConfig,
     primaryAuthenticatorState,
     secondaryAuthenticatorState,
   ]);
