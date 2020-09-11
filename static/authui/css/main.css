@@ -217,14 +217,6 @@ a.btn {
   flex-direction: row;
 }
 
-.back-btn {
-  /* FIXME(ui): add back button icon */
-  /* background-image: url("../image/ic_back_arrow.png"); */
-  background-position: 6px;
-  background-size: 16px auto;
-  background-repeat: no-repeat;
-}
-
 .back-btn[disabled] {
   visibility: hidden;
 }
