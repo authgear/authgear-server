@@ -15,6 +15,8 @@ var DependencySet = wire.NewSet(
 
 	wire.Struct(new(PanicWriteAPIResponseMiddleware), "*"),
 
+	wire.Struct(new(PanicEndMiddleware), "*"),
+
 	wire.Struct(new(SentryMiddleware), "*"),
 
 	wire.Struct(new(BodyLimitMiddleware), "*"),
