@@ -18,6 +18,7 @@ func NewRouter(p *deps.RootProvider, staticAsset StaticAssetConfig) *httproute.R
 
 	rootChain := httproute.Chain(
 		p.Middleware(newPanicEndMiddleware),
+		p.Middleware(newPanicWriteEmptyResponseMiddleware),
 		p.Middleware(newPanicLogMiddleware),
 		p.Middleware(newBodyLimitMiddleware),
 		p.Middleware(newSentryMiddleware),

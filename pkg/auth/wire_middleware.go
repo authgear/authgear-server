@@ -35,6 +35,13 @@ func newPanicEndMiddleware(p *deps.RootProvider) httproute.Middleware {
 	))
 }
 
+func newPanicWriteEmptyResponseMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		middleware.DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*middleware.PanicWriteEmptyResponseMiddleware)),
+	))
+}
+
 func newPanicLogMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,

@@ -11,6 +11,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(PanicLogMiddleware), "*"),
 
 	wire.Struct(new(PanicWriteAPIResponseMiddleware), "*"),
+	wire.Struct(new(PanicWriteEmptyResponseMiddleware), "*"),
 
 	wire.Struct(new(PanicEndMiddleware), "*"),
 

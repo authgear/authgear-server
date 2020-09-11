@@ -10012,6 +10012,11 @@ func newPanicEndMiddleware(p *deps.RootProvider) httproute.Middleware {
 	return panicEndMiddleware
 }
 
+func newPanicWriteEmptyResponseMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panicWriteEmptyResponseMiddleware := &middleware.PanicWriteEmptyResponseMiddleware{}
+	return panicWriteEmptyResponseMiddleware
+}
+
 func newPanicLogMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory

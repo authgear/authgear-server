@@ -41,10 +41,12 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 
 	webappSSOCallbackChain := httproute.Chain(
 		rootChain,
+		p.Middleware(newPanicWriteEmptyResponseMiddleware),
 		httproute.MiddlewareFunc(webapp.PostNoCacheMiddleware),
 	)
 	scopedChain := httproute.Chain(
 		rootChain,
+		p.Middleware(newPanicWriteEmptyResponseMiddleware),
 		// Current we only require valid session and do not require any scope.
 		httproute.MiddlewareFunc(oauth.RequireScope()),
 	)

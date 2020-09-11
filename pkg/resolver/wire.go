@@ -21,10 +21,18 @@ func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 		wire.Bind(new(httproute.Middleware), new(*middleware.SentryMiddleware)),
 	))
 }
+
 func newPanicEndMiddleware(p *deps.RootProvider) httproute.Middleware {
 	panic(wire.Build(
 		middleware.DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*middleware.PanicEndMiddleware)),
+	))
+}
+
+func newPanicWriteEmptyResponseMiddleware(p *deps.RootProvider) httproute.Middleware {
+	panic(wire.Build(
+		middleware.DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*middleware.PanicWriteEmptyResponseMiddleware)),
 	))
 }
 

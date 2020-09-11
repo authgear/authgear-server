@@ -36,6 +36,11 @@ func newPanicLogMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	return panicLogMiddleware
 }
 
+func newPanicWriteEmptyResponseMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panicWriteEmptyResponseMiddleware := &middleware.PanicWriteEmptyResponseMiddleware{}
+	return panicWriteEmptyResponseMiddleware
+}
+
 func newBodyLimitMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	bodyLimitMiddleware := &middleware.BodyLimitMiddleware{}
 	return bodyLimitMiddleware
