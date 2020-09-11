@@ -10002,28 +10002,65 @@ func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	return sentryMiddleware
 }
 
-func newRootRecoverMiddleware(p *deps.RootProvider) httproute.Middleware {
-	factory := p.LoggerFactory
-	recoveryLogger := middleware.NewRecoveryLogger(factory)
-	recoverMiddleware := &middleware.RecoverMiddleware{
-		Logger: recoveryLogger,
-	}
-	return recoverMiddleware
-}
-
 func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
 	bodyLimitMiddleware := &middleware.BodyLimitMiddleware{}
 	return bodyLimitMiddleware
 }
 
-func newRequestRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
+func newPanicEndMiddleware(p *deps.RootProvider) httproute.Middleware {
+	panicEndMiddleware := &middleware.PanicEndMiddleware{}
+	return panicEndMiddleware
+}
+
+func newPanicLogMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	recoveryLogger := middleware.NewRecoveryLogger(factory)
-	recoverMiddleware := &middleware.RecoverMiddleware{
-		Logger: recoveryLogger,
+	logPanicMiddlewareLogger := middleware.NewLogPanicMiddlewareLogger(factory)
+	logPanicMiddleware := &middleware.LogPanicMiddleware{
+		Logger: logPanicMiddlewareLogger,
 	}
-	return recoverMiddleware
+	return logPanicMiddleware
+}
+
+func newPanicAPIMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panicWriteAPIResponseMiddleware := &middleware.PanicWriteAPIResponseMiddleware{}
+	return panicWriteAPIResponseMiddleware
+}
+
+func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	appProvider := p.AppProvider
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
+	engine := appProvider.TemplateEngine
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		StaticAssetURLPrefix: staticAssetURLPrefix,
+		AuthUI:               uiConfig,
+		Translation:          translationService,
+		ForgotPassword:       forgotPasswordConfig,
+	}
+	factory := appProvider.LoggerFactory
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	panicMiddleware := &webapp2.PanicMiddleware{
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+	}
+	return panicMiddleware
 }
 
 func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {

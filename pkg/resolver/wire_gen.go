@@ -45,13 +45,9 @@ func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	return sentryMiddleware
 }
 
-func newRootRecoverMiddleware(p *deps.RootProvider) httproute.Middleware {
-	factory := p.LoggerFactory
-	recoveryLogger := middleware.NewRecoveryLogger(factory)
-	recoverMiddleware := &middleware.RecoverMiddleware{
-		Logger: recoveryLogger,
-	}
-	return recoverMiddleware
+func newPanicEndMiddleware(p *deps.RootProvider) httproute.Middleware {
+	panicEndMiddleware := &middleware.PanicEndMiddleware{}
+	return panicEndMiddleware
 }
 
 func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
@@ -59,14 +55,14 @@ func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
 	return bodyLimitMiddleware
 }
 
-func newRequestRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
+func newPanicLogMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	recoveryLogger := middleware.NewRecoveryLogger(factory)
-	recoverMiddleware := &middleware.RecoverMiddleware{
-		Logger: recoveryLogger,
+	logPanicMiddlewareLogger := middleware.NewLogPanicMiddlewareLogger(factory)
+	logPanicMiddleware := &middleware.LogPanicMiddleware{
+		Logger: logPanicMiddlewareLogger,
 	}
-	return recoverMiddleware
+	return logPanicMiddleware
 }
 
 func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {

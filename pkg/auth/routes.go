@@ -22,17 +22,23 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 	}, http.HandlerFunc(httputil.HealthCheckHandler))
 
 	rootChain := httproute.Chain(
-		p.RootMiddleware(newRootRecoverMiddleware),
+		p.RootMiddleware(newPanicEndMiddleware),
 		p.RootMiddleware(newBodyLimitMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
 		&deps.RequestMiddleware{
 			RootProvider: p,
 			ConfigSource: configSource,
 		},
-		p.Middleware(newRequestRecoverMiddleware),
+		p.Middleware(newPanicLogMiddleware),
 		p.Middleware(newSessionMiddleware),
 		p.Middleware(newCORSMiddleware),
 	)
+
+	apiChain := httproute.Chain(
+		rootChain,
+		p.Middleware(newPanicAPIMiddleware),
+	)
+
 	webappSSOCallbackChain := httproute.Chain(
 		rootChain,
 		httproute.MiddlewareFunc(webapp.PostNoCacheMiddleware),
@@ -45,6 +51,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 
 	webappChain := httproute.Chain(
 		rootChain,
+		p.Middleware(newPanicWebAppMiddleware),
 		httproute.MiddlewareFunc(webapp.IntlMiddleware),
 		p.Middleware(newCSPMiddleware),
 		p.Middleware(newCSRFMiddleware),
@@ -61,6 +68,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 	)
 
 	rootRoute := httproute.Route{Middleware: rootChain}
+	apiRoute := httproute.Route{Middleware: apiChain}
 	scopedRoute := httproute.Route{Middleware: scopedChain}
 	webappRoute := httproute.Route{Middleware: webappChain}
 	webappAuthEntrypointRoute := httproute.Route{Middleware: webappAuthEntrypointChain}
@@ -104,7 +112,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 	router.Add(oauthhandler.ConfigureTokenRoute(rootRoute), p.Handler(newOAuthTokenHandler))
 	router.Add(oauthhandler.ConfigureRevokeRoute(rootRoute), p.Handler(newOAuthRevokeHandler))
 	router.Add(oauthhandler.ConfigureEndSessionRoute(rootRoute), p.Handler(newOAuthEndSessionHandler))
-	router.Add(oauthhandler.ConfigureChallengeRoute(rootRoute), p.Handler(newOAuthChallengeHandler))
+	router.Add(oauthhandler.ConfigureChallengeRoute(apiRoute), p.Handler(newOAuthChallengeHandler))
 
 	router.Add(oauthhandler.ConfigureUserInfoRoute(scopedRoute), p.Handler(newOAuthUserInfoHandler))
 
