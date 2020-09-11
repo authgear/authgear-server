@@ -1,4 +1,10 @@
-import React, { useContext, useCallback, useState, useMemo } from "react";
+import React, {
+  useContext,
+  useCallback,
+  useState,
+  useMemo,
+  useEffect,
+} from "react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
@@ -83,6 +89,10 @@ const AnonymousUserConfigurationScreen: React.FC = function AnonymousUserConfigu
     data?.node?.__typename === "App" ? data.node.effectiveAppConfig : null;
 
   const [state, setState] = useState(constructStateFromAppConfig(appConfig));
+
+  useEffect(() => {
+    setState(constructStateFromAppConfig(appConfig));
+  }, [appConfig]);
 
   const conflictBehaviourOptions = useMemo(() => {
     return constructConflictBehaviourOptions(state);
