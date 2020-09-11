@@ -2,7 +2,7 @@
 <html>
 {{ template "auth_ui_html_head.html" . }}
 <body class="page">
-<div class="content">
+<main class="content">
 
 {{ template "auth_ui_header.html" . }}
 
@@ -12,20 +12,20 @@
   Click <a href="/logout">here</a> to sign out.
 </p>
 
-<div class="pane">
-  <div class="content-row content-row-layout-2x2">
-    <h2 class="content-row-title content-row-item primary-txt">
+<section class="pane">
+  <section class="settings-row settings-section">
+    <h2 class="title primary-txt">
       {{ template "settings-identity-title" }}
     </h2>
-    <a class="content-row-item" href="/settings/identity">
+    <p class="description secondary-txt">
+      {{ template "settings-item-identity-description" }}
+    </p>
+    <a class="action" href="/settings/identity">
       {{ template "details-button-label" }}
     </a>
-    <p class="content-row-item secondary-txt">
-      {{ template "settings-identity-description" }}
-    </p>
-  </div>
-</div>
+  </section>
+</section>
 
-</div>
+</main>
 </body>
 </html>
