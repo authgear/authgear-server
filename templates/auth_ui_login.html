@@ -68,12 +68,28 @@
 						</option>
 						{{ end }}
 					</select>
-					<input class="input text-input primary-txt" type="text" inputmode="numeric" pattern="[0-9]*" name="x_national_number" placeholder="{{ template "phone-number-placeholder" }}">
+					<input
+						class="input text-input primary-txt"
+						type="text"
+						inputmode="numeric"
+						pattern="[0-9]*"
+						autocomplete="tel-national"
+						name="x_national_number"
+						placeholder="{{ template "phone-number-placeholder" }}"
+					>
 				</div>
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if $.x_login_id_input_type }}{{ if not (eq $.x_login_id_input_type "phone") }}{{ if (not (eq $.LoginPageTextLoginIDVariant "none")) }}
-				<input class="input text-input primary-txt" type="{{ $.LoginPageTextLoginIDInputType }}" name="x_login_id" placeholder="{{ template "login-id-placeholder" (makemap "variant" $.LoginPageTextLoginIDVariant) }}">
+				<input
+					class="input text-input primary-txt"
+					type="{{ $.LoginPageTextLoginIDInputType }}"
+					autocomplete="username"
+					name="x_login_id"
+					placeholder="{{ template "login-id-placeholder" (makemap "variant" $.LoginPageTextLoginIDVariant) }}"
+				>
+				<!-- This field is for Chrome and Safari to consider the above field as username for autocomplete -->
+				<input style="display: none" aria-hidden="true" type="password" autocomplete="current-password" name="">
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if (not (eq $.LoginPageTextLoginIDVariant "none")) }}
