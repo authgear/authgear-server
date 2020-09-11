@@ -18,6 +18,7 @@ import {
   LoginIDKeyConfig,
   PortalAPIAppConfig,
 } from "../../types";
+import { setFieldIfChanged, isArrayEqualInOrder } from "../../util/misc";
 
 import styles from "./AuthenticationLoginIDSettings.module.scss";
 
@@ -119,6 +120,7 @@ function setFieldIfListNonEmpty(
     map[field] = list;
   }
 }
+
 function getOrCreateLoginIdKey(
   loginIdKeys: LoginIDKeyConfig[],
   keyType: LoginIDKeyType
@@ -132,14 +134,55 @@ function getOrCreateLoginIdKey(
   return newLoginIdKey;
 }
 
-function setLoginIdKeyEnabled(loginIdKey: LoginIDKeyConfig, enabled: boolean) {
+function setLoginIdKeyEnabled(
+  loginIdKey: LoginIDKeyConfig,
+  enabled: boolean,
+  initialEnabled: boolean
+) {
+  if (enabled === initialEnabled) {
+    return;
+  }
   loginIdKey.verification = loginIdKey.verification ?? { enabled: false };
   loginIdKey.verification.enabled = enabled;
 }
 
+function constructStateFromAppConfig(
+  appConfig: PortalAPIAppConfig | null
+): AuthenticationLoginIDSettingsState {
+  const loginIdKeys = appConfig?.identity?.login_id?.keys ?? [];
+  const {
+    usernameEnabled,
+    emailEnabled,
+    phoneNumberEnabled,
+  } = extractConfigFromLoginIdKeys(loginIdKeys);
+
+  // username widget
+  const usernameConfig = appConfig?.identity?.login_id?.types?.username;
+  const excludedKeywords = usernameConfig?.excluded_keywords ?? [];
+
+  // email widget
+  const emailConfig = appConfig?.identity?.login_id?.types?.email;
+
+  return {
+    usernameEnabled,
+    emailEnabled,
+    phoneNumberEnabled,
+
+    excludedKeywords,
+    isBlockReservedUsername: !!usernameConfig?.block_reserved_usernames,
+    isExcludeKeywords: excludedKeywords.length > 0,
+    isUsernameCaseSensitive: !!usernameConfig?.case_sensitive,
+    isAsciiOnly: !!usernameConfig?.ascii_only,
+
+    isEmailCaseSensitive: !!emailConfig?.case_sensitive,
+    isIgnoreDotLocal: !!emailConfig?.ignore_dot_sign,
+    isAllowPlus: !emailConfig?.block_plus_sign,
+  };
+}
+
 function constructAppConfigFromState(
   rawAppConfig: PortalAPIAppConfig,
-  effectiveAppConfig: PortalAPIAppConfig,
+  initialScreenState: AuthenticationLoginIDSettingsState,
   screenState: AuthenticationLoginIDSettingsState
 ): PortalAPIAppConfig {
   const newAppConfig = produce(rawAppConfig, (draftConfig) => {
@@ -148,44 +191,89 @@ function constructAppConfigFromState(
     const loginIdEmailKey = getOrCreateLoginIdKey(loginIdKeys, "email");
     const loginIdPhoneNumberKey = getOrCreateLoginIdKey(loginIdKeys, "phone");
 
-    setLoginIdKeyEnabled(loginIdUsernameKey, screenState.usernameEnabled);
-    setLoginIdKeyEnabled(loginIdEmailKey, screenState.emailEnabled);
-    setLoginIdKeyEnabled(loginIdPhoneNumberKey, screenState.phoneNumberEnabled);
+    setLoginIdKeyEnabled(
+      loginIdUsernameKey,
+      screenState.usernameEnabled,
+      initialScreenState.usernameEnabled
+    );
+    setLoginIdKeyEnabled(
+      loginIdEmailKey,
+      screenState.emailEnabled,
+      initialScreenState.emailEnabled
+    );
+    setLoginIdKeyEnabled(
+      loginIdPhoneNumberKey,
+      screenState.phoneNumberEnabled,
+      initialScreenState.phoneNumberEnabled
+    );
 
-    const loginIdTypes = draftConfig.identity?.login_id?.types;
+    draftConfig.identity = draftConfig.identity ?? {};
+    draftConfig.identity.login_id = draftConfig.identity.login_id ?? {};
+    draftConfig.identity.login_id.types =
+      draftConfig.identity.login_id.types ?? {};
 
-    if (loginIdTypes == null) {
-      return;
-    }
+    const loginIdTypes = draftConfig.identity.login_id.types;
 
     // username config
     loginIdTypes.username = loginIdTypes.username ?? {};
     const usernameConfig = loginIdTypes.username;
 
-    const excludedKeywordList = handleStringListInput(
-      screenState.excludedKeywords,
-      {
-        optionEnabled: screenState.isExcludeKeywords,
-        useDefaultList: false,
-        defaultList: [],
-      }
-    );
+    if (
+      !isArrayEqualInOrder(
+        initialScreenState.excludedKeywords,
+        screenState.excludedKeywords
+      )
+    ) {
+      const excludedKeywordList = handleStringListInput(
+        screenState.excludedKeywords,
+        {
+          optionEnabled: screenState.isExcludeKeywords,
+          useDefaultList: false,
+          defaultList: [],
+        }
+      );
 
-    setFieldIfListNonEmpty(
+      setFieldIfListNonEmpty(
+        usernameConfig,
+        "excluded_keywords",
+        excludedKeywordList
+      );
+    }
+    setFieldIfChanged(
       usernameConfig,
-      "excluded_keywords",
-      excludedKeywordList
+      "case_sensitive",
+      initialScreenState.isUsernameCaseSensitive,
+      screenState.isUsernameCaseSensitive
     );
-    usernameConfig.case_sensitive = screenState.isUsernameCaseSensitive;
-    usernameConfig.ascii_only = screenState.isAsciiOnly;
+    setFieldIfChanged(
+      usernameConfig,
+      "ascii_only",
+      initialScreenState.isAsciiOnly,
+      screenState.isAsciiOnly
+    );
 
     // email config
     loginIdTypes.email = loginIdTypes.email ?? {};
     const emailConfig = loginIdTypes.email;
 
-    emailConfig.case_sensitive = screenState.isEmailCaseSensitive;
-    emailConfig.ignore_dot_sign = screenState.isIgnoreDotLocal;
-    emailConfig.block_plus_sign = !screenState.isAllowPlus;
+    setFieldIfChanged(
+      emailConfig,
+      "case_sensitive",
+      initialScreenState.isEmailCaseSensitive,
+      screenState.isEmailCaseSensitive
+    );
+    setFieldIfChanged(
+      emailConfig,
+      "ignore_dot_sign",
+      initialScreenState.isIgnoreDotLocal,
+      screenState.isIgnoreDotLocal
+    );
+    setFieldIfChanged(
+      emailConfig,
+      "block_plus_sign",
+      !initialScreenState.isAllowPlus,
+      !screenState.isAllowPlus
+    );
   });
 
   return newAppConfig;
@@ -196,63 +284,59 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
 ) {
   const { effectiveAppConfig, rawAppConfig } = props;
   const { renderToString } = React.useContext(Context);
-  const loginIdKeys = effectiveAppConfig?.identity?.login_id?.keys ?? [];
-  const {
-    usernameEnabledConfig,
-    emailEnabledConfig,
-    phoneNumberEnabledConfig,
-  } = extractConfigFromLoginIdKeys(loginIdKeys);
+  const initialState = React.useMemo(() => {
+    return constructStateFromAppConfig(effectiveAppConfig);
+  }, [effectiveAppConfig]);
+
   const [usernameEnabled, setUsernameEnabled] = React.useState(
-    usernameEnabledConfig
+    initialState.usernameEnabled
   );
-  const [emailEnabled, setEmailEnabled] = React.useState(emailEnabledConfig);
+  const [emailEnabled, setEmailEnabled] = React.useState(
+    initialState.emailEnabled
+  );
   const [phoneNumberEnabled, setPhoneNumberEnabled] = React.useState(
-    phoneNumberEnabledConfig
+    initialState.phoneNumberEnabled
   );
 
   // username widget
-  const usernameConfig = effectiveAppConfig?.identity?.login_id?.types.username;
-  const excludedKeywordsConfig = usernameConfig?.excluded_keywords ?? [];
-
   const {
     list: excludedKeywords,
     onChange: onExcludedKeywordsChange,
     defaultSelectedItems: defaultSelectedExcludedKeywords,
     onResolveSuggestions: onResolveExcludedKeywordSuggestions,
-  } = useTagPickerWithNewTags(excludedKeywordsConfig);
+  } = useTagPickerWithNewTags(initialState.excludedKeywords);
   const {
     value: isBlockReservedUsername,
     onChange: onIsBlockReservedUsernameChange,
-  } = useCheckbox(!!usernameConfig?.block_reserved_usernames);
+  } = useCheckbox(initialState.isBlockReservedUsername);
   const {
     value: isExcludeKeywords,
     onChange: onIsExcludeKeywordsChange,
-  } = useCheckbox(excludedKeywordsConfig.length > 0);
+  } = useCheckbox(initialState.isExcludeKeywords);
   const {
     value: isUsernameCaseSensitive,
     onChange: onIsUsernameCaseSensitiveChange,
-  } = useCheckbox(!!usernameConfig?.case_sensitive);
+  } = useCheckbox(initialState.isUsernameCaseSensitive);
   const { value: isAsciiOnly, onChange: onIsAsciiOnlyChange } = useCheckbox(
-    !!usernameConfig?.ascii_only
+    initialState.isAsciiOnly
   );
 
   // email widget
-  const emailConfig = effectiveAppConfig?.identity?.login_id?.types.email;
-
   const {
     value: isEmailCaseSensitive,
     onChange: onIsEmailCaseSensitiveChange,
-  } = useCheckbox(!!emailConfig?.case_sensitive);
+  } = useCheckbox(initialState.isEmailCaseSensitive);
   const {
     value: isIgnoreDotLocal,
     onChange: onIsIgnoreDotLocalChange,
-  } = useCheckbox(!!emailConfig?.ignore_dot_sign);
+  } = useCheckbox(initialState.isIgnoreDotLocal);
   const { value: isAllowPlus, onChange: onIsAllowPlusChange } = useCheckbox(
-    !emailConfig?.block_plus_sign
+    initialState.isAllowPlus
   );
 
+  // on save
   const onSaveButtonClicked = React.useCallback(() => {
-    if (effectiveAppConfig == null || rawAppConfig == null) {
+    if (rawAppConfig == null) {
       return;
     }
 
@@ -272,11 +356,11 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
       isAllowPlus,
     };
 
-    constructAppConfigFromState(rawAppConfig, effectiveAppConfig, screenState);
+    constructAppConfigFromState(rawAppConfig, initialState, screenState);
     // TODO: call mutation to save config
   }, [
-    effectiveAppConfig,
     rawAppConfig,
+    initialState,
 
     usernameEnabled,
     emailEnabled,

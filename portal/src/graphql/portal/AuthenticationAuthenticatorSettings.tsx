@@ -19,6 +19,7 @@ import {
   PrimaryAuthenticatorType,
   SecondaryAuthenticatorType,
 } from "../../types";
+import { isArrayEqualInOrder } from "../../util/misc";
 
 import styles from "./AuthenticationAuthenticatorSettings.module.scss";
 
@@ -239,6 +240,11 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
       return;
     }
 
+    const initialActivatedPrimaryKeyList =
+      effectiveAppConfig.authentication?.primary_authenticators ?? [];
+    const initialActivatedSecondaryKeyList =
+      effectiveAppConfig.authentication?.secondary_authenticators ?? [];
+
     const activatedPrimaryKeyList = getActivatedKeyListFromState(
       primaryAuthenticatorState
     );
@@ -247,9 +253,24 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
     );
 
     produce(rawAppConfig, (draftConfig) => {
-      const authentication = draftConfig.authentication;
-      authentication.primary_authenticators = activatedPrimaryKeyList;
-      authentication.secondary_authenticators = activatedSecondaryKeyList;
+      draftConfig.authentication = draftConfig.authentication ?? {};
+      const { authentication } = draftConfig;
+      if (
+        !isArrayEqualInOrder(
+          initialActivatedPrimaryKeyList,
+          activatedPrimaryKeyList
+        )
+      ) {
+        authentication.primary_authenticators = activatedPrimaryKeyList;
+      }
+      if (
+        !isArrayEqualInOrder(
+          initialActivatedSecondaryKeyList,
+          activatedSecondaryKeyList
+        )
+      ) {
+        authentication.secondary_authenticators = activatedSecondaryKeyList;
+      }
     });
 
     // TODO: call mutation to save config

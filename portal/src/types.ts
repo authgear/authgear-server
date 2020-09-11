@@ -35,8 +35,8 @@ interface LoginIDTypesConfig {
 
 // LoginIDConfig
 interface LoginIDConfig {
-  keys: LoginIDKeyConfig[];
-  types: LoginIDTypesConfig;
+  keys?: LoginIDKeyConfig[];
+  types?: LoginIDTypesConfig;
 }
 
 export const promotionConflictBehaviours = ["error", "login"] as const;
@@ -95,14 +95,14 @@ export type IdentityType = typeof identityTypes[number];
 
 interface AuthenticationConfig {
   identities?: IdentityType[];
-  primary_authenticators: PrimaryAuthenticatorType[];
-  secondary_authenticators: SecondaryAuthenticatorType[];
+  primary_authenticators?: PrimaryAuthenticatorType[];
+  secondary_authenticators?: SecondaryAuthenticatorType[];
 }
 
 export interface PortalAPIAppConfig {
   identity?: IdentityConfig;
-  authenticator: AuthenticatorConfig;
-  authentication: AuthenticationConfig;
+  authenticator?: AuthenticatorConfig;
+  authentication?: AuthenticationConfig;
 }
 
 export interface PortalAPIApp {

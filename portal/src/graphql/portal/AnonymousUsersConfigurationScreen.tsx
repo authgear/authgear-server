@@ -44,7 +44,7 @@ function constructStateFromAppConfig(
     };
   }
   const anonymousUserEnabled =
-    appConfig.authentication.identities?.find(
+    appConfig.authentication?.identities?.find(
       (identity) => identity === "anonymous"
     ) != null;
   const promotionConflictBehaviour =
@@ -64,8 +64,10 @@ function constructNewAppConfigFromState(
     draftConfig.identity.on_conflict = draftConfig.identity.on_conflict ?? {};
     const onConflict = draftConfig.identity.on_conflict;
 
+    draftConfig.authentication = draftConfig.authentication ?? {};
+    draftConfig.authentication.identities =
+      draftConfig.authentication.identities ?? [];
     const { authentication } = draftConfig;
-    authentication.identities = authentication.identities ?? [];
     const authenticationIdentitiesSet = new Set(authentication.identities);
 
     if (state.enabled) {
