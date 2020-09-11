@@ -43,6 +43,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/rand"
 	"net/http"
 )
@@ -1318,8 +1319,14 @@ func newOAuthChallengeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	factory := appProvider.LoggerFactory
+	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
+	jsonResponseWriter := &httputil.JSONResponseWriter{
+		Logger: jsonResponseWriterLogger,
+	}
 	challengeHandler := &oauth.ChallengeHandler{
 		Challenges: provider,
+		JSON:       jsonResponseWriter,
 	}
 	return challengeHandler
 }
@@ -9995,28 +10002,70 @@ func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	return sentryMiddleware
 }
 
-func newRootRecoverMiddleware(p *deps.RootProvider) httproute.Middleware {
-	factory := p.LoggerFactory
-	recoveryLogger := middleware.NewRecoveryLogger(factory)
-	recoverMiddleware := &middleware.RecoverMiddleware{
-		Logger: recoveryLogger,
-	}
-	return recoverMiddleware
-}
-
 func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
 	bodyLimitMiddleware := &middleware.BodyLimitMiddleware{}
 	return bodyLimitMiddleware
 }
 
-func newRequestRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
+func newPanicEndMiddleware(p *deps.RootProvider) httproute.Middleware {
+	panicEndMiddleware := &middleware.PanicEndMiddleware{}
+	return panicEndMiddleware
+}
+
+func newPanicWriteEmptyResponseMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panicWriteEmptyResponseMiddleware := &middleware.PanicWriteEmptyResponseMiddleware{}
+	return panicWriteEmptyResponseMiddleware
+}
+
+func newPanicLogMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	recoveryLogger := middleware.NewRecoveryLogger(factory)
-	recoverMiddleware := &middleware.RecoverMiddleware{
-		Logger: recoveryLogger,
+	panicLogMiddlewareLogger := middleware.NewPanicLogMiddlewareLogger(factory)
+	panicLogMiddleware := &middleware.PanicLogMiddleware{
+		Logger: panicLogMiddlewareLogger,
 	}
-	return recoverMiddleware
+	return panicLogMiddleware
+}
+
+func newPanicAPIMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panicWriteAPIResponseMiddleware := &middleware.PanicWriteAPIResponseMiddleware{}
+	return panicWriteAPIResponseMiddleware
+}
+
+func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	appProvider := p.AppProvider
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
+	engine := appProvider.TemplateEngine
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		StaticAssetURLPrefix: staticAssetURLPrefix,
+		AuthUI:               uiConfig,
+		Translation:          translationService,
+		ForgotPassword:       forgotPasswordConfig,
+	}
+	factory := appProvider.LoggerFactory
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	panicMiddleware := &webapp2.PanicMiddleware{
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+	}
+	return panicMiddleware
 }
 
 func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {

@@ -5,6 +5,7 @@ package auth
 import (
 	"github.com/google/wire"
 
+	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
@@ -20,14 +21,6 @@ func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	))
 }
 
-func newRootRecoverMiddleware(p *deps.RootProvider) httproute.Middleware {
-	panic(wire.Build(
-		deps.RootDependencySet,
-		middleware.DependencySet,
-		wire.Bind(new(httproute.Middleware), new(*middleware.RecoverMiddleware)),
-	))
-}
-
 func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
 	panic(wire.Build(
 		middleware.DependencySet,
@@ -35,10 +28,38 @@ func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
 	))
 }
 
-func newRequestRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
+func newPanicEndMiddleware(p *deps.RootProvider) httproute.Middleware {
+	panic(wire.Build(
+		middleware.DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*middleware.PanicEndMiddleware)),
+	))
+}
+
+func newPanicWriteEmptyResponseMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		middleware.DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*middleware.PanicWriteEmptyResponseMiddleware)),
+	))
+}
+
+func newPanicLogMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(httproute.Middleware), new(*middleware.RecoverMiddleware)),
+		wire.Bind(new(httproute.Middleware), new(*middleware.PanicLogMiddleware)),
+	))
+}
+
+func newPanicAPIMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*middleware.PanicWriteAPIResponseMiddleware)),
+	))
+}
+
+func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*handlerwebapp.PanicMiddleware)),
 	))
 }
 

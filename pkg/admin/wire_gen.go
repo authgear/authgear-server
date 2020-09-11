@@ -42,13 +42,14 @@ func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	return sentryMiddleware
 }
 
-func newRootRecoverMiddleware(p *deps.RootProvider) httproute.Middleware {
-	factory := p.LoggerFactory
-	recoveryLogger := middleware.NewRecoveryLogger(factory)
-	recoverMiddleware := &middleware.RecoverMiddleware{
-		Logger: recoveryLogger,
-	}
-	return recoverMiddleware
+func newPanicEndMiddleware(p *deps.RootProvider) httproute.Middleware {
+	panicEndMiddleware := &middleware.PanicEndMiddleware{}
+	return panicEndMiddleware
+}
+
+func newPanicWriteEmptyResponseMiddleware(p *deps.RootProvider) httproute.Middleware {
+	panicWriteEmptyResponseMiddleware := &middleware.PanicWriteEmptyResponseMiddleware{}
+	return panicWriteEmptyResponseMiddleware
 }
 
 func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
@@ -56,14 +57,14 @@ func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
 	return bodyLimitMiddleware
 }
 
-func newRequestRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
+func newPanicLogMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	recoveryLogger := middleware.NewRecoveryLogger(factory)
-	recoverMiddleware := &middleware.RecoverMiddleware{
-		Logger: recoveryLogger,
+	panicLogMiddlewareLogger := middleware.NewPanicLogMiddlewareLogger(factory)
+	panicLogMiddleware := &middleware.PanicLogMiddleware{
+		Logger: panicLogMiddlewareLogger,
 	}
-	return recoverMiddleware
+	return panicLogMiddleware
 }
 
 func newAuthorizationMiddleware(p *deps.RequestProvider, auth config.AdminAPIAuth) httproute.Middleware {

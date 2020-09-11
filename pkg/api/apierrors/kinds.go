@@ -11,6 +11,7 @@ const (
 	Forbidden          Name = "Forbidden"
 	NotFound           Name = "NotFound"
 	AlreadyExists      Name = "AlreadyExists"
+	DataRace           Name = "DataRace"
 	TooManyRequest     Name = "TooManyRequest"
 	InternalError      Name = "InternalError"
 	ServiceUnavailable Name = "ServiceUnavailable"
@@ -26,7 +27,7 @@ func (n Name) HTTPStatus() int {
 		return http.StatusForbidden
 	case NotFound:
 		return http.StatusNotFound
-	case AlreadyExists:
+	case AlreadyExists, DataRace:
 		return http.StatusConflict
 	case TooManyRequest:
 		return http.StatusTooManyRequests

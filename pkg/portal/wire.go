@@ -14,12 +14,25 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
-func newRecoverMiddleware(p *deps.RequestProvider) httproute.Middleware {
+func newPanicEndMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		middleware.DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*middleware.PanicEndMiddleware)),
+	))
+}
+
+func newPanicLogMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		deps.DependencySet,
-		middleware.NewRecoveryLogger,
-		wire.Struct(new(middleware.RecoverMiddleware), "*"),
-		wire.Bind(new(httproute.Middleware), new(*middleware.RecoverMiddleware)),
+		middleware.DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*middleware.PanicLogMiddleware)),
+	))
+}
+
+func newPanicWriteEmptyResponseMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		middleware.DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*middleware.PanicWriteEmptyResponseMiddleware)),
 	))
 }
 

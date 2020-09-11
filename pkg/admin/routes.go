@@ -20,14 +20,15 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 	}, http.HandlerFunc(httputil.HealthCheckHandler))
 
 	chain := httproute.Chain(
-		p.RootMiddleware(newRootRecoverMiddleware),
+		p.RootMiddleware(newPanicEndMiddleware),
+		p.RootMiddleware(newPanicWriteEmptyResponseMiddleware),
 		p.RootMiddleware(newBodyLimitMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
 		&deps.RequestMiddleware{
 			RootProvider: p,
 			ConfigSource: configSource,
 		},
-		p.Middleware(newRequestRecoverMiddleware),
+		p.Middleware(newPanicLogMiddleware),
 		p.Middleware(func(p *deps.RequestProvider) httproute.Middleware {
 			return newAuthorizationMiddleware(p, auth)
 		}),

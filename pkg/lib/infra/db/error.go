@@ -1,5 +1,7 @@
 package db
 
-import "errors"
+import (
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
+)
 
-var ErrWriteConflict = errors.New("concurrent write conflict occurred")
+var ErrWriteConflict = apierrors.NewDataRace("concurrent write conflict occurred")

@@ -17,10 +17,3 @@ func (r *Response) MarshalJSON() ([]byte, error) {
 		Error  *apierrors.APIError `json:"error,omitempty"`
 	}{r.Result, apierrors.AsAPIError(r.Error)})
 }
-
-// HandledError represents a handled (i.e. API responded with error) unexpected
-// error. When encountered this error, panic recovery middleware should log
-// the error, without changing the response.
-type HandledError struct {
-	Error error
-}

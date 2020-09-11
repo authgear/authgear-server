@@ -6,8 +6,16 @@ import (
 
 var DependencySet = wire.NewSet(
 	wire.Struct(new(CORSMiddleware), "*"),
-	NewRecoveryLogger,
-	wire.Struct(new(RecoverMiddleware), "*"),
+
+	NewPanicLogMiddlewareLogger,
+	wire.Struct(new(PanicLogMiddleware), "*"),
+
+	wire.Struct(new(PanicWriteAPIResponseMiddleware), "*"),
+	wire.Struct(new(PanicWriteEmptyResponseMiddleware), "*"),
+
+	wire.Struct(new(PanicEndMiddleware), "*"),
+
 	wire.Struct(new(SentryMiddleware), "*"),
+
 	wire.Struct(new(BodyLimitMiddleware), "*"),
 )

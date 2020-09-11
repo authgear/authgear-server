@@ -170,3 +170,7 @@ func NewInternalError(msg string) error {
 func NewNotFound(msg string) error {
 	return NotFound.WithReason(string(NotFound)).New(msg)
 }
+
+func NewDataRace(msg string) error {
+	return DataRace.WithReason(string(DataRace)).New(msg)
+}

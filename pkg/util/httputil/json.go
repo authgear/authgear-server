@@ -9,6 +9,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -66,10 +67,20 @@ func BindJSONBody(r *http.Request, w http.ResponseWriter, v *validation.SchemaVa
 	}, payload)
 }
 
-func WriteResponse(rw http.ResponseWriter, response *api.Response) {
+type JSONResponseWriterLogger struct{ *log.Logger }
+
+func NewJSONResponseWriterLogger(lf *log.Factory) JSONResponseWriterLogger {
+	return JSONResponseWriterLogger{lf.New("json-response-writer")}
+}
+
+type JSONResponseWriter struct {
+	Logger JSONResponseWriterLogger
+}
+
+func (w *JSONResponseWriter) WriteResponse(rw http.ResponseWriter, resp *api.Response) {
 	httpStatus := http.StatusOK
 	encoder := json.NewEncoder(rw)
-	err := apierrors.AsAPIError(response.Error)
+	err := apierrors.AsAPIError(resp.Error)
 
 	if err != nil {
 		httpStatus = err.Code
@@ -77,12 +88,11 @@ func WriteResponse(rw http.ResponseWriter, response *api.Response) {
 
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(httpStatus)
-	if err := encoder.Encode(response); err != nil {
+	if err := encoder.Encode(resp); err != nil {
 		panic(err)
 	}
 
 	if err != nil && err.Code >= 500 && err.Code < 600 {
-		// delegate logging to panic recovery
-		panic(api.HandledError{Error: response.Error})
+		w.Logger.WithError(err).Error("unexpected error occurred")
 	}
 }

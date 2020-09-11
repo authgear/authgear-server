@@ -17,7 +17,9 @@ func NewRouter(p *deps.RootProvider, staticAsset StaticAssetConfig) *httproute.R
 	}, http.HandlerFunc(httputil.HealthCheckHandler))
 
 	rootChain := httproute.Chain(
-		p.Middleware(newRecoverMiddleware),
+		p.Middleware(newPanicEndMiddleware),
+		p.Middleware(newPanicWriteEmptyResponseMiddleware),
+		p.Middleware(newPanicLogMiddleware),
 		p.Middleware(newBodyLimitMiddleware),
 		p.Middleware(newSentryMiddleware),
 		p.Middleware(newSessionInfoMiddleware),
