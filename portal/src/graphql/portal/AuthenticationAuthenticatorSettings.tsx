@@ -106,6 +106,21 @@ function useOnActivateClicked<KeyType extends string>(
   return onActivateClicked;
 }
 
+// return list with all keys, active key from config in order
+function makeAuthenticatorKeys<KeyType>(
+  activeKeys: KeyType[],
+  availableKeys: KeyType[]
+) {
+  const activeKeySet = new Set(activeKeys);
+  const inactiveKeys = availableKeys.filter((key) => !activeKeySet.has(key));
+  return [...activeKeys, ...inactiveKeys].map((key) => {
+    return {
+      activated: activeKeySet.has(key),
+      key,
+    };
+  });
+}
+
 const constructListData = (
   appConfig: PortalAPIAppConfig | null
 ): {
@@ -113,25 +128,15 @@ const constructListData = (
   secondaryAuthenticators: AuthenticatorListItem<SecondaryAuthenticatorType>[];
 } => {
   const authentication = appConfig?.authentication;
-  const primaryAuthenticatorKeys = new Set(
-    authentication?.primary_authenticators
-  );
-  const secondaryAuthenticatorKeys = new Set(
-    authentication?.secondary_authenticators
-  );
 
-  const primaryAuthenticators = primaryAuthenticatorTypes.map((key) => {
-    return {
-      activated: primaryAuthenticatorKeys.has(key),
-      key,
-    };
-  });
-  const secondaryAuthenticators = secondaryAuthenticatorTypes.map((key) => {
-    return {
-      activated: secondaryAuthenticatorKeys.has(key),
-      key,
-    };
-  });
+  const primaryAuthenticators = makeAuthenticatorKeys(
+    authentication?.primary_authenticators ?? [],
+    [...primaryAuthenticatorTypes]
+  );
+  const secondaryAuthenticators = makeAuthenticatorKeys(
+    authentication?.secondary_authenticators ?? [],
+    [...secondaryAuthenticatorTypes]
+  );
 
   return {
     primaryAuthenticators,
