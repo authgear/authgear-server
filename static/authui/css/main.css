@@ -420,14 +420,6 @@ a.btn {
   justify-content: space-between;
 }
 
-.login_id.email {
-  background-image: url("../image/ic_login_id_email.png");
-}
-
-.login_id.phone {
-  background-image: url("../image/ic_login_id_phone.png");
-}
-
 .setup-totp .totp-image {
   width: 200px;
   height: 200px;
@@ -544,8 +536,8 @@ a.btn {
 .settings-identity-identity-section {
   display: grid;
   grid: "icon  name   action1" auto
-        "....  claim  action2" auto
-      /  auto   1fr    auto;
+        "icon  claim  action2" auto
+      /  32px   1fr    auto;
   font-size: 1rem;
 }
 
@@ -554,13 +546,10 @@ a.btn {
 }
 
 .settings-identity-identity-section .icon {
+  align-self: start;
+  justify-self: center;
   grid-area: icon;
-  background-repeat: no-repeat;
-  background-size: 24px 24px;
-  background-position: center;
-  width: 24px;
-  height: 24px;
-  margin: 6px;
+  margin: 2px;
 }
 
 .settings-identity-identity-section .name {

@@ -28,8 +28,24 @@
   {{ end }}
 
   <section class="settings-identity-row settings-identity-identity-section">
-    <!-- FIXME(ui): update identity icon -->
-    <div class="icon {{ .type }} {{ .provider_type }} {{ .login_id_type }}"></div>
+    {{ $fa := "" }}
+
+    {{ if eq .type "oauth" }}
+    {{ if eq .provider_type "google" }}   {{ $fa = "fab fa-google" }}     {{ end }}
+    {{ if eq .provider_type "apple" }}    {{ $fa = "fab fa-apple"  }}     {{ end }}
+    {{ if eq .provider_type "facebook" }} {{ $fa = "fab fa-facebook-f" }} {{ end }}
+    {{ if eq .provider_type "linkedin" }} {{ $fa = "fab fa-linkedin-in" }}{{ end }}
+    {{ if eq .provider_type "azureadv2" }}{{ $fa = "fab fa-microsoft" }}  {{ end }}
+    {{ end }}
+
+    {{ if eq .type "login_id" }}
+    {{ if eq .login_id_type "email" }}   {{ $fa = "fas fa-envelope" }}{{ end }}
+    {{ if eq .login_id_type "username" }}{{ $fa = "fas fa-at" }}      {{ end }}
+    {{ if eq .login_id_type "phone" }}   {{ $fa = "fas fa-phone" }}   {{ end }}
+
+    {{ end }}
+
+    <i class="icon {{ $fa }}" aria-hidden="true"></i>
     <h2 class="name primary-txt">
       {{ if eq .type "oauth" }}
         {{ if eq .provider_type "google" }}{{ template "settings-identity-oauth-google" }}{{ end }}
