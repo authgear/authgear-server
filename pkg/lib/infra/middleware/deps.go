@@ -13,6 +13,8 @@ var DependencySet = wire.NewSet(
 	NewLogPanicMiddlewareLogger,
 	wire.Struct(new(LogPanicMiddleware), "*"),
 
+	wire.Struct(new(PanicWriteAPIResponseMiddleware), "*"),
+
 	wire.Struct(new(SentryMiddleware), "*"),
 
 	wire.Struct(new(BodyLimitMiddleware), "*"),
