@@ -15,19 +15,24 @@
 				{{ $.CSRFField }}
 				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_provider_alias" value="{{ .provider_alias }}" data-form-xhr="false">
 					{{- if eq .provider_type "apple" -}}
-					{{ template "sign-up-apple" }}
+					<i class="fab fa-apple" aria-hidden="true"></i>
+					<span class="title">{{ template "sign-up-apple" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "google" -}}
-					{{ template "sign-up-google" }}
+					<i class="fab fa-google" aria-hidden="true"></i>
+					<span class="title">{{ template "sign-up-google" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "facebook" -}}
-					{{ template "sign-up-facebook" }}
+					<i class="fab fa-facebook-f" aria-hidden="true"></i>
+					<span class="title">{{ template "sign-up-facebook" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "linkedin" -}}
-					{{ template "sign-up-linkedin" }}
+					<i class="fab fa-linkedin-in" aria-hidden="true"></i>
+					<span class="title">{{ template "sign-up-linkedin" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "azureadv2" -}}
-					{{ template "sign-up-azureadv2" }}
+					<i class="fab fa-microsoft" aria-hidden="true"></i>
+					<span class="title">{{ template "sign-up-azureadv2" }}</span>
 					{{- end -}}
 				</button>
 				</form>
