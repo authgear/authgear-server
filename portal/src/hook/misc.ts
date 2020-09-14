@@ -1,23 +1,23 @@
 import { useState, useCallback } from "react";
 
-export function useSimpleRPC<T>(
-  f: (...args: any[]) => Promise<T>
+export function useSimpleRPC<Arg extends any[], Ret>(
+  f: (...args: Arg) => Promise<Ret>
 ): {
   loading: boolean;
-  error: Error | null;
-  rpc: (...args: unknown[]) => Promise<T | null>;
+  error: unknown;
+  rpc: (...args: Arg) => Promise<Ret | null>;
 } {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const rpc = useCallback(
-    async (...args: unknown[]) => {
+    async (...args: Arg) => {
       try {
         setLoading(true);
         const res = await f(...args);
         setError(null);
         setLoading(false);
         return res;
-      } catch (err) {
+      } catch (err: unknown) {
         setError(err);
         setLoading(false);
         return null;
