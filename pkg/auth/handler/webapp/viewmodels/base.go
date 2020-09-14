@@ -16,6 +16,7 @@ import (
 
 // BaseViewModel contains data that are common to all pages.
 type BaseViewModel struct {
+	RequestURL            string
 	CSRFField             htmltemplate.HTML
 	CSS                   htmltemplate.CSS
 	AppName               string
@@ -47,7 +48,8 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, anyError interface{}) BaseV
 	}
 
 	model := BaseViewModel{
-		CSRFField: csrf.TemplateField(r),
+		RequestURL: r.URL.String(),
+		CSRFField:  csrf.TemplateField(r),
 		// We assume the CSS provided by the developer is trusted.
 		CSS:                  htmltemplate.CSS(m.AuthUI.CustomCSS),
 		AppName:              appMeta.AppName,
