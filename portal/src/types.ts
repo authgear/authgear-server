@@ -33,6 +33,37 @@ interface LoginIDConfig {
   types?: LoginIDTypesConfig;
 }
 
+// OAuthSSOConfig
+export const oauthSSOProviderTypes = [
+  "google",
+  "facebook",
+  "linkedin",
+  "azureadv2",
+  "apple",
+] as const;
+export type OAuthSSOProviderType = typeof oauthSSOProviderTypes[number];
+export function isOAuthSSOProviderType(
+  value?: string
+): value is OAuthSSOProviderType {
+  return value == null
+    ? false
+    : oauthSSOProviderTypes.includes(value as OAuthSSOProviderType);
+}
+
+export interface OAuthSSOProviderConfig {
+  alias?: string;
+  type: OAuthSSOProviderType;
+  client_id: string;
+  tenant?: string;
+  key_id?: string;
+  team_id?: string;
+}
+
+interface OAuthSSOConfig {
+  providers?: OAuthSSOProviderConfig[];
+}
+
+// IdentityConflictConfig
 export const promotionConflictBehaviours = ["error", "login"] as const;
 export type PromotionConflictBehaviour = typeof promotionConflictBehaviours[number];
 export const isPromotionConflictBehaviour = (
@@ -53,6 +84,7 @@ interface IdentityConflictConfig {
 
 interface IdentityConfig {
   login_id?: LoginIDConfig;
+  oauth?: OAuthSSOConfig;
   on_conflict?: IdentityConflictConfig;
 }
 
@@ -137,13 +169,84 @@ export const secretConfigKeyList = [
 ] as const;
 export type SecretConfigKey = typeof secretConfigKeyList[number];
 
-interface SecretItem {
-  key: SecretConfigKey;
+// item with different key has different schema
+
+interface DbSecretItem {
+  key: "db";
   data: Record<string, unknown>;
 }
 
+interface RedisSecretItem {
+  key: "redis";
+  data: Record<string, unknown>;
+}
+
+interface AdminApiSecretItem {
+  key: "admin-api.auth";
+  data: Record<string, unknown>;
+}
+
+// sso.oauth.client
+
+export interface OAuthClientCredentialItem {
+  alias: string;
+  client_secret: string;
+}
+
+interface OAuthClientCredentials {
+  items: OAuthClientCredentialItem[];
+}
+
+interface OAuthSecretItem {
+  key: "sso.oauth.client";
+  data: OAuthClientCredentials;
+}
+
+interface SmtpSecretItem {
+  key: "mail.smtp";
+  data: Record<string, unknown>;
+}
+
+interface TwilioSecretItem {
+  key: "sms.twilio";
+  data: Record<string, unknown>;
+}
+
+interface NexmoSecretItem {
+  key: "sms.nexmo";
+  data: Record<string, unknown>;
+}
+
+interface OidcSecretItem {
+  key: "oidc";
+  data: Record<string, unknown>;
+}
+
+interface CsrfSecretItem {
+  key: "csrf";
+  data: Record<string, unknown>;
+}
+
+interface WebhookSecretItem {
+  key: "webhook";
+  data: Record<string, unknown>;
+}
+
+// union type
+type SecretItem =
+  | DbSecretItem
+  | RedisSecretItem
+  | AdminApiSecretItem
+  | OAuthSecretItem
+  | SmtpSecretItem
+  | TwilioSecretItem
+  | NexmoSecretItem
+  | OidcSecretItem
+  | CsrfSecretItem
+  | WebhookSecretItem;
+
 export interface PortalAPISecretConfig {
-  secret: SecretItem[];
+  secrets: SecretItem[];
 }
 
 export interface PortalAPIApp {
