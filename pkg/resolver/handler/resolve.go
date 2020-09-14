@@ -24,7 +24,7 @@ type IdentityService interface {
 }
 
 type VerificationService interface {
-	IsUserVerified(identities []*identity.Info, userID string) (bool, error)
+	IsUserVerified(identities []*identity.Info) (bool, error)
 }
 
 type ResolveHandlerLogger struct{ *log.Logger }
@@ -72,7 +72,7 @@ func (h *ResolveHandler) resolve(r *http.Request) (*model.SessionInfo, error) {
 			}
 		}
 
-		isVerified, err := h.Verification.IsUserVerified(identities, *userID)
+		isVerified, err := h.Verification.IsUserVerified(identities)
 		if err != nil {
 			return nil, err
 		}

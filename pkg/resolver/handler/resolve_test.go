@@ -41,7 +41,7 @@ func TestResolveHandler(t *testing.T) {
 					{Type: authn.IdentityTypeLoginID},
 				}
 				identities.EXPECT().ListByUser("user-id").Return(userIdentities, nil)
-				verificationService.EXPECT().IsUserVerified(userIdentities, "user-id").Return(true, nil)
+				verificationService.EXPECT().IsUserVerified(userIdentities).Return(true, nil)
 				rw := httptest.NewRecorder()
 				h.ServeHTTP(rw, r)
 
@@ -63,7 +63,7 @@ func TestResolveHandler(t *testing.T) {
 					{Type: authn.IdentityTypeLoginID},
 				}
 				identities.EXPECT().ListByUser("user-id").Return(userIdentities, nil)
-				verificationService.EXPECT().IsUserVerified(userIdentities, "user-id").Return(false, nil)
+				verificationService.EXPECT().IsUserVerified(userIdentities).Return(false, nil)
 				rw := httptest.NewRecorder()
 				h.ServeHTTP(rw, r)
 

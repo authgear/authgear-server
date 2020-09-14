@@ -1,7 +1,6 @@
 package nodes
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -31,12 +30,17 @@ type NodeEnsureVerificationBegin struct {
 }
 
 func (n *NodeEnsureVerificationBegin) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
-	status, err := ctx.Verification.GetVerificationStatus(n.Identity)
+	claims, err := ctx.Verification.GetIdentityVerificationStatus(n.Identity)
 	if err != nil {
 		return err
 	}
 
-	n.VerificationStatus = status
+	// TODO(verification): handle multiple verifiable claims per identity
+	if len(claims) > 0 {
+		n.VerificationStatus = claims[0].Status
+	} else {
+		n.VerificationStatus = verification.StatusDisabled
+	}
 	return nil
 }
 
@@ -71,7 +75,7 @@ func (e *EdgeEnsureVerificationEnd) Instantiate(ctx *interaction.Context, graph 
 
 type NodeEnsureVerificationEnd struct {
 	Identity         *identity.Info      `json:"identity"`
-	NewAuthenticator *authenticator.Info `json:"new_authenticator,omitempty"`
+	NewVerifiedClaim *verification.Claim `json:"new_verified_claim,omitempty"`
 }
 
 func (n *NodeEnsureVerificationEnd) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {

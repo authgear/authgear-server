@@ -8,7 +8,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -19,8 +18,7 @@ func TestService(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		identities := NewMockIdentityService(ctrl)
-		authenticators := NewMockAuthenticatorService(ctrl)
+		claimStore := NewMockClaimStore(ctrl)
 		t := true
 		f := false
 		service := &Service{
@@ -37,8 +35,16 @@ func TestService(t *testing.T) {
 				},
 				Criteria: config.VerificationCriteriaAny,
 			},
-			Identities:     identities,
-			Authenticators: authenticators,
+			ClaimStore: claimStore,
+		}
+
+		verifiedClaim := func(userID string, name string, value string) *Claim {
+			return &Claim{
+				ID:     "claim-id",
+				UserID: userID,
+				Name:   name,
+				Value:  value,
+			}
 		}
 
 		identityLoginID := func(loginIDKey string, loginIDValue string) *identity.Info {
@@ -46,13 +52,7 @@ func TestService(t *testing.T) {
 				UserID: "user-id",
 				ID:     "login-id-" + loginIDValue,
 				Type:   authn.IdentityTypeLoginID,
-				Claims: map[string]interface{}{
-					"test-id":                          "login-id-" + loginIDValue,
-					loginIDKey:                         loginIDValue,
-					identity.IdentityClaimLoginIDKey:   loginIDKey,
-					identity.IdentityClaimLoginIDType:  loginIDKey,
-					identity.IdentityClaimLoginIDValue: loginIDValue,
-				},
+				Claims: map[string]interface{}{},
 			}
 			switch loginIDKey {
 			case "email":
@@ -65,14 +65,12 @@ func TestService(t *testing.T) {
 			return i
 		}
 
-		identityOfType := func(t authn.IdentityType) *identity.Info {
+		identityOfType := func(t authn.IdentityType, claims map[string]interface{}) *identity.Info {
 			return &identity.Info{
 				UserID: "user-id",
 				ID:     string(t),
 				Type:   t,
-				Claims: map[string]interface{}{
-					"test-id": string(t),
-				},
+				Claims: claims,
 			}
 		}
 
@@ -81,124 +79,110 @@ func TestService(t *testing.T) {
 			return value
 		}
 
-		Convey("IsIdentityVerifiable", func() {
-			So(service.IsIdentityVerifiable(identityOfType(authn.IdentityTypeOAuth)), ShouldBeTrue)
-			So(service.IsIdentityVerifiable(identityOfType(authn.IdentityTypeAnonymous)), ShouldBeFalse)
-			So(service.IsIdentityVerifiable(identityLoginID("email", "foo@example.com")), ShouldBeTrue)
-			So(service.IsIdentityVerifiable(identityLoginID("phone", "+85200000000")), ShouldBeTrue)
-			So(service.IsIdentityVerifiable(identityLoginID("username", "bar")), ShouldBeFalse)
+		mustBool := func(value bool, err error) bool {
+			So(err, ShouldBeNil)
+			return value
+		}
+
+		Convey("IsClaimVerifiable", func() {
+			So(service.IsClaimVerifiable("email"), ShouldBeTrue)
+			So(service.IsClaimVerifiable("phone_number"), ShouldBeTrue)
+			So(service.IsClaimVerifiable("username"), ShouldBeFalse)
 		})
 
-		Convey("GetVerificationStatus", func() {
-			So(must(service.GetVerificationStatus(identityOfType(authn.IdentityTypeAnonymous))), ShouldEqual, StatusDisabled)
+		Convey("GetClaimVerificationStatus", func() {
+			So(must(service.GetClaimVerificationStatus("user-id", "username", "test")), ShouldEqual, StatusDisabled)
 
-			identities.EXPECT().ListByUser("user-id").Return([]*identity.Info{identityOfType(authn.IdentityTypeOAuth)}, nil)
-			authenticators.EXPECT().List("user-id").Return(nil, nil)
-			So(must(service.GetVerificationStatus(identityOfType(authn.IdentityTypeOAuth))), ShouldEqual, StatusVerified)
+			claimStore.EXPECT().
+				Get("user-id", "email", "test@example.com").
+				Return(verifiedClaim("user-id", "email", "test@example.com"), nil)
+			So(must(service.GetClaimVerificationStatus("user-id", "email", "test@example.com")), ShouldEqual, StatusVerified)
 
-			identities.EXPECT().ListByUser("user-id").Return([]*identity.Info{identityLoginID("email", "foo@example.com")}, nil)
-			authenticators.EXPECT().List("user-id").Return([]*authenticator.Info{{
-				ID:     "email",
-				Type:   authn.AuthenticatorTypeOOB,
-				Claims: map[string]interface{}{authenticator.AuthenticatorClaimOOBOTPEmail: "foo@example.com"},
-			}}, nil)
-			So(must(service.GetVerificationStatus(identityLoginID("email", "foo@example.com"))), ShouldEqual, StatusVerified)
+			claimStore.EXPECT().
+				Get("user-id", "email", "test@example.com").
+				Return(nil, ErrClaimUnverified)
+			So(must(service.GetClaimVerificationStatus("user-id", "email", "test@example.com")), ShouldEqual, StatusPending)
 
-			identities.EXPECT().ListByUser("user-id").Return([]*identity.Info{identityLoginID("email", "foo@example.com")}, nil)
-			authenticators.EXPECT().List("user-id").Return([]*authenticator.Info{{
-				ID:     "phone",
-				Type:   authn.AuthenticatorTypeOOB,
-				Claims: map[string]interface{}{authenticator.AuthenticatorClaimOOBOTPPhone: "+85200000000"},
-			}}, nil)
-			So(must(service.GetVerificationStatus(identityLoginID("email", "foo@example.com"))), ShouldEqual, StatusPending)
+			claimStore.EXPECT().
+				Get("user-id", "phone_number", "+85212345678").
+				Return(verifiedClaim("user-id", "phone_number", "+85212345678"), nil)
+			So(must(service.GetClaimVerificationStatus("user-id", "phone_number", "+85212345678")), ShouldEqual, StatusVerified)
 
-			So(must(service.GetVerificationStatus(identityLoginID("username", "foo"))), ShouldEqual, StatusDisabled)
-
-			identities.EXPECT().ListByUser("user-id").Return([]*identity.Info{identityLoginID("phone", "+85200000000")}, nil)
-			authenticators.EXPECT().List("user-id").Return([]*authenticator.Info{
-				{ID: "email", Claims: map[string]interface{}{"test-id": "login-id-foo@example.com"}},
-			}, nil)
-			So(must(service.GetVerificationStatus(identityLoginID("phone", "+85200000000"))), ShouldEqual, StatusRequired)
-
-			identities.EXPECT().ListByUser("user-id").Return([]*identity.Info{
-				{
-					UserID: "user-id",
-					ID:     "login-id",
-					Type:   authn.IdentityTypeLoginID,
-					Claims: map[string]interface{}{
-						identity.StandardClaimEmail: "foo@example.com",
-					},
-				},
-				{
-					UserID: "user-id",
-					ID:     "oauth",
-					Type:   authn.IdentityTypeOAuth,
-					Claims: map[string]interface{}{
-						identity.StandardClaimEmail: "foo@example.com",
-					},
-				},
-			}, nil)
-			authenticators.EXPECT().List("user-id").Return(nil, nil)
-			So(must(service.GetVerificationStatus(&identity.Info{
-				UserID: "user-id",
-				ID:     "login-id",
-				Type:   authn.IdentityTypeLoginID,
-				Claims: map[string]interface{}{
-					identity.StandardClaimEmail: "foo@example.com",
-				},
-			})), ShouldEqual, StatusVerified)
+			claimStore.EXPECT().
+				Get("user-id", "phone_number", "+85212345678").
+				Return(nil, ErrClaimUnverified)
+			So(must(service.GetClaimVerificationStatus("user-id", "phone_number", "+85212345678")), ShouldEqual, StatusRequired)
 		})
 
 		Convey("IsVerified", func() {
 			cases := []struct {
-				Identities     []*identity.Info
-				Authenticators []*authenticator.Info
-				AnyResult      bool
-				AllResult      bool
+				Identities []*identity.Info
+				Claims     []*Claim
+				AnyResult  bool
+				AllResult  bool
 			}{
 				{
 					AnyResult: false, AllResult: false,
 				},
 				{
 					Identities: []*identity.Info{
-						identityOfType(authn.IdentityTypeAnonymous),
+						identityOfType(authn.IdentityTypeAnonymous, nil),
 					},
 					AnyResult: false, AllResult: false,
 				},
 				{
 					Identities: []*identity.Info{
-						identityOfType(authn.IdentityTypeOAuth),
+						identityOfType(authn.IdentityTypeOAuth, nil),
+					},
+					AnyResult: false, AllResult: false,
+				},
+				{
+					Identities: []*identity.Info{
+						identityLoginID("email", "foo@example.com"),
+					},
+					Claims: []*Claim{
+						verifiedClaim("user-id", "email", "foo@example.com"),
 					},
 					AnyResult: true, AllResult: true,
 				},
 				{
 					Identities: []*identity.Info{
 						identityLoginID("email", "foo@example.com"),
-						identityOfType(authn.IdentityTypeOAuth),
+						identityOfType(authn.IdentityTypeOAuth, nil),
+					},
+					Claims: []*Claim{
+						verifiedClaim("user-id", "email", "foo@example.com"),
+					},
+					AnyResult: true, AllResult: true,
+				},
+				{
+					Identities: []*identity.Info{
+						identityLoginID("email", "foo@example.com"),
+						identityOfType(authn.IdentityTypeOAuth, map[string]interface{}{"email": "bar@example.com"}),
+					},
+					Claims: []*Claim{
+						verifiedClaim("user-id", "email", "foo@example.com"),
 					},
 					AnyResult: true, AllResult: false,
 				},
 				{
 					Identities: []*identity.Info{
 						identityLoginID("email", "foo@example.com"),
-						identityOfType(authn.IdentityTypeOAuth),
+						identityOfType(authn.IdentityTypeOAuth, map[string]interface{}{"email": "bar@example.com"}),
 					},
-					Authenticators: []*authenticator.Info{{
-						ID:     "email",
-						Type:   authn.AuthenticatorTypeOOB,
-						Claims: map[string]interface{}{authenticator.AuthenticatorClaimOOBOTPEmail: "foo@example.com"},
-					}},
+					Claims: []*Claim{
+						verifiedClaim("user-id", "email", "foo@example.com"),
+						verifiedClaim("user-id", "email", "bar@example.com"),
+					},
 					AnyResult: true, AllResult: true,
 				},
 				{
 					Identities: []*identity.Info{
 						identityLoginID("username", "foo"),
 					},
-					Authenticators: []*authenticator.Info{{
-						ID:     "phone",
-						Type:   authn.AuthenticatorTypeOOB,
-						Claims: map[string]interface{}{authenticator.AuthenticatorClaimOOBOTPPhone: "+85200000000"},
-					}},
+					Claims: []*Claim{
+						verifiedClaim("user-id", "phone", "+85212345678"),
+					},
 					AnyResult: false, AllResult: false,
 				},
 				{
@@ -206,11 +190,9 @@ func TestService(t *testing.T) {
 						identityLoginID("email", "foo@example.com"),
 						identityLoginID("username", "foo"),
 					},
-					Authenticators: []*authenticator.Info{{
-						ID:     "email",
-						Type:   authn.AuthenticatorTypeOOB,
-						Claims: map[string]interface{}{authenticator.AuthenticatorClaimOOBOTPEmail: "foo@example.com"},
-					}},
+					Claims: []*Claim{
+						verifiedClaim("user-id", "email", "foo@example.com"),
+					},
 					AnyResult: true, AllResult: true,
 				},
 			}
@@ -218,10 +200,12 @@ func TestService(t *testing.T) {
 			for i, c := range cases {
 				Convey(fmt.Sprintf("case %d", i), func() {
 					service.Config.Criteria = config.VerificationCriteriaAny
-					So(service.IsVerified(c.Identities, c.Authenticators), ShouldEqual, c.AnyResult)
+					claimStore.EXPECT().ListByUser("user-id").Return(c.Claims, nil).MaxTimes(1)
+					So(mustBool(service.IsUserVerified(c.Identities)), ShouldEqual, c.AnyResult)
 
 					service.Config.Criteria = config.VerificationCriteriaAll
-					So(service.IsVerified(c.Identities, c.Authenticators), ShouldEqual, c.AllResult)
+					claimStore.EXPECT().ListByUser("user-id").Return(c.Claims, nil).MaxTimes(1)
+					So(mustBool(service.IsUserVerified(c.Identities)), ShouldEqual, c.AllResult)
 				})
 			}
 		})

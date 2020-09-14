@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -135,14 +136,22 @@ func (e *EdgeVerifyIdentityCheckCode) Instantiate(ctx *interaction.Context, grap
 		return nil, err
 	}
 
-	newAuthenticator, err := ctx.Verification.NewVerificationAuthenticator(code)
-	if err != nil {
-		return nil, err
+	claimName := ""
+	switch config.LoginIDKeyType(code.LoginIDType) {
+	case config.LoginIDKeyTypeEmail:
+		claimName = identity.StandardClaimEmail
+	case config.LoginIDKeyTypePhone:
+		claimName = identity.StandardClaimPhoneNumber
+	case config.LoginIDKeyTypeUsername:
+		claimName = identity.StandardClaimPreferredUsername
+	default:
+		panic("interaction: unexpected login ID key")
 	}
 
+	verifiedClaim := ctx.Verification.NewVerifiedClaim(code.UserID, claimName, code.LoginID)
 	return &NodeEnsureVerificationEnd{
 		Identity:         e.Identity,
-		NewAuthenticator: newAuthenticator,
+		NewVerifiedClaim: verifiedClaim,
 	}, nil
 }
 

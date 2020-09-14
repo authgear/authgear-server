@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
 
@@ -26,15 +25,18 @@ func (c *Commands) Create(userID string) (*User, error) {
 func (c *Commands) AfterCreate(
 	user *User,
 	identities []*identity.Info,
-	authenticators []*authenticator.Info,
 ) error {
-	isVerified := c.Verification.IsVerified(identities, authenticators)
+	isVerified, err := c.Verification.IsUserVerified(identities)
+	if err != nil {
+		return err
+	}
+
 	userModel := newUserModel(user, identities, isVerified)
 	var identityModels []model.Identity
 	for _, i := range identities {
 		identityModels = append(identityModels, i.ToModel())
 	}
-	err := c.Hooks.DispatchEvent(&event.UserCreateEvent{
+	err = c.Hooks.DispatchEvent(&event.UserCreateEvent{
 		User:       *userModel,
 		Identities: identityModels,
 	})

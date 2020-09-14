@@ -21,10 +21,10 @@
   </section>
 
   {{ range .IdentityCandidates }}
-
-  {{ $verification_status := index $.VerificationStatuses .identity_id }}
-  {{ if eq $verification_status "" }}
-    {{ $verification_status = "disabled" }}
+  {{ $claim_verification_statuses := index $.VerificationStatuses .identity_id }}
+  {{ $verification_status := "disabled" }}
+  {{ if ne (len $claim_verification_statuses) 0 }}
+    {{ $verification_status = (index $claim_verification_statuses 0).Status }}
   {{ end }}
 
   <section class="settings-identity-row settings-identity-identity-section">

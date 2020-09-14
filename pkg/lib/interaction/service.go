@@ -123,6 +123,12 @@ func (s *Service) Run(webStateID string, graph *Graph, preserveGraph bool) (err 
 		return
 	}
 
+	ctx.IsCommitting = true
+	err = graph.Apply(ctx)
+	if err != nil {
+		return
+	}
+
 	if !preserveGraph {
 		delErr := s.Store.DeleteGraph(graph)
 		if delErr != nil {

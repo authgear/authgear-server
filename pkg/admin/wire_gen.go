@@ -158,17 +158,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
-	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          serviceStore,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-	}
-	factory := appProvider.LoggerFactory
-	logger := verification.NewLogger(factory)
-	verificationConfig := appConfig.Verification
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -179,7 +168,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorConfig := appConfig.Authenticator
 	authenticatorPasswordConfig := authenticatorConfig.Password
-	passwordLogger := password.NewLogger(factory)
+	factory := appProvider.LoggerFactory
+	logger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
 		SQLBuilder:  sqlBuilder,
@@ -191,7 +181,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
 		Clock:           clockClock,
-		Logger:          passwordLogger,
+		Logger:          logger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		TaskQueue:       queue,
@@ -216,39 +206,54 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
-	service3 := &service2.Service{
+	serviceService := &service2.Service{
 		Store:    store2,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
 	redisHandle := appProvider.Redis
 	storeRedis := &verification.StoreRedis{
 		Redis: redisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
+	storePQ := &verification.StorePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
 	verificationService := &verification.Service{
-		Logger:         logger,
-		Config:         verificationConfig,
-		Clock:          clockClock,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Store:          storeRedis,
+		Logger:     verificationLogger,
+		Config:     verificationConfig,
+		Clock:      clockClock,
+		CodeStore:  storeRedis,
+		ClaimStore: storePQ,
+	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          serviceStore,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	queries := &user.Queries{
 		Store:        store,
-		Identities:   serviceService,
+		Identities:   service3,
 		Verification: verificationService,
 	}
 	userLoader := &loader.UserLoader{
 		Users: queries,
 	}
 	identityLoader := &loader.IdentityLoader{
-		Identities: serviceService,
+		Identities: service3,
 	}
 	authenticatorLoader := &loader.AuthenticatorLoader{
-		Authenticators: service3,
+		Authenticators: serviceService,
 	}
 	graphqlContext := &graphql.Context{
 		Users:          userLoader,

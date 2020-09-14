@@ -32,7 +32,7 @@ type IdentityService interface {
 	New(userID string, spec *identity.Spec) (*identity.Info, error)
 	UpdateWithSpec(is *identity.Info, spec *identity.Spec) (*identity.Info, error)
 	Create(is *identity.Info) error
-	Update(is *identity.Info) error
+	Update(before, after *identity.Info) error
 	Delete(is *identity.Info) error
 	CheckDuplicated(info *identity.Info) (*identity.Info, error)
 }
@@ -87,7 +87,7 @@ type MFAService interface {
 type UserService interface {
 	Get(id string) (*model.User, error)
 	Create(userID string) (*user.User, error)
-	AfterCreate(user *user.User, identities []*identity.Info, authenticators []*authenticator.Info) error
+	AfterCreate(user *user.User, identities []*identity.Info) error
 	UpdateLoginTime(user *model.User, lastLoginAt time.Time) error
 }
 
@@ -119,11 +119,12 @@ type LoginIDNormalizerFactory interface {
 }
 
 type VerificationService interface {
-	GetVerificationStatus(i *identity.Info) (verification.Status, error)
+	GetIdentityVerificationStatus(i *identity.Info) ([]verification.ClaimStatus, error)
 	CreateNewCode(id string, info *identity.Info) (*verification.Code, error)
 	GetCode(id string) (*verification.Code, error)
 	VerifyCode(id string, code string) (*verification.Code, error)
-	NewVerificationAuthenticator(code *verification.Code) (*authenticator.Info, error)
+	NewVerifiedClaim(userID string, claimName string, claimValue string) *verification.Claim
+	MarkClaimVerified(claim *verification.Claim) error
 }
 
 type VerificationCodeSender interface {
@@ -136,8 +137,9 @@ type CookieFactory interface {
 }
 
 type Context struct {
-	IsDryRun   bool   `wire:"-"`
-	WebStateID string `wire:"-"`
+	IsDryRun     bool   `wire:"-"`
+	IsCommitting bool   `wire:"-"`
+	WebStateID   string `wire:"-"`
 
 	Database db.SQLExecutor
 	Clock    clock.Clock

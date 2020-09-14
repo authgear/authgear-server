@@ -40,7 +40,7 @@ func (n *NodeDoCreateUser) Apply(perform func(eff interaction.Effect) error, gra
 	}
 
 	err = perform(interaction.EffectOnCommit(func(ctx *interaction.Context) error {
-		return ctx.Users.AfterCreate(u, graph.GetUserNewIdentities(), graph.GetUserNewAuthenticators())
+		return ctx.Users.AfterCreate(u, graph.GetUserNewIdentities())
 	}))
 	if err != nil {
 		return err

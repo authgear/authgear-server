@@ -38,15 +38,6 @@ func (i *IntentRemoveIdentity) DeriveEdgesForNode(graph *interaction.Graph, node
 			&nodes.EdgeDoRemoveIdentity{Identity: node.IdentityInfo},
 		}, nil
 	case *nodes.NodeDoRemoveIdentity:
-		return []interaction.Edge{
-			&nodes.EdgeRemoveAuthenticator{IdentityInfo: node.Identity},
-		}, nil
-
-	case *nodes.NodeRemoveAuthenticator:
-		return []interaction.Edge{
-			&nodes.EdgeDoRemoveAuthenticator{Authenticators: node.Authenticators},
-		}, nil
-	case *nodes.NodeDoRemoveAuthenticator:
 		return nil, nil
 
 	default:
