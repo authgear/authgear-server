@@ -90,7 +90,11 @@ export function isSecondaryAuthenticatorType(
   return secondaryAuthenticatorTypes.includes(type);
 }
 
+export const identityTypes = ["login_id", "oauth", "anonymous"] as const;
+export type IdentityType = typeof identityTypes[number];
+
 interface AuthenticationConfig {
+  identities?: IdentityType[];
   primary_authenticators: PrimaryAuthenticatorType[];
   secondary_authenticators: SecondaryAuthenticatorType[];
 }

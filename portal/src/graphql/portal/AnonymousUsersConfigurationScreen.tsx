@@ -30,8 +30,10 @@ import styles from "./AnonymousUsersConfigurationScreen.module.scss";
 
 interface AnonymousUsersConfigurationScreenState {
   enabled: boolean;
-  promotionConflictBehaviour?: PromotionConflictBehaviour;
+  promotionConflictBehaviour: PromotionConflictBehaviour;
 }
+
+const DEFAULT_CONFLICT_BEHAVIOUR: PromotionConflictBehaviour = "error";
 
 function constructStateFromAppConfig(
   appConfig: PortalAPIAppConfig | null
@@ -39,11 +41,17 @@ function constructStateFromAppConfig(
   if (appConfig == null) {
     return {
       enabled: false,
+      promotionConflictBehaviour: DEFAULT_CONFLICT_BEHAVIOUR,
     };
   }
-  const promotionConflictBehaviour = appConfig.identity?.on_conflict?.promotion;
+  const anonymousUserEnabled =
+    appConfig.authentication.identities?.find(
+      (identity) => identity === "anonymous"
+    ) != null;
+  const promotionConflictBehaviour =
+    appConfig.identity?.on_conflict?.promotion ?? DEFAULT_CONFLICT_BEHAVIOUR;
   return {
-    enabled: promotionConflictBehaviour != null,
+    enabled: anonymousUserEnabled,
     promotionConflictBehaviour,
   };
 }
@@ -55,12 +63,19 @@ function constructNewAppConfigFromState(
   return produce(appConfig, (draftConfig) => {
     draftConfig.identity = draftConfig.identity ?? {};
     draftConfig.identity.on_conflict = draftConfig.identity.on_conflict ?? {};
-
     const onConflict = draftConfig.identity.on_conflict;
-    if (state.enabled && state.promotionConflictBehaviour != null) {
+
+    const { authentication } = draftConfig;
+    authentication.identities = authentication.identities ?? [];
+    const authenticationIdentitiesSet = new Set(authentication.identities);
+
+    if (state.enabled) {
+      authenticationIdentitiesSet.add("anonymous");
+      authentication.identities = Array.from(authenticationIdentitiesSet);
       onConflict.promotion = state.promotionConflictBehaviour;
     } else {
-      delete onConflict.promotion;
+      authenticationIdentitiesSet.delete("anonymous");
+      authentication.identities = Array.from(authenticationIdentitiesSet);
     }
   });
 }
@@ -69,9 +84,7 @@ function constructConflictBehaviourOptions(
   state: AnonymousUsersConfigurationScreenState
 ): IDropdownOption[] {
   return promotionConflictBehaviours.map((behaviour: string) => {
-    const selectedBehaviour = state.enabled
-      ? state.promotionConflictBehaviour
-      : null;
+    const selectedBehaviour = state.promotionConflictBehaviour;
     return {
       key: behaviour,
       text: behaviour,
@@ -110,12 +123,12 @@ const AnonymousUserConfigurationScreen: React.FC = function AnonymousUserConfigu
 
   const onConflictOptionChanged = useCallback(
     (option: IDropdownOption) => {
-      setState({
-        ...state,
-        promotionConflictBehaviour: isPromotionConflictBehaviour(option.key)
-          ? option.key
-          : undefined,
-      });
+      if (isPromotionConflictBehaviour(option.key)) {
+        setState({
+          ...state,
+          promotionConflictBehaviour: option.key,
+        });
+      }
     },
     [state]
   );
