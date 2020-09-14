@@ -281,6 +281,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,

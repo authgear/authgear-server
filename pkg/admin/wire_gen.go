@@ -244,6 +244,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,

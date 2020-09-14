@@ -81,3 +81,37 @@ func (c *VerificationClaimConfig) SetDefaults() {
 		c.Required = newBool(true)
 	}
 }
+
+var _ = Schema.Add("VerificationOAuthClaimsConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"email": { "$ref": "#/$defs/VerificationOAuthClaimConfig" }
+	}
+}
+`)
+
+type VerificationOAuthClaimsConfig struct {
+	Email *VerificationOAuthClaimConfig `json:"email,omitempty"`
+}
+
+var _ = Schema.Add("VerificationOAuthClaimConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"assume_verified": { "type": "boolean" }
+	}
+}
+`)
+
+type VerificationOAuthClaimConfig struct {
+	AssumeVerified *bool `json:"assume_verified,omitempty"`
+}
+
+func (c *VerificationOAuthClaimConfig) SetDefaults() {
+	if c.AssumeVerified == nil {
+		c.AssumeVerified = newBool(true)
+	}
+}

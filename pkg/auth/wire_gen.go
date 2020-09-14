@@ -233,6 +233,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -670,6 +671,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -1115,6 +1117,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -1300,6 +1303,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -1567,6 +1571,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -1969,6 +1974,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -2370,6 +2376,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -2746,6 +2753,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -3149,6 +3157,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -3543,6 +3552,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -3937,6 +3947,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -4332,6 +4343,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -4728,6 +4740,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -5122,6 +5135,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -5516,6 +5530,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -5910,6 +5925,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -6304,6 +6320,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -6698,6 +6715,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -7092,6 +7110,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -7490,6 +7509,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -7885,6 +7905,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -8279,6 +8300,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -8674,6 +8696,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -9104,6 +9127,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -9481,6 +9505,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -9752,6 +9777,7 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -10133,6 +10159,7 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -10700,6 +10727,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,

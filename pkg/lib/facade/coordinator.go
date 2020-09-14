@@ -4,6 +4,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 )
 
 type IdentityService interface {
@@ -32,6 +34,9 @@ type AuthenticatorService interface {
 }
 
 type VerificationService interface {
+	GetClaimVerificationStatus(userID string, name string, value string) (verification.Status, error)
+	NewVerifiedClaim(userID string, claimName string, claimValue string) *verification.Claim
+	MarkClaimVerified(claim *verification.Claim) error
 	RemoveOrphanedClaims(identities []*identity.Info, authenticators []*authenticator.Info) error
 }
 
@@ -45,6 +50,7 @@ type Coordinator struct {
 	Identities     IdentityService
 	Authenticators AuthenticatorService
 	Verification   VerificationService
+	IdentityConfig *config.IdentityConfig
 }
 
 func (c *Coordinator) IdentityGet(userID string, typ authn.IdentityType, id string) (*identity.Info, error) {
@@ -72,7 +78,37 @@ func (c *Coordinator) IdentityUpdateWithSpec(is *identity.Info, spec *identity.S
 }
 
 func (c *Coordinator) IdentityCreate(is *identity.Info) error {
-	return c.Identities.Create(is)
+	err := c.Identities.Create(is)
+	if err != nil {
+		return err
+	}
+
+	if is.Type == authn.IdentityTypeOAuth {
+		providerID := config.NewProviderID(
+			is.Claims[identity.IdentityClaimOAuthProviderKeys].(map[string]interface{}),
+		)
+		var cfg *config.OAuthSSOProviderConfig
+		for _, c := range c.IdentityConfig.OAuth.Providers {
+			if c.ProviderID().Equal(&providerID) {
+				c := c
+				cfg = &c
+				break
+			}
+		}
+
+		email, ok := is.Claims[identity.StandardClaimEmail].(string)
+		if ok && cfg != nil && *cfg.Claims.Email.AssumeVerified {
+			// Mark as verified if OAuth email is assumed to be verified
+			err = c.markVerified(is.UserID, map[authn.ClaimName]string{
+				authn.ClaimEmail: email,
+			})
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func (c *Coordinator) IdentityUpdate(info *identity.Info) error {
@@ -124,7 +160,18 @@ func (c *Coordinator) AuthenticatorWithSecret(authenticatorInfo *authenticator.I
 }
 
 func (c *Coordinator) AuthenticatorCreate(authenticatorInfo *authenticator.Info) error {
-	return c.Authenticators.Create(authenticatorInfo)
+	err := c.Authenticators.Create(authenticatorInfo)
+	if err != nil {
+		return err
+	}
+
+	// Mark as verified for authenticators.
+	err = c.markVerified(authenticatorInfo.UserID, authenticatorInfo.StandardClaims())
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *Coordinator) AuthenticatorUpdate(authenticatorInfo *authenticator.Info) error {
@@ -132,7 +179,17 @@ func (c *Coordinator) AuthenticatorUpdate(authenticatorInfo *authenticator.Info)
 }
 
 func (c *Coordinator) AuthenticatorDelete(authenticatorInfo *authenticator.Info) error {
-	return c.Authenticators.Delete(authenticatorInfo)
+	err := c.Authenticators.Delete(authenticatorInfo)
+	if err != nil {
+		return err
+	}
+
+	err = c.removeOrphans(authenticatorInfo.UserID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *Coordinator) AuthenticatorVerifySecret(info *authenticator.Info, state map[string]string, secret string) error {
@@ -160,5 +217,25 @@ func (c *Coordinator) removeOrphans(userID string) error {
 		return err
 	}
 
+	return nil
+}
+
+func (c *Coordinator) markVerified(userID string, claims map[authn.ClaimName]string) error {
+	for name, value := range claims {
+		name := string(name)
+		status, err := c.Verification.GetClaimVerificationStatus(userID, name, value)
+		if err != nil {
+			return err
+		}
+		if status != verification.StatusPending && status != verification.StatusRequired {
+			continue
+		}
+
+		claim := c.Verification.NewVerifiedClaim(userID, name, value)
+		err = c.Verification.MarkClaimVerified(claim)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
