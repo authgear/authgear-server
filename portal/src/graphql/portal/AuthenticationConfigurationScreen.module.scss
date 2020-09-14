@@ -4,6 +4,10 @@
   min-height: 100%;
 }
 
+.loading {
+  pointer-events: none;
+}
+
 .content {
   margin: 30px 20px;
 }

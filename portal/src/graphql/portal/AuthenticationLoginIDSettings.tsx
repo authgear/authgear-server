@@ -1,17 +1,12 @@
 import React from "react";
 import produce from "immer";
-import {
-  Checkbox,
-  Toggle,
-  PrimaryButton,
-  TagPicker,
-  Label,
-} from "@fluentui/react";
+import { Checkbox, Toggle, TagPicker, Label } from "@fluentui/react";
 
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import ExtendableWidget from "../../ExtendableWidget";
 import CheckboxWithContent from "../../CheckboxWithContent";
+import ButtonWithLoading from "../../ButtonWithLoading";
 import { useCheckbox, useTagPickerWithNewTags } from "../../hook/useInput";
 import {
   LoginIDKeyType,
@@ -33,6 +28,7 @@ interface Props {
   updateAppConfig: (
     appConfig: PortalAPIAppConfig
   ) => Promise<PortalAPIApp | null>;
+  updatingAppConfig: boolean;
 }
 
 interface WidgetHeaderProps {
@@ -296,7 +292,12 @@ function constructAppConfigFromState(
 const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLoginIDSettings(
   props: Props
 ) {
-  const { effectiveAppConfig, rawAppConfig, updateAppConfig } = props;
+  const {
+    effectiveAppConfig,
+    rawAppConfig,
+    updateAppConfig,
+    updatingAppConfig,
+  } = props;
   const { renderToString } = React.useContext(Context);
 
   const initialState = React.useMemo(() => {
@@ -520,9 +521,12 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
         </ExtendableWidget>
       </div>
       <div className={styles.saveButtonContainer}>
-        <PrimaryButton onClick={onSaveButtonClicked}>
-          <FormattedMessage id="save" />
-        </PrimaryButton>
+        <ButtonWithLoading
+          onClick={onSaveButtonClicked}
+          loading={updatingAppConfig}
+          labelId="save"
+          loadingLabelId="saving"
+        />
       </div>
     </div>
   );

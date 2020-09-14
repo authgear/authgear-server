@@ -1,11 +1,11 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import { Pivot, PivotItem, Text } from "@fluentui/react";
+import cn from "classnames";
 
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 
 import ShowLoading from "../../ShowLoading";
-import LoadingModal from "../../LoadingModal";
 import ShowError from "../../ShowError";
 import AuthenticationLoginIDSettings from "./AuthenticationLoginIDSettings";
 import AuthenticationAuthenticatorSettings from "./AuthenticationAuthenticatorSettings";
@@ -53,9 +53,8 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
   }
 
   return (
-    <main className={styles.root}>
+    <main className={cn(styles.root, { [styles.loading]: updatingAppConfig })}>
       {updateAppConfigError && <ShowError error={updateAppConfigError} />}
-      <LoadingModal loading={updatingAppConfig} />
       <div className={styles.content}>
         <Text as="h1" className={styles.title}>
           <FormattedMessage id="AuthenticationScreen.title" />
@@ -69,6 +68,7 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
                 effectiveAppConfig={effectiveAppConfig}
                 rawAppConfig={rawAppConfig}
                 updateAppConfig={updateAppConfig}
+                updatingAppConfig={updatingAppConfig}
               />
             </PivotItem>
             <PivotItem
@@ -80,6 +80,7 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
                 effectiveAppConfig={effectiveAppConfig}
                 rawAppConfig={rawAppConfig}
                 updateAppConfig={updateAppConfig}
+                updatingAppConfig={updatingAppConfig}
               />
             </PivotItem>
           </Pivot>

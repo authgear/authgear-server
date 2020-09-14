@@ -4,7 +4,6 @@ import {
   Checkbox,
   SelectionMode,
   ICheckboxProps,
-  PrimaryButton,
   DefaultEffects,
   Text,
 } from "@fluentui/react";
@@ -12,6 +11,7 @@ import produce from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import DetailsListWithOrdering, { swap } from "../../DetailsListWithOrdering";
+import ButtonWithLoading from "../../ButtonWithLoading";
 import {
   PortalAPIAppConfig,
   primaryAuthenticatorTypes,
@@ -30,6 +30,7 @@ interface Props {
   updateAppConfig: (
     appConfig: PortalAPIAppConfig
   ) => Promise<PortalAPIApp | null>;
+  updatingAppConfig: boolean;
 }
 
 interface AuthenticatorCheckboxProps extends ICheckboxProps {
@@ -160,7 +161,12 @@ function getActivatedKeyListFromState<KeyType>(
 const AuthenticationAuthenticatorSettings: React.FC<Props> = function AuthenticationAuthenticatorSettings(
   props: Props
 ) {
-  const { effectiveAppConfig, rawAppConfig, updateAppConfig } = props;
+  const {
+    effectiveAppConfig,
+    rawAppConfig,
+    updateAppConfig,
+    updatingAppConfig,
+  } = props;
   const { renderToString } = React.useContext(Context);
 
   const authenticatorColumns: IColumn[] = [
@@ -326,9 +332,12 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
       </div>
 
       <div className={styles.saveButtonContainer}>
-        <PrimaryButton onClick={onSaveButtonClicked}>
-          <FormattedMessage id="save" />
-        </PrimaryButton>
+        <ButtonWithLoading
+          onClick={onSaveButtonClicked}
+          loading={updatingAppConfig}
+          labelId="save"
+          loadingLabelId="saving"
+        />
       </div>
     </div>
   );
