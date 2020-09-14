@@ -28,6 +28,7 @@ type AuthenticatorService interface {
 	Update(authenticatorInfo *authenticator.Info) error
 	Delete(authenticatorInfo *authenticator.Info) error
 	VerifySecret(info *authenticator.Info, state map[string]string, secret string) error
+	RemoveOrphans(identities []*identity.Info) error
 }
 
 // Coordinator represents interaction between identities, authenticators, and
@@ -70,11 +71,31 @@ func (c *Coordinator) IdentityCreate(is *identity.Info) error {
 }
 
 func (c *Coordinator) IdentityUpdate(before, after *identity.Info) error {
-	return c.Identities.Update(before, after)
+	err := c.Identities.Update(before, after)
+	if err != nil {
+		return err
+	}
+
+	err = c.removeOrphans(before.UserID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *Coordinator) IdentityDelete(is *identity.Info) error {
-	return c.Identities.Delete(is)
+	err := c.Identities.Delete(is)
+	if err != nil {
+		return err
+	}
+
+	err = c.removeOrphans(is.UserID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *Coordinator) IdentityCheckDuplicated(info *identity.Info) (*identity.Info, error) {
@@ -111,4 +132,18 @@ func (c *Coordinator) AuthenticatorDelete(authenticatorInfo *authenticator.Info)
 
 func (c *Coordinator) AuthenticatorVerifySecret(info *authenticator.Info, state map[string]string, secret string) error {
 	return c.Authenticators.VerifySecret(info, state, secret)
+}
+
+func (c *Coordinator) removeOrphans(userID string) error {
+	identities, err := c.Identities.ListByUser(userID)
+	if err != nil {
+		return err
+	}
+
+	err = c.Authenticators.RemoveOrphans(identities)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

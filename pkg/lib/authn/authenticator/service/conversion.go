@@ -68,7 +68,7 @@ func totpFromAuthenticatorInfo(a *authenticator.Info) *totp.Authenticator {
 }
 
 func oobotpToAuthenticatorInfo(o *oob.Authenticator) *authenticator.Info {
-	return &authenticator.Info{
+	info := &authenticator.Info{
 		Type:      authn.AuthenticatorTypeOOB,
 		ID:        o.ID,
 		Labels:    o.Labels,
@@ -78,15 +78,22 @@ func oobotpToAuthenticatorInfo(o *oob.Authenticator) *authenticator.Info {
 		Secret:    "",
 		Claims: map[string]interface{}{
 			authenticator.AuthenticatorClaimOOBOTPChannelType: string(o.Channel),
-			authenticator.AuthenticatorClaimOOBOTPEmail:       o.Email,
-			authenticator.AuthenticatorClaimOOBOTPPhone:       o.Phone,
 		},
 		IsDefault: o.IsDefault,
 		Kind:      authenticator.Kind(o.Kind),
 	}
+	switch o.Channel {
+	case authn.AuthenticatorOOBChannelSMS:
+		info.Claims[authenticator.AuthenticatorClaimOOBOTPPhone] = o.Phone
+	case authn.AuthenticatorOOBChannelEmail:
+		info.Claims[authenticator.AuthenticatorClaimOOBOTPEmail] = o.Email
+	}
+	return info
 }
 
 func oobotpFromAuthenticatorInfo(a *authenticator.Info) *oob.Authenticator {
+	phone, _ := a.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string)
+	email, _ := a.Claims[authenticator.AuthenticatorClaimOOBOTPEmail].(string)
 	return &oob.Authenticator{
 		ID:        a.ID,
 		Labels:    a.Labels,
@@ -94,8 +101,8 @@ func oobotpFromAuthenticatorInfo(a *authenticator.Info) *oob.Authenticator {
 		CreatedAt: a.CreatedAt,
 		UpdatedAt: a.UpdatedAt,
 		Channel:   authn.AuthenticatorOOBChannel(a.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType].(string)),
-		Phone:     a.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string),
-		Email:     a.Claims[authenticator.AuthenticatorClaimOOBOTPEmail].(string),
+		Phone:     phone,
+		Email:     email,
 		IsDefault: a.IsDefault,
 		Kind:      string(a.Kind),
 	}

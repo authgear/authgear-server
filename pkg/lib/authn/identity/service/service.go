@@ -331,22 +331,6 @@ func (s *Service) UpdateWithSpec(info *identity.Info, spec *identity.Spec) (*ide
 }
 
 func (s *Service) Update(before, after *identity.Info) error {
-	// FIXME(authenticator): delete only orphaned authenticators,
-	//                       leave authenticators still having matching identities alone.
-	ais, err := s.Authenticators.List(
-		before.UserID,
-		authenticator.KeepMatchingAuthenticatorOfIdentity(before),
-	)
-	if err != nil {
-		return err
-	}
-	for _, ai := range ais {
-		err := s.Authenticators.Delete(ai)
-		if err != nil {
-			return err
-		}
-	}
-
 	switch after.Type {
 	case authn.IdentityTypeLoginID:
 		i := loginIDFromIdentityInfo(after)
@@ -376,22 +360,6 @@ func (s *Service) Update(before, after *identity.Info) error {
 }
 
 func (s *Service) Delete(info *identity.Info) error {
-	// FIXME(authenticator): delete only orphaned authenticators,
-	//                       leave authenticators still having matching identities alone.
-	ais, err := s.Authenticators.List(
-		info.UserID,
-		authenticator.KeepMatchingAuthenticatorOfIdentity(info),
-	)
-	if err != nil {
-		return err
-	}
-	for _, ai := range ais {
-		err := s.Authenticators.Delete(ai)
-		if err != nil {
-			return err
-		}
-	}
-
 	switch info.Type {
 	case authn.IdentityTypeLoginID:
 		i := loginIDFromIdentityInfo(info)

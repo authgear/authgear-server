@@ -86,6 +86,7 @@ type MFAService interface {
 
 type UserService interface {
 	Get(id string) (*model.User, error)
+	GetRaw(id string) (*user.User, error)
 	Create(userID string) (*user.User, error)
 	AfterCreate(user *user.User, identities []*identity.Info) error
 	UpdateLoginTime(user *model.User, lastLoginAt time.Time) error
