@@ -14,7 +14,6 @@ import {
   promotionConflictBehaviours,
   isPromotionConflictBehaviour,
 } from "../../types";
-import { useSimpleRPC } from "../../hook/misc";
 import { clearEmptyObject } from "../../util/misc";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
@@ -203,13 +202,10 @@ const AnonymousUserConfigurationScreen: React.FC = function AnonymousUserConfigu
   const { appID } = useParams();
   const { loading, error, data, refetch } = useAppConfigQuery(appID);
   const {
-    updateAppConfig: updateAppConfigMutation,
-  } = useUpdateAppConfigMutation(appID);
-  const {
     loading: updatingAppConfig,
     error: updateAppConfigError,
-    rpc: updateAppConfig,
-  } = useSimpleRPC(updateAppConfigMutation);
+    updateAppConfig,
+  } = useUpdateAppConfigMutation(appID);
 
   if (loading) {
     return <ShowLoading />;

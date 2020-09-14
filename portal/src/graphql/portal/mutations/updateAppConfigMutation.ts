@@ -30,11 +30,12 @@ export function useUpdateAppConfigMutation(
   updateAppConfig: (
     appConfig: PortalAPIAppConfig
   ) => Promise<PortalAPIApp | null>;
+  loading: boolean;
+  error: unknown;
 } {
-  const [mutationFunction] = useMutation<UpdateAppConfigMutation>(
-    updateAppConfigMutation,
-    { client }
-  );
+  const [mutationFunction, { error, loading }] = useMutation<
+    UpdateAppConfigMutation
+  >(updateAppConfigMutation, { client });
   const updateAppConfig = React.useCallback(
     async (appConfig: PortalAPIAppConfig) => {
       const appConfigYaml = yaml.safeDump(appConfig);
@@ -49,5 +50,5 @@ export function useUpdateAppConfigMutation(
     },
     [appID, mutationFunction]
   );
-  return { updateAppConfig };
+  return { updateAppConfig, error, loading };
 }
