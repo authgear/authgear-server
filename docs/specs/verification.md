@@ -13,9 +13,6 @@
 
 A user is verified if the user fulfill the condition specified by criteria.
 
-An identity is verifiable is any of its claims is verifiable. An identity is
-verified is any of its claims is verified.
-
 A claim is verifiable if its verification is enabled in the configuration.
 
 ## Criteria
