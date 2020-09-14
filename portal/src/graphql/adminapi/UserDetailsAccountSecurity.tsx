@@ -9,18 +9,15 @@ import { formatDatetime } from "../../util/formatDatetime";
 import styles from "./UserDetailsAccountSecurity.module.scss";
 
 // authenticator type recognized by portal
-enum AuthenticatorType {
-  Password = "password",
-  OneTimePassword = "oob_otp",
-  TimeBasedOneTimePassword = "totp",
-}
+type AuthenticatorType = "PASSWORD" | "TOTP" | "OOB_OTP";
 
-type AuthenticatorKind = "primary" | "secondary";
+type AuthenticatorKind = "PRIMARY" | "SECONDARY";
 
 interface Authenticator {
   id: string;
-  type: string;
-  is_secondary?: boolean;
+  type: AuthenticatorType;
+  kind: AuthenticatorKind;
+  isDefault: boolean;
   claims: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
@@ -37,29 +34,29 @@ interface AuthenticatorListItem {
   onDetailButtonClick?: () => void;
 }
 
-const primaryAuthenticatorTypeLocaleKeyMap: { [key: string]: string } = {
-  [AuthenticatorType.Password]: "UserDetails.account-security.primary.password",
-  [AuthenticatorType.OneTimePassword]:
-    "UserDetails.account-security.primary.oob-otp",
+const primaryAuthenticatorTypeLocaleKeyMap: {
+  [key in AuthenticatorType]?: string;
+} = {
+  PASSWORD: "UserDetails.account-security.primary.password",
+  OOB_OTP: "UserDetails.account-security.primary.oob-otp",
 };
 
-const secondaryAuthenticatorTypeLocaleKeyMap: { [key: string]: string } = {
-  [AuthenticatorType.Password]:
-    "UserDetails.account-security.secondary.password",
-  [AuthenticatorType.TimeBasedOneTimePassword]:
-    "UserDetails.account-security.secondary.totp",
-  [AuthenticatorType.OneTimePassword]:
-    "UserDetails.account-security.secondary.oob-otp",
+const secondaryAuthenticatorTypeLocaleKeyMap: {
+  [key in AuthenticatorType]?: string;
+} = {
+  PASSWORD: "UserDetails.account-security.secondary.password",
+  TOTP: "UserDetails.account-security.secondary.totp",
+  OOB_OTP: "UserDetails.account-security.secondary.oob-otp",
 };
 
 function getLocaleKeyWithAuthenticatorType(
-  type: string,
+  type: AuthenticatorType,
   kind: AuthenticatorKind
 ) {
   switch (kind) {
-    case "primary":
+    case "PRIMARY":
       return primaryAuthenticatorTypeLocaleKeyMap[type];
-    case "secondary":
+    case "SECONDARY":
       return secondaryAuthenticatorTypeLocaleKeyMap[type];
   }
   return null;
@@ -69,25 +66,14 @@ function getAuthenticatorWithKind(
   authenticators: Authenticator[],
   kind: AuthenticatorKind
 ): Authenticator[] {
-  switch (kind) {
-    // TODO: add flag and modify this function
-    case "primary":
-      return authenticators.filter(
-        (authenticator) => !authenticator.is_secondary
-      );
-    case "secondary":
-      return authenticators.filter(
-        (authenticator) => !!authenticator.is_secondary
-      );
-  }
-  return [];
+  return authenticators.filter((authenticator) => authenticator.kind === kind);
 }
 
 function getDescriptionFromAuthenticator(
   authenticator: Authenticator,
   locale: string
 ) {
-  const showLastUpdated = authenticator.type === AuthenticatorType.Password;
+  const showLastUpdated = authenticator.type === "PASSWORD";
   if (showLastUpdated) {
     const lastUpdatedText =
       formatDatetime(locale, authenticator.updatedAt) ?? "";
@@ -109,7 +95,7 @@ function getDescriptionFromAuthenticator(
 function getLabelFromAuthenticator(authenticator: Authenticator) {
   const labelLocaleKey = getLocaleKeyWithAuthenticatorType(
     authenticator.type,
-    "primary"
+    "PRIMARY"
   );
   return labelLocaleKey ? <FormattedMessage id={labelLocaleKey} /> : null;
 }
@@ -147,11 +133,11 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
 
   const primaryAuthenticators = getAuthenticatorWithKind(
     authenticators,
-    "primary"
+    "PRIMARY"
   );
   const secondaryAuthenticators = getAuthenticatorWithKind(
     authenticators,
-    "secondary"
+    "SECONDARY"
   );
 
   const primaryAuthenticatorListItems: AuthenticatorListItem[] = useMemo(() => {

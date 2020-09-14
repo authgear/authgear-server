@@ -93,6 +93,8 @@ const query = gql`
             node {
               id
               type
+              kind
+              isDefault
               claims
               createdAt
               updatedAt
