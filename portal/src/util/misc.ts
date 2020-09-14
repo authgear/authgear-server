@@ -42,3 +42,16 @@ export function clearEmptyObject(obj: Record<string, any>): void {
     }
   }
 }
+
+// if string is empty or only contain space, return undefined
+// the corresponding entry will be deleted by clearEmptyObject function
+// defined above
+export function ensureNonEmptyString(value?: string): string | undefined {
+  if (value == null) {
+    return undefined;
+  }
+  if (value.trim() === "") {
+    return undefined;
+  }
+  return value;
+}

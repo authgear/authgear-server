@@ -107,6 +107,7 @@
   "SingleSignOnConfigurationScreen.widget.tenant": "Tenant",
   "SingleSignOnConfigurationScreen.widget.key-id": "Key ID",
   "SingleSignOnConfigurationScreen.widget.team-id": "Team ID",
+  "SingleSignOnConfigurationScreen.widget.client-secret.error": "Invalid client secret",
 
   "PaginationWidget.First": "Go to the first page",
   "PaginationWidget.Prev": "Go to the previous page",
