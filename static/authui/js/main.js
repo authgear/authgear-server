@@ -186,6 +186,30 @@ window.addEventListener("load", function() {
     }
   }
 
+
+  // It is important that this is not an arrow function.
+  // This function relies on `this` being the XHR object.
+  function handleXHRFormSubmission(e) {
+    var currentURLString = window.location.href;
+    var responseURLString = this.responseURL;
+
+    var currentURL = new URL(currentURLString);
+    var responseURL = new URL(responseURLString);
+
+    // We are still within our application.
+    if (currentURL.protocol === responseURL.protocol && currentURL.origin === responseURL.origin) {
+      // Same path. Currently we assume this is form submission error.
+      if (currentURL.pathname === responseURL.pathname) {
+        history.replaceState({}, "", responseURLString);
+      } else {
+        history.pushState({}, "", responseURLString);
+      }
+    } else {
+      // Otherwise redirect natively.
+      window.location.href = responseURLString;
+    }
+  }
+
   // Use XHR to submit form.
   // If we rely on the browser to submit the form for us,
   // error submission will add an entry to the history stack,
@@ -301,9 +325,7 @@ window.addEventListener("load", function() {
 
         var xhr = new XMLHttpRequest();
         xhr.withCredentials = true;
-        xhr.onload = function(e) {
-          window.location.href = xhr.responseURL;
-        };
+        xhr.onload = handleXHRFormSubmission;
         xhr.open(form.method, form.action, true);
         // Safari does not support xhr.send(URLSearchParams)
         // so we have to manually set content-type
