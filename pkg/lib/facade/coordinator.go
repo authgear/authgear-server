@@ -14,7 +14,7 @@ type IdentityService interface {
 	New(userID string, spec *identity.Spec) (*identity.Info, error)
 	UpdateWithSpec(is *identity.Info, spec *identity.Spec) (*identity.Info, error)
 	Create(is *identity.Info) error
-	Update(before, after *identity.Info) error
+	Update(info *identity.Info) error
 	Delete(is *identity.Info) error
 	CheckDuplicated(info *identity.Info) (*identity.Info, error)
 }
@@ -31,6 +31,10 @@ type AuthenticatorService interface {
 	RemoveOrphans(identities []*identity.Info) error
 }
 
+type VerificationService interface {
+	RemoveOrphanedClaims(identities []*identity.Info, authenticators []*authenticator.Info) error
+}
+
 // Coordinator represents interaction between identities, authenticators, and
 // other high-level features (such as verification).
 // FIXME(interaction): This is used to avoid circular dependency between
@@ -40,6 +44,7 @@ type AuthenticatorService interface {
 type Coordinator struct {
 	Identities     IdentityService
 	Authenticators AuthenticatorService
+	Verification   VerificationService
 }
 
 func (c *Coordinator) IdentityGet(userID string, typ authn.IdentityType, id string) (*identity.Info, error) {
@@ -70,13 +75,13 @@ func (c *Coordinator) IdentityCreate(is *identity.Info) error {
 	return c.Identities.Create(is)
 }
 
-func (c *Coordinator) IdentityUpdate(before, after *identity.Info) error {
-	err := c.Identities.Update(before, after)
+func (c *Coordinator) IdentityUpdate(info *identity.Info) error {
+	err := c.Identities.Update(info)
 	if err != nil {
 		return err
 	}
 
-	err = c.removeOrphans(before.UserID)
+	err = c.removeOrphans(info.UserID)
 	if err != nil {
 		return err
 	}
@@ -141,6 +146,16 @@ func (c *Coordinator) removeOrphans(userID string) error {
 	}
 
 	err = c.Authenticators.RemoveOrphans(identities)
+	if err != nil {
+		return err
+	}
+
+	authenticators, err := c.Authenticators.List(userID)
+	if err != nil {
+		return err
+	}
+
+	err = c.Verification.RemoveOrphanedClaims(identities, authenticators)
 	if err != nil {
 		return err
 	}

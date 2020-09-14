@@ -203,6 +203,15 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          serviceStore,
+		LoginID:        loginidProvider,
+		OAuth:          oauthProvider,
+		Anonymous:      provider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	storeRedis := &verification.StoreRedis{
@@ -221,19 +230,10 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          serviceStore,
-		LoginID:        loginidProvider,
-		OAuth:          oauthProvider,
-		Anonymous:      provider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -641,6 +641,15 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          store,
+		LoginID:        loginidProvider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
@@ -659,19 +668,10 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  verificationStoreRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        loginidProvider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -1086,6 +1086,15 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          serviceStore,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	redisHandle := appProvider.Redis
@@ -1105,19 +1114,10 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          serviceStore,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -1272,6 +1272,15 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          serviceStore,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	redisHandle := appProvider.Redis
@@ -1291,19 +1300,10 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          serviceStore,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -1541,6 +1541,15 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          store,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	storeRedis := &verification.StoreRedis{
@@ -1559,19 +1568,10 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -1944,6 +1944,15 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          store,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	storeRedis := &verification.StoreRedis{
@@ -1962,19 +1971,10 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -2346,6 +2346,15 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          store,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	storeRedis := &verification.StoreRedis{
@@ -2364,19 +2373,10 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -2723,6 +2723,15 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          store,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	storeRedis := &verification.StoreRedis{
@@ -2741,19 +2750,10 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -3127,6 +3127,15 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          store,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	storeRedis := &verification.StoreRedis{
@@ -3145,19 +3154,10 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -3522,6 +3522,15 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          store,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	storeRedis := &verification.StoreRedis{
@@ -3540,19 +3549,10 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -3917,6 +3917,15 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          store,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	storeRedis := &verification.StoreRedis{
@@ -3935,19 +3944,10 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -4313,6 +4313,15 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          store,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	storeRedis := &verification.StoreRedis{
@@ -4331,19 +4340,10 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -4710,6 +4710,15 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          store,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	storeRedis := &verification.StoreRedis{
@@ -4728,19 +4737,10 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -5105,6 +5105,15 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          store,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	storeRedis := &verification.StoreRedis{
@@ -5123,19 +5132,10 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -5500,6 +5500,15 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          store,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	storeRedis := &verification.StoreRedis{
@@ -5518,19 +5527,10 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -5895,6 +5895,15 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          store,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	storeRedis := &verification.StoreRedis{
@@ -5913,19 +5922,10 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -6290,6 +6290,15 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          store,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	storeRedis := &verification.StoreRedis{
@@ -6308,19 +6317,10 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -6685,6 +6685,15 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          store,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	storeRedis := &verification.StoreRedis{
@@ -6703,19 +6712,10 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -7080,6 +7080,15 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          store,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	storeRedis := &verification.StoreRedis{
@@ -7098,19 +7107,10 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -7479,6 +7479,15 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          store,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	storeRedis := &verification.StoreRedis{
@@ -7497,19 +7506,10 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -7875,6 +7875,15 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          store,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	storeRedis := &verification.StoreRedis{
@@ -7893,19 +7902,10 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -8270,6 +8270,15 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          store,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	storeRedis := &verification.StoreRedis{
@@ -8288,19 +8297,10 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -8666,6 +8666,15 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          store,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	storeRedis := &verification.StoreRedis{
@@ -8684,19 +8693,10 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -9097,6 +9097,15 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          store,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	storeRedis := &verification.StoreRedis{
@@ -9115,19 +9124,10 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -9474,6 +9474,15 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          serviceStore,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	redisHandle := appProvider.Redis
@@ -9493,19 +9502,10 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          serviceStore,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -9747,6 +9747,15 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          store,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	storeRedis := &verification.StoreRedis{
@@ -9765,19 +9774,10 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -10129,6 +10129,15 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          store,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	storeRedis := &verification.StoreRedis{
@@ -10147,19 +10156,10 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -10697,6 +10697,15 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          serviceStore,
+		LoginID:        loginidProvider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
@@ -10715,19 +10724,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		CodeStore:  verificationStoreRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          serviceStore,
-		LoginID:        loginidProvider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,

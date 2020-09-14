@@ -6,7 +6,6 @@ package service
 
 import (
 	authenticator "github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	identity "github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	anonymous "github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	loginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	oauth "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
@@ -579,41 +578,4 @@ func (m *MockAuthenticatorService) Delete(authenticatorInfo *authenticator.Info)
 func (mr *MockAuthenticatorServiceMockRecorder) Delete(authenticatorInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockAuthenticatorService)(nil).Delete), authenticatorInfo)
-}
-
-// MockVerificationService is a mock of VerificationService interface
-type MockVerificationService struct {
-	ctrl     *gomock.Controller
-	recorder *MockVerificationServiceMockRecorder
-}
-
-// MockVerificationServiceMockRecorder is the mock recorder for MockVerificationService
-type MockVerificationServiceMockRecorder struct {
-	mock *MockVerificationService
-}
-
-// NewMockVerificationService creates a new mock instance
-func NewMockVerificationService(ctrl *gomock.Controller) *MockVerificationService {
-	mock := &MockVerificationService{ctrl: ctrl}
-	mock.recorder = &MockVerificationServiceMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockVerificationService) EXPECT() *MockVerificationServiceMockRecorder {
-	return m.recorder
-}
-
-// RemoveOrphanedClaims mocks base method
-func (m *MockVerificationService) RemoveOrphanedClaims(identities []*identity.Info) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RemoveOrphanedClaims", identities)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// RemoveOrphanedClaims indicates an expected call of RemoveOrphanedClaims
-func (mr *MockVerificationServiceMockRecorder) RemoveOrphanedClaims(identities interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveOrphanedClaims", reflect.TypeOf((*MockVerificationService)(nil).RemoveOrphanedClaims), identities)
 }

@@ -175,7 +175,7 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		verification.DependencySet,
 		wire.Bind(new(user.VerificationService), new(*verification.Service)),
-		wire.Bind(new(identityservice.VerificationService), new(*verification.Service)),
+		wire.Bind(new(facade.VerificationService), new(*verification.Service)),
 		wire.Bind(new(interaction.VerificationService), new(*verification.Service)),
 		wire.Bind(new(interaction.VerificationCodeSender), new(*verification.CodeSender)),
 	),

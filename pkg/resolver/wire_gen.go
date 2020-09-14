@@ -251,6 +251,15 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          serviceStore,
+		LoginID:        loginidProvider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
@@ -269,19 +278,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		CodeStore:  verificationStoreRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          serviceStore,
-		LoginID:        loginidProvider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
-	}
 	coordinator := &facade.Coordinator{
 		Identities:     service3,
 		Authenticators: serviceService,
+		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -423,6 +423,15 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
+	service3 := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          store,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Authenticators: serviceService,
+	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	redisHandle := appProvider.Redis
@@ -441,16 +450,6 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Clock:      clockClock,
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
-	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
-		Verification:   verificationService,
 	}
 	resolveHandlerLogger := handler.NewResolveHandlerLogger(factory)
 	resolveHandler := &handler.ResolveHandler{

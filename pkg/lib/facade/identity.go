@@ -37,8 +37,8 @@ func (i IdentityFacade) Create(is *identity.Info) error {
 	return i.Coordinator.IdentityCreate(is)
 }
 
-func (i IdentityFacade) Update(before, after *identity.Info) error {
-	return i.Coordinator.IdentityUpdate(before, after)
+func (i IdentityFacade) Update(info *identity.Info) error {
+	return i.Coordinator.IdentityUpdate(info)
 }
 
 func (i IdentityFacade) Delete(is *identity.Info) error {
