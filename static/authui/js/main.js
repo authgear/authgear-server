@@ -204,6 +204,7 @@ window.addEventListener("load", function() {
       } else {
         history.pushState({}, "", responseURLString);
       }
+      window.location.reload();
     } else {
       // Otherwise redirect natively.
       window.location.href = responseURLString;
@@ -336,10 +337,30 @@ window.addEventListener("load", function() {
     }
   }
 
+  function attachHistoryListener() {
+    window.addEventListener("popstate", function(e) {
+      var meta = document.querySelector('meta[name="x-authgear-request-url"]');
+      if (meta == null) {
+        return;
+      }
+
+      var currentURL = new URL(window.location.href);
+      // meta.content is without protocol, host, port.
+      // URL constructor is not smart enough to parse it.
+      // Therefore we need to tell them the base URL.
+      var pageURL = new URL(meta.content, currentURL);
+
+      if (currentURL.pathname !== pageURL.pathname) {
+        window.location.reload();
+      }
+    });
+  }
+
   attachPasswordVisibilityClick();
   attachBackButtonClick();
   attachPasswordPolicyCheck();
   attachResendButtonBehavior();
   attachFormSubmitOnceOnly();
   attachFormSubmitXHR();
+  attachHistoryListener();
 });
