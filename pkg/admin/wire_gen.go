@@ -159,6 +159,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	serviceService := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          serviceStore,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+	}
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -207,20 +215,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
-	serviceService := &service2.Service{
+	service3 := &service2.Service{
 		Store:    store2,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
-	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          serviceStore,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -242,8 +241,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore: storePQ,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:     service3,
-		Authenticators: serviceService,
+		Identities:     serviceService,
+		Authenticators: service3,
 		Verification:   verificationService,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -258,10 +257,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Users: queries,
 	}
 	identityLoader := &loader.IdentityLoader{
-		Identities: service3,
+		Identities: serviceService,
 	}
 	authenticatorLoader := &loader.AuthenticatorLoader{
-		Authenticators: serviceService,
+		Authenticators: service3,
 	}
 	graphqlContext := &graphql.Context{
 		Users:          userLoader,

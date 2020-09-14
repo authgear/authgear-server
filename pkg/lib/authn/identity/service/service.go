@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
@@ -60,11 +59,6 @@ type AnonymousIdentityProvider interface {
 	Delete(i *anonymous.Identity) error
 }
 
-type AuthenticatorService interface {
-	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
-	Delete(authenticatorInfo *authenticator.Info) error
-}
-
 type Service struct {
 	Authentication *config.AuthenticationConfig
 	Identity       *config.IdentityConfig
@@ -72,7 +66,6 @@ type Service struct {
 	LoginID        LoginIDIdentityProvider
 	OAuth          OAuthIdentityProvider
 	Anonymous      AnonymousIdentityProvider
-	Authenticators AuthenticatorService
 }
 
 func (s *Service) Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error) {

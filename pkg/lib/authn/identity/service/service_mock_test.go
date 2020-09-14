@@ -5,7 +5,6 @@
 package service
 
 import (
-	authenticator "github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	anonymous "github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	loginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	oauth "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
@@ -521,61 +520,4 @@ func (m *MockAnonymousIdentityProvider) Delete(i *anonymous.Identity) error {
 func (mr *MockAnonymousIdentityProviderMockRecorder) Delete(i interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockAnonymousIdentityProvider)(nil).Delete), i)
-}
-
-// MockAuthenticatorService is a mock of AuthenticatorService interface
-type MockAuthenticatorService struct {
-	ctrl     *gomock.Controller
-	recorder *MockAuthenticatorServiceMockRecorder
-}
-
-// MockAuthenticatorServiceMockRecorder is the mock recorder for MockAuthenticatorService
-type MockAuthenticatorServiceMockRecorder struct {
-	mock *MockAuthenticatorService
-}
-
-// NewMockAuthenticatorService creates a new mock instance
-func NewMockAuthenticatorService(ctrl *gomock.Controller) *MockAuthenticatorService {
-	mock := &MockAuthenticatorService{ctrl: ctrl}
-	mock.recorder = &MockAuthenticatorServiceMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockAuthenticatorService) EXPECT() *MockAuthenticatorServiceMockRecorder {
-	return m.recorder
-}
-
-// List mocks base method
-func (m *MockAuthenticatorService) List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{userID}
-	for _, a := range filters {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "List", varargs...)
-	ret0, _ := ret[0].([]*authenticator.Info)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// List indicates an expected call of List
-func (mr *MockAuthenticatorServiceMockRecorder) List(userID interface{}, filters ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{userID}, filters...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockAuthenticatorService)(nil).List), varargs...)
-}
-
-// Delete mocks base method
-func (m *MockAuthenticatorService) Delete(authenticatorInfo *authenticator.Info) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", authenticatorInfo)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Delete indicates an expected call of Delete
-func (mr *MockAuthenticatorServiceMockRecorder) Delete(authenticatorInfo interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockAuthenticatorService)(nil).Delete), authenticatorInfo)
 }
