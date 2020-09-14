@@ -19,11 +19,9 @@ func TestSortAuthenticators(t *testing.T) {
 
 	infoDefault := func(typ authn.AuthenticatorType, id string, isDefault bool) *authenticator.Info {
 		i := &authenticator.Info{
-			ID:   id,
-			Type: typ,
-		}
-		if isDefault {
-			i.Tag = append(i.Tag, authenticator.TagDefaultAuthenticator)
+			ID:        id,
+			Type:      typ,
+			IsDefault: isDefault,
 		}
 		return i
 	}

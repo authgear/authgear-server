@@ -15,15 +15,15 @@ type InputCreateAuthenticatorTOTPSetup interface {
 }
 
 type EdgeCreateAuthenticatorTOTPSetup struct {
-	Stage interaction.AuthenticationStage
-	Tag   []string
+	Stage     interaction.AuthenticationStage
+	IsDefault bool
 }
 
 func (e *EdgeCreateAuthenticatorTOTPSetup) AuthenticatorType() authn.AuthenticatorType {
 	return authn.AuthenticatorTypeTOTP
 }
 
-func (e *EdgeCreateAuthenticatorTOTPSetup) HasDefaultTag() bool {
+func (e *EdgeCreateAuthenticatorTOTPSetup) IsDefaultAuthenticator() bool {
 	return false
 }
 
@@ -35,15 +35,15 @@ func (e *EdgeCreateAuthenticatorTOTPSetup) Instantiate(ctx *interaction.Context,
 
 	userID := graph.MustGetUserID()
 	spec := &authenticator.Spec{
-		UserID: userID,
-		Tag:    stageToAuthenticatorTag(e.Stage),
-		Type:   authn.AuthenticatorTypeTOTP,
+		UserID:    userID,
+		IsDefault: e.IsDefault,
+		Kind:      stageToAuthenticatorKind(e.Stage),
+		Type:      authn.AuthenticatorTypeTOTP,
 		Claims: map[string]interface{}{
 			// The display name will be filled in in a later node.
 			authenticator.AuthenticatorClaimTOTPDisplayName: "",
 		},
 	}
-	spec.Tag = append(spec.Tag, e.Tag...)
 
 	info, err := ctx.Authenticators.New(spec, "")
 	if err != nil {

@@ -18,7 +18,8 @@ func passwordToAuthenticatorInfo(p *password.Authenticator) *authenticator.Info 
 		UpdatedAt: p.UpdatedAt,
 		Secret:    string(p.PasswordHash),
 		Claims:    map[string]interface{}{},
-		Tag:       p.Tag,
+		IsDefault: p.IsDefault,
+		Kind:      authenticator.Kind(p.Kind),
 	}
 }
 
@@ -30,7 +31,8 @@ func passwordFromAuthenticatorInfo(a *authenticator.Info) *password.Authenticato
 		CreatedAt:    a.CreatedAt,
 		UpdatedAt:    a.UpdatedAt,
 		PasswordHash: []byte(a.Secret),
-		Tag:          a.Tag,
+		IsDefault:    a.IsDefault,
+		Kind:         string(a.Kind),
 	}
 }
 
@@ -46,7 +48,8 @@ func totpToAuthenticatorInfo(t *totp.Authenticator) *authenticator.Info {
 		Claims: map[string]interface{}{
 			authenticator.AuthenticatorClaimTOTPDisplayName: t.DisplayName,
 		},
-		Tag: t.Tag,
+		IsDefault: t.IsDefault,
+		Kind:      authenticator.Kind(t.Kind),
 	}
 }
 
@@ -59,7 +62,8 @@ func totpFromAuthenticatorInfo(a *authenticator.Info) *totp.Authenticator {
 		UpdatedAt:   a.UpdatedAt,
 		Secret:      a.Secret,
 		DisplayName: a.Claims[authenticator.AuthenticatorClaimTOTPDisplayName].(string),
-		Tag:         a.Tag,
+		IsDefault:   a.IsDefault,
+		Kind:        string(a.Kind),
 	}
 }
 
@@ -77,7 +81,8 @@ func oobotpToAuthenticatorInfo(o *oob.Authenticator) *authenticator.Info {
 			authenticator.AuthenticatorClaimOOBOTPEmail:       o.Email,
 			authenticator.AuthenticatorClaimOOBOTPPhone:       o.Phone,
 		},
-		Tag: o.Tag,
+		IsDefault: o.IsDefault,
+		Kind:      authenticator.Kind(o.Kind),
 	}
 }
 
@@ -91,6 +96,7 @@ func oobotpFromAuthenticatorInfo(a *authenticator.Info) *oob.Authenticator {
 		Channel:   authn.AuthenticatorOOBChannel(a.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType].(string)),
 		Phone:     a.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string),
 		Email:     a.Claims[authenticator.AuthenticatorClaimOOBOTPEmail].(string),
-		Tag:       a.Tag,
+		IsDefault: a.IsDefault,
+		Kind:      string(a.Kind),
 	}
 }

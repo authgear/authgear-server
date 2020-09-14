@@ -73,12 +73,12 @@ func sendOOBCode(
 	return ctx.OOBCodeSender.SendCode(channel, target, code, messageType)
 }
 
-func stageToAuthenticatorTag(stage interaction.AuthenticationStage) []string {
+func stageToAuthenticatorKind(stage interaction.AuthenticationStage) authenticator.Kind {
 	switch stage {
 	case interaction.AuthenticationStagePrimary:
-		return []string{authenticator.TagPrimaryAuthenticator}
+		return authenticator.KindPrimary
 	case interaction.AuthenticationStageSecondary:
-		return []string{authenticator.TagSecondaryAuthenticator}
+		return authenticator.KindSecondary
 	default:
 		panic("interaction: unknown stage: " + stage)
 	}

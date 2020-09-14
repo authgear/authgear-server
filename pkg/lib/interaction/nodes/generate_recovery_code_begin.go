@@ -18,7 +18,7 @@ func (e *EdgeGenerateRecoveryCode) Instantiate(ctx *interaction.Context, graph *
 	userID := graph.MustGetUserID()
 	ais, err := ctx.Authenticators.List(
 		userID,
-		authenticator.KeepTag(authenticator.TagSecondaryAuthenticator),
+		authenticator.KeepKind(authenticator.KindSecondary),
 	)
 	if err != nil {
 		return nil, err
@@ -26,7 +26,7 @@ func (e *EdgeGenerateRecoveryCode) Instantiate(ctx *interaction.Context, graph *
 
 	newSecondary := filterAuthenticators(
 		graph.GetUserNewAuthenticators(),
-		authenticator.KeepTag(authenticator.TagSecondaryAuthenticator),
+		authenticator.KeepKind(authenticator.KindSecondary),
 	)
 
 	if len(newSecondary) != 0 && len(newSecondary) == len(ais) {

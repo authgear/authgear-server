@@ -123,7 +123,7 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() (edges []interaction.Edge
 	ais := filterAuthenticators(
 		n.Authenticators,
 		authenticator.KeepType(firstType),
-		authenticator.KeepTag(authenticator.TagPrimaryAuthenticator),
+		authenticator.KeepKind(authenticator.KindPrimary),
 		authenticator.KeepPrimaryAuthenticatorOfIdentity(n.Identity),
 	)
 
@@ -179,15 +179,15 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 	// If yes, then no secondary authenticator is needed.
 	ais := filterAuthenticators(
 		n.Authenticators,
-		authenticator.KeepTag(authenticator.TagSecondaryAuthenticator),
+		authenticator.KeepKind(authenticator.KindSecondary),
 	)
 	if len(ais) > 0 {
 		return nil
 	}
 
 	// If we reach here, the user does not any authenticator.
-	// Therefore, the authenticator must have the default tag.
-	tag := []string{authenticator.TagDefaultAuthenticator}
+	// Therefore, the authenticator must be default.
+	isDefault := true
 
 	// 3. Determine what secondary authenticator we allow the user to create.
 	// We have the following conditions to hold:
@@ -226,15 +226,15 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 		case authn.AuthenticatorTypePassword:
 			// Condition B.
 			edges = append(edges, &EdgeCreateAuthenticatorPassword{
-				Stage: n.Stage,
-				Tag:   tag,
+				Stage:     n.Stage,
+				IsDefault: isDefault,
 			})
 		case authn.AuthenticatorTypeTOTP:
 			// Condition B and C.
 			if totpCount < *n.AuthenticatorConfig.TOTP.Maximum {
 				edges = append(edges, &EdgeCreateAuthenticatorTOTPSetup{
-					Stage: n.Stage,
-					Tag:   tag,
+					Stage:     n.Stage,
+					IsDefault: isDefault,
 				})
 			}
 		case authn.AuthenticatorTypeOOB:
@@ -250,7 +250,7 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 			if len(allowedChannels) > 0 {
 				edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
 					Stage:           n.Stage,
-					Tag:             tag,
+					IsDefault:       isDefault,
 					AllowedChannels: allowedChannels,
 				})
 			}

@@ -40,18 +40,16 @@ func (p *Provider) List(userID string) ([]*Authenticator, error) {
 	return authenticators, nil
 }
 
-func (p *Provider) New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string, tag []string) *Authenticator {
-	if tag == nil {
-		tag = []string{}
-	}
+func (p *Provider) New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string, isDefault bool, kind string) *Authenticator {
 	a := &Authenticator{
-		ID:      uuid.New(),
-		Labels:  make(map[string]interface{}),
-		UserID:  userID,
-		Channel: channel,
-		Phone:   phone,
-		Email:   email,
-		Tag:     tag,
+		ID:        uuid.New(),
+		Labels:    make(map[string]interface{}),
+		UserID:    userID,
+		Channel:   channel,
+		Phone:     phone,
+		Email:     email,
+		IsDefault: isDefault,
+		Kind:      kind,
 	}
 	return a
 }

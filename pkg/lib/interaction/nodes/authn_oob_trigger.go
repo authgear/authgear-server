@@ -24,8 +24,8 @@ func (e *EdgeAuthenticationOOBTrigger) AuthenticatorType() authn.AuthenticatorTy
 	return authn.AuthenticatorTypeOOB
 }
 
-func (e *EdgeAuthenticationOOBTrigger) HasDefaultTag() bool {
-	filtered := filterAuthenticators(e.Authenticators, authenticator.KeepTag(authenticator.TagDefaultAuthenticator))
+func (e *EdgeAuthenticationOOBTrigger) IsDefaultAuthenticator() bool {
+	filtered := filterAuthenticators(e.Authenticators, authenticator.KeepDefault)
 	return len(filtered) > 0
 }
 

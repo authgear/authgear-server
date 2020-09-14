@@ -19,8 +19,8 @@ type InputCreateAuthenticatorOOBSetup interface {
 }
 
 type EdgeCreateAuthenticatorOOBSetup struct {
-	Stage interaction.AuthenticationStage
-	Tag   []string
+	Stage     interaction.AuthenticationStage
+	IsDefault bool
 
 	// Either have Channel and Target
 	Channel authn.AuthenticatorOOBChannel
@@ -33,7 +33,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) AuthenticatorType() authn.Authenticato
 	return authn.AuthenticatorTypeOOB
 }
 
-func (e *EdgeCreateAuthenticatorOOBSetup) HasDefaultTag() bool {
+func (e *EdgeCreateAuthenticatorOOBSetup) IsDefaultAuthenticator() bool {
 	return false
 }
 
@@ -66,10 +66,11 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 		}
 
 		spec = &authenticator.Spec{
-			UserID: identityInfo.UserID,
-			Tag:    stageToAuthenticatorTag(e.Stage),
-			Type:   authn.AuthenticatorTypeOOB,
-			Claims: map[string]interface{}{},
+			UserID:    identityInfo.UserID,
+			IsDefault: e.IsDefault,
+			Kind:      stageToAuthenticatorKind(e.Stage),
+			Type:      authn.AuthenticatorTypeOOB,
+			Claims:    map[string]interface{}{},
 		}
 
 		// Ignore given OOB target, use channel & target inferred from identity
@@ -93,10 +94,11 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 	} else {
 		userID := graph.MustGetUserID()
 		spec = &authenticator.Spec{
-			UserID: userID,
-			Tag:    stageToAuthenticatorTag(e.Stage),
-			Type:   authn.AuthenticatorTypeOOB,
-			Claims: map[string]interface{}{},
+			UserID:    userID,
+			IsDefault: e.IsDefault,
+			Kind:      stageToAuthenticatorKind(e.Stage),
+			Type:      authn.AuthenticatorTypeOOB,
+			Claims:    map[string]interface{}{},
 		}
 
 		// Normalize the target.
@@ -115,8 +117,6 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 			}
 		}
 	}
-
-	spec.Tag = append(spec.Tag, e.Tag...)
 
 	spec.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType] = string(channel)
 	switch channel {

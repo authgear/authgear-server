@@ -5,12 +5,11 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 type SortableAuthenticator interface {
 	AuthenticatorType() authn.AuthenticatorType
-	HasDefaultTag() bool
+	IsDefaultAuthenticator() bool
 }
 
 type SortableAuthenticatorInfo authenticator.Info
@@ -19,8 +18,8 @@ func (i *SortableAuthenticatorInfo) AuthenticatorType() authn.AuthenticatorType 
 	return i.Type
 }
 
-func (i *SortableAuthenticatorInfo) HasDefaultTag() bool {
-	return slice.ContainsString(i.Tag, authenticator.TagDefaultAuthenticator)
+func (i *SortableAuthenticatorInfo) IsDefaultAuthenticator() bool {
+	return i.IsDefault
 }
 
 // SortAuthenticators sorts slice in-place by considering preferred as the order.
@@ -39,8 +38,8 @@ func SortAuthenticators(
 		iSortable := toSortable(i)
 		jSortable := toSortable(j)
 
-		iDefault := iSortable.HasDefaultTag()
-		jDefault := jSortable.HasDefaultTag()
+		iDefault := iSortable.IsDefaultAuthenticator()
+		jDefault := jSortable.IsDefaultAuthenticator()
 		switch {
 		case iDefault && !jDefault:
 			return true

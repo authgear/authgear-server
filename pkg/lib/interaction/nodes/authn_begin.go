@@ -62,14 +62,14 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() []interaction.Edge {
 		preferred = n.AuthenticationConfig.PrimaryAuthenticators
 		availableAuthenticators = filterAuthenticators(
 			n.Authenticators,
-			authenticator.KeepTag(authenticator.TagPrimaryAuthenticator),
+			authenticator.KeepKind(authenticator.KindPrimary),
 			authenticator.KeepPrimaryAuthenticatorOfIdentity(n.Identity),
 		)
 	case interaction.AuthenticationStageSecondary:
 		preferred = n.AuthenticationConfig.SecondaryAuthenticators
 		availableAuthenticators = filterAuthenticators(
 			n.Authenticators,
-			authenticator.KeepTag(authenticator.TagSecondaryAuthenticator),
+			authenticator.KeepKind(authenticator.KindSecondary),
 		)
 	default:
 		panic("interaction: unknown authentication stage: " + n.Stage)

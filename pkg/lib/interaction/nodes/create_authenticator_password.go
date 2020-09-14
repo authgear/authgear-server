@@ -15,15 +15,15 @@ type InputCreateAuthenticatorPassword interface {
 }
 
 type EdgeCreateAuthenticatorPassword struct {
-	Stage interaction.AuthenticationStage
-	Tag   []string
+	Stage     interaction.AuthenticationStage
+	IsDefault bool
 }
 
 func (e *EdgeCreateAuthenticatorPassword) AuthenticatorType() authn.AuthenticatorType {
 	return authn.AuthenticatorTypePassword
 }
 
-func (e *EdgeCreateAuthenticatorPassword) HasDefaultTag() bool {
+func (e *EdgeCreateAuthenticatorPassword) IsDefaultAuthenticator() bool {
 	return false
 }
 
@@ -35,12 +35,12 @@ func (e *EdgeCreateAuthenticatorPassword) Instantiate(ctx *interaction.Context, 
 
 	userID := graph.MustGetUserID()
 	spec := &authenticator.Spec{
-		UserID: userID,
-		Tag:    stageToAuthenticatorTag(e.Stage),
-		Type:   authn.AuthenticatorTypePassword,
-		Claims: map[string]interface{}{},
+		UserID:    userID,
+		IsDefault: e.IsDefault,
+		Kind:      stageToAuthenticatorKind(e.Stage),
+		Type:      authn.AuthenticatorTypePassword,
+		Claims:    map[string]interface{}{},
 	}
-	spec.Tag = append(spec.Tag, e.Tag...)
 
 	info, err := ctx.Authenticators.New(spec, input.GetPassword())
 	if err != nil {

@@ -4,7 +4,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 type Filter interface {
@@ -17,9 +16,13 @@ func (f FilterFunc) Keep(ai *Info) bool {
 	return f(ai)
 }
 
-func KeepTag(tag string) Filter {
+var KeepDefault FilterFunc = func(ai *Info) bool {
+	return ai.IsDefault
+}
+
+func KeepKind(kind Kind) Filter {
 	return FilterFunc(func(ai *Info) bool {
-		return slice.ContainsString(ai.Tag, tag)
+		return ai.Kind == kind
 	})
 }
 
