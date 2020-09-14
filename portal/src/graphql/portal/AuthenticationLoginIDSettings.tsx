@@ -82,17 +82,16 @@ function extractConfigFromLoginIdKeys(
   loginIdKeys: LoginIDKeyConfig[]
 ): { [key: string]: boolean } {
   // We consider them as enabled if they are listed as allowed login ID keys.
-  const usernameEnabledConfig =
+  const usernameEnabled =
     loginIdKeys.find((key) => key.type === "username") != null;
-  const emailEnabledConfig =
-    loginIdKeys.find((key) => key.type === "email") != null;
-  const phoneNumberEnabledConfig =
+  const emailEnabled = loginIdKeys.find((key) => key.type === "email") != null;
+  const phoneNumberEnabled =
     loginIdKeys.find((key) => key.type === "phone") != null;
 
   return {
-    usernameEnabledConfig,
-    emailEnabledConfig,
-    phoneNumberEnabledConfig,
+    usernameEnabled,
+    emailEnabled,
+    phoneNumberEnabled,
   };
 }
 
@@ -125,31 +124,37 @@ function setFieldIfListNonEmpty(
   }
 }
 
-function getOrCreateLoginIdKey(
+function getLoginIdKeyIndex(
   loginIdKeys: LoginIDKeyConfig[],
   keyType: LoginIDKeyType
-): LoginIDKeyConfig {
-  const loginIdKey = loginIdKeys.find((key: any) => key.type === keyType);
-  if (loginIdKey != null) {
-    return loginIdKey;
-  }
-  const newLoginIdKey = { type: keyType, key: keyType };
-  loginIdKeys.push(newLoginIdKey);
-  return newLoginIdKey;
+): number {
+  return loginIdKeys.findIndex((key: any) => key.type === keyType);
 }
 
-function setLoginIdKeyEnabled(
+function updateLoginIdKey(
   loginIdKeys: LoginIDKeyConfig[],
-  field: LoginIDKeyType,
+  keyType: LoginIDKeyType,
   enabled: boolean,
   initialEnabled: boolean
 ) {
   if (enabled === initialEnabled) {
     return;
   }
-  const loginIdKey = getOrCreateLoginIdKey(loginIdKeys, field);
-  loginIdKey.verification = loginIdKey.verification ?? { enabled: false };
-  loginIdKey.verification.enabled = enabled;
+  const loginIdKeyIndex = getLoginIdKeyIndex(loginIdKeys, keyType);
+  if (enabled) {
+    if (loginIdKeyIndex >= 0) {
+      return;
+    }
+    const newLoginIdKey = { type: keyType, key: keyType };
+    loginIdKeys.push(newLoginIdKey);
+  }
+
+  if (!enabled) {
+    if (loginIdKeyIndex < 0) {
+      return;
+    }
+    loginIdKeys.splice(loginIdKeyIndex, 1);
+  }
 }
 
 function constructStateFromAppConfig(
@@ -196,24 +201,25 @@ function constructAppConfigFromState(
     draftConfig.identity.login_id = draftConfig.identity.login_id ?? {};
     draftConfig.identity.login_id.types =
       draftConfig.identity.login_id.types ?? {};
+
     draftConfig.identity.login_id.keys =
       draftConfig.identity.login_id.keys ?? [];
 
     const loginIdKeys = draftConfig.identity.login_id.keys;
 
-    setLoginIdKeyEnabled(
+    updateLoginIdKey(
       loginIdKeys,
       "username",
       screenState.usernameEnabled,
       initialScreenState.usernameEnabled
     );
-    setLoginIdKeyEnabled(
+    updateLoginIdKey(
       loginIdKeys,
       "email",
       screenState.emailEnabled,
       initialScreenState.emailEnabled
     );
-    setLoginIdKeyEnabled(
+    updateLoginIdKey(
       loginIdKeys,
       "phone",
       screenState.phoneNumberEnabled,
