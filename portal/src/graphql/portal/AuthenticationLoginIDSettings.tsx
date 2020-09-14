@@ -52,14 +52,21 @@ const switchStyle = { root: { margin: "0" } };
 const WidgetHeader: React.FC<WidgetHeaderProps> = function (
   props: WidgetHeaderProps
 ) {
+  const { titleId, enabled, setEnabled } = props;
+  const onChange = React.useCallback(
+    (_event, checked?: boolean) => {
+      setEnabled(!!checked);
+    },
+    [setEnabled]
+  );
   return (
     <div className={styles.widgetHeader}>
       <Toggle
-        label={<FormattedMessage id={props.titleId} />}
+        label={<FormattedMessage id={titleId} />}
         inlineLabel={true}
         styles={switchStyle}
-        checked={props.enabled}
-        onChanged={props.setEnabled}
+        checked={enabled}
+        onChange={onChange}
       />
     </div>
   );
