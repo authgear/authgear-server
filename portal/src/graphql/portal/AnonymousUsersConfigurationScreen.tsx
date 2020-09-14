@@ -1,10 +1,4 @@
-import React, {
-  useContext,
-  useCallback,
-  useState,
-  useMemo,
-  useEffect,
-} from "react";
+import React, { useContext, useCallback, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
@@ -17,6 +11,7 @@ import {
 } from "@fluentui/react";
 
 import { useAppConfigQuery } from "./query/appConfigQuery";
+import { AppConfigQuery } from "./query/__generated__/AppConfigQuery";
 import {
   PortalAPIAppConfig,
   PromotionConflictBehaviour,
@@ -31,6 +26,10 @@ import styles from "./AnonymousUsersConfigurationScreen.module.scss";
 interface AnonymousUsersConfigurationScreenState {
   enabled: boolean;
   promotionConflictBehaviour: PromotionConflictBehaviour;
+}
+
+interface AnonymousUsersConfigurationProps {
+  data?: AppConfigQuery;
 }
 
 const DEFAULT_CONFLICT_BEHAVIOUR: PromotionConflictBehaviour = "error";
@@ -93,20 +92,16 @@ function constructConflictBehaviourOptions(
   });
 }
 
-const AnonymousUserConfigurationScreen: React.FC = function AnonymousUserConfigurationScreen() {
-  const { appID } = useParams();
-  const { loading, error, data, refetch } = useAppConfigQuery(appID);
+const AnonymousUsersConfiguration: React.FC<AnonymousUsersConfigurationProps> = function AnonymousUsersConfiguration(
+  props: AnonymousUsersConfigurationProps
+) {
+  const { data } = props;
   const { renderToString } = useContext(Context);
 
   const appConfig: PortalAPIAppConfig | null =
     data?.node?.__typename === "App" ? data.node.effectiveAppConfig : null;
 
   const [state, setState] = useState(constructStateFromAppConfig(appConfig));
-
-  useEffect(() => {
-    setState(constructStateFromAppConfig(appConfig));
-  }, [appConfig]);
-
   const conflictBehaviourOptions = useMemo(() => {
     return constructConflictBehaviourOptions(state);
   }, [state]);
@@ -141,6 +136,35 @@ const AnonymousUserConfigurationScreen: React.FC = function AnonymousUserConfigu
     // TODO: call mutation to save config
   }, [appConfig, state]);
 
+  return (
+    <section className={styles.screenContent}>
+      <Toggle
+        className={styles.enableToggle}
+        checked={state.enabled}
+        onChanged={onSwitchToggled}
+        label={renderToString("AnonymousUsersConfigurationScreen.enable.label")}
+        inlineLabel={true}
+      />
+      <Dropdown
+        className={styles.conflictDropdown}
+        label={renderToString(
+          "AnonymousUsersConfigurationScreen.conflict-droplist.label"
+        )}
+        disabled={!state.enabled}
+        options={conflictBehaviourOptions}
+        onChanged={onConflictOptionChanged}
+      />
+      <PrimaryButton className={styles.saveButton} onClick={onSaveClicked}>
+        <FormattedMessage id="save" />
+      </PrimaryButton>
+    </section>
+  );
+};
+
+const AnonymousUserConfigurationScreen: React.FC = function AnonymousUserConfigurationScreen() {
+  const { appID } = useParams();
+  const { loading, error, data, refetch } = useAppConfigQuery(appID);
+
   if (loading) {
     return <ShowLoading />;
   }
@@ -154,29 +178,7 @@ const AnonymousUserConfigurationScreen: React.FC = function AnonymousUserConfigu
       <Text as="h1" className={styles.title}>
         <FormattedMessage id="AnonymousUsersConfigurationScreen.title" />
       </Text>
-      <section className={styles.screenContent}>
-        <Toggle
-          className={styles.enableToggle}
-          checked={state.enabled}
-          onChanged={onSwitchToggled}
-          label={renderToString(
-            "AnonymousUsersConfigurationScreen.enable.label"
-          )}
-          inlineLabel={true}
-        />
-        <Dropdown
-          className={styles.conflictDropdown}
-          label={renderToString(
-            "AnonymousUsersConfigurationScreen.conflict-droplist.label"
-          )}
-          disabled={!state.enabled}
-          options={conflictBehaviourOptions}
-          onChanged={onConflictOptionChanged}
-        />
-        <PrimaryButton className={styles.saveButton} onClick={onSaveClicked}>
-          <FormattedMessage id="save" />
-        </PrimaryButton>
-      </section>
+      <AnonymousUsersConfiguration data={data} />
     </main>
   );
 };
