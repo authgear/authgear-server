@@ -1,7 +1,6 @@
 import React from "react";
+import { Modal } from "@fluentui/react";
 import ShowLoading from "./ShowLoading";
-
-import styles from "./LoadingModal.module.scss";
 
 interface LoadingModalProps {
   loading: boolean;
@@ -15,9 +14,14 @@ const LoadingModal: React.FC<LoadingModalProps> = function LoadingModal(
   }
 
   return (
-    <div className={styles.root}>
+    <Modal
+      isOpen={true}
+      styles={{
+        main: { display: "flex", minWidth: "130px", minHeight: "130px" },
+      }}
+    >
       <ShowLoading />
-    </div>
+    </Modal>
   );
 };
 
