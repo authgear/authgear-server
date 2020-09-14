@@ -7,7 +7,7 @@ import { PortalAPIApp, PortalAPIAppConfig } from "../../../types";
 import { UpdateAppConfigMutation } from "./__generated__/UpdateAppConfigMutation";
 
 // relative to project root
-const UPDATE_FILE_PATH = "./authgear.yaml";
+const APP_CONFIG_PATH = "./authgear.yaml";
 
 const updateAppConfigMutation = gql`
   mutation UpdateAppConfigMutation(
@@ -42,7 +42,7 @@ export function useUpdateAppConfigMutation(
       const result = await mutationFunction({
         variables: {
           appID,
-          updateFile: { path: UPDATE_FILE_PATH, content: appConfigYaml },
+          updateFile: { path: APP_CONFIG_PATH, content: appConfigYaml },
         },
       });
       return result.data?.updateAppConfig ?? null;
