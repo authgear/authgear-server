@@ -107,7 +107,10 @@ const AnonymousUsersConfiguration: React.FC<AnonymousUsersConfigurationProps> = 
   }, [state]);
 
   const onSwitchToggled = useCallback(
-    (checked: boolean) => {
+    (_event, checked?: boolean) => {
+      if (checked == null) {
+        return;
+      }
       setState({
         ...state,
         enabled: checked,
@@ -116,9 +119,9 @@ const AnonymousUsersConfiguration: React.FC<AnonymousUsersConfigurationProps> = 
     [state]
   );
 
-  const onConflictOptionChanged = useCallback(
-    (option: IDropdownOption) => {
-      if (isPromotionConflictBehaviour(option.key)) {
+  const onConflictOptionChange = useCallback(
+    (_event, option?: IDropdownOption) => {
+      if (option != null && isPromotionConflictBehaviour(option.key)) {
         setState({
           ...state,
           promotionConflictBehaviour: option.key,
@@ -141,7 +144,7 @@ const AnonymousUsersConfiguration: React.FC<AnonymousUsersConfigurationProps> = 
       <Toggle
         className={styles.enableToggle}
         checked={state.enabled}
-        onChanged={onSwitchToggled}
+        onChange={onSwitchToggled}
         label={renderToString("AnonymousUsersConfigurationScreen.enable.label")}
         inlineLabel={true}
       />
@@ -152,7 +155,7 @@ const AnonymousUsersConfiguration: React.FC<AnonymousUsersConfigurationProps> = 
         )}
         disabled={!state.enabled}
         options={conflictBehaviourOptions}
-        onChanged={onConflictOptionChanged}
+        onChange={onConflictOptionChange}
       />
       <PrimaryButton className={styles.saveButton} onClick={onSaveClicked}>
         <FormattedMessage id="save" />
