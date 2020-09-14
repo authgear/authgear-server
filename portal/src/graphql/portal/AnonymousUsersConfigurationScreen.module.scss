@@ -1,0 +1,28 @@
+.root {
+  min-height: 100%;
+  margin: 30px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.screenContent {
+  width: 600px;
+}
+
+.enableToggle {
+  margin: 20px 0 15px;
+}
+
+.conflictDropdown {
+  & > div {
+    width: 300px;
+    margin-top: 5px;
+  }
+}
+
+.saveButton {
+  margin-top: 20px;
+}

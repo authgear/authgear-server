@@ -39,8 +39,27 @@ interface LoginIDConfig {
   types: LoginIDTypesConfig;
 }
 
+export const promotionConflictBehaviours = ["error", "login"] as const;
+export type PromotionConflictBehaviour = typeof promotionConflictBehaviours[number];
+export const isPromotionConflictBehaviour = (
+  value: unknown
+): value is PromotionConflictBehaviour => {
+  if (typeof value !== "string") {
+    return false;
+  }
+  return promotionConflictBehaviours.some(
+    (behaviour: string) => behaviour === value
+  );
+};
+
+interface IdentityConflictConfig {
+  additionalProperties?: boolean;
+  promotion?: PromotionConflictBehaviour;
+}
+
 interface IdentityConfig {
   login_id?: LoginIDConfig;
+  on_conflict?: IdentityConflictConfig;
 }
 
 // AuthenticatorConfig
@@ -71,7 +90,11 @@ export function isSecondaryAuthenticatorType(
   return secondaryAuthenticatorTypes.includes(type);
 }
 
+export const identityTypes = ["login_id", "oauth", "anonymous"] as const;
+export type IdentityType = typeof identityTypes[number];
+
 interface AuthenticationConfig {
+  identities?: IdentityType[];
   primary_authenticators: PrimaryAuthenticatorType[];
   secondary_authenticators: SecondaryAuthenticatorType[];
 }

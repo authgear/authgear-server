@@ -25,6 +25,12 @@ const ScreenNav: React.FC = function ScreenNav() {
             url: "configuration/authentication",
             icon: "Shield",
           },
+          {
+            key: "anonymousUsers",
+            name: renderToString("ScreenNav.anonymous-users"),
+            url: "configuration/anonymous-users",
+            icon: "Color",
+          },
         ],
       },
     ];
