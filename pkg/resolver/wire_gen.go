@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
@@ -278,9 +279,16 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Authenticators: serviceService,
 		Verification:   verificationService,
 	}
+	coordinator := &facade.Coordinator{
+		Identities:     service3,
+		Authenticators: serviceService,
+	}
+	identityFacade := facade.IdentityFacade{
+		Coordinator: coordinator,
+	}
 	queries := &user.Queries{
 		Store:        store,
-		Identities:   service3,
+		Identities:   identityFacade,
 		Verification: verificationService,
 	}
 	sessionMiddleware := &session.Middleware{

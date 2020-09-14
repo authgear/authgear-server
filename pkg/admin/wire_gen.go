@@ -21,6 +21,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
@@ -241,9 +242,16 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: serviceService,
 		Verification:   verificationService,
 	}
+	coordinator := &facade.Coordinator{
+		Identities:     service3,
+		Authenticators: serviceService,
+	}
+	identityFacade := facade.IdentityFacade{
+		Coordinator: coordinator,
+	}
 	queries := &user.Queries{
 		Store:        store,
-		Identities:   service3,
+		Identities:   identityFacade,
 		Verification: verificationService,
 	}
 	userLoader := &loader.UserLoader{
