@@ -19,6 +19,7 @@ interface ExtendableWidgetProps {
   readOnly?: boolean;
   extendButtonAriaLabelId: string;
   children: React.ReactNode;
+  className?: string;
 }
 
 const ICON_PROPS = {
@@ -29,6 +30,7 @@ const ExtendableWidget: React.FC<ExtendableWidgetProps> = function ExtendableWid
   props: ExtendableWidgetProps
 ) {
   const {
+    className,
     HeaderComponent,
     initiallyExtended,
     extendable,
@@ -72,7 +74,7 @@ const ExtendableWidget: React.FC<ExtendableWidgetProps> = function ExtendableWid
   );
 
   return (
-    <div style={{ boxShadow: DefaultEffects.elevation4 }}>
+    <div className={className} style={{ boxShadow: DefaultEffects.elevation4 }}>
       <div className={styles.header}>
         <div className={styles.propsHeader}>{HeaderComponent}</div>
         <IconButton

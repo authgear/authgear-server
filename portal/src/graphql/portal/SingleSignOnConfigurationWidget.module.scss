@@ -1,0 +1,18 @@
+.widgetLabel {
+  display: flex;
+  align-items: center;
+}
+
+.widgetLabelIcon {
+  width: 15px;
+  height: 15px;
+  background: grey;
+}
+
+.widgetLabelText {
+  padding-left: 15px;
+}
+
+.textField {
+  margin: 0 8px 15px 50px;
+}
