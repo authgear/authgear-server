@@ -10,7 +10,7 @@
     "fmt": "prettier --list-different --write './src/**/*.{js,ts,jsx,tsx,css,scss,html}'",
     "eslint": "eslint './src/**/*.{js,ts,jsx,tsx}'",
     "stylelint": "stylelint './src/**/*.{css,scss}'",
-    "gentype": "apollo client:codegen --config ./apollo.portal.config.js --target typescript --customScalarsPrefix GQL_ && apollo client:codegen --config ./apollo.adminapi.config.js --target typescript --customScalarsPrefix GQL_"
+    "gentype": "apollo client:codegen --config ./apollo.portal.config.js --target typescript --customScalarsPrefix GQL_ --globalTypesFile ./src/graphql/portal/__generated__/globalTypes.ts && apollo client:codegen --config ./apollo.adminapi.config.js --target typescript --customScalarsPrefix GQL_ --globalTypesFile ./src/graphql/adminapi/__generated__/globalTypes.ts"
   },
   "devDependencies": {
     "@babel/preset-typescript": "7.10.4",
@@ -37,11 +37,13 @@
     "@authgear/web": "0.1.0",
     "@fluentui/react": "7.137.1",
     "@oursky/react-messageformat": "1.0.0",
+    "@types/js-yaml": "3.12.5",
     "@types/luxon": "1.24.4",
     "axe-core": "4.0.2",
     "classnames": "2.2.6",
     "history": "5.0.0",
     "immer": "7.0.9",
+    "js-yaml": "3.14.0",
     "luxon": "1.25.0",
     "react": "17.0.0-rc.0",
     "react-dom": "17.0.0-rc.0",

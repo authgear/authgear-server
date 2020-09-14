@@ -4,7 +4,6 @@ import {
   Checkbox,
   SelectionMode,
   ICheckboxProps,
-  PrimaryButton,
   DefaultEffects,
   Text,
 } from "@fluentui/react";
@@ -12,18 +11,26 @@ import produce from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import DetailsListWithOrdering, { swap } from "../../DetailsListWithOrdering";
+import ButtonWithLoading from "../../ButtonWithLoading";
 import {
   PortalAPIAppConfig,
   primaryAuthenticatorTypes,
   secondaryAuthenticatorTypes,
   PrimaryAuthenticatorType,
   SecondaryAuthenticatorType,
+  PortalAPIApp,
 } from "../../types";
+import { isArrayEqualInOrder, clearEmptyObject } from "../../util/misc";
 
 import styles from "./AuthenticationAuthenticatorSettings.module.scss";
 
 interface Props {
-  appConfig: PortalAPIAppConfig | null;
+  effectiveAppConfig: PortalAPIAppConfig | null;
+  rawAppConfig: PortalAPIAppConfig | null;
+  updateAppConfig: (
+    appConfig: PortalAPIAppConfig
+  ) => Promise<PortalAPIApp | null>;
+  updatingAppConfig: boolean;
 }
 
 interface AuthenticatorCheckboxProps extends ICheckboxProps {
@@ -105,6 +112,21 @@ function useOnActivateClicked<KeyType extends string>(
   return onActivateClicked;
 }
 
+// return list with all keys, active key from config in order
+function makeAuthenticatorKeys<KeyType>(
+  activeKeys: KeyType[],
+  availableKeys: KeyType[]
+) {
+  const activeKeySet = new Set(activeKeys);
+  const inactiveKeys = availableKeys.filter((key) => !activeKeySet.has(key));
+  return [...activeKeys, ...inactiveKeys].map((key) => {
+    return {
+      activated: activeKeySet.has(key),
+      key,
+    };
+  });
+}
+
 const constructListData = (
   appConfig: PortalAPIAppConfig | null
 ): {
@@ -112,25 +134,15 @@ const constructListData = (
   secondaryAuthenticators: AuthenticatorListItem<SecondaryAuthenticatorType>[];
 } => {
   const authentication = appConfig?.authentication;
-  const primaryAuthenticatorKeys = new Set(
-    authentication?.primary_authenticators
-  );
-  const secondaryAuthenticatorKeys = new Set(
-    authentication?.secondary_authenticators
-  );
 
-  const primaryAuthenticators = primaryAuthenticatorTypes.map((key) => {
-    return {
-      activated: primaryAuthenticatorKeys.has(key),
-      key,
-    };
-  });
-  const secondaryAuthenticators = secondaryAuthenticatorTypes.map((key) => {
-    return {
-      activated: secondaryAuthenticatorKeys.has(key),
-      key,
-    };
-  });
+  const primaryAuthenticators = makeAuthenticatorKeys(
+    authentication?.primary_authenticators ?? [],
+    [...primaryAuthenticatorTypes]
+  );
+  const secondaryAuthenticators = makeAuthenticatorKeys(
+    authentication?.secondary_authenticators ?? [],
+    [...secondaryAuthenticatorTypes]
+  );
 
   return {
     primaryAuthenticators,
@@ -149,6 +161,12 @@ function getActivatedKeyListFromState<KeyType>(
 const AuthenticationAuthenticatorSettings: React.FC<Props> = function AuthenticationAuthenticatorSettings(
   props: Props
 ) {
+  const {
+    effectiveAppConfig,
+    rawAppConfig,
+    updateAppConfig,
+    updatingAppConfig,
+  } = props;
   const { renderToString } = React.useContext(Context);
 
   const authenticatorColumns: IColumn[] = [
@@ -171,7 +189,7 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
   ];
 
   const { primaryAuthenticators, secondaryAuthenticators } = constructListData(
-    props.appConfig
+    effectiveAppConfig
   );
 
   const [
@@ -228,9 +246,14 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
   );
 
   const onSaveButtonClicked = React.useCallback(() => {
-    if (props.appConfig == null) {
+    if (effectiveAppConfig == null || rawAppConfig == null) {
       return;
     }
+
+    const initialActivatedPrimaryKeyList =
+      effectiveAppConfig.authentication?.primary_authenticators ?? [];
+    const initialActivatedSecondaryKeyList =
+      effectiveAppConfig.authentication?.secondary_authenticators ?? [];
 
     const activatedPrimaryKeyList = getActivatedKeyListFromState(
       primaryAuthenticatorState
@@ -239,14 +262,38 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
       secondaryAuthenticatorState
     );
 
-    produce(props.appConfig, (draftConfig) => {
-      const authentication = draftConfig.authentication;
-      authentication.primary_authenticators = activatedPrimaryKeyList;
-      authentication.secondary_authenticators = activatedSecondaryKeyList;
+    const newAppConfig = produce(rawAppConfig, (draftConfig) => {
+      draftConfig.authentication = draftConfig.authentication ?? {};
+      const { authentication } = draftConfig;
+      if (
+        !isArrayEqualInOrder(
+          initialActivatedPrimaryKeyList,
+          activatedPrimaryKeyList
+        )
+      ) {
+        authentication.primary_authenticators = activatedPrimaryKeyList;
+      }
+      if (
+        !isArrayEqualInOrder(
+          initialActivatedSecondaryKeyList,
+          activatedSecondaryKeyList
+        )
+      ) {
+        authentication.secondary_authenticators = activatedSecondaryKeyList;
+      }
+
+      clearEmptyObject(draftConfig);
     });
 
-    // TODO: call mutation to save config
-  }, [props.appConfig, primaryAuthenticatorState, secondaryAuthenticatorState]);
+    // TODO: handle error
+    updateAppConfig(newAppConfig).catch(() => {});
+  }, [
+    rawAppConfig,
+    effectiveAppConfig,
+    updateAppConfig,
+    primaryAuthenticatorState,
+    secondaryAuthenticatorState,
+  ]);
 
   return (
     <div className={styles.root}>
@@ -285,9 +332,12 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
       </div>
 
       <div className={styles.saveButtonContainer}>
-        <PrimaryButton onClick={onSaveButtonClicked}>
-          <FormattedMessage id="save" />
-        </PrimaryButton>
+        <ButtonWithLoading
+          onClick={onSaveButtonClicked}
+          loading={updatingAppConfig}
+          labelId="save"
+          loadingLabelId="saving"
+        />
       </div>
     </div>
   );
