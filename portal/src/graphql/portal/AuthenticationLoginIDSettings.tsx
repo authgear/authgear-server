@@ -350,7 +350,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
   );
 
   // on save
-  const onSaveButtonClicked = React.useCallback(async () => {
+  const onSaveButtonClicked = React.useCallback(() => {
     if (rawAppConfig == null) {
       return;
     }
@@ -378,7 +378,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     );
 
     // TODO: handle error
-    await updateAppConfig(newAppConfig);
+    updateAppConfig(newAppConfig).catch(() => {});
   }, [
     rawAppConfig,
     updateAppConfig,

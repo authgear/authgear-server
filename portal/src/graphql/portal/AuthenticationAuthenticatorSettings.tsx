@@ -239,7 +239,7 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
     [secondaryAuthenticatorState]
   );
 
-  const onSaveButtonClicked = React.useCallback(async () => {
+  const onSaveButtonClicked = React.useCallback(() => {
     if (effectiveAppConfig == null || rawAppConfig == null) {
       return;
     }
@@ -280,7 +280,7 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
     });
 
     // TODO: handle error
-    await updateAppConfig(newAppConfig);
+    updateAppConfig(newAppConfig).catch(() => {});
   }, [
     rawAppConfig,
     effectiveAppConfig,
