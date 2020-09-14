@@ -6,14 +6,14 @@ import { formatDatetime } from "../../util/formatDatetime";
 
 import styles from "./UserDetailsSession.module.scss";
 
-interface UserDetailsSession {
+interface Data {
   deviceName: string | null;
   lastActivity: string | null;
   ipAddress: string | null;
 }
 
 // TODO: replace with actual data
-const mockSessionData: UserDetailsSession[] = [
+const mockSessionData: Data[] = [
   {
     deviceName: "iPhone 11 Pro",
     lastActivity: "2021-12-15T15:55:20.309775Z",

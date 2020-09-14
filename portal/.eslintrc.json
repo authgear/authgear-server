@@ -16,6 +16,7 @@
   },
   "globals": { "Set": "readonly" },
   "rules": {
+    "no-use-before-define": "off",
     "react/jsx-no-bind": "off",
     "react/forbid-elements": [
       1,
