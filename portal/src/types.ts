@@ -2,16 +2,10 @@
 
 export type LoginIDKeyType = "raw" | "email" | "phone" | "username";
 
-interface VerificationLoginIDKeyConfig {
-  enabled: boolean;
-  required?: boolean;
-}
-
 export interface LoginIDKeyConfig {
   key: string;
   maximum?: number;
   type: LoginIDKeyType;
-  verification?: VerificationLoginIDKeyConfig;
 }
 
 // LoginIDTypesConfig
@@ -99,10 +93,33 @@ interface AuthenticationConfig {
   secondary_authenticators?: SecondaryAuthenticatorType[];
 }
 
+export interface VerificationClaimConfig {
+  enabled?: boolean;
+  required?: boolean;
+}
+
+interface VerificationClaimsConfig {
+  email?: VerificationClaimConfig;
+  phone_number?: VerificationClaimConfig;
+}
+
+export const verificationCriteriaList = ["any", "all"] as const;
+export type VerificationCriteria = typeof verificationCriteriaList[number];
+
+// type alias of integer in JSON schema
+type DurationSeconds = number;
+
+interface VerificationConfig {
+  claims?: VerificationClaimsConfig;
+  criteria?: VerificationCriteria;
+  code_expiry_seconds?: DurationSeconds;
+}
+
 export interface PortalAPIAppConfig {
   identity?: IdentityConfig;
   authenticator?: AuthenticatorConfig;
   authentication?: AuthenticationConfig;
+  verification?: VerificationConfig;
 }
 
 export interface PortalAPIApp {
