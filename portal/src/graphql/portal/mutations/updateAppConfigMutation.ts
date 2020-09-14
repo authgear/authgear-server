@@ -1,8 +1,9 @@
 import React from "react";
 import { useMutation, gql } from "@apollo/client";
+import yaml from "js-yaml";
 
 import { client } from "../../portal/apollo";
-import { PortalAPIApp } from "../../../types";
+import { PortalAPIApp, PortalAPIAppConfig } from "../../../types";
 import { UpdateAppConfigMutation } from "./__generated__/UpdateAppConfigMutation";
 
 // relative to project root
@@ -26,14 +27,18 @@ const updateAppConfigMutation = gql`
 export function useUpdateAppConfigMutation(
   appID: string
 ): {
-  updateAppConfig: (appConfigYaml: string) => Promise<PortalAPIApp | null>;
+  updateAppConfig: (
+    appConfig: PortalAPIAppConfig
+  ) => Promise<PortalAPIApp | null>;
 } {
   const [mutationFunction] = useMutation<UpdateAppConfigMutation>(
     updateAppConfigMutation,
     { client }
   );
   const updateAppConfig = React.useCallback(
-    async (appConfigYaml: string) => {
+    async (appConfig: PortalAPIAppConfig) => {
+      const appConfigYaml = yaml.safeDump(appConfig);
+
       const result = await mutationFunction({
         variables: {
           appID,

@@ -1,6 +1,5 @@
 import React from "react";
 import produce from "immer";
-import yaml from "js-yaml";
 import {
   Checkbox,
   Toggle,
@@ -31,7 +30,9 @@ import styles from "./AuthenticationLoginIDSettings.module.scss";
 interface Props {
   effectiveAppConfig: PortalAPIAppConfig | null;
   rawAppConfig: PortalAPIAppConfig | null;
-  updateAppConfig: (appConfigYaml: string) => Promise<PortalAPIApp | null>;
+  updateAppConfig: (
+    appConfig: PortalAPIAppConfig
+  ) => Promise<PortalAPIApp | null>;
 }
 
 interface WidgetHeaderProps {
@@ -376,9 +377,8 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
       screenState
     );
 
-    const newAppConfigYaml = yaml.safeDump(newAppConfig);
-
-    await updateAppConfig(newAppConfigYaml);
+    // TODO: handle error
+    await updateAppConfig(newAppConfig);
   }, [
     rawAppConfig,
     updateAppConfig,

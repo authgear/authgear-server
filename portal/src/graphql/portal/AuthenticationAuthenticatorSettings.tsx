@@ -9,7 +9,6 @@ import {
   Text,
 } from "@fluentui/react";
 import produce from "immer";
-import yaml from "js-yaml";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import DetailsListWithOrdering, { swap } from "../../DetailsListWithOrdering";
@@ -28,7 +27,9 @@ import styles from "./AuthenticationAuthenticatorSettings.module.scss";
 interface Props {
   effectiveAppConfig: PortalAPIAppConfig | null;
   rawAppConfig: PortalAPIAppConfig | null;
-  updateAppConfig: (appConfigYaml: string) => Promise<PortalAPIApp | null>;
+  updateAppConfig: (
+    appConfig: PortalAPIAppConfig
+  ) => Promise<PortalAPIApp | null>;
 }
 
 interface AuthenticatorCheckboxProps extends ICheckboxProps {
@@ -278,9 +279,8 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
       clearEmptyObject(draftConfig);
     });
 
-    const newAppConfigYaml = yaml.safeDump(newAppConfig);
-
-    await updateAppConfig(newAppConfigYaml);
+    // TODO: handle error
+    await updateAppConfig(newAppConfig);
   }, [
     rawAppConfig,
     effectiveAppConfig,
