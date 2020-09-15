@@ -579,6 +579,22 @@ a.btn {
   grid-area: action;
 }
 
+.settings-page-section-with-title {
+  display: grid;
+  grid: "title" auto
+      /  1fr;
+  gap: 8px;
+}
+
+.settings-page-section-with-title > * {
+  margin: 0;
+}
+
+.settings-page-section-with-title .title {
+  grid-area: title;
+  font-size: 1rem;
+}
+
 .settings-identity-row {
   margin: 10px 14px 0px 14px;
   padding: 0 0 10px 0;
