@@ -137,6 +137,42 @@
     </a>
   </section>
   {{ end }}
+
+  <!-- Secondary Password -->
+  {{ if $.SecondaryPasswordEnabled }}
+  {{ $secondary_password := false }}
+
+  <!-- The user at most has 1 secondary password. -->
+  {{ range $.Authenticators }}
+  {{ if eq .Type "oob_otp" }}{{ if eq .Kind "secondary" }}
+  {{ $secondary_password = . }}
+  {{ end }}{{ end }}
+  {{ end }}
+
+  <section class="settings-row settings-page-section-with-title-desc-action">
+    <p class="title primary-txt">
+      {{ template "settings-page-secondary-password-title" }}
+    </p>
+
+    {{ if $secondary_password }}
+    <p class="description secondary-txt">
+      {{ template "settings-page-secondary-password-description" (makemap "time" "FIXME") }}
+    </p>
+    {{ end }}
+
+    {{ if $secondary_password }}
+    <a class="action" href="#">
+      {{ template "change-password-button-label" }}
+    </a>
+    {{ else }}
+    <a class="action" href="#">
+      {{ template "setup-button-label" }}
+    </a>
+    {{ end }}
+  </section>
+
+  {{ end }}
+
 </section>
 
 <!-- Connected Identities -->
