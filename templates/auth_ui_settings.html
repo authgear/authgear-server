@@ -80,6 +80,63 @@
     </h3>
   </section>
 
+  <!-- Secondary TOTP -->
+  {{ if $.SecondaryTOTPEnabled }}
+  <section class="settings-row settings-page-section-with-title-desc-action">
+    <p class="title primary-txt">
+      {{ template "settings-page-secondary-totp-title" }}
+    </p>
+    {{ $totp := false }}
+
+    {{ range $.Authenticators }}
+    {{ if eq .Type "totp" }}{{ if eq .Kind "secondary" }}
+    {{ $totp = true }}
+    {{ end }}{{ end }}
+    {{ end }}
+    {{ if $totp }}
+    <p class="description good-txt">
+      {{ template "activated-label" }}
+    </p>
+    {{ else }}
+    <p class="description warn-txt">
+      {{ template "inactive-label" }}
+    </p>
+    {{ end }}
+
+    <a class="action" href="#">
+      {{ template "details-button-label" }}
+    </a>
+  </section>
+  {{ end }}
+
+  <!-- Secondary OOB OTP -->
+  {{ if $.SecondaryOOBOTPEnabled }}
+  <section class="settings-row settings-page-section-with-title-desc-action">
+    <p class="title primary-txt">
+      {{ template "settings-page-secondary-oob-otp-title" }}
+    </p>
+    {{ $totp := false }}
+
+    {{ range $.Authenticators }}
+    {{ if eq .Type "oob_otp" }}{{ if eq .Kind "secondary" }}
+    {{ $totp = true }}
+    {{ end }}{{ end }}
+    {{ end }}
+    {{ if $totp }}
+    <p class="description good-txt">
+      {{ template "activated-label" }}
+    </p>
+    {{ else }}
+    <p class="description warn-txt">
+      {{ template "inactive-label" }}
+    </p>
+    {{ end }}
+
+    <a class="action" href="#">
+      {{ template "details-button-label" }}
+    </a>
+  </section>
+  {{ end }}
 </section>
 
 <!-- Connected Identities -->

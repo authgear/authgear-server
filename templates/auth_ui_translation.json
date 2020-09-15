@@ -26,6 +26,8 @@
 	"resend-verification-code-button-label": "Resend verification code",
 	"verification-status-label--unverified": "Not verified",
 	"verification-status-label--verified": "Verified",
+	"activated-label": "Activated",
+	"inactive-label": "Inactive",
 	
 	"create-device-token-label": "Do not ask again on this device",
 
@@ -119,6 +121,8 @@
 	"settings-page-primary-oob-otp-title--sms": "Passwordless via SMS",
 	"settings-page-primary-oob-otp-title--email": "Passwordless via Email",
 	"settings-page-primary-oob-otp-description": "Added at {time}",
+	"settings-page-secondary-totp-title": "Authenticator Apps / Devices",
+	"settings-page-secondary-oob-otp-title": "Verification code via SMS / Email",
 
 	"settings-identity-title": "Connected Identities",
 	"settings-identity-description": "These are the login identities and third party services connected to your account for signing in",
