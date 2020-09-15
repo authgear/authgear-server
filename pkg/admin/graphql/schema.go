@@ -11,6 +11,7 @@ var Schema *graphql.Schema
 func init() {
 	schema, err := graphql.NewSchema(graphql.SchemaConfig{
 		Query:      query,
+		Mutation:   mutation,
 		Extensions: []graphql.Extension{&graphqlutil.APIErrorExtension{}},
 	})
 	if err != nil {
