@@ -24,19 +24,3 @@ func (t IdentityType) PrimaryAuthenticatorTypes() []AuthenticatorType {
 		panic("unexpected identity type: " + t)
 	}
 }
-
-// MatchingAuthenticatorTypes returns a ist of matching authenticator types.
-func (t IdentityType) MatchingAuthenticatorTypes() []AuthenticatorType {
-	switch t {
-	case IdentityTypeLoginID:
-		return []AuthenticatorType{
-			AuthenticatorTypeOOB,
-		}
-	case IdentityTypeOAuth:
-		return nil
-	case IdentityTypeAnonymous:
-		return nil
-	default:
-		panic("unexpected identity type: " + t)
-	}
-}

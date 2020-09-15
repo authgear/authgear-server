@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -261,7 +262,7 @@ func (s *Service) MarkClaimVerified(claim *Claim) error {
 	return s.ClaimStore.Create(claim)
 }
 
-func (s *Service) RemoveOrphanedClaims(identities []*identity.Info) error {
+func (s *Service) RemoveOrphanedClaims(identities []*identity.Info, authenticators []*authenticator.Info) error {
 	// Assuming user ID of all identities is same
 	userID := identities[0].UserID
 	claims, err := s.ClaimStore.ListByUser(userID)
@@ -278,12 +279,17 @@ func (s *Service) RemoveOrphanedClaims(identities []*identity.Info) error {
 		if i.UserID != userID {
 			panic("verification: expect all user ID is same")
 		}
-		for claimName, claimValue := range i.Claims {
-			value, ok := claimValue.(string)
-			if !ok {
-				continue
-			}
-			delete(orphans, claim{claimName, value})
+		for name, value := range i.StandardClaims() {
+			delete(orphans, claim{Name: string(name), Value: value})
+		}
+	}
+
+	for _, a := range authenticators {
+		if a.UserID != userID {
+			panic("verification: expect all user ID is same")
+		}
+		for name, value := range a.StandardClaims() {
+			delete(orphans, claim{Name: string(name), Value: value})
 		}
 	}
 

@@ -42,7 +42,7 @@ func (n *NodeDoUpdateIdentity) Apply(perform func(eff interaction.Effect) error,
 			return err
 		}
 
-		if err := ctx.Identities.Update(n.IdentityBeforeUpdate, n.IdentityAfterUpdate); err != nil {
+		if err := ctx.Identities.Update(n.IdentityAfterUpdate); err != nil {
 			return err
 		}
 

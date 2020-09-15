@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
@@ -80,9 +81,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(authenticatorservice.OOBOTPAuthenticatorProvider), new(*authenticatoroob.Provider)),
 		wire.Bind(new(authenticatorservice.TOTPAuthenticatorProvider), new(*authenticatortotp.Provider)),
 
-		wire.Bind(new(forgotpassword.AuthenticatorService), new(*authenticatorservice.Service)),
-		wire.Bind(new(interaction.AuthenticatorService), new(*authenticatorservice.Service)),
-		wire.Bind(new(identityservice.AuthenticatorService), new(*authenticatorservice.Service)),
+		wire.Bind(new(facade.AuthenticatorService), new(*authenticatorservice.Service)),
 	),
 
 	wire.NewSet(
@@ -103,9 +102,18 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(identityservice.LoginIDIdentityProvider), new(*identityloginid.Provider)),
 		wire.Bind(new(identityservice.OAuthIdentityProvider), new(*identityoauth.Provider)),
 		wire.Bind(new(identityservice.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
-		wire.Bind(new(user.IdentityService), new(*identityservice.Service)),
-		wire.Bind(new(interaction.IdentityService), new(*identityservice.Service)),
-		wire.Bind(new(forgotpassword.IdentityService), new(*identityservice.Service)),
+
+		wire.Bind(new(facade.IdentityService), new(*identityservice.Service)),
+	),
+
+	wire.NewSet(
+		facade.DependencySet,
+
+		wire.Bind(new(interaction.IdentityService), new(facade.IdentityFacade)),
+		wire.Bind(new(interaction.AuthenticatorService), new(facade.AuthenticatorFacade)),
+		wire.Bind(new(forgotpassword.AuthenticatorService), new(facade.AuthenticatorFacade)),
+		wire.Bind(new(user.IdentityService), new(facade.IdentityFacade)),
+		wire.Bind(new(forgotpassword.IdentityService), new(facade.IdentityFacade)),
 	),
 
 	wire.NewSet(
@@ -166,7 +174,7 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		verification.DependencySet,
 		wire.Bind(new(user.VerificationService), new(*verification.Service)),
-		wire.Bind(new(identityservice.VerificationService), new(*verification.Service)),
+		wire.Bind(new(facade.VerificationService), new(*verification.Service)),
 		wire.Bind(new(interaction.VerificationService), new(*verification.Service)),
 		wire.Bind(new(interaction.VerificationCodeSender), new(*verification.CodeSender)),
 	),

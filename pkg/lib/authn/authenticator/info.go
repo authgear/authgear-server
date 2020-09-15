@@ -2,6 +2,7 @@ package authenticator
 
 import (
 	"crypto/subtle"
+	"fmt"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -122,4 +123,27 @@ func (i *Info) Equal(that *Info) bool {
 	default:
 		panic("authenticator: unknown authenticator type: " + i.Type)
 	}
+}
+
+func (i *Info) StandardClaims() map[authn.ClaimName]string {
+	claims := map[authn.ClaimName]string{}
+	switch i.Type {
+	case authn.AuthenticatorTypePassword:
+		break
+	case authn.AuthenticatorTypeTOTP:
+		break
+	case authn.AuthenticatorTypeOOB:
+		channel := i.Claims[AuthenticatorClaimOOBOTPChannelType].(string)
+		switch authn.AuthenticatorOOBChannel(i.Claims[AuthenticatorClaimOOBOTPChannelType].(string)) {
+		case authn.AuthenticatorOOBChannelEmail:
+			claims[authn.ClaimEmail] = i.Claims[AuthenticatorClaimOOBOTPEmail].(string)
+		case authn.AuthenticatorOOBChannelSMS:
+			claims[authn.ClaimPhoneNumber] = i.Claims[AuthenticatorClaimOOBOTPPhone].(string)
+		default:
+			panic("authenticator: unknown OOB channel: " + channel)
+		}
+	default:
+		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
+	}
+	return claims
 }

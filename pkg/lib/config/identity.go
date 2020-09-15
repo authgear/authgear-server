@@ -279,6 +279,7 @@ var _ = Schema.Add("OAuthSSOProviderConfig", `
 		"alias": { "type": "string" },
 		"type": { "$ref": "#/$defs/OAuthSSOProviderType" },
 		"client_id": { "type": "string" },
+		"claims": { "$ref": "#/$defs/VerificationOAuthClaimsConfig" },
 		"tenant": { "type": "string" },
 		"key_id": { "type": "string" },
 		"team_id": { "type": "string" }
@@ -302,9 +303,10 @@ var _ = Schema.Add("OAuthSSOProviderConfig", `
 `)
 
 type OAuthSSOProviderConfig struct {
-	Alias    string               `json:"alias,omitempty"`
-	Type     OAuthSSOProviderType `json:"type,omitempty"`
-	ClientID string               `json:"client_id,omitempty"`
+	Alias    string                         `json:"alias,omitempty"`
+	Type     OAuthSSOProviderType           `json:"type,omitempty"`
+	ClientID string                         `json:"client_id,omitempty"`
+	Claims   *VerificationOAuthClaimsConfig `json:"claims,omitempty"`
 
 	// Tenant is specific to azureadv2
 	Tenant string `json:"tenant,omitempty"`

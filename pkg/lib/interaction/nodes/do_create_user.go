@@ -1,7 +1,6 @@
 package nodes
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -28,11 +27,8 @@ func (n *NodeDoCreateUser) Prepare(ctx *interaction.Context, graph *interaction.
 }
 
 func (n *NodeDoCreateUser) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	var u *user.User
-
 	err := perform(interaction.EffectRun(func(ctx *interaction.Context) error {
-		var err error
-		u, err = ctx.Users.Create(n.CreateUserID)
+		_, err := ctx.Users.Create(n.CreateUserID)
 		return err
 	}))
 	if err != nil {
@@ -40,6 +36,10 @@ func (n *NodeDoCreateUser) Apply(perform func(eff interaction.Effect) error, gra
 	}
 
 	err = perform(interaction.EffectOnCommit(func(ctx *interaction.Context) error {
+		u, err := ctx.Users.GetRaw(n.CreateUserID)
+		if err != nil {
+			return err
+		}
 		return ctx.Users.AfterCreate(u, graph.GetUserNewIdentities())
 	}))
 	if err != nil {

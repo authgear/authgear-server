@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
 
 type PasswordAuthenticatorProvider interface {
@@ -326,4 +327,57 @@ func (s *Service) VerifySecret(info *authenticator.Info, state map[string]string
 	}
 
 	panic("authenticator: unhandled authenticator type " + info.Type)
+}
+
+func (s *Service) RemoveOrphans(identities []*identity.Info) error {
+	if len(identities) == 0 {
+		return nil
+	}
+
+	authenticators, err := s.List(identities[0].UserID)
+	if err != nil {
+		return err
+	}
+
+	for _, a := range authenticators {
+		if a.Kind != authenticator.KindPrimary || a.Type != authn.AuthenticatorTypeOOB {
+			continue
+		}
+
+		aClaims := a.StandardClaims()
+
+		orphaned := true
+		for _, i := range identities {
+			// Matching identities with same claim => not orphan
+			isMatching := false
+			for _, t := range i.Type.PrimaryAuthenticatorTypes() {
+				if t == a.Type {
+					isMatching = true
+					break
+				}
+			}
+			if !isMatching {
+				continue
+			}
+
+			for k, v := range i.StandardClaims() {
+				if aClaims[k] == v {
+					orphaned = false
+					break
+				}
+			}
+			if !orphaned {
+				break
+			}
+		}
+
+		if orphaned {
+			err = s.Delete(a)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }

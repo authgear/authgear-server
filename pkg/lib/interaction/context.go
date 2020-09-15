@@ -32,7 +32,7 @@ type IdentityService interface {
 	New(userID string, spec *identity.Spec) (*identity.Info, error)
 	UpdateWithSpec(is *identity.Info, spec *identity.Spec) (*identity.Info, error)
 	Create(is *identity.Info) error
-	Update(before, after *identity.Info) error
+	Update(info *identity.Info) error
 	Delete(is *identity.Info) error
 	CheckDuplicated(info *identity.Info) (*identity.Info, error)
 }
@@ -86,6 +86,7 @@ type MFAService interface {
 
 type UserService interface {
 	Get(id string) (*model.User, error)
+	GetRaw(id string) (*user.User, error)
 	Create(userID string) (*user.User, error)
 	AfterCreate(user *user.User, identities []*identity.Info) error
 	UpdateLoginTime(user *model.User, lastLoginAt time.Time) error

@@ -21,6 +21,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
@@ -158,6 +159,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	serviceService := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          serviceStore,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+	}
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -206,7 +215,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
-	serviceService := &service2.Service{
+	service3 := &service2.Service{
 		Store:    store2,
 		Password: passwordProvider,
 		TOTP:     totpProvider,
@@ -231,29 +240,28 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
-	service3 := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          serviceStore,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Authenticators: serviceService,
+	coordinator := &facade.Coordinator{
+		Identities:     serviceService,
+		Authenticators: service3,
 		Verification:   verificationService,
+		IdentityConfig: identityConfig,
+	}
+	identityFacade := facade.IdentityFacade{
+		Coordinator: coordinator,
 	}
 	queries := &user.Queries{
 		Store:        store,
-		Identities:   service3,
+		Identities:   identityFacade,
 		Verification: verificationService,
 	}
 	userLoader := &loader.UserLoader{
 		Users: queries,
 	}
 	identityLoader := &loader.IdentityLoader{
-		Identities: service3,
+		Identities: serviceService,
 	}
 	authenticatorLoader := &loader.AuthenticatorLoader{
-		Authenticators: serviceService,
+		Authenticators: service3,
 	}
 	graphqlContext := &graphql.Context{
 		Users:          userLoader,

@@ -126,3 +126,29 @@ func (i *Info) DisplayIDClaimName() (authn.ClaimName, bool) {
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
 	}
 }
+
+func (i *Info) StandardClaims() map[authn.ClaimName]string {
+	claims := map[authn.ClaimName]string{}
+	switch i.Type {
+	case authn.IdentityTypeLoginID:
+		loginIDType, _ := i.Claims[IdentityClaimLoginIDType].(string)
+		loginIDValue, _ := i.Claims[IdentityClaimLoginIDOriginalValue].(string)
+		switch config.LoginIDKeyType(loginIDType) {
+		case config.LoginIDKeyTypeEmail:
+			claims[authn.ClaimEmail] = loginIDValue
+		case config.LoginIDKeyTypePhone:
+			claims[authn.ClaimPhoneNumber] = loginIDValue
+		case config.LoginIDKeyTypeUsername:
+			claims[authn.ClaimPreferredUsername] = loginIDValue
+		}
+	case authn.IdentityTypeOAuth:
+		if email, ok := i.Claims[StandardClaimEmail].(string); ok {
+			claims[authn.ClaimEmail] = email
+		}
+	case authn.IdentityTypeAnonymous:
+		break
+	default:
+		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
+	}
+	return claims
+}
