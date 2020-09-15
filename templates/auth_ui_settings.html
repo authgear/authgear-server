@@ -24,8 +24,8 @@
     </p>
   </section>
 
-  <!-- Primary Password -->
   {{ range $.Authenticators }}
+  <!-- Primary Password -->
   {{ if eq .Type "password" }}{{ if eq .Kind "primary" }}
   <section class="settings-row settings-page-section-with-title-desc-action">
     <p class="title primary-txt">
@@ -40,6 +40,37 @@
     </a>
   </section>
   {{ end }}{{ end }}
+
+  <!-- Primary OOB OTP -->
+  {{ if eq .Type "oob_otp" }}{{ if eq .Kind "primary" }}
+  <section class="settings-row settings-page-section-with-title-info-desc-action">
+    <p class="title primary-txt">
+      {{ if eq (index .Claims "https://authgear.com/claims/oob_otp/channel_type") "email" }}
+      {{ template "settings-page-primary-oob-otp-title--email" }}
+      {{ end }}
+      {{ if eq (index .Claims "https://authgear.com/claims/oob_otp/channel_type") "sms" }}
+      {{ template "settings-page-primary-oob-otp-title--sms" }}
+      {{ end }}
+    </p>
+    <p class="info secondary-txt">
+      {{ if eq (index .Claims "https://authgear.com/claims/oob_otp/channel_type") "email" }}
+      <i class="fas fa-envelope" aria-hidden="true"></i>
+      {{ index .Claims "https://authgear.com/claims/oob_otp/email" }}
+      {{ end }}
+      {{ if eq (index .Claims "https://authgear.com/claims/oob_otp/channel_type") "sms" }}
+      <i class="fas fa-phone" aria-hidden="true"></i>
+      {{ index .Claims "https://authgear.com/claims/oob_otp/phone" }}
+      {{ end }}
+    </p>
+    <p class="description secondary-txt">
+    <!-- FIXME(ui): format localized date time -->
+    {{ template "settings-page-primary-oob-otp-description" (makemap "time" "FIXME") }}
+    </p>
+    <a class="action" href="/settings/identity">
+      {{ template "details-button-label" }}
+    </a>
+  </section>
+  {{ end}}{{ end }}
   {{ end }}
 
 </section>

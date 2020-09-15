@@ -540,6 +540,37 @@ a.btn {
   grid-area: action;
 }
 
+.settings-page-section-with-title-info-desc-action {
+  display: grid;
+  grid: "title    action" auto
+        "info     ......" auto
+        "desc     ......" auto
+      /  1fr       auto;
+  gap: 8px;
+}
+
+.settings-page-section-with-title-info-desc-action > * {
+  margin: 0;
+}
+
+.settings-page-section-with-title-info-desc-action .title {
+  grid-area: title;
+}
+
+.settings-page-section-with-title-info-desc-action .info {
+  grid-area: info;
+  font-size: smaller;
+}
+
+.settings-page-section-with-title-info-desc-action .description {
+  grid-area: desc;
+  font-size: smaller;
+}
+
+.settings-page-section-with-title-info-desc-action .action {
+  grid-area: action;
+}
+
 .settings-identity-row {
   margin: 10px 14px 0px 14px;
   padding: 0 0 10px 0;

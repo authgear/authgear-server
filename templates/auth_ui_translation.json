@@ -115,6 +115,9 @@
 	"settings-page-identity-section-description": "Manage your list of connected identities",
 	"settings-page-primary-password-title": "Password",
 	"settings-page-primary-password-description": "Last updated at {time}",
+	"settings-page-primary-oob-otp-title--sms": "Passwordless via SMS",
+	"settings-page-primary-oob-otp-title--email": "Passwordless via Email",
+	"settings-page-primary-oob-otp-description": "Added at {time}",
 
 	"settings-identity-title": "Connected Identities",
 	"settings-identity-description": "These are the login identities and third party services connected to your account for signing in",
