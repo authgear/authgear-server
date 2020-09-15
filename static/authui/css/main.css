@@ -115,6 +115,14 @@ h1, h2, h3, h4, h5, h6 {
   color: #a19f9d;
 }
 
+.good-txt {
+  color: #58CA9A;
+}
+
+.warn-txt {
+  color: #FBCA4E;
+}
+
 .errors {
   list-style-type: none;
   margin: 10px;
@@ -636,14 +644,6 @@ a.btn {
   /* So that this element takes exact 1fr width */
   /* Otherwise it could overflow */
   font-size: smaller;
-}
-
-.settings-identity-identity-section .claim .verified {
-  color: #58CA9A;
-}
-
-.settings-identity-identity-section .claim .unverified {
-  color: #FBCA4E;
 }
 
 .settings-identity-identity-section .primary-action {

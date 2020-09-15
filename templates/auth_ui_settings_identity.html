@@ -70,12 +70,12 @@
       {{ if eq .type "login_id" }}
       {{ if .identity_id }}
       {{ if or (eq $verification_status "pending") (eq $verification_status "required") }}
-      <span class="unverified">
+      <span class="warn-txt">
         ({{ template "verification-status-label--unverified" }})
       </span>
       {{ end }}
       {{ if eq $verification_status "verified" }}
-      <span class="verified">
+      <span class="good-txt">
         ({{ template "verification-status-label--verified" }})
       </span>
       {{ end }}
