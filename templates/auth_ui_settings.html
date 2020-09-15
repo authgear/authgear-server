@@ -173,6 +173,21 @@
 
   {{ end }}
 
+  <!-- Recovery code -->
+  {{ if $.RecoveryCodes }}
+  <section class="settings-row settings-page-section-with-title-desc-action">
+    <p class="title primary-txt">
+      {{ template "settings-page-recovery-code-title" }}
+    </p>
+    <p class="description secondary-txt">
+      {{ template "settings-page-recovery-code-description" }}
+    </p>
+    <a class="action" href="#">
+      {{ template "show-recovery-code-button-label" }}
+    </a>
+  </section>
+  {{ end }}
+
 </section>
 
 <!-- Connected Identities -->

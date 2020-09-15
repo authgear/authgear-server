@@ -125,6 +125,9 @@
 	"settings-page-secondary-oob-otp-title": "Verification code via SMS / Email",
 	"settings-page-secondary-password-title": "Additional Password",
 	"settings-page-secondary-password-description": "Last updated at {time}",
+	"settings-page-recovery-code-title": "Recovery Code",
+	"settings-page-recovery-code-description": "These codes allow you to sign in even you lost access to your apps, devices, phones or email accounts.",
+	"show-recovery-code-button-label": "Show Codes",
 
 	"settings-identity-title": "Connected Identities",
 	"settings-identity-description": "These are the login identities and third party services connected to your account for signing in",
