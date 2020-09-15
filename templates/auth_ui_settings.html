@@ -188,6 +188,15 @@
   </section>
   {{ end }}
 
+  <!-- Revoke all device tokens -->
+  {{ if $.RecoveryCodes }}
+  <section class="settings-row settings-page-section-revoke-device-tokens">
+    <button type="button" class="action btn destructive-btn">
+      {{ template "revoke-all-device-tokens-button-label" }}
+    </button>
+  </section>
+  {{ end }}
+
 </section>
 
 <!-- Connected Identities -->

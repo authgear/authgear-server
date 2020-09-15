@@ -128,6 +128,7 @@
 	"settings-page-recovery-code-title": "Recovery Code",
 	"settings-page-recovery-code-description": "These codes allow you to sign in even you lost access to your apps, devices, phones or email accounts.",
 	"show-recovery-code-button-label": "Show Codes",
+	"revoke-all-device-tokens-button-label": "Forget all trusted devices",
 
 	"settings-identity-title": "Connected Identities",
 	"settings-identity-description": "These are the login identities and third party services connected to your account for signing in",

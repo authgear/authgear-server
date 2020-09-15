@@ -595,6 +595,22 @@ a.btn {
   font-size: 1rem;
 }
 
+.settings-page-section-revoke-device-tokens {
+  display: grid;
+  grid: "action" auto
+      /  1fr;
+  gap: 8px;
+}
+
+.settings-page-section-revoke-device-tokens > * {
+  margin: 0;
+}
+
+.settings-page-section-revoke-device-tokens .action {
+  grid-area: action;
+  justify-self: start;
+}
+
 .settings-identity-row {
   margin: 10px 14px 0px 14px;
   padding: 0 0 10px 0;
