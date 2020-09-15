@@ -7,6 +7,17 @@
 // START Enums and Input Objects
 //==============================================================
 
+export enum AuthenticatorKind {
+  PRIMARY = "PRIMARY",
+  SECONDARY = "SECONDARY",
+}
+
+export enum AuthenticatorType {
+  OOB_OTP = "OOB_OTP",
+  PASSWORD = "PASSWORD",
+  TOTP = "TOTP",
+}
+
 //==============================================================
 // END Enums and Input Objects
 //==============================================================

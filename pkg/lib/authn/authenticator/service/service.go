@@ -12,7 +12,7 @@ type PasswordAuthenticatorProvider interface {
 	Get(userID, id string) (*password.Authenticator, error)
 	GetMany(ids []string) ([]*password.Authenticator, error)
 	List(userID string) ([]*password.Authenticator, error)
-	New(userID string, password string, tag []string) (*password.Authenticator, error)
+	New(userID string, password string, isDefault bool, kind string) (*password.Authenticator, error)
 	// WithPassword returns new authenticator pointer if password is changed
 	// Otherwise original authenticator will be returned
 	WithPassword(a *password.Authenticator, password string) (*password.Authenticator, error)
@@ -26,7 +26,7 @@ type TOTPAuthenticatorProvider interface {
 	Get(userID, id string) (*totp.Authenticator, error)
 	GetMany(ids []string) ([]*totp.Authenticator, error)
 	List(userID string) ([]*totp.Authenticator, error)
-	New(userID string, displayName string, tag []string) *totp.Authenticator
+	New(userID string, displayName string, isDefault bool, kind string) *totp.Authenticator
 	Create(*totp.Authenticator) error
 	Delete(*totp.Authenticator) error
 	Authenticate(a *totp.Authenticator, code string) error
@@ -36,7 +36,7 @@ type OOBOTPAuthenticatorProvider interface {
 	Get(userID, id string) (*oob.Authenticator, error)
 	GetMany(ids []string) ([]*oob.Authenticator, error)
 	List(userID string) ([]*oob.Authenticator, error)
-	New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string, tag []string) *oob.Authenticator
+	New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string, isDefault bool, kind string) *oob.Authenticator
 	Create(*oob.Authenticator) error
 	Delete(*oob.Authenticator) error
 	Authenticate(secret string, channel authn.AuthenticatorOOBChannel, code string) error
@@ -178,7 +178,7 @@ func (s *Service) ListRefsByUsers(userIDs []string) ([]*authenticator.Ref, error
 func (s *Service) New(spec *authenticator.Spec, secret string) (*authenticator.Info, error) {
 	switch spec.Type {
 	case authn.AuthenticatorTypePassword:
-		p, err := s.Password.New(spec.UserID, secret, spec.Tag)
+		p, err := s.Password.New(spec.UserID, secret, spec.IsDefault, string(spec.Kind))
 		if err != nil {
 			return nil, err
 		}
@@ -186,7 +186,7 @@ func (s *Service) New(spec *authenticator.Spec, secret string) (*authenticator.I
 
 	case authn.AuthenticatorTypeTOTP:
 		displayName := spec.Claims[authenticator.AuthenticatorClaimTOTPDisplayName].(string)
-		t := s.TOTP.New(spec.UserID, displayName, spec.Tag)
+		t := s.TOTP.New(spec.UserID, displayName, spec.IsDefault, string(spec.Kind))
 		return totpToAuthenticatorInfo(t), nil
 
 	case authn.AuthenticatorTypeOOB:
@@ -198,7 +198,7 @@ func (s *Service) New(spec *authenticator.Spec, secret string) (*authenticator.I
 		case authn.AuthenticatorOOBChannelEmail:
 			email = spec.Claims[authenticator.AuthenticatorClaimOOBOTPEmail].(string)
 		}
-		o := s.OOBOTP.New(spec.UserID, authn.AuthenticatorOOBChannel(channel), phone, email, spec.Tag)
+		o := s.OOBOTP.New(spec.UserID, authn.AuthenticatorOOBChannel(channel), phone, email, spec.IsDefault, string(spec.Kind))
 		return oobotpToAuthenticatorInfo(o), nil
 	}
 

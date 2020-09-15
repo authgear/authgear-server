@@ -16,6 +16,33 @@ import (
 
 const typeAuthenticator = "Authenticator"
 
+var authenticatorType = graphql.NewEnum(graphql.EnumConfig{
+	Name: "AuthenticatorType",
+	Values: graphql.EnumValueConfigMap{
+		"PASSWORD": &graphql.EnumValueConfig{
+			Value: "password",
+		},
+		"TOTP": &graphql.EnumValueConfig{
+			Value: "totp",
+		},
+		"OOB_OTP": &graphql.EnumValueConfig{
+			Value: "oob_otp",
+		},
+	},
+})
+
+var authenticatorKind = graphql.NewEnum(graphql.EnumConfig{
+	Name: "AuthenticatorKind",
+	Values: graphql.EnumValueConfigMap{
+		"PRIMARY": &graphql.EnumValueConfig{
+			Value: "primary",
+		},
+		"SECONDARY": &graphql.EnumValueConfig{
+			Value: "secondary",
+		},
+	},
+})
+
 var nodeAuthenticator = entity(
 	graphql.NewObject(graphql.ObjectConfig{
 		Name: typeAuthenticator,
@@ -31,10 +58,30 @@ var nodeAuthenticator = entity(
 			"createdAt": entityCreatedAtField(loadAuthenticator),
 			"updatedAt": entityUpdatedAtField(loadAuthenticator),
 			"type": &graphql.Field{
-				Type: graphql.NewNonNull(graphql.String),
+				Type: graphql.NewNonNull(authenticatorType),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					ref := p.Source.(interface{ ToRef() *authenticator.Ref }).ToRef()
 					return string(ref.Type), nil
+				},
+			},
+			"kind": &graphql.Field{
+				Type: graphql.NewNonNull(authenticatorKind),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					info := loadAuthenticator(p.Context, p.Source)
+					return info.Map(func(value interface{}) (interface{}, error) {
+						a := value.(*authenticator.Info)
+						return string(a.Kind), nil
+					}).Value, nil
+				},
+			},
+			"isDefault": &graphql.Field{
+				Type: graphql.NewNonNull(graphql.Boolean),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					info := loadAuthenticator(p.Context, p.Source)
+					return info.Map(func(value interface{}) (interface{}, error) {
+						a := value.(*authenticator.Info)
+						return a.IsDefault, nil
+					}).Value, nil
 				},
 			},
 			"claims": &graphql.Field{

@@ -5,8 +5,9 @@ import (
 )
 
 type Spec struct {
-	UserID string                  `json:"user_id"`
-	Type   authn.AuthenticatorType `json:"type"`
-	Tag    []string                `json:"tag,omitempty"`
-	Claims map[string]interface{}  `json:"claims"`
+	UserID    string                  `json:"user_id"`
+	Type      authn.AuthenticatorType `json:"type"`
+	IsDefault bool                    `json:"is_default"`
+	Kind      Kind                    `json:"kind"`
+	Claims    map[string]interface{}  `json:"claims"`
 }

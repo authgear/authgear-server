@@ -10,7 +10,13 @@ type Authenticator implements Entity & Node {
   id: ID!
 
   """"""
-  type: String!
+  isDefault: Boolean!
+
+  """"""
+  kind: AuthenticatorKind!
+
+  """"""
+  type: AuthenticatorType!
 
   """The update time of entity"""
   updatedAt: DateTime!
@@ -40,6 +46,27 @@ type AuthenticatorEdge {
 
   """The item at the end of the edge"""
   node: Authenticator
+}
+
+""""""
+enum AuthenticatorKind {
+  """"""
+  PRIMARY
+
+  """"""
+  SECONDARY
+}
+
+""""""
+enum AuthenticatorType {
+  """"""
+  OOB_OTP
+
+  """"""
+  PASSWORD
+
+  """"""
+  TOTP
 }
 
 """

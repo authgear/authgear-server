@@ -84,7 +84,7 @@ func (p *Provider) SendCode(loginID string) error {
 		authenticators, err := p.Authenticators.List(
 			info.UserID,
 			authenticator.KeepType(authn.AuthenticatorTypePassword),
-			authenticator.KeepTag(authenticator.TagPrimaryAuthenticator),
+			authenticator.KeepKind(authenticator.KindPrimary),
 		)
 		if err != nil {
 			return err
@@ -235,7 +235,7 @@ func (p *Provider) ResetPassword(codeStr string, newPassword string) (oldInfo *a
 	ais, err := p.Authenticators.List(
 		code.UserID,
 		authenticator.KeepType(authn.AuthenticatorTypePassword),
-		authenticator.KeepTag(authenticator.TagPrimaryAuthenticator),
+		authenticator.KeepKind(authenticator.KindPrimary),
 	)
 	if err != nil {
 		return

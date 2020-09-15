@@ -18,62 +18,46 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 			{
 				&Info{
 					Type: authn.AuthenticatorTypePassword,
-					Tag: []string{
-						TagPrimaryAuthenticator,
-					},
+					Kind: KindPrimary,
 				},
 				&Info{
 					Type: authn.AuthenticatorTypePassword,
-					Tag: []string{
-						TagPrimaryAuthenticator,
-					},
+					Kind: KindPrimary,
 				},
 			},
 			{
 				&Info{
 					Type: authn.AuthenticatorTypePassword,
-					Tag: []string{
-						TagSecondaryAuthenticator,
-					},
+					Kind: KindSecondary,
 				},
 				&Info{
 					Type: authn.AuthenticatorTypePassword,
-					Tag: []string{
-						TagSecondaryAuthenticator,
-					},
+					Kind: KindSecondary,
 				},
 			},
 
 			// TOTP with the same secret.
 			{
 				&Info{
-					Type: authn.AuthenticatorTypeTOTP,
-					Tag: []string{
-						TagPrimaryAuthenticator,
-					},
+					Type:   authn.AuthenticatorTypeTOTP,
+					Kind:   KindPrimary,
 					Secret: "secret",
 				},
 				&Info{
-					Type: authn.AuthenticatorTypeTOTP,
-					Tag: []string{
-						TagPrimaryAuthenticator,
-					},
+					Type:   authn.AuthenticatorTypeTOTP,
+					Kind:   KindPrimary,
 					Secret: "secret",
 				},
 			},
 			{
 				&Info{
-					Type: authn.AuthenticatorTypeTOTP,
-					Tag: []string{
-						TagSecondaryAuthenticator,
-					},
+					Type:   authn.AuthenticatorTypeTOTP,
+					Kind:   KindSecondary,
 					Secret: "secret",
 				},
 				&Info{
-					Type: authn.AuthenticatorTypeTOTP,
-					Tag: []string{
-						TagSecondaryAuthenticator,
-					},
+					Type:   authn.AuthenticatorTypeTOTP,
+					Kind:   KindSecondary,
 					Secret: "secret",
 				},
 			},
@@ -82,9 +66,7 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 			{
 				&Info{
 					Type: authn.AuthenticatorTypeOOB,
-					Tag: []string{
-						TagPrimaryAuthenticator,
-					},
+					Kind: KindPrimary,
 					Claims: map[string]interface{}{
 						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
 						AuthenticatorClaimOOBOTPEmail:       "user@example",
@@ -93,59 +75,7 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 				},
 				&Info{
 					Type: authn.AuthenticatorTypeOOB,
-					Tag: []string{
-						TagPrimaryAuthenticator,
-					},
-					Claims: map[string]interface{}{
-						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
-						AuthenticatorClaimOOBOTPEmail:       "user@example",
-						AuthenticatorClaimOOBOTPPhone:       "",
-					},
-				},
-			},
-
-			{
-				&Info{
-					Type: authn.AuthenticatorTypeOOB,
-					Tag: []string{
-						TagPrimaryAuthenticator,
-					},
-					Claims: map[string]interface{}{
-						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
-						AuthenticatorClaimOOBOTPEmail:       "",
-						AuthenticatorClaimOOBOTPPhone:       "+85299887766",
-					},
-				},
-				&Info{
-					Type: authn.AuthenticatorTypeOOB,
-					Tag: []string{
-						TagPrimaryAuthenticator,
-					},
-					Claims: map[string]interface{}{
-						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
-						AuthenticatorClaimOOBOTPEmail:       "",
-						AuthenticatorClaimOOBOTPPhone:       "+85299887766",
-					},
-				},
-			},
-
-			{
-				&Info{
-					Type: authn.AuthenticatorTypeOOB,
-					Tag: []string{
-						TagSecondaryAuthenticator,
-					},
-					Claims: map[string]interface{}{
-						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
-						AuthenticatorClaimOOBOTPEmail:       "user@example",
-						AuthenticatorClaimOOBOTPPhone:       "",
-					},
-				},
-				&Info{
-					Type: authn.AuthenticatorTypeOOB,
-					Tag: []string{
-						TagSecondaryAuthenticator,
-					},
+					Kind: KindPrimary,
 					Claims: map[string]interface{}{
 						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
 						AuthenticatorClaimOOBOTPEmail:       "user@example",
@@ -157,9 +87,7 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 			{
 				&Info{
 					Type: authn.AuthenticatorTypeOOB,
-					Tag: []string{
-						TagSecondaryAuthenticator,
-					},
+					Kind: KindPrimary,
 					Claims: map[string]interface{}{
 						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
 						AuthenticatorClaimOOBOTPEmail:       "",
@@ -168,9 +96,49 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 				},
 				&Info{
 					Type: authn.AuthenticatorTypeOOB,
-					Tag: []string{
-						TagSecondaryAuthenticator,
+					Kind: KindPrimary,
+					Claims: map[string]interface{}{
+						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
+						AuthenticatorClaimOOBOTPEmail:       "",
+						AuthenticatorClaimOOBOTPPhone:       "+85299887766",
 					},
+				},
+			},
+
+			{
+				&Info{
+					Type: authn.AuthenticatorTypeOOB,
+					Kind: KindSecondary,
+					Claims: map[string]interface{}{
+						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
+						AuthenticatorClaimOOBOTPEmail:       "user@example",
+						AuthenticatorClaimOOBOTPPhone:       "",
+					},
+				},
+				&Info{
+					Type: authn.AuthenticatorTypeOOB,
+					Kind: KindSecondary,
+					Claims: map[string]interface{}{
+						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
+						AuthenticatorClaimOOBOTPEmail:       "user@example",
+						AuthenticatorClaimOOBOTPPhone:       "",
+					},
+				},
+			},
+
+			{
+				&Info{
+					Type: authn.AuthenticatorTypeOOB,
+					Kind: KindSecondary,
+					Claims: map[string]interface{}{
+						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
+						AuthenticatorClaimOOBOTPEmail:       "",
+						AuthenticatorClaimOOBOTPPhone:       "+85299887766",
+					},
+				},
+				&Info{
+					Type: authn.AuthenticatorTypeOOB,
+					Kind: KindSecondary,
 					Claims: map[string]interface{}{
 						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
 						AuthenticatorClaimOOBOTPEmail:       "",
@@ -206,32 +174,24 @@ func TestAuthenticatorEqualFalse(t *testing.T) {
 			{
 				&Info{
 					Type: authn.AuthenticatorTypePassword,
-					Tag: []string{
-						TagPrimaryAuthenticator,
-					},
+					Kind: KindPrimary,
 				},
 				&Info{
 					Type: authn.AuthenticatorTypePassword,
-					Tag: []string{
-						TagSecondaryAuthenticator,
-					},
+					Kind: KindSecondary,
 				},
 			},
 
 			// TOTP with different secret.
 			{
 				&Info{
-					Type: authn.AuthenticatorTypeTOTP,
-					Tag: []string{
-						TagPrimaryAuthenticator,
-					},
+					Type:   authn.AuthenticatorTypeTOTP,
+					Kind:   KindPrimary,
 					Secret: "secret1",
 				},
 				&Info{
-					Type: authn.AuthenticatorTypeTOTP,
-					Tag: []string{
-						TagPrimaryAuthenticator,
-					},
+					Type:   authn.AuthenticatorTypeTOTP,
+					Kind:   KindPrimary,
 					Secret: "secret2",
 				},
 			},
@@ -240,9 +200,7 @@ func TestAuthenticatorEqualFalse(t *testing.T) {
 			{
 				&Info{
 					Type: authn.AuthenticatorTypeOOB,
-					Tag: []string{
-						TagPrimaryAuthenticator,
-					},
+					Kind: KindPrimary,
 					Claims: map[string]interface{}{
 						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
 						AuthenticatorClaimOOBOTPEmail:       "user1@example",
@@ -251,9 +209,7 @@ func TestAuthenticatorEqualFalse(t *testing.T) {
 				},
 				&Info{
 					Type: authn.AuthenticatorTypeOOB,
-					Tag: []string{
-						TagPrimaryAuthenticator,
-					},
+					Kind: KindPrimary,
 					Claims: map[string]interface{}{
 						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
 						AuthenticatorClaimOOBOTPEmail:       "user2@example",

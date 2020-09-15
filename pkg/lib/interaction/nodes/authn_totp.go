@@ -25,8 +25,8 @@ func (e *EdgeAuthenticationTOTP) AuthenticatorType() authn.AuthenticatorType {
 	return authn.AuthenticatorTypeTOTP
 }
 
-func (e *EdgeAuthenticationTOTP) HasDefaultTag() bool {
-	filtered := filterAuthenticators(e.Authenticators, authenticator.KeepTag(authenticator.TagDefaultAuthenticator))
+func (e *EdgeAuthenticationTOTP) IsDefaultAuthenticator() bool {
+	filtered := filterAuthenticators(e.Authenticators, authenticator.KeepDefault)
 	return len(filtered) > 0
 }
 

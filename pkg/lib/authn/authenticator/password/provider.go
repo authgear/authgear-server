@@ -49,15 +49,13 @@ func (p *Provider) List(userID string) ([]*Authenticator, error) {
 	return authenticators, nil
 }
 
-func (p *Provider) New(userID string, password string, tag []string) (*Authenticator, error) {
-	if tag == nil {
-		tag = []string{}
-	}
+func (p *Provider) New(userID string, password string, isDefault bool, kind string) (*Authenticator, error) {
 	authen := &Authenticator{
-		ID:     uuid.New(),
-		Labels: make(map[string]interface{}),
-		UserID: userID,
-		Tag:    tag,
+		ID:        uuid.New(),
+		Labels:    make(map[string]interface{}),
+		UserID:    userID,
+		IsDefault: isDefault,
+		Kind:      kind,
 	}
 	// Empty password is not supported in password authenticator
 	// If the password is empty string means no password for this password authenticator

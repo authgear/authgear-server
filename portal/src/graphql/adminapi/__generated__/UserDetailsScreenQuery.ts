@@ -3,6 +3,8 @@
 // @generated
 // This file was automatically generated and should not be edited.
 
+import { AuthenticatorType, AuthenticatorKind } from "./globalTypes";
+
 // ====================================================
 // GraphQL query operation: UserDetailsScreenQuery
 // ====================================================
@@ -17,7 +19,9 @@ export interface UserDetailsScreenQuery_node_User_authenticators_edges_node {
    * The ID of an object
    */
   id: string;
-  type: string;
+  type: AuthenticatorType;
+  kind: AuthenticatorKind;
+  isDefault: boolean;
   claims: GQL_AuthenticatorClaims;
   /**
    * The creation time of entity

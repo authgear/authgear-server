@@ -25,7 +25,8 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"a.user_id",
 			"a.created_at",
 			"a.updated_at",
-			"a.tag",
+			"a.is_default",
+			"a.kind",
 			"ao.channel",
 			"ao.phone",
 			"ao.email",
@@ -37,7 +38,6 @@ func (s *Store) selectQuery() db.SelectBuilder {
 func (s *Store) scan(scn db.Scanner) (*Authenticator, error) {
 	a := &Authenticator{}
 	var labels []byte
-	var tag []byte
 
 	err := scn.Scan(
 		&a.ID,
@@ -45,7 +45,8 @@ func (s *Store) scan(scn db.Scanner) (*Authenticator, error) {
 		&a.UserID,
 		&a.CreatedAt,
 		&a.UpdatedAt,
-		&tag,
+		&a.IsDefault,
+		&a.Kind,
 		&a.Channel,
 		&a.Phone,
 		&a.Email,
@@ -57,10 +58,6 @@ func (s *Store) scan(scn db.Scanner) (*Authenticator, error) {
 	}
 
 	if err = json.Unmarshal(labels, &a.Labels); err != nil {
-		return nil, err
-	}
-
-	if err = json.Unmarshal(tag, &a.Tag); err != nil {
 		return nil, err
 	}
 
@@ -146,11 +143,6 @@ func (s *Store) Create(a *Authenticator) error {
 		return err
 	}
 
-	tag, err := json.Marshal(a.Tag)
-	if err != nil {
-		return err
-	}
-
 	q := s.SQLBuilder.Tenant().
 		Insert(s.SQLBuilder.FullTableName("authenticator")).
 		Columns(
@@ -160,7 +152,8 @@ func (s *Store) Create(a *Authenticator) error {
 			"user_id",
 			"created_at",
 			"updated_at",
-			"tag",
+			"is_default",
+			"kind",
 		).
 		Values(
 			a.ID,
@@ -169,7 +162,8 @@ func (s *Store) Create(a *Authenticator) error {
 			a.UserID,
 			a.CreatedAt,
 			a.UpdatedAt,
-			tag,
+			a.IsDefault,
+			a.Kind,
 		)
 	_, err = s.SQLExecutor.ExecWith(q)
 	if err != nil {

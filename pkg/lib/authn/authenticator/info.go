@@ -6,7 +6,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
-	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 type Info struct {
@@ -17,16 +16,18 @@ type Info struct {
 	UpdatedAt time.Time               `json:"updated_at"`
 	Type      authn.AuthenticatorType `json:"type"`
 	Secret    string                  `json:"secret"`
-	Tag       []string                `json:"tag,omitempty"`
+	IsDefault bool                    `json:"is_default"`
+	Kind      Kind                    `json:"kind"`
 	Claims    map[string]interface{}  `json:"claims"`
 }
 
 func (i *Info) ToSpec() Spec {
 	return Spec{
-		UserID: i.UserID,
-		Type:   i.Type,
-		Tag:    i.Tag,
-		Claims: i.Claims,
+		UserID:    i.UserID,
+		Type:      i.Type,
+		IsDefault: i.IsDefault,
+		Kind:      i.Kind,
+		Claims:    i.Claims,
 	}
 }
 
@@ -82,26 +83,20 @@ func (i *Info) Equal(that *Info) bool {
 		return false
 	}
 
-	iPrimary := slice.ContainsString(i.Tag, TagPrimaryAuthenticator)
-	thatPrimary := slice.ContainsString(that.Tag, TagPrimaryAuthenticator)
-
-	iSecondary := slice.ContainsString(i.Tag, TagSecondaryAuthenticator)
-	thatSecondary := slice.ContainsString(that.Tag, TagSecondaryAuthenticator)
-
 	switch i.Type {
 	case authn.AuthenticatorTypePassword:
 		// If they are password, they have the same primary/secondary tag.
-		return (iPrimary && thatPrimary) || (iSecondary && thatSecondary)
+		return i.Kind == that.Kind
 	case authn.AuthenticatorTypeTOTP:
 		// If they are TOTP, they have the same secret, and primary/secondary tag.
-		if (iPrimary != thatPrimary) || (iSecondary != thatSecondary) {
+		if i.Kind != that.Kind {
 			return false
 		}
 
 		return subtle.ConstantTimeCompare([]byte(i.Secret), []byte(that.Secret)) == 1
 	case authn.AuthenticatorTypeOOB:
 		// If they are OOB, they have the same channel, target, and primary/secondary tag.
-		if (iPrimary != thatPrimary) || (iSecondary != thatSecondary) {
+		if i.Kind != that.Kind {
 			return false
 		}
 
