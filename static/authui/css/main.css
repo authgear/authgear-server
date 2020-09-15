@@ -505,10 +505,15 @@ a.btn {
 }
 
 .settings-row {
-  margin: 14px 18px;
+  margin: 10px 14px 0px 14px;
+  padding: 0 0 10px 0;
 }
 
-.settings-section {
+.settings-row:not(:last-child) {
+  border-bottom: 1px solid #E5E5E5;
+}
+
+.settings-page-section-with-title-desc-action {
   display: grid;
   grid: "title    action" auto
         "desc     ......" auto
@@ -516,21 +521,22 @@ a.btn {
   gap: 8px;
 }
 
-.settings-section > * {
+.settings-page-section-with-title-desc-action > * {
   margin: 0;
 }
 
-.settings-section .title {
+
+.settings-page-section-with-title-desc-action .title {
   grid-area: title;
   font-size: 1rem;
 }
 
-.settings-section .description {
+.settings-page-section-with-title-desc-action .description {
   grid-area: desc;
   font-size: smaller;
 }
 
-.settings-section .action {
+.settings-page-section-with-title-desc-action .action {
   grid-area: action;
 }
 

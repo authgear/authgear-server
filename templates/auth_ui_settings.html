@@ -15,24 +15,43 @@
 <!-- Security -->
 <section class="pane">
   <!-- The title and the description -->
-  <section class="settings-row settings-section">
+  <section class="settings-row settings-page-section-with-title-desc-action">
     <h2 class="title primary-txt">
-      {{ template "settings-authenticator-title" }}
+      {{ template "settings-page-security-section-title" }}
     </h2>
     <p class="description secondary-txt">
-      {{ template "settings-item-authenticator-description" }}
+      {{ template "settings-page-security-section-description" }}
     </p>
   </section>
+
+  <!-- Primary Password -->
+  {{ range $.Authenticators }}
+  {{ if eq .Type "password" }}{{ if eq .Kind "primary" }}
+  <section class="settings-row settings-page-section-with-title-desc-action">
+    <p class="title primary-txt">
+      {{ template "settings-page-primary-password-title" }}
+    </p>
+    <p class="description secondary-txt">
+    <!-- FIXME(ui): format localized date time -->
+    {{ template "settings-page-primary-password-description" (makemap "time" "FIXME") }}
+    </p>
+    <a class="action" href="#">
+      {{ template "change-password-button-label" }}
+    </a>
+  </section>
+  {{ end }}{{ end }}
+  {{ end }}
+
 </section>
 
 <!-- Connected Identities -->
 <section class="pane">
-  <section class="settings-row settings-section">
+  <section class="settings-row settings-page-section-with-title-desc-action">
     <h2 class="title primary-txt">
       {{ template "settings-identity-title" }}
     </h2>
     <p class="description secondary-txt">
-      {{ template "settings-item-identity-description" }}
+      {{ template "settings-page-identity-section-description" }}
     </p>
     <a class="action" href="/settings/identity">
       {{ template "details-button-label" }}

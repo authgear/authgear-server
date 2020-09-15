@@ -22,6 +22,7 @@
 	"setup-button-label": "Setup",
 	"remove-button-label": "Remove",
 	"details-button-label": "Details",
+	"change-password-button-label": "Change Password",
 	"resend-verification-code-button-label": "Resend verification code",
 	"verification-status-label--unverified": "Not verified",
 	"verification-status-label--verified": "Verified",
@@ -109,9 +110,11 @@
 	"logout-button-hint": "Click the button to sign out",
 	"logout-button-label": "Sign out",
 
-	"settings-authenticator-title": "Security",
-	"settings-item-authenticator-description": "These can be used to make sure that it''s really you signing in.",
-	"settings-item-identity-description": "Manage your list of connected identities",
+	"settings-page-security-section-title": "Security",
+	"settings-page-security-section-description": "These can be used to make sure that it''s really you signing in.",
+	"settings-page-identity-section-description": "Manage your list of connected identities",
+	"settings-page-primary-password-title": "Password",
+	"settings-page-primary-password-description": "Last updated at {time}",
 
 	"settings-identity-title": "Connected Identities",
 	"settings-identity-description": "These are the login identities and third party services connected to your account for signing in",
