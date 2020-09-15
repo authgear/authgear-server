@@ -307,13 +307,16 @@ const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = func
           <ShowError error={updateAppConfigError} />
         </div>
       )}
-      <SingleSignOnConfigurationWidget
-        className={styles.widget}
-        serviceProviderType={"apple"}
-        screenState={state}
-        setScreenState={setState}
-        violations={violationMap["apple"]}
-      />
+      {oauthSSOProviderTypes.map((providerType) => (
+        <SingleSignOnConfigurationWidget
+          key={providerType}
+          className={styles.widget}
+          serviceProviderType={providerType}
+          screenState={state}
+          setScreenState={setState}
+          violations={violationMap[providerType]}
+        />
+      ))}
       <ButtonWithLoading
         className={styles.saveButton}
         loading={updatingAppConfig}

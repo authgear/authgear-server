@@ -59,6 +59,7 @@ const serviceProviderMessageId: { [key in OAuthSSOProviderType]: string } = {
   azureadv2: "azureadv2",
 };
 
+// TODO: replace with actual icon
 const serviceProviderIcon: {
   [key in OAuthSSOProviderType]: React.ReactNode;
 } = {
@@ -76,41 +77,17 @@ const visibleFieldsMap: {
     "alias",
     "client_id",
     "clientSecret",
-    "tenant",
     "key_id",
     "team_id",
   ]),
-  google: new Set<WidgetTextFieldKey>([
-    "alias",
-    "client_id",
-    "clientSecret",
-    "tenant",
-    "key_id",
-    "team_id",
-  ]),
-  facebook: new Set<WidgetTextFieldKey>([
-    "alias",
-    "client_id",
-    "clientSecret",
-    "tenant",
-    "key_id",
-    "team_id",
-  ]),
-  linkedin: new Set<WidgetTextFieldKey>([
-    "alias",
-    "client_id",
-    "clientSecret",
-    "tenant",
-    "key_id",
-    "team_id",
-  ]),
+  google: new Set<WidgetTextFieldKey>(["alias", "client_id", "clientSecret"]),
+  facebook: new Set<WidgetTextFieldKey>(["alias", "client_id", "clientSecret"]),
+  linkedin: new Set<WidgetTextFieldKey>(["alias", "client_id", "clientSecret"]),
   azureadv2: new Set<WidgetTextFieldKey>([
     "alias",
     "client_id",
     "clientSecret",
     "tenant",
-    "key_id",
-    "team_id",
   ]),
 };
 
@@ -311,7 +288,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
       extendButtonAriaLabelId={serviceMessageId}
       extendable={true}
       readOnly={!widgetState.enabled}
-      initiallyExtended={true}
+      initiallyExtended={widgetState.enabled}
       HeaderComponent={
         <WidgetHeader
           icon={icon}

@@ -35,11 +35,11 @@ interface LoginIDConfig {
 
 // OAuthSSOConfig
 export const oauthSSOProviderTypes = [
+  "apple",
   "google",
   "facebook",
   "linkedin",
   "azureadv2",
-  "apple",
 ] as const;
 export type OAuthSSOProviderType = typeof oauthSSOProviderTypes[number];
 export function isOAuthSSOProviderType(
