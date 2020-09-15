@@ -4,7 +4,7 @@ import { nonNullable } from "./types";
 import { Values } from "@oursky/react-messageformat";
 
 // union type of different kind of violation
-export type Violation = RequiredViolation;
+export type Violation = RequiredViolation | GeneralViolation;
 
 interface RequiredViolation {
   kind: "required";
@@ -12,8 +12,13 @@ interface RequiredViolation {
   missingField: string[];
 }
 
+interface GeneralViolation {
+  kind: "general";
+  location: string;
+}
+
 // list of violation kind recognized
-const violationKinds = ["required"];
+const violationKinds = ["required", "general"];
 type ViolationKind = Violation["kind"];
 function isViolationKind(value?: string): value is ViolationKind {
   return value != null && violationKinds.includes(value);
@@ -32,8 +37,18 @@ interface RequiredErrorCause {
   kind: "required";
 }
 
+interface GeneralErrorCauseDetails {
+  msg: string;
+}
+
+interface GeneralErrorCause {
+  details: GeneralErrorCauseDetails;
+  location: string;
+  kind: "general";
+}
+
 // union type of cause details, depend on kind
-type ErrorCause = RequiredErrorCause;
+type ErrorCause = RequiredErrorCause | GeneralErrorCause;
 
 interface ValidationErrorInfo {
   causes: ErrorCause[];
@@ -65,14 +80,21 @@ function defaultFormatErrorMessageList(
 }
 
 function extractViolationFromErrorCause(cause: ErrorCause): Violation | null {
-  if (!isViolationKind(cause.kind)) {
-    return null;
+  switch (cause.kind) {
+    case "required":
+      return {
+        kind: cause.kind,
+        missingField: cause.details.missing,
+        location: cause.location,
+      };
+    case "general":
+      return {
+        kind: cause.kind,
+        location: cause.location,
+      };
+    default:
+      return null;
   }
-  return {
-    kind: cause.kind,
-    missingField: cause.details.missing,
-    location: cause.location,
-  };
 }
 
 function handleUpdateAppConfigError(error: GraphQLError): Violation[] {
@@ -111,11 +133,9 @@ export function makeMissingFieldSelector(
   fieldName: string
 ): ViolationSelector {
   return function (violation: Violation) {
-    /* uncomment when there is more than one violation kind
     if (violation.kind !== "required") {
-      return false
+      return false;
     }
-    */
     if (!violation.location.startsWith(locationPrefix)) {
       return false;
     }
@@ -159,8 +179,9 @@ function violationFormatter(
       return renderToString("required-field-missing", {
         fieldName: renderToString(fieldNameId),
       });
+    default:
+      return undefined;
   }
-  return undefined;
 }
 
 export function errorFormatter(
