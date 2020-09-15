@@ -186,6 +186,31 @@ window.addEventListener("load", function() {
     }
   }
 
+
+  // It is important that this is not an arrow function.
+  // This function relies on `this` being the XHR object.
+  function handleXHRFormSubmission(e) {
+    var currentURLString = window.location.href;
+    var responseURLString = this.responseURL;
+
+    var currentURL = new URL(currentURLString);
+    var responseURL = new URL(responseURLString);
+
+    // We are still within our application.
+    if (currentURL.protocol === responseURL.protocol && currentURL.origin === responseURL.origin) {
+      // Same path. Currently we assume this is form submission error.
+      if (currentURL.pathname === responseURL.pathname) {
+        history.replaceState({}, "", responseURLString);
+      } else {
+        history.pushState({}, "", responseURLString);
+      }
+      window.location.reload();
+    } else {
+      // Otherwise redirect natively.
+      window.location.href = responseURLString;
+    }
+  }
+
   // Use XHR to submit form.
   // If we rely on the browser to submit the form for us,
   // error submission will add an entry to the history stack,
@@ -301,9 +326,7 @@ window.addEventListener("load", function() {
 
         var xhr = new XMLHttpRequest();
         xhr.withCredentials = true;
-        xhr.onload = function(e) {
-          window.location.href = xhr.responseURL;
-        };
+        xhr.onload = handleXHRFormSubmission;
         xhr.open(form.method, form.action, true);
         // Safari does not support xhr.send(URLSearchParams)
         // so we have to manually set content-type
@@ -314,10 +337,30 @@ window.addEventListener("load", function() {
     }
   }
 
+  function attachHistoryListener() {
+    window.addEventListener("popstate", function(e) {
+      var meta = document.querySelector('meta[name="x-authgear-request-url"]');
+      if (meta == null) {
+        return;
+      }
+
+      var currentURL = new URL(window.location.href);
+      // meta.content is without protocol, host, port.
+      // URL constructor is not smart enough to parse it.
+      // Therefore we need to tell them the base URL.
+      var pageURL = new URL(meta.content, currentURL);
+
+      if (currentURL.pathname !== pageURL.pathname) {
+        window.location.reload();
+      }
+    });
+  }
+
   attachPasswordVisibilityClick();
   attachBackButtonClick();
   attachPasswordPolicyCheck();
   attachResendButtonBehavior();
   attachFormSubmitOnceOnly();
   attachFormSubmitXHR();
+  attachHistoryListener();
 });
