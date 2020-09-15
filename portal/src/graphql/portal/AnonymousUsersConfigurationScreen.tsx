@@ -2,24 +2,23 @@ import React, { useContext, useCallback, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
-import {
-  Text,
-  Toggle,
-  Dropdown,
-  PrimaryButton,
-  IDropdownOption,
-} from "@fluentui/react";
+import { Text, Toggle, Dropdown, IDropdownOption } from "@fluentui/react";
 
 import { useAppConfigQuery } from "./query/appConfigQuery";
+import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
 import { AppConfigQuery } from "./query/__generated__/AppConfigQuery";
 import {
+  PortalAPIApp,
   PortalAPIAppConfig,
   PromotionConflictBehaviour,
   promotionConflictBehaviours,
   isPromotionConflictBehaviour,
 } from "../../types";
+import { useSimpleRPC } from "../../hook/misc";
+import { clearEmptyObject } from "../../util/misc";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
+import ButtonWithLoading from "../../ButtonWithLoading";
 
 import styles from "./AnonymousUsersConfigurationScreen.module.scss";
 
@@ -30,6 +29,10 @@ interface AnonymousUsersConfigurationScreenState {
 
 interface AnonymousUsersConfigurationProps {
   data?: AppConfigQuery;
+  updateAppConfig: (
+    appConfig: PortalAPIAppConfig
+  ) => Promise<PortalAPIApp | null>;
+  updatingAppConfig: boolean;
 }
 
 const DEFAULT_CONFLICT_BEHAVIOUR: PromotionConflictBehaviour = "error";
@@ -57,6 +60,7 @@ function constructStateFromAppConfig(
 
 function constructNewAppConfigFromState(
   state: AnonymousUsersConfigurationScreenState,
+  initialState: AnonymousUsersConfigurationScreenState,
   appConfig: PortalAPIAppConfig
 ) {
   return produce(appConfig, (draftConfig) => {
@@ -70,14 +74,27 @@ function constructNewAppConfigFromState(
     const { authentication } = draftConfig;
     const authenticationIdentitiesSet = new Set(authentication.identities);
 
+    const enabledStateChanged = state.enabled !== initialState.enabled;
+    const behaviourStateChanged =
+      state.promotionConflictBehaviour !==
+      initialState.promotionConflictBehaviour;
+
     if (state.enabled) {
-      authenticationIdentitiesSet.add("anonymous");
-      authentication.identities = Array.from(authenticationIdentitiesSet);
-      onConflict.promotion = state.promotionConflictBehaviour;
+      if (enabledStateChanged) {
+        authenticationIdentitiesSet.add("anonymous");
+        authentication.identities = Array.from(authenticationIdentitiesSet);
+      }
+      if (behaviourStateChanged) {
+        onConflict.promotion = state.promotionConflictBehaviour;
+      }
     } else {
-      authenticationIdentitiesSet.delete("anonymous");
-      authentication.identities = Array.from(authenticationIdentitiesSet);
+      if (enabledStateChanged) {
+        authenticationIdentitiesSet.delete("anonymous");
+        authentication.identities = Array.from(authenticationIdentitiesSet);
+      }
     }
+
+    clearEmptyObject(draftConfig);
   });
 }
 
@@ -97,13 +114,20 @@ function constructConflictBehaviourOptions(
 const AnonymousUsersConfiguration: React.FC<AnonymousUsersConfigurationProps> = function AnonymousUsersConfiguration(
   props: AnonymousUsersConfigurationProps
 ) {
-  const { data } = props;
+  const { data, updateAppConfig, updatingAppConfig } = props;
   const { renderToString } = useContext(Context);
 
-  const appConfig: PortalAPIAppConfig | null =
+  const effectiveAppConfig: PortalAPIAppConfig | null =
     data?.node?.__typename === "App" ? data.node.effectiveAppConfig : null;
+  const rawAppConfig: PortalAPIAppConfig | null =
+    data?.node?.__typename === "App" ? data.node.rawAppConfig : null;
 
-  const [state, setState] = useState(constructStateFromAppConfig(appConfig));
+  const initialState = useMemo(
+    () => constructStateFromAppConfig(effectiveAppConfig),
+    [effectiveAppConfig]
+  );
+
+  const [state, setState] = useState(initialState);
   const conflictBehaviourOptions = useMemo(() => {
     return constructConflictBehaviourOptions(state);
   }, [state]);
@@ -134,12 +158,17 @@ const AnonymousUsersConfiguration: React.FC<AnonymousUsersConfigurationProps> = 
   );
 
   const onSaveClicked = useCallback(() => {
-    if (appConfig == null) {
+    if (rawAppConfig == null) {
       return;
     }
-    constructNewAppConfigFromState(state, appConfig);
-    // TODO: call mutation to save config
-  }, [appConfig, state]);
+    const newAppConfig = constructNewAppConfigFromState(
+      state,
+      initialState,
+      rawAppConfig
+    );
+    // TODO: handle error
+    updateAppConfig(newAppConfig).catch(() => {});
+  }, [updateAppConfig, rawAppConfig, initialState, state]);
 
   return (
     <section className={styles.screenContent}>
@@ -159,9 +188,13 @@ const AnonymousUsersConfiguration: React.FC<AnonymousUsersConfigurationProps> = 
         options={conflictBehaviourOptions}
         onChange={onConflictOptionChange}
       />
-      <PrimaryButton className={styles.saveButton} onClick={onSaveClicked}>
-        <FormattedMessage id="save" />
-      </PrimaryButton>
+      <ButtonWithLoading
+        className={styles.saveButton}
+        onClick={onSaveClicked}
+        loading={updatingAppConfig}
+        labelId="save"
+        loadingLabelId="saving"
+      />
     </section>
   );
 };
@@ -169,6 +202,14 @@ const AnonymousUsersConfiguration: React.FC<AnonymousUsersConfigurationProps> = 
 const AnonymousUserConfigurationScreen: React.FC = function AnonymousUserConfigurationScreen() {
   const { appID } = useParams();
   const { loading, error, data, refetch } = useAppConfigQuery(appID);
+  const {
+    updateAppConfig: updateAppConfigMutation,
+  } = useUpdateAppConfigMutation(appID);
+  const {
+    loading: updatingAppConfig,
+    error: updateAppConfigError,
+    rpc: updateAppConfig,
+  } = useSimpleRPC(updateAppConfigMutation);
 
   if (loading) {
     return <ShowLoading />;
@@ -180,10 +221,15 @@ const AnonymousUserConfigurationScreen: React.FC = function AnonymousUserConfigu
 
   return (
     <main className={styles.root}>
+      {updateAppConfigError && <ShowError error={updateAppConfigError} />}
       <Text as="h1" className={styles.title}>
         <FormattedMessage id="AnonymousUsersConfigurationScreen.title" />
       </Text>
-      <AnonymousUsersConfiguration data={data} />
+      <AnonymousUsersConfiguration
+        data={data}
+        updateAppConfig={updateAppConfig}
+        updatingAppConfig={updatingAppConfig}
+      />
     </main>
   );
 };
