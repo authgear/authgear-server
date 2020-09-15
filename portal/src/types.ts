@@ -122,9 +122,33 @@ export interface PortalAPIAppConfig {
   verification?: VerificationConfig;
 }
 
+// secret config
+export const secretConfigKeyList = [
+  "db",
+  "redis",
+  "admin-api.auth",
+  "sso.oauth.client",
+  "mail.smtp",
+  "sms.twilio",
+  "sms.nexmo",
+  "oidc",
+  "csrf",
+  "webhook",
+] as const;
+export type SecretConfigKey = typeof secretConfigKeyList[number];
+
+interface SecretItem {
+  key: SecretConfigKey;
+  data: Record<string, unknown>;
+}
+
+export interface PortalAPISecretConfig {
+  secret: SecretItem[];
+}
+
 export interface PortalAPIApp {
   id: string;
   rawAppConfig?: PortalAPIAppConfig;
   effectiveAppConfig?: PortalAPIAppConfig;
-  secretConfig?: Record<string, unknown>;
+  secretConfig?: PortalAPISecretConfig;
 }
