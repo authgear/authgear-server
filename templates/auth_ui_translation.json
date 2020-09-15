@@ -109,6 +109,8 @@
 	"logout-button-hint": "Click the button to sign out",
 	"logout-button-label": "Sign out",
 
+	"settings-authenticator-title": "Security",
+	"settings-item-authenticator-description": "These can be used to make sure that it''s really you signing in.",
 	"settings-item-identity-description": "Manage your list of connected identities",
 
 	"settings-identity-title": "Connected Identities",
