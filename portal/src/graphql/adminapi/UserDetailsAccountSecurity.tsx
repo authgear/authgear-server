@@ -52,21 +52,15 @@ const secondaryAuthenticatorTypeLocaleKeyMap: {
 function getLocaleKeyWithAuthenticatorType(
   type: AuthenticatorType,
   kind: AuthenticatorKind
-) {
+): string | undefined {
   switch (kind) {
     case "PRIMARY":
       return primaryAuthenticatorTypeLocaleKeyMap[type];
     case "SECONDARY":
       return secondaryAuthenticatorTypeLocaleKeyMap[type];
+    default:
+      return undefined;
   }
-  return null;
-}
-
-function getAuthenticatorWithKind(
-  authenticators: Authenticator[],
-  kind: AuthenticatorKind
-): Authenticator[] {
-  return authenticators.filter((authenticator) => authenticator.kind === kind);
 }
 
 function getDescriptionFromAuthenticator(
@@ -95,7 +89,7 @@ function getDescriptionFromAuthenticator(
 function getLabelFromAuthenticator(authenticator: Authenticator) {
   const labelLocaleKey = getLocaleKeyWithAuthenticatorType(
     authenticator.type,
-    "PRIMARY"
+    authenticator.kind
   );
   return labelLocaleKey ? <FormattedMessage id={labelLocaleKey} /> : null;
 }
@@ -131,13 +125,11 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
   const { authenticators } = props;
   const { locale } = useContext(Context);
 
-  const primaryAuthenticators = getAuthenticatorWithKind(
-    authenticators,
-    "PRIMARY"
+  const primaryAuthenticators = authenticators.filter(
+    (a) => a.kind === "PRIMARY"
   );
-  const secondaryAuthenticators = getAuthenticatorWithKind(
-    authenticators,
-    "SECONDARY"
+  const secondaryAuthenticators = authenticators.filter(
+    (a) => a.kind === "SECONDARY"
   );
 
   const primaryAuthenticatorListItems: AuthenticatorListItem[] = useMemo(() => {
