@@ -83,18 +83,19 @@
   {{ end }}
 
   <!-- Secondary TOTP -->
-  {{ if $.SecondaryTOTPEnabled }}
+  <!-- This section is shown if this is allowed in the configuration -->
+  <!-- or the user somehow has authenticator of this kind -->
+  {{ $totp := false }}
+  {{ range $.Authenticators }}
+  {{ if eq .Type "totp" }}{{ if eq .Kind "secondary" }}
+  {{ $totp = true }}
+  {{ end }}{{ end }}
+  {{ end }}
+  {{ if (or $totp $.SecondaryTOTPAllowed) }}
   <section class="settings-row settings-page-section-with-title-desc-action">
     <p class="title primary-txt">
       {{ template "settings-page-secondary-totp-title" }}
     </p>
-    {{ $totp := false }}
-
-    {{ range $.Authenticators }}
-    {{ if eq .Type "totp" }}{{ if eq .Kind "secondary" }}
-    {{ $totp = true }}
-    {{ end }}{{ end }}
-    {{ end }}
     {{ if $totp }}
     <p class="description good-txt">
       {{ template "activated-label" }}
@@ -104,7 +105,6 @@
       {{ template "inactive-label" }}
     </p>
     {{ end }}
-
     <a class="action" href="#">
       {{ template "details-button-label" }}
     </a>
@@ -112,19 +112,20 @@
   {{ end }}
 
   <!-- Secondary OOB OTP -->
-  {{ if $.SecondaryOOBOTPEnabled }}
+  <!-- This section is shown if this is allowed in the configuration -->
+  <!-- or the user somehow has authenticator of this kind -->
+  {{ $oob_otp := false }}
+  {{ range $.Authenticators }}
+  {{ if eq .Type "oob_otp" }}{{ if eq .Kind "secondary" }}
+  {{ $oob_otp = true }}
+  {{ end }}{{ end }}
+  {{ end }}
+  {{ if (or $oob_otp $.SecondaryOOBOTPAllowed) }}
   <section class="settings-row settings-page-section-with-title-desc-action">
     <p class="title primary-txt">
       {{ template "settings-page-secondary-oob-otp-title" }}
     </p>
-    {{ $totp := false }}
-
-    {{ range $.Authenticators }}
-    {{ if eq .Type "oob_otp" }}{{ if eq .Kind "secondary" }}
-    {{ $totp = true }}
-    {{ end }}{{ end }}
-    {{ end }}
-    {{ if $totp }}
+    {{ if $oob_otp }}
     <p class="description good-txt">
       {{ template "activated-label" }}
     </p>
@@ -133,7 +134,6 @@
       {{ template "inactive-label" }}
     </p>
     {{ end }}
-
     <a class="action" href="#">
       {{ template "details-button-label" }}
     </a>
@@ -141,27 +141,24 @@
   {{ end }}
 
   <!-- Secondary Password -->
-  {{ if $.SecondaryPasswordEnabled }}
   {{ $secondary_password := false }}
-
   <!-- The user at most has 1 secondary password. -->
   {{ range $.Authenticators }}
-  {{ if eq .Type "oob_otp" }}{{ if eq .Kind "secondary" }}
+  {{ if eq .Type "password" }}{{ if eq .Kind "secondary" }}
   {{ $secondary_password = . }}
   {{ end }}{{ end }}
   {{ end }}
 
+  {{ if (or $.SecondaryPasswordAllowed $secondary_password) }}
   <section class="settings-row settings-page-section-with-title-desc-action">
     <p class="title primary-txt">
       {{ template "settings-page-secondary-password-title" }}
     </p>
-
     {{ if $secondary_password }}
     <p class="description secondary-txt">
       {{ template "settings-page-secondary-password-description" (makemap "time" "FIXME") }}
     </p>
     {{ end }}
-
     {{ if $secondary_password }}
     <a class="action" href="#">
       {{ template "change-password-button-label" }}
@@ -172,7 +169,6 @@
     </a>
     {{ end }}
   </section>
-
   {{ end }}
 
   <!-- Recovery code -->

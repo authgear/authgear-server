@@ -33,9 +33,9 @@ func ConfigureSettingsRoute(route httproute.Route) httproute.Route {
 type SettingsViewModel struct {
 	Authenticators           []*authenticator.Info
 	MFAActivated             bool
-	SecondaryTOTPEnabled     bool
-	SecondaryOOBOTPEnabled   bool
-	SecondaryPasswordEnabled bool
+	SecondaryTOTPAllowed     bool
+	SecondaryOOBOTPAllowed   bool
+	SecondaryPasswordAllowed bool
 }
 
 type SettingsAuthenticatorService interface {
@@ -90,9 +90,9 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		viewModel := SettingsViewModel{
 			Authenticators:           authenticators,
 			MFAActivated:             mfaActivated,
-			SecondaryTOTPEnabled:     totp,
-			SecondaryOOBOTPEnabled:   oobotp,
-			SecondaryPasswordEnabled: password,
+			SecondaryTOTPAllowed:     totp,
+			SecondaryOOBOTPAllowed:   oobotp,
+			SecondaryPasswordAllowed: password,
 		}
 		viewmodels.Embed(data, viewModel)
 
