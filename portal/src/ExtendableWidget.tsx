@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useMemo,
   useContext,
+  useRef,
 } from "react";
 import { IconButton, DefaultEffects } from "@fluentui/react";
 import cn from "classnames";
@@ -47,15 +48,38 @@ const ExtendableWidget: React.FC<ExtendableWidgetProps> = function ExtendableWid
 
   const { renderToString } = useContext(Context);
 
+  // clear timeout on component dismount
+  const timeoutRef = useRef<number>();
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current != null) {
+        window.clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
   const onExtendClicked = useCallback(() => {
     const stateAftertoggle = !extended;
     setExtended(stateAftertoggle);
+    // NOTE: css transistion will not work if height in
+    // either end is indefinite (eg. auto)
     if (!stateAftertoggle) {
-      setContentHeight("0");
+      if (contentDivRef.current != null) {
+        setContentHeight(`${contentDivRef.current.offsetHeight}px`);
+      }
+      // make sure height is set to current height, then
+      // set to 0, prevent React batch update the state,
+      // resulting in auto -> 0 transition
+      window.setTimeout(() => {
+        setContentHeight("0");
+      }, 0);
       return;
     }
     if (contentDivRef.current != null) {
       setContentHeight(`${contentDivRef.current.offsetHeight}px`);
+      timeoutRef.current = window.setTimeout(() => {
+        setContentHeight("auto");
+      }, 200);
       return;
     }
     setContentHeight("auto");
