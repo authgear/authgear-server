@@ -14,48 +14,6 @@ window.addEventListener("load", function() {
     }
   });
 
-  function togglePasswordVisibility() {
-    var pwd = document.querySelector("#password");
-    if (pwd == null) {
-      return;
-    }
-    if (pwd.type === "password") {
-      pwd.type = "text";
-    } else {
-      pwd.type = "password";
-    }
-    var els = document.querySelectorAll(".password-visibility-btn");
-    for (var i = 0; i < els.length; i++) {
-      var el = els[i];
-      if (el.classList.contains("show-password")) {
-        if (pwd.type === "text") {
-          el.style.display = "none";
-        } else {
-          el.style.display = "block";
-        }
-      }
-      if (el.classList.contains("hide-password")) {
-        if (pwd.type === "password") {
-          el.style.display = "none";
-        } else {
-          el.style.display = "block";
-        }
-      }
-    }
-  }
-
-  function attachPasswordVisibilityClick() {
-    var els = document.querySelectorAll(".password-visibility-btn");
-    for (var i = 0; i < els.length; i++) {
-      var el = els[i];
-      el.addEventListener("click", function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        togglePasswordVisibility();
-      });
-    }
-  }
-
   function attachBackButtonClick() {
     var els = document.querySelectorAll(".btn.back-btn");
     for (var i = 0; i < els.length; i++) {
@@ -356,7 +314,6 @@ window.addEventListener("load", function() {
     });
   }
 
-  attachPasswordVisibilityClick();
   attachBackButtonClick();
   attachPasswordPolicyCheck();
   attachResendButtonBehavior();

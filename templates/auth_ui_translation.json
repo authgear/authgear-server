@@ -55,8 +55,6 @@
 	"enter-password-page-title": "Enter password",
 	"password-placeholder": "password",
 	"forgot-password-button-label--enter-password-page": "Forgot Password?",
-	"show-password": "Show Password",
-	"hide-password": "Hide Password",
 
 	"oob-otp-page-title--sms": "SMS One-Time-Password",
 	"oob-otp-page-title--email": "Email One-Time-Password",

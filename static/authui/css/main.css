@@ -252,10 +252,6 @@ a.btn {
   visibility: hidden;
 }
 
-.password-visibility-btn.hide-password {
-  display: none;
-}
-
 @media (min-width: 320px) {
   .content {
     padding: 6px;
@@ -376,19 +372,6 @@ a.btn {
   text-align: center;
   margin: 6px;
   padding: 6px;
-}
-
-.password-visibility-btn {
-  max-width: 170px;
-  padding: 0 0 0 12px;
-}
-
-.password-visibility-btn.show-password {
-  background: url("../image/ic_show_password.png") 12px center / 20px auto no-repeat;
-}
-
-.password-visibility-btn.hide-password {
-  background: url("../image/ic_hide_password.png") 12px center / 20px auto no-repeat;
 }
 
 .password-policy.violated {
