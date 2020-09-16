@@ -43,62 +43,64 @@ interface SingleSignOnConfigurationWidgetProps {
 }
 
 type WidgetTextFieldKey = keyof Omit<
-  Omit<OAuthSSOProviderConfigState, "enabled">,
-  "type"
+  OAuthSSOProviderConfigState,
+  "enabled" | "type"
 >;
 
 type WidgetErrorState = Partial<Record<WidgetTextFieldKey, string>>;
 
+interface OAuthProviderInfo {
+  messageId: string;
+  iconNode: React.ReactNode;
+  fields: Set<WidgetTextFieldKey>;
+  isSecretFieldTextArea: boolean;
+}
+
 const TEXT_FIELD_STYLE = { errorMessage: { whiteSpace: "pre" } };
 
-const serviceProviderMessageId: { [key in OAuthSSOProviderType]: string } = {
-  apple: "apple",
-  google: "google",
-  facebook: "facebook",
-  linkedin: "linkedin",
-  azureadv2: "azureadv2",
-};
-
 // TODO: replace with actual icon
-const serviceProviderIcon: {
-  [key in OAuthSSOProviderType]: React.ReactNode;
-} = {
-  apple: <div className={styles.widgetLabelIcon} />,
-  google: <div className={styles.widgetLabelIcon} />,
-  facebook: <div className={styles.widgetLabelIcon} />,
-  linkedin: <div className={styles.widgetLabelIcon} />,
-  azureadv2: <div className={styles.widgetLabelIcon} />,
-};
-
-const visibleFieldsMap: {
-  [key in OAuthSSOProviderType]: Set<WidgetTextFieldKey>;
-} = {
-  apple: new Set<WidgetTextFieldKey>([
-    "alias",
-    "client_id",
-    "clientSecret",
-    "key_id",
-    "team_id",
-  ]),
-  google: new Set<WidgetTextFieldKey>(["alias", "client_id", "clientSecret"]),
-  facebook: new Set<WidgetTextFieldKey>(["alias", "client_id", "clientSecret"]),
-  linkedin: new Set<WidgetTextFieldKey>(["alias", "client_id", "clientSecret"]),
-  azureadv2: new Set<WidgetTextFieldKey>([
-    "alias",
-    "client_id",
-    "clientSecret",
-    "tenant",
-  ]),
-};
-
-const isSecretFieldTextArea: {
-  [key in OAuthSSOProviderType]: boolean;
-} = {
-  apple: true,
-  google: false,
-  facebook: false,
-  linkedin: false,
-  azureadv2: false,
+const oauthProviders: Record<OAuthSSOProviderType, OAuthProviderInfo> = {
+  apple: {
+    messageId: "apple",
+    iconNode: <div className={styles.widgetLabelIcon} />,
+    fields: new Set<WidgetTextFieldKey>([
+      "alias",
+      "client_id",
+      "clientSecret",
+      "key_id",
+      "team_id",
+    ]),
+    isSecretFieldTextArea: true,
+  },
+  google: {
+    messageId: "google",
+    iconNode: <div className={styles.widgetLabelIcon} />,
+    fields: new Set<WidgetTextFieldKey>(["alias", "client_id", "clientSecret"]),
+    isSecretFieldTextArea: false,
+  },
+  facebook: {
+    messageId: "facebook",
+    iconNode: <div className={styles.widgetLabelIcon} />,
+    fields: new Set<WidgetTextFieldKey>(["alias", "client_id", "clientSecret"]),
+    isSecretFieldTextArea: false,
+  },
+  linkedin: {
+    messageId: "linkedin",
+    iconNode: <div className={styles.widgetLabelIcon} />,
+    fields: new Set<WidgetTextFieldKey>(["alias", "client_id", "clientSecret"]),
+    isSecretFieldTextArea: false,
+  },
+  azureadv2: {
+    messageId: "azureadv2",
+    iconNode: <div className={styles.widgetLabelIcon} />,
+    fields: new Set<WidgetTextFieldKey>([
+      "alias",
+      "client_id",
+      "clientSecret",
+      "tenant",
+    ]),
+    isSecretFieldTextArea: false,
+  },
 };
 
 const WidgetHeaderLabel: React.FC<WidgetHeaderLabelProps> = function WidgetHeaderLabel(
@@ -180,9 +182,12 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
   const { renderToString } = useContext(Context);
   const setWidgetState = useSetWidgetState(setScreenState, serviceProviderType);
 
-  const icon = serviceProviderIcon[serviceProviderType];
-  const serviceMessageId = serviceProviderMessageId[serviceProviderType];
-  const visibleFields = visibleFieldsMap[serviceProviderType];
+  const {
+    messageId: serviceMessageId,
+    isSecretFieldTextArea,
+    iconNode,
+    fields: visibleFields,
+  } = oauthProviders[serviceProviderType];
   const widgetState = screenState[serviceProviderType];
 
   const [errorMap, setErrorMap] = useState<WidgetErrorState>({});
@@ -291,7 +296,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
       initiallyExtended={widgetState.enabled}
       HeaderComponent={
         <WidgetHeader
-          icon={icon}
+          icon={iconNode}
           enabled={widgetState.enabled}
           setEnabled={setEnabled}
           serviceMessageId={serviceMessageId}
@@ -327,7 +332,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
           label={renderToString(
             "SingleSignOnConfigurationScreen.widget.client-secret"
           )}
-          multiline={isSecretFieldTextArea[serviceProviderType]}
+          multiline={isSecretFieldTextArea}
           value={widgetState.clientSecret}
           onChange={onClientSecretChange}
         />

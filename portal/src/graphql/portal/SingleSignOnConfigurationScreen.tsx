@@ -173,7 +173,12 @@ function constructViolationMap(
     // if the error lies in identity.oauth.providers
     // expect last segment to be integer
     const indexStr = violation.location.split("/").pop();
-    const index = parseInt(indexStr ?? "", 10);
+    // Number(undefined) = NaN
+    // Number(" ") = 0
+    let index = NaN;
+    if (indexStr?.trim() !== "") {
+      index = Number(indexStr);
+    }
     if (isNaN(index) || index < 0 || index >= providers.length) {
       // not recognized or out of range
       unhandledViolation.push(violation);
