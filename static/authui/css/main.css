@@ -281,6 +281,129 @@ a.btn {
   display: block;
 }
 
+.password-policy-required-password-strength-title {
+  margin: 16px 0 0 0;
+}
+
+.password-strength-meter {
+  -webkit-appearance: none;
+  display: block;
+  width: 266px;
+  height: 4px;
+  margin: 8px 0;
+}
+
+.password-strength-meter::-webkit-meter-optimum-value,
+.password-strength-meter::-webkit-meter-suboptimum-value,
+.password-strength-meter::-webkit-meter-even-less-good-value {
+  background: none;
+}
+
+.password-strength-meter, .password-strength-meter::-webkit-meter-bar {
+  background: linear-gradient(
+    90deg,
+    #E0E0E0 0% 18.4%,
+    transparent 18.4% 20.4%,
+    #E0E0E0 20.4% 38.8%,
+    transparent 38.8% 40.8%,
+    #E0E0E0 40.8% 59.2%,
+    transparent 59.2% 61.2%,
+    #E0E0E0 61.2% 79.6%,
+    transparent 79.6% 81.6%,
+    #E0E0E0 81.6% 100%
+  );
+}
+
+.password-strength-meter[value="1"], .password-strength-meter[value="1"]::-webkit-meter-bar {
+  background: linear-gradient(
+    90deg,
+    #E23D3D 0% 18.4%,
+    transparent 18.4% 20.4%,
+    #E0E0E0 20.4% 38.8%,
+    transparent 38.8% 40.8%,
+    #E0E0E0 40.8% 59.2%,
+    transparent 59.2% 61.2%,
+    #E0E0E0 61.2% 79.6%,
+    transparent 79.6% 81.6%,
+    #E0E0E0 81.6% 100%
+  );
+}
+.password-strength-meter-description[data-value="1"] {
+  color: #E23D3D;
+}
+
+.password-strength-meter[value="2"], .password-strength-meter[value="2"]::-webkit-meter-bar {
+  background: linear-gradient(
+    90deg,
+    #FFA133 0% 18.4%,
+    transparent 18.4% 20.4%,
+    #FFA133 20.4% 38.8%,
+    transparent 38.8% 40.8%,
+    #E0E0E0 40.8% 59.2%,
+    transparent 59.2% 61.2%,
+    #E0E0E0 61.2% 79.6%,
+    transparent 79.6% 81.6%,
+    #E0E0E0 81.6% 100%
+  );
+}
+.password-strength-meter-description[data-value="2"] {
+  color: #FFA133;
+}
+
+.password-strength-meter[value="3"], .password-strength-meter[value="3"]::-webkit-meter-bar {
+  background: linear-gradient(
+    90deg,
+    #FBCA4E 0% 18.4%,
+    transparent 18.4% 20.4%,
+    #FBCA4E 20.4% 38.8%,
+    transparent 38.8% 40.8%,
+    #FBCA4E 40.8% 59.2%,
+    transparent 59.2% 61.2%,
+    #E0E0E0 61.2% 79.6%,
+    transparent 79.6% 81.6%,
+    #E0E0E0 81.6% 100%
+  );
+}
+.password-strength-meter-description[data-value="3"] {
+  color: #FBCA4E;
+}
+
+.password-strength-meter[value="4"], .password-strength-meter[value="4"]::-webkit-meter-bar {
+  background: linear-gradient(
+    90deg,
+    #BACA58 0% 18.4%,
+    transparent 18.4% 20.4%,
+    #BACA58 20.4% 38.8%,
+    transparent 38.8% 40.8%,
+    #BACA58 40.8% 59.2%,
+    transparent 59.2% 61.2%,
+    #BACA58 61.2% 79.6%,
+    transparent 79.6% 81.6%,
+    #E0E0E0 81.6% 100%
+  );
+}
+.password-strength-meter-description[data-value="4"] {
+  color: #BACA58;
+}
+
+.password-strength-meter[value="5"], .password-strength-meter[value="5"]::-webkit-meter-bar {
+  background: linear-gradient(
+    90deg,
+    #58CA9A 0% 18.4%,
+    transparent 18.4% 20.4%,
+    #58CA9A 20.4% 38.8%,
+    transparent 38.8% 40.8%,
+    #58CA9A 40.8% 59.2%,
+    transparent 59.2% 61.2%,
+    #58CA9A 61.2% 79.6%,
+    transparent 79.6% 81.6%,
+    #58CA9A 81.6% 100%
+  );
+}
+.password-strength-meter-description[data-value="5"] {
+  color: #58CA9A;
+}
+
 .phone-input {
   display: flex;
   flex-direction: row;
