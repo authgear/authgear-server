@@ -74,11 +74,13 @@
   {{ end }}
 
   <!-- MFA title -->
+  {{ if $.MFAActivated }}
   <section class="settings-row settings-page-section-with-title">
     <h3 class="title primary-txt">
       {{ template "settings-page-mfa-section-title" }}
     </h3>
   </section>
+  {{ end }}
 
   <!-- Secondary TOTP -->
   {{ if $.SecondaryTOTPEnabled }}
@@ -174,7 +176,7 @@
   {{ end }}
 
   <!-- Recovery code -->
-  {{ if $.RecoveryCodes }}
+  {{ if $.MFAActivated }}
   <section class="settings-row settings-page-section-with-title-desc-action">
     <p class="title primary-txt">
       {{ template "settings-page-recovery-code-title" }}
@@ -189,7 +191,7 @@
   {{ end }}
 
   <!-- Revoke all device tokens -->
-  {{ if $.RecoveryCodes }}
+  {{ if $.MFAActivated }}
   <section class="settings-row settings-page-section-revoke-device-tokens">
     <button type="button" class="action btn destructive-btn">
       {{ template "revoke-all-device-tokens-button-label" }}

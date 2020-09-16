@@ -6,7 +6,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -33,7 +32,7 @@ func ConfigureSettingsRoute(route httproute.Route) httproute.Route {
 
 type SettingsViewModel struct {
 	Authenticators           []*authenticator.Info
-	RecoveryCodes            []*mfa.RecoveryCode
+	MFAActivated             bool
 	SecondaryTOTPEnabled     bool
 	SecondaryOOBOTPEnabled   bool
 	SecondaryPasswordEnabled bool
@@ -44,7 +43,7 @@ type SettingsAuthenticatorService interface {
 }
 
 type SettingsMFAService interface {
-	ListRecoveryCodes(userID string) ([]*mfa.RecoveryCode, error)
+	HasMFAActivated(userID string) (bool, error)
 	InvalidateAllDeviceTokens(userID string) error
 }
 
@@ -69,7 +68,7 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
-		recoveryCodes, err := h.MFA.ListRecoveryCodes(*userID)
+		mfaActivated, err := h.MFA.HasMFAActivated(*userID)
 		if err != nil {
 			panic(err)
 		}
@@ -90,7 +89,7 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		viewModel := SettingsViewModel{
 			Authenticators:           authenticators,
-			RecoveryCodes:            recoveryCodes,
+			MFAActivated:             mfaActivated,
 			SecondaryTOTPEnabled:     totp,
 			SecondaryOOBOTPEnabled:   oobotp,
 			SecondaryPasswordEnabled: password,
