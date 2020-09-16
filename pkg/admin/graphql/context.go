@@ -17,6 +17,8 @@ type UserLoader interface {
 type IdentityLoader interface {
 	Get(ref *identity.Ref) *graphqlutil.Lazy
 	List(userID string) *graphqlutil.Lazy
+
+	Remove(identityInfo *identity.Info) *graphqlutil.Lazy
 }
 
 type AuthenticatorLoader interface {

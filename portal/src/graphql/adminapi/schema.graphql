@@ -75,6 +75,18 @@ The `DateTime` scalar type represents a DateTime. The DateTime is serialized as 
 scalar DateTime
 
 """"""
+input DeleteIdentityInput {
+  """Target identity ID."""
+  identityID: ID!
+}
+
+""""""
+type DeleteIdentityPayload {
+  """"""
+  success: Boolean!
+}
+
+""""""
 interface Entity {
   """The creation time of entity"""
   createdAt: DateTime!
@@ -128,6 +140,12 @@ type IdentityEdge {
 
   """The item at the end of the edge"""
   node: Identity
+}
+
+""""""
+type Mutation {
+  """Delete identity of user"""
+  deleteIdentity(input: DeleteIdentityInput!): DeleteIdentityPayload!
 }
 
 """An object with an ID"""

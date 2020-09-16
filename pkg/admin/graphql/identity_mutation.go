@@ -1,8 +1,6 @@
 package graphql
 
 import (
-	"fmt"
-
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/relay"
 
@@ -57,7 +55,12 @@ var _ = registerMutationField(
 			return lazy.
 				Map(func(value interface{}) (interface{}, error) {
 					i := value.(*identity.Info)
-					fmt.Printf("%#v\n", i)
+					if i == nil {
+						return nil, apierrors.NewNotFound("identity not found")
+					}
+					return gqlCtx.Identities.Remove(i), nil
+				}).
+				Map(func(value interface{}) (interface{}, error) {
 					return map[string]bool{"success": true}, nil
 				}).Value, nil
 		},

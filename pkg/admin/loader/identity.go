@@ -3,7 +3,9 @@ package loader
 import (
 	"sort"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -14,9 +16,10 @@ type IdentityService interface {
 }
 
 type IdentityLoader struct {
-	Identities IdentityService
-	loader     *graphqlutil.DataLoader `wire:"-"`
-	listLoader *graphqlutil.DataLoader `wire:"-"`
+	Identities  IdentityService
+	Interaction InteractionService
+	loader      *graphqlutil.DataLoader `wire:"-"`
+	listLoader  *graphqlutil.DataLoader `wire:"-"`
 }
 
 func (l *IdentityLoader) Get(ref *identity.Ref) *graphqlutil.Lazy {
@@ -79,4 +82,26 @@ func (l *IdentityLoader) List(userID string) *graphqlutil.Lazy {
 		})
 	}
 	return l.listLoader.Load(userID)
+}
+
+func (l *IdentityLoader) Remove(identityInfo *identity.Info) *graphqlutil.Lazy {
+	return graphqlutil.NewLazy(func() (interface{}, error) {
+		_, err := l.Interaction.Perform(
+			interactionintents.NewIntentRemoveIdentity(identityInfo.UserID),
+			&removeIdentityInput{identityInfo: identityInfo},
+		)
+		return nil, err
+	})
+}
+
+type removeIdentityInput struct {
+	identityInfo *identity.Info
+}
+
+func (i *removeIdentityInput) GetIdentityType() authn.IdentityType {
+	return i.identityInfo.Type
+}
+
+func (i *removeIdentityInput) GetIdentityID() string {
+	return i.identityInfo.ID
 }
