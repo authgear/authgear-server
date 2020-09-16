@@ -67,7 +67,7 @@ function extractViolationFromErrorCause(cause: ErrorCause): Violation | null {
   }
 }
 
-function handleUpdateAppConfigError(error: GraphQLError): Violation[] {
+export function handleUpdateAppConfigError(error: GraphQLError): Violation[] {
   if (!isAPIError(error.extensions)) {
     return [];
   }
