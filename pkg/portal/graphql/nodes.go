@@ -2,12 +2,13 @@ package graphql
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"reflect"
 
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/relay"
+
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
 type NodeResolver func(ctx context.Context, id string) (interface{}, error)
@@ -19,11 +20,11 @@ var nodeDefs = relay.NewNodeDefinitions(relay.NodeDefinitionsConfig{
 	IDFetcher: func(id string, info graphql.ResolveInfo, ctx context.Context) (interface{}, error) {
 		resolvedID := relay.FromGlobalID(id)
 		if resolvedID == nil {
-			return nil, errors.New("invalid ID")
+			return nil, apierrors.NewInvalid("invalid ID")
 		}
 		resolver, ok := resolvers[resolvedID.Type]
 		if !ok {
-			return nil, fmt.Errorf("unknown node type: %s", resolvedID.Type)
+			return nil, apierrors.NewInvalid("invalid ID")
 		}
 		return resolver(ctx, resolvedID.ID)
 	},

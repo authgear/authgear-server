@@ -1,12 +1,12 @@
 package graphql
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/relay"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
 
@@ -45,11 +45,11 @@ var _ = registerMutationField(
 
 			resolvedNodeID := relay.FromGlobalID(identityNodeID)
 			if resolvedNodeID == nil || resolvedNodeID.Type != typeIdentity {
-				return nil, errors.New("invalid identity ID")
+				return nil, apierrors.NewInvalid("invalid identity ID")
 			}
 			identityRef, err := decodeIdentityID(resolvedNodeID.ID)
 			if err != nil {
-				return nil, errors.New("invalid identity ID")
+				return nil, apierrors.NewInvalid("invalid identity ID")
 			}
 
 			gqlCtx := GQLContext(p.Context)

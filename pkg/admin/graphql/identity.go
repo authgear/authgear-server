@@ -2,12 +2,12 @@ package graphql
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/graphql-go/graphql"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -87,7 +87,7 @@ func encodeIdentityID(ref *identity.Ref) string {
 func decodeIdentityID(id string) (*identity.Ref, error) {
 	parts := strings.Split(id, "|")
 	if len(parts) != 2 {
-		return nil, errors.New("invalid ID")
+		return nil, apierrors.NewInvalid("invalid ID")
 	}
 	return &identity.Ref{
 		Type: authn.IdentityType(parts[0]),
