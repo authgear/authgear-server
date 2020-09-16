@@ -5,84 +5,11 @@ import (
 )
 
 const (
-	TemplateItemTypeAuthUIHTMLHeadHTML string = "auth_ui_html_head.html"
-	TemplateItemTypeAuthUIHeaderHTML   string = "auth_ui_header.html"
-	TemplateItemTypeAuthUINavBarHTML   string = "auth_ui_nav_bar.html"
+	TemplateItemTypeAuthUIHTMLHeadHTML       string = "auth_ui_html_head.html"
+	TemplateItemTypeAuthUIHeaderHTML         string = "auth_ui_header.html"
+	TemplateItemTypeAuthUINavBarHTML         string = "auth_ui_nav_bar.html"
+	TemplateItemTypeAuthUIPasswordPolicyHTML string = "auth_ui_password_policy.html"
 )
-
-// nolint: gosec
-const definePasswordPolicy = `
-{{ define "PASSWORD_POLICY" }}
-{{ if .PasswordPolicies }}
-<ul>
-{{ range .PasswordPolicies }}
-  {{ if eq .Name "PasswordTooShort" }}
-  <li class="primary-txt password-policy length {{ template "PASSWORD_POLICY_CLASS" . }}" data-min-length="{{ .Info.min_length}}">
-    {{ template "password-policy-minimum-length" (makemap "length" .Info.min_length) }}
-  </li>
-  {{ end }}
-  {{ if eq .Name "PasswordUppercaseRequired" }}
-  <li class="primary-txt password-policy uppercase {{ template "PASSWORD_POLICY_CLASS" . }}">
-    {{ template "password-policy-uppercase" }}
-  </li>
-  {{ end }}
-  {{ if eq .Name "PasswordLowercaseRequired" }}
-  <li class="primary-txt password-policy lowercase {{ template "PASSWORD_POLICY_CLASS" . }}">
-    {{ template "password-policy-lowercase" }}
-  </li>
-  {{ end }}
-  {{ if eq .Name "PasswordDigitRequired" }}
-  <li class="primary-txt password-policy digit {{ template "PASSWORD_POLICY_CLASS" . }}">
-    {{ template "password-policy-digit" }}
-  </li>
-  {{ end }}
-  {{ if eq .Name "PasswordSymbolRequired" }}
-  <li class="primary-txt password-policy symbol {{ template "PASSWORD_POLICY_CLASS" . }}">
-    {{ template "password-policy-symbol" }}
-  </li>
-  {{ end }}
-  {{ if eq .Name "PasswordContainingExcludedKeywords" }}
-  <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
-    {{ template "password-policy-banned-words" }}
-  </li>
-  {{ end }}
-  {{ if eq .Name "PasswordReused" }}
-  <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
-    {{ template "password-policy-reuse" (makemap "size" .Info.history_size "day" .Info.history_days) }}
-  </li>
-  {{ end }}
-  {{ if eq .Name "PasswordBelowGuessableLevel" }}
-    {{ if eq .Info.min_level 1 }}
-    <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
-      {{ template "password-policy-guessable-level-1" }}
-    </li>
-    {{ end }}
-    {{ if eq .Info.min_level 2 }}
-    <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
-      {{ template "password-policy-guessable-level-2" }}
-    </li>
-    {{ end }}
-    {{ if eq .Info.min_level 3 }}
-    <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
-      {{ template "password-policy-guessable-level-3" }}
-    </li>
-    {{ end }}
-    {{ if eq .Info.min_level 4 }}
-    <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
-      {{ template "password-policy-guessable-level-4" }}
-    </li>
-    {{ end }}
-    {{ if eq .Info.min_level 5 }}
-    <li class="primary-txt password-policy {{ template "PASSWORD_POLICY_CLASS" . }}">
-      {{ template "password-policy-guessable-level-5" }}
-    </li>
-    {{ end }}
-  {{ end }}
-{{ end }}
-</ul>
-{{ end }}
-{{ end }}
-`
 
 // nolint: gosec
 const definePasswordPolicyClass = `
@@ -149,7 +76,6 @@ const defineError = `
 
 var defines = []string{
 	defineError,
-	definePasswordPolicy,
 	definePasswordPolicyClass,
 }
 
@@ -168,8 +94,14 @@ var TemplateAuthUINavBarHTML = template.Register(template.T{
 	IsHTML: true,
 })
 
+var TemplateAuthUIPasswordPolicyHTML = template.Register(template.T{
+	Type:   TemplateItemTypeAuthUIPasswordPolicyHTML,
+	IsHTML: true,
+})
+
 var components = []string{
 	TemplateItemTypeAuthUIHTMLHeadHTML,
 	TemplateItemTypeAuthUIHeaderHTML,
 	TemplateItemTypeAuthUINavBarHTML,
+	TemplateItemTypeAuthUIPasswordPolicyHTML,
 }
