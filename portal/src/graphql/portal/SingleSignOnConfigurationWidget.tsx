@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
+import cn from "classnames";
 import { Toggle, Label, TextField } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 
@@ -58,11 +59,10 @@ interface OAuthProviderInfo {
 
 const TEXT_FIELD_STYLE = { errorMessage: { whiteSpace: "pre" } };
 
-// TODO: replace with actual icon
 const oauthProviders: Record<OAuthSSOProviderType, OAuthProviderInfo> = {
   apple: {
     messageId: "apple",
-    iconNode: <div className={styles.widgetLabelIcon} />,
+    iconNode: <i className={cn("fab", "fa-apple", styles.widgetLabelIcon)} />,
     fields: new Set<WidgetTextFieldKey>([
       "alias",
       "client_id",
@@ -74,25 +74,31 @@ const oauthProviders: Record<OAuthSSOProviderType, OAuthProviderInfo> = {
   },
   google: {
     messageId: "google",
-    iconNode: <div className={styles.widgetLabelIcon} />,
+    iconNode: <i className={cn("fab", "fa-google", styles.widgetLabelIcon)} />,
     fields: new Set<WidgetTextFieldKey>(["alias", "client_id", "clientSecret"]),
     isSecretFieldTextArea: false,
   },
   facebook: {
     messageId: "facebook",
-    iconNode: <div className={styles.widgetLabelIcon} />,
+    iconNode: (
+      <i className={cn("fab", "fa-facebook", styles.widgetLabelIcon)} />
+    ),
     fields: new Set<WidgetTextFieldKey>(["alias", "client_id", "clientSecret"]),
     isSecretFieldTextArea: false,
   },
   linkedin: {
     messageId: "linkedin",
-    iconNode: <div className={styles.widgetLabelIcon} />,
+    iconNode: (
+      <i className={cn("fab", "fa-linkedin", styles.widgetLabelIcon)} />
+    ),
     fields: new Set<WidgetTextFieldKey>(["alias", "client_id", "clientSecret"]),
     isSecretFieldTextArea: false,
   },
   azureadv2: {
     messageId: "azureadv2",
-    iconNode: <div className={styles.widgetLabelIcon} />,
+    iconNode: (
+      <i className={cn("fab", "fa-microsoft", styles.widgetLabelIcon)} />
+    ),
     fields: new Set<WidgetTextFieldKey>([
       "alias",
       "client_id",
