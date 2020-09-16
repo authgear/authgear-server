@@ -109,6 +109,9 @@
 	"reset-password-success-page-title": "Password Reset",
 	"reset-password-success-description": "You have successfully reset your password. You can now sign in with it.",
 
+	"change-password-page-title": "Change Password",
+	"change-password-page-description": "Please enter your new password below.",
+
 	"logout-button-hint": "Click the button to sign out",
 	"logout-button-label": "Sign out",
 
