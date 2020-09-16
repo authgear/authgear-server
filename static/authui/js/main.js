@@ -34,7 +34,7 @@ window.addEventListener("load", function() {
     // .length is number of UTF-16 code units,
     // while the server is counting number of UTF-8 code units.
     if (value.length >= minLength) {
-      el.classList.add("passed");
+      el.classList.add("good-txt");
     }
   }
 
@@ -43,7 +43,7 @@ window.addEventListener("load", function() {
       return;
     }
     if (/[A-Z]/.test(value)) {
-      el.classList.add("passed");
+      el.classList.add("good-txt");
     }
   }
 
@@ -52,7 +52,7 @@ window.addEventListener("load", function() {
       return;
     }
     if (/[a-z]/.test(value)) {
-      el.classList.add("passed");
+      el.classList.add("good-txt");
     }
   }
 
@@ -61,7 +61,7 @@ window.addEventListener("load", function() {
       return;
     }
     if (/[0-9]/.test(value)) {
-      el.classList.add("passed");
+      el.classList.add("good-txt");
     }
   }
 
@@ -70,7 +70,7 @@ window.addEventListener("load", function() {
       return;
     }
     if (/[^a-zA-Z0-9]/.test(value)) {
-      el.classList.add("passed");
+      el.classList.add("good-txt");
     }
   }
 
@@ -83,7 +83,7 @@ window.addEventListener("load", function() {
       var value = e.currentTarget.value;
       var els = document.querySelectorAll(".password-policy");
       for (var i = 0; i < els.length; ++i) {
-        els[i].classList.remove("violated", "passed");
+        els[i].classList.remove("error-txt", "good-txt");
       }
       checkPasswordLength(value, document.querySelector(".password-policy.length"));
       checkPasswordUppercase(value, document.querySelector(".password-policy.uppercase"));

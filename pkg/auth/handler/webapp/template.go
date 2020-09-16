@@ -16,9 +16,9 @@ const definePasswordPolicyClass = `
 {{- define "PASSWORD_POLICY_CLASS" -}}
 {{- if .Info.x_error_is_password_policy_violated -}}
 {{- if .Info.x_is_violated -}}
-violated
+error-txt
 {{- else -}}
-passed
+good-txt
 {{- end -}}
 {{- end -}}
 {{- end -}}

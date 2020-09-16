@@ -123,14 +123,14 @@ h1, h2, h3, h4, h5, h6 {
   color: #FBCA4E;
 }
 
+.error-txt {
+  color: #E23D3D;
+}
+
 .errors {
   list-style-type: none;
   margin: 10px;
   padding: 0;
-}
-
-.error-txt {
-  color: #e30f0f;
 }
 
 .input {
@@ -270,6 +270,20 @@ a.btn {
   }
 }
 
+.password-policy-title {
+  margin: 0;
+}
+
+.password-policy-list {
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
+.password-policy-list .password-policy {
+  display: block;
+}
+
 .phone-input {
   display: flex;
   flex-direction: row;
@@ -372,14 +386,6 @@ a.btn {
   text-align: center;
   margin: 6px;
   padding: 6px;
-}
-
-.password-policy.violated {
-  color: #e30f0f;
-}
-
-.password-policy.passed {
-  color: green;
 }
 
 .device-token-control {

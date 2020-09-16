@@ -80,7 +80,8 @@
 	"login-button-label": "Sign in!",
 
 	"create-password-page-title": "Create password",
-	"password-policy-minimum-length": "At least {length, plural, one{# character} other{# characters}} long",
+	"password-policy-title": "Your new password must follow the below rules:",
+	"password-policy-minimum-length": "Minimum {length, plural, one{# character} other{# characters}}",
 	"password-policy-uppercase": "At least 1 uppercase character",
 	"password-policy-lowercase": "At least 1 lowercase character",
 	"password-policy-digit": "At least 1 digit",
