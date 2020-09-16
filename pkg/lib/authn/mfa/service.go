@@ -120,3 +120,19 @@ func (s *Service) ConsumeRecoveryCode(rc *RecoveryCode) error {
 func (s *Service) ListRecoveryCodes(userID string) ([]*RecoveryCode, error) {
 	return s.RecoveryCodes.List(userID)
 }
+
+// HasMFAActivated tells if the user has MFA activated.
+// By definition, if the user has recovery codes, they have activated MFA.
+// FIXME(mfa): Note that this assumption is not enforced right now.
+// It is because we do not have add authenticator / remove authenticator now.
+// To make this assumption holds, when we remove the last authenticator,
+// we must remove all recovery codes and device tokens.
+func (s *Service) HasMFAActivated(userID string) (enabled bool, err error) {
+	codes, err := s.RecoveryCodes.List(userID)
+	if err != nil {
+		return
+	}
+
+	enabled = len(codes) > 0
+	return
+}

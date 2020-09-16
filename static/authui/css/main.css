@@ -115,6 +115,14 @@ h1, h2, h3, h4, h5, h6 {
   color: #a19f9d;
 }
 
+.good-txt {
+  color: #58CA9A;
+}
+
+.warn-txt {
+  color: #FBCA4E;
+}
+
 .errors {
   list-style-type: none;
   margin: 10px;
@@ -505,10 +513,15 @@ a.btn {
 }
 
 .settings-row {
-  margin: 14px 18px;
+  margin: 10px 14px 0px 14px;
+  padding: 0 0 10px 0;
 }
 
-.settings-section {
+.settings-row:not(:last-child) {
+  border-bottom: 1px solid #E5E5E5;
+}
+
+.settings-page-section-with-title-desc-action {
   display: grid;
   grid: "title    action" auto
         "desc     ......" auto
@@ -516,22 +529,86 @@ a.btn {
   gap: 8px;
 }
 
-.settings-section > * {
+.settings-page-section-with-title-desc-action > * {
   margin: 0;
 }
 
-.settings-section .title {
+
+.settings-page-section-with-title-desc-action .title {
   grid-area: title;
   font-size: 1rem;
 }
 
-.settings-section .description {
+.settings-page-section-with-title-desc-action .description {
   grid-area: desc;
   font-size: smaller;
 }
 
-.settings-section .action {
+.settings-page-section-with-title-desc-action .action {
   grid-area: action;
+}
+
+.settings-page-section-with-title-info-desc-action {
+  display: grid;
+  grid: "title    action" auto
+        "info     ......" auto
+        "desc     ......" auto
+      /  1fr       auto;
+  gap: 8px;
+}
+
+.settings-page-section-with-title-info-desc-action > * {
+  margin: 0;
+}
+
+.settings-page-section-with-title-info-desc-action .title {
+  grid-area: title;
+}
+
+.settings-page-section-with-title-info-desc-action .info {
+  grid-area: info;
+  font-size: smaller;
+}
+
+.settings-page-section-with-title-info-desc-action .description {
+  grid-area: desc;
+  font-size: smaller;
+}
+
+.settings-page-section-with-title-info-desc-action .action {
+  grid-area: action;
+}
+
+.settings-page-section-with-title {
+  display: grid;
+  grid: "title" auto
+      /  1fr;
+  gap: 8px;
+}
+
+.settings-page-section-with-title > * {
+  margin: 0;
+}
+
+.settings-page-section-with-title .title {
+  grid-area: title;
+  font-size: 1rem;
+}
+
+.settings-page-section-revoke-device-tokens {
+  display: grid;
+  grid: "action" auto
+      /  1fr;
+  gap: 8px;
+}
+
+.settings-page-section-revoke-device-tokens > * {
+  margin: 0;
+}
+
+.settings-page-section-revoke-device-tokens .action {
+  grid-area: action;
+  justify-self: start;
 }
 
 .settings-identity-row {
@@ -599,14 +676,6 @@ a.btn {
   /* So that this element takes exact 1fr width */
   /* Otherwise it could overflow */
   font-size: smaller;
-}
-
-.settings-identity-identity-section .claim .verified {
-  color: #58CA9A;
-}
-
-.settings-identity-identity-section .claim .unverified {
-  color: #FBCA4E;
 }
 
 .settings-identity-identity-section .primary-action {
