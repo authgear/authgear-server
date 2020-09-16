@@ -20,34 +20,38 @@ function isViolationKind(value?: string): value is ViolationKind {
 }
 
 // expected data shape of error extension from backend
-interface ErrorCauseDetails {
-  actual?: string[];
-  expected?: string[];
-  missing?: string[];
+interface RequiredErrorCauseDetails {
+  actual: string[];
+  expected: string[];
+  missing: string[];
 }
 
-interface ErrorCause {
-  details?: ErrorCauseDetails;
-  location?: string;
-  kind?: string;
+interface RequiredErrorCause {
+  details: RequiredErrorCauseDetails;
+  location: string;
+  kind: "required";
 }
 
-interface ErrorExtensionInfo {
-  causes?: ErrorCause[];
+// union type of cause details, depend on kind
+type ErrorCause = RequiredErrorCause;
+
+interface ValidationErrorInfo {
+  causes: ErrorCause[];
 }
 
-interface GraphQLErrorExtensions {
+interface APIValidationError {
   errorName: string;
-  info: ErrorExtensionInfo;
-  reason: string;
+  info: ValidationErrorInfo;
+  reason: "ValidationFailed";
 }
+
+// union type of api errors, depend on reason
+type APIError = APIValidationError;
 
 type ViolationSelector = (violation: Violation) => boolean;
 type ViolationSelectors<Key extends string> = Record<Key, ViolationSelector>;
 
-function isGraphQLErrorExtensions(value?: {
-  [key: string]: any;
-}): value is GraphQLErrorExtensions {
+function isAPIError(value?: { [key: string]: any }): value is APIError {
   if (value == null) {
     return false;
   }
@@ -64,9 +68,6 @@ function extractViolationFromErrorCause(cause: ErrorCause): Violation | null {
   if (!isViolationKind(cause.kind)) {
     return null;
   }
-  if (cause.location == null || cause.details?.missing == null) {
-    return null;
-  }
   return {
     kind: cause.kind,
     missingField: cause.details.missing,
@@ -75,10 +76,15 @@ function extractViolationFromErrorCause(cause: ErrorCause): Violation | null {
 }
 
 function handleUpdateAppConfigError(error: GraphQLError): Violation[] {
-  if (!isGraphQLErrorExtensions(error.extensions)) {
+  if (!isAPIError(error.extensions)) {
     return [];
   }
-  const causes = error.extensions.info.causes ?? [];
+  const causes = error.extensions.info.causes;
+  /* uncomment when there is more than one error reason
+  if (error.extensions.reason !== "ValidationFailed") {
+    return [];
+  }
+  */
 
   return causes.map(extractViolationFromErrorCause).filter(nonNullable);
 }
