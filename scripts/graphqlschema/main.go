@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -10,6 +11,8 @@ import (
 
 	admingraphql "github.com/authgear/authgear-server/pkg/admin/graphql"
 	portalgraphql "github.com/authgear/authgear-server/pkg/portal/graphql"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
+	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 func main() {
@@ -35,13 +38,24 @@ func main() {
 		panic(err)
 	}
 
+	ctx := context.Background()
+	ctx = graphqlutil.WithContext(ctx, &GQLContext{logger: log.Null})
 	params := gographql.Params{
 		Schema:        *schema,
 		RequestString: string(query),
+		Context:       ctx,
 	}
 
 	result := gographql.Do(params)
 	if err := json.NewEncoder(os.Stdout).Encode(result); err != nil {
 		panic(err)
 	}
+}
+
+type GQLContext struct {
+	logger *log.Logger
+}
+
+func (c *GQLContext) Logger() *log.Logger {
+	return c.logger
 }
