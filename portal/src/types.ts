@@ -197,7 +197,7 @@ interface OAuthClientCredentials {
   items: OAuthClientCredentialItem[];
 }
 
-interface OAuthSecretItem {
+export interface OAuthSecretItem {
   key: "sso.oauth.client";
   data: OAuthClientCredentials;
 }

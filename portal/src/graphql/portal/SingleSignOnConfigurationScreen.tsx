@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
 import { Link, Text } from "@fluentui/react";
@@ -10,11 +16,12 @@ import ShowError from "../../ShowError";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import { useUpdateAppAndSecretConfigMutation } from "./mutations/updateAppAndSecretMutation";
-import { clearEmptyObject, ensureNonEmptyString } from "../../util/misc";
+import { clearEmptyObject } from "../../util/misc";
 import { parseError } from "../../util/error";
 import { Violation } from "../../util/validation";
 import {
   OAuthClientCredentialItem,
+  OAuthSecretItem,
   OAuthSSOProviderConfig,
   OAuthSSOProviderType,
   oauthSSOProviderTypes,
@@ -22,6 +29,7 @@ import {
   PortalAPIAppConfig,
   PortalAPISecretConfig,
 } from "../../types";
+import { nonNullable } from "../../util/types";
 
 import styles from "./SingleSignOnConfigurationScreen.module.scss";
 
@@ -37,131 +45,342 @@ interface SingleSignOnConfigurationProps {
   updateAppConfigError: unknown;
 }
 
-export interface OAuthSSOProviderConfigState extends OAuthSSOProviderConfig {
+export interface OAuthSSOProviderExtraState {
   enabled: boolean;
-  clientSecret?: string;
 }
 
-export type SingleSignOnScreenState = {
-  [key in OAuthSSOProviderType]: OAuthSSOProviderConfigState;
-};
+type SingleSignOnScreenExtraState = Record<
+  OAuthSSOProviderType,
+  OAuthSSOProviderExtraState
+>;
 
-function getProviderConfigStateFromProviders(
+export interface SingleSignOnScreenState {
+  extraState: SingleSignOnScreenExtraState;
+  appConfig: PortalAPIAppConfig | null;
+  secretConfig: PortalAPISecretConfig | null;
+}
+
+interface WidgetWrapperProps {
+  className?: string;
+  screenState: SingleSignOnScreenState;
+  setScreenState: Dispatch<SetStateAction<SingleSignOnScreenState>>;
+  providerType: OAuthSSOProviderType;
+  violations: Violation[];
+}
+
+function getScreenExtraState(
+  effectiveAppConfig: PortalAPIAppConfig | null
+): SingleSignOnScreenExtraState {
+  const extraState: Partial<SingleSignOnScreenExtraState> = {};
+  const providers = effectiveAppConfig?.identity?.oauth?.providers ?? [];
+  for (const providerType of oauthSSOProviderTypes) {
+    const enabled =
+      providers.find((provider) => provider.type === providerType) != null;
+    extraState[providerType] = { enabled };
+  }
+  return extraState as SingleSignOnScreenExtraState;
+}
+
+function providerTypeToAlias(
+  appConfigState: PortalAPIAppConfig,
+  providerType: OAuthSSOProviderType
+) {
+  const providers = appConfigState.identity?.oauth?.providers;
+  if (providers == null) {
+    return undefined;
+  }
+  const provider = providers.find((provider) => provider.type === providerType);
+  return provider == null ? undefined : provider.alias;
+}
+
+function makeRandomAlias(providerType: OAuthSSOProviderType) {
+  const randomNum = Math.floor(Math.random() * 1e15);
+  return `${providerType}-${randomNum}`;
+}
+
+// TODO: update UI, require alias on create new widget instead of toggle
+function createNewProvider(
+  appConfig: PortalAPIAppConfig,
   providerType: OAuthSSOProviderType,
-  providerByType: Partial<Record<OAuthSSOProviderType, OAuthSSOProviderConfig>>,
-  clientSecretByAlias: Partial<Record<string, string>>
-): OAuthSSOProviderConfigState {
-  const providerConfig = providerByType[providerType] ?? {
+  alias: string
+) {
+  const providers = appConfig.identity?.oauth?.providers;
+  if (providers == null) {
+    return;
+  }
+  providers.push({
+    alias,
     type: providerType,
-  };
-  // FIXME: make alias required
-  const alias = providerConfig.alias ?? providerType;
+  });
+}
+
+function getOrCreateSecret(secretConfigState: PortalAPISecretConfig) {
+  let secret = extractSecretFromConfig(secretConfigState);
+  if (secret == null) {
+    secret = {
+      key: "sso.oauth.client",
+      data: { items: [] },
+    };
+    secretConfigState.secrets.push(secret);
+  }
+  return secret;
+}
+
+function getProviderIndex(appConfig: PortalAPIAppConfig, alias: string) {
+  const index = appConfig.identity?.oauth?.providers?.findIndex(
+    (provider) => provider.alias === alias
+  );
+  return index == null || index < 0 ? undefined : index;
+}
+
+function getSecretItemFromSecret(secret?: OAuthSecretItem, alias?: string) {
+  return secret?.data.items.find((item) => item.alias === alias);
+}
+
+function getWidgetData(state: SingleSignOnScreenState, alias?: string) {
+  const appConfigState = state.appConfig!;
+  const providers = appConfigState.identity?.oauth?.providers;
+  const providerIndex = alias
+    ? providers?.findIndex((provider) => provider.alias === alias)
+    : undefined;
+  const provider =
+    providerIndex != null && providerIndex !== -1
+      ? providers![providerIndex]
+      : undefined;
+
+  const secretConfigState = state.secretConfig!;
+  const secret = extractSecretFromConfig(secretConfigState);
+  const secretItem = getSecretItemFromSecret(secret, alias);
+
   return {
-    ...providerConfig,
-    enabled: !!providerByType[providerType],
-    clientSecret: clientSecretByAlias[alias],
+    providerIndex,
+    clientID: provider?.client_id,
+    clientSecret: secretItem?.client_secret ?? "",
+    tenant: provider?.tenant,
+    keyID: provider?.key_id,
+    teamID: provider?.team_id,
   };
 }
 
-function extractOAuthSecret(secretConfig: PortalAPISecretConfig) {
-  for (const secret of secretConfig.secrets) {
+function removeProvider(appConfig: PortalAPIAppConfig, alias: string) {
+  const providers = appConfig.identity?.oauth?.providers;
+  if (providers == null) {
+    return;
+  }
+  const index = getProviderIndex(appConfig, alias);
+  if (index != null) {
+    providers.splice(index, 1);
+  }
+}
+
+function onProviderToggled(
+  screenState: SingleSignOnScreenState,
+  providerType: OAuthSSOProviderType,
+  enabled: boolean
+) {
+  const appConfigState = screenState.appConfig!;
+  const secretConfigState = screenState.secretConfig!;
+  const secret = getOrCreateSecret(secretConfigState);
+  let alias = providerTypeToAlias(appConfigState, providerType);
+  if (enabled) {
+    if (alias == null) {
+      alias = makeRandomAlias(providerType);
+      createNewProvider(appConfigState, providerType, alias);
+    }
+    const secretItem = getSecretItemFromSecret(secret, alias);
+    if (secretItem == null) {
+      secret.data.items.push({
+        alias,
+        client_secret: "",
+      });
+    }
+  } else {
+    if (alias != null) {
+      removeProvider(appConfigState, alias);
+    }
+    const index = secret.data.items.findIndex((item) => item.alias === alias);
+    if (index >= 0) {
+      secret.data.items.slice(index, 1);
+    }
+  }
+
+  screenState.extraState[providerType].enabled = enabled;
+}
+
+function updateAppConfigField(
+  appConfigState: PortalAPIAppConfig,
+  alias: string,
+  field: keyof OAuthSSOProviderConfig,
+  newValue: string
+) {
+  const provider = appConfigState.identity?.oauth?.providers?.find(
+    (provider) => provider.alias === alias
+  );
+  if (provider == null) {
+    return;
+  }
+  if (field !== "type") {
+    provider[field] = newValue;
+  }
+}
+
+function extractSecretFromConfig(secretConfigState: PortalAPISecretConfig) {
+  for (const secret of secretConfigState.secrets) {
     if (secret.key === "sso.oauth.client") {
       return secret;
     }
   }
-  return null;
+  return undefined;
 }
 
-function constructScreenState(
-  providers: OAuthSSOProviderConfig[],
-  oauthCredentials: OAuthClientCredentialItem[]
+function updateClientSecretField(
+  secretConfigState: PortalAPISecretConfig,
+  alias: string,
+  newValue: string
 ) {
-  const providerByType = providers.reduce(
-    (
-      map: Partial<Record<OAuthSSOProviderType, OAuthSSOProviderConfig>>,
-      provider
-    ) => {
-      map[provider.type] = provider;
-      return map;
-    },
-    {}
-  );
-
-  const clientSecretByAlias = oauthCredentials.reduce(
-    (
-      map: Partial<Record<string, string>>,
-      credential: OAuthClientCredentialItem
-    ) => {
-      if (credential.alias !== "") {
-        map[credential.alias] = credential.client_secret;
-      }
-      return map;
-    },
-    {}
-  );
-
-  const screenState = oauthSSOProviderTypes.reduce(
-    (
-      map: Partial<
-        { [key in OAuthSSOProviderType]: OAuthSSOProviderConfigState }
-      >,
-      providerType
-    ) => {
-      map[providerType] = getProviderConfigStateFromProviders(
-        providerType,
-        providerByType,
-        clientSecretByAlias
-      );
-      return map;
-    },
-    {}
-  );
-
-  return screenState as SingleSignOnScreenState;
-}
-
-function constructProvidersFromState(state: SingleSignOnScreenState) {
-  const providers: OAuthSSOProviderConfig[] = [];
-  for (const providerType of oauthSSOProviderTypes) {
-    const providerConfigState = state[providerType];
-    if (!providerConfigState.enabled) {
-      continue;
-    }
-    providers.push({
-      type: providerConfigState.type,
-      alias: ensureNonEmptyString(providerConfigState.alias),
-      client_id: ensureNonEmptyString(providerConfigState.client_id),
-      tenant: ensureNonEmptyString(providerConfigState.tenant),
-      key_id: ensureNonEmptyString(providerConfigState.key_id),
-      team_id: ensureNonEmptyString(providerConfigState.team_id),
-    });
+  const secret = extractSecretFromConfig(secretConfigState);
+  if (secret == null) {
+    return;
   }
 
-  return providers;
+  let secretItem:
+    | OAuthClientCredentialItem
+    | undefined = getSecretItemFromSecret(secret, alias);
+
+  // create item if not exist, clean up on save
+  if (secretItem == null) {
+    secretItem = { alias, client_secret: "" };
+    secret.data.items.push(secretItem);
+  }
+  secretItem.client_secret = newValue;
 }
 
-function constructOAuthCredentialsFromState(state: SingleSignOnScreenState) {
-  const credentials: OAuthClientCredentialItem[] = [];
-
-  oauthSSOProviderTypes.forEach((provider) => {
-    const { enabled, clientSecret, alias } = state[provider];
-    if (enabled && clientSecret != null && clientSecret.trim() !== "") {
-      credentials.push({
-        // FIXME: make alias required
-        alias: alias ?? provider,
-        client_secret: clientSecret,
-      });
-    }
-  });
-
-  return credentials;
-}
-
-function constructViolationMap(
-  violations: Violation[],
-  providers: OAuthSSOProviderType[]
+function updateAlias(
+  state: SingleSignOnScreenState,
+  oldAlias: string,
+  newAlias: string
 ) {
-  const map: Partial<Record<OAuthSSOProviderType, Violation[]>> = {};
+  if (newAlias === "") {
+    return;
+  }
+  if (state.appConfig != null) {
+    updateAppConfigField(state.appConfig, oldAlias, "alias", newAlias);
+  }
+  if (state.secretConfig != null) {
+    const secret = extractSecretFromConfig(state.secretConfig);
+    const secretItem = getSecretItemFromSecret(secret, oldAlias);
+    if (secretItem != null) {
+      secretItem.alias = newAlias;
+    } else {
+      if (secret != null) {
+        secret.data.items.push({ alias: newAlias, client_secret: "" });
+      }
+    }
+  }
+}
+
+function textFieldOnChangeWrapper(updater: (value: string) => void) {
+  return (_event: any, value?: string) => {
+    if (value == null) {
+      return;
+    }
+    updater(value);
+  };
+}
+
+function makeAppConfigUpdater(
+  alias: string,
+  field: keyof OAuthSSOProviderConfig,
+  setState: Dispatch<SetStateAction<SingleSignOnScreenState>>
+) {
+  return (value: string) => {
+    setState((prev) => {
+      return produce(prev, (draftState) => {
+        const appConfigState = draftState.appConfig!;
+        updateAppConfigField(appConfigState, alias, field, value);
+      });
+    });
+  };
+}
+
+function makeAliasUpdater(
+  alias: string,
+  setState: Dispatch<SetStateAction<SingleSignOnScreenState>>
+) {
+  return (value: string) => {
+    setState((prev) => {
+      return produce(prev, (draftState) => {
+        updateAlias(draftState, alias, value);
+      });
+    });
+  };
+}
+
+function makeClientSecretUpdater(
+  alias: string,
+  setState: Dispatch<SetStateAction<SingleSignOnScreenState>>
+) {
+  return (value: string) => {
+    setState((prev) => {
+      return produce(prev, (draftState) => {
+        const secretConfigState = draftState.secretConfig!;
+        updateClientSecretField(secretConfigState, alias, value);
+      });
+    });
+  };
+}
+
+function makeWidgetStateUpdaters(
+  alias: string,
+  providerType: OAuthSSOProviderType,
+  setState: Dispatch<SetStateAction<SingleSignOnScreenState>>
+) {
+  const setEnabled = (_event: any, checked?: boolean) => {
+    setState((prev) => {
+      return produce(prev, (draftState) => {
+        onProviderToggled(draftState, providerType, !!checked);
+      });
+    });
+  };
+  const onAliasChange = textFieldOnChangeWrapper(
+    makeAliasUpdater(alias, setState)
+  );
+  const onClientIDChange = textFieldOnChangeWrapper(
+    makeAppConfigUpdater(alias, "client_id", setState)
+  );
+  const onClientSecretChange = textFieldOnChangeWrapper(
+    makeClientSecretUpdater(alias, setState)
+  );
+  const onTenantChange = textFieldOnChangeWrapper(
+    makeAppConfigUpdater(alias, "tenant", setState)
+  );
+  const onKeyIDChange = textFieldOnChangeWrapper(
+    makeAppConfigUpdater(alias, "key_id", setState)
+  );
+  const onTeamIDChange = textFieldOnChangeWrapper(
+    makeAppConfigUpdater(alias, "team_id", setState)
+  );
+  return {
+    setEnabled,
+    onAliasChange,
+    onClientIDChange,
+    onClientSecretChange,
+    onTenantChange,
+    onKeyIDChange,
+    onTeamIDChange,
+  };
+}
+
+function constructProviders(
+  extraState: SingleSignOnScreenExtraState,
+  providers: OAuthSSOProviderConfig[]
+) {
+  return providers.filter((provider) => extraState[provider.type].enabled);
+}
+
+// filter violations that can be handled by widget
+function filterViolations(violations: Violation[]) {
+  const widgetViolations: Violation[] = [];
   const unhandledViolation: Violation[] = [];
   for (const violation of violations) {
     // general violation has no location -> not handled
@@ -170,35 +389,83 @@ function constructViolationMap(
       unhandledViolation.push(violation);
       continue;
     }
-    // if the error lies in identity.oauth.providers
-    // expect last segment to be integer
-    const indexStr = violation.location.split("/").pop();
-    // Number(undefined) = NaN
-    // Number(" ") = 0
-    let index = NaN;
-    if (indexStr?.trim() !== "") {
-      index = Number(indexStr);
-    }
-    if (isNaN(index) || index < 0 || index >= providers.length) {
-      // not recognized or out of range
+    if (violation.kind !== "required") {
       unhandledViolation.push(violation);
       continue;
     }
-    const targetProvider = providers[index];
-    map[targetProvider] = map[targetProvider] ?? [];
-    map[targetProvider]?.push(violation);
+    widgetViolations.push(violation);
   }
-  return { map, unhandledViolation };
+  return { widgetViolations, unhandledViolation };
 }
 
-function determineIsAllProviderDisabled(state: SingleSignOnScreenState) {
-  for (const providerType of oauthSSOProviderTypes) {
-    if (state[providerType].enabled) {
-      return false;
-    }
-  }
-  return true;
-}
+const SingleSignOnConfigurationWidgetWrapper: React.FC<WidgetWrapperProps> = function SingleSignOnConfigurationWidgetWrapper(
+  props: WidgetWrapperProps
+) {
+  const {
+    className,
+    violations,
+    providerType,
+    screenState,
+    setScreenState,
+  } = props;
+  const { appConfig, extraState } = screenState;
+
+  const alias = useMemo(() => providerTypeToAlias(appConfig!, providerType), [
+    appConfig,
+    providerType,
+  ]);
+
+  const {
+    providerIndex,
+    clientID,
+    clientSecret,
+    tenant,
+    keyID,
+    teamID,
+  } = useMemo(() => getWidgetData(screenState, alias), [alias, screenState]);
+
+  const {
+    setEnabled,
+    onAliasChange,
+    onClientIDChange,
+    onClientSecretChange,
+    onTenantChange,
+    onKeyIDChange,
+    onTeamIDChange,
+  } = useMemo(
+    () => makeWidgetStateUpdaters(alias ?? "", providerType, setScreenState),
+    [alias, providerType, setScreenState]
+  );
+
+  const errorLocation = useMemo(() => {
+    return providerIndex != null
+      ? `/identity/oauth/providers/${providerIndex}`
+      : undefined;
+  }, [providerIndex]);
+
+  return (
+    <SingleSignOnConfigurationWidget
+      className={className}
+      errorLocation={errorLocation}
+      alias={alias ?? ""}
+      enabled={extraState[providerType].enabled}
+      serviceProviderType={providerType}
+      clientID={clientID ?? ""}
+      clientSecret={clientSecret}
+      tenant={tenant}
+      keyID={keyID}
+      teamID={teamID}
+      setEnabled={setEnabled}
+      onAliasChange={onAliasChange}
+      onClientIDChange={onClientIDChange}
+      onClientSecretChange={onClientSecretChange}
+      onTenantChange={onTenantChange}
+      onKeyIDChange={onKeyIDChange}
+      onTeamIDChange={onTeamIDChange}
+      violations={violations}
+    />
+  );
+};
 
 const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = function SingleSignOnConfiguration(
   props: SingleSignOnConfigurationProps
@@ -212,97 +479,84 @@ const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = func
     updateAppConfigError,
   } = props;
 
-  const providers = useMemo(() => {
-    return effectiveAppConfig?.identity?.oauth?.providers ?? [];
-  }, [effectiveAppConfig]);
-
-  const oauthCredentials = useMemo(() => {
-    if (secretConfig == null) {
-      return [];
-    }
-    const oauthSecret = extractOAuthSecret(secretConfig);
-    return oauthSecret?.data.items ?? [];
-  }, [secretConfig]);
-
   const initialState: SingleSignOnScreenState = useMemo(() => {
-    return constructScreenState(providers, oauthCredentials);
-  }, [providers, oauthCredentials]);
+    const initialAppConfigState =
+      effectiveAppConfig != null
+        ? produce(effectiveAppConfig, (draftConfig) => {
+            draftConfig.identity = draftConfig.identity ?? {};
+            draftConfig.identity.oauth = draftConfig.identity.oauth ?? {};
+            draftConfig.identity.oauth.providers =
+              draftConfig.identity.oauth.providers ?? [];
+          })
+        : null;
+
+    const initialSecretConfigState =
+      secretConfig != null
+        ? produce(secretConfig, (draftConfig) => {
+            getOrCreateSecret(draftConfig);
+          })
+        : null;
+
+    return {
+      appConfig: initialAppConfigState,
+      secretConfig: initialSecretConfigState,
+      extraState: getScreenExtraState(effectiveAppConfig),
+    };
+  }, [effectiveAppConfig, secretConfig]);
 
   const [state, setState] = useState(initialState);
   const [unhandledViolation, setUnhandleViolation] = useState<Violation[]>([]);
 
-  const enabledProviderTypesRef = useRef<OAuthSSOProviderType[]>([]);
-
   const onSaveClick = useCallback(() => {
-    if (rawAppConfig == null || secretConfig == null) {
+    if (rawAppConfig == null || state.secretConfig == null) {
       return;
     }
 
-    const newProviders = constructProvidersFromState(state);
-    enabledProviderTypesRef.current = newProviders.map(
-      (provider) => provider.type
+    const providers = constructProviders(
+      state.extraState,
+      state.appConfig?.identity?.oauth?.providers ?? []
     );
-    const newOAuthCredentials = constructOAuthCredentialsFromState(state);
 
     const newAppConfig = produce(rawAppConfig, (draftConfig) => {
-      draftConfig.identity = draftConfig.identity ?? {};
-      draftConfig.identity.oauth = draftConfig.identity.oauth ?? {};
-      const { oauth } = draftConfig.identity;
-
-      const isAllProviderDisabled = determineIsAllProviderDisabled(state);
-      if (isAllProviderDisabled) {
-        delete oauth.providers;
-        clearEmptyObject(draftConfig);
-        return;
+      if (providers.length > 0) {
+        draftConfig.identity = draftConfig.identity ?? {};
+        draftConfig.identity.oauth = draftConfig.identity.oauth ?? {};
+        draftConfig.identity.oauth.providers = providers;
+      } else {
+        delete draftConfig.identity?.oauth?.providers;
       }
-
-      oauth.providers = newProviders;
 
       clearEmptyObject(draftConfig);
     });
 
-    const newSecretConfig = produce(secretConfig, (draftConfig) => {
-      const oauthSecret = extractOAuthSecret(draftConfig);
-
-      if (oauthSecret == null) {
-        if (newOAuthCredentials.length > 0) {
-          draftConfig.secrets.push({
-            key: "sso.oauth.client",
-            data: {
-              items: newOAuthCredentials,
-            },
-          });
-        }
-      } else {
-        if (newOAuthCredentials.length > 0) {
-          oauthSecret.data.items = newOAuthCredentials;
-        } else {
-          const index = draftConfig.secrets.findIndex(
-            (secret) => secret.key === "sso.oauth.client"
-          );
-          if (index >= 0) {
-            draftConfig.secrets.splice(index, 1);
-          }
-        }
+    const newSecretConfig = produce(state.secretConfig, (draftConfig) => {
+      const enabledAlias = providers
+        .map((provider) => provider.alias)
+        .filter(nonNullable);
+      const secret = extractSecretFromConfig(draftConfig);
+      if (secret != null) {
+        const newSecretItems = secret.data.items.filter((item) =>
+          enabledAlias.includes(item.alias)
+        );
+        secret.data.items = newSecretItems;
       }
     });
 
     updateAppConfig(newAppConfig, newSecretConfig).catch(() => {});
-  }, [state, rawAppConfig, secretConfig, updateAppConfig]);
+  }, [rawAppConfig, state, updateAppConfig]);
 
-  const violationMap = useMemo(() => {
+  const widgetViolations = useMemo(() => {
     if (updateAppConfigError == null) {
       setUnhandleViolation([]);
-      return {};
+      return [];
     }
-    const providers = enabledProviderTypesRef.current;
     const violations = parseError(updateAppConfigError);
     const {
-      map,
+      widgetViolations: _widgetViolations,
       unhandledViolation: _unhandledViolation,
-    } = constructViolationMap(violations, providers);
+    } = filterViolations(violations);
     setUnhandleViolation(_unhandledViolation);
-    return map;
+    return _widgetViolations;
   }, [updateAppConfigError]);
 
   return (
@@ -312,16 +566,21 @@ const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = func
           <ShowError error={updateAppConfigError} />
         </div>
       )}
-      {oauthSSOProviderTypes.map((providerType) => (
-        <SingleSignOnConfigurationWidget
-          key={providerType}
-          className={styles.widget}
-          serviceProviderType={providerType}
-          screenState={state}
-          setScreenState={setState}
-          violations={violationMap[providerType]}
-        />
-      ))}
+      {oauthSSOProviderTypes.map((providerType) => {
+        if (state.appConfig == null || state.secretConfig == null) {
+          return null;
+        }
+        return (
+          <SingleSignOnConfigurationWidgetWrapper
+            key={providerType}
+            providerType={providerType}
+            className={styles.widget}
+            screenState={state}
+            setScreenState={setState}
+            violations={widgetViolations}
+          />
+        );
+      })}
       <ButtonWithLoading
         className={styles.saveButton}
         loading={updatingAppConfig}

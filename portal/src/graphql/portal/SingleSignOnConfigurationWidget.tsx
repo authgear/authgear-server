@@ -1,21 +1,16 @@
-import React, {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import React, { useContext, useEffect, useState } from "react";
 import cn from "classnames";
-import { Toggle, Label, TextField } from "@fluentui/react";
+import {
+  Toggle,
+  Label,
+  TextField,
+  ITextFieldProps,
+  IToggleProps,
+} from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 
 import ExtendableWidget from "../../ExtendableWidget";
-import {
-  OAuthSSOProviderConfigState,
-  SingleSignOnScreenState,
-} from "./SingleSignOnConfigurationScreen";
-import { OAuthSSOProviderType } from "../../types";
+import { OAuthSSOProviderConfig, OAuthSSOProviderType } from "../../types";
 import {
   errorFormatter,
   makeMissingFieldSelector,
@@ -32,21 +27,36 @@ interface WidgetHeaderLabelProps {
 
 interface WidgetHeaderProps extends WidgetHeaderLabelProps {
   enabled: boolean;
-  setEnabled: (event: any, enabled?: boolean) => void;
+  setEnabled: IToggleProps["onChange"];
 }
 
 interface SingleSignOnConfigurationWidgetProps {
   className?: string;
+
+  errorLocation?: string;
+
+  enabled: boolean;
+  alias: string;
   serviceProviderType: OAuthSSOProviderType;
-  screenState: SingleSignOnScreenState;
-  setScreenState: Dispatch<SetStateAction<SingleSignOnScreenState>>;
+  clientID: string;
+  clientSecret: string;
+  tenant?: string;
+  keyID?: string;
+  teamID?: string;
+
+  setEnabled: IToggleProps["onChange"];
+  onAliasChange: ITextFieldProps["onChange"];
+  onClientIDChange: ITextFieldProps["onChange"];
+  onClientSecretChange: ITextFieldProps["onChange"];
+  onTenantChange: ITextFieldProps["onChange"];
+  onKeyIDChange: ITextFieldProps["onChange"];
+  onTeamIDChange: ITextFieldProps["onChange"];
   violations?: Violation[];
 }
 
-type WidgetTextFieldKey = keyof Omit<
-  OAuthSSOProviderConfigState,
-  "enabled" | "type"
->;
+type WidgetTextFieldKey =
+  | keyof Omit<OAuthSSOProviderConfig, "type">
+  | "client_secret";
 
 type WidgetErrorState = Partial<Record<WidgetTextFieldKey, string>>;
 
@@ -66,7 +76,7 @@ const oauthProviders: Record<OAuthSSOProviderType, OAuthProviderInfo> = {
     fields: new Set<WidgetTextFieldKey>([
       "alias",
       "client_id",
-      "clientSecret",
+      "client_secret",
       "key_id",
       "team_id",
     ]),
@@ -75,7 +85,11 @@ const oauthProviders: Record<OAuthSSOProviderType, OAuthProviderInfo> = {
   google: {
     messageId: "google",
     iconNode: <i className={cn("fab", "fa-google", styles.widgetLabelIcon)} />,
-    fields: new Set<WidgetTextFieldKey>(["alias", "client_id", "clientSecret"]),
+    fields: new Set<WidgetTextFieldKey>([
+      "alias",
+      "client_id",
+      "client_secret",
+    ]),
     isSecretFieldTextArea: false,
   },
   facebook: {
@@ -83,7 +97,11 @@ const oauthProviders: Record<OAuthSSOProviderType, OAuthProviderInfo> = {
     iconNode: (
       <i className={cn("fab", "fa-facebook", styles.widgetLabelIcon)} />
     ),
-    fields: new Set<WidgetTextFieldKey>(["alias", "client_id", "clientSecret"]),
+    fields: new Set<WidgetTextFieldKey>([
+      "alias",
+      "client_id",
+      "client_secret",
+    ]),
     isSecretFieldTextArea: false,
   },
   linkedin: {
@@ -91,7 +109,11 @@ const oauthProviders: Record<OAuthSSOProviderType, OAuthProviderInfo> = {
     iconNode: (
       <i className={cn("fab", "fa-linkedin", styles.widgetLabelIcon)} />
     ),
-    fields: new Set<WidgetTextFieldKey>(["alias", "client_id", "clientSecret"]),
+    fields: new Set<WidgetTextFieldKey>([
+      "alias",
+      "client_id",
+      "client_secret",
+    ]),
     isSecretFieldTextArea: false,
   },
   azureadv2: {
@@ -102,7 +124,7 @@ const oauthProviders: Record<OAuthSSOProviderType, OAuthProviderInfo> = {
     fields: new Set<WidgetTextFieldKey>([
       "alias",
       "client_id",
-      "clientSecret",
+      "client_secret",
       "tenant",
     ]),
     isSecretFieldTextArea: false,
@@ -143,50 +165,30 @@ const WidgetHeader: React.FC<WidgetHeaderProps> = function WidgetHeader(
   );
 };
 
-function useSetWidgetState(
-  setScreenState: Dispatch<SetStateAction<SingleSignOnScreenState>>,
-  serviceProviderType: OAuthSSOProviderType
-) {
-  return useCallback(
-    (widgetState: OAuthSSOProviderConfigState) => {
-      setScreenState((prev) => ({
-        ...prev,
-        [serviceProviderType]: widgetState,
-      }));
-    },
-    [setScreenState, serviceProviderType]
-  );
-}
-
-function useTextField(
-  textFieldKey: WidgetTextFieldKey,
-  widgetState: OAuthSSOProviderConfigState,
-  setWidgetState: (widgetState: OAuthSSOProviderConfigState) => void
-) {
-  const onChange = useCallback(
-    (_event, value?: string) => {
-      if (value == null) {
-        return;
-      }
-      setWidgetState({ ...widgetState, [textFieldKey]: value });
-    },
-    [widgetState, setWidgetState, textFieldKey]
-  );
-  return { onChange };
-}
-
 const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetProps> = function SingleSignOnConfigurationWidget(
   props: SingleSignOnConfigurationWidgetProps
 ) {
   const {
     className,
-    screenState,
-    setScreenState,
+    errorLocation,
+    enabled,
+    alias,
+    clientID,
+    clientSecret,
+    tenant,
+    keyID,
+    teamID,
+    setEnabled,
+    onAliasChange,
+    onClientIDChange,
+    onClientSecretChange,
+    onTenantChange,
+    onKeyIDChange,
+    onTeamIDChange,
     serviceProviderType,
     violations,
   } = props;
   const { renderToString } = useContext(Context);
-  const setWidgetState = useSetWidgetState(setScreenState, serviceProviderType);
 
   const {
     messageId: serviceMessageId,
@@ -194,74 +196,25 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
     iconNode,
     fields: visibleFields,
   } = oauthProviders[serviceProviderType];
-  const widgetState = screenState[serviceProviderType];
 
   const [errorMap, setErrorMap] = useState<WidgetErrorState>({});
 
-  const setEnabled = useCallback(
-    (_event, enabled?: boolean) => {
-      if (enabled == null) {
-        return;
-      }
-      setWidgetState({
-        ...widgetState,
-        enabled,
-      });
-    },
-    [widgetState, setWidgetState]
-  );
-
-  const { onChange: onAliasChange } = useTextField(
-    "alias",
-    widgetState,
-    setWidgetState
-  );
-
-  const { onChange: onClientIdChange } = useTextField(
-    "client_id",
-    widgetState,
-    setWidgetState
-  );
-
-  const { onChange: onClientSecretChange } = useTextField(
-    "clientSecret",
-    widgetState,
-    setWidgetState
-  );
-
-  const { onChange: onTenantChange } = useTextField(
-    "tenant",
-    widgetState,
-    setWidgetState
-  );
-
-  const { onChange: onKeyIdChange } = useTextField(
-    "key_id",
-    widgetState,
-    setWidgetState
-  );
-
-  const { onChange: onTeamIdChange } = useTextField(
-    "team_id",
-    widgetState,
-    setWidgetState
-  );
-
   useEffect(() => {
-    if (violations == null || violations.length === 0) {
+    if (
+      errorLocation == null ||
+      violations == null ||
+      violations.length === 0
+    ) {
       setErrorMap({});
       return;
     }
-    const widgetDataLocationPrefix = "/identity/oauth/providers";
+
     const violationMap = violationSelector(violations, {
-      alias: makeMissingFieldSelector(widgetDataLocationPrefix, "alias"),
-      key_id: makeMissingFieldSelector(widgetDataLocationPrefix, "key_id"),
-      client_id: makeMissingFieldSelector(
-        widgetDataLocationPrefix,
-        "client_id"
-      ),
-      tenant: makeMissingFieldSelector(widgetDataLocationPrefix, "tenant"),
-      team_id: makeMissingFieldSelector(widgetDataLocationPrefix, "team_id"),
+      alias: makeMissingFieldSelector(errorLocation, "alias"),
+      key_id: makeMissingFieldSelector(errorLocation, "key_id"),
+      client_id: makeMissingFieldSelector(errorLocation, "client_id"),
+      tenant: makeMissingFieldSelector(errorLocation, "tenant"),
+      team_id: makeMissingFieldSelector(errorLocation, "team_id"),
     });
 
     setErrorMap({
@@ -291,19 +244,19 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
         renderToString
       ),
     });
-  }, [renderToString, violations]);
+  }, [renderToString, violations, errorLocation]);
 
   return (
     <ExtendableWidget
       className={className}
       extendButtonAriaLabelId={serviceMessageId}
       extendable={true}
-      readOnly={!widgetState.enabled}
-      initiallyExtended={widgetState.enabled}
+      readOnly={!enabled}
+      initiallyExtended={enabled}
       HeaderComponent={
         <WidgetHeader
           icon={iconNode}
-          enabled={widgetState.enabled}
+          enabled={enabled}
           setEnabled={setEnabled}
           serviceMessageId={serviceMessageId}
         />
@@ -314,7 +267,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
           className={styles.textField}
           styles={TEXT_FIELD_STYLE}
           label={renderToString("SingleSignOnConfigurationScreen.widget.alias")}
-          value={widgetState.alias}
+          value={alias}
           onChange={onAliasChange}
           errorMessage={errorMap["alias"]}
         />
@@ -326,12 +279,12 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
           label={renderToString(
             "SingleSignOnConfigurationScreen.widget.client-id"
           )}
-          value={widgetState.client_id}
-          onChange={onClientIdChange}
+          value={clientID}
+          onChange={onClientIDChange}
           errorMessage={errorMap["client_id"]}
         />
       )}
-      {visibleFields.has("clientSecret") && (
+      {visibleFields.has("client_secret") && (
         <TextField
           className={styles.textField}
           styles={TEXT_FIELD_STYLE}
@@ -339,7 +292,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
             "SingleSignOnConfigurationScreen.widget.client-secret"
           )}
           multiline={isSecretFieldTextArea}
-          value={widgetState.clientSecret}
+          value={clientSecret}
           onChange={onClientSecretChange}
         />
       )}
@@ -350,7 +303,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
           label={renderToString(
             "SingleSignOnConfigurationScreen.widget.tenant"
           )}
-          value={widgetState.tenant}
+          value={tenant}
           onChange={onTenantChange}
           errorMessage={errorMap["tenant"]}
         />
@@ -362,8 +315,8 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
           label={renderToString(
             "SingleSignOnConfigurationScreen.widget.key-id"
           )}
-          value={widgetState.key_id}
-          onChange={onKeyIdChange}
+          value={keyID}
+          onChange={onKeyIDChange}
           errorMessage={errorMap["key_id"]}
         />
       )}
@@ -374,8 +327,8 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
           label={renderToString(
             "SingleSignOnConfigurationScreen.widget.team-id"
           )}
-          value={widgetState.team_id}
-          onChange={onTeamIdChange}
+          value={teamID}
+          onChange={onTeamIDChange}
           errorMessage={errorMap["team_id"]}
         />
       )}
