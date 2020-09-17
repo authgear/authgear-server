@@ -284,18 +284,18 @@ var _ = Schema.Add("OAuthSSOProviderConfig", `
 		"key_id": { "type": "string" },
 		"team_id": { "type": "string" }
 	},
-	"required": ["type", "client_id"],
+	"required": ["alias", "type", "client_id"],
 	"allOf": [
 		{
 			"if": { "properties": { "type": { "const": "apple" } } },
 			"then": {
-				"required": ["type", "client_id", "key_id", "team_id"]
+				"required": ["key_id", "team_id"]
 			}
 		},
 		{
 			"if": { "properties": { "type": { "const": "azureadv2" } } },
 			"then": {
-				"required": ["type", "client_id", "tenant"]
+				"required": ["tenant"]
 			}
 		}
 	]
@@ -314,12 +314,6 @@ type OAuthSSOProviderConfig struct {
 	// KeyID and TeamID are specific to apple
 	KeyID  string `json:"key_id,omitempty"`
 	TeamID string `json:"team_id,omitempty"`
-}
-
-func (c *OAuthSSOProviderConfig) SetDefaults() {
-	if c.Alias == "" {
-		c.Alias = string(c.Type)
-	}
 }
 
 func (c *OAuthSSOProviderConfig) ProviderID() ProviderID {
