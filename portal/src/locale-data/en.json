@@ -36,6 +36,10 @@
   "NavBreadcrumb.label": "Nested navigation",
 
   "UsersScreen.title": "Users",
+  "UsersScreen.add-user": "Add User",
+
+  "AddUserScreen.title": "Add User",
+
   "UserDetailsScreen.title": "User Details",
 
   "UsersList.column.id": "ID",
