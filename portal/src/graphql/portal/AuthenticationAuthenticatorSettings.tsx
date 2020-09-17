@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   IColumn,
   Checkbox,
@@ -8,9 +8,11 @@ import {
   Text,
 } from "@fluentui/react";
 import produce from "immer";
+import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import DetailsListWithOrdering, { swap } from "../../DetailsListWithOrdering";
+import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import {
   PortalAPIAppConfig,
@@ -41,6 +43,11 @@ interface AuthenticatorCheckboxProps extends ICheckboxProps {
 interface AuthenticatorListItem<KeyType> {
   activated: boolean;
   key: KeyType;
+}
+
+interface AuthenticationAuthenticatorScreenState {
+  primaryAuthenticators: AuthenticatorListItem<PrimaryAuthenticatorType>[];
+  secondaryAuthenticators: AuthenticatorListItem<SecondaryAuthenticatorType>[];
 }
 
 const AuthenticatorCheckbox: React.FC<AuthenticatorCheckboxProps> = function AuthenticatorCheckbox(
@@ -129,10 +136,7 @@ function makeAuthenticatorKeys<KeyType>(
 
 const constructListData = (
   appConfig: PortalAPIAppConfig | null
-): {
-  primaryAuthenticators: AuthenticatorListItem<PrimaryAuthenticatorType>[];
-  secondaryAuthenticators: AuthenticatorListItem<SecondaryAuthenticatorType>[];
-} => {
+): AuthenticationAuthenticatorScreenState => {
   const authentication = appConfig?.authentication;
 
   const primaryAuthenticators = makeAuthenticatorKeys(
@@ -188,18 +192,26 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
     },
   ];
 
-  const { primaryAuthenticators, secondaryAuthenticators } = constructListData(
-    effectiveAppConfig
-  );
+  const initialState = useMemo(() => {
+    return constructListData(effectiveAppConfig);
+  }, [effectiveAppConfig]);
 
   const [
     primaryAuthenticatorState,
     setPrimaryAuthenticatorState,
-  ] = React.useState(primaryAuthenticators);
+  ] = React.useState(initialState.primaryAuthenticators);
   const [
     secondaryAuthenticatorState,
     setSecondaryAuthenticatorState,
-  ] = React.useState(secondaryAuthenticators);
+  ] = React.useState(initialState.secondaryAuthenticators);
+
+  const isFormModified = useMemo(() => {
+    const screenState: AuthenticationAuthenticatorScreenState = {
+      primaryAuthenticators: primaryAuthenticatorState,
+      secondaryAuthenticators: secondaryAuthenticatorState,
+    };
+    return !deepEqual(initialState, screenState, { strict: true });
+  }, [initialState, primaryAuthenticatorState, secondaryAuthenticatorState]);
 
   const onPrimarySwapClicked = React.useCallback(
     (index1: number, index2: number) => {
@@ -297,6 +309,7 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
 
   return (
     <div className={styles.root}>
+      <NavigationBlockerDialog blockNavigation={isFormModified} />
       <div
         className={styles.widget}
         style={{ boxShadow: DefaultEffects.elevation4 }}
@@ -333,6 +346,7 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
 
       <div className={styles.saveButtonContainer}>
         <ButtonWithLoading
+          disabled={!isFormModified}
           onClick={onSaveButtonClicked}
           loading={updatingAppConfig}
           labelId="save"

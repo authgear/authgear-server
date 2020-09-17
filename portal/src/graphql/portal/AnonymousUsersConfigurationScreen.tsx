@@ -1,6 +1,7 @@
 import React, { useContext, useCallback, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
+import deepEqual from "deep-equal";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { Text, Toggle, Dropdown, IDropdownOption } from "@fluentui/react";
 
@@ -18,6 +19,7 @@ import { clearEmptyObject } from "../../util/misc";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ButtonWithLoading from "../../ButtonWithLoading";
+import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 
 import styles from "./AnonymousUsersConfigurationScreen.module.scss";
 
@@ -131,6 +133,10 @@ const AnonymousUsersConfiguration: React.FC<AnonymousUsersConfigurationProps> = 
     return constructConflictBehaviourOptions(state);
   }, [state]);
 
+  const isFormModified = useMemo(() => {
+    return !deepEqual(initialState, state, { strict: true });
+  }, [initialState, state]);
+
   const onSwitchToggled = useCallback(
     (_event, checked?: boolean) => {
       if (checked == null) {
@@ -171,6 +177,7 @@ const AnonymousUsersConfiguration: React.FC<AnonymousUsersConfigurationProps> = 
 
   return (
     <section className={styles.screenContent}>
+      <NavigationBlockerDialog blockNavigation={isFormModified} />
       <Toggle
         className={styles.enableToggle}
         checked={state.enabled}
@@ -188,6 +195,7 @@ const AnonymousUsersConfiguration: React.FC<AnonymousUsersConfigurationProps> = 
         onChange={onConflictOptionChange}
       />
       <ButtonWithLoading
+        disabled={!isFormModified}
         className={styles.saveButton}
         onClick={onSaveClicked}
         loading={updatingAppConfig}
