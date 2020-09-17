@@ -12,14 +12,15 @@
 }
 
 .downArrow {
-  &:hover {
-    background-color: transparent;
+  i {
+    transition: transform 200ms ease;
   }
-  transition: transform 200ms ease;
 }
 
 .downArrowExtended {
-  transform: rotate(-180deg);
+  i {
+    transform: rotate(-180deg);
+  }
 }
 
 .contentContainer {
