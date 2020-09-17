@@ -66,6 +66,8 @@ const defineError = `
 		<li class="error-txt">{{ template "error-duplicated-identity" }}</li>
 	{{ else if eq .Error.reason "InvalidIdentityRequest" }}
 		<li class="error-txt">{{ template "error-remove-last-identity" }}</li>
+	{{ else if eq .Error.reason "NewPasswordTypo" }}
+		<li class="error-txt">{{ template "error-new-password-typo" }}</li>
 	{{ else }}
 		<li class="error-txt">{{ .Error.message }}</li>
 	{{ end }}

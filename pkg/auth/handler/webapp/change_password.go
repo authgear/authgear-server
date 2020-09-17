@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	pwd "github.com/authgear/authgear-server/pkg/util/password"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -34,9 +35,10 @@ var ChangePasswordSchema = validation.NewMultipartSchema("").
 		{
 			"type": "object",
 			"properties": {
-				"x_password": { "type": "string" }
+				"x_password": { "type": "string" },
+				"x_confirm_password": { "type": "string" }
 			},
-			"required": ["x_password"]
+			"required": ["x_password", "x_confirm_password"]
 		}
 	`).Instantiate()
 
@@ -121,6 +123,11 @@ func (h *ChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				}
 
 				newPassword := r.Form.Get("x_password")
+				confirmPassword := r.Form.Get("x_confirm_password")
+				err = pwd.ConfirmPassword(newPassword, confirmPassword)
+				if err != nil {
+					return
+				}
 
 				input = &ChangePasswordInput{
 					Password: newPassword,

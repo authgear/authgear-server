@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	pwd "github.com/authgear/authgear-server/pkg/util/password"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -34,9 +35,10 @@ var ResetPasswordSchema = validation.NewMultipartSchema("").
 			"type": "object",
 			"properties": {
 				"code": { "type": "string" },
-				"x_password": { "type": "string" }
+				"x_password": { "type": "string" },
+				"x_confirm_password": { "type": "string" }
 			},
-			"required": ["code", "x_password"]
+			"required": ["code", "x_password", "x_confirm_password"]
 		}
 	`).Instantiate()
 
@@ -132,6 +134,11 @@ func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 				code := r.Form.Get("code")
 				newPassword := r.Form.Get("x_password")
+				confirmPassword := r.Form.Get("x_confirm_password")
+				err = pwd.ConfirmPassword(newPassword, confirmPassword)
+				if err != nil {
+					return
+				}
 
 				input = &ResetPasswordInput{
 					Code:     code,

@@ -10,6 +10,7 @@
 	"error-password-reset-failed": "This reset password link is invalid, used or expired. Please request a new one.",
 	"error-duplicated-identity": "This identity has been claimed by another user.",
 	"error-remove-last-identity": "Cannot disconnect. You need to keep at least 1 identity.",
+	"error-new-password-typo": "Typo in your re-typed password",
 
 	"google-play-store-label": "Google Play Store",
 	"apple-app-store-label": "Apple App Store",
