@@ -17,6 +17,8 @@
 
   "show-error.retry": "Retry",
 
+  "required-field-missing": "Required field `{fieldName}` is missing",
+
   "ScreenNav.label": "Top-level tab navigation",
   "ScreenNav.users": "Users",
   "ScreenNav.authentication": "Authentication",

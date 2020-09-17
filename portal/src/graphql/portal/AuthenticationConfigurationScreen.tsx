@@ -14,22 +14,17 @@ import { useAppConfigQuery } from "./query/appConfigQuery";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
 
 import styles from "./AuthenticationConfigurationScreen.module.scss";
-import { useSimpleRPC } from "../../hook/misc";
 
 const AuthenticationScreen: React.FC = function AuthenticationScreen() {
   const { renderToString } = React.useContext(Context);
   const { appID } = useParams();
   const {
-    updateAppConfig: updateAppConfigMutation,
+    updateAppConfig,
+    loading: updatingAppConfig,
+    error: updateAppConfigError,
   } = useUpdateAppConfigMutation(appID);
 
   const { loading, error, data, refetch } = useAppConfigQuery(appID);
-
-  const {
-    loading: updatingAppConfig,
-    error: updateAppConfigError,
-    rpc: updateAppConfig,
-  } = useSimpleRPC(updateAppConfigMutation);
 
   const { effectiveAppConfig, rawAppConfig } = React.useMemo(() => {
     const node = data?.node;
