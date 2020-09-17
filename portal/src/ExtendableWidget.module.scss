@@ -12,6 +12,9 @@
 }
 
 .downArrow {
+  &:hover {
+    background-color: transparent;
+  }
   transition: transform 200ms ease;
 }
 
