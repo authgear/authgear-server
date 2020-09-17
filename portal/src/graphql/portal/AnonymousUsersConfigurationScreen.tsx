@@ -1,10 +1,4 @@
-import React, {
-  useContext,
-  useCallback,
-  useState,
-  useMemo,
-  useEffect,
-} from "react";
+import React, { useContext, useCallback, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
 import deepEqual from "deep-equal";
@@ -139,10 +133,8 @@ const AnonymousUsersConfiguration: React.FC<AnonymousUsersConfigurationProps> = 
     return constructConflictBehaviourOptions(state);
   }, [state]);
 
-  const [isFormModified, setIsFormModified] = useState(false);
-  useEffect(() => {
-    const equalInitial = deepEqual(initialState, state, { strict: true });
-    setIsFormModified(!equalInitial);
+  const isFormModified = useMemo(() => {
+    return !deepEqual(initialState, state, { strict: true });
   }, [initialState, state]);
 
   const onSwitchToggled = useCallback(

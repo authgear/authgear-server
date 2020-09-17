@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import {
   IColumn,
   Checkbox,
@@ -205,15 +205,12 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
     setSecondaryAuthenticatorState,
   ] = React.useState(initialState.secondaryAuthenticators);
 
-  const [isFormModified, setIsFormModified] = useState(false);
-
-  useEffect(() => {
+  const isFormModified = useMemo(() => {
     const screenState: AuthenticationAuthenticatorScreenState = {
       primaryAuthenticators: primaryAuthenticatorState,
       secondaryAuthenticators: secondaryAuthenticatorState,
     };
-    const equalInitial = deepEqual(initialState, screenState, { strict: true });
-    setIsFormModified(!equalInitial);
+    return !deepEqual(initialState, screenState, { strict: true });
   }, [initialState, primaryAuthenticatorState, secondaryAuthenticatorState]);
 
   const onPrimarySwapClicked = React.useCallback(

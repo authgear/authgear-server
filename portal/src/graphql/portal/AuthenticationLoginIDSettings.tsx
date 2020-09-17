@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import produce from "immer";
 import { Checkbox, Toggle, TagPicker, Label } from "@fluentui/react";
 import deepEqual from "deep-equal";
@@ -311,8 +311,6 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     return constructStateFromAppConfig(effectiveAppConfig);
   }, [effectiveAppConfig]);
 
-  const [isFormModified, setIsFormModified] = useState(false);
-
   const [usernameEnabled, setUsernameEnabled] = useState(
     initialState.usernameEnabled
   );
@@ -390,9 +388,8 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     ]
   );
 
-  useEffect(() => {
-    const equalInitial = deepEqual(initialState, screenState, { strict: true });
-    setIsFormModified(!equalInitial);
+  const isFormModified = useMemo(() => {
+    return !deepEqual(initialState, screenState, { strict: true });
   }, [initialState, screenState]);
 
   // on save
