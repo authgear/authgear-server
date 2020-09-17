@@ -53,7 +53,9 @@
 	"forgot-password-button-label": "Can''t access your account?",
 
 	"enter-password-page-title": "Enter password",
-	"password-placeholder": "password",
+	"password-placeholder": "Current password",
+	"new-password-placeholder": "New password",
+	"confirm-password-placeholder": "Re-type your new password",
 	"forgot-password-button-label--enter-password-page": "Forgot Password?",
 
 	"oob-otp-page-title--sms": "SMS One-Time-Password",
