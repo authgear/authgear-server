@@ -16,6 +16,21 @@ import (
 
 const typeIdentity = "Identity"
 
+var identityType = graphql.NewEnum(graphql.EnumConfig{
+	Name: "IdentityType",
+	Values: graphql.EnumValueConfigMap{
+		"LOGIN_ID": &graphql.EnumValueConfig{
+			Value: "login_id",
+		},
+		"OAUTH": &graphql.EnumValueConfig{
+			Value: "oauth",
+		},
+		"ANONYMOUS": &graphql.EnumValueConfig{
+			Value: "anonymous",
+		},
+	},
+})
+
 var nodeIdentity = entity(
 	graphql.NewObject(graphql.ObjectConfig{
 		Name: typeIdentity,
@@ -31,7 +46,7 @@ var nodeIdentity = entity(
 			"createdAt": entityCreatedAtField(loadIdentity),
 			"updatedAt": entityUpdatedAtField(loadIdentity),
 			"type": &graphql.Field{
-				Type: graphql.NewNonNull(graphql.String),
+				Type: graphql.NewNonNull(identityType),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					ref := p.Source.(interface{ ToRef() *identity.Ref }).ToRef()
 					return string(ref.Type), nil

@@ -18,6 +18,12 @@ export enum AuthenticatorType {
   TOTP = "TOTP",
 }
 
+export enum IdentityType {
+  ANONYMOUS = "ANONYMOUS",
+  LOGIN_ID = "LOGIN_ID",
+  OAUTH = "OAUTH",
+}
+
 //==============================================================
 // END Enums and Input Objects
 //==============================================================

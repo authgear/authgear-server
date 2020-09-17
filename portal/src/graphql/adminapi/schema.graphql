@@ -110,7 +110,7 @@ type Identity implements Entity & Node {
   id: ID!
 
   """"""
-  type: String!
+  type: IdentityType!
 
   """The update time of entity"""
   updatedAt: DateTime!
@@ -140,6 +140,18 @@ type IdentityEdge {
 
   """The item at the end of the edge"""
   node: Identity
+}
+
+""""""
+enum IdentityType {
+  """"""
+  ANONYMOUS
+
+  """"""
+  LOGIN_ID
+
+  """"""
+  OAUTH
 }
 
 """"""
