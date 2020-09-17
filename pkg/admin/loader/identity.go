@@ -26,8 +26,9 @@ func (l *IdentityLoader) Get(ref *identity.Ref) *graphqlutil.Lazy {
 	if l.loader == nil {
 		l.loader = graphqlutil.NewDataLoader(func(keys []interface{}) ([]interface{}, error) {
 			refs := make([]*identity.Ref, len(keys))
-			for i, id := range keys {
-				refs[i] = id.(*identity.Ref)
+			for i, key := range keys {
+				ref := key.(identity.Ref)
+				refs[i] = &ref
 			}
 
 			infos, err := l.Identities.GetMany(refs)
@@ -46,7 +47,7 @@ func (l *IdentityLoader) Get(ref *identity.Ref) *graphqlutil.Lazy {
 			return values, nil
 		})
 	}
-	return l.loader.Load(ref)
+	return l.loader.Load(*ref)
 }
 
 func (l *IdentityLoader) List(userID string) *graphqlutil.Lazy {
@@ -90,7 +91,13 @@ func (l *IdentityLoader) Remove(identityInfo *identity.Info) *graphqlutil.Lazy {
 			interactionintents.NewIntentRemoveIdentity(identityInfo.UserID),
 			&removeIdentityInput{identityInfo: identityInfo},
 		)
-		return nil, err
+		if err != nil {
+			return nil, err
+		}
+
+		l.loader.Reset(*identityInfo.ToRef())
+		l.listLoader.Reset(identityInfo.UserID)
+		return nil, nil
 	})
 }
 
