@@ -469,6 +469,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorLoader := &loader.AuthenticatorLoader{
 		Authenticators: service4,
+		Interaction:    serviceInteractionService,
 	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:      logger,
