@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
+import deepEqual from "deep-equal";
 import { Link, Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 
@@ -14,11 +15,13 @@ import SingleSignOnConfigurationWidget from "./SingleSignOnConfigurationWidget";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ButtonWithLoading from "../../ButtonWithLoading";
+import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import { useUpdateAppAndSecretConfigMutation } from "./mutations/updateAppAndSecretMutation";
 import { clearEmptyObject } from "../../util/misc";
 import { parseError } from "../../util/error";
 import { Violation } from "../../util/validation";
+import { nonNullable } from "../../util/types";
 import {
   OAuthClientCredentialItem,
   OAuthSecretItem,
@@ -29,7 +32,6 @@ import {
   PortalAPIAppConfig,
   PortalAPISecretConfig,
 } from "../../types";
-import { nonNullable } from "../../util/types";
 
 import styles from "./SingleSignOnConfigurationScreen.module.scss";
 
@@ -505,6 +507,11 @@ const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = func
   }, [effectiveAppConfig, secretConfig]);
 
   const [state, setState] = useState(initialState);
+
+  const isFormModified = useMemo(() => {
+    return !deepEqual(initialState, state);
+  }, [state, initialState]);
+
   const [unhandledViolation, setUnhandleViolation] = useState<Violation[]>([]);
 
   const onSaveClick = useCallback(() => {
@@ -561,6 +568,7 @@ const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = func
 
   return (
     <section className={styles.screenContent}>
+      <NavigationBlockerDialog blockNavigation={isFormModified} />
       {unhandledViolation.length > 0 && (
         <div className={styles.error}>
           <ShowError error={updateAppConfigError} />
@@ -583,6 +591,7 @@ const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = func
       })}
       <ButtonWithLoading
         className={styles.saveButton}
+        disabled={!isFormModified}
         loading={updatingAppConfig}
         labelId="save"
         loadingLabelId="saving"
