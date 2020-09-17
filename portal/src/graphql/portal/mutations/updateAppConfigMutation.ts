@@ -10,10 +10,7 @@ import { UpdateAppConfigMutation } from "./__generated__/UpdateAppConfigMutation
 const APP_CONFIG_PATH = "./authgear.yaml";
 
 const updateAppConfigMutation = gql`
-  mutation UpdateAppConfigMutation(
-    $appID: String!
-    $updateFile: AppConfigFile!
-  ) {
+  mutation UpdateAppConfigMutation($appID: ID!, $updateFile: AppConfigFile!) {
     updateAppConfig(
       input: { appID: $appID, updateFiles: [$updateFile], deleteFiles: [] }
     ) {

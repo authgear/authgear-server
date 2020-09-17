@@ -93,7 +93,7 @@ var updateAppConfigInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "UpdateAppConfigInput",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"appID": &graphql.InputObjectFieldConfig{
-			Type:        graphql.NewNonNull(graphql.String),
+			Type:        graphql.NewNonNull(graphql.ID),
 			Description: "App ID to update.",
 		},
 		"updateFiles": &graphql.InputObjectFieldConfig{
