@@ -23,9 +23,7 @@
 }
 
 .contentContainer {
-  overflow: hidden;
-  height: 0;
-  transition: height 200ms ease;
+  height: auto;
 }
 
 .contentContainerExtended {

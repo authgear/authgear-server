@@ -1,17 +1,15 @@
 import React, {
-  createRef,
   useState,
   useCallback,
   useEffect,
   useMemo,
   useContext,
-  useRef,
 } from "react";
 import { IconButton, DefaultEffects } from "@fluentui/react";
+import { Context } from "@oursky/react-messageformat";
 import cn from "classnames";
 
 import styles from "./ExtendableWidget.module.scss";
-import { Context } from "@oursky/react-messageformat";
 
 interface ExtendableWidgetProps {
   HeaderComponent: React.ReactNode;
@@ -40,50 +38,14 @@ const ExtendableWidget: React.FC<ExtendableWidgetProps> = function ExtendableWid
     extendButtonAriaLabelId,
   } = props;
 
-  const contentDivRef = createRef<HTMLDivElement>();
   const [extended, setExtended] = useState(initiallyExtended);
-  const [contentHeight, setContentHeight] = useState(
-    initiallyExtended ? "auto" : "0"
-  );
 
   const { renderToString } = useContext(Context);
-
-  // clear timeout on component dismount
-  const timeoutRef = useRef<number>();
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current != null) {
-        window.clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
 
   const onExtendClicked = useCallback(() => {
     const stateAftertoggle = !extended;
     setExtended(stateAftertoggle);
-    // NOTE: css transistion will not work if height in
-    // either end is indefinite (eg. auto)
-    if (!stateAftertoggle) {
-      if (contentDivRef.current != null) {
-        setContentHeight(`${contentDivRef.current.offsetHeight}px`);
-      }
-      // make sure height is set to current height, then
-      // set to 0, prevent React batch update the state,
-      // resulting in auto -> 0 transition
-      window.setTimeout(() => {
-        setContentHeight("0");
-      }, 0);
-      return;
-    }
-    if (contentDivRef.current != null) {
-      setContentHeight(`${contentDivRef.current.offsetHeight}px`);
-      timeoutRef.current = window.setTimeout(() => {
-        setContentHeight("auto");
-      }, 200);
-      return;
-    }
-    setContentHeight("auto");
-  }, [contentDivRef, extended]);
+  }, [extended]);
 
   // Collapse when extendable becomes false.
   useEffect(() => {
@@ -111,16 +73,12 @@ const ExtendableWidget: React.FC<ExtendableWidgetProps> = function ExtendableWid
           iconProps={ICON_PROPS}
         />
       </div>
-      <div
-        className={styles.contentContainer}
-        style={{ height: contentHeight }}
-      >
-        <div
-          ref={contentDivRef}
-          className={cn(styles.content, { [styles.readOnly]: readOnly })}
-        >
-          {children}
-        </div>
+      <div className={styles.contentContainer}>
+        {extended && (
+          <div className={cn(styles.content, { [styles.readOnly]: readOnly })}>
+            {children}
+          </div>
+        )}
       </div>
     </div>
   );
