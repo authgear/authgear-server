@@ -123,6 +123,6 @@ func (n *NodeChangePasswordEnd) DeriveEdges(graph *interaction.Graph) ([]interac
 			},
 		}, nil
 	}
-	// Password was not changed, ends the interaction
-	return nil, nil
+
+	return graph.Intent.DeriveEdgesForNode(graph, n)
 }

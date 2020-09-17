@@ -43,6 +43,9 @@ func (i *IntentChangePassword) DeriveEdgesForNode(graph *interaction.Graph, node
 				Stage: i.Stage,
 			},
 		}, nil
+	case *nodes.NodeChangePasswordEnd:
+		// Password was not changed, ends the interaction
+		return nil, nil
 	case *nodes.NodeDoUpdateAuthenticator:
 		return nil, nil
 	default:
