@@ -74,6 +74,26 @@ window.addEventListener("load", function() {
     }
   }
 
+  function checkPasswordStrength(value) {
+    var meter = document.querySelector("#password-strength-meter");
+    var desc = document.querySelector("#password-strength-meter-description");
+    if (meter == null || desc == null) {
+      return;
+    }
+
+    meter.value = 0;
+    desc.textContent = "";
+
+    if (value === "") {
+      return;
+    }
+
+    var result = zxcvbn(value);
+    var score = Math.min(5, Math.max(1, result.score + 1));
+    meter.value = score;
+    desc.textContent = desc.getAttribute("data-desc-" + score);
+  }
+
   function attachPasswordPolicyCheck() {
     var el = document.querySelector("[data-password-policy-password]");
     if (el == null ) {
@@ -90,6 +110,7 @@ window.addEventListener("load", function() {
       checkPasswordLowercase(value, document.querySelector(".password-policy.lowercase"));
       checkPasswordDigit(value, document.querySelector(".password-policy.digit"));
       checkPasswordSymbol(value, document.querySelector(".password-policy.symbol"));
+      checkPasswordStrength(value);
     });
   }
 
