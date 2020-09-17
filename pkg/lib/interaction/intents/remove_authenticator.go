@@ -35,7 +35,10 @@ func (i *IntentRemoveAuthenticator) DeriveEdgesForNode(graph *interaction.Graph,
 
 	case *nodes.NodeRemoveAuthenticator:
 		return []interaction.Edge{
-			&nodes.EdgeDoRemoveAuthenticator{Authenticator: node.AuthenticatorInfo},
+			&nodes.EdgeDoRemoveAuthenticator{
+				Authenticator:        node.AuthenticatorInfo,
+				BypassMFARequirement: node.BypassMFARequirement,
+			},
 		}, nil
 
 	case *nodes.NodeDoRemoveAuthenticator:

@@ -12,17 +12,20 @@ func init() {
 }
 
 type EdgeDoRemoveAuthenticator struct {
-	Authenticator *authenticator.Info
+	Authenticator        *authenticator.Info
+	BypassMFARequirement bool
 }
 
 func (e *EdgeDoRemoveAuthenticator) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	return &NodeDoRemoveAuthenticator{
-		Authenticator: e.Authenticator,
+		Authenticator:        e.Authenticator,
+		BypassMFARequirement: e.BypassMFARequirement,
 	}, nil
 }
 
 type NodeDoRemoveAuthenticator struct {
-	Authenticator *authenticator.Info `json:"authenticator"`
+	Authenticator        *authenticator.Info `json:"authenticator"`
+	BypassMFARequirement bool                `json:"bypass_mfa_requirement"`
 }
 
 func (n *NodeDoRemoveAuthenticator) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -73,6 +76,9 @@ func (n *NodeDoRemoveAuthenticator) Apply(perform func(eff interaction.Effect) e
 
 		case authenticator.KindSecondary:
 			// Ensure authenticators conform to MFA requirement configuration
+			if n.BypassMFARequirement {
+				break
+			}
 			secondaries := filterAuthenticators(as, authenticator.KeepKind(authenticator.KindSecondary))
 			mode := ctx.Config.Authentication.SecondaryAuthenticationMode
 			if mode == config.SecondaryAuthenticationModeRequired &&

@@ -26,6 +26,10 @@ func (e *EdgeRemoveAuthenticator) Instantiate(ctx *interaction.Context, graph *i
 	userID := graph.MustGetUserID()
 	authenticatorType := input.GetAuthenticatorType()
 	authenticatorID := input.GetAuthenticatorID()
+	bypassMFARequirement := false
+	if input, ok := input.(interface{ BypassMFARequirement() bool }); ok {
+		bypassMFARequirement = input.BypassMFARequirement()
+	}
 
 	info, err := ctx.Authenticators.Get(userID, authenticatorType, authenticatorID)
 	if err != nil {
@@ -33,12 +37,14 @@ func (e *EdgeRemoveAuthenticator) Instantiate(ctx *interaction.Context, graph *i
 	}
 
 	return &NodeRemoveAuthenticator{
-		AuthenticatorInfo: info,
+		AuthenticatorInfo:    info,
+		BypassMFARequirement: bypassMFARequirement,
 	}, nil
 }
 
 type NodeRemoveAuthenticator struct {
-	AuthenticatorInfo *authenticator.Info `json:"authenticator_info"`
+	AuthenticatorInfo    *authenticator.Info `json:"authenticator_info"`
+	BypassMFARequirement bool                `json:"bypass_mfa_requirement"`
 }
 
 func (n *NodeRemoveAuthenticator) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
