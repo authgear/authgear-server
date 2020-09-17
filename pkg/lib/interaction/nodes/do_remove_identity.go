@@ -37,7 +37,11 @@ func (n *NodeDoRemoveIdentity) Apply(perform func(eff interaction.Effect) error,
 		}
 
 		if len(identityInfos) <= 1 {
-			return interaction.ErrCannotRemoveLastIdentity
+			return interaction.NewInvariantViolated(
+				"RemoveLastIdentity",
+				"cannot remove last identity",
+				nil,
+			)
 		}
 
 		err = ctx.Identities.Delete(n.Identity)

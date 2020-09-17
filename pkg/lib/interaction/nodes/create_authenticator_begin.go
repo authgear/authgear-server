@@ -113,7 +113,7 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() (edges []interaction.Edge
 	// Here we check if the configuration is non-sense.
 	types := n.AuthenticationConfig.PrimaryAuthenticators
 	if len(types) == 0 {
-		return nil, interaction.ConfigurationViolated.New("identity requires primary authenticator but none is enabled")
+		return nil, interaction.InvalidConfiguration.New("identity requires primary authenticator but none is enabled")
 	}
 
 	firstType := types[0]

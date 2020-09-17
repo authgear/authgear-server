@@ -38,7 +38,11 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 	}
 
 	if !enabled {
-		return nil, interaction.ConfigurationViolated.New("anonymous users are not allowed")
+		return nil, interaction.NewInvariantViolated(
+			"AnonymousUserDisallowed",
+			"anonymous users are not allowed",
+			nil,
+		)
 	}
 
 	jwt := input.GetAnonymousRequestToken()
