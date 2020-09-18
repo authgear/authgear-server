@@ -1,5 +1,6 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
+import zxcvbn from "zxcvbn";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { Label, PrimaryButton, Text, TextField } from "@fluentui/react";
 
@@ -7,9 +8,12 @@ import { useAppConfigQuery } from "../portal/query/appConfigQuery";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-import PasswordField from "../../PasswordField";
+import PasswordField, {
+  extractGuessableLevel,
+  isPasswordValid,
+} from "../../PasswordField";
 import { useTextField } from "../../hook/useInput";
-import { PortalAPIAppConfig } from "../../types";
+import { PasswordPolicyConfig, PortalAPIAppConfig } from "../../types";
 
 import styles from "./AddUserScreen.module.scss";
 
@@ -17,11 +21,68 @@ interface AddUserContentProps {
   appConfig: PortalAPIAppConfig | null;
 }
 
+interface AddUserScreenState {
+  name: string;
+  username: string;
+  email: string;
+  phone: string;
+  password: string;
+}
+
+interface FieldVisible {
+  username: boolean;
+  email: boolean;
+  phone: boolean;
+  password: boolean;
+}
+
+interface AddUserViolation {
+  type: "OneOfLoginIdType" | "PasswordInvalid";
+}
+
+function checkOnlyOneOfLoginIdFieldFilled(screenState: AddUserScreenState) {
+  return (
+    [screenState.username, screenState.email, screenState.phone].filter(
+      (fieldValue) => fieldValue.length > 0
+    ).length === 1
+  );
+}
+
+function validate(
+  screenState: AddUserScreenState,
+  isFieldVisible: FieldVisible,
+  passwordPolicy: PasswordPolicyConfig
+) {
+  const errors: AddUserViolation[] = [];
+  if (!checkOnlyOneOfLoginIdFieldFilled(screenState)) {
+    errors.push({ type: "OneOfLoginIdType" });
+  }
+  if (isFieldVisible.password) {
+    const passwordCheckResult = zxcvbn(screenState.password);
+    const guessableLevel = extractGuessableLevel(passwordCheckResult);
+    if (
+      !isPasswordValid(passwordPolicy, screenState.password, guessableLevel)
+    ) {
+      errors.push({ type: "PasswordInvalid" });
+    }
+  }
+  return errors;
+}
+
+function selectViolations(
+  violations: AddUserViolation[],
+  violationType: AddUserViolation["type"]
+) {
+  return violations.filter((violation) => violation.type === violationType);
+}
+
 const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
   props: AddUserContentProps
 ) {
   const { appConfig } = props;
   const { renderToString } = useContext(Context);
+
+  const [violations, setViolations] = useState<AddUserViolation[]>([]);
 
   const isFieldVisible = useMemo(() => {
     const loginIdKeys = appConfig?.identity?.login_id?.keys ?? [];
@@ -56,9 +117,37 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
   const { value: phone, onChange: onPhoneChange } = useTextField("");
   const { value: password, onChange: onPasswordChange } = useTextField("");
 
+  const screenState = useMemo(
+    () => ({
+      name,
+      username,
+      email,
+      phone,
+      password,
+    }),
+    [name, username, email, phone, password]
+  );
+
   const onClickAddUser = useCallback(() => {
-    // TODO: to be implemented
-  }, []);
+    const validationErrors = validate(
+      screenState,
+      isFieldVisible,
+      passwordPolicy
+    );
+    setViolations(validationErrors);
+    // TODO: integrate add user mutation
+  }, [screenState, isFieldVisible, passwordPolicy]);
+
+  const passwordFieldErrorMessage = useMemo(() => {
+    const passwordFieldViolations = selectViolations(
+      violations,
+      "PasswordInvalid"
+    );
+    if (passwordFieldViolations.length > 0) {
+      return renderToString("AddUserScreen.error.invalid-password");
+    }
+    return undefined;
+  }, [renderToString, violations]);
 
   // TODO: improve empty state
   if (!canAddUser) {
@@ -105,6 +194,11 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
             onChange={onPhoneChange}
           />
         )}
+        {selectViolations(violations, "OneOfLoginIdType").length > 0 && (
+          <Text className={styles.errorText}>
+            <FormattedMessage id="AddUserScreen.error.one-of-login-id-type" />
+          </Text>
+        )}
       </section>
       {isFieldVisible.password && (
         <PasswordField
@@ -113,6 +207,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
           value={password}
           onChange={onPasswordChange}
           passwordPolicy={passwordPolicy}
+          errorMessage={passwordFieldErrorMessage}
         />
       )}
       <PrimaryButton className={styles.addUserButton} onClick={onClickAddUser}>

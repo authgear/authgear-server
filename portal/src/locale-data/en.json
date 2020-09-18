@@ -47,6 +47,8 @@
   "AddUserScreen.password.label": "Password",
   "AddUserScreen.add-user.label": "Add User",
   "AddUserScreen.cannot-add-user": "Please enable at least one of username, email or phone in authentication screen",
+  "AddUserScreen.error.one-of-login-id-type": "Required to fill in exactly 1 of the fields above",
+  "AddUserScreen.error.invalid-password": "Please check password policies below",
 
   "UserDetailsScreen.title": "User Details",
 
