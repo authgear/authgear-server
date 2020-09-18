@@ -59,14 +59,19 @@ const ExtendableWidget: React.FC<ExtendableWidgetProps> = function ExtendableWid
     [extendButtonAriaLabelId, renderToString]
   );
 
+  const buttonStyles = {
+    icon: {
+      transition: "transform 200ms ease",
+      transform: extended ? "rotate(-180deg)" : undefined,
+    },
+  };
+
   return (
     <div className={className} style={{ boxShadow: DefaultEffects.elevation4 }}>
       <div className={styles.header}>
         <div className={styles.propsHeader}>{HeaderComponent}</div>
         <IconButton
-          className={cn(styles.downArrow, {
-            [styles.downArrowExtended]: extended,
-          })}
+          styles={buttonStyles}
           ariaLabel={buttonAriaLabel}
           onClick={onExtendClicked}
           disabled={!extendable}

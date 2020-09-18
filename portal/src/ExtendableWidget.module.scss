@@ -11,18 +11,6 @@
   margin: -5px;
 }
 
-.downArrow {
-  i {
-    transition: transform 200ms ease;
-  }
-}
-
-.downArrowExtended {
-  i {
-    transform: rotate(-180deg);
-  }
-}
-
 .contentContainer {
   height: auto;
 }
