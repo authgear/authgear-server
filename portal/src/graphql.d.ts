@@ -13,4 +13,5 @@ declare type GQL_AuthenticatorClaims = Record<string, unknown>;
 // eslint-disable-next-line no-undef
 declare type GQL_AppConfig = import("./types").PortalAPIAppConfig;
 
-declare type GQL_SecretConfig = Record<string, unknown>;
+// eslint-disable-next-line no-undef
+declare type GQL_SecretConfig = import("./types").PortalAPISecretConfig;

@@ -13,6 +13,12 @@
   "confirm": "Confirm",
   "cancel": "Cancel",
 
+  "apple": "Apple",
+  "google": "Google",
+  "facebook": "Facebook",
+  "linkedin": "LinkedIn",
+  "azureadv2": "AzureADv2",
+
   "header.sign-out": "Sign out",
 
   "nav.users": "Users",
@@ -25,6 +31,7 @@
   "ScreenNav.users": "Users",
   "ScreenNav.authentication": "Authentication",
   "ScreenNav.anonymous-users": "Anonymous Users",
+  "ScreenNav.single-sign-on": "Single-Sign On",
 
   "NavBreadcrumb.label": "Nested navigation",
 
@@ -90,6 +97,17 @@
   "AnonymousUsersConfigurationScreen.title": "Anonymous Users",
   "AnonymousUsersConfigurationScreen.enable.label": "Enable anonymous users?",
   "AnonymousUsersConfigurationScreen.conflict-droplist.label": "User identity conflict when promote to normal user",
+
+  "SingleSignOnConfigurationScreen.title": "Single-Sign On",
+  "SingleSignOnConfigurationScreen.help-link": "Need help? View our SSO integration documentations",
+  "SingleSignOnConfigurationScreen.widget.header": "Sign in with {serviveName}",
+  "SingleSignOnConfigurationScreen.widget.alias": "Alias",
+  "SingleSignOnConfigurationScreen.widget.client-id": "Client ID",
+  "SingleSignOnConfigurationScreen.widget.client-secret": "Client Secret",
+  "SingleSignOnConfigurationScreen.widget.tenant": "Tenant",
+  "SingleSignOnConfigurationScreen.widget.key-id": "Key ID",
+  "SingleSignOnConfigurationScreen.widget.team-id": "Team ID",
+  "SingleSignOnConfigurationScreen.widget.client-secret.error": "Invalid client secret",
 
   "PaginationWidget.First": "Go to the first page",
   "PaginationWidget.Prev": "Go to the previous page",

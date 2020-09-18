@@ -11,21 +11,8 @@
   margin: -5px;
 }
 
-.downArrow {
-  &:hover {
-    background-color: transparent;
-  }
-  transition: transform 200ms ease;
-}
-
-.downArrowExtended {
-  transform: rotate(-180deg);
-}
-
 .contentContainer {
-  overflow: hidden;
-  height: 0;
-  transition: height 200ms ease;
+  height: auto;
 }
 
 .contentContainerExtended {
