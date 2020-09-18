@@ -68,6 +68,10 @@ interface OAuthProviderInfo {
 }
 
 const TEXT_FIELD_STYLE = { errorMessage: { whiteSpace: "pre" } };
+const MULTILINE_TEXT_FIELD_STYLE = {
+  errorMessage: { whiteSpace: "pre" },
+  field: { minHeight: "160px" },
+};
 
 const oauthProviders: Record<OAuthSSOProviderType, OAuthProviderInfo> = {
   apple: {
@@ -287,11 +291,15 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
       {visibleFields.has("client_secret") && (
         <TextField
           className={styles.textField}
-          styles={TEXT_FIELD_STYLE}
+          styles={
+            isSecretFieldTextArea
+              ? MULTILINE_TEXT_FIELD_STYLE
+              : TEXT_FIELD_STYLE
+          }
+          multiline={isSecretFieldTextArea}
           label={renderToString(
             "SingleSignOnConfigurationScreen.widget.client-secret"
           )}
-          multiline={isSecretFieldTextArea}
           value={clientSecret}
           onChange={onClientSecretChange}
         />
