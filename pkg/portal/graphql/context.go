@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
+	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 type ViewerLoader interface {
@@ -17,19 +18,24 @@ type AppLoader interface {
 	UpdateConfig(app *model.App, updateFiles []*model.AppConfigFile, deleteFiles []string) *graphqlutil.Lazy
 }
 
-type contextKeyType struct{}
+type Logger struct{ *log.Logger }
 
-var contextKey = contextKeyType{}
+func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("portal-graphql")} }
 
 type Context struct {
-	Viewer ViewerLoader
-	Apps   AppLoader
+	GQLLogger Logger
+	Viewer    ViewerLoader
+	Apps      AppLoader
+}
+
+func (c *Context) Logger() *log.Logger {
+	return c.GQLLogger.Logger
 }
 
 func WithContext(ctx context.Context, gqlContext *Context) context.Context {
-	return context.WithValue(ctx, contextKey, gqlContext)
+	return graphqlutil.WithContext(ctx, gqlContext)
 }
 
 func GQLContext(ctx context.Context) *Context {
-	return ctx.Value(contextKey).(*Context)
+	return graphqlutil.GQLContext(ctx).(*Context)
 }

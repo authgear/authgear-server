@@ -9,51 +9,64 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
-type APIErrorExtension struct {
-}
+type APIErrorExtension struct{}
 
-func (A APIErrorExtension) Name() string {
+func (a APIErrorExtension) Name() string {
 	return "APIError"
 }
 
-func (A APIErrorExtension) Init(ctx context.Context, params *graphql.Params) context.Context {
+func (a APIErrorExtension) Init(ctx context.Context, params *graphql.Params) context.Context {
 	return ctx
 }
 
-func (A APIErrorExtension) ParseDidStart(ctx context.Context) (context.Context, graphql.ParseFinishFunc) {
+func (a APIErrorExtension) ParseDidStart(ctx context.Context) (context.Context, graphql.ParseFinishFunc) {
 	return ctx, func(err error) {}
 }
 
-func (A APIErrorExtension) ValidationDidStart(ctx context.Context) (context.Context, graphql.ValidationFinishFunc) {
+func (a APIErrorExtension) ValidationDidStart(ctx context.Context) (context.Context, graphql.ValidationFinishFunc) {
 	return ctx, func(errors []gqlerrors.FormattedError) {}
 }
 
-func (A APIErrorExtension) ExecutionDidStart(ctx context.Context) (context.Context, graphql.ExecutionFinishFunc) {
+func (a APIErrorExtension) ExecutionDidStart(ctx context.Context) (context.Context, graphql.ExecutionFinishFunc) {
 	return ctx, func(result *graphql.Result) {
+		logger := GQLContext(ctx).Logger()
 		for i, gqlError := range result.Errors {
-			apiError := apierrors.AsAPIError(originalError(gqlError))
-			if apiError != nil {
-				if gqlError.Extensions == nil {
-					gqlError.Extensions = make(map[string]interface{})
-				}
-				gqlError.Extensions["errorName"] = apiError.Name
-				gqlError.Extensions["reason"] = apiError.Reason
-				if len(apiError.Info) > 0 {
-					gqlError.Extensions["info"] = apiError.Info
-				}
-				result.Errors[i] = gqlError
+			err := originalError(gqlError)
+			if !apierrors.IsAPIError(err) {
+				// FIXME(graphql): Log panics correctly
+				//		graphql-go recovers panic and translates it to error automatically.
+				//		However, if the panic value is not of type `error` or `string`,
+				// 		it just use a generic error message.
+				//     	For some panics, string concatenation leads to the compiler
+				//		infers a string enum type, and therefore cannot be logged here.
+				logger.
+					WithError(err).
+					WithField("path", gqlError.Path).
+					Error("unexpected error when executing GraphQL query")
+				continue
 			}
+
+			apiError := apierrors.AsAPIError(err)
+			if gqlError.Extensions == nil {
+				gqlError.Extensions = make(map[string]interface{})
+			}
+			gqlError.Extensions["errorName"] = apiError.Name
+			gqlError.Extensions["reason"] = apiError.Reason
+			if len(apiError.Info) > 0 {
+				gqlError.Extensions["info"] = apiError.Info
+			}
+			result.Errors[i] = gqlError
 		}
 	}
 }
 
-func (A APIErrorExtension) ResolveFieldDidStart(ctx context.Context, info *graphql.ResolveInfo) (context.Context, graphql.ResolveFieldFinishFunc) {
+func (a APIErrorExtension) ResolveFieldDidStart(ctx context.Context, info *graphql.ResolveInfo) (context.Context, graphql.ResolveFieldFinishFunc) {
 	return ctx, func(i interface{}, err error) {}
 }
 
-func (A APIErrorExtension) HasResult() bool { return false }
+func (a APIErrorExtension) HasResult() bool { return false }
 
-func (A APIErrorExtension) GetResult(ctx context.Context) interface{} { return nil }
+func (a APIErrorExtension) GetResult(ctx context.Context) interface{} { return nil }
 
 func originalError(err error) error {
 	for err != nil {

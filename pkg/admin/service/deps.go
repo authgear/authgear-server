@@ -1,10 +1,9 @@
-package graphql
+package service
 
 import (
 	"github.com/google/wire"
 )
 
 var DependencySet = wire.NewSet(
-	NewLogger,
-	wire.Struct(new(Context), "*"),
+	wire.Struct(new(InteractionService), "*"),
 )

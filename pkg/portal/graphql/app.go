@@ -2,12 +2,12 @@ package graphql
 
 import (
 	"context"
-	"errors"
 
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/relay"
 	"sigs.k8s.io/yaml"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -93,7 +93,7 @@ var updateAppConfigInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "UpdateAppConfigInput",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"appID": &graphql.InputObjectFieldConfig{
-			Type:        graphql.NewNonNull(graphql.String),
+			Type:        graphql.NewNonNull(graphql.ID),
 			Description: "App ID to update.",
 		},
 		"updateFiles": &graphql.InputObjectFieldConfig{
@@ -125,7 +125,7 @@ var _ = registerMutationField(
 
 			resolvedNodeID := relay.FromGlobalID(appNodeID)
 			if resolvedNodeID.Type != typeApp {
-				return nil, errors.New("invalid app ID")
+				return nil, apierrors.NewInvalid("invalid app ID")
 			}
 			appID := resolvedNodeID.ID
 

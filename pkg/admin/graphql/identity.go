@@ -2,12 +2,12 @@ package graphql
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/graphql-go/graphql"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -15,6 +15,21 @@ import (
 )
 
 const typeIdentity = "Identity"
+
+var identityType = graphql.NewEnum(graphql.EnumConfig{
+	Name: "IdentityType",
+	Values: graphql.EnumValueConfigMap{
+		"LOGIN_ID": &graphql.EnumValueConfig{
+			Value: "login_id",
+		},
+		"OAUTH": &graphql.EnumValueConfig{
+			Value: "oauth",
+		},
+		"ANONYMOUS": &graphql.EnumValueConfig{
+			Value: "anonymous",
+		},
+	},
+})
 
 var nodeIdentity = entity(
 	graphql.NewObject(graphql.ObjectConfig{
@@ -31,7 +46,7 @@ var nodeIdentity = entity(
 			"createdAt": entityCreatedAtField(loadIdentity),
 			"updatedAt": entityUpdatedAtField(loadIdentity),
 			"type": &graphql.Field{
-				Type: graphql.NewNonNull(graphql.String),
+				Type: graphql.NewNonNull(identityType),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					ref := p.Source.(interface{ ToRef() *identity.Ref }).ToRef()
 					return string(ref.Type), nil
@@ -87,7 +102,7 @@ func encodeIdentityID(ref *identity.Ref) string {
 func decodeIdentityID(id string) (*identity.Ref, error) {
 	parts := strings.Split(id, "|")
 	if len(parts) != 2 {
-		return nil, errors.New("invalid ID")
+		return nil, apierrors.NewInvalid("invalid ID")
 	}
 	return &identity.Ref{
 		Type: authn.IdentityType(parts[0]),

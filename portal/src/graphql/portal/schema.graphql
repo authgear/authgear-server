@@ -94,7 +94,7 @@ scalar SecretConfig
 """"""
 input UpdateAppConfigInput {
   """App ID to update."""
-  appID: String!
+  appID: ID!
 
   """Path to configuration files to delete."""
   deleteFiles: [String!]

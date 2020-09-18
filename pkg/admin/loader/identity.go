@@ -3,7 +3,9 @@ package loader
 import (
 	"sort"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -14,17 +16,19 @@ type IdentityService interface {
 }
 
 type IdentityLoader struct {
-	Identities IdentityService
-	loader     *graphqlutil.DataLoader `wire:"-"`
-	listLoader *graphqlutil.DataLoader `wire:"-"`
+	Identities  IdentityService
+	Interaction InteractionService
+	loader      *graphqlutil.DataLoader `wire:"-"`
+	listLoader  *graphqlutil.DataLoader `wire:"-"`
 }
 
 func (l *IdentityLoader) Get(ref *identity.Ref) *graphqlutil.Lazy {
 	if l.loader == nil {
 		l.loader = graphqlutil.NewDataLoader(func(keys []interface{}) ([]interface{}, error) {
 			refs := make([]*identity.Ref, len(keys))
-			for i, id := range keys {
-				refs[i] = id.(*identity.Ref)
+			for i, key := range keys {
+				ref := key.(identity.Ref)
+				refs[i] = &ref
 			}
 
 			infos, err := l.Identities.GetMany(refs)
@@ -43,7 +47,7 @@ func (l *IdentityLoader) Get(ref *identity.Ref) *graphqlutil.Lazy {
 			return values, nil
 		})
 	}
-	return l.loader.Load(ref)
+	return l.loader.Load(*ref)
 }
 
 func (l *IdentityLoader) List(userID string) *graphqlutil.Lazy {
@@ -79,4 +83,32 @@ func (l *IdentityLoader) List(userID string) *graphqlutil.Lazy {
 		})
 	}
 	return l.listLoader.Load(userID)
+}
+
+func (l *IdentityLoader) Remove(identityInfo *identity.Info) *graphqlutil.Lazy {
+	return graphqlutil.NewLazy(func() (interface{}, error) {
+		_, err := l.Interaction.Perform(
+			interactionintents.NewIntentRemoveIdentity(identityInfo.UserID),
+			&removeIdentityInput{identityInfo: identityInfo},
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		l.loader.Reset(*identityInfo.ToRef())
+		l.listLoader.Reset(identityInfo.UserID)
+		return nil, nil
+	})
+}
+
+type removeIdentityInput struct {
+	identityInfo *identity.Info
+}
+
+func (i *removeIdentityInput) GetIdentityType() authn.IdentityType {
+	return i.identityInfo.Type
+}
+
+func (i *removeIdentityInput) GetIdentityID() string {
+	return i.identityInfo.ID
 }

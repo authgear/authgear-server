@@ -72,12 +72,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	devMode := environmentConfig.DevMode
+	factory := rootProvider.LoggerFactory
+	logger := graphql.NewLogger(factory)
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
 	viewerLoader := &loader.ViewerLoader{
 		Context: context,
 	}
-	factory := rootProvider.LoggerFactory
 	configServiceLogger := service.NewConfigServiceLogger(factory)
 	controller := rootProvider.ConfigSourceController
 	configSource := deps.ProvideConfigSource(controller)
@@ -97,8 +98,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Apps: appService,
 	}
 	graphqlContext := &graphql.Context{
-		Viewer: viewerLoader,
-		Apps:   appLoader,
+		GQLLogger: logger,
+		Viewer:    viewerLoader,
+		Apps:      appLoader,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		DevMode:        devMode,

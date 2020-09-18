@@ -47,6 +47,9 @@ func (l *DataLoader) run() {
 }
 
 func (l *DataLoader) Reset(key interface{}) {
+	if l == nil {
+		return
+	}
 	delete(l.cache, key)
 }
 
