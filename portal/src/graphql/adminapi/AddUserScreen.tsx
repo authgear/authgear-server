@@ -1,6 +1,7 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import zxcvbn from "zxcvbn";
+import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { Label, PrimaryButton, Text, TextField } from "@fluentui/react";
 
@@ -8,6 +9,7 @@ import { useAppConfigQuery } from "../portal/query/appConfigQuery";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
+import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import PasswordField, {
   extractGuessableLevel,
   isPasswordValid,
@@ -128,6 +130,17 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
     [name, username, email, phone, password]
   );
 
+  const isFormModified = useMemo(() => {
+    const initialState: AddUserScreenState = {
+      name: "",
+      username: "",
+      email: "",
+      phone: "",
+      password: "",
+    };
+    return !deepEqual(initialState, screenState);
+  }, [screenState]);
+
   const onClickAddUser = useCallback(() => {
     const validationErrors = validate(
       screenState,
@@ -160,6 +173,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
 
   return (
     <section className={styles.content}>
+      <NavigationBlockerDialog blockNavigation={isFormModified} />
       <TextField
         className={styles.textField}
         label={renderToString("AddUserScreen.name")}
@@ -210,7 +224,11 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
           errorMessage={passwordFieldErrorMessage}
         />
       )}
-      <PrimaryButton className={styles.addUserButton} onClick={onClickAddUser}>
+      <PrimaryButton
+        className={styles.addUserButton}
+        disabled={!isFormModified}
+        onClick={onClickAddUser}
+      >
         <FormattedMessage id="AddUserScreen.add-user.label" />
       </PrimaryButton>
     </section>
