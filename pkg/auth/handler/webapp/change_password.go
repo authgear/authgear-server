@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -16,39 +17,38 @@ import (
 
 const (
 	// nolint: gosec
-	TemplateItemTypeAuthUIResetPasswordHTML string = "auth_ui_reset_password.html"
+	TemplateItemTypeAuthUIChangePasswordHTML string = "auth_ui_change_password.html"
 )
 
-var TemplateAuthUIResetPasswordHTML = template.Register(template.T{
-	Type:                    TemplateItemTypeAuthUIResetPasswordHTML,
+var TemplateAuthUIChangePasswordHTML = template.Register(template.T{
+	Type:                    TemplateItemTypeAuthUIChangePasswordHTML,
 	IsHTML:                  true,
 	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
 	Defines:                 defines,
 	ComponentTemplateTypes:  components,
 })
 
-const ResetPasswordRequestSchema = "ResetPasswordRequestSchema"
+const ChangePasswordRequestSchema = "ChangePasswordRequestSchema"
 
-var ResetPasswordSchema = validation.NewMultipartSchema("").
-	Add(ResetPasswordRequestSchema, `
+var ChangePasswordSchema = validation.NewMultipartSchema("").
+	Add(ChangePasswordRequestSchema, `
 		{
 			"type": "object",
 			"properties": {
-				"code": { "type": "string" },
 				"x_password": { "type": "string" },
 				"x_confirm_password": { "type": "string" }
 			},
-			"required": ["code", "x_password", "x_confirm_password"]
+			"required": ["x_password", "x_confirm_password"]
 		}
 	`).Instantiate()
 
-func ConfigureResetPasswordRoute(route httproute.Route) httproute.Route {
+func ConfigureChangePasswordRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/reset_password")
+		WithPathPattern("/change_password")
 }
 
-type ResetPasswordHandler struct {
+type ChangePasswordHandler struct {
 	Database       *db.Handle
 	BaseViewModel  *viewmodels.BaseViewModeler
 	Renderer       Renderer
@@ -56,16 +56,7 @@ type ResetPasswordHandler struct {
 	PasswordPolicy PasswordPolicy
 }
 
-func (h *ResetPasswordHandler) MakeIntent(r *http.Request) *webapp.Intent {
-	return &webapp.Intent{
-		OldStateID:  StateID(r),
-		RedirectURI: "/reset_password/success",
-		KeepState:   true,
-		Intent:      intents.NewIntentResetPassword(),
-	}
-}
-
-func (h *ResetPasswordHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *ChangePasswordHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	var anyError interface{}
 	if state != nil {
@@ -81,28 +72,27 @@ func (h *ResetPasswordHandler) GetData(r *http.Request, state *webapp.State, gra
 	return data, nil
 }
 
-type ResetPasswordInput struct {
-	Code     string
+type ChangePasswordInput struct {
 	Password string
 }
 
-// GetCode implements InputResetPassword.
-func (i *ResetPasswordInput) GetCode() string {
-	return i.Code
-}
-
-// GetNewPassword implements InputResetPassword.
-func (i *ResetPasswordInput) GetNewPassword() string {
+// GetNewPassword implements InputChangePassword.
+func (i *ChangePasswordInput) GetNewPassword() string {
 	return i.Password
 }
 
-func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *ChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	intent := h.MakeIntent(r)
+	userID := session.GetUserID(r.Context())
+	intent := &webapp.Intent{
+		OldStateID:  StateID(r),
+		RedirectURI: "/settings",
+		Intent:      intents.NewIntentChangePrimaryPassword(*userID),
+	}
 
 	if r.Method == "GET" {
 		err := h.Database.WithTx(func() error {
@@ -116,7 +106,7 @@ func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 				return err
 			}
 
-			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIResetPasswordHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIChangePasswordHTML, data)
 			return nil
 		})
 		if err != nil {
@@ -127,12 +117,11 @@ func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	if r.Method == "POST" {
 		err := h.Database.WithTx(func() error {
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				err = ResetPasswordSchema.PartValidator(ResetPasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
+				err = ChangePasswordSchema.PartValidator(ChangePasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
 				if err != nil {
 					return
 				}
 
-				code := r.Form.Get("code")
 				newPassword := r.Form.Get("x_password")
 				confirmPassword := r.Form.Get("x_confirm_password")
 				err = pwd.ConfirmPassword(newPassword, confirmPassword)
@@ -140,8 +129,7 @@ func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 					return
 				}
 
-				input = &ResetPasswordInput{
-					Code:     code,
+				input = &ChangePasswordInput{
 					Password: newPassword,
 				}
 				return

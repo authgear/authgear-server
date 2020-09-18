@@ -10,6 +10,8 @@
   "activated": "Activated",
   "remove": "Remove",
   "disable": "Disable",
+  "confirm": "Confirm",
+  "cancel": "Cancel",
 
   "header.sign-out": "Sign out",
 
@@ -97,5 +99,8 @@
 
   "DetailsListWithOrdering.order": "Order",
   "DetailsListWithOrdering.move-up": "Move {key} up",
-  "DetailsListWithOrdering.move-down": "Move {key} down"
+  "DetailsListWithOrdering.move-down": "Move {key} down",
+
+  "NavigationBlockerDialog.title": "Discard all changes?",
+  "NavigationBlockerDialog.content": "Are you sure you want to discard all changes made and leave this page?"
 }

@@ -1,12 +1,13 @@
-import React from "react";
+import React, { useContext, useMemo, useState } from "react";
 import produce from "immer";
 import { Checkbox, Toggle, TagPicker, Label } from "@fluentui/react";
-
+import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import ExtendableWidget from "../../ExtendableWidget";
 import CheckboxWithContent from "../../CheckboxWithContent";
 import ButtonWithLoading from "../../ButtonWithLoading";
+import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import { useCheckbox, useTagPickerWithNewTags } from "../../hook/useInput";
 import {
   LoginIDKeyType,
@@ -304,19 +305,17 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     updateAppConfig,
     updatingAppConfig,
   } = props;
-  const { renderToString } = React.useContext(Context);
+  const { renderToString } = useContext(Context);
 
-  const initialState = React.useMemo(() => {
+  const initialState = useMemo(() => {
     return constructStateFromAppConfig(effectiveAppConfig);
   }, [effectiveAppConfig]);
 
-  const [usernameEnabled, setUsernameEnabled] = React.useState(
+  const [usernameEnabled, setUsernameEnabled] = useState(
     initialState.usernameEnabled
   );
-  const [emailEnabled, setEmailEnabled] = React.useState(
-    initialState.emailEnabled
-  );
-  const [phoneNumberEnabled, setPhoneNumberEnabled] = React.useState(
+  const [emailEnabled, setEmailEnabled] = useState(initialState.emailEnabled);
+  const [phoneNumberEnabled, setPhoneNumberEnabled] = useState(
     initialState.phoneNumberEnabled
   );
 
@@ -356,13 +355,8 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     initialState.isAllowPlus
   );
 
-  // on save
-  const onSaveButtonClicked = React.useCallback(() => {
-    if (rawAppConfig == null) {
-      return;
-    }
-
-    const screenState = {
+  const screenState = useMemo(
+    () => ({
       usernameEnabled,
       emailEnabled,
       phoneNumberEnabled,
@@ -376,7 +370,33 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
       isEmailCaseSensitive,
       isIgnoreDotLocal,
       isAllowPlus,
-    };
+    }),
+    [
+      usernameEnabled,
+      emailEnabled,
+      phoneNumberEnabled,
+
+      excludedKeywords,
+      isBlockReservedUsername,
+      isExcludeKeywords,
+      isUsernameCaseSensitive,
+      isAsciiOnly,
+
+      isEmailCaseSensitive,
+      isIgnoreDotLocal,
+      isAllowPlus,
+    ]
+  );
+
+  const isFormModified = useMemo(() => {
+    return !deepEqual(initialState, screenState, { strict: true });
+  }, [initialState, screenState]);
+
+  // on save
+  const onSaveButtonClicked = React.useCallback(() => {
+    if (rawAppConfig == null) {
+      return;
+    }
 
     const newAppConfig = constructAppConfigFromState(
       rawAppConfig,
@@ -386,28 +406,11 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
 
     // TODO: handle error
     updateAppConfig(newAppConfig).catch(() => {});
-  }, [
-    rawAppConfig,
-    updateAppConfig,
-    initialState,
-
-    usernameEnabled,
-    emailEnabled,
-    phoneNumberEnabled,
-
-    excludedKeywords,
-    isBlockReservedUsername,
-    isExcludeKeywords,
-    isUsernameCaseSensitive,
-    isAsciiOnly,
-
-    isEmailCaseSensitive,
-    isIgnoreDotLocal,
-    isAllowPlus,
-  ]);
+  }, [screenState, rawAppConfig, updateAppConfig, initialState]);
 
   return (
     <div className={styles.root}>
+      <NavigationBlockerDialog blockNavigation={isFormModified} />
       <div className={styles.widgetContainer}>
         <ExtendableWidget
           initiallyExtended={usernameEnabled}
@@ -528,6 +531,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
       </div>
       <div className={styles.saveButtonContainer}>
         <ButtonWithLoading
+          disabled={!isFormModified}
           onClick={onSaveButtonClicked}
           loading={updatingAppConfig}
           labelId="save"

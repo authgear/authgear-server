@@ -1,11 +1,12 @@
 import React, { useMemo, useCallback, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Context } from "@oursky/react-messageformat";
 import { Nav, INavLink, INavLinkGroup, INavProps } from "@fluentui/react";
 
 const ScreenNav: React.FC = function ScreenNav() {
   const navigate = useNavigate();
   const { renderToString } = useContext(Context);
+  const location = useLocation();
 
   const label = renderToString("ScreenNav.label");
 
@@ -47,7 +48,24 @@ const ScreenNav: React.FC = function ScreenNav() {
     [navigate]
   );
 
-  return <Nav ariaLabel={label} groups={navGroups} onLinkClick={onLinkClick} />;
+  const selectedKey = useMemo(() => {
+    const linkFound = navGroups[0].links.find((link) => {
+      // app router -> /apps/:appID/*
+      // discard first 3 segment (include leading slash)
+      const appRouterPath = location.pathname.split("/").slice(3).join("/");
+      return appRouterPath.startsWith(link.url);
+    });
+    return linkFound?.key;
+  }, [location, navGroups]);
+
+  return (
+    <Nav
+      ariaLabel={label}
+      groups={navGroups}
+      onLinkClick={onLinkClick}
+      selectedKey={selectedKey}
+    />
+  );
 };
 
 export default ScreenNav;

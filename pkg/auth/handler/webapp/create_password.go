@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	pwd "github.com/authgear/authgear-server/pkg/util/password"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -35,9 +36,10 @@ var CreatePasswordSchema = validation.NewMultipartSchema("").
 		{
 			"type": "object",
 			"properties": {
-				"x_password": { "type": "string" }
+				"x_password": { "type": "string" },
+				"x_confirm_password": { "type": "string" }
 			},
-			"required": ["x_password"]
+			"required": ["x_password", "x_confirm_password"]
 		}
 	`).Instantiate()
 
@@ -142,9 +144,15 @@ func (h *CreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 					return
 				}
 
-				plainPassword := r.Form.Get("x_password")
+				newPassword := r.Form.Get("x_password")
+				confirmPassword := r.Form.Get("x_confirm_password")
+				err = pwd.ConfirmPassword(newPassword, confirmPassword)
+				if err != nil {
+					return
+				}
+
 				input = &CreatePasswordInput{
-					Password: plainPassword,
+					Password: newPassword,
 				}
 				return
 			})

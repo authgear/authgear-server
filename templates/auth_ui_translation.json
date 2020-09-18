@@ -10,6 +10,7 @@
 	"error-password-reset-failed": "This reset password link is invalid, used or expired. Please request a new one.",
 	"error-duplicated-identity": "This identity has been claimed by another user.",
 	"error-remove-last-identity": "Cannot disconnect. You need to keep at least 1 identity.",
+	"error-new-password-typo": "Typo in your re-typed password",
 
 	"google-play-store-label": "Google Play Store",
 	"apple-app-store-label": "Apple App Store",
@@ -53,10 +54,10 @@
 	"forgot-password-button-label": "Can''t access your account?",
 
 	"enter-password-page-title": "Enter password",
-	"password-placeholder": "password",
+	"password-placeholder": "Current password",
+	"new-password-placeholder": "New password",
+	"confirm-password-placeholder": "Re-type your new password",
 	"forgot-password-button-label--enter-password-page": "Forgot Password?",
-	"show-password": "Show Password",
-	"hide-password": "Hide Password",
 
 	"oob-otp-page-title--sms": "SMS One-Time-Password",
 	"oob-otp-page-title--email": "Email One-Time-Password",
@@ -82,18 +83,22 @@
 	"login-button-label": "Sign in!",
 
 	"create-password-page-title": "Create password",
-	"password-policy-minimum-length": "At least {length, plural, one{# character} other{# characters}} long",
+	"password-policy-required-password-strength-label": "Your new password must be",
+	"password-policy-title": "Your new password must follow the below rules:",
+	"password-policy-minimum-length": "Minimum {length, plural, one{# character} other{# characters}}",
 	"password-policy-uppercase": "At least 1 uppercase character",
 	"password-policy-lowercase": "At least 1 lowercase character",
 	"password-policy-digit": "At least 1 digit",
 	"password-policy-symbol": "At least 1 symbol",
 	"password-policy-banned-words": "NO banned words",
 	"password-policy-reuse": "No reuse of {size, plural, one{# previous password} other{# previous passwords}} / previous password within {day, plural, one{# day} other{# days}}",
-	"password-policy-guessable-level-1": "NOT too guessable",
-	"password-policy-guessable-level-2": "NOT very guessable",
-	"password-policy-guessable-level-3": "NOT somewhat guessable",
-	"password-policy-guessable-level-4": "Safely unguessable",
-	"password-policy-guessable-level-5": "Very unguessable",
+	"password-policy-password-strength-label": "Password Strength:",
+	"password-policy-password-strength-meter-0": "No restriction",
+	"password-policy-password-strength-meter-1": "Extremely guessable",
+	"password-policy-password-strength-meter-2": "Very guessable",
+	"password-policy-password-strength-meter-3": "Fair",
+	"password-policy-password-strength-meter-4": "Very unguessable",
+	"password-policy-password-strength-meter-5": "Extremely unguessable",
 
 	"forgot-password-page-title": "Forgot Password",
 	"email-placeholder": "email",
@@ -108,6 +113,9 @@
 
 	"reset-password-success-page-title": "Password Reset",
 	"reset-password-success-description": "You have successfully reset your password. You can now sign in with it.",
+
+	"change-password-page-title": "Change Password",
+	"change-password-page-description": "Please enter your new password below.",
 
 	"logout-button-hint": "Click the button to sign out",
 	"logout-button-label": "Sign out",
