@@ -144,7 +144,6 @@ var _ = Schema.Add("LoginIDKeyConfig", `
 	"properties": {
 		"key": { "type": "string" },
 		"type": { "$ref": "#/$defs/LoginIDKeyType" },
-		"max_amount": { "type": "integer" },
 		"max_length": { "type": "integer" }
 	},
 	"required": ["type"]
@@ -154,14 +153,10 @@ var _ = Schema.Add("LoginIDKeyConfig", `
 type LoginIDKeyConfig struct {
 	Key       string         `json:"key,omitempty"`
 	Type      LoginIDKeyType `json:"type,omitempty"`
-	MaxAmount *int           `json:"max_amount,omitempty"`
 	MaxLength *int           `json:"max_length,omitempty"`
 }
 
 func (c *LoginIDKeyConfig) SetDefaults() {
-	if c.MaxAmount == nil {
-		c.MaxAmount = newInt(1)
-	}
 	if c.MaxLength == nil {
 		switch c.Type {
 		case LoginIDKeyTypeUsername:
