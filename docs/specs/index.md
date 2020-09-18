@@ -3,7 +3,6 @@
 ## Table of Contents
 
   * [User Model](./user-model.md)
-  * [Authentication Flow](./authentication.md)
   * [Sessions](./sessions.md)
   * [OIDC](./oidc.md)
   * [Templates](./templates.md)
