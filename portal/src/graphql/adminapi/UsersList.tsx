@@ -15,8 +15,9 @@ import {
   IColumn,
   IDetailsRowProps,
   DetailsRow,
+  ActionButton,
 } from "@fluentui/react";
-import { Context } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { Link } from "react-router-dom";
 import {
   UsersListQuery,
@@ -26,13 +27,14 @@ import {
 
 import ShowError from "../../ShowError";
 import PaginationWidget from "../../PaginationWidget";
+import DisableUserDialog from "./DisableUserDialog";
 
 import { encodeOffsetToCursor } from "../../util/pagination";
 import { formatDatetime } from "../../util/formatDatetime";
-
-import styles from "./UsersList.module.scss";
 import { extractUserInfoFromIdentities } from "../../util/user";
 import { nonNullable } from "../../util/types";
+
+import styles from "./UsersList.module.scss";
 
 interface PlainUsersListProps {
   className?: string;
@@ -47,11 +49,18 @@ interface PlainUsersListProps {
 interface UserListItem {
   id: string;
   createdAt: string | null;
-  username: string;
-  phone: string;
-  email: string;
+  username: string | null;
+  phone: string | null;
+  email: string | null;
   lastLoginAt: string | null;
 }
+
+interface DisableUserDialogData {
+  userID: string;
+  username: string | null;
+}
+
+const USER_LIST_PLACEHOLDER = "-";
 
 const isUserListItem = (value: unknown): value is UserListItem => {
   if (!(value instanceof Object)) {
@@ -115,7 +124,18 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
       name: renderToString("UsersList.column.last-login-at"),
       minWidth: 200,
     },
+    {
+      key: "action",
+      fieldName: "action",
+      name: renderToString("action"),
+      minWidth: 150,
+    },
   ];
+
+  const [
+    disableUserDialogData,
+    setDisableUserDialogData,
+  ] = useState<DisableUserDialogData | null>(null);
 
   // TODO: consider update UI design to allow multiple email, username and phone number
   const items: UserListItem[] = useMemo(() => {
@@ -129,14 +149,13 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
               ?.map((edge) => edge?.node)
               ?.filter(nonNullable) ?? [];
           const userInfo = extractUserInfoFromIdentities(identities);
-          const placeholder = "-";
           items.push({
             id: node.id,
             createdAt: formatDatetime(locale, node.createdAt),
             lastLoginAt: formatDatetime(locale, node.lastLoginAt),
-            username: userInfo.username ?? placeholder,
-            phone: userInfo.phone ?? placeholder,
-            email: userInfo.email ?? placeholder,
+            username: userInfo.username,
+            phone: userInfo.phone,
+            email: userInfo.email,
           });
         }
       }
@@ -158,11 +177,56 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
     );
   }, []);
 
+  const onDisableUserClicked = useCallback(
+    (
+      event: React.MouseEvent<unknown>,
+      userID: string,
+      username: string | null
+    ) => {
+      // prevent triggering the link to user detail page
+      event.preventDefault();
+      event.stopPropagation();
+      setDisableUserDialogData({ userID, username });
+    },
+    []
+  );
+
+  const onRenderUserItemColumn = useCallback(
+    (item: UserListItem, _index?: number, column?: IColumn) => {
+      switch (column?.key) {
+        case "action":
+          return (
+            <ActionButton
+              className={styles.actionButton}
+              styles={{ flexContainer: { alignItems: "normal" } }}
+              onClick={(event) =>
+                onDisableUserClicked(event, item.id, item.username)
+              }
+            >
+              <FormattedMessage id="UsersList.disable-user" />
+            </ActionButton>
+          );
+        default:
+          return (
+            <span>
+              {item[column?.key as keyof UserListItem] ?? USER_LIST_PLACEHOLDER}
+            </span>
+          );
+      }
+    },
+    [onDisableUserClicked]
+  );
+
+  const dismissDisableUserDialog = useCallback(() => {
+    setDisableUserDialogData(null);
+  }, []);
+
   return (
     <div className={cn(styles.root, className)}>
       <ShimmeredDetailsList
         enableShimmer={loading}
         onRenderRow={onRenderUserRow}
+        onRenderItemColumn={onRenderUserItemColumn}
         selectionMode={SelectionMode.none}
         layoutMode={DetailsListLayoutMode.justified}
         columns={columns}
@@ -175,6 +239,13 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
         totalCount={totalCount}
         onChangeOffset={onChangeOffset}
       />
+      {disableUserDialogData != null && (
+        <DisableUserDialog
+          onDismiss={dismissDisableUserDialog}
+          userID={disableUserDialogData.userID}
+          username={disableUserDialogData.username}
+        />
+      )}
     </div>
   );
 };

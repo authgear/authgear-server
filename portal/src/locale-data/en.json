@@ -3,6 +3,7 @@
 
   "loading": "Loading...",
 
+  "action": "Action",
   "next": "Next",
   "save": "Save",
   "saving": "Saving",
@@ -58,6 +59,11 @@
   "UsersList.column.phone": "Phone",
   "UsersList.column.signed-up": "Signed Up",
   "UsersList.column.last-login-at": "Last Login",
+
+  "UsersList.disable-user": "Disable User",
+
+  "DisableUserDialog.title": "Disable User",
+  "DisableUserDialog.text": "Do you really want to disable user {username}",
 
   "UserDetails.signed-up": "Signed Up: {datetime}",
   "UserDetails.last-login-at": "Last Login: {datetime}",
