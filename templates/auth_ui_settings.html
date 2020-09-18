@@ -32,8 +32,8 @@
       {{ template "settings-page-primary-password-title" }}
     </p>
     <p class="description secondary-txt">
-    <!-- FIXME(ui): format localized date time -->
-    {{ template "settings-page-primary-password-description" (makemap "time" (.CreatedAt.Format "02 Jan 06 15:04 MST")) }}
+      <!-- FIXME(ui): Use user preferred timezone -->
+      {{ template "settings-page-primary-password-description" (makemap "time" .CreatedAt) }}
     </p>
     <a class="action" href="/change_password">
       {{ template "change-password-button-label" }}
@@ -63,8 +63,8 @@
       {{ end }}
     </p>
     <p class="description secondary-txt">
-    <!-- FIXME(ui): format localized date time -->
-    {{ template "settings-page-primary-oob-otp-description" (makemap "time" (.CreatedAt.Format "02 Jan 06 15:04 MST")) }}
+      <!-- FIXME(ui): Use user preferred timezone -->
+      {{ template "settings-page-primary-oob-otp-description" (makemap "time" .CreatedAt) }}
     </p>
     <a class="action" href="/settings/identity">
       {{ template "details-button-label" }}
@@ -156,8 +156,8 @@
     </p>
     {{ if $secondary_password }}
     <p class="description secondary-txt">
-      <!-- FIXME(ui): format localized date time -->
-      {{ template "settings-page-secondary-password-description" (makemap "time" ($secondary_password.CreatedAt.Format "02 Jan 06 15:04 MST")) }}
+      <!-- FIXME(ui): Use user preferred timezone -->
+      {{ template "settings-page-secondary-password-description" (makemap "time" $secondary_password.CreatedAt) }}
     </p>
     {{ end }}
     {{ if $secondary_password }}
