@@ -95,11 +95,6 @@ function providerTypeToAlias(
   return provider == null ? undefined : provider.alias;
 }
 
-function makeRandomAlias(providerType: OAuthSSOProviderType) {
-  const randomNum = Math.floor(Math.random() * 1e15);
-  return `${providerType}-${randomNum}`;
-}
-
 // TODO: update UI, require alias on create new widget instead of toggle
 function createNewProvider(
   appConfig: PortalAPIAppConfig,
@@ -186,7 +181,7 @@ function onProviderToggled(
   let alias = providerTypeToAlias(appConfigState, providerType);
   if (enabled) {
     if (alias == null) {
-      alias = makeRandomAlias(providerType);
+      alias = providerType;
       createNewProvider(appConfigState, providerType, alias);
     }
     const secretItem = getSecretItemFromSecret(secret, alias);
@@ -435,7 +430,12 @@ const SingleSignOnConfigurationWidgetWrapper: React.FC<WidgetWrapperProps> = fun
     onKeyIDChange,
     onTeamIDChange,
   } = useMemo(
-    () => makeWidgetStateUpdaters(alias ?? "", providerType, setScreenState),
+    () =>
+      makeWidgetStateUpdaters(
+        alias ?? providerType,
+        providerType,
+        setScreenState
+      ),
     [alias, providerType, setScreenState]
   );
 
@@ -449,7 +449,7 @@ const SingleSignOnConfigurationWidgetWrapper: React.FC<WidgetWrapperProps> = fun
     <SingleSignOnConfigurationWidget
       className={className}
       errorLocation={errorLocation}
-      alias={alias ?? ""}
+      alias={alias ?? providerType}
       enabled={extraState[providerType].enabled}
       serviceProviderType={providerType}
       clientID={clientID ?? ""}
