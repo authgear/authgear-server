@@ -1,48 +1,59 @@
 # User Model
 
-  * [User](#user)
-  * [Identity](#identity)
-    * [Identity Claims](#identity-claims)
-    * [OAuth Identity](#oauth-identity)
-      * [OIDC IdPs](#oidc-idps)
-      * [OAuth 2 IdPs](#oauth-2-idps)
-    * [Anonymous Identity](#anonymous-identity)
-      * [Anonymous Identity JWT](#anonymous-identity-jwt)
-      * [Anonymous Identity JWT headers](#anonymous-identity-jwt-headers)
-      * [Anonymous Identity JWT payload](#anonymous-identity-jwt-payload)
-      * [Anonymous Identity Promotion](#anonymous-identity-promotion)
-    * [Login ID Identity](#login-id-identity)
-      * [Login ID Key](#login-id-key)
-      * [Login ID Type](#login-id-type)
-        * [Email Login ID](#email-login-id)
-          * [Validation of Email Login ID](#validation-of-email-login-id)
-          * [Normalization of Email Login ID](#normalization-of-email-login-id)
-          * [Unique key generation of Email Login ID](#unique-key-generation-of-email-login-id)
-        * [Username Login ID](#username-login-id)
-          * [Validation of Username Login ID](#validation-of-username-login-id)
-          * [Normalization of Username Login ID](#normalization-of-username-login-id)
-          * [Unique key generation of Username Login ID](#unique-key-generation-of-username-login-id)
-        * [Phone Login ID](#phone-login-id)
-          * [Validation of Phone Login ID](#validation-of-phone-login-id)
-          * [Normalization of Phone Login ID](#normalization-of-phone-login-id)
-          * [Unique key generation of Phone Login ID](#unique-key-generation-of-phone-login-id)
-        * [Raw Login ID](#raw-login-id)
-      * [Optional Login ID Key during authentication](#optional-login-id-key-during-authentication)
-      * [The purpose of unique key](#the-purpose-of-unique-key)
-  * [Authenticator](#authenticator)
-    * [Primary Authenticator](#primary-authenticator)
-    * [Secondary Authenticator](#secondary-authenticator)
-    * [Authenticator Tags](#authenticator-tags)
-    * [Authenticator Types](#authenticator-types)
-      * [Password Authenticator](#password-authenticator)
-      * [TOTP Authenticator](#totp-authenticator)
-      * [OOB-OTP Authenticator](#oob-otp-authenticator)
-    * [Device Token](#device-token)
-    * [Recovery Code](#recovery-code)
-
 ## User
 
-A user has many identities. A user has many authenticators.
+A user has a set of custom attributes.
+The custom attributes can contribute to the computation of the claims of the user.
+
+A user has many identities.
+Identity has [Standard Claims](https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims).
+The claims of an identity can contribute to the computation of the claims of the user.
+
+A user has many authenticators.
+The claims of an authenticators do **NOT** contribute to the computation of the claims of the user.
+
+A user has a set of claims, which
+
+- Are computed from the custom attributes and the claims of the identities.
+- Are the information returned in the UserInfo endpoint.
+- Are included in the ID Token.
+
+## Custom Attributes
+
+Custom Attributes is a JSON Object. The developer can update it via Admin API.
+
+Custom Attributes can be any valid JSON Object. There is no limitation on the nesting level. However, a sensible size limit (e.g. 10MiB) is enforced.
+
+The developer can save whatever they want in Custom Attributes.
+
+> NOTE: The initial implementation is very likely to be a single textarea for editing the whole custom attributes object.
+> Much more fancier features like generated form fields requires us to interpret the JSON schema and generate form fields.
+> That could be a very useful standalone product.
+
+> TODO: The user cannot read or write Custom Attributes now. This may be changed in the future.
+
+### Custom Attributes validation
+
+The validation on custom attributes can be done with the JSON schema provided by the developer in the configuration.
+
+The JSON schema must be written against the version 2019-09.
+
+For example,
+
+```yaml
+custom_attributes:
+  json_schema:
+    type: object
+    properties:
+      email:
+        type: string
+        format: email
+    required: ["email"]
+```
+
+Any update on custom attributes must be valid against the given schema.
+
+> NOTE: In the future, we can add our own JSON schema keyword to annotate the access control of individual fields in the custom attributes.
 
 ## Identity
 
@@ -50,21 +61,26 @@ An identity is used to look up a user.
 
 3 types of identity are supported.
 
-- Login ID
-- OAuth
-- Anonymous
+- Login ID (`login_id`)
+- OAuth (`oauth`)
+- Anonymous (`anonymous`)
 
 ### Identity Claims
 
-The information of an identity are mapped to [Standard Claims](https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims)
+Currently, only `email` is recognized.
 
-Currently, only `email` is mapped.
+> TODO: In the future, we want to allow the developer to customize the scope when we perform OAuth flow with external OAuth provider.
+> Then we can support more Standard Claims, such as `picture`.
 
-The claims are used to detect duplicate identity. For example, an Email Login ID and the email claim of an OAuth Identity. This prevents duplicate user when the user forgets the original authentication method.
+The claim `email` is used to detect duplicate identity. For example, an Email Login ID and the email claim of an OAuth Identity. This prevents duplicate user when the user forgets the original authentication method.
 
 ### OAuth Identity
 
 OAuth identity is external identity from supported OAuth 2 IdPs. Only authorization code flow is supported. If the provider supports OIDC, OIDC is preferred over provider-specific OAuth 2 protocol.
+
+OAuth identity is updated every time authentication is performed.
+
+> TODO: In the future, we may want to support frozen oauth identity, that is, the identity is never updated.
 
 #### OIDC IdPs
 
@@ -204,9 +220,9 @@ If the domain part of an Email login ID is internationalized, there are 2 ways t
 
 ## Authenticator
 
-Authgear supports various types of authenticator. Authenticator can be primary, secondary or both.
+Authgear supports various types of authenticator. Authenticator must either be primary or secondary.
 
-Authenticators have priorities. The first authenticator is the default authenticator in the UI.
+A primary or secondary authenticator can be set as default. The default authenticator is used first.
 
 When performing authentication, all authenticators possessed by the user can be
 used, regardless of the configured authenticator types.
@@ -223,25 +239,15 @@ Primary authenticators authenticate the identity. Each identity has specific app
 
 Secondary authenticators are additional authentication methods to ensure higher degree of confidence in authenticity.
 
-### Authenticator Tags
-
-Each authenticator may have associated tags, they are used for determining:
-- whether the authenticator is primary or secondary,
-  or not used in authentication.
-- whether the authenticator is the default when there are multiple authenticators.
-
-The authenticator tags are persisted along with the authenticator, so changing
-the configuration would not affect the interpretation of existing authenticators.
-
 ### Authenticator Types
 
 #### Password Authenticator
 
-Password authenticator is a primary authenticator. Every user has at most 1 password authenticator.
+Password authenticator can be primary or secondary. Every user has at most 1 primary password authenticator, and at most 1 secondary password authenticator.
 
 #### TOTP Authenticator
 
-TOTP authenticator is either primary or secondary.
+TOTP authenticator can only be secondary.
 
 TOTP authenticator is specified in [RFC6238](https://tools.ietf.org/html/rfc6238) and [RFC4226](https://tools.ietf.org/html/rfc4226).
 
@@ -260,35 +266,11 @@ configuration.
 
 #### OOB-OTP Authenticator
 
-Out-of-band One-time-password authenticator is either primary or secondary.
+Out-of-band One-time-password authenticator can be primary or secondary.
 
 OOB-OTP authenticator is bound to a recipient address. The recipient can be an email address or phone number that can receive SMS messages.
 
-An OOB-OTP authenticator may matches a login ID identity. The normalized email
-address/phone number is used to match login ID identities.
-
-The OTP is a numeric code. The number of digits can be customized in the 
-configuration.
-
-```yaml
-authenticator:
-  oob_otp:
-    sms:
-      code_digits: 4      # OTP digits defaults to 6
-      message:
-        sender: "+85200000000"
-    email:
-      code_digits: 8      # OTP digits defaults to 6
-      message:
-        sender: "no-reply@example.com"
-```
-
-The OTP message is rendered by a [customizable template](./templates.md#otp_message).
-
-Users may have multiple OOB-OTP authenticators. In this case, user may select
-which OOB-OTP authenticator to use when performing authentication. However, a
-limit on the maximum amount of secondary OOB-OTP authenticators may be set in
-the configuration.
+An OOB-OTP authenticator may be associated with a login ID identity. The normalized email address/phone number is used to match login ID identities.
 
 ### Device Token
 
@@ -312,3 +294,164 @@ Once used, a recovery code is invalidated.
 
 The codes are cryptographically secure random 10-letter string in Crockford's
 Base32 alphabet.
+
+## Claims
+
+Claims are computed information about the user. The computation is controlled by [claims mapping](#claims-mapping).
+
+## Claims Mapping
+
+A user has their own claims mapping. The claims mapping of a user can be updated via Admin API.
+
+> TODO: We may allow the user change some claims mapping, for example, we may allow the user to change which identity to map `email`.
+> However, it is unlikely that the developer would expect the user to change `custom_attributes` mapping.
+
+### Claims Mapping Example
+
+The following example illustrates the full capability of claims mapping.
+
+Given the following claims mapping
+
+```yaml
+mapping:
+- kind: "identity"
+  identity_id: "identity-a"
+  name_pointer: "#/email"
+  value_pointer: "#/email"
+- kind: "custom_attributes"
+  name_pointer: "#/zoneinfo"
+  value_pointer: "#/profile/preferred_timezone"
+- kind: "custom_attributes"
+  name_pointer: "#/picture"
+  value_pointer: "#/profile/profile_image_url"
+- kind: "custom_attributes"
+  name_pointer: "#/app:rbac"
+  value_pointer: "#/rbac"
+```
+
+And the claims of `identity-a`
+
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+And the custom attributes
+
+```json
+{
+  "profile": {
+    "preferred_timezone": "Asia/Hong_Kong",
+    "profile_image_url": "https://cdn.example.com/u/user-a.jpg"
+  },
+  "rbac": [
+    "product:list",
+    "product:get",
+    "product:delete"
+  ]
+}
+```
+
+The computed claims of the user is
+
+```json
+{
+  "email": "user@example.com",
+  "zoneinfo": "Asia/Hong_Kong",
+  "picture": "https://cdn.example.com/u/user-a.jpg",
+  "app:rbac": [
+    "product:list",
+    "product:get",
+    "product:delete"
+  ]
+}
+```
+
+### Automatic addition of claims mapping
+
+When a new identity is being added, for each Standard Claims of the identity, if that claim is not mapped, then a new mapping is created from the claim.
+
+For example, if a new user signs up with Google, they will have the following claim mappings
+
+```
+mapping:
+- kind: "identity"
+  identity_id: "google"
+  name_pointer: "#/email"
+  value_pointer: "#/email"
+```
+
+So the user will have the claim `email` immediately available in their claims.
+
+### Dangling reference in claims mapping
+
+If a deletion of identity will result in dangling reference in the claims mapping, the deletion is disallowed.
+
+If a change in the custom attributes will result in dangling reference, the deletion is allowed, the mapping does not produce error and is no-op.
+
+### Claims mapping template
+
+The developer can define a claims mapping template to be copied to new user in the configuration.
+
+For example, in the configuration
+
+```yaml
+claims:
+  mapping:
+    template:
+    - kind: "custom_attributes"
+      name_pointer: "#/email"
+      value_pointer: "#/profile/email"
+    - kind: "custom_attributes"
+      name_pointer: "#/zoneinfo"
+      value_pointer: "#/profile/preferred_timezone"
+    - kind: "custom_attributes"
+      name_pointer: "#/picture"
+      value_pointer: "#/profile/profile_image_url"
+```
+
+The template is copied to the claims mapping of new user.
+
+Note that only kind `custom_attributes` can appear in the template.
+
+### Claims mapping JSON schema
+
+This is the JSON schema defining claims mapping
+
+```json
+{
+  "type": "array",
+  "items": {
+    "oneOf": [
+      {
+        "type": "object",
+        "properties": {
+          "kind": { "const": "identity" },
+          "identity_id": { "type": "string" },
+          "name_pointer": { "type": "string" },
+          "value_pointer": { "type": "string" }
+        },
+        "required": ["kind", "identity_id", "name_pointer", "value_pointer"]
+      },
+      {
+        "type": "object",
+        "properties": {
+          "kind": { "const": "custom_attributes" },
+          "name_pointer": { "type": "string" },
+          "value_pointer": { "type": "string" }
+        },
+        "required": ["kind", "name_pointer", "value_pointer"]
+      }
+    ]
+  }
+}
+```
+
+- `kind`: The kind of the mapping, either `identity` or `custom_attributes`.
+- `name_pointer`: The JSON pointer to indicate which part of the claims is mapped to.
+- `value_pointer`: The JSON pointer to indicate which part of the source claims is mapped from.
+- `identity_id`: The identity claims to use as the source claims.
+
+> NOTE: In the initial design, we also have the kind `specified`, which simply means a provided value.
+> This was dropped because the similar effect can be achieved by storing a custom attribute and then use the kind `custom_attributes`.

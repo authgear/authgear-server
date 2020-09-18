@@ -12,6 +12,7 @@ The resolve endpoint does not write body. Instead, it adds the following headers
   * [x-authgear-user-id](#x-authgear-user-id)
   * [x-authgear-user-anonymous](#x-authgear-user-anonymous)
   * [x-authgear-user-verified](#x-authgear-user-verified)
+  * [x-authgear-user-claims](#x-authgear-user-claims)
   * [x-authgear-session-acr](#x-authgear-session-acr)
   * [x-authgear-session-amr](#x-authgear-session-amr)
 
@@ -36,6 +37,10 @@ The value `true` means the user is anonymous. Otherwise, it is a normal user.
 ## x-authgear-user-verified
 
 The value `true` means the user is verified.
+
+## x-authgear-user-claims
+
+The [claims](./user-model.md#claims) encoded in URL Base64 encoding with padding.
 
 ## x-authgear-session-acr
 
