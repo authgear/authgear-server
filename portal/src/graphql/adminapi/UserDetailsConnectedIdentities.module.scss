@@ -4,8 +4,13 @@
   width: 640px;
 }
 
+.headerSection {
+  display: flex;
+  justify-content: space-between;
+}
+
 .header {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   margin: 0;
 }

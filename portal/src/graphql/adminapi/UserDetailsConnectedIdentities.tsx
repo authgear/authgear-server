@@ -1,6 +1,12 @@
-import React, { useMemo, useCallback } from "react";
+import React, { useMemo, useCallback, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
-import { List, PrimaryButton, Text } from "@fluentui/react";
+import {
+  IContextualMenuProps,
+  List,
+  PrimaryButton,
+  Text,
+} from "@fluentui/react";
 
 import ListCellLayout from "../../ListCellLayout";
 import { formatDatetime } from "../../util/formatDatetime";
@@ -63,7 +69,8 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
   props: UserDetailsConnectedIdentitiesProps
 ) {
   const { identities } = props;
-  const { locale } = React.useContext(Context);
+  const { locale, renderToString } = useContext(Context);
+  const navigate = useNavigate();
   const identityListItems: IdentityListItem[] = useMemo(() => {
     return identities.map((identity) => {
       const identityName = identity.claims.email ?? "---";
@@ -88,11 +95,50 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
     []
   );
 
+  const addIdentitiesMenuProps: IContextualMenuProps = useMemo(
+    () => ({
+      items: [
+        {
+          key: "email",
+          text: renderToString("UserDetails.connected-identities.email"),
+          iconProps: { iconName: "Mail" },
+          onClick: () => navigate("./add-email"),
+        },
+        {
+          key: "phone",
+          text: renderToString("UserDetails.connected-identities.phone"),
+          iconProps: { iconName: "CellPhone" },
+          onClick: () => navigate("./add-phone"),
+        },
+        {
+          key: "username",
+          text: renderToString("UserDetails.connected-identities.username"),
+          iconProps: { iconName: "Accounts" },
+          onClick: () => navigate("./add-username"),
+        },
+      ],
+      directionalHintFixed: true,
+    }),
+    [renderToString, navigate]
+  );
+
   return (
     <div className={styles.root}>
-      <Text as="h2" className={styles.header}>
-        <FormattedMessage id="UserDetails.connected-identities.header" />
-      </Text>
+      <section className={styles.headerSection}>
+        <Text as="h2" className={styles.header}>
+          <FormattedMessage id="UserDetails.connected-identities.title" />
+        </Text>
+        <PrimaryButton
+          iconProps={{ iconName: "CirclePlus" }}
+          menuProps={addIdentitiesMenuProps}
+          styles={{
+            menuIcon: { paddingLeft: "3px" },
+            icon: { paddingRight: "3px" },
+          }}
+        >
+          <FormattedMessage id="UserDetails.connected-identities.add-identity" />
+        </PrimaryButton>
+      </section>
       <List
         className={styles.list}
         items={identityListItems}
