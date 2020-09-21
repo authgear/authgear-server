@@ -221,12 +221,11 @@ const PasswordField: React.FC<PasswordFieldProps> = function PasswordField(
         {passwordPolicyData.map((policy) => (
           <li
             key={policy.messageId}
-            className={cn(styles.policyLine, {
+            className={cn({
               [styles.policySatisfied]: isPasswordPolicySatisfied[policy.key],
             })}
           >
             <Text>
-              {"• "}
               <FormattedMessage
                 id={policy.messageId}
                 values={policy.messageValues}
