@@ -99,7 +99,7 @@ func (n *NodeCreateAuthenticatorBegin) deriveEdges() ([]interaction.Edge, error)
 	return edges, nil
 }
 
-func (n *NodeCreateAuthenticatorBegin) derivePrimary() (edges []interaction.Edge, err error) {
+func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, error) {
 	// Determine whether we need to create primary authenticator.
 
 	// 1. Check whether the identity actually requires primary authenticator.
@@ -116,18 +116,20 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() (edges []interaction.Edge
 		return nil, interaction.InvalidConfiguration.New("identity requires primary authenticator but none is enabled")
 	}
 
-	firstType := types[0]
-
 	// 3. Find out whether the identity has the preferred primary authenticator.
 	// If it does not, creation is needed.
 	ais := filterAuthenticators(
 		n.Authenticators,
-		authenticator.KeepType(firstType),
+		authenticator.KeepType(types...),
 		authenticator.KeepPrimaryAuthenticatorOfIdentity(n.Identity),
 	)
+	if len(ais) != 0 {
+		return nil, nil
+	}
 
-	if len(ais) == 0 {
-		switch firstType {
+	var edges []interaction.Edge
+	for _, t := range types {
+		switch t {
 		case authn.AuthenticatorTypePassword:
 			edges = append(edges, &EdgeCreateAuthenticatorPassword{Stage: n.Stage})
 
@@ -157,11 +159,19 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() (edges []interaction.Edge
 				})
 			}
 		default:
-			panic("interaction: unknown authenticator type: " + firstType)
+			panic(fmt.Sprintf("interaction: unknown authenticator type: %s", t))
 		}
 	}
 
-	return edges, nil
+	if len(edges) == 0 {
+		// A new authenticator is required, but no authenticator can be created:
+		// Configuration is invalid.
+		return nil, interaction.InvalidConfiguration.New("no primary authenticator can be created for identity")
+	}
+
+	// TODO(interaction): support switching of primary authenticator type to create
+	// Return first edge for now.
+	return edges[:1], nil
 }
 
 func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Edge) {
