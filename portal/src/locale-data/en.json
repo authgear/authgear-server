@@ -4,6 +4,7 @@
   "loading": "Loading...",
 
   "action": "Action",
+  "add": "Add",
   "next": "Next",
   "save": "Save",
   "saving": "Saving",
@@ -14,6 +15,7 @@
   "confirm": "Confirm",
   "cancel": "Cancel",
   "disconnect": "Disconnect",
+  "verified": "Verified",
   "verify": "Verify",
   "unverify": "Unverify",
 
@@ -102,6 +104,9 @@
   "UserDetails.connected-identities.primary-email": "Primary Email",
   "UserDetails.connected-identities.primary-phone": "Primary Phone",
   "UserDetails.connected-identities.primary-username": "Primary Username",
+
+  "AddEmailScreen.title": "Add Email",
+  "AddEmailScreen.email.label": "Email",
 
   "UserDetails.session.header": "Session",
   "UserDetails.session.devices": "Devices",
