@@ -112,6 +112,9 @@
   "AddPhoneScreen.phone.label": "Phone Number",
   "AddPhoneScreen.country-code.label": "Country Code",
 
+  "AddUsernameScreen.title": "Add Username",
+  "AddUsernameScreen.username.label": "Username",
+
   "UserDetails.session.header": "Session",
   "UserDetails.session.devices": "Devices",
   "UserDetails.session.last-activity": "Last Activity",
