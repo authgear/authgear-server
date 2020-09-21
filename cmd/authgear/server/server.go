@@ -33,7 +33,13 @@ func (c *Controller) Start() {
 		return newInProcessQueue(provider, wrk.Executor)
 	})
 
-	p, err := deps.NewRootProvider(cfg.EnvironmentConfig, cfg.ConfigSource, taskQueueFactory)
+	p, err := deps.NewRootProvider(
+		cfg.EnvironmentConfig,
+		cfg.ConfigSource,
+		cfg.ReservedNameFilePath,
+		cfg.DefaultTemplateDirectory,
+		taskQueueFactory,
+	)
 	if err != nil {
 		golog.Fatalf("failed to setup server: %s", err)
 	}

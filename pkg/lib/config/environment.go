@@ -17,10 +17,6 @@ type EnvironmentConfig struct {
 	LogLevel string `envconfig:"LOG_LEVEL" default:"warn"`
 	// StaticAssetURLPrefix sets the URL prefix for static assets
 	StaticAssetURLPrefix StaticAssetURLPrefix `envconfig:"STATIC_ASSET_URL_PREFIX" default:"/static"`
-	// DefaultTemplateDirectory sets the directory for default template files
-	DefaultTemplateDirectory string `envconfig:"DEFAULT_TEMPLATE_DIRECTORY" default:"templates"`
-	// ReservedNameFilePath sets the file path for reserved name list
-	ReservedNameFilePath string `envconfig:"RESERVED_NAME_FILE_PATH" default:"reserved_name.txt"`
 	// SentryDSN sets the sentry DSN.
 	SentryDSN SentryDSN `envconfig:"SENTRY_DSN"`
 }

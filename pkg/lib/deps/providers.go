@@ -19,19 +19,22 @@ import (
 )
 
 type RootProvider struct {
-	EnvironmentConfig   *config.EnvironmentConfig
-	ConfigSourceConfig  *configsource.Config
-	LoggerFactory       *log.Factory
-	SentryHub           *getsentry.Hub
-	DatabasePool        *db.Pool
-	RedisPool           *redis.Pool
-	TaskQueueFactory    TaskQueueFactory
-	ReservedNameChecker *loginid.ReservedNameChecker
+	EnvironmentConfig        *config.EnvironmentConfig
+	ConfigSourceConfig       *configsource.Config
+	LoggerFactory            *log.Factory
+	SentryHub                *getsentry.Hub
+	DatabasePool             *db.Pool
+	RedisPool                *redis.Pool
+	TaskQueueFactory         TaskQueueFactory
+	ReservedNameChecker      *loginid.ReservedNameChecker
+	DefaultTemplateDirectory string
 }
 
 func NewRootProvider(
 	cfg *config.EnvironmentConfig,
 	configSourceConfig *configsource.Config,
+	reservedNameFilePath string,
+	defaultTemplateDirectory string,
 	taskQueueFactory TaskQueueFactory,
 ) (*RootProvider, error) {
 	var p RootProvider
@@ -54,20 +57,21 @@ func NewRootProvider(
 
 	dbPool := db.NewPool()
 	redisPool := redis.NewPool()
-	reservedNameChecker, err := loginid.NewReservedNameChecker(cfg.ReservedNameFilePath)
+	reservedNameChecker, err := loginid.NewReservedNameChecker(reservedNameFilePath)
 	if err != nil {
 		return nil, err
 	}
 
 	p = RootProvider{
-		EnvironmentConfig:   cfg,
-		ConfigSourceConfig:  configSourceConfig,
-		LoggerFactory:       loggerFactory,
-		SentryHub:           sentryHub,
-		DatabasePool:        dbPool,
-		RedisPool:           redisPool,
-		TaskQueueFactory:    taskQueueFactory,
-		ReservedNameChecker: reservedNameChecker,
+		EnvironmentConfig:        cfg,
+		ConfigSourceConfig:       configSourceConfig,
+		LoggerFactory:            loggerFactory,
+		SentryHub:                sentryHub,
+		DatabasePool:             dbPool,
+		RedisPool:                redisPool,
+		TaskQueueFactory:         taskQueueFactory,
+		ReservedNameChecker:      reservedNameChecker,
+		DefaultTemplateDirectory: defaultTemplateDirectory,
 	}
 	return &p, nil
 }
@@ -95,7 +99,7 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 	)
 	templateEngine := NewEngineWithConfig(
 		appCtx.Fs,
-		p.EnvironmentConfig.DefaultTemplateDirectory,
+		p.DefaultTemplateDirectory,
 		cfg,
 	)
 
