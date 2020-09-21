@@ -98,6 +98,10 @@
 
   "UserDetails.connected-identities.connected-on": "Connected on {datetime}",
   "UserDetails.connected-identities.added-on": "Added on {datetime}",
+  "UserDetails.connected-identities.primary-identities.title": "Primary Identities",
+  "UserDetails.connected-identities.primary-email": "Primary Email",
+  "UserDetails.connected-identities.primary-phone": "Primary Phone",
+  "UserDetails.connected-identities.primary-username": "Primary Username",
 
   "UserDetails.session.header": "Session",
   "UserDetails.session.devices": "Devices",

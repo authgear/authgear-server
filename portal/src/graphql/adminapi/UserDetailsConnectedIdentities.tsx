@@ -11,6 +11,7 @@ import {
   Text,
 } from "@fluentui/react";
 
+import PrimaryIdentitiesSelectionForm from "./PrimaryIdentitiesSelectionForm";
 import ListCellLayout from "../../ListCellLayout";
 import { formatDatetime } from "../../util/formatDatetime";
 import { destructiveTheme, verifyButtonTheme } from "../../theme";
@@ -55,7 +56,7 @@ interface UsernameIdentityListItem {
   addedOn: string;
 }
 
-interface IdentityLists {
+export interface IdentityLists {
   email: EmailIdentityListItem[];
   phone: PhoneIdentityListItem[];
   username: UsernameIdentityListItem[];
@@ -363,6 +364,13 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
           </>
         )}
       </section>
+      <Text as="h2" className={styles.primaryIdentitiesTitle}>
+        <FormattedMessage id="UserDetails.connected-identities.primary-identities.title" />
+      </Text>
+      <PrimaryIdentitiesSelectionForm
+        className={styles.primaryIdentitiesForm}
+        identityLists={identityLists}
+      />
     </div>
   );
 };

@@ -1,5 +1,5 @@
-import React from "react";
-import { ITag } from "@fluentui/react";
+import React, { useCallback, useMemo, useState } from "react";
+import { IDropdownOption, ITag } from "@fluentui/react";
 
 export const useTextField = (
   initialValue: string
@@ -79,5 +79,48 @@ export const useTagPickerWithNewTags = (
     defaultSelectedItems,
     onChange,
     onResolveSuggestions,
+  };
+};
+
+export function makeDropdownOptions(
+  keyList: string[],
+  selectedKey?: string,
+  displayText?: (key: string) => string
+): IDropdownOption[] {
+  return keyList.map((key) => ({
+    key,
+    text: displayText != null ? displayText(key) : key,
+    isSelected: selectedKey === key,
+  }));
+}
+
+export const useDropdown = (
+  keyList: string[],
+  initialOption?: string,
+  displayText?: (key: string) => string
+): {
+  selectedKey?: string;
+  options: IDropdownOption[];
+  onChange: (_event: any, option?: IDropdownOption) => void;
+} => {
+  const [selectedKey, setSelectedKey] = useState<string | undefined>(
+    initialOption
+  );
+  const options = useMemo(
+    () => makeDropdownOptions(keyList, selectedKey, displayText),
+    [selectedKey, displayText, keyList]
+  );
+
+  const onChange = useCallback((_event: any, option?: IDropdownOption) => {
+    if (option == null) {
+      return;
+    }
+    setSelectedKey(option.key.toString());
+  }, []);
+
+  return {
+    selectedKey,
+    options,
+    onChange,
   };
 };
