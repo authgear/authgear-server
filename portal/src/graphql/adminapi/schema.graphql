@@ -96,6 +96,21 @@ type CreateIdentityPayload {
   identity: Identity!
 }
 
+""""""
+input CreateUserInput {
+  """Definition of the identity of new user."""
+  definition: IdentityDefinition!
+
+  """Password for the user if required."""
+  password: String
+}
+
+""""""
+type CreateUserPayload {
+  """"""
+  user: User!
+}
+
 """
 The `DateTime` scalar type represents a DateTime. The DateTime is serialized as an RFC 3339 quoted string
 """
@@ -214,6 +229,9 @@ enum IdentityType {
 type Mutation {
   """Create new identity for user"""
   createIdentity(input: CreateIdentityInput!): CreateIdentityPayload!
+
+  """Create new user"""
+  createUser(input: CreateUserInput!): CreateUserPayload!
 
   """Delete authenticator of user"""
   deleteAuthenticator(input: DeleteAuthenticatorInput!): DeleteAuthenticatorPayload!

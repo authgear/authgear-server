@@ -13,6 +13,8 @@ import (
 type UserLoader interface {
 	Get(id string) *graphqlutil.Lazy
 	QueryPage(args graphqlutil.PageArgs) (*graphqlutil.PageResult, error)
+
+	Create(identityDef model.IdentityDef, password string) *graphqlutil.Lazy
 }
 
 type IdentityLoader interface {
