@@ -1,7 +1,6 @@
 package nodes
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -49,23 +48,9 @@ func (n *NodeDoRemoveAuthenticator) Apply(perform func(eff interaction.Effect) e
 				return err
 			}
 
-			aTypes := map[authn.AuthenticatorType]struct{}{}
-			for _, a := range filterAuthenticators(as, authenticator.KeepKind(authenticator.KindPrimary)) {
-				if a.ID == n.Authenticator.ID {
-					continue
-				}
-				aTypes[a.Type] = struct{}{}
-			}
-
 			for _, i := range is {
-				hasPrimary := false
-				for _, t := range i.Type.PrimaryAuthenticatorTypes() {
-					if _, ok := aTypes[t]; ok {
-						hasPrimary = true
-						break
-					}
-				}
-				if !hasPrimary {
+				primaryAuths := filterAuthenticators(as, authenticator.KeepPrimaryAuthenticatorOfIdentity(i))
+				if len(primaryAuths) == 1 && primaryAuths[0].ID == n.Authenticator.ID {
 					return interaction.NewInvariantViolated(
 						"RemoveLastPrimaryAuthenticator",
 						"cannot remove last primary authenticator for identity",
