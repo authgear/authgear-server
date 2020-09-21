@@ -127,14 +127,23 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 		return nil, nil
 	}
 
+	// Primary authenticator is default if it is the first primary authenticator of the user.
+	isDefault := len(filterAuthenticators(n.Authenticators, authenticator.KeepKind(authenticator.KindPrimary))) == 0
+
 	var edges []interaction.Edge
 	for _, t := range types {
 		switch t {
 		case authn.AuthenticatorTypePassword:
-			edges = append(edges, &EdgeCreateAuthenticatorPassword{Stage: n.Stage})
+			edges = append(edges, &EdgeCreateAuthenticatorPassword{
+				Stage:     n.Stage,
+				IsDefault: isDefault,
+			})
 
 		case authn.AuthenticatorTypeTOTP:
-			edges = append(edges, &EdgeCreateAuthenticatorTOTPSetup{Stage: n.Stage})
+			edges = append(edges, &EdgeCreateAuthenticatorTOTPSetup{
+				Stage:     n.Stage,
+				IsDefault: isDefault,
+			})
 
 		case authn.AuthenticatorTypeOOB:
 			loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
@@ -153,9 +162,10 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 
 			if target != "" {
 				edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
-					Stage:   n.Stage,
-					Channel: channel,
-					Target:  target,
+					Stage:     n.Stage,
+					IsDefault: isDefault,
+					Channel:   channel,
+					Target:    target,
 				})
 			}
 		default:
