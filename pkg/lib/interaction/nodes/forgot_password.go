@@ -55,8 +55,8 @@ func (e *EdgeForgotPasswordSelectLoginID) GetIdentityCandidates() []identity.Can
 }
 
 func (e *EdgeForgotPasswordSelectLoginID) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	input, ok := rawInput.(InputForgotPasswordSelectLoginID)
-	if !ok {
+	var input InputForgotPasswordSelectLoginID
+	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 

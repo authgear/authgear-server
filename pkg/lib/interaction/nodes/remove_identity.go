@@ -18,8 +18,8 @@ type InputRemoveIdentity interface {
 type EdgeRemoveIdentity struct{}
 
 func (e *EdgeRemoveIdentity) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	input, ok := rawInput.(InputRemoveIdentity)
-	if !ok {
+	var input InputRemoveIdentity
+	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 

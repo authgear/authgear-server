@@ -30,8 +30,8 @@ func (e *EdgeAuthenticationOOBTrigger) IsDefaultAuthenticator() bool {
 }
 
 func (e *EdgeAuthenticationOOBTrigger) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	input, ok := rawInput.(InputAuthenticationOOBTrigger)
-	if !ok {
+	var input InputAuthenticationOOBTrigger
+	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 

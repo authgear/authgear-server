@@ -27,7 +27,8 @@ func (e *EdgeDoUseAuthenticator) Instantiate(ctx *interaction.Context, graph *in
 	}
 
 	userID := graph.MustGetUserID()
-	if input, ok := rawInput.(InputCreateDeviceToken); ok {
+	var input InputCreateDeviceToken
+	if interaction.Input(rawInput, &input) {
 		if input.CreateDeviceToken() {
 			token := ctx.MFA.GenerateDeviceToken()
 			_, err := ctx.MFA.CreateDeviceToken(userID, token)

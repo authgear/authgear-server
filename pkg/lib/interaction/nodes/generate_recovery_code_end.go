@@ -17,8 +17,8 @@ type EdgeGenerateRecoveryCodeEnd struct {
 }
 
 func (e *EdgeGenerateRecoveryCodeEnd) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	_, ok := rawInput.(InputGenerateRecoveryCodeEnd)
-	if !ok {
+	var input InputGenerateRecoveryCodeEnd
+	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 

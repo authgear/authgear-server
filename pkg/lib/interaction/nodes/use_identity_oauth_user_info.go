@@ -34,8 +34,8 @@ type EdgeUseIdentityOAuthUserInfo struct {
 }
 
 func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	input, ok := rawInput.(InputUseIdentityOAuthUserInfo)
-	if !ok {
+	var input InputUseIdentityOAuthUserInfo
+	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 

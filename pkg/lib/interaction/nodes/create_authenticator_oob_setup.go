@@ -45,8 +45,8 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 		channel = e.Channel
 		target = e.Target
 	} else {
-		input, ok := rawInput.(InputCreateAuthenticatorOOBSetup)
-		if !ok {
+		var input InputCreateAuthenticatorOOBSetup
+		if !interaction.Input(rawInput, &input) {
 			return nil, interaction.ErrIncompatibleInput
 		}
 		channel = input.GetOOBChannel()
