@@ -1,0 +1,29 @@
+.root {
+  min-height: 100%;
+}
+
+.content {
+  margin: 20px;
+}
+
+.form {
+  margin: 0 20px;
+}
+
+.phoneNumberFields {
+  display: flex;
+  align-items: flex-end;
+}
+
+.countryCode {
+  width: 120px;
+}
+
+.phone {
+  margin-left: 10px;
+  width: 200px;
+}
+
+.verified {
+  margin: 25px 0;
+}

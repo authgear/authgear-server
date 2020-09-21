@@ -7,6 +7,7 @@ import UsersScreen from "./graphql/adminapi/UsersScreen";
 import AddUserScreen from "./graphql/adminapi/AddUserScreen";
 import UserDetailsScreen from "./graphql/adminapi/UserDetailsScreen";
 import AddEmailScreen from "./graphql/adminapi/AddEmailScreen";
+import AddPhoneScreen from "./graphql/adminapi/AddPhoneScreen";
 
 import AuthenticationConfigurationScreen from "./graphql/portal/AuthenticationConfigurationScreen";
 import AnonymousUsersConfigurationScreen from "./graphql/portal/AnonymousUsersConfigurationScreen";
@@ -35,6 +36,10 @@ const AppRoot: React.FC = function AppRoot() {
           <Route
             path="/users/:userID/details/add-email"
             element={<AddEmailScreen />}
+          />
+          <Route
+            path="/users/:userID/details/add-phone"
+            element={<AddPhoneScreen />}
           />
           <Route
             path="/configuration/authentication/"

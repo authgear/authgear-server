@@ -169,12 +169,24 @@ interface VerificationConfig {
   code_expiry_seconds?: DurationSeconds;
 }
 
+// UIConfig
+interface UICountryCallingCodeConfig {
+  default?: string;
+  values?: string[];
+}
+
+interface UIConfig {
+  custom_css?: string;
+  country_calling_code?: UICountryCallingCodeConfig;
+}
+
 export interface PortalAPIAppConfig {
   http?: HTTPConfig;
   identity?: IdentityConfig;
   authenticator?: AuthenticatorConfig;
   authentication?: AuthenticationConfig;
   verification?: VerificationConfig;
+  ui?: UIConfig;
 }
 
 // secret config

@@ -108,6 +108,10 @@
   "AddEmailScreen.title": "Add Email",
   "AddEmailScreen.email.label": "Email",
 
+  "AddPhoneScreen.title": "Add Phone",
+  "AddPhoneScreen.phone.label": "Phone Number",
+  "AddPhoneScreen.country-code.label": "Country Code",
+
   "UserDetails.session.header": "Session",
   "UserDetails.session.devices": "Devices",
   "UserDetails.session.last-activity": "Last Activity",
