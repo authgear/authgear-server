@@ -8,6 +8,7 @@ import NavBreadcrumb from "../../NavBreadcrumb";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
+import UserDetailCommandBar from "./UserDetailCommandBar";
 import { useDropdown, useTextField } from "../../hook/useInput";
 import { useAppConfigQuery } from "../portal/query/appConfigQuery";
 import { PortalAPIAppConfig } from "../../types";
@@ -146,6 +147,7 @@ const AddPhoneScreen: React.FC = function AddPhoneScreen() {
 
   return (
     <div className={styles.root}>
+      <UserDetailCommandBar />
       <section className={styles.content}>
         <NavBreadcrumb items={navBreadcrumbItems} />
         <AddPhoneForm appConfig={appConfig} />

@@ -1,11 +1,6 @@
-import React, { useContext } from "react";
+import React from "react";
 import { useParams } from "react-router-dom";
-import {
-  Pivot,
-  PivotItem,
-  CommandBar,
-  ICommandBarItemProps,
-} from "@fluentui/react";
+import { Pivot, PivotItem } from "@fluentui/react";
 import { useQuery, gql } from "@apollo/client";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 
@@ -17,6 +12,7 @@ import {
 import NavBreadcrumb from "../../NavBreadcrumb";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
+import UserDetailCommandBar from "./UserDetailCommandBar";
 import UserDetailSummary from "./UserDetailSummary";
 import UserDetailsAccountSecurity from "./UserDetailsAccountSecurity";
 import UserDetailsConnectedIdentities from "./UserDetailsConnectedIdentities";
@@ -122,7 +118,6 @@ const query = gql`
 
 const UserDetailsScreen: React.FC = function UserDetailsScreen() {
   const { userID } = useParams();
-  const { renderToString } = useContext(Context);
   const { loading, error, data, refetch } = useQuery<
     UserDetailsScreenQuery,
     UserDetailsScreenQueryVariables
@@ -144,45 +139,13 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
     return node?.__typename === "User" ? node : null;
   }, [data]);
 
-  const commandBarItems: ICommandBarItemProps[] = [
-    {
-      key: "remove",
-      text: renderToString("remove"),
-      iconProps: { iconName: "Delete" },
-    },
-
-    {
-      key: "loginAsUser",
-      text: renderToString("UserDetails.command-bar.login-as-user"),
-      iconProps: { iconName: "FollowUser" },
-    },
-
-    {
-      key: "invalidateSessions",
-      text: renderToString("UserDetails.command-bar.invalidate-sessions"),
-      iconProps: {
-        iconName: "CircleAddition",
-        className: styles.invalidateIcon,
-      },
-    },
-    {
-      key: "disable",
-      text: renderToString("disable"),
-      iconProps: { iconName: "CircleStop" },
-    },
-  ];
-
   if (error != null) {
     return <ShowError error={error} onRetry={refetch} />;
   }
 
   return (
     <main className={styles.root}>
-      <CommandBar
-        className={styles.commandBar}
-        items={[]}
-        farItems={commandBarItems}
-      />
+      <UserDetailCommandBar />
       <div className={styles.screenContent}>
         <NavBreadcrumb items={navBreadcrumbItems} />
         <UserDetails data={userDetails} loading={loading} />

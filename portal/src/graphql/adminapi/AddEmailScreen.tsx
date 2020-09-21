@@ -3,6 +3,7 @@ import { PrimaryButton, TextField, Toggle } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
+import UserDetailCommandBar from "./UserDetailCommandBar";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import { useTextField } from "../../hook/useInput";
@@ -48,7 +49,8 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
 
   return (
     <div className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
+      <UserDetailCommandBar />
+      <NavBreadcrumb className={styles.breadcrumb} items={navBreadcrumbItems} />
       <section className={styles.content}>
         <NavigationBlockerDialog blockNavigation={isFormModified} />
         <TextField
