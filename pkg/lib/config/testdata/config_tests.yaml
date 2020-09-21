@@ -45,10 +45,26 @@ config:
   identity:
     oauth:
       providers:
-        - type: google
+        - alias: google_a
+          type: google
           client_id: client_a
-        - type: google
+        - alias: google_b
+          type: google
           client_id: client_b
+
+---
+name: missing-oauth-provider-alias
+error: |-
+  invalid configuration:
+  /identity/oauth/providers/0: required
+    map[actual:[client_id type] expected:[alias client_id type] missing:[alias]]
+config:
+  id: test
+  identity:
+    oauth:
+      providers:
+        - type: facebook
+          client_id: client_id
 
 ---
 name: dupe-oauth-provider-alias
@@ -60,9 +76,11 @@ config:
   identity:
     oauth:
       providers:
-        - type: facebook
+        - alias: facebook
+          type: facebook
           client_id: client_a
-        - type: facebook
+        - alias: facebook
+          type: facebook
           client_id: client_b
 
 ---
@@ -70,7 +88,7 @@ name: oauth-provider-apple
 error: |-
   invalid configuration:
   /identity/oauth/providers/0: required
-    map[actual:[alias client_id type] expected:[client_id key_id team_id type] missing:[key_id team_id]]
+    map[actual:[alias client_id type] expected:[key_id team_id] missing:[key_id team_id]]
 config:
   id: test
   identity:
@@ -85,7 +103,7 @@ name: oauth-provider-azureadv2
 error: |-
   invalid configuration:
   /identity/oauth/providers/0: required
-    map[actual:[alias client_id type] expected:[client_id tenant type] missing:[tenant]]
+    map[actual:[alias client_id type] expected:[tenant] missing:[tenant]]
 config:
   id: test
   identity:
