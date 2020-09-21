@@ -90,9 +90,25 @@ interface IdentityConfig {
 
 // AuthenticatorConfig
 
+export interface PasswordPolicyConfig {
+  min_length?: number;
+  uppercase_required?: boolean;
+  lowercase_required?: boolean;
+  digit_required?: boolean;
+  symbol_required?: boolean;
+  minimum_guessable_level?: number;
+  excluded_keywords?: string[];
+  history_size?: number;
+  history_days?: number;
+}
+
+interface AuthenticatorPasswordConfig {
+  policy?: PasswordPolicyConfig;
+}
+
 interface AuthenticatorConfig {
   oob_otp?: Record<string, unknown>;
-  password?: Record<string, unknown>;
+  password?: AuthenticatorPasswordConfig;
   totp?: Record<string, unknown>;
 }
 

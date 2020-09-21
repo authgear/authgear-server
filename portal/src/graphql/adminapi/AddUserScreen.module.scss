@@ -1,0 +1,32 @@
+.root {
+  margin: 20px;
+  min-height: 100%;
+}
+
+.content {
+  margin-left: 20px;
+}
+
+.textField {
+  width: 320px;
+  margin-bottom: 15px;
+}
+
+.userInfoLabel {
+  margin: 30px 0 10px;
+}
+
+.userInfo {
+  margin-bottom: 20px;
+  padding-left: 20px;
+  border-left: 1px solid #000000;
+}
+
+.addUserButton {
+  margin-top: 20px;
+}
+
+.errorText {
+  color: #a4262c;
+  font-size: 12px;
+}

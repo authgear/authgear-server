@@ -3,6 +3,7 @@
 
   "loading": "Loading...",
 
+  "action": "Action",
   "next": "Next",
   "save": "Save",
   "saving": "Saving",
@@ -36,6 +37,20 @@
   "NavBreadcrumb.label": "Nested navigation",
 
   "UsersScreen.title": "Users",
+  "UsersScreen.add-user": "Add User",
+
+  "AddUserScreen.title": "Add User",
+  "AddUserScreen.name": "Name",
+  "AddUserScreen.user-info.label": "Fill in 1 of the following fields:",
+  "AddUserScreen.user-info.username": "Username",
+  "AddUserScreen.user-info.email": "Email",
+  "AddUserScreen.user-info.phone": "Phone",
+  "AddUserScreen.password.label": "Password",
+  "AddUserScreen.add-user.label": "Add User",
+  "AddUserScreen.cannot-add-user": "Please enable at least one of username, email or phone in authentication screen",
+  "AddUserScreen.error.one-of-login-id-type": "Required to fill in exactly 1 of the fields above",
+  "AddUserScreen.error.invalid-password": "Please check password policies below",
+
   "UserDetailsScreen.title": "User Details",
 
   "UsersList.column.id": "ID",
@@ -44,6 +59,11 @@
   "UsersList.column.phone": "Phone",
   "UsersList.column.signed-up": "Signed Up",
   "UsersList.column.last-login-at": "Last Login",
+
+  "UsersList.disable-user": "Disable User",
+
+  "DisableUserDialog.title": "Disable User",
+  "DisableUserDialog.text": "Do you really want to disable user {username}",
 
   "UserDetails.signed-up": "Signed Up: {datetime}",
   "UserDetails.last-login-at": "Last Login: {datetime}",
@@ -120,5 +140,22 @@
   "DetailsListWithOrdering.move-down": "Move {key} down",
 
   "NavigationBlockerDialog.title": "Discard all changes?",
-  "NavigationBlockerDialog.content": "Are you sure you want to discard all changes made and leave this page?"
+  "NavigationBlockerDialog.content": "Are you sure you want to discard all changes made and leave this page?",
+
+  "PasswordField.min-length": "Minimum {minLength} characters",
+  "PasswordField.lowercase-required": "At least 1 lowercase character",
+  "PasswordField.uppercase-required": "At least 1 uppercase character",
+  "PasswordField.digit-required": "At least 1 digit",
+  "PasswordField.symbol-required": "At least special character (non-alphanumeric)",
+  "PasswordField.minimum-guessable-level": "Your password strength must reach level {level} ({levelName})",
+  "PasswordField.excluded-keywords": "No banned words",
+  "PasswordField.history-size": "Cannot reuse previous {size} passwords",
+  "PasswordField.history-days": "Cannot reuse password set within {days} days",
+  "PasswordField.guessable-level.0": "N/A",
+  "PasswordField.guessable-level.1": "Extremely guessable",
+  "PasswordField.guessable-level.2": "Very guessable",
+  "PasswordField.guessable-level.3": "Fair",
+  "PasswordField.guessable-level.4": "Very unguessable",
+  "PasswordField.guessable-level.5": "Extremely unguessable",
+  "PasswordStrengthMeter.password-strength": "Password Strength"
 }
