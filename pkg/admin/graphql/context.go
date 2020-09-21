@@ -28,6 +28,10 @@ type AuthenticatorLoader interface {
 	Remove(authenticatorInfo *authenticator.Info) *graphqlutil.Lazy
 }
 
+type VerificationLoader interface {
+	Get(userID string) *graphqlutil.Lazy
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("admin-graphql")} }
@@ -37,6 +41,7 @@ type Context struct {
 	Users          UserLoader
 	Identities     IdentityLoader
 	Authenticators AuthenticatorLoader
+	Verification   VerificationLoader
 }
 
 func (c *Context) Logger() *log.Logger {

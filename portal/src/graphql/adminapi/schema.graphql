@@ -69,6 +69,15 @@ enum AuthenticatorType {
   TOTP
 }
 
+""""""
+type Claim {
+  """"""
+  name: String!
+
+  """"""
+  value: String!
+}
+
 """
 The `DateTime` scalar type represents a DateTime. The DateTime is serialized as an RFC 3339 quoted string
 """
@@ -227,6 +236,9 @@ type User implements Entity & Node {
 
   """The update time of entity"""
   updatedAt: DateTime!
+
+  """"""
+  verifiedClaims: [Claim!]!
 }
 
 """A connection to a list of items."""

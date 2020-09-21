@@ -471,11 +471,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service4,
 		Interaction:    serviceInteractionService,
 	}
+	verificationLoader := &loader.VerificationLoader{
+		Verification: verificationService,
+	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:      logger,
 		Users:          userLoader,
 		Identities:     identityLoader,
 		Authenticators: authenticatorLoader,
+		Verification:   verificationLoader,
 	}
 	devMode := environmentConfig.DevMode
 	graphQLHandler := &transport.GraphQLHandler{

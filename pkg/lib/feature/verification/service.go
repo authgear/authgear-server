@@ -155,6 +155,10 @@ func (s *Service) GetVerificationStatuses(is []*identity.Info) (map[string][]Cla
 	return statuses, nil
 }
 
+func (s *Service) GetClaims(userID string) ([]*Claim, error) {
+	return s.ClaimStore.ListByUser(userID)
+}
+
 func (s *Service) IsUserVerified(identities []*identity.Info) (bool, error) {
 	statuses, err := s.GetVerificationStatuses(identities)
 	if err != nil {
