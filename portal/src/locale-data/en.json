@@ -148,7 +148,7 @@
   "PasswordField.digit-required": "At least 1 digit",
   "PasswordField.symbol-required": "At least special character (non-alphanumeric)",
   "PasswordField.minimum-guessable-level": "Your password strength must reach level {level} ({levelName})",
-  "PasswordField.excluded-keywords": "no banned words",
+  "PasswordField.excluded-keywords": "No banned words",
   "PasswordField.history-size": "Cannot reuse previous {size} passwords",
   "PasswordField.history-days": "Cannot reuse password set within {days} days",
   "PasswordField.guessable-level.0": "N/A",
