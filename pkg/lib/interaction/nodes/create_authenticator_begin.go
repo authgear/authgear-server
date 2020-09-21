@@ -123,7 +123,6 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() (edges []interaction.Edge
 	ais := filterAuthenticators(
 		n.Authenticators,
 		authenticator.KeepType(firstType),
-		authenticator.KeepKind(authenticator.KindPrimary),
 		authenticator.KeepPrimaryAuthenticatorOfIdentity(n.Identity),
 	)
 
