@@ -99,12 +99,12 @@ func (n *NodeCreateAuthenticatorBegin) deriveEdges() ([]interaction.Edge, error)
 	return edges, nil
 }
 
-func (n *NodeCreateAuthenticatorBegin) derivePrimary() (edges []interaction.Edge, err error) {
+func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, error) {
 	// Determine whether we need to create primary authenticator.
 
 	// 1. Check whether the identity actually requires primary authenticator.
 	// If it does not, then no primary authenticator is needed.
-	identityRequiresPrimaryAuthentication := len(n.Identity.Type.PrimaryAuthenticatorTypes()) > 0
+	identityRequiresPrimaryAuthentication := len(n.Identity.PrimaryAuthenticatorTypes()) > 0
 	if !identityRequiresPrimaryAuthentication {
 		return nil, nil
 	}
@@ -116,23 +116,34 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() (edges []interaction.Edge
 		return nil, interaction.InvalidConfiguration.New("identity requires primary authenticator but none is enabled")
 	}
 
-	firstType := types[0]
-
 	// 3. Find out whether the identity has the preferred primary authenticator.
 	// If it does not, creation is needed.
 	ais := filterAuthenticators(
 		n.Authenticators,
-		authenticator.KeepType(firstType),
+		authenticator.KeepType(types...),
 		authenticator.KeepPrimaryAuthenticatorOfIdentity(n.Identity),
 	)
+	if len(ais) != 0 {
+		return nil, nil
+	}
 
-	if len(ais) == 0 {
-		switch firstType {
+	// Primary authenticator is default if it is the first primary authenticator of the user.
+	isDefault := len(filterAuthenticators(n.Authenticators, authenticator.KeepKind(authenticator.KindPrimary))) == 0
+
+	var edges []interaction.Edge
+	for _, t := range types {
+		switch t {
 		case authn.AuthenticatorTypePassword:
-			edges = append(edges, &EdgeCreateAuthenticatorPassword{Stage: n.Stage})
+			edges = append(edges, &EdgeCreateAuthenticatorPassword{
+				Stage:     n.Stage,
+				IsDefault: isDefault,
+			})
 
 		case authn.AuthenticatorTypeTOTP:
-			edges = append(edges, &EdgeCreateAuthenticatorTOTPSetup{Stage: n.Stage})
+			edges = append(edges, &EdgeCreateAuthenticatorTOTPSetup{
+				Stage:     n.Stage,
+				IsDefault: isDefault,
+			})
 
 		case authn.AuthenticatorTypeOOB:
 			loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
@@ -151,17 +162,26 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() (edges []interaction.Edge
 
 			if target != "" {
 				edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
-					Stage:   n.Stage,
-					Channel: channel,
-					Target:  target,
+					Stage:     n.Stage,
+					IsDefault: isDefault,
+					Channel:   channel,
+					Target:    target,
 				})
 			}
 		default:
-			panic("interaction: unknown authenticator type: " + firstType)
+			panic(fmt.Sprintf("interaction: unknown authenticator type: %s", t))
 		}
 	}
 
-	return edges, nil
+	if len(edges) == 0 {
+		// A new authenticator is required, but no authenticator can be created:
+		// Configuration is invalid.
+		return nil, interaction.InvalidConfiguration.New("no primary authenticator can be created for identity")
+	}
+
+	// TODO(interaction): support switching of primary authenticator type to create
+	// Return first edge for now.
+	return edges[:1], nil
 }
 
 func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Edge) {

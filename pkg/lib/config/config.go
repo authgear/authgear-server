@@ -7,6 +7,7 @@ import (
 
 	"sigs.k8s.io/yaml"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -101,20 +102,49 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 		oauthProviderAliases[provider.Alias] = struct{}{}
 	}
 
-	authenticatorTypes := map[string]struct{}{}
+	authenticatorTypes := map[authn.AuthenticatorType]struct{}{}
 	for i, a := range c.Authentication.PrimaryAuthenticators {
-		if _, ok := authenticatorTypes[string(a)]; ok {
+		if _, ok := authenticatorTypes[a]; ok {
 			ctx.Child("authentication", "primary_authenticators", strconv.Itoa(i)).
 				EmitErrorMessage("duplicated authenticator type")
 		}
-		authenticatorTypes[string(a)] = struct{}{}
+		authenticatorTypes[a] = struct{}{}
 	}
 	for i, a := range c.Authentication.SecondaryAuthenticators {
-		if _, ok := authenticatorTypes[string(a)]; ok {
+		if _, ok := authenticatorTypes[a]; ok {
 			ctx.Child("authentication", "secondary_authenticators", strconv.Itoa(i)).
 				EmitErrorMessage("duplicated authenticator type")
 		}
-		authenticatorTypes[string(a)] = struct{}{}
+		authenticatorTypes[a] = struct{}{}
+	}
+
+	for i, it := range c.Authentication.Identities {
+		hasPrimaryAuth := true
+		switch it {
+		case authn.IdentityTypeLoginID:
+			_, hasPassword := authenticatorTypes[authn.AuthenticatorTypePassword]
+			_, hasOOB := authenticatorTypes[authn.AuthenticatorTypeOOB]
+			for _, k := range c.Identity.LoginID.Keys {
+				switch k.Type {
+				case LoginIDKeyTypeEmail, LoginIDKeyTypePhone:
+					if !hasPassword && !hasOOB {
+						hasPrimaryAuth = false
+					}
+				case LoginIDKeyTypeUsername:
+					if !hasPassword {
+						hasPrimaryAuth = false
+					}
+				}
+			}
+		case authn.IdentityTypeOAuth, authn.IdentityTypeAnonymous:
+			// Primary authenticator is not needed for these types of identity.
+			break
+		}
+
+		if !hasPrimaryAuth {
+			ctx.Child("authentication", "identities", strconv.Itoa(i)).
+				EmitErrorMessage("no usable primary authenticator is enabled")
+		}
 	}
 
 	countryCallingCodeDefaultOK := false

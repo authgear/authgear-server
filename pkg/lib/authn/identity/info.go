@@ -152,3 +152,28 @@ func (i *Info) StandardClaims() map[authn.ClaimName]string {
 	}
 	return claims
 }
+
+func (i *Info) PrimaryAuthenticatorTypes() []authn.AuthenticatorType {
+	switch i.Type {
+	case authn.IdentityTypeLoginID:
+		switch config.LoginIDKeyType(i.Claims[IdentityClaimLoginIDType].(string)) {
+		case config.LoginIDKeyTypeUsername:
+			return []authn.AuthenticatorType{
+				authn.AuthenticatorTypePassword,
+			}
+		case config.LoginIDKeyTypeEmail, config.LoginIDKeyTypePhone:
+			return []authn.AuthenticatorType{
+				authn.AuthenticatorTypePassword,
+				authn.AuthenticatorTypeOOB,
+			}
+		default:
+			panic(fmt.Sprintf("identity: unexpected login ID type: %s", i.Claims[IdentityClaimLoginIDType]))
+		}
+	case authn.IdentityTypeOAuth:
+		return nil
+	case authn.IdentityTypeAnonymous:
+		return nil
+	default:
+		panic(fmt.Sprintf("identity: unexpected identity type: %s", i.Type))
+	}
+}

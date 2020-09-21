@@ -25,9 +25,14 @@ func KeepKind(kind Kind) Filter {
 	})
 }
 
-func KeepType(typ authn.AuthenticatorType) Filter {
+func KeepType(types ...authn.AuthenticatorType) Filter {
 	return FilterFunc(func(ai *Info) bool {
-		return ai.Type == typ
+		for _, t := range types {
+			if ai.Type == t {
+				return true
+			}
+		}
+		return false
 	})
 }
 
@@ -37,9 +42,7 @@ func KeepPrimaryAuthenticatorOfIdentity(ii *identity.Info) Filter {
 			return false
 		}
 
-		types := ii.Type.PrimaryAuthenticatorTypes()
-
-		for _, typ := range types {
+		for _, typ := range ii.PrimaryAuthenticatorTypes() {
 			if ai.Type == typ {
 				switch {
 				case ii.Type == authn.IdentityTypeLoginID && ai.Type == authn.AuthenticatorTypeOOB:

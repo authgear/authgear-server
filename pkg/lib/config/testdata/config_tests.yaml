@@ -139,3 +139,37 @@ config:
   ui:
     country_calling_code:
       default: xxx
+
+---
+name: no-usable-primary-authenticator-for-username
+error: |-
+  invalid configuration:
+  /authentication/identities/0: no usable primary authenticator is enabled
+config:
+  id: test
+  authentication:
+    identities: [login_id]
+    primary_authenticators: [oob_otp]
+    secondary_authenticators: []
+  identity:
+    login_id:
+      keys:
+        - key: username
+          type: username
+
+---
+name: no-usable-primary-authenticator-for-email
+error: |-
+  invalid configuration:
+  /authentication/identities/0: no usable primary authenticator is enabled
+config:
+  id: test
+  authentication:
+    identities: [login_id]
+    primary_authenticators: []
+    secondary_authenticators: []
+  identity:
+    login_id:
+      keys:
+        - key: email
+          type: email

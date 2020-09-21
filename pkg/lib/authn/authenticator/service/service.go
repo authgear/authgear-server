@@ -350,7 +350,7 @@ func (s *Service) RemoveOrphans(identities []*identity.Info) error {
 		for _, i := range identities {
 			// Matching identities with same claim => not orphan
 			isMatching := false
-			for _, t := range i.Type.PrimaryAuthenticatorTypes() {
+			for _, t := range i.PrimaryAuthenticatorTypes() {
 				if t == a.Type {
 					isMatching = true
 					break
