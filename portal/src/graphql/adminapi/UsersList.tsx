@@ -33,6 +33,7 @@ import { encodeOffsetToCursor } from "../../util/pagination";
 import { formatDatetime } from "../../util/formatDatetime";
 import { extractUserInfoFromIdentities } from "../../util/user";
 import { nonNullable } from "../../util/types";
+import { actionButtonTheme } from "../../theme";
 
 import styles from "./UsersList.module.scss";
 
@@ -199,6 +200,7 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
             <ActionButton
               className={styles.actionButton}
               styles={{ flexContainer: { alignItems: "normal" } }}
+              theme={actionButtonTheme}
               onClick={(event) =>
                 onDisableUserClicked(event, item.id, item.username)
               }

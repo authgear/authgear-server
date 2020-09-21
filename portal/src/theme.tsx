@@ -93,4 +93,31 @@ const destructiveTheme = createTheme({
   },
 });
 
-export { theme, invertedTheme, destructiveTheme };
+const actionButtonTheme = createTheme({
+  palette: {
+    themePrimary: "#176df3",
+    themeLighterAlt: "#f5f9fe",
+    themeLighter: "#d8e6fd",
+    themeLight: "#b7d1fb",
+    themeTertiary: "#70a4f7",
+    themeSecondary: "#317bf4",
+    themeDarkAlt: "#1460da",
+    themeDark: "#1151b8",
+    themeDarker: "#0c3c88",
+    neutralLighterAlt: "#faf9f8",
+    neutralLighter: "#f3f2f1",
+    neutralLight: "#edebe9",
+    neutralQuaternaryAlt: "#e1dfdd",
+    neutralQuaternary: "#d0d0d0",
+    neutralTertiaryAlt: "#c8c6c4",
+    neutralTertiary: "#b7d1fb",
+    neutralSecondary: "#70a4f7",
+    neutralPrimaryAlt: "#317bf4",
+    neutralPrimary: "#176df3",
+    neutralDark: "#1151b8",
+    black: "#0c3c88",
+    white: "#ffffff",
+  },
+});
+
+export { theme, invertedTheme, destructiveTheme, actionButtonTheme };
