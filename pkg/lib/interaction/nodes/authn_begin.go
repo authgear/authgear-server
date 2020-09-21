@@ -48,14 +48,15 @@ func (n *NodeAuthenticationBegin) Apply(perform func(eff interaction.Effect) err
 }
 
 func (n *NodeAuthenticationBegin) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
-	return n.GetAuthenticationEdges(), nil
+	return n.GetAuthenticationEdges()
 }
 
 // GetAuthenticationEdges implements AuthenticationBeginNode.
-func (n *NodeAuthenticationBegin) GetAuthenticationEdges() []interaction.Edge {
+func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, error) {
 	var edges []interaction.Edge
 	var availableAuthenticators []*authenticator.Info
 	var preferred []authn.AuthenticatorType
+	var required []authn.AuthenticatorType
 
 	switch n.Stage {
 	case interaction.AuthenticationStagePrimary:
@@ -64,12 +65,34 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() []interaction.Edge {
 			n.Authenticators,
 			authenticator.KeepPrimaryAuthenticatorOfIdentity(n.Identity),
 		)
+		required = n.Identity.PrimaryAuthenticatorTypes()
+
 	case interaction.AuthenticationStageSecondary:
 		preferred = n.AuthenticationConfig.SecondaryAuthenticators
 		availableAuthenticators = filterAuthenticators(
 			n.Authenticators,
 			authenticator.KeepKind(authenticator.KindSecondary),
 		)
+
+		switch n.AuthenticationConfig.SecondaryAuthenticationMode {
+		case config.SecondaryAuthenticationModeIfExists,
+			config.SecondaryAuthenticationModeRequired:
+			// Require secondary authentication if any authenticator exists.
+			// For Required mode: treat same as IfExists, so user will not
+			// be locked out when requirement changed.
+			existingAuths := map[authn.AuthenticatorType]struct{}{}
+			for _, a := range availableAuthenticators {
+				existingAuths[a.Type] = struct{}{}
+			}
+			for t := range existingAuths {
+				required = append(required, t)
+			}
+
+		case config.SecondaryAuthenticationModeIfRequested:
+			// Never require unless explicitly requested.
+			required = nil
+		}
+
 	default:
 		panic("interaction: unknown authentication stage: " + n.Stage)
 	}
@@ -134,13 +157,23 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() []interaction.Edge {
 		})
 	}
 
-	// No authenticators found, skip the authentication stage
+	// No authenticators found, skip the authentication stage if not required.
+	// If identity requires authentication, the identity cannot be authenticated.
 	if len(edges) == 0 {
-		edges = append(edges, &EdgeAuthenticationEnd{
-			Stage:  n.Stage,
-			Result: AuthenticationResultOptional,
-		})
-		return edges
+		if len(required) > 0 {
+			return nil, interaction.NewInvariantViolated(
+				"MissingAuthenticator",
+				"missing authenticator for the identity",
+				nil,
+			)
+		}
+
+		return []interaction.Edge{
+			&EdgeAuthenticationEnd{
+				Stage:  n.Stage,
+				Result: AuthenticationResultOptional,
+			},
+		}, nil
 	}
 
 	interaction.SortAuthenticators(
@@ -169,5 +202,5 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() []interaction.Edge {
 		}
 	}
 
-	return edges
+	return edges, nil
 }
