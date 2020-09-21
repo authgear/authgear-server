@@ -294,7 +294,8 @@ func (h *TokenHandler) handleAnonymousRequest(
 		return graph, nil
 	})
 
-	if apierrors.IsKind(err, interaction.ConfigurationViolated) {
+	if apierrors.IsKind(err, interaction.InvariantViolated) &&
+		apierrors.AsAPIError(err).HasCause("AnonymousUserDisallowed") {
 		return nil, protocol.NewError("unauthorized_client", err.Error())
 	} else if errors.Is(err, interaction.ErrInvalidCredentials) {
 		return nil, protocol.NewError("invalid_grant", err.Error())

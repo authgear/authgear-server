@@ -33,6 +33,10 @@ func KeepType(typ authn.AuthenticatorType) Filter {
 
 func KeepPrimaryAuthenticatorOfIdentity(ii *identity.Info) Filter {
 	return FilterFunc(func(ai *Info) bool {
+		if ai.Kind != KindPrimary {
+			return false
+		}
+
 		types := ii.Type.PrimaryAuthenticatorTypes()
 
 		for _, typ := range types {

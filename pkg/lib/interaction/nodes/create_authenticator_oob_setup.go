@@ -85,7 +85,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 			case config.LoginIDKeyTypePhone:
 				channel = authn.AuthenticatorOOBChannelSMS
 			default:
-				return nil, interaction.ConfigurationViolated.New("this login ID cannot be used for OOB authentication")
+				panic("interaction: creating OOB authenticator for invalid login ID type")
 			}
 			break
 		}

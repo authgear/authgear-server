@@ -9,16 +9,25 @@ import (
 )
 
 var (
-	ConfigurationViolated  = apierrors.Forbidden.WithReason("ConfigurationViolated")
-	InvalidCredentials     = apierrors.Unauthorized.WithReason("InvalidCredentials")
-	DuplicatedIdentity     = apierrors.AlreadyExists.WithReason("DuplicatedIdentity")
-	InvalidIdentityRequest = apierrors.Invalid.WithReason("InvalidIdentityRequest")
+	InvalidConfiguration = apierrors.InternalError.WithReason("InvalidConfiguration")
+	InvalidCredentials   = apierrors.Unauthorized.WithReason("InvalidCredentials")
+	DuplicatedIdentity   = apierrors.AlreadyExists.WithReason("DuplicatedIdentity")
+	InvariantViolated    = apierrors.Invalid.WithReason("InvariantViolated")
 )
 
 var ErrInvalidCredentials = InvalidCredentials.New("invalid credentials")
 var ErrDuplicatedIdentity = DuplicatedIdentity.New("identity already exists")
 var ErrOAuthProviderNotFound = apierrors.NotFound.WithReason("OAuthProviderNotFound").New("oauth provider not found")
-var ErrCannotRemoveLastIdentity = InvalidIdentityRequest.NewWithCause("cannot remove last identity", apierrors.StringCause("IdentityRequired"))
+
+func NewInvariantViolated(cause string, msg string, data map[string]interface{}) error {
+	return InvariantViolated.NewWithCause(
+		msg,
+		apierrors.MapCause{
+			CauseKind: cause,
+			Data:      data,
+		},
+	)
+}
 
 var ErrIncompatibleInput = errors.New("incompatible input type for this node")
 var ErrSameNode = errors.New("the edge points to the same current node")

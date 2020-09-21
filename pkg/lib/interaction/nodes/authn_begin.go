@@ -62,7 +62,6 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() []interaction.Edge {
 		preferred = n.AuthenticationConfig.PrimaryAuthenticators
 		availableAuthenticators = filterAuthenticators(
 			n.Authenticators,
-			authenticator.KeepKind(authenticator.KindPrimary),
 			authenticator.KeepPrimaryAuthenticatorOfIdentity(n.Identity),
 		)
 	case interaction.AuthenticationStageSecondary:

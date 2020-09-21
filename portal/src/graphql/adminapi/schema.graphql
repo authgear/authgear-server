@@ -75,6 +75,18 @@ The `DateTime` scalar type represents a DateTime. The DateTime is serialized as 
 scalar DateTime
 
 """"""
+input DeleteAuthenticatorInput {
+  """Target authenticator ID."""
+  authenticatorID: ID!
+}
+
+""""""
+type DeleteAuthenticatorPayload {
+  """"""
+  success: Boolean!
+}
+
+""""""
 input DeleteIdentityInput {
   """Target identity ID."""
   identityID: ID!
@@ -156,6 +168,9 @@ enum IdentityType {
 
 """"""
 type Mutation {
+  """Delete authenticator of user"""
+  deleteAuthenticator(input: DeleteAuthenticatorInput!): DeleteAuthenticatorPayload!
+
   """Delete identity of user"""
   deleteIdentity(input: DeleteIdentityInput!): DeleteIdentityPayload!
 }

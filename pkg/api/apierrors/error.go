@@ -21,6 +21,21 @@ func (c StringCause) MarshalJSON() ([]byte, error) {
 	}{string(c)})
 }
 
+type MapCause struct {
+	CauseKind string
+	Data      map[string]interface{}
+}
+
+func (c MapCause) Kind() string { return c.CauseKind }
+func (c MapCause) MarshalJSON() ([]byte, error) {
+	data := make(map[string]interface{})
+	data["kind"] = c.CauseKind
+	for k, v := range c.Data {
+		data[k] = v
+	}
+	return json.Marshal(data)
+}
+
 type APIError struct {
 	Kind
 	Message string                 `json:"message"`
@@ -29,6 +44,20 @@ type APIError struct {
 }
 
 func (e *APIError) Error() string { return e.Message }
+
+func (e *APIError) HasCause(kind string) bool {
+	if c, ok := e.Info["cause"].(Cause); ok {
+		return c.Kind() == kind
+	} else if cs, ok := e.Info["causes"].([]Cause); ok {
+		for _, c := range cs {
+			if c.Kind() == kind {
+				return true
+			}
+		}
+	}
+
+	return false
+}
 
 func (k Kind) New(msg string) error {
 	return &skyerr{kind: k, msg: msg}
@@ -129,12 +158,17 @@ func AsAPIError(err error) *APIError {
 
 	var v *validation.AggregatedError
 	if errorutil.As(err, &v) {
+		causes := make([]Cause, len(v.Errors))
+		for i, c := range v.Errors {
+			c := c
+			causes[i] = &c
+		}
 		return &APIError{
 			Kind:    ValidationFailed,
 			Message: v.Message,
 			Code:    ValidationFailed.Name.HTTPStatus(),
 			Info: map[string]interface{}{
-				"causes": v.Errors,
+				"causes": causes,
 			},
 		}
 	}

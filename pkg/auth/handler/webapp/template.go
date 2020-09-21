@@ -53,7 +53,7 @@ const defineError = `
 			<li class="error-txt">{{ . }}</li>
 			{{ end }}
 		{{ else }}
-		<li class="error-txt">{{ . }}</li>
+			<li class="error-txt">{{ . }}</li>
 		{{ end }}
 		{{ end }}
 	{{ else if eq .Error.reason "InvalidCredentials" }}
@@ -64,10 +64,19 @@ const defineError = `
 		<li class="error-txt">{{ template "error-password-reset-failed" }}</li>
 	{{ else if eq .Error.reason "DuplicatedIdentity" }}
 		<li class="error-txt">{{ template "error-duplicated-identity" }}</li>
-	{{ else if eq .Error.reason "InvalidIdentityRequest" }}
-		<li class="error-txt">{{ template "error-remove-last-identity" }}</li>
 	{{ else if eq .Error.reason "NewPasswordTypo" }}
 		<li class="error-txt">{{ template "error-new-password-typo" }}</li>
+	{{ else if eq .Error.reason "InvariantViolated" }}
+		{{ $cause := .Error.info.cause }}
+		{{ if (eq $cause.kind "RemoveLastIdentity") }}
+			<li class="error-txt">{{ template "error-remove-last-identity" }}</li>
+		{{ else if (eq $cause.kind "RemoveLastPrimaryAuthenticator") }}
+			<li class="error-txt">{{ template "error-remove-last-primary-authenticator" }}</li>
+		{{ else if (eq $cause.kind "RemoveLastSecondaryAuthenticator") }}
+			<li class="error-txt">{{ template "error-remove-last-secondary-authenticator" }}</li>
+		{{ else }}
+			<li class="error-txt">{{ . }}</li>
+		{{ end }}
 	{{ else }}
 		<li class="error-txt">{{ .Error.message }}</li>
 	{{ end }}
