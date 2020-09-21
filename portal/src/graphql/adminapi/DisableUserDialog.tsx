@@ -14,7 +14,7 @@ interface DisableUserDialogProps {
   username: string | null;
 }
 
-const dialogStyles = { main: { minWidth: "400px !important", minHeight: 0 } };
+const dialogStyles = { main: { minHeight: 0 } };
 
 const DisableUserDialog: React.FC<DisableUserDialogProps> = function DisableUserDialog(
   props: DisableUserDialogProps
