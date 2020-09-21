@@ -31,11 +31,13 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(loader.IdentityService), new(*identityservice.Service)),
 	wire.Bind(new(loader.AuthenticatorService), new(*authenticatorservice.Service)),
 	wire.Bind(new(loader.InteractionService), new(*service.InteractionService)),
+	wire.Bind(new(loader.VerificationService), new(*verification.Service)),
 
 	graphql.DependencySet,
 	wire.Bind(new(graphql.UserLoader), new(*loader.UserLoader)),
 	wire.Bind(new(graphql.IdentityLoader), new(*loader.IdentityLoader)),
 	wire.Bind(new(graphql.AuthenticatorLoader), new(*loader.AuthenticatorLoader)),
+	wire.Bind(new(graphql.VerificationLoader), new(*loader.VerificationLoader)),
 
 	service.DependencySet,
 	wire.Bind(new(service.InteractionGraphService), new(*interaction.Service)),

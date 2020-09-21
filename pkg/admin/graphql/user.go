@@ -65,6 +65,13 @@ var nodeUser = entity(
 					return result.Value, nil
 				},
 			},
+			"verifiedClaims": &graphql.Field{
+				Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(claim))),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					u := p.Source.(*user.User)
+					return GQLContext(p.Context).Verification.Get(u.ID).Value, nil
+				},
+			},
 		},
 	}),
 	&user.User{},
