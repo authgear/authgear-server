@@ -110,9 +110,10 @@ type ForgotPasswordService interface {
 }
 
 type ResetPasswordService interface {
-	ResetPassword(code string, newPassword string) (oldInfo *authenticator.Info, newInfo *authenticator.Info, err error)
+	ResetPassword(userID string, newPassword string) (oldInfo *authenticator.Info, newInfo *authenticator.Info, err error)
+	ResetPasswordByCode(code string, newPassword string) (oldInfo *authenticator.Info, newInfo *authenticator.Info, err error)
 	HashCode(code string) (codeHash string)
-	AfterResetPassword(codeHash string) error
+	AfterResetPasswordByCode(codeHash string) error
 }
 
 type LoginIDNormalizerFactory interface {

@@ -15,6 +15,7 @@ type UserLoader interface {
 	QueryPage(args graphqlutil.PageArgs) (*graphqlutil.PageResult, error)
 
 	Create(identityDef model.IdentityDef, password string) *graphqlutil.Lazy
+	ResetPassword(id string, password string) *graphqlutil.Lazy
 }
 
 type IdentityLoader interface {

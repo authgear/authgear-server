@@ -59,3 +59,16 @@ func (i *addPasswordInput) GetPassword() string {
 func (i *addPasswordInput) Input() interface{} {
 	return i.inner
 }
+
+type resetPasswordInput struct {
+	userID   string
+	password string
+}
+
+func (i *resetPasswordInput) GetResetPasswordUserID() string {
+	return i.userID
+}
+
+func (i *resetPasswordInput) GetNewPassword() string {
+	return i.password
+}
