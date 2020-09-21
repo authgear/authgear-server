@@ -217,22 +217,24 @@ const PasswordField: React.FC<PasswordFieldProps> = function PasswordField(
         level={guessableLevel}
         guessableLevelNames={guessableLevelNames}
       />
-      <section className={styles.passwordPolicy}>
+      <ul className={styles.passwordPolicy}>
         {passwordPolicyData.map((policy) => (
-          <Text
+          <li
             key={policy.messageId}
             className={cn(styles.policyLine, {
               [styles.policySatisfied]: isPasswordPolicySatisfied[policy.key],
             })}
           >
-            {"• "}
-            <FormattedMessage
-              id={policy.messageId}
-              values={policy.messageValues}
-            />
-          </Text>
+            <Text>
+              {"• "}
+              <FormattedMessage
+                id={policy.messageId}
+                values={policy.messageValues}
+              />
+            </Text>
+          </li>
         ))}
-      </section>
+      </ul>
     </div>
   );
 };
