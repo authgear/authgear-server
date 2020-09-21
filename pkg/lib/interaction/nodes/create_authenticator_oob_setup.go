@@ -131,6 +131,12 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 		return nil, err
 	}
 
+	var skipInput interface{ SkipVerification() bool }
+	if interaction.Input(rawInput, &skipInput) && skipInput.SkipVerification() {
+		// Skip verification of OOB target
+		return &NodeCreateAuthenticatorOOB{Stage: e.Stage, Authenticator: info}, nil
+	}
+
 	secret, err := otp.GenerateTOTPSecret()
 	if err != nil {
 		return nil, err

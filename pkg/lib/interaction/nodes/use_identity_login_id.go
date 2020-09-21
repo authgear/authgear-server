@@ -67,7 +67,11 @@ func (e *EdgeUseIdentityLoginID) Instantiate(ctx *interaction.Context, graph *in
 			}
 		}
 		if typ == "" {
-			return nil, fmt.Errorf("interaction: invalid login id key: %s", loginIDKey)
+			return nil, interaction.NewInvariantViolated(
+				"InvalidLoginIDKey",
+				"invalid login ID key",
+				nil,
+			)
 		}
 	}
 
