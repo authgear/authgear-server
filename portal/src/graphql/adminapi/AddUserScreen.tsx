@@ -93,10 +93,12 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
     const email = loginIdKeys.find((key) => key.type === "email") != null;
     const phone = loginIdKeys.find((key) => key.type === "phone") != null;
 
-    const passwordAuthenticatorKey = appConfig?.authentication?.primary_authenticators?.find(
-      (authticator) => authticator === "password"
-    );
-    const password = !!passwordAuthenticatorKey;
+    const primaryAuthenticators =
+      appConfig?.authentication?.primary_authenticators ?? [];
+    const password =
+      primaryAuthenticators.length > 0
+        ? primaryAuthenticators[0] === "password"
+        : false;
     return {
       username,
       email,
