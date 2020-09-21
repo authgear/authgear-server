@@ -3,22 +3,19 @@ import cn from "classnames";
 import zxcvbn from "zxcvbn";
 import { ITextFieldProps, Text, TextField } from "@fluentui/react";
 import { Context, FormattedMessage, Values } from "@oursky/react-messageformat";
+
+import PasswordStrengthMeter from "./PasswordStrengthMeter";
 import { PasswordPolicyConfig } from "./types";
 
 import styles from "./PasswordField.module.scss";
 
-type GuessableLevel = 0 | 1 | 2 | 3 | 4 | 5;
-type GuessableLevelNames = Record<GuessableLevel, string>;
+export type GuessableLevel = 0 | 1 | 2 | 3 | 4 | 5;
+export type GuessableLevelNames = Record<GuessableLevel, string>;
 
 interface PasswordFieldProps extends ITextFieldProps {
   className?: string;
   textFieldClassName?: string;
   passwordPolicy: PasswordPolicyConfig;
-}
-
-interface PasswordStrengthMeterProps {
-  level: GuessableLevel;
-  guessableLevelNames: GuessableLevelNames;
 }
 
 interface PasswordPolicyData {
@@ -174,30 +171,6 @@ export function extractGuessableLevel(
     Math.min(5, Math.max(1, result.score + 1))
   ) as GuessableLevel;
 }
-
-const PasswordStrengthMeter: React.FC<PasswordStrengthMeterProps> = function PasswordStrengthMeter(
-  props: PasswordStrengthMeterProps
-) {
-  const { level, guessableLevelNames } = props;
-  const descriptionClassName = useMemo(
-    () => styles[`passwordStrengthMeterDescriptionLevel${level}`],
-    [level]
-  );
-  return (
-    <div>
-      <meter className={styles.passwordStrengthMeter} value={level} />
-      <div className={styles.passwordStrengthMeterDescriptionContainer}>
-        <Text>
-          <FormattedMessage id="PasswordStrengthMeter.password-strength" />
-          {": "}
-        </Text>
-        <Text className={descriptionClassName}>
-          {guessableLevelNames[level]}
-        </Text>
-      </div>
-    </div>
-  );
-};
 
 const PasswordField: React.FC<PasswordFieldProps> = function PasswordField(
   props: PasswordFieldProps
