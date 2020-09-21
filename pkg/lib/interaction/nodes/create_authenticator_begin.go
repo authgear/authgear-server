@@ -104,7 +104,7 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() (edges []interaction.Edge
 
 	// 1. Check whether the identity actually requires primary authenticator.
 	// If it does not, then no primary authenticator is needed.
-	identityRequiresPrimaryAuthentication := len(n.Identity.Type.PrimaryAuthenticatorTypes()) > 0
+	identityRequiresPrimaryAuthentication := len(n.Identity.PrimaryAuthenticatorTypes()) > 0
 	if !identityRequiresPrimaryAuthentication {
 		return nil, nil
 	}

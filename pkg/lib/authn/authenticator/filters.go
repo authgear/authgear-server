@@ -37,9 +37,7 @@ func KeepPrimaryAuthenticatorOfIdentity(ii *identity.Info) Filter {
 			return false
 		}
 
-		types := ii.Type.PrimaryAuthenticatorTypes()
-
-		for _, typ := range types {
+		for _, typ := range ii.PrimaryAuthenticatorTypes() {
 			if ai.Type == typ {
 				switch {
 				case ii.Type == authn.IdentityTypeLoginID && ai.Type == authn.AuthenticatorTypeOOB:
