@@ -133,7 +133,6 @@ var _ = Schema.Add("AuthenticatorOOBEmailConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"maximum": { "type": "integer" },
-		"message": { "$ref": "#/$defs/EmailMessageConfig" },
 		"code_digits": { "type": "integer", "minimum": 4, "maximum": 8 }
 	}
 }
