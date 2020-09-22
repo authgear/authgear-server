@@ -31,14 +31,6 @@ const UserDetailCommandBar: React.FC<UserDetailCommandBarProps> = function UserD
       },
 
       {
-        key: "invalidateSessions",
-        text: renderToString("UserDetails.command-bar.invalidate-sessions"),
-        iconProps: {
-          iconName: "CircleAddition",
-          className: styles.invalidateIcon,
-        },
-      },
-      {
         key: "disable",
         text: renderToString("disable"),
         iconProps: { iconName: "CircleStop" },
