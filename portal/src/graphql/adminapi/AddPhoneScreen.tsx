@@ -136,11 +136,11 @@ const AddPhoneScreen: React.FC = function AddPhoneScreen() {
     data?.node?.__typename === "App" ? data.node.effectiveAppConfig : null;
 
   if (loading) {
-    <ShowLoading />;
+    return <ShowLoading />;
   }
 
   if (error != null) {
-    <ShowError error={error} onRetry={refetch} />;
+    return <ShowError error={error} onRetry={refetch} />;
   }
 
   return (
