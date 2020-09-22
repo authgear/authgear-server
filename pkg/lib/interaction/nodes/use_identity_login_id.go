@@ -42,8 +42,8 @@ func (e *EdgeUseIdentityLoginID) GetIdentityCandidates() []identity.Candidate {
 }
 
 func (e *EdgeUseIdentityLoginID) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	input, ok := rawInput.(InputUseIdentityLoginID)
-	if !ok {
+	var input InputUseIdentityLoginID
+	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 
@@ -67,7 +67,11 @@ func (e *EdgeUseIdentityLoginID) Instantiate(ctx *interaction.Context, graph *in
 			}
 		}
 		if typ == "" {
-			return nil, fmt.Errorf("interaction: invalid login id key: %s", loginIDKey)
+			return nil, interaction.NewInvariantViolated(
+				"InvalidLoginIDKey",
+				"invalid login ID key",
+				nil,
+			)
 		}
 	}
 

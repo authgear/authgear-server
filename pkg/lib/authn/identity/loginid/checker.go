@@ -1,8 +1,6 @@
 package loginid
 
 import (
-	"strconv"
-
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -11,30 +9,6 @@ import (
 type Checker struct {
 	Config             *config.LoginIDConfig
 	TypeCheckerFactory *TypeCheckerFactory
-}
-
-func (c *Checker) Validate(specs []Spec) error {
-	ctx := &validation.Context{}
-
-	amounts := map[string]int{}
-	for i, loginID := range specs {
-		amounts[loginID.Key]++
-
-		c.validateOne(ctx.Child(strconv.Itoa(i)), loginID)
-	}
-
-	for _, keyConfig := range c.Config.Keys {
-		amount := amounts[keyConfig.Key]
-		if amount > *keyConfig.MaxAmount {
-			ctx.EmitErrorMessage("too many login IDs")
-		}
-	}
-
-	if len(specs) == 0 {
-		ctx.EmitError("required", nil)
-	}
-
-	return ctx.Error("invalid login IDs")
 }
 
 func (c *Checker) ValidateOne(loginID Spec) error {

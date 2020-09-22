@@ -15,8 +15,8 @@ type InputUseDeviceToken interface {
 type EdgeUseDeviceToken struct{}
 
 func (e *EdgeUseDeviceToken) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	input, ok := rawInput.(InputUseDeviceToken)
-	if !ok {
+	var input InputUseDeviceToken
+	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 

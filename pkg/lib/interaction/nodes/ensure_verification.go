@@ -17,15 +17,23 @@ type EdgeEnsureVerificationBegin struct {
 }
 
 func (e *EdgeEnsureVerificationBegin) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+	skipVerification := false
+	var skipInput interface{ SkipVerification() bool }
+	if interaction.Input(rawInput, &skipInput) && skipInput.SkipVerification() {
+		skipVerification = true
+	}
+
 	return &NodeEnsureVerificationBegin{
-		Identity:        e.Identity,
-		RequestedByUser: e.RequestedByUser,
+		Identity:         e.Identity,
+		RequestedByUser:  e.RequestedByUser,
+		SkipVerification: skipVerification,
 	}, nil
 }
 
 type NodeEnsureVerificationBegin struct {
 	Identity           *identity.Info      `json:"identity"`
 	RequestedByUser    bool                `json:"requested_by_user"`
+	SkipVerification   bool                `json:"skip_verification"`
 	VerificationStatus verification.Status `json:"-"`
 }
 
@@ -53,11 +61,13 @@ func (n *NodeEnsureVerificationBegin) DeriveEdges(graph *interaction.Graph) ([]i
 	case verification.StatusDisabled, verification.StatusVerified:
 		break
 	case verification.StatusPending:
-		if n.RequestedByUser {
+		if n.RequestedByUser && !n.SkipVerification {
 			return []interaction.Edge{&EdgeVerifyIdentity{Identity: n.Identity}}, nil
 		}
 	case verification.StatusRequired:
-		return []interaction.Edge{&EdgeVerifyIdentity{Identity: n.Identity}}, nil
+		if !n.SkipVerification {
+			return []interaction.Edge{&EdgeVerifyIdentity{Identity: n.Identity}}, nil
+		}
 	}
 
 	return []interaction.Edge{&EdgeEnsureVerificationEnd{Identity: n.Identity}}, nil

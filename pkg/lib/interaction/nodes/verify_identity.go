@@ -126,8 +126,8 @@ type EdgeVerifyIdentityCheckCode struct {
 }
 
 func (e *EdgeVerifyIdentityCheckCode) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	input, ok := rawInput.(InputVerifyIdentityCheckCode)
-	if !ok {
+	var input InputVerifyIdentityCheckCode
+	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 
@@ -164,8 +164,8 @@ type EdgeVerifyIdentityResendCode struct {
 }
 
 func (e *EdgeVerifyIdentityResendCode) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	_, ok := rawInput.(InputVerifyIdentityResendCode)
-	if !ok {
+	var input InputVerifyIdentityResendCode
+	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 

@@ -17,8 +17,8 @@ type EdgeOOBResendCode struct {
 }
 
 func (e *EdgeOOBResendCode) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	_, ok := rawInput.(InputOOBResendCode)
-	if !ok {
+	var input InputOOBResendCode
+	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 

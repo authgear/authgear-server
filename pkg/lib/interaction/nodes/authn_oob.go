@@ -20,8 +20,8 @@ type EdgeAuthenticationOOB struct {
 }
 
 func (e *EdgeAuthenticationOOB) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	input, ok := rawInput.(InputAuthenticationOOB)
-	if !ok {
+	var input InputAuthenticationOOB
+	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 

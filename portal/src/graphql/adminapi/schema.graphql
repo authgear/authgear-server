@@ -78,6 +78,39 @@ type Claim {
   value: String!
 }
 
+""""""
+input CreateIdentityInput {
+  """Definition of the new identity."""
+  definition: IdentityDefinition!
+
+  """Password for the user if required."""
+  password: String
+
+  """Target user ID."""
+  userID: ID!
+}
+
+""""""
+type CreateIdentityPayload {
+  """"""
+  identity: Identity!
+}
+
+""""""
+input CreateUserInput {
+  """Definition of the identity of new user."""
+  definition: IdentityDefinition!
+
+  """Password for the user if required."""
+  password: String
+}
+
+""""""
+type CreateUserPayload {
+  """"""
+  user: User!
+}
+
 """
 The `DateTime` scalar type represents a DateTime. The DateTime is serialized as an RFC 3339 quoted string
 """
@@ -154,6 +187,23 @@ type IdentityConnection {
   totalCount: Int
 }
 
+"""
+Definition of an identity. This is a union object, exactly one of the available fields must be present.
+"""
+input IdentityDefinition {
+  """Login ID identity definition."""
+  loginID: IdentityDefinitionLoginID
+}
+
+""""""
+input IdentityDefinitionLoginID {
+  """The login ID key."""
+  key: String!
+
+  """The login ID."""
+  value: String!
+}
+
 """An edge in a connection"""
 type IdentityEdge {
   """ cursor for use in pagination"""
@@ -177,6 +227,12 @@ enum IdentityType {
 
 """"""
 type Mutation {
+  """Create new identity for user"""
+  createIdentity(input: CreateIdentityInput!): CreateIdentityPayload!
+
+  """Create new user"""
+  createUser(input: CreateUserInput!): CreateUserPayload!
+
   """Delete authenticator of user"""
   deleteAuthenticator(input: DeleteAuthenticatorInput!): DeleteAuthenticatorPayload!
 

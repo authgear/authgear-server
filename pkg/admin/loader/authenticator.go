@@ -3,7 +3,6 @@ package loader
 import (
 	"sort"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -99,20 +98,4 @@ func (l *AuthenticatorLoader) Remove(authenticatorInfo *authenticator.Info) *gra
 		l.listLoader.Reset(authenticatorInfo.UserID)
 		return nil, nil
 	})
-}
-
-type removeAuthenticatorInput struct {
-	authenticatorInfo *authenticator.Info
-}
-
-func (i *removeAuthenticatorInput) GetAuthenticatorType() authn.AuthenticatorType {
-	return i.authenticatorInfo.Type
-}
-
-func (i *removeAuthenticatorInput) GetAuthenticatorID() string {
-	return i.authenticatorInfo.ID
-}
-
-func (i *removeAuthenticatorInput) BypassMFARequirement() bool {
-	return true
 }

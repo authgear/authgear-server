@@ -31,7 +31,7 @@ func (s *InteractionService) Perform(intent interaction.Intent, input interface{
 		return graph, nil
 	})
 	if err != nil {
-		return nil, err
+		return graph, err
 	}
 
 	err = s.Graph.Run(stateID, graph, false)

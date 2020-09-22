@@ -28,8 +28,8 @@ func (e *EdgeCreateAuthenticatorTOTPSetup) IsDefaultAuthenticator() bool {
 }
 
 func (e *EdgeCreateAuthenticatorTOTPSetup) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	_, ok := rawInput.(InputCreateAuthenticatorTOTPSetup)
-	if !ok {
+	var input InputCreateAuthenticatorTOTPSetup
+	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 

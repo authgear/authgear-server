@@ -1,11 +1,14 @@
 package loader
 
 import (
+	"errors"
 	"sort"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/admin/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -101,14 +104,34 @@ func (l *IdentityLoader) Remove(identityInfo *identity.Info) *graphqlutil.Lazy {
 	})
 }
 
-type removeIdentityInput struct {
-	identityInfo *identity.Info
-}
+func (l *IdentityLoader) Create(userID string, identityDef model.IdentityDef, password string) *graphqlutil.Lazy {
+	return graphqlutil.NewLazy(func() (interface{}, error) {
+		var input interface{} = &addIdentityInput{identityDef: identityDef}
+		if password != "" {
+			input = &addPasswordInput{inner: input, password: password}
+		}
 
-func (i *removeIdentityInput) GetIdentityType() authn.IdentityType {
-	return i.identityInfo.Type
-}
+		graph, err := l.Interaction.Perform(
+			interactionintents.NewIntentAddIdentity(userID),
+			input,
+		)
+		var errInputRequired *interaction.ErrInputRequired
+		if errors.As(err, &errInputRequired) {
+			switch graph.CurrentNode().(type) {
+			case *nodes.NodeCreateAuthenticatorBegin:
+				// TODO(interaction): better interpretation of input required error?
+				return nil, interaction.NewInvariantViolated(
+					"PasswordRequired",
+					"password is required",
+					nil,
+				)
+			}
+		}
+		if err != nil {
+			return nil, err
+		}
 
-func (i *removeIdentityInput) GetIdentityID() string {
-	return i.identityInfo.ID
+		l.listLoader.Reset(userID)
+		return graph.GetUserNewIdentities()[0], nil
+	})
 }

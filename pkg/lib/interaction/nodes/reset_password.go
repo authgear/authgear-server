@@ -32,8 +32,8 @@ type InputResetPassword interface {
 type EdgeResetPassword struct{}
 
 func (e *EdgeResetPassword) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	input, ok := rawInput.(InputResetPassword)
-	if !ok {
+	var input InputResetPassword
+	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 

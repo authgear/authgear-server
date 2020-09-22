@@ -31,8 +31,8 @@ func (e *EdgeAuthenticationPassword) IsDefaultAuthenticator() bool {
 }
 
 func (e *EdgeAuthenticationPassword) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	input, ok := rawInput.(InputAuthenticationPassword)
-	if !ok {
+	var input InputAuthenticationPassword
+	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 

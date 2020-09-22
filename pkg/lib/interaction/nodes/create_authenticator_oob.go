@@ -22,8 +22,8 @@ type EdgeCreateAuthenticatorOOB struct {
 }
 
 func (e *EdgeCreateAuthenticatorOOB) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	input, ok := rawInput.(InputCreateAuthenticatorOOB)
-	if !ok {
+	var input InputCreateAuthenticatorOOB
+	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 
