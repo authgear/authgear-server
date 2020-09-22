@@ -16,6 +16,7 @@
   "cancel": "Cancel",
   "disconnect": "Disconnect",
   "verified": "Verified",
+  "unverified": "Not Verified",
   "verify": "Verify",
   "unverify": "Unverify",
 
@@ -95,8 +96,6 @@
   "UserDetails.connected-identities.email": "Email",
   "UserDetails.connected-identities.phone": "Phone",
   "UserDetails.connected-identities.username": "Username",
-  "UserDetails.connected-identities.verified": "Verified",
-  "UserDetails.connected-identities.unverified": "Not verified",
 
   "UserDetails.connected-identities.connected-on": "Connected on {datetime}",
   "UserDetails.connected-identities.added-on": "Added on {datetime}",

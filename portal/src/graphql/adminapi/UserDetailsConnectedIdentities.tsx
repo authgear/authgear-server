@@ -147,11 +147,11 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
         <>
           {verified ? (
             <Text className={styles.cellDescVerified}>
-              <FormattedMessage id="UserDetails.connected-identities.verified" />
+              <FormattedMessage id="verified" />
             </Text>
           ) : (
             <Text className={styles.cellDescUnverified}>
-              <FormattedMessage id="UserDetails.connected-identities.unverified" />
+              <FormattedMessage id="unverified" />
             </Text>
           )}
           <Text className={styles.cellDescSeparator}>{" | "}</Text>
