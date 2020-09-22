@@ -1,3 +1,9 @@
+// HTTPConfig
+
+export interface HTTPConfig {
+  public_origin: string;
+}
+
 // LoginIDKeyConfig
 
 export type LoginIDKeyType = "raw" | "email" | "phone" | "username";
@@ -164,6 +170,7 @@ interface VerificationConfig {
 }
 
 export interface PortalAPIAppConfig {
+  http?: HTTPConfig;
   identity?: IdentityConfig;
   authenticator?: AuthenticatorConfig;
   authentication?: AuthenticationConfig;

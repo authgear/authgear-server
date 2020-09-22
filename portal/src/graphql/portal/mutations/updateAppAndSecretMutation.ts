@@ -16,7 +16,7 @@ const SECRET_CONFIG_PATH = "./authgear.secrets.yaml";
 
 const updateAppAndSecretConfigMutation = gql`
   mutation UpdateAppAndSecretConfigMutation(
-    $appID: String!
+    $appID: ID!
     $appConfigFile: AppConfigFile!
     $secretConfigFile: AppConfigFile!
   ) {
