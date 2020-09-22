@@ -59,13 +59,16 @@ func (h *EnterTOTPHandler) GetData(r *http.Request, state *webapp.State, graph *
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-	alternatives := DeriveAuthenticationAlternatives(
+	alternatives, err := DeriveAuthenticationAlternatives(
 		// Use current state ID because the current node should be NodeAuthenticationBegin.
 		state.ID,
 		graph,
 		AuthenticationTypeTOTP,
 		"",
 	)
+	if err != nil {
+		return nil, err
+	}
 
 	viewModel := EnterTOTPViewModel{
 		Alternatives: alternatives,
