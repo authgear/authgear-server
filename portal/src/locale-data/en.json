@@ -118,6 +118,9 @@
   "AnonymousUsersConfigurationScreen.enable.label": "Enable anonymous users?",
   "AnonymousUsersConfigurationScreen.conflict-droplist.label": "User identity conflict when promote to normal user",
 
+  "AnonymousIdentityConflictBehaviour.login": "Proceed to Login",
+  "AnonymousIdentityConflictBehaviour.error": "Show Error",
+
   "SingleSignOnConfigurationScreen.title": "Single-Sign On",
   "SingleSignOnConfigurationScreen.help-link": "Need help? View our SSO integration documentations",
   "SingleSignOnConfigurationScreen.widget.header": "Sign in with {serviveName}",

@@ -38,6 +38,11 @@ interface AnonymousUsersConfigurationProps {
 
 const DEFAULT_CONFLICT_BEHAVIOUR: PromotionConflictBehaviour = "error";
 
+const conflictBehaviourMessageId: Record<PromotionConflictBehaviour, string> = {
+  login: "AnonymousIdentityConflictBehaviour.login",
+  error: "AnonymousIdentityConflictBehaviour.error",
+};
+
 function constructStateFromAppConfig(
   appConfig: PortalAPIAppConfig | null
 ): AnonymousUsersConfigurationScreenState {
@@ -100,13 +105,14 @@ function constructNewAppConfigFromState(
 }
 
 function constructConflictBehaviourOptions(
-  state: AnonymousUsersConfigurationScreenState
+  state: AnonymousUsersConfigurationScreenState,
+  renderToString: (messageId: string) => string
 ): IDropdownOption[] {
-  return promotionConflictBehaviours.map((behaviour: string) => {
+  return promotionConflictBehaviours.map((behaviour) => {
     const selectedBehaviour = state.promotionConflictBehaviour;
     return {
       key: behaviour,
-      text: behaviour,
+      text: renderToString(conflictBehaviourMessageId[behaviour]),
       isSelected: selectedBehaviour === behaviour,
     };
   });
@@ -130,8 +136,8 @@ const AnonymousUsersConfiguration: React.FC<AnonymousUsersConfigurationProps> = 
 
   const [state, setState] = useState(initialState);
   const conflictBehaviourOptions = useMemo(() => {
-    return constructConflictBehaviourOptions(state);
-  }, [state]);
+    return constructConflictBehaviourOptions(state, renderToString);
+  }, [state, renderToString]);
 
   const isFormModified = useMemo(() => {
     return !deepEqual(initialState, state, { strict: true });
