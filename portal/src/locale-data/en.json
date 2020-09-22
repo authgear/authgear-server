@@ -92,6 +92,13 @@
   "UserDetails.account-security.secondary.oob-otp": "Verification code via SMS / Email",
   "UserDetails.account-security.secondary.password": "Additional Password",
 
+  "ResetPasswordScreen.title": "Reset Password",
+  "ResetPasswordScreen.new-password": "New Password",
+  "ResetPasswordScreen.confirm-password": "Confirm Password",
+  "ResetPasswordScreen.error.fetch-password-policy": "Failed to fetch password policy",
+  "ResetPasswordScreen.error.invalid-password": "Please check password policies below",
+  "ResetPasswordScreen.error.confirm-password-not-match": "New password does not match with confirm password, please double check",
+
   "UserDetails.connected-identities.header": "Connected Identities",
   "UserDetails.connected-identities.title": "Identities",
   "UserDetails.connected-identities.add-identity": "Add Identity",

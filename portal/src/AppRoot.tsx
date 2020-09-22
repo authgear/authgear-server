@@ -3,12 +3,14 @@ import { Routes, Route, useParams, Navigate } from "react-router-dom";
 import { ApolloProvider } from "@apollo/client";
 import { makeClient } from "./graphql/adminapi/apollo";
 import ScreenLayout from "./ScreenLayout";
+
 import UsersScreen from "./graphql/adminapi/UsersScreen";
 import AddUserScreen from "./graphql/adminapi/AddUserScreen";
 import UserDetailsScreen from "./graphql/adminapi/UserDetailsScreen";
 import AddEmailScreen from "./graphql/adminapi/AddEmailScreen";
 import AddPhoneScreen from "./graphql/adminapi/AddPhoneScreen";
 import AddUsernameScreen from "./graphql/adminapi/AddUsernameScreen";
+import ResetPasswordScreen from "./graphql/adminapi/ResetPasswordScreen";
 
 import AuthenticationConfigurationScreen from "./graphql/portal/AuthenticationConfigurationScreen";
 import AnonymousUsersConfigurationScreen from "./graphql/portal/AnonymousUsersConfigurationScreen";
@@ -45,6 +47,10 @@ const AppRoot: React.FC = function AppRoot() {
           <Route
             path="/users/:userID/details/add-username"
             element={<AddUsernameScreen />}
+          />
+          <Route
+            path="/users/:userID/details/reset-password"
+            element={<ResetPasswordScreen />}
           />
           <Route
             path="/configuration/authentication/"

@@ -1,4 +1,5 @@
 import React, { useMemo, useCallback, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import cn from "classnames";
 import {
   DefaultButton,
@@ -251,12 +252,13 @@ const PasswordAuthenticatorCell: React.FC<PasswordAuthenticatorData> = function 
   props: PasswordAuthenticatorData
 ) {
   const { kind, lastUpdated } = props;
+  const navigate = useNavigate();
 
   const labelId = getLocaleKeyWithAuthenticatorType("PASSWORD", kind);
 
   const onResetPasswordClicked = useCallback(() => {
-    // TODO: add link to reset password screen
-  }, []);
+    navigate("./reset-password");
+  }, [navigate]);
 
   const onRemoveClicked = useCallback(() => {
     // TODO: implement mutation
