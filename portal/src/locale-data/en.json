@@ -82,6 +82,8 @@
 
   "UserDetails.account-security.header": "Account Security",
   "UserDetails.account-security.last-updated": "Last updated at {datetime}",
+  "UserDetails.account-security.added-on": "Added: {datetime}",
+  "UserDetails.account-security.reset-password": "Reset Password",
   "UserDetails.account-security.primary": "Primary Authenticators",
   "UserDetails.account-security.primary.password": "Password",
   "UserDetails.account-security.primary.oob-otp": "Passwordless via SMS / Email",
