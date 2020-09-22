@@ -25,6 +25,11 @@ func (n *NodeResetPasswordBegin) DeriveEdges(graph *interaction.Graph) ([]intera
 }
 
 type InputResetPassword interface {
+	GetResetPasswordUserID() string
+	GetNewPassword() string
+}
+
+type InputResetPasswordByCode interface {
 	GetCode() string
 	GetNewPassword() string
 }
@@ -32,29 +37,45 @@ type InputResetPassword interface {
 type EdgeResetPassword struct{}
 
 func (e *EdgeResetPassword) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	var input InputResetPassword
-	if !interaction.Input(rawInput, &input) {
+	var resetInput InputResetPassword
+	var codeInput InputResetPasswordByCode
+	if interaction.Input(rawInput, &resetInput) {
+		userID := resetInput.GetResetPasswordUserID()
+		newPassword := resetInput.GetNewPassword()
+
+		oldInfo, newInfo, err := ctx.ResetPassword.ResetPassword(userID, newPassword)
+		if err != nil {
+			return nil, err
+		}
+
+		return &NodeResetPasswordEnd{
+			OldAuthenticator: oldInfo,
+			NewAuthenticator: newInfo,
+		}, nil
+
+	} else if interaction.Input(rawInput, &codeInput) {
+		code := codeInput.GetCode()
+		newPassword := codeInput.GetNewPassword()
+
+		codeHash := ctx.ResetPassword.HashCode(code)
+		oldInfo, newInfo, err := ctx.ResetPassword.ResetPasswordByCode(code, newPassword)
+		if err != nil {
+			return nil, err
+		}
+
+		err = ctx.ResetPassword.AfterResetPasswordByCode(codeHash)
+		if err != nil {
+			return nil, err
+		}
+
+		return &NodeResetPasswordEnd{
+			OldAuthenticator: oldInfo,
+			NewAuthenticator: newInfo,
+		}, nil
+
+	} else {
 		return nil, interaction.ErrIncompatibleInput
 	}
-
-	code := input.GetCode()
-	newPassword := input.GetNewPassword()
-
-	codeHash := ctx.ResetPassword.HashCode(code)
-	oldInfo, newInfo, err := ctx.ResetPassword.ResetPassword(code, newPassword)
-	if err != nil {
-		return nil, err
-	}
-
-	err = ctx.ResetPassword.AfterResetPassword(codeHash)
-	if err != nil {
-		return nil, err
-	}
-
-	return &NodeResetPasswordEnd{
-		OldAuthenticator: oldInfo,
-		NewAuthenticator: newInfo,
-	}, nil
 }
 
 type NodeResetPasswordEnd struct {

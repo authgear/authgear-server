@@ -97,3 +97,17 @@ func (l *UserLoader) Create(identityDef model.IdentityDef, password string) *gra
 		return l.Get(userID), nil
 	})
 }
+
+func (l *UserLoader) ResetPassword(id string, password string) *graphqlutil.Lazy {
+	return graphqlutil.NewLazy(func() (interface{}, error) {
+		_, err := l.Interaction.Perform(
+			interactionintents.NewIntentResetPassword(),
+			&resetPasswordInput{userID: id, password: password},
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		return l.Get(id), nil
+	})
+}

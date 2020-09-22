@@ -214,7 +214,7 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 // Otherwise, the password is reset to newPassword.
 // newPassword is checked against the password policy so
 // password policy error may also be returned.
-func (p *Provider) ResetPassword(codeStr string, newPassword string) (oldInfo *authenticator.Info, newInfo *authenticator.Info, err error) {
+func (p *Provider) ResetPasswordByCode(codeStr string, newPassword string) (oldInfo *authenticator.Info, newInfo *authenticator.Info, err error) {
 	codeHash := HashCode(codeStr)
 	code, err := p.Store.Get(codeHash)
 	if err != nil {
@@ -231,9 +231,13 @@ func (p *Provider) ResetPassword(codeStr string, newPassword string) (oldInfo *a
 		return
 	}
 
+	return p.ResetPassword(code.UserID, newPassword)
+}
+
+func (p *Provider) ResetPassword(userID string, newPassword string) (oldInfo *authenticator.Info, newInfo *authenticator.Info, err error) {
 	// First see if the user has password authenticator.
 	ais, err := p.Authenticators.List(
-		code.UserID,
+		userID,
 		authenticator.KeepType(authn.AuthenticatorTypePassword),
 		authenticator.KeepKind(authenticator.KindPrimary),
 	)
@@ -262,7 +266,7 @@ func (p *Provider) ResetPassword(codeStr string, newPassword string) (oldInfo *a
 		}
 	} else {
 		// Otherwise the user has two passwords :(
-		err = fmt.Errorf("forgotpassword: detected user %s having more than 1 password", code.UserID)
+		err = fmt.Errorf("forgotpassword: detected user %s having more than 1 password", userID)
 		return
 	}
 
@@ -273,7 +277,7 @@ func (p *Provider) HashCode(code string) string {
 	return HashCode(code)
 }
 
-func (p *Provider) AfterResetPassword(codeHash string) (err error) {
+func (p *Provider) AfterResetPasswordByCode(codeHash string) (err error) {
 	code, err := p.Store.Get(codeHash)
 	if err != nil {
 		return

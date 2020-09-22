@@ -2,8 +2,10 @@ package graphql
 
 import (
 	"github.com/graphql-go/graphql"
+	"github.com/graphql-go/relay"
 
 	"github.com/authgear/authgear-server/pkg/admin/model"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
 var createUserInput = graphql.NewInputObject(graphql.InputObjectConfig{
@@ -52,6 +54,69 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 			return gqlCtx.Users.Create(identityDef, password).
+				Map(func(u interface{}) (interface{}, error) {
+					return map[string]interface{}{
+						"user": u,
+					}, nil
+				}).
+				Value, nil
+		},
+	},
+)
+
+var resetPasswordInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "ResetPasswordInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"userID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target user ID.",
+		},
+		"password": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "New password.",
+		},
+	},
+})
+
+var resetPasswordPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "ResetPasswordPayload",
+	Fields: graphql.Fields{
+		"user": &graphql.Field{
+			Type: graphql.NewNonNull(nodeUser),
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"resetPassword",
+	&graphql.Field{
+		Description: "Reset password of user",
+		Type:        graphql.NewNonNull(resetPasswordPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(resetPasswordInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			input := p.Args["input"].(map[string]interface{})
+
+			userNodeID := input["userID"].(string)
+			resolvedNodeID := relay.FromGlobalID(userNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeUser {
+				return nil, apierrors.NewInvalid("invalid user ID")
+			}
+			userID := resolvedNodeID.ID
+
+			password, _ := input["password"].(string)
+
+			gqlCtx := GQLContext(p.Context)
+			return gqlCtx.Users.Get(userID).
+				Map(func(u interface{}) (interface{}, error) {
+					if u == nil {
+						return nil, apierrors.NewNotFound("user not found")
+					}
+					return gqlCtx.Users.ResetPassword(userID, password), nil
+				}).
 				Map(func(u interface{}) (interface{}, error) {
 					return map[string]interface{}{
 						"user": u,

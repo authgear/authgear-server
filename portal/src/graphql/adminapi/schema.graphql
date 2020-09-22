@@ -238,6 +238,9 @@ type Mutation {
 
   """Delete identity of user"""
   deleteIdentity(input: DeleteIdentityInput!): DeleteIdentityPayload!
+
+  """Reset password of user"""
+  resetPassword(input: ResetPasswordInput!): ResetPasswordPayload!
 }
 
 """An object with an ID"""
@@ -271,6 +274,21 @@ type Query {
 
   """All users"""
   users(after: String, before: String, first: Int, last: Int): UserConnection
+}
+
+""""""
+input ResetPasswordInput {
+  """New password."""
+  password: String!
+
+  """Target user ID."""
+  userID: ID!
+}
+
+""""""
+type ResetPasswordPayload {
+  """"""
+  user: User!
 }
 
 """Authgear user"""
