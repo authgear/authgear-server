@@ -36,6 +36,9 @@
 
   "NavBreadcrumb.label": "Nested navigation",
 
+  "AppsScreen.title": "Apps",
+  "AppsScreen.create-app": "Create App",
+
   "UsersScreen.title": "Users",
   "UsersScreen.add-user": "Add User",
 

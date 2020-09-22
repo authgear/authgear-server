@@ -13,6 +13,7 @@ export interface AppsScreenQuery_apps_edges_node {
    * The ID of an object
    */
   id: string;
+  effectiveAppConfig: GQL_AppConfig;
 }
 
 export interface AppsScreenQuery_apps_edges {
