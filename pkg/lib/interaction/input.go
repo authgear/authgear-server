@@ -5,6 +5,9 @@ import (
 )
 
 func Input(i interface{}, input interface{}) bool {
+	if i == nil {
+		return false
+	}
 	val := reflect.ValueOf(input)
 	typ := val.Type()
 	targetType := typ.Elem()
