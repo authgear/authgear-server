@@ -65,14 +65,12 @@ func (l *UserLoader) QueryPage(args graphqlutil.PageArgs) (*graphqlutil.PageResu
 
 func (l *UserLoader) Create(identityDef model.IdentityDef, password string) *graphqlutil.Lazy {
 	return graphqlutil.NewLazy(func() (interface{}, error) {
-		var input interface{} = &addIdentityInput{identityDef: identityDef}
-		if password != "" {
-			input = &addPasswordInput{inner: input, password: password}
-		}
-
 		graph, err := l.Interaction.Perform(
 			interactionintents.NewIntentSignup(),
-			input,
+			&createUserInput{
+				identityDef: identityDef,
+				password:    password,
+			},
 		)
 		var errInputRequired *interaction.ErrInputRequired
 		if errors.As(err, &errInputRequired) {

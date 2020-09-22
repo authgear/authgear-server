@@ -19,17 +19,26 @@ type EdgeCreateAuthenticatorBegin struct {
 }
 
 func (e *EdgeCreateAuthenticatorBegin) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
+	skipMFASetup := false
+	var skipMFASetupInput interface{ SkipMFASetup() bool }
+	if interaction.Input(input, &skipMFASetupInput) {
+		skipMFASetup = skipMFASetupInput.SkipMFASetup()
+	}
+
 	return &NodeCreateAuthenticatorBegin{
-		Stage: e.Stage,
+		Stage:        e.Stage,
+		SkipMFASetup: skipMFASetup,
 	}, nil
 }
 
 type NodeCreateAuthenticatorBegin struct {
-	Stage                interaction.AuthenticationStage `json:"stage"`
-	Identity             *identity.Info                  `json:"-"`
-	AuthenticationConfig *config.AuthenticationConfig    `json:"-"`
-	AuthenticatorConfig  *config.AuthenticatorConfig     `json:"-"`
-	Authenticators       []*authenticator.Info           `json:"-"`
+	Stage        interaction.AuthenticationStage `json:"stage"`
+	SkipMFASetup bool                            `json:"skip_mfa_setup"`
+
+	Identity             *identity.Info               `json:"-"`
+	AuthenticationConfig *config.AuthenticationConfig `json:"-"`
+	AuthenticatorConfig  *config.AuthenticatorConfig  `json:"-"`
+	Authenticators       []*authenticator.Info        `json:"-"`
 }
 
 func (n *NodeCreateAuthenticatorBegin) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -191,6 +200,11 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 	// If it is not required, then no secondary authenticator is needed.
 	mode := n.AuthenticationConfig.SecondaryAuthenticationMode
 	if mode != config.SecondaryAuthenticationModeRequired {
+		return nil
+	}
+
+	// 1.1. Skip setup if explicitly requested
+	if n.SkipMFASetup {
 		return nil
 	}
 

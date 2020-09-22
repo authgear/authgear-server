@@ -93,13 +93,17 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, state *webapp.State, graph
 	currentNode := graph.CurrentNode()
 	switch currentNode.(type) {
 	case *nodes.NodeAuthenticationOOBTrigger:
-		viewModel.AuthenticationAlternatives = DeriveAuthenticationAlternatives(
+		var err error
+		viewModel.AuthenticationAlternatives, err = DeriveAuthenticationAlternatives(
 			// Use previous state ID because the current node is NodeAuthenticationOOBTrigger.
 			state.PrevID,
 			graph,
 			AuthenticationTypeOOB,
 			n.GetOOBOTPTarget(),
 		)
+		if err != nil {
+			return nil, err
+		}
 	case *nodes.NodeCreateAuthenticatorOOBSetup:
 		alternatives, err := DeriveCreateAuthenticatorAlternatives(
 			// Use previous state ID because the current node is NodeCreateAuthenticatorOOBSetup.

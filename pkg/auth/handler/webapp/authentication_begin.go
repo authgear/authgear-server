@@ -45,7 +45,7 @@ func (i *AuthenticationBeginInput) GetOOBAuthenticatorIndex() int {
 }
 
 type AuthenticationBeginNode interface {
-	GetAuthenticationEdges() []interaction.Edge
+	GetAuthenticationEdges() ([]interaction.Edge, error)
 }
 
 type AuthenticationBeginHandler struct {
@@ -104,7 +104,10 @@ func (h *AuthenticationBeginHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 	if !graph.FindLastNode(&node) {
 		panic("authentication_begin: expected graph has node implementing AuthenticationBeginNode")
 	}
-	edges := node.GetAuthenticationEdges()
+	edges, err := node.GetAuthenticationEdges()
+	if err != nil {
+		panic(err)
+	}
 	if edgeIndex >= len(edges) {
 		edgeIndex = 0
 	}
@@ -184,13 +187,16 @@ type AuthenticationAlternative struct {
 	MaskedTarget string
 }
 
-func DeriveAuthenticationAlternatives(stateID string, graph *interaction.Graph, currentType AuthenticationType, currentTarget string) (alternatives []AuthenticationAlternative) {
+func DeriveAuthenticationAlternatives(stateID string, graph *interaction.Graph, currentType AuthenticationType, currentTarget string) (alternatives []AuthenticationAlternative, err error) {
 	var node AuthenticationBeginNode
 	if !graph.FindLastNode(&node) {
 		panic("authentication_begin: expected graph has node implementing AuthenticationBeginNode")
 	}
 
-	edges := node.GetAuthenticationEdges()
+	edges, err := node.GetAuthenticationEdges()
+	if err != nil {
+		return nil, err
+	}
 
 	for i, edge := range edges {
 		switch edge := edge.(type) {

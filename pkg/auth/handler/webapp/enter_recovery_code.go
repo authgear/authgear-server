@@ -59,13 +59,16 @@ func (h *EnterRecoveryCodeHandler) GetData(r *http.Request, state *webapp.State,
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-	alternatives := DeriveAuthenticationAlternatives(
+	alternatives, err := DeriveAuthenticationAlternatives(
 		// Use current state ID because the current node should be NodeAuthenticationBegin.
 		state.ID,
 		graph,
 		AuthenticationTypeRecoveryCode,
 		"",
 	)
+	if err != nil {
+		return nil, err
+	}
 
 	viewModel := EnterRecoveryCodeViewModel{
 		Alternatives: alternatives,

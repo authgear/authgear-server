@@ -72,3 +72,21 @@ func (i *resetPasswordInput) GetResetPasswordUserID() string {
 func (i *resetPasswordInput) GetNewPassword() string {
 	return i.password
 }
+
+type createUserInput struct {
+	identityDef model.IdentityDef
+	password    string
+}
+
+func (i *createUserInput) SkipVerification() bool {
+	return true
+}
+func (i *createUserInput) SkipMFASetup() bool {
+	return true
+}
+func (i *createUserInput) GetPassword() string {
+	return i.password
+}
+func (i *createUserInput) Input() interface{} {
+	return i.identityDef
+}
