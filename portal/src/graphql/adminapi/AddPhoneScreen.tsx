@@ -19,9 +19,6 @@ interface AddPhoneFormProps {
   appConfig: PortalAPIAppConfig | null;
 }
 
-// fallback if config does not exist
-const DEFAULT_COUNTRY_CODE = "852";
-
 const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
   props: AddPhoneFormProps
 ) {
@@ -49,9 +46,10 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
 
   const countryCodeConfig = useMemo(() => {
     const countryCodeConfig = appConfig?.ui?.country_calling_code;
+    const values = countryCodeConfig?.values ?? [];
     return {
-      values: countryCodeConfig?.values ?? [DEFAULT_COUNTRY_CODE],
-      default: countryCodeConfig?.default ?? DEFAULT_COUNTRY_CODE,
+      values,
+      default: countryCodeConfig?.default ?? values[0],
     };
   }, [appConfig]);
 
