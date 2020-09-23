@@ -5,6 +5,7 @@ import { Pivot, PivotItem, Text } from "@fluentui/react";
 import cn from "classnames";
 
 import PasswordPolicySettings from "./PasswordPolicySettings";
+import ForgotPasswordSettings from "./ForgotPasswordSettings";
 import { useAppConfigQuery } from "./query/appConfigQuery";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
 import ShowLoading from "../../ShowLoading";
@@ -66,7 +67,14 @@ const PasswordsScreen: React.FC = function PasswordsScreen() {
             <PivotItem
               alwaysRender={true}
               headerText={renderToString("PasswordsScreen.forgot-password.title")}
-            />
+            >
+              <ForgotPasswordSettings
+                effectiveAppConfig={effectiveAppConfig}
+                rawAppConfig={rawAppConfig}
+                updateAppConfig={updateAppConfig}
+                updatingAppConfig={updatingAppConfig}
+              />
+            </PivotItem>
           </Pivot>
         </div>
       </div>

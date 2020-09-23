@@ -182,6 +182,10 @@
   "PasswordsScreen.password-policy.history-size.label": "No. of password history to keep",
   "PasswordsScreen.password-policy.excluded-keywords.label": "Keywords to be excluded",
   "PasswordsScreen.forgot-password.title": "Forgot Password",
+  "PasswordsScreen.forgot-password.email-message.label": "Email message",
+  "PasswordsScreen.forgot-password.sms-message.label": "SMS message",
+  "PasswordsScreen.forgot-password.time-to-invalid-reset-code.label": "Time to invalid reset code (seconds)",
+
   "PaginationWidget.First": "Go to the first page",
   "PaginationWidget.Prev": "Go to the previous page",
   "PaginationWidget.Next": "Go to the next page",
