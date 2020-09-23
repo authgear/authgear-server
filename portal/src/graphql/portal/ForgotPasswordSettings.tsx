@@ -24,7 +24,8 @@ interface ForgotPasswordSettingsProps {
 }
 
 interface ForgotPasswordSettingsState {
-  emailTemplate: string;
+  emailHtmlTemplate: string;
+  emailPlainTextTemplate: string;
   smsTemplate: string;
   resetCodeExpirySeconds: number;
 }
@@ -35,7 +36,8 @@ function constructStateFromAppConfig(
   const forgot_password = appConfig?.forgot_password;
 
   return {
-    emailTemplate: "", // TODO: handle email template
+    emailHtmlTemplate: "", // TODO: handle email template
+    emailPlainTextTemplate: "", // TODO: handle email template
     smsTemplate: "", // TODO: handle sms template
     resetCodeExpirySeconds: forgot_password?.reset_code_expiry_seconds ?? 0,
   };
@@ -92,14 +94,27 @@ const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function F
     return !deepEqual(initialState, state, { strict: true });
   }, [initialState, state]);
 
-  const onEmailTemplateChange = useCallback(
+  const onEmailHtmlTemplateChange = useCallback(
     (_event: unknown, value: string | undefined) => {
       if (value === undefined) {
         return;
       }
       setState((state) => ({
         ...state,
-        emailTemplate: value,
+        emailHtmlTemplate: value,
+      }));
+    },
+    []
+  );
+
+  const onEmailPlainTextTemplateChange = useCallback(
+    (_event: unknown, value: string | undefined) => {
+      if (value === undefined) {
+        return;
+      }
+      setState((state) => ({
+        ...state,
+        emailPlainTextTemplate: value,
       }));
     },
     []
@@ -152,24 +167,40 @@ const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function F
 
   return (
     <div className={cn(styles.root, className)}>
+      <Label className={styles.boldLabel}>
+        <FormattedMessage id="PasswordsScreen.forgot-password.email.label" />
+      </Label>
+
       <Label className={styles.label}>
-        <FormattedMessage id="PasswordsScreen.forgot-password.email-message.label" />
+        <FormattedMessage id="PasswordsScreen.forgot-password.email.styled-content.label" />
       </Label>
       <CodeEditor
-        className={styles.codeEditor}
+        className={styles.htmlCodeEditor}
         language="html"
-        value={state.emailTemplate}
-        onChange={onEmailTemplateChange}
+        value={state.emailHtmlTemplate}
+        onChange={onEmailHtmlTemplateChange}
       />
 
       <Label className={styles.label}>
-        <FormattedMessage id="PasswordsScreen.forgot-password.sms-message.label" />
+        <FormattedMessage id="PasswordsScreen.forgot-password.email.plain-content.label" />
       </Label>
-      <TextField
-        className={styles.multiLineTextField}
-        multiline={true}
-        resizable={false}
-        autoAdjustHeight={true}
+      <CodeEditor
+        className={styles.plainTextCodeEditor}
+        language="plaintext"
+        value={state.emailPlainTextTemplate}
+        onChange={onEmailPlainTextTemplateChange}
+      />
+
+      <Label className={styles.boldLabel}>
+        <FormattedMessage id="PasswordsScreen.forgot-password.sms.label" />
+      </Label>
+
+      <Label className={styles.label}>
+        <FormattedMessage id="PasswordsScreen.forgot-password.sms.content.label" />
+      </Label>
+      <CodeEditor
+        className={styles.plainTextCodeEditor}
+        language="plaintext"
         value={state.smsTemplate}
         onChange={onSmsTemplateChange}
       />
