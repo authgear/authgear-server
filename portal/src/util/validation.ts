@@ -61,7 +61,7 @@ export function isViolationKind(value?: string): value is ViolationKind {
 type ViolationSelector = (violation: Violation) => boolean;
 type ViolationSelectors<Key extends string> = Record<Key, ViolationSelector>;
 
-function defaultFormatErrorMessageList(
+export function defaultFormatErrorMessageList(
   errorMessages: string[]
 ): string | undefined {
   return errorMessages.length === 0 ? undefined : errorMessages.join("\n");

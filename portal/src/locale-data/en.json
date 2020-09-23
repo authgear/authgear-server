@@ -123,6 +123,8 @@
 
   "AddEmailScreen.title": "Add Email",
   "AddEmailScreen.email.label": "Email",
+  "AddEmailScreen.error.invalid-email": "Invalid Email",
+  "AddEmailScreen.error.duplicated-email": "Email already exist",
 
   "AddPhoneScreen.title": "Add Phone",
   "AddPhoneScreen.phone.label": "Phone Number",
