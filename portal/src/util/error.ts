@@ -39,8 +39,24 @@ interface APIValidationError {
   reason: "ValidationFailed";
 }
 
+type InvariantViolationErrorKind = "RemoveLastIdentity";
+
+interface InvariantViolationErrorCause {
+  kind: InvariantViolationErrorKind;
+}
+
+interface InvariantViolationErrorInfo {
+  cause: InvariantViolationErrorCause;
+}
+
+interface APIInvariantViolationError {
+  errorName: string;
+  info: InvariantViolationErrorInfo;
+  reason: "InvariantViolated";
+}
+
 // union type of api errors, depend on reason
-type APIError = APIValidationError;
+type APIError = APIValidationError | APIInvariantViolationError;
 
 function isAPIError(value?: { [key: string]: any }): value is APIError {
   if (value == null) {
@@ -71,14 +87,19 @@ export function handleUpdateAppConfigError(error: GraphQLError): Violation[] {
   if (!isAPIError(error.extensions)) {
     return [];
   }
-  const causes = error.extensions.info.causes;
-  /* uncomment when there is more than one error reason
-  if (error.extensions.reason !== "ValidationFailed") {
-    return [];
+  const { extensions } = error;
+  switch (extensions.reason) {
+    case "ValidationFailed": {
+      const causes = extensions.info.causes;
+      return causes.map(extractViolationFromErrorCause).filter(nonNullable);
+    }
+    case "InvariantViolated": {
+      const cause = extensions.info.cause;
+      return [{ kind: cause.kind }];
+    }
+    default:
+      return [];
   }
-  */
-
-  return causes.map(extractViolationFromErrorCause).filter(nonNullable);
 }
 
 export function parseError(error: unknown): Violation[] {

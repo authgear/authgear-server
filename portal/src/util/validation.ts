@@ -2,7 +2,10 @@ import { Values } from "@oursky/react-messageformat";
 import { nonNullable } from "./types";
 
 // union type of different kind of violation
-export type Violation = RequiredViolation | GeneralViolation;
+export type Violation =
+  | RequiredViolation
+  | GeneralViolation
+  | RemoveLastIdentityViolation;
 
 interface RequiredViolation {
   kind: "required";
@@ -15,8 +18,12 @@ interface GeneralViolation {
   location: string;
 }
 
+interface RemoveLastIdentityViolation {
+  kind: "RemoveLastIdentity";
+}
+
 // list of violation kind recognized
-const violationKinds = ["required", "general"];
+const violationKinds = ["required", "general", "RemoveLastIdentity"];
 type ViolationKind = Violation["kind"];
 export function isViolationKind(value?: string): value is ViolationKind {
   return value != null && violationKinds.includes(value);
