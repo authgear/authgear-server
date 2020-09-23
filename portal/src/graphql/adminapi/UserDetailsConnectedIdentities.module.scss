@@ -21,24 +21,25 @@
 
 .subHeader {
   display: flex;
-  margin-top: 10px;
+  margin: 10px 0 15px;
   font-size: 13px;
   font-weight: 600;
 }
 
 .list {
-  margin-bottom: 25px;
+  margin-bottom: 30px;
 }
 
 .cellContainer {
   font-weight: 300;
+  margin-bottom: 15px;
   font-size: 13px;
   display: grid;
   grid-gap: 3px 0;
   grid-template:
-    "icon    name     name       name     verify    remove"
-    "icon    desc1    descSep    desc2    verify    remove"
-    / 35px min-content min-content auto min-content min-content;
+    "icon    name     name       name     .    verify    remove"
+    "icon    desc1    descSep    desc2    .    verify    remove"
+    / 35px min-content min-content max-content auto min-content min-content;
 }
 
 .cellIcon {
