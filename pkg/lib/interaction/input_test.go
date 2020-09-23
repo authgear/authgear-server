@@ -33,4 +33,16 @@ func TestInput(t *testing.T) {
 		So(interaction.Input(b, &y), ShouldBeTrue)
 		So(y.Y(), ShouldEqual, "Y")
 	})
+
+	Convey("Input incompatible nil", t, func() {
+		var x interface{ X() string }
+		var a interface{} = nil
+		So(interaction.Input(a, &x), ShouldBeFalse)
+	})
+
+	Convey("Input compatible nil", t, func() {
+		var x interface{ X() string }
+		var a interface{ X() string } = nil
+		So(interaction.Input(a, &x), ShouldBeFalse)
+	})
 }
