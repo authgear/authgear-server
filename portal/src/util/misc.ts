@@ -5,11 +5,13 @@ export function isArrayEqualInOrder<T>(arr1: T[], arr2: T[]): boolean {
   return arr1.every((elem, index) => elem === arr2[index]);
 }
 
-export function setFieldIfChanged<K extends string>(
-  map: Partial<Record<K, unknown>>,
-  key: K,
-  initialValue: unknown,
-  value: unknown
+export function setFieldIfChanged<
+  M extends Record<K, unknown>,
+  K extends string
+>(
+  map: Partial<M>,
+  key: K, initialValue: M[K],
+  value: M[K]
 ): void {
   if (initialValue !== value) {
     map[key] = value;
