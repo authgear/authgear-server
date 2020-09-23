@@ -60,6 +60,8 @@
   "AddUserScreen.add-user.label": "Add User",
   "AddUserScreen.cannot-add-user": "Please enable at least one of username, email or phone in authentication screen",
   "AddUserScreen.error.invalid-password": "Please check password policies below",
+  "AddUserScreen.error.invalid-identity": "Invalid {loginIdType}",
+  "AddUserScreen.error.duplicated-identity": "Duplicated {loginIdType}",
 
   "UserDetailsScreen.title": "User Details",
 

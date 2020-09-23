@@ -1,10 +1,15 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import React, {
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import zxcvbn from "zxcvbn";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import {
-  PrimaryButton,
   Text,
   TextField,
   ChoiceGroup,
@@ -13,17 +18,23 @@ import {
 } from "@fluentui/react";
 
 import { useAppConfigQuery } from "../portal/query/appConfigQuery";
+import { useCreateUserMutation } from "./mutations/createUserMutation";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
+import ButtonWithLoading from "../../ButtonWithLoading";
 import PasswordField, {
   extractGuessableLevel,
   isPasswordValid,
 } from "../../PasswordField";
 import { useTextField } from "../../hook/useInput";
 import { PasswordPolicyConfig, PortalAPIAppConfig } from "../../types";
-import { Violation } from "../../util/validation";
+import {
+  defaultFormatErrorMessageList,
+  Violation,
+} from "../../util/validation";
+import { parseError } from "../../util/error";
 
 import styles from "./AddUserScreen.module.scss";
 
@@ -145,6 +156,15 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
   const { appConfig } = props;
   const { renderToString } = useContext(Context);
 
+  const navigate = useNavigate();
+  const {
+    createUser,
+    loading: creatingUser,
+    error: createUserError,
+  } = useCreateUserMutation();
+
+  const selectedLoginIdInLastSubmission = useRef<LoginIDKey | null>(null);
+  const [disableBlockNavigation, setDisableBlockNavigation] = useState(false);
   const [selectedLoginIdKey, setSelectedLoginIdKey] = useState<
     LoginIDKey | undefined
   >(undefined);
@@ -169,15 +189,64 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
     []
   );
 
+  const errorMessages = useMemo(() => {
+    const lastSumissionLoginId = selectedLoginIdInLastSubmission.current;
+    const lastSumissionLoginIdText =
+      lastSumissionLoginId != null
+        ? renderToString(loginIdLocaleKey[lastSumissionLoginId])
+        : "";
+    const selectedIdentityFieldErrorMessage: string[] = [];
+    const passwordFieldErrorMessages: string[] = [];
+    const unknownViolations: Violation[] = [];
+    for (const violation of violations) {
+      if (violation.kind === "format") {
+        const violationDetail = violation.detail;
+        if (isLoginIDKey(violationDetail)) {
+          selectedIdentityFieldErrorMessage.push(
+            renderToString("AddUserScreen.error.invalid-identity", {
+              loginIdType: lastSumissionLoginIdText,
+            })
+          );
+        }
+      } else if (violation.kind === "DuplicatedIdentity") {
+        selectedIdentityFieldErrorMessage.push(
+          renderToString("AddUserScreen.error.duplicated-identity", {
+            loginIdType: lastSumissionLoginIdText,
+          })
+        );
+      } else if (violation.kind === "Invalid") {
+        passwordFieldErrorMessages.push(
+          renderToString("AddUserScreen.error.invalid-password")
+        );
+      } else {
+        unknownViolations.push(violation);
+      }
+    }
+
+    setUnhandledViolations(unknownViolations);
+    const _errorMessages: Partial<Record<LoginIDKey | "password", string>> = {
+      password: defaultFormatErrorMessageList(passwordFieldErrorMessages),
+    };
+
+    if (lastSumissionLoginId != null) {
+      _errorMessages[lastSumissionLoginId] = defaultFormatErrorMessageList(
+        selectedIdentityFieldErrorMessage
+      );
+    }
+
+    return _errorMessages;
+  }, [renderToString, violations]);
+
   const renderUsernameField = useCallback(() => {
     return (
       <TextField
         className={styles.textField}
         value={username}
         onChange={onUsernameChange}
+        errorMessage={errorMessages.username}
       />
     );
-  }, [username, onUsernameChange]);
+  }, [username, onUsernameChange, errorMessages.username]);
 
   const renderEmailField = useCallback(() => {
     return (
@@ -185,9 +254,10 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
         className={styles.textField}
         value={email}
         onChange={onEmailChange}
+        errorMessage={errorMessages.email}
       />
     );
-  }, [email, onEmailChange]);
+  }, [email, onEmailChange, errorMessages.email]);
 
   const renderPhoneField = useCallback(() => {
     return (
@@ -195,9 +265,10 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
         className={styles.textField}
         value={phone}
         onChange={onPhoneChange}
+        errorMessage={errorMessages.phone}
       />
     );
-  }, [phone, onPhoneChange]);
+  }, [phone, onPhoneChange, errorMessages.phone]);
 
   const textFieldRenderer: Record<LoginIDKey, () => React.ReactNode> = useMemo(
     () => ({
@@ -262,36 +333,33 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
   }, [screenState]);
 
   const onClickAddUser = useCallback(() => {
-    const validationErrors = validate(
+    const selectedKey = screenState.selectedLoginIdKey;
+    const localValidationErrors = validate(
       screenState,
       passwordPolicy,
       passwordRequired
     );
-    setViolations(validationErrors);
-    // TODO: integrate add user mutation
-  }, [screenState, passwordPolicy, passwordRequired]);
-
-  const errorMessage = useMemo(() => {
-    const passwordFieldErrorMessages: string[] = [];
-    const unknownViolations: Violation[] = [];
-    for (const violation of violations) {
-      if (violation.kind === "Invalid") {
-        passwordFieldErrorMessages.push(
-          renderToString("AddUserScreen.error.invalid-password")
-        );
-      } else {
-        unknownViolations.push(violation);
-      }
+    if (localValidationErrors.length > 0 || selectedKey == null) {
+      setViolations(localValidationErrors);
+      return;
     }
-
-    setUnhandledViolations(unknownViolations);
-    return {
-      password:
-        passwordFieldErrorMessages.length > 0
-          ? passwordFieldErrorMessages.join("\n")
-          : undefined,
-    };
-  }, [renderToString, violations]);
+    selectedLoginIdInLastSubmission.current = selectedKey;
+    const identityValue = screenState[selectedKey];
+    const password = passwordRequired ? screenState.password : undefined;
+    setDisableBlockNavigation(true);
+    createUser({ key: selectedKey, value: identityValue }, password)
+      .then((userID) => {
+        if (userID == null) {
+          throw new Error();
+        }
+        navigate("../");
+      })
+      .catch((err) => {
+        setDisableBlockNavigation(false);
+        const violations = parseError(err);
+        setViolations(violations);
+      });
+  }, [screenState, passwordPolicy, passwordRequired, createUser, navigate]);
 
   // TODO: improve empty state
   if (!canAddUser) {
@@ -304,7 +372,10 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
 
   return (
     <section className={styles.content}>
-      <NavigationBlockerDialog blockNavigation={isFormModified} />
+      {unhandledViolations.length > 0 && <ShowError error={createUserError} />}
+      <NavigationBlockerDialog
+        blockNavigation={!disableBlockNavigation && isFormModified}
+      />
       <ChoiceGroup
         className={styles.userInfo}
         styles={{ label: { marginBottom: "15px", fontSize: "14px" } }}
@@ -320,15 +391,15 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
         value={password}
         onChange={onPasswordChange}
         passwordPolicy={passwordPolicy}
-        errorMessage={errorMessage.password}
+        errorMessage={errorMessages.password}
       />
-      <PrimaryButton
+      <ButtonWithLoading
         className={styles.addUserButton}
-        disabled={!isFormModified}
+        loading={creatingUser}
+        labelId="AddUserScreen.add-user.label"
+        disabled={!isFormModified || selectedLoginIdKey == null}
         onClick={onClickAddUser}
-      >
-        <FormattedMessage id="AddUserScreen.add-user.label" />
-      </PrimaryButton>
+      />
     </section>
   );
 };
