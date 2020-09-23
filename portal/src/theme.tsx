@@ -63,33 +63,33 @@ const invertedTheme = createTheme({
 });
 
 // Generated with Fluent UI theme Designer with
-// Primary color: #ee0000
-// Text color: #323130
-// Background color: #ffffff
+// Primary color: #d81010
+// Text color: #d81010
+// Background color: #fbfcff
 const destructiveTheme = createTheme({
   palette: {
-    themePrimary: "#ee0000",
-    themeLighterAlt: "#fef4f4",
-    themeLighter: "#fcd4d4",
-    themeLight: "#faafaf",
-    themeTertiary: "#f46262",
-    themeSecondary: "#ef1d1d",
-    themeDarkAlt: "#d50000",
-    themeDark: "#b40000",
-    themeDarker: "#850000",
-    neutralLighterAlt: "#f8f8f8",
-    neutralLighter: "#f4f4f4",
-    neutralLight: "#eaeaea",
-    neutralQuaternaryAlt: "#dadada",
-    neutralQuaternary: "#d0d0d0",
-    neutralTertiaryAlt: "#c8c8c8",
-    neutralTertiary: "#a19f9d",
-    neutralSecondary: "#605e5c",
-    neutralPrimaryAlt: "#3b3a39",
-    neutralPrimary: "#323130",
-    neutralDark: "#201f1e",
-    black: "#000000",
-    white: "#ffffff",
+    themePrimary: "#d81010",
+    themeLighterAlt: "#fdf4f4",
+    themeLighter: "#f9d4d4",
+    themeLight: "#f4b0b0",
+    themeTertiary: "#e86767",
+    themeSecondary: "#dd2828",
+    themeDarkAlt: "#c30e0e",
+    themeDark: "#a50c0c",
+    themeDarker: "#790808",
+    neutralLighterAlt: "#f3f4f8",
+    neutralLighter: "#eff0f4",
+    neutralLight: "#e5e7ea",
+    neutralQuaternaryAlt: "#d6d7da",
+    neutralQuaternary: "#cccdd0",
+    neutralTertiaryAlt: "#c4c5c8",
+    neutralTertiary: "#f4b0b0",
+    neutralSecondary: "#e86767",
+    neutralPrimaryAlt: "#dd2828",
+    neutralPrimary: "#d81010",
+    neutralDark: "#a50c0c",
+    black: "#790808",
+    white: "#fbfcff",
   },
 });
 
@@ -120,4 +120,41 @@ const actionButtonTheme = createTheme({
   },
 });
 
-export { theme, invertedTheme, destructiveTheme, actionButtonTheme };
+// Generated with Fluent UI theme Designer with
+// Primary color: #10B070
+// Text color: #000000
+// Background color: #ffffff
+const verifyButtonTheme = createTheme({
+  palette: {
+    themePrimary: "#10b070",
+    themeLighterAlt: "#f3fcf8",
+    themeLighter: "#cff2e4",
+    themeLight: "#a8e7ce",
+    themeTertiary: "#5ed0a2",
+    themeSecondary: "#25b97e",
+    themeDarkAlt: "#0e9e65",
+    themeDark: "#0c8655",
+    themeDarker: "#09633f",
+    neutralLighterAlt: "#faf9f8",
+    neutralLighter: "#f3f2f1",
+    neutralLight: "#edebe9",
+    neutralQuaternaryAlt: "#e1dfdd",
+    neutralQuaternary: "#d0d0d0",
+    neutralTertiaryAlt: "#c8c6c4",
+    neutralTertiary: "#595959",
+    neutralSecondary: "#373737",
+    neutralPrimaryAlt: "#2f2f2f",
+    neutralPrimary: "#000000",
+    neutralDark: "#151515",
+    black: "#0b0b0b",
+    white: "#ffffff",
+  },
+});
+
+export {
+  theme,
+  invertedTheme,
+  destructiveTheme,
+  actionButtonTheme,
+  verifyButtonTheme,
+};

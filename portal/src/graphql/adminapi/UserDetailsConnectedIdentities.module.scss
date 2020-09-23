@@ -4,14 +4,30 @@
   width: 640px;
 }
 
+.headerSection {
+  display: flex;
+  justify-content: space-between;
+}
+
 .header {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   margin: 0;
 }
 
-.list {
+.identityLists {
   padding: 5px 0 0;
+}
+
+.subHeader {
+  display: flex;
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.list {
+  margin-bottom: 25px;
 }
 
 .cellContainer {
@@ -20,12 +36,13 @@
   display: grid;
   grid-gap: 3px 0;
   grid-template:
-    "icon    name    remove"
-    "icon    desc    remove"
-    / 35px auto 90px;
+    "icon    name     name       name     verify    remove"
+    "icon    desc1    descSep    desc2    verify    remove"
+    / 35px min-content min-content auto min-content min-content;
 }
 
 .cellIcon {
+  font-size: 16px;
   padding: 3px;
   grid-area: icon;
 }
@@ -34,13 +51,58 @@
   grid-area: name;
 }
 
+.cellDescUnverified {
+  color: #e0aa1a;
+  grid-area: desc1;
+  white-space: nowrap;
+}
+
+.cellDescVerified {
+  color: #10b070;
+  grid-area: desc1;
+}
+
+.cellDescSeparator {
+  color: #888888;
+  grid-area: descSep;
+  margin: -1px 3px 0;
+}
+
 .cellDesc {
   color: #888888;
-  grid-area: desc;
+  grid-area: desc2;
+}
+
+.controlButton {
+  margin: 0 5px;
+  border: 1px solid #d8d8d8;
+  width: 90px;
+  font-weight: 600;
 }
 
 .removeButton {
-  margin-right: 5px;
   grid-area: remove;
   place-self: center;
+}
+
+.verifyButton {
+  grid-area: verify;
+  place-self: center;
+}
+
+.unverifyButton {
+  grid-area: verify;
+  color: #666666;
+  place-self: center;
+}
+
+.primaryIdentitiesTitle {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 18px;
+}
+
+.primaryIdentitiesForm {
+  margin-bottom: 50px;
 }

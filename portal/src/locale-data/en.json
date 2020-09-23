@@ -4,6 +4,7 @@
   "loading": "Loading...",
 
   "action": "Action",
+  "add": "Add",
   "next": "Next",
   "save": "Save",
   "saving": "Saving",
@@ -13,6 +14,11 @@
   "disable": "Disable",
   "confirm": "Confirm",
   "cancel": "Cancel",
+  "disconnect": "Disconnect",
+  "verified": "Verified",
+  "unverified": "Not Verified",
+  "verify": "Verify",
+  "unverify": "Unverify",
 
   "apple": "Apple",
   "google": "Google",
@@ -85,7 +91,29 @@
   "UserDetails.account-security.secondary.password": "Additional Password",
 
   "UserDetails.connected-identities.header": "Connected Identities",
+  "UserDetails.connected-identities.title": "Identities",
+  "UserDetails.connected-identities.add-identity": "Add Identity",
+  "UserDetails.connected-identities.email": "Email",
+  "UserDetails.connected-identities.phone": "Phone",
+  "UserDetails.connected-identities.username": "Username",
+
   "UserDetails.connected-identities.connected-on": "Connected on {datetime}",
+  "UserDetails.connected-identities.added-on": "Added on {datetime}",
+  "UserDetails.connected-identities.primary-identities.title": "Primary Identities",
+  "UserDetails.connected-identities.primary-email": "Primary Email",
+  "UserDetails.connected-identities.primary-phone": "Primary Phone",
+  "UserDetails.connected-identities.primary-username": "Primary Username",
+
+  "AddEmailScreen.title": "Add Email",
+  "AddEmailScreen.email.label": "Email",
+
+  "AddPhoneScreen.title": "Add Phone",
+  "AddPhoneScreen.phone.label": "Phone Number",
+  "AddPhoneScreen.country-code.label": "Country Code",
+
+  "AddUsernameScreen.title": "Add Username",
+  "AddUsernameScreen.username.label": "Username",
+
   "UserDetails.session.header": "Session",
   "UserDetails.session.devices": "Devices",
   "UserDetails.session.last-activity": "Last Activity",
