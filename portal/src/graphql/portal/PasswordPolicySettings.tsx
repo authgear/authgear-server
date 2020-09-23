@@ -1,4 +1,4 @@
-import React, { useMemo, useContext, useState, useCallback } from "react";
+import React, { useMemo, useContext, useState, useCallback, useEffect, useRef } from "react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { TextField, Checkbox, Dropdown, IDropdownOption, TagPicker, Label, ITag } from "@fluentui/react";
 import cn from "classnames";
@@ -31,6 +31,7 @@ interface PasswordPolicySettingsProps {
     appConfig: PortalAPIAppConfig
   ) => Promise<PortalAPIApp | null>;
   updatingAppConfig: boolean;
+  onIsFormModifiedChange: (modified: boolean) => void;
 }
 
 interface PasswordPolicySettingsState {
@@ -159,9 +160,13 @@ const PasswordPolicySettings: React.FC<PasswordPolicySettingsProps> = function P
     rawAppConfig,
     updateAppConfig,
     updatingAppConfig,
+    onIsFormModifiedChange,
   } = props;
 
   const { renderToString } = useContext(Context);
+
+  const onIsFormModifiedChangeRef = useRef(onIsFormModifiedChange);
+  onIsFormModifiedChangeRef.current = onIsFormModifiedChange;
 
   const initialState = useMemo(() => {
     return constructStateFromAppConfig(effectiveAppConfig);
@@ -337,6 +342,10 @@ const PasswordPolicySettings: React.FC<PasswordPolicySettingsProps> = function P
     },
     []
   );
+
+  useEffect(() => {
+    onIsFormModifiedChangeRef.current(isFormModified);
+  }, [isFormModified]);
 
   return (
     <div className={cn(styles.root, className)}>
