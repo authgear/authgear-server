@@ -3,7 +3,14 @@ import { useParams } from "react-router-dom";
 import zxcvbn from "zxcvbn";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { Label, PrimaryButton, Text, TextField } from "@fluentui/react";
+import {
+  PrimaryButton,
+  Text,
+  TextField,
+  ChoiceGroup,
+  IChoiceGroupOption,
+  Label,
+} from "@fluentui/react";
 
 import { useAppConfigQuery } from "../portal/query/appConfigQuery";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
@@ -16,67 +23,121 @@ import PasswordField, {
 } from "../../PasswordField";
 import { useTextField } from "../../hook/useInput";
 import { PasswordPolicyConfig, PortalAPIAppConfig } from "../../types";
+import { Violation } from "../../util/validation";
 
 import styles from "./AddUserScreen.module.scss";
+
+type LoginIDKey = "username" | "email" | "phone";
+function isLoginIDKey(value?: string): value is LoginIDKey {
+  return ["username", "email", "phone"].includes(value ?? "");
+}
 
 interface AddUserContentProps {
   appConfig: PortalAPIAppConfig | null;
 }
 
 interface AddUserScreenState {
-  name: string;
+  selectedLoginIdKey?: LoginIDKey;
   username: string;
   email: string;
   phone: string;
   password: string;
 }
 
-interface FieldVisible {
-  username: boolean;
-  email: boolean;
-  phone: boolean;
-  password: boolean;
+interface LoginIdIdentityOptionProps {
+  option?: IChoiceGroupOption;
+  renderTextField?: () => React.ReactNode;
 }
 
-interface AddUserViolation {
-  type: "OneOfLoginIdType" | "PasswordInvalid";
+const loginIdLocaleKey: Record<LoginIDKey, string> = {
+  username: "login-id-key.username",
+  email: "login-id-key.email",
+  phone: "login-id-key.phone",
+};
+
+function determineIsPasswordNeeded(
+  appConfig: PortalAPIAppConfig | null,
+  loginIdKeySelected: LoginIDKey | undefined
+) {
+  if (loginIdKeySelected == null) {
+    return false;
+  }
+  const primaryAuthenticators =
+    appConfig?.authentication?.primary_authenticators ?? [];
+  // password is first one, all login ID types need password
+  if (primaryAuthenticators[0] === "password") {
+    return true;
+  }
+  // password is second one, require password if user choose username
+  // only id is username -> need password
+  if (deepEqual(["oob_otp", "password"], primaryAuthenticators)) {
+    return loginIdKeySelected === "username";
+  }
+  return false;
 }
 
-function checkOnlyOneOfLoginIdFieldFilled(screenState: AddUserScreenState) {
-  return (
-    [screenState.username, screenState.email, screenState.phone].filter(
-      (fieldValue) => fieldValue.length > 0
-    ).length === 1
-  );
+function getLoginIdKeyOptions(appConfig: PortalAPIAppConfig | null) {
+  const primaryAuthenticators =
+    appConfig?.authentication?.primary_authenticators ?? [];
+
+  // need password authenticator in order to use username to login
+  const usernameAllowed = primaryAuthenticators.includes("password");
+
+  const loginIdKeys = appConfig?.identity?.login_id?.keys ?? [];
+  const loginIdKeyOptions = new Set<LoginIDKey>();
+  for (const key of loginIdKeys) {
+    switch (key.type) {
+      case "username": {
+        if (usernameAllowed) {
+          loginIdKeyOptions.add("username");
+        }
+        break;
+      }
+      case "email":
+        loginIdKeyOptions.add("email");
+        break;
+      case "phone":
+        loginIdKeyOptions.add("phone");
+        break;
+      default:
+        break;
+    }
+  }
+  return Array.from(loginIdKeyOptions);
 }
 
 function validate(
   screenState: AddUserScreenState,
-  isFieldVisible: FieldVisible,
-  passwordPolicy: PasswordPolicyConfig
+  passwordPolicy: PasswordPolicyConfig,
+  passwordRequired: boolean
 ) {
-  const errors: AddUserViolation[] = [];
-  if (!checkOnlyOneOfLoginIdFieldFilled(screenState)) {
-    errors.push({ type: "OneOfLoginIdType" });
-  }
-  if (isFieldVisible.password) {
+  const errors: Violation[] = [];
+  if (passwordRequired) {
     const passwordCheckResult = zxcvbn(screenState.password);
     const guessableLevel = extractGuessableLevel(passwordCheckResult);
     if (
       !isPasswordValid(passwordPolicy, screenState.password, guessableLevel)
     ) {
-      errors.push({ type: "PasswordInvalid" });
+      errors.push({ kind: "Invalid" });
     }
   }
   return errors;
 }
 
-function selectViolations(
-  violations: AddUserViolation[],
-  violationType: AddUserViolation["type"]
+const LoginIdIdentityOption: React.FC<LoginIdIdentityOptionProps> = function (
+  props: LoginIdIdentityOptionProps
 ) {
-  return violations.filter((violation) => violation.type === violationType);
-}
+  const { option, renderTextField } = props;
+  if (option == null) {
+    return null;
+  }
+  return (
+    <div className={styles.identityOption}>
+      <Label className={styles.identityOptionLabel}>{option.text}</Label>
+      {renderTextField?.()}
+    </div>
+  );
+};
 
 const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
   props: AddUserContentProps
@@ -84,57 +145,114 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
   const { appConfig } = props;
   const { renderToString } = useContext(Context);
 
-  const [violations, setViolations] = useState<AddUserViolation[]>([]);
-
-  const isFieldVisible = useMemo(() => {
-    const loginIdKeys = appConfig?.identity?.login_id?.keys ?? [];
-    // We consider them as enabled if they are listed as allowed login ID keys.
-    const username = loginIdKeys.find((key) => key.type === "username") != null;
-    const email = loginIdKeys.find((key) => key.type === "email") != null;
-    const phone = loginIdKeys.find((key) => key.type === "phone") != null;
-
-    const primaryAuthenticators =
-      appConfig?.authentication?.primary_authenticators ?? [];
-    const password =
-      primaryAuthenticators.length > 0
-        ? primaryAuthenticators[0] === "password"
-        : false;
-    return {
-      username,
-      email,
-      phone,
-      password,
-    };
-  }, [appConfig]);
-
-  // NOTE: cannot add user identity if none of three field is available
-  const canAddUser =
-    isFieldVisible.username || isFieldVisible.email || isFieldVisible.phone;
-
-  const passwordPolicy = useMemo(() => {
-    return appConfig?.authenticator?.password?.policy ?? {};
-  }, [appConfig]);
-
-  const { value: name, onChange: onNameChange } = useTextField("");
+  const [selectedLoginIdKey, setSelectedLoginIdKey] = useState<
+    LoginIDKey | undefined
+  >(undefined);
   const { value: username, onChange: onUsernameChange } = useTextField("");
   const { value: email, onChange: onEmailChange } = useTextField("");
   const { value: phone, onChange: onPhoneChange } = useTextField("");
   const { value: password, onChange: onPasswordChange } = useTextField("");
 
+  const onSelectLoginIdKey = useCallback(
+    (_event, options?: IChoiceGroupOption) => {
+      const loginIdKey = options?.key;
+      if (!isLoginIDKey(loginIdKey)) {
+        return;
+      }
+      setSelectedLoginIdKey(loginIdKey);
+    },
+    []
+  );
+
+  const [violations, setViolations] = useState<Violation[]>([]);
+  const [unhandledViolations, setUnhandledViolations] = useState<Violation[]>(
+    []
+  );
+
+  const renderUsernameField = useCallback(() => {
+    return (
+      <TextField
+        className={styles.textField}
+        value={username}
+        onChange={onUsernameChange}
+      />
+    );
+  }, [username, onUsernameChange]);
+
+  const renderEmailField = useCallback(() => {
+    return (
+      <TextField
+        className={styles.textField}
+        value={email}
+        onChange={onEmailChange}
+      />
+    );
+  }, [email, onEmailChange]);
+
+  const renderPhoneField = useCallback(() => {
+    return (
+      <TextField
+        className={styles.textField}
+        value={phone}
+        onChange={onPhoneChange}
+      />
+    );
+  }, [phone, onPhoneChange]);
+
+  const textFieldRenderer: Record<LoginIDKey, () => React.ReactNode> = useMemo(
+    () => ({
+      username: renderUsernameField,
+      email: renderEmailField,
+      phone: renderPhoneField,
+    }),
+    [renderUsernameField, renderEmailField, renderPhoneField]
+  );
+
+  const passwordRequired = useMemo(() => {
+    return determineIsPasswordNeeded(appConfig, selectedLoginIdKey);
+  }, [appConfig, selectedLoginIdKey]);
+
+  const loginIdKeyOptions: IChoiceGroupOption[] = useMemo(() => {
+    const list = getLoginIdKeyOptions(appConfig);
+    return list.map((loginIdKey) => {
+      const messageId = loginIdLocaleKey[loginIdKey];
+      const renderTextField =
+        selectedLoginIdKey === loginIdKey
+          ? textFieldRenderer[loginIdKey]
+          : undefined;
+      return {
+        key: loginIdKey,
+        text: renderToString(messageId),
+        onRenderLabel: (option) => (
+          <LoginIdIdentityOption
+            option={option}
+            renderTextField={renderTextField}
+          />
+        ),
+      };
+    });
+  }, [appConfig, renderToString, textFieldRenderer, selectedLoginIdKey]);
+
+  // NOTE: cannot add user identity if none of three field is available
+  const canAddUser = loginIdKeyOptions.length > 0;
+
+  const passwordPolicy = useMemo(() => {
+    return appConfig?.authenticator?.password?.policy ?? {};
+  }, [appConfig]);
+
   const screenState = useMemo(
     () => ({
-      name,
+      selectedLoginIdKey,
       username,
       email,
       phone,
       password,
     }),
-    [name, username, email, phone, password]
+    [selectedLoginIdKey, username, email, phone, password]
   );
 
   const isFormModified = useMemo(() => {
     const initialState: AddUserScreenState = {
-      name: "",
       username: "",
       email: "",
       phone: "",
@@ -146,22 +264,33 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
   const onClickAddUser = useCallback(() => {
     const validationErrors = validate(
       screenState,
-      isFieldVisible,
-      passwordPolicy
+      passwordPolicy,
+      passwordRequired
     );
     setViolations(validationErrors);
     // TODO: integrate add user mutation
-  }, [screenState, isFieldVisible, passwordPolicy]);
+  }, [screenState, passwordPolicy, passwordRequired]);
 
-  const passwordFieldErrorMessage = useMemo(() => {
-    const passwordFieldViolations = selectViolations(
-      violations,
-      "PasswordInvalid"
-    );
-    if (passwordFieldViolations.length > 0) {
-      return renderToString("AddUserScreen.error.invalid-password");
+  const errorMessage = useMemo(() => {
+    const passwordFieldErrorMessages: string[] = [];
+    const unknownViolations: Violation[] = [];
+    for (const violation of violations) {
+      if (violation.kind === "Invalid") {
+        passwordFieldErrorMessages.push(
+          renderToString("AddUserScreen.error.invalid-password")
+        );
+      } else {
+        unknownViolations.push(violation);
+      }
     }
-    return undefined;
+
+    setUnhandledViolations(unknownViolations);
+    return {
+      password:
+        passwordFieldErrorMessages.length > 0
+          ? passwordFieldErrorMessages.join("\n")
+          : undefined,
+    };
   }, [renderToString, violations]);
 
   // TODO: improve empty state
@@ -176,56 +305,23 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
   return (
     <section className={styles.content}>
       <NavigationBlockerDialog blockNavigation={isFormModified} />
-      <TextField
-        className={styles.textField}
-        label={renderToString("AddUserScreen.name")}
-        value={name}
-        onChange={onNameChange}
+      <ChoiceGroup
+        className={styles.userInfo}
+        styles={{ label: { marginBottom: "15px", fontSize: "14px" } }}
+        selectedKey={selectedLoginIdKey}
+        options={loginIdKeyOptions}
+        onChange={onSelectLoginIdKey}
+        label={renderToString("AddUserScreen.user-info.label")}
       />
-      <Label className={styles.userInfoLabel}>
-        <FormattedMessage id="AddUserScreen.user-info.label" />
-      </Label>
-      <section className={styles.userInfo}>
-        {isFieldVisible.username && (
-          <TextField
-            className={styles.textField}
-            label={renderToString("AddUserScreen.user-info.username")}
-            value={username}
-            onChange={onUsernameChange}
-          />
-        )}
-        {isFieldVisible.email && (
-          <TextField
-            className={styles.textField}
-            label={renderToString("AddUserScreen.user-info.email")}
-            value={email}
-            onChange={onEmailChange}
-          />
-        )}
-        {isFieldVisible.phone && (
-          <TextField
-            className={styles.textField}
-            label={renderToString("AddUserScreen.user-info.phone")}
-            value={phone}
-            onChange={onPhoneChange}
-          />
-        )}
-        {selectViolations(violations, "OneOfLoginIdType").length > 0 && (
-          <Text className={styles.errorText}>
-            <FormattedMessage id="AddUserScreen.error.one-of-login-id-type" />
-          </Text>
-        )}
-      </section>
-      {isFieldVisible.password && (
-        <PasswordField
-          textFieldClassName={styles.textField}
-          label={renderToString("AddUserScreen.password.label")}
-          value={password}
-          onChange={onPasswordChange}
-          passwordPolicy={passwordPolicy}
-          errorMessage={passwordFieldErrorMessage}
-        />
-      )}
+      <PasswordField
+        textFieldClassName={styles.textField}
+        disabled={!passwordRequired}
+        label={renderToString("AddUserScreen.password.label")}
+        value={password}
+        onChange={onPasswordChange}
+        passwordPolicy={passwordPolicy}
+        errorMessage={errorMessage.password}
+      />
       <PrimaryButton
         className={styles.addUserButton}
         disabled={!isFormModified}
