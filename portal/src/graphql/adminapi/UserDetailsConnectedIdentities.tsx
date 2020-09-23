@@ -1,9 +1,11 @@
-import React, { useMemo, useCallback, useContext } from "react";
+import React, { useMemo, useCallback, useContext, useState } from "react";
 import cn from "classnames";
 import { useNavigate } from "react-router-dom";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import {
   DefaultButton,
+  Dialog,
+  DialogFooter,
   Icon,
   IContextualMenuProps,
   List,
@@ -12,8 +14,12 @@ import {
 } from "@fluentui/react";
 
 import PrimaryIdentitiesSelectionForm from "./PrimaryIdentitiesSelectionForm";
+import ButtonWithLoading from "../../ButtonWithLoading";
 import ListCellLayout from "../../ListCellLayout";
+import { useDeleteIdentityMutation } from "./mutations/deleteIdentityMutation";
 import { formatDatetime } from "../../util/formatDatetime";
+import { parseError } from "../../util/error";
+import { Violation } from "../../util/validation";
 import { destructiveTheme, verifyButtonTheme } from "../../theme";
 
 import styles from "./UserDetailsConnectedIdentities.module.scss";
@@ -34,24 +40,28 @@ interface Identity {
 
 interface UserDetailsConnectedIdentitiesProps {
   identities: Identity[];
+  refetchUserDetail: () => void;
 }
 
 const identityTypes = ["email", "phone", "username"] as const;
 type IdentityType = typeof identityTypes[number];
 
 interface EmailIdentityListItem {
+  id: string;
   email: string;
   verified: boolean;
   connectedOn: string;
 }
 
 interface PhoneIdentityListItem {
+  id: string;
   phone: string;
   verified: boolean;
   addedOn: string;
 }
 
 interface UsernameIdentityListItem {
+  id: string;
   username: string;
   addedOn: string;
 }
@@ -63,18 +73,28 @@ export interface IdentityLists {
 }
 
 interface IdentityListCellProps {
+  identityID: string;
   identityType: IdentityType;
   identityName: string;
   addedOn?: string;
   connectedOn?: string;
   verified?: boolean;
-  toggleVerified?: (verified: boolean) => void;
-  remove?: () => void;
+  toggleVerified?: (identityID: string, verified: boolean) => void;
+  onRemoveClicked: (identityID: string, identityName: string) => void;
 }
 
 interface VerifyButtonProps {
   verified: boolean;
   toggleVerified: (verified: boolean) => void;
+}
+
+interface ConfirmationDialogData {
+  identityID: string;
+  identityName: string;
+}
+
+interface ErrorDialogData {
+  message: string;
 }
 
 const iconMap: Record<IdentityType, React.ReactNode> = {
@@ -88,6 +108,22 @@ const removeButtonTextId: Record<IdentityType, string> = {
   phone: "remove",
   username: "remove",
 };
+
+function getErrorMessageIdsFromViolation(violations: Violation[]) {
+  const errorMessageIds: string[] = [];
+  for (const violation of violations) {
+    switch (violation.kind) {
+      case "RemoveLastIdentity":
+        errorMessageIds.push(
+          "UserDetails.connected-identities.remove-identity-error.connot-remove-last"
+        );
+        break;
+      default:
+        break;
+    }
+  }
+  return errorMessageIds;
+}
 
 const VerifyButton: React.FC<VerifyButtonProps> = function VerifyButton(
   props: VerifyButtonProps
@@ -128,16 +164,28 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
   props: IdentityListCellProps
 ) {
   const {
+    identityID,
     identityType,
     identityName,
     connectedOn,
     addedOn,
     verified,
     toggleVerified,
-    remove,
+    onRemoveClicked: _onRemoveClicked,
   } = props;
 
   const icon = iconMap[identityType];
+
+  const onRemoveClicked = useCallback(() => {
+    _onRemoveClicked(identityID, identityName);
+  }, [identityID, identityName, _onRemoveClicked]);
+
+  const onVerifyClicked = useCallback(
+    (verified: boolean) => {
+      toggleVerified?.(identityID, verified);
+    },
+    [toggleVerified, identityID]
+  );
 
   return (
     <ListCellLayout className={styles.cellContainer}>
@@ -172,12 +220,12 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
         )}
       </Text>
       {verified != null && toggleVerified != null && (
-        <VerifyButton verified={verified} toggleVerified={toggleVerified} />
+        <VerifyButton verified={verified} toggleVerified={onVerifyClicked} />
       )}
       <DefaultButton
         className={cn(styles.controlButton, styles.removeButton)}
         theme={destructiveTheme}
-        onClick={remove}
+        onClick={onRemoveClicked}
       >
         <FormattedMessage id={removeButtonTextId[identityType]} />
       </DefaultButton>
@@ -188,9 +236,23 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
 const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesProps> = function UserDetailsConnectedIdentities(
   props: UserDetailsConnectedIdentitiesProps
 ) {
-  const { identities } = props;
+  const { identities, refetchUserDetail } = props;
   const { locale, renderToString } = useContext(Context);
   const navigate = useNavigate();
+  const {
+    deleteIdentity,
+    loading: deletingIdentity,
+  } = useDeleteIdentityMutation();
+
+  const [
+    confirmationDialogData,
+    setConfirmationDialogData,
+  ] = useState<ConfirmationDialogData | null>(null);
+
+  const [
+    errorDialogData,
+    setErrorDialogData,
+  ] = useState<ErrorDialogData | null>(null);
 
   const identityLists: IdentityLists = useMemo(() => {
     const emailIdentityList: EmailIdentityListItem[] = [];
@@ -202,6 +264,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
       const createdAtStr = formatDatetime(locale, identity.createdAt) ?? "";
       if (identity.claims.email != null) {
         emailIdentityList.push({
+          id: identity.id,
           email: identity.claims.email,
           verified: true,
           connectedOn: createdAtStr,
@@ -210,6 +273,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
 
       if (identity.claims.phone_number != null) {
         phoneIdentityList.push({
+          id: identity.id,
           phone: identity.claims.phone_number,
           verified: false,
           addedOn: createdAtStr,
@@ -218,6 +282,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
 
       if (identity.claims.preferred_username != null) {
         usernameIdentityList.push({
+          id: identity.id,
           username: identity.claims.preferred_username,
           addedOn: createdAtStr,
         });
@@ -230,6 +295,61 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
     };
   }, [locale, identities]);
 
+  const onRemoveClicked = useCallback(
+    (identityID: string, identityName: string) => {
+      setConfirmationDialogData({
+        identityID,
+        identityName,
+      });
+    },
+    [setConfirmationDialogData]
+  );
+
+  const onDismissConfirmationDialog = useCallback(() => {
+    setConfirmationDialogData(null);
+  }, []);
+
+  const onConfirmRemoveIdentity = useCallback(() => {
+    if (confirmationDialogData == null) {
+      return;
+    }
+    const { identityID } = confirmationDialogData;
+    deleteIdentity(identityID)
+      .then((success) => {
+        if (success) {
+          refetchUserDetail();
+          onDismissConfirmationDialog();
+        } else {
+          throw new Error();
+        }
+      })
+      .catch((err) => {
+        onDismissConfirmationDialog();
+        const fallbackErrorMessageId =
+          "UserDetails.connected-identities.remove-identity-error.generic";
+        const violations = parseError(err);
+        const errorMessageIds = getErrorMessageIdsFromViolation(violations);
+        const errorMessage =
+          errorMessageIds.length > 0
+            ? errorMessageIds.map((id) => renderToString(id)).join("\n")
+            : renderToString(fallbackErrorMessageId);
+
+        setErrorDialogData({
+          message: errorMessage,
+        });
+      });
+  }, [
+    confirmationDialogData,
+    deleteIdentity,
+    onDismissConfirmationDialog,
+    renderToString,
+    refetchUserDetail,
+  ]);
+
+  const onDismissErrorDialog = useCallback(() => {
+    setErrorDialogData(null);
+  }, [setErrorDialogData]);
+
   const onRenderEmailIdentityCell = useCallback(
     (item?: EmailIdentityListItem, _index?: number): React.ReactNode => {
       if (item == null) {
@@ -237,15 +357,17 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
       }
       return (
         <IdentityListCell
+          identityID={item.id}
           identityType="email"
           identityName={item.email}
           verified={item.verified}
           connectedOn={item.connectedOn}
+          onRemoveClicked={onRemoveClicked}
           toggleVerified={() => {}}
         />
       );
     },
-    []
+    [onRemoveClicked]
   );
 
   const onRenderPhoneIdentityCell = useCallback(
@@ -255,15 +377,17 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
       }
       return (
         <IdentityListCell
+          identityID={item.id}
           identityType="phone"
           identityName={item.phone}
           verified={item.verified}
           addedOn={item.addedOn}
+          onRemoveClicked={onRemoveClicked}
           toggleVerified={() => {}}
         />
       );
     },
-    []
+    [onRemoveClicked]
   );
 
   const onRenderUsernameIdentityCell = useCallback(
@@ -273,13 +397,15 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
       }
       return (
         <IdentityListCell
+          identityID={item.id}
           identityType="username"
           identityName={item.username}
           addedOn={item.addedOn}
+          onRemoveClicked={onRemoveClicked}
         />
       );
     },
-    []
+    [onRemoveClicked]
   );
 
   const addIdentitiesMenuProps: IContextualMenuProps = useMemo(
@@ -311,6 +437,43 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
 
   return (
     <div className={styles.root}>
+      {confirmationDialogData && (
+        <Dialog
+          hidden={false}
+          title={
+            <FormattedMessage id="UserDetails.connected-identities.confirm-remove-identity-title" />
+          }
+          subText={renderToString(
+            "UserDetails.connected-identities.confirm-remove-identity-message",
+            { identityName: confirmationDialogData.identityName }
+          )}
+          onDismiss={onDismissConfirmationDialog}
+        >
+          <DialogFooter>
+            <ButtonWithLoading
+              labelId="confirm"
+              onClick={onConfirmRemoveIdentity}
+              loading={deletingIdentity}
+            />
+          </DialogFooter>
+        </Dialog>
+      )}
+      {errorDialogData && (
+        <Dialog
+          hidden={false}
+          title={
+            <FormattedMessage id="UserDetails.connected-identities.error-dialog-title" />
+          }
+          subText={errorDialogData.message}
+          onDismiss={onDismissErrorDialog}
+        >
+          <DialogFooter>
+            <PrimaryButton onClick={onDismissErrorDialog}>
+              <FormattedMessage id="ok" />
+            </PrimaryButton>
+          </DialogFooter>
+        </Dialog>
+      )}
       <section className={styles.headerSection}>
         <Text as="h2" className={styles.header}>
           <FormattedMessage id="UserDetails.connected-identities.title" />

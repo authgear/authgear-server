@@ -26,12 +26,13 @@ import styles from "./UserDetailsScreen.module.scss";
 interface UserDetailsProps {
   data: UserDetailsScreenQuery_node_User | null;
   loading: boolean;
+  refetch: () => void;
 }
 
 const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
 ) {
-  const { data, loading } = props;
+  const { data, loading, refetch } = props;
   const { renderToString } = React.useContext(Context);
 
   if (loading) {
@@ -67,7 +68,10 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
               "UserDetails.connected-identities.header"
             )}
           >
-            <UserDetailsConnectedIdentities identities={identities} />
+            <UserDetailsConnectedIdentities
+              identities={identities}
+              refetchUserDetail={refetch}
+            />
           </PivotItem>
           <PivotItem headerText={renderToString("UserDetails.session.header")}>
             <UserDetailsSession />
@@ -148,7 +152,7 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
       <UserDetailCommandBar />
       <div className={styles.screenContent}>
         <NavBreadcrumb items={navBreadcrumbItems} />
-        <UserDetails data={userDetails} loading={loading} />
+        <UserDetails data={userDetails} loading={loading} refetch={refetch} />
       </div>
     </main>
   );
