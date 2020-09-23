@@ -36,7 +36,7 @@
     "@apollo/client": "3.1.5",
     "@authgear/web": "0.1.0",
     "@fluentui/react": "7.137.1",
-    "@monaco-editor/react": "^3.6.3",
+    "@monaco-editor/react": "^3.5.5",
     "@oursky/react-messageformat": "1.0.0",
     "@types/deep-equal": "1.0.1",
     "@types/js-yaml": "3.12.5",
