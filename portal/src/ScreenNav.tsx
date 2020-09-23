@@ -38,6 +38,12 @@ const ScreenNav: React.FC = function ScreenNav() {
             url: "configuration/single-sign-on",
             icon: "PlugConnected",
           },
+          {
+            key: "passwords",
+            name: renderToString("ScreenNav.passwords"),
+            url: "configuration/passwords",
+            icon: "PasswordField",
+          },
         ],
       },
     ];

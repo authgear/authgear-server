@@ -39,6 +39,7 @@
   "ScreenNav.authentication": "Authentication",
   "ScreenNav.anonymous-users": "Anonymous Users",
   "ScreenNav.single-sign-on": "Single-Sign On",
+  "ScreenNav.passwords": "Passwords",
 
   "NavBreadcrumb.label": "Nested navigation",
 
@@ -163,6 +164,9 @@
   "SingleSignOnConfigurationScreen.widget.team-id": "Team ID",
   "SingleSignOnConfigurationScreen.widget.client-secret.error": "Invalid client secret",
 
+  "PasswordsScreen.title": "Passwords",
+  "PasswordsScreen.password-policy.title": "Password Policy",
+  "PasswordsScreen.forgot-password.title": "Forgot Password",
   "PaginationWidget.First": "Go to the first page",
   "PaginationWidget.Prev": "Go to the previous page",
   "PaginationWidget.Next": "Go to the next page",

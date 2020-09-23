@@ -13,6 +13,7 @@ import AddUsernameScreen from "./graphql/adminapi/AddUsernameScreen";
 import AuthenticationConfigurationScreen from "./graphql/portal/AuthenticationConfigurationScreen";
 import AnonymousUsersConfigurationScreen from "./graphql/portal/AnonymousUsersConfigurationScreen";
 import SingleSignOnConfigurationScreen from "./graphql/portal/SingleSignOnConfigurationScreen";
+import PasswordsScreen from "./graphql/portal/PasswordsScreen";
 
 const AppRoot: React.FC = function AppRoot() {
   const { appID } = useParams();
@@ -57,6 +58,10 @@ const AppRoot: React.FC = function AppRoot() {
           <Route
             path="/configuration/single-sign-on"
             element={<SingleSignOnConfigurationScreen />}
+          />
+          <Route
+            path="/configuration/passwords"
+            element={<PasswordsScreen />}
           />
         </Routes>
       </ScreenLayout>
