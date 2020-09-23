@@ -191,6 +191,13 @@ interface UIConfig {
   country_calling_code?: UICountryCallingCodeConfig;
 }
 
+// ForgotPasswordConfig
+interface ForgotPasswordConfig {
+  enabled?: boolean;
+  reset_code_expiry_seconds?: DurationSeconds;
+}
+
+// PortalAPIAppConfig
 export interface PortalAPIAppConfig {
   http?: HTTPConfig;
   identity?: IdentityConfig;
@@ -198,6 +205,7 @@ export interface PortalAPIAppConfig {
   authentication?: AuthenticationConfig;
   verification?: VerificationConfig;
   ui?: UIConfig;
+  forgot_password?: ForgotPasswordConfig;
 }
 
 // secret config
