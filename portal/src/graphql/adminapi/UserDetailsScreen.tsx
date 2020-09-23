@@ -129,6 +129,7 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
     variables: {
       userID,
     },
+    fetchPolicy: "network-only",
   });
 
   const navBreadcrumbItems = React.useMemo(() => {
