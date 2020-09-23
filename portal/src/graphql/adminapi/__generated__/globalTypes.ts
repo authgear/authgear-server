@@ -24,6 +24,18 @@ export enum IdentityType {
   OAUTH = "OAUTH",
 }
 
+/**
+ * Definition of an identity. This is a union object, exactly one of the available fields must be present.
+ */
+export interface IdentityDefinition {
+  loginID?: IdentityDefinitionLoginID | null;
+}
+
+export interface IdentityDefinitionLoginID {
+  key: string;
+  value: string;
+}
+
 //==============================================================
 // END Enums and Input Objects
 //==============================================================
