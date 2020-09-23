@@ -16,6 +16,18 @@ export function setFieldIfChanged<K extends string>(
   }
 }
 
+export function setFieldIfListNonEmpty(
+  map: Record<string, unknown>,
+  field: string,
+  list: (string | number | boolean)[]
+): void {
+  if (list.length === 0) {
+    delete map[field];
+  } else {
+    map[field] = list;
+  }
+}
+
 // This function is used to clear empty objects in new app config constructed from
 // state. We create all object needed, then mutate the object, remove all empty
 // object afterwards, to avoid the need of conditionally constructing new object
