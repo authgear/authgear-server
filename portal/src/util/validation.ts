@@ -4,13 +4,22 @@ import { nonNullable } from "./types";
 // union type of different kind of violation
 export type Violation =
   | RequiredViolation
+  | FormatViolation
   | GeneralViolation
-  | RemoveLastIdentityViolation;
+  | RemoveLastIdentityViolation
+  | InvalidLoginIDKeyViolation
+  | DuplicatedIdentityViolation
+  | InvalidViolation;
 
 interface RequiredViolation {
   kind: "required";
   location: string;
   missingField: string[];
+}
+
+interface FormatViolation {
+  kind: "format";
+  location: string;
 }
 
 interface GeneralViolation {
@@ -22,8 +31,28 @@ interface RemoveLastIdentityViolation {
   kind: "RemoveLastIdentity";
 }
 
+interface InvalidLoginIDKeyViolation {
+  kind: "InvalidLoginIDKey";
+}
+
+interface DuplicatedIdentityViolation {
+  kind: "DuplicatedIdentity";
+}
+
+interface InvalidViolation {
+  kind: "Invalid";
+}
+
 // list of violation kind recognized
-const violationKinds = ["required", "general", "RemoveLastIdentity"];
+const violationKinds = [
+  "required",
+  "general",
+  "format",
+  "RemoveLastIdentity",
+  "InvalidLoginIDKey",
+  "Invalid",
+  "DuplicatedIdentity",
+];
 type ViolationKind = Violation["kind"];
 export function isViolationKind(value?: string): value is ViolationKind {
   return value != null && violationKinds.includes(value);

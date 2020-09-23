@@ -26,8 +26,18 @@ interface GeneralErrorCause {
   kind: "general";
 }
 
+interface FormatErrorCauseDetails {
+  msg: string;
+}
+
+interface FormatErrorCause {
+  details: FormatErrorCauseDetails;
+  location: string;
+  kind: "format";
+}
+
 // union type of cause details, depend on kind
-type ErrorCause = RequiredErrorCause | GeneralErrorCause;
+type ErrorCause = RequiredErrorCause | GeneralErrorCause | FormatErrorCause;
 
 interface ValidationErrorInfo {
   causes: ErrorCause[];
@@ -55,14 +65,28 @@ interface APIInvariantViolationError {
   reason: "InvariantViolated";
 }
 
+interface APIDuplicatedIdentityError {
+  errorName: string;
+  reason: "DuplicatedIdentity";
+}
+
+interface APIInvalidError {
+  errorName: string;
+  reason: "Invalid";
+}
+
 // union type of api errors, depend on reason
-type APIError = APIValidationError | APIInvariantViolationError;
+type APIError =
+  | APIValidationError
+  | APIInvariantViolationError
+  | APIInvalidError
+  | APIDuplicatedIdentityError;
 
 function isAPIError(value?: { [key: string]: any }): value is APIError {
   if (value == null) {
     return false;
   }
-  return "errorName" in value && "info" in value && "reason" in value;
+  return "errorName" in value && "reason" in value;
 }
 
 function extractViolationFromErrorCause(cause: ErrorCause): Violation | null {
@@ -74,6 +98,11 @@ function extractViolationFromErrorCause(cause: ErrorCause): Violation | null {
         location: cause.location,
       };
     case "general":
+      return {
+        kind: cause.kind,
+        location: cause.location,
+      };
+    case "format":
       return {
         kind: cause.kind,
         location: cause.location,
@@ -96,6 +125,12 @@ export function handleUpdateAppConfigError(error: GraphQLError): Violation[] {
     case "InvariantViolated": {
       const cause = extensions.info.cause;
       return [{ kind: cause.kind }];
+    }
+    case "Invalid": {
+      return [{ kind: "Invalid" }];
+    }
+    case "DuplicatedIdentity": {
+      return [{ kind: "DuplicatedIdentity" }];
     }
     default:
       return [];
