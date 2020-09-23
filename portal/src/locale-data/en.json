@@ -129,6 +129,8 @@
   "AddPhoneScreen.title": "Add Phone",
   "AddPhoneScreen.phone.label": "Phone Number",
   "AddPhoneScreen.country-code.label": "Country Code",
+  "AddPhoneScreen.error.invalid-phone-number": "Invalid phone number",
+  "AddPhoneScreen.error.duplicated-phone-number": "Phone number already exist",
 
   "AddUsernameScreen.title": "Add Username",
   "AddUsernameScreen.username.label": "Username",

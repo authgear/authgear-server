@@ -1,17 +1,24 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
-import { Dropdown, PrimaryButton, TextField, Toggle } from "@fluentui/react";
+import { useNavigate, useParams } from "react-router-dom";
+import { Dropdown, Label, TextField, Toggle } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import NavBreadcrumb from "../../NavBreadcrumb";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
+import ButtonWithLoading from "../../ButtonWithLoading";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import UserDetailCommandBar from "./UserDetailCommandBar";
 import { useDropdown, useTextField } from "../../hook/useInput";
 import { useAppConfigQuery } from "../portal/query/appConfigQuery";
+import { useCreateLoginIDIdentityMutation } from "./mutations/createIdentityMutation";
 import { PortalAPIAppConfig } from "../../types";
+import { parseError } from "../../util/error";
+import {
+  defaultFormatErrorMessageList,
+  Violation,
+} from "../../util/validation";
 
 import styles from "./AddPhoneScreen.module.scss";
 
@@ -23,7 +30,23 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
   props: AddPhoneFormProps
 ) {
   const { appConfig } = props;
+  const { userID } = useParams();
+  const navigate = useNavigate();
+
+  const {
+    createIdentity,
+    loading: creatingIdentity,
+    error: createIdentityError,
+  } = useCreateLoginIDIdentityMutation(userID);
   const { renderToString } = useContext(Context);
+
+  const [violations, setViolations] = useState<Violation[]>([]);
+  const [unhandledViolations, setUnhandledViolations] = useState<Violation[]>(
+    []
+  );
+  const [disableBlockNavigation, setDisableBlockNavigation] = useState<boolean>(
+    false
+  );
 
   const { value: phone, onChange: _onPhoneChange } = useTextField("");
 
@@ -84,16 +107,61 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
   }, [screenState, countryCodeConfig.default]);
 
   const onAddClicked = useCallback(() => {
-    // TODO: mutation to be integrated
-  }, []);
+    setDisableBlockNavigation(true);
+    const combinedPhone = `+${countryCode}${phone}`;
+    createIdentity({ key: "phone", value: combinedPhone })
+      .then((identity) => {
+        if (identity != null) {
+          navigate("../");
+        } else {
+          throw new Error();
+        }
+      })
+      .catch((err) => {
+        setDisableBlockNavigation(false);
+        const violations = parseError(err);
+        setViolations(violations);
+      });
+  }, [countryCode, phone, navigate, createIdentity]);
+
+  const errorMessage = useMemo(() => {
+    const phoneNumberFieldErrorMessages: string[] = [];
+    const unknownViolations: Violation[] = [];
+    for (const violation of violations) {
+      if (violation.kind === "Invalid" || violation.kind === "format") {
+        phoneNumberFieldErrorMessages.push(
+          renderToString("AddPhoneScreen.error.invalid-phone-number")
+        );
+      } else if (violation.kind === "DuplicatedIdentity") {
+        phoneNumberFieldErrorMessages.push(
+          renderToString("AddPhoneScreen.error.duplicated-phone-number")
+        );
+      } else {
+        unknownViolations.push(violation);
+      }
+    }
+
+    setUnhandledViolations(unknownViolations);
+
+    return {
+      phoneNumber: defaultFormatErrorMessageList(phoneNumberFieldErrorMessages),
+    };
+  }, [violations, renderToString]);
 
   return (
     <div className={styles.form}>
-      <NavigationBlockerDialog blockNavigation={isFormModified} />
+      {unhandledViolations.length > 0 && (
+        <ShowError error={createIdentityError} />
+      )}
+      <NavigationBlockerDialog
+        blockNavigation={!disableBlockNavigation && isFormModified}
+      />
       <section className={styles.phoneNumberFields}>
+        <Label className={styles.phoneNumberLabel}>
+          <FormattedMessage id="AddPhoneScreen.phone.label" />
+        </Label>
         <Dropdown
           className={styles.countryCode}
-          label={renderToString("AddPhoneScreen.phone.label")}
           options={countryCodeOptions}
           selectedKey={countryCode}
           onChange={onCountryCodeChange}
@@ -104,6 +172,7 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
           value={phone}
           onChange={onPhoneChange}
           ariaLabel={renderToString("AddPhoneScreen.phone.label")}
+          errorMessage={errorMessage.phoneNumber}
         />
       </section>
       <Toggle
@@ -113,9 +182,12 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
         checked={verified}
         onChange={onVerifiedToggled}
       />
-      <PrimaryButton onClick={onAddClicked} disabled={!isFormModified}>
-        <FormattedMessage id="add" />
-      </PrimaryButton>
+      <ButtonWithLoading
+        onClick={onAddClicked}
+        disabled={!isFormModified}
+        labelId="add"
+        loading={creatingIdentity}
+      />
     </div>
   );
 };
