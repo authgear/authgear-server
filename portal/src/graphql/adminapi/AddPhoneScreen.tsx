@@ -112,7 +112,7 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
     createIdentity({ key: "phone", value: combinedPhone })
       .then((identity) => {
         if (identity != null) {
-          navigate("../");
+          navigate("../#connected-identities");
         } else {
           throw new Error();
         }

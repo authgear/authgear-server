@@ -73,7 +73,7 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
     createIdentity({ key: "email", value: email })
       .then((identity) => {
         if (identity != null) {
-          navigate("../");
+          navigate("../#connected-identities");
         } else {
           throw new Error();
         }

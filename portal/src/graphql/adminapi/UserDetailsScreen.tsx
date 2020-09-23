@@ -1,5 +1,5 @@
 import React from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { Pivot, PivotItem } from "@fluentui/react";
 import { useQuery, gql } from "@apollo/client";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
@@ -33,6 +33,8 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
 ) {
   const { data, loading, refetch } = props;
+  const location = useLocation();
+  const hash = location.hash.slice(1);
   const { renderToString } = React.useContext(Context);
 
   if (loading) {
@@ -57,13 +59,15 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
         lastLoginAtISO={data?.lastLoginAt ?? null}
       />
       <div className={styles.userDetailsTab}>
-        <Pivot>
+        <Pivot initialSelectedKey={hash}>
           <PivotItem
+            itemKey={"account-security"}
             headerText={renderToString("UserDetails.account-security.header")}
           >
             <UserDetailsAccountSecurity authenticators={authenticators} />
           </PivotItem>
           <PivotItem
+            itemKey={"connected-identities"}
             headerText={renderToString(
               "UserDetails.connected-identities.header"
             )}
@@ -73,7 +77,10 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
               refetchUserDetail={refetch}
             />
           </PivotItem>
-          <PivotItem headerText={renderToString("UserDetails.session.header")}>
+          <PivotItem
+            itemKey={"session"}
+            headerText={renderToString("UserDetails.session.header")}
+          >
             <UserDetailsSession />
           </PivotItem>
         </Pivot>

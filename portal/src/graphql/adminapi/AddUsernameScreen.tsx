@@ -8,6 +8,7 @@ import UserDetailCommandBar from "./UserDetailCommandBar";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ButtonWithLoading from "../../ButtonWithLoading";
+import ShowError from "../../ShowError";
 import { useCreateLoginIDIdentityMutation } from "./mutations/createIdentityMutation";
 import { useTextField } from "../../hook/useInput";
 import {
@@ -17,7 +18,6 @@ import {
 import { parseError } from "../../util/error";
 
 import styles from "./AddUsernameScreen.module.scss";
-import ShowError from "../../ShowError";
 
 const AddUsernameScreen: React.FC = function AddUsernameScreen() {
   const { userID } = useParams();
@@ -64,7 +64,7 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
     createIdentity({ key: "username", value: username })
       .then((identity) => {
         if (identity != null) {
-          navigate("../");
+          navigate("../#connected-identities");
         } else {
           throw new Error();
         }
