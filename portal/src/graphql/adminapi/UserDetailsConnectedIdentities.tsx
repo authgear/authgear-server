@@ -40,6 +40,7 @@ interface Identity {
 
 interface UserDetailsConnectedIdentitiesProps {
   identities: Identity[];
+  availableLoginIdIdentities: string[];
   refetchUserDetail: () => void;
 }
 
@@ -236,7 +237,7 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
 const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesProps> = function UserDetailsConnectedIdentities(
   props: UserDetailsConnectedIdentitiesProps
 ) {
-  const { identities, refetchUserDetail } = props;
+  const { identities, availableLoginIdIdentities, refetchUserDetail } = props;
   const { locale, renderToString } = useContext(Context);
   const navigate = useNavigate();
   const {
@@ -408,32 +409,35 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
     [onRemoveClicked]
   );
 
-  const addIdentitiesMenuProps: IContextualMenuProps = useMemo(
-    () => ({
-      items: [
-        {
-          key: "email",
-          text: renderToString("UserDetails.connected-identities.email"),
-          iconProps: { iconName: "Mail" },
-          onClick: () => navigate("./add-email"),
-        },
-        {
-          key: "phone",
-          text: renderToString("UserDetails.connected-identities.phone"),
-          iconProps: { iconName: "CellPhone" },
-          onClick: () => navigate("./add-phone"),
-        },
-        {
-          key: "username",
-          text: renderToString("UserDetails.connected-identities.username"),
-          iconProps: { iconName: "Accounts" },
-          onClick: () => navigate("./add-username"),
-        },
-      ],
+  const addIdentitiesMenuProps: IContextualMenuProps = useMemo(() => {
+    const availableMenuItem = [
+      {
+        key: "email",
+        text: renderToString("UserDetails.connected-identities.email"),
+        iconProps: { iconName: "Mail" },
+        onClick: () => navigate("./add-email"),
+      },
+      {
+        key: "phone",
+        text: renderToString("UserDetails.connected-identities.phone"),
+        iconProps: { iconName: "CellPhone" },
+        onClick: () => navigate("./add-phone"),
+      },
+      {
+        key: "username",
+        text: renderToString("UserDetails.connected-identities.username"),
+        iconProps: { iconName: "Accounts" },
+        onClick: () => navigate("./add-username"),
+      },
+    ];
+    const enabledItems = availableMenuItem.filter((item) => {
+      return availableLoginIdIdentities.includes(item.key);
+    });
+    return {
+      items: enabledItems,
       directionalHintFixed: true,
-    }),
-    [renderToString, navigate]
-  );
+    };
+  }, [renderToString, navigate, availableLoginIdIdentities]);
 
   return (
     <div className={styles.root}>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { Pivot, PivotItem } from "@fluentui/react";
 import { useQuery, gql } from "@apollo/client";
@@ -9,6 +9,7 @@ import {
   UserDetailsScreenQueryVariables,
   UserDetailsScreenQuery_node_User,
 } from "./__generated__/UserDetailsScreenQuery";
+import { useAppConfigQuery } from "../portal/query/appConfigQuery";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
@@ -20,11 +21,13 @@ import UserDetailsSession from "./UserDetailsSession";
 
 import { nonNullable } from "../../util/types";
 import { extractUserInfoFromIdentities } from "../../util/user";
+import { PortalAPIAppConfig } from "../../types";
 
 import styles from "./UserDetailsScreen.module.scss";
 
 interface UserDetailsProps {
   data: UserDetailsScreenQuery_node_User | null;
+  appConfig: PortalAPIAppConfig | null;
   loading: boolean;
   refetch: () => void;
 }
@@ -32,10 +35,15 @@ interface UserDetailsProps {
 const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
 ) {
-  const { data, loading, refetch } = props;
+  const { data, loading, refetch, appConfig } = props;
   const location = useLocation();
   const hash = location.hash.slice(1);
   const { renderToString } = React.useContext(Context);
+
+  const availableLoginIdIdentities = useMemo(() => {
+    const rawLoginIdKeys = appConfig?.identity?.login_id?.keys ?? [];
+    return rawLoginIdKeys.map((loginIdKey) => loginIdKey.key);
+  }, [appConfig]);
 
   if (loading) {
     return <ShowLoading />;
@@ -75,6 +83,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
             <UserDetailsConnectedIdentities
               identities={identities}
               refetchUserDetail={refetch}
+              availableLoginIdIdentities={availableLoginIdIdentities}
             />
           </PivotItem>
           <PivotItem
@@ -128,7 +137,7 @@ const query = gql`
 `;
 
 const UserDetailsScreen: React.FC = function UserDetailsScreen() {
-  const { userID } = useParams();
+  const { appID, userID } = useParams();
   const { loading, error, data, refetch } = useQuery<
     UserDetailsScreenQuery,
     UserDetailsScreenQueryVariables
@@ -138,6 +147,17 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
     },
     fetchPolicy: "network-only",
   });
+  const {
+    loading: loadingAppConfig,
+    error: appConfigError,
+    data: appConfigData,
+    refetch: refetchAppConfig,
+  } = useAppConfigQuery(appID);
+
+  const appConfig =
+    appConfigData?.node?.__typename === "App"
+      ? appConfigData.node.effectiveAppConfig
+      : null;
 
   const navBreadcrumbItems = React.useMemo(() => {
     return [
@@ -155,12 +175,21 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
     return <ShowError error={error} onRetry={refetch} />;
   }
 
+  if (appConfigError != null) {
+    return <ShowError error={error} onRetry={refetchAppConfig} />;
+  }
+
   return (
     <main className={styles.root}>
       <UserDetailCommandBar />
       <div className={styles.screenContent}>
         <NavBreadcrumb items={navBreadcrumbItems} />
-        <UserDetails data={userDetails} loading={loading} refetch={refetch} />
+        <UserDetails
+          data={userDetails}
+          loading={loading || loadingAppConfig}
+          refetch={refetch}
+          appConfig={appConfig}
+        />
       </div>
     </main>
   );
