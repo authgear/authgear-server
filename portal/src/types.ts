@@ -96,13 +96,24 @@ interface IdentityConfig {
 
 // AuthenticatorConfig
 
+export const passwordPolicyGuessableLevels = [1, 2, 3, 4, 5] as const;
+export type PasswordPolicyGuessableLevel = typeof passwordPolicyGuessableLevels[number];
+export const isPasswordPolicyGuessableLevel = (
+  value: unknown
+): value is PasswordPolicyGuessableLevel => {
+  if (typeof value !== "number") {
+    return false;
+  }
+  return passwordPolicyGuessableLevels.some((level) => level === value);
+};
+
 export interface PasswordPolicyConfig {
   min_length?: number;
   uppercase_required?: boolean;
   lowercase_required?: boolean;
   digit_required?: boolean;
   symbol_required?: boolean;
-  minimum_guessable_level?: number;
+  minimum_guessable_level?: PasswordPolicyGuessableLevel;
   excluded_keywords?: string[];
   history_size?: number;
   history_days?: number;
