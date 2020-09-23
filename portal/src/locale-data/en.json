@@ -134,6 +134,8 @@
 
   "AddUsernameScreen.title": "Add Username",
   "AddUsernameScreen.username.label": "Username",
+  "AddUsernameScreen.error.invalid-username": "Invalid username",
+  "AddUsernameScreen.error.duplicated-username": "Username already exist",
 
   "UserDetails.session.header": "Session",
   "UserDetails.session.devices": "Devices",
