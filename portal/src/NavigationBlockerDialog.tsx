@@ -1,15 +1,7 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useBlocker, useNavigate } from "react-router-dom";
 import { Location } from "history";
-import {
-  IDialogContentProps,
-  Dialog,
-  DialogType,
-  DialogFooter,
-  PrimaryButton,
-  DefaultButton,
-} from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import BlockerDialog from "./BlockerDialog";
 
 interface NavigationBlockerDialogProps {
   blockNavigation: boolean;
@@ -20,7 +12,6 @@ const NavigationBlockerDialog: React.FC<NavigationBlockerDialogProps> = function
 ) {
   const { blockNavigation } = props;
 
-  const { renderToString } = useContext(Context);
   const navigate = useNavigate();
 
   // disable block navigation when dialog visible
@@ -42,15 +33,6 @@ const NavigationBlockerDialog: React.FC<NavigationBlockerDialogProps> = function
     setDisableBlockNavigation(true);
   }, _blockNavigation);
 
-  const dialogContentProps: IDialogContentProps = useMemo(
-    () => ({
-      type: DialogType.normal,
-      title: <FormattedMessage id="NavigationBlockerDialog.title" />,
-      subText: renderToString("NavigationBlockerDialog.content"),
-    }),
-    [renderToString]
-  );
-
   const onDialogDismiss = useCallback(() => {
     setDisableBlockNavigation(false);
     setNavigationBlockerDialog({ visible: false });
@@ -66,20 +48,13 @@ const NavigationBlockerDialog: React.FC<NavigationBlockerDialogProps> = function
   }, [navigate, navigationBlockerDialog, onDialogDismiss]);
 
   return (
-    <Dialog
+    <BlockerDialog
       hidden={!navigationBlockerDialog.visible}
-      onDismiss={onDialogDismiss}
-      dialogContentProps={dialogContentProps}
-    >
-      <DialogFooter>
-        <PrimaryButton onClick={onDialogConfirm}>
-          <FormattedMessage id="confirm" />
-        </PrimaryButton>
-        <DefaultButton onClick={onDialogDismiss}>
-          <FormattedMessage id="cancel" />
-        </DefaultButton>
-      </DialogFooter>
-    </Dialog>
+      contentTitleId="NavigationBlockerDialog.title"
+      contentSubTextId="NavigationBlockerDialog.content"
+      onDialogConfirm={onDialogConfirm}
+      onDialogDismiss={onDialogDismiss}
+    />
   );
 };
 
