@@ -527,7 +527,6 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
     setErrorDialogData,
   ] = useState<ErrorDialogData | null>(null);
 
-  const [violations, setViolations] = useState<Violation[]>([]);
   const [unhandledViolations, setUnhandledViolations] = useState<Violation[]>(
     []
   );
@@ -607,10 +606,7 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
             throw new Error();
           }
         })
-        .catch((err) => {
-          const newViolations = parseError(err);
-          setViolations(newViolations);
-        })
+        .catch(() => {})
         .finally(() => {
           dismissConfirmationDialog();
         });
@@ -619,6 +615,7 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
   );
 
   const errorMessage = useMemo(() => {
+    const violations = parseError(deleteAuthenticatorError);
     const errorDialogErrorMessages: string[] = [];
     const unknownViolations: Violation[] = [];
 
@@ -631,7 +628,7 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
     return {
       errorDialog: defaultFormatErrorMessageList(errorDialogErrorMessages),
     };
-  }, [violations]);
+  }, [deleteAuthenticatorError]);
 
   useEffect(() => {
     if (errorMessage.errorDialog == null) {
