@@ -438,43 +438,39 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
 
   return (
     <div className={styles.root}>
-      {confirmationDialogData && (
-        <Dialog
-          hidden={false}
-          title={
-            <FormattedMessage id="UserDetails.connected-identities.confirm-remove-identity-title" />
-          }
-          subText={renderToString(
-            "UserDetails.connected-identities.confirm-remove-identity-message",
-            { identityName: confirmationDialogData.identityName }
-          )}
-          onDismiss={onDismissConfirmationDialog}
-        >
-          <DialogFooter>
-            <ButtonWithLoading
-              labelId="confirm"
-              onClick={onConfirmRemoveIdentity}
-              loading={deletingIdentity}
-            />
-          </DialogFooter>
-        </Dialog>
-      )}
-      {errorDialogData && (
-        <Dialog
-          hidden={false}
-          title={
-            <FormattedMessage id="UserDetails.connected-identities.error-dialog-title" />
-          }
-          subText={errorDialogData.message}
-          onDismiss={onDismissErrorDialog}
-        >
-          <DialogFooter>
-            <PrimaryButton onClick={onDismissErrorDialog}>
-              <FormattedMessage id="ok" />
-            </PrimaryButton>
-          </DialogFooter>
-        </Dialog>
-      )}
+      <Dialog
+        hidden={confirmationDialogData == null}
+        title={
+          <FormattedMessage id="UserDetails.connected-identities.confirm-remove-identity-title" />
+        }
+        subText={renderToString(
+          "UserDetails.connected-identities.confirm-remove-identity-message",
+          { identityName: confirmationDialogData?.identityName ?? "" }
+        )}
+        onDismiss={onDismissConfirmationDialog}
+      >
+        <DialogFooter>
+          <ButtonWithLoading
+            labelId="confirm"
+            onClick={onConfirmRemoveIdentity}
+            loading={deletingIdentity}
+          />
+        </DialogFooter>
+      </Dialog>
+      <Dialog
+        hidden={errorDialogData == null}
+        title={
+          <FormattedMessage id="UserDetails.connected-identities.error-dialog-title" />
+        }
+        subText={errorDialogData?.message}
+        onDismiss={onDismissErrorDialog}
+      >
+        <DialogFooter>
+          <PrimaryButton onClick={onDismissErrorDialog}>
+            <FormattedMessage id="ok" />
+          </PrimaryButton>
+        </DialogFooter>
+      </Dialog>
       <section className={styles.headerSection}>
         <Text as="h2" className={styles.header}>
           <FormattedMessage id="UserDetails.connected-identities.title" />
