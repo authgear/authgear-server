@@ -1,8 +1,16 @@
-import React, { useMemo, useCallback, useContext } from "react";
+import React, {
+  useMemo,
+  useCallback,
+  useContext,
+  useState,
+  useEffect,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import cn from "classnames";
 import {
   DefaultButton,
+  Dialog,
+  DialogFooter,
   Icon,
   List,
   PrimaryButton,
@@ -10,9 +18,17 @@ import {
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 
+import { useDeleteAuthenticatorMutation } from "./mutations/deleteAuthenticatorMutation";
 import ListCellLayout from "../../ListCellLayout";
+import ShowError from "../../ShowError";
+import ButtonWithLoading from "../../ButtonWithLoading";
 import { destructiveTheme } from "../../theme";
 import { formatDatetime } from "../../util/formatDatetime";
+import { parseError } from "../../util/error";
+import {
+  defaultFormatErrorMessageList,
+  Violation,
+} from "../../util/validation";
 
 import styles from "./UserDetailsAccountSecurity.module.scss";
 
@@ -64,6 +80,49 @@ interface OOBOTPAuthenticatorData {
   label: string;
   addedOn: string;
   isDefault: boolean;
+}
+
+interface PasswordAuthenticatorCellProps extends PasswordAuthenticatorData {
+  showConfirmationDialog: (
+    authenticatorID: string,
+    authenticatorName: string
+  ) => void;
+}
+
+interface TOTPAuthenticatorCellProps extends TOTPAuthenticatorData {
+  showConfirmationDialog: (
+    authenticatorID: string,
+    authenticatorName: string
+  ) => void;
+}
+
+interface OOBOTPAuthenticatorCellProps extends OOBOTPAuthenticatorData {
+  showConfirmationDialog: (
+    authenticatorID: string,
+    authenticatorName: string
+  ) => void;
+}
+
+interface RemoveConfirmationDialogData {
+  authenticatorID: string;
+  authenticatorName: string;
+}
+
+interface RemoveConfirmationDialogProps
+  extends Partial<RemoveConfirmationDialogData> {
+  visible: boolean;
+  deleteAuthenticator: (authenticatorID: string) => void;
+  deletingAuthenticator: boolean;
+  onDismiss: () => void;
+}
+
+interface ErrorDialogData {
+  errorMessage: string;
+}
+
+interface ErrorDialogProps extends Partial<ErrorDialogData> {
+  visible: boolean;
+  onDismiss: () => void;
 }
 
 const LABEL_PLACEHOLDER = "---";
@@ -249,11 +308,81 @@ function constructAuthenticatorLists(
       };
 }
 
-const PasswordAuthenticatorCell: React.FC<PasswordAuthenticatorData> = function PasswordAuthenticatorCell(
-  props: PasswordAuthenticatorData
+const RemoveConfirmationDialog: React.FC<RemoveConfirmationDialogProps> = function RemoveConfirmationDialog(
+  props: RemoveConfirmationDialogProps
 ) {
-  const { kind, lastUpdated } = props;
+  const {
+    visible,
+    deleteAuthenticator,
+    deletingAuthenticator,
+    authenticatorID,
+    authenticatorName,
+    onDismiss,
+  } = props;
+
+  const { renderToString } = useContext(Context);
+
+  const onConfirmClicked = useCallback(() => {
+    deleteAuthenticator(authenticatorID!);
+  }, [deleteAuthenticator, authenticatorID]);
+
+  const dialogMessage = useMemo(() => {
+    return renderToString(
+      "UserDetails.account-security.remove-confirm-dialog.message",
+      { authenticatorName: authenticatorName ?? "" }
+    );
+  }, [renderToString, authenticatorName]);
+
+  return (
+    <Dialog
+      hidden={!visible}
+      title={
+        <FormattedMessage id="UserDetails.account-security.remove-confirm-dialog.title" />
+      }
+      subText={dialogMessage}
+      onDismiss={onDismiss}
+    >
+      <DialogFooter>
+        <ButtonWithLoading
+          onClick={onConfirmClicked}
+          labelId="confirm"
+          loading={deletingAuthenticator}
+        />
+        <DefaultButton onClick={onDismiss}>
+          <FormattedMessage id="cancel" />
+        </DefaultButton>
+      </DialogFooter>
+    </Dialog>
+  );
+};
+
+const ErrorDialog: React.FC<ErrorDialogProps> = function ErrorDialog(
+  props: ErrorDialogProps
+) {
+  const { visible, errorMessage, onDismiss } = props;
+
+  return (
+    <Dialog
+      hidden={!visible}
+      title={<FormattedMessage id="error" />}
+      subText={errorMessage}
+      onDismiss={onDismiss}
+    >
+      <DialogFooter>
+        <PrimaryButton onClick={onDismiss}>
+          <FormattedMessage id="ok" />
+        </PrimaryButton>
+      </DialogFooter>
+    </Dialog>
+  );
+};
+
+const PasswordAuthenticatorCell: React.FC<PasswordAuthenticatorCellProps> = function PasswordAuthenticatorCell(
+  props: PasswordAuthenticatorCellProps
+) {
+  const { id, kind, lastUpdated, showConfirmationDialog } = props;
   const navigate = useNavigate();
+  const { renderToString } = useContext(Context);
 
   const labelId = getLocaleKeyWithAuthenticatorType("PASSWORD", kind);
 
@@ -262,8 +391,8 @@ const PasswordAuthenticatorCell: React.FC<PasswordAuthenticatorData> = function 
   }, [navigate]);
 
   const onRemoveClicked = useCallback(() => {
-    // TODO: implement mutation
-  }, []);
+    showConfirmationDialog(id, renderToString(labelId!));
+  }, [labelId, id, renderToString, showConfirmationDialog]);
 
   return (
     <ListCellLayout className={cn(styles.cell, styles.passwordCell)}>
@@ -301,13 +430,15 @@ const PasswordAuthenticatorCell: React.FC<PasswordAuthenticatorData> = function 
   );
 };
 
-const TOTPAuthenticatorCell: React.FC<TOTPAuthenticatorData> = function TOTPAuthenticatorCell(
-  props: TOTPAuthenticatorData
+const TOTPAuthenticatorCell: React.FC<TOTPAuthenticatorCellProps> = function TOTPAuthenticatorCell(
+  props: TOTPAuthenticatorCellProps
 ) {
-  const { kind, label, addedOn } = props;
+  const { id, kind, label, addedOn, showConfirmationDialog } = props;
+
   const onRemoveClicked = useCallback(() => {
-    // TODO: implement mutation
-  }, []);
+    showConfirmationDialog(id, label);
+  }, [id, label, showConfirmationDialog]);
+
   return (
     <ListCellLayout className={cn(styles.cell, styles.totpCell)}>
       <Text className={cn(styles.cellLabel, styles.totpCellLabel)}>
@@ -336,14 +467,14 @@ const TOTPAuthenticatorCell: React.FC<TOTPAuthenticatorData> = function TOTPAuth
   );
 };
 
-const OOBOTPAuthenticatorCell: React.FC<OOBOTPAuthenticatorData> = function (
-  props: OOBOTPAuthenticatorData
+const OOBOTPAuthenticatorCell: React.FC<OOBOTPAuthenticatorCellProps> = function (
+  props: OOBOTPAuthenticatorCellProps
 ) {
-  const { label, iconName, kind, addedOn } = props;
+  const { id, label, iconName, kind, addedOn, showConfirmationDialog } = props;
 
   const onRemoveClicked = useCallback(() => {
-    // TODO: implement mutation
-  }, []);
+    showConfirmationDialog(id, label);
+  }, [id, label, showConfirmationDialog]);
 
   return (
     <ListCellLayout className={cn(styles.cell, styles.oobOtpCell)}>
@@ -381,6 +512,26 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
   const { authenticators } = props;
   const { locale } = useContext(Context);
 
+  const {
+    deleteAuthenticator,
+    loading: deletingAuthenticator,
+    error: deleteAuthenticatorError,
+  } = useDeleteAuthenticatorMutation();
+
+  const [
+    confirmationDialogData,
+    setConfirmationDialogData,
+  ] = useState<RemoveConfirmationDialogData | null>(null);
+  const [
+    errorDialogData,
+    setErrorDialogData,
+  ] = useState<ErrorDialogData | null>(null);
+
+  const [violations, setViolations] = useState<Violation[]>([]);
+  const [unhandledViolations, setUnhandledViolations] = useState<Violation[]>(
+    []
+  );
+
   const primaryAuthenticatorLists = useMemo(() => {
     return constructAuthenticatorLists(authenticators, "PRIMARY", locale);
   }, [locale, authenticators]);
@@ -389,14 +540,33 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
     return constructAuthenticatorLists(authenticators, "SECONDARY", locale);
   }, [locale, authenticators]);
 
+  const showConfirmationDialog = useCallback(
+    (authenticatorID: string, authenticatorName: string) => {
+      setConfirmationDialogData({
+        authenticatorID,
+        authenticatorName,
+      });
+    },
+    []
+  );
+
+  const dismissConfirmationDialog = useCallback(() => {
+    setConfirmationDialogData(null);
+  }, []);
+
   const onRenderPasswordAuthenticatorDetailCell = useCallback(
     (item?: PasswordAuthenticatorData, _index?: number): React.ReactNode => {
       if (item == null) {
         return null;
       }
-      return <PasswordAuthenticatorCell {...item} />;
+      return (
+        <PasswordAuthenticatorCell
+          {...item}
+          showConfirmationDialog={showConfirmationDialog}
+        />
+      );
     },
-    []
+    [showConfirmationDialog]
   );
 
   const onRenderOobOtpAuthenticatorDetailCell = useCallback(
@@ -404,9 +574,14 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
       if (item == null) {
         return null;
       }
-      return <OOBOTPAuthenticatorCell {...item} />;
+      return (
+        <OOBOTPAuthenticatorCell
+          {...item}
+          showConfirmationDialog={showConfirmationDialog}
+        />
+      );
     },
-    []
+    [showConfirmationDialog]
   );
 
   const onRenderTotpAuthenticatorDetailCell = useCallback(
@@ -414,13 +589,80 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
       if (item == null) {
         return null;
       }
-      return <TOTPAuthenticatorCell {...item} />;
+      return (
+        <TOTPAuthenticatorCell
+          {...item}
+          showConfirmationDialog={showConfirmationDialog}
+        />
+      );
     },
-    []
+    [showConfirmationDialog]
   );
+
+  const onConfirmDeleteAuthenticator = useCallback(
+    (authenticatorID) => {
+      deleteAuthenticator(authenticatorID)
+        .then((success) => {
+          if (!success) {
+            throw new Error();
+          }
+        })
+        .catch((err) => {
+          const newViolations = parseError(err);
+          setViolations(newViolations);
+        })
+        .finally(() => {
+          dismissConfirmationDialog();
+        });
+    },
+    [deleteAuthenticator, dismissConfirmationDialog]
+  );
+
+  const errorMessage = useMemo(() => {
+    const errorDialogErrorMessages: string[] = [];
+    const unknownViolations: Violation[] = [];
+
+    for (const violation of violations) {
+      unknownViolations.push(violation);
+    }
+
+    setUnhandledViolations(unknownViolations);
+
+    return {
+      errorDialog: defaultFormatErrorMessageList(errorDialogErrorMessages),
+    };
+  }, [violations]);
+
+  useEffect(() => {
+    if (errorMessage.errorDialog == null) {
+      setErrorDialogData(null);
+    } else {
+      setErrorDialogData({ errorMessage: errorMessage.errorDialog });
+    }
+  }, [errorMessage.errorDialog]);
+
+  const dismissErrorDialog = useCallback(() => {
+    setErrorDialogData(null);
+  }, []);
 
   return (
     <div className={styles.root}>
+      {unhandledViolations.length > 0 && (
+        <ShowError error={deleteAuthenticatorError} />
+      )}
+      <RemoveConfirmationDialog
+        visible={confirmationDialogData != null}
+        authenticatorID={confirmationDialogData?.authenticatorID}
+        authenticatorName={confirmationDialogData?.authenticatorName}
+        onDismiss={dismissConfirmationDialog}
+        deleteAuthenticator={onConfirmDeleteAuthenticator}
+        deletingAuthenticator={deletingAuthenticator}
+      />
+      <ErrorDialog
+        visible={errorDialogData != null}
+        errorMessage={errorDialogData?.errorMessage}
+        onDismiss={dismissErrorDialog}
+      />
       {primaryAuthenticatorLists.hasVisibleList && (
         <div className={styles.authenticatorContainer}>
           <Text
