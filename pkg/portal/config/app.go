@@ -2,12 +2,13 @@ package config
 
 type AppConfig struct {
 	HostTemplate string              `envconfig:"HOST_TEMPLATE"`
+	IDPattern    string              `envconfig:"ID_PATTERN" default:"^[a-z0-9][a-z0-9-]{2,30}[a-z0-9]$"`
 	Secret       AppSecretConfig     `envconfig:"SECRET"`
 	Kubernetes   AppKubernetesConfig `envconfig:"KUBERNETES"`
 }
 
 type AppKubernetesConfig struct {
-	NewResourcePrefix string `envconfig:"NEW_RESOURCE_PREFIX"`
+	NewResourcePrefix string `envconfig:"NEW_RESOURCE_PREFIX" default:"app-"`
 }
 
 type AppSecretConfig struct {

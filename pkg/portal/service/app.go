@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"net/url"
 	"path"
+	"regexp"
 	"strings"
 	texttemplate "text/template"
 
 	"sigs.k8s.io/yaml"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
@@ -101,6 +103,9 @@ func (s *AppService) UpdateConfig(app *model.App, updateFiles []*model.AppConfig
 }
 
 func (s *AppService) generateAppConfig(appID string) (*config.AppConfig, error) {
+	if s.AppConfig.HostTemplate == "" {
+		return nil, errors.New("app hostname template is not configured")
+	}
 	t := texttemplate.New("host-template")
 	_, err := t.Parse(s.AppConfig.HostTemplate)
 	if err != nil {
@@ -184,6 +189,14 @@ func (s *AppService) generateSecretConfig() (*config.SecretConfig, error) {
 }
 
 func (s *AppService) generateConfig(appID string) (appConfigYAML []byte, secretConfigYAML []byte, err error) {
+	appIDRegex, err := regexp.Compile(s.AppConfig.IDPattern)
+	if err != nil {
+		return nil, nil, fmt.Errorf("invalid app ID validation pattern: %w", err)
+	}
+	if !appIDRegex.MatchString(appID) {
+		return nil, nil, apierrors.NewInvalid("invalid app ID")
+	}
+
 	appConfig, err := s.generateAppConfig(appID)
 	if err != nil {
 		return nil, nil, err
