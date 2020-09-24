@@ -131,10 +131,7 @@ function makePasswordPolicyData(
       messageId: "PasswordField.minimum-guessable-level",
       messageValues: {
         level: passwordPolicy.minimum_guessable_level,
-        levelName:
-          guessableLevelNames[
-            passwordPolicy.minimum_guessable_level as GuessableLevel
-          ],
+        levelName: guessableLevelNames[passwordPolicy.minimum_guessable_level],
       },
     });
   }
