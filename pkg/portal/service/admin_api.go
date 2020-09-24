@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"strings"
+	texttemplate "text/template"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
@@ -27,6 +29,26 @@ func (s *AdminAPIService) ResolveConfig(appID string) (*config.Config, error) {
 		return nil, err
 	}
 	return appCtx.Config, nil
+}
+
+func (s *AdminAPIService) ResolveHost(appID string) (host string, err error) {
+	t := texttemplate.New("host-template")
+	_, err = t.Parse(s.AdminAPIConfig.HostTemplate)
+	if err != nil {
+		return
+	}
+	var buf strings.Builder
+
+	data := map[string]interface{}{
+		"AppID": appID,
+	}
+	err = t.Execute(&buf, data)
+	if err != nil {
+		return
+	}
+
+	host = buf.String()
+	return
 }
 
 func (s *AdminAPIService) ResolveEndpoint(appID string) (*url.URL, error) {

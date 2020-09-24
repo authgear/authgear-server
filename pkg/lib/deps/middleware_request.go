@@ -17,6 +17,12 @@ func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
 	logger := m.RootProvider.LoggerFactory.New("request")
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		logger.WithFields(map[string]interface{}{
+			"request.host":                    r.Host,
+			"request.url":                     r.URL.String(),
+			"request.header.host":             r.Header.Get("Host"),
+			"request.header.x-forwarded-host": r.Header.Get("X-Forwarded-Host"),
+		}).Debug("serving request")
 		appCtx, err := m.ConfigSource.ProvideContext(r)
 		if err != nil {
 			if errorutil.Is(err, configsource.ErrAppNotFound) {
