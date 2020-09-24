@@ -41,7 +41,6 @@ interface Identity {
 interface UserDetailsConnectedIdentitiesProps {
   identities: Identity[];
   availableLoginIdIdentities: string[];
-  refetchUserDetail: () => void;
 }
 
 const identityTypes = ["email", "phone", "username"] as const;
@@ -237,7 +236,7 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
 const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesProps> = function UserDetailsConnectedIdentities(
   props: UserDetailsConnectedIdentitiesProps
 ) {
-  const { identities, availableLoginIdIdentities, refetchUserDetail } = props;
+  const { identities, availableLoginIdIdentities } = props;
   const { locale, renderToString } = useContext(Context);
   const navigate = useNavigate();
   const {
@@ -318,7 +317,6 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
     deleteIdentity(identityID)
       .then((success) => {
         if (success) {
-          refetchUserDetail();
           onDismissConfirmationDialog();
         } else {
           throw new Error();
@@ -344,7 +342,6 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
     deleteIdentity,
     onDismissConfirmationDialog,
     renderToString,
-    refetchUserDetail,
   ]);
 
   const onDismissErrorDialog = useCallback(() => {

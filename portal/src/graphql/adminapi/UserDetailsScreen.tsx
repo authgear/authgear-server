@@ -29,13 +29,12 @@ interface UserDetailsProps {
   data: UserDetailsScreenQuery_node_User | null;
   appConfig: PortalAPIAppConfig | null;
   loading: boolean;
-  refetch: () => void;
 }
 
 const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
 ) {
-  const { data, loading, refetch, appConfig } = props;
+  const { data, loading, appConfig } = props;
   const location = useLocation();
   const hash = location.hash.slice(1);
   const { renderToString } = React.useContext(Context);
@@ -82,7 +81,6 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
           >
             <UserDetailsConnectedIdentities
               identities={identities}
-              refetchUserDetail={refetch}
               availableLoginIdIdentities={availableLoginIdIdentities}
             />
           </PivotItem>
@@ -187,7 +185,6 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
         <UserDetails
           data={userDetails}
           loading={loading || loadingAppConfig}
-          refetch={refetch}
           appConfig={appConfig}
         />
       </div>
