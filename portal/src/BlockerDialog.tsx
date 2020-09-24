@@ -11,25 +11,33 @@ import {
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
-export interface SwitchTabBlockerDialogProps extends IDialogProps {
+export interface BlockerDialogProps extends IDialogProps {
+  contentTitleId: string;
+  contentSubTextId: string;
   onDialogConfirm?: IButtonProps["onClick"];
   onDialogDismiss?: IButtonProps["onClick"];
 }
 
-const SwitchTabBlockerDialog: React.FC<SwitchTabBlockerDialogProps> = function SwitchTabBlockerDialog(
+const BlockerDialog: React.FC<BlockerDialogProps> = function BlockerDialog(
   props
 ) {
-  const { onDialogConfirm, onDialogDismiss, ...rest } = props;
+  const {
+    contentTitleId,
+    contentSubTextId,
+    onDialogConfirm,
+    onDialogDismiss,
+    ...rest
+  } = props;
 
   const { renderToString } = useContext(Context);
 
   const dialogContentProps: IDialogContentProps = useMemo(
     () => ({
       type: DialogType.normal,
-      title: <FormattedMessage id="SwitchTabBlockerDialog.title" />,
-      subText: renderToString("SwitchTabBlockerDialog.content"),
+      title: <FormattedMessage id={contentTitleId} />,
+      subText: renderToString(contentSubTextId),
     }),
-    [renderToString]
+    [renderToString, contentTitleId, contentSubTextId]
   );
 
   return (
@@ -46,4 +54,4 @@ const SwitchTabBlockerDialog: React.FC<SwitchTabBlockerDialogProps> = function S
   );
 };
 
-export default SwitchTabBlockerDialog;
+export default BlockerDialog;

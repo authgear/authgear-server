@@ -16,7 +16,7 @@ import { useAppConfigQuery } from "./query/appConfigQuery";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-import SwitchTabBlockerDialog from "../../SwitchTabBlockerDialog";
+import BlockerDialog from "../../BlockerDialog";
 
 import styles from "./PasswordsScreen.module.scss";
 
@@ -179,8 +179,10 @@ const PasswordsScreen: React.FC = function PasswordsScreen() {
           </Pivot>
         </div>
       </div>
-      <SwitchTabBlockerDialog
+      <BlockerDialog
         hidden={!shouldDisplayDiscardChangesDialog}
+        contentTitleId="SwitchTabBlockerDialog.title"
+        contentSubTextId="SwitchTabBlockerDialog.content"
         onDialogConfirm={onDialogConfirm}
         onDialogDismiss={onDialogDismiss}
       />
