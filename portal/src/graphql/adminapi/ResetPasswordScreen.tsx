@@ -150,6 +150,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
       <TextField
         className={cn(styles.passwordField, styles.confirmPasswordField)}
         label={renderToString("ResetPasswordScreen.confirm-password")}
+        type="password"
         value={confirmPassword}
         onChange={onConfirmPasswordChange}
         errorMessage={confirmPasswordErrorMessage}
