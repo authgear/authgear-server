@@ -105,6 +105,8 @@
   "ResetPasswordScreen.error.fetch-password-policy": "Failed to fetch password policy",
   "ResetPasswordScreen.error.invalid-password": "Please check password policies below",
   "ResetPasswordScreen.error.confirm-password-not-match": "New password does not match with confirm password, please double check",
+  "ResetPasswordScreen.error.password-reused": "Password cannot be reused, please check password policies below",
+  "ResetPasswordScreen.error.containing-excluded-keywords": "Password contains excluded keywords, please check password policies below",
 
   "UserDetails.connected-identities.header": "Connected Identities",
   "UserDetails.connected-identities.title": "Identities",

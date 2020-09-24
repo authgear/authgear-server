@@ -46,13 +46,13 @@ interface InvalidViolation {
   kind: "Invalid";
 }
 
-interface PasswordPolicyViolatedViolation {
+export interface PasswordPolicyViolatedViolation {
   kind: "PasswordPolicyViolated";
   causes: string[];
 }
 
 // used for local validation
-interface CustomViolation {
+export interface CustomViolation {
   kind: "custom";
   id: string;
 }
