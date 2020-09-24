@@ -15,7 +15,7 @@ export interface BlockerDialogProps extends IDialogProps {
   contentTitleId: string;
   contentSubTextId: string;
   onDialogConfirm?: IButtonProps["onClick"];
-  onDialogDismiss?: IButtonProps["onClick"];
+  onDialogDismiss?: () => void;
 }
 
 const BlockerDialog: React.FC<BlockerDialogProps> = function BlockerDialog(
@@ -41,7 +41,11 @@ const BlockerDialog: React.FC<BlockerDialogProps> = function BlockerDialog(
   );
 
   return (
-    <Dialog dialogContentProps={dialogContentProps} {...rest}>
+    <Dialog
+      dialogContentProps={dialogContentProps}
+      onDismiss={onDialogDismiss}
+      {...rest}
+    >
       <DialogFooter>
         <PrimaryButton onClick={onDialogConfirm}>
           <FormattedMessage id="confirm" />
