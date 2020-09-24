@@ -1,5 +1,4 @@
 import React, { useContext, useMemo } from "react";
-import { gql, useQuery } from "@apollo/client";
 import { useNavigate } from "react-router-dom";
 import {
   Context as LocaleContext,
@@ -15,22 +14,10 @@ import {
 } from "@fluentui/react";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
-import { AppsScreenQuery } from "./__generated__/AppsScreenQuery";
 import ScreenHeader from "../../ScreenHeader";
+import { AppsScreenQuery } from "./__generated__/AppsScreenQuery";
+import { useAppListQuery } from "./query/appListQuery";
 import styles from "./AppsScreen.module.scss";
-
-const query = gql`
-  query AppsScreenQuery {
-    apps {
-      edges {
-        node {
-          id
-          effectiveAppConfig
-        }
-      }
-    }
-  }
-`;
 
 const AppList: React.FC<AppsScreenQuery> = function AppList(
   props: AppsScreenQuery
@@ -43,10 +30,16 @@ const AppList: React.FC<AppsScreenQuery> = function AppList(
       {
         key: "create",
         text: renderToString("AppsScreen.create-app"),
+        href: "/apps/create",
+        onClick: (e) => {
+          e?.preventDefault();
+          e?.stopPropagation();
+          navigate("/apps/create");
+        },
         iconProps: { iconName: "NewFolder" },
       },
     ],
-    [renderToString]
+    [renderToString, navigate]
   );
 
   const groups: INavLinkGroup[] = useMemo(
@@ -58,7 +51,7 @@ const AppList: React.FC<AppsScreenQuery> = function AppList(
               const appID = String(edge?.node?.id);
               const appOrigin =
                 edge?.node?.effectiveAppConfig.http?.public_origin;
-              const relPath = "/apps/" + encodeURIComponent(appID);
+              const relPath = "/app/" + encodeURIComponent(appID);
               return {
                 name: appOrigin ?? appID,
                 url: relPath,
@@ -95,7 +88,7 @@ const AppList: React.FC<AppsScreenQuery> = function AppList(
 };
 
 const AppsScreen: React.FC = function AppsScreen() {
-  const { loading, error, data, refetch } = useQuery<AppsScreenQuery>(query);
+  const { loading, error, data, refetch } = useAppListQuery();
 
   if (loading) {
     return <ShowLoading />;

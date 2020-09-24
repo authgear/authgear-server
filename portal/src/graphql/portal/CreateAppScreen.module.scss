@@ -1,0 +1,19 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+}
+
+.body {
+  flex: 1 0 0;
+  min-width: 0;
+  min-height: 0;
+
+  margin: 8px 32px;
+}
+
+.appIDField {
+  margin: 20px 0;
+  max-width: 200px;
+}
