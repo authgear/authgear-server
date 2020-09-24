@@ -9,7 +9,8 @@ export type Violation =
   | RemoveLastIdentityViolation
   | InvalidLoginIDKeyViolation
   | DuplicatedIdentityViolation
-  | InvalidViolation;
+  | InvalidViolation
+  | CustomViolation;
 
 interface RequiredViolation {
   kind: "required";
@@ -42,6 +43,12 @@ interface DuplicatedIdentityViolation {
 
 interface InvalidViolation {
   kind: "Invalid";
+}
+
+// used for local validation
+interface CustomViolation {
+  kind: "custom";
+  id: string;
 }
 
 // list of violation kind recognized
