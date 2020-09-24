@@ -172,6 +172,7 @@
   "PasswordsScreen.password-policy.require-uppercase.label": "Requires at least 1 uppercase character",
   "PasswordsScreen.password-policy.require-symbol.label": "Requires at least 1 symbol",
   "PasswordsScreen.password-policy.min-guessable-level.label": "Min. password strength level",
+  "PasswordsScreen.password-policy.min-guessable-level.0": "N/A",
   "PasswordsScreen.password-policy.min-guessable-level.1": "Extremely guessable",
   "PasswordsScreen.password-policy.min-guessable-level.2": "Very guessable",
   "PasswordsScreen.password-policy.min-guessable-level.3": "Fair",

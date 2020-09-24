@@ -73,7 +73,7 @@ function constructStateFromAppConfig(
     isLowercaseRequired: !!passwordPolicy?.lowercase_required,
     isUppercaseRequired: !!passwordPolicy?.uppercase_required,
     isSymbolRequired: !!passwordPolicy?.symbol_required,
-    minGuessableLevel: passwordPolicy?.minimum_guessable_level ?? 1,
+    minGuessableLevel: passwordPolicy?.minimum_guessable_level ?? 0,
     preventReuse:
       passwordPolicy?.history_days !== 0 || passwordPolicy.history_size !== 0,
     historyDays: passwordPolicy?.history_days ?? 0,

@@ -96,7 +96,7 @@ interface IdentityConfig {
 
 // AuthenticatorConfig
 
-export const passwordPolicyGuessableLevels = [1, 2, 3, 4, 5] as const;
+export const passwordPolicyGuessableLevels = [0, 1, 2, 3, 4, 5] as const;
 export type PasswordPolicyGuessableLevel = typeof passwordPolicyGuessableLevels[number];
 export const isPasswordPolicyGuessableLevel = (
   value: unknown
