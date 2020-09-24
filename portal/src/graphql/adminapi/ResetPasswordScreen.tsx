@@ -117,8 +117,8 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
   } = useResetPasswordMutation(userID);
   const { renderToString } = useContext(Context);
 
+  const [localViolations, setLocalViolations] = useState<Violation[]>([]);
   const [disableBlockNavigation, setDisableBlockNavigation] = useState(false);
-  const [violations, setViolations] = useState<Violation[]>([]);
   const [unhandledViolations, setUnhandledViolations] = useState<Violation[]>(
     []
   );
@@ -148,9 +148,9 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
   }, [screenState]);
 
   const onConfirmClicked = useCallback(() => {
-    const localViolations = validate(screenState, passwordPolicy);
-    setViolations(localViolations);
-    if (localViolations.length > 0) {
+    const newLocalViolations = validate(screenState, passwordPolicy);
+    setLocalViolations(newLocalViolations);
+    if (newLocalViolations.length > 0) {
       return;
     }
 
@@ -162,14 +162,16 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
         }
         navigate("../#account-security");
       })
-      .catch((err) => {
+      .catch(() => {
         setDisableBlockNavigation(false);
-        const newViolations = parseError(err);
-        setViolations(newViolations);
       });
   }, [screenState, passwordPolicy, resetPassword, navigate]);
 
   const errorMessages = useMemo(() => {
+    const violations =
+      localViolations.length > 0
+        ? localViolations
+        : parseError(resetPasswordError);
     const newPasswordErrorMessages: string[] = [];
     const confirmPasswordErrorMessages: string[] = [];
     const unknownViolations: Violation[] = [];
@@ -202,7 +204,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
         confirmPasswordErrorMessages
       ),
     };
-  }, [violations, renderToString]);
+  }, [localViolations, resetPasswordError, renderToString]);
 
   if (appConfig == null) {
     return (
