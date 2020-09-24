@@ -66,6 +66,8 @@ function constructStateFromAppConfig(
   appConfig: PortalAPIAppConfig | null
 ): PasswordPolicySettingsState {
   const passwordPolicy = appConfig?.authenticator?.password?.policy;
+  const historyDays = passwordPolicy?.history_days ?? 0;
+  const historySize = passwordPolicy?.history_size ?? 0;
 
   return {
     minLength: passwordPolicy?.min_length ?? 0,
@@ -74,10 +76,9 @@ function constructStateFromAppConfig(
     isUppercaseRequired: !!passwordPolicy?.uppercase_required,
     isSymbolRequired: !!passwordPolicy?.symbol_required,
     minGuessableLevel: passwordPolicy?.minimum_guessable_level ?? 0,
-    preventReuse:
-      passwordPolicy?.history_days !== 0 || passwordPolicy.history_size !== 0,
-    historyDays: passwordPolicy?.history_days ?? 0,
-    historySize: passwordPolicy?.history_size ?? 0,
+    preventReuse: historyDays !== 0 || historySize !== 0,
+    historyDays,
+    historySize,
     excludedKeywords: passwordPolicy?.excluded_keywords ?? [],
   };
 }
