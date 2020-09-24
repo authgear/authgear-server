@@ -36,6 +36,11 @@ func (s *ConfigService) ListAllAppIDs() ([]string, error) {
 	return s.ConfigSource.AppIDResolver.AllAppIDs()
 }
 
+func (s *ConfigService) Create(appID string) error {
+	// TODO(portal): create app
+	return errors.New("TODO: create app " + appID)
+}
+
 func (s *ConfigService) UpdateConfig(appID string, updateFiles []*model.AppConfigFile, deleteFiles []string) error {
 	switch src := s.Controller.Handle.(type) {
 	case *configsource.Kubernetes:

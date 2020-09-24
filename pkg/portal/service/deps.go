@@ -10,6 +10,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(AuthzService), "*"),
 	wire.Struct(new(ConfigService), "*"),
 	NewConfigServiceLogger,
+	NewAppServiceLogger,
 
 	wire.Bind(new(AppAuthzService), new(*AuthzService)),
 	wire.Bind(new(AppConfigService), new(*ConfigService)),

@@ -13,3 +13,8 @@ func (s *AuthzService) ListAuthorizedApps(userID string) ([]string, error) {
 	appIDs, err := s.AppConfigs.ListAllAppIDs()
 	return appIDs, err
 }
+
+func (s *AuthzService) AddAuthorizedUser(appID string, userID string) error {
+	// FIXME(authz): add authorized user to app
+	return nil
+}

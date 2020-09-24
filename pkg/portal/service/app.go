@@ -8,18 +8,28 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 type AppConfigService interface {
 	ResolveContext(appID string) (*config.AppContext, error)
 	UpdateConfig(appID string, updateFiles []*model.AppConfigFile, deleteFiles []string) error
+	Create(id string) error
 }
 
 type AppAuthzService interface {
+	AddAuthorizedUser(appID string, userID string) error
 	ListAuthorizedApps(userID string) ([]string, error)
 }
 
+type AppServiceLogger struct{ *log.Logger }
+
+func NewAppServiceLogger(lf *log.Factory) AppServiceLogger {
+	return AppServiceLogger{lf.New("app-service")}
+}
+
 type AppService struct {
+	Logger     AppServiceLogger
 	AppConfigs AppConfigService
 	AppAuthz   AppAuthzService
 }
@@ -46,6 +56,25 @@ func (s *AppService) List(userID string) ([]*model.App, error) {
 	}
 
 	return s.GetMany(appIDs)
+}
+
+func (s *AppService) Create(userID string, id string) error {
+	s.Logger.
+		WithField("user_id", userID).
+		WithField("app_id", id).
+		Info("creating app")
+
+	err := s.AppConfigs.Create(id)
+	if err != nil {
+		return err
+	}
+
+	err = s.AppAuthz.AddAuthorizedUser(id, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *AppService) UpdateConfig(app *model.App, updateFiles []*model.AppConfigFile, deleteFiles []string) error {
