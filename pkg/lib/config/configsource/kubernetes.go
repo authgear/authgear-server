@@ -269,8 +269,10 @@ func (k *Kubernetes) newController(
 	return ctrl
 }
 
-func makeAppFs(configMap *corev1.ConfigMap, secret *corev1.Secret) (fs.Fs, error) {
-	appFs := afero.NewMemMapFs()
+func MakeAppFS(configMap *corev1.ConfigMap, secret *corev1.Secret) (fs.Fs, error) {
+	// Construct a FS that treats `a` and `/a` the same.
+	// The template is loaded by a file URI which is always an absoluted path.
+	appFs := afero.NewBasePathFs(afero.NewMemMapFs(), "/")
 	create := func(name string, data []byte) {
 		file, _ := appFs.Create(name)
 		_, _ = file.Write(data)
@@ -340,7 +342,7 @@ func (a *k8sApp) doLoad(k *Kubernetes) (*config.AppContext, error) {
 		)
 	}
 
-	appFs, err := makeAppFs(&configMaps.Items[0], &secrets.Items[0])
+	appFs, err := MakeAppFS(&configMaps.Items[0], &secrets.Items[0])
 	if err != nil {
 		return nil, err
 	}
