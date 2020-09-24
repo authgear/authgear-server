@@ -15,7 +15,6 @@ import { useResetPasswordMutation } from "./mutations/resetPasswordMutation";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import PasswordField, {
   handleLocalPasswordViolations,
-  handleLocalViolations,
   handlePasswordPolicyViolatedViolation,
   localValidatePassword,
 } from "../../PasswordField";
