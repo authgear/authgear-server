@@ -16,7 +16,9 @@ export interface SwitchTabBlockerDialogProps extends IDialogProps {
   onDialogDismiss?: IButtonProps["onClick"];
 }
 
-const SwitchTabBlockerDialog: React.FC<SwitchTabBlockerDialogProps> = function SwitchTabBlockerDialog(props) {
+const SwitchTabBlockerDialog: React.FC<SwitchTabBlockerDialogProps> = function SwitchTabBlockerDialog(
+  props
+) {
   const { onDialogConfirm, onDialogDismiss, ...rest } = props;
 
   const { renderToString } = useContext(Context);
@@ -31,10 +33,7 @@ const SwitchTabBlockerDialog: React.FC<SwitchTabBlockerDialogProps> = function S
   );
 
   return (
-    <Dialog
-      dialogContentProps={dialogContentProps}
-      {...rest}
-    >
+    <Dialog dialogContentProps={dialogContentProps} {...rest}>
       <DialogFooter>
         <PrimaryButton onClick={onDialogConfirm}>
           <FormattedMessage id="confirm" />

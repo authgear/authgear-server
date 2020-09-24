@@ -1,4 +1,11 @@
-import React, { useMemo, useContext, useState, useCallback, useEffect, useRef } from "react";
+import React, {
+  useMemo,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { TextField, Label } from "@fluentui/react";
 import cn from "classnames";
@@ -69,7 +76,9 @@ function constructAppConfigFromState(
   return newAppConfig;
 }
 
-const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function ForgotPasswordSettings(props) {
+const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function ForgotPasswordSettings(
+  props
+) {
   const {
     className,
     effectiveAppConfig,
@@ -120,18 +129,15 @@ const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function F
     []
   );
 
-  const onSmsTemplateChange = useCallback(
-    (_event, value?: string) => {
-      if (value === undefined) {
-        return;
-      }
-      setState((state) => ({
-        ...state,
-        smsTemplate: value,
-      }));
-    },
-    []
-  );
+  const onSmsTemplateChange = useCallback((_event, value?: string) => {
+    if (value === undefined) {
+      return;
+    }
+    setState((state) => ({
+      ...state,
+      smsTemplate: value,
+    }));
+  }, []);
 
   const onResetCodeExpirySecondsChange = useCallback(
     (_event, value?: string) => {
@@ -210,7 +216,9 @@ const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function F
         type="number"
         min="0"
         step="1"
-        label={renderToString("PasswordsScreen.forgot-password.time-to-invalid-reset-code.label")}
+        label={renderToString(
+          "PasswordsScreen.forgot-password.time-to-invalid-reset-code.label"
+        )}
         value={`${state.resetCodeExpirySeconds}`}
         onChange={onResetCodeExpirySecondsChange}
       />

@@ -15,10 +15,7 @@ const ToggleWithContent: React.FC<ToggleWithContentProps> = function ToggleWithC
   const { className, children, ...rest } = props;
   return (
     <div className={cn(className, styles.root)}>
-      <Toggle
-        className={styles.toggle}
-        {...rest}
-      />
+      <Toggle className={styles.toggle} {...rest} />
       <div className={styles.content}>{children}</div>
     </div>
   );

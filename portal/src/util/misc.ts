@@ -8,11 +8,7 @@ export function isArrayEqualInOrder<T>(arr1: T[], arr2: T[]): boolean {
 export function setFieldIfChanged<
   M extends Record<K, unknown>,
   K extends string
->(
-  map: Partial<M>,
-  key: K, initialValue: M[K],
-  value: M[K]
-): void {
+>(map: Partial<M>, key: K, initialValue: M[K], value: M[K]): void {
   if (initialValue !== value) {
     map[key] = value;
   }

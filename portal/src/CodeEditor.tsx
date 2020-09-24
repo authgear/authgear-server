@@ -13,12 +13,7 @@ export interface Props {
 }
 
 const CodeEditor: React.FC<Props> = function CodeEditor(props) {
-  const {
-    className,
-    language,
-    value,
-    onChange,
-  } = props;
+  const { className, language, value, onChange } = props;
 
   const callback = useCallback(
     (e: unknown, value: string | undefined) => {
