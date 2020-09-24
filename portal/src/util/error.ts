@@ -75,12 +75,28 @@ interface APIInvalidError {
   reason: "Invalid";
 }
 
+interface PasswordPolicyViolatedErrorCause {
+  Name: string;
+  Info: unknown;
+}
+
+interface PasswordPolicyViolatedErrorInfo {
+  causes: PasswordPolicyViolatedErrorCause[];
+}
+
+interface APIPasswordPolicyViolatedError {
+  errorName: string;
+  info: PasswordPolicyViolatedErrorInfo;
+  reason: "PasswordPolicyViolated";
+}
+
 // union type of api errors, depend on reason
 type APIError =
   | APIValidationError
   | APIInvariantViolationError
   | APIInvalidError
-  | APIDuplicatedIdentityError;
+  | APIDuplicatedIdentityError
+  | APIPasswordPolicyViolatedError;
 
 function isAPIError(value?: { [key: string]: any }): value is APIError {
   if (value == null) {
@@ -132,6 +148,11 @@ export function handleUpdateAppConfigError(error: GraphQLError): Violation[] {
     }
     case "DuplicatedIdentity": {
       return [{ kind: "DuplicatedIdentity" }];
+    }
+    case "PasswordPolicyViolated": {
+      const causes = extensions.info.causes;
+      const causeNames = causes.map((cause) => cause.Name);
+      return [{ kind: "PasswordPolicyViolated", causes: causeNames }];
     }
     default:
       return [];

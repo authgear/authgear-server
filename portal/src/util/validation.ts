@@ -10,7 +10,8 @@ export type Violation =
   | InvalidLoginIDKeyViolation
   | DuplicatedIdentityViolation
   | InvalidViolation
-  | CustomViolation;
+  | CustomViolation
+  | PasswordPolicyViolatedViolation;
 
 interface RequiredViolation {
   kind: "required";
@@ -45,6 +46,11 @@ interface InvalidViolation {
   kind: "Invalid";
 }
 
+interface PasswordPolicyViolatedViolation {
+  kind: "PasswordPolicyViolated";
+  causes: string[];
+}
+
 // used for local validation
 interface CustomViolation {
   kind: "custom";
@@ -60,6 +66,7 @@ const violationKinds = [
   "InvalidLoginIDKey",
   "Invalid",
   "DuplicatedIdentity",
+  "PasswordPolicyViolated",
 ];
 type ViolationKind = Violation["kind"];
 export function isViolationKind(value?: string): value is ViolationKind {
