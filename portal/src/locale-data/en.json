@@ -82,6 +82,8 @@
 
   "UserDetails.account-security.header": "Account Security",
   "UserDetails.account-security.last-updated": "Last updated at {datetime}",
+  "UserDetails.account-security.added-on": "Added: {datetime}",
+  "UserDetails.account-security.reset-password": "Reset Password",
   "UserDetails.account-security.primary": "Primary Authenticators",
   "UserDetails.account-security.primary.password": "Password",
   "UserDetails.account-security.primary.oob-otp": "Passwordless via SMS / Email",
@@ -89,6 +91,13 @@
   "UserDetails.account-security.secondary.totp": "Authenticator Apps / Devices",
   "UserDetails.account-security.secondary.oob-otp": "Verification code via SMS / Email",
   "UserDetails.account-security.secondary.password": "Additional Password",
+
+  "ResetPasswordScreen.title": "Reset Password",
+  "ResetPasswordScreen.new-password": "New Password",
+  "ResetPasswordScreen.confirm-password": "Confirm Password",
+  "ResetPasswordScreen.error.fetch-password-policy": "Failed to fetch password policy",
+  "ResetPasswordScreen.error.invalid-password": "Please check password policies below",
+  "ResetPasswordScreen.error.confirm-password-not-match": "New password does not match with confirm password, please double check",
 
   "UserDetails.connected-identities.header": "Connected Identities",
   "UserDetails.connected-identities.title": "Identities",
