@@ -130,8 +130,9 @@ function extractViolationFromErrorCause(cause: ErrorCause): Violation | null {
 }
 
 export function handleUpdateAppConfigError(error: GraphQLError): Violation[] {
+  const unknownViolation: Violation[] = [{ kind: "Unknown" }];
   if (!isAPIError(error.extensions)) {
-    return [];
+    return unknownViolation;
   }
   const { extensions } = error;
   switch (extensions.reason) {
@@ -155,11 +156,14 @@ export function handleUpdateAppConfigError(error: GraphQLError): Violation[] {
       return [{ kind: "PasswordPolicyViolated", causes: causeNames }];
     }
     default:
-      return [];
+      return unknownViolation;
   }
 }
 
 export function parseError(error: unknown): Violation[] {
+  if (error == null) {
+    return [];
+  }
   if (error instanceof ApolloError) {
     const violations: Violation[] = [];
     for (const graphQLError of error.graphQLErrors) {
@@ -172,5 +176,5 @@ export function parseError(error: unknown): Violation[] {
   }
 
   // unrecognized error
-  return [];
+  return [{ kind: "Unknown" }];
 }
