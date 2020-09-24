@@ -57,12 +57,6 @@ func (c *RedisCredentials) ConnKey() string {
 	return c.RedisURL
 }
 
-var _ = SecretConfigSchema.Add("SMTPMode", `
-{
-	"type": "string",
-	"enum": ["normal", "ssl"]
-}
-`)
 var _ = SecretConfigSchema.Add("OAuthClientCredentials", `
 {
 	"type": "object",
@@ -119,6 +113,13 @@ type OAuthClientCredentialsItem struct {
 func (c *OAuthClientCredentialsItem) SensitiveStrings() []string {
 	return []string{c.ClientSecret}
 }
+
+var _ = SecretConfigSchema.Add("SMTPMode", `
+{
+	"type": "string",
+	"enum": ["normal", "ssl"]
+}
+`)
 
 type SMTPMode string
 

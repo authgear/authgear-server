@@ -21,6 +21,8 @@ type Config struct {
 	Authgear portalconfig.AuthgearConfig `envconfig:"AUTHGEAR"`
 	// AdminAPI configures how portal interacts with Authgear Admin API.
 	AdminAPI portalconfig.AdminAPIConfig `envconfig:"ADMIN_API"`
+	// App configures the managed apps.
+	App portalconfig.AppConfig `envconfig:"APP"`
 	// StaticAsset configures serving static asset
 	StaticAsset StaticAssetConfig `envconfig:"STATIC_ASSET"`
 

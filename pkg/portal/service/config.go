@@ -10,11 +10,16 @@ import (
 	"github.com/spf13/afero"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
+
+var ErrDuplicatedAppID = apierrors.AlreadyExists.WithReason("DuplicatedAppID").
+	New("duplicated app ID")
 
 type ConfigServiceLogger struct{ *log.Logger }
 
@@ -24,6 +29,7 @@ func NewConfigServiceLogger(lf *log.Factory) ConfigServiceLogger {
 
 type ConfigService struct {
 	Logger       ConfigServiceLogger
+	AppConfig    *portalconfig.AppConfig
 	Controller   *configsource.Controller
 	ConfigSource *configsource.ConfigSource
 }
@@ -36,9 +42,21 @@ func (s *ConfigService) ListAllAppIDs() ([]string, error) {
 	return s.ConfigSource.AppIDResolver.AllAppIDs()
 }
 
-func (s *ConfigService) Create(appID string) error {
-	// TODO(portal): create app
-	return errors.New("TODO: create app " + appID)
+func (s *ConfigService) Create(appID string, appConfigYAML []byte, secretConfigYAML []byte) error {
+	switch src := s.Controller.Handle.(type) {
+	case *configsource.Kubernetes:
+		err := s.createKubernetes(src, appID, appConfigYAML, secretConfigYAML)
+		if err != nil {
+			return err
+		}
+
+	case *configsource.LocalFS:
+		return apierrors.NewForbidden("cannot create app for local FS")
+
+	default:
+		return errors.New("unsupported configuration source")
+	}
+	return nil
 }
 
 func (s *ConfigService) UpdateConfig(appID string, updateFiles []*model.AppConfigFile, deleteFiles []string) error {
@@ -150,4 +168,15 @@ func (s *ConfigService) updateLocalFS(l *configsource.LocalFS, appID string, upd
 	}
 
 	return nil
+}
+
+func (s *ConfigService) createKubernetes(k *configsource.Kubernetes, appID string, appConfigYAML []byte, secretConfigYAML []byte) error {
+	_, err := k.ResolveContext(appID)
+	if err != nil && !errors.Is(err, configsource.ErrAppNotFound) {
+		return err
+	} else if err == nil {
+		return ErrDuplicatedAppID
+	}
+
+	return errors.New("TODO: create k8s resources")
 }

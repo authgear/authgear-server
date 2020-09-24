@@ -4,32 +4,23 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
-	"github.com/spf13/afero"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	configtest "github.com/authgear/authgear-server/pkg/lib/config/test"
 	"github.com/authgear/authgear-server/pkg/portal/model"
-	"github.com/authgear/authgear-server/pkg/util/fs"
 )
 
 func TestValidateConfig(t *testing.T) {
 	Convey("ValidateConfig", t, func() {
-		appFs := afero.NewMemMapFs()
+		appID := "app-id"
 		cfg := &config.Config{
 			AppConfig:    configtest.FixtureAppConfig("app-id"),
 			SecretConfig: configtest.FixtureSecretConfig(0),
 		}
 		config.PopulateDefaultValues(cfg.AppConfig)
-		app := &model.App{
-			ID: "app-id",
-			Context: &config.AppContext{
-				Fs:     &fs.AferoFs{Fs: appFs},
-				Config: cfg,
-			},
-		}
 
 		Convey("accept empty updates", func() {
-			err := ValidateConfig(app, nil, nil)
+			err := ValidateConfig(appID, *cfg, nil, nil)
 			So(err, ShouldBeNil)
 		})
 
@@ -45,7 +36,7 @@ func TestValidateConfig(t *testing.T) {
 				},
 			}
 			deleteFiles := []string{"../../test.yaml", "/"}
-			_ = ValidateConfig(app, updateFiles, deleteFiles)
+			_ = ValidateConfig(appID, *cfg, updateFiles, deleteFiles)
 
 			So(updateFiles[0].Path, ShouldEqual, "/foo/test.yaml")
 			So(updateFiles[1].Path, ShouldEqual, "/bar/test.yaml")
@@ -55,11 +46,11 @@ func TestValidateConfig(t *testing.T) {
 
 		Convey("forbid deleting configuration YAML", func() {
 			deleteFiles := []string{"authgear.yaml"}
-			err := ValidateConfig(app, nil, deleteFiles)
+			err := ValidateConfig(appID, *cfg, nil, deleteFiles)
 			So(err, ShouldBeError, "cannot delete main configuration YAML files")
 
 			deleteFiles = []string{"authgear.secrets.yaml"}
-			err = ValidateConfig(app, nil, deleteFiles)
+			err = ValidateConfig(appID, *cfg, nil, deleteFiles)
 			So(err, ShouldBeError, "cannot delete main configuration YAML files")
 		})
 
@@ -68,7 +59,7 @@ func TestValidateConfig(t *testing.T) {
 				Path:    "authgear.yaml",
 				Content: "id: " + string(make([]byte, 1024*1024)),
 			}}
-			err := ValidateConfig(app, updateFiles, nil)
+			err := ValidateConfig(appID, *cfg, updateFiles, nil)
 			So(err, ShouldBeError, `/authgear.yaml is too large: 1048580 > 102400`)
 		})
 
@@ -77,7 +68,7 @@ func TestValidateConfig(t *testing.T) {
 				Path:    "authgear.yaml",
 				Content: `{}`,
 			}}
-			err := ValidateConfig(app, updateFiles, nil)
+			err := ValidateConfig(appID, *cfg, updateFiles, nil)
 			So(err, ShouldBeError, `/authgear.yaml is invalid: invalid configuration:
 <root>: required
   map[actual:<nil> expected:[id] missing:[id]]`)
@@ -86,14 +77,14 @@ func TestValidateConfig(t *testing.T) {
 				Path:    "authgear.yaml",
 				Content: `id: test`,
 			}}
-			err = ValidateConfig(app, updateFiles, nil)
+			err = ValidateConfig(appID, *cfg, updateFiles, nil)
 			So(err, ShouldBeError, `/authgear.yaml is invalid: invalid app ID`)
 
 			updateFiles = []*model.AppConfigFile{{
 				Path:    "authgear.secrets.yaml",
 				Content: `{}`,
 			}}
-			err = ValidateConfig(app, updateFiles, nil)
+			err = ValidateConfig(appID, *cfg, updateFiles, nil)
 			So(err, ShouldBeError, `/authgear.secrets.yaml is invalid: invalid secrets:
 <root>: required
   map[actual:<nil> expected:[secrets] missing:[secrets]]`)
@@ -102,7 +93,7 @@ func TestValidateConfig(t *testing.T) {
 				Path:    "authgear.secrets.yaml",
 				Content: `secrets: []`,
 			}}
-			err = ValidateConfig(app, updateFiles, nil)
+			err = ValidateConfig(appID, *cfg, updateFiles, nil)
 			So(err.Error(), ShouldStartWith, `invalid configuration: invalid secrets`)
 		})
 	})

@@ -1,20 +1,28 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"path"
+	"strings"
+	texttemplate "text/template"
+
+	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 )
 
 type AppConfigService interface {
 	ResolveContext(appID string) (*config.AppContext, error)
 	UpdateConfig(appID string, updateFiles []*model.AppConfigFile, deleteFiles []string) error
-	Create(id string) error
+	Create(id string, appConfigYAML []byte, secretConfigYAML []byte) error
 }
 
 type AppAuthzService interface {
@@ -30,6 +38,7 @@ func NewAppServiceLogger(lf *log.Factory) AppServiceLogger {
 
 type AppService struct {
 	Logger     AppServiceLogger
+	AppConfig  *portalconfig.AppConfig
 	AppConfigs AppConfigService
 	AppAuthz   AppAuthzService
 }
@@ -64,7 +73,12 @@ func (s *AppService) Create(userID string, id string) error {
 		WithField("app_id", id).
 		Info("creating app")
 
-	err := s.AppConfigs.Create(id)
+	appConfigYAML, secretConfigYAML, err := s.generateConfig(id)
+	if err != nil {
+		return err
+	}
+
+	err = s.AppConfigs.Create(id, appConfigYAML, secretConfigYAML)
 	if err != nil {
 		return err
 	}
@@ -78,7 +92,7 @@ func (s *AppService) Create(userID string, id string) error {
 }
 
 func (s *AppService) UpdateConfig(app *model.App, updateFiles []*model.AppConfigFile, deleteFiles []string) error {
-	err := ValidateConfig(app, updateFiles, deleteFiles)
+	err := ValidateConfig(app.ID, *app.Context.Config, updateFiles, deleteFiles)
 	if err != nil {
 		return err
 	}
@@ -86,9 +100,122 @@ func (s *AppService) UpdateConfig(app *model.App, updateFiles []*model.AppConfig
 	return err
 }
 
+func (s *AppService) generateAppConfig(appID string) (*config.AppConfig, error) {
+	t := texttemplate.New("host-template")
+	_, err := t.Parse(s.AppConfig.HostTemplate)
+	if err != nil {
+		return nil, err
+	}
+	var buf strings.Builder
+
+	data := map[string]interface{}{
+		"AppID": appID,
+	}
+	err = t.Execute(&buf, data)
+	if err != nil {
+		return nil, err
+	}
+
+	appOrigin := &url.URL{Scheme: "https", Host: buf.String()}
+	cfg := config.GenerateAppConfigFromOptions(&config.GenerateAppConfigOptions{
+		AppID:        appID,
+		PublicOrigin: appOrigin.String(),
+	})
+	return cfg, nil
+}
+
+func (s *AppService) generateSecretConfig() (*config.SecretConfig, error) {
+	secrets := s.AppConfig.Secret
+	cfg := config.GenerateSecretConfigFromOptions(&config.GenerateSecretConfigOptions{
+		DatabaseURL:    secrets.DatabaseURL,
+		DatabaseSchema: secrets.DatabaseSchema,
+		RedisURL:       secrets.RedisURL,
+	}, corerand.SecureRand)
+
+	if secrets.SMTPHost != "" {
+		data, err := json.Marshal(&config.SMTPServerCredentials{
+			Host:     secrets.SMTPHost,
+			Port:     secrets.SMTPPort,
+			Mode:     config.SMTPMode(secrets.SMTPMode),
+			Username: secrets.SMTPUsername,
+			Password: secrets.SMTPPassword,
+		})
+		if err != nil {
+			panic(err)
+		}
+
+		cfg.Secrets = append(cfg.Secrets, config.SecretItem{
+			Key:     config.SMTPServerCredentialsKey,
+			RawData: data,
+		})
+	}
+
+	if secrets.TwilioAccountSID != "" {
+		data, err := json.Marshal(&config.TwilioCredentials{
+			AccountSID: secrets.TwilioAccountSID,
+			AuthToken:  secrets.TwilioAuthToken,
+		})
+		if err != nil {
+			panic(err)
+		}
+
+		cfg.Secrets = append(cfg.Secrets, config.SecretItem{
+			Key:     config.TwilioCredentialsKey,
+			RawData: data,
+		})
+	}
+
+	if secrets.NexmoAPIKey != "" {
+		data, err := json.Marshal(&config.NexmoCredentials{
+			APIKey:    secrets.NexmoAPIKey,
+			APISecret: secrets.NexmoAPISecret,
+		})
+		if err != nil {
+			panic(err)
+		}
+
+		cfg.Secrets = append(cfg.Secrets, config.SecretItem{
+			Key:     config.NexmoCredentialsKey,
+			RawData: data,
+		})
+	}
+
+	return cfg, nil
+}
+
+func (s *AppService) generateConfig(appID string) (appConfigYAML []byte, secretConfigYAML []byte, err error) {
+	appConfig, err := s.generateAppConfig(appID)
+	if err != nil {
+		return nil, nil, err
+	}
+	appConfigYAML, err = yaml.Marshal(appConfig)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	secretConfig, err := s.generateSecretConfig()
+	if err != nil {
+		return nil, nil, err
+	}
+	secretConfigYAML, err = yaml.Marshal(secretConfig)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	err = ValidateConfig(appID, config.Config{}, []*model.AppConfigFile{
+		{Path: configsource.AuthgearYAML, Content: string(appConfigYAML)},
+		{Path: configsource.AuthgearSecretYAML, Content: string(secretConfigYAML)},
+	}, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return appConfigYAML, secretConfigYAML, nil
+}
+
 const ConfigFileMaxSize = 100 * 1024
 
-func ValidateConfig(app *model.App, updateFiles []*model.AppConfigFile, deleteFiles []string) error {
+func ValidateConfig(appID string, cfg config.Config, updateFiles []*model.AppConfigFile, deleteFiles []string) error {
 	// Normalize the paths.
 	for _, file := range updateFiles {
 		file.Path = path.Clean("/" + file.Path)
@@ -112,13 +239,12 @@ func ValidateConfig(app *model.App, updateFiles []*model.AppConfigFile, deleteFi
 	}
 
 	// Validate configuration YAML.
-	cfg := *app.Context.Config
 	for _, file := range updateFiles {
 		if file.Path == "/"+configsource.AuthgearYAML {
 			appConfig, err := config.Parse([]byte(file.Content))
 			if err != nil {
 				return fmt.Errorf("%s is invalid: %w", file.Path, err)
-			} else if string(appConfig.ID) != app.ID {
+			} else if string(appConfig.ID) != appID {
 				return fmt.Errorf("%s is invalid: invalid app ID", file.Path)
 			}
 			cfg.AppConfig = appConfig
