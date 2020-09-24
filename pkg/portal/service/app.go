@@ -24,12 +24,16 @@ import (
 type AppConfigService interface {
 	ResolveContext(appID string) (*config.AppContext, error)
 	UpdateConfig(appID string, updateFiles []*model.AppConfigFile, deleteFiles []string) error
-	Create(id string, appConfigYAML []byte, secretConfigYAML []byte) error
+	Create(id string, hosts []string, appConfigYAML []byte, secretConfigYAML []byte) error
 }
 
 type AppAuthzService interface {
 	AddAuthorizedUser(appID string, userID string) error
 	ListAuthorizedApps(userID string) ([]string, error)
+}
+
+type AppAdminAPIService interface {
+	ResolveHost(appID string) (host string, err error)
 }
 
 type AppServiceLogger struct{ *log.Logger }
@@ -39,10 +43,11 @@ func NewAppServiceLogger(lf *log.Factory) AppServiceLogger {
 }
 
 type AppService struct {
-	Logger     AppServiceLogger
-	AppConfig  *portalconfig.AppConfig
-	AppConfigs AppConfigService
-	AppAuthz   AppAuthzService
+	Logger      AppServiceLogger
+	AppConfig   *portalconfig.AppConfig
+	AppConfigs  AppConfigService
+	AppAuthz    AppAuthzService
+	AppAdminAPI AppAdminAPIService
 }
 
 func (s *AppService) GetMany(ids []string) (out []*model.App, err error) {
@@ -75,13 +80,21 @@ func (s *AppService) Create(userID string, id string) error {
 		WithField("app_id", id).
 		Info("creating app")
 
-	appConfigYAML, secretConfigYAML, err := s.generateConfig(id)
+	appHost, appConfigYAML, secretConfigYAML, err := s.generateConfig(id)
 	if err != nil {
 		return err
 	}
 
-	err = s.AppConfigs.Create(id, appConfigYAML, secretConfigYAML)
+	adminAPIHost, err := s.AppAdminAPI.ResolveHost(id)
 	if err != nil {
+		return err
+	}
+
+	hosts := []string{appHost, adminAPIHost}
+	err = s.AppConfigs.Create(id, hosts, appConfigYAML, secretConfigYAML)
+	if err != nil {
+		// TODO(portal): cleanup orphaned resources created from failed app creation
+		s.Logger.WithError(err).WithField("app_id", id).Error("failed to create app")
 		return err
 	}
 
@@ -102,14 +115,14 @@ func (s *AppService) UpdateConfig(app *model.App, updateFiles []*model.AppConfig
 	return err
 }
 
-func (s *AppService) generateAppConfig(appID string) (*config.AppConfig, error) {
+func (s *AppService) generateAppConfig(appID string) (string, *config.AppConfig, error) {
 	if s.AppConfig.HostTemplate == "" {
-		return nil, errors.New("app hostname template is not configured")
+		return "", nil, errors.New("app hostname template is not configured")
 	}
 	t := texttemplate.New("host-template")
 	_, err := t.Parse(s.AppConfig.HostTemplate)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 	var buf strings.Builder
 
@@ -118,15 +131,16 @@ func (s *AppService) generateAppConfig(appID string) (*config.AppConfig, error) 
 	}
 	err = t.Execute(&buf, data)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
-	appOrigin := &url.URL{Scheme: "https", Host: buf.String()}
+	appHost := buf.String()
+	appOrigin := &url.URL{Scheme: "https", Host: appHost}
 	cfg := config.GenerateAppConfigFromOptions(&config.GenerateAppConfigOptions{
 		AppID:        appID,
 		PublicOrigin: appOrigin.String(),
 	})
-	return cfg, nil
+	return appHost, cfg, nil
 }
 
 func (s *AppService) generateSecretConfig() (*config.SecretConfig, error) {
@@ -188,31 +202,33 @@ func (s *AppService) generateSecretConfig() (*config.SecretConfig, error) {
 	return cfg, nil
 }
 
-func (s *AppService) generateConfig(appID string) (appConfigYAML []byte, secretConfigYAML []byte, err error) {
+func (s *AppService) generateConfig(appID string) (appHost string, appConfigYAML []byte, secretConfigYAML []byte, err error) {
 	appIDRegex, err := regexp.Compile(s.AppConfig.IDPattern)
 	if err != nil {
-		return nil, nil, fmt.Errorf("invalid app ID validation pattern: %w", err)
+		err = fmt.Errorf("invalid app ID validation pattern: %w", err)
+		return
 	}
 	if !appIDRegex.MatchString(appID) {
-		return nil, nil, apierrors.NewInvalid("invalid app ID")
+		err = apierrors.NewInvalid("invalid app ID")
+		return
 	}
 
-	appConfig, err := s.generateAppConfig(appID)
+	appHost, appConfig, err := s.generateAppConfig(appID)
 	if err != nil {
-		return nil, nil, err
+		return
 	}
 	appConfigYAML, err = yaml.Marshal(appConfig)
 	if err != nil {
-		return nil, nil, err
+		return
 	}
 
 	secretConfig, err := s.generateSecretConfig()
 	if err != nil {
-		return nil, nil, err
+		return
 	}
 	secretConfigYAML, err = yaml.Marshal(secretConfig)
 	if err != nil {
-		return nil, nil, err
+		return
 	}
 
 	err = ValidateConfig(appID, config.Config{}, []*model.AppConfigFile{
@@ -220,10 +236,10 @@ func (s *AppService) generateConfig(appID string) (appConfigYAML []byte, secretC
 		{Path: configsource.AuthgearSecretYAML, Content: string(secretConfigYAML)},
 	}, nil)
 	if err != nil {
-		return nil, nil, err
+		return
 	}
 
-	return appConfigYAML, secretConfigYAML, nil
+	return
 }
 
 const ConfigFileMaxSize = 100 * 1024

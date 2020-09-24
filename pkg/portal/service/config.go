@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -8,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/spf13/afero"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -42,10 +44,10 @@ func (s *ConfigService) ListAllAppIDs() ([]string, error) {
 	return s.ConfigSource.AppIDResolver.AllAppIDs()
 }
 
-func (s *ConfigService) Create(appID string, appConfigYAML []byte, secretConfigYAML []byte) error {
+func (s *ConfigService) Create(appID string, hosts []string, appConfigYAML []byte, secretConfigYAML []byte) error {
 	switch src := s.Controller.Handle.(type) {
 	case *configsource.Kubernetes:
-		err := s.createKubernetes(src, appID, appConfigYAML, secretConfigYAML)
+		err := s.createKubernetes(src, appID, hosts, appConfigYAML, secretConfigYAML)
 		if err != nil {
 			return err
 		}
@@ -170,13 +172,87 @@ func (s *ConfigService) updateLocalFS(l *configsource.LocalFS, appID string, upd
 	return nil
 }
 
-func (s *ConfigService) createKubernetes(k *configsource.Kubernetes, appID string, appConfigYAML []byte, secretConfigYAML []byte) error {
-	_, err := k.ResolveContext(appID)
+func (s *ConfigService) createKubernetes(k *configsource.Kubernetes, appID string, hosts []string, appConfigYAML []byte, secretConfigYAML []byte) (err error) {
+	_, err = k.ResolveContext(appID)
 	if err != nil && !errors.Is(err, configsource.ErrAppNotFound) {
 		return err
 	} else if err == nil {
 		return ErrDuplicatedAppID
 	}
 
-	return errors.New("TODO: create k8s resources")
+	// Setup config resources
+	configMap := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: s.AppConfig.Kubernetes.NewResourcePrefix + appID,
+			Labels: map[string]string{
+				configsource.LabelConfigAppID: appID,
+			},
+		},
+		Data: map[string]string{
+			configsource.EscapePath(configsource.AuthgearYAML): string(appConfigYAML),
+		},
+	}
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: s.AppConfig.Kubernetes.NewResourcePrefix + appID,
+			Labels: map[string]string{
+				configsource.LabelConfigAppID: appID,
+			},
+		},
+		Data: map[string][]byte{
+			configsource.EscapePath(configsource.AuthgearSecretYAML): secretConfigYAML,
+		},
+	}
+
+	// Update host mapping
+	hostMappingSelector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
+		MatchLabels: map[string]string{configsource.LabelHostMapping: "true"},
+	})
+	if err != nil {
+		return err
+	}
+	hostMappingList, err := k.Client.CoreV1().ConfigMaps(k.Namespace).
+		List(metav1.ListOptions{LabelSelector: hostMappingSelector.String()})
+	if err != nil {
+		return err
+	} else if len(hostMappingList.Items) != 1 {
+		return fmt.Errorf("failed to query host mapping (%d != 1)", len(hostMappingList.Items))
+	}
+
+	hostMapping := &hostMappingList.Items[0]
+	jsonString, ok := hostMapping.Data[configsource.HostMapJSON]
+	if !ok {
+		return errors.New("no host mapping JSON found")
+	}
+	data := []byte(jsonString)
+	var hostMap map[string]string
+	if err := json.Unmarshal(data, &hostMap); err != nil {
+		return fmt.Errorf("failed to parse host mapping: %w", err)
+	}
+	for _, h := range hosts {
+		hostMap[h] = appID
+	}
+	data, err = json.Marshal(hostMap)
+	if err != nil {
+		return err
+	}
+	hostMapping.Data[configsource.HostMapJSON] = string(data)
+
+	// Commit changes to Kubernetes
+	_, err = k.Client.CoreV1().ConfigMaps(k.Namespace).Update(hostMapping)
+	if err != nil {
+		return err
+	}
+
+	_, err = k.Client.CoreV1().ConfigMaps(k.Namespace).Create(configMap)
+	if err != nil {
+		return err
+	}
+
+	_, err = k.Client.CoreV1().Secrets(k.Namespace).Create(secret)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
