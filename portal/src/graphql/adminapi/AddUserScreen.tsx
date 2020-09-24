@@ -95,6 +95,15 @@ function getLoginIdKeyOptions(appConfig: PortalAPIAppConfig | null) {
   const usernameAllowed = primaryAuthenticators.includes("password");
 
   const loginIdKeys = appConfig?.identity?.login_id?.keys ?? [];
+  const enabledIdentities = appConfig?.authentication?.identities ?? [];
+  const isLoginIDIdentityEnabled = enabledIdentities.includes("login_id");
+
+  // if login ID identity is disabled
+  // we cannot add login ID identity to new user
+  if (!isLoginIDIdentityEnabled) {
+    return [];
+  }
+
   const loginIdKeyOptions = new Set<LoginIDKey>();
   for (const key of loginIdKeys) {
     switch (key.type) {
