@@ -20,13 +20,16 @@ const createUserMutation = gql`
   }
 `;
 
-interface Identity {
+interface LoginIDIdentity {
   key: "username" | "email" | "phone";
   value: string;
 }
 
 export function useCreateUserMutation(): {
-  createUser: (identity: Identity, password?: string) => Promise<string | null>;
+  createUser: (
+    identity: LoginIDIdentity,
+    password?: string
+  ) => Promise<string | null>;
   loading: boolean;
   error: unknown;
 } {
@@ -34,7 +37,7 @@ export function useCreateUserMutation(): {
     CreateUserMutation
   >(createUserMutation);
   const createUser = useCallback(
-    async (identity: Identity, password?: string) => {
+    async (identity: LoginIDIdentity, password?: string) => {
       const result = await mutationFunction({
         variables: {
           identityDefinition: identity,
