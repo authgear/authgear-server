@@ -114,9 +114,10 @@ function getTotpDisplayName(
   totpAuthenticatorClaims: Record<string, unknown>
 ): string {
   for (const [key, claim] of Object.entries(totpAuthenticatorClaims)) {
-    // expected form: https://authgear.com/claims/totp/display_name
-    const lastSegment = key.split("/").pop();
-    if (lastSegment === "display_name" && typeof claim === "string") {
+    if (
+      key === "https://authgear.com/claims/totp/display_name" &&
+      typeof claim === "string"
+    ) {
       return claim;
     }
   }
