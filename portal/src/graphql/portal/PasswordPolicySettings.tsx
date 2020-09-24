@@ -196,7 +196,12 @@ const PasswordPolicySettings: React.FC<PasswordPolicySettingsProps> = function P
   const [state, setState] = useState(initialState);
 
   const isFormModified = useMemo(() => {
-    return !deepEqual(initialState, state, { strict: true });
+    return !deepEqual(
+      // Exclude preventReuse
+      { ...initialState, preventReuse: undefined },
+      { ...state, preventReuse: undefined },
+      { strict: true }
+    );
   }, [initialState, state]);
 
   const minGuessableLevelOptions: IDropdownOption[] = useMemo(() => {
