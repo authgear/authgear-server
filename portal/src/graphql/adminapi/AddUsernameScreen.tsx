@@ -30,7 +30,6 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
   } = useCreateLoginIDIdentityMutation(userID);
   const { renderToString } = useContext(Context);
 
-  const [violations, setViolations] = useState<Violation[]>([]);
   const [unhandledViolations, setUnhandledViolations] = useState<Violation[]>(
     []
   );
@@ -65,18 +64,15 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
       .then((identity) => {
         if (identity != null) {
           navigate("../#connected-identities");
-        } else {
-          throw new Error();
         }
       })
-      .catch((err) => {
+      .catch(() => {
         setDisableBlockNavigation(false);
-        const violations = parseError(err);
-        setViolations(violations);
       });
   }, [username, navigate, createIdentity]);
 
   const errorMessage = useMemo(() => {
+    const violations = parseError(createIdentityError);
     const usernameFieldErrorMessages: string[] = [];
     const unknownViolations: Violation[] = [];
     for (const violation of violations) {
@@ -98,7 +94,7 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
     return {
       username: defaultFormatErrorMessageList(usernameFieldErrorMessages),
     };
-  }, [violations, renderToString]);
+  }, [createIdentityError, renderToString]);
 
   return (
     <div className={styles.root}>

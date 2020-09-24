@@ -30,7 +30,6 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
   } = useCreateLoginIDIdentityMutation(userID);
   const { renderToString } = useContext(Context);
 
-  const [violations, setViolations] = useState<Violation[]>([]);
   const [unhandledViolations, setUnhandledViolations] = useState<Violation[]>(
     []
   );
@@ -74,18 +73,15 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
       .then((identity) => {
         if (identity != null) {
           navigate("../#connected-identities");
-        } else {
-          throw new Error();
         }
       })
-      .catch((err) => {
+      .catch(() => {
         setDisableBlockNavigation(false);
-        const violations = parseError(err);
-        setViolations(violations);
       });
   }, [email, navigate, createIdentity]);
 
   const errorMessage = useMemo(() => {
+    const violations = parseError(createIdentityError);
     const emailFieldErrorMessages: string[] = [];
     const unknownViolations: Violation[] = [];
     for (const violation of violations) {
@@ -107,7 +103,7 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
     return {
       email: defaultFormatErrorMessageList(emailFieldErrorMessages),
     };
-  }, [violations, renderToString]);
+  }, [createIdentityError, renderToString]);
 
   return (
     <div className={styles.root}>

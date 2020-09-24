@@ -40,7 +40,6 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
   } = useCreateLoginIDIdentityMutation(userID);
   const { renderToString } = useContext(Context);
 
-  const [violations, setViolations] = useState<Violation[]>([]);
   const [unhandledViolations, setUnhandledViolations] = useState<Violation[]>(
     []
   );
@@ -113,18 +112,15 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
       .then((identity) => {
         if (identity != null) {
           navigate("../#connected-identities");
-        } else {
-          throw new Error();
         }
       })
-      .catch((err) => {
+      .catch(() => {
         setDisableBlockNavigation(false);
-        const violations = parseError(err);
-        setViolations(violations);
       });
   }, [countryCode, phone, navigate, createIdentity]);
 
   const errorMessage = useMemo(() => {
+    const violations = parseError(createIdentityError);
     const phoneNumberFieldErrorMessages: string[] = [];
     const unknownViolations: Violation[] = [];
     for (const violation of violations) {
@@ -146,7 +142,7 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
     return {
       phoneNumber: defaultFormatErrorMessageList(phoneNumberFieldErrorMessages),
     };
-  }, [violations, renderToString]);
+  }, [createIdentityError, renderToString]);
 
   return (
     <div className={styles.form}>

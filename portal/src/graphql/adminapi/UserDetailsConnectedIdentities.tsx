@@ -1,4 +1,10 @@
-import React, { useMemo, useCallback, useContext, useState } from "react";
+import React, {
+  useMemo,
+  useCallback,
+  useContext,
+  useState,
+  useEffect,
+} from "react";
 import cn from "classnames";
 import { useNavigate } from "react-router-dom";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
@@ -111,6 +117,7 @@ const removeButtonTextId: Record<IdentityType, string> = {
 
 function getErrorMessageIdsFromViolation(violations: Violation[]) {
   const errorMessageIds: string[] = [];
+  const unknownViolations: Violation[] = [];
   for (const violation of violations) {
     switch (violation.kind) {
       case "RemoveLastIdentity":
@@ -119,10 +126,11 @@ function getErrorMessageIdsFromViolation(violations: Violation[]) {
         );
         break;
       default:
+        unknownViolations.push(violation);
         break;
     }
   }
-  return errorMessageIds;
+  return { errorMessageIds, unknownViolations };
 }
 
 const VerifyButton: React.FC<VerifyButtonProps> = function VerifyButton(
@@ -242,6 +250,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
   const {
     deleteIdentity,
     loading: deletingIdentity,
+    error: deleteIdentityError,
   } = useDeleteIdentityMutation();
 
   const [
@@ -314,35 +323,33 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
       return;
     }
     const { identityID } = confirmationDialogData;
-    deleteIdentity(identityID)
-      .then((success) => {
-        if (success) {
-          onDismissConfirmationDialog();
-        } else {
-          throw new Error();
-        }
-      })
-      .catch((err) => {
-        onDismissConfirmationDialog();
-        const fallbackErrorMessageId =
-          "UserDetails.connected-identities.remove-identity-error.generic";
-        const violations = parseError(err);
-        const errorMessageIds = getErrorMessageIdsFromViolation(violations);
-        const errorMessage =
-          errorMessageIds.length > 0
-            ? errorMessageIds.map((id) => renderToString(id)).join("\n")
-            : renderToString(fallbackErrorMessageId);
+    deleteIdentity(identityID).finally(() => {
+      onDismissConfirmationDialog();
+    });
+  }, [confirmationDialogData, deleteIdentity, onDismissConfirmationDialog]);
 
-        setErrorDialogData({
-          message: errorMessage,
-        });
+  useEffect(() => {
+    const fallbackErrorMessageId =
+      "UserDetails.connected-identities.remove-identity-error.generic";
+    const violations = parseError(deleteIdentityError);
+    const {
+      errorMessageIds,
+      unknownViolations,
+    } = getErrorMessageIdsFromViolation(violations);
+
+    let errorMessage = null;
+    if (errorMessageIds.length > 0) {
+      errorMessage = errorMessageIds.map((id) => renderToString(id)).join("\n");
+    } else if (unknownViolations.length > 0) {
+      errorMessage = renderToString(fallbackErrorMessageId);
+    }
+
+    if (errorMessage != null) {
+      setErrorDialogData({
+        message: errorMessage,
       });
-  }, [
-    confirmationDialogData,
-    deleteIdentity,
-    onDismissConfirmationDialog,
-    renderToString,
-  ]);
+    }
+  }, [deleteIdentityError, renderToString]);
 
   const onDismissErrorDialog = useCallback(() => {
     setErrorDialogData(null);
