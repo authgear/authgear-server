@@ -19,6 +19,7 @@ func TestValidateConfig(t *testing.T) {
 			AppConfig:    configtest.FixtureAppConfig("app-id"),
 			SecretConfig: configtest.FixtureSecretConfig(0),
 		}
+		config.PopulateDefaultValues(cfg.AppConfig)
 		app := &model.App{
 			ID: "app-id",
 			Context: &config.AppContext{
