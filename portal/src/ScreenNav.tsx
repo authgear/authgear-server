@@ -62,7 +62,7 @@ const ScreenNav: React.FC = function ScreenNav() {
 
   const selectedKey = useMemo(() => {
     const linkFound = navGroups[0].links.find((link) => {
-      // app router -> /apps/:appID/*
+      // app router -> /app/:appID/*
       // discard first 3 segment (include leading slash)
       const appRouterPath = location.pathname.split("/").slice(3).join("/");
       return appRouterPath.startsWith(link.url);

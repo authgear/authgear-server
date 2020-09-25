@@ -1,11 +1,13 @@
 package main
 
 import (
+	"crypto/rand"
 	"log"
 
 	"github.com/spf13/cobra"
 
 	"github.com/authgear/authgear-server/cmd/authgear/config"
+	libconfig "github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 var InitConfigOutputPath string
@@ -20,8 +22,8 @@ var cmdInitConfig = &cobra.Command{
 	Use:   "config",
 	Short: "Initialize app configuration",
 	Run: func(cmd *cobra.Command, args []string) {
-		opts := config.ReadOptionsFromConsole()
-		cfg := config.NewAppConfigFromOptions(opts)
+		opts := config.ReadAppConfigOptionsFromConsole()
+		cfg := libconfig.GenerateAppConfigFromOptions(opts)
 		err := config.MarshalConfigYAML(cfg, InitConfigOutputPath)
 		if err != nil {
 			log.Fatalf("cannot write file: %s", err.Error())
@@ -33,8 +35,8 @@ var cmdInitSecrets = &cobra.Command{
 	Use:   "secrets",
 	Short: "Initialize app secrets",
 	Run: func(cmd *cobra.Command, args []string) {
-		opts := config.ReadSecretOptionsFromConsole()
-		cfg := config.NewSecretConfigFromOptions(opts)
+		opts := config.ReadSecretConfigOptionsFromConsole()
+		cfg := libconfig.GenerateSecretConfigFromOptions(opts, rand.Reader)
 		err := config.MarshalConfigYAML(cfg, InitSecretsOutputPath)
 		if err != nil {
 			log.Fatalf("cannot write file: %s", err.Error())

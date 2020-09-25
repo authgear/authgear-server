@@ -20,6 +20,7 @@
   "unverified": "Not Verified",
   "verify": "Verify",
   "unverify": "Unverify",
+  "create": "Create",
 
   "apple": "Apple",
   "google": "Google",
@@ -46,6 +47,9 @@
 
   "AppsScreen.title": "Apps",
   "AppsScreen.create-app": "Create App",
+
+  "CreateAppScreen.title": "Create App",
+  "CreateAppScreen.app-id.label": "App ID",
 
   "UsersScreen.title": "Users",
   "UsersScreen.add-user": "Add User",

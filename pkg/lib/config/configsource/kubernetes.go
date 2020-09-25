@@ -336,7 +336,8 @@ func (a *k8sApp) doLoad(k *Kubernetes) (*config.AppContext, error) {
 
 	if len(configMaps.Items) != 1 || len(secrets.Items) != 1 {
 		return nil, fmt.Errorf(
-			"failed to query config resources (ConfigMaps: %d, Secrets: %d)",
+			"%w: failed to query config resources (ConfigMaps: %d, Secrets: %d)",
+			ErrAppNotFound,
 			len(configMaps.Items),
 			len(secrets.Items),
 		)

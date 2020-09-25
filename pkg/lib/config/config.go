@@ -179,7 +179,7 @@ func Parse(inputYAML []byte) (*AppConfig, error) {
 		return nil, err
 	}
 
-	setFieldDefaults(&config)
+	PopulateDefaultValues(&config)
 
 	err = validation.ValidateValueWithMessage(&config, validationErrorMessage)
 	if err != nil {
@@ -187,4 +187,8 @@ func Parse(inputYAML []byte) (*AppConfig, error) {
 	}
 
 	return &config, nil
+}
+
+func PopulateDefaultValues(config *AppConfig) {
+	setFieldDefaults(config)
 }

@@ -79,20 +79,36 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	viewerLoader := &loader.ViewerLoader{
 		Context: context,
 	}
+	appServiceLogger := service.NewAppServiceLogger(factory)
+	appConfig := rootProvider.AppConfig
 	configServiceLogger := service.NewConfigServiceLogger(factory)
 	controller := rootProvider.ConfigSourceController
 	configSource := deps.ProvideConfigSource(controller)
 	configService := &service.ConfigService{
 		Logger:       configServiceLogger,
+		AppConfig:    appConfig,
 		Controller:   controller,
 		ConfigSource: configSource,
 	}
 	authzService := &service.AuthzService{
 		AppConfigs: configService,
 	}
+	adminAPIConfig := rootProvider.AdminAPIConfig
+	clock := _wireSystemClockValue
+	adder := &authz.Adder{
+		Clock: clock,
+	}
+	adminAPIService := &service.AdminAPIService{
+		AdminAPIConfig: adminAPIConfig,
+		ConfigSource:   configSource,
+		AuthzAdder:     adder,
+	}
 	appService := &service.AppService{
-		AppConfigs: configService,
-		AppAuthz:   authzService,
+		Logger:      appServiceLogger,
+		AppConfig:   appConfig,
+		AppConfigs:  configService,
+		AppAuthz:    authzService,
+		AppAdminAPI: adminAPIService,
 	}
 	appLoader := &loader.AppLoader{
 		Apps: appService,
@@ -109,6 +125,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	return graphQLHandler
 }
 
+var (
+	_wireSystemClockValue = clock.NewSystemClock()
+)
+
 func newRuntimeConfigHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
 	authgearConfig := rootProvider.AuthgearConfig
@@ -123,9 +143,9 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	adminAPIConfig := rootProvider.AdminAPIConfig
 	controller := rootProvider.ConfigSourceController
 	configSource := deps.ProvideConfigSource(controller)
-	clock := _wireSystemClockValue
+	clockClock := _wireSystemClockValue
 	adder := &authz.Adder{
-		Clock: clock,
+		Clock: clockClock,
 	}
 	adminAPIService := &service.AdminAPIService{
 		AdminAPIConfig: adminAPIConfig,
@@ -143,7 +163,3 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	}
 	return adminAPIHandler
 }
-
-var (
-	_wireSystemClockValue = clock.NewSystemClock()
-)
