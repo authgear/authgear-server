@@ -4,6 +4,7 @@
   "loading": "Loading...",
 
   "action": "Action",
+  "ok": "OK",
   "add": "Add",
   "next": "Next",
   "save": "Save",
@@ -114,15 +115,27 @@
   "UserDetails.connected-identities.primary-phone": "Primary Phone",
   "UserDetails.connected-identities.primary-username": "Primary Username",
 
+  "UserDetails.connected-identities.confirm-remove-identity-title": "Remove Identity",
+  "UserDetails.connected-identities.confirm-remove-identity-message": "Are you sure you want to remove identity {identityName}",
+  "UserDetails.connected-identities.error-dialog-title": "Error",
+  "UserDetails.connected-identities.remove-identity-error.generic": "Failed to remove identity",
+  "UserDetails.connected-identities.remove-identity-error.connot-remove-last": "Cannot remove last identity",
+
   "AddEmailScreen.title": "Add Email",
   "AddEmailScreen.email.label": "Email",
+  "AddEmailScreen.error.invalid-email": "Invalid Email",
+  "AddEmailScreen.error.duplicated-email": "Email already exist",
 
   "AddPhoneScreen.title": "Add Phone",
   "AddPhoneScreen.phone.label": "Phone Number",
   "AddPhoneScreen.country-code.label": "Country Code",
+  "AddPhoneScreen.error.invalid-phone-number": "Invalid phone number",
+  "AddPhoneScreen.error.duplicated-phone-number": "Phone number already exist",
 
   "AddUsernameScreen.title": "Add Username",
   "AddUsernameScreen.username.label": "Username",
+  "AddUsernameScreen.error.invalid-username": "Invalid username",
+  "AddUsernameScreen.error.duplicated-username": "Username already exist",
 
   "UserDetails.session.header": "Session",
   "UserDetails.session.devices": "Devices",

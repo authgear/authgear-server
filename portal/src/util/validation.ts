@@ -2,7 +2,14 @@ import { Values } from "@oursky/react-messageformat";
 import { nonNullable } from "./types";
 
 // union type of different kind of violation
-export type Violation = RequiredViolation | GeneralViolation;
+export type Violation =
+  | RequiredViolation
+  | FormatViolation
+  | GeneralViolation
+  | RemoveLastIdentityViolation
+  | InvalidLoginIDKeyViolation
+  | DuplicatedIdentityViolation
+  | InvalidViolation;
 
 interface RequiredViolation {
   kind: "required";
@@ -10,13 +17,42 @@ interface RequiredViolation {
   missingField: string[];
 }
 
+interface FormatViolation {
+  kind: "format";
+  location: string;
+}
+
 interface GeneralViolation {
   kind: "general";
   location: string;
 }
 
+interface RemoveLastIdentityViolation {
+  kind: "RemoveLastIdentity";
+}
+
+interface InvalidLoginIDKeyViolation {
+  kind: "InvalidLoginIDKey";
+}
+
+interface DuplicatedIdentityViolation {
+  kind: "DuplicatedIdentity";
+}
+
+interface InvalidViolation {
+  kind: "Invalid";
+}
+
 // list of violation kind recognized
-const violationKinds = ["required", "general"];
+const violationKinds = [
+  "required",
+  "general",
+  "format",
+  "RemoveLastIdentity",
+  "InvalidLoginIDKey",
+  "Invalid",
+  "DuplicatedIdentity",
+];
 type ViolationKind = Violation["kind"];
 export function isViolationKind(value?: string): value is ViolationKind {
   return value != null && violationKinds.includes(value);
@@ -25,7 +61,7 @@ export function isViolationKind(value?: string): value is ViolationKind {
 type ViolationSelector = (violation: Violation) => boolean;
 type ViolationSelectors<Key extends string> = Record<Key, ViolationSelector>;
 
-function defaultFormatErrorMessageList(
+export function defaultFormatErrorMessageList(
   errorMessages: string[]
 ): string | undefined {
   return errorMessages.length === 0 ? undefined : errorMessages.join("\n");
