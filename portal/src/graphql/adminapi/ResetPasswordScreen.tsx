@@ -119,9 +119,6 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
 
   const [localViolations, setLocalViolations] = useState<Violation[]>([]);
   const [disableBlockNavigation, setDisableBlockNavigation] = useState(false);
-  const [unhandledViolations, setUnhandledViolations] = useState<Violation[]>(
-    []
-  );
 
   const passwordPolicy = useMemo(() => {
     return appConfig?.authenticator?.password?.policy ?? {};
@@ -167,14 +164,14 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
       });
   }, [screenState, passwordPolicy, resetPassword, navigate]);
 
-  const errorMessages = useMemo(() => {
+  const { errorMessages, unhandledViolations } = useMemo(() => {
     const violations =
       localViolations.length > 0
         ? localViolations
         : parseError(resetPasswordError);
     const newPasswordErrorMessages: string[] = [];
     const confirmPasswordErrorMessages: string[] = [];
-    const unknownViolations: Violation[] = [];
+    const unhandledViolations: Violation[] = [];
     for (const violation of violations) {
       if (violation.kind === "custom") {
         handleLocalViolations(
@@ -182,28 +179,28 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
           violation,
           newPasswordErrorMessages,
           confirmPasswordErrorMessages,
-          unknownViolations
+          unhandledViolations
         );
       } else if (violation.kind === "PasswordPolicyViolated") {
         handlePasswordPolicyViolatedViolation(
           renderToString,
           violation,
           newPasswordErrorMessages,
-          unknownViolations
+          unhandledViolations
         );
       } else {
-        unknownViolations.push(violation);
+        unhandledViolations.push(violation);
       }
     }
 
-    setUnhandledViolations(unknownViolations);
-
-    return {
+    const errorMessages = {
       newPassword: defaultFormatErrorMessageList(newPasswordErrorMessages),
       confirmPassword: defaultFormatErrorMessageList(
         confirmPasswordErrorMessages
       ),
     };
+
+    return { errorMessages, unhandledViolations };
   }, [localViolations, resetPasswordError, renderToString]);
 
   if (appConfig == null) {
