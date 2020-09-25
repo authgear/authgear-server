@@ -26,6 +26,7 @@ import { useDeleteIdentityMutation } from "./mutations/deleteIdentityMutation";
 import { formatDatetime } from "../../util/formatDatetime";
 import { parseError } from "../../util/error";
 import { Violation } from "../../util/validation";
+import { OAuthSSOProviderType } from "../../types";
 import { destructiveTheme, verifyButtonTheme } from "../../theme";
 
 import styles from "./UserDetailsConnectedIdentities.module.scss";
@@ -34,11 +35,13 @@ interface IdentityClaim extends Record<string, unknown> {
   email?: string;
   phone_number?: string;
   preferred_username?: string;
+  "https://authgear.com/claims/oauth/provider_type"?: OAuthSSOProviderType;
+  "https://authgear.com/claims/login_id/type"?: LoginIDIdentityType;
 }
 
 interface Identity {
   id: string;
-  type: string;
+  type: "ANONYMOUS" | "LOGIN_ID" | "OAUTH";
   claims: IdentityClaim;
   createdAt: string;
   updatedAt: string;
@@ -49,30 +52,40 @@ interface UserDetailsConnectedIdentitiesProps {
   availableLoginIdIdentities: string[];
 }
 
-const identityTypes = ["email", "phone", "username"] as const;
-type IdentityType = typeof identityTypes[number];
+const loginIdIdentityTypes = ["email", "phone", "username"] as const;
+type LoginIDIdentityType = typeof loginIdIdentityTypes[number];
+type IdentityType = LoginIDIdentityType | "oauth";
 
-interface EmailIdentityListItem {
+interface OAuthIdentityListItem {
   id: string;
-  email: string;
+  providerType?: OAuthSSOProviderType;
+  name?: string;
   verified: boolean;
   connectedOn: string;
 }
 
+interface EmailIdentityListItem {
+  id: string;
+  email?: string;
+  verified: boolean;
+  addedOn: string;
+}
+
 interface PhoneIdentityListItem {
   id: string;
-  phone: string;
+  phone?: string;
   verified: boolean;
   addedOn: string;
 }
 
 interface UsernameIdentityListItem {
   id: string;
-  username: string;
+  username?: string;
   addedOn: string;
 }
 
 export interface IdentityLists {
+  oauth: OAuthIdentityListItem[];
   email: EmailIdentityListItem[];
   phone: PhoneIdentityListItem[];
   username: UsernameIdentityListItem[];
@@ -80,8 +93,9 @@ export interface IdentityLists {
 
 interface IdentityListCellProps {
   identityID: string;
+  oauthProviderType?: OAuthSSOProviderType;
   identityType: IdentityType;
-  identityName: string;
+  identityName?: string;
   addedOn?: string;
   connectedOn?: string;
   verified?: boolean;
@@ -103,17 +117,41 @@ interface ErrorDialogData {
   message: string;
 }
 
-const iconMap: Record<IdentityType, React.ReactNode> = {
+const oauthIconMap: Record<OAuthSSOProviderType, React.ReactNode> = {
+  apple: <i className={cn("fab", "fa-apple", styles.widgetLabelIcon)} />,
+  google: <i className={cn("fab", "fa-google", styles.widgetLabelIcon)} />,
+  facebook: <i className={cn("fab", "fa-facebook", styles.widgetLabelIcon)} />,
+  linkedin: <i className={cn("fab", "fa-linkedin", styles.widgetLabelIcon)} />,
+  azureadv2: (
+    <i className={cn("fab", "fa-microsoft", styles.widgetLabelIcon)} />
+  ),
+};
+
+const loginIdIconMap: Record<LoginIDIdentityType, React.ReactNode> = {
   email: <Icon iconName="Mail" />,
   phone: <Icon iconName="CellPhone" />,
   username: <Icon iconName="Accounts" />,
 };
 
-const removeButtonTextId: Record<IdentityType, string> = {
-  email: "disconnect",
+const removeButtonTextId: Record<IdentityType, "remove" | "disconnect"> = {
+  oauth: "disconnect",
+  email: "remove",
   phone: "remove",
   username: "remove",
 };
+
+function getIcon(
+  identityType: IdentityType,
+  providerType?: OAuthSSOProviderType
+) {
+  if (identityType === "oauth") {
+    if (providerType != null) {
+      return oauthIconMap[providerType];
+    }
+    return null;
+  }
+  return loginIdIconMap[identityType];
+}
 
 function getErrorMessageIdsFromViolation(violations: Violation[]) {
   const errorMessageIds: string[] = [];
@@ -173,6 +211,7 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
 ) {
   const {
     identityID,
+    oauthProviderType,
     identityType,
     identityName,
     connectedOn,
@@ -182,10 +221,10 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
     onRemoveClicked: _onRemoveClicked,
   } = props;
 
-  const icon = iconMap[identityType];
+  const icon = getIcon(identityType, oauthProviderType);
 
   const onRemoveClicked = useCallback(() => {
-    _onRemoveClicked(identityID, identityName);
+    _onRemoveClicked(identityID, identityName ?? "");
   }, [identityID, identityName, _onRemoveClicked]);
 
   const onVerifyClicked = useCallback(
@@ -198,7 +237,7 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
   return (
     <ListCellLayout className={styles.cellContainer}>
       <div className={styles.cellIcon}>{icon}</div>
-      <Text className={styles.cellName}>{identityName}</Text>
+      <Text className={styles.cellName}>{identityName ?? ""}</Text>
       {verified != null && (
         <>
           {verified ? (
@@ -270,6 +309,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
   });
 
   const identityLists: IdentityLists = useMemo(() => {
+    const oauthIdentityList: OAuthIdentityListItem[] = [];
     const emailIdentityList: EmailIdentityListItem[] = [];
     const phoneIdentityList: PhoneIdentityListItem[] = [];
     const usernameIdentityList: UsernameIdentityListItem[] = [];
@@ -277,33 +317,57 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
     // TODO: get actual verified state
     for (const identity of identities) {
       const createdAtStr = formatDatetime(locale, identity.createdAt) ?? "";
-      if (identity.claims.email != null) {
-        emailIdentityList.push({
+      if (identity.type === "OAUTH") {
+        const providerType =
+          identity.claims["https://authgear.com/claims/oauth/provider_type"];
+        oauthIdentityList.push({
           id: identity.id,
-          email: identity.claims.email,
-          verified: true,
+          name: identity.claims.email,
+          providerType,
+          verified: false,
           connectedOn: createdAtStr,
         });
       }
 
-      if (identity.claims.phone_number != null) {
-        phoneIdentityList.push({
-          id: identity.id,
-          phone: identity.claims.phone_number,
-          verified: false,
-          addedOn: createdAtStr,
-        });
-      }
+      if (identity.type === "LOGIN_ID") {
+        if (
+          identity.claims["https://authgear.com/claims/login_id/type"] ===
+          "email"
+        ) {
+          emailIdentityList.push({
+            id: identity.id,
+            email: identity.claims.email,
+            verified: true,
+            addedOn: createdAtStr,
+          });
+        }
 
-      if (identity.claims.preferred_username != null) {
-        usernameIdentityList.push({
-          id: identity.id,
-          username: identity.claims.preferred_username,
-          addedOn: createdAtStr,
-        });
+        if (
+          identity.claims["https://authgear.com/claims/login_id/type"] ===
+          "phone"
+        ) {
+          phoneIdentityList.push({
+            id: identity.id,
+            phone: identity.claims.phone_number,
+            verified: false,
+            addedOn: createdAtStr,
+          });
+        }
+
+        if (
+          identity.claims["https://authgear.com/claims/login_id/type"] ===
+          "username"
+        ) {
+          usernameIdentityList.push({
+            id: identity.id,
+            username: identity.claims.preferred_username,
+            addedOn: createdAtStr,
+          });
+        }
       }
     }
     return {
+      oauth: oauthIdentityList,
       email: emailIdentityList,
       phone: phoneIdentityList,
       username: usernameIdentityList,
@@ -360,6 +424,27 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
     setIsErrorDialogVisible(false);
   }, []);
 
+  const onRenderOAuthIdentityCell = useCallback(
+    (item?: OAuthIdentityListItem, _index?: number): React.ReactNode => {
+      if (item == null) {
+        return null;
+      }
+      return (
+        <IdentityListCell
+          identityID={item.id}
+          oauthProviderType={item.providerType}
+          identityType="oauth"
+          identityName={item.name}
+          verified={item.verified}
+          connectedOn={item.connectedOn}
+          onRemoveClicked={onRemoveClicked}
+          toggleVerified={() => {}}
+        />
+      );
+    },
+    [onRemoveClicked]
+  );
+
   const onRenderEmailIdentityCell = useCallback(
     (item?: EmailIdentityListItem, _index?: number): React.ReactNode => {
       if (item == null) {
@@ -371,7 +456,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
           identityType="email"
           identityName={item.email}
           verified={item.verified}
-          connectedOn={item.connectedOn}
+          addedOn={item.addedOn}
           onRemoveClicked={onRemoveClicked}
           toggleVerified={() => {}}
         />
@@ -500,6 +585,18 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
         </PrimaryButton>
       </section>
       <section className={styles.identityLists}>
+        {identityLists.oauth.length > 0 && (
+          <>
+            <Text as="h3" className={styles.subHeader}>
+              <FormattedMessage id="UserDetails.connected-identities.oauth" />
+            </Text>
+            <List
+              className={styles.list}
+              items={identityLists.oauth}
+              onRenderCell={onRenderOAuthIdentityCell}
+            />
+          </>
+        )}
         {identityLists.email.length > 0 && (
           <>
             <Text as="h3" className={styles.subHeader}>
