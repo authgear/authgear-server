@@ -12,12 +12,15 @@ import AuthenticationAuthenticatorSettings from "./AuthenticationAuthenticatorSe
 
 import { useAppConfigQuery } from "./query/appConfigQuery";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
+import { usePivot } from "../../hook/usePivot";
 
 import styles from "./AuthenticationConfigurationScreen.module.scss";
 
 const AuthenticationScreen: React.FC = function AuthenticationScreen() {
   const { renderToString } = React.useContext(Context);
   const { appID } = useParams();
+  const { hash, onLinkClick } = usePivot();
+
   const {
     updateAppConfig,
     loading: updatingAppConfig,
@@ -55,8 +58,9 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
           <FormattedMessage id="AuthenticationScreen.title" />
         </Text>
         <div className={styles.tabsContainer}>
-          <Pivot>
+          <Pivot selectedKey={hash} onLinkClick={onLinkClick}>
             <PivotItem
+              itemKey="login-id"
               headerText={renderToString("AuthenticationScreen.login-id.title")}
             >
               <AuthenticationLoginIDSettings
@@ -67,6 +71,7 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
               />
             </PivotItem>
             <PivotItem
+              itemKey="authenticator"
               headerText={renderToString(
                 "AuthenticationScreen.authenticator.title"
               )}

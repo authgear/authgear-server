@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Pivot, PivotItem } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 
@@ -15,6 +15,7 @@ import UserDetailsSession from "./UserDetailsSession";
 
 import { useUserQuery } from "./query/userQuery";
 import { UserQuery_node_User } from "./query/__generated__/UserQuery";
+import { usePivot } from "../../hook/usePivot";
 import { nonNullable } from "../../util/types";
 import { extractUserInfoFromIdentities } from "../../util/user";
 import { PortalAPIAppConfig } from "../../types";
@@ -31,9 +32,8 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
 ) {
   const { data, loading, appConfig } = props;
-  const location = useLocation();
-  const hash = location.hash.slice(1);
   const { renderToString } = React.useContext(Context);
+  const { hash, onLinkClick } = usePivot();
 
   const availableLoginIdIdentities = useMemo(() => {
     const authenticationIdentities =
@@ -70,15 +70,15 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
         lastLoginAtISO={data?.lastLoginAt ?? null}
       />
       <div className={styles.userDetailsTab}>
-        <Pivot defaultSelectedKey={hash}>
+        <Pivot selectedKey={hash} onLinkClick={onLinkClick}>
           <PivotItem
-            itemKey={"account-security"}
+            itemKey="account-security"
             headerText={renderToString("UserDetails.account-security.header")}
           >
             <UserDetailsAccountSecurity authenticators={authenticators} />
           </PivotItem>
           <PivotItem
-            itemKey={"connected-identities"}
+            itemKey="connected-identities"
             headerText={renderToString(
               "UserDetails.connected-identities.header"
             )}
@@ -89,7 +89,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
             />
           </PivotItem>
           <PivotItem
-            itemKey={"session"}
+            itemKey="session"
             headerText={renderToString("UserDetails.session.header")}
           >
             <UserDetailsSession />
