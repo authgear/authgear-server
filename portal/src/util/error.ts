@@ -27,7 +27,7 @@ interface GeneralErrorCause {
 }
 
 interface FormatErrorCauseDetails {
-  msg: string;
+  format: string;
 }
 
 interface FormatErrorCause {
@@ -106,6 +106,7 @@ function extractViolationFromErrorCause(cause: ErrorCause): Violation | null {
       return {
         kind: cause.kind,
         location: cause.location,
+        detail: cause.details.format,
       };
     default:
       return null;

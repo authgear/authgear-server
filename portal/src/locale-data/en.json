@@ -28,6 +28,10 @@
   "linkedin": "LinkedIn",
   "azureadv2": "AzureADv2",
 
+  "login-id-key.username": "Username",
+  "login-id-key.email": "Email",
+  "login-id-key.phone": "Phone",
+
   "header.sign-out": "Sign out",
 
   "nav.users": "Users",
@@ -55,16 +59,13 @@
   "UsersScreen.add-user": "Add User",
 
   "AddUserScreen.title": "Add User",
-  "AddUserScreen.name": "Name",
   "AddUserScreen.user-info.label": "Fill in 1 of the following fields:",
-  "AddUserScreen.user-info.username": "Username",
-  "AddUserScreen.user-info.email": "Email",
-  "AddUserScreen.user-info.phone": "Phone",
   "AddUserScreen.password.label": "Password",
   "AddUserScreen.add-user.label": "Add User",
   "AddUserScreen.cannot-add-user": "Please enable at least one of username, email or phone in authentication screen",
-  "AddUserScreen.error.one-of-login-id-type": "Required to fill in exactly 1 of the fields above",
   "AddUserScreen.error.invalid-password": "Please check password policies below",
+  "AddUserScreen.error.invalid-identity": "Invalid {loginIdType}",
+  "AddUserScreen.error.duplicated-identity": "Duplicated {loginIdType}",
 
   "UserDetailsScreen.title": "User Details",
 

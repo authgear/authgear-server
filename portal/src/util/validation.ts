@@ -20,6 +20,7 @@ interface RequiredViolation {
 interface FormatViolation {
   kind: "format";
   location: string;
+  detail: string;
 }
 
 interface GeneralViolation {
