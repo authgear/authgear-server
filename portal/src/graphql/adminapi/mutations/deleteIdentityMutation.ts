@@ -17,7 +17,7 @@ export function useDeleteIdentityMutation(): {
 } {
   const [mutationFunction, { error, loading }] = useMutation<
     DeleteIdentityMutation
-  >(deleteIdentityMutation, { refetchQueries: ["UserDetailsScreenQuery"] });
+  >(deleteIdentityMutation, { refetchQueries: ["UserQuery"] });
 
   const deleteIdentity = useCallback(
     async (identityID: string) => {
