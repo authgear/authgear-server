@@ -532,10 +532,6 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
     setErrorDialogData,
   ] = useState<ErrorDialogData | null>(null);
 
-  const [unhandledViolations, setUnhandledViolations] = useState<Violation[]>(
-    []
-  );
-
   const primaryAuthenticatorLists = useMemo(() => {
     return constructAuthenticatorLists(authenticators, "PRIMARY", locale);
   }, [locale, authenticators]);
@@ -620,28 +616,28 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
     [deleteAuthenticator, dismissConfirmationDialog]
   );
 
-  const errorMessage = useMemo(() => {
+  const { errorMessages, unhandledViolations } = useMemo(() => {
     const violations = parseError(deleteAuthenticatorError);
     const errorDialogErrorMessages: string[] = [];
-    const unknownViolations: Violation[] = [];
+    const unhandledViolations: Violation[] = [];
 
     for (const violation of violations) {
-      unknownViolations.push(violation);
+      unhandledViolations.push(violation);
     }
 
-    setUnhandledViolations(unknownViolations);
-
-    return {
+    const errorMessages = {
       errorDialog: defaultFormatErrorMessageList(errorDialogErrorMessages),
     };
+
+    return { errorMessages, unhandledViolations };
   }, [deleteAuthenticatorError]);
 
   useEffect(() => {
-    if (errorMessage.errorDialog != null) {
-      setErrorDialogData({ errorMessage: errorMessage.errorDialog });
+    if (errorMessages.errorDialog != null) {
+      setErrorDialogData({ errorMessage: errorMessages.errorDialog });
       setIsErrorDialogVisible(true);
     }
-  }, [errorMessage.errorDialog]);
+  }, [errorMessages.errorDialog]);
 
   const dismissErrorDialog = useCallback(() => {
     setIsErrorDialogVisible(false);
