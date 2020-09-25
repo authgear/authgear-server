@@ -66,7 +66,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
         lastLoginAtISO={data?.lastLoginAt ?? null}
       />
       <div className={styles.userDetailsTab}>
-        <Pivot initialSelectedKey={hash}>
+        <Pivot defaultSelectedKey={hash}>
           <PivotItem
             itemKey={"account-security"}
             headerText={renderToString("UserDetails.account-security.header")}
