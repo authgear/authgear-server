@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { TextField, Toggle } from "@fluentui/react";
 import deepEqual from "deep-equal";
@@ -30,9 +36,7 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
   } = useCreateLoginIDIdentityMutation(userID);
   const { renderToString } = useContext(Context);
 
-  const [disableBlockNavigation, setDisableBlockNavigation] = useState<boolean>(
-    false
-  );
+  const [submittedForm, setSubmittedForm] = useState<boolean>(false);
 
   const navBreadcrumbItems = useMemo(() => {
     return [
@@ -65,17 +69,20 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
   }, [screenState]);
 
   const onAddClicked = useCallback(() => {
-    setDisableBlockNavigation(true);
     createIdentity({ key: "email", value: email })
       .then((identity) => {
         if (identity != null) {
-          navigate("../#connected-identities");
+          setSubmittedForm(true);
         }
       })
-      .catch(() => {
-        setDisableBlockNavigation(false);
-      });
-  }, [email, navigate, createIdentity]);
+      .catch(() => {});
+  }, [email, createIdentity]);
+
+  useEffect(() => {
+    if (submittedForm) {
+      navigate("../#connected-identities");
+    }
+  }, [submittedForm, navigate]);
 
   const { errorMessage, unhandledViolations } = useMemo(() => {
     const violations = parseError(createIdentityError);
@@ -110,7 +117,7 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
           <ShowError error={createIdentityError} />
         )}
         <NavigationBlockerDialog
-          blockNavigation={!disableBlockNavigation && isFormModified}
+          blockNavigation={!submittedForm && isFormModified}
         />
         <TextField
           className={styles.emailField}

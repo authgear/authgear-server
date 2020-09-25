@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { TextField } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -30,9 +36,7 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
   } = useCreateLoginIDIdentityMutation(userID);
   const { renderToString } = useContext(Context);
 
-  const [disableBlockNavigation, setDisableBlockNavigation] = useState<boolean>(
-    false
-  );
+  const [submittedForm, setSubmittedForm] = useState<boolean>(false);
 
   const { value: username, onChange: onUsernameChange } = useTextField("");
 
@@ -56,17 +60,20 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
   }, [screenState]);
 
   const onAddClicked = useCallback(() => {
-    setDisableBlockNavigation(true);
     createIdentity({ key: "username", value: username })
       .then((identity) => {
         if (identity != null) {
-          navigate("../#connected-identities");
+          setSubmittedForm(true);
         }
       })
-      .catch(() => {
-        setDisableBlockNavigation(false);
-      });
-  }, [username, navigate, createIdentity]);
+      .catch(() => {});
+  }, [username, createIdentity]);
+
+  useEffect(() => {
+    if (submittedForm) {
+      navigate("../#connected-identities");
+    }
+  }, [submittedForm, navigate]);
 
   const { errorMessage, unhandledViolations } = useMemo(() => {
     const violations = parseError(createIdentityError);
@@ -102,7 +109,7 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
           <ShowError error={createIdentityError} />
         )}
         <NavigationBlockerDialog
-          blockNavigation={!disableBlockNavigation && isFormModified}
+          blockNavigation={!submittedForm && isFormModified}
         />
         <TextField
           className={styles.usernameField}

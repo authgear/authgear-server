@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Dropdown, Label, TextField, Toggle } from "@fluentui/react";
 import deepEqual from "deep-equal";
@@ -40,9 +46,7 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
   } = useCreateLoginIDIdentityMutation(userID);
   const { renderToString } = useContext(Context);
 
-  const [disableBlockNavigation, setDisableBlockNavigation] = useState<boolean>(
-    false
-  );
+  const [submittedForm, setSubmittedForm] = useState<boolean>(false);
 
   const { value: phone, onChange: _onPhoneChange } = useTextField("");
 
@@ -103,18 +107,21 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
   }, [screenState, countryCodeConfig.default]);
 
   const onAddClicked = useCallback(() => {
-    setDisableBlockNavigation(true);
     const combinedPhone = `+${countryCode}${phone}`;
     createIdentity({ key: "phone", value: combinedPhone })
       .then((identity) => {
         if (identity != null) {
-          navigate("../#connected-identities");
+          setSubmittedForm(true);
         }
       })
-      .catch(() => {
-        setDisableBlockNavigation(false);
-      });
-  }, [countryCode, phone, navigate, createIdentity]);
+      .catch(() => {});
+  }, [countryCode, phone, createIdentity]);
+
+  useEffect(() => {
+    if (submittedForm) {
+      navigate("../#connected-identities");
+    }
+  }, [submittedForm, navigate]);
 
   const { errorMessage, unhandledViolations } = useMemo(() => {
     const violations = parseError(createIdentityError);
@@ -147,7 +154,7 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
         <ShowError error={createIdentityError} />
       )}
       <NavigationBlockerDialog
-        blockNavigation={!disableBlockNavigation && isFormModified}
+        blockNavigation={!submittedForm && isFormModified}
       />
       <section className={styles.phoneNumberFields}>
         <Label className={styles.phoneNumberLabel}>
