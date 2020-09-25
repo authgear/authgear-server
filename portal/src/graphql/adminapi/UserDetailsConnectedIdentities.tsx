@@ -254,14 +254,20 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
   } = useDeleteIdentityMutation();
 
   const [
-    confirmationDialogData,
-    setConfirmationDialogData,
-  ] = useState<ConfirmationDialogData | null>(null);
+    isConfirmationDialogVisible,
+    setIsConfirmationDialogVisible,
+  ] = useState(false);
+  const [isErrorDialogVisible, setIsErrorDialogVisible] = useState(false);
 
-  const [
-    errorDialogData,
-    setErrorDialogData,
-  ] = useState<ErrorDialogData | null>(null);
+  const [confirmationDialogData, setConfirmationDialogData] = useState<
+    ConfirmationDialogData
+  >({
+    identityID: "",
+    identityName: "",
+  });
+  const [errorDialogData, setErrorDialogData] = useState<ErrorDialogData>({
+    message: "",
+  });
 
   const identityLists: IdentityLists = useMemo(() => {
     const emailIdentityList: EmailIdentityListItem[] = [];
@@ -310,18 +316,16 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
         identityID,
         identityName,
       });
+      setIsConfirmationDialogVisible(true);
     },
     [setConfirmationDialogData]
   );
 
   const onDismissConfirmationDialog = useCallback(() => {
-    setConfirmationDialogData(null);
+    setIsConfirmationDialogVisible(false);
   }, []);
 
   const onConfirmRemoveIdentity = useCallback(() => {
-    if (confirmationDialogData == null) {
-      return;
-    }
     const { identityID } = confirmationDialogData;
     deleteIdentity(identityID).finally(() => {
       onDismissConfirmationDialog();
@@ -348,12 +352,13 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
       setErrorDialogData({
         message: errorMessage,
       });
+      setIsErrorDialogVisible(true);
     }
   }, [deleteIdentityError, renderToString]);
 
   const onDismissErrorDialog = useCallback(() => {
-    setErrorDialogData(null);
-  }, [setErrorDialogData]);
+    setIsErrorDialogVisible(false);
+  }, []);
 
   const onRenderEmailIdentityCell = useCallback(
     (item?: EmailIdentityListItem, _index?: number): React.ReactNode => {
@@ -446,13 +451,13 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
   return (
     <div className={styles.root}>
       <Dialog
-        hidden={confirmationDialogData == null}
+        hidden={!isConfirmationDialogVisible}
         title={
           <FormattedMessage id="UserDetails.connected-identities.confirm-remove-identity-title" />
         }
         subText={renderToString(
           "UserDetails.connected-identities.confirm-remove-identity-message",
-          { identityName: confirmationDialogData?.identityName ?? "" }
+          { identityName: confirmationDialogData.identityName }
         )}
         onDismiss={onDismissConfirmationDialog}
       >
@@ -465,11 +470,11 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
         </DialogFooter>
       </Dialog>
       <Dialog
-        hidden={errorDialogData == null}
+        hidden={!isErrorDialogVisible}
         title={
           <FormattedMessage id="UserDetails.connected-identities.error-dialog-title" />
         }
-        subText={errorDialogData?.message}
+        subText={errorDialogData.message}
         onDismiss={onDismissErrorDialog}
       >
         <DialogFooter>
