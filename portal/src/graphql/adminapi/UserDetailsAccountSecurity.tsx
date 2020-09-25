@@ -519,6 +519,11 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
   } = useDeleteAuthenticatorMutation();
 
   const [
+    isConfirmationDialogVisible,
+    setIsConfirmationDialogVisible,
+  ] = useState(false);
+  const [isErrorDialogVisible, setIsErrorDialogVisible] = useState(false);
+  const [
     confirmationDialogData,
     setConfirmationDialogData,
   ] = useState<RemoveConfirmationDialogData | null>(null);
@@ -545,12 +550,13 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
         authenticatorID,
         authenticatorName,
       });
+      setIsConfirmationDialogVisible(true);
     },
     []
   );
 
   const dismissConfirmationDialog = useCallback(() => {
-    setConfirmationDialogData(null);
+    setIsConfirmationDialogVisible(false);
   }, []);
 
   const onRenderPasswordAuthenticatorDetailCell = useCallback(
@@ -631,15 +637,14 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
   }, [deleteAuthenticatorError]);
 
   useEffect(() => {
-    if (errorMessage.errorDialog == null) {
-      setErrorDialogData(null);
-    } else {
+    if (errorMessage.errorDialog != null) {
       setErrorDialogData({ errorMessage: errorMessage.errorDialog });
+      setIsErrorDialogVisible(true);
     }
   }, [errorMessage.errorDialog]);
 
   const dismissErrorDialog = useCallback(() => {
-    setErrorDialogData(null);
+    setIsErrorDialogVisible(false);
   }, []);
 
   return (
@@ -648,7 +653,7 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
         <ShowError error={deleteAuthenticatorError} />
       )}
       <RemoveConfirmationDialog
-        visible={confirmationDialogData != null}
+        visible={isConfirmationDialogVisible}
         authenticatorID={confirmationDialogData?.authenticatorID}
         authenticatorName={confirmationDialogData?.authenticatorName}
         onDismiss={dismissConfirmationDialog}
@@ -656,7 +661,7 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
         deletingAuthenticator={deletingAuthenticator}
       />
       <ErrorDialog
-        visible={errorDialogData != null}
+        visible={isErrorDialogVisible}
         errorMessage={errorDialogData?.errorMessage}
         onDismiss={dismissErrorDialog}
       />
