@@ -28,7 +28,7 @@ func (e *EdgeRemoveAuthenticator) Instantiate(ctx *interaction.Context, graph *i
 	authenticatorID := input.GetAuthenticatorID()
 	bypassMFARequirement := false
 	var bypassInput interface{ BypassMFARequirement() bool }
-	if interaction.Input(rawInput, bypassInput) {
+	if interaction.Input(rawInput, &bypassInput) {
 		bypassMFARequirement = bypassInput.BypassMFARequirement()
 	}
 
