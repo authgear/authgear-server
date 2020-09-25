@@ -1,6 +1,7 @@
 import React, {
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -173,7 +174,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
   } = useCreateUserMutation();
 
   const selectedLoginIdInLastSubmission = useRef<LoginIDKey | null>(null);
-  const [disableBlockNavigation, setDisableBlockNavigation] = useState(false);
+  const [submittedForm, setSubmittedForm] = useState(false);
   const [selectedLoginIdKey, setSelectedLoginIdKey] = useState<
     LoginIDKey | undefined
   >(undefined);
@@ -193,9 +194,14 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
     []
   );
 
-  const [violations, setViolations] = useState<Violation[]>([]);
+  const [localViolations, setLocalViolations] = useState<Violation[]>([]);
 
   const { errorMessages, unhandledViolations } = useMemo(() => {
+    const violations =
+      localViolations.length === 0
+        ? parseError(createUserError)
+        : localViolations;
+
     const lastSumissionLoginId = selectedLoginIdInLastSubmission.current;
     const lastSumissionLoginIdText =
       lastSumissionLoginId != null
@@ -243,7 +249,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
       errorMessages,
       unhandledViolations,
     };
-  }, [renderToString, violations]);
+  }, [renderToString, localViolations, createUserError]);
 
   const renderUsernameField = useCallback(() => {
     return (
@@ -348,26 +354,26 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
       passwordRequired
     );
     if (localValidationErrors.length > 0 || selectedKey == null) {
-      setViolations(localValidationErrors);
+      setLocalViolations(localValidationErrors);
       return;
     }
     selectedLoginIdInLastSubmission.current = selectedKey;
     const identityValue = screenState[selectedKey];
     const password = passwordRequired ? screenState.password : undefined;
-    setDisableBlockNavigation(true);
     createUser({ key: selectedKey, value: identityValue }, password)
       .then((userID) => {
-        if (userID == null) {
-          throw new Error();
+        if (userID != null) {
+          setSubmittedForm(true);
         }
-        navigate("../");
       })
-      .catch((err) => {
-        setDisableBlockNavigation(false);
-        const violations = parseError(err);
-        setViolations(violations);
-      });
-  }, [screenState, passwordPolicy, passwordRequired, createUser, navigate]);
+      .catch(() => {});
+  }, [screenState, passwordPolicy, passwordRequired, createUser]);
+
+  useEffect(() => {
+    if (submittedForm) {
+      navigate("../");
+    }
+  }, [submittedForm, navigate]);
 
   // TODO: improve empty state
   if (!canAddUser) {
@@ -382,7 +388,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
     <section className={styles.content}>
       {unhandledViolations.length > 0 && <ShowError error={createUserError} />}
       <NavigationBlockerDialog
-        blockNavigation={!disableBlockNavigation && isFormModified}
+        blockNavigation={!submittedForm && isFormModified}
       />
       <ChoiceGroup
         className={styles.userInfo}
