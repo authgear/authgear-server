@@ -1,14 +1,9 @@
-import React from "react";
-import { useParams } from "react-router-dom";
+import React, { useMemo } from "react";
+import { useLocation, useParams } from "react-router-dom";
 import { Pivot, PivotItem } from "@fluentui/react";
-import { useQuery, gql } from "@apollo/client";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 
-import {
-  UserDetailsScreenQuery,
-  UserDetailsScreenQueryVariables,
-  UserDetailsScreenQuery_node_User,
-} from "./__generated__/UserDetailsScreenQuery";
+import { useAppConfigQuery } from "../portal/query/appConfigQuery";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
@@ -18,21 +13,40 @@ import UserDetailsAccountSecurity from "./UserDetailsAccountSecurity";
 import UserDetailsConnectedIdentities from "./UserDetailsConnectedIdentities";
 import UserDetailsSession from "./UserDetailsSession";
 
+import { useUserQuery } from "./query/userQuery";
+import { UserQuery_node_User } from "./query/__generated__/UserQuery";
 import { nonNullable } from "../../util/types";
 import { extractUserInfoFromIdentities } from "../../util/user";
+import { PortalAPIAppConfig } from "../../types";
 
 import styles from "./UserDetailsScreen.module.scss";
 
 interface UserDetailsProps {
-  data: UserDetailsScreenQuery_node_User | null;
+  data: UserQuery_node_User | null;
+  appConfig: PortalAPIAppConfig | null;
   loading: boolean;
 }
 
 const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
 ) {
-  const { data, loading } = props;
+  const { data, loading, appConfig } = props;
+  const location = useLocation();
+  const hash = location.hash.slice(1);
   const { renderToString } = React.useContext(Context);
+
+  const availableLoginIdIdentities = useMemo(() => {
+    const authenticationIdentities =
+      appConfig?.authentication?.identities ?? [];
+    const loginIdIdentityEnabled = authenticationIdentities.includes(
+      "login_id"
+    );
+    if (!loginIdIdentityEnabled) {
+      return [];
+    }
+    const rawLoginIdKeys = appConfig?.identity?.login_id?.keys ?? [];
+    return rawLoginIdKeys.map((loginIdKey) => loginIdKey.key);
+  }, [appConfig]);
 
   if (loading) {
     return <ShowLoading />;
@@ -56,20 +70,28 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
         lastLoginAtISO={data?.lastLoginAt ?? null}
       />
       <div className={styles.userDetailsTab}>
-        <Pivot>
+        <Pivot defaultSelectedKey={hash}>
           <PivotItem
+            itemKey={"account-security"}
             headerText={renderToString("UserDetails.account-security.header")}
           >
             <UserDetailsAccountSecurity authenticators={authenticators} />
           </PivotItem>
           <PivotItem
+            itemKey={"connected-identities"}
             headerText={renderToString(
               "UserDetails.connected-identities.header"
             )}
           >
-            <UserDetailsConnectedIdentities identities={identities} />
+            <UserDetailsConnectedIdentities
+              identities={identities}
+              availableLoginIdIdentities={availableLoginIdIdentities}
+            />
           </PivotItem>
-          <PivotItem headerText={renderToString("UserDetails.session.header")}>
+          <PivotItem
+            itemKey={"session"}
+            headerText={renderToString("UserDetails.session.header")}
+          >
             <UserDetailsSession />
           </PivotItem>
         </Pivot>
@@ -78,54 +100,20 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   );
 };
 
-const query = gql`
-  query UserDetailsScreenQuery($userID: ID!) {
-    node(id: $userID) {
-      __typename
-      ... on User {
-        id
-        authenticators {
-          edges {
-            node {
-              id
-              type
-              kind
-              isDefault
-              claims
-              createdAt
-              updatedAt
-            }
-          }
-        }
-        identities {
-          edges {
-            node {
-              id
-              type
-              claims
-              createdAt
-              updatedAt
-            }
-          }
-        }
-        lastLoginAt
-        createdAt
-        updatedAt
-      }
-    }
-  }
-`;
-
 const UserDetailsScreen: React.FC = function UserDetailsScreen() {
-  const { userID } = useParams();
-  const { loading, error, data, refetch } = useQuery<
-    UserDetailsScreenQuery,
-    UserDetailsScreenQueryVariables
-  >(query, {
-    variables: {
-      userID,
-    },
-  });
+  const { appID, userID } = useParams();
+  const { data, loading, error, refetch } = useUserQuery(userID);
+  const {
+    loading: loadingAppConfig,
+    error: appConfigError,
+    data: appConfigData,
+    refetch: refetchAppConfig,
+  } = useAppConfigQuery(appID);
+
+  const appConfig =
+    appConfigData?.node?.__typename === "App"
+      ? appConfigData.node.effectiveAppConfig
+      : null;
 
   const navBreadcrumbItems = React.useMemo(() => {
     return [
@@ -143,12 +131,20 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
     return <ShowError error={error} onRetry={refetch} />;
   }
 
+  if (appConfigError != null) {
+    return <ShowError error={error} onRetry={refetchAppConfig} />;
+  }
+
   return (
     <main className={styles.root}>
       <UserDetailCommandBar />
       <div className={styles.screenContent}>
         <NavBreadcrumb items={navBreadcrumbItems} />
-        <UserDetails data={userDetails} loading={loading} />
+        <UserDetails
+          data={userDetails}
+          loading={loading || loadingAppConfig}
+          appConfig={appConfig}
+        />
       </div>
     </main>
   );

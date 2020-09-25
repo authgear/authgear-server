@@ -17,6 +17,7 @@ import {
 } from "../../types";
 import {
   setFieldIfChanged,
+  setFieldIfListNonEmpty,
   isArrayEqualInOrder,
   clearEmptyObject,
 } from "../../util/misc";
@@ -111,18 +112,6 @@ function handleStringListInput(
   return options.useDefaultList
     ? [...sanitizedList, ...options.defaultList]
     : sanitizedList;
-}
-
-function setFieldIfListNonEmpty(
-  map: Record<string, unknown>,
-  field: string,
-  list: (string | number | boolean)[]
-): void {
-  if (list.length === 0) {
-    delete map[field];
-  } else {
-    map[field] = list;
-  }
 }
 
 function getLoginIdKeyIndex(

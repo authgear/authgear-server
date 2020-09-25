@@ -47,7 +47,22 @@ type AppEdge {
 }
 
 """"""
+input CreateAppInput {
+  """ID of the new app."""
+  id: String!
+}
+
+""""""
+type CreateAppPayload {
+  """"""
+  app: App!
+}
+
+""""""
 type Mutation {
+  """Create new app"""
+  createApp(input: CreateAppInput!): CreateAppPayload!
+
   """Update app configuration files"""
   updateAppConfig(input: UpdateAppConfigInput!): App!
 }

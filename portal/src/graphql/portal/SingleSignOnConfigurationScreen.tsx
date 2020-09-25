@@ -382,11 +382,11 @@ function filterViolations(violations: Violation[]) {
   for (const violation of violations) {
     // general violation has no location -> not handled
     const locationPrefix = "/identity/oauth/providers";
-    if (!violation.location.startsWith(locationPrefix)) {
+    if (violation.kind !== "required") {
       unhandledViolation.push(violation);
       continue;
     }
-    if (violation.kind !== "required") {
+    if (!violation.location.startsWith(locationPrefix)) {
       unhandledViolation.push(violation);
       continue;
     }

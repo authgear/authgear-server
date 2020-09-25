@@ -11,17 +11,24 @@
 }
 
 .phoneNumberFields {
-  display: flex;
-  align-items: flex-end;
+  display: grid;
+  grid-template:
+    "label    label"
+    "code     phone"
+    / 120px 200px;
+}
+
+.phoneNumberLabel {
+  grid-area: label;
 }
 
 .countryCode {
-  width: 120px;
+  grid-area: code;
 }
 
 .phone {
+  grid-area: phone;
   margin-left: 10px;
-  width: 200px;
 }
 
 .verified {

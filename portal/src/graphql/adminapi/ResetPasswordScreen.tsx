@@ -1,11 +1,18 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import cn from "classnames";
 import zxcvbn from "zxcvbn";
 import deepEqual from "deep-equal";
-import { PrimaryButton, Text, TextField } from "@fluentui/react";
+import { Text, TextField } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
+import { useResetPasswordMutation } from "./mutations/resetPasswordMutation";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import PasswordField, {
   extractGuessableLevel,
@@ -14,8 +21,16 @@ import PasswordField, {
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
+import ButtonWithLoading from "../../ButtonWithLoading";
 import { useAppConfigQuery } from "../portal/query/appConfigQuery";
 import { useTextField } from "../../hook/useInput";
+import {
+  CustomViolation,
+  defaultFormatErrorMessageList,
+  PasswordPolicyViolatedViolation,
+  Violation,
+} from "../../util/validation";
+import { parseError } from "../../util/error";
 import { PasswordPolicyConfig, PortalAPIAppConfig } from "../../types";
 
 import styles from "./ResetPasswordScreen.module.scss";
@@ -29,18 +44,13 @@ interface ResetPasswordScreenState {
   confirmPassword: string;
 }
 
-type ViolationType = "confirm-password-not-match" | "invalid-password";
-interface ResetPasswordScreenViolation {
-  violationType: ViolationType;
-}
-
 function validate(
   screenState: ResetPasswordScreenState,
   passwordPolicy: PasswordPolicyConfig
 ) {
-  const violations: ResetPasswordScreenViolation[] = [];
+  const violations: Violation[] = [];
   if (screenState.newPassword !== screenState.confirmPassword) {
-    violations.push({ violationType: "confirm-password-not-match" });
+    violations.push({ kind: "custom", id: "confirm-password-not-match" });
   }
 
   const guessableLevel = extractGuessableLevel(zxcvbn(screenState.newPassword));
@@ -50,20 +60,53 @@ function validate(
     guessableLevel
   );
   if (!passwordValid) {
-    violations.push({ violationType: "invalid-password" });
+    violations.push({ kind: "custom", id: "invalid-password" });
   }
 
   return violations;
 }
 
-function hasViolation(
-  violationType: ViolationType,
-  violations: ResetPasswordScreenViolation[]
-): boolean {
-  return (
-    violations.filter((violation) => violation.violationType === violationType)
-      .length > 0
-  );
+function handleLocalViolations(
+  renderToString: (messageId: string) => string,
+  violation: CustomViolation,
+  newPasswordErrorMessages: string[],
+  confirmPasswordErrorMessages: string[],
+  unknownViolations: Violation[]
+) {
+  switch (violation.id) {
+    case "invalid-password":
+      newPasswordErrorMessages.push(
+        renderToString("ResetPasswordScreen.error.invalid-password")
+      );
+      break;
+    case "confirm-password-not-match":
+      confirmPasswordErrorMessages.push(
+        renderToString("ResetPasswordScreen.error.confirm-password-not-match")
+      );
+      break;
+    default:
+      unknownViolations.push(violation);
+      break;
+  }
+}
+
+function handlePasswordPolicyViolatedViolation(
+  renderToString: (messageId: string) => string,
+  violation: PasswordPolicyViolatedViolation,
+  newPasswordErrorMessages: string[],
+  unknownViolations: Violation[]
+) {
+  if (violation.causes.includes("PasswordReused")) {
+    newPasswordErrorMessages.push(
+      renderToString("ResetPasswordScreen.error.password-reused")
+    );
+  } else if (violation.causes.includes("PasswordContainingExcludedKeywords")) {
+    newPasswordErrorMessages.push(
+      renderToString("ResetPasswordScreen.error.containing-excluded-keywords")
+    );
+  } else {
+    unknownViolations.push(violation);
+  }
 }
 
 const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
@@ -71,11 +114,17 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
 ) {
   const { appConfig } = props;
 
+  const { userID } = useParams();
+  const navigate = useNavigate();
+  const {
+    resetPassword,
+    loading: resettingPassword,
+    error: resetPasswordError,
+  } = useResetPasswordMutation(userID);
   const { renderToString } = useContext(Context);
 
-  const [violations, setViolations] = useState<ResetPasswordScreenViolation[]>(
-    []
-  );
+  const [localViolations, setLocalViolations] = useState<Violation[]>([]);
+  const [submittedForm, setSubmittedForm] = useState(false);
 
   const passwordPolicy = useMemo(() => {
     return appConfig?.authenticator?.password?.policy ?? {};
@@ -102,30 +151,65 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
   }, [screenState]);
 
   const onConfirmClicked = useCallback(() => {
-    const newViolations = validate(screenState, passwordPolicy);
-    setViolations(newViolations);
-    if (newViolations.length > 0) {
-      // return
+    const newLocalViolations = validate(screenState, passwordPolicy);
+    setLocalViolations(newLocalViolations);
+    if (newLocalViolations.length > 0) {
+      return;
     }
 
-    // TODO: integrate mutation
-  }, [screenState, passwordPolicy]);
+    resetPassword(screenState.newPassword)
+      .then((userID) => {
+        if (userID != null) {
+          setSubmittedForm(true);
+        }
+      })
+      .catch(() => {});
+  }, [screenState, passwordPolicy, resetPassword]);
 
-  const newPasswordErrorMessage = useMemo(() => {
-    if (hasViolation("invalid-password", violations)) {
-      return renderToString("ResetPasswordScreen.error.invalid-password");
+  useEffect(() => {
+    if (submittedForm) {
+      navigate("../#account-security");
     }
-    return undefined;
-  }, [violations, renderToString]);
+  }, [submittedForm, navigate]);
 
-  const confirmPasswordErrorMessage = useMemo(() => {
-    if (hasViolation("confirm-password-not-match", violations)) {
-      return renderToString(
-        "ResetPasswordScreen.error.confirm-password-not-match"
-      );
+  const { errorMessages, unhandledViolations } = useMemo(() => {
+    const violations =
+      localViolations.length > 0
+        ? localViolations
+        : parseError(resetPasswordError);
+    const newPasswordErrorMessages: string[] = [];
+    const confirmPasswordErrorMessages: string[] = [];
+    const unhandledViolations: Violation[] = [];
+    for (const violation of violations) {
+      if (violation.kind === "custom") {
+        handleLocalViolations(
+          renderToString,
+          violation,
+          newPasswordErrorMessages,
+          confirmPasswordErrorMessages,
+          unhandledViolations
+        );
+      } else if (violation.kind === "PasswordPolicyViolated") {
+        handlePasswordPolicyViolatedViolation(
+          renderToString,
+          violation,
+          newPasswordErrorMessages,
+          unhandledViolations
+        );
+      } else {
+        unhandledViolations.push(violation);
+      }
     }
-    return undefined;
-  }, [violations, renderToString]);
+
+    const errorMessages = {
+      newPassword: defaultFormatErrorMessageList(newPasswordErrorMessages),
+      confirmPassword: defaultFormatErrorMessageList(
+        confirmPasswordErrorMessages
+      ),
+    };
+
+    return { errorMessages, unhandledViolations };
+  }, [localViolations, resetPasswordError, renderToString]);
 
   if (appConfig == null) {
     return (
@@ -137,11 +221,16 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
 
   return (
     <div className={styles.form}>
-      <NavigationBlockerDialog blockNavigation={isFormModified} />
+      {unhandledViolations.length > 0 && (
+        <ShowError error={resetPasswordError} />
+      )}
+      <NavigationBlockerDialog
+        blockNavigation={!submittedForm && isFormModified}
+      />
       <PasswordField
         className={styles.newPasswordField}
         textFieldClassName={styles.passwordField}
-        errorMessage={newPasswordErrorMessage}
+        errorMessage={errorMessages.newPassword}
         label={renderToString("ResetPasswordScreen.new-password")}
         value={newPassword}
         onChange={onNewPasswordChange}
@@ -153,11 +242,14 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
         type="password"
         value={confirmPassword}
         onChange={onConfirmPasswordChange}
-        errorMessage={confirmPasswordErrorMessage}
+        errorMessage={errorMessages.confirmPassword}
       />
-      <PrimaryButton className={styles.confirm} onClick={onConfirmClicked}>
-        <FormattedMessage id="confirm" />
-      </PrimaryButton>
+      <ButtonWithLoading
+        className={styles.confirm}
+        onClick={onConfirmClicked}
+        loading={resettingPassword}
+        labelId="confirm"
+      />
     </div>
   );
 };

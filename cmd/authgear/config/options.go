@@ -1,12 +1,9 @@
 package config
 
-type Options struct {
-	AppID        string
-	PublicOrigin string
-}
+import "github.com/authgear/authgear-server/pkg/lib/config"
 
-func ReadOptionsFromConsole() *Options {
-	opts := &Options{}
+func ReadAppConfigOptionsFromConsole() *config.GenerateAppConfigOptions {
+	opts := &config.GenerateAppConfigOptions{}
 
 	opts.AppID = promptString{
 		Title:        "App ID",
@@ -21,14 +18,8 @@ func ReadOptionsFromConsole() *Options {
 	return opts
 }
 
-type SecretOptions struct {
-	DatabaseURL    string
-	DatabaseSchema string
-	RedisURL       string
-}
-
-func ReadSecretOptionsFromConsole() *SecretOptions {
-	opts := &SecretOptions{}
+func ReadSecretConfigOptionsFromConsole() *config.GenerateSecretConfigOptions {
+	opts := &config.GenerateSecretConfigOptions{}
 
 	opts.DatabaseURL = promptURL{
 		Title:        "Database URL",

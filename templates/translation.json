@@ -4,7 +4,7 @@
   "email.default.sender": "no-reply@authgear.com",
   "email.default.reply-to": "",
   "email.default.subject": "",
-  "sms.default.sender": "",
+  "sms.default.sender": "Authgear",
   "email.welcome-message.subject": "Welcome!",
   "email.forgot-password.subject": "Reset password instruction",
   "email.verification.subject": "Email Verification Instruction",

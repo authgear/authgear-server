@@ -26,8 +26,18 @@ interface GeneralErrorCause {
   kind: "general";
 }
 
+interface FormatErrorCauseDetails {
+  format: string;
+}
+
+interface FormatErrorCause {
+  details: FormatErrorCauseDetails;
+  location: string;
+  kind: "format";
+}
+
 // union type of cause details, depend on kind
-type ErrorCause = RequiredErrorCause | GeneralErrorCause;
+type ErrorCause = RequiredErrorCause | GeneralErrorCause | FormatErrorCause;
 
 interface ValidationErrorInfo {
   causes: ErrorCause[];
@@ -39,14 +49,60 @@ interface APIValidationError {
   reason: "ValidationFailed";
 }
 
+type InvariantViolationErrorKind = "RemoveLastIdentity";
+
+interface InvariantViolationErrorCause {
+  kind: InvariantViolationErrorKind;
+}
+
+interface InvariantViolationErrorInfo {
+  cause: InvariantViolationErrorCause;
+}
+
+interface APIInvariantViolationError {
+  errorName: string;
+  info: InvariantViolationErrorInfo;
+  reason: "InvariantViolated";
+}
+
+interface APIDuplicatedIdentityError {
+  errorName: string;
+  reason: "DuplicatedIdentity";
+}
+
+interface APIInvalidError {
+  errorName: string;
+  reason: "Invalid";
+}
+
+interface PasswordPolicyViolatedErrorCause {
+  Name: string;
+  Info: unknown;
+}
+
+interface PasswordPolicyViolatedErrorInfo {
+  causes: PasswordPolicyViolatedErrorCause[];
+}
+
+interface APIPasswordPolicyViolatedError {
+  errorName: string;
+  info: PasswordPolicyViolatedErrorInfo;
+  reason: "PasswordPolicyViolated";
+}
+
 // union type of api errors, depend on reason
-type APIError = APIValidationError;
+type APIError =
+  | APIValidationError
+  | APIInvariantViolationError
+  | APIInvalidError
+  | APIDuplicatedIdentityError
+  | APIPasswordPolicyViolatedError;
 
 function isAPIError(value?: { [key: string]: any }): value is APIError {
   if (value == null) {
     return false;
   }
-  return "errorName" in value && "info" in value && "reason" in value;
+  return "errorName" in value && "reason" in value;
 }
 
 function extractViolationFromErrorCause(cause: ErrorCause): Violation | null {
@@ -62,6 +118,12 @@ function extractViolationFromErrorCause(cause: ErrorCause): Violation | null {
         kind: cause.kind,
         location: cause.location,
       };
+    case "format":
+      return {
+        kind: cause.kind,
+        location: cause.location,
+        detail: cause.details.format,
+      };
     default:
       return null;
   }
@@ -71,14 +133,30 @@ export function handleUpdateAppConfigError(error: GraphQLError): Violation[] {
   if (!isAPIError(error.extensions)) {
     return [];
   }
-  const causes = error.extensions.info.causes;
-  /* uncomment when there is more than one error reason
-  if (error.extensions.reason !== "ValidationFailed") {
-    return [];
+  const { extensions } = error;
+  switch (extensions.reason) {
+    case "ValidationFailed": {
+      const causes = extensions.info.causes;
+      return causes.map(extractViolationFromErrorCause).filter(nonNullable);
+    }
+    case "InvariantViolated": {
+      const cause = extensions.info.cause;
+      return [{ kind: cause.kind }];
+    }
+    case "Invalid": {
+      return [{ kind: "Invalid" }];
+    }
+    case "DuplicatedIdentity": {
+      return [{ kind: "DuplicatedIdentity" }];
+    }
+    case "PasswordPolicyViolated": {
+      const causes = extensions.info.causes;
+      const causeNames = causes.map((cause) => cause.Name);
+      return [{ kind: "PasswordPolicyViolated", causes: causeNames }];
+    }
+    default:
+      return [];
   }
-  */
-
-  return causes.map(extractViolationFromErrorCause).filter(nonNullable);
 }
 
 export function parseError(error: unknown): Violation[] {

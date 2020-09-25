@@ -15,6 +15,8 @@ type ViewerLoader interface {
 type AppLoader interface {
 	Get(id string) *graphqlutil.Lazy
 	List(userID string) *graphqlutil.Lazy
+
+	Create(userID string, id string) *graphqlutil.Lazy
 	UpdateConfig(app *model.App, updateFiles []*model.AppConfigFile, deleteFiles []string) *graphqlutil.Lazy
 }
 
