@@ -11,7 +11,8 @@ export type Violation =
   | DuplicatedIdentityViolation
   | InvalidViolation
   | CustomViolation
-  | PasswordPolicyViolatedViolation;
+  | PasswordPolicyViolatedViolation
+  | UnknownViolation;
 
 interface RequiredViolation {
   kind: "required";
@@ -49,6 +50,10 @@ interface InvalidViolation {
 export interface PasswordPolicyViolatedViolation {
   kind: "PasswordPolicyViolated";
   causes: string[];
+}
+
+interface UnknownViolation {
+  kind: "Unknown";
 }
 
 // used for local validation

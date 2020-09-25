@@ -98,6 +98,8 @@
   "UserDetails.account-security.secondary.totp": "Authenticator Apps / Devices",
   "UserDetails.account-security.secondary.oob-otp": "Verification code via SMS / Email",
   "UserDetails.account-security.secondary.password": "Additional Password",
+  "UserDetails.account-security.remove-confirm-dialog.title": "Remove Authenticator",
+  "UserDetails.account-security.remove-confirm-dialog.message": "Are you sure you want to remove authenticator {authenticatorName}",
 
   "ResetPasswordScreen.title": "Reset Password",
   "ResetPasswordScreen.new-password": "New Password",
