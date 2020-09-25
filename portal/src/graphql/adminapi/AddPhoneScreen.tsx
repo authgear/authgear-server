@@ -40,9 +40,6 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
   } = useCreateLoginIDIdentityMutation(userID);
   const { renderToString } = useContext(Context);
 
-  const [unhandledViolations, setUnhandledViolations] = useState<Violation[]>(
-    []
-  );
   const [disableBlockNavigation, setDisableBlockNavigation] = useState<boolean>(
     false
   );
@@ -119,10 +116,10 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
       });
   }, [countryCode, phone, navigate, createIdentity]);
 
-  const errorMessage = useMemo(() => {
+  const { errorMessage, unhandledViolations } = useMemo(() => {
     const violations = parseError(createIdentityError);
     const phoneNumberFieldErrorMessages: string[] = [];
-    const unknownViolations: Violation[] = [];
+    const unhandledViolations: Violation[] = [];
     for (const violation of violations) {
       if (violation.kind === "Invalid" || violation.kind === "format") {
         phoneNumberFieldErrorMessages.push(
@@ -133,15 +130,15 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
           renderToString("AddPhoneScreen.error.duplicated-phone-number")
         );
       } else {
-        unknownViolations.push(violation);
+        unhandledViolations.push(violation);
       }
     }
 
-    setUnhandledViolations(unknownViolations);
-
-    return {
+    const errorMessage = {
       phoneNumber: defaultFormatErrorMessageList(phoneNumberFieldErrorMessages),
     };
+
+    return { errorMessage, unhandledViolations };
   }, [createIdentityError, renderToString]);
 
   return (

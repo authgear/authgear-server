@@ -30,9 +30,6 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
   } = useCreateLoginIDIdentityMutation(userID);
   const { renderToString } = useContext(Context);
 
-  const [unhandledViolations, setUnhandledViolations] = useState<Violation[]>(
-    []
-  );
   const [disableBlockNavigation, setDisableBlockNavigation] = useState<boolean>(
     false
   );
@@ -80,10 +77,10 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
       });
   }, [email, navigate, createIdentity]);
 
-  const errorMessage = useMemo(() => {
+  const { errorMessage, unhandledViolations } = useMemo(() => {
     const violations = parseError(createIdentityError);
     const emailFieldErrorMessages: string[] = [];
-    const unknownViolations: Violation[] = [];
+    const unhandledViolations: Violation[] = [];
     for (const violation of violations) {
       if (violation.kind === "Invalid" || violation.kind === "format") {
         emailFieldErrorMessages.push(
@@ -94,15 +91,14 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
           renderToString("AddEmailScreen.error.duplicated-email")
         );
       } else {
-        unknownViolations.push(violation);
+        unhandledViolations.push(violation);
       }
     }
 
-    setUnhandledViolations(unknownViolations);
-
-    return {
+    const errorMessage = {
       email: defaultFormatErrorMessageList(emailFieldErrorMessages),
     };
+    return { errorMessage, unhandledViolations };
   }, [createIdentityError, renderToString]);
 
   return (

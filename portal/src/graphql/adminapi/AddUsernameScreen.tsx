@@ -30,9 +30,6 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
   } = useCreateLoginIDIdentityMutation(userID);
   const { renderToString } = useContext(Context);
 
-  const [unhandledViolations, setUnhandledViolations] = useState<Violation[]>(
-    []
-  );
   const [disableBlockNavigation, setDisableBlockNavigation] = useState<boolean>(
     false
   );
@@ -71,10 +68,10 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
       });
   }, [username, navigate, createIdentity]);
 
-  const errorMessage = useMemo(() => {
+  const { errorMessage, unhandledViolations } = useMemo(() => {
     const violations = parseError(createIdentityError);
     const usernameFieldErrorMessages: string[] = [];
-    const unknownViolations: Violation[] = [];
+    const unhandledViolations: Violation[] = [];
     for (const violation of violations) {
       if (violation.kind === "Invalid" || violation.kind === "format") {
         usernameFieldErrorMessages.push(
@@ -85,15 +82,15 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
           renderToString("AddUsernameScreen.error.duplicated-username")
         );
       } else {
-        unknownViolations.push(violation);
+        unhandledViolations.push(violation);
       }
     }
 
-    setUnhandledViolations(unknownViolations);
-
-    return {
+    const errorMessage = {
       username: defaultFormatErrorMessageList(usernameFieldErrorMessages),
     };
+
+    return { errorMessage, unhandledViolations };
   }, [createIdentityError, renderToString]);
 
   return (
