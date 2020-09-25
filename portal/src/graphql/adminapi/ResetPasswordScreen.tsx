@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import cn from "classnames";
 import zxcvbn from "zxcvbn";
@@ -118,7 +124,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
   const { renderToString } = useContext(Context);
 
   const [localViolations, setLocalViolations] = useState<Violation[]>([]);
-  const [disableBlockNavigation, setDisableBlockNavigation] = useState(false);
+  const [submittedForm, setSubmittedForm] = useState(false);
 
   const passwordPolicy = useMemo(() => {
     return appConfig?.authenticator?.password?.policy ?? {};
@@ -151,18 +157,20 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
       return;
     }
 
-    setDisableBlockNavigation(true);
     resetPassword(screenState.newPassword)
       .then((userID) => {
-        if (userID == null) {
-          throw new Error();
+        if (userID != null) {
+          setSubmittedForm(true);
         }
-        navigate("../#account-security");
       })
-      .catch(() => {
-        setDisableBlockNavigation(false);
-      });
-  }, [screenState, passwordPolicy, resetPassword, navigate]);
+      .catch(() => {});
+  }, [screenState, passwordPolicy, resetPassword]);
+
+  useEffect(() => {
+    if (submittedForm) {
+      navigate("../#account-security");
+    }
+  }, [submittedForm, navigate]);
 
   const { errorMessages, unhandledViolations } = useMemo(() => {
     const violations =
@@ -217,7 +225,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
         <ShowError error={resetPasswordError} />
       )}
       <NavigationBlockerDialog
-        blockNavigation={!disableBlockNavigation && isFormModified}
+        blockNavigation={!submittedForm && isFormModified}
       />
       <PasswordField
         className={styles.newPasswordField}
