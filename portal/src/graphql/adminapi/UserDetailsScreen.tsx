@@ -40,6 +40,14 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   const { renderToString } = React.useContext(Context);
 
   const availableLoginIdIdentities = useMemo(() => {
+    const authenticationIdentities =
+      appConfig?.authentication?.identities ?? [];
+    const loginIdIdentityEnabled = authenticationIdentities.includes(
+      "login_id"
+    );
+    if (!loginIdIdentityEnabled) {
+      return [];
+    }
     const rawLoginIdKeys = appConfig?.identity?.login_id?.keys ?? [];
     return rawLoginIdKeys.map((loginIdKey) => loginIdKey.key);
   }, [appConfig]);

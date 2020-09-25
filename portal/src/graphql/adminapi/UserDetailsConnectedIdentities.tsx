@@ -483,6 +483,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
           <FormattedMessage id="UserDetails.connected-identities.title" />
         </Text>
         <PrimaryButton
+          disabled={addIdentitiesMenuProps.items.length === 0}
           iconProps={{ iconName: "CirclePlus" }}
           menuProps={addIdentitiesMenuProps}
           styles={{
