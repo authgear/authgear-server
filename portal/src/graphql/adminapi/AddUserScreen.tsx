@@ -194,11 +194,8 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
   );
 
   const [violations, setViolations] = useState<Violation[]>([]);
-  const [unhandledViolations, setUnhandledViolations] = useState<Violation[]>(
-    []
-  );
 
-  const errorMessages = useMemo(() => {
+  const { errorMessages, unhandledViolations } = useMemo(() => {
     const lastSumissionLoginId = selectedLoginIdInLastSubmission.current;
     const lastSumissionLoginIdText =
       lastSumissionLoginId != null
@@ -206,7 +203,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
         : "";
     const selectedIdentityFieldErrorMessage: string[] = [];
     const passwordFieldErrorMessages: string[] = [];
-    const unknownViolations: Violation[] = [];
+    const unhandledViolations: Violation[] = [];
     for (const violation of violations) {
       if (violation.kind === "format") {
         const violationDetail = violation.detail;
@@ -228,22 +225,24 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
           renderToString("AddUserScreen.error.invalid-password")
         );
       } else {
-        unknownViolations.push(violation);
+        unhandledViolations.push(violation);
       }
     }
 
-    setUnhandledViolations(unknownViolations);
-    const _errorMessages: Partial<Record<LoginIDKey | "password", string>> = {
+    const errorMessages: Partial<Record<LoginIDKey | "password", string>> = {
       password: defaultFormatErrorMessageList(passwordFieldErrorMessages),
     };
 
     if (lastSumissionLoginId != null) {
-      _errorMessages[lastSumissionLoginId] = defaultFormatErrorMessageList(
+      errorMessages[lastSumissionLoginId] = defaultFormatErrorMessageList(
         selectedIdentityFieldErrorMessage
       );
     }
 
-    return _errorMessages;
+    return {
+      errorMessages,
+      unhandledViolations,
+    };
   }, [renderToString, violations]);
 
   const renderUsernameField = useCallback(() => {
