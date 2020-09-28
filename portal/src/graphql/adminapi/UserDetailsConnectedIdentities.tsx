@@ -71,7 +71,7 @@ interface LoginIDIdentityListItem {
   key: "email" | "phone" | "username";
   value: string;
   verified?: boolean;
-  addedOn: string;
+  connectedOn: string;
 }
 
 export interface IdentityLists {
@@ -84,11 +84,9 @@ export interface IdentityLists {
 interface IdentityListCellProps {
   identityID: string;
   identityType: IdentityType;
-  loginIdIdentityType?: LoginIDIdentityType;
-  oauthProviderType?: OAuthSSOProviderType;
+  icon: React.ReactNode;
   identityName?: string;
-  addedOn?: string;
-  connectedOn?: string;
+  connectedOn: string;
   verified?: boolean;
   toggleVerified?: (identityID: string, verified: boolean) => void;
   onRemoveClicked: (identityID: string, identityName: string) => void;
@@ -129,15 +127,18 @@ const removeButtonTextId: Record<IdentityType, "remove" | "disconnect"> = {
   login_id: "remove",
 };
 
-function getIcon(
-  identityType: IdentityType,
-  loginIdIdentityType?: LoginIDIdentityType,
-  oauthProviderTypes?: OAuthSSOProviderType
-) {
-  if (identityType === "oauth") {
-    return oauthIconMap[oauthProviderTypes!];
+function getIcon(item: LoginIDIdentityListItem | OAuthIdentityListItem) {
+  if (item.type === "oauth") {
+    return oauthIconMap[item.providerType];
   }
-  return loginIdIconMap[loginIdIdentityType!];
+  return loginIdIconMap[item.key];
+}
+
+function getName(item: LoginIDIdentityListItem | OAuthIdentityListItem) {
+  if (item.type === "oauth") {
+    return item.name;
+  }
+  return item.value;
 }
 
 function getErrorMessageIdsFromViolation(violations: Violation[]) {
@@ -199,17 +200,13 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
   const {
     identityID,
     identityType,
-    loginIdIdentityType,
-    oauthProviderType,
+    icon,
     identityName,
     connectedOn,
-    addedOn,
     verified,
     toggleVerified,
     onRemoveClicked: _onRemoveClicked,
   } = props;
-
-  const icon = getIcon(identityType, loginIdIdentityType, oauthProviderType);
 
   const onRemoveClicked = useCallback(() => {
     _onRemoveClicked(identityID, identityName ?? "");
@@ -241,16 +238,16 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
         </>
       )}
       <Text className={styles.cellDesc}>
-        {connectedOn != null && (
+        {identityType === "oauth" && (
           <FormattedMessage
             id="UserDetails.connected-identities.connected-on"
             values={{ datetime: connectedOn }}
           />
         )}
-        {addedOn != null && (
+        {identityType === "login_id" && (
           <FormattedMessage
             id="UserDetails.connected-identities.added-on"
-            values={{ datetime: addedOn }}
+            values={{ datetime: connectedOn }}
           />
         )}
       </Text>
@@ -330,7 +327,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
             key: "email",
             value: identity.claims.email!,
             verified: true,
-            addedOn: createdAtStr,
+            connectedOn: createdAtStr,
           });
         }
 
@@ -344,7 +341,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
             key: "phone",
             value: identity.claims.phone_number!,
             verified: false,
-            addedOn: createdAtStr,
+            connectedOn: createdAtStr,
           });
         }
 
@@ -357,7 +354,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
             type: "login_id",
             key: "username",
             value: identity.claims.preferred_username!,
-            addedOn: createdAtStr,
+            connectedOn: createdAtStr,
           });
         }
       }
@@ -420,40 +417,25 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
     setIsErrorDialogVisible(false);
   }, []);
 
-  const onRenderOAuthIdentityCell = useCallback(
-    (item?: OAuthIdentityListItem, _index?: number): React.ReactNode => {
+  const onRenderIdentityCell = useCallback(
+    (
+      item?: OAuthIdentityListItem | LoginIDIdentityListItem,
+      _index?: number
+    ): React.ReactNode => {
       if (item == null) {
         return null;
       }
+
+      const icon = getIcon(item);
+      const name = getName(item);
       return (
         <IdentityListCell
           identityID={item.id}
-          identityType="oauth"
-          oauthProviderType={item.providerType}
-          identityName={item.name}
+          identityType={item.type}
+          icon={icon}
+          identityName={name}
           verified={item.verified}
           connectedOn={item.connectedOn}
-          onRemoveClicked={onRemoveClicked}
-          toggleVerified={() => {}}
-        />
-      );
-    },
-    [onRemoveClicked]
-  );
-
-  const onRenderLoginIDIdentityCell = useCallback(
-    (item?: LoginIDIdentityListItem, _index?: number): React.ReactNode => {
-      if (item == null) {
-        return null;
-      }
-      return (
-        <IdentityListCell
-          identityID={item.id}
-          identityType="login_id"
-          loginIdIdentityType={item.key}
-          identityName={item.value}
-          verified={item.verified}
-          addedOn={item.addedOn}
           onRemoveClicked={onRemoveClicked}
           toggleVerified={() => {}}
         />
@@ -552,7 +534,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
             <List
               className={styles.list}
               items={identityLists.oauth}
-              onRenderCell={onRenderOAuthIdentityCell}
+              onRenderCell={onRenderIdentityCell}
             />
           </>
         )}
@@ -564,7 +546,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
             <List
               className={styles.list}
               items={identityLists.email}
-              onRenderCell={onRenderLoginIDIdentityCell}
+              onRenderCell={onRenderIdentityCell}
             />
           </>
         )}
@@ -576,7 +558,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
             <List
               className={styles.list}
               items={identityLists.phone}
-              onRenderCell={onRenderLoginIDIdentityCell}
+              onRenderCell={onRenderIdentityCell}
             />
           </>
         )}
@@ -588,7 +570,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
             <List
               className={styles.list}
               items={identityLists.username}
-              onRenderCell={onRenderLoginIDIdentityCell}
+              onRenderCell={onRenderIdentityCell}
             />
           </>
         )}
