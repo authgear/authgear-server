@@ -19,7 +19,7 @@ import styles from "./AuthenticationConfigurationScreen.module.scss";
 const AuthenticationScreen: React.FC = function AuthenticationScreen() {
   const { renderToString } = React.useContext(Context);
   const { appID } = useParams();
-  const { hash, onLinkClick } = usePivot();
+  const { selectedKey, onLinkClick } = usePivot();
 
   const {
     updateAppConfig,
@@ -58,7 +58,7 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
           <FormattedMessage id="AuthenticationScreen.title" />
         </Text>
         <div className={styles.tabsContainer}>
-          <Pivot selectedKey={hash} onLinkClick={onLinkClick}>
+          <Pivot selectedKey={selectedKey} onLinkClick={onLinkClick}>
             <PivotItem
               itemKey="login-id"
               headerText={renderToString("AuthenticationScreen.login-id.title")}

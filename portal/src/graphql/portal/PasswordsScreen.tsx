@@ -20,7 +20,7 @@ const FORGOT_PASSWORD_POLICY_KEY = "forgot_password";
 const PasswordsScreen: React.FC = function PasswordsScreen() {
   const { renderToString } = useContext(Context);
   const { appID } = useParams();
-  const { hash, onLinkClick } = usePivot();
+  const { selectedKey, onLinkClick } = usePivot();
 
   const {
     updateAppConfig,
@@ -58,7 +58,7 @@ const PasswordsScreen: React.FC = function PasswordsScreen() {
           <FormattedMessage id="PasswordsScreen.title" />
         </Text>
         <div className={styles.tabsContainer}>
-          <Pivot onLinkClick={onLinkClick} selectedKey={hash}>
+          <Pivot onLinkClick={onLinkClick} selectedKey={selectedKey}>
             <PivotItem
               headerText={renderToString(
                 "PasswordsScreen.password-policy.title"

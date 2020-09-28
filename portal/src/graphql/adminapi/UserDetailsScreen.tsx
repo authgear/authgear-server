@@ -33,7 +33,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
 ) {
   const { data, loading, appConfig } = props;
   const { renderToString } = React.useContext(Context);
-  const { hash, onLinkClick } = usePivot();
+  const { selectedKey, onLinkClick } = usePivot();
 
   const availableLoginIdIdentities = useMemo(() => {
     const authenticationIdentities =
@@ -70,7 +70,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
         lastLoginAtISO={data?.lastLoginAt ?? null}
       />
       <div className={styles.userDetailsTab}>
-        <Pivot selectedKey={hash} onLinkClick={onLinkClick}>
+        <Pivot selectedKey={selectedKey} onLinkClick={onLinkClick}>
           <PivotItem
             itemKey="account-security"
             headerText={renderToString("UserDetails.account-security.header")}

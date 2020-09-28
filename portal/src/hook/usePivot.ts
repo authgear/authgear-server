@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { IPivotItemProps } from "@fluentui/react";
 
 export function usePivot(): {
-  hash: string;
+  selectedKey: string;
   onLinkClick: (item?: { props: IPivotItemProps }) => void;
 } {
   const navigate = useNavigate();
@@ -20,5 +20,5 @@ export function usePivot(): {
     [navigate]
   );
 
-  return { hash, onLinkClick };
+  return { selectedKey: hash, onLinkClick };
 }
