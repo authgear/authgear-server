@@ -22,6 +22,7 @@
     "@types/react-dom": "16.9.8",
     "apollo": "2.30.3",
     "eslint": "7.9.0",
+    "google-libphonenumber": "3.2.13",
     "graphql": "15.3.0",
     "jest": "26.4.2",
     "normalize.css": "8.0.1",
