@@ -24,6 +24,7 @@ export function useDeleteAuthenticatorMutation(): {
         variables: {
           authenticatorID,
         },
+        refetchQueries: ["UserQuery"],
       });
 
       return result.data?.deleteAuthenticator.success ?? false;
