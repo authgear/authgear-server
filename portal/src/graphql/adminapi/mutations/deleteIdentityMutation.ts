@@ -5,7 +5,16 @@ import { DeleteIdentityMutation } from "./__generated__/DeleteIdentityMutation";
 const deleteIdentityMutation = gql`
   mutation DeleteIdentityMutation($identityID: ID!) {
     deleteIdentity(input: { identityID: $identityID }) {
-      success
+      user {
+        id
+        identities {
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }
     }
   }
 `;
@@ -17,7 +26,7 @@ export function useDeleteIdentityMutation(): {
 } {
   const [mutationFunction, { error, loading }] = useMutation<
     DeleteIdentityMutation
-  >(deleteIdentityMutation, { refetchQueries: ["UserQuery"] });
+  >(deleteIdentityMutation);
 
   const deleteIdentity = useCallback(
     async (identityID: string) => {
@@ -26,7 +35,7 @@ export function useDeleteIdentityMutation(): {
           identityID,
         },
       });
-      return !!result.data?.deleteIdentity.success;
+      return !!result.data?.deleteIdentity;
     },
     [mutationFunction]
   );

@@ -94,6 +94,9 @@ input CreateIdentityInput {
 type CreateIdentityPayload {
   """"""
   identity: Identity!
+
+  """"""
+  user: User!
 }
 
 """"""
@@ -125,7 +128,7 @@ input DeleteAuthenticatorInput {
 """"""
 type DeleteAuthenticatorPayload {
   """"""
-  success: Boolean!
+  user: User!
 }
 
 """"""
@@ -137,7 +140,7 @@ input DeleteIdentityInput {
 """"""
 type DeleteIdentityPayload {
   """"""
-  success: Boolean!
+  user: User!
 }
 
 """"""

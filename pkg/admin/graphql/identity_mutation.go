@@ -22,8 +22,8 @@ var deleteIdentityInput = graphql.NewInputObject(graphql.InputObjectConfig{
 var deleteIdentityPayload = graphql.NewObject(graphql.ObjectConfig{
 	Name: "DeleteIdentityPayload",
 	Fields: graphql.Fields{
-		"success": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.Boolean),
+		"user": &graphql.Field{
+			Type: graphql.NewNonNull(nodeUser),
 		},
 	},
 })
@@ -59,10 +59,11 @@ var _ = registerMutationField(
 					if i == nil {
 						return nil, apierrors.NewNotFound("identity not found")
 					}
-					return gqlCtx.Identities.Remove(i), nil
+					return gqlCtx.Identities.Remove(i).
+						MapTo(gqlCtx.Users.Get(i.UserID)), nil
 				}).
-				Map(func(value interface{}) (interface{}, error) {
-					return map[string]bool{"success": true}, nil
+				Map(func(u interface{}) (interface{}, error) {
+					return map[string]interface{}{"user": u}, nil
 				}).Value, nil
 		},
 	},
@@ -89,6 +90,9 @@ var createIdentityInput = graphql.NewInputObject(graphql.InputObjectConfig{
 var createIdentityPayload = graphql.NewObject(graphql.ObjectConfig{
 	Name: "CreateIdentityPayload",
 	Fields: graphql.Fields{
+		"user": &graphql.Field{
+			Type: graphql.NewNonNull(nodeUser),
+		},
 		"identity": &graphql.Field{
 			Type: graphql.NewNonNull(nodeIdentity),
 		},
@@ -129,12 +133,13 @@ var _ = registerMutationField(
 					if u == nil {
 						return nil, apierrors.NewNotFound("user not found")
 					}
-					return gqlCtx.Identities.Create(userID, identityDef, password), nil
-				}).
-				Map(func(i interface{}) (interface{}, error) {
-					return map[string]interface{}{
-						"identity": i,
-					}, nil
+					return gqlCtx.Identities.Create(userID, identityDef, password).
+						Map(func(i interface{}) (interface{}, error) {
+							return map[string]interface{}{
+								"user":     u,
+								"identity": i,
+							}, nil
+						}), nil
 				}).
 				Value, nil
 		},

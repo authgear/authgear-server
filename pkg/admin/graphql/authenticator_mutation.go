@@ -21,8 +21,8 @@ var deleteAuthenticatorInput = graphql.NewInputObject(graphql.InputObjectConfig{
 var deleteAuthenticatorPayload = graphql.NewObject(graphql.ObjectConfig{
 	Name: "DeleteAuthenticatorPayload",
 	Fields: graphql.Fields{
-		"success": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.Boolean),
+		"user": &graphql.Field{
+			Type: graphql.NewNonNull(nodeUser),
 		},
 	},
 })
@@ -58,10 +58,11 @@ var _ = registerMutationField(
 					if i == nil {
 						return nil, apierrors.NewNotFound("authenticator not found")
 					}
-					return gqlCtx.Authenticators.Remove(i), nil
+					return gqlCtx.Authenticators.Remove(i).
+						MapTo(gqlCtx.Users.Get(i.UserID)), nil
 				}).
-				Map(func(value interface{}) (interface{}, error) {
-					return map[string]bool{"success": true}, nil
+				Map(func(u interface{}) (interface{}, error) {
+					return map[string]interface{}{"user": u}, nil
 				}).Value, nil
 		},
 	},

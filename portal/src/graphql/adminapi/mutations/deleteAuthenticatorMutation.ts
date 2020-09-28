@@ -5,7 +5,16 @@ import { DeleteAuthenticatorMutation } from "./__generated__/DeleteAuthenticator
 const deleteAuthenticatorMutation = gql`
   mutation DeleteAuthenticatorMutation($authenticatorID: ID!) {
     deleteAuthenticator(input: { authenticatorID: $authenticatorID }) {
-      success
+      user {
+        id
+        authenticators {
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }
     }
   }
 `;
@@ -24,10 +33,9 @@ export function useDeleteAuthenticatorMutation(): {
         variables: {
           authenticatorID,
         },
-        refetchQueries: ["UserQuery"],
       });
 
-      return result.data?.deleteAuthenticator.success ?? false;
+      return !!result.data?.deleteAuthenticator;
     },
     [mutationFunction]
   );

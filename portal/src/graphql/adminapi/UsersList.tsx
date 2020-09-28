@@ -307,6 +307,7 @@ const UsersList: React.FC<Props> = function UsersList(props: Props) {
       pageSize,
       cursor,
     },
+    fetchPolicy: "network-only",
   });
 
   const prevDataRef = useRef<UsersListQuery | undefined>();

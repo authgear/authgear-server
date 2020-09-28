@@ -11,9 +11,22 @@ const createIdentityMutation = gql`
     createIdentity(
       input: { userID: $userID, definition: $definition, password: $password }
     ) {
+      user {
+        id
+        identities {
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }
       identity {
         id
+        type
         claims
+        createdAt
+        updatedAt
       }
     }
   }

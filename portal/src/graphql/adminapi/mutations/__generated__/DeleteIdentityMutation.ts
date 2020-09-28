@@ -7,9 +7,42 @@
 // GraphQL mutation operation: DeleteIdentityMutation
 // ====================================================
 
+export interface DeleteIdentityMutation_deleteIdentity_user_identities_edges_node {
+  __typename: "Identity";
+  /**
+   * The ID of an object
+   */
+  id: string;
+}
+
+export interface DeleteIdentityMutation_deleteIdentity_user_identities_edges {
+  __typename: "IdentityEdge";
+  /**
+   * The item at the end of the edge
+   */
+  node: DeleteIdentityMutation_deleteIdentity_user_identities_edges_node | null;
+}
+
+export interface DeleteIdentityMutation_deleteIdentity_user_identities {
+  __typename: "IdentityConnection";
+  /**
+   * Information to aid in pagination.
+   */
+  edges: (DeleteIdentityMutation_deleteIdentity_user_identities_edges | null)[] | null;
+}
+
+export interface DeleteIdentityMutation_deleteIdentity_user {
+  __typename: "User";
+  /**
+   * The ID of an object
+   */
+  id: string;
+  identities: DeleteIdentityMutation_deleteIdentity_user_identities | null;
+}
+
 export interface DeleteIdentityMutation_deleteIdentity {
   __typename: "DeleteIdentityPayload";
-  success: boolean;
+  user: DeleteIdentityMutation_deleteIdentity_user;
 }
 
 export interface DeleteIdentityMutation {

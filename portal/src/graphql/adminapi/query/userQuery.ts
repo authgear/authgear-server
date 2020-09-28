@@ -60,7 +60,6 @@ export function useUserQuery(userID: string): UserQueryResult {
     variables: {
       userID,
     },
-    fetchPolicy: "network-only",
   });
 
   const user = useMemo(() => {
