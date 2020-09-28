@@ -102,7 +102,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
 
 const UserDetailsScreen: React.FC = function UserDetailsScreen() {
   const { appID, userID } = useParams();
-  const { data, loading, error, refetch } = useUserQuery(userID);
+  const { user, loading, error, refetch } = useUserQuery(userID);
   const {
     loading: loadingAppConfig,
     error: appConfigError,
@@ -122,11 +122,6 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
     ];
   }, []);
 
-  const userDetails = React.useMemo(() => {
-    const node = data?.node;
-    return node?.__typename === "User" ? node : null;
-  }, [data]);
-
   if (error != null) {
     return <ShowError error={error} onRetry={refetch} />;
   }
@@ -141,7 +136,7 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
       <div className={styles.screenContent}>
         <NavBreadcrumb items={navBreadcrumbItems} />
         <UserDetails
-          data={userDetails}
+          data={user}
           loading={loading || loadingAppConfig}
           appConfig={appConfig}
         />

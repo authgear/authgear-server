@@ -8,6 +8,11 @@ import PasswordStrengthMeter from "./PasswordStrengthMeter";
 import { PasswordPolicyConfig } from "./types";
 
 import styles from "./PasswordField.module.scss";
+import {
+  CustomViolation,
+  PasswordPolicyViolatedViolation,
+  Violation,
+} from "./util/validation";
 
 export type GuessableLevel = 0 | 1 | 2 | 3 | 4 | 5;
 export type GuessableLevelNames = Record<GuessableLevel, string>;
@@ -74,6 +79,81 @@ export function isPasswordValid(
     level
   );
   return Object.values(isPolicySatisfied).every(Boolean);
+}
+
+export enum PasswordFieldErrorID {
+  InvalidPassword = "invalid-password",
+  ConfirmPasswordNotMatch = "confirm-password-not-match",
+}
+
+export function localValidatePassword(
+  violations: Violation[],
+  passwordPolicy: PasswordPolicyConfig,
+  password: string,
+  confirmPassword?: string
+): void {
+  if (confirmPassword != null && password !== confirmPassword) {
+    violations.push({
+      kind: "custom",
+      id: PasswordFieldErrorID.ConfirmPasswordNotMatch,
+    });
+  }
+
+  const guessableLevel = extractGuessableLevel(zxcvbn(password));
+  const passwordValid = isPasswordValid(
+    passwordPolicy,
+    password,
+    guessableLevel
+  );
+  if (!passwordValid) {
+    violations.push({
+      kind: "custom",
+      id: PasswordFieldErrorID.InvalidPassword,
+    });
+  }
+}
+
+export function handleLocalPasswordViolations(
+  renderToString: (messageId: string) => string,
+  violation: CustomViolation,
+  passwordErrorMessages: string[],
+  confirmPasswordErrorMessages: string[] | null,
+  unhandledViolations: Violation[]
+): void {
+  switch (violation.id) {
+    case "invalid-password":
+      passwordErrorMessages.push(
+        renderToString("PasswordField.error.invalid-password")
+      );
+      break;
+    case "confirm-password-not-match":
+      confirmPasswordErrorMessages?.push(
+        renderToString("PasswordField.error.confirm-password-not-match")
+      );
+      break;
+    default:
+      unhandledViolations.push(violation);
+      break;
+  }
+}
+
+export function handlePasswordPolicyViolatedViolation(
+  renderToString: (messageId: string) => string,
+  violation: PasswordPolicyViolatedViolation,
+  passwordErrorMessages: string[],
+  unknownViolations: Violation[]
+): void {
+  if (violation.causes.includes("PasswordReused")) {
+    passwordErrorMessages.push(
+      renderToString("PasswordField.error.password-reused")
+    );
+  } else if (violation.causes.includes("PasswordContainingExcludedKeywords")) {
+    passwordErrorMessages.push(
+      renderToString("PasswordField.error.containing-excluded-keywords")
+    );
+  } else {
+    unknownViolations.push(violation);
+  }
 }
 
 function renderGuessableLevelNames(

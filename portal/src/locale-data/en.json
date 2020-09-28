@@ -105,10 +105,6 @@
   "ResetPasswordScreen.new-password": "New Password",
   "ResetPasswordScreen.confirm-password": "Confirm Password",
   "ResetPasswordScreen.error.fetch-password-policy": "Failed to fetch password policy",
-  "ResetPasswordScreen.error.invalid-password": "Please check password policies below",
-  "ResetPasswordScreen.error.confirm-password-not-match": "New password does not match with confirm password, please double check",
-  "ResetPasswordScreen.error.password-reused": "Password cannot be reused, please check password policies below",
-  "ResetPasswordScreen.error.containing-excluded-keywords": "Password contains excluded keywords, please check password policies below",
 
   "UserDetails.connected-identities.header": "Connected Identities",
   "UserDetails.connected-identities.title": "Identities",
@@ -143,6 +139,7 @@
 
   "AddUsernameScreen.title": "Add Username",
   "AddUsernameScreen.username.label": "Username",
+  "AddUsernameScreen.password.label": "Password",
   "AddUsernameScreen.error.invalid-username": "Invalid username",
   "AddUsernameScreen.error.duplicated-username": "Username already exist",
 
@@ -252,5 +249,10 @@
   "PasswordField.guessable-level.3": "Fair",
   "PasswordField.guessable-level.4": "Very unguessable",
   "PasswordField.guessable-level.5": "Extremely unguessable",
+  "PasswordField.error.invalid-password": "Please check password policies below",
+  "PasswordField.error.confirm-password-not-match": "New password does not match with confirm password, please double check",
+  "PasswordField.error.password-reused": "Password cannot be reused, please check password policies below",
+  "PasswordField.error.containing-excluded-keywords": "Password contains excluded keywords, please check password policies below",
+
   "PasswordStrengthMeter.password-strength": "Password Strength"
 }

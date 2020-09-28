@@ -1,5 +1,10 @@
 import { gql, QueryResult, useQuery } from "@apollo/client";
-import { UserQuery, UserQueryVariables } from "./__generated__/UserQuery";
+import { useMemo } from "react";
+import {
+  UserQuery,
+  UserQueryVariables,
+  UserQuery_node_User,
+} from "./__generated__/UserQuery";
 
 const userQuery = gql`
   query UserQuery($userID: ID!) {
@@ -39,15 +44,28 @@ const userQuery = gql`
   }
 `;
 
-export function useUserQuery(
-  userID: string
-): QueryResult<UserQuery, UserQueryVariables> {
-  const userQueryResult = useQuery<UserQuery, UserQueryVariables>(userQuery, {
+interface UserQueryResult
+  extends Pick<
+    QueryResult<UserQuery, UserQueryVariables>,
+    "loading" | "error" | "refetch"
+  > {
+  user: UserQuery_node_User | null;
+}
+
+export function useUserQuery(userID: string): UserQueryResult {
+  const { data, loading, error, refetch } = useQuery<
+    UserQuery,
+    UserQueryVariables
+  >(userQuery, {
     variables: {
       userID,
     },
     fetchPolicy: "network-only",
   });
 
-  return userQueryResult;
+  const user = useMemo(() => {
+    return data?.node?.__typename === "User" ? data.node : null;
+  }, [data]);
+
+  return { user, loading, error, refetch };
 }
