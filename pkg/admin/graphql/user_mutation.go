@@ -126,3 +126,76 @@ var _ = registerMutationField(
 		},
 	},
 )
+
+var setVerifiedStatusInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SetVerifiedStatusInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"userID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target user ID.",
+		},
+		"claimName": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "Name of the claim to set verified status.",
+		},
+		"claimValue": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "Value of the claim.",
+		},
+		"isVerified": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.Boolean),
+			Description: "Indicate whether the target claim is verified.",
+		},
+	},
+})
+
+var setVerifiedStatusPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "SetVerifiedStatusPayload",
+	Fields: graphql.Fields{
+		"user": &graphql.Field{
+			Type: graphql.NewNonNull(nodeUser),
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"setVerifiedStatus",
+	&graphql.Field{
+		Description: "Set verified status of a claim of user",
+		Type:        graphql.NewNonNull(setVerifiedStatusPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(setVerifiedStatusInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			input := p.Args["input"].(map[string]interface{})
+
+			userNodeID := input["userID"].(string)
+			resolvedNodeID := relay.FromGlobalID(userNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeUser {
+				return nil, apierrors.NewInvalid("invalid user ID")
+			}
+			userID := resolvedNodeID.ID
+
+			claimName, _ := input["claimName"].(string)
+			claimValue, _ := input["claimValue"].(string)
+			isVerified, _ := input["isVerified"].(bool)
+
+			gqlCtx := GQLContext(p.Context)
+			return gqlCtx.Users.Get(userID).
+				Map(func(u interface{}) (interface{}, error) {
+					if u == nil {
+						return nil, apierrors.NewNotFound("user not found")
+					}
+					return gqlCtx.Verification.SetVerified(userID, claimName, claimValue, isVerified).MapTo(u), nil
+				}).
+				Map(func(u interface{}) (interface{}, error) {
+					return map[string]interface{}{
+						"user": u,
+					}, nil
+				}).
+				Value, nil
+		},
+	},
+)

@@ -50,3 +50,9 @@ func (l *Lazy) Map(mapFn func(interface{}) (interface{}, error)) *Lazy {
 		return value, nil
 	})
 }
+
+func (l *Lazy) MapTo(value interface{}) *Lazy {
+	return l.Map(func(interface{}) (interface{}, error) {
+		return value, nil
+	})
+}
