@@ -241,6 +241,9 @@ type Mutation {
 
   """Reset password of user"""
   resetPassword(input: ResetPasswordInput!): ResetPasswordPayload!
+
+  """Set verified status of a claim of user"""
+  setVerifiedStatus(input: SetVerifiedStatusInput!): SetVerifiedStatusPayload!
 }
 
 """An object with an ID"""
@@ -287,6 +290,27 @@ input ResetPasswordInput {
 
 """"""
 type ResetPasswordPayload {
+  """"""
+  user: User!
+}
+
+""""""
+input SetVerifiedStatusInput {
+  """Name of the claim to set verified status."""
+  claimName: String!
+
+  """Value of the claim."""
+  claimValue: String!
+
+  """Indicate whether the target claim is verified."""
+  isVerified: Boolean!
+
+  """Target user ID."""
+  userID: ID!
+}
+
+""""""
+type SetVerifiedStatusPayload {
   """"""
   user: User!
 }

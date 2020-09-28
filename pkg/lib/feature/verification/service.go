@@ -266,6 +266,10 @@ func (s *Service) MarkClaimVerified(claim *Claim) error {
 	return s.ClaimStore.Create(claim)
 }
 
+func (s *Service) DeleteClaim(claimID string) error {
+	return s.ClaimStore.Delete(claimID)
+}
+
 func (s *Service) RemoveOrphanedClaims(identities []*identity.Info, authenticators []*authenticator.Info) error {
 	// Assuming user ID of all identities is same
 	userID := identities[0].UserID

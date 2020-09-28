@@ -35,6 +35,8 @@ type AuthenticatorLoader interface {
 
 type VerificationLoader interface {
 	Get(userID string) *graphqlutil.Lazy
+
+	SetVerified(userID string, claimName string, claimValue string, isVerified bool) *graphqlutil.Lazy
 }
 
 type Logger struct{ *log.Logger }
