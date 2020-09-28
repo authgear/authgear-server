@@ -1,11 +1,4 @@
-import React, {
-  useMemo,
-  useContext,
-  useState,
-  useCallback,
-  useEffect,
-  useRef,
-} from "react";
+import React, { useMemo, useContext, useState, useCallback } from "react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { TextField, Label } from "@fluentui/react";
 import cn from "classnames";
@@ -14,6 +7,7 @@ import produce from "immer";
 
 import CodeEditor from "../../CodeEditor";
 import ButtonWithLoading from "../../ButtonWithLoading";
+import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import { setFieldIfChanged, clearEmptyObject } from "../../util/misc";
 import { PortalAPIAppConfig, PortalAPIApp } from "../../types";
 
@@ -27,7 +21,6 @@ interface ForgotPasswordSettingsProps {
     appConfig: PortalAPIAppConfig
   ) => Promise<PortalAPIApp | null>;
   updatingAppConfig: boolean;
-  onIsFormModifiedChange: (modified: boolean) => void;
 }
 
 interface ForgotPasswordSettingsState {
@@ -85,13 +78,9 @@ const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function F
     rawAppConfig,
     updateAppConfig,
     updatingAppConfig,
-    onIsFormModifiedChange,
   } = props;
 
   const { renderToString } = useContext(Context);
-
-  const onIsFormModifiedChangeRef = useRef(onIsFormModifiedChange);
-  onIsFormModifiedChangeRef.current = onIsFormModifiedChange;
 
   const initialState = useMemo(() => {
     return constructStateFromAppConfig(effectiveAppConfig);
@@ -167,10 +156,6 @@ const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function F
     updateAppConfig(newAppConfig).catch(() => {});
   }, [state, rawAppConfig, updateAppConfig, initialState]);
 
-  useEffect(() => {
-    onIsFormModifiedChangeRef.current(isFormModified);
-  }, [isFormModified]);
-
   return (
     <div className={cn(styles.root, className)}>
       <Label className={styles.boldLabel}>
@@ -232,6 +217,7 @@ const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function F
           loadingLabelId="saving"
         />
       </div>
+      <NavigationBlockerDialog blockNavigation={isFormModified} />
     </div>
   );
 };

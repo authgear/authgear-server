@@ -110,8 +110,10 @@ function useOnActivateClicked<KeyType extends string>(
         return;
       }
       setState((prev: AuthenticatorListItem<KeyType>[]) => {
-        prev[itemIndex].activated = checked;
-        return [...prev];
+        const newState = produce(prev, (draftState) => {
+          draftState[itemIndex].activated = checked;
+        });
+        return newState;
       });
     },
     [state, setState]
