@@ -12,14 +12,14 @@ import AuthenticationAuthenticatorSettings from "./AuthenticationAuthenticatorSe
 
 import { useAppConfigQuery } from "./query/appConfigQuery";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
-import { usePivot } from "../../hook/usePivot";
+import { usePivotNavigation } from "../../hook/usePivot";
 
 import styles from "./AuthenticationConfigurationScreen.module.scss";
 
 const AuthenticationScreen: React.FC = function AuthenticationScreen() {
   const { renderToString } = React.useContext(Context);
   const { appID } = useParams();
-  const { selectedKey, onLinkClick } = usePivot();
+  const { selectedKey, onLinkClick } = usePivotNavigation();
 
   const {
     updateAppConfig,

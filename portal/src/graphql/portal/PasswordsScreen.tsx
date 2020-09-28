@@ -10,7 +10,7 @@ import { useAppConfigQuery } from "./query/appConfigQuery";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-import { usePivot } from "../../hook/usePivot";
+import { usePivotNavigation } from "../../hook/usePivot";
 
 import styles from "./PasswordsScreen.module.scss";
 
@@ -20,7 +20,7 @@ const FORGOT_PASSWORD_POLICY_KEY = "forgot_password";
 const PasswordsScreen: React.FC = function PasswordsScreen() {
   const { renderToString } = useContext(Context);
   const { appID } = useParams();
-  const { selectedKey, onLinkClick } = usePivot();
+  const { selectedKey, onLinkClick } = usePivotNavigation();
 
   const {
     updateAppConfig,

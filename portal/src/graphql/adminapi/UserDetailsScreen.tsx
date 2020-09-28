@@ -15,7 +15,7 @@ import UserDetailsSession from "./UserDetailsSession";
 
 import { useUserQuery } from "./query/userQuery";
 import { UserQuery_node_User } from "./query/__generated__/UserQuery";
-import { usePivot } from "../../hook/usePivot";
+import { usePivotNavigation } from "../../hook/usePivot";
 import { nonNullable } from "../../util/types";
 import { extractUserInfoFromIdentities } from "../../util/user";
 import { PortalAPIAppConfig } from "../../types";
@@ -33,7 +33,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
 ) {
   const { data, loading, appConfig } = props;
   const { renderToString } = React.useContext(Context);
-  const { selectedKey, onLinkClick } = usePivot();
+  const { selectedKey, onLinkClick } = usePivotNavigation();
 
   const availableLoginIdIdentities = useMemo(() => {
     const authenticationIdentities =

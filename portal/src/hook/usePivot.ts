@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { IPivotItemProps } from "@fluentui/react";
 
-export function usePivot(): {
+export function usePivotNavigation(): {
   selectedKey: string;
   onLinkClick: (item?: { props: IPivotItemProps }) => void;
 } {
