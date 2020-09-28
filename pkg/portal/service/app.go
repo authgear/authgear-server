@@ -463,13 +463,6 @@ func PrepareUpdates(updateFiles []*model.AppConfigFile, deleteFiles []string) {
 }
 
 func ValidateConfig(appID string, cfg config.Config, updateFiles []*model.AppConfigFile, deleteFiles []string) error {
-	// Forbid deleting configuration YAML.
-	for _, p := range deleteFiles {
-		if p == "/"+configsource.AuthgearYAML || p == "/"+configsource.AuthgearSecretYAML {
-			return errors.New("cannot delete main configuration YAML files")
-		}
-	}
-
 	// Validate file size.
 	for _, f := range updateFiles {
 		if len(f.Content) > ConfigFileMaxSize {
@@ -477,6 +470,7 @@ func ValidateConfig(appID string, cfg config.Config, updateFiles []*model.AppCon
 		}
 	}
 
+	oldConfig := cfg.AppConfig
 	// Validate configuration YAML.
 	for _, file := range updateFiles {
 		if file.Path == "/"+configsource.AuthgearYAML {
@@ -500,7 +494,46 @@ func ValidateConfig(appID string, cfg config.Config, updateFiles []*model.AppCon
 		return fmt.Errorf("invalid configuration: %w", err)
 	}
 
-	// TODO(portal): validate templates.
+	templatePaths := map[string]struct{}{}
+	oldTemplatePaths := map[string]struct{}{}
+	for _, item := range cfg.AppConfig.Template.Items {
+		u, err := url.Parse(item.URI)
+		if err != nil {
+			return fmt.Errorf("invalid URI for template '%s': %w", item.Type, err)
+		}
+		if u.Scheme != "file" {
+			return fmt.Errorf("invalid URI for template '%s': only 'file' scheme is supported", item.Type)
+		}
+		if u.Path != path.Clean(u.Path) {
+			return fmt.Errorf("invalid URI for template '%s': path must be normalized", item.Type)
+		}
+		templatePaths[u.Path] = struct{}{}
+	}
+	for _, item := range oldConfig.Template.Items {
+		u, err := url.Parse(item.URI)
+		if err != nil || u.Scheme != "file" {
+			continue
+		}
+		oldTemplatePaths[u.Path] = struct{}{}
+	}
+
+	for _, f := range updateFiles {
+		if f.Path == "/"+configsource.AuthgearYAML || f.Path == "/"+configsource.AuthgearSecretYAML {
+			continue
+		}
+		if _, ok := templatePaths[f.Path]; !ok {
+			return fmt.Errorf("invalid file '%s': file is not referenced from configuration", f.Path)
+		}
+	}
+	for _, p := range deleteFiles {
+		// Forbid deleting configuration YAML.
+		if p == "/"+configsource.AuthgearYAML || p == "/"+configsource.AuthgearSecretYAML {
+			return errors.New("cannot delete main configuration YAML files")
+		}
+		if _, ok := oldTemplatePaths[p]; !ok {
+			return fmt.Errorf("invalid file '%s': file is not referenced from configuration", p)
+		}
+	}
 
 	return nil
 }
