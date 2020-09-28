@@ -10,6 +10,9 @@ type App implements Node {
   rawAppConfig: AppConfig!
 
   """"""
+  rawConfigFile(path: String!): String!
+
+  """"""
   rawSecretConfig: SecretConfig!
 }
 

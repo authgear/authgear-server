@@ -24,16 +24,6 @@ func TestValidateConfig(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 
-		Convey("forbid deleting configuration YAML", func() {
-			deleteFiles := []string{"/authgear.yaml"}
-			err := ValidateConfig(appID, *cfg, nil, deleteFiles)
-			So(err, ShouldBeError, "cannot delete main configuration YAML files")
-
-			deleteFiles = []string{"/authgear.secrets.yaml"}
-			err = ValidateConfig(appID, *cfg, nil, deleteFiles)
-			So(err, ShouldBeError, "cannot delete main configuration YAML files")
-		})
-
 		Convey("validate file size", func() {
 			updateFiles := []*model.AppConfigFile{{
 				Path:    "/authgear.yaml",
@@ -75,6 +65,47 @@ func TestValidateConfig(t *testing.T) {
 			}}
 			err = ValidateConfig(appID, *cfg, updateFiles, nil)
 			So(err.Error(), ShouldStartWith, `invalid configuration: invalid secrets`)
+		})
+
+		Convey("forbid deleting configuration YAML", func() {
+			deleteFiles := []string{"/authgear.yaml"}
+			err := ValidateConfig(appID, *cfg, nil, deleteFiles)
+			So(err, ShouldBeError, "cannot delete main configuration YAML files")
+
+			deleteFiles = []string{"/authgear.secrets.yaml"}
+			err = ValidateConfig(appID, *cfg, nil, deleteFiles)
+			So(err, ShouldBeError, "cannot delete main configuration YAML files")
+		})
+
+		Convey("allow mutating template files", func() {
+			cfg.AppConfig.Template.Items = []config.TemplateItem{{
+				Type: "login",
+				URI:  "file:///templates/login.html",
+			}}
+
+			deleteFiles := []string{"/templates/login.html"}
+			err := ValidateConfig(appID, *cfg, nil, deleteFiles)
+			So(err, ShouldBeNil)
+
+			updateFiles := []*model.AppConfigFile{{
+				Path:    "/templates/login.html",
+				Content: "Login",
+			}}
+			err = ValidateConfig(appID, *cfg, updateFiles, nil)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("forbid mutating irrelevant files", func() {
+			deleteFiles := []string{"/foobar"}
+			err := ValidateConfig(appID, *cfg, nil, deleteFiles)
+			So(err, ShouldBeError, "invalid file '/foobar': file is not referenced from configuration")
+
+			updateFiles := []*model.AppConfigFile{{
+				Path:    "/foobar",
+				Content: "what",
+			}}
+			err = ValidateConfig(appID, *cfg, updateFiles, nil)
+			So(err, ShouldBeError, "invalid file '/foobar': file is not referenced from configuration")
 		})
 	})
 }

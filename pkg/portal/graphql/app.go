@@ -23,6 +23,23 @@ var nodeApp = node(
 			"id": relay.GlobalIDField(typeApp, func(obj interface{}, info graphql.ResolveInfo, ctx context.Context) (string, error) {
 				return obj.(*model.App).ID, nil
 			}),
+			"rawConfigFile": &graphql.Field{
+				Type: graphql.NewNonNull(graphql.String),
+				Args: graphql.FieldConfigArgument{
+					"path": &graphql.ArgumentConfig{
+						Type: graphql.NewNonNull(graphql.String),
+					},
+				},
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					path := p.Args["path"].(string)
+					app := p.Source.(*model.App)
+					data, err := app.LoadFile(path)
+					if err != nil {
+						return nil, err
+					}
+					return string(data), nil
+				},
+			},
 			"rawAppConfig": &graphql.Field{
 				Type: graphql.NewNonNull(AppConfig),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
