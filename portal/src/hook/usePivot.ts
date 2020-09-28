@@ -14,7 +14,7 @@ export function usePivot(): {
     (item) => {
       const itemKey = item?.props.itemKey;
       if (typeof itemKey === "string") {
-        navigate(`./#${itemKey}`);
+        navigate(`./#${encodeURIComponent(itemKey)}`);
       }
     },
     [navigate]
