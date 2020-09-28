@@ -1,4 +1,5 @@
-/* global process */
+// comment out next line for disabling axe
+// /* global process */
 // This following 2 lines are extremely important.
 // Since we do not provide our babel.config.json,
 // Parcel provides a default one for us.
@@ -21,6 +22,9 @@ import { theme } from "./theme";
 initializeIcons();
 
 loadTheme(theme);
+
+/* NOTE: disabled axe as it does not work well with monaco editor
+ *       screen with monaco editor is extremely slow
 
 // Run axe every 3 seconds to discover accessibility issues.
 // Ideally we should use react-axe instead but it has the following issue
@@ -58,5 +62,6 @@ if (process.env.NODE_ENV === "development") {
     }
   );
 }
+*/
 
 render(<ReactApp />, document.getElementById("react-app-root"));
