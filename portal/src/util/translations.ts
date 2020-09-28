@@ -22,3 +22,23 @@ export function getCountryName(code: string, locale: string): string {
   // override library output here
   return getName(code, locale);
 }
+
+export function useGetTelecomCountryName(): {
+  getTelecomCountryName: (code: string) => string;
+} {
+  const { locale, renderToString } = useContext(Context);
+  const getTelecomCountryName = useCallback(
+    (code: string) => {
+      if (code === "INTERNATIONAL") {
+        return renderToString("calling-code-area.international");
+      }
+      if (code === "GMSS") {
+        return renderToString("calling-code-area.gmss");
+      }
+      return getCountryName(code, locale);
+    },
+    [locale, renderToString]
+  );
+
+  return { getTelecomCountryName };
+}
