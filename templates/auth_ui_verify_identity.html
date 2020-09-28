@@ -31,16 +31,28 @@
 <form class="vertical-form form-fields-container" method="post" novalidate>
 {{ $.CSRFField }}
 
-<input
-	class="input text-input primary-txt"
-	type="text"
-	inputmode="numeric"
-	pattern="[0-9]*"
-	autocomplete="one-time-code"
-	name="x_password"
-	placeholder="{{ template "verify-user-placeholder" }}"
-	value="{{ $.VerificationCode }}"
->
+{{ if eq $.VerificationCodeChannel "sms" }}
+	<input
+		class="input text-input primary-txt"
+		type="text"
+		inputmode="numeric"
+		pattern="[0-9]*"
+		autocomplete="one-time-code"
+		name="x_password"
+		placeholder="{{ template "verify-user-placeholder" }}"
+		value="{{ $.VerificationCode }}"
+	>
+{{ end }}
+{{ if eq $.VerificationCodeChannel "email" }}
+	<input
+		class="input text-input primary-txt"
+		type="text"
+		autocomplete="one-time-code"
+		name="x_password"
+		placeholder="{{ template "verify-user-placeholder" }}"
+		value="{{ $.VerificationCode }}"
+	>
+{{ end }}
 <button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
 </form>
 
