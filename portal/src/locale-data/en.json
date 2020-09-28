@@ -109,6 +109,7 @@
   "UserDetails.connected-identities.header": "Connected Identities",
   "UserDetails.connected-identities.title": "Identities",
   "UserDetails.connected-identities.add-identity": "Add Identity",
+  "UserDetails.connected-identities.oauth": "Social",
   "UserDetails.connected-identities.email": "Email",
   "UserDetails.connected-identities.phone": "Phone",
   "UserDetails.connected-identities.username": "Username",

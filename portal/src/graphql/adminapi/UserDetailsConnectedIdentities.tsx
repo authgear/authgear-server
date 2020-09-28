@@ -26,6 +26,7 @@ import { useDeleteIdentityMutation } from "./mutations/deleteIdentityMutation";
 import { formatDatetime } from "../../util/formatDatetime";
 import { parseError } from "../../util/error";
 import { Violation } from "../../util/validation";
+import { OAuthSSOProviderType } from "../../types";
 import { destructiveTheme, verifyButtonTheme } from "../../theme";
 
 import styles from "./UserDetailsConnectedIdentities.module.scss";
@@ -34,11 +35,13 @@ interface IdentityClaim extends Record<string, unknown> {
   email?: string;
   phone_number?: string;
   preferred_username?: string;
+  "https://authgear.com/claims/oauth/provider_type"?: OAuthSSOProviderType;
+  "https://authgear.com/claims/login_id/type"?: LoginIDIdentityType;
 }
 
 interface Identity {
   id: string;
-  type: string;
+  type: "ANONYMOUS" | "LOGIN_ID" | "OAUTH";
   claims: IdentityClaim;
   createdAt: string;
   updatedAt: string;
@@ -49,41 +52,41 @@ interface UserDetailsConnectedIdentitiesProps {
   availableLoginIdIdentities: string[];
 }
 
-const identityTypes = ["email", "phone", "username"] as const;
-type IdentityType = typeof identityTypes[number];
+const loginIdIdentityTypes = ["email", "phone", "username"] as const;
+type LoginIDIdentityType = typeof loginIdIdentityTypes[number];
+type IdentityType = "login_id" | "oauth";
 
-interface EmailIdentityListItem {
+interface OAuthIdentityListItem {
   id: string;
-  email: string;
+  type: "oauth";
+  providerType: OAuthSSOProviderType;
+  name: string;
   verified: boolean;
   connectedOn: string;
 }
 
-interface PhoneIdentityListItem {
+interface LoginIDIdentityListItem {
   id: string;
-  phone: string;
-  verified: boolean;
-  addedOn: string;
-}
-
-interface UsernameIdentityListItem {
-  id: string;
-  username: string;
-  addedOn: string;
+  type: "login_id";
+  key: "email" | "phone" | "username";
+  value: string;
+  verified?: boolean;
+  connectedOn: string;
 }
 
 export interface IdentityLists {
-  email: EmailIdentityListItem[];
-  phone: PhoneIdentityListItem[];
-  username: UsernameIdentityListItem[];
+  oauth: OAuthIdentityListItem[];
+  email: LoginIDIdentityListItem[];
+  phone: LoginIDIdentityListItem[];
+  username: LoginIDIdentityListItem[];
 }
 
 interface IdentityListCellProps {
   identityID: string;
   identityType: IdentityType;
-  identityName: string;
-  addedOn?: string;
-  connectedOn?: string;
+  icon: React.ReactNode;
+  identityName?: string;
+  connectedOn: string;
   verified?: boolean;
   toggleVerified?: (identityID: string, verified: boolean) => void;
   onRemoveClicked: (identityID: string, identityName: string) => void;
@@ -103,17 +106,40 @@ interface ErrorDialogData {
   message: string;
 }
 
-const iconMap: Record<IdentityType, React.ReactNode> = {
+const oauthIconMap: Record<OAuthSSOProviderType, React.ReactNode> = {
+  apple: <i className={cn("fab", "fa-apple", styles.widgetLabelIcon)} />,
+  google: <i className={cn("fab", "fa-google", styles.widgetLabelIcon)} />,
+  facebook: <i className={cn("fab", "fa-facebook", styles.widgetLabelIcon)} />,
+  linkedin: <i className={cn("fab", "fa-linkedin", styles.widgetLabelIcon)} />,
+  azureadv2: (
+    <i className={cn("fab", "fa-microsoft", styles.widgetLabelIcon)} />
+  ),
+};
+
+const loginIdIconMap: Record<LoginIDIdentityType, React.ReactNode> = {
   email: <Icon iconName="Mail" />,
   phone: <Icon iconName="CellPhone" />,
   username: <Icon iconName="Accounts" />,
 };
 
-const removeButtonTextId: Record<IdentityType, string> = {
-  email: "disconnect",
-  phone: "remove",
-  username: "remove",
+const removeButtonTextId: Record<IdentityType, "remove" | "disconnect"> = {
+  oauth: "disconnect",
+  login_id: "remove",
 };
+
+function getIcon(item: LoginIDIdentityListItem | OAuthIdentityListItem) {
+  if (item.type === "oauth") {
+    return oauthIconMap[item.providerType];
+  }
+  return loginIdIconMap[item.key];
+}
+
+function getName(item: LoginIDIdentityListItem | OAuthIdentityListItem) {
+  if (item.type === "oauth") {
+    return item.name;
+  }
+  return item.value;
+}
 
 function getErrorMessageIdsFromViolation(violations: Violation[]) {
   const errorMessageIds: string[] = [];
@@ -174,18 +200,16 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
   const {
     identityID,
     identityType,
+    icon,
     identityName,
     connectedOn,
-    addedOn,
     verified,
     toggleVerified,
     onRemoveClicked: _onRemoveClicked,
   } = props;
 
-  const icon = iconMap[identityType];
-
   const onRemoveClicked = useCallback(() => {
-    _onRemoveClicked(identityID, identityName);
+    _onRemoveClicked(identityID, identityName ?? "");
   }, [identityID, identityName, _onRemoveClicked]);
 
   const onVerifyClicked = useCallback(
@@ -198,7 +222,7 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
   return (
     <ListCellLayout className={styles.cellContainer}>
       <div className={styles.cellIcon}>{icon}</div>
-      <Text className={styles.cellName}>{identityName}</Text>
+      <Text className={styles.cellName}>{identityName ?? ""}</Text>
       {verified != null && (
         <>
           {verified ? (
@@ -214,16 +238,16 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
         </>
       )}
       <Text className={styles.cellDesc}>
-        {connectedOn != null && (
+        {identityType === "oauth" && (
           <FormattedMessage
             id="UserDetails.connected-identities.connected-on"
             values={{ datetime: connectedOn }}
           />
         )}
-        {addedOn != null && (
+        {identityType === "login_id" && (
           <FormattedMessage
             id="UserDetails.connected-identities.added-on"
-            values={{ datetime: addedOn }}
+            values={{ datetime: connectedOn }}
           />
         )}
       </Text>
@@ -270,40 +294,73 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
   });
 
   const identityLists: IdentityLists = useMemo(() => {
-    const emailIdentityList: EmailIdentityListItem[] = [];
-    const phoneIdentityList: PhoneIdentityListItem[] = [];
-    const usernameIdentityList: UsernameIdentityListItem[] = [];
+    const oauthIdentityList: OAuthIdentityListItem[] = [];
+    const emailIdentityList: LoginIDIdentityListItem[] = [];
+    const phoneIdentityList: LoginIDIdentityListItem[] = [];
+    const usernameIdentityList: LoginIDIdentityListItem[] = [];
 
     // TODO: get actual verified state
     for (const identity of identities) {
       const createdAtStr = formatDatetime(locale, identity.createdAt) ?? "";
-      if (identity.claims.email != null) {
-        emailIdentityList.push({
+      if (identity.type === "OAUTH") {
+        const providerType = identity.claims[
+          "https://authgear.com/claims/oauth/provider_type"
+        ]!;
+        oauthIdentityList.push({
           id: identity.id,
-          email: identity.claims.email,
-          verified: true,
+          type: "oauth",
+          name: identity.claims.email!,
+          providerType: providerType,
+          verified: false,
           connectedOn: createdAtStr,
         });
       }
 
-      if (identity.claims.phone_number != null) {
-        phoneIdentityList.push({
-          id: identity.id,
-          phone: identity.claims.phone_number,
-          verified: false,
-          addedOn: createdAtStr,
-        });
-      }
+      if (identity.type === "LOGIN_ID") {
+        if (
+          identity.claims["https://authgear.com/claims/login_id/type"] ===
+          "email"
+        ) {
+          emailIdentityList.push({
+            id: identity.id,
+            type: "login_id",
+            key: "email",
+            value: identity.claims.email!,
+            verified: true,
+            connectedOn: createdAtStr,
+          });
+        }
 
-      if (identity.claims.preferred_username != null) {
-        usernameIdentityList.push({
-          id: identity.id,
-          username: identity.claims.preferred_username,
-          addedOn: createdAtStr,
-        });
+        if (
+          identity.claims["https://authgear.com/claims/login_id/type"] ===
+          "phone"
+        ) {
+          phoneIdentityList.push({
+            id: identity.id,
+            type: "login_id",
+            key: "phone",
+            value: identity.claims.phone_number!,
+            verified: false,
+            connectedOn: createdAtStr,
+          });
+        }
+
+        if (
+          identity.claims["https://authgear.com/claims/login_id/type"] ===
+          "username"
+        ) {
+          usernameIdentityList.push({
+            id: identity.id,
+            type: "login_id",
+            key: "username",
+            value: identity.claims.preferred_username!,
+            connectedOn: createdAtStr,
+          });
+        }
       }
     }
     return {
+      oauth: oauthIdentityList,
       email: emailIdentityList,
       phone: phoneIdentityList,
       username: usernameIdentityList,
@@ -360,58 +417,27 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
     setIsErrorDialogVisible(false);
   }, []);
 
-  const onRenderEmailIdentityCell = useCallback(
-    (item?: EmailIdentityListItem, _index?: number): React.ReactNode => {
+  const onRenderIdentityCell = useCallback(
+    (
+      item?: OAuthIdentityListItem | LoginIDIdentityListItem,
+      _index?: number
+    ): React.ReactNode => {
       if (item == null) {
         return null;
       }
+
+      const icon = getIcon(item);
+      const name = getName(item);
       return (
         <IdentityListCell
           identityID={item.id}
-          identityType="email"
-          identityName={item.email}
+          identityType={item.type}
+          icon={icon}
+          identityName={name}
           verified={item.verified}
           connectedOn={item.connectedOn}
           onRemoveClicked={onRemoveClicked}
           toggleVerified={() => {}}
-        />
-      );
-    },
-    [onRemoveClicked]
-  );
-
-  const onRenderPhoneIdentityCell = useCallback(
-    (item?: PhoneIdentityListItem, _index?: number): React.ReactNode => {
-      if (item == null) {
-        return null;
-      }
-      return (
-        <IdentityListCell
-          identityID={item.id}
-          identityType="phone"
-          identityName={item.phone}
-          verified={item.verified}
-          addedOn={item.addedOn}
-          onRemoveClicked={onRemoveClicked}
-          toggleVerified={() => {}}
-        />
-      );
-    },
-    [onRemoveClicked]
-  );
-
-  const onRenderUsernameIdentityCell = useCallback(
-    (item?: UsernameIdentityListItem, _index?: number): React.ReactNode => {
-      if (item == null) {
-        return null;
-      }
-      return (
-        <IdentityListCell
-          identityID={item.id}
-          identityType="username"
-          identityName={item.username}
-          addedOn={item.addedOn}
-          onRemoveClicked={onRemoveClicked}
         />
       );
     },
@@ -500,6 +526,18 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
         </PrimaryButton>
       </section>
       <section className={styles.identityLists}>
+        {identityLists.oauth.length > 0 && (
+          <>
+            <Text as="h3" className={styles.subHeader}>
+              <FormattedMessage id="UserDetails.connected-identities.oauth" />
+            </Text>
+            <List
+              className={styles.list}
+              items={identityLists.oauth}
+              onRenderCell={onRenderIdentityCell}
+            />
+          </>
+        )}
         {identityLists.email.length > 0 && (
           <>
             <Text as="h3" className={styles.subHeader}>
@@ -508,7 +546,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
             <List
               className={styles.list}
               items={identityLists.email}
-              onRenderCell={onRenderEmailIdentityCell}
+              onRenderCell={onRenderIdentityCell}
             />
           </>
         )}
@@ -520,7 +558,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
             <List
               className={styles.list}
               items={identityLists.phone}
-              onRenderCell={onRenderPhoneIdentityCell}
+              onRenderCell={onRenderIdentityCell}
             />
           </>
         )}
@@ -532,7 +570,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
             <List
               className={styles.list}
               items={identityLists.username}
-              onRenderCell={onRenderUsernameIdentityCell}
+              onRenderCell={onRenderIdentityCell}
             />
           </>
         )}
