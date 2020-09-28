@@ -23,21 +23,19 @@ const PrimaryIdentitiesSelectionForm: React.FC<PrimaryIdentitiesSelectionFormPro
     selectedKey: selectedPrimaryEmail,
     options: primaryEmailOptions,
     onChange: onPrimaryEmailOptionsChange,
-  } = useDropdown(identityLists.email.map((identity) => identity.email ?? ""));
+  } = useDropdown(identityLists.email.map((identity) => identity.value));
 
   const {
     selectedKey: selectedPrimaryPhone,
     options: primaryPhoneOptions,
     onChange: onPrimaryPhoneOptionsChange,
-  } = useDropdown(identityLists.phone.map((identity) => identity.phone ?? ""));
+  } = useDropdown(identityLists.phone.map((identity) => identity.value));
 
   const {
     selectedKey: selectedPrimaryUsername,
     options: primaryUsernameOptions,
     onChange: onPrimaryUsernameOptionsChange,
-  } = useDropdown(
-    identityLists.username.map((identity) => identity.username ?? "")
-  );
+  } = useDropdown(identityLists.username.map((identity) => identity.value));
 
   const primaryIdentitiesState = useMemo(
     () => ({

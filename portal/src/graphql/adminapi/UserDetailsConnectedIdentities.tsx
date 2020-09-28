@@ -54,47 +54,38 @@ interface UserDetailsConnectedIdentitiesProps {
 
 const loginIdIdentityTypes = ["email", "phone", "username"] as const;
 type LoginIDIdentityType = typeof loginIdIdentityTypes[number];
-type IdentityType = LoginIDIdentityType | "oauth";
+type IdentityType = "login_id" | "oauth";
 
 interface OAuthIdentityListItem {
   id: string;
-  providerType?: OAuthSSOProviderType;
-  name?: string;
+  type: "oauth";
+  providerType: OAuthSSOProviderType;
+  name: string;
   verified: boolean;
   connectedOn: string;
 }
 
-interface EmailIdentityListItem {
+interface LoginIDIdentityListItem {
   id: string;
-  email?: string;
-  verified: boolean;
-  addedOn: string;
-}
-
-interface PhoneIdentityListItem {
-  id: string;
-  phone?: string;
-  verified: boolean;
-  addedOn: string;
-}
-
-interface UsernameIdentityListItem {
-  id: string;
-  username?: string;
+  type: "login_id";
+  key: "email" | "phone" | "username";
+  value: string;
+  verified?: boolean;
   addedOn: string;
 }
 
 export interface IdentityLists {
   oauth: OAuthIdentityListItem[];
-  email: EmailIdentityListItem[];
-  phone: PhoneIdentityListItem[];
-  username: UsernameIdentityListItem[];
+  email: LoginIDIdentityListItem[];
+  phone: LoginIDIdentityListItem[];
+  username: LoginIDIdentityListItem[];
 }
 
 interface IdentityListCellProps {
   identityID: string;
-  oauthProviderType?: OAuthSSOProviderType;
   identityType: IdentityType;
+  loginIdIdentityType?: LoginIDIdentityType;
+  oauthProviderType?: OAuthSSOProviderType;
   identityName?: string;
   addedOn?: string;
   connectedOn?: string;
@@ -135,22 +126,18 @@ const loginIdIconMap: Record<LoginIDIdentityType, React.ReactNode> = {
 
 const removeButtonTextId: Record<IdentityType, "remove" | "disconnect"> = {
   oauth: "disconnect",
-  email: "remove",
-  phone: "remove",
-  username: "remove",
+  login_id: "remove",
 };
 
 function getIcon(
   identityType: IdentityType,
-  providerType?: OAuthSSOProviderType
+  loginIdIdentityType?: LoginIDIdentityType,
+  oauthProviderTypes?: OAuthSSOProviderType
 ) {
   if (identityType === "oauth") {
-    if (providerType != null) {
-      return oauthIconMap[providerType];
-    }
-    return null;
+    return oauthIconMap[oauthProviderTypes!];
   }
-  return loginIdIconMap[identityType];
+  return loginIdIconMap[loginIdIdentityType!];
 }
 
 function getErrorMessageIdsFromViolation(violations: Violation[]) {
@@ -211,8 +198,9 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
 ) {
   const {
     identityID,
-    oauthProviderType,
     identityType,
+    loginIdIdentityType,
+    oauthProviderType,
     identityName,
     connectedOn,
     addedOn,
@@ -221,7 +209,7 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
     onRemoveClicked: _onRemoveClicked,
   } = props;
 
-  const icon = getIcon(identityType, oauthProviderType);
+  const icon = getIcon(identityType, loginIdIdentityType, oauthProviderType);
 
   const onRemoveClicked = useCallback(() => {
     _onRemoveClicked(identityID, identityName ?? "");
@@ -310,20 +298,22 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
 
   const identityLists: IdentityLists = useMemo(() => {
     const oauthIdentityList: OAuthIdentityListItem[] = [];
-    const emailIdentityList: EmailIdentityListItem[] = [];
-    const phoneIdentityList: PhoneIdentityListItem[] = [];
-    const usernameIdentityList: UsernameIdentityListItem[] = [];
+    const emailIdentityList: LoginIDIdentityListItem[] = [];
+    const phoneIdentityList: LoginIDIdentityListItem[] = [];
+    const usernameIdentityList: LoginIDIdentityListItem[] = [];
 
     // TODO: get actual verified state
     for (const identity of identities) {
       const createdAtStr = formatDatetime(locale, identity.createdAt) ?? "";
       if (identity.type === "OAUTH") {
-        const providerType =
-          identity.claims["https://authgear.com/claims/oauth/provider_type"];
+        const providerType = identity.claims[
+          "https://authgear.com/claims/oauth/provider_type"
+        ]!;
         oauthIdentityList.push({
           id: identity.id,
-          name: identity.claims.email,
-          providerType,
+          type: "oauth",
+          name: identity.claims.email!,
+          providerType: providerType,
           verified: false,
           connectedOn: createdAtStr,
         });
@@ -336,7 +326,9 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
         ) {
           emailIdentityList.push({
             id: identity.id,
-            email: identity.claims.email,
+            type: "login_id",
+            key: "email",
+            value: identity.claims.email!,
             verified: true,
             addedOn: createdAtStr,
           });
@@ -348,7 +340,9 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
         ) {
           phoneIdentityList.push({
             id: identity.id,
-            phone: identity.claims.phone_number,
+            type: "login_id",
+            key: "phone",
+            value: identity.claims.phone_number!,
             verified: false,
             addedOn: createdAtStr,
           });
@@ -360,7 +354,9 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
         ) {
           usernameIdentityList.push({
             id: identity.id,
-            username: identity.claims.preferred_username,
+            type: "login_id",
+            key: "username",
+            value: identity.claims.preferred_username!,
             addedOn: createdAtStr,
           });
         }
@@ -432,8 +428,8 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
       return (
         <IdentityListCell
           identityID={item.id}
-          oauthProviderType={item.providerType}
           identityType="oauth"
+          oauthProviderType={item.providerType}
           identityName={item.name}
           verified={item.verified}
           connectedOn={item.connectedOn}
@@ -445,58 +441,21 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
     [onRemoveClicked]
   );
 
-  const onRenderEmailIdentityCell = useCallback(
-    (item?: EmailIdentityListItem, _index?: number): React.ReactNode => {
+  const onRenderLoginIDIdentityCell = useCallback(
+    (item?: LoginIDIdentityListItem, _index?: number): React.ReactNode => {
       if (item == null) {
         return null;
       }
       return (
         <IdentityListCell
           identityID={item.id}
-          identityType="email"
-          identityName={item.email}
+          identityType="login_id"
+          loginIdIdentityType={item.key}
+          identityName={item.value}
           verified={item.verified}
           addedOn={item.addedOn}
           onRemoveClicked={onRemoveClicked}
           toggleVerified={() => {}}
-        />
-      );
-    },
-    [onRemoveClicked]
-  );
-
-  const onRenderPhoneIdentityCell = useCallback(
-    (item?: PhoneIdentityListItem, _index?: number): React.ReactNode => {
-      if (item == null) {
-        return null;
-      }
-      return (
-        <IdentityListCell
-          identityID={item.id}
-          identityType="phone"
-          identityName={item.phone}
-          verified={item.verified}
-          addedOn={item.addedOn}
-          onRemoveClicked={onRemoveClicked}
-          toggleVerified={() => {}}
-        />
-      );
-    },
-    [onRemoveClicked]
-  );
-
-  const onRenderUsernameIdentityCell = useCallback(
-    (item?: UsernameIdentityListItem, _index?: number): React.ReactNode => {
-      if (item == null) {
-        return null;
-      }
-      return (
-        <IdentityListCell
-          identityID={item.id}
-          identityType="username"
-          identityName={item.username}
-          addedOn={item.addedOn}
-          onRemoveClicked={onRemoveClicked}
         />
       );
     },
@@ -605,7 +564,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
             <List
               className={styles.list}
               items={identityLists.email}
-              onRenderCell={onRenderEmailIdentityCell}
+              onRenderCell={onRenderLoginIDIdentityCell}
             />
           </>
         )}
@@ -617,7 +576,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
             <List
               className={styles.list}
               items={identityLists.phone}
-              onRenderCell={onRenderPhoneIdentityCell}
+              onRenderCell={onRenderLoginIDIdentityCell}
             />
           </>
         )}
@@ -629,7 +588,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
             <List
               className={styles.list}
               items={identityLists.username}
-              onRenderCell={onRenderUsernameIdentityCell}
+              onRenderCell={onRenderLoginIDIdentityCell}
             />
           </>
         )}
