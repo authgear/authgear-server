@@ -41,9 +41,11 @@ type AuthenticatorKind = "PRIMARY" | "SECONDARY";
 
 type OOBOTPVerificationMethod = "email" | "phone" | "unknown";
 
-interface AuthenticatorClaims extends Record<string, unknown> {
-  email?: string;
-  phone_number?: string;
+interface AuthenticatorClaims {
+  "https://authgear.com/claims/totp/display_name"?: string;
+  "https://authgear.com/claims/oob_otp/channel_type"?: string;
+  "https://authgear.com/claims/oob_otp/email"?: string;
+  "https://authgear.com/claims/oob_otp/phone"?: string;
 }
 
 interface Authenticator {
@@ -170,17 +172,12 @@ function constructPasswordAuthenticatorData(
 }
 
 function getTotpDisplayName(
-  totpAuthenticatorClaims: Record<string, unknown>
+  totpAuthenticatorClaims: AuthenticatorClaims
 ): string {
-  for (const [key, claim] of Object.entries(totpAuthenticatorClaims)) {
-    if (
-      key === "https://authgear.com/claims/totp/display_name" &&
-      typeof claim === "string"
-    ) {
-      return claim;
-    }
-  }
-  return LABEL_PLACEHOLDER;
+  return (
+    totpAuthenticatorClaims["https://authgear.com/claims/totp/display_name"] ??
+    LABEL_PLACEHOLDER
+  );
 }
 
 function constructTotpAuthenticatorData(
@@ -201,13 +198,16 @@ function constructTotpAuthenticatorData(
 function getOobOtpVerificationMethod(
   authenticator: Authenticator
 ): OOBOTPVerificationMethod {
-  if (authenticator.claims.email != null) {
-    return "email";
+  switch (
+    authenticator.claims["https://authgear.com/claims/oob_otp/channel_type"]
+  ) {
+    case "email":
+      return "email";
+    case "phone":
+      return "phone";
+    default:
+      return "unknown";
   }
-  if (authenticator.claims.phone_number != null) {
-    return "phone";
-  }
-  return "unknown";
 }
 
 const oobOtpVerificationMethodIconName: Partial<Record<
@@ -224,9 +224,13 @@ function getOobOtpAuthenticatorLabel(
 ) {
   switch (verificationMethod) {
     case "email":
-      return authenticator.claims.email ?? "";
+      return (
+        authenticator.claims["https://authgear.com/claims/oob_otp/email"] ?? ""
+      );
     case "phone":
-      return authenticator.claims.phone_number ?? "";
+      return (
+        authenticator.claims["https://authgear.com/claims/oob_otp/phone"] ?? ""
+      );
     default:
       return "";
   }
