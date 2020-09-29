@@ -1,0 +1,44 @@
+.root {
+  min-height: 100%;
+}
+
+.header {
+  display: block;
+  font-weight: 600;
+  font-size: 18px;
+  margin: 30px;
+}
+
+.content {
+  margin: 0 20px;
+}
+
+.controlButtons {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 20px 0 0;
+}
+
+.clientListColumn {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.clientListColumnContent {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  line-height: 18px;
+}
+
+.clientIdColumnContent {
+  margin-right: auto;
+}
+
+.editButton {
+  margin: 0 5px;
+}
+
+.copyButton {
+  margin-right: 10px;
+}
