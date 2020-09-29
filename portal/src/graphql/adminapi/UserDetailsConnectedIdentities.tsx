@@ -22,6 +22,7 @@ import {
 // import PrimaryIdentitiesSelectionForm from "./PrimaryIdentitiesSelectionForm";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import ListCellLayout from "../../ListCellLayout";
+import TodoButtonWrapper from "../../TodoButtonWrapper";
 import { useDeleteIdentityMutation } from "./mutations/deleteIdentityMutation";
 import { formatDatetime } from "../../util/formatDatetime";
 import { parseError } from "../../util/error";
@@ -252,7 +253,9 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
         )}
       </Text>
       {verified != null && toggleVerified != null && (
-        <VerifyButton verified={verified} toggleVerified={onVerifyClicked} />
+        <TodoButtonWrapper className={styles.verifyButton}>
+          <VerifyButton verified={verified} toggleVerified={onVerifyClicked} />
+        </TodoButtonWrapper>
       )}
       <DefaultButton
         className={cn(styles.controlButton, styles.removeButton)}
