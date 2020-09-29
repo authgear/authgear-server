@@ -40,6 +40,9 @@
 
   "required-field-missing": "Required field `{fieldName}` is missing",
 
+  "TodoButtonWrapper.dialog-title": "Feature Not Ready",
+  "TodoButtonWrapper.dialog-message": "This feature is not yet implemented",
+
   "ScreenNav.label": "Top-level tab navigation",
   "ScreenNav.users": "Users",
   "ScreenNav.authentication": "Authentication",
