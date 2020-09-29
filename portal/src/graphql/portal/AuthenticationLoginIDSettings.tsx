@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import produce from "immer";
 import { Checkbox, Toggle, TagPicker, Label } from "@fluentui/react";
 import deepEqual from "deep-equal";
@@ -8,6 +8,7 @@ import ExtendableWidget from "../../ExtendableWidget";
 import CheckboxWithContent from "../../CheckboxWithContent";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
+import CountryCallingCodeList from "./AuthenticationCountryCallingCodeList";
 import { useCheckbox, useTagPickerWithNewTags } from "../../hook/useInput";
 import {
   LoginIDKeyType,
@@ -21,6 +22,7 @@ import {
   isArrayEqualInOrder,
   clearEmptyObject,
 } from "../../util/misc";
+import { countryCallingCodes as supportedCountryCallingCodes } from "../../data/countryCallingCode.json";
 
 import styles from "./AuthenticationLoginIDSettings.module.scss";
 
@@ -344,6 +346,21 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     initialState.isAllowPlus
   );
 
+  // phone widget
+  const initialSelectedCallingCodes =
+    effectiveAppConfig?.ui?.country_calling_code?.values ?? [];
+
+  const [selectedCallingCodes, setSelectedCallingCodes] = useState<string[]>(
+    initialSelectedCallingCodes
+  );
+
+  const onSelectedCallingCodesChange = useCallback(
+    (newSelectedCallingCodes: string[]) => {
+      setSelectedCallingCodes(newSelectedCallingCodes);
+    },
+    []
+  );
+
   const screenState = useMemo(
     () => ({
       usernameEnabled,
@@ -515,7 +532,11 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
             />
           }
         >
-          <div>TODO: To be implemented</div>
+          <CountryCallingCodeList
+            allCountryCallingCodes={supportedCountryCallingCodes}
+            selectedCountryCallingCodes={selectedCallingCodes}
+            onSelectedCountryCallingCodesChange={onSelectedCallingCodesChange}
+          />
         </ExtendableWidget>
       </div>
       <div className={styles.saveButtonContainer}>

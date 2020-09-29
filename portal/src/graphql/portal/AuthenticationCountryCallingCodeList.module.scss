@@ -1,0 +1,17 @@
+.countryNameCell {
+  line-height: 16px;
+}
+
+.callingCodeListColumn {
+  justify-content: flex-start;
+  align-items: center;
+  display: flex;
+}
+
+.callingCodeListRow {
+  border: 0;
+}
+
+.lastSelectedCallingCode {
+  border-bottom: 1px solid #c4c4c4;
+}

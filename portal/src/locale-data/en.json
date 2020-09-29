@@ -170,6 +170,14 @@
 
   "AuthenticationWidget.phoneNumberTitle": "Phone Number",
   "AuthenticationWidget.phoneNumberExtend": "Extend phone number",
+  "AuthenticationWidget.phone.list-header.active": "Active",
+  "AuthenticationWidget.phone.list-header.country-or-area": "Country / Area",
+  "AuthenticationWidget.phone.list-header.code": "Code",
+  "AuthenticationWidget.phone.list-header.order": "Order",
+  "AuthenticationWidget.phone.default-order": "Default (ascending)",
+
+  "calling-code-area.gmss": "Global Mobile Satellite System",
+  "calling-code-area.international": "International Networks",
 
   "AuthenticationWidget.error.blockDomains": "Invalid domains",
 
