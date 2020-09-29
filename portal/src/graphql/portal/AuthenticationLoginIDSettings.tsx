@@ -1,5 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import produce from "immer";
+import { WritableDraft } from "immer/dist/internal";
 import { Checkbox, Toggle, TagPicker, Label } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -15,6 +16,8 @@ import {
   LoginIDKeyConfig,
   PortalAPIAppConfig,
   PortalAPIApp,
+  LoginIDEmailConfig,
+  LoginIDUsernameConfig,
 } from "../../types";
 import {
   setFieldIfChanged,
@@ -55,6 +58,8 @@ interface AuthenticationLoginIDSettingsState {
   isEmailCaseSensitive: boolean;
   isIgnoreDotLocal: boolean;
   isAllowPlus: boolean;
+
+  selectedCallingCodes: string[];
 }
 
 const switchStyle = { root: { margin: "0" } };
@@ -166,6 +171,10 @@ function constructStateFromAppConfig(
   // email widget
   const emailConfig = appConfig?.identity?.login_id?.types?.email;
 
+  // phone widget
+  const selectedCallingCodes =
+    appConfig?.ui?.country_calling_code?.values ?? [];
+
   return {
     usernameEnabled,
     emailEnabled,
@@ -180,7 +189,92 @@ function constructStateFromAppConfig(
     isEmailCaseSensitive: !!emailConfig?.case_sensitive,
     isIgnoreDotLocal: !!emailConfig?.ignore_dot_sign,
     isAllowPlus: !emailConfig?.block_plus_sign,
+
+    selectedCallingCodes,
   };
+}
+
+function mutateUsernameConfig(
+  usernameConfig: WritableDraft<LoginIDUsernameConfig>,
+  initialScreenState: AuthenticationLoginIDSettingsState,
+  screenState: AuthenticationLoginIDSettingsState
+) {
+  if (
+    !isArrayEqualInOrder(
+      initialScreenState.excludedKeywords,
+      screenState.excludedKeywords
+    )
+  ) {
+    const excludedKeywordList = handleStringListInput(
+      screenState.excludedKeywords,
+      {
+        optionEnabled: screenState.isExcludeKeywords,
+        useDefaultList: false,
+        defaultList: [],
+      }
+    );
+
+    setFieldIfListNonEmpty(
+      usernameConfig,
+      "excluded_keywords",
+      excludedKeywordList
+    );
+  }
+  setFieldIfChanged(
+    usernameConfig,
+    "case_sensitive",
+    initialScreenState.isUsernameCaseSensitive,
+    screenState.isUsernameCaseSensitive
+  );
+  setFieldIfChanged(
+    usernameConfig,
+    "ascii_only",
+    initialScreenState.isAsciiOnly,
+    screenState.isAsciiOnly
+  );
+}
+
+function mutateEmailConfig(
+  emailConfig: WritableDraft<LoginIDEmailConfig>,
+  initialScreenState: AuthenticationLoginIDSettingsState,
+  screenState: AuthenticationLoginIDSettingsState
+) {
+  setFieldIfChanged(
+    emailConfig,
+    "case_sensitive",
+    initialScreenState.isEmailCaseSensitive,
+    screenState.isEmailCaseSensitive
+  );
+  setFieldIfChanged(
+    emailConfig,
+    "ignore_dot_sign",
+    initialScreenState.isIgnoreDotLocal,
+    screenState.isIgnoreDotLocal
+  );
+  setFieldIfChanged(
+    emailConfig,
+    "block_plus_sign",
+    !initialScreenState.isAllowPlus,
+    !screenState.isAllowPlus
+  );
+}
+function mutatePhoneConfig(
+  appConfig: WritableDraft<PortalAPIAppConfig>,
+  initialScreenState: AuthenticationLoginIDSettingsState,
+  screenState: AuthenticationLoginIDSettingsState
+) {
+  appConfig.ui = appConfig.ui ?? {};
+  appConfig.ui.country_calling_code = appConfig.ui.country_calling_code ?? {};
+
+  if (
+    screenState.phoneNumberEnabled &&
+    !deepEqual(
+      initialScreenState.selectedCallingCodes,
+      screenState.selectedCallingCodes
+    )
+  ) {
+    appConfig.ui.country_calling_code.values = screenState.selectedCallingCodes;
+  }
 }
 
 function constructAppConfigFromState(
@@ -223,63 +317,15 @@ function constructAppConfigFromState(
     // username config
     loginIdTypes.username = loginIdTypes.username ?? {};
     const usernameConfig = loginIdTypes.username;
-
-    if (
-      !isArrayEqualInOrder(
-        initialScreenState.excludedKeywords,
-        screenState.excludedKeywords
-      )
-    ) {
-      const excludedKeywordList = handleStringListInput(
-        screenState.excludedKeywords,
-        {
-          optionEnabled: screenState.isExcludeKeywords,
-          useDefaultList: false,
-          defaultList: [],
-        }
-      );
-
-      setFieldIfListNonEmpty(
-        usernameConfig,
-        "excluded_keywords",
-        excludedKeywordList
-      );
-    }
-    setFieldIfChanged(
-      usernameConfig,
-      "case_sensitive",
-      initialScreenState.isUsernameCaseSensitive,
-      screenState.isUsernameCaseSensitive
-    );
-    setFieldIfChanged(
-      usernameConfig,
-      "ascii_only",
-      initialScreenState.isAsciiOnly,
-      screenState.isAsciiOnly
-    );
+    mutateUsernameConfig(usernameConfig, initialScreenState, screenState);
 
     // email config
     loginIdTypes.email = loginIdTypes.email ?? {};
     const emailConfig = loginIdTypes.email;
+    mutateEmailConfig(emailConfig, initialScreenState, screenState);
 
-    setFieldIfChanged(
-      emailConfig,
-      "case_sensitive",
-      initialScreenState.isEmailCaseSensitive,
-      screenState.isEmailCaseSensitive
-    );
-    setFieldIfChanged(
-      emailConfig,
-      "ignore_dot_sign",
-      initialScreenState.isIgnoreDotLocal,
-      screenState.isIgnoreDotLocal
-    );
-    setFieldIfChanged(
-      emailConfig,
-      "block_plus_sign",
-      !initialScreenState.isAllowPlus,
-      !screenState.isAllowPlus
-    );
+    // phone config
+    mutatePhoneConfig(draftConfig, initialScreenState, screenState);
 
     clearEmptyObject(draftConfig);
   });
@@ -347,11 +393,8 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
   );
 
   // phone widget
-  const initialSelectedCallingCodes =
-    effectiveAppConfig?.ui?.country_calling_code?.values ?? [];
-
   const [selectedCallingCodes, setSelectedCallingCodes] = useState<string[]>(
-    initialSelectedCallingCodes
+    initialState.selectedCallingCodes
   );
 
   const onSelectedCallingCodesChange = useCallback(
@@ -376,6 +419,8 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
       isEmailCaseSensitive,
       isIgnoreDotLocal,
       isAllowPlus,
+
+      selectedCallingCodes,
     }),
     [
       usernameEnabled,
@@ -391,6 +436,8 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
       isEmailCaseSensitive,
       isIgnoreDotLocal,
       isAllowPlus,
+
+      selectedCallingCodes,
     ]
   );
 
