@@ -7,6 +7,13 @@ const deleteIdentityMutation = gql`
     deleteIdentity(input: { identityID: $identityID }) {
       user {
         id
+        authenticators {
+          edges {
+            node {
+              id
+            }
+          }
+        }
         identities {
           edges {
             node {

@@ -9,6 +9,30 @@ import { IdentityDefinition, IdentityType } from "./../../__generated__/globalTy
 // GraphQL mutation operation: CreateIdentityMutation
 // ====================================================
 
+export interface CreateIdentityMutation_createIdentity_user_authenticators_edges_node {
+  __typename: "Authenticator";
+  /**
+   * The ID of an object
+   */
+  id: string;
+}
+
+export interface CreateIdentityMutation_createIdentity_user_authenticators_edges {
+  __typename: "AuthenticatorEdge";
+  /**
+   * The item at the end of the edge
+   */
+  node: CreateIdentityMutation_createIdentity_user_authenticators_edges_node | null;
+}
+
+export interface CreateIdentityMutation_createIdentity_user_authenticators {
+  __typename: "AuthenticatorConnection";
+  /**
+   * Information to aid in pagination.
+   */
+  edges: (CreateIdentityMutation_createIdentity_user_authenticators_edges | null)[] | null;
+}
+
 export interface CreateIdentityMutation_createIdentity_user_identities_edges_node {
   __typename: "Identity";
   /**
@@ -39,6 +63,7 @@ export interface CreateIdentityMutation_createIdentity_user {
    * The ID of an object
    */
   id: string;
+  authenticators: CreateIdentityMutation_createIdentity_user_authenticators | null;
   identities: CreateIdentityMutation_createIdentity_user_identities | null;
 }
 

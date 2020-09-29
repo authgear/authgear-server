@@ -13,6 +13,13 @@ const createIdentityMutation = gql`
     ) {
       user {
         id
+        authenticators {
+          edges {
+            node {
+              id
+            }
+          }
+        }
         identities {
           edges {
             node {

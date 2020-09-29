@@ -7,6 +7,30 @@
 // GraphQL mutation operation: DeleteIdentityMutation
 // ====================================================
 
+export interface DeleteIdentityMutation_deleteIdentity_user_authenticators_edges_node {
+  __typename: "Authenticator";
+  /**
+   * The ID of an object
+   */
+  id: string;
+}
+
+export interface DeleteIdentityMutation_deleteIdentity_user_authenticators_edges {
+  __typename: "AuthenticatorEdge";
+  /**
+   * The item at the end of the edge
+   */
+  node: DeleteIdentityMutation_deleteIdentity_user_authenticators_edges_node | null;
+}
+
+export interface DeleteIdentityMutation_deleteIdentity_user_authenticators {
+  __typename: "AuthenticatorConnection";
+  /**
+   * Information to aid in pagination.
+   */
+  edges: (DeleteIdentityMutation_deleteIdentity_user_authenticators_edges | null)[] | null;
+}
+
 export interface DeleteIdentityMutation_deleteIdentity_user_identities_edges_node {
   __typename: "Identity";
   /**
@@ -37,6 +61,7 @@ export interface DeleteIdentityMutation_deleteIdentity_user {
    * The ID of an object
    */
   id: string;
+  authenticators: DeleteIdentityMutation_deleteIdentity_user_authenticators | null;
   identities: DeleteIdentityMutation_deleteIdentity_user_identities | null;
 }
 
