@@ -19,7 +19,7 @@ import {
   Text,
 } from "@fluentui/react";
 
-import PrimaryIdentitiesSelectionForm from "./PrimaryIdentitiesSelectionForm";
+// import PrimaryIdentitiesSelectionForm from "./PrimaryIdentitiesSelectionForm";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import ListCellLayout from "../../ListCellLayout";
 import { useDeleteIdentityMutation } from "./mutations/deleteIdentityMutation";
@@ -575,6 +575,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
           </>
         )}
       </section>
+      {/* TODO: implement primary identities mutation
       <Text as="h2" className={styles.primaryIdentitiesTitle}>
         <FormattedMessage id="UserDetails.connected-identities.primary-identities.title" />
       </Text>
@@ -582,6 +583,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
         className={styles.primaryIdentitiesForm}
         identityLists={identityLists}
       />
+      */}
     </div>
   );
 };

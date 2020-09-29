@@ -11,7 +11,7 @@ import UserDetailCommandBar from "./UserDetailCommandBar";
 import UserDetailSummary from "./UserDetailSummary";
 import UserDetailsAccountSecurity from "./UserDetailsAccountSecurity";
 import UserDetailsConnectedIdentities from "./UserDetailsConnectedIdentities";
-import UserDetailsSession from "./UserDetailsSession";
+// import UserDetailsSession from "./UserDetailsSession";
 
 import { useUserQuery } from "./query/userQuery";
 import { UserQuery_node_User } from "./query/__generated__/UserQuery";
@@ -88,12 +88,14 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
               availableLoginIdIdentities={availableLoginIdIdentities}
             />
           </PivotItem>
+          {/* TODO: implement session section
           <PivotItem
             itemKey="session"
             headerText={renderToString("UserDetails.session.header")}
           >
             <UserDetailsSession />
           </PivotItem>
+          */}
         </Pivot>
       </div>
     </div>

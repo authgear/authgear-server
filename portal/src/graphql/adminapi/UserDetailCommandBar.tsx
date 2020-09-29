@@ -18,23 +18,25 @@ const UserDetailCommandBar: React.FC<UserDetailCommandBarProps> = function UserD
 
   const commandBarItems: ICommandBarItemProps[] = useMemo(
     () => [
+      /* TODO: to be implemented
       {
         key: "remove",
         text: renderToString("remove"),
         iconProps: { iconName: "Delete" },
       },
-
+      */
       {
         key: "loginAsUser",
         text: renderToString("UserDetails.command-bar.login-as-user"),
         iconProps: { iconName: "FollowUser" },
       },
-
+      /* TODO: to be implemented
       {
         key: "disable",
         text: renderToString("disable"),
         iconProps: { iconName: "CircleStop" },
       },
+       */
     ],
     [renderToString]
   );
