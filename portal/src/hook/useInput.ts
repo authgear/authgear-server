@@ -1,15 +1,30 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { IDropdownOption, ITag } from "@fluentui/react";
 
+type TextFieldType = "integer" | "text";
+
+function textFieldValidate(value?: string, type?: TextFieldType): boolean {
+  switch (type) {
+    case "integer":
+      return /^[0-9]*$/.test(value ?? "");
+    default:
+      return true;
+  }
+}
+
 export const useTextField = (
-  initialValue: string
+  initialValue: string,
+  type?: TextFieldType
 ): { value: string; onChange: (_event: any, value?: string) => void } => {
   const [textFieldValue, setTextFieldValue] = React.useState(initialValue);
   const onChange = React.useCallback(
     (_event, value?: string) => {
+      if (!textFieldValidate(value, type)) {
+        return;
+      }
       setTextFieldValue(value ?? "");
     },
-    [setTextFieldValue]
+    [setTextFieldValue, type]
   );
   return {
     value: textFieldValue,

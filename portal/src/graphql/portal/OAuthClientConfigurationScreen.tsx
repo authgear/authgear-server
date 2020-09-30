@@ -26,11 +26,9 @@ interface OAuthClientConfigurationProps {
   showNotification: (msg: string) => void;
 }
 
-type ApplicationType = "ios" | "android" | "web-app";
 interface OAuthClientListItem {
   name: string;
   creationDate: string;
-  applicationType: string;
   clientId: string;
 }
 
@@ -45,12 +43,6 @@ const ADD_CLIENT_BUTTON_STYLES = {
 };
 
 const ICON_BUTTON_STYLES = { flexContainer: { color: "#504e4c" } };
-
-const applicationTypeMessageID: Record<ApplicationType, string> = {
-  ios: "OAuthClientConfiguration.application-type.ios",
-  android: "OAuthClientConfiguration.application-type.android",
-  "web-app": "OAuthClientConfiguration.application-type.web-app",
-};
 
 function makeOAuthClientListColumns(
   renderToString: (messageId: string) => string
@@ -69,16 +61,6 @@ function makeOAuthClientListColumns(
       fieldName: "creationDate",
       name: renderToString(
         "OAuthClientConfiguration.client-list.creation-date"
-      ),
-      minWidth: 150,
-      className: styles.clientListColumn,
-    },
-
-    {
-      key: "applicationType",
-      fieldName: "applicationType",
-      name: renderToString(
-        "OAuthClientConfiguration.client-list.application-type"
       ),
       minWidth: 150,
       className: styles.clientListColumn,
@@ -171,12 +153,10 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
       return {
         name: client.client_id,
         creationDate: creationDateString,
-        // TODO: replace with actual data
-        applicationType: renderToString(applicationTypeMessageID["ios"]),
         clientId: client.client_id,
       };
     });
-  }, [oauthClients, locale, renderToString]);
+  }, [oauthClients, locale]);
 
   const onAddOAuthClientClick = useCallback(() => {
     navigate("./add");
