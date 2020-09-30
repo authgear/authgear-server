@@ -22,6 +22,7 @@ import {
   IDetailsRowProps,
   SelectAllVisibility,
   SearchBox,
+  CheckboxVisibility,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
@@ -65,13 +66,8 @@ interface CountryCallingCodeListSelectAllProps extends ICheckboxProps {
 const HEADER_STYLE = {
   check: {
     width: "35px !important",
-    opacity: "1 !important",
     paddingLeft: "15px !important",
   },
-};
-
-const SEARCH_BOX_STYLE = {
-  root: { width: "300px" },
 };
 
 // instantiate fuzzy searcher
@@ -469,7 +465,6 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> = function C
     <section className={styles.root}>
       <SearchBox
         className={styles.searchBox}
-        styles={SEARCH_BOX_STYLE}
         placeholder={renderToString("search")}
         onChange={onSearchBoxChange}
         onSearch={onSearch}
@@ -482,6 +477,7 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> = function C
         onRenderItemColumn={onRenderCallingCodeItemColumn}
         onRenderDetailsHeader={onRenderCallingCodeListHeader}
         onRenderRow={onRenderCallingCodeListRow}
+        checkboxVisibility={CheckboxVisibility.always}
       />
     </section>
   );
