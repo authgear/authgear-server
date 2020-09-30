@@ -14,7 +14,6 @@ var CountryCallingCodes = []string{
 	"39",
 	"40",
 	"41",
-	"42",
 	"43",
 	"44",
 	"45",
