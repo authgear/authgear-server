@@ -1,27 +1,181 @@
-import React, { useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  Callout,
+  Dialog,
+  DialogFooter,
+  DirectionalHint,
+  IconButton,
+  Label,
+  PrimaryButton,
+  Text,
+} from "@fluentui/react";
+import { useNavigate, useParams } from "react-router-dom";
 import produce from "immer";
 import { FormattedMessage } from "@oursky/react-messageformat";
 
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
+import ModifyOAuthClientForm from "./ModifyOAuthClientForm";
+import ButtonWithLoading from "../../ButtonWithLoading";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import { useAppConfigQuery } from "./query/appConfigQuery";
-import { PortalAPIAppConfig } from "../../types";
+import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
+import { OAuthClientConfig, PortalAPIAppConfig } from "../../types";
+import { clearEmptyObject } from "../../util/misc";
+import { genRandomHexadecimalString } from "../../util/random";
+import { copyToClipboard } from "../../util/clipboard";
 
 import styles from "./CreateOAuthClientScreen.module.scss";
 
 interface CreateOAuthClientFormProps {
-  effectiveAppConfig: PortalAPIAppConfig;
   rawAppConfig: PortalAPIAppConfig;
 }
+
+interface CreateClientSuccessDialogProps {
+  visible: boolean;
+  clientId: string;
+}
+const CreateClientSuccessDialog: React.FC<CreateClientSuccessDialogProps> = function CreateClientSuccessDialog(
+  props: CreateClientSuccessDialogProps
+) {
+  const { visible, clientId } = props;
+  const navigate = useNavigate();
+
+  const calloutIntervalRef = useRef<number>();
+  const [isCalloutVisible, setIsCalloutVisible] = useState(false);
+
+  useEffect(() => {
+    if (calloutIntervalRef.current != null) {
+      window.clearTimeout(calloutIntervalRef.current);
+    }
+  }, []);
+
+  const onConfirmCreateClientSuccess = useCallback(() => {
+    navigate("../");
+  }, [navigate]);
+
+  const onCopyClick = useCallback(() => {
+    copyToClipboard(clientId);
+    setIsCalloutVisible(true);
+    calloutIntervalRef.current = window.setTimeout(() => {
+      setIsCalloutVisible(false);
+    }, 3000);
+  }, [clientId]);
+
+  return (
+    <Dialog
+      hidden={!visible}
+      title={
+        <FormattedMessage id="CreateOAuthClientScreen.success-dialog.title" />
+      }
+    >
+      <Label>
+        <FormattedMessage id="CreateOAuthClientScreen.success-dialog.client-id-label" />
+      </Label>
+      <div className={styles.dialogClientId}>
+        <Text>{clientId}</Text>
+        <IconButton
+          onClick={onCopyClick}
+          className={styles.dialogCopyIcon}
+          iconProps={{ iconName: "Copy" }}
+        />
+      </div>
+      {isCalloutVisible && (
+        <Callout
+          className={styles.copyButtonCallout}
+          target={`.${styles.dialogCopyIcon}`}
+          directionalHint={DirectionalHint.bottomLeftEdge}
+        >
+          <Text>
+            <FormattedMessage id="CreateOAuthClientScreen.success-dialog.copied" />
+          </Text>
+        </Callout>
+      )}
+      <DialogFooter>
+        <PrimaryButton onClick={onConfirmCreateClientSuccess}>
+          <FormattedMessage id="done" />
+        </PrimaryButton>
+      </DialogFooter>
+    </Dialog>
+  );
+};
 
 const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function CreateOAuthClientForm(
   props: CreateOAuthClientFormProps
 ) {
+  const { rawAppConfig } = props;
+  const { appID } = useParams();
+  const {
+    updateAppConfig,
+    loading: updatingAppConfig,
+    error: updateAppConfigError,
+  } = useUpdateAppConfigMutation(appID);
+
+  const [clientConfig, setClientConfig] = useState<OAuthClientConfig>({
+    client_id: genRandomHexadecimalString(),
+    grant_types: ["authorization_code", "refresh_token"],
+    response_types: ["code", "none"],
+    redirect_uris: [],
+  });
+
+  const [
+    createClientSuccessDialogVisible,
+    setCreateClientSuccessDialogVisible,
+  ] = useState(false);
+
+  const onClientConfigChange = useCallback(
+    (newClientConfig: OAuthClientConfig) => {
+      setClientConfig(newClientConfig);
+    },
+    []
+  );
+
+  const onCreateClientSuccess = useCallback(() => {
+    setCreateClientSuccessDialogVisible(true);
+  }, []);
+
+  const onCreateClick = useCallback(() => {
+    // TODO: handle name field after backend is updated
+    const newAppConfig = produce(rawAppConfig, (draftConfig) => {
+      draftConfig.oauth = draftConfig.oauth ?? {};
+      draftConfig.oauth.clients = draftConfig.oauth.clients ?? [];
+      draftConfig.oauth.clients.push(clientConfig);
+
+      clearEmptyObject(draftConfig);
+    });
+
+    updateAppConfig(newAppConfig)
+      .then((result) => {
+        if (result != null) {
+          onCreateClientSuccess();
+        }
+      })
+      // TODO: handle error
+      .catch(() => {});
+  }, [rawAppConfig, clientConfig, onCreateClientSuccess, updateAppConfig]);
+
   return (
     <form className={styles.form}>
-      <span>TODO: to be implemented</span>
+      <CreateClientSuccessDialog
+        visible={createClientSuccessDialogVisible}
+        clientId={clientConfig.client_id}
+      />
+      <ModifyOAuthClientForm
+        className={styles.modifyClientForm}
+        clientConfig={clientConfig}
+        onClientConfigChange={onClientConfigChange}
+      />
+      <ButtonWithLoading
+        onClick={onCreateClick}
+        labelId="create"
+        loading={updatingAppConfig}
+      />
     </form>
   );
 };
@@ -66,10 +220,7 @@ const CreateOAuthClientScreen: React.FC = function CreateOAuthClientScreen() {
   return (
     <main className={styles.root}>
       <NavBreadcrumb items={navBreadcrumbItems} />
-      <CreateOAuthClientForm
-        effectiveAppConfig={effectiveAppConfig}
-        rawAppConfig={rawAppConfig}
-      />
+      <CreateOAuthClientForm rawAppConfig={rawAppConfig} />
     </main>
   );
 };

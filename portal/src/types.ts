@@ -210,7 +210,7 @@ export interface OAuthClientConfig {
 }
 
 interface OAuthConfig {
-  clients: OAuthClientConfig[];
+  clients?: OAuthClientConfig[];
 }
 
 // PortalAPIAppConfig

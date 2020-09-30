@@ -5,6 +5,7 @@
 
   "action": "Action",
   "ok": "OK",
+  "done": "Done",
   "add": "Add",
   "next": "Next",
   "save": "Save",
@@ -249,6 +250,9 @@
   "OAuthClientConfiguration.application-type.web-app": "Regular Web Application",
 
   "CreateOAuthClientScreen.title": "Create Client Application",
+  "CreateOAuthClientScreen.success-dialog.title": "Created Client Sucessfully",
+  "CreateOAuthClientScreen.success-dialog.client-id-label": "Client ID",
+  "CreateOAuthClientScreen.success-dialog.copied": "Copied!",
 
   "ModifyOAuthClientForm.name-label": "Name",
   "ModifyOAuthClientForm.acces-token-lifetime-label": "Access Token Lifetime (in seconds)",
