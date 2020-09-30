@@ -443,6 +443,7 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> = function C
         onChange={onSearchBoxChange}
       />
       <DetailsList
+        className={styles.list}
         columns={countryCodeListColumns}
         items={countryCallingCodeList}
         selectionMode={SelectionMode.none}
