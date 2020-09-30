@@ -19,9 +19,10 @@ import {
   Text,
 } from "@fluentui/react";
 
-import PrimaryIdentitiesSelectionForm from "./PrimaryIdentitiesSelectionForm";
+// import PrimaryIdentitiesSelectionForm from "./PrimaryIdentitiesSelectionForm";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import ListCellLayout from "../../ListCellLayout";
+import TodoButtonWrapper from "../../TodoButtonWrapper";
 import { useDeleteIdentityMutation } from "./mutations/deleteIdentityMutation";
 import { formatDatetime } from "../../util/formatDatetime";
 import { parseError } from "../../util/error";
@@ -68,7 +69,7 @@ interface OAuthIdentityListItem {
 interface LoginIDIdentityListItem {
   id: string;
   type: "login_id";
-  key: "email" | "phone" | "username";
+  loginIDKey: "email" | "phone" | "username";
   value: string;
   verified?: boolean;
   connectedOn: string;
@@ -131,7 +132,7 @@ function getIcon(item: LoginIDIdentityListItem | OAuthIdentityListItem) {
   if (item.type === "oauth") {
     return oauthIconMap[item.providerType];
   }
-  return loginIdIconMap[item.key];
+  return loginIdIconMap[item.loginIDKey];
 }
 
 function getName(item: LoginIDIdentityListItem | OAuthIdentityListItem) {
@@ -252,7 +253,9 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
         )}
       </Text>
       {verified != null && toggleVerified != null && (
-        <VerifyButton verified={verified} toggleVerified={onVerifyClicked} />
+        <TodoButtonWrapper className={styles.verifyButton}>
+          <VerifyButton verified={verified} toggleVerified={onVerifyClicked} />
+        </TodoButtonWrapper>
       )}
       <DefaultButton
         className={cn(styles.controlButton, styles.removeButton)}
@@ -324,7 +327,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
           emailIdentityList.push({
             id: identity.id,
             type: "login_id",
-            key: "email",
+            loginIDKey: "email",
             value: identity.claims.email!,
             verified: true,
             connectedOn: createdAtStr,
@@ -338,7 +341,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
           phoneIdentityList.push({
             id: identity.id,
             type: "login_id",
-            key: "phone",
+            loginIDKey: "phone",
             value: identity.claims.phone_number!,
             verified: false,
             connectedOn: createdAtStr,
@@ -352,7 +355,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
           usernameIdentityList.push({
             id: identity.id,
             type: "login_id",
-            key: "username",
+            loginIDKey: "username",
             value: identity.claims.preferred_username!,
             connectedOn: createdAtStr,
           });
@@ -575,6 +578,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
           </>
         )}
       </section>
+      {/* TODO: implement primary identities mutation
       <Text as="h2" className={styles.primaryIdentitiesTitle}>
         <FormattedMessage id="UserDetails.connected-identities.primary-identities.title" />
       </Text>
@@ -582,6 +586,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
         className={styles.primaryIdentitiesForm}
         identityLists={identityLists}
       />
+      */}
     </div>
   );
 };

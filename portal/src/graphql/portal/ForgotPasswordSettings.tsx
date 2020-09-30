@@ -12,6 +12,7 @@ import { setFieldIfChanged, clearEmptyObject } from "../../util/misc";
 import { PortalAPIAppConfig, PortalAPIApp } from "../../types";
 
 import styles from "./ForgotPasswordSettings.module.scss";
+import TodoButtonWrapper from "../../TodoButtonWrapper";
 
 interface ForgotPasswordSettingsProps {
   className?: string;
@@ -209,13 +210,15 @@ const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function F
       />
 
       <div className={styles.saveButtonContainer}>
-        <ButtonWithLoading
-          disabled={!isFormModified}
-          onClick={onSaveButtonClicked}
-          loading={updatingAppConfig}
-          labelId="save"
-          loadingLabelId="saving"
-        />
+        <TodoButtonWrapper>
+          <ButtonWithLoading
+            disabled={!isFormModified}
+            onClick={onSaveButtonClicked}
+            loading={updatingAppConfig}
+            labelId="save"
+            loadingLabelId="saving"
+          />
+        </TodoButtonWrapper>
       </div>
       <NavigationBlockerDialog blockNavigation={isFormModified} />
     </div>

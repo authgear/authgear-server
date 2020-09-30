@@ -1,6 +1,11 @@
 import React, { useContext, useMemo } from "react";
 import cn from "classnames";
-import { CommandBar, ICommandBarItemProps } from "@fluentui/react";
+import {
+  CommandBar,
+  CommandButton,
+  ICommandBarItemProps,
+} from "@fluentui/react";
+import TodoButtonWrapper from "../../TodoButtonWrapper";
 
 import { Context } from "@oursky/react-messageformat";
 
@@ -18,23 +23,32 @@ const UserDetailCommandBar: React.FC<UserDetailCommandBarProps> = function UserD
 
   const commandBarItems: ICommandBarItemProps[] = useMemo(
     () => [
+      /* TODO: to be implemented
       {
         key: "remove",
         text: renderToString("remove"),
         iconProps: { iconName: "Delete" },
       },
-
+      */
       {
         key: "loginAsUser",
         text: renderToString("UserDetails.command-bar.login-as-user"),
         iconProps: { iconName: "FollowUser" },
+        onRender: (props) => {
+          return (
+            <TodoButtonWrapper>
+              <CommandButton {...props} />
+            </TodoButtonWrapper>
+          );
+        },
       },
-
+      /* TODO: to be implemented
       {
         key: "disable",
         text: renderToString("disable"),
         iconProps: { iconName: "CircleStop" },
       },
+       */
     ],
     [renderToString]
   );
