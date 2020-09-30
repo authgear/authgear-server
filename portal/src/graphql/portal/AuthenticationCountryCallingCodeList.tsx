@@ -135,9 +135,8 @@ function constructCallingCodeListData(
   for (const callingCode of allCountryCallingCodes) {
     const countryCodes =
       countryCallingCodeMap[callingCode as keyof typeof countryCallingCodeMap];
-    const countryName = countryCodes
-      .map((code) => getTelecomCountryName(code))
-      .join(", ");
+    const countryName =
+      countryCodes.length > 0 ? getTelecomCountryName(countryCodes[0]) : "";
 
     callingCodeListData[callingCode] = {
       key: callingCode,
