@@ -1,6 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import produce from "immer";
-import { WritableDraft } from "immer/dist/internal";
 import { Checkbox, Toggle, TagPicker, Label } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -195,7 +194,7 @@ function constructStateFromAppConfig(
 }
 
 function mutateUsernameConfig(
-  usernameConfig: WritableDraft<LoginIDUsernameConfig>,
+  usernameConfig: LoginIDUsernameConfig,
   initialScreenState: AuthenticationLoginIDSettingsState,
   screenState: AuthenticationLoginIDSettingsState
 ) {
@@ -235,7 +234,7 @@ function mutateUsernameConfig(
 }
 
 function mutateEmailConfig(
-  emailConfig: WritableDraft<LoginIDEmailConfig>,
+  emailConfig: LoginIDEmailConfig,
   initialScreenState: AuthenticationLoginIDSettingsState,
   screenState: AuthenticationLoginIDSettingsState
 ) {
@@ -259,7 +258,7 @@ function mutateEmailConfig(
   );
 }
 function mutatePhoneConfig(
-  appConfig: WritableDraft<PortalAPIAppConfig>,
+  appConfig: PortalAPIAppConfig,
   initialScreenState: AuthenticationLoginIDSettingsState,
   screenState: AuthenticationLoginIDSettingsState
 ) {
