@@ -248,6 +248,8 @@
   "OAuthClientConfiguration.application-type.android": "Android",
   "OAuthClientConfiguration.application-type.web-app": "Web Application",
 
+  "CreateOAuthClientScreen.title": "Create Client Application",
+
   "PaginationWidget.First": "Go to the first page",
   "PaginationWidget.Prev": "Go to the previous page",
   "PaginationWidget.Next": "Go to the next page",
