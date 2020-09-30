@@ -168,17 +168,9 @@ function constructCallingCodeListItem(
     rawUnselectedCodeList = matchedUnselectedCodes;
   }
 
-  const unselectedCodeList = rawUnselectedCodeList.sort((code1, code2) => {
-    const num1 = Number(code1);
-    const num2 = Number(code2);
-    if (num1 > num2) {
-      return +1;
-    }
-    if (num1 < num2) {
-      return -1;
-    }
-    return 0;
-  });
+  const unselectedCodeList = rawUnselectedCodeList.sort(
+    (code1, code2) => Number(code1) - Number(code2)
+  );
 
   const codeList = selectedCountryCallingCodes.concat(unselectedCodeList);
 
