@@ -10,6 +10,8 @@ import CreateAppScreen from "./graphql/portal/CreateAppScreen";
 import AppRoot from "./AppRoot";
 import MESSAGES from "./locale-data/en.json";
 import { client } from "./graphql/portal/apollo";
+import { registerLocale } from "i18n-iso-countries";
+import i18nISOCountriesEnLocale from "i18n-iso-countries/langs/en.json";
 import styles from "./ReactApp.module.scss";
 
 // ReactAppRoutes defines the routes.
@@ -74,6 +76,9 @@ const ReactApp: React.FC = function ReactApp() {
       </Authenticated>
     );
   }
+
+  // register locale for country code translation
+  registerLocale(i18nISOCountriesEnLocale);
 
   return (
     <LocaleProvider locale="en" messageByID={MESSAGES}>

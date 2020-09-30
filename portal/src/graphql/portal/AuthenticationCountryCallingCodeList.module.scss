@@ -1,0 +1,27 @@
+.searchBox {
+  width: 300px;
+  margin: 0 7px 20px auto;
+}
+
+.listWrapper {
+  position: relative;
+  height: 400px;
+}
+
+.countryNameCell {
+  line-height: 16px;
+}
+
+.callingCodeListColumn {
+  justify-content: flex-start;
+  align-items: center;
+  display: flex;
+}
+
+.callingCodeListRow {
+  border: 0;
+}
+
+.lastSelectedCallingCode {
+  border-bottom: 1px solid #c4c4c4;
+}

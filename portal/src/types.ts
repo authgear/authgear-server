@@ -15,13 +15,13 @@ export interface LoginIDKeyConfig {
 }
 
 // LoginIDTypesConfig
-interface LoginIDEmailConfig {
+export interface LoginIDEmailConfig {
   block_plus_sign?: boolean;
   case_sensitive?: boolean;
   ignore_dot_sign?: boolean;
 }
 
-interface LoginIDUsernameConfig {
+export interface LoginIDUsernameConfig {
   block_reserved_usernames?: boolean;
   excluded_keywords?: string[];
   ascii_only?: boolean;

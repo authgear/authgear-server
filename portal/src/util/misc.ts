@@ -14,12 +14,12 @@ export function setFieldIfChanged<
   }
 }
 
-export function setFieldIfListNonEmpty(
-  map: Record<string, unknown>,
-  field: string,
-  list: (string | number | boolean)[]
+export function setFieldIfListNonEmpty<T, K extends keyof T>(
+  map: T,
+  field: K,
+  list: T[K] extends unknown[] | undefined ? T[K] : never
 ): void {
-  if (list.length === 0) {
+  if (list == null || list.length === 0) {
     delete map[field];
   } else {
     map[field] = list;

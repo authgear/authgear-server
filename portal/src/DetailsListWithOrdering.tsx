@@ -29,7 +29,7 @@ interface OrderColumnButtonsProps {
   renderAriaLabel: (index?: number) => string;
 }
 
-const OrderColumnButtons: React.FC<OrderColumnButtonsProps> = function OrderColumnButtons(
+export const OrderColumnButtons: React.FC<OrderColumnButtonsProps> = function OrderColumnButtons(
   props: OrderColumnButtonsProps
 ) {
   const { index, itemCount, onSwapClicked, renderAriaLabel } = props;
