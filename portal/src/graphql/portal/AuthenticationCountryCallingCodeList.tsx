@@ -17,6 +17,9 @@ import {
   SelectAllVisibility,
   SearchBox,
   CheckboxVisibility,
+  ScrollablePane,
+  StickyPositionType,
+  Sticky,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
@@ -113,8 +116,8 @@ function makeCountryCodeListColumns(
       key: "order",
       name: renderToString("AuthenticationWidget.phone.list-header.order"),
       fieldName: "order",
-      minWidth: 175,
-      maxWidth: 175,
+      minWidth: 155,
+      maxWidth: 155,
       className: styles.callingCodeListColumn,
     },
   ];
@@ -396,13 +399,15 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> = function C
       });
 
       return (
-        <DetailsHeader
-          {...props}
-          columns={modifiedColumns}
-          onRenderDetailsCheckbox={renderCheckbox}
-          selectAllVisibility={SelectAllVisibility.visible}
-          styles={HEADER_STYLE}
-        />
+        <Sticky stickyPosition={StickyPositionType.Header}>
+          <DetailsHeader
+            {...props}
+            columns={modifiedColumns}
+            onRenderDetailsCheckbox={renderCheckbox}
+            selectAllVisibility={SelectAllVisibility.visible}
+            styles={HEADER_STYLE}
+          />
+        </Sticky>
       );
     },
     [
@@ -442,16 +447,19 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> = function C
         placeholder={renderToString("search")}
         onChange={onSearchBoxChange}
       />
-      <DetailsList
-        className={styles.list}
-        columns={countryCodeListColumns}
-        items={countryCallingCodeList}
-        selectionMode={SelectionMode.none}
-        onRenderItemColumn={onRenderCallingCodeItemColumn}
-        onRenderDetailsHeader={onRenderCallingCodeListHeader}
-        onRenderRow={onRenderCallingCodeListRow}
-        checkboxVisibility={CheckboxVisibility.always}
-      />
+      <div className={styles.listWrapper}>
+        <ScrollablePane>
+          <DetailsList
+            columns={countryCodeListColumns}
+            items={countryCallingCodeList}
+            selectionMode={SelectionMode.none}
+            onRenderItemColumn={onRenderCallingCodeItemColumn}
+            onRenderDetailsHeader={onRenderCallingCodeListHeader}
+            onRenderRow={onRenderCallingCodeListRow}
+            checkboxVisibility={CheckboxVisibility.always}
+          />
+        </ScrollablePane>
+      </div>
     </section>
   );
 };

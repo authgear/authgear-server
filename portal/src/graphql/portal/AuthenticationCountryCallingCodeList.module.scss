@@ -3,8 +3,9 @@
   margin: 0 7px 20px auto;
 }
 
-.list {
-  max-height: 400px;
+.listWrapper {
+  position: relative;
+  height: 400px;
 }
 
 .countryNameCell {
