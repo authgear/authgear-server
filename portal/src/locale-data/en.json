@@ -50,7 +50,7 @@
   "ScreenNav.anonymous-users": "Anonymous Users",
   "ScreenNav.single-sign-on": "Single-Sign On",
   "ScreenNav.passwords": "Passwords",
-  "ScreenNav.oauth-clients": "OAuth Clients",
+  "ScreenNav.client-applications": "Client Applications",
 
   "NavBreadcrumb.label": "Nested navigation",
 
@@ -232,7 +232,7 @@
   "PasswordsScreen.forgot-password.sms.content.label": "Content",
   "PasswordsScreen.forgot-password.time-to-invalid-reset-code.label": "Time to invalid reset code (seconds)",
 
-  "OAuthClientConfiguration.title": "OAuth Clients",
+  "OAuthClientConfiguration.title": "Client Applications",
   "OAuthClientConfiguration.add-client-button": "Add OAuth Client",
   "OAuthClientConfiguration.client-list.name": "Name",
   "OAuthClientConfiguration.client-list.creation-date": "Creation Date",

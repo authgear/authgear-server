@@ -45,8 +45,8 @@ const ScreenNav: React.FC = function ScreenNav() {
             icon: "PasswordField",
           },
           {
-            key: "oauthClients",
-            name: renderToString("ScreenNav.oauth-clients"),
+            key: "clientApplications",
+            name: renderToString("ScreenNav.client-applications"),
             url: "configuration/oauth-clients",
             icon: "AuthenticatorApp",
           },
