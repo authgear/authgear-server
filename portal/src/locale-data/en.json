@@ -238,6 +238,7 @@
   "OAuthClientConfiguration.client-list.creation-date": "Creation Date",
   "OAuthClientConfiguration.client-list.application-type": "Application",
   "OAuthClientConfiguration.client-list.client-id": "Client ID",
+  "OAuthClientConfiguration.client-id-copied": "Client ID is copied to clipboard",
   "OAuthClientConfiguration.application-type.ios": "iOS",
   "OAuthClientConfiguration.application-type.android": "Android",
   "OAuthClientConfiguration.application-type.web-app": "Web Application",

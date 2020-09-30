@@ -1,14 +1,11 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import { DateTime } from "luxon";
 import {
   DetailsList,
   IColumn,
   IconButton,
-  IconNames,
-  IDetailsList,
-  IDetailsListProps,
-  IRenderFunction,
+  MessageBar,
   PrimaryButton,
   SelectionMode,
   Text,
@@ -26,6 +23,7 @@ import styles from "./OAuthClientConfigurationScreen.module.scss";
 
 interface OAuthClientConfigurationProps {
   appConfig: PortalAPIAppConfig | null;
+  showNotification: (msg: string) => void;
 }
 
 type ApplicationType = "ios" | "android" | "web-app";
@@ -34,6 +32,11 @@ interface OAuthClientListItem {
   creationDate: string;
   applicationType: string;
   clientId: string;
+}
+
+interface OAuthClientIdCellProps {
+  clientId: string;
+  onCopyComplete: () => void;
 }
 
 const ADD_CLIENT_BUTTON_STYLES = {
@@ -90,10 +93,64 @@ function makeOAuthClientListColumns(
   ];
 }
 
+const OAuthClientIdCell: React.FC<OAuthClientIdCellProps> = function OAuthClientIdCell(
+  props: OAuthClientIdCellProps
+) {
+  const { clientId, onCopyComplete } = props;
+  const navigate = useNavigate();
+
+  const onEditClick = useCallback(() => {
+    navigate(`./${clientId}/edit`);
+  }, [navigate, clientId]);
+
+  const onCopyClick = useCallback(() => {
+    const el = document.createElement("textarea");
+    el.value = clientId;
+    // Set non-editable to avoid focus and move outside of view
+    el.setAttribute("readonly", "");
+    el.setAttribute("style", "position: absolute; left: -9999px");
+    document.body.appendChild(el);
+    // Select text inside element
+    el.select();
+    el.setSelectionRange(0, 100); // for mobile device
+    document.execCommand("copy");
+    // Remove temporary element
+    document.body.removeChild(el);
+
+    // Invoke callback
+    onCopyComplete();
+  }, [clientId, onCopyComplete]);
+
+  return (
+    <div className={styles.clientListColumn}>
+      <span
+        className={cn(
+          styles.clientListColumnContent,
+          styles.clientIdColumnContent
+        )}
+      >
+        {clientId}
+      </span>
+      <IconButton
+        className={styles.editButton}
+        styles={ICON_BUTTON_STYLES}
+        onClick={onEditClick}
+        iconProps={{ iconName: "Edit" }}
+      />
+      <IconButton
+        className={styles.copyButton}
+        styles={ICON_BUTTON_STYLES}
+        onClick={onCopyClick}
+        iconProps={{ iconName: "Copy" }}
+      />
+    </div>
+  );
+};
+
 const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = function OAuthClientConfiguration(
   props: OAuthClientConfigurationProps
 ) {
-  const { appConfig } = props;
+  const { appConfig, showNotification } = props;
   const { locale, renderToString } = useContext(Context);
   const navigate = useNavigate();
 
@@ -125,16 +182,11 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
     navigate("./add");
   }, [navigate]);
 
-  const onEditOAuthClientClick = useCallback(
-    (clientId: string) => {
-      navigate(`./${clientId}/edit`);
-    },
-    [navigate]
-  );
-
-  const onCopyClientIdClick = useCallback((_clientId: string) => {
-    // TODO: to be implemented
-  }, []);
+  const onClientIdCopied = useCallback(() => {
+    showNotification(
+      renderToString("OAuthClientConfiguration.client-id-copied")
+    );
+  }, [showNotification, renderToString]);
 
   const onRenderOAuthClientColumns = useCallback(
     (item?: OAuthClientListItem, _index?: number, column?: IColumn) => {
@@ -145,28 +197,10 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
       switch (column.key) {
         case "clientId":
           return (
-            <div className={styles.clientListColumn}>
-              <span
-                className={cn(
-                  styles.clientListColumnContent,
-                  styles.clientIdColumnContent
-                )}
-              >
-                {fieldContent}
-              </span>
-              <IconButton
-                className={styles.editButton}
-                styles={ICON_BUTTON_STYLES}
-                onClick={() => onEditOAuthClientClick(item.clientId)}
-                iconProps={{ iconName: "Edit" }}
-              />
-              <IconButton
-                className={styles.copyButton}
-                styles={ICON_BUTTON_STYLES}
-                onClick={() => onCopyClientIdClick(item.clientId)}
-                iconProps={{ iconName: "Copy" }}
-              />
-            </div>
+            <OAuthClientIdCell
+              clientId={item.clientId}
+              onCopyComplete={onClientIdCopied}
+            />
           );
         default:
           return (
@@ -176,7 +210,7 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
           );
       }
     },
-    [onCopyClientIdClick, onEditOAuthClientClick]
+    [onClientIdCopied]
   );
 
   return (
@@ -205,6 +239,18 @@ const OAuthClientConfigurationScreen: React.FC = function OAuthClientConfigurati
   const { appID } = useParams();
   const { data, loading, error, refetch } = useAppConfigQuery(appID);
 
+  const [isNotificationVisible, setIsNotificationVisible] = useState(false);
+  const [notificationMsg, setNotificationMsg] = useState("");
+
+  const showNotification = useCallback((msg: string) => {
+    setIsNotificationVisible(true);
+    setNotificationMsg(msg);
+  }, []);
+
+  const dismissNotification = useCallback(() => {
+    setIsNotificationVisible(false);
+  }, []);
+
   const appConfigNode = data?.node?.__typename === "App" ? data.node : null;
   const appConfig = appConfigNode?.effectiveAppConfig ?? null;
 
@@ -218,10 +264,18 @@ const OAuthClientConfigurationScreen: React.FC = function OAuthClientConfigurati
 
   return (
     <main className={styles.root}>
+      {isNotificationVisible && (
+        <MessageBar onDismiss={dismissNotification}>
+          <p>{notificationMsg}</p>
+        </MessageBar>
+      )}
       <Text as="h1" className={styles.header}>
         <FormattedMessage id="OAuthClientConfiguration.title" />
       </Text>
-      <OAuthClientConfiguration appConfig={appConfig} />
+      <OAuthClientConfiguration
+        appConfig={appConfig}
+        showNotification={showNotification}
+      />
     </main>
   );
 };
