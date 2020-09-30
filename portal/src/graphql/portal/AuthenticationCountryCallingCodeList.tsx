@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useContext, useEffect, useMemo } from "react";
 import Fuse from "fuse.js";
 import cn from "classnames";
 import produce from "immer";
@@ -243,10 +237,7 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> = function C
   const { renderToString } = useContext(Context);
   const { getTelecomCountryName } = useGetTelecomCountryName();
 
-  const [searchString, setSearchString] = useState("");
-  const { value: searchBoxValue, onChange: onSearchBoxChange } = useTextField(
-    ""
-  );
+  const { value: searchString, onChange: onSearchBoxChange } = useTextField("");
 
   const countryCodeListColumns = useMemo(
     () => makeCountryCodeListColumns(renderToString),
@@ -341,14 +332,6 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> = function C
   const unselectAllCallingCode = useCallback(() => {
     onSelectedCountryCallingCodesChange([]);
   }, [onSelectedCountryCallingCodesChange]);
-
-  const onSearch = useCallback((search: string) => {
-    setSearchString(search);
-  }, []);
-
-  const onSearchBoxBlur = useCallback(() => {
-    setSearchString(searchBoxValue);
-  }, [searchBoxValue]);
 
   const onRenderCallingCodeItemColumn = React.useCallback(
     (item?: CountryCallingCodeListItem, index?: number, column?: IColumn) => {
@@ -458,8 +441,6 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> = function C
         className={styles.searchBox}
         placeholder={renderToString("search")}
         onChange={onSearchBoxChange}
-        onSearch={onSearch}
-        onBlur={onSearchBoxBlur}
       />
       <DetailsList
         columns={countryCodeListColumns}
