@@ -1,0 +1,23 @@
+.root {
+  display: flex;
+}
+
+.tooltip {
+  max-width: 340px;
+  padding: 10px 15px 15px;
+}
+
+.tooltipHeader {
+  display: block;
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.tooltipMessage {
+  font-size: 13px;
+}
+
+.infoIcon {
+  padding: 0 5px 5px;
+  color: #176df3;
+}
