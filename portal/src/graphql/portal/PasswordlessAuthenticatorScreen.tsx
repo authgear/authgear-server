@@ -121,7 +121,12 @@ const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthentic
     );
 
     // TODO: handle error
-    updateAppConfig(newAppConfig).catch(() => {});
+    updateAppConfig(newAppConfig)
+      .then(() => {
+        // TODO: remove this alert after implementing templates saving
+        alert("SMS and email templates cannot be saved currently");
+      })
+      .catch(() => {});
   }, [state, rawAppConfig, updateAppConfig, initialState]);
 
   const onSmsTemplateChange = useCallback((_event, value?: string) => {
