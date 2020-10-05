@@ -197,7 +197,6 @@
 
   "SingleSignOnConfigurationScreen.title": "Single-Sign On",
   "SingleSignOnConfigurationScreen.help-link": "Need help? View our SSO integration documentations",
-  "SingleSignOnConfigurationScreen.widget.header": "Sign in with {serviveName}",
   "SingleSignOnConfigurationScreen.widget.alias": "Alias",
   "SingleSignOnConfigurationScreen.widget.client-id": "Client ID",
   "SingleSignOnConfigurationScreen.widget.client-secret": "Client Secret",
@@ -205,6 +204,12 @@
   "SingleSignOnConfigurationScreen.widget.key-id": "Key ID",
   "SingleSignOnConfigurationScreen.widget.team-id": "Team ID",
   "SingleSignOnConfigurationScreen.widget.client-secret.error": "Invalid client secret",
+
+  "OAuthBranding.apple": "Sign in with Apple",
+  "OAuthBranding.google": "Sign in with Google",
+  "OAuthBranding.facebook": "Login with Facebook",
+  "OAuthBranding.linkedin": "Sign in with LinkedIn",
+  "OAuthBranding.azureadv2": "Sign in with Microsoft",
 
   "PasswordsScreen.title": "Passwords",
   "PasswordsScreen.password-policy.title": "Password Policy",
