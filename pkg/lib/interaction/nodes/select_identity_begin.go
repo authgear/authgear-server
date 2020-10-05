@@ -40,12 +40,15 @@ func (n *NodeSelectIdentityBegin) DeriveEdges(graph *interaction.Graph) ([]inter
 
 func (n *NodeSelectIdentityBegin) deriveEdges() []interaction.Edge {
 	var edges []interaction.Edge
+	// Always provide anonymous edge: checking for enabled is done in use identity node
+	edges = append(edges, &EdgeUseIdentityAnonymous{
+		IsCreating: false,
+	})
+
 	for _, t := range n.IdentityTypes {
 		switch t {
 		case authn.IdentityTypeAnonymous:
-			edges = append(edges, &EdgeUseIdentityAnonymous{
-				IsCreating: false,
-			})
+			break
 		case authn.IdentityTypeLoginID:
 			edges = append(edges, &EdgeUseIdentityLoginID{
 				Mode:    UseIdentityLoginIDModeSelect,
