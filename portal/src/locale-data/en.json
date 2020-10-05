@@ -50,6 +50,7 @@
   "ScreenNav.anonymous-users": "Anonymous Users",
   "ScreenNav.single-sign-on": "Single-Sign On",
   "ScreenNav.passwords": "Passwords",
+  "ScreenNav.client-applications": "Client Applications",
 
   "NavBreadcrumb.label": "Nested navigation",
 
@@ -230,6 +231,17 @@
   "PasswordsScreen.forgot-password.sms.label": "SMS",
   "PasswordsScreen.forgot-password.sms.content.label": "Content",
   "PasswordsScreen.forgot-password.time-to-invalid-reset-code.label": "Time to invalid reset code (seconds)",
+
+  "OAuthClientConfiguration.title": "Client Applications",
+  "OAuthClientConfiguration.add-client-button": "Add OAuth Client",
+  "OAuthClientConfiguration.client-list.name": "Name",
+  "OAuthClientConfiguration.client-list.creation-date": "Creation Date",
+  "OAuthClientConfiguration.client-list.application-type": "Application",
+  "OAuthClientConfiguration.client-list.client-id": "Client ID",
+  "OAuthClientConfiguration.client-id-copied": "Client ID is copied to clipboard",
+  "OAuthClientConfiguration.application-type.ios": "iOS",
+  "OAuthClientConfiguration.application-type.android": "Android",
+  "OAuthClientConfiguration.application-type.web-app": "Web Application",
 
   "PaginationWidget.First": "Go to the first page",
   "PaginationWidget.Prev": "Go to the previous page",

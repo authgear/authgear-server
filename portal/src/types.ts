@@ -197,6 +197,22 @@ interface ForgotPasswordConfig {
   reset_code_expiry_seconds?: DurationSeconds;
 }
 
+// OAuthConfig
+interface OAuthClientConfig {
+  client_id: string;
+  client_uri?: string;
+  redirect_uris: string[];
+  grant_types?: string[];
+  response_types?: string[];
+  post_logout_redirect_uris?: string[];
+  access_token_lifetime_seconds?: number;
+  refresh_token_lifetime_seconds?: number;
+}
+
+interface OAuthConfig {
+  clients: OAuthClientConfig[];
+}
+
 // PortalAPIAppConfig
 export interface PortalAPIAppConfig {
   http?: HTTPConfig;
@@ -206,6 +222,7 @@ export interface PortalAPIAppConfig {
   verification?: VerificationConfig;
   ui?: UIConfig;
   forgot_password?: ForgotPasswordConfig;
+  oauth?: OAuthConfig;
 }
 
 // secret config
