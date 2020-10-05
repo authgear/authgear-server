@@ -22,7 +22,7 @@ import styles from "./SingleSignOnConfigurationWidget.module.scss";
 
 interface WidgetHeaderLabelProps {
   icon: React.ReactNode;
-  serviceMessageId: string;
+  messageID: string;
 }
 
 interface WidgetHeaderProps extends WidgetHeaderLabelProps {
@@ -61,7 +61,7 @@ type WidgetTextFieldKey =
 type WidgetErrorState = Partial<Record<WidgetTextFieldKey, string>>;
 
 interface OAuthProviderInfo {
-  messageId: string;
+  providerType: OAuthSSOProviderType;
   iconNode: React.ReactNode;
   fields: Set<WidgetTextFieldKey>;
   isSecretFieldTextArea: boolean;
@@ -75,7 +75,7 @@ const MULTILINE_TEXT_FIELD_STYLE = {
 
 const oauthProviders: Record<OAuthSSOProviderType, OAuthProviderInfo> = {
   apple: {
-    messageId: "apple",
+    providerType: "apple",
     iconNode: <i className={cn("fab", "fa-apple", styles.widgetLabelIcon)} />,
     fields: new Set<WidgetTextFieldKey>([
       "alias",
@@ -87,7 +87,7 @@ const oauthProviders: Record<OAuthSSOProviderType, OAuthProviderInfo> = {
     isSecretFieldTextArea: true,
   },
   google: {
-    messageId: "google",
+    providerType: "google",
     iconNode: <i className={cn("fab", "fa-google", styles.widgetLabelIcon)} />,
     fields: new Set<WidgetTextFieldKey>([
       "alias",
@@ -97,7 +97,7 @@ const oauthProviders: Record<OAuthSSOProviderType, OAuthProviderInfo> = {
     isSecretFieldTextArea: false,
   },
   facebook: {
-    messageId: "facebook",
+    providerType: "facebook",
     iconNode: (
       <i className={cn("fab", "fa-facebook", styles.widgetLabelIcon)} />
     ),
@@ -109,7 +109,7 @@ const oauthProviders: Record<OAuthSSOProviderType, OAuthProviderInfo> = {
     isSecretFieldTextArea: false,
   },
   linkedin: {
-    messageId: "linkedin",
+    providerType: "linkedin",
     iconNode: (
       <i className={cn("fab", "fa-linkedin", styles.widgetLabelIcon)} />
     ),
@@ -121,7 +121,7 @@ const oauthProviders: Record<OAuthSSOProviderType, OAuthProviderInfo> = {
     isSecretFieldTextArea: false,
   },
   azureadv2: {
-    messageId: "azureadv2",
+    providerType: "azureadv2",
     iconNode: (
       <i className={cn("fab", "fa-microsoft", styles.widgetLabelIcon)} />
     ),
@@ -138,16 +138,12 @@ const oauthProviders: Record<OAuthSSOProviderType, OAuthProviderInfo> = {
 const WidgetHeaderLabel: React.FC<WidgetHeaderLabelProps> = function WidgetHeaderLabel(
   props: WidgetHeaderLabelProps
 ) {
-  const { icon, serviceMessageId } = props;
-  const { renderToString } = useContext(Context);
+  const { icon, messageID } = props;
   return (
     <div className={styles.widgetLabel}>
       {icon}
       <Label className={styles.widgetLabelText}>
-        <FormattedMessage
-          id="SingleSignOnConfigurationScreen.widget.header"
-          values={{ serviveName: renderToString(serviceMessageId) }}
-        />
+        <FormattedMessage id={messageID} />
       </Label>
     </div>
   );
@@ -156,15 +152,13 @@ const WidgetHeaderLabel: React.FC<WidgetHeaderLabelProps> = function WidgetHeade
 const WidgetHeader: React.FC<WidgetHeaderProps> = function WidgetHeader(
   props: WidgetHeaderProps
 ) {
-  const { icon, serviceMessageId, enabled, setEnabled } = props;
+  const { icon, messageID, enabled, setEnabled } = props;
   return (
     <Toggle
       checked={enabled}
       onChange={setEnabled}
       inlineLabel={true}
-      label={
-        <WidgetHeaderLabel icon={icon} serviceMessageId={serviceMessageId} />
-      }
+      label={<WidgetHeaderLabel icon={icon} messageID={messageID} />}
     ></Toggle>
   );
 };
@@ -195,7 +189,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
   const { renderToString } = useContext(Context);
 
   const {
-    messageId: serviceMessageId,
+    providerType,
     isSecretFieldTextArea,
     iconNode,
     fields: visibleFields,
@@ -250,10 +244,12 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
     });
   }, [renderToString, violations, errorLocation]);
 
+  const messageID = "OAuthBranding." + providerType;
+
   return (
     <ExtendableWidget
       className={className}
-      extendButtonAriaLabelId={serviceMessageId}
+      extendButtonAriaLabelId={messageID}
       extendable={true}
       readOnly={!enabled}
       initiallyExtended={enabled}
@@ -262,7 +258,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
           icon={iconNode}
           enabled={enabled}
           setEnabled={setEnabled}
-          serviceMessageId={serviceMessageId}
+          messageID={messageID}
         />
       }
     >

@@ -17,23 +17,23 @@
 					<span class="sso-btn-content">
 					{{- if eq .provider_type "apple" -}}
 					<i class="fab fa-apple" aria-hidden="true"></i>
-					<span class="title">{{ template "sign-up-apple" }}</span>
+					<span class="title">{{ template "oauth-branding-apple" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "google" -}}
 					<i class="fab fa-google" aria-hidden="true"></i>
-					<span class="title">{{ template "sign-up-google" }}</span>
+					<span class="title">{{ template "oauth-branding-google" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "facebook" -}}
 					<i class="fab fa-facebook-f" aria-hidden="true"></i>
-					<span class="title">{{ template "sign-up-facebook" }}</span>
+					<span class="title">{{ template "oauth-branding-facebook" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "linkedin" -}}
 					<i class="fab fa-linkedin-in" aria-hidden="true"></i>
-					<span class="title">{{ template "sign-up-linkedin" }}</span>
+					<span class="title">{{ template "oauth-branding-linkedin" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "azureadv2" -}}
 					<i class="fab fa-microsoft" aria-hidden="true"></i>
-					<span class="title">{{ template "sign-up-azureadv2" }}</span>
+					<span class="title">{{ template "oauth-branding-azureadv2" }}</span>
 					{{- end -}}
 					</span>
 				</button>
