@@ -167,7 +167,6 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
           onCreateClientSuccess();
         }
       })
-      // TODO: handle error
       .catch(() => {});
   }, [rawAppConfig, clientConfig, onCreateClientSuccess, updateAppConfig]);
 
@@ -186,6 +185,7 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
         className={styles.modifyClientForm}
         clientConfig={clientConfig}
         onClientConfigChange={onClientConfigChange}
+        updateAppConfigError={updateAppConfigError}
       />
       <ButtonWithLoading
         onClick={onCreateClick}

@@ -1,11 +1,13 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useMemo } from "react";
 import cn from "classnames";
-import { DirectionalHint, TagPicker, TextField } from "@fluentui/react";
+import { DirectionalHint, TagPicker, Text, TextField } from "@fluentui/react";
 import { Context } from "@oursky/react-messageformat";
 
 import LabelWithTooltip from "../../LabelWithTooltip";
 import { useTagPickerWithNewTags, useTextField } from "../../hook/useInput";
 import { OAuthClientConfig } from "../../types";
+import { parseError } from "../../util/error";
+import { defaultFormatErrorMessageList } from "../../util/validation";
 
 import styles from "./ModifyOAuthClientForm.module.scss";
 
@@ -13,6 +15,7 @@ interface ModifyOAuthClientFormProps {
   className?: string;
   clientConfig: OAuthClientConfig;
   onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
+  updateAppConfigError: unknown;
 }
 
 function constructClientConfigState(
@@ -43,7 +46,12 @@ function constructClientConfigState(
 const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function ModifyOAuthClientForm(
   props: ModifyOAuthClientFormProps
 ) {
-  const { className, clientConfig, onClientConfigChange } = props;
+  const {
+    className,
+    clientConfig,
+    onClientConfigChange,
+    updateAppConfigError,
+  } = props;
 
   const { renderToString } = useContext(Context);
 
@@ -77,6 +85,53 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
     onResolveSuggestions: onResolvePostLogoutUrisSuggestions,
     defaultSelectedItems: defaultSelectedPostLogoutUris,
   } = useTagPickerWithNewTags(clientConfig.post_logout_redirect_uris ?? []);
+
+  const errorMessageMap = useMemo(() => {
+    const redirectUrisErrorMessages: string[] = [];
+    const postLogoutRedirectUrisErrorMessages: string[] = [];
+    const violations = parseError(updateAppConfigError);
+    const redirectUrisRegexp = /^\/oauth\/clients\/[^/]*\/redirect_uris(\/[0-9]*)?$/;
+    const postLogoutRedirectUrisRegexp = /^\/oauth\/clients\/[^/]*\/post_logout_redirect_uris(\/[0-9]*)?$/;
+    for (const violation of violations) {
+      switch (violation.kind) {
+        case "minItems":
+          if (redirectUrisRegexp.test(violation.location)) {
+            redirectUrisErrorMessages.push(
+              renderToString(
+                "ModifyOAuthClientForm.redirect-uris.min-items-error",
+                { minItems: violation.minItems }
+              )
+            );
+          }
+          break;
+        case "format":
+          if (redirectUrisRegexp.test(violation.location)) {
+            redirectUrisErrorMessages.push(
+              renderToString(
+                "ModifyOAuthClientForm.redirect-uris.invalid-error"
+              )
+            );
+          }
+          if (postLogoutRedirectUrisRegexp.test(violation.location)) {
+            postLogoutRedirectUrisErrorMessages.push(
+              renderToString(
+                "ModifyOAuthClientForm.post-logout-redirect-uris.invalid-error"
+              )
+            );
+          }
+          break;
+        default:
+          break;
+      }
+    }
+
+    return {
+      redirectUris: defaultFormatErrorMessageList(redirectUrisErrorMessages),
+      postLogoutRedirectUris: defaultFormatErrorMessageList(
+        postLogoutRedirectUrisErrorMessages
+      ),
+    };
+  }, [updateAppConfigError, renderToString]);
 
   useEffect(() => {
     onClientConfigChange(
@@ -134,6 +189,9 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
         onResolveSuggestions={onResolveRedirectUrisSuggestions}
         defaultSelectedItems={defaultSelectedRedirectUris}
       />
+      <Text className={styles.errorMessage}>
+        {errorMessageMap.redirectUris}
+      </Text>
       <LabelWithTooltip
         labelId="ModifyOAuthClientForm.post-logout-redirect-uris-label"
         tooltipHeaderId="ModifyOAuthClientForm.post-logout-redirect-uris-label"
@@ -146,6 +204,9 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
         onResolveSuggestions={onResolvePostLogoutUrisSuggestions}
         defaultSelectedItems={defaultSelectedPostLogoutUris}
       />
+      <Text className={styles.errorMessage}>
+        {errorMessageMap.postLogoutRedirectUris}
+      </Text>
     </section>
   );
 };

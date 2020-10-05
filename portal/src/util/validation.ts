@@ -5,6 +5,7 @@ import { nonNullable } from "./types";
 export type Violation =
   | RequiredViolation
   | FormatViolation
+  | MinItemsViolation
   | GeneralViolation
   | RemoveLastIdentityViolation
   | InvalidLoginIDKeyViolation
@@ -24,6 +25,12 @@ interface FormatViolation {
   kind: "format";
   location: string;
   detail: string;
+}
+
+interface MinItemsViolation {
+  kind: "minItems";
+  location: string;
+  minItems: number;
 }
 
 interface GeneralViolation {
@@ -67,6 +74,7 @@ const violationKinds = [
   "required",
   "general",
   "format",
+  "minItems",
   "RemoveLastIdentity",
   "InvalidLoginIDKey",
   "Invalid",

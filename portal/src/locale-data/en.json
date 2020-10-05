@@ -260,7 +260,10 @@
   "ModifyOAuthClientForm.redirect-uris-label": "Redirect URIs",
   "ModifyOAuthClientForm.redirect-uris-tooltip-message": "Users will be redirected to this path after they have authenticated with Authgear.",
   "ModifyOAuthClientForm.post-logout-redirect-uris-label": "Post Logout Redirect URIs",
+  "ModifyOAuthClientForm.redirect-uris.min-items-error": "Require at least {minItems} URIs",
+  "ModifyOAuthClientForm.redirect-uris.invalid-error": "Invalid URIs",
   "ModifyOAuthClientForm.post-logout-redirect-uris-tooltip-message": "Users will be redirected to this path after they have logged out from Authgear.",
+  "ModifyOAuthClientForm.post-logout-redirect-uris.invalid-error": "Invalid URIs",
 
   "PaginationWidget.First": "Go to the first page",
   "PaginationWidget.Prev": "Go to the previous page",
