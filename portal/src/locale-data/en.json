@@ -53,6 +53,7 @@
   "ScreenNav.anonymous-users": "Anonymous Users",
   "ScreenNav.single-sign-on": "Single-Sign On",
   "ScreenNav.passwords": "Passwords",
+  "ScreenNav.passwordless-authenticator": "Passwordless Authenticator",
   "ScreenNav.client-applications": "Client Applications",
 
   "NavBreadcrumb.label": "Nested navigation",
@@ -250,6 +251,13 @@
   "PasswordsScreen.forgot-password.sms.label": "SMS",
   "PasswordsScreen.forgot-password.sms.content.label": "Content",
   "PasswordsScreen.forgot-password.time-to-invalid-reset-code.label": "Time to invalid reset code (seconds)",
+
+  "PasswordlessAuthenticatorScreen.title": "Passwordless Authenticator",
+  "PasswordlessAuthenticatorScreen.email.label": "Email",
+  "PasswordlessAuthenticatorScreen.email.styled-content.label": "Styled Content",
+  "PasswordlessAuthenticatorScreen.email.plain-content.label": "Plain Content",
+  "PasswordlessAuthenticatorScreen.sms.label": "SMS",
+  "PasswordlessAuthenticatorScreen.sms.content.label": "Content",
 
   "OAuthClientConfiguration.title": "Client Applications",
   "OAuthClientConfiguration.add-client-button": "Add Client",

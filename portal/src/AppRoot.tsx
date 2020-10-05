@@ -16,6 +16,7 @@ import AuthenticationConfigurationScreen from "./graphql/portal/AuthenticationCo
 import AnonymousUsersConfigurationScreen from "./graphql/portal/AnonymousUsersConfigurationScreen";
 import SingleSignOnConfigurationScreen from "./graphql/portal/SingleSignOnConfigurationScreen";
 import PasswordsScreen from "./graphql/portal/PasswordsScreen";
+import PasswordlessAuthenticatorScreen from "./graphql/portal/PasswordlessAuthenticatorScreen";
 import OAuthClientConfigurationScreen from "./graphql/portal/OAuthClientConfigurationScreen";
 import CreateOAuthClientScreen from "./graphql/portal/CreateOAuthClientScreen";
 import EditOAuthClientScreen from "./graphql/portal/EditOAuthClientScreen";
@@ -71,6 +72,10 @@ const AppRoot: React.FC = function AppRoot() {
           <Route
             path="/configuration/passwords"
             element={<PasswordsScreen />}
+          />
+          <Route
+            path="/configuration/passwordless-authenticator"
+            element={<PasswordlessAuthenticatorScreen />}
           />
           <Route
             path="/configuration/oauth-clients"
