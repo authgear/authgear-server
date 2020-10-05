@@ -14,6 +14,7 @@ import CodeEditor from "../../CodeEditor";
 import { PortalAPIAppConfig } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import ButtonWithLoading from "../../ButtonWithLoading";
+import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 
 import styles from "./PasswordlessAuthenticatorScreen.module.scss";
 
@@ -204,6 +205,7 @@ const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthentic
           </div>
         </div>
       </div>
+      <NavigationBlockerDialog blockNavigation={isFormModified} />
     </main>
   );
 };
