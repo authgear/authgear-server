@@ -8,6 +8,8 @@
   "done": "Done",
   "add": "Add",
   "next": "Next",
+  "edit": "Edit",
+  "copy": "Copy",
   "save": "Save",
   "saving": "Saving",
   "details": "Details",
@@ -239,7 +241,7 @@
   "PasswordsScreen.forgot-password.time-to-invalid-reset-code.label": "Time to invalid reset code (seconds)",
 
   "OAuthClientConfiguration.title": "Client Applications",
-  "OAuthClientConfiguration.add-client-button": "Add OAuth Client",
+  "OAuthClientConfiguration.add-client-button": "Add Client",
   "OAuthClientConfiguration.client-list.name": "Name",
   "OAuthClientConfiguration.client-list.creation-date": "Creation Date",
   "OAuthClientConfiguration.client-list.application-type": "Application",

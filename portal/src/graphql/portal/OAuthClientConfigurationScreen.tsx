@@ -1,14 +1,12 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import cn from "classnames";
-import { DateTime } from "luxon";
 import {
+  ActionButton,
   DetailsList,
   IColumn,
-  IconButton,
   MessageBar,
-  PrimaryButton,
   SelectionMode,
   Text,
+  VerticalDivider,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useNavigate, useParams } from "react-router-dom";
@@ -17,8 +15,8 @@ import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import { PortalAPIAppConfig } from "../../types";
 import { useAppConfigQuery } from "./query/appConfigQuery";
-import { formatDatetime } from "../../util/formatDatetime";
 import { copyToClipboard } from "../../util/clipboard";
+import { actionButtonTheme } from "../../theme";
 
 import styles from "./OAuthClientConfigurationScreen.module.scss";
 
@@ -29,11 +27,10 @@ interface OAuthClientConfigurationProps {
 
 interface OAuthClientListItem {
   name: string;
-  creationDate: string;
   clientId: string;
 }
 
-interface OAuthClientIdCellProps {
+interface OAuthClientListActionCellProps {
   clientId: string;
   onCopyComplete: () => void;
 }
@@ -42,8 +39,6 @@ const ADD_CLIENT_BUTTON_STYLES = {
   icon: { paddingRight: "4px" },
   flexContainer: { paddingRight: "2px" },
 };
-
-const ICON_BUTTON_STYLES = { flexContainer: { color: "#504e4c" } };
 
 function makeOAuthClientListColumns(
   renderToString: (messageId: string) => string
@@ -58,26 +53,18 @@ function makeOAuthClientListColumns(
     },
 
     {
-      key: "creationDate",
-      fieldName: "creationDate",
-      name: renderToString(
-        "OAuthClientConfiguration.client-list.creation-date"
-      ),
-      minWidth: 150,
-      className: styles.clientListColumn,
-    },
-
-    {
       key: "clientId",
       fieldName: "clientId",
       name: renderToString("OAuthClientConfiguration.client-list.client-id"),
-      minWidth: 350,
+      minWidth: 300,
+      className: styles.clientListColumn,
     },
+    { key: "action", name: renderToString("action"), minWidth: 200 },
   ];
 }
 
-const OAuthClientIdCell: React.FC<OAuthClientIdCellProps> = function OAuthClientIdCell(
-  props: OAuthClientIdCellProps
+const OAuthClientListActionCell: React.FC<OAuthClientListActionCellProps> = function OAuthClientListActionCell(
+  props: OAuthClientListActionCellProps
 ) {
   const { clientId, onCopyComplete } = props;
   const navigate = useNavigate();
@@ -93,28 +80,35 @@ const OAuthClientIdCell: React.FC<OAuthClientIdCellProps> = function OAuthClient
     onCopyComplete();
   }, [clientId, onCopyComplete]);
 
+  const onRemoveClick = useCallback(() => {
+    // TODO: to be implemented
+  }, []);
+
   return (
     <div className={styles.clientListColumn}>
-      <span
-        className={cn(
-          styles.clientListColumnContent,
-          styles.clientIdColumnContent
-        )}
-      >
-        {clientId}
-      </span>
-      <IconButton
-        className={styles.editButton}
-        styles={ICON_BUTTON_STYLES}
+      <ActionButton
+        className={styles.listActionButton}
+        theme={actionButtonTheme}
         onClick={onEditClick}
-        iconProps={{ iconName: "Edit" }}
-      />
-      <IconButton
-        className={styles.copyButton}
-        styles={ICON_BUTTON_STYLES}
+      >
+        <FormattedMessage id="edit" />
+      </ActionButton>
+      <VerticalDivider className={styles.listActionButtonDivider} />
+      <ActionButton
+        className={styles.listActionButton}
+        theme={actionButtonTheme}
         onClick={onCopyClick}
-        iconProps={{ iconName: "Copy" }}
-      />
+      >
+        <FormattedMessage id="copy" />
+      </ActionButton>
+      <VerticalDivider className={styles.listActionButtonDivider} />
+      <ActionButton
+        className={styles.listActionButton}
+        theme={actionButtonTheme}
+        onClick={onRemoveClick}
+      >
+        <FormattedMessage id="remove" />
+      </ActionButton>
     </div>
   );
 };
@@ -136,17 +130,12 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
 
   const oauthClientListItems: OAuthClientListItem[] = useMemo(() => {
     return oauthClients.map((client) => {
-      // TODO: replace with actual data
-      const creationDateString =
-        formatDatetime(locale, "1970-01-01T00:00:00.000Z", DateTime.DATE_MED) ??
-        "---";
       return {
         name: client.client_id,
-        creationDate: creationDateString,
         clientId: client.client_id,
       };
     });
-  }, [oauthClients, locale]);
+  }, [oauthClients]);
 
   const onAddOAuthClientClick = useCallback(() => {
     navigate("./add");
@@ -165,9 +154,9 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
       }
       const fieldContent = item[column.fieldName as keyof OAuthClientListItem];
       switch (column.key) {
-        case "clientId":
+        case "action":
           return (
-            <OAuthClientIdCell
+            <OAuthClientListActionCell
               clientId={item.clientId}
               onCopyComplete={onClientIdCopied}
             />
@@ -186,14 +175,15 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
   return (
     <section className={styles.content}>
       <section className={styles.controlButtons}>
-        <PrimaryButton
+        <ActionButton
+          theme={actionButtonTheme}
           className={styles.addClientButton}
           onClick={onAddOAuthClientClick}
           iconProps={{ iconName: "CirclePlus" }}
           styles={ADD_CLIENT_BUTTON_STYLES}
         >
           <FormattedMessage id="OAuthClientConfiguration.add-client-button" />
-        </PrimaryButton>
+        </ActionButton>
       </section>
       <DetailsList
         columns={oauthClientListColumns}
