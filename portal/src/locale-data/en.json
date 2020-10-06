@@ -256,6 +256,10 @@
   "CreateOAuthClientScreen.success-dialog.client-id-label": "Client ID",
   "CreateOAuthClientScreen.success-dialog.copied": "Copied!",
 
+  "EditOAuthClientScreen.title": "Edit Client Application",
+  "EditOAuthClientScreen.client-id": "Client ID",
+  "EditOAuthClientScreen.client-not-found": "Client ID {clientID} is not found",
+
   "ModifyOAuthClientForm.name-label": "Name",
   "ModifyOAuthClientForm.acces-token-lifetime-label": "Access Token Lifetime (in seconds)",
   "ModifyOAuthClientForm.refresh-token-lifetime-label": "Refresh Token Lifetime (in seconds)",

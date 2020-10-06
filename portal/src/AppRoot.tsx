@@ -18,6 +18,7 @@ import SingleSignOnConfigurationScreen from "./graphql/portal/SingleSignOnConfig
 import PasswordsScreen from "./graphql/portal/PasswordsScreen";
 import OAuthClientConfigurationScreen from "./graphql/portal/OAuthClientConfigurationScreen";
 import CreateOAuthClientScreen from "./graphql/portal/CreateOAuthClientScreen";
+import EditOAuthClientScreen from "./graphql/portal/EditOAuthClientScreen";
 
 const AppRoot: React.FC = function AppRoot() {
   const { appID } = useParams();
@@ -78,6 +79,10 @@ const AppRoot: React.FC = function AppRoot() {
           <Route
             path="/configuration/oauth-clients/add"
             element={<CreateOAuthClientScreen />}
+          />
+          <Route
+            path="/configuration/oauth-clients/:clientID/edit"
+            element={<EditOAuthClientScreen />}
           />
         </Routes>
       </ScreenLayout>
