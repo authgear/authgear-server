@@ -6,7 +6,7 @@ export interface HTTPConfig {
 
 // LoginIDKeyConfig
 
-export type LoginIDKeyType = "raw" | "email" | "phone" | "username";
+export type LoginIDKeyType = "email" | "phone" | "username";
 
 export interface LoginIDKeyConfig {
   key: string;
