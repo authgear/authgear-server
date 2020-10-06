@@ -160,6 +160,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
         label={renderToString("ModifyOAuthClientForm.name-label")}
         value={clientName}
         onChange={onClientNameChange}
+        required={true}
       />
       <TextField
         className={styles.inputField}
@@ -182,6 +183,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
         tooltipHeaderId="ModifyOAuthClientForm.redirect-uris-label"
         tooltipMessageId="ModifyOAuthClientForm.redirect-uris-tooltip-message"
         directionalHint={DirectionalHint.bottomLeftEdge}
+        required={true}
       />
       <TagPicker
         className={styles.inputField}

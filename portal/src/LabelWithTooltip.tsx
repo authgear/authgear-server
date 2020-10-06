@@ -21,6 +21,7 @@ interface LabelWithTooltipProps {
   tooltipHeaderId: string;
   tooltipMessageId: string;
   directionalHint?: ITooltipHostProps["directionalHint"];
+  required?: boolean;
 }
 
 const LabelWithTooltip: React.FC<LabelWithTooltipProps> = function LabelWithTooltip(
@@ -34,6 +35,7 @@ const LabelWithTooltip: React.FC<LabelWithTooltipProps> = function LabelWithTool
     tooltipHeaderId,
     tooltipMessageId,
     directionalHint,
+    required,
   } = props;
 
   const tooltipProps: ITooltipProps = useMemo(() => {
@@ -55,14 +57,19 @@ const LabelWithTooltip: React.FC<LabelWithTooltipProps> = function LabelWithTool
 
   return (
     <div className={cn(styles.root, className)}>
-      <Label className={labelClassName}>
+      <Label className={labelClassName} required={required}>
         <FormattedMessage id={labelId} />
       </Label>
       <TooltipHost
         tooltipProps={tooltipProps}
         directionalHint={directionalHint ?? DirectionalHint.bottomCenter}
       >
-        <Icon className={styles.infoIcon} iconName={"info"} />
+        <Icon
+          className={cn(styles.infoIcon, {
+            [styles.infoIconRequired]: required,
+          })}
+          iconName={"info"}
+        />
       </TooltipHost>
     </div>
   );
