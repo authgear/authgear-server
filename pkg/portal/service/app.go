@@ -470,7 +470,6 @@ func ValidateConfig(appID string, cfg config.Config, updateFiles []*model.AppCon
 		}
 	}
 
-	oldConfig := cfg.AppConfig
 	// Validate configuration YAML.
 	for _, file := range updateFiles {
 		if file.Path == "/"+configsource.AuthgearYAML {
@@ -509,12 +508,15 @@ func ValidateConfig(appID string, cfg config.Config, updateFiles []*model.AppCon
 		}
 		templatePaths[u.Path] = struct{}{}
 	}
-	for _, item := range oldConfig.Template.Items {
-		u, err := url.Parse(item.URI)
-		if err != nil || u.Scheme != "file" {
-			continue
+	nullableOldConfig := cfg.AppConfig
+	if nullableOldConfig != nil {
+		for _, item := range nullableOldConfig.Template.Items {
+			u, err := url.Parse(item.URI)
+			if err != nil || u.Scheme != "file" {
+				continue
+			}
+			oldTemplatePaths[u.Path] = struct{}{}
 		}
-		oldTemplatePaths[u.Path] = struct{}{}
 	}
 
 	for _, f := range updateFiles {

@@ -4,8 +4,10 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	configtest "github.com/authgear/authgear-server/pkg/lib/config/test"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 )
@@ -18,6 +20,19 @@ func TestValidateConfig(t *testing.T) {
 			SecretConfig: configtest.FixtureSecretConfig(0),
 		}
 		config.PopulateDefaultValues(cfg.AppConfig)
+
+		Convey("validate new config without crash", func() {
+			appConfigYAML, err := yaml.Marshal(cfg.AppConfig)
+			So(err, ShouldBeNil)
+			secretConfigYAML, err := yaml.Marshal(cfg.SecretConfig)
+			So(err, ShouldBeNil)
+
+			err = ValidateConfig(appID, config.Config{}, []*model.AppConfigFile{
+				{Path: "/" + configsource.AuthgearYAML, Content: string(appConfigYAML)},
+				{Path: "/" + configsource.AuthgearSecretYAML, Content: string(secretConfigYAML)},
+			}, nil)
+			So(err, ShouldBeNil)
+		})
 
 		Convey("accept empty updates", func() {
 			err := ValidateConfig(appID, *cfg, nil, nil)
