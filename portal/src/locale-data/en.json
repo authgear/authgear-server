@@ -247,9 +247,8 @@
   "OAuthClientConfiguration.client-list.application-type": "Application",
   "OAuthClientConfiguration.client-list.client-id": "Client ID",
   "OAuthClientConfiguration.client-id-copied": "Client ID is copied to clipboard",
-  "OAuthClientConfiguration.application-type.native-app": "Native Application",
-  "OAuthClientConfiguration.application-type.single-page-web-app": "Single Page Web Application",
-  "OAuthClientConfiguration.application-type.web-app": "Regular Web Application",
+  "OAuthClientConfigurationScreen.confirm-remove-dialog.title": "Remove OAuth Client",
+  "OAuthClientConfigurationScreen.confirm-remove-dialog.message": "Are you sure you want to remove OAuth client {clientName} ?",
 
   "CreateOAuthClientScreen.title": "Create Client Application",
   "CreateOAuthClientScreen.success-dialog.title": "Created Client Sucessfully",
