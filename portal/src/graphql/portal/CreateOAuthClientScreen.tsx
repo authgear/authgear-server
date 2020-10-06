@@ -17,12 +17,14 @@ import {
 } from "@fluentui/react";
 import { useNavigate, useParams } from "react-router-dom";
 import produce from "immer";
+import deepEqual from "deep-equal";
 import { FormattedMessage } from "@oursky/react-messageformat";
 
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import ModifyOAuthClientForm from "./ModifyOAuthClientForm";
 import ButtonWithLoading from "../../ButtonWithLoading";
+import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import { useAppConfigQuery } from "./query/appConfigQuery";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
@@ -117,12 +119,21 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
     error: updateAppConfigError,
   } = useUpdateAppConfigMutation(appID);
 
-  const [clientConfig, setClientConfig] = useState<OAuthClientConfig>({
-    client_id: genRandomHexadecimalString(),
-    grant_types: ["authorization_code", "refresh_token"],
-    response_types: ["code", "none"],
-    redirect_uris: [],
-  });
+  const initialState = useMemo(() => {
+    return {
+      client_id: genRandomHexadecimalString(),
+      grant_types: ["authorization_code", "refresh_token"],
+      response_types: ["code", "none"],
+      redirect_uris: [],
+      access_token_lifetime_seconds: undefined,
+      refresh_token_lifetime_seconds: undefined,
+      post_logout_redirect_uris: undefined,
+    };
+  }, []);
+
+  const [clientConfig, setClientConfig] = useState<OAuthClientConfig>(
+    initialState
+  );
 
   const [
     createClientSuccessDialogVisible,
@@ -160,8 +171,13 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
       .catch(() => {});
   }, [rawAppConfig, clientConfig, onCreateClientSuccess, updateAppConfig]);
 
+  const isFormModified = useMemo(() => {
+    return !deepEqual(initialState, clientConfig);
+  }, [clientConfig, initialState]);
+
   return (
     <form className={styles.form}>
+      <NavigationBlockerDialog blockNavigation={isFormModified} />
       <CreateClientSuccessDialog
         visible={createClientSuccessDialogVisible}
         clientId={clientConfig.client_id}
@@ -173,6 +189,7 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
       />
       <ButtonWithLoading
         onClick={onCreateClick}
+        disabled={!isFormModified}
         labelId="create"
         loading={updatingAppConfig}
       />
