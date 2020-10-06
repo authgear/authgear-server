@@ -29,6 +29,7 @@ import { parseError } from "../../util/error";
 import { Violation } from "../../util/validation";
 import { OAuthSSOProviderType } from "../../types";
 import { destructiveTheme, verifyButtonTheme } from "../../theme";
+import { UserQuery_node_User_verifiedClaims } from "./query/__generated__/UserQuery";
 
 import styles from "./UserDetailsConnectedIdentities.module.scss";
 
@@ -48,8 +49,10 @@ interface Identity {
   updatedAt: string;
 }
 
+type VerifiedClaim = UserQuery_node_User_verifiedClaims;
 interface UserDetailsConnectedIdentitiesProps {
   identities: Identity[];
+  verifiedClaims: VerifiedClaim[];
   availableLoginIdIdentities: string[];
 }
 
@@ -158,6 +161,18 @@ function getErrorMessageIdsFromViolation(violations: Violation[]) {
     }
   }
   return { errorMessageIds, unknownViolations };
+}
+
+function checkIsClaimVerified(
+  verifiedClaims: VerifiedClaim[],
+  claimName: string,
+  claimValue: string
+) {
+  const matchedClaim = verifiedClaims.find((claim) => {
+    return claim.name === claimName && claim.value === claimValue;
+  });
+
+  return matchedClaim != null;
 }
 
 const VerifyButton: React.FC<VerifyButtonProps> = function VerifyButton(
@@ -271,7 +286,7 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
 const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesProps> = function UserDetailsConnectedIdentities(
   props: UserDetailsConnectedIdentitiesProps
 ) {
-  const { identities, availableLoginIdIdentities } = props;
+  const { identities, verifiedClaims, availableLoginIdIdentities } = props;
   const { locale, renderToString } = useContext(Context);
   const navigate = useNavigate();
   const {
@@ -314,7 +329,11 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
           type: "oauth",
           name: identity.claims.email!,
           providerType: providerType,
-          verified: false,
+          verified: checkIsClaimVerified(
+            verifiedClaims,
+            "email",
+            identity.claims.email!
+          ),
           connectedOn: createdAtStr,
         });
       }
@@ -329,7 +348,11 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
             type: "login_id",
             loginIDKey: "email",
             value: identity.claims.email!,
-            verified: true,
+            verified: checkIsClaimVerified(
+              verifiedClaims,
+              "email",
+              identity.claims.email!
+            ),
             connectedOn: createdAtStr,
           });
         }
@@ -343,7 +366,11 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
             type: "login_id",
             loginIDKey: "phone",
             value: identity.claims.phone_number!,
-            verified: false,
+            verified: checkIsClaimVerified(
+              verifiedClaims,
+              "phone_number",
+              identity.claims.phone_number!
+            ),
             connectedOn: createdAtStr,
           });
         }
@@ -368,7 +395,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
       phone: phoneIdentityList,
       username: usernameIdentityList,
     };
-  }, [locale, identities]);
+  }, [locale, identities, verifiedClaims]);
 
   const onRemoveClicked = useCallback(
     (identityID: string, identityName: string) => {
