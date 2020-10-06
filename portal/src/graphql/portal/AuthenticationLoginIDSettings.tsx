@@ -43,10 +43,11 @@ interface WidgetHeaderProps {
   titleId: string;
 }
 
+type LoginIDKeyState = Record<LoginIDKeyType, boolean>;
+
 interface AuthenticationLoginIDSettingsState {
-  usernameEnabled: boolean;
-  emailEnabled: boolean;
-  phoneNumberEnabled: boolean;
+  loginIdKeyState: LoginIDKeyState;
+  loginIdKeyTypes: LoginIDKeyType[];
 
   excludedKeywords: string[];
   isBlockReservedUsername: boolean;
@@ -61,6 +62,7 @@ interface AuthenticationLoginIDSettingsState {
   selectedCallingCodes: string[];
 }
 
+const ALL_LOGIN_ID_KEYS: LoginIDKeyType[] = ["username", "email", "phone"];
 const switchStyle = { root: { margin: "0" } };
 
 const WidgetHeader: React.FC<WidgetHeaderProps> = function (
@@ -87,19 +89,29 @@ const WidgetHeader: React.FC<WidgetHeaderProps> = function (
 };
 
 function extractConfigFromLoginIdKeys(
-  loginIdKeys: LoginIDKeyConfig[]
-): { [key: string]: boolean } {
-  // We consider them as enabled if they are listed as allowed login ID keys.
-  const usernameEnabled =
-    loginIdKeys.find((key) => key.type === "username") != null;
-  const emailEnabled = loginIdKeys.find((key) => key.type === "email") != null;
-  const phoneNumberEnabled =
-    loginIdKeys.find((key) => key.type === "phone") != null;
+  configLoginIdKeys: LoginIDKeyConfig[]
+): {
+  loginIdKeyState: LoginIDKeyState;
+  loginIdKeyTypes: LoginIDKeyType[];
+} {
+  const configLoginIdKeyTypes = configLoginIdKeys.map((key) => key.type);
+  const enabledLoginIdKeySet = new Set(configLoginIdKeyTypes);
+  const loginIdKeyState = ALL_LOGIN_ID_KEYS.reduce<Partial<LoginIDKeyState>>(
+    (map, key) => {
+      map[key] = enabledLoginIdKeySet.has(key);
+      return map;
+    },
+    {}
+  ) as LoginIDKeyState;
+
+  const disabledLoginKeyTypes = ALL_LOGIN_ID_KEYS.filter(
+    (key) => !enabledLoginIdKeySet.has(key)
+  );
+  const loginIdKeyTypes = configLoginIdKeyTypes.concat(disabledLoginKeyTypes);
 
   return {
-    usernameEnabled,
-    emailEnabled,
-    phoneNumberEnabled,
+    loginIdKeyState,
+    loginIdKeyTypes,
   };
 }
 
@@ -120,48 +132,23 @@ function handleStringListInput(
     : sanitizedList;
 }
 
-function getLoginIdKeyIndex(
-  loginIdKeys: LoginIDKeyConfig[],
-  keyType: LoginIDKeyType
-): number {
-  return loginIdKeys.findIndex((key: any) => key.type === keyType);
-}
-
-function updateLoginIdKey(
-  loginIdKeys: LoginIDKeyConfig[],
-  keyType: LoginIDKeyType,
-  enabled: boolean,
-  initialEnabled: boolean
-) {
-  if (enabled === initialEnabled) {
-    return;
-  }
-  const loginIdKeyIndex = getLoginIdKeyIndex(loginIdKeys, keyType);
-  if (enabled) {
-    if (loginIdKeyIndex >= 0) {
-      return;
-    }
-    const newLoginIdKey = { type: keyType, key: keyType };
-    loginIdKeys.push(newLoginIdKey);
-  }
-
-  if (!enabled) {
-    if (loginIdKeyIndex < 0) {
-      return;
-    }
-    loginIdKeys.splice(loginIdKeyIndex, 1);
-  }
+function constructLoginIdKeyConfig(
+  loginIdKeyTypes: LoginIDKeyType[],
+  loginIdKeyState: LoginIDKeyState
+): LoginIDKeyConfig[] {
+  const enabledKeyTypes = loginIdKeyTypes.filter((key) => loginIdKeyState[key]);
+  return enabledKeyTypes.map((key) => {
+    return { key, type: key };
+  });
 }
 
 function constructStateFromAppConfig(
   appConfig: PortalAPIAppConfig | null
 ): AuthenticationLoginIDSettingsState {
   const loginIdKeys = appConfig?.identity?.login_id?.keys ?? [];
-  const {
-    usernameEnabled,
-    emailEnabled,
-    phoneNumberEnabled,
-  } = extractConfigFromLoginIdKeys(loginIdKeys);
+  const { loginIdKeyTypes, loginIdKeyState } = extractConfigFromLoginIdKeys(
+    loginIdKeys
+  );
 
   // username widget
   const usernameConfig = appConfig?.identity?.login_id?.types?.username;
@@ -175,9 +162,8 @@ function constructStateFromAppConfig(
     appConfig?.ui?.country_calling_code?.values ?? [];
 
   return {
-    usernameEnabled,
-    emailEnabled,
-    phoneNumberEnabled,
+    loginIdKeyState,
+    loginIdKeyTypes,
 
     excludedKeywords,
     isBlockReservedUsername: !!usernameConfig?.block_reserved_usernames,
@@ -257,6 +243,7 @@ function mutateEmailConfig(
     !screenState.isAllowPlus
   );
 }
+
 function mutatePhoneConfig(
   appConfig: PortalAPIAppConfig,
   initialScreenState: AuthenticationLoginIDSettingsState,
@@ -266,7 +253,6 @@ function mutatePhoneConfig(
   appConfig.ui.country_calling_code = appConfig.ui.country_calling_code ?? {};
 
   if (
-    screenState.phoneNumberEnabled &&
     !deepEqual(
       initialScreenState.selectedCallingCodes,
       screenState.selectedCallingCodes
@@ -290,41 +276,31 @@ function constructAppConfigFromState(
     draftConfig.identity.login_id.keys =
       draftConfig.identity.login_id.keys ?? [];
 
-    const loginIdKeys = draftConfig.identity.login_id.keys;
-
-    updateLoginIdKey(
-      loginIdKeys,
-      "username",
-      screenState.usernameEnabled,
-      initialScreenState.usernameEnabled
-    );
-    updateLoginIdKey(
-      loginIdKeys,
-      "email",
-      screenState.emailEnabled,
-      initialScreenState.emailEnabled
-    );
-    updateLoginIdKey(
-      loginIdKeys,
-      "phone",
-      screenState.phoneNumberEnabled,
-      initialScreenState.phoneNumberEnabled
+    draftConfig.identity.login_id.keys = constructLoginIdKeyConfig(
+      screenState.loginIdKeyTypes,
+      screenState.loginIdKeyState
     );
 
     const loginIdTypes = draftConfig.identity.login_id.types;
 
     // username config
-    loginIdTypes.username = loginIdTypes.username ?? {};
-    const usernameConfig = loginIdTypes.username;
-    mutateUsernameConfig(usernameConfig, initialScreenState, screenState);
+    if (screenState.loginIdKeyState["username"]) {
+      loginIdTypes.username = loginIdTypes.username ?? {};
+      const usernameConfig = loginIdTypes.username;
+      mutateUsernameConfig(usernameConfig, initialScreenState, screenState);
+    }
 
     // email config
-    loginIdTypes.email = loginIdTypes.email ?? {};
-    const emailConfig = loginIdTypes.email;
-    mutateEmailConfig(emailConfig, initialScreenState, screenState);
+    if (screenState.loginIdKeyState["email"]) {
+      loginIdTypes.email = loginIdTypes.email ?? {};
+      const emailConfig = loginIdTypes.email;
+      mutateEmailConfig(emailConfig, initialScreenState, screenState);
+    }
 
     // phone config
-    mutatePhoneConfig(draftConfig, initialScreenState, screenState);
+    if (screenState.loginIdKeyState["phone"]) {
+      mutatePhoneConfig(draftConfig, initialScreenState, screenState);
+    }
 
     clearEmptyObject(draftConfig);
   });
@@ -347,15 +323,31 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     return constructStateFromAppConfig(effectiveAppConfig);
   }, [effectiveAppConfig]);
 
-  const [usernameEnabled, setUsernameEnabled] = useState(
-    initialState.usernameEnabled
+  const [loginIdKeyState, setLoginIdKeyState] = useState<LoginIDKeyState>(
+    initialState.loginIdKeyState
   );
-  const [emailEnabled, setEmailEnabled] = useState(initialState.emailEnabled);
-  const [phoneNumberEnabled, setPhoneNumberEnabled] = useState(
-    initialState.phoneNumberEnabled
+  const [loginIdKeyTypes, setLoginIdKeyTypes] = useState<LoginIDKeyType[]>(
+    initialState.loginIdKeyTypes
+  );
+
+  const setLoginIdKeTypeState = useCallback(
+    (loginIdKeyType: LoginIDKeyType, enabled: boolean) => {
+      setLoginIdKeyState((prev) => ({
+        ...prev,
+        [loginIdKeyType]: enabled,
+      }));
+    },
+    []
   );
 
   // username widget
+  const setUsernameEnabled = useCallback(
+    (enabled: boolean) => {
+      setLoginIdKeTypeState("username", enabled);
+    },
+    [setLoginIdKeTypeState]
+  );
+
   const {
     list: excludedKeywords,
     onChange: onExcludedKeywordsChange,
@@ -379,6 +371,13 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
   );
 
   // email widget
+  const setEmailEnabled = useCallback(
+    (enabled: boolean) => {
+      setLoginIdKeTypeState("email", enabled);
+    },
+    [setLoginIdKeTypeState]
+  );
+
   const {
     value: isEmailCaseSensitive,
     onChange: onIsEmailCaseSensitiveChange,
@@ -392,6 +391,13 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
   );
 
   // phone widget
+  const setPhoneNumberEnabled = useCallback(
+    (enabled: boolean) => {
+      setLoginIdKeTypeState("phone", enabled);
+    },
+    [setLoginIdKeTypeState]
+  );
+
   const [selectedCallingCodes, setSelectedCallingCodes] = useState<string[]>(
     initialState.selectedCallingCodes
   );
@@ -405,9 +411,8 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
 
   const screenState = useMemo(
     () => ({
-      usernameEnabled,
-      emailEnabled,
-      phoneNumberEnabled,
+      loginIdKeyState,
+      loginIdKeyTypes,
 
       excludedKeywords,
       isBlockReservedUsername,
@@ -422,9 +427,8 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
       selectedCallingCodes,
     }),
     [
-      usernameEnabled,
-      emailEnabled,
-      phoneNumberEnabled,
+      loginIdKeyTypes,
+      loginIdKeyState,
 
       excludedKeywords,
       isBlockReservedUsername,
@@ -460,131 +464,138 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     updateAppConfig(newAppConfig).catch(() => {});
   }, [screenState, rawAppConfig, updateAppConfig, initialState]);
 
-  return (
-    <div className={styles.root}>
-      <NavigationBlockerDialog blockNavigation={isFormModified} />
-      <div className={styles.widgetContainer}>
-        <ExtendableWidget
-          initiallyExtended={usernameEnabled}
-          extendable={true}
-          readOnly={!usernameEnabled}
-          extendButtonAriaLabelId={"AuthenticationWidget.usernameExtend"}
-          HeaderComponent={
-            <WidgetHeader
-              enabled={usernameEnabled}
-              setEnabled={setUsernameEnabled}
-              titleId={"AuthenticationWidget.usernameTitle"}
-            />
-          }
-        >
-          <div className={styles.usernameWidgetContent}>
-            <Checkbox
-              label={renderToString(
-                "AuthenticationWidget.blockReservedUsername"
-              )}
-              checked={isBlockReservedUsername}
-              onChange={onIsBlockReservedUsernameChange}
-              className={styles.checkboxWithContent}
-            />
+  const loginIdWidgets: Record<LoginIDKeyType, React.ReactNode> = {
+    username: (
+      <ExtendableWidget
+        initiallyExtended={loginIdKeyState["username"]}
+        extendable={true}
+        readOnly={!loginIdKeyState["username"]}
+        extendButtonAriaLabelId={"AuthenticationWidget.usernameExtend"}
+        HeaderComponent={
+          <WidgetHeader
+            enabled={loginIdKeyState["username"]}
+            setEnabled={setUsernameEnabled}
+            titleId={"AuthenticationWidget.usernameTitle"}
+          />
+        }
+      >
+        <div className={styles.usernameWidgetContent}>
+          <Checkbox
+            label={renderToString("AuthenticationWidget.blockReservedUsername")}
+            checked={isBlockReservedUsername}
+            onChange={onIsBlockReservedUsernameChange}
+            className={styles.checkboxWithContent}
+          />
 
-            <CheckboxWithContent
-              ariaLabel={renderToString("AuthenticationWidget.excludeKeywords")}
-              checked={isExcludeKeywords}
-              onChange={onIsExcludeKeywordsChange}
-              className={styles.checkboxWithContent}
-            >
-              <Label className={styles.checkboxLabel}>
-                <FormattedMessage id="AuthenticationWidget.excludeKeywords" />
-              </Label>
-              <TagPicker
-                inputProps={{
-                  "aria-label": renderToString(
-                    "AuthenticationWidget.excludeKeywords"
-                  ),
-                }}
-                className={styles.widgetInputField}
-                disabled={!isExcludeKeywords}
-                onChange={onExcludedKeywordsChange}
-                defaultSelectedItems={defaultSelectedExcludedKeywords}
-                onResolveSuggestions={onResolveExcludedKeywordSuggestions}
-              />
-            </CheckboxWithContent>
-
-            <Checkbox
-              label={renderToString("AuthenticationWidget.caseSensitive")}
-              className={styles.widgetCheckbox}
-              checked={isUsernameCaseSensitive}
-              onChange={onIsUsernameCaseSensitiveChange}
+          <CheckboxWithContent
+            ariaLabel={renderToString("AuthenticationWidget.excludeKeywords")}
+            checked={isExcludeKeywords}
+            onChange={onIsExcludeKeywordsChange}
+            className={styles.checkboxWithContent}
+          >
+            <Label className={styles.checkboxLabel}>
+              <FormattedMessage id="AuthenticationWidget.excludeKeywords" />
+            </Label>
+            <TagPicker
+              inputProps={{
+                "aria-label": renderToString(
+                  "AuthenticationWidget.excludeKeywords"
+                ),
+              }}
+              className={styles.widgetInputField}
+              disabled={!isExcludeKeywords}
+              onChange={onExcludedKeywordsChange}
+              defaultSelectedItems={defaultSelectedExcludedKeywords}
+              onResolveSuggestions={onResolveExcludedKeywordSuggestions}
             />
+          </CheckboxWithContent>
 
-            <Checkbox
-              label={renderToString("AuthenticationWidget.asciiOnly")}
-              className={styles.widgetCheckbox}
-              checked={isAsciiOnly}
-              onChange={onIsAsciiOnlyChange}
-            />
-          </div>
-        </ExtendableWidget>
-      </div>
-
-      <div className={styles.widgetContainer}>
-        <ExtendableWidget
-          initiallyExtended={emailEnabled}
-          extendable={true}
-          readOnly={!emailEnabled}
-          extendButtonAriaLabelId={"AuthenticationWidget.emailAddressExtend"}
-          HeaderComponent={
-            <WidgetHeader
-              enabled={emailEnabled}
-              setEnabled={setEmailEnabled}
-              titleId={"AuthenticationWidget.emailAddressTitle"}
-            />
-          }
-        >
           <Checkbox
             label={renderToString("AuthenticationWidget.caseSensitive")}
             className={styles.widgetCheckbox}
-            checked={isEmailCaseSensitive}
-            onChange={onIsEmailCaseSensitiveChange}
+            checked={isUsernameCaseSensitive}
+            onChange={onIsUsernameCaseSensitiveChange}
           />
 
           <Checkbox
-            label={renderToString("AuthenticationWidget.ignoreDotLocal")}
+            label={renderToString("AuthenticationWidget.asciiOnly")}
             className={styles.widgetCheckbox}
-            checked={isIgnoreDotLocal}
-            onChange={onIsIgnoreDotLocalChange}
+            checked={isAsciiOnly}
+            onChange={onIsAsciiOnlyChange}
           />
+        </div>
+      </ExtendableWidget>
+    ),
 
-          <Checkbox
-            label={renderToString("AuthenticationWidget.allowPlus")}
-            className={styles.widgetCheckbox}
-            checked={isAllowPlus}
-            onChange={onIsAllowPlusChange}
+    email: (
+      <ExtendableWidget
+        initiallyExtended={loginIdKeyState["email"]}
+        extendable={true}
+        readOnly={!loginIdKeyState["email"]}
+        extendButtonAriaLabelId={"AuthenticationWidget.emailAddressExtend"}
+        HeaderComponent={
+          <WidgetHeader
+            enabled={loginIdKeyState["email"]}
+            setEnabled={setEmailEnabled}
+            titleId={"AuthenticationWidget.emailAddressTitle"}
           />
-        </ExtendableWidget>
-      </div>
+        }
+      >
+        <Checkbox
+          label={renderToString("AuthenticationWidget.caseSensitive")}
+          className={styles.widgetCheckbox}
+          checked={isEmailCaseSensitive}
+          onChange={onIsEmailCaseSensitiveChange}
+        />
 
-      <div className={styles.widgetContainer}>
-        <ExtendableWidget
-          initiallyExtended={phoneNumberEnabled}
-          extendable={true}
-          readOnly={!phoneNumberEnabled}
-          extendButtonAriaLabelId={"AuthenticationWidget.phoneNumberExtend"}
-          HeaderComponent={
-            <WidgetHeader
-              enabled={phoneNumberEnabled}
-              setEnabled={setPhoneNumberEnabled}
-              titleId={"AuthenticationWidget.phoneNumberTitle"}
-            />
-          }
-        >
-          <CountryCallingCodeList
-            allCountryCallingCodes={supportedCountryCallingCodes}
-            selectedCountryCallingCodes={selectedCallingCodes}
-            onSelectedCountryCallingCodesChange={onSelectedCallingCodesChange}
+        <Checkbox
+          label={renderToString("AuthenticationWidget.ignoreDotLocal")}
+          className={styles.widgetCheckbox}
+          checked={isIgnoreDotLocal}
+          onChange={onIsIgnoreDotLocalChange}
+        />
+
+        <Checkbox
+          label={renderToString("AuthenticationWidget.allowPlus")}
+          className={styles.widgetCheckbox}
+          checked={isAllowPlus}
+          onChange={onIsAllowPlusChange}
+        />
+      </ExtendableWidget>
+    ),
+    phone: (
+      <ExtendableWidget
+        initiallyExtended={loginIdKeyState["phone"]}
+        extendable={true}
+        readOnly={!loginIdKeyState["phone"]}
+        extendButtonAriaLabelId={"AuthenticationWidget.phoneNumberExtend"}
+        HeaderComponent={
+          <WidgetHeader
+            enabled={loginIdKeyState["phone"]}
+            setEnabled={setPhoneNumberEnabled}
+            titleId={"AuthenticationWidget.phoneNumberTitle"}
           />
-        </ExtendableWidget>
-      </div>
+        }
+      >
+        <CountryCallingCodeList
+          allCountryCallingCodes={supportedCountryCallingCodes}
+          selectedCountryCallingCodes={selectedCallingCodes}
+          onSelectedCountryCallingCodesChange={onSelectedCallingCodesChange}
+        />
+      </ExtendableWidget>
+    ),
+  };
+
+  return (
+    <div className={styles.root}>
+      <NavigationBlockerDialog blockNavigation={isFormModified} />
+
+      {loginIdKeyTypes.map((keyType) => (
+        <div key={keyType} className={styles.widgetContainer}>
+          {loginIdWidgets[keyType]}
+        </div>
+      ))}
+
       <div className={styles.saveButtonContainer}>
         <ButtonWithLoading
           disabled={!isFormModified}
