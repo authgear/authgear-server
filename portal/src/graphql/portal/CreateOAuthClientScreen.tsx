@@ -135,6 +135,8 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
     initialState
   );
 
+  const [submittedForm, setSubmittedForm] = useState(false);
+
   const [
     createClientSuccessDialogVisible,
     setCreateClientSuccessDialogVisible,
@@ -148,6 +150,7 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
   );
 
   const onCreateClientSuccess = useCallback(() => {
+    setSubmittedForm(true);
     setCreateClientSuccessDialogVisible(true);
   }, []);
 
@@ -176,7 +179,9 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
 
   return (
     <form className={styles.form}>
-      <NavigationBlockerDialog blockNavigation={isFormModified} />
+      <NavigationBlockerDialog
+        blockNavigation={!submittedForm && isFormModified}
+      />
       <CreateClientSuccessDialog
         visible={createClientSuccessDialogVisible}
         clientId={clientConfig.client_id}
