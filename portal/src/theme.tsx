@@ -151,10 +151,42 @@ const verifyButtonTheme = createTheme({
   },
 });
 
+// Generated with Fluent UI theme Designer with
+// Primary color: #ffffff
+// Text color: #ffffff
+// Background color: #323130
+const defaultButtonTheme = createTheme({
+  palette: {
+    themePrimary: "#ffffff",
+    themeLighterAlt: "#767676",
+    themeLighter: "#a6a6a6",
+    themeLight: "#c8c8c8",
+    themeTertiary: "#d0d0d0",
+    themeSecondary: "#dadada",
+    themeDarkAlt: "#eaeaea",
+    themeDark: "#f4f4f4",
+    themeDarker: "#f8f8f8",
+    neutralLighterAlt: "#3c3b39",
+    neutralLighter: "#444241",
+    neutralLight: "#514f4e",
+    neutralQuaternaryAlt: "#595756",
+    neutralQuaternary: "#5f5e5c",
+    neutralTertiaryAlt: "#7a7977",
+    neutralTertiary: "#c8c8c8",
+    neutralSecondary: "#d0d0d0",
+    neutralPrimaryAlt: "#dadada",
+    neutralPrimary: "#ffffff",
+    neutralDark: "#f4f4f4",
+    black: "#f8f8f8",
+    white: "#323130",
+  },
+});
+
 export {
   theme,
   invertedTheme,
   destructiveTheme,
   actionButtonTheme,
   verifyButtonTheme,
+  defaultButtonTheme,
 };

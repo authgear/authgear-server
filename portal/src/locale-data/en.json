@@ -134,6 +134,7 @@
   "UserDetails.connected-identities.error-dialog-title": "Error",
   "UserDetails.connected-identities.remove-identity-error.generic": "Failed to remove identity",
   "UserDetails.connected-identities.remove-identity-error.connot-remove-last": "Cannot remove last identity",
+  "UserDetails.connected-identities.verify-identity-error.generic": "Failed to set verified status of identity claim",
 
   "AddEmailScreen.title": "Add Email",
   "AddEmailScreen.email.label": "Email",
