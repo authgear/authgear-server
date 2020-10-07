@@ -29,7 +29,8 @@ config:
   id: test
   oauth:
     clients:
-      - client_id: test-client
+      - name: Test Client
+        client_id: test-client
         redirect_uris:
           - "https://example.com"
         refresh_token_lifetime_seconds: 10
