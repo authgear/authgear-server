@@ -8,6 +8,7 @@ package portal
 import (
 	"github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	"github.com/authgear/authgear-server/pkg/portal/db"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/graphql"
 	"github.com/authgear/authgear-server/pkg/portal/loader"
@@ -118,9 +119,17 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Viewer:    viewerLoader,
 		Apps:      appLoader,
 	}
+	databaseConfig := rootProvider.DatabaseConfig
+	dbLogger := db.NewLogger(factory)
+	handle := &db.Handle{
+		Context: context,
+		Config:  databaseConfig,
+		Logger:  dbLogger,
+	}
 	graphQLHandler := &transport.GraphQLHandler{
 		DevMode:        devMode,
 		GraphQLContext: graphqlContext,
+		Database:       handle,
 	}
 	return graphQLHandler
 }
