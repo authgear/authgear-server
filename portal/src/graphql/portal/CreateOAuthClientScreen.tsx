@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Callout,
   Dialog,
@@ -43,20 +37,34 @@ interface CreateClientSuccessDialogProps {
   visible: boolean;
   clientId: string;
 }
+
+const CALLOUT_VISIBLE_DURATION = 3000;
+
 const CreateClientSuccessDialog: React.FC<CreateClientSuccessDialogProps> = function CreateClientSuccessDialog(
   props: CreateClientSuccessDialogProps
 ) {
   const { visible, clientId } = props;
   const navigate = useNavigate();
 
-  const calloutIntervalRef = useRef<number>();
   const [isCalloutVisible, setIsCalloutVisible] = useState(false);
+  const [calloutActiveCount, setCalloutActiveCount] = useState(0);
 
   useEffect(() => {
-    if (calloutIntervalRef.current != null) {
-      window.clearTimeout(calloutIntervalRef.current);
+    if (calloutActiveCount === 0) {
+      // consistent return type in arrow function
+      return () => {};
     }
-  }, []);
+
+    setIsCalloutVisible(true);
+    const handle = setTimeout(
+      () => setIsCalloutVisible(false),
+      CALLOUT_VISIBLE_DURATION
+    );
+    return () => {
+      // clear previous timeout when count is updated
+      clearTimeout(handle);
+    };
+  }, [calloutActiveCount]);
 
   const onConfirmCreateClientSuccess = useCallback(() => {
     navigate("../");
@@ -64,10 +72,7 @@ const CreateClientSuccessDialog: React.FC<CreateClientSuccessDialogProps> = func
 
   const onCopyClick = useCallback(() => {
     copyToClipboard(clientId);
-    setIsCalloutVisible(true);
-    calloutIntervalRef.current = window.setTimeout(() => {
-      setIsCalloutVisible(false);
-    }, 3000);
+    setCalloutActiveCount((c) => c + 1);
   }, [clientId]);
 
   return (
