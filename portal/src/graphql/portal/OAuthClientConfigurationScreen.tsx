@@ -1,41 +1,59 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import cn from "classnames";
-import { DateTime } from "luxon";
 import {
+  ActionButton,
+  DefaultButton,
   DetailsList,
+  Dialog,
+  DialogFooter,
   IColumn,
-  IconButton,
   MessageBar,
-  PrimaryButton,
   SelectionMode,
   Text,
+  VerticalDivider,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useNavigate, useParams } from "react-router-dom";
+import produce from "immer";
 
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
+import ButtonWithLoading from "../../ButtonWithLoading";
 import { PortalAPIAppConfig } from "../../types";
 import { useAppConfigQuery } from "./query/appConfigQuery";
-import { formatDatetime } from "../../util/formatDatetime";
+import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
 import { copyToClipboard } from "../../util/clipboard";
+import { actionButtonTheme } from "../../theme";
 
 import styles from "./OAuthClientConfigurationScreen.module.scss";
 
 interface OAuthClientConfigurationProps {
-  appConfig: PortalAPIAppConfig | null;
+  rawAppConfig: PortalAPIAppConfig | null;
+  effectiveAppConfig: PortalAPIAppConfig | null;
   showNotification: (msg: string) => void;
 }
 
 interface OAuthClientListItem {
   name: string;
-  creationDate: string;
   clientId: string;
 }
 
-interface OAuthClientIdCellProps {
+interface OAuthClientListActionCellProps {
   clientId: string;
+  clientName: string;
   onCopyComplete: () => void;
+  onRemoveClientClick: (clientId: string, clientName: string) => void;
+}
+
+interface ConfirmRemoveDialogData {
+  clientId: string;
+  clientName: string;
+}
+
+interface ConfirmRemoveOAuthClientDialogProps extends ConfirmRemoveDialogData {
+  visible: boolean;
+  updatingAppConfig: boolean;
+  onDismiss: () => void;
+  removeOAuthClient: (clientId: string) => void;
 }
 
 const ADD_CLIENT_BUTTON_STYLES = {
@@ -43,7 +61,9 @@ const ADD_CLIENT_BUTTON_STYLES = {
   flexContainer: { paddingRight: "2px" },
 };
 
-const ICON_BUTTON_STYLES = { flexContainer: { color: "#504e4c" } };
+const DIALOG_FOOTER_STYLES = {
+  actionsRight: { display: "flex", justifyContent: "flex-end" },
+};
 
 function makeOAuthClientListColumns(
   renderToString: (messageId: string) => string
@@ -58,28 +78,66 @@ function makeOAuthClientListColumns(
     },
 
     {
-      key: "creationDate",
-      fieldName: "creationDate",
-      name: renderToString(
-        "OAuthClientConfiguration.client-list.creation-date"
-      ),
-      minWidth: 150,
-      className: styles.clientListColumn,
-    },
-
-    {
       key: "clientId",
       fieldName: "clientId",
       name: renderToString("OAuthClientConfiguration.client-list.client-id"),
-      minWidth: 350,
+      minWidth: 300,
+      className: styles.clientListColumn,
     },
+    { key: "action", name: renderToString("action"), minWidth: 200 },
   ];
 }
 
-const OAuthClientIdCell: React.FC<OAuthClientIdCellProps> = function OAuthClientIdCell(
-  props: OAuthClientIdCellProps
+const ConfirmRemoveOAuthClientDialog: React.FC<ConfirmRemoveOAuthClientDialogProps> = function ConfirmRemoveOAuthClientDialog(
+  props: ConfirmRemoveOAuthClientDialogProps
 ) {
-  const { clientId, onCopyComplete } = props;
+  const {
+    visible,
+    updatingAppConfig,
+    onDismiss,
+    removeOAuthClient,
+    clientId,
+    clientName,
+  } = props;
+  const { renderToString } = useContext(Context);
+
+  const onConfirm = useCallback(() => {
+    removeOAuthClient(clientId);
+  }, [clientId, removeOAuthClient]);
+
+  return (
+    <Dialog
+      hidden={!visible}
+      title={
+        <FormattedMessage id="OAuthClientConfigurationScreen.confirm-remove-dialog.title" />
+      }
+      subText={renderToString(
+        "OAuthClientConfigurationScreen.confirm-remove-dialog.message",
+        { clientName }
+      )}
+      onDismiss={onDismiss}
+    >
+      <DialogFooter
+        styles={DIALOG_FOOTER_STYLES}
+        className={styles.confirmDialogButtons}
+      >
+        <ButtonWithLoading
+          onClick={onConfirm}
+          labelId="confirm"
+          loading={updatingAppConfig}
+        />
+        <DefaultButton onClick={onDismiss}>
+          <FormattedMessage id="cancel" />
+        </DefaultButton>
+      </DialogFooter>
+    </Dialog>
+  );
+};
+
+const OAuthClientListActionCell: React.FC<OAuthClientListActionCellProps> = function OAuthClientListActionCell(
+  props: OAuthClientListActionCellProps
+) {
+  const { clientId, clientName, onCopyComplete, onRemoveClientClick } = props;
   const navigate = useNavigate();
 
   const onEditClick = useCallback(() => {
@@ -93,28 +151,35 @@ const OAuthClientIdCell: React.FC<OAuthClientIdCellProps> = function OAuthClient
     onCopyComplete();
   }, [clientId, onCopyComplete]);
 
+  const onRemoveClick = useCallback(() => {
+    onRemoveClientClick(clientId, clientName);
+  }, [clientId, clientName, onRemoveClientClick]);
+
   return (
     <div className={styles.clientListColumn}>
-      <span
-        className={cn(
-          styles.clientListColumnContent,
-          styles.clientIdColumnContent
-        )}
-      >
-        {clientId}
-      </span>
-      <IconButton
-        className={styles.editButton}
-        styles={ICON_BUTTON_STYLES}
+      <ActionButton
+        className={styles.listActionButton}
+        theme={actionButtonTheme}
         onClick={onEditClick}
-        iconProps={{ iconName: "Edit" }}
-      />
-      <IconButton
-        className={styles.copyButton}
-        styles={ICON_BUTTON_STYLES}
+      >
+        <FormattedMessage id="edit" />
+      </ActionButton>
+      <VerticalDivider className={styles.listActionButtonDivider} />
+      <ActionButton
+        className={styles.listActionButton}
+        theme={actionButtonTheme}
         onClick={onCopyClick}
-        iconProps={{ iconName: "Copy" }}
-      />
+      >
+        <FormattedMessage id="copy" />
+      </ActionButton>
+      <VerticalDivider className={styles.listActionButtonDivider} />
+      <ActionButton
+        className={styles.listActionButton}
+        theme={actionButtonTheme}
+        onClick={onRemoveClick}
+      >
+        <FormattedMessage id="remove" />
+      </ActionButton>
     </div>
   );
 };
@@ -122,13 +187,30 @@ const OAuthClientIdCell: React.FC<OAuthClientIdCellProps> = function OAuthClient
 const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = function OAuthClientConfiguration(
   props: OAuthClientConfigurationProps
 ) {
-  const { appConfig, showNotification } = props;
-  const { locale, renderToString } = useContext(Context);
+  const { rawAppConfig, effectiveAppConfig, showNotification } = props;
+  const { renderToString } = useContext(Context);
+  const { appID } = useParams();
   const navigate = useNavigate();
 
+  const {
+    updateAppConfig,
+    loading: updatingAppConfig,
+    error: updateAppConfigError,
+  } = useUpdateAppConfigMutation(appID);
+
+  const [confirmRemoveDialogData, setConfirmRemoveDialogData] = useState<
+    ConfirmRemoveDialogData
+  >({
+    clientName: "",
+    clientId: "",
+  });
+  const [confirmRemoveDialogVisible, setConfirmRemoveDialogVisible] = useState(
+    false
+  );
+
   const oauthClients = useMemo(() => {
-    return appConfig?.oauth?.clients ?? [];
-  }, [appConfig]);
+    return effectiveAppConfig?.oauth?.clients ?? [];
+  }, [effectiveAppConfig]);
 
   const oauthClientListColumns = useMemo(() => {
     return makeOAuthClientListColumns(renderToString);
@@ -136,17 +218,12 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
 
   const oauthClientListItems: OAuthClientListItem[] = useMemo(() => {
     return oauthClients.map((client) => {
-      // TODO: replace with actual data
-      const creationDateString =
-        formatDatetime(locale, "1970-01-01T00:00:00.000Z", DateTime.DATE_MED) ??
-        "---";
       return {
         name: client.client_id,
-        creationDate: creationDateString,
         clientId: client.client_id,
       };
     });
-  }, [oauthClients, locale]);
+  }, [oauthClients]);
 
   const onAddOAuthClientClick = useCallback(() => {
     navigate("./add");
@@ -158,6 +235,49 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
     );
   }, [showNotification, renderToString]);
 
+  const onRemoveClientClick = useCallback(
+    (clientId: string, clientName: string) => {
+      setConfirmRemoveDialogData({
+        clientId,
+        clientName,
+      });
+      setConfirmRemoveDialogVisible(true);
+    },
+    []
+  );
+
+  const dismissConfirmRemoveDialog = useCallback(() => {
+    setConfirmRemoveDialogVisible(false);
+  }, []);
+
+  const removeOAuthClient = useCallback(
+    (clientId: string) => {
+      if (rawAppConfig == null) {
+        return;
+      }
+
+      const newAppConfig = produce(rawAppConfig, (draftConfig) => {
+        const clients = draftConfig.oauth!.clients!;
+        const updatedClients = clients.filter(
+          (client) => client.client_id !== clientId
+        );
+        if (clients.length === updatedClients.length) {
+          console.warn("[Remove OAuth Client]: OAuth client not found");
+          return;
+        }
+
+        draftConfig.oauth!.clients = updatedClients;
+      });
+
+      updateAppConfig(newAppConfig)
+        .catch(() => {})
+        .finally(() => {
+          dismissConfirmRemoveDialog();
+        });
+    },
+    [rawAppConfig, updateAppConfig, dismissConfirmRemoveDialog]
+  );
+
   const onRenderOAuthClientColumns = useCallback(
     (item?: OAuthClientListItem, _index?: number, column?: IColumn) => {
       if (item == null || column == null) {
@@ -165,11 +285,13 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
       }
       const fieldContent = item[column.fieldName as keyof OAuthClientListItem];
       switch (column.key) {
-        case "clientId":
+        case "action":
           return (
-            <OAuthClientIdCell
+            <OAuthClientListActionCell
               clientId={item.clientId}
+              clientName={item.name}
               onCopyComplete={onClientIdCopied}
+              onRemoveClientClick={onRemoveClientClick}
             />
           );
         default:
@@ -180,26 +302,36 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
           );
       }
     },
-    [onClientIdCopied]
+    [onClientIdCopied, onRemoveClientClick]
   );
 
   return (
     <section className={styles.content}>
       <section className={styles.controlButtons}>
-        <PrimaryButton
+        <ActionButton
+          theme={actionButtonTheme}
           className={styles.addClientButton}
           onClick={onAddOAuthClientClick}
           iconProps={{ iconName: "CirclePlus" }}
           styles={ADD_CLIENT_BUTTON_STYLES}
         >
           <FormattedMessage id="OAuthClientConfiguration.add-client-button" />
-        </PrimaryButton>
+        </ActionButton>
       </section>
+      {updateAppConfigError && <ShowError error={updateAppConfigError} />}
       <DetailsList
         columns={oauthClientListColumns}
         items={oauthClientListItems}
         selectionMode={SelectionMode.none}
         onRenderItemColumn={onRenderOAuthClientColumns}
+      />
+      <ConfirmRemoveOAuthClientDialog
+        visible={confirmRemoveDialogVisible}
+        updatingAppConfig={updatingAppConfig}
+        onDismiss={dismissConfirmRemoveDialog}
+        removeOAuthClient={removeOAuthClient}
+        clientName={confirmRemoveDialogData.clientName}
+        clientId={confirmRemoveDialogData.clientId}
       />
     </section>
   );
@@ -222,7 +354,8 @@ const OAuthClientConfigurationScreen: React.FC = function OAuthClientConfigurati
   }, []);
 
   const appConfigNode = data?.node?.__typename === "App" ? data.node : null;
-  const appConfig = appConfigNode?.effectiveAppConfig ?? null;
+  const rawAppConfig = appConfigNode?.rawAppConfig ?? null;
+  const effectiveAppConfig = appConfigNode?.effectiveAppConfig ?? null;
 
   if (loading) {
     return <ShowLoading />;
@@ -243,7 +376,8 @@ const OAuthClientConfigurationScreen: React.FC = function OAuthClientConfigurati
         <FormattedMessage id="OAuthClientConfiguration.title" />
       </Text>
       <OAuthClientConfiguration
-        appConfig={appConfig}
+        rawAppConfig={rawAppConfig}
+        effectiveAppConfig={effectiveAppConfig}
         showNotification={showNotification}
       />
     </main>

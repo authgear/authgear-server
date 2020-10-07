@@ -16,7 +16,11 @@
 .controlButtons {
   display: flex;
   justify-content: flex-end;
-  margin: 0 20px 0 0;
+  border-bottom: 1px solid #edebe9;
+}
+
+.addClientButton {
+  margin: 0 10px 0 0;
 }
 
 .clientListColumn {
@@ -31,14 +35,13 @@
   line-height: 18px;
 }
 
-.clientIdColumnContent {
-  margin-right: auto;
+.listActionButton {
+  font-weight: 600;
+  height: auto;
 }
 
-.editButton {
+.listActionButtonDivider {
+  height: 15px;
+  background-color: #edebe9;
   margin: 0 5px;
-}
-
-.copyButton {
-  margin-right: 10px;
 }
