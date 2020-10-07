@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useCallback, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
 import deepEqual from "deep-equal";
 import produce from "immer";
 import { Label, Text } from "@fluentui/react";
@@ -28,7 +28,6 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> = function EditOAu
 ) {
   const { clientConfig: clientConfigProps, rawAppConfig } = props;
   const { appID } = useParams();
-  const navigate = useNavigate();
 
   const {
     updateAppConfig,
@@ -49,7 +48,6 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> = function EditOAu
   const [clientConfig, setClientConfig] = useState<OAuthClientConfig>(
     initialClientConfig
   );
-  const [submittedForm, setSubmittedForm] = useState(false);
 
   const onClientConfigChange = useCallback(
     (newClientConfig: OAuthClientConfig) => {
@@ -69,20 +67,8 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> = function EditOAu
       clearEmptyObject(draftConfig);
     });
 
-    updateAppConfig(newAppConfig)
-      .then((result) => {
-        if (result != null) {
-          setSubmittedForm(true);
-        }
-      })
-      .catch(() => {});
+    updateAppConfig(newAppConfig).catch(() => {});
   }, [clientConfig, updateAppConfig, rawAppConfig]);
-
-  useEffect(() => {
-    if (submittedForm) {
-      navigate("../../");
-    }
-  }, [submittedForm, navigate]);
 
   const isFormModified = useMemo(() => {
     return !deepEqual(clientConfig, initialClientConfig);
@@ -90,9 +76,7 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> = function EditOAu
 
   return (
     <form className={styles.form}>
-      <NavigationBlockerDialog
-        blockNavigation={!submittedForm && isFormModified}
-      />
+      <NavigationBlockerDialog blockNavigation={isFormModified} />
       <Label>
         <FormattedMessage id="EditOAuthClientScreen.client-id" />
       </Label>
