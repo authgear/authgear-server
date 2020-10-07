@@ -24,7 +24,7 @@ import {
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import { useTextField } from "../../hook/useInput";
-import { OrderColumnButtons, swap } from "../../DetailsListWithOrdering";
+import OrderButtons, { swap } from "../../OrderButtons";
 import { useGetTelecomCountryName } from "../../util/translations";
 import countryCallingCodeMap from "../../data/countryCodeMap.json";
 
@@ -350,7 +350,7 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> = function C
         case "order":
           if (item?.selected) {
             return (
-              <OrderColumnButtons
+              <OrderButtons
                 index={index}
                 itemCount={selectedCountryCallingCodes.length}
                 onSwapClicked={onCallingCodeSwap}

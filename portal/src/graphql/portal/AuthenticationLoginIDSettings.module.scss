@@ -1,6 +1,15 @@
 .root {
   width: 700px;
   padding-right: 30px;
+  margin-bottom: 30px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #edebe9;
+  padding: 10px 35px 10px 20px;
+  margin-top: 25px;
 }
 
 .widgetContainer {
@@ -32,9 +41,6 @@
   margin-right: 8px;
 }
 
-.saveButtonContainer {
-  width: 100%;
-  margin-top: 20px;
-  display: flex;
-  justify-content: flex-end;
+.saveButton {
+  margin-top: 25px;
 }

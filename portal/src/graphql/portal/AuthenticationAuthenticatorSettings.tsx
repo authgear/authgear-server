@@ -11,7 +11,8 @@ import produce from "immer";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
-import DetailsListWithOrdering, { swap } from "../../DetailsListWithOrdering";
+import DetailsListWithOrdering from "../../DetailsListWithOrdering";
+import { swap } from "../../OrderButtons";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import {
@@ -346,15 +347,14 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
         />
       </div>
 
-      <div className={styles.saveButtonContainer}>
-        <ButtonWithLoading
-          disabled={!isFormModified}
-          onClick={onSaveButtonClicked}
-          loading={updatingAppConfig}
-          labelId="save"
-          loadingLabelId="saving"
-        />
-      </div>
+      <ButtonWithLoading
+        className={styles.saveButton}
+        disabled={!isFormModified}
+        onClick={onSaveButtonClicked}
+        loading={updatingAppConfig}
+        labelId="save"
+        loadingLabelId="saving"
+      />
     </div>
   );
 };

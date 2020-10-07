@@ -1,10 +1,11 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import produce from "immer";
-import { Checkbox, Toggle, TagPicker, Label } from "@fluentui/react";
+import { Checkbox, Toggle, TagPicker, Label, Text } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
-import ExtendableWidget from "../../ExtendableWidget";
+import WidgetWithOrdering from "../../WidgetWithOrdering";
+import { swap } from "../../OrderButtons";
 import CheckboxWithContent from "../../CheckboxWithContent";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
@@ -43,10 +44,11 @@ interface WidgetHeaderProps {
   titleId: string;
 }
 
+type LoginIDKeyState = Record<LoginIDKeyType, boolean>;
+
 interface AuthenticationLoginIDSettingsState {
-  usernameEnabled: boolean;
-  emailEnabled: boolean;
-  phoneNumberEnabled: boolean;
+  loginIdKeyState: LoginIDKeyState;
+  loginIdKeyTypes: LoginIDKeyType[];
 
   excludedKeywords: string[];
   isBlockReservedUsername: boolean;
@@ -61,7 +63,14 @@ interface AuthenticationLoginIDSettingsState {
   selectedCallingCodes: string[];
 }
 
+const ALL_LOGIN_ID_KEYS: LoginIDKeyType[] = ["username", "email", "phone"];
 const switchStyle = { root: { margin: "0" } };
+
+const widgetTitleMessageId: Record<LoginIDKeyType, string> = {
+  username: "AuthenticationWidget.usernameTitle",
+  email: "AuthenticationWidget.emailAddressTitle",
+  phone: "AuthenticationWidget.phoneNumberTitle",
+};
 
 const WidgetHeader: React.FC<WidgetHeaderProps> = function (
   props: WidgetHeaderProps
@@ -87,19 +96,29 @@ const WidgetHeader: React.FC<WidgetHeaderProps> = function (
 };
 
 function extractConfigFromLoginIdKeys(
-  loginIdKeys: LoginIDKeyConfig[]
-): { [key: string]: boolean } {
-  // We consider them as enabled if they are listed as allowed login ID keys.
-  const usernameEnabled =
-    loginIdKeys.find((key) => key.type === "username") != null;
-  const emailEnabled = loginIdKeys.find((key) => key.type === "email") != null;
-  const phoneNumberEnabled =
-    loginIdKeys.find((key) => key.type === "phone") != null;
+  configLoginIdKeys: LoginIDKeyConfig[]
+): {
+  loginIdKeyState: LoginIDKeyState;
+  loginIdKeyTypes: LoginIDKeyType[];
+} {
+  const configLoginIdKeyTypes = configLoginIdKeys.map((key) => key.type);
+  const enabledLoginIdKeySet = new Set(configLoginIdKeyTypes);
+  const loginIdKeyState = ALL_LOGIN_ID_KEYS.reduce<Partial<LoginIDKeyState>>(
+    (map, key) => {
+      map[key] = enabledLoginIdKeySet.has(key);
+      return map;
+    },
+    {}
+  ) as LoginIDKeyState;
+
+  const disabledLoginKeyTypes = ALL_LOGIN_ID_KEYS.filter(
+    (key) => !enabledLoginIdKeySet.has(key)
+  );
+  const loginIdKeyTypes = configLoginIdKeyTypes.concat(disabledLoginKeyTypes);
 
   return {
-    usernameEnabled,
-    emailEnabled,
-    phoneNumberEnabled,
+    loginIdKeyState,
+    loginIdKeyTypes,
   };
 }
 
@@ -120,48 +139,23 @@ function handleStringListInput(
     : sanitizedList;
 }
 
-function getLoginIdKeyIndex(
-  loginIdKeys: LoginIDKeyConfig[],
-  keyType: LoginIDKeyType
-): number {
-  return loginIdKeys.findIndex((key: any) => key.type === keyType);
-}
-
-function updateLoginIdKey(
-  loginIdKeys: LoginIDKeyConfig[],
-  keyType: LoginIDKeyType,
-  enabled: boolean,
-  initialEnabled: boolean
-) {
-  if (enabled === initialEnabled) {
-    return;
-  }
-  const loginIdKeyIndex = getLoginIdKeyIndex(loginIdKeys, keyType);
-  if (enabled) {
-    if (loginIdKeyIndex >= 0) {
-      return;
-    }
-    const newLoginIdKey = { type: keyType, key: keyType };
-    loginIdKeys.push(newLoginIdKey);
-  }
-
-  if (!enabled) {
-    if (loginIdKeyIndex < 0) {
-      return;
-    }
-    loginIdKeys.splice(loginIdKeyIndex, 1);
-  }
+function constructLoginIdKeyConfig(
+  loginIdKeyTypes: LoginIDKeyType[],
+  loginIdKeyState: LoginIDKeyState
+): LoginIDKeyConfig[] {
+  const enabledKeyTypes = loginIdKeyTypes.filter((key) => loginIdKeyState[key]);
+  return enabledKeyTypes.map((key) => {
+    return { key, type: key };
+  });
 }
 
 function constructStateFromAppConfig(
   appConfig: PortalAPIAppConfig | null
 ): AuthenticationLoginIDSettingsState {
   const loginIdKeys = appConfig?.identity?.login_id?.keys ?? [];
-  const {
-    usernameEnabled,
-    emailEnabled,
-    phoneNumberEnabled,
-  } = extractConfigFromLoginIdKeys(loginIdKeys);
+  const { loginIdKeyTypes, loginIdKeyState } = extractConfigFromLoginIdKeys(
+    loginIdKeys
+  );
 
   // username widget
   const usernameConfig = appConfig?.identity?.login_id?.types?.username;
@@ -175,9 +169,8 @@ function constructStateFromAppConfig(
     appConfig?.ui?.country_calling_code?.values ?? [];
 
   return {
-    usernameEnabled,
-    emailEnabled,
-    phoneNumberEnabled,
+    loginIdKeyState,
+    loginIdKeyTypes,
 
     excludedKeywords,
     isBlockReservedUsername: !!usernameConfig?.block_reserved_usernames,
@@ -257,6 +250,7 @@ function mutateEmailConfig(
     !screenState.isAllowPlus
   );
 }
+
 function mutatePhoneConfig(
   appConfig: PortalAPIAppConfig,
   initialScreenState: AuthenticationLoginIDSettingsState,
@@ -266,7 +260,6 @@ function mutatePhoneConfig(
   appConfig.ui.country_calling_code = appConfig.ui.country_calling_code ?? {};
 
   if (
-    screenState.phoneNumberEnabled &&
     !deepEqual(
       initialScreenState.selectedCallingCodes,
       screenState.selectedCallingCodes
@@ -290,41 +283,31 @@ function constructAppConfigFromState(
     draftConfig.identity.login_id.keys =
       draftConfig.identity.login_id.keys ?? [];
 
-    const loginIdKeys = draftConfig.identity.login_id.keys;
-
-    updateLoginIdKey(
-      loginIdKeys,
-      "username",
-      screenState.usernameEnabled,
-      initialScreenState.usernameEnabled
-    );
-    updateLoginIdKey(
-      loginIdKeys,
-      "email",
-      screenState.emailEnabled,
-      initialScreenState.emailEnabled
-    );
-    updateLoginIdKey(
-      loginIdKeys,
-      "phone",
-      screenState.phoneNumberEnabled,
-      initialScreenState.phoneNumberEnabled
+    draftConfig.identity.login_id.keys = constructLoginIdKeyConfig(
+      screenState.loginIdKeyTypes,
+      screenState.loginIdKeyState
     );
 
     const loginIdTypes = draftConfig.identity.login_id.types;
 
     // username config
-    loginIdTypes.username = loginIdTypes.username ?? {};
-    const usernameConfig = loginIdTypes.username;
-    mutateUsernameConfig(usernameConfig, initialScreenState, screenState);
+    if (screenState.loginIdKeyState["username"]) {
+      loginIdTypes.username = loginIdTypes.username ?? {};
+      const usernameConfig = loginIdTypes.username;
+      mutateUsernameConfig(usernameConfig, initialScreenState, screenState);
+    }
 
     // email config
-    loginIdTypes.email = loginIdTypes.email ?? {};
-    const emailConfig = loginIdTypes.email;
-    mutateEmailConfig(emailConfig, initialScreenState, screenState);
+    if (screenState.loginIdKeyState["email"]) {
+      loginIdTypes.email = loginIdTypes.email ?? {};
+      const emailConfig = loginIdTypes.email;
+      mutateEmailConfig(emailConfig, initialScreenState, screenState);
+    }
 
     // phone config
-    mutatePhoneConfig(draftConfig, initialScreenState, screenState);
+    if (screenState.loginIdKeyState["phone"]) {
+      mutatePhoneConfig(draftConfig, initialScreenState, screenState);
+    }
 
     clearEmptyObject(draftConfig);
   });
@@ -347,15 +330,31 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     return constructStateFromAppConfig(effectiveAppConfig);
   }, [effectiveAppConfig]);
 
-  const [usernameEnabled, setUsernameEnabled] = useState(
-    initialState.usernameEnabled
+  const [loginIdKeyState, setLoginIdKeyState] = useState<LoginIDKeyState>(
+    initialState.loginIdKeyState
   );
-  const [emailEnabled, setEmailEnabled] = useState(initialState.emailEnabled);
-  const [phoneNumberEnabled, setPhoneNumberEnabled] = useState(
-    initialState.phoneNumberEnabled
+  const [loginIdKeyTypes, setLoginIdKeyTypes] = useState<LoginIDKeyType[]>(
+    initialState.loginIdKeyTypes
+  );
+
+  const setLoginIdKeTypeState = useCallback(
+    (loginIdKeyType: LoginIDKeyType, enabled: boolean) => {
+      setLoginIdKeyState((prev) => ({
+        ...prev,
+        [loginIdKeyType]: enabled,
+      }));
+    },
+    []
   );
 
   // username widget
+  const setUsernameEnabled = useCallback(
+    (enabled: boolean) => {
+      setLoginIdKeTypeState("username", enabled);
+    },
+    [setLoginIdKeTypeState]
+  );
+
   const {
     list: excludedKeywords,
     onChange: onExcludedKeywordsChange,
@@ -379,6 +378,13 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
   );
 
   // email widget
+  const setEmailEnabled = useCallback(
+    (enabled: boolean) => {
+      setLoginIdKeTypeState("email", enabled);
+    },
+    [setLoginIdKeTypeState]
+  );
+
   const {
     value: isEmailCaseSensitive,
     onChange: onIsEmailCaseSensitiveChange,
@@ -392,6 +398,13 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
   );
 
   // phone widget
+  const setPhoneNumberEnabled = useCallback(
+    (enabled: boolean) => {
+      setLoginIdKeTypeState("phone", enabled);
+    },
+    [setLoginIdKeTypeState]
+  );
+
   const [selectedCallingCodes, setSelectedCallingCodes] = useState<string[]>(
     initialState.selectedCallingCodes
   );
@@ -403,11 +416,27 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     []
   );
 
+  // widget order
+  const renderWidgetOrderAriaLabel = useCallback(
+    (index?: number) => {
+      if (index == null) {
+        return "";
+      }
+      const loginIdKeyType = loginIdKeyTypes[index];
+      const messageID = widgetTitleMessageId[loginIdKeyType];
+      return renderToString(messageID);
+    },
+    [renderToString, loginIdKeyTypes]
+  );
+
+  const onWidgetSwapClicked = useCallback((index1: number, index2: number) => {
+    setLoginIdKeyTypes((prev) => swap(prev, index1, index2));
+  }, []);
+
   const screenState = useMemo(
     () => ({
-      usernameEnabled,
-      emailEnabled,
-      phoneNumberEnabled,
+      loginIdKeyState,
+      loginIdKeyTypes,
 
       excludedKeywords,
       isBlockReservedUsername,
@@ -422,9 +451,8 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
       selectedCallingCodes,
     }),
     [
-      usernameEnabled,
-      emailEnabled,
-      phoneNumberEnabled,
+      loginIdKeyTypes,
+      loginIdKeyState,
 
       excludedKeywords,
       isBlockReservedUsername,
@@ -460,20 +488,20 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     updateAppConfig(newAppConfig).catch(() => {});
   }, [screenState, rawAppConfig, updateAppConfig, initialState]);
 
-  return (
-    <div className={styles.root}>
-      <NavigationBlockerDialog blockNavigation={isFormModified} />
-      <div className={styles.widgetContainer}>
-        <ExtendableWidget
-          initiallyExtended={usernameEnabled}
-          extendable={true}
-          readOnly={!usernameEnabled}
-          extendButtonAriaLabelId={"AuthenticationWidget.usernameExtend"}
+  const renderUsernameWidget = useCallback(
+    (index: number) => {
+      return (
+        <WidgetWithOrdering
+          index={index}
+          itemCount={ALL_LOGIN_ID_KEYS.length}
+          onSwapClicked={onWidgetSwapClicked}
+          readOnly={!loginIdKeyState["username"]}
+          renderAriaLabel={renderWidgetOrderAriaLabel}
           HeaderComponent={
             <WidgetHeader
-              enabled={usernameEnabled}
+              enabled={loginIdKeyState["username"]}
               setEnabled={setUsernameEnabled}
-              titleId={"AuthenticationWidget.usernameTitle"}
+              titleId={widgetTitleMessageId["username"]}
             />
           }
         >
@@ -524,20 +552,44 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
               onChange={onIsAsciiOnlyChange}
             />
           </div>
-        </ExtendableWidget>
-      </div>
+        </WidgetWithOrdering>
+      );
+    },
+    [
+      renderToString,
+      onWidgetSwapClicked,
+      setUsernameEnabled,
+      renderWidgetOrderAriaLabel,
+      loginIdKeyState,
 
-      <div className={styles.widgetContainer}>
-        <ExtendableWidget
-          initiallyExtended={emailEnabled}
-          extendable={true}
-          readOnly={!emailEnabled}
-          extendButtonAriaLabelId={"AuthenticationWidget.emailAddressExtend"}
+      defaultSelectedExcludedKeywords,
+      isAsciiOnly,
+      isUsernameCaseSensitive,
+      isExcludeKeywords,
+      isBlockReservedUsername,
+      onExcludedKeywordsChange,
+      onIsAsciiOnlyChange,
+      onIsBlockReservedUsernameChange,
+      onIsExcludeKeywordsChange,
+      onIsUsernameCaseSensitiveChange,
+      onResolveExcludedKeywordSuggestions,
+    ]
+  );
+
+  const renderEmailWidget = useCallback(
+    (index: number) => {
+      return (
+        <WidgetWithOrdering
+          index={index}
+          itemCount={ALL_LOGIN_ID_KEYS.length}
+          onSwapClicked={onWidgetSwapClicked}
+          readOnly={!loginIdKeyState["email"]}
+          renderAriaLabel={renderWidgetOrderAriaLabel}
           HeaderComponent={
             <WidgetHeader
-              enabled={emailEnabled}
+              enabled={loginIdKeyState["email"]}
               setEnabled={setEmailEnabled}
-              titleId={"AuthenticationWidget.emailAddressTitle"}
+              titleId={widgetTitleMessageId["email"]}
             />
           }
         >
@@ -561,20 +613,39 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
             checked={isAllowPlus}
             onChange={onIsAllowPlusChange}
           />
-        </ExtendableWidget>
-      </div>
+        </WidgetWithOrdering>
+      );
+    },
+    [
+      renderToString,
+      onWidgetSwapClicked,
+      setEmailEnabled,
+      renderWidgetOrderAriaLabel,
+      loginIdKeyState,
 
-      <div className={styles.widgetContainer}>
-        <ExtendableWidget
-          initiallyExtended={phoneNumberEnabled}
-          extendable={true}
-          readOnly={!phoneNumberEnabled}
-          extendButtonAriaLabelId={"AuthenticationWidget.phoneNumberExtend"}
+      isAllowPlus,
+      isIgnoreDotLocal,
+      isEmailCaseSensitive,
+      onIsAllowPlusChange,
+      onIsIgnoreDotLocalChange,
+      onIsEmailCaseSensitiveChange,
+    ]
+  );
+
+  const renderPhoneWidget = useCallback(
+    (index: number) => {
+      return (
+        <WidgetWithOrdering
+          index={index}
+          itemCount={ALL_LOGIN_ID_KEYS.length}
+          onSwapClicked={onWidgetSwapClicked}
+          readOnly={!loginIdKeyState["phone"]}
+          renderAriaLabel={renderWidgetOrderAriaLabel}
           HeaderComponent={
             <WidgetHeader
-              enabled={phoneNumberEnabled}
+              enabled={loginIdKeyState["phone"]}
               setEnabled={setPhoneNumberEnabled}
-              titleId={"AuthenticationWidget.phoneNumberTitle"}
+              titleId={widgetTitleMessageId["phone"]}
             />
           }
         >
@@ -583,17 +654,56 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
             selectedCountryCallingCodes={selectedCallingCodes}
             onSelectedCountryCallingCodesChange={onSelectedCallingCodesChange}
           />
-        </ExtendableWidget>
-      </div>
-      <div className={styles.saveButtonContainer}>
-        <ButtonWithLoading
-          disabled={!isFormModified}
-          onClick={onSaveButtonClicked}
-          loading={updatingAppConfig}
-          labelId="save"
-          loadingLabelId="saving"
-        />
-      </div>
+        </WidgetWithOrdering>
+      );
+    },
+    [
+      onWidgetSwapClicked,
+      setPhoneNumberEnabled,
+      renderWidgetOrderAriaLabel,
+      loginIdKeyState,
+
+      selectedCallingCodes,
+      onSelectedCallingCodesChange,
+    ]
+  );
+
+  const loginIdWidgetRenderer: Record<
+    LoginIDKeyType,
+    (index: number) => React.ReactNode
+  > = {
+    username: renderUsernameWidget,
+    email: renderEmailWidget,
+    phone: renderPhoneWidget,
+  };
+
+  return (
+    <div className={styles.root}>
+      <NavigationBlockerDialog blockNavigation={isFormModified} />
+
+      <header className={styles.header}>
+        <Text>
+          <FormattedMessage id="AuthenticationScreen.login-id.title" />
+        </Text>
+        <Text>
+          <FormattedMessage id="AuthenticationScreen.login-id.order" />
+        </Text>
+      </header>
+
+      {loginIdKeyTypes.map((keyType, index) => (
+        <div key={keyType} className={styles.widgetContainer}>
+          {loginIdWidgetRenderer[keyType](index)}
+        </div>
+      ))}
+
+      <ButtonWithLoading
+        className={styles.saveButton}
+        disabled={!isFormModified}
+        onClick={onSaveButtonClicked}
+        loading={updatingAppConfig}
+        labelId="save"
+        loadingLabelId="saving"
+      />
     </div>
   );
 };
