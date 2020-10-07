@@ -141,7 +141,7 @@ const verifyButtonTheme = createTheme({
     neutralQuaternaryAlt: "#e1dfdd",
     neutralQuaternary: "#d0d0d0",
     neutralTertiaryAlt: "#c8c6c4",
-    neutralTertiary: "#595959",
+    neutralTertiary: "#aaaaaa",
     neutralSecondary: "#373737",
     neutralPrimaryAlt: "#2f2f2f",
     neutralPrimary: "#000000",
@@ -167,18 +167,18 @@ const defaultButtonTheme = createTheme({
     themeDark: "#f4f4f4",
     themeDarker: "#f8f8f8",
     neutralLighterAlt: "#3c3b39",
-    neutralLighter: "#444241",
+    neutralLighter: "#f3f2f1", // disable background
     neutralLight: "#514f4e",
     neutralQuaternaryAlt: "#595756",
     neutralQuaternary: "#5f5e5c",
     neutralTertiaryAlt: "#7a7977",
-    neutralTertiary: "#c8c8c8",
+    neutralTertiary: "#aaaaaa", // disable text
     neutralSecondary: "#d0d0d0",
     neutralPrimaryAlt: "#dadada",
     neutralPrimary: "#ffffff",
     neutralDark: "#f4f4f4",
     black: "#f8f8f8",
-    white: "#323130",
+    white: "#666666", // normal text
   },
 });
 

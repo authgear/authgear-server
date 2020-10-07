@@ -4,6 +4,7 @@ import React, {
   useContext,
   useState,
   useEffect,
+  createContext,
 } from "react";
 import cn from "classnames";
 import { useNavigate, useParams } from "react-router-dom";
@@ -108,6 +109,7 @@ interface IdentityListCellProps {
 }
 
 interface VerifyButtonProps {
+  disabled?: boolean;
   verified: boolean;
   verifying: boolean;
   toggleVerified: (verified: boolean) => void;
@@ -192,10 +194,18 @@ function checkIsClaimVerified(
   return matchedClaim != null;
 }
 
+const ConnectedIdentitiesMutationLoadingContext = createContext({
+  settingVerifiedStatus: false,
+  deletingIdentity: false,
+});
+
 const VerifyButton: React.FC<VerifyButtonProps> = function VerifyButton(
   props: VerifyButtonProps
 ) {
   const { verified, verifying, toggleVerified } = props;
+  const { settingVerifiedStatus } = useContext(
+    ConnectedIdentitiesMutationLoadingContext
+  );
 
   const onClickVerify = useCallback(() => {
     toggleVerified(true);
@@ -209,8 +219,8 @@ const VerifyButton: React.FC<VerifyButtonProps> = function VerifyButton(
     return (
       <ButtonWithLoading
         className={cn(styles.controlButton, styles.unverifyButton)}
+        disabled={settingVerifiedStatus}
         theme={defaultButtonTheme}
-        spinnerStyles={{ label: { color: "#666666" } }}
         onClick={onClickUnverify}
         labelId="unverify"
         loading={verifying}
@@ -221,6 +231,7 @@ const VerifyButton: React.FC<VerifyButtonProps> = function VerifyButton(
   return (
     <ButtonWithLoading
       className={cn(styles.controlButton, styles.verifyButton)}
+      disabled={settingVerifiedStatus}
       theme={verifyButtonTheme}
       onClick={onClickVerify}
       loading={verifying}
@@ -244,6 +255,9 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
     onRemoveClicked: _onRemoveClicked,
   } = props;
 
+  const { settingVerifiedStatus } = useContext(
+    ConnectedIdentitiesMutationLoadingContext
+  );
   const [verifying, setVerifying] = useState(false);
   const onRemoveClicked = useCallback(() => {
     _onRemoveClicked(identityID, identityName);
@@ -300,6 +314,7 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
       )}
       <DefaultButton
         className={cn(styles.controlButton, styles.removeButton)}
+        disabled={settingVerifiedStatus}
         theme={destructiveTheme}
         onClick={onRemoveClicked}
       >
@@ -325,6 +340,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
   } = useDeleteIdentityMutation();
   const {
     setVerifiedStatus,
+    loading: settingVerifiedStatus,
     error: setVerifiedStatusError,
   } = useSetVerifiedStatusMutation(userID);
 
@@ -560,116 +576,120 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
   }, [renderToString, navigate, availableLoginIdIdentities]);
 
   return (
-    <div className={styles.root}>
-      <Dialog
-        hidden={!isConfirmationDialogVisible}
-        title={
-          <FormattedMessage id="UserDetails.connected-identities.confirm-remove-identity-title" />
-        }
-        subText={renderToString(
-          "UserDetails.connected-identities.confirm-remove-identity-message",
-          { identityName: confirmationDialogData.identityName }
-        )}
-        onDismiss={onDismissConfirmationDialog}
-      >
-        <DialogFooter>
-          <ButtonWithLoading
-            labelId="confirm"
-            onClick={onConfirmRemoveIdentity}
-            loading={deletingIdentity}
-          />
-        </DialogFooter>
-      </Dialog>
-      <Dialog
-        hidden={!isErrorDialogVisible}
-        title={
-          <FormattedMessage id="UserDetails.connected-identities.error-dialog-title" />
-        }
-        subText={errorDialogData.message}
-        onDismiss={onDismissErrorDialog}
-      >
-        <DialogFooter>
-          <PrimaryButton onClick={onDismissErrorDialog}>
-            <FormattedMessage id="ok" />
-          </PrimaryButton>
-        </DialogFooter>
-      </Dialog>
-      <section className={styles.headerSection}>
-        <Text as="h2" className={styles.header}>
-          <FormattedMessage id="UserDetails.connected-identities.title" />
-        </Text>
-        <PrimaryButton
-          disabled={addIdentitiesMenuProps.items.length === 0}
-          iconProps={{ iconName: "CirclePlus" }}
-          menuProps={addIdentitiesMenuProps}
-          styles={{
-            menuIcon: { paddingLeft: "3px" },
-            icon: { paddingRight: "3px" },
-          }}
+    <ConnectedIdentitiesMutationLoadingContext.Provider
+      value={{ settingVerifiedStatus, deletingIdentity }}
+    >
+      <div className={styles.root}>
+        <Dialog
+          hidden={!isConfirmationDialogVisible}
+          title={
+            <FormattedMessage id="UserDetails.connected-identities.confirm-remove-identity-title" />
+          }
+          subText={renderToString(
+            "UserDetails.connected-identities.confirm-remove-identity-message",
+            { identityName: confirmationDialogData.identityName }
+          )}
+          onDismiss={onDismissConfirmationDialog}
         >
-          <FormattedMessage id="UserDetails.connected-identities.add-identity" />
-        </PrimaryButton>
-      </section>
-      <section className={styles.identityLists}>
-        {identityLists.oauth.length > 0 && (
-          <>
-            <Text as="h3" className={styles.subHeader}>
-              <FormattedMessage id="UserDetails.connected-identities.oauth" />
-            </Text>
-            <List
-              className={styles.list}
-              items={identityLists.oauth}
-              onRenderCell={onRenderIdentityCell}
+          <DialogFooter>
+            <ButtonWithLoading
+              labelId="confirm"
+              onClick={onConfirmRemoveIdentity}
+              loading={deletingIdentity}
             />
-          </>
-        )}
-        {identityLists.email.length > 0 && (
-          <>
-            <Text as="h3" className={styles.subHeader}>
-              <FormattedMessage id="UserDetails.connected-identities.email" />
-            </Text>
-            <List
-              className={styles.list}
-              items={identityLists.email}
-              onRenderCell={onRenderIdentityCell}
-            />
-          </>
-        )}
-        {identityLists.phone.length > 0 && (
-          <>
-            <Text as="h3" className={styles.subHeader}>
-              <FormattedMessage id="UserDetails.connected-identities.phone" />
-            </Text>
-            <List
-              className={styles.list}
-              items={identityLists.phone}
-              onRenderCell={onRenderIdentityCell}
-            />
-          </>
-        )}
-        {identityLists.username.length > 0 && (
-          <>
-            <Text as="h3" className={styles.subHeader}>
-              <FormattedMessage id="UserDetails.connected-identities.username" />
-            </Text>
-            <List
-              className={styles.list}
-              items={identityLists.username}
-              onRenderCell={onRenderIdentityCell}
-            />
-          </>
-        )}
-      </section>
-      {/* TODO: implement primary identities mutation
-      <Text as="h2" className={styles.primaryIdentitiesTitle}>
-        <FormattedMessage id="UserDetails.connected-identities.primary-identities.title" />
-      </Text>
-      <PrimaryIdentitiesSelectionForm
-        className={styles.primaryIdentitiesForm}
-        identityLists={identityLists}
-      />
-      */}
-    </div>
+          </DialogFooter>
+        </Dialog>
+        <Dialog
+          hidden={!isErrorDialogVisible}
+          title={
+            <FormattedMessage id="UserDetails.connected-identities.error-dialog-title" />
+          }
+          subText={errorDialogData.message}
+          onDismiss={onDismissErrorDialog}
+        >
+          <DialogFooter>
+            <PrimaryButton onClick={onDismissErrorDialog}>
+              <FormattedMessage id="ok" />
+            </PrimaryButton>
+          </DialogFooter>
+        </Dialog>
+        <section className={styles.headerSection}>
+          <Text as="h2" className={styles.header}>
+            <FormattedMessage id="UserDetails.connected-identities.title" />
+          </Text>
+          <PrimaryButton
+            disabled={addIdentitiesMenuProps.items.length === 0}
+            iconProps={{ iconName: "CirclePlus" }}
+            menuProps={addIdentitiesMenuProps}
+            styles={{
+              menuIcon: { paddingLeft: "3px" },
+              icon: { paddingRight: "3px" },
+            }}
+          >
+            <FormattedMessage id="UserDetails.connected-identities.add-identity" />
+          </PrimaryButton>
+        </section>
+        <section className={styles.identityLists}>
+          {identityLists.oauth.length > 0 && (
+            <>
+              <Text as="h3" className={styles.subHeader}>
+                <FormattedMessage id="UserDetails.connected-identities.oauth" />
+              </Text>
+              <List
+                className={styles.list}
+                items={identityLists.oauth}
+                onRenderCell={onRenderIdentityCell}
+              />
+            </>
+          )}
+          {identityLists.email.length > 0 && (
+            <>
+              <Text as="h3" className={styles.subHeader}>
+                <FormattedMessage id="UserDetails.connected-identities.email" />
+              </Text>
+              <List
+                className={styles.list}
+                items={identityLists.email}
+                onRenderCell={onRenderIdentityCell}
+              />
+            </>
+          )}
+          {identityLists.phone.length > 0 && (
+            <>
+              <Text as="h3" className={styles.subHeader}>
+                <FormattedMessage id="UserDetails.connected-identities.phone" />
+              </Text>
+              <List
+                className={styles.list}
+                items={identityLists.phone}
+                onRenderCell={onRenderIdentityCell}
+              />
+            </>
+          )}
+          {identityLists.username.length > 0 && (
+            <>
+              <Text as="h3" className={styles.subHeader}>
+                <FormattedMessage id="UserDetails.connected-identities.username" />
+              </Text>
+              <List
+                className={styles.list}
+                items={identityLists.username}
+                onRenderCell={onRenderIdentityCell}
+              />
+            </>
+          )}
+        </section>
+        {/* TODO: implement primary identities mutation
+        <Text as="h2" className={styles.primaryIdentitiesTitle}>
+          <FormattedMessage id="UserDetails.connected-identities.primary-identities.title" />
+        </Text>
+        <PrimaryIdentitiesSelectionForm
+          className={styles.primaryIdentitiesForm}
+          identityLists={identityLists}
+        />
+        */}
+      </div>
+    </ConnectedIdentitiesMutationLoadingContext.Provider>
   );
 };
 
