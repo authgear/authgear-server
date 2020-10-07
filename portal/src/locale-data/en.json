@@ -261,6 +261,7 @@
   "EditOAuthClientScreen.client-not-found": "Client ID {clientID} is not found",
 
   "ModifyOAuthClientForm.name-label": "Name",
+  "ModifyOAuthClientForm.name.required-error": "Client name is required",
   "ModifyOAuthClientForm.acces-token-lifetime-label": "Access Token Lifetime (in seconds)",
   "ModifyOAuthClientForm.refresh-token-lifetime-label": "Refresh Token Lifetime (in seconds)",
   "ModifyOAuthClientForm.redirect-uris-label": "Redirect URIs",

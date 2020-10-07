@@ -19,6 +19,7 @@ interface ModifyOAuthClientFormProps {
 }
 
 function constructClientConfigState(
+  clientName: string,
   clientId: string,
   accessTokenLifetime: string,
   refreshTokenLifetime: string,
@@ -29,7 +30,11 @@ function constructClientConfigState(
   const accessTokenLifetimeSec = Number(accessTokenLifetime);
   const refreshTokenLifetimeSec = Number(refreshTokenLifetime);
 
+  const trimmedClientName = clientName.trim();
+  const name = trimmedClientName === "" ? undefined : trimmedClientName;
+
   return {
+    name,
     client_id: clientId,
     redirect_uris: redirectUris,
     post_logout_redirect_uris:
@@ -59,7 +64,9 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
 
   const { renderToString } = useContext(Context);
 
-  const { value: clientName, onChange: onClientNameChange } = useTextField("");
+  const { value: clientName, onChange: onClientNameChange } = useTextField(
+    clientConfig.name!
+  );
 
   const {
     value: accessTokenLifetime,
@@ -91,6 +98,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
   } = useTagPickerWithNewTags(clientConfig.post_logout_redirect_uris ?? []);
 
   const errorMessageMap = useMemo(() => {
+    const clientNameErrorMessages: string[] = [];
     const redirectUrisErrorMessages: string[] = [];
     const postLogoutRedirectUrisErrorMessages: string[] = [];
     const violations = parseError(updateAppConfigError);
@@ -124,12 +132,20 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
             );
           }
           break;
+        case "required":
+          if (violation.missingField.includes("name")) {
+            clientNameErrorMessages.push(
+              renderToString("ModifyOAuthClientForm.name.required-error")
+            );
+          }
+          break;
         default:
           break;
       }
     }
 
     return {
+      clientName: defaultFormatErrorMessageList(clientNameErrorMessages),
       redirectUris: defaultFormatErrorMessageList(redirectUrisErrorMessages),
       postLogoutRedirectUris: defaultFormatErrorMessageList(
         postLogoutRedirectUrisErrorMessages
@@ -140,6 +156,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
   useEffect(() => {
     onClientConfigChange(
       constructClientConfigState(
+        clientName,
         clientConfig.client_id,
         accessTokenLifetime,
         refreshTokenLifetime,
@@ -151,6 +168,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
     clientConfig.client_id,
     onClientConfigChange,
 
+    clientName,
     accessTokenLifetime,
     refreshTokenLifetime,
     redirectUris,
@@ -165,6 +183,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
         value={clientName}
         onChange={onClientNameChange}
         required={true}
+        errorMessage={errorMessageMap.clientName}
       />
       <TextField
         className={styles.inputField}
