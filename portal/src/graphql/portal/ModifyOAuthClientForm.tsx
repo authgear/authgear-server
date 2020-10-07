@@ -34,7 +34,11 @@ function constructClientConfigState(
     redirect_uris: redirectUris,
     post_logout_redirect_uris:
       postLogoutRedirectUris.length > 0 ? postLogoutRedirectUris : undefined,
-    grant_types: ["authorization_code", "refresh_token"],
+    grant_types: [
+      "authorization_code",
+      "refresh_token",
+      "urn:authgear:params:oauth:grant-type:anonymous-request",
+    ],
     response_types: ["code", "none"],
     access_token_lifetime_seconds:
       accessTokenLifetimeSec > 0 ? accessTokenLifetimeSec : undefined,
