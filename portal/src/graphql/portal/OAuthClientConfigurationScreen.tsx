@@ -99,8 +99,7 @@ const ConfirmRemoveOAuthClientDialog: React.FC<ConfirmRemoveOAuthClientDialogPro
 
   const onConfirm = useCallback(() => {
     removeOAuthClient(clientId);
-    onDismiss();
-  }, [clientId, removeOAuthClient, onDismiss]);
+  }, [clientId, removeOAuthClient]);
 
   return (
     <Dialog
@@ -229,6 +228,21 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
     );
   }, [showNotification, renderToString]);
 
+  const onRemoveClientClick = useCallback(
+    (clientId: string, clientName: string) => {
+      setConfirmRemoveDialogData({
+        clientId,
+        clientName,
+      });
+      setConfirmRemoveDialogVisible(true);
+    },
+    []
+  );
+
+  const dismissConfirmRemoveDialog = useCallback(() => {
+    setConfirmRemoveDialogVisible(false);
+  }, []);
+
   const removeOAuthClient = useCallback(
     (clientId: string) => {
       if (rawAppConfig == null) {
@@ -248,25 +262,14 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
         draftConfig.oauth!.clients = updatedClients;
       });
 
-      updateAppConfig(newAppConfig).catch(() => {});
+      updateAppConfig(newAppConfig)
+        .catch(() => {})
+        .finally(() => {
+          dismissConfirmRemoveDialog();
+        });
     },
-    [rawAppConfig, updateAppConfig]
+    [rawAppConfig, updateAppConfig, dismissConfirmRemoveDialog]
   );
-
-  const onRemoveClientClick = useCallback(
-    (clientId: string, clientName: string) => {
-      setConfirmRemoveDialogData({
-        clientId,
-        clientName,
-      });
-      setConfirmRemoveDialogVisible(true);
-    },
-    []
-  );
-
-  const dismissConfirmRemoveDialog = useCallback(() => {
-    setConfirmRemoveDialogVisible(false);
-  }, []);
 
   const onRenderOAuthClientColumns = useCallback(
     (item?: OAuthClientListItem, _index?: number, column?: IColumn) => {
