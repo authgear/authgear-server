@@ -59,7 +59,8 @@ oauth:
   clients:
     # Create a client for the portal.
     # Since we assume the cookie is shared, there is no grant nor response.
-    - client_id: portal
+    - name: Portal
+      client_id: portal
       # Note that the trailing slash is very important here
       # URIs are compared byte by byte.
       redirect_uris:
