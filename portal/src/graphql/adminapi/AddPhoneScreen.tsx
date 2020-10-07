@@ -6,7 +6,7 @@ import React, {
   useState,
 } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Dropdown, Label, TextField, Toggle } from "@fluentui/react";
+import { Dropdown, Label, TextField } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
@@ -58,14 +58,6 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
     },
     [_onPhoneChange]
   );
-  const [verified, setVerified] = useState(false);
-
-  const onVerifiedToggled = useCallback((_event: any, checked?: boolean) => {
-    if (checked == null) {
-      return;
-    }
-    setVerified(checked);
-  }, []);
 
   const countryCodeConfig = useMemo(() => {
     const countryCodeConfig = appConfig?.ui?.country_calling_code;
@@ -94,14 +86,13 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
     () => ({
       countryCode,
       phone,
-      verified,
     }),
-    [countryCode, phone, verified]
+    [countryCode, phone]
   );
 
   const isFormModified = useMemo(() => {
     return !deepEqual(
-      { countryCode: countryCodeConfig.default, phone: "", verified: false },
+      { countryCode: countryCodeConfig.default, phone: "" },
       screenState
     );
   }, [screenState, countryCodeConfig.default]);
@@ -175,13 +166,6 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
           errorMessage={errorMessage.phoneNumber}
         />
       </section>
-      <Toggle
-        className={styles.verified}
-        label={<FormattedMessage id="verified" />}
-        inlineLabel={true}
-        checked={verified}
-        onChange={onVerifiedToggled}
-      />
       <ButtonWithLoading
         onClick={onAddClicked}
         disabled={!isFormModified}

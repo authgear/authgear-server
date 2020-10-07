@@ -12,6 +12,7 @@
 
 .phoneNumberFields {
   display: grid;
+  margin-bottom: 20px;
   grid-template:
     "label    label"
     "code     phone"
@@ -29,8 +30,4 @@
 .phone {
   grid-area: phone;
   margin-left: 10px;
-}
-
-.verified {
-  margin: 25px 0;
 }
