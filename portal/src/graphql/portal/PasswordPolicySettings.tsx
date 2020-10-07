@@ -63,7 +63,7 @@ function constructStateFromAppConfig(
   const historySize = passwordPolicy?.history_size ?? 0;
 
   return {
-    minLength: passwordPolicy?.min_length ?? 0,
+    minLength: passwordPolicy?.min_length ?? NaN,
     isDigitRequired: !!passwordPolicy?.digit_required,
     isLowercaseRequired: !!passwordPolicy?.lowercase_required,
     isUppercaseRequired: !!passwordPolicy?.uppercase_required,
@@ -90,12 +90,13 @@ function constructAppConfigFromState(
 
     const passwordPolicy = draftConfig.authenticator.password.policy;
 
-    setFieldIfChanged(
-      passwordPolicy,
-      "min_length",
-      initialScreenState.minLength,
-      screenState.minLength
-    );
+    if (initialScreenState.minLength !== screenState.minLength) {
+      if (Number.isNaN(screenState.minLength) || screenState.minLength === 0) {
+        passwordPolicy.min_length = undefined;
+      } else {
+        passwordPolicy.min_length = screenState.minLength;
+      }
+    }
 
     setFieldIfChanged(
       passwordPolicy,
@@ -214,6 +215,7 @@ const PasswordPolicySettings: React.FC<PasswordPolicySettingsProps> = function P
     if (value === undefined) {
       return;
     }
+    // empty string parse to NaN
     setState((state) => ({
       ...state,
       minLength: parseInt(value, 10),
