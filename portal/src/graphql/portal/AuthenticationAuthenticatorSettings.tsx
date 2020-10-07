@@ -347,15 +347,14 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
         />
       </div>
 
-      <div className={styles.saveButtonContainer}>
-        <ButtonWithLoading
-          disabled={!isFormModified}
-          onClick={onSaveButtonClicked}
-          loading={updatingAppConfig}
-          labelId="save"
-          loadingLabelId="saving"
-        />
-      </div>
+      <ButtonWithLoading
+        className={styles.saveButton}
+        disabled={!isFormModified}
+        onClick={onSaveButtonClicked}
+        loading={updatingAppConfig}
+        labelId="save"
+        loadingLabelId="saving"
+      />
     </div>
   );
 };

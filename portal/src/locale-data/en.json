@@ -157,6 +157,7 @@
 
   "AuthenticationScreen.title": "Authentication",
   "AuthenticationScreen.login-id.title": "Login ID",
+  "AuthenticationScreen.login-id.order": "Order",
   "AuthenticationScreen.authenticator.title": "Authenticator",
 
   "AuthenticationWidget.usernameTitle": "Username",

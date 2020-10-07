@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import produce from "immer";
-import { Checkbox, Toggle, TagPicker, Label } from "@fluentui/react";
+import { Checkbox, Toggle, TagPicker, Label, Text } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
@@ -681,21 +681,29 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     <div className={styles.root}>
       <NavigationBlockerDialog blockNavigation={isFormModified} />
 
+      <header className={styles.header}>
+        <Text>
+          <FormattedMessage id="AuthenticationScreen.login-id.title" />
+        </Text>
+        <Text>
+          <FormattedMessage id="AuthenticationScreen.login-id.order" />
+        </Text>
+      </header>
+
       {loginIdKeyTypes.map((keyType, index) => (
         <div key={keyType} className={styles.widgetContainer}>
           {loginIdWidgetRenderer[keyType](index)}
         </div>
       ))}
 
-      <div className={styles.saveButtonContainer}>
-        <ButtonWithLoading
-          disabled={!isFormModified}
-          onClick={onSaveButtonClicked}
-          loading={updatingAppConfig}
-          labelId="save"
-          loadingLabelId="saving"
-        />
-      </div>
+      <ButtonWithLoading
+        className={styles.saveButton}
+        disabled={!isFormModified}
+        onClick={onSaveButtonClicked}
+        loading={updatingAppConfig}
+        labelId="save"
+        loadingLabelId="saving"
+      />
     </div>
   );
 };
