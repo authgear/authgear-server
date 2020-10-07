@@ -198,7 +198,7 @@ interface ForgotPasswordConfig {
 }
 
 // OAuthConfig
-interface OAuthClientConfig {
+export interface OAuthClientConfig {
   client_id: string;
   client_uri?: string;
   redirect_uris: string[];
@@ -210,7 +210,7 @@ interface OAuthClientConfig {
 }
 
 interface OAuthConfig {
-  clients: OAuthClientConfig[];
+  clients?: OAuthClientConfig[];
 }
 
 // PortalAPIAppConfig

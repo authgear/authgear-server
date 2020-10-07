@@ -1,0 +1,32 @@
+.root {
+  min-height: 100%;
+  margin: 20px;
+}
+
+.form {
+  margin: 0 20px 50px;
+}
+
+.modifyClientForm {
+  width: 750px;
+  margin-bottom: 30px;
+}
+
+.dialogClientId {
+  display: flex;
+  width: 230px;
+  height: 35px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 5px 10px 10px;
+  margin-bottom: 25px;
+  background-color: #edebe9;
+}
+
+.dialogCopyIcon {
+  padding: 0;
+}
+
+.copyButtonCallout {
+  padding: 10px;
+}

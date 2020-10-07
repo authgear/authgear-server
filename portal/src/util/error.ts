@@ -36,8 +36,23 @@ interface FormatErrorCause {
   kind: "format";
 }
 
+interface MinItemsErrorCauseDetails {
+  actual: number;
+  expected: number;
+}
+
+interface MinItemsErrorCause {
+  details: MinItemsErrorCauseDetails;
+  location: string;
+  kind: "minItems";
+}
+
 // union type of cause details, depend on kind
-type ErrorCause = RequiredErrorCause | GeneralErrorCause | FormatErrorCause;
+type ErrorCause =
+  | RequiredErrorCause
+  | GeneralErrorCause
+  | FormatErrorCause
+  | MinItemsErrorCause;
 
 interface ValidationErrorInfo {
   causes: ErrorCause[];
@@ -123,6 +138,12 @@ function extractViolationFromErrorCause(cause: ErrorCause): Violation | null {
         kind: cause.kind,
         location: cause.location,
         detail: cause.details.format,
+      };
+    case "minItems":
+      return {
+        kind: cause.kind,
+        location: cause.location,
+        minItems: cause.details.expected,
       };
     default:
       return null;

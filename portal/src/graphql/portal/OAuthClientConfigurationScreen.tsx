@@ -18,6 +18,7 @@ import ShowLoading from "../../ShowLoading";
 import { PortalAPIAppConfig } from "../../types";
 import { useAppConfigQuery } from "./query/appConfigQuery";
 import { formatDatetime } from "../../util/formatDatetime";
+import { copyToClipboard } from "../../util/clipboard";
 
 import styles from "./OAuthClientConfigurationScreen.module.scss";
 
@@ -26,11 +27,9 @@ interface OAuthClientConfigurationProps {
   showNotification: (msg: string) => void;
 }
 
-type ApplicationType = "ios" | "android" | "web-app";
 interface OAuthClientListItem {
   name: string;
   creationDate: string;
-  applicationType: string;
   clientId: string;
 }
 
@@ -45,12 +44,6 @@ const ADD_CLIENT_BUTTON_STYLES = {
 };
 
 const ICON_BUTTON_STYLES = { flexContainer: { color: "#504e4c" } };
-
-const applicationTypeMessageID: Record<ApplicationType, string> = {
-  ios: "OAuthClientConfiguration.application-type.ios",
-  android: "OAuthClientConfiguration.application-type.android",
-  "web-app": "OAuthClientConfiguration.application-type.web-app",
-};
 
 function makeOAuthClientListColumns(
   renderToString: (messageId: string) => string
@@ -69,16 +62,6 @@ function makeOAuthClientListColumns(
       fieldName: "creationDate",
       name: renderToString(
         "OAuthClientConfiguration.client-list.creation-date"
-      ),
-      minWidth: 150,
-      className: styles.clientListColumn,
-    },
-
-    {
-      key: "applicationType",
-      fieldName: "applicationType",
-      name: renderToString(
-        "OAuthClientConfiguration.client-list.application-type"
       ),
       minWidth: 150,
       className: styles.clientListColumn,
@@ -104,18 +87,7 @@ const OAuthClientIdCell: React.FC<OAuthClientIdCellProps> = function OAuthClient
   }, [navigate, clientId]);
 
   const onCopyClick = useCallback(() => {
-    const el = document.createElement("textarea");
-    el.value = clientId;
-    // Set non-editable to avoid focus and move outside of view
-    el.setAttribute("readonly", "");
-    el.setAttribute("style", "position: absolute; left: -9999px");
-    document.body.appendChild(el);
-    // Select text inside element
-    el.select();
-    el.setSelectionRange(0, 100); // for mobile device
-    document.execCommand("copy");
-    // Remove temporary element
-    document.body.removeChild(el);
+    copyToClipboard(clientId);
 
     // Invoke callback
     onCopyComplete();
@@ -171,12 +143,10 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
       return {
         name: client.client_id,
         creationDate: creationDateString,
-        // TODO: replace with actual data
-        applicationType: renderToString(applicationTypeMessageID["ios"]),
         clientId: client.client_id,
       };
     });
-  }, [oauthClients, locale, renderToString]);
+  }, [oauthClients, locale]);
 
   const onAddOAuthClientClick = useCallback(() => {
     navigate("./add");
