@@ -11,7 +11,8 @@ import produce from "immer";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
-import DetailsListWithOrdering, { swap } from "../../DetailsListWithOrdering";
+import DetailsListWithOrdering from "../../DetailsListWithOrdering";
+import { swap } from "../../OrderButtons";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import {

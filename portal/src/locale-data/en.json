@@ -272,8 +272,9 @@
   "PaginationWidget.Page": "Go to page {PAGE}",
 
   "DetailsListWithOrdering.order": "Order",
-  "DetailsListWithOrdering.move-up": "Move {key} up",
-  "DetailsListWithOrdering.move-down": "Move {key} down",
+
+  "OrderButtons.move-up": "Move {key} up",
+  "OrderButtons.move-down": "Move {key} down",
 
   "NavigationBlockerDialog.title": "Discard all changes?",
   "NavigationBlockerDialog.content": "Are you sure you want to discard all changes made and leave this page?",
