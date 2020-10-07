@@ -30,6 +30,7 @@ var _ = Schema.Add("OAuthClientConfig", `
 	"properties": {
 		"client_id": { "type": "string" },
 		"client_uri": { "type": "string", "format": "uri" },
+		"name": { "type": "string" },
 		"redirect_uris": {
 			"type": "array",
 			"items": { "type": "string", "format": "uri" },
