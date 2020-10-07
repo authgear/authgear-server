@@ -12,7 +12,12 @@
 }
 
 .clientIdField {
+  display: flex;
   margin-bottom: 15px;
   width: 500px;
-  pointer-events: none;
+  background-color: #f3f2f1;
+  padding: 0 8px;
+  height: 33px;
+  border-radius: 2px;
+  align-items: center;
 }

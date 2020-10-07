@@ -1,15 +1,9 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import deepEqual from "deep-equal";
 import produce from "immer";
-import { Text, TextField } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { Label, Text } from "@fluentui/react";
+import { FormattedMessage } from "@oursky/react-messageformat";
 
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import ShowError from "../../ShowError";
@@ -33,7 +27,6 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> = function EditOAu
   props: EditOAuthClientFormProps
 ) {
   const { clientConfig: clientConfigProps, rawAppConfig } = props;
-  const { renderToString } = useContext(Context);
   const { appID } = useParams();
   const navigate = useNavigate();
 
@@ -100,12 +93,11 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> = function EditOAu
       <NavigationBlockerDialog
         blockNavigation={!submittedForm && isFormModified}
       />
-      <TextField
-        className={styles.clientIdField}
-        readOnly={true}
-        value={clientConfig.client_id}
-        label={renderToString("EditOAuthClientScreen.client-id")}
-      />
+      <Label>
+        <FormattedMessage id="EditOAuthClientScreen.client-id" />
+      </Label>
+      <Text className={styles.clientIdField}>{clientConfig.client_id}</Text>
+
       <ModifyOAuthClientForm
         className={styles.modifyClientForm}
         clientConfig={clientConfig}
