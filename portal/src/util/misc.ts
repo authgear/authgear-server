@@ -14,6 +14,21 @@ export function setFieldIfChanged<
   }
 }
 
+export function setNumericFieldIfChanged<M, K extends keyof M>(
+  map: Partial<M>,
+  key: K,
+  initialValue: M[K] extends number ? M[K] : never,
+  value: M[K] extends number ? M[K] : never
+): void {
+  if (initialValue !== value) {
+    if (value === 0) {
+      map[key] = undefined;
+    } else {
+      map[key] = value;
+    }
+  }
+}
+
 export function setFieldIfListNonEmpty<T, K extends keyof T>(
   map: T,
   field: K,
