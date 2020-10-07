@@ -4,7 +4,8 @@ import { Checkbox, Toggle, TagPicker, Label } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
-import ExtendableWidget from "../../ExtendableWidget";
+import WidgetWithOrdering from "../../WidgetWithOrdering";
+import { swap } from "../../OrderButtons";
 import CheckboxWithContent from "../../CheckboxWithContent";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
@@ -64,6 +65,12 @@ interface AuthenticationLoginIDSettingsState {
 
 const ALL_LOGIN_ID_KEYS: LoginIDKeyType[] = ["username", "email", "phone"];
 const switchStyle = { root: { margin: "0" } };
+
+const widgetTitleMessageId: Record<LoginIDKeyType, string> = {
+  username: "AuthenticationWidget.usernameTitle",
+  email: "AuthenticationWidget.emailAddressTitle",
+  phone: "AuthenticationWidget.phoneNumberTitle",
+};
 
 const WidgetHeader: React.FC<WidgetHeaderProps> = function (
   props: WidgetHeaderProps
@@ -409,6 +416,23 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     []
   );
 
+  // widget order
+  const renderWidgetOrderAriaLabel = useCallback(
+    (index?: number) => {
+      if (index == null) {
+        return "";
+      }
+      const loginIdKeyType = loginIdKeyTypes[index];
+      const messageID = widgetTitleMessageId[loginIdKeyType];
+      return renderToString(messageID);
+    },
+    [renderToString, loginIdKeyTypes]
+  );
+
+  const onWidgetSwapClicked = useCallback((index1: number, index2: number) => {
+    setLoginIdKeyTypes((prev) => swap(prev, index1, index2));
+  }, []);
+
   const screenState = useMemo(
     () => ({
       loginIdKeyState,
@@ -464,135 +488,202 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     updateAppConfig(newAppConfig).catch(() => {});
   }, [screenState, rawAppConfig, updateAppConfig, initialState]);
 
-  const loginIdWidgets: Record<LoginIDKeyType, React.ReactNode> = {
-    username: (
-      <ExtendableWidget
-        initiallyExtended={loginIdKeyState["username"]}
-        extendable={true}
-        readOnly={!loginIdKeyState["username"]}
-        extendButtonAriaLabelId={"AuthenticationWidget.usernameExtend"}
-        HeaderComponent={
-          <WidgetHeader
-            enabled={loginIdKeyState["username"]}
-            setEnabled={setUsernameEnabled}
-            titleId={"AuthenticationWidget.usernameTitle"}
-          />
-        }
-      >
-        <div className={styles.usernameWidgetContent}>
-          <Checkbox
-            label={renderToString("AuthenticationWidget.blockReservedUsername")}
-            checked={isBlockReservedUsername}
-            onChange={onIsBlockReservedUsernameChange}
-            className={styles.checkboxWithContent}
-          />
-
-          <CheckboxWithContent
-            ariaLabel={renderToString("AuthenticationWidget.excludeKeywords")}
-            checked={isExcludeKeywords}
-            onChange={onIsExcludeKeywordsChange}
-            className={styles.checkboxWithContent}
-          >
-            <Label className={styles.checkboxLabel}>
-              <FormattedMessage id="AuthenticationWidget.excludeKeywords" />
-            </Label>
-            <TagPicker
-              inputProps={{
-                "aria-label": renderToString(
-                  "AuthenticationWidget.excludeKeywords"
-                ),
-              }}
-              className={styles.widgetInputField}
-              disabled={!isExcludeKeywords}
-              onChange={onExcludedKeywordsChange}
-              defaultSelectedItems={defaultSelectedExcludedKeywords}
-              onResolveSuggestions={onResolveExcludedKeywordSuggestions}
+  const renderUsernameWidget = useCallback(
+    (index: number) => {
+      return (
+        <WidgetWithOrdering
+          index={index}
+          itemCount={ALL_LOGIN_ID_KEYS.length}
+          onSwapClicked={onWidgetSwapClicked}
+          readOnly={!loginIdKeyState["username"]}
+          renderAriaLabel={renderWidgetOrderAriaLabel}
+          HeaderComponent={
+            <WidgetHeader
+              enabled={loginIdKeyState["username"]}
+              setEnabled={setUsernameEnabled}
+              titleId={widgetTitleMessageId["username"]}
             />
-          </CheckboxWithContent>
+          }
+        >
+          <div className={styles.usernameWidgetContent}>
+            <Checkbox
+              label={renderToString(
+                "AuthenticationWidget.blockReservedUsername"
+              )}
+              checked={isBlockReservedUsername}
+              onChange={onIsBlockReservedUsernameChange}
+              className={styles.checkboxWithContent}
+            />
 
+            <CheckboxWithContent
+              ariaLabel={renderToString("AuthenticationWidget.excludeKeywords")}
+              checked={isExcludeKeywords}
+              onChange={onIsExcludeKeywordsChange}
+              className={styles.checkboxWithContent}
+            >
+              <Label className={styles.checkboxLabel}>
+                <FormattedMessage id="AuthenticationWidget.excludeKeywords" />
+              </Label>
+              <TagPicker
+                inputProps={{
+                  "aria-label": renderToString(
+                    "AuthenticationWidget.excludeKeywords"
+                  ),
+                }}
+                className={styles.widgetInputField}
+                disabled={!isExcludeKeywords}
+                onChange={onExcludedKeywordsChange}
+                defaultSelectedItems={defaultSelectedExcludedKeywords}
+                onResolveSuggestions={onResolveExcludedKeywordSuggestions}
+              />
+            </CheckboxWithContent>
+
+            <Checkbox
+              label={renderToString("AuthenticationWidget.caseSensitive")}
+              className={styles.widgetCheckbox}
+              checked={isUsernameCaseSensitive}
+              onChange={onIsUsernameCaseSensitiveChange}
+            />
+
+            <Checkbox
+              label={renderToString("AuthenticationWidget.asciiOnly")}
+              className={styles.widgetCheckbox}
+              checked={isAsciiOnly}
+              onChange={onIsAsciiOnlyChange}
+            />
+          </div>
+        </WidgetWithOrdering>
+      );
+    },
+    [
+      renderToString,
+      onWidgetSwapClicked,
+      setUsernameEnabled,
+      renderWidgetOrderAriaLabel,
+      loginIdKeyState,
+
+      defaultSelectedExcludedKeywords,
+      isAsciiOnly,
+      isUsernameCaseSensitive,
+      isExcludeKeywords,
+      isBlockReservedUsername,
+      onExcludedKeywordsChange,
+      onIsAsciiOnlyChange,
+      onIsBlockReservedUsernameChange,
+      onIsExcludeKeywordsChange,
+      onIsUsernameCaseSensitiveChange,
+      onResolveExcludedKeywordSuggestions,
+    ]
+  );
+
+  const renderEmailWidget = useCallback(
+    (index: number) => {
+      return (
+        <WidgetWithOrdering
+          index={index}
+          itemCount={ALL_LOGIN_ID_KEYS.length}
+          onSwapClicked={onWidgetSwapClicked}
+          readOnly={!loginIdKeyState["email"]}
+          renderAriaLabel={renderWidgetOrderAriaLabel}
+          HeaderComponent={
+            <WidgetHeader
+              enabled={loginIdKeyState["email"]}
+              setEnabled={setEmailEnabled}
+              titleId={widgetTitleMessageId["email"]}
+            />
+          }
+        >
           <Checkbox
             label={renderToString("AuthenticationWidget.caseSensitive")}
             className={styles.widgetCheckbox}
-            checked={isUsernameCaseSensitive}
-            onChange={onIsUsernameCaseSensitiveChange}
+            checked={isEmailCaseSensitive}
+            onChange={onIsEmailCaseSensitiveChange}
           />
 
           <Checkbox
-            label={renderToString("AuthenticationWidget.asciiOnly")}
+            label={renderToString("AuthenticationWidget.ignoreDotLocal")}
             className={styles.widgetCheckbox}
-            checked={isAsciiOnly}
-            onChange={onIsAsciiOnlyChange}
+            checked={isIgnoreDotLocal}
+            onChange={onIsIgnoreDotLocalChange}
           />
-        </div>
-      </ExtendableWidget>
-    ),
 
-    email: (
-      <ExtendableWidget
-        initiallyExtended={loginIdKeyState["email"]}
-        extendable={true}
-        readOnly={!loginIdKeyState["email"]}
-        extendButtonAriaLabelId={"AuthenticationWidget.emailAddressExtend"}
-        HeaderComponent={
-          <WidgetHeader
-            enabled={loginIdKeyState["email"]}
-            setEnabled={setEmailEnabled}
-            titleId={"AuthenticationWidget.emailAddressTitle"}
+          <Checkbox
+            label={renderToString("AuthenticationWidget.allowPlus")}
+            className={styles.widgetCheckbox}
+            checked={isAllowPlus}
+            onChange={onIsAllowPlusChange}
           />
-        }
-      >
-        <Checkbox
-          label={renderToString("AuthenticationWidget.caseSensitive")}
-          className={styles.widgetCheckbox}
-          checked={isEmailCaseSensitive}
-          onChange={onIsEmailCaseSensitiveChange}
-        />
+        </WidgetWithOrdering>
+      );
+    },
+    [
+      renderToString,
+      onWidgetSwapClicked,
+      setEmailEnabled,
+      renderWidgetOrderAriaLabel,
+      loginIdKeyState,
 
-        <Checkbox
-          label={renderToString("AuthenticationWidget.ignoreDotLocal")}
-          className={styles.widgetCheckbox}
-          checked={isIgnoreDotLocal}
-          onChange={onIsIgnoreDotLocalChange}
-        />
+      isAllowPlus,
+      isIgnoreDotLocal,
+      isEmailCaseSensitive,
+      onIsAllowPlusChange,
+      onIsIgnoreDotLocalChange,
+      onIsEmailCaseSensitiveChange,
+    ]
+  );
 
-        <Checkbox
-          label={renderToString("AuthenticationWidget.allowPlus")}
-          className={styles.widgetCheckbox}
-          checked={isAllowPlus}
-          onChange={onIsAllowPlusChange}
-        />
-      </ExtendableWidget>
-    ),
-    phone: (
-      <ExtendableWidget
-        initiallyExtended={loginIdKeyState["phone"]}
-        extendable={true}
-        readOnly={!loginIdKeyState["phone"]}
-        extendButtonAriaLabelId={"AuthenticationWidget.phoneNumberExtend"}
-        HeaderComponent={
-          <WidgetHeader
-            enabled={loginIdKeyState["phone"]}
-            setEnabled={setPhoneNumberEnabled}
-            titleId={"AuthenticationWidget.phoneNumberTitle"}
+  const renderPhoneWidget = useCallback(
+    (index: number) => {
+      return (
+        <WidgetWithOrdering
+          index={index}
+          itemCount={ALL_LOGIN_ID_KEYS.length}
+          onSwapClicked={onWidgetSwapClicked}
+          readOnly={!loginIdKeyState["phone"]}
+          renderAriaLabel={renderWidgetOrderAriaLabel}
+          HeaderComponent={
+            <WidgetHeader
+              enabled={loginIdKeyState["phone"]}
+              setEnabled={setPhoneNumberEnabled}
+              titleId={widgetTitleMessageId["phone"]}
+            />
+          }
+        >
+          <CountryCallingCodeList
+            allCountryCallingCodes={supportedCountryCallingCodes}
+            selectedCountryCallingCodes={selectedCallingCodes}
+            onSelectedCountryCallingCodesChange={onSelectedCallingCodesChange}
           />
-        }
-      >
-        <CountryCallingCodeList
-          allCountryCallingCodes={supportedCountryCallingCodes}
-          selectedCountryCallingCodes={selectedCallingCodes}
-          onSelectedCountryCallingCodesChange={onSelectedCallingCodesChange}
-        />
-      </ExtendableWidget>
-    ),
+        </WidgetWithOrdering>
+      );
+    },
+    [
+      onWidgetSwapClicked,
+      setPhoneNumberEnabled,
+      renderWidgetOrderAriaLabel,
+      loginIdKeyState,
+
+      selectedCallingCodes,
+      onSelectedCallingCodesChange,
+    ]
+  );
+
+  const loginIdWidgetRenderer: Record<
+    LoginIDKeyType,
+    (index: number) => React.ReactNode
+  > = {
+    username: renderUsernameWidget,
+    email: renderEmailWidget,
+    phone: renderPhoneWidget,
   };
 
   return (
     <div className={styles.root}>
       <NavigationBlockerDialog blockNavigation={isFormModified} />
 
-      {loginIdKeyTypes.map((keyType) => (
+      {loginIdKeyTypes.map((keyType, index) => (
         <div key={keyType} className={styles.widgetContainer}>
-          {loginIdWidgets[keyType]}
+          {loginIdWidgetRenderer[keyType](index)}
         </div>
       ))}
 
