@@ -61,6 +61,10 @@ const ADD_CLIENT_BUTTON_STYLES = {
   flexContainer: { paddingRight: "2px" },
 };
 
+const DIALOG_FOOTER_STYLES = {
+  actionsRight: { display: "flex", justifyContent: "flex-end" },
+};
+
 function makeOAuthClientListColumns(
   renderToString: (messageId: string) => string
 ): IColumn[] {
@@ -113,7 +117,10 @@ const ConfirmRemoveOAuthClientDialog: React.FC<ConfirmRemoveOAuthClientDialogPro
       )}
       onDismiss={onDismiss}
     >
-      <DialogFooter>
+      <DialogFooter
+        styles={DIALOG_FOOTER_STYLES}
+        className={styles.confirmDialogButtons}
+      >
         <ButtonWithLoading
           onClick={onConfirm}
           labelId="confirm"
