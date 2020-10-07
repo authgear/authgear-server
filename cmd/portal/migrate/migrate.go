@@ -13,8 +13,8 @@ import (
 	migrate "github.com/rubenv/sql-migrate"
 )
 
-const migrationsDir = "migrations/authgear"
-const migrationsTable = "_auth_migration"
+const migrationsDir = "migrations/portal"
+const migrationsTable = "migration"
 
 func init() {
 	migrate.SetTable(migrationsTable)
