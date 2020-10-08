@@ -350,7 +350,7 @@ const RemoveConfirmationDialog: React.FC<RemoveConfirmationDialogProps> = functi
     <Dialog
       hidden={!visible}
       dialogContentProps={removeConfirmDialogContentProps}
-      onDismiss={onDismiss}
+      onDismiss={deletingAuthenticator ? undefined : onDismiss}
     >
       <DialogFooter>
         <ButtonWithLoading
@@ -358,7 +358,7 @@ const RemoveConfirmationDialog: React.FC<RemoveConfirmationDialogProps> = functi
           labelId="confirm"
           loading={deletingAuthenticator}
         />
-        <DefaultButton onClick={onDismiss}>
+        <DefaultButton disabled={deletingAuthenticator} onClick={onDismiss}>
           <FormattedMessage id="cancel" />
         </DefaultButton>
       </DialogFooter>

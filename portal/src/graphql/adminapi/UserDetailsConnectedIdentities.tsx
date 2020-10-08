@@ -604,7 +604,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
         <Dialog
           hidden={!isConfirmationDialogVisible}
           dialogContentProps={confirmationDialogContentProps}
-          onDismiss={onDismissConfirmationDialog}
+          onDismiss={deletingIdentity ? undefined : onDismissConfirmationDialog}
         >
           <DialogFooter>
             <ButtonWithLoading
@@ -612,6 +612,12 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
               onClick={onConfirmRemoveIdentity}
               loading={deletingIdentity}
             />
+            <DefaultButton
+              disabled={deletingIdentity}
+              onClick={onDismissConfirmationDialog}
+            >
+              <FormattedMessage id="cancel" />
+            </DefaultButton>
           </DialogFooter>
         </Dialog>
         <Dialog
