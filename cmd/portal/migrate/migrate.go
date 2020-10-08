@@ -14,7 +14,7 @@ import (
 )
 
 const migrationsDir = "migrations/portal"
-const migrationsTable = "migration"
+const migrationsTable = "_portal_migration"
 
 func init() {
 	migrate.SetTable(migrationsTable)

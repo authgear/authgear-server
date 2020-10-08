@@ -20,5 +20,5 @@ func NewSQLBuilder(config config.DatabaseConfig) *SQLBuilder {
 }
 
 func (b *SQLBuilder) FullTableName(table string) string {
-	return pq.QuoteIdentifier(b.Schema) + "." + pq.QuoteIdentifier(table)
+	return pq.QuoteIdentifier(b.Schema) + "." + pq.QuoteIdentifier("_portal_"+table)
 }
