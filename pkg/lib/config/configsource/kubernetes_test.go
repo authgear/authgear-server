@@ -13,19 +13,15 @@ import (
 
 func TestMakeAppFS(t *testing.T) {
 	Convey("MakeAppFS", t, func() {
-		configMap := &corev1.ConfigMap{
-			Data: map[string]string{
-				configsource.EscapePath("authgear.yaml"):              "authgear.yaml",
-				configsource.EscapePath("templates/translation.json"): "templates/translation.json",
-			},
-		}
 		secret := &corev1.Secret{
 			Data: map[string][]byte{
-				configsource.EscapePath("authgear.secrets.yaml"): []byte("authgear.secrets.yaml"),
+				configsource.EscapePath("authgear.yaml"):              []byte("authgear.yaml"),
+				configsource.EscapePath("templates/translation.json"): []byte("templates/translation.json"),
+				configsource.EscapePath("authgear.secrets.yaml"):      []byte("authgear.secrets.yaml"),
 			},
 		}
 
-		fs, err := configsource.MakeAppFS(configMap, secret)
+		fs, err := configsource.MakeAppFS(secret)
 		So(err, ShouldBeNil)
 
 		f1, err := fs.Open("templates/translation.json")

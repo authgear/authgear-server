@@ -88,12 +88,6 @@ func (s *ConfigService) updateKubernetes(k *configsource.Kubernetes, appID strin
 	if err != nil {
 		return err
 	}
-	configMaps, err := k.Client.CoreV1().ConfigMaps(k.Namespace).
-		List(metav1.ListOptions{LabelSelector: labelSelector})
-	if err != nil {
-		s.Logger.WithError(err).Warn("Failed to load config map")
-		return errors.New("failed to query data store")
-	}
 	secrets, err := k.Client.CoreV1().Secrets(k.Namespace).
 		List(metav1.ListOptions{LabelSelector: labelSelector})
 	if err != nil {
@@ -101,45 +95,31 @@ func (s *ConfigService) updateKubernetes(k *configsource.Kubernetes, appID strin
 		return errors.New("failed to query data store")
 	}
 
-	if len(configMaps.Items) != 1 || len(secrets.Items) != 1 {
+	if len(secrets.Items) != 1 {
 		err = fmt.Errorf(
-			"failed to query config resources (ConfigMaps: %d, Secrets: %d)",
-			len(configMaps.Items),
+			"failed to query config resources (Secrets: %d)",
 			len(secrets.Items),
 		)
 		s.Logger.WithError(err).Warn("Failed to load secrets")
 		return errors.New("failed to query data store")
 	}
-	configMap := configMaps.Items[0]
 	secret := secrets.Items[0]
-	updatedConfigMap := false
-	updatedSecret := false
 
+	updated := false
 	for _, file := range updateFiles {
 		path := strings.TrimPrefix(file.Path, "/")
-		if path == configsource.AuthgearSecretYAML {
-			secret.Data[configsource.EscapePath(path)] = []byte(file.Content)
-			updatedSecret = true
-		} else {
-			configMap.Data[configsource.EscapePath(path)] = file.Content
-			updatedConfigMap = true
-		}
+		secret.Data[configsource.EscapePath(path)] = []byte(file.Content)
+		updated = true
 	}
 	for _, path := range deleteFiles {
-		path := strings.Trim(path, "/")
-		if _, ok := configMap.Data[configsource.EscapePath(path)]; ok {
-			delete(configMap.Data, path)
-			updatedConfigMap = true
+		path := strings.TrimPrefix(path, "/")
+		if _, ok := secret.Data[configsource.EscapePath(path)]; ok {
+			delete(secret.Data, configsource.EscapePath(path))
+			updated = true
 		}
 	}
 
-	if updatedConfigMap {
-		_, err = k.Client.CoreV1().ConfigMaps(k.Namespace).Update(&configMap)
-		if err != nil {
-			return err
-		}
-	}
-	if updatedSecret {
+	if updated {
 		_, err = k.Client.CoreV1().Secrets(k.Namespace).Update(&secret)
 		if err != nil {
 			return err
@@ -180,18 +160,7 @@ func (s *ConfigService) createKubernetes(k *configsource.Kubernetes, appID strin
 		return ErrDuplicatedAppID
 	}
 
-	// Setup config resources
-	configMap := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: s.AppConfig.Kubernetes.NewResourcePrefix + appID,
-			Labels: map[string]string{
-				configsource.LabelConfigAppID: appID,
-			},
-		},
-		Data: map[string]string{
-			configsource.EscapePath(configsource.AuthgearYAML): string(appConfigYAML),
-		},
-	}
+	// Setup config resource
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: s.AppConfig.Kubernetes.NewResourcePrefix + appID,
@@ -200,6 +169,7 @@ func (s *ConfigService) createKubernetes(k *configsource.Kubernetes, appID strin
 			},
 		},
 		Data: map[string][]byte{
+			configsource.EscapePath(configsource.AuthgearYAML):       appConfigYAML,
 			configsource.EscapePath(configsource.AuthgearSecretYAML): secretConfigYAML,
 		},
 	}
@@ -240,11 +210,6 @@ func (s *ConfigService) createKubernetes(k *configsource.Kubernetes, appID strin
 
 	// Commit changes to Kubernetes
 	_, err = k.Client.CoreV1().ConfigMaps(k.Namespace).Update(hostMapping)
-	if err != nil {
-		return err
-	}
-
-	_, err = k.Client.CoreV1().ConfigMaps(k.Namespace).Create(configMap)
 	if err != nil {
 		return err
 	}

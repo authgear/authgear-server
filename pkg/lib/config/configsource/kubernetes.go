@@ -117,8 +117,6 @@ func (k *Kubernetes) onUpdate(resource metav1.Object) {
 				return
 			}
 			k.updateHostMap([]byte(data))
-		} else if appID, ok := resource.Labels[LabelConfigAppID]; ok && appID != "" {
-			k.invalidateApp(appID)
 		}
 	case *corev1.Secret:
 		if appID, ok := resource.Labels[LabelConfigAppID]; ok && appID != "" {
@@ -269,7 +267,7 @@ func (k *Kubernetes) newController(
 	return ctrl
 }
 
-func MakeAppFS(configMap *corev1.ConfigMap, secret *corev1.Secret) (fs.Fs, error) {
+func MakeAppFS(secret *corev1.Secret) (fs.Fs, error) {
 	// Construct a FS that treats `a` and `/a` the same.
 	// The template is loaded by a file URI which is always an absoluted path.
 	appFs := afero.NewBasePathFs(afero.NewMemMapFs(), "/")
@@ -278,21 +276,11 @@ func MakeAppFS(configMap *corev1.ConfigMap, secret *corev1.Secret) (fs.Fs, error
 		_, _ = file.Write(data)
 	}
 
-	for key, data := range configMap.Data {
+	for key, data := range secret.Data {
 		path, err := UnescapePath(key)
 		if err != nil {
 			return nil, err
 		}
-		create(path, []byte(data))
-	}
-	for key, data := range configMap.BinaryData {
-		path, err := UnescapePath(key)
-		if err != nil {
-			return nil, err
-		}
-		create(path, data)
-	}
-	for path, data := range secret.Data {
 		create(path, data)
 	}
 
@@ -323,27 +311,21 @@ func (a *k8sApp) doLoad(k *Kubernetes) (*config.AppContext, error) {
 		return nil, err
 	}
 
-	configMaps, err := k.Client.CoreV1().ConfigMaps(k.Namespace).
-		List(metav1.ListOptions{LabelSelector: labelSelector})
-	if err != nil {
-		return nil, err
-	}
 	secrets, err := k.Client.CoreV1().Secrets(k.Namespace).
 		List(metav1.ListOptions{LabelSelector: labelSelector})
 	if err != nil {
 		return nil, err
 	}
 
-	if len(configMaps.Items) != 1 || len(secrets.Items) != 1 {
+	if len(secrets.Items) != 1 {
 		return nil, fmt.Errorf(
-			"%w: failed to query config resources (ConfigMaps: %d, Secrets: %d)",
+			"%w: failed to query config resources (Secrets: %d)",
 			ErrAppNotFound,
-			len(configMaps.Items),
 			len(secrets.Items),
 		)
 	}
 
-	appFs, err := MakeAppFS(&configMaps.Items[0], &secrets.Items[0])
+	appFs, err := MakeAppFS(&secrets.Items[0])
 	if err != nil {
 		return nil, err
 	}
