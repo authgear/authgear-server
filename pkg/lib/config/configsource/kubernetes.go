@@ -32,7 +32,7 @@ import (
 
 const (
 	LabelHostMapping = "authgear.com/host-mapping"
-	LabelConfigAppID = "authgear.com/config-app-id"
+	LabelAppID       = "authgear.com/app-id"
 )
 
 const HostMapJSON = "hosts.json"
@@ -119,7 +119,7 @@ func (k *Kubernetes) onUpdate(resource metav1.Object) {
 			k.updateHostMap([]byte(data))
 		}
 	case *corev1.Secret:
-		if appID, ok := resource.Labels[LabelConfigAppID]; ok && appID != "" {
+		if appID, ok := resource.Labels[LabelAppID]; ok && appID != "" {
 			k.invalidateApp(appID)
 		}
 	default:
@@ -128,7 +128,7 @@ func (k *Kubernetes) onUpdate(resource metav1.Object) {
 }
 
 func (k *Kubernetes) onDelete(resource metav1.Object) {
-	if appID, ok := resource.GetLabels()[LabelConfigAppID]; ok && appID != "" {
+	if appID, ok := resource.GetLabels()[LabelAppID]; ok && appID != "" {
 		k.invalidateApp(appID)
 	}
 }
@@ -220,7 +220,7 @@ func (k *Kubernetes) ReloadApp(appID string) {
 
 func (k *Kubernetes) AppSelector(appID string) (string, error) {
 	labelSelector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
-		MatchLabels: map[string]string{LabelConfigAppID: appID},
+		MatchLabels: map[string]string{LabelAppID: appID},
 	})
 	if err != nil {
 		return "", err

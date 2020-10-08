@@ -165,7 +165,7 @@ func (s *ConfigService) createKubernetes(k *configsource.Kubernetes, appID strin
 		ObjectMeta: metav1.ObjectMeta{
 			Name: s.AppConfig.Kubernetes.NewResourcePrefix + appID,
 			Labels: map[string]string{
-				configsource.LabelConfigAppID: appID,
+				configsource.LabelAppID: appID,
 			},
 		},
 		Data: map[string][]byte{
