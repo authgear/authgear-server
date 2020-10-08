@@ -39,7 +39,7 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"grant_types": { "type": "array", "items": { "type": "string" } },
 		"response_types": { "type": "array", "items": { "type": "string" } },
 		"post_logout_redirect_uris": { "type": "array", "items": { "type": "string", "format": "uri" } },
-		"access_token_lifetime_seconds": { "$ref": "#/$defs/DurationSeconds" },
+		"access_token_lifetime_seconds": { "$ref": "#/$defs/DurationSeconds", "minimum": 300 },
 		"refresh_token_lifetime_seconds": { "$ref": "#/$defs/DurationSeconds" }
 	},
 	"required": ["name", "client_id", "redirect_uris"]

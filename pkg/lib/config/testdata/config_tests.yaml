@@ -48,6 +48,23 @@ config:
         access_token_lifetime_seconds: 10000
 
 ---
+name: oauth-client-access-token-lifetime
+error: |-
+  invalid configuration:
+  /oauth/clients/0/access_token_lifetime_seconds: minimum
+    map[actual:100 minimum:300]
+config:
+  id: test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: test-client
+        redirect_uris:
+          - "https://example.com"
+        refresh_token_lifetime_seconds: 86400
+        access_token_lifetime_seconds: 100
+
+---
 name: dupe-oauth-provider
 error: |-
   invalid configuration:
