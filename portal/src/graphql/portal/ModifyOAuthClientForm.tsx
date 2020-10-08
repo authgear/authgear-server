@@ -18,6 +18,18 @@ interface ModifyOAuthClientFormProps {
   updateAppConfigError: unknown;
 }
 
+export function getReducedClientConfig(
+  clientConfig: OAuthClientConfig
+): Omit<OAuthClientConfig, "grant_types" | "response_types"> {
+  const {
+    grant_types: _grant_types,
+    response_types: _response_types,
+    ...rest
+  } = clientConfig;
+
+  return rest;
+}
+
 function constructClientConfigState(
   clientName: string,
   clientId: string,
