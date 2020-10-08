@@ -105,16 +105,23 @@ const ConfirmRemoveOAuthClientDialog: React.FC<ConfirmRemoveOAuthClientDialogPro
     removeOAuthClient(clientId);
   }, [clientId, removeOAuthClient]);
 
+  const confirmRemoveDialogContentProps = useMemo(() => {
+    return {
+      title: (
+        <FormattedMessage id="OAuthClientConfigurationScreen.confirm-remove-dialog.title" />
+      ),
+
+      subText: renderToString(
+        "OAuthClientConfigurationScreen.confirm-remove-dialog.message",
+        { clientName }
+      ),
+    };
+  }, [renderToString, clientName]);
+
   return (
     <Dialog
       hidden={!visible}
-      title={
-        <FormattedMessage id="OAuthClientConfigurationScreen.confirm-remove-dialog.title" />
-      }
-      subText={renderToString(
-        "OAuthClientConfigurationScreen.confirm-remove-dialog.message",
-        { clientName }
-      )}
+      dialogContentProps={confirmRemoveDialogContentProps}
       onDismiss={onDismiss}
     >
       <DialogFooter

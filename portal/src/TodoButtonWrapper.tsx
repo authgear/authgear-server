@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useState } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import { Dialog, DialogFooter, PrimaryButton } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -26,12 +26,18 @@ const TodoButtonWrapper: React.FC<TodoButtonWrapperProps> = function TodoButtonW
     setTodoDialogVisible(false);
   }, []);
 
+  const todoDialogContentProps = useMemo(() => {
+    return {
+      title: <FormattedMessage id="TodoButtonWrapper.dialog-title" />,
+      subText: renderToString("TodoButtonWrapper.dialog-message"),
+    };
+  }, [renderToString]);
+
   return (
     <div className={cn(className, styles.root)} onClick={onTodoButtonClicked}>
       <Dialog
         hidden={!todoDialogVisible}
-        title={<FormattedMessage id="TodoButtonWrapper.dialog-title" />}
-        subText={renderToString("TodoButtonWrapper.dialog-message")}
+        dialogContentProps={todoDialogContentProps}
         onDismiss={onTodoDialogDismissed}
       >
         <DialogFooter>
