@@ -107,10 +107,12 @@
 				<a class="link align-self-flex-start" href="{{ call $.MakeURLState "" "x_login_id_input_type" "phone" }}">{{ template "use-phone-login-id-description" }}</a>
 				{{ end }}{{ end }}{{ end }}
 
+				{{ if not $.PublicSignupDisabled }}
 				<div class="link">
 					<span class="primary-text">{{ template "signup-button-hint" }}</span>
 					<a href="{{ call $.MakeURLState "/signup" }}">{{ template "signup-button-label" }}</a>
 				</div>
+				{{ end }}
 
 				{{ if $.ForgotPasswordEnabled }}
 				<a class="link align-self-flex-start" href="{{ call $.MakeURL "/forgot_password" }}">{{ template "forgot-password-button-label" }}</a>

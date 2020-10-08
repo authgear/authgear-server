@@ -21,6 +21,17 @@ config:
   id: 123
 
 ---
+name: public-signup-disabled
+error: |-
+  invalid configuration:
+  /authentication/public_signup_disabled: type
+    map[actual:[integer number] expected:[boolean]]
+config:
+  id: test
+  authentication:
+    public_signup_disabled: 42
+
+---
 name: oauth-client-refresh-token-lifetime
 error: |-
   invalid configuration:

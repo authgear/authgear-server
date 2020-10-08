@@ -1410,11 +1410,13 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		AuthUI:               uiConfig,
 		Translation:          translationService,
 		ForgotPassword:       forgotPasswordConfig,
+		Authentication:       authenticationConfig,
 	}
 	identityConfig := appConfig.Identity
 	loginIDConfig := identityConfig.LoginID
@@ -1441,7 +1443,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
-	authenticationConfig := appConfig.Authentication
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
@@ -1813,11 +1814,13 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		AuthUI:               uiConfig,
 		Translation:          translationService,
 		ForgotPassword:       forgotPasswordConfig,
+		Authentication:       authenticationConfig,
 	}
 	identityConfig := appConfig.Identity
 	loginIDConfig := identityConfig.LoginID
@@ -1844,7 +1847,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
-	authenticationConfig := appConfig.Authentication
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
@@ -2215,11 +2217,13 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		AuthUI:               uiConfig,
 		Translation:          translationService,
 		ForgotPassword:       forgotPasswordConfig,
+		Authentication:       authenticationConfig,
 	}
 	identityConfig := appConfig.Identity
 	loginIDConfig := identityConfig.LoginID
@@ -2246,7 +2250,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
-	authenticationConfig := appConfig.Authentication
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
@@ -3000,11 +3003,13 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		AuthUI:               uiConfig,
 		Translation:          translationService,
 		ForgotPassword:       forgotPasswordConfig,
+		Authentication:       authenticationConfig,
 	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
@@ -3025,7 +3030,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
-	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -3395,11 +3399,13 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		AuthUI:               uiConfig,
 		Translation:          translationService,
 		ForgotPassword:       forgotPasswordConfig,
+		Authentication:       authenticationConfig,
 	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
@@ -3420,7 +3426,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
-	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -3790,11 +3795,13 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		AuthUI:               uiConfig,
 		Translation:          translationService,
 		ForgotPassword:       forgotPasswordConfig,
+		Authentication:       authenticationConfig,
 	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
@@ -3815,7 +3822,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
-	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -4186,11 +4192,13 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		AuthUI:               uiConfig,
 		Translation:          translationService,
 		ForgotPassword:       forgotPasswordConfig,
+		Authentication:       authenticationConfig,
 	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
@@ -4211,7 +4219,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
-	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -4583,11 +4590,13 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		AuthUI:               uiConfig,
 		Translation:          translationService,
 		ForgotPassword:       forgotPasswordConfig,
+		Authentication:       authenticationConfig,
 	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
@@ -4608,7 +4617,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
-	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -4978,11 +4986,13 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		AuthUI:               uiConfig,
 		Translation:          translationService,
 		ForgotPassword:       forgotPasswordConfig,
+		Authentication:       authenticationConfig,
 	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
@@ -5003,7 +5013,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
-	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -5373,11 +5382,13 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		AuthUI:               uiConfig,
 		Translation:          translationService,
 		ForgotPassword:       forgotPasswordConfig,
+		Authentication:       authenticationConfig,
 	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
@@ -5398,7 +5409,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
-	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -5768,11 +5778,13 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		AuthUI:               uiConfig,
 		Translation:          translationService,
 		ForgotPassword:       forgotPasswordConfig,
+		Authentication:       authenticationConfig,
 	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
@@ -5793,7 +5805,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
-	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -6163,11 +6174,13 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		AuthUI:               uiConfig,
 		Translation:          translationService,
 		ForgotPassword:       forgotPasswordConfig,
+		Authentication:       authenticationConfig,
 	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
@@ -6188,7 +6201,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
-	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -6558,11 +6570,13 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		AuthUI:               uiConfig,
 		Translation:          translationService,
 		ForgotPassword:       forgotPasswordConfig,
+		Authentication:       authenticationConfig,
 	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
@@ -6583,7 +6597,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
-	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -6953,11 +6966,13 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		TemplateEngine:    engine,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		AuthUI:               uiConfig,
 		Translation:          translationService,
 		ForgotPassword:       forgotPasswordConfig,
+		Authentication:       authenticationConfig,
 	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
@@ -6978,7 +6993,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
-	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -7348,11 +7362,13 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		AuthUI:               uiConfig,
 		Translation:          translationService,
 		ForgotPassword:       forgotPasswordConfig,
+		Authentication:       authenticationConfig,
 	}
 	identityConfig := appConfig.Identity
 	loginIDConfig := identityConfig.LoginID
@@ -7379,7 +7395,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
-	authenticationConfig := appConfig.Authentication
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
@@ -7748,11 +7763,13 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		TemplateEngine:    engine,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		AuthUI:               uiConfig,
 		Translation:          translationService,
 		ForgotPassword:       forgotPasswordConfig,
+		Authentication:       authenticationConfig,
 	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
@@ -7773,7 +7790,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
-	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -8143,11 +8159,13 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		AuthUI:               uiConfig,
 		Translation:          translationService,
 		ForgotPassword:       forgotPasswordConfig,
+		Authentication:       authenticationConfig,
 	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
@@ -8168,7 +8186,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
-	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -8539,11 +8556,13 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		TemplateEngine:    engine,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		AuthUI:               uiConfig,
 		Translation:          translationService,
 		ForgotPassword:       forgotPasswordConfig,
+		Authentication:       authenticationConfig,
 	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
@@ -8564,7 +8583,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
-	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -8933,11 +8951,13 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		AuthUI:               uiConfig,
 		Translation:          translationService,
 		ForgotPassword:       forgotPasswordConfig,
+		Authentication:       authenticationConfig,
 	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
@@ -8945,7 +8965,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	authenticationConfig := appConfig.Authentication
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
@@ -9053,11 +9072,13 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		AuthUI:               uiConfig,
 		Translation:          translationService,
 		ForgotPassword:       forgotPasswordConfig,
+		Authentication:       authenticationConfig,
 	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
@@ -9078,7 +9099,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
-	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -9452,11 +9472,13 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		AuthUI:               uiConfig,
 		Translation:          translationService,
 		ForgotPassword:       forgotPasswordConfig,
+		Authentication:       authenticationConfig,
 	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
@@ -9477,7 +9499,6 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
-	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -10086,6 +10107,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AuthUI:               uiConfig,
 		Translation:          translationService,
 		ForgotPassword:       forgotPasswordConfig,
+		Authentication:       authenticationConfig,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -10925,11 +10947,13 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		TemplateEngine:    engine,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		AuthUI:               uiConfig,
 		Translation:          translationService,
 		ForgotPassword:       forgotPasswordConfig,
+		Authentication:       authenticationConfig,
 	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)

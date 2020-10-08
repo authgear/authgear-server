@@ -28,6 +28,7 @@ type BaseViewModel struct {
 	MakeURLState          func(path string, pairs ...string) string
 	Error                 interface{}
 	ForgotPasswordEnabled bool
+	PublicSignupDisabled  bool
 }
 
 type TranslationService interface {
@@ -39,6 +40,7 @@ type BaseViewModeler struct {
 	AuthUI               *config.UIConfig
 	Translation          TranslationService
 	ForgotPassword       *config.ForgotPasswordConfig
+	Authentication       *config.AuthenticationConfig
 }
 
 func (m *BaseViewModeler) ViewModel(r *http.Request, anyError interface{}) BaseViewModel {
@@ -78,6 +80,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, anyError interface{}) BaseV
 			return webapp.MakeURL(u, path, inQuery).String()
 		},
 		ForgotPasswordEnabled: *m.ForgotPassword.Enabled,
+		PublicSignupDisabled:  m.Authentication.PublicSignupDisabled,
 	}
 
 	if apiError := asAPIError(anyError); apiError != nil {

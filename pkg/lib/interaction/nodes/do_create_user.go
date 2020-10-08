@@ -1,9 +1,12 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
+
+var ErrNoPublicSignup = apierrors.Forbidden.WithReason("NoPublicSignup").New("public signup is disabled")
 
 func init() {
 	interaction.RegisterNode(&NodeDoCreateUser{})
@@ -12,7 +15,20 @@ func init() {
 type EdgeDoCreateUser struct {
 }
 
-func (e *EdgeDoCreateUser) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
+func (e *EdgeDoCreateUser) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+	publicSignupDisabled := ctx.Config.Authentication.PublicSignupDisabled
+
+	bypassPublicSignupDisabled := false
+	var bypassPublicSignupDisabledInput interface{ BypassPublicSignupDisabled() bool }
+	if interaction.Input(rawInput, &bypassPublicSignupDisabledInput) && bypassPublicSignupDisabledInput.BypassPublicSignupDisabled() {
+		bypassPublicSignupDisabled = true
+	}
+
+	allowed := !publicSignupDisabled || bypassPublicSignupDisabled
+	if !allowed {
+		return nil, ErrNoPublicSignup
+	}
+
 	return &NodeDoCreateUser{
 		CreateUserID: uuid.New(),
 	}, nil
