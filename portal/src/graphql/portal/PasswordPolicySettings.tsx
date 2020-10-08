@@ -309,20 +309,26 @@ const PasswordPolicySettings: React.FC<PasswordPolicySettingsProps> = function P
     }));
   }, []);
 
-  const onSaveButtonClicked = useCallback(() => {
-    if (rawAppConfig == null) {
-      return;
-    }
+  const onFormSubmit = useCallback(
+    (ev: React.SyntheticEvent<HTMLElement>) => {
+      ev.preventDefault();
+      ev.stopPropagation();
 
-    const newAppConfig = constructAppConfigFromState(
-      rawAppConfig,
-      initialState,
-      state
-    );
+      if (rawAppConfig == null) {
+        return;
+      }
 
-    // TODO: handle error
-    updateAppConfig(newAppConfig).catch(() => {});
-  }, [state, rawAppConfig, updateAppConfig, initialState]);
+      const newAppConfig = constructAppConfigFromState(
+        rawAppConfig,
+        initialState,
+        state
+      );
+
+      // TODO: handle error
+      updateAppConfig(newAppConfig).catch(() => {});
+    },
+    [state, rawAppConfig, updateAppConfig, initialState]
+  );
 
   const onResolveExcludedKeywordSuggestions = useCallback(
     (filterText: string, _tagList?: ITag[]): ITag[] => {
@@ -342,7 +348,7 @@ const PasswordPolicySettings: React.FC<PasswordPolicySettingsProps> = function P
   }, []);
 
   return (
-    <div className={cn(styles.root, className)}>
+    <form className={cn(styles.root, className)} onSubmit={onFormSubmit}>
       <TextField
         className={styles.textField}
         type="number"
@@ -448,15 +454,15 @@ const PasswordPolicySettings: React.FC<PasswordPolicySettingsProps> = function P
 
       <div className={styles.saveButtonContainer}>
         <ButtonWithLoading
+          type="submit"
           disabled={!isFormModified}
-          onClick={onSaveButtonClicked}
           loading={updatingAppConfig}
           labelId="save"
           loadingLabelId="saving"
         />
       </div>
       <NavigationBlockerDialog blockNavigation={isFormModified} />
-    </div>
+    </form>
   );
 };
 

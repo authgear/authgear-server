@@ -512,43 +512,49 @@ const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = func
     return !deepEqual(initialState, state);
   }, [state, initialState]);
 
-  const onSaveClick = useCallback(() => {
-    if (rawAppConfig == null || state.secretConfig == null) {
-      return;
-    }
+  const onFormSubmit = useCallback(
+    (ev: React.SyntheticEvent<HTMLElement>) => {
+      ev.preventDefault();
+      ev.stopPropagation();
 
-    const providers = constructProviders(
-      state.extraState,
-      state.appConfig?.identity?.oauth?.providers ?? []
-    );
-
-    const newAppConfig = produce(rawAppConfig, (draftConfig) => {
-      if (providers.length > 0) {
-        draftConfig.identity = draftConfig.identity ?? {};
-        draftConfig.identity.oauth = draftConfig.identity.oauth ?? {};
-        draftConfig.identity.oauth.providers = providers;
-      } else {
-        delete draftConfig.identity?.oauth?.providers;
+      if (rawAppConfig == null || state.secretConfig == null) {
+        return;
       }
 
-      clearEmptyObject(draftConfig);
-    });
+      const providers = constructProviders(
+        state.extraState,
+        state.appConfig?.identity?.oauth?.providers ?? []
+      );
 
-    const newSecretConfig = produce(state.secretConfig, (draftConfig) => {
-      const enabledAlias = providers
-        .map((provider) => provider.alias)
-        .filter(nonNullable);
-      const secret = extractSecretFromConfig(draftConfig);
-      if (secret != null) {
-        const newSecretItems = secret.data.items.filter((item) =>
-          enabledAlias.includes(item.alias)
-        );
-        secret.data.items = newSecretItems;
-      }
-    });
+      const newAppConfig = produce(rawAppConfig, (draftConfig) => {
+        if (providers.length > 0) {
+          draftConfig.identity = draftConfig.identity ?? {};
+          draftConfig.identity.oauth = draftConfig.identity.oauth ?? {};
+          draftConfig.identity.oauth.providers = providers;
+        } else {
+          delete draftConfig.identity?.oauth?.providers;
+        }
 
-    updateAppConfig(newAppConfig, newSecretConfig).catch(() => {});
-  }, [rawAppConfig, state, updateAppConfig]);
+        clearEmptyObject(draftConfig);
+      });
+
+      const newSecretConfig = produce(state.secretConfig, (draftConfig) => {
+        const enabledAlias = providers
+          .map((provider) => provider.alias)
+          .filter(nonNullable);
+        const secret = extractSecretFromConfig(draftConfig);
+        if (secret != null) {
+          const newSecretItems = secret.data.items.filter((item) =>
+            enabledAlias.includes(item.alias)
+          );
+          secret.data.items = newSecretItems;
+        }
+      });
+
+      updateAppConfig(newAppConfig, newSecretConfig).catch(() => {});
+    },
+    [rawAppConfig, state, updateAppConfig]
+  );
 
   const { widgetViolations, unhandledViolation } = useMemo(() => {
     if (updateAppConfigError == null) {
@@ -559,7 +565,7 @@ const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = func
   }, [updateAppConfigError]);
 
   return (
-    <section className={styles.screenContent}>
+    <form className={styles.screenContent} onSubmit={onFormSubmit}>
       <NavigationBlockerDialog blockNavigation={isFormModified} />
       {unhandledViolation.length > 0 && (
         <div className={styles.error}>
@@ -582,14 +588,14 @@ const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = func
         );
       })}
       <ButtonWithLoading
+        type="submit"
         className={styles.saveButton}
         disabled={!isFormModified}
         loading={updatingAppConfig}
         labelId="save"
         loadingLabelId="saving"
-        onClick={onSaveClick}
       />
-    </section>
+    </form>
   );
 };
 

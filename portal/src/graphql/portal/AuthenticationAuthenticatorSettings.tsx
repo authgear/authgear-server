@@ -371,79 +371,85 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
     [secondaryAuthenticatorState]
   );
 
-  const onSaveButtonClicked = React.useCallback(() => {
-    if (effectiveAppConfig == null || rawAppConfig == null) {
-      return;
-    }
+  const onFormSubmit = React.useCallback(
+    (ev: React.SyntheticEvent<HTMLElement>) => {
+      ev.preventDefault();
+      ev.stopPropagation();
 
-    const initialActivatedPrimaryKeyList =
-      effectiveAppConfig.authentication?.primary_authenticators ?? [];
-    const initialActivatedSecondaryKeyList =
-      effectiveAppConfig.authentication?.secondary_authenticators ?? [];
-
-    const activatedPrimaryKeyList = getActivatedKeyListFromState(
-      screenState.primaryAuthenticators
-    );
-    const activatedSecondaryKeyList = getActivatedKeyListFromState(
-      screenState.secondaryAuthenticators
-    );
-
-    const newAppConfig = produce(rawAppConfig, (draftConfig) => {
-      draftConfig.authentication = draftConfig.authentication ?? {};
-      const { authentication } = draftConfig;
-      if (
-        !isArrayEqualInOrder(
-          initialActivatedPrimaryKeyList,
-          activatedPrimaryKeyList
-        )
-      ) {
-        authentication.primary_authenticators = activatedPrimaryKeyList;
-      }
-      if (
-        !isArrayEqualInOrder(
-          initialActivatedSecondaryKeyList,
-          activatedSecondaryKeyList
-        )
-      ) {
-        authentication.secondary_authenticators = activatedSecondaryKeyList;
+      if (effectiveAppConfig == null || rawAppConfig == null) {
+        return;
       }
 
-      // Policy section
-      authentication.recovery_code = authentication.recovery_code ?? {};
+      const initialActivatedPrimaryKeyList =
+        effectiveAppConfig.authentication?.primary_authenticators ?? [];
+      const initialActivatedSecondaryKeyList =
+        effectiveAppConfig.authentication?.secondary_authenticators ?? [];
 
-      setFieldIfChanged(
-        authentication,
-        "secondary_authentication_mode",
-        initialState.secondaryAuthenticationMode,
-        screenState.secondaryAuthenticationMode
+      const activatedPrimaryKeyList = getActivatedKeyListFromState(
+        screenState.primaryAuthenticators
+      );
+      const activatedSecondaryKeyList = getActivatedKeyListFromState(
+        screenState.secondaryAuthenticators
       );
 
-      setNumericFieldIfChanged(
-        authentication.recovery_code,
-        "count",
-        initialState.recoveryCodeNumber,
-        screenState.recoveryCodeNumber
-      );
+      const newAppConfig = produce(rawAppConfig, (draftConfig) => {
+        draftConfig.authentication = draftConfig.authentication ?? {};
+        const { authentication } = draftConfig;
+        if (
+          !isArrayEqualInOrder(
+            initialActivatedPrimaryKeyList,
+            activatedPrimaryKeyList
+          )
+        ) {
+          authentication.primary_authenticators = activatedPrimaryKeyList;
+        }
+        if (
+          !isArrayEqualInOrder(
+            initialActivatedSecondaryKeyList,
+            activatedSecondaryKeyList
+          )
+        ) {
+          authentication.secondary_authenticators = activatedSecondaryKeyList;
+        }
 
-      setFieldIfChanged(
-        authentication.recovery_code,
-        "list_enabled",
-        initialState.allowRetrieveRecoveryCode,
-        screenState.allowRetrieveRecoveryCode
-      );
+        // Policy section
+        authentication.recovery_code = authentication.recovery_code ?? {};
 
-      clearEmptyObject(draftConfig);
-    });
+        setFieldIfChanged(
+          authentication,
+          "secondary_authentication_mode",
+          initialState.secondaryAuthenticationMode,
+          screenState.secondaryAuthenticationMode
+        );
 
-    updateAppConfig(newAppConfig).catch(() => {});
-  }, [
-    rawAppConfig,
-    effectiveAppConfig,
-    updateAppConfig,
+        setNumericFieldIfChanged(
+          authentication.recovery_code,
+          "count",
+          initialState.recoveryCodeNumber,
+          screenState.recoveryCodeNumber
+        );
 
-    initialState,
-    screenState,
-  ]);
+        setFieldIfChanged(
+          authentication.recovery_code,
+          "list_enabled",
+          initialState.allowRetrieveRecoveryCode,
+          screenState.allowRetrieveRecoveryCode
+        );
+
+        clearEmptyObject(draftConfig);
+      });
+
+      updateAppConfig(newAppConfig).catch(() => {});
+    },
+    [
+      rawAppConfig,
+      effectiveAppConfig,
+      updateAppConfig,
+
+      initialState,
+      screenState,
+    ]
+  );
 
   const { errorMessage, unhandledViolations } = useMemo(() => {
     const unhandledViolations: Violation[] = [];
@@ -485,7 +491,7 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
   }, [updateAppConfigError, renderToString]);
 
   return (
-    <div className={styles.root}>
+    <form className={styles.root} onSubmit={onFormSubmit}>
       <NavigationBlockerDialog blockNavigation={isFormModified} />
       {unhandledViolations.length > 0 && (
         <ShowError error={updateAppConfigError} />
@@ -558,14 +564,14 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
       </section>
 
       <ButtonWithLoading
+        type="submit"
         className={styles.saveButton}
         disabled={!isFormModified}
-        onClick={onSaveButtonClicked}
         loading={updatingAppConfig}
         labelId="save"
         loadingLabelId="saving"
       />
-    </div>
+    </form>
   );
 };
 

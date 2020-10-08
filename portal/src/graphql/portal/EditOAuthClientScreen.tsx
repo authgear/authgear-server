@@ -58,19 +58,25 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> = function EditOAu
     []
   );
 
-  const onSaveClick = useCallback(() => {
-    const newAppConfig = produce(rawAppConfig, (draftConfig) => {
-      const clients = draftConfig.oauth!.clients!;
-      const clientConfigIndex = clients.findIndex(
-        (client) => client.client_id === clientConfig.client_id
-      );
-      clients[clientConfigIndex] = clientConfig;
+  const onFormSubmit = useCallback(
+    (ev: React.SyntheticEvent<HTMLElement>) => {
+      ev.preventDefault();
+      ev.stopPropagation();
 
-      clearEmptyObject(draftConfig);
-    });
+      const newAppConfig = produce(rawAppConfig, (draftConfig) => {
+        const clients = draftConfig.oauth!.clients!;
+        const clientConfigIndex = clients.findIndex(
+          (client) => client.client_id === clientConfig.client_id
+        );
+        clients[clientConfigIndex] = clientConfig;
 
-    updateAppConfig(newAppConfig).catch(() => {});
-  }, [clientConfig, updateAppConfig, rawAppConfig]);
+        clearEmptyObject(draftConfig);
+      });
+
+      updateAppConfig(newAppConfig).catch(() => {});
+    },
+    [clientConfig, updateAppConfig, rawAppConfig]
+  );
 
   const isFormModified = useMemo(() => {
     return !deepEqual(
@@ -80,7 +86,7 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> = function EditOAu
   }, [clientConfig, initialClientConfig]);
 
   return (
-    <form className={styles.form}>
+    <form className={styles.form} onSubmit={onFormSubmit}>
       <NavigationBlockerDialog blockNavigation={isFormModified} />
       <Label>
         <FormattedMessage id="EditOAuthClientScreen.client-id" />
@@ -94,7 +100,7 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> = function EditOAu
         updateAppConfigError={updateAppConfigError}
       />
       <ButtonWithLoading
-        onClick={onSaveClick}
+        type="submit"
         disabled={!isFormModified}
         labelId="save"
         loading={updatingAppConfig}

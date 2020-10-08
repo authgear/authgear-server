@@ -78,27 +78,33 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
     return !deepEqual({ newPassword: "", confirmPassword: "" }, screenState);
   }, [screenState]);
 
-  const onConfirmClicked = useCallback(() => {
-    const newLocalViolations: Violation[] = [];
-    localValidatePassword(
-      newLocalViolations,
-      passwordPolicy,
-      screenState.newPassword,
-      screenState.confirmPassword
-    );
-    setLocalViolations(newLocalViolations);
-    if (newLocalViolations.length > 0) {
-      return;
-    }
+  const onFormSubmit = useCallback(
+    (ev: React.SyntheticEvent<HTMLElement>) => {
+      ev.preventDefault();
+      ev.stopPropagation();
 
-    resetPassword(screenState.newPassword)
-      .then((userID) => {
-        if (userID != null) {
-          setSubmittedForm(true);
-        }
-      })
-      .catch(() => {});
-  }, [screenState, passwordPolicy, resetPassword]);
+      const newLocalViolations: Violation[] = [];
+      localValidatePassword(
+        newLocalViolations,
+        passwordPolicy,
+        screenState.newPassword,
+        screenState.confirmPassword
+      );
+      setLocalViolations(newLocalViolations);
+      if (newLocalViolations.length > 0) {
+        return;
+      }
+
+      resetPassword(screenState.newPassword)
+        .then((userID) => {
+          if (userID != null) {
+            setSubmittedForm(true);
+          }
+        })
+        .catch(() => {});
+    },
+    [screenState, passwordPolicy, resetPassword]
+  );
 
   useEffect(() => {
     if (submittedForm) {
@@ -154,7 +160,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
   }
 
   return (
-    <div className={styles.form}>
+    <form className={styles.form} onSubmit={onFormSubmit}>
       {unhandledViolations.length > 0 && (
         <ShowError error={resetPasswordError} />
       )}
@@ -179,12 +185,12 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
         errorMessage={errorMessages.confirmPassword}
       />
       <ButtonWithLoading
+        type="submit"
         className={styles.confirm}
-        onClick={onConfirmClicked}
         loading={resettingPassword}
         labelId="confirm"
       />
-    </div>
+    </form>
   );
 };
 

@@ -97,16 +97,22 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
     );
   }, [screenState, countryCodeConfig.default]);
 
-  const onAddClicked = useCallback(() => {
-    const combinedPhone = `+${countryCode}${phone}`;
-    createIdentity({ key: "phone", value: combinedPhone })
-      .then((identity) => {
-        if (identity != null) {
-          setSubmittedForm(true);
-        }
-      })
-      .catch(() => {});
-  }, [countryCode, phone, createIdentity]);
+  const onFormSubmit = useCallback(
+    (ev: React.SyntheticEvent<HTMLElement>) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      const combinedPhone = `+${countryCode}${phone}`;
+      createIdentity({ key: "phone", value: combinedPhone })
+        .then((identity) => {
+          if (identity != null) {
+            setSubmittedForm(true);
+          }
+        })
+        .catch(() => {});
+    },
+    [countryCode, phone, createIdentity]
+  );
 
   useEffect(() => {
     if (submittedForm) {
@@ -140,7 +146,7 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
   }, [createIdentityError, renderToString]);
 
   return (
-    <div className={styles.form}>
+    <form className={styles.form} onSubmit={onFormSubmit}>
       {unhandledViolations.length > 0 && (
         <ShowError error={createIdentityError} />
       )}
@@ -167,12 +173,12 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
         />
       </section>
       <ButtonWithLoading
-        onClick={onAddClicked}
+        type="submit"
         disabled={!isFormModified}
         labelId="add"
         loading={creatingIdentity}
       />
-    </div>
+    </form>
   );
 };
 

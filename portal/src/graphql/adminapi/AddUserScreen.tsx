@@ -346,28 +346,34 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
     return !deepEqual(initialState, screenState);
   }, [screenState]);
 
-  const onClickAddUser = useCallback(() => {
-    const selectedKey = screenState.selectedLoginIdKey;
-    const localValidationErrors = validate(
-      screenState,
-      passwordPolicy,
-      passwordRequired
-    );
-    if (localValidationErrors.length > 0 || selectedKey == null) {
-      setLocalViolations(localValidationErrors);
-      return;
-    }
-    selectedLoginIdInLastSubmission.current = selectedKey;
-    const identityValue = screenState[selectedKey];
-    const password = passwordRequired ? screenState.password : undefined;
-    createUser({ key: selectedKey, value: identityValue }, password)
-      .then((userID) => {
-        if (userID != null) {
-          setSubmittedForm(true);
-        }
-      })
-      .catch(() => {});
-  }, [screenState, passwordPolicy, passwordRequired, createUser]);
+  const onFormSubmit = useCallback(
+    (ev: React.SyntheticEvent<HTMLElement>) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      const selectedKey = screenState.selectedLoginIdKey;
+      const localValidationErrors = validate(
+        screenState,
+        passwordPolicy,
+        passwordRequired
+      );
+      if (localValidationErrors.length > 0 || selectedKey == null) {
+        setLocalViolations(localValidationErrors);
+        return;
+      }
+      selectedLoginIdInLastSubmission.current = selectedKey;
+      const identityValue = screenState[selectedKey];
+      const password = passwordRequired ? screenState.password : undefined;
+      createUser({ key: selectedKey, value: identityValue }, password)
+        .then((userID) => {
+          if (userID != null) {
+            setSubmittedForm(true);
+          }
+        })
+        .catch(() => {});
+    },
+    [screenState, passwordPolicy, passwordRequired, createUser]
+  );
 
   useEffect(() => {
     if (submittedForm) {
@@ -385,7 +391,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
   }
 
   return (
-    <section className={styles.content}>
+    <form className={styles.content} onSubmit={onFormSubmit}>
       {unhandledViolations.length > 0 && <ShowError error={createUserError} />}
       <NavigationBlockerDialog
         blockNavigation={!submittedForm && isFormModified}
@@ -408,13 +414,13 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
         errorMessage={errorMessages.password}
       />
       <ButtonWithLoading
+        type="submit"
         className={styles.addUserButton}
         loading={creatingUser}
         labelId="AddUserScreen.add-user.label"
         disabled={!isFormModified || selectedLoginIdKey == null}
-        onClick={onClickAddUser}
       />
-    </section>
+    </form>
   );
 };
 
