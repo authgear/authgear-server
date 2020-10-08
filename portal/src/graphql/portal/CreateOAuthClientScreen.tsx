@@ -209,7 +209,13 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
 
 const CreateOAuthClientScreen: React.FC = function CreateOAuthClientScreen() {
   const { appID } = useParams();
-  const { data, loading, error, refetch } = useAppConfigQuery(appID);
+  const {
+    rawAppConfig,
+    effectiveAppConfig,
+    loading,
+    error,
+    refetch,
+  } = useAppConfigQuery(appID);
 
   const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     return [
@@ -223,14 +229,6 @@ const CreateOAuthClientScreen: React.FC = function CreateOAuthClientScreen() {
       },
     ];
   }, []);
-
-  const { rawAppConfig, effectiveAppConfig } = useMemo(() => {
-    const appConfigNode = data?.node?.__typename === "App" ? data.node : null;
-    return {
-      rawAppConfig: appConfigNode?.rawAppConfig ?? null,
-      effectiveAppConfig: appConfigNode?.effectiveAppConfig ?? null,
-    };
-  }, [data]);
 
   if (loading) {
     return <ShowLoading />;

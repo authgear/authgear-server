@@ -7,7 +7,6 @@ import { Text, Toggle, Dropdown, IDropdownOption } from "@fluentui/react";
 
 import { useAppConfigQuery } from "./query/appConfigQuery";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
-import { AppConfigQuery } from "./query/__generated__/AppConfigQuery";
 import {
   PortalAPIApp,
   PortalAPIAppConfig,
@@ -29,7 +28,8 @@ interface AnonymousUsersConfigurationScreenState {
 }
 
 interface AnonymousUsersConfigurationProps {
-  data?: AppConfigQuery;
+  effectiveAppConfig: PortalAPIAppConfig | null;
+  rawAppConfig: PortalAPIAppConfig | null;
   updateAppConfig: (
     appConfig: PortalAPIAppConfig
   ) => Promise<PortalAPIApp | null>;
@@ -121,13 +121,13 @@ function constructConflictBehaviourOptions(
 const AnonymousUsersConfiguration: React.FC<AnonymousUsersConfigurationProps> = function AnonymousUsersConfiguration(
   props: AnonymousUsersConfigurationProps
 ) {
-  const { data, updateAppConfig, updatingAppConfig } = props;
+  const {
+    effectiveAppConfig,
+    rawAppConfig,
+    updateAppConfig,
+    updatingAppConfig,
+  } = props;
   const { renderToString } = useContext(Context);
-
-  const effectiveAppConfig: PortalAPIAppConfig | null =
-    data?.node?.__typename === "App" ? data.node.effectiveAppConfig : null;
-  const rawAppConfig: PortalAPIAppConfig | null =
-    data?.node?.__typename === "App" ? data.node.rawAppConfig : null;
 
   const initialState = useMemo(
     () => constructStateFromAppConfig(effectiveAppConfig),
@@ -214,7 +214,13 @@ const AnonymousUsersConfiguration: React.FC<AnonymousUsersConfigurationProps> = 
 
 const AnonymousUserConfigurationScreen: React.FC = function AnonymousUserConfigurationScreen() {
   const { appID } = useParams();
-  const { loading, error, data, refetch } = useAppConfigQuery(appID);
+  const {
+    effectiveAppConfig,
+    rawAppConfig,
+    loading,
+    error,
+    refetch,
+  } = useAppConfigQuery(appID);
   const {
     loading: updatingAppConfig,
     error: updateAppConfigError,
@@ -236,7 +242,8 @@ const AnonymousUserConfigurationScreen: React.FC = function AnonymousUserConfigu
         <FormattedMessage id="AnonymousUsersConfigurationScreen.title" />
       </Text>
       <AnonymousUsersConfiguration
-        data={data}
+        effectiveAppConfig={effectiveAppConfig}
+        rawAppConfig={rawAppConfig}
         updateAppConfig={updateAppConfig}
         updatingAppConfig={updatingAppConfig}
       />

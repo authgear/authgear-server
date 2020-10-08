@@ -106,7 +106,13 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> = function EditOAu
 
 const EditOAuthClientScreen: React.FC = function EditOAuthClientScreen() {
   const { appID, clientID } = useParams();
-  const { data, loading, error, refetch } = useAppConfigQuery(appID);
+  const {
+    rawAppConfig,
+    effectiveAppConfig,
+    loading,
+    error,
+    refetch,
+  } = useAppConfigQuery(appID);
 
   const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     return [
@@ -120,14 +126,6 @@ const EditOAuthClientScreen: React.FC = function EditOAuthClientScreen() {
       },
     ];
   }, []);
-
-  const { rawAppConfig, effectiveAppConfig } = useMemo(() => {
-    const appConfigNode = data?.node?.__typename === "App" ? data.node : null;
-    return {
-      rawAppConfig: appConfigNode?.rawAppConfig ?? null,
-      effectiveAppConfig: appConfigNode?.effectiveAppConfig ?? null,
-    };
-  }, [data]);
 
   const clientConfig = useMemo(() => {
     const clients = effectiveAppConfig?.oauth?.clients ?? [];

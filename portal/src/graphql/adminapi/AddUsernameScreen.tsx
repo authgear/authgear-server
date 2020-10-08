@@ -211,7 +211,7 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
     refetch: refetchUser,
   } = useUserQuery(userID);
   const {
-    data: appConfigData,
+    effectiveAppConfig,
     loading: loadingAppConfig,
     error: appConfigError,
     refetch: refetchAppConfig,
@@ -224,12 +224,6 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
       { to: ".", label: <FormattedMessage id="AddUsernameScreen.title" /> },
     ];
   }, []);
-
-  const appConfig = useMemo(() => {
-    return appConfigData?.node?.__typename === "App"
-      ? appConfigData.node.effectiveAppConfig
-      : null;
-  }, [appConfigData]);
 
   if (loadingUser || loadingAppConfig) {
     return <ShowLoading />;
@@ -247,7 +241,7 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
     <div className={styles.root}>
       <UserDetailCommandBar />
       <NavBreadcrumb className={styles.breadcrumb} items={navBreadcrumbItems} />
-      <AddUsernameForm appConfig={appConfig} user={user} />
+      <AddUsernameForm appConfig={effectiveAppConfig} user={user} />
     </div>
   );
 };

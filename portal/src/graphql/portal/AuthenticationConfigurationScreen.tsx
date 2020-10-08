@@ -27,20 +27,13 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
     error: updateAppConfigError,
   } = useUpdateAppConfigMutation(appID);
 
-  const { loading, error, data, refetch } = useAppConfigQuery(appID);
-
-  const { effectiveAppConfig, rawAppConfig } = React.useMemo(() => {
-    const node = data?.node;
-    return node?.__typename === "App"
-      ? {
-          effectiveAppConfig: node.effectiveAppConfig,
-          rawAppConfig: node.rawAppConfig,
-        }
-      : {
-          effectiveAppConfig: null,
-          rawAppConfig: null,
-        };
-  }, [data]);
+  const {
+    loading,
+    error,
+    effectiveAppConfig,
+    rawAppConfig,
+    refetch,
+  } = useAppConfigQuery(appID);
 
   if (loading) {
     return <ShowLoading />;
