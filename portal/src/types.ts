@@ -199,6 +199,7 @@ interface ForgotPasswordConfig {
 
 // OAuthConfig
 export interface OAuthClientConfig {
+  name?: string;
   client_id: string;
   client_uri?: string;
   redirect_uris: string[];

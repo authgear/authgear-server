@@ -219,7 +219,7 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
   const oauthClientListItems: OAuthClientListItem[] = useMemo(() => {
     return oauthClients.map((client) => {
       return {
-        name: client.client_id,
+        name: client.name!,
         clientId: client.client_id,
       };
     });

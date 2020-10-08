@@ -126,6 +126,7 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
 
   const initialState = useMemo(() => {
     return {
+      name: "",
       client_id: genRandomHexadecimalString(),
       grant_types: ["authorization_code", "refresh_token"],
       response_types: ["code", "none"],
@@ -160,7 +161,6 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
   }, []);
 
   const onCreateClick = useCallback(() => {
-    // TODO: handle name field after backend is updated
     const newAppConfig = produce(rawAppConfig, (draftConfig) => {
       draftConfig.oauth = draftConfig.oauth ?? {};
       draftConfig.oauth.clients = draftConfig.oauth.clients ?? [];
