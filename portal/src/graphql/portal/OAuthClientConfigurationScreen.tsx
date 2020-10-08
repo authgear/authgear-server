@@ -339,7 +339,13 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
 
 const OAuthClientConfigurationScreen: React.FC = function OAuthClientConfigurationScreen() {
   const { appID } = useParams();
-  const { data, loading, error, refetch } = useAppConfigQuery(appID);
+  const {
+    effectiveAppConfig,
+    rawAppConfig,
+    loading,
+    error,
+    refetch,
+  } = useAppConfigQuery(appID);
 
   const [isNotificationVisible, setIsNotificationVisible] = useState(false);
   const [notificationMsg, setNotificationMsg] = useState("");
@@ -352,10 +358,6 @@ const OAuthClientConfigurationScreen: React.FC = function OAuthClientConfigurati
   const dismissNotification = useCallback(() => {
     setIsNotificationVisible(false);
   }, []);
-
-  const appConfigNode = data?.node?.__typename === "App" ? data.node : null;
-  const rawAppConfig = appConfigNode?.rawAppConfig ?? null;
-  const effectiveAppConfig = appConfigNode?.effectiveAppConfig ?? null;
 
   if (loading) {
     return <ShowLoading />;

@@ -1,4 +1,4 @@
-import React, { useMemo, useContext } from "react";
+import React, { useContext } from "react";
 import { useParams } from "react-router-dom";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { Pivot, PivotItem, Text } from "@fluentui/react";
@@ -27,20 +27,13 @@ const PasswordsScreen: React.FC = function PasswordsScreen() {
     loading: updatingAppConfig,
     error: updateAppConfigError,
   } = useUpdateAppConfigMutation(appID);
-  const { loading, error, data, refetch } = useAppConfigQuery(appID);
-
-  const { effectiveAppConfig, rawAppConfig } = useMemo(() => {
-    const node = data?.node;
-    return node?.__typename === "App"
-      ? {
-          effectiveAppConfig: node.effectiveAppConfig,
-          rawAppConfig: node.rawAppConfig,
-        }
-      : {
-          effectiveAppConfig: null,
-          rawAppConfig: null,
-        };
-  }, [data]);
+  const {
+    loading,
+    error,
+    effectiveAppConfig,
+    rawAppConfig,
+    refetch,
+  } = useAppConfigQuery(appID);
 
   if (loading) {
     return <ShowLoading />;

@@ -428,7 +428,9 @@ const AddUserScreen: React.FC = function AddUserScreen() {
     ];
   }, []);
 
-  const { data, loading, error, refetch } = useAppConfigQuery(appID);
+  const { effectiveAppConfig, loading, error, refetch } = useAppConfigQuery(
+    appID
+  );
 
   if (loading) {
     return <ShowLoading />;
@@ -438,13 +440,10 @@ const AddUserScreen: React.FC = function AddUserScreen() {
     return <ShowError error={error} onRetry={refetch} />;
   }
 
-  const appConfig =
-    data?.node?.__typename === "App" ? data.node.effectiveAppConfig : null;
-
   return (
     <main className={styles.root}>
       <NavBreadcrumb items={navBreadcrumbItems} />
-      <AddUserContent appConfig={appConfig} />
+      <AddUserContent appConfig={effectiveAppConfig} />
     </main>
   );
 };

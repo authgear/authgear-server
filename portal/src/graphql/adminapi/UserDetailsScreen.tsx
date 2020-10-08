@@ -109,16 +109,11 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
   const { appID, userID } = useParams();
   const { user, loading, error, refetch } = useUserQuery(userID);
   const {
+    effectiveAppConfig,
     loading: loadingAppConfig,
     error: appConfigError,
-    data: appConfigData,
     refetch: refetchAppConfig,
   } = useAppConfigQuery(appID);
-
-  const appConfig =
-    appConfigData?.node?.__typename === "App"
-      ? appConfigData.node.effectiveAppConfig
-      : null;
 
   const navBreadcrumbItems = React.useMemo(() => {
     return [
@@ -143,7 +138,7 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
         <UserDetails
           data={user}
           loading={loading || loadingAppConfig}
-          appConfig={appConfig}
+          appConfig={effectiveAppConfig}
         />
       </div>
     </main>

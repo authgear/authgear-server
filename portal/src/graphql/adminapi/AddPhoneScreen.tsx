@@ -178,7 +178,9 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
 
 const AddPhoneScreen: React.FC = function AddPhoneScreen() {
   const { appID } = useParams();
-  const { data, loading, error, refetch } = useAppConfigQuery(appID);
+  const { effectiveAppConfig, loading, error, refetch } = useAppConfigQuery(
+    appID
+  );
 
   const navBreadcrumbItems = useMemo(() => {
     return [
@@ -187,9 +189,6 @@ const AddPhoneScreen: React.FC = function AddPhoneScreen() {
       { to: ".", label: <FormattedMessage id="AddPhoneScreen.title" /> },
     ];
   }, []);
-
-  const appConfig =
-    data?.node?.__typename === "App" ? data.node.effectiveAppConfig : null;
 
   if (loading) {
     return <ShowLoading />;
@@ -204,7 +203,7 @@ const AddPhoneScreen: React.FC = function AddPhoneScreen() {
       <UserDetailCommandBar />
       <section className={styles.content}>
         <NavBreadcrumb items={navBreadcrumbItems} />
-        <AddPhoneForm appConfig={appConfig} />
+        <AddPhoneForm appConfig={effectiveAppConfig} />
       </section>
     </div>
   );

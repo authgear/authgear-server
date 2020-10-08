@@ -190,7 +190,9 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
 
 const ResetPasswordScreen: React.FC = function ResetPasswordScreen() {
   const { appID } = useParams();
-  const { data, loading, error, refetch } = useAppConfigQuery(appID);
+  const { effectiveAppConfig, loading, error, refetch } = useAppConfigQuery(
+    appID
+  );
 
   const navBreadcrumbItems = useMemo(() => {
     return [
@@ -199,9 +201,6 @@ const ResetPasswordScreen: React.FC = function ResetPasswordScreen() {
       { to: ".", label: <FormattedMessage id="ResetPasswordScreen.title" /> },
     ];
   }, []);
-
-  const appConfig =
-    data?.node?.__typename === "App" ? data.node.effectiveAppConfig : null;
 
   if (loading) {
     return <ShowLoading />;
@@ -215,7 +214,7 @@ const ResetPasswordScreen: React.FC = function ResetPasswordScreen() {
     <main className={styles.root}>
       <section className={styles.content}>
         <NavBreadcrumb items={navBreadcrumbItems} />
-        <ResetPasswordForm appConfig={appConfig} />
+        <ResetPasswordForm appConfig={effectiveAppConfig} />
       </section>
     </main>
   );
