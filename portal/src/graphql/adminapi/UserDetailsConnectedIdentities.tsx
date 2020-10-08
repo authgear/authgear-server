@@ -575,6 +575,27 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
     };
   }, [renderToString, navigate, availableLoginIdIdentities]);
 
+  const confirmationDialogContentProps = useMemo(() => {
+    return {
+      title: (
+        <FormattedMessage id="UserDetails.connected-identities.confirm-remove-identity-title" />
+      ),
+      subText: renderToString(
+        "UserDetails.connected-identities.confirm-remove-identity-message",
+        { identityName: confirmationDialogData.identityName }
+      ),
+    };
+  }, [confirmationDialogData, renderToString]);
+
+  const errorDialogContentProps = useMemo(() => {
+    return {
+      title: (
+        <FormattedMessage id="UserDetails.connected-identities.error-dialog-title" />
+      ),
+      subText: errorDialogData.message,
+    };
+  }, [errorDialogData]);
+
   return (
     <ConnectedIdentitiesMutationLoadingContext.Provider
       value={{ settingVerifiedStatus, deletingIdentity }}
@@ -582,13 +603,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
       <div className={styles.root}>
         <Dialog
           hidden={!isConfirmationDialogVisible}
-          title={
-            <FormattedMessage id="UserDetails.connected-identities.confirm-remove-identity-title" />
-          }
-          subText={renderToString(
-            "UserDetails.connected-identities.confirm-remove-identity-message",
-            { identityName: confirmationDialogData.identityName }
-          )}
+          dialogContentProps={confirmationDialogContentProps}
           onDismiss={onDismissConfirmationDialog}
         >
           <DialogFooter>
@@ -601,10 +616,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
         </Dialog>
         <Dialog
           hidden={!isErrorDialogVisible}
-          title={
-            <FormattedMessage id="UserDetails.connected-identities.error-dialog-title" />
-          }
-          subText={errorDialogData.message}
+          dialogContentProps={errorDialogContentProps}
           onDismiss={onDismissErrorDialog}
         >
           <DialogFooter>

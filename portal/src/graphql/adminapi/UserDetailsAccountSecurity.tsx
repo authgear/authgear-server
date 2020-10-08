@@ -337,13 +337,19 @@ const RemoveConfirmationDialog: React.FC<RemoveConfirmationDialogProps> = functi
     );
   }, [renderToString, authenticatorName]);
 
+  const removeConfirmDialogContentProps = useMemo(() => {
+    return {
+      title: (
+        <FormattedMessage id="UserDetails.account-security.remove-confirm-dialog.title" />
+      ),
+      subText: dialogMessage,
+    };
+  }, [dialogMessage]);
+
   return (
     <Dialog
       hidden={!visible}
-      title={
-        <FormattedMessage id="UserDetails.account-security.remove-confirm-dialog.title" />
-      }
-      subText={dialogMessage}
+      dialogContentProps={removeConfirmDialogContentProps}
       onDismiss={onDismiss}
     >
       <DialogFooter>
@@ -365,11 +371,17 @@ const ErrorDialog: React.FC<ErrorDialogProps> = function ErrorDialog(
 ) {
   const { visible, errorMessage, onDismiss } = props;
 
+  const errorDialogContentProps = useMemo(() => {
+    return {
+      title: <FormattedMessage id="error" />,
+      subText: errorMessage,
+    };
+  }, [errorMessage]);
+
   return (
     <Dialog
       hidden={!visible}
-      title={<FormattedMessage id="error" />}
-      subText={errorMessage}
+      dialogContentProps={errorDialogContentProps}
       onDismiss={onDismiss}
     >
       <DialogFooter>

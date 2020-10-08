@@ -19,11 +19,23 @@
     "no-use-before-define": "off",
     "react/jsx-no-bind": "off",
     "react/forbid-elements": [
-      1,
+      "error",
       { "forbid": ["h1", "h2", "h3", "h4", "h5", "h6"] }
+    ],
+    "react/forbid-component-props": [
+      "error",
+      {
+        "forbid": [
+          {
+            "propName": "subText",
+            "allowedFor": [],
+            "message": "subText is deprecated in Dialog component"
+          }
+        ]
+      }
     ],
     "no-mixed-operators": "off",
     "no-undefined": "off",
-    "no-console": ["warn", { "allow": ["warn", "error"] }]
+    "no-console": ["error", { "allow": ["warn", "error"] }]
   }
 }
