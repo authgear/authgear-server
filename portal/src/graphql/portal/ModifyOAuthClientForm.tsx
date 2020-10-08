@@ -65,7 +65,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
   const { renderToString } = useContext(Context);
 
   const { value: clientName, onChange: onClientNameChange } = useTextField(
-    clientConfig.name!
+    clientConfig.name ?? ""
   );
 
   const {
