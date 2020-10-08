@@ -92,6 +92,7 @@
 							inputmode="numeric"
 							pattern="[0-9]*"
 							autocomplete="tel-national"
+							autocapitalize="none"
 							name="x_national_number"
 							placeholder="{{ template "phone-number-placeholder" }}"
 						>
@@ -102,6 +103,7 @@
 						type="{{ $.x_login_id_input_type }}"
 						name="x_login_id"
 						autocomplete="username"
+						autocapitalize="none"
 						placeholder="{{ .login_id_type }}"
 					>
 				{{ end }}

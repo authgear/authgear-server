@@ -81,6 +81,7 @@
 						inputmode="numeric"
 						pattern="[0-9]*"
 						autocomplete="tel-national"
+						autocapitalize="none"
 						name="x_national_number"
 						placeholder="{{ template "phone-number-placeholder" }}"
 					>
@@ -92,6 +93,7 @@
 					class="input text-input primary-txt"
 					type="{{ $.LoginPageTextLoginIDInputType }}"
 					autocomplete="username"
+					autocapitalize="none"
 					name="x_login_id"
 					placeholder="{{ template "login-id-placeholder" (makemap "variant" $.LoginPageTextLoginIDVariant) }}"
 				>
