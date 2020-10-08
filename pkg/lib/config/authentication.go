@@ -130,7 +130,7 @@ var _ = Schema.Add("RecoveryCodeConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"count": { "type": "integer" },
+		"count": { "type": "integer", "minimum": 10 },
 		"list_enabled": { "type": "boolean" }
 	}
 }
