@@ -22,6 +22,18 @@
       1,
       { "forbid": ["h1", "h2", "h3", "h4", "h5", "h6"] }
     ],
+    "react/forbid-component-props": [
+      1,
+      {
+        "forbid": [
+          {
+            "propName": "subText",
+            "allowedFor": [],
+            "message": "subText is deprecated in Dialog component"
+          }
+        ]
+      }
+    ],
     "no-mixed-operators": "off",
     "no-undefined": "off",
     "no-console": ["warn", { "allow": ["warn", "error"] }]
