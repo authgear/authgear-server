@@ -603,7 +603,14 @@ const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = func
 
 const SingleSignOnConfigurationScreen: React.FC = function SingleSignOnConfigurationScreen() {
   const { appID } = useParams();
-  const { data, loading, error, refetch } = useAppAndSecretConfigQuery(appID);
+  const {
+    rawAppConfig,
+    effectiveAppConfig,
+    secretConfig,
+    loading,
+    error,
+    refetch,
+  } = useAppAndSecretConfigQuery(appID);
   const {
     updateAppAndSecretConfig,
     loading: updatingAppAndSecretConfig,
@@ -617,13 +624,6 @@ const SingleSignOnConfigurationScreen: React.FC = function SingleSignOnConfigura
   if (error != null) {
     return <ShowError error={error} onRetry={refetch} />;
   }
-
-  const rawAppConfig =
-    data?.node?.__typename === "App" ? data.node.rawAppConfig : null;
-  const effectiveAppConfig =
-    data?.node?.__typename === "App" ? data.node.effectiveAppConfig : null;
-  const secretConfig =
-    data?.node?.__typename === "App" ? data.node.rawSecretConfig : null;
 
   return (
     <main className={styles.root} role="main">
