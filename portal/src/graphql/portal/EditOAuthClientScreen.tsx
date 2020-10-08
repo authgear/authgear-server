@@ -10,7 +10,9 @@ import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
-import ModifyOAuthClientForm from "./ModifyOAuthClientForm";
+import ModifyOAuthClientForm, {
+  getReducedClientConfig,
+} from "./ModifyOAuthClientForm";
 import { useAppConfigQuery } from "./query/appConfigQuery";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
 import { OAuthClientConfig, PortalAPIAppConfig } from "../../types";
@@ -71,7 +73,10 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> = function EditOAu
   }, [clientConfig, updateAppConfig, rawAppConfig]);
 
   const isFormModified = useMemo(() => {
-    return !deepEqual(clientConfig, initialClientConfig);
+    return !deepEqual(
+      getReducedClientConfig(clientConfig),
+      getReducedClientConfig(initialClientConfig)
+    );
   }, [clientConfig, initialClientConfig]);
 
   return (

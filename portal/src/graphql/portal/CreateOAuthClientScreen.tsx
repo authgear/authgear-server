@@ -16,7 +16,9 @@ import { FormattedMessage } from "@oursky/react-messageformat";
 
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
-import ModifyOAuthClientForm from "./ModifyOAuthClientForm";
+import ModifyOAuthClientForm, {
+  getReducedClientConfig,
+} from "./ModifyOAuthClientForm";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
@@ -126,10 +128,8 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
 
   const initialState = useMemo(() => {
     return {
-      name: "",
+      name: undefined,
       client_id: genRandomHexadecimalString(),
-      grant_types: ["authorization_code", "refresh_token"],
-      response_types: ["code", "none"],
       redirect_uris: [],
       access_token_lifetime_seconds: undefined,
       refresh_token_lifetime_seconds: undefined,
@@ -179,7 +179,7 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
   }, [rawAppConfig, clientConfig, onCreateClientSuccess, updateAppConfig]);
 
   const isFormModified = useMemo(() => {
-    return !deepEqual(initialState, clientConfig);
+    return !deepEqual(initialState, getReducedClientConfig(clientConfig));
   }, [clientConfig, initialState]);
 
   return (
