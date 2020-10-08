@@ -45,12 +45,20 @@
 		inputmode="numeric"
 		pattern="[0-9]*"
 		autocomplete="one-time-code"
+		autocapitalize="none"
 		name="x_national_number"
 		placeholder="{{ template "phone-number-placeholder" }}"
 	>
 </div>
 {{ else }}
-<input class="input text-input primary-txt" type="{{ $.InputType }}" name="x_email" placeholder="{{ template "email-placeholder" }}">
+<input
+	class="input text-input primary-txt"
+	type="{{ $.InputType }}"
+	name="x_email"
+	autocomplete="email"
+	autocapitalize="none"
+	placeholder="{{ template "email-placeholder" }}"
+>
 {{ end }}
 
 {{ if eq $.InputType "email" }}
