@@ -58,13 +58,25 @@ interface MinimumErrorCause {
   kind: "minimum";
 }
 
+interface MaximumErrorCauseDetails {
+  actual: number;
+  maximum: number;
+}
+
+interface MaximumErrorCause {
+  details: MaximumErrorCauseDetails;
+  location: string;
+  kind: "maximum";
+}
+
 // union type of cause details, depend on kind
 type ErrorCause =
   | RequiredErrorCause
   | GeneralErrorCause
   | FormatErrorCause
   | MinItemsErrorCause
-  | MinimumErrorCause;
+  | MinimumErrorCause
+  | MaximumErrorCause;
 
 interface ValidationErrorInfo {
   causes: ErrorCause[];
@@ -162,6 +174,12 @@ function extractViolationFromErrorCause(cause: ErrorCause): Violation | null {
         kind: cause.kind,
         location: cause.location,
         minimum: cause.details.minimum,
+      };
+    case "maximum":
+      return {
+        kind: cause.kind,
+        location: cause.location,
+        maximum: cause.details.maximum,
       };
     default:
       return { kind: "Unknown" };

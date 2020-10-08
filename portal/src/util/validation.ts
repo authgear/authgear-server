@@ -7,6 +7,7 @@ export type Violation =
   | FormatViolation
   | MinItemsViolation
   | MinimumViolation
+  | MaximumViolation
   | GeneralViolation
   | RemoveLastIdentityViolation
   | InvalidLoginIDKeyViolation
@@ -38,6 +39,12 @@ interface MinimumViolation {
   kind: "minimum";
   location: string;
   minimum: number;
+}
+
+interface MaximumViolation {
+  kind: "maximum";
+  location: string;
+  maximum: number;
 }
 
 interface GeneralViolation {

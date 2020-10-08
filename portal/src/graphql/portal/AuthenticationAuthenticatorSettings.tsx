@@ -443,13 +443,26 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
     const unhandledViolations: Violation[] = [];
     const recoveryCodeNumberErrorMessages: string[] = [];
     const violations = parseError(updateAppConfigError);
+    const recoveryCodeNumberLocation = "/authentication/recovery_code/count";
+
     for (const violation of violations) {
       if (violation.kind === "minimum") {
-        if (violation.location === "/authentication/recovery_code/count") {
+        if (violation.location === recoveryCodeNumberLocation) {
           recoveryCodeNumberErrorMessages.push(
             renderToString(
               "AuthenticationAuthenticator.policy.recovery-code-number.minimum-error",
               { minimum: violation.minimum }
+            )
+          );
+          continue;
+        }
+      }
+      if (violation.kind === "maximum") {
+        if (violation.location === recoveryCodeNumberLocation) {
+          recoveryCodeNumberErrorMessages.push(
+            renderToString(
+              "AuthenticationAuthenticator.policy.recovery-code-number.maximum-error",
+              { maximum: violation.maximum }
             )
           );
           continue;

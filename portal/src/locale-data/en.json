@@ -200,6 +200,7 @@
   "AuthenticationAuthenticator.policy.recovery-code-number": "Number of Recovery Code",
   "AuthenticationAuthenticator.policy.allow-retrieve-recovery-code": "Allow user to retrieve recovery code again",
   "AuthenticationAuthenticator.policy.recovery-code-number.minimum-error": "The minimum number of recovery code is {minimum}",
+  "AuthenticationAuthenticator.policy.recovery-code-number.maximum-error": "The maximum number of recovery code is {maximum}",
 
   "AnonymousUsersConfigurationScreen.title": "Anonymous Users",
   "AnonymousUsersConfigurationScreen.enable.label": "Enable anonymous users?",
