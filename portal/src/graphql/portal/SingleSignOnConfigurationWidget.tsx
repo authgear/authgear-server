@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useMemo } from "react";
 import cn from "classnames";
 import {
   Toggle,
@@ -58,7 +58,7 @@ type WidgetTextFieldKey =
   | keyof Omit<OAuthSSOProviderConfig, "type">
   | "client_secret";
 
-type WidgetErrorState = Partial<Record<WidgetTextFieldKey, string>>;
+type WidgetErrorMap = Partial<Record<WidgetTextFieldKey, string>>;
 
 interface OAuthProviderInfo {
   providerType: OAuthSSOProviderType;
@@ -195,16 +195,13 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
     fields: visibleFields,
   } = oauthProviders[serviceProviderType];
 
-  const [errorMap, setErrorMap] = useState<WidgetErrorState>({});
-
-  useEffect(() => {
+  const errorMap: WidgetErrorMap = useMemo(() => {
     if (
       errorLocation == null ||
       violations == null ||
       violations.length === 0
     ) {
-      setErrorMap({});
-      return;
+      return {};
     }
 
     const violationMap = violationSelector(violations, {
@@ -215,7 +212,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
       team_id: makeMissingFieldSelector(errorLocation, "team_id"),
     });
 
-    setErrorMap({
+    return {
       alias: errorFormatter(
         "SingleSignOnConfigurationScreen.widget.alias",
         violationMap["alias"],
@@ -241,7 +238,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
         violationMap["team_id"],
         renderToString
       ),
-    });
+    };
   }, [renderToString, violations, errorLocation]);
 
   const messageID = "OAuthBranding." + providerType;
