@@ -16,15 +16,16 @@ export function setFieldIfChanged<
 
 export function setNumericFieldIfChanged<M, K extends keyof M>(
   map: Partial<M>,
-  key: K,
-  initialValue: M[K] extends number ? M[K] : never,
-  value: M[K] extends number ? M[K] : never
+  key: M[K] extends number ? K : never,
+  initialValue: string | undefined,
+  value: string | undefined
 ): void {
   if (initialValue !== value) {
-    if (value === 0) {
+    const numberValue = Number(value);
+    if (value === "" || Number.isNaN(numberValue)) {
       map[key] = undefined;
     } else {
-      map[key] = value;
+      map[key] = numberValue as any;
     }
   }
 }

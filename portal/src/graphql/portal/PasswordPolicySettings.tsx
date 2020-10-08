@@ -94,8 +94,8 @@ function constructAppConfigFromState(
     setNumericFieldIfChanged(
       passwordPolicy,
       "min_length",
-      Number(initialScreenState.minLength),
-      Number(screenState.minLength)
+      initialScreenState.minLength,
+      screenState.minLength
     );
 
     setFieldIfChanged(
@@ -136,15 +136,15 @@ function constructAppConfigFromState(
     setNumericFieldIfChanged(
       passwordPolicy,
       "history_days",
-      Number(initialScreenState.historyDays),
-      Number(screenState.historyDays)
+      initialScreenState.historyDays,
+      screenState.historyDays
     );
 
     setNumericFieldIfChanged(
       passwordPolicy,
       "history_size",
-      Number(initialScreenState.historySize),
-      Number(screenState.historySize)
+      initialScreenState.historySize,
+      screenState.historySize
     );
 
     if (
