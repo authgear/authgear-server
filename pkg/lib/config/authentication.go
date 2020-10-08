@@ -9,6 +9,9 @@ var _ = Schema.Add("AuthenticationConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
+		"public_signup_disabled": {
+			"type": "boolean"
+		},
 		"identities": {
 			"type": "array",
 			"items": { "$ref": "#/$defs/IdentityType" },
@@ -59,6 +62,7 @@ type AuthenticationConfig struct {
 	SecondaryAuthenticationMode SecondaryAuthenticationMode `json:"secondary_authentication_mode,omitempty"`
 	DeviceToken                 *DeviceTokenConfig          `json:"device_token,omitempty"`
 	RecoveryCode                *RecoveryCodeConfig         `json:"recovery_code,omitempty"`
+	PublicSignupDisabled        bool                        `json:"public_signup_disabled,omitempty"`
 }
 
 func (c *AuthenticationConfig) SetDefaults() {
