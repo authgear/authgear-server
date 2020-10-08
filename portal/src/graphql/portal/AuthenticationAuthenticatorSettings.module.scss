@@ -5,7 +5,7 @@
 }
 
 .widget {
-  margin-bottom: 15px;
+  margin: 15px 0;
   padding: 15px 15px 25px;
 }
 
@@ -23,6 +23,23 @@
   display: flex;
 }
 
-.saveButton {
-  margin-top: 25px;
+.policyHeader {
+  display: block;
+  font-weight: 600;
+  font-size: 14px;
+  margin: 30px 0 15px;
+}
+
+.requireMFADropdown {
+  width: 400px;
+  margin-bottom: 15px;
+}
+
+.recoveryCodeNumber {
+  width: 320px;
+  margin-bottom: 20px;
+}
+
+.allowRetrieveRecoveryCode {
+  margin-bottom: 25px;
 }

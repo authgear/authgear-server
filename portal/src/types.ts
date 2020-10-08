@@ -152,10 +152,24 @@ export function isSecondaryAuthenticatorType(
 export const identityTypes = ["login_id", "oauth", "anonymous"] as const;
 export type IdentityType = typeof identityTypes[number];
 
+export const secondaryAuthenticationModes = [
+  "if_requested",
+  "if_exists",
+  "required",
+] as const;
+export type SecondaryAuthenticationMode = typeof secondaryAuthenticationModes[number];
+
+interface RecoveryCodeConfig {
+  count?: number;
+  list_enabled?: boolean;
+}
+
 interface AuthenticationConfig {
   identities?: IdentityType[];
   primary_authenticators?: PrimaryAuthenticatorType[];
   secondary_authenticators?: SecondaryAuthenticatorType[];
+  secondary_authentication_mode?: SecondaryAuthenticationMode;
+  recovery_code?: RecoveryCodeConfig;
 }
 
 export interface VerificationClaimConfig {

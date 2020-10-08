@@ -97,40 +97,42 @@ export const useTagPickerWithNewTags = (
   };
 };
 
-export function makeDropdownOptions(
-  keyList: string[],
-  selectedKey?: string,
-  displayText?: (key: string) => string
+export function makeDropdownOptions<K extends string>(
+  keyList: K[],
+  selectedKey?: K,
+  displayText?: (key: K) => string,
+  hiddenSelections?: Set<K>
 ): IDropdownOption[] {
   return keyList.map((key) => ({
     key,
     text: displayText != null ? displayText(key) : key,
     isSelected: selectedKey === key,
+    hidden: hiddenSelections?.has(key),
   }));
 }
 
-export const useDropdown = (
-  keyList: string[],
-  initialOption?: string,
-  displayText?: (key: string) => string
+export function useDropdown<K extends string>(
+  keyList: K[],
+  initialOption?: K,
+  displayText?: (key: K) => string,
+  hiddenSelections?: Set<K>
 ): {
-  selectedKey?: string;
+  selectedKey?: K;
   options: IDropdownOption[];
   onChange: (_event: any, option?: IDropdownOption) => void;
-} => {
-  const [selectedKey, setSelectedKey] = useState<string | undefined>(
-    initialOption
-  );
+} {
+  const [selectedKey, setSelectedKey] = useState<K | undefined>(initialOption);
   const options = useMemo(
-    () => makeDropdownOptions(keyList, selectedKey, displayText),
-    [selectedKey, displayText, keyList]
+    () =>
+      makeDropdownOptions(keyList, selectedKey, displayText, hiddenSelections),
+    [selectedKey, displayText, keyList, hiddenSelections]
   );
 
   const onChange = useCallback((_event: any, option?: IDropdownOption) => {
     if (option == null) {
       return;
     }
-    setSelectedKey(option.key.toString());
+    setSelectedKey(option.key.toString() as K);
   }, []);
 
   return {
@@ -138,4 +140,4 @@ export const useDropdown = (
     options,
     onChange,
   };
-};
+}

@@ -45,7 +45,6 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
 
   return (
     <main className={cn(styles.root, { [styles.loading]: updatingAppConfig })}>
-      {updateAppConfigError && <ShowError error={updateAppConfigError} />}
       <div className={styles.content}>
         <Text as="h1" className={styles.title}>
           <FormattedMessage id="AuthenticationScreen.title" />
@@ -61,6 +60,7 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
                 rawAppConfig={rawAppConfig}
                 updateAppConfig={updateAppConfig}
                 updatingAppConfig={updatingAppConfig}
+                updateAppConfigError={updateAppConfigError}
               />
             </PivotItem>
             <PivotItem
@@ -74,6 +74,7 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
                 rawAppConfig={rawAppConfig}
                 updateAppConfig={updateAppConfig}
                 updatingAppConfig={updatingAppConfig}
+                updateAppConfigError={updateAppConfigError}
               />
             </PivotItem>
           </Pivot>
