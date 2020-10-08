@@ -68,6 +68,14 @@ var nodeApp = node(
 					return p.Source.(*model.App).Context.Config.AppConfig, nil
 				},
 			},
+			"domains": &graphql.Field{
+				Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(domain))),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					ctx := GQLContext(p.Context)
+					app := p.Source.(*model.App)
+					return ctx.Domains.ListDomains(app.ID).Value, nil
+				},
+			},
 		},
 	}),
 	&model.App{},

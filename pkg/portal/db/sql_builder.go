@@ -12,7 +12,7 @@ type SQLBuilder struct {
 	Schema string
 }
 
-func NewSQLBuilder(config config.DatabaseConfig) *SQLBuilder {
+func NewSQLBuilder(config *config.DatabaseConfig) *SQLBuilder {
 	return &SQLBuilder{
 		StatementBuilderType: sq.StatementBuilder.PlaceholderFormat(sq.Dollar),
 		Schema:               config.DatabaseSchema,
