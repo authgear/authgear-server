@@ -126,9 +126,13 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
 
   const initialState = useMemo(() => {
     return {
-      name: "",
+      name: undefined,
       client_id: genRandomHexadecimalString(),
-      grant_types: ["authorization_code", "refresh_token"],
+      grant_types: [
+        "authorization_code",
+        "refresh_token",
+        "urn:authgear:params:oauth:grant-type:anonymous-request",
+      ],
       response_types: ["code", "none"],
       redirect_uris: [],
       access_token_lifetime_seconds: undefined,
