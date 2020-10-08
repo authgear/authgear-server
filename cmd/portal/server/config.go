@@ -25,6 +25,8 @@ type Config struct {
 	App portalconfig.AppConfig `envconfig:"APP"`
 	// StaticAsset configures serving static asset
 	StaticAsset StaticAssetConfig `envconfig:"STATIC_ASSET"`
+	// Database configures the backend database
+	Database portalconfig.DatabaseConfig `envconfig:"DATABASE"`
 
 	*config.EnvironmentConfig
 }
@@ -68,6 +70,10 @@ func (c *Config) Validate() error {
 	}
 	if c.Authgear.Endpoint == "" {
 		ctx.Child("AUTHGEAR_ENDPOINT").EmitErrorMessage("missing authgear endpoint")
+	}
+
+	if c.Database.DatabaseURL == "" {
+		ctx.Child("DATABASE_URL").EmitErrorMessage("missing database URL")
 	}
 
 	return ctx.Error("invalid server configuration")

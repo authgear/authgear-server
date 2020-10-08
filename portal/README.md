@@ -21,7 +21,13 @@ This container listen to port 8000. For redirection configuration, please refer 
 
 ## Setup environment variable
 
-We need to setup the environment variable `AUTHGEAR_CLIENT_ID=portal` and `AUTHGEAR_ENDPOINT=http://localhost:3000`, and start graphQL server.
+We need to set up the environment variables:
+- `AUTHGEAR_CLIENT_ID=portal`
+- `AUTHGEAR_ENDPOINT=http://localhost:3000`
+- `DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable`
+- `DATABASE_SCHEMA=portal` (optional)
+
+See `.env.example` for details.
 
 ## Setup graphQL server
 

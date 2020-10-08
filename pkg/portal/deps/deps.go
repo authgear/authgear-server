@@ -23,6 +23,7 @@ var DependencySet = wire.NewSet(
 		"AuthgearConfig",
 		"AdminAPIConfig",
 		"AppConfig",
+		"DatabaseConfig",
 		"SentryHub",
 		"LoggerFactory",
 		"ConfigSourceController",
