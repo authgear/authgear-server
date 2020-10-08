@@ -1,6 +1,7 @@
 package configsource
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -51,7 +52,9 @@ type Kubernetes struct {
 	TrustProxy config.TrustProxy
 	Config     *Config
 
+	Context    context.Context       `wire:"-"`
 	Namespace  string                `wire:"-"`
+	KubeConfig *rest.Config          `wire:"-"`
 	Client     *kubernetes.Clientset `wire:"-"`
 	done       chan<- struct{}       `wire:"-"`
 	hostMap    *sync.Map             `wire:"-"`
@@ -78,11 +81,13 @@ func (k *Kubernetes) Open() error {
 		}
 	}
 
+	k.KubeConfig = kubeConfig
 	k.Client, err = kubernetes.NewForConfig(kubeConfig)
 	if err != nil {
 		return err
 	}
 
+	k.Context = context.Background()
 	k.Namespace = k.Config.KubeNamespace
 	if k.Namespace == "" {
 		k.Namespace = corev1.NamespaceDefault
@@ -192,7 +197,8 @@ func (k *Kubernetes) Close() error {
 
 func (k *Kubernetes) AllAppIDs() ([]string, error) {
 	// FIXME(k8s): remove this after introducing proper authz
-	ingresses, err := k.Client.NetworkingV1beta1().Ingresses(k.Namespace).List(metav1.ListOptions{})
+	ingresses, err := k.Client.NetworkingV1beta1().Ingresses(k.Namespace).
+		List(k.Context, metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +272,9 @@ func (k *Kubernetes) newController(
 		}
 	}
 
-	fifo := cache.NewDeltaFIFO(cache.MetaNamespaceKeyFunc, nil)
+	fifo := cache.NewDeltaFIFOWithOptions(cache.DeltaFIFOOptions{
+		KeyFunction: cache.MetaNamespaceKeyFunc,
+	})
 	ctrl := cache.New(&cache.Config{
 		Queue:         fifo,
 		ListerWatcher: listWatch,
@@ -332,7 +340,7 @@ func (a *k8sApp) doLoad(k *Kubernetes) (*config.AppContext, error) {
 	}
 
 	secrets, err := k.Client.CoreV1().Secrets(k.Namespace).
-		List(metav1.ListOptions{LabelSelector: labelSelector})
+		List(k.Context, metav1.ListOptions{LabelSelector: labelSelector})
 	if err != nil {
 		return nil, err
 	}

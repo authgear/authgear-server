@@ -76,6 +76,15 @@ func (c *Config) Validate() error {
 		ctx.Child("DATABASE_URL").EmitErrorMessage("missing database URL")
 	}
 
+	if _, err := portalconfig.ParseTLSCertSource(c.App.Kubernetes.DefaultDomainTLSCert); err != nil {
+		ctx.Child("APP_KUBERNETES_DEFAULT_DOMAIN_TLS_CERT").
+			EmitErrorMessage("invalid certificate description: " + err.Error())
+	}
+	if _, err := portalconfig.ParseTLSCertSource(c.App.Kubernetes.CustomDomainTLSCert); err != nil {
+		ctx.Child("APP_KUBERNETES_CUSTOM_DOMAIN_TLS_CERT").
+			EmitErrorMessage("invalid certificate description: " + err.Error())
+	}
+
 	return ctx.Error("invalid server configuration")
 }
 
