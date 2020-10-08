@@ -1,16 +1,21 @@
 package service
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+	texttemplate "text/template"
 
 	"github.com/spf13/afero"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1beta1 "k8s.io/api/networking/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -22,6 +27,11 @@ import (
 
 var ErrDuplicatedAppID = apierrors.AlreadyExists.WithReason("DuplicatedAppID").
 	New("duplicated app ID")
+
+type ingressDef struct {
+	AppID string
+	Host  string
+}
 
 type ConfigServiceLogger struct{ *log.Logger }
 
@@ -174,6 +184,20 @@ func (s *ConfigService) createKubernetes(k *configsource.Kubernetes, appID strin
 		},
 	}
 
+	var ingresses []*networkingv1beta1.Ingress
+	for _, host := range hosts {
+		def := &ingressDef{
+			AppID: appID,
+			Host:  host,
+		}
+
+		ingress := &networkingv1beta1.Ingress{}
+		if err = s.generateIngress(def, ingress); err != nil {
+			return fmt.Errorf("cannot generate ingress resource: %w", err)
+		}
+		ingresses = append(ingresses, ingress)
+	}
+
 	// Update host mapping
 	hostMappingSelector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
 		MatchLabels: map[string]string{configsource.LabelHostMapping: "true"},
@@ -215,6 +239,38 @@ func (s *ConfigService) createKubernetes(k *configsource.Kubernetes, appID strin
 	}
 
 	_, err = k.Client.CoreV1().Secrets(k.Namespace).Create(secret)
+	if err != nil {
+		return err
+	}
+
+	for _, ingress := range ingresses {
+		_, err = k.Client.NetworkingV1beta1().Ingresses(k.Namespace).Create(ingress)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *ConfigService) generateIngress(def *ingressDef, ingress *networkingv1beta1.Ingress) error {
+	tpl, err := ioutil.ReadFile(s.AppConfig.Kubernetes.IngressTemplateFile)
+	if err != nil {
+		return err
+	}
+
+	template, err := texttemplate.New("ingress").Parse(string(tpl))
+	if err != nil {
+		return err
+	}
+
+	ingressYAML := bytes.Buffer{}
+	err = template.Execute(&ingressYAML, def)
+	if err != nil {
+		return err
+	}
+
+	err = yaml.Unmarshal(ingressYAML.Bytes(), &ingress)
 	if err != nil {
 		return err
 	}

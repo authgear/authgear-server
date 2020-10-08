@@ -8,7 +8,8 @@ type AppConfig struct {
 }
 
 type AppKubernetesConfig struct {
-	NewResourcePrefix string `envconfig:"NEW_RESOURCE_PREFIX" default:"app-"`
+	NewResourcePrefix   string `envconfig:"NEW_RESOURCE_PREFIX" default:"app-"`
+	IngressTemplateFile string `envconfig:"INGRESS_TEMPLATE_FILE"`
 }
 
 type AppSecretConfig struct {
