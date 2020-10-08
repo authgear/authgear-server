@@ -82,6 +82,9 @@ interface AuthenticationAuthenticatorScreenState
 const ALL_REQUIRE_MFA_OPTIONS: SecondaryAuthenticationMode[] = [
   ...secondaryAuthenticationModes,
 ];
+const HIDDEN_REQUIRE_MFA_OPTIONS: SecondaryAuthenticationMode[] = [
+  "if_requested",
+];
 
 const AuthenticatorCheckbox: React.FC<AuthenticatorCheckboxProps> = function AuthenticatorCheckbox(
   props: AuthenticatorCheckboxProps
@@ -274,8 +277,11 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
   } = useDropdown(
     ALL_REQUIRE_MFA_OPTIONS,
     initialPolicySectionState.secondaryAuthenticationMode,
-    displaySecondaryAuthenticatorMode
+    displaySecondaryAuthenticatorMode,
+    // NOTE: not supported yet
+    new Set(HIDDEN_REQUIRE_MFA_OPTIONS)
   );
+
   const {
     value: recoveryCodeNumber,
     onChange: onRecoveryCodeNumberChange,
