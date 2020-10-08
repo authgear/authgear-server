@@ -17,6 +17,7 @@ import ToggleWithContent from "../../ToggleWithContent";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import {
+  setNumericFieldIfChanged,
   setFieldIfChanged,
   setFieldIfListNonEmpty,
   isArrayEqualInOrder,
@@ -43,15 +44,15 @@ interface PasswordPolicySettingsProps {
 }
 
 interface PasswordPolicySettingsState {
-  minLength: number;
+  minLength: string;
   isDigitRequired: boolean;
   isLowercaseRequired: boolean;
   isUppercaseRequired: boolean;
   isSymbolRequired: boolean;
   minGuessableLevel: PasswordPolicyGuessableLevel;
   preventReuse: boolean;
-  historyDays: number;
-  historySize: number;
+  historyDays: string;
+  historySize: string;
   excludedKeywords: string[];
 }
 
@@ -59,19 +60,19 @@ function constructStateFromAppConfig(
   appConfig: PortalAPIAppConfig | null
 ): PasswordPolicySettingsState {
   const passwordPolicy = appConfig?.authenticator?.password?.policy;
-  const historyDays = passwordPolicy?.history_days ?? 0;
-  const historySize = passwordPolicy?.history_size ?? 0;
+  const historyDaysConfig = passwordPolicy?.history_days;
+  const historySizeConfig = passwordPolicy?.history_size;
 
   return {
-    minLength: passwordPolicy?.min_length ?? 0,
+    minLength: passwordPolicy?.min_length?.toString() ?? "",
     isDigitRequired: !!passwordPolicy?.digit_required,
     isLowercaseRequired: !!passwordPolicy?.lowercase_required,
     isUppercaseRequired: !!passwordPolicy?.uppercase_required,
     isSymbolRequired: !!passwordPolicy?.symbol_required,
     minGuessableLevel: passwordPolicy?.minimum_guessable_level ?? 0,
-    preventReuse: historyDays !== 0 || historySize !== 0,
-    historyDays,
-    historySize,
+    preventReuse: historyDaysConfig != null || historySizeConfig != null,
+    historyDays: historyDaysConfig?.toString() ?? "",
+    historySize: historySizeConfig?.toString() ?? "",
     excludedKeywords: passwordPolicy?.excluded_keywords ?? [],
   };
 }
@@ -90,7 +91,7 @@ function constructAppConfigFromState(
 
     const passwordPolicy = draftConfig.authenticator.password.policy;
 
-    setFieldIfChanged(
+    setNumericFieldIfChanged(
       passwordPolicy,
       "min_length",
       initialScreenState.minLength,
@@ -132,14 +133,14 @@ function constructAppConfigFromState(
       screenState.minGuessableLevel
     );
 
-    setFieldIfChanged(
+    setNumericFieldIfChanged(
       passwordPolicy,
       "history_days",
       initialScreenState.historyDays,
       screenState.historyDays
     );
 
-    setFieldIfChanged(
+    setNumericFieldIfChanged(
       passwordPolicy,
       "history_size",
       initialScreenState.historySize,
@@ -214,9 +215,10 @@ const PasswordPolicySettings: React.FC<PasswordPolicySettingsProps> = function P
     if (value === undefined) {
       return;
     }
+    // empty string parse to NaN
     setState((state) => ({
       ...state,
-      minLength: parseInt(value, 10),
+      minLength: value,
     }));
   }, []);
 
@@ -274,15 +276,15 @@ const PasswordPolicySettings: React.FC<PasswordPolicySettingsProps> = function P
       setState((state) => ({
         ...state,
         preventReuse: true,
-        historyDays: 90,
-        historySize: 3,
+        historyDays: "90",
+        historySize: "3",
       }));
     } else {
       setState((state) => ({
         ...state,
         preventReuse: false,
-        historyDays: 0,
-        historySize: 0,
+        historyDays: "",
+        historySize: "",
       }));
     }
   }, []);
@@ -293,7 +295,7 @@ const PasswordPolicySettings: React.FC<PasswordPolicySettingsProps> = function P
     }
     setState((state) => ({
       ...state,
-      historyDays: parseInt(value, 10),
+      historyDays: value,
     }));
   }, []);
 
@@ -303,7 +305,7 @@ const PasswordPolicySettings: React.FC<PasswordPolicySettingsProps> = function P
     }
     setState((state) => ({
       ...state,
-      historySize: parseInt(value, 10),
+      historySize: value,
     }));
   }, []);
 
