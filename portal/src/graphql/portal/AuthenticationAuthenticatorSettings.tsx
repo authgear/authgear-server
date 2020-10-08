@@ -29,7 +29,12 @@ import {
   PortalAPIApp,
 } from "../../types";
 import { useDropdown, useTextField } from "../../hook/useInput";
-import { isArrayEqualInOrder, clearEmptyObject } from "../../util/misc";
+import {
+  isArrayEqualInOrder,
+  clearEmptyObject,
+  setFieldIfChanged,
+  setNumericFieldIfChanged,
+} from "../../util/misc";
 
 import styles from "./AuthenticationAuthenticatorSettings.module.scss";
 
@@ -365,10 +370,10 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
       effectiveAppConfig.authentication?.secondary_authenticators ?? [];
 
     const activatedPrimaryKeyList = getActivatedKeyListFromState(
-      primaryAuthenticatorState
+      screenState.primaryAuthenticators
     );
     const activatedSecondaryKeyList = getActivatedKeyListFromState(
-      secondaryAuthenticatorState
+      screenState.secondaryAuthenticators
     );
 
     const newAppConfig = produce(rawAppConfig, (draftConfig) => {
@@ -391,17 +396,41 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
         authentication.secondary_authenticators = activatedSecondaryKeyList;
       }
 
+      // Policy section
+      authentication.recovery_code = authentication.recovery_code ?? {};
+
+      setFieldIfChanged(
+        authentication,
+        "secondary_authentication_mode",
+        initialState.secondaryAuthenticationMode,
+        screenState.secondaryAuthenticationMode
+      );
+
+      setNumericFieldIfChanged(
+        authentication.recovery_code,
+        "count",
+        initialState.recoveryCodeNumber,
+        screenState.recoveryCodeNumber
+      );
+
+      setFieldIfChanged(
+        authentication.recovery_code,
+        "list_enabled",
+        initialState.allowRetrieveRecoveryCode,
+        screenState.allowRetrieveRecoveryCode
+      );
+
       clearEmptyObject(draftConfig);
     });
 
-    // TODO: handle error
     updateAppConfig(newAppConfig).catch(() => {});
   }, [
     rawAppConfig,
     effectiveAppConfig,
     updateAppConfig,
-    primaryAuthenticatorState,
-    secondaryAuthenticatorState,
+
+    initialState,
+    screenState,
   ]);
 
   return (
