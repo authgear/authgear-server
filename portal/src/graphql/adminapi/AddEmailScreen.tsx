@@ -6,7 +6,7 @@ import React, {
   useState,
 } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { TextField, Toggle } from "@fluentui/react";
+import { TextField } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
@@ -47,25 +47,16 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
   }, []);
 
   const { value: email, onChange: onEmailChange } = useTextField("");
-  const [verified, setVerified] = useState(false);
-
-  const onVerifiedToggled = useCallback((_event: any, checked?: boolean) => {
-    if (checked == null) {
-      return;
-    }
-    setVerified(checked);
-  }, []);
 
   const screenState = useMemo(
     () => ({
       email,
-      verified,
     }),
-    [email, verified]
+    [email]
   );
 
   const isFormModified = useMemo(() => {
-    return !deepEqual({ email: "", verified: false }, screenState);
+    return !deepEqual({ email: "" }, screenState);
   }, [screenState]);
 
   const onAddClicked = useCallback(() => {
@@ -125,13 +116,6 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
           value={email}
           onChange={onEmailChange}
           errorMessage={errorMessage.email}
-        />
-        <Toggle
-          className={styles.verified}
-          label={<FormattedMessage id="verified" />}
-          inlineLabel={true}
-          checked={verified}
-          onChange={onVerifiedToggled}
         />
         <ButtonWithLoading
           onClick={onAddClicked}

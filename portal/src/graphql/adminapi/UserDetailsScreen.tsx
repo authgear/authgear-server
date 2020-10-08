@@ -52,6 +52,8 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
     return <ShowLoading />;
   }
 
+  const verifiedClaims = data?.verifiedClaims ?? [];
+
   const identities =
     data?.identities?.edges?.map((edge) => edge?.node).filter(nonNullable) ??
     [];
@@ -85,6 +87,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
           >
             <UserDetailsConnectedIdentities
               identities={identities}
+              verifiedClaims={verifiedClaims}
               availableLoginIdIdentities={availableLoginIdIdentities}
             />
           </PivotItem>

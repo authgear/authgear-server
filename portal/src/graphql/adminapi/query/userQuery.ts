@@ -36,6 +36,10 @@ const userQuery = gql`
             }
           }
         }
+        verifiedClaims {
+          name
+          value
+        }
         lastLoginAt
         createdAt
         updatedAt

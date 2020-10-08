@@ -83,6 +83,12 @@ export interface UserQuery_node_User_identities {
   edges: (UserQuery_node_User_identities_edges | null)[] | null;
 }
 
+export interface UserQuery_node_User_verifiedClaims {
+  __typename: "Claim";
+  name: string;
+  value: string;
+}
+
 export interface UserQuery_node_User {
   __typename: "User";
   /**
@@ -91,6 +97,7 @@ export interface UserQuery_node_User {
   id: string;
   authenticators: UserQuery_node_User_authenticators | null;
   identities: UserQuery_node_User_identities | null;
+  verifiedClaims: UserQuery_node_User_verifiedClaims[];
   /**
    * The last login time of user
    */
