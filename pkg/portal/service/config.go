@@ -2,7 +2,6 @@ package service
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -198,46 +197,7 @@ func (s *ConfigService) createKubernetes(k *configsource.Kubernetes, appID strin
 		ingresses = append(ingresses, ingress)
 	}
 
-	// Update host mapping
-	hostMappingSelector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
-		MatchLabels: map[string]string{configsource.LabelHostMapping: "true"},
-	})
-	if err != nil {
-		return err
-	}
-	hostMappingList, err := k.Client.CoreV1().ConfigMaps(k.Namespace).
-		List(metav1.ListOptions{LabelSelector: hostMappingSelector.String()})
-	if err != nil {
-		return err
-	} else if len(hostMappingList.Items) != 1 {
-		return fmt.Errorf("failed to query host mapping (%d != 1)", len(hostMappingList.Items))
-	}
-
-	hostMapping := &hostMappingList.Items[0]
-	jsonString, ok := hostMapping.Data[configsource.HostMapJSON]
-	if !ok {
-		return errors.New("no host mapping JSON found")
-	}
-	data := []byte(jsonString)
-	var hostMap map[string]string
-	if err := json.Unmarshal(data, &hostMap); err != nil {
-		return fmt.Errorf("failed to parse host mapping: %w", err)
-	}
-	for _, h := range hosts {
-		hostMap[h] = appID
-	}
-	data, err = json.Marshal(hostMap)
-	if err != nil {
-		return err
-	}
-	hostMapping.Data[configsource.HostMapJSON] = string(data)
-
 	// Commit changes to Kubernetes
-	_, err = k.Client.CoreV1().ConfigMaps(k.Namespace).Update(hostMapping)
-	if err != nil {
-		return err
-	}
-
 	_, err = k.Client.CoreV1().Secrets(k.Namespace).Create(secret)
 	if err != nil {
 		return err

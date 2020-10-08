@@ -1,9 +1,9 @@
 package configsource
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"path/filepath"
 	"sort"
@@ -13,6 +13,7 @@ import (
 
 	"github.com/spf13/afero"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1beta1 "k8s.io/api/networking/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -31,11 +32,12 @@ import (
 )
 
 const (
-	LabelHostMapping = "authgear.com/host-mapping"
-	LabelAppID       = "authgear.com/app-id"
+	LabelAppID = "authgear.com/app-id"
 )
 
-const HostMapJSON = "hosts.json"
+type ingressSnapshot struct {
+	Hosts []string
+}
 
 type KubernetesLogger struct{ *log.Logger }
 
@@ -49,12 +51,12 @@ type Kubernetes struct {
 	TrustProxy config.TrustProxy
 	Config     *Config
 
-	Namespace string                `wire:"-"`
-	Client    *kubernetes.Clientset `wire:"-"`
-	done      chan<- struct{}       `wire:"-"`
-	hostMap   *atomic.Value         `wire:"-"`
-	appIDs    *atomic.Value         `wire:"-"`
-	appMap    *sync.Map             `wire:"-"`
+	Namespace  string                `wire:"-"`
+	Client     *kubernetes.Clientset `wire:"-"`
+	done       chan<- struct{}       `wire:"-"`
+	hostMap    *sync.Map             `wire:"-"`
+	ingressMap *sync.Map             `wire:"-"`
+	appMap     *sync.Map             `wire:"-"`
 }
 
 func (k *Kubernetes) Open() error {
@@ -86,18 +88,16 @@ func (k *Kubernetes) Open() error {
 		k.Namespace = corev1.NamespaceDefault
 	}
 
-	k.hostMap = &atomic.Value{}
-	k.hostMap.Store(map[string]string{})
-	k.appIDs = &atomic.Value{}
-	k.appIDs.Store([]string{})
+	k.hostMap = &sync.Map{}
+	k.ingressMap = &sync.Map{}
 	k.appMap = &sync.Map{}
 
 	done := make(chan struct{})
 	k.done = done
 
-	configMapCtrl := k.newController(corev1.ResourceConfigMaps, &corev1.ConfigMap{}, k.onUpdate, k.onDelete)
-	secretCtrl := k.newController(corev1.ResourceSecrets, &corev1.Secret{}, k.onUpdate, k.onDelete)
-	go configMapCtrl.Run(done)
+	ingressCtrl := k.newController(k.Client.NetworkingV1beta1().RESTClient(), "ingresses", &networkingv1beta1.Ingress{})
+	secretCtrl := k.newController(k.Client.CoreV1().RESTClient(), "secrets", &corev1.Secret{})
+	go ingressCtrl.Run(done)
 	go secretCtrl.Run(done)
 	go k.cleanupCache(done)
 
@@ -106,17 +106,9 @@ func (k *Kubernetes) Open() error {
 
 func (k *Kubernetes) onUpdate(resource metav1.Object) {
 	switch resource := resource.(type) {
-	case *corev1.ConfigMap:
-		if value, ok := resource.Labels[LabelHostMapping]; ok && value == "true" {
-			data, ok := resource.Data[HostMapJSON]
-			if !ok {
-				k.Logger.
-					WithField("namespace", resource.GetNamespace()).
-					WithField("name", resource.GetName()).
-					Error("host map JSON not found")
-				return
-			}
-			k.updateHostMap([]byte(data))
+	case *networkingv1beta1.Ingress:
+		if appID, ok := resource.Labels[LabelAppID]; ok && appID != "" {
+			k.updateHostMap(appID, resource)
 		}
 	case *corev1.Secret:
 		if appID, ok := resource.Labels[LabelAppID]; ok && appID != "" {
@@ -128,31 +120,40 @@ func (k *Kubernetes) onUpdate(resource metav1.Object) {
 }
 
 func (k *Kubernetes) onDelete(resource metav1.Object) {
-	if appID, ok := resource.GetLabels()[LabelAppID]; ok && appID != "" {
-		k.invalidateApp(appID)
+	switch resource := resource.(type) {
+	case *networkingv1beta1.Ingress:
+		if appID, ok := resource.Labels[LabelAppID]; ok && appID != "" {
+			k.invalidateHostMap(resource)
+		}
+	case *corev1.Secret:
+		if appID, ok := resource.GetLabels()[LabelAppID]; ok && appID != "" {
+			k.invalidateApp(appID)
+		}
+	default:
+		panic(fmt.Sprintf("k8s_config: unexpected resource type: %T", resource))
 	}
 }
 
-func (k *Kubernetes) updateHostMap(data []byte) {
-	var hostMap map[string]string
-	if err := json.Unmarshal(data, &hostMap); err != nil {
-		k.Logger.WithError(err).Error("failed to parse host map")
-		return
+func (k *Kubernetes) invalidateHostMap(ingress *networkingv1beta1.Ingress) {
+	snapshot, ok := k.ingressMap.Load(ingress.UID)
+	if ok {
+		for _, host := range snapshot.(*ingressSnapshot).Hosts {
+			k.Logger.WithField("host", host).Info("host invalidated")
+			k.hostMap.Delete(host)
+		}
 	}
 
-	appIDMap := make(map[string]struct{})
-	for _, appID := range hostMap {
-		appIDMap[appID] = struct{}{}
+	for _, host := range extractIngressHosts(ingress) {
+		k.Logger.WithField("host", host).Info("host invalidated")
+		k.hostMap.Delete(host)
 	}
-	appIDs := make([]string, 0, len(appIDMap))
-	for appID := range appIDMap {
-		appIDs = append(appIDs, appID)
-	}
-	sort.Strings(appIDs)
+}
 
-	k.hostMap.Store(hostMap)
-	k.appIDs.Store(appIDs)
-	k.Logger.Info("host map reloaded")
+func (k *Kubernetes) updateHostMap(appID string, ingress *networkingv1beta1.Ingress) {
+	for _, host := range extractIngressHosts(ingress) {
+		k.hostMap.Store(host, appID)
+		k.Logger.WithField("host", host).WithField("app_id", appID).Info("host accepted")
+	}
 }
 
 func (k *Kubernetes) invalidateApp(appID string) {
@@ -190,19 +191,39 @@ func (k *Kubernetes) Close() error {
 }
 
 func (k *Kubernetes) AllAppIDs() ([]string, error) {
-	appIDs := k.appIDs.Load().([]string)
+	// FIXME(k8s): remove this after introducing proper authz
+	ingresses, err := k.Client.NetworkingV1beta1().Ingresses(k.Namespace).List(metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	apps := map[string]struct{}{}
+	for _, ingress := range ingresses.Items {
+		if appID, ok := ingress.Labels[LabelAppID]; ok && appID != "" {
+			apps[appID] = struct{}{}
+		}
+	}
+
+	var appIDs []string
+	for appID := range apps {
+		appIDs = append(appIDs, appID)
+	}
+	sort.Strings(appIDs)
+
 	return appIDs, nil
 }
 
 func (k *Kubernetes) ResolveAppID(r *http.Request) (string, error) {
 	host := httputil.GetHost(r, bool(k.TrustProxy))
-	hostMap := k.hostMap.Load().(map[string]string)
+	if h, _, err := net.SplitHostPort(host); err == nil {
+		host = h
+	}
 
-	appID, ok := hostMap[host]
+	appID, ok := k.hostMap.Load(host)
 	if !ok {
 		return "", ErrAppNotFound
 	}
-	return appID, nil
+	return appID.(string), nil
 }
 
 func (k *Kubernetes) ResolveContext(appID string) (*config.AppContext, error) {
@@ -229,14 +250,13 @@ func (k *Kubernetes) AppSelector(appID string) (string, error) {
 }
 
 func (k *Kubernetes) newController(
-	resource corev1.ResourceName,
+	client rest.Interface,
+	resource string,
 	objType runtime.Object,
-	onUpdate func(metav1.Object),
-	onDelete func(metav1.Object),
 ) cache.Controller {
 	listWatch := cache.NewListWatchFromClient(
-		k.Client.CoreV1().RESTClient(),
-		string(resource),
+		client,
+		resource,
 		k.Namespace,
 		fields.Everything(),
 	)
@@ -256,9 +276,9 @@ func (k *Kubernetes) newController(
 			for _, d := range obj.(cache.Deltas) {
 				switch d.Type {
 				case cache.Sync, cache.Added, cache.Updated:
-					onUpdate(d.Object.(metav1.Object))
+					k.onUpdate(d.Object.(metav1.Object))
 				case cache.Deleted:
-					onDelete(d.Object.(metav1.Object))
+					k.onDelete(d.Object.(metav1.Object))
 				}
 			}
 			return nil
@@ -346,4 +366,12 @@ func (w emptyWatch) Stop() {
 }
 func (w emptyWatch) ResultChan() <-chan watch.Event {
 	return w
+}
+
+func extractIngressHosts(ingress *networkingv1beta1.Ingress) []string {
+	var hosts []string
+	for _, rule := range ingress.Spec.Rules {
+		hosts = append(hosts, rule.Host)
+	}
+	return hosts
 }
