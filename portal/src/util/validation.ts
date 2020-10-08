@@ -6,6 +6,7 @@ export type Violation =
   | RequiredViolation
   | FormatViolation
   | MinItemsViolation
+  | MinimumViolation
   | GeneralViolation
   | RemoveLastIdentityViolation
   | InvalidLoginIDKeyViolation
@@ -31,6 +32,12 @@ interface MinItemsViolation {
   kind: "minItems";
   location: string;
   minItems: number;
+}
+
+interface MinimumViolation {
+  kind: "minimum";
+  location: string;
+  minimum: number;
 }
 
 interface GeneralViolation {
@@ -75,6 +82,7 @@ const violationKinds = [
   "general",
   "format",
   "minItems",
+  "minimum",
   "RemoveLastIdentity",
   "InvalidLoginIDKey",
   "Invalid",

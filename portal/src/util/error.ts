@@ -47,12 +47,24 @@ interface MinItemsErrorCause {
   kind: "minItems";
 }
 
+interface MinimumErrorCauseDetails {
+  actual: number;
+  minimum: number;
+}
+
+interface MinimumErrorCause {
+  details: MinimumErrorCauseDetails;
+  location: string;
+  kind: "minimum";
+}
+
 // union type of cause details, depend on kind
 type ErrorCause =
   | RequiredErrorCause
   | GeneralErrorCause
   | FormatErrorCause
-  | MinItemsErrorCause;
+  | MinItemsErrorCause
+  | MinimumErrorCause;
 
 interface ValidationErrorInfo {
   causes: ErrorCause[];
@@ -145,8 +157,14 @@ function extractViolationFromErrorCause(cause: ErrorCause): Violation | null {
         location: cause.location,
         minItems: cause.details.expected,
       };
+    case "minimum":
+      return {
+        kind: cause.kind,
+        location: cause.location,
+        minimum: cause.details.minimum,
+      };
     default:
-      return null;
+      return { kind: "Unknown" };
   }
 }
 

@@ -199,6 +199,7 @@
   "AuthenticationAuthenticator.policy.require-mfa.if-requested": "Required if user enabled Multi-factor Authenticator",
   "AuthenticationAuthenticator.policy.recovery-code-number": "Number of Recovery Code",
   "AuthenticationAuthenticator.policy.allow-retrieve-recovery-code": "Allow user to retrieve recovery code again",
+  "AuthenticationAuthenticator.policy.recovery-code-number.minimum-error": "The minimum number of recovery code is {minimum}",
 
   "AnonymousUsersConfigurationScreen.title": "Anonymous Users",
   "AnonymousUsersConfigurationScreen.enable.label": "Enable anonymous users?",

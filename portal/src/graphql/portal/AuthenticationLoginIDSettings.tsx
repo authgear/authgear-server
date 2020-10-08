@@ -4,6 +4,7 @@ import { Checkbox, Toggle, TagPicker, Label, Text } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
+import ShowError from "../../ShowError";
 import WidgetWithOrdering from "../../WidgetWithOrdering";
 import { swap } from "../../OrderButtons";
 import CheckboxWithContent from "../../CheckboxWithContent";
@@ -36,6 +37,7 @@ interface Props {
     appConfig: PortalAPIAppConfig
   ) => Promise<PortalAPIApp | null>;
   updatingAppConfig: boolean;
+  updateAppConfigError: unknown;
 }
 
 interface WidgetHeaderProps {
@@ -323,6 +325,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     rawAppConfig,
     updateAppConfig,
     updatingAppConfig,
+    updateAppConfigError,
   } = props;
   const { renderToString } = useContext(Context);
 
@@ -681,6 +684,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     <div className={styles.root}>
       <NavigationBlockerDialog blockNavigation={isFormModified} />
 
+      {updateAppConfigError && <ShowError error={updateAppConfigError} />}
       <header className={styles.header}>
         <Text>
           <FormattedMessage id="AuthenticationScreen.login-id.title" />

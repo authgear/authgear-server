@@ -18,6 +18,7 @@ import DetailsListWithOrdering from "../../DetailsListWithOrdering";
 import { swap } from "../../OrderButtons";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ButtonWithLoading from "../../ButtonWithLoading";
+import ShowError from "../../ShowError";
 import {
   PortalAPIAppConfig,
   primaryAuthenticatorTypes,
@@ -29,6 +30,11 @@ import {
   PortalAPIApp,
 } from "../../types";
 import { useDropdown, useTextField } from "../../hook/useInput";
+import { parseError } from "../../util/error";
+import {
+  defaultFormatErrorMessageList,
+  Violation,
+} from "../../util/validation";
 import {
   isArrayEqualInOrder,
   clearEmptyObject,
@@ -45,6 +51,7 @@ interface Props {
     appConfig: PortalAPIAppConfig
   ) => Promise<PortalAPIApp | null>;
   updatingAppConfig: boolean;
+  updateAppConfigError: unknown;
 }
 
 interface AuthenticatorCheckboxProps extends ICheckboxProps {
@@ -198,6 +205,7 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
     rawAppConfig,
     updateAppConfig,
     updatingAppConfig,
+    updateAppConfigError,
   } = props;
   const { renderToString } = React.useContext(Context);
 
@@ -431,9 +439,38 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
     screenState,
   ]);
 
+  const { errorMessage, unhandledViolations } = useMemo(() => {
+    const unhandledViolations: Violation[] = [];
+    const recoveryCodeNumberErrorMessages: string[] = [];
+    const violations = parseError(updateAppConfigError);
+    for (const violation of violations) {
+      if (violation.kind === "minimum") {
+        if (violation.location === "/authentication/recovery_code/count") {
+          recoveryCodeNumberErrorMessages.push(
+            renderToString(
+              "AuthenticationAuthenticator.policy.recovery-code-number.minimum-error",
+              { minimum: violation.minimum }
+            )
+          );
+          continue;
+        }
+      }
+      unhandledViolations.push(violation);
+    }
+    const errorMessage = {
+      recoveryCodeNumber: defaultFormatErrorMessageList(
+        recoveryCodeNumberErrorMessages
+      ),
+    };
+    return { errorMessage, unhandledViolations };
+  }, [updateAppConfigError, renderToString]);
+
   return (
     <div className={styles.root}>
       <NavigationBlockerDialog blockNavigation={isFormModified} />
+      {unhandledViolations.length > 0 && (
+        <ShowError error={updateAppConfigError} />
+      )}
       <div
         className={styles.widget}
         style={{ boxShadow: DefaultEffects.elevation4 }}
@@ -488,6 +525,7 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
           )}
           value={recoveryCodeNumber}
           onChange={onRecoveryCodeNumberChange}
+          errorMessage={errorMessage.recoveryCodeNumber}
         />
         <Toggle
           className={styles.allowRetrieveRecoveryCode}
