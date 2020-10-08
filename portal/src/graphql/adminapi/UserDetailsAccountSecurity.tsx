@@ -619,11 +619,6 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
   const onConfirmDeleteAuthenticator = useCallback(
     (authenticatorID) => {
       deleteAuthenticator(authenticatorID)
-        .then((success) => {
-          if (!success) {
-            throw new Error();
-          }
-        })
         .catch(() => {})
         .finally(() => {
           dismissConfirmationDialog();
