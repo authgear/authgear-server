@@ -9,6 +9,11 @@
 
 		{{ template "auth_ui_nav_bar.html" true }}
 
+		{{ if $.PublicSignupDisabled }}
+		<div class="pane">
+			<p class="public-signup-disabled-notice primary-txt">{{ template "public-signup-disabled-notice" }}</p>
+		</div>
+		{{ else }}
 		<div class="authorize-form pane">
 			<div class="authorize-idp-section">
 				{{ range $.IdentityCandidates }}
@@ -117,6 +122,7 @@
 				</button>
 			</form>
 		</div>
+		{{ end }}
 	</div>
 </body>
 </html>

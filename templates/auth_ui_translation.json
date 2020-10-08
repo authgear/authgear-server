@@ -14,6 +14,8 @@
 	"error-remove-last-secondary-authenticator": "Cannot remove. Multi-factor authentication is required.",
 	"error-new-password-typo": "Typo in your re-typed password",
 
+	"public-signup-disabled-notice": "Please contact the system administrator for creating new accounts.",
+
 	"google-play-store-label": "Google Play Store",
 	"apple-app-store-label": "Apple App Store",
 	"back-button-title": "Back",

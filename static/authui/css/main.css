@@ -249,6 +249,10 @@ a.btn {
   visibility: hidden;
 }
 
+.public-signup-disabled-notice {
+  margin: 12px;
+}
+
 @media (min-width: 320px) {
   .content {
     padding: 6px;
