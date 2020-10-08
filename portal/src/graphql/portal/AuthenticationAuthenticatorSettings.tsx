@@ -252,8 +252,6 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
         if_exists: "AuthenticationAuthenticator.policy.require-mfa.if-exists",
         if_requested:
           "AuthenticationAuthenticator.policy.require-mfa.if-requested",
-        not_required:
-          "AuthenticationAuthenticator.policy.require-mfa.not-required",
       };
 
       return renderToString(messageIdMap[key]);
