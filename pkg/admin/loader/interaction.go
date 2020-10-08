@@ -78,6 +78,10 @@ type createUserInput struct {
 	password    string
 }
 
+func (i *createUserInput) BypassPublicSignupDisabled() bool {
+	return true
+}
+
 func (i *createUserInput) SkipVerification() bool {
 	return true
 }
