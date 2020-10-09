@@ -467,8 +467,10 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
   );
 
   const onDismissConfirmationDialog = useCallback(() => {
-    setIsConfirmationDialogVisible(false);
-  }, []);
+    if (!deletingIdentity) {
+      setIsConfirmationDialogVisible(false);
+    }
+  }, [deletingIdentity]);
 
   const onConfirmRemoveIdentity = useCallback(() => {
     const { identityID } = confirmationDialogData;
@@ -604,6 +606,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
         <Dialog
           hidden={!isConfirmationDialogVisible}
           dialogContentProps={confirmationDialogContentProps}
+          modalProps={{ isBlocking: deletingIdentity }}
           onDismiss={onDismissConfirmationDialog}
         >
           <DialogFooter>
@@ -612,6 +615,12 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
               onClick={onConfirmRemoveIdentity}
               loading={deletingIdentity}
             />
+            <DefaultButton
+              disabled={deletingIdentity}
+              onClick={onDismissConfirmationDialog}
+            >
+              <FormattedMessage id="cancel" />
+            </DefaultButton>
           </DialogFooter>
         </Dialog>
         <Dialog
