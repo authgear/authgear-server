@@ -60,19 +60,13 @@ const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthentic
     loading: updatingAppConfig,
     error: updateAppConfigError,
   } = useUpdateAppConfigMutation(appID);
-  const { loading, error, data, refetch } = useAppConfigQuery(appID);
-  const { effectiveAppConfig, rawAppConfig } = useMemo(() => {
-    const node = data?.node;
-    return node?.__typename === "App"
-      ? {
-          effectiveAppConfig: node.effectiveAppConfig,
-          rawAppConfig: node.rawAppConfig,
-        }
-      : {
-          effectiveAppConfig: null,
-          rawAppConfig: null,
-        };
-  }, [data]);
+  const {
+    effectiveAppConfig,
+    rawAppConfig,
+    loading,
+    error,
+    refetch,
+  } = useAppConfigQuery(appID);
 
   const initialState = useMemo(() => {
     return constructStateFromAppConfig(effectiveAppConfig);
