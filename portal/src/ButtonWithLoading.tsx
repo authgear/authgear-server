@@ -4,6 +4,7 @@ import {
   ISpinnerProps,
   PrimaryButton,
   Spinner,
+  SpinnerSize,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
@@ -37,6 +38,7 @@ const ButtonWithLoading: React.FC<ButtonWithLoadingProps> = function ButtonWithL
       {loading ? (
         <Spinner
           label={renderToString(loadingLabelId ?? labelId)}
+          size={SpinnerSize.xSmall}
           styles={spinnerStyles ?? { label: { color: textColor } }}
           ariaLive="assertive"
           labelPosition="left"
