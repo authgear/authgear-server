@@ -14,27 +14,24 @@ const NavigationBlockerDialog: React.FC<NavigationBlockerDialogProps> = function
 
   const navigate = useNavigate();
 
-  // disable block navigation when dialog visible
-  const [disableBlockNavigation, setDisableBlockNavigation] = useState(false);
   const [navigationBlockerDialog, setNavigationBlockerDialog] = useState<{
     visible: boolean;
     destination?: Location;
   }>({ visible: false });
 
+  // disable block navigation when dialog visible
   const _blockNavigation = useMemo(() => {
-    return !disableBlockNavigation && blockNavigation;
-  }, [blockNavigation, disableBlockNavigation]);
+    return !navigationBlockerDialog.visible && blockNavigation;
+  }, [blockNavigation, navigationBlockerDialog.visible]);
 
   useBlocker((tx) => {
     setNavigationBlockerDialog({
       visible: true,
       destination: tx.location,
     });
-    setDisableBlockNavigation(true);
   }, _blockNavigation);
 
   const onDialogDismiss = useCallback(() => {
-    setDisableBlockNavigation(false);
     setNavigationBlockerDialog({ visible: false });
   }, []);
 

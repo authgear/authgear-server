@@ -512,8 +512,6 @@ const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = func
     return !deepEqual(initialState, state);
   }, [state, initialState]);
 
-  const [unhandledViolation, setUnhandleViolation] = useState<Violation[]>([]);
-
   const onSaveClick = useCallback(() => {
     if (rawAppConfig == null || state.secretConfig == null) {
       return;
@@ -552,18 +550,12 @@ const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = func
     updateAppConfig(newAppConfig, newSecretConfig).catch(() => {});
   }, [rawAppConfig, state, updateAppConfig]);
 
-  const widgetViolations = useMemo(() => {
+  const { widgetViolations, unhandledViolation } = useMemo(() => {
     if (updateAppConfigError == null) {
-      setUnhandleViolation([]);
-      return [];
+      return { widgetViolations: [], unhandledViolation: [] };
     }
     const violations = parseError(updateAppConfigError);
-    const {
-      widgetViolations: _widgetViolations,
-      unhandledViolation: _unhandledViolation,
-    } = filterViolations(violations);
-    setUnhandleViolation(_unhandledViolation);
-    return _widgetViolations;
+    return filterViolations(violations);
   }, [updateAppConfigError]);
 
   return (
