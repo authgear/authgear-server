@@ -1,6 +1,9 @@
 """Authgear app"""
 type App implements Node {
   """"""
+  domains: [Domain!]!
+
+  """"""
   effectiveAppConfig: AppConfig!
 
   """The ID of an object"""
@@ -62,12 +65,83 @@ type CreateAppPayload {
 }
 
 """"""
+input CreateDomainInput {
+  """Target app ID."""
+  appID: ID!
+
+  """Domain name."""
+  domain: String!
+}
+
+""""""
+type CreateDomainPayload {
+  """"""
+  app: App!
+
+  """"""
+  domain: Domain!
+}
+
+"""
+The `DateTime` scalar type represents a DateTime. The DateTime is serialized as an RFC 3339 quoted string
+"""
+scalar DateTime
+
+""""""
+input DeleteDomainInput {
+  """Target app ID."""
+  appID: ID!
+
+  """Domain ID."""
+  domainID: String!
+}
+
+""""""
+type DeleteDomainPayload {
+  """"""
+  app: App!
+}
+
+"""DNS domain of an app"""
+type Domain {
+  """"""
+  apexDomain: String!
+
+  """"""
+  createdAt: DateTime!
+
+  """"""
+  domain: String!
+
+  """"""
+  id: String!
+
+  """"""
+  isCustom: Boolean!
+
+  """"""
+  isVerified: Boolean!
+
+  """"""
+  verificationDNSRecord: String!
+}
+
+""""""
 type Mutation {
   """Create new app"""
   createApp(input: CreateAppInput!): CreateAppPayload!
 
+  """Create domain for target app"""
+  createDomain(input: CreateDomainInput!): CreateDomainPayload!
+
+  """Delete domain of target app"""
+  deleteDomain(input: DeleteDomainInput!): DeleteDomainPayload!
+
   """Update app configuration files"""
   updateAppConfig(input: UpdateAppConfigInput!): App!
+
+  """Request verification of a domain of target app"""
+  verifyDomain(input: VerifyDomainInput!): VerifyDomainPayload!
 }
 
 """An object with an ID"""
@@ -125,5 +199,23 @@ input UpdateAppConfigInput {
 type User implements Node {
   """The ID of an object"""
   id: ID!
+}
+
+""""""
+input VerifyDomainInput {
+  """Target app ID."""
+  appID: ID!
+
+  """Domain ID."""
+  domainID: String!
+}
+
+""""""
+type VerifyDomainPayload {
+  """"""
+  app: App!
+
+  """"""
+  domain: Domain!
 }
 
