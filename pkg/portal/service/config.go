@@ -45,7 +45,6 @@ func NewConfigServiceLogger(lf *log.Factory) ConfigServiceLogger {
 
 type CreateAppOptions struct {
 	AppID               string
-	Hosts               []string
 	AppConfigYAML       []byte
 	SecretConfigYAML    []byte
 	TranslationJSONPath string
@@ -100,6 +99,23 @@ func (s *ConfigService) UpdateConfig(appID string, updateFiles []*model.AppConfi
 			return err
 		}
 		s.Controller.ReloadApp(appID)
+
+	default:
+		return errors.New("unsupported configuration source")
+	}
+	return nil
+}
+
+func (s *ConfigService) CreateDomain(appID string, domain *model.Domain) error {
+	switch src := s.Controller.Handle.(type) {
+	case *configsource.Kubernetes:
+		err := s.createKubernetesIngress(src, appID, domain)
+		if err != nil {
+			return err
+		}
+
+	case *configsource.LocalFS:
+		return apierrors.NewForbidden("cannot create domain for local FS")
 
 	default:
 		return errors.New("unsupported configuration source")
@@ -184,7 +200,6 @@ func (s *ConfigService) createKubernetes(k *configsource.Kubernetes, opts *Creat
 		return ErrDuplicatedAppID
 	}
 
-	// Setup config resource
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: s.AppConfig.Kubernetes.NewResourcePrefix + opts.AppID,
@@ -201,35 +216,38 @@ func (s *ConfigService) createKubernetes(k *configsource.Kubernetes, opts *Creat
 		secret.Data[configsource.EscapePath(opts.TranslationJSONPath)] = opts.TranslationJSON
 	}
 
-	tlsCertConfig := s.AppConfig.Kubernetes.DefaultDomainTLSCert
-	var ingresses []*networkingv1beta1.Ingress
-	for _, host := range opts.Hosts {
-		def := &ingressDef{
-			AppID: opts.AppID,
-			Host:  host,
-		}
-		if err = s.setupTLSCert(k, def, tlsCertConfig); err != nil {
-			return fmt.Errorf("cannot setup TLS certificate: %w", err)
-		}
-
-		ingress := &networkingv1beta1.Ingress{}
-		if err = s.generateIngress(def, ingress); err != nil {
-			return fmt.Errorf("cannot generate ingress resource: %w", err)
-		}
-		ingresses = append(ingresses, ingress)
-	}
-
-	// Commit changes to Kubernetes
 	_, err = k.Client.CoreV1().Secrets(k.Namespace).Create(s.Context, secret, metav1.CreateOptions{})
 	if err != nil {
 		return err
 	}
 
-	for _, ingress := range ingresses {
-		_, err = k.Client.NetworkingV1beta1().Ingresses(k.Namespace).Create(s.Context, ingress, metav1.CreateOptions{})
-		if err != nil {
-			return err
-		}
+	return nil
+}
+
+func (s *ConfigService) createKubernetesIngress(k *configsource.Kubernetes, appID string, domain *model.Domain) error {
+	var tlsCertConfig portalconfig.TLSCertConfig
+	if domain.IsCustom {
+		tlsCertConfig = s.AppConfig.Kubernetes.CustomDomainTLSCert
+	} else {
+		tlsCertConfig = s.AppConfig.Kubernetes.DefaultDomainTLSCert
+	}
+
+	def := &ingressDef{
+		AppID: appID,
+		Host:  domain.Domain,
+	}
+	if err := s.setupTLSCert(k, def, tlsCertConfig); err != nil {
+		return fmt.Errorf("cannot setup TLS certificate: %w", err)
+	}
+
+	ingress := &networkingv1beta1.Ingress{}
+	if err := s.generateIngress(def, ingress); err != nil {
+		return fmt.Errorf("cannot generate ingress resource: %w", err)
+	}
+
+	_, err := k.Client.NetworkingV1beta1().Ingresses(k.Namespace).Create(s.Context, ingress, metav1.CreateOptions{})
+	if err != nil {
+		return err
 	}
 
 	return nil

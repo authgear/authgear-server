@@ -10,5 +10,6 @@ type Domain struct {
 	Domain                string    `json:"domain"`
 	ApexDomain            string    `json:"apexDomain"`
 	VerificationDNSRecord string    `json:"verificationDNSRecord"`
+	IsCustom              bool      `json:"isCustom"`
 	IsVerified            bool      `json:"isVerified"`
 }

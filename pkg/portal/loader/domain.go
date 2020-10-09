@@ -7,7 +7,7 @@ import (
 
 type DomainService interface {
 	ListDomains(appID string) ([]*model.Domain, error)
-	CreateDomain(appID string, domain string) (*model.Domain, error)
+	CreateDomain(appID string, domain string, isVerified bool, isCustom bool) (*model.Domain, error)
 	DeleteDomain(appID string, id string) error
 	VerifyDomain(appID string, id string) (*model.Domain, error)
 }
@@ -24,7 +24,7 @@ func (l *DomainLoader) ListDomains(appID string) *graphqlutil.Lazy {
 
 func (l *DomainLoader) CreateDomain(appID string, domain string) *graphqlutil.Lazy {
 	return graphqlutil.NewLazy(func() (interface{}, error) {
-		return l.Domains.CreateDomain(appID, domain)
+		return l.Domains.CreateDomain(appID, domain, false, true)
 	})
 }
 

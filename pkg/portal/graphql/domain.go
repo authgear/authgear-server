@@ -13,6 +13,7 @@ var domain = graphql.NewObject(graphql.ObjectConfig{
 		"domain":                &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
 		"apexDomain":            &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
 		"verificationDNSRecord": &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
+		"isCustom":              &graphql.Field{Type: graphql.NewNonNull(graphql.Boolean)},
 		"isVerified":            &graphql.Field{Type: graphql.NewNonNull(graphql.Boolean)},
 	},
 })

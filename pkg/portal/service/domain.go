@@ -31,6 +31,9 @@ var ErrDomainVerified = apierrors.AlreadyExists.WithReason("DomainVerified").
 var ErrDomainNotFound = apierrors.NotFound.WithReason("DomainNotFound").
 	New("domain not found")
 
+var ErrDomainNotCustom = apierrors.Forbidden.WithReason("DomainNotCustom").
+	New("requested domain is not a custom domain")
+
 var DomainVerificationFailed = apierrors.Forbidden.WithReason("DomainVerificationFailed")
 
 type DomainService struct {
@@ -54,15 +57,25 @@ func (s *DomainService) ListDomains(appID string) ([]*model.Domain, error) {
 	return append(pendingDomains, domains...), nil
 }
 
-func (s *DomainService) CreateDomain(appID string, domain string) (*model.Domain, error) {
-	d, err := newDomain(appID, domain, s.Clock.NowUTC())
+func (s *DomainService) CreateDomain(appID string, domain string, isVerified bool, isCustom bool) (*model.Domain, error) {
+	d, err := newDomain(appID, domain, s.Clock.NowUTC(), isCustom)
 	if err != nil {
 		return nil, err
 	}
 
-	err = s.createDomain(d, false)
+	if !isCustom {
+		// For non-custom domain, assume the domain is always an apex domain,
+		// in case the domain suffix is not yet in PSL.
+		d.ApexDomain = d.Domain
+	}
+
+	err = s.createDomain(d, isVerified)
 	if err != nil {
 		return nil, err
+	}
+
+	if isVerified {
+		// TODO(domain): create ingress
 	}
 
 	return d.toModel(false), nil
@@ -74,7 +87,12 @@ func (s *DomainService) DeleteDomain(appID string, id string) error {
 		return ErrDomainNotFound
 	}
 
-	err := s.deleteDomain(appID, id, isVerified)
+	d, err := s.getDomain(appID, id, isVerified)
+	if err != nil {
+		return err
+	}
+
+	err = s.deleteDomain(d, isVerified)
 	if err != nil {
 		return err
 	}
@@ -86,7 +104,7 @@ func (s *DomainService) DeleteDomain(appID string, id string) error {
 func (s *DomainService) listDomains(appID string, isVerified bool) ([]*model.Domain, error) {
 	rows, err := s.SQLExecutor.QueryWith(
 		s.SQLBuilder.
-			Select("id", "app_id", "created_at", "domain", "apex_domain", "verification_nonce").
+			Select("id", "app_id", "created_at", "domain", "apex_domain", "verification_nonce", "is_custom").
 			Where("app_id = ?", appID).
 			From(s.SQLBuilder.FullTableName(domainTableName(isVerified))),
 	)
@@ -128,7 +146,7 @@ func (s *DomainService) VerifyDomain(appID string, id string) (*model.Domain, er
 	}
 
 	// Migrate the domain from pending domains to domains
-	err = s.deleteDomain(d.AppID, d.ID, false)
+	err = s.deleteDomain(d, false)
 	if err != nil {
 		return nil, err
 	}
@@ -171,7 +189,7 @@ func (s *DomainService) verifyDomain(domain *domain) error {
 func (s *DomainService) getDomain(appID string, id string, isVerified bool) (*domain, error) {
 	row, err := s.SQLExecutor.QueryRowWith(
 		s.SQLBuilder.
-			Select("id", "app_id", "created_at", "domain", "apex_domain", "verification_nonce").
+			Select("id", "app_id", "created_at", "domain", "apex_domain", "verification_nonce", "is_custom").
 			Where("app_id = ? AND id = ?", appID, id).
 			From(s.SQLBuilder.FullTableName(domainTableName(isVerified))),
 	)
@@ -217,6 +235,7 @@ func (s *DomainService) createDomain(d *domain, isVerified bool) error {
 			"domain",
 			"apex_domain",
 			"verification_nonce",
+			"is_custom",
 		).
 		Values(
 			d.ID,
@@ -225,6 +244,7 @@ func (s *DomainService) createDomain(d *domain, isVerified bool) error {
 			d.Domain,
 			d.ApexDomain,
 			d.VerificationNonce,
+			d.IsCustom,
 		),
 	)
 	if err != nil {
@@ -234,10 +254,14 @@ func (s *DomainService) createDomain(d *domain, isVerified bool) error {
 	return nil
 }
 
-func (s *DomainService) deleteDomain(appID string, id string, isVerified bool) error {
+func (s *DomainService) deleteDomain(d *domain, isVerified bool) error {
+	if !d.IsCustom {
+		return ErrDomainNotCustom
+	}
+
 	_, err := s.SQLExecutor.ExecWith(s.SQLBuilder.
 		Delete(s.SQLBuilder.FullTableName(domainTableName(isVerified))).
-		Where("app_id = ? AND id = ?", appID, id),
+		Where("id = ?", d.ID),
 	)
 	if err != nil {
 		return err
@@ -253,6 +277,7 @@ type domain struct {
 	Domain            string
 	ApexDomain        string
 	VerificationNonce string
+	IsCustom          bool
 }
 
 func scanDomain(scn db.Scanner) (*domain, error) {
@@ -264,6 +289,7 @@ func scanDomain(scn db.Scanner) (*domain, error) {
 		&d.Domain,
 		&d.ApexDomain,
 		&d.VerificationNonce,
+		&d.IsCustom,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrDomainNotFound
@@ -274,7 +300,7 @@ func scanDomain(scn db.Scanner) (*domain, error) {
 	return d, nil
 }
 
-func newDomain(appID string, domainName string, createdAt time.Time) (*domain, error) {
+func newDomain(appID string, domainName string, createdAt time.Time, isCustom bool) (*domain, error) {
 	nonce := make([]byte, 16)
 	corerand.SecureRand.Read(nonce)
 
@@ -290,6 +316,7 @@ func newDomain(appID string, domainName string, createdAt time.Time) (*domain, e
 		Domain:            domainName,
 		ApexDomain:        apexDomain,
 		VerificationNonce: hex.EncodeToString(nonce),
+		IsCustom:          isCustom,
 	}, nil
 }
 
@@ -307,6 +334,7 @@ func (d *domain) toModel(isVerified bool) *model.Domain {
 		Domain:                d.Domain,
 		ApexDomain:            d.ApexDomain,
 		VerificationDNSRecord: domainVerificationDNSRecord(d.VerificationNonce),
+		IsCustom:              d.IsCustom,
 		IsVerified:            isVerified,
 	}
 }
