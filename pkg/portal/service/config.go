@@ -43,6 +43,15 @@ func NewConfigServiceLogger(lf *log.Factory) ConfigServiceLogger {
 	return ConfigServiceLogger{lf.New("config-service")}
 }
 
+type CreateAppOptions struct {
+	AppID               string
+	Hosts               []string
+	AppConfigYAML       []byte
+	SecretConfigYAML    []byte
+	TranslationJSONPath string
+	TranslationJSON     []byte
+}
+
 type ConfigService struct {
 	Context      context.Context
 	Logger       ConfigServiceLogger
@@ -59,10 +68,10 @@ func (s *ConfigService) ListAllAppIDs() ([]string, error) {
 	return s.ConfigSource.AppIDResolver.AllAppIDs()
 }
 
-func (s *ConfigService) Create(appID string, hosts []string, appConfigYAML []byte, secretConfigYAML []byte) error {
+func (s *ConfigService) Create(opts *CreateAppOptions) error {
 	switch src := s.Controller.Handle.(type) {
 	case *configsource.Kubernetes:
-		err := s.createKubernetes(src, appID, hosts, appConfigYAML, secretConfigYAML)
+		err := s.createKubernetes(src, opts)
 		if err != nil {
 			return err
 		}
@@ -167,8 +176,8 @@ func (s *ConfigService) updateLocalFS(l *configsource.LocalFS, appID string, upd
 	return nil
 }
 
-func (s *ConfigService) createKubernetes(k *configsource.Kubernetes, appID string, hosts []string, appConfigYAML []byte, secretConfigYAML []byte) (err error) {
-	_, err = k.ResolveContext(appID)
+func (s *ConfigService) createKubernetes(k *configsource.Kubernetes, opts *CreateAppOptions) (err error) {
+	_, err = k.ResolveContext(opts.AppID)
 	if err != nil && !errors.Is(err, configsource.ErrAppNotFound) {
 		return err
 	} else if err == nil {
@@ -178,22 +187,25 @@ func (s *ConfigService) createKubernetes(k *configsource.Kubernetes, appID strin
 	// Setup config resource
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: s.AppConfig.Kubernetes.NewResourcePrefix + appID,
+			Name: s.AppConfig.Kubernetes.NewResourcePrefix + opts.AppID,
 			Labels: map[string]string{
-				configsource.LabelAppID: appID,
+				configsource.LabelAppID: opts.AppID,
 			},
 		},
 		Data: map[string][]byte{
-			configsource.EscapePath(configsource.AuthgearYAML):       appConfigYAML,
-			configsource.EscapePath(configsource.AuthgearSecretYAML): secretConfigYAML,
+			configsource.EscapePath(configsource.AuthgearYAML):       opts.AppConfigYAML,
+			configsource.EscapePath(configsource.AuthgearSecretYAML): opts.SecretConfigYAML,
 		},
+	}
+	if opts.TranslationJSONPath != "" {
+		secret.Data[configsource.EscapePath(opts.TranslationJSONPath)] = opts.TranslationJSON
 	}
 
 	tlsCertConfig := s.AppConfig.Kubernetes.DefaultDomainTLSCert
 	var ingresses []*networkingv1beta1.Ingress
-	for _, host := range hosts {
+	for _, host := range opts.Hosts {
 		def := &ingressDef{
-			AppID: appID,
+			AppID: opts.AppID,
 			Host:  host,
 		}
 		if err = s.setupTLSCert(k, def, tlsCertConfig); err != nil {

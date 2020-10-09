@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/fs"
@@ -30,10 +31,17 @@ type redactionMapping struct {
 	secret string
 }
 
+type generateAppConfigAndTranslationResult struct {
+	AppHost             string
+	AppConfig           *config.AppConfig
+	TranslationJSONPath string
+	TranslationJSON     []byte
+}
+
 type AppConfigService interface {
 	ResolveContext(appID string) (*config.AppContext, error)
 	UpdateConfig(appID string, updateFiles []*model.AppConfigFile, deleteFiles []string) error
-	Create(id string, hosts []string, appConfigYAML []byte, secretConfigYAML []byte) error
+	Create(opts *CreateAppOptions) error
 }
 
 type AppAuthzService interface {
@@ -123,7 +131,7 @@ func (s *AppService) Create(userID string, id string) error {
 		WithField("app_id", id).
 		Info("creating app")
 
-	appHost, appConfigYAML, secretConfigYAML, err := s.generateConfig(id)
+	createAppOpts, err := s.generateConfig(id)
 	if err != nil {
 		return err
 	}
@@ -133,8 +141,8 @@ func (s *AppService) Create(userID string, id string) error {
 		return err
 	}
 
-	hosts := []string{appHost, adminAPIHost}
-	err = s.AppConfigs.Create(id, hosts, appConfigYAML, secretConfigYAML)
+	createAppOpts.Hosts = append(createAppOpts.Hosts, adminAPIHost)
+	err = s.AppConfigs.Create(createAppOpts)
 	if err != nil {
 		// TODO(portal): cleanup orphaned resources created from failed app creation
 		s.Logger.WithError(err).WithField("app_id", id).Error("failed to create app")
@@ -179,14 +187,14 @@ func (s *AppService) UpdateConfig(app *model.App, updateFiles []*model.AppConfig
 	return err
 }
 
-func (s *AppService) generateAppConfig(appID string) (string, *config.AppConfig, error) {
+func (s *AppService) generateAppConfigAndTranslation(appID string) (*generateAppConfigAndTranslationResult, error) {
 	if s.AppConfig.HostTemplate == "" {
-		return "", nil, errors.New("app hostname template is not configured")
+		return nil, errors.New("app hostname template is not configured")
 	}
 	t := texttemplate.New("host-template")
 	_, err := t.Parse(s.AppConfig.HostTemplate)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 	var buf strings.Builder
 
@@ -195,7 +203,7 @@ func (s *AppService) generateAppConfig(appID string) (string, *config.AppConfig,
 	}
 	err = t.Execute(&buf, data)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 
 	appHost := buf.String()
@@ -204,7 +212,40 @@ func (s *AppService) generateAppConfig(appID string) (string, *config.AppConfig,
 		AppID:        appID,
 		PublicOrigin: appOrigin.String(),
 	})
-	return appHost, cfg, nil
+
+	translationObj := make(map[string]string)
+	if s.AppConfig.Branding.EmailDefaultSender != "" {
+		translationObj["email.default.sender"] = s.AppConfig.Branding.EmailDefaultSender
+	}
+	if s.AppConfig.Branding.SMSDefaultSender != "" {
+		translationObj["sms.default.sender"] = s.AppConfig.Branding.SMSDefaultSender
+	}
+
+	var translationJSON []byte
+	var translationJSONPath string
+	if len(translationObj) > 0 {
+		translationJSONPath = "templates/" + translation.TemplateItemTypeTranslationJSON
+		translationJSON, err = json.Marshal(translationObj)
+		if err != nil {
+			return nil, err
+		}
+		cfg.Template = &config.TemplateConfig{
+			Items: []config.TemplateItem{
+				config.TemplateItem{
+					Type: config.TemplateItemType(translation.TemplateItemTypeTranslationJSON),
+					URI:  "file:///" + translationJSONPath,
+				},
+			},
+		}
+	}
+
+	result := &generateAppConfigAndTranslationResult{
+		AppHost:             appHost,
+		AppConfig:           cfg,
+		TranslationJSONPath: translationJSONPath,
+		TranslationJSON:     translationJSON,
+	}
+	return result, nil
 }
 
 func (s *AppService) generateSecretConfig() (*config.SecretConfig, error) {
@@ -266,7 +307,7 @@ func (s *AppService) generateSecretConfig() (*config.SecretConfig, error) {
 	return cfg, nil
 }
 
-func (s *AppService) generateConfig(appID string) (appHost string, appConfigYAML []byte, secretConfigYAML []byte, err error) {
+func (s *AppService) generateConfig(appID string) (opts *CreateAppOptions, err error) {
 	appIDRegex, err := regexp.Compile(s.AppConfig.IDPattern)
 	if err != nil {
 		err = fmt.Errorf("invalid app ID validation pattern: %w", err)
@@ -277,11 +318,11 @@ func (s *AppService) generateConfig(appID string) (appHost string, appConfigYAML
 		return
 	}
 
-	appHost, appConfig, err := s.generateAppConfig(appID)
+	genResult, err := s.generateAppConfigAndTranslation(appID)
 	if err != nil {
 		return
 	}
-	appConfigYAML, err = yaml.Marshal(appConfig)
+	appConfigYAML, err := yaml.Marshal(genResult.AppConfig)
 	if err != nil {
 		return
 	}
@@ -290,7 +331,7 @@ func (s *AppService) generateConfig(appID string) (appHost string, appConfigYAML
 	if err != nil {
 		return
 	}
-	secretConfigYAML, err = yaml.Marshal(secretConfig)
+	secretConfigYAML, err := yaml.Marshal(secretConfig)
 	if err != nil {
 		return
 	}
@@ -301,6 +342,15 @@ func (s *AppService) generateConfig(appID string) (appHost string, appConfigYAML
 	}, nil)
 	if err != nil {
 		return
+	}
+
+	opts = &CreateAppOptions{
+		AppID:               appID,
+		Hosts:               []string{genResult.AppHost},
+		AppConfigYAML:       appConfigYAML,
+		SecretConfigYAML:    secretConfigYAML,
+		TranslationJSONPath: genResult.TranslationJSONPath,
+		TranslationJSON:     genResult.TranslationJSON,
 	}
 
 	return

@@ -9,6 +9,7 @@ type AppConfig struct {
 	IDPattern    string              `envconfig:"ID_PATTERN" default:"^[a-z0-9][a-z0-9-]{2,30}[a-z0-9]$"`
 	Secret       AppSecretConfig     `envconfig:"SECRET"`
 	Kubernetes   AppKubernetesConfig `envconfig:"KUBERNETES"`
+	Branding     AppBrandingConfig   `envconfig:"BRANDING"`
 }
 
 type TLSCertType string
@@ -75,4 +76,9 @@ type AppSecretConfig struct {
 	TwilioAuthToken  string `envconfig:"TWILIO_AUTH_TOKEN"`
 	NexmoAPIKey      string `envconfig:"NEXMO_API_KEY"`
 	NexmoAPISecret   string `envconfig:"NEXMO_API_SECRET"`
+}
+
+type AppBrandingConfig struct {
+	EmailDefaultSender string `envconfig:"EMAIL_DEFAULT_SENDER"`
+	SMSDefaultSender   string `envconfig:"SMS_DEFAULT_SENDER"`
 }
