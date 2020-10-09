@@ -24,6 +24,7 @@ type DomainLoader interface {
 	ListDomains(appID string) *graphqlutil.Lazy
 	CreateDomain(appID string, domain string) *graphqlutil.Lazy
 	DeleteDomain(appID string, id string) *graphqlutil.Lazy
+	VerifyDomain(appID string, id string) *graphqlutil.Lazy
 }
 
 type Logger struct{ *log.Logger }

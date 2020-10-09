@@ -128,6 +128,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	domainService := &service.DomainService{
+		Context:     context,
+		Clock:       clock,
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
