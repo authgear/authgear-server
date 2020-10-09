@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: authgear
+  name: {{ .Host }}
+  labels:
+    authgear.com/app-id: {{ .AppID }}
+spec:
+  rules:
+  - host: '{{ .Host }}'
+    http:
+      paths:
+      - backend:
+          serviceName: authgear
+          servicePort: http
+        path: /
+{{ if .TLSSecretName }}
+  tls:
+  - hosts:
+    - '{{ .Host }}'
+    secretName: '{{ .TLSSecretName }}'
+{{ end }}
