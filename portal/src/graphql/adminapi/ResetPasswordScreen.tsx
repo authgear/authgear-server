@@ -187,6 +187,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
       <ButtonWithLoading
         type="submit"
         className={styles.confirm}
+        disabled={!isFormModified}
         loading={resettingPassword}
         labelId="confirm"
       />
