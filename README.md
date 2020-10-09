@@ -2,6 +2,11 @@
  
 Work in progress
 
+## Troubleshooting
+
+If you see an error `cannot change secret value` when you attempt to save secrets,
+please make sure the content of `authgear.secrets.yaml` matches `APP_SECRET_*` environment variables.
+
 ## HTTPS setup
 
 If you are testing external OAuth provider, you must enable TLS.

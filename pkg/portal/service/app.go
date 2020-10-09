@@ -309,10 +309,14 @@ func (s *AppService) generateConfig(appID string) (appHost string, appConfigYAML
 func (s *AppService) redactionMappings(cfg *config.SecretConfig) []redactionMapping {
 	var mappings []redactionMapping
 	addMapping := func(key config.SecretKey, emptyData config.SecretItemData, secret string, mapFn func(s config.SecretItemData) *string) {
+		// If the cluster secret is undefined, do not add the mapping.
 		if secret == "" {
 			return
 		}
 
+		// Otherwise redaction always occur even if the secret item has been removed from the secret config.
+		// This means if the secret config has the secret item missing,
+		// after redaction the item would be added again.
 		item, ok := cfg.Lookup(key)
 		if !ok {
 			cfg.Secrets = append(cfg.Secrets, config.SecretItem{
@@ -414,7 +418,8 @@ func (s *AppService) redactionMappings(cfg *config.SecretConfig) []redactionMapp
 
 func (s *AppService) redactSecrets(cfg *config.SecretConfig) error {
 	for _, mapping := range s.redactionMappings(cfg) {
-		if *mapping.target == mapping.secret {
+		// Add back the value as redacted even if the item is missing
+		if *mapping.target == "" || *mapping.target == mapping.secret {
 			*mapping.target = RedactedValue
 		}
 	}
