@@ -170,12 +170,7 @@ func (s *AppService) Create(userID string, id string) error {
 			domain = h
 		}
 
-		d, err := s.AppDomains.CreateDomain(id, domain, true, false)
-		if err != nil {
-			return err
-		}
-
-		err = s.AppConfigs.CreateDomain(id, d)
+		_, err := s.AppDomains.CreateDomain(id, domain, true, false)
 		if err != nil {
 			return err
 		}

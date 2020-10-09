@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -36,11 +37,17 @@ var ErrDomainNotCustom = apierrors.Forbidden.WithReason("DomainNotCustom").
 
 var DomainVerificationFailed = apierrors.Forbidden.WithReason("DomainVerificationFailed")
 
+type DomainConfigService interface {
+	CreateDomain(appID string, domain *model.Domain) error
+	DeleteDomain(domain *model.Domain) error
+}
+
 type DomainService struct {
-	Context     context.Context
-	Clock       clock.Clock
-	SQLBuilder  *db.SQLBuilder
-	SQLExecutor *db.SQLExecutor
+	Context      context.Context
+	Clock        clock.Clock
+	DomainConfig DomainConfigService
+	SQLBuilder   *db.SQLBuilder
+	SQLExecutor  *db.SQLExecutor
 }
 
 func (s *DomainService) ListDomains(appID string) ([]*model.Domain, error) {
@@ -70,15 +77,19 @@ func (s *DomainService) CreateDomain(appID string, domain string, isVerified boo
 	}
 
 	err = s.createDomain(d, isVerified)
+
 	if err != nil {
 		return nil, err
 	}
 
+	domainModel := d.toModel(isVerified)
 	if isVerified {
-		// TODO(domain): create ingress
+		err = s.DomainConfig.CreateDomain(appID, domainModel)
+		if err != nil {
+			return nil, err
+		}
 	}
-
-	return d.toModel(false), nil
+	return domainModel, nil
 }
 
 func (s *DomainService) DeleteDomain(appID string, id string) error {
@@ -97,7 +108,11 @@ func (s *DomainService) DeleteDomain(appID string, id string) error {
 		return err
 	}
 
-	// TODO(domain): cleanup ingress
+	err = s.DomainConfig.DeleteDomain(d.toModel(isVerified))
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -157,8 +172,12 @@ func (s *DomainService) VerifyDomain(appID string, id string) (*model.Domain, er
 		return nil, err
 	}
 
-	// TODO(domain): create ingress
-	return d.toModel(true), nil
+	domainModel := d.toModel(true)
+	err = s.DomainConfig.CreateDomain(appID, domainModel)
+	if err != nil {
+		return nil, err
+	}
+	return domainModel, nil
 }
 
 func (s *DomainService) verifyDomain(domain *domain) error {
@@ -329,7 +348,8 @@ func (d *domain) toModel(isVerified bool) *model.Domain {
 	}
 
 	return &model.Domain{
-		ID:                    prefix + d.ID,
+		// Base64-encoded to avoid invalid k8s resource label invalid chars
+		ID:                    base64.RawURLEncoding.EncodeToString([]byte(prefix + d.ID)),
 		CreatedAt:             d.CreatedAt,
 		Domain:                d.Domain,
 		ApexDomain:            d.ApexDomain,
@@ -340,7 +360,13 @@ func (d *domain) toModel(isVerified bool) *model.Domain {
 }
 
 func parseDomainID(modelID string) (isVerified bool, id string, ok bool) {
-	parts := strings.Split(modelID, ":")
+	// Base64-encoded to avoid invalid k8s resource label invalid chars
+	rawID, err := base64.RawURLEncoding.DecodeString(modelID)
+	if err != nil {
+		return
+	}
+
+	parts := strings.Split(string(rawID), ":")
 	if len(parts) != 2 {
 		return
 	}

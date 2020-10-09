@@ -28,11 +28,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
+var LabelDomainID = "authgear.com/domain-id"
+
 var ErrDuplicatedAppID = apierrors.AlreadyExists.WithReason("DuplicatedAppID").
 	New("duplicated app ID")
 
 type ingressDef struct {
 	AppID         string
+	DomainID      string
 	Host          string
 	TLSSecretName string
 }
@@ -116,6 +119,23 @@ func (s *ConfigService) CreateDomain(appID string, domain *model.Domain) error {
 
 	case *configsource.LocalFS:
 		return apierrors.NewForbidden("cannot create domain for local FS")
+
+	default:
+		return errors.New("unsupported configuration source")
+	}
+	return nil
+}
+
+func (s *ConfigService) DeleteDomain(domain *model.Domain) error {
+	switch src := s.Controller.Handle.(type) {
+	case *configsource.Kubernetes:
+		err := s.deleteKubernetesIngress(src, domain)
+		if err != nil {
+			return err
+		}
+
+	case *configsource.LocalFS:
+		return apierrors.NewForbidden("cannot delete domain for local FS")
 
 	default:
 		return errors.New("unsupported configuration source")
@@ -233,8 +253,9 @@ func (s *ConfigService) createKubernetesIngress(k *configsource.Kubernetes, appI
 	}
 
 	def := &ingressDef{
-		AppID: appID,
-		Host:  domain.Domain,
+		AppID:    appID,
+		DomainID: domain.ID,
+		Host:     domain.Domain,
 	}
 	if err := s.setupTLSCert(k, def, tlsCertConfig); err != nil {
 		return fmt.Errorf("cannot setup TLS certificate: %w", err)
@@ -248,6 +269,30 @@ func (s *ConfigService) createKubernetesIngress(k *configsource.Kubernetes, appI
 	_, err := k.Client.NetworkingV1beta1().Ingresses(k.Namespace).Create(s.Context, ingress, metav1.CreateOptions{})
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (s *ConfigService) deleteKubernetesIngress(k *configsource.Kubernetes, domain *model.Domain) error {
+	selector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
+		MatchLabels: map[string]string{LabelDomainID: domain.ID},
+	})
+	if err != nil {
+		return err
+	}
+
+	client := k.Client.NetworkingV1beta1().Ingresses(k.Namespace)
+	ingresses, err := client.List(s.Context, metav1.ListOptions{LabelSelector: selector.String()})
+	if err != nil {
+		return err
+	}
+
+	for _, ingress := range ingresses.Items {
+		err = client.Delete(s.Context, ingress.Name, metav1.DeleteOptions{})
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

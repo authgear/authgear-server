@@ -118,10 +118,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	domainService := &service.DomainService{
-		Context:     context,
-		Clock:       clock,
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		Context:      context,
+		Clock:        clock,
+		DomainConfig: configService,
+		SQLBuilder:   sqlBuilder,
+		SQLExecutor:  sqlExecutor,
 	}
 	appService := &service.AppService{
 		Logger:      appServiceLogger,
