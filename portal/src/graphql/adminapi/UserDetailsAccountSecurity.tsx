@@ -356,6 +356,7 @@ const RemoveConfirmationDialog: React.FC<RemoveConfirmationDialogProps> = functi
     <Dialog
       hidden={!visible}
       dialogContentProps={removeConfirmDialogContentProps}
+      modalProps={{ isBlocking: deletingAuthenticator }}
       onDismiss={onDismiss}
     >
       <DialogFooter>

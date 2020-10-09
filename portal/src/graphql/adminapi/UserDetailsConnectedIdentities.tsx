@@ -606,6 +606,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
         <Dialog
           hidden={!isConfirmationDialogVisible}
           dialogContentProps={confirmationDialogContentProps}
+          modalProps={{ isBlocking: deletingIdentity }}
           onDismiss={onDismissConfirmationDialog}
         >
           <DialogFooter>

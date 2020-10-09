@@ -128,6 +128,7 @@ const ConfirmRemoveOAuthClientDialog: React.FC<ConfirmRemoveOAuthClientDialogPro
     <Dialog
       hidden={!visible}
       dialogContentProps={confirmRemoveDialogContentProps}
+      modalProps={{ isBlocking: updatingAppConfig }}
       onDismiss={onDismiss}
     >
       <DialogFooter
