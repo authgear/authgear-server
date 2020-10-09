@@ -20,21 +20,26 @@ interface ButtonWithLoadingProps extends IButtonProps {
 const ButtonWithLoading: React.FC<ButtonWithLoadingProps> = function ButtonWithLoading(
   props: ButtonWithLoadingProps
 ) {
-  const { loading, labelId, loadingLabelId, spinnerStyles, ...rest } = props;
+  const {
+    loading,
+    labelId,
+    loadingLabelId,
+    spinnerStyles,
+    disabled: disabledProps,
+    ...rest
+  } = props;
   const { renderToString } = useContext(Context);
 
+  const disabled = loading || disabledProps;
   const textColor = useMemo(() => {
     const buttonTheme = props.theme ?? theme;
     const normalTextColor = buttonTheme.palette.white;
     const disableTextColor = buttonTheme.palette.neutralTertiary;
-    return props.disabled ? disableTextColor : normalTextColor;
-  }, [props.disabled, props.theme]);
+    return disabled ? disableTextColor : normalTextColor;
+  }, [disabled, props.theme]);
 
   return (
-    <PrimaryButton
-      style={{ pointerEvents: loading ? "none" : undefined }}
-      {...rest}
-    >
+    <PrimaryButton disabled={disabled} {...rest}>
       {loading ? (
         <Spinner
           label={renderToString(loadingLabelId ?? labelId)}
