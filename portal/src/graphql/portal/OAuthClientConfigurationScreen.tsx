@@ -94,7 +94,7 @@ const ConfirmRemoveOAuthClientDialog: React.FC<ConfirmRemoveOAuthClientDialogPro
   const {
     visible,
     updatingAppConfig,
-    onDismiss,
+    onDismiss: onDismissProps,
     removeOAuthClient,
     clientId,
     clientName,
@@ -104,6 +104,12 @@ const ConfirmRemoveOAuthClientDialog: React.FC<ConfirmRemoveOAuthClientDialogPro
   const onConfirm = useCallback(() => {
     removeOAuthClient(clientId);
   }, [clientId, removeOAuthClient]);
+
+  const onDismiss = useCallback(() => {
+    if (!updatingAppConfig) {
+      onDismissProps();
+    }
+  }, [onDismissProps, updatingAppConfig]);
 
   const confirmRemoveDialogContentProps = useMemo(() => {
     return {
@@ -122,7 +128,7 @@ const ConfirmRemoveOAuthClientDialog: React.FC<ConfirmRemoveOAuthClientDialogPro
     <Dialog
       hidden={!visible}
       dialogContentProps={confirmRemoveDialogContentProps}
-      onDismiss={updatingAppConfig ? undefined : onDismiss}
+      onDismiss={onDismiss}
     >
       <DialogFooter
         styles={DIALOG_FOOTER_STYLES}
