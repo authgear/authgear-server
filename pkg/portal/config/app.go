@@ -1,8 +1,7 @@
 package config
 
 import (
-	"errors"
-	"strings"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 type AppConfig struct {
@@ -12,65 +11,55 @@ type AppConfig struct {
 	Kubernetes   AppKubernetesConfig `envconfig:"KUBERNETES"`
 }
 
-type AppTLSCertType string
+type TLSCertType string
 
 const (
-	AppTLSCertNone        AppTLSCertType = "none"
-	AppTLSCertStatic      AppTLSCertType = "static"
-	AppTLSCertCertManager AppTLSCertType = "cert-manager"
+	TLSCertNone        TLSCertType = "none"
+	TLSCertStatic      TLSCertType = "static"
+	TLSCertCertManager TLSCertType = "cert-manager"
 )
 
-type AppTLSCertSource struct {
-	Type AppTLSCertType
+type TLSCertConfig struct {
+	Type TLSCertType `envconfig:"TYPE" default:"none"`
 
 	// for static type
-	SecretName string
+	SecretName string `envconfig:"SECRET_NAME"`
 
 	// for cert-manager type
-	IssuerKind string
-	IssuerName string
+	IssuerKind string `envconfig:"ISSUER_KIND"`
+	IssuerName string `envconfig:"ISSUER_NAME"`
 }
 
-func ParseTLSCertSource(desc string) (*AppTLSCertSource, error) {
-	parts := strings.Split(desc, ":")
-	switch AppTLSCertType(parts[0]) {
-	case AppTLSCertNone:
-		if len(parts) != 1 {
-			return nil, errors.New("'none' certificate type expects no arguments")
-		}
-		return &AppTLSCertSource{
-			Type: AppTLSCertNone,
-		}, nil
+func (c TLSCertConfig) Validate(ctx *validation.Context) {
+	switch c.Type {
+	case TLSCertNone:
+		return
 
-	case AppTLSCertStatic:
-		if len(parts) != 2 {
-			return nil, errors.New("'static' certificate type expects 1 argument")
+	case TLSCertStatic:
+		if c.SecretName == "" {
+			ctx.Child("SECRET_NAME").EmitErrorMessage("missing static TLS secret name")
 		}
-		return &AppTLSCertSource{
-			Type:       AppTLSCertStatic,
-			SecretName: parts[1],
-		}, nil
 
-	case AppTLSCertCertManager:
-		if len(parts) != 3 {
-			return nil, errors.New("'static' certificate type expects 2 arguments")
+	case TLSCertCertManager:
+		if c.IssuerKind == "" {
+			ctx.Child("ISSUER_KIND").EmitErrorMessage("missing cert-manager issuer kind")
 		}
-		return &AppTLSCertSource{
-			Type:       AppTLSCertCertManager,
-			IssuerKind: parts[1],
-			IssuerName: parts[2],
-		}, nil
+		if c.IssuerName == "" {
+			ctx.Child("ISSUER_NAME").EmitErrorMessage("missing cert-manager issuer name")
+		}
 
 	default:
-		return nil, errors.New("unknown certificate type")
+		if c.SecretName == "" {
+			ctx.Child("TYPE").EmitErrorMessage("unknown certificate type")
+		}
 	}
 }
 
 type AppKubernetesConfig struct {
-	NewResourcePrefix    string `envconfig:"NEW_RESOURCE_PREFIX" default:"app-"`
-	IngressTemplateFile  string `envconfig:"INGRESS_TEMPLATE_FILE"`
-	DefaultDomainTLSCert string `envconfig:"DEFAULT_DOMAIN_TLS_CERT" default:"none"`
-	CustomDomainTLSCert  string `envconfig:"CUSTOM_DOMAIN_TLS_CERT" default:"none"`
+	NewResourcePrefix    string        `envconfig:"NEW_RESOURCE_PREFIX" default:"app-"`
+	IngressTemplateFile  string        `envconfig:"INGRESS_TEMPLATE_FILE"`
+	DefaultDomainTLSCert TLSCertConfig `envconfig:"DEFAULT_DOMAIN_TLS_CERT"`
+	CustomDomainTLSCert  TLSCertConfig `envconfig:"CUSTOM_DOMAIN_TLS_CERT"`
 }
 
 type AppSecretConfig struct {

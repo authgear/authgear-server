@@ -189,18 +189,14 @@ func (s *ConfigService) createKubernetes(k *configsource.Kubernetes, appID strin
 		},
 	}
 
-	tlsCertSource, err := portalconfig.ParseTLSCertSource(s.AppConfig.Kubernetes.DefaultDomainTLSCert)
-	if err != nil {
-		return err
-	}
-
+	tlsCertConfig := s.AppConfig.Kubernetes.DefaultDomainTLSCert
 	var ingresses []*networkingv1beta1.Ingress
 	for _, host := range hosts {
 		def := &ingressDef{
 			AppID: appID,
 			Host:  host,
 		}
-		if err = s.setupTLSCert(k, def, tlsCertSource); err != nil {
+		if err = s.setupTLSCert(k, def, tlsCertConfig); err != nil {
 			return fmt.Errorf("cannot setup TLS certificate: %w", err)
 		}
 
@@ -252,16 +248,16 @@ func (s *ConfigService) generateIngress(def *ingressDef, ingress *networkingv1be
 	return nil
 }
 
-func (s *ConfigService) setupTLSCert(k *configsource.Kubernetes, def *ingressDef, source *portalconfig.AppTLSCertSource) error {
+func (s *ConfigService) setupTLSCert(k *configsource.Kubernetes, def *ingressDef, source portalconfig.TLSCertConfig) error {
 	switch source.Type {
-	case portalconfig.AppTLSCertNone:
+	case portalconfig.TLSCertNone:
 		return nil
 
-	case portalconfig.AppTLSCertStatic:
+	case portalconfig.TLSCertStatic:
 		def.TLSSecretName = source.SecretName
 		return nil
 
-	case portalconfig.AppTLSCertCertManager:
+	case portalconfig.TLSCertCertManager:
 		def.TLSSecretName = "tls-" + def.Host
 		cert := &certmanagerv1.Certificate{
 			ObjectMeta: metav1.ObjectMeta{
