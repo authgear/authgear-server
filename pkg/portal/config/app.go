@@ -57,7 +57,6 @@ func (c TLSCertConfig) Validate(ctx *validation.Context) {
 }
 
 type AppKubernetesConfig struct {
-	NewResourcePrefix    string        `envconfig:"NEW_RESOURCE_PREFIX" default:"app-"`
 	IngressTemplateFile  string        `envconfig:"INGRESS_TEMPLATE_FILE"`
 	DefaultDomainTLSCert TLSCertConfig `envconfig:"DEFAULT_DOMAIN_TLS_CERT"`
 	CustomDomainTLSCert  TLSCertConfig `envconfig:"CUSTOM_DOMAIN_TLS_CERT"`
