@@ -94,25 +94,31 @@ const AddUsernameForm: React.FC<AddUsernameFormProps> = function AddUsernameForm
     return !deepEqual({ username: "", password: "" }, screenState);
   }, [screenState]);
 
-  const onAddClicked = useCallback(() => {
-    const newLocalViolations: Violation[] = [];
-    if (isPasswordRequired) {
-      localValidatePassword(newLocalViolations, passwordPolicy, password);
-    }
-    setLocalViolations(newLocalViolations);
-    if (newLocalViolations.length > 0) {
-      return;
-    }
+  const onFormSubmit = useCallback(
+    (ev: React.SyntheticEvent<HTMLElement>) => {
+      ev.preventDefault();
+      ev.stopPropagation();
 
-    const requestPassword = isPasswordRequired ? password : undefined;
-    createIdentity({ key: "username", value: username }, requestPassword)
-      .then((identity) => {
-        if (identity != null) {
-          setSubmittedForm(true);
-        }
-      })
-      .catch(() => {});
-  }, [username, createIdentity, isPasswordRequired, password, passwordPolicy]);
+      const newLocalViolations: Violation[] = [];
+      if (isPasswordRequired) {
+        localValidatePassword(newLocalViolations, passwordPolicy, password);
+      }
+      setLocalViolations(newLocalViolations);
+      if (newLocalViolations.length > 0) {
+        return;
+      }
+
+      const requestPassword = isPasswordRequired ? password : undefined;
+      createIdentity({ key: "username", value: username }, requestPassword)
+        .then((identity) => {
+          if (identity != null) {
+            setSubmittedForm(true);
+          }
+        })
+        .catch(() => {});
+    },
+    [username, createIdentity, isPasswordRequired, password, passwordPolicy]
+  );
 
   useEffect(() => {
     if (submittedForm) {
@@ -167,7 +173,7 @@ const AddUsernameForm: React.FC<AddUsernameFormProps> = function AddUsernameForm
   }, [createIdentityError, localViolations, renderToString]);
 
   return (
-    <section className={styles.content}>
+    <form className={styles.content} onSubmit={onFormSubmit}>
       {unhandledViolations.length > 0 && (
         <ShowError error={createIdentityError} />
       )}
@@ -193,12 +199,12 @@ const AddUsernameForm: React.FC<AddUsernameFormProps> = function AddUsernameForm
         />
       )}
       <ButtonWithLoading
-        onClick={onAddClicked}
+        type="submit"
         disabled={!isFormModified}
         labelId="add"
         loading={creatingIdentity}
       />
-    </section>
+    </form>
   );
 };
 

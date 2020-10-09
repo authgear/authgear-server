@@ -160,30 +160,36 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
     setCreateClientSuccessDialogVisible(true);
   }, []);
 
-  const onCreateClick = useCallback(() => {
-    const newAppConfig = produce(rawAppConfig, (draftConfig) => {
-      draftConfig.oauth = draftConfig.oauth ?? {};
-      draftConfig.oauth.clients = draftConfig.oauth.clients ?? [];
-      draftConfig.oauth.clients.push(clientConfig);
+  const onFormSubmit = useCallback(
+    (e: React.SyntheticEvent<HTMLElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-      clearEmptyObject(draftConfig);
-    });
+      const newAppConfig = produce(rawAppConfig, (draftConfig) => {
+        draftConfig.oauth = draftConfig.oauth ?? {};
+        draftConfig.oauth.clients = draftConfig.oauth.clients ?? [];
+        draftConfig.oauth.clients.push(clientConfig);
 
-    updateAppConfig(newAppConfig)
-      .then((result) => {
-        if (result != null) {
-          onCreateClientSuccess();
-        }
-      })
-      .catch(() => {});
-  }, [rawAppConfig, clientConfig, onCreateClientSuccess, updateAppConfig]);
+        clearEmptyObject(draftConfig);
+      });
+
+      updateAppConfig(newAppConfig)
+        .then((result) => {
+          if (result != null) {
+            onCreateClientSuccess();
+          }
+        })
+        .catch(() => {});
+    },
+    [rawAppConfig, clientConfig, onCreateClientSuccess, updateAppConfig]
+  );
 
   const isFormModified = useMemo(() => {
     return !deepEqual(initialState, getReducedClientConfig(clientConfig));
   }, [clientConfig, initialState]);
 
   return (
-    <form className={styles.form}>
+    <form className={styles.form} onSubmit={onFormSubmit}>
       <NavigationBlockerDialog
         blockNavigation={!submittedForm && isFormModified}
       />
@@ -198,7 +204,7 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
         updateAppConfigError={updateAppConfigError}
       />
       <ButtonWithLoading
-        onClick={onCreateClick}
+        type="submit"
         disabled={!isFormModified}
         labelId="create"
         loading={updatingAppConfig}

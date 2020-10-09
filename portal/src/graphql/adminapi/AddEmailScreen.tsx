@@ -59,15 +59,21 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
     return !deepEqual({ email: "" }, screenState);
   }, [screenState]);
 
-  const onAddClicked = useCallback(() => {
-    createIdentity({ key: "email", value: email })
-      .then((identity) => {
-        if (identity != null) {
-          setSubmittedForm(true);
-        }
-      })
-      .catch(() => {});
-  }, [email, createIdentity]);
+  const onFormSubmit = useCallback(
+    (ev: React.SyntheticEvent<HTMLElement>) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      createIdentity({ key: "email", value: email })
+        .then((identity) => {
+          if (identity != null) {
+            setSubmittedForm(true);
+          }
+        })
+        .catch(() => {});
+    },
+    [email, createIdentity]
+  );
 
   useEffect(() => {
     if (submittedForm) {
@@ -103,7 +109,7 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
     <div className={styles.root}>
       <UserDetailCommandBar />
       <NavBreadcrumb className={styles.breadcrumb} items={navBreadcrumbItems} />
-      <section className={styles.content}>
+      <form className={styles.content} onSubmit={onFormSubmit}>
         {unhandledViolations.length > 0 && (
           <ShowError error={createIdentityError} />
         )}
@@ -118,12 +124,12 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
           errorMessage={errorMessage.email}
         />
         <ButtonWithLoading
-          onClick={onAddClicked}
+          type="submit"
           disabled={!isFormModified}
           labelId="add"
           loading={creatingIdentity}
         />
-      </section>
+      </form>
     </div>
   );
 };

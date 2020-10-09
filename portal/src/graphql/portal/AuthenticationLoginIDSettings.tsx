@@ -476,20 +476,26 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
   }, [initialState, screenState]);
 
   // on save
-  const onSaveButtonClicked = React.useCallback(() => {
-    if (rawAppConfig == null) {
-      return;
-    }
+  const onFormSubmit = React.useCallback(
+    (ev: React.SyntheticEvent<HTMLElement>) => {
+      ev.preventDefault();
+      ev.stopPropagation();
 
-    const newAppConfig = constructAppConfigFromState(
-      rawAppConfig,
-      initialState,
-      screenState
-    );
+      if (rawAppConfig == null) {
+        return;
+      }
 
-    // TODO: handle error
-    updateAppConfig(newAppConfig).catch(() => {});
-  }, [screenState, rawAppConfig, updateAppConfig, initialState]);
+      const newAppConfig = constructAppConfigFromState(
+        rawAppConfig,
+        initialState,
+        screenState
+      );
+
+      // TODO: handle error
+      updateAppConfig(newAppConfig).catch(() => {});
+    },
+    [screenState, rawAppConfig, updateAppConfig, initialState]
+  );
 
   const renderUsernameWidget = useCallback(
     (index: number) => {
@@ -681,7 +687,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
   };
 
   return (
-    <div className={styles.root}>
+    <form className={styles.root} onSubmit={onFormSubmit}>
       <NavigationBlockerDialog blockNavigation={isFormModified} />
 
       {updateAppConfigError && <ShowError error={updateAppConfigError} />}
@@ -701,14 +707,14 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
       ))}
 
       <ButtonWithLoading
+        type="submit"
         className={styles.saveButton}
         disabled={!isFormModified}
-        onClick={onSaveButtonClicked}
         loading={updatingAppConfig}
         labelId="save"
         loadingLabelId="saving"
       />
-    </div>
+    </form>
   );
 };
 

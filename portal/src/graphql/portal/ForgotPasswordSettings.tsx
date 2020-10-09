@@ -142,23 +142,29 @@ const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function F
     []
   );
 
-  const onSaveButtonClicked = useCallback(() => {
-    if (rawAppConfig == null) {
-      return;
-    }
+  const onFormSubmit = useCallback(
+    (ev: React.SyntheticEvent<HTMLElement>) => {
+      ev.preventDefault();
+      ev.stopPropagation();
 
-    const newAppConfig = constructAppConfigFromState(
-      rawAppConfig,
-      initialState,
-      state
-    );
+      if (rawAppConfig == null) {
+        return;
+      }
 
-    // TODO: handle error
-    updateAppConfig(newAppConfig).catch(() => {});
-  }, [state, rawAppConfig, updateAppConfig, initialState]);
+      const newAppConfig = constructAppConfigFromState(
+        rawAppConfig,
+        initialState,
+        state
+      );
+
+      // TODO: handle error
+      updateAppConfig(newAppConfig).catch(() => {});
+    },
+    [state, rawAppConfig, updateAppConfig, initialState]
+  );
 
   return (
-    <div className={cn(styles.root, className)}>
+    <form className={cn(styles.root, className)} onSubmit={onFormSubmit}>
       <Label className={styles.boldLabel}>
         <FormattedMessage id="PasswordsScreen.forgot-password.email.label" />
       </Label>
@@ -212,8 +218,8 @@ const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function F
       <div className={styles.saveButtonContainer}>
         <TodoButtonWrapper>
           <ButtonWithLoading
+            type="submit"
             disabled={!isFormModified}
-            onClick={onSaveButtonClicked}
             loading={updatingAppConfig}
             labelId="save"
             loadingLabelId="saving"
@@ -221,7 +227,7 @@ const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function F
         </TodoButtonWrapper>
       </div>
       <NavigationBlockerDialog blockNavigation={isFormModified} />
-    </div>
+    </form>
   );
 };
 
