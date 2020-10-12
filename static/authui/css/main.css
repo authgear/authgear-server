@@ -578,34 +578,6 @@ a.btn {
   align-self: center;
 }
 
-.recovery-codes-container {
-  display: flex;
-  justify-content: center;
-  padding: 16px;
-}
-
-.recovery-codes {
-  padding: 0;
-  margin: 0;
-  column-count: 2;
-}
-
-.recovery-codes .recovery-code {
-  white-space: pre;
-  font-family: monospace;
-  font-size: larger;
-  margin: 0 50px;
-}
-
-.setup-recovery-code-buttons {
-  display: flex;
-  flex-direction: row-reverse;
-}
-
-.setup-recovery-code-buttons > * {
-  margin: 0 6px;
-}
-
 .logout-row {
   margin: 14px 18px;
 }
@@ -925,30 +897,54 @@ a.btn {
   font-size: 1rem;
 }
 
-.settings-recovery-code-row {
+.recovery-code-row {
   margin: 10px 14px 0px 14px;
   padding: 0 0 10px 0;
 }
 
-.settings-recovery-code-title-section .title {
+.recovery-code-title-section .title {
   margin: 0;
   font-size: 1rem;
 }
 
-.settings-recovery-code-list-section {
-  grid-area: action;
+.recovery-code-list-section {
   align-self: center;
   justify-self: end;
 }
 
-.settings-recovery-code-action-section {
+.recovery-code-list-section .code-list-container {
+   display: flex;
+   justify-content: center;
+   padding: 16px;
+ }
+
+.recovery-code-list-section .code-list {
+  padding: 0;
+  margin: 0;
+  column-count: 2;
+}
+
+.recovery-code-list-section .code-item {
+  white-space: pre;
+  font-family: monospace;
+  font-size: larger;
+  margin: 0 50px;
+}
+
+.recovery-code-action-section {
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
 }
 
-.settings-recovery-code-action-section .action {
+.recovery-code-action-section .action {
   margin: 5px;
   padding: 4px 16px;
   font-size: 1rem;
+}
+
+.recovery-codes-container {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
 }
