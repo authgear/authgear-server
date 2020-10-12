@@ -38,7 +38,7 @@ func (s *StoreRedis) create(graph *Graph, graphSetMode string) error {
 		ttl := toMilliseconds(GraphLifetime)
 		_, err := goredis.String(conn.Do("SET", graphKey, []byte(graphKey), "PX", ttl, graphSetMode))
 		if errorutil.Is(err, goredis.ErrNil) {
-			return ErrStateNotFound
+			return ErrGraphNotFound
 		} else if err != nil {
 			return err
 		}
@@ -60,7 +60,7 @@ func (s *StoreRedis) GetGraphInstance(instanceID string) (*Graph, error) {
 	err := s.Redis.WithConn(func(conn redis.Conn) error {
 		data, err := goredis.Bytes(conn.Do("GET", instanceKey))
 		if errorutil.Is(err, goredis.ErrNil) {
-			return ErrStateNotFound
+			return ErrGraphNotFound
 		} else if err != nil {
 			return err
 		}
@@ -73,7 +73,7 @@ func (s *StoreRedis) GetGraphInstance(instanceID string) (*Graph, error) {
 		graphKey := redisGraphKey(s.AppID, graph.GraphID)
 		_, err = goredis.String(conn.Do("GET", graphKey))
 		if errorutil.Is(err, goredis.ErrNil) {
-			return ErrStateNotFound
+			return ErrGraphNotFound
 		} else if err != nil {
 			return err
 		}

@@ -7,7 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-var ErrStateNotFound = errors.New("invalid state or state not found")
+var ErrGraphNotFound = errors.New("invalid graph or graph not found")
 
 type Store interface {
 	CreateGraph(graph *Graph) error
