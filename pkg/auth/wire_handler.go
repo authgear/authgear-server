@@ -222,6 +222,13 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsTOTPHandler)),
+	))
+}
+
 func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

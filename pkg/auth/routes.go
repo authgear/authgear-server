@@ -103,6 +103,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 
 	router.Add(webapphandler.ConfigureLogoutRoute(webappAuthenticatedRoute), p.Handler(newWebAppLogoutHandler))
 	router.Add(webapphandler.ConfigureSettingsIdentityRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsIdentityHandler))
+	router.Add(webapphandler.ConfigureSettingsTOTPRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsTOTPHandler))
 	router.Add(webapphandler.ConfigureSettingsRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsHandler))
 	router.Add(webapphandler.ConfigureChangePasswordRoute(webappAuthenticatedRoute), p.Handler(newWebAppChangePasswordHandler))
 

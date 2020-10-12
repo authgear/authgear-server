@@ -25,6 +25,7 @@
 	"disconnect-button-label": "Disconnect",
 	"change-button-label": "Change",
 	"setup-button-label": "Setup",
+	"add-button-label": "Add",
 	"remove-button-label": "Remove",
 	"details-button-label": "Details",
 	"change-password-button-label": "Change Password",
@@ -149,6 +150,9 @@
 	"settings-identity-login-id-phone": "Phone Number",
 	"settings-identity-login-id-username": "Username",
 	"settings-identity-login-id-raw": "Username",
+
+	"settings-totp-title": "Authenticator Apps / Devices",
+	"settings-totp-item-description": "Added at {time, datetime, long}",
 
 	"enter-login-id-page-title--change": "Change your {key}",
 	"enter-login-id-page-title--add": "Enter your {key}",

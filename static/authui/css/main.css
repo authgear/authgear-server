@@ -802,3 +802,58 @@ a.btn {
   align-self: center;
   justify-self: end;
 }
+
+.settings-totp-row {
+  margin: 10px 14px 0px 14px;
+  padding: 0 0 10px 0;
+}
+
+.settings-totp-row:not(:last-child) {
+  border-bottom: 1px solid #E5E5E5;
+}
+
+.settings-totp-title-section .title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.settings-totp-item-section {
+  display: grid;
+  grid: "name  action" auto
+        "desc  ......" auto
+      /  1fr   auto    auto;
+  font-size: 1rem;
+}
+
+.settings-totp-item-section > * {
+  margin: 0;
+}
+
+.settings-totp-item-section .name {
+  grid-area: name;
+  align-self: center;
+  /* We must keep using the default value justify-self: stretch */
+  /* So that this element takes exact 1fr width */
+  /* Otherwise it could overflow */
+  font-size: inherit;
+}
+
+.settings-totp-item-section .desc {
+  grid-area: desc;
+  align-self: center;
+  /* We must keep using the default value justify-self: stretch */
+  /* So that this element takes exact 1fr width */
+  /* Otherwise it could overflow */
+  font-size: smaller;
+}
+
+.settings-totp-item-section .action {
+  grid-area: action;
+  align-self: center;
+  justify-self: end;
+}
+
+.settings-totp-add-section .action {
+  margin: 0;
+  font-size: 1rem;
+}
