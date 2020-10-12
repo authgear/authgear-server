@@ -89,3 +89,13 @@ func TestContainsString(t *testing.T) {
 
 	})
 }
+
+func TestAppendIfUniqueStrings(t *testing.T) {
+	Convey("AppendIfUniqueStrings", t, func() {
+		So(AppendIfUniqueStrings(nil, ""), ShouldResemble, []string{""})
+		So(AppendIfUniqueStrings([]string{""}, ""), ShouldResemble, []string{""})
+		So(AppendIfUniqueStrings([]string{""}, "a"), ShouldResemble, []string{"", "a"})
+		So(AppendIfUniqueStrings([]string{"a"}, "a"), ShouldResemble, []string{"a"})
+		So(AppendIfUniqueStrings([]string{"a"}, "b"), ShouldResemble, []string{"a", "b"})
+	})
+}

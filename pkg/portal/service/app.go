@@ -22,6 +22,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/fs"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 const RedactedValue = "<REDACTED>"
@@ -141,7 +142,8 @@ func (s *AppService) Create(userID string, id string) error {
 		return err
 	}
 
-	createAppOpts.Hosts = append(createAppOpts.Hosts, adminAPIHost)
+	createAppOpts.Hosts = slice.AppendIfUniqueStrings(createAppOpts.Hosts, adminAPIHost)
+
 	err = s.AppConfigs.Create(createAppOpts)
 	if err != nil {
 		// TODO(portal): cleanup orphaned resources created from failed app creation

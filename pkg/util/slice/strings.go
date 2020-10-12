@@ -32,3 +32,12 @@ func ContainsString(in []string, elem string) bool {
 
 	return false
 }
+
+func AppendIfUniqueStrings(slice []string, elem string) []string {
+	contained := ContainsString(slice, elem)
+	if contained {
+		return slice
+	}
+	slice = append(slice, elem)
+	return slice
+}
