@@ -188,7 +188,7 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
       </Label>
 
       <Label className={styles.label}>
-        <FormattedMessage id="PasswordlessAuthenticatorScreen.email.styled-content.label" />
+        <FormattedMessage id="PasswordlessAuthenticatorScreen.email.html-email.label" />
       </Label>
       <CodeEditor
         className={styles.htmlCodeEditor}
@@ -198,7 +198,7 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
       />
 
       <Label className={styles.label}>
-        <FormattedMessage id="PasswordlessAuthenticatorScreen.email.plain-content.label" />
+        <FormattedMessage id="PasswordlessAuthenticatorScreen.email.plaintext-email.label" />
       </Label>
       <CodeEditor
         className={styles.plainTextCodeEditor}
@@ -212,7 +212,7 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
       </Label>
 
       <Label className={styles.label}>
-        <FormattedMessage id="PasswordlessAuthenticatorScreen.sms.content.label" />
+        <FormattedMessage id="PasswordlessAuthenticatorScreen.sms.sms-body.label" />
       </Label>
       <CodeEditor
         className={styles.plainTextCodeEditor}
