@@ -74,16 +74,22 @@ const ScreenNav: React.FC = function ScreenNav() {
             icon: "PassiveAuthentication",
           },
           {
-            key: "clientApplications",
-            name: renderToString("ScreenNav.client-applications"),
-            url: "configuration/oauth-clients",
-            icon: "AuthenticatorApp",
-          },
-          {
             key: "UserInterface",
             name: renderToString("ScreenNav.user-interface"),
             url: "configuration/user-interface",
             icon: "PreviewLink",
+          },
+          {
+            key: "clientApplications",
+            name: renderToString("ScreenNav.client-applications"),
+            url: "configuration/oauth-clients",
+            icon: "Devices3",
+          },
+          {
+            key: "dns",
+            name: renderToString("ScreenNav.dns"),
+            url: "configuration/dns",
+            icon: "ServerProcesses",
           },
         ],
       },

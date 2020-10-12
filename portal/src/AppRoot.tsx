@@ -21,6 +21,7 @@ import OAuthClientConfigurationScreen from "./graphql/portal/OAuthClientConfigur
 import CreateOAuthClientScreen from "./graphql/portal/CreateOAuthClientScreen";
 import EditOAuthClientScreen from "./graphql/portal/EditOAuthClientScreen";
 import UserInterfaceScreen from "./graphql/portal/UserInterfaceScreen";
+import DNSConfigurationScreen from "./graphql/portal/DNSConfigurationScreen";
 
 const AppRoot: React.FC = function AppRoot() {
   const { appID } = useParams();
@@ -93,6 +94,10 @@ const AppRoot: React.FC = function AppRoot() {
           <Route
             path="/configuration/user-interface"
             element={<UserInterfaceScreen />}
+          />
+          <Route
+            path="/configuration/dns"
+            element={<DNSConfigurationScreen />}
           />
         </Routes>
       </ScreenLayout>

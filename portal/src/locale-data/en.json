@@ -61,6 +61,7 @@
   "ScreenNav.passwordless-authenticator": "Passwordless Authenticator",
   "ScreenNav.client-applications": "Client Applications",
   "ScreenNav.user-interface": "User Interface",
+  "ScreenNav.dns": "DNS",
 
   "NavBreadcrumb.label": "Nested navigation",
 
