@@ -153,6 +153,21 @@ window.addEventListener("load", function() {
     var els = document.querySelectorAll("form");
     for (var i = 0; i < els.length; ++i) {
       var form = els[i];
+
+      // Allow submitting form natively multiple times
+      var shouldIgnored = false;
+      for (var j = 0; j < form.elements.length; ++j) {
+        var field = form.elements[j];
+
+        if (field.getAttribute("data-form-xhr") === "false") {
+          shouldIgnored = true;
+          break;
+        }
+      }
+      if (shouldIgnored) {
+        continue;
+      }
+
       form.addEventListener("submit", function(e) {
         if (!FORM_SUBMITTED) {
           FORM_SUBMITTED = true;

@@ -100,4 +100,29 @@ func (h *SettingsRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 			panic(err)
 		}
 	}
+
+	if r.Method == "POST" && r.Form.Get("x_action") == "download" {
+		if !h.Authentication.RecoveryCode.ListEnabled {
+			http.Error(w, "listing recovery code is disabled", http.StatusForbidden)
+			return
+		}
+
+		err := h.Database.WithTx(func() error {
+			state, err := h.WebApp.GetState(StateID(r))
+			if err != nil {
+				return err
+			}
+
+			data, err := h.GetData(r, state)
+			if err != nil {
+				return err
+			}
+
+			h.Renderer.Render(w, r, TemplateItemTypeAuthUIDownloadRecoveryCodeTXT, data, setRecoveryCodeAttachmentHeaders)
+			return nil
+		})
+		if err != nil {
+			panic(err)
+		}
+	}
 }
