@@ -10,7 +10,10 @@ import {
   AppAndEmailSmsTemplatesConfigUpdater,
   useUpdateAppAndEmailSmsTemplatesConfigMutation,
 } from "./mutations/updateAppAndEmailSmsTemplatesMutation";
-import { useAppAndEmailSmsTemplatesQuery } from "./query/appAndEmailSmsTemplatesQuery";
+import {
+  AppAndEmailSmsTemplatesQueryResult,
+  useAppAndEmailSmsTemplatesQuery,
+} from "./query/appAndEmailSmsTemplatesQuery";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import CodeEditor from "../../CodeEditor";
@@ -36,6 +39,7 @@ interface PasswordlessAuthenticatorProps {
   rawAppConfig: PortalAPIAppConfig | null;
   emailAndSmsTemplates: PortalAPIEmailAndSmsTemplates | null;
   updateAppAndEmailSmsTemplatesConfig: AppAndEmailSmsTemplatesConfigUpdater;
+  refetchAppAndEmailSmsTemplatesConfig: AppAndEmailSmsTemplatesQueryResult["refetch"];
   updatingAppAndEmailSmsTemplateConfig: boolean;
 }
 
@@ -46,6 +50,7 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
     rawAppConfig,
     emailAndSmsTemplates,
     updateAppAndEmailSmsTemplatesConfig,
+    refetchAppAndEmailSmsTemplatesConfig,
     updatingAppAndEmailSmsTemplateConfig,
   } = props;
 
@@ -153,8 +158,18 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
         state.smsTemplate !== initialState.smsTemplate
           ? state.smsTemplate
           : undefined,
-    }).catch(() => {});
-  }, [state, rawAppConfig, initialState, updateAppAndEmailSmsTemplatesConfig]);
+    })
+      .then(() => {
+        refetchAppAndEmailSmsTemplatesConfig().catch(() => {});
+      })
+      .catch(() => {});
+  }, [
+    state,
+    rawAppConfig,
+    initialState,
+    updateAppAndEmailSmsTemplatesConfig,
+    refetchAppAndEmailSmsTemplatesConfig,
+  ]);
 
   const onSmsTemplateChange = useCallback((_event, value?: string) => {
     if (value === undefined) {
@@ -276,6 +291,7 @@ const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthentic
           updateAppAndEmailSmsTemplatesConfig={
             updateAppAndEmailSmsTemplatesConfig
           }
+          refetchAppAndEmailSmsTemplatesConfig={refetch}
           updatingAppAndEmailSmsTemplateConfig={
             updatingAppAndEmailSmsTemplateConfig
           }

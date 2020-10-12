@@ -29,6 +29,16 @@ const updateAppAndEmailSmsTemplatesConfigMutation = gql`
   }
 `;
 
+export type AppAndEmailSmsTemplatesConfigUpdater = (
+  appConfig: PortalAPIAppConfig,
+  templateContents: {
+    emailHtml?: string;
+    emailMjml?: string;
+    emailText?: string;
+    smsText?: string;
+  }
+) => Promise<UpdateAppAndEmailSmsTemplatesConfigMutation_updateAppConfig | null>;
+
 export function useUpdateAppAndEmailSmsTemplatesConfigMutation(
   appID: string,
   emailHtmlTemplatePath: string,
@@ -36,15 +46,7 @@ export function useUpdateAppAndEmailSmsTemplatesConfigMutation(
   emailTextTemplatePath: string,
   smsTextTemplatePath: string
 ): {
-  updateAppAndEmailSmsTemplatesConfig: (
-    appConfig: PortalAPIAppConfig,
-    templateContents: {
-      emailHtml?: string;
-      emailMjml?: string;
-      emailText?: string;
-      smsText?: string;
-    }
-  ) => Promise<UpdateAppAndEmailSmsTemplatesConfigMutation_updateAppConfig | null>;
+  updateAppAndEmailSmsTemplatesConfig: AppAndEmailSmsTemplatesConfigUpdater;
   loading: boolean;
   error: unknown;
 } {

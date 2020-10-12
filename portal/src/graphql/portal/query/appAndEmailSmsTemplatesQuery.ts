@@ -32,7 +32,7 @@ export const andAndEmailSmsTemplatesQuery = gql`
   }
 `;
 
-interface AppAndEmailSmsTemplatesQueryResult
+export interface AppAndEmailSmsTemplatesQueryResult
   extends Pick<
     QueryResult<
       AppAndEmailSmsTemplatesQuery,
