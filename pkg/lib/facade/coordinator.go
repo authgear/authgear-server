@@ -46,6 +46,8 @@ type VerificationService interface {
 //                     feature implementations. We should investigate a proper
 //                     resolution, as the interactions between features will
 //                     get complicated fast.
+// FIXME(mfa): remove all MFA recovery code when last secondary authenticator is
+//             removed, so that recovery codes are re-generated when setup again.
 type Coordinator struct {
 	Identities     IdentityService
 	Authenticators AuthenticatorService

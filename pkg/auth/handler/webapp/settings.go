@@ -32,7 +32,6 @@ func ConfigureSettingsRoute(route httproute.Route) httproute.Route {
 
 type SettingsViewModel struct {
 	Authenticators           []*authenticator.Info
-	MFAActivated             bool
 	SecondaryTOTPAllowed     bool
 	SecondaryOOBOTPAllowed   bool
 	SecondaryPasswordAllowed bool
@@ -43,7 +42,6 @@ type SettingsAuthenticatorService interface {
 }
 
 type SettingsMFAService interface {
-	HasMFAActivated(userID string) (bool, error)
 	InvalidateAllDeviceTokens(userID string) error
 }
 
@@ -68,10 +66,6 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
-		mfaActivated, err := h.MFA.HasMFAActivated(*userID)
-		if err != nil {
-			panic(err)
-		}
 
 		totp := false
 		oobotp := false
@@ -89,7 +83,6 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		viewModel := SettingsViewModel{
 			Authenticators:           authenticators,
-			MFAActivated:             mfaActivated,
 			SecondaryTOTPAllowed:     totp,
 			SecondaryOOBOTPAllowed:   oobotp,
 			SecondaryPasswordAllowed: password,
