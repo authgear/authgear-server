@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { Label, Text } from "@fluentui/react";
 import { useParams } from "react-router-dom";
@@ -6,7 +6,10 @@ import cn from "classnames";
 import produce from "immer";
 import deepEqual from "deep-equal";
 
-import { useUpdateAppAndEmailSmsTemplatesConfigMutation } from "./mutations/updateAppAndEmailSmsTemplatesMutation";
+import {
+  AppAndEmailSmsTemplatesConfigUpdater,
+  useUpdateAppAndEmailSmsTemplatesConfigMutation,
+} from "./mutations/updateAppAndEmailSmsTemplatesMutation";
 import { useAppAndEmailSmsTemplatesQuery } from "./query/appAndEmailSmsTemplatesQuery";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
@@ -14,6 +17,7 @@ import CodeEditor from "../../CodeEditor";
 import { clearEmptyObject } from "../../util/misc";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
+import { PortalAPIAppConfig, PortalAPIEmailAndSmsTemplates } from "../../types";
 
 import styles from "./PasswordlessAuthenticatorScreen.module.scss";
 
@@ -28,33 +32,22 @@ interface PasswordlessAuthenticatorScreenState {
   smsTemplate: string;
 }
 
-const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthenticatorScreen() {
-  const { appID } = useParams();
+interface PasswordlessAuthenticatorProps {
+  rawAppConfig: PortalAPIAppConfig | null;
+  emailAndSmsTemplates: PortalAPIEmailAndSmsTemplates | null;
+  updateAppAndEmailSmsTemplatesConfig: AppAndEmailSmsTemplatesConfigUpdater;
+  updatingAppAndEmailSmsTemplateConfig: boolean;
+}
 
+const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = function PasswordlessAuthenticator(
+  props: PasswordlessAuthenticatorProps
+) {
   const {
-    updateAppAndEmailSmsTemplatesConfig,
-    loading: updatingAppAndEmailSmsTemplateConfig,
-    error: updateAppAndEmailSmsTemplateConfigError,
-  } = useUpdateAppAndEmailSmsTemplatesConfigMutation(
-    appID,
-    `templates/${EMAIL_HTML_TEMPLATE_NAME}`,
-    `templates/${EMAIL_MJML_TEMPLATE_NAME}`,
-    `templates/${EMAIL_TEXT_TEMPLATE_NAME}`,
-    `templates/${SMS_TEXT_TEMPLATE_NAME}`
-  );
-  const {
-    emailAndSmsTemplates,
     rawAppConfig,
-    loading,
-    error,
-    refetch,
-  } = useAppAndEmailSmsTemplatesQuery(
-    appID,
-    `templates/${EMAIL_HTML_TEMPLATE_NAME}`,
-    `templates/${EMAIL_MJML_TEMPLATE_NAME}`,
-    `templates/${EMAIL_TEXT_TEMPLATE_NAME}`,
-    `templates/${SMS_TEXT_TEMPLATE_NAME}`
-  );
+    emailAndSmsTemplates,
+    updateAppAndEmailSmsTemplatesConfig,
+    updatingAppAndEmailSmsTemplateConfig,
+  } = props;
 
   const initialState: PasswordlessAuthenticatorScreenState = useMemo(() => {
     return {
@@ -173,6 +166,89 @@ const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthentic
     }));
   }, []);
 
+  return (
+    <div className={styles.form}>
+      <Label className={styles.boldLabel}>
+        <FormattedMessage id="PasswordsScreen.forgot-password.email.label" />
+      </Label>
+
+      <Label className={styles.label}>
+        <FormattedMessage id="PasswordlessAuthenticatorScreen.email.styled-content.label" />
+      </Label>
+      <CodeEditor
+        className={styles.htmlCodeEditor}
+        language="html"
+        value={state.emailHtmlTemplate}
+        onChange={onEmailHtmlTemplateChange}
+      />
+
+      <Label className={styles.label}>
+        <FormattedMessage id="PasswordlessAuthenticatorScreen.email.plain-content.label" />
+      </Label>
+      <CodeEditor
+        className={styles.plainTextCodeEditor}
+        language="plaintext"
+        value={state.emailPlainTextTemplate}
+        onChange={onEmailPlainTextTemplateChange}
+      />
+
+      <Label className={styles.boldLabel}>
+        <FormattedMessage id="PasswordlessAuthenticatorScreen.sms.label" />
+      </Label>
+
+      <Label className={styles.label}>
+        <FormattedMessage id="PasswordlessAuthenticatorScreen.sms.content.label" />
+      </Label>
+      <CodeEditor
+        className={styles.plainTextCodeEditor}
+        language="plaintext"
+        value={state.smsTemplate}
+        onChange={onSmsTemplateChange}
+      />
+
+      <div className={styles.saveButtonContainer}>
+        <ButtonWithLoading
+          disabled={!isFormModified}
+          onClick={onSaveButtonClicked}
+          loading={updatingAppAndEmailSmsTemplateConfig}
+          labelId="save"
+          loadingLabelId="saving"
+        />
+      </div>
+
+      <NavigationBlockerDialog blockNavigation={isFormModified} />
+    </div>
+  );
+};
+
+const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthenticatorScreen() {
+  const { appID } = useParams();
+
+  const {
+    updateAppAndEmailSmsTemplatesConfig,
+    loading: updatingAppAndEmailSmsTemplateConfig,
+    error: updateAppAndEmailSmsTemplateConfigError,
+  } = useUpdateAppAndEmailSmsTemplatesConfigMutation(
+    appID,
+    `templates/${EMAIL_HTML_TEMPLATE_NAME}`,
+    `templates/${EMAIL_MJML_TEMPLATE_NAME}`,
+    `templates/${EMAIL_TEXT_TEMPLATE_NAME}`,
+    `templates/${SMS_TEXT_TEMPLATE_NAME}`
+  );
+  const {
+    emailAndSmsTemplates,
+    rawAppConfig,
+    loading,
+    error,
+    refetch,
+  } = useAppAndEmailSmsTemplatesQuery(
+    appID,
+    `templates/${EMAIL_HTML_TEMPLATE_NAME}`,
+    `templates/${EMAIL_MJML_TEMPLATE_NAME}`,
+    `templates/${EMAIL_TEXT_TEMPLATE_NAME}`,
+    `templates/${SMS_TEXT_TEMPLATE_NAME}`
+  );
+
   if (loading) {
     return <ShowLoading />;
   }
@@ -194,57 +270,17 @@ const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthentic
         <Text as="h1" className={styles.title}>
           <FormattedMessage id="PasswordlessAuthenticatorScreen.title" />
         </Text>
-        <div className={styles.form}>
-          <Label className={styles.boldLabel}>
-            <FormattedMessage id="PasswordsScreen.forgot-password.email.label" />
-          </Label>
-
-          <Label className={styles.label}>
-            <FormattedMessage id="PasswordlessAuthenticatorScreen.email.styled-content.label" />
-          </Label>
-          <CodeEditor
-            className={styles.htmlCodeEditor}
-            language="html"
-            value={state.emailHtmlTemplate}
-            onChange={onEmailHtmlTemplateChange}
-          />
-
-          <Label className={styles.label}>
-            <FormattedMessage id="PasswordlessAuthenticatorScreen.email.plain-content.label" />
-          </Label>
-          <CodeEditor
-            className={styles.plainTextCodeEditor}
-            language="plaintext"
-            value={state.emailPlainTextTemplate}
-            onChange={onEmailPlainTextTemplateChange}
-          />
-
-          <Label className={styles.boldLabel}>
-            <FormattedMessage id="PasswordlessAuthenticatorScreen.sms.label" />
-          </Label>
-
-          <Label className={styles.label}>
-            <FormattedMessage id="PasswordlessAuthenticatorScreen.sms.content.label" />
-          </Label>
-          <CodeEditor
-            className={styles.plainTextCodeEditor}
-            language="plaintext"
-            value={state.smsTemplate}
-            onChange={onSmsTemplateChange}
-          />
-
-          <div className={styles.saveButtonContainer}>
-            <ButtonWithLoading
-              disabled={!isFormModified}
-              onClick={onSaveButtonClicked}
-              loading={updatingAppAndEmailSmsTemplateConfig}
-              labelId="save"
-              loadingLabelId="saving"
-            />
-          </div>
-        </div>
+        <PasswordlessAuthenticator
+          emailAndSmsTemplates={emailAndSmsTemplates}
+          rawAppConfig={rawAppConfig}
+          updateAppAndEmailSmsTemplatesConfig={
+            updateAppAndEmailSmsTemplatesConfig
+          }
+          updatingAppAndEmailSmsTemplateConfig={
+            updatingAppAndEmailSmsTemplateConfig
+          }
+        />
       </div>
-      <NavigationBlockerDialog blockNavigation={isFormModified} />
     </main>
   );
 };
