@@ -20,6 +20,13 @@ type AppLoader interface {
 	UpdateConfig(app *model.App, updateFiles []*model.AppConfigFile, deleteFiles []string) *graphqlutil.Lazy
 }
 
+type DomainLoader interface {
+	ListDomains(appID string) *graphqlutil.Lazy
+	CreateDomain(appID string, domain string) *graphqlutil.Lazy
+	DeleteDomain(appID string, id string) *graphqlutil.Lazy
+	VerifyDomain(appID string, id string) *graphqlutil.Lazy
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("portal-graphql")} }
@@ -28,6 +35,7 @@ type Context struct {
 	GQLLogger Logger
 	Viewer    ViewerLoader
 	Apps      AppLoader
+	Domains   DomainLoader
 }
 
 func (c *Context) Logger() *log.Logger {

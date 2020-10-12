@@ -28,11 +28,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
+var LabelDomainID = "authgear.com/domain-id"
+
 var ErrDuplicatedAppID = apierrors.AlreadyExists.WithReason("DuplicatedAppID").
 	New("duplicated app ID")
 
 type ingressDef struct {
 	AppID         string
+	DomainID      string
 	Host          string
 	TLSSecretName string
 }
@@ -45,7 +48,6 @@ func NewConfigServiceLogger(lf *log.Factory) ConfigServiceLogger {
 
 type CreateAppOptions struct {
 	AppID               string
-	Hosts               []string
 	AppConfigYAML       []byte
 	SecretConfigYAML    []byte
 	TranslationJSONPath string
@@ -100,6 +102,40 @@ func (s *ConfigService) UpdateConfig(appID string, updateFiles []*model.AppConfi
 			return err
 		}
 		s.Controller.ReloadApp(appID)
+
+	default:
+		return errors.New("unsupported configuration source")
+	}
+	return nil
+}
+
+func (s *ConfigService) CreateDomain(appID string, domain *model.Domain) error {
+	switch src := s.Controller.Handle.(type) {
+	case *configsource.Kubernetes:
+		err := s.createKubernetesIngress(src, appID, domain)
+		if err != nil {
+			return err
+		}
+
+	case *configsource.LocalFS:
+		return apierrors.NewForbidden("cannot create domain for local FS")
+
+	default:
+		return errors.New("unsupported configuration source")
+	}
+	return nil
+}
+
+func (s *ConfigService) DeleteDomain(domain *model.Domain) error {
+	switch src := s.Controller.Handle.(type) {
+	case *configsource.Kubernetes:
+		err := s.deleteKubernetesIngress(src, domain)
+		if err != nil {
+			return err
+		}
+
+	case *configsource.LocalFS:
+		return apierrors.NewForbidden("cannot delete domain for local FS")
 
 	default:
 		return errors.New("unsupported configuration source")
@@ -184,10 +220,9 @@ func (s *ConfigService) createKubernetes(k *configsource.Kubernetes, opts *Creat
 		return ErrDuplicatedAppID
 	}
 
-	// Setup config resource
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: s.AppConfig.Kubernetes.NewResourcePrefix + opts.AppID,
+			Name: "app-" + opts.AppID,
 			Labels: map[string]string{
 				configsource.LabelAppID: opts.AppID,
 			},
@@ -201,32 +236,85 @@ func (s *ConfigService) createKubernetes(k *configsource.Kubernetes, opts *Creat
 		secret.Data[configsource.EscapePath(opts.TranslationJSONPath)] = opts.TranslationJSON
 	}
 
-	tlsCertConfig := s.AppConfig.Kubernetes.DefaultDomainTLSCert
-	var ingresses []*networkingv1beta1.Ingress
-	for _, host := range opts.Hosts {
-		def := &ingressDef{
-			AppID: opts.AppID,
-			Host:  host,
-		}
-		if err = s.setupTLSCert(k, def, tlsCertConfig); err != nil {
-			return fmt.Errorf("cannot setup TLS certificate: %w", err)
-		}
-
-		ingress := &networkingv1beta1.Ingress{}
-		if err = s.generateIngress(def, ingress); err != nil {
-			return fmt.Errorf("cannot generate ingress resource: %w", err)
-		}
-		ingresses = append(ingresses, ingress)
-	}
-
-	// Commit changes to Kubernetes
 	_, err = k.Client.CoreV1().Secrets(k.Namespace).Create(s.Context, secret, metav1.CreateOptions{})
 	if err != nil {
 		return err
 	}
 
-	for _, ingress := range ingresses {
-		_, err = k.Client.NetworkingV1beta1().Ingresses(k.Namespace).Create(s.Context, ingress, metav1.CreateOptions{})
+	return nil
+}
+
+func (s *ConfigService) createKubernetesIngress(k *configsource.Kubernetes, appID string, domain *model.Domain) error {
+	var tlsCertConfig portalconfig.TLSCertConfig
+	if domain.IsCustom {
+		tlsCertConfig = s.AppConfig.Kubernetes.CustomDomainTLSCert
+	} else {
+		tlsCertConfig = s.AppConfig.Kubernetes.DefaultDomainTLSCert
+	}
+
+	def := &ingressDef{
+		AppID:    appID,
+		DomainID: domain.ID,
+		Host:     domain.Domain,
+	}
+	setupCert, err := s.setupTLSCert(k, def, tlsCertConfig)
+	if err != nil {
+		return fmt.Errorf("cannot setup TLS certificate: %w", err)
+	}
+
+	ingress := &networkingv1beta1.Ingress{}
+	if err := s.generateIngress(def, ingress); err != nil {
+		return fmt.Errorf("cannot generate ingress resource: %w", err)
+	}
+
+	selector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
+		MatchLabels: map[string]string{configsource.LabelAppID: appID},
+	})
+	if err != nil {
+		return err
+	}
+	appList, err := k.Client.CoreV1().Secrets(k.Namespace).List(s.Context, metav1.ListOptions{
+		LabelSelector: selector.String(),
+	})
+	if err != nil {
+		return err
+	} else if len(appList.Items) != 1 {
+		return fmt.Errorf("cannot get existing app (Secrets: %d)", len(appList.Items))
+	}
+
+	ingress.OwnerReferences = append(ingress.OwnerReferences,
+		*metav1.NewControllerRef(&appList.Items[0], corev1.SchemeGroupVersion.WithKind("Secret")),
+	)
+
+	ingress, err = k.Client.NetworkingV1beta1().Ingresses(k.Namespace).Create(s.Context, ingress, metav1.CreateOptions{})
+	if err != nil {
+		return err
+	}
+
+	err = setupCert(ingress)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *ConfigService) deleteKubernetesIngress(k *configsource.Kubernetes, domain *model.Domain) error {
+	selector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
+		MatchLabels: map[string]string{LabelDomainID: domain.ID},
+	})
+	if err != nil {
+		return err
+	}
+
+	client := k.Client.NetworkingV1beta1().Ingresses(k.Namespace)
+	ingresses, err := client.List(s.Context, metav1.ListOptions{LabelSelector: selector.String()})
+	if err != nil {
+		return err
+	}
+
+	for _, ingress := range ingresses.Items {
+		err = client.Delete(s.Context, ingress.Name, metav1.DeleteOptions{})
 		if err != nil {
 			return err
 		}
@@ -260,47 +348,56 @@ func (s *ConfigService) generateIngress(def *ingressDef, ingress *networkingv1be
 	return nil
 }
 
-func (s *ConfigService) setupTLSCert(k *configsource.Kubernetes, def *ingressDef, source portalconfig.TLSCertConfig) error {
+func (s *ConfigService) setupTLSCert(
+	k *configsource.Kubernetes,
+	def *ingressDef,
+	source portalconfig.TLSCertConfig,
+) (func(*networkingv1beta1.Ingress) error, error) {
 	switch source.Type {
 	case portalconfig.TLSCertNone:
-		return nil
+		return func(*networkingv1beta1.Ingress) error { return nil }, nil
 
 	case portalconfig.TLSCertStatic:
 		def.TLSSecretName = source.SecretName
-		return nil
+		return func(*networkingv1beta1.Ingress) error { return nil }, nil
 
 	case portalconfig.TLSCertCertManager:
 		def.TLSSecretName = "tls-" + def.Host
-		cert := &certmanagerv1.Certificate{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: k.Namespace,
-				Name:      "cert-" + def.Host,
-				Labels: map[string]string{
-					configsource.LabelAppID: def.AppID,
+		return func(ingress *networkingv1beta1.Ingress) error {
+			cert := &certmanagerv1.Certificate{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: k.Namespace,
+					Name:      "cert-" + def.Host,
+					Labels: map[string]string{
+						configsource.LabelAppID: def.AppID,
+					},
+					OwnerReferences: []metav1.OwnerReference{
+						*metav1.NewControllerRef(ingress, networkingv1beta1.SchemeGroupVersion.WithKind("Ingress")),
+					},
 				},
-			},
-			Spec: certmanagerv1.CertificateSpec{
-				SecretName: def.TLSSecretName,
-				IssuerRef: certmanagermetav1.ObjectReference{
-					Kind: source.IssuerKind,
-					Name: source.IssuerName,
+				Spec: certmanagerv1.CertificateSpec{
+					SecretName: def.TLSSecretName,
+					IssuerRef: certmanagermetav1.ObjectReference{
+						Kind: source.IssuerKind,
+						Name: source.IssuerName,
+					},
+					CommonName: def.Host,
 				},
-				CommonName: def.Host,
-			},
-		}
+			}
 
-		client, err := certmanagerclientset.NewForConfig(k.KubeConfig)
-		if err != nil {
-			return err
-		}
+			client, err := certmanagerclientset.NewForConfig(k.KubeConfig)
+			if err != nil {
+				return err
+			}
 
-		_, err = client.CertmanagerV1().Certificates(k.Namespace).
-			Create(context.Background(), cert, metav1.CreateOptions{})
-		if err != nil {
-			return err
-		}
+			_, err = client.CertmanagerV1().Certificates(k.Namespace).
+				Create(context.Background(), cert, metav1.CreateOptions{})
+			if err != nil {
+				return err
+			}
 
-		return nil
+			return nil
+		}, nil
 
 	default:
 		panic("config_service: unknown certificate type")

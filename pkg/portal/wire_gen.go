@@ -105,27 +105,44 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		ConfigSource:   configSource,
 		AuthzAdder:     adder,
 	}
+	databaseConfig := rootProvider.DatabaseConfig
+	sqlBuilder := db.NewSQLBuilder(databaseConfig)
+	dbLogger := db.NewLogger(factory)
+	handle := &db.Handle{
+		Context: context,
+		Config:  databaseConfig,
+		Logger:  dbLogger,
+	}
+	sqlExecutor := &db.SQLExecutor{
+		Context:  context,
+		Database: handle,
+	}
+	domainService := &service.DomainService{
+		Context:      context,
+		Clock:        clock,
+		DomainConfig: configService,
+		SQLBuilder:   sqlBuilder,
+		SQLExecutor:  sqlExecutor,
+	}
 	appService := &service.AppService{
 		Logger:      appServiceLogger,
 		AppConfig:   appConfig,
 		AppConfigs:  configService,
 		AppAuthz:    authzService,
 		AppAdminAPI: adminAPIService,
+		AppDomains:  domainService,
 	}
 	appLoader := &loader.AppLoader{
 		Apps: appService,
+	}
+	domainLoader := &loader.DomainLoader{
+		Domains: domainService,
 	}
 	graphqlContext := &graphql.Context{
 		GQLLogger: logger,
 		Viewer:    viewerLoader,
 		Apps:      appLoader,
-	}
-	databaseConfig := rootProvider.DatabaseConfig
-	dbLogger := db.NewLogger(factory)
-	handle := &db.Handle{
-		Context: context,
-		Config:  databaseConfig,
-		Logger:  dbLogger,
+		Domains:   domainLoader,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		DevMode:        devMode,

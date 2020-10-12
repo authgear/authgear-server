@@ -24,10 +24,12 @@ var DependencySet = wire.NewSet(
 
 	loader.DependencySet,
 	wire.Bind(new(loader.AppService), new(*service.AppService)),
+	wire.Bind(new(loader.DomainService), new(*service.DomainService)),
 
 	graphql.DependencySet,
 	wire.Bind(new(graphql.ViewerLoader), new(*loader.ViewerLoader)),
 	wire.Bind(new(graphql.AppLoader), new(*loader.AppLoader)),
+	wire.Bind(new(graphql.DomainLoader), new(*loader.DomainLoader)),
 
 	transport.DependencySet,
 	wire.Bind(new(transport.AdminAPIConfigResolver), new(*service.AdminAPIService)),
