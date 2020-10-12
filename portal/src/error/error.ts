@@ -1,3 +1,6 @@
+import { ApolloError } from "@apollo/client";
+import { GraphQLError } from "graphql";
+
 import { APIValidationError } from "./validation";
 import { APIInvariantViolationError } from "./invariant";
 import { APIDuplicatedIdentityError } from "./duplicated";
@@ -14,4 +17,15 @@ export function isAPIError(value?: { [key: string]: any }): value is APIError {
     return false;
   }
   return "errorName" in value && "reason" in value;
+}
+
+export function isApolloError(error: unknown): error is ApolloError {
+  return error instanceof ApolloError;
+}
+
+export function extractAPIError(error: GraphQLError): APIError | undefined {
+  if (isAPIError(error.extensions)) {
+    return error.extensions;
+  }
+  return undefined;
 }
