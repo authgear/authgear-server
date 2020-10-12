@@ -92,7 +92,7 @@ func (s *Service) DryRun(webStateID string, fn func(*Context) (*Graph, error)) (
 	return
 }
 
-func (s *Service) Run(webStateID string, graph *Graph, preserveGraph bool) (err error) {
+func (s *Service) Run(webStateID string, graph *Graph) (err error) {
 	ctx, err := s.Context.initialize()
 	if err != nil {
 		return
@@ -129,11 +129,10 @@ func (s *Service) Run(webStateID string, graph *Graph, preserveGraph bool) (err 
 		return
 	}
 
-	if !preserveGraph {
-		delErr := s.Store.DeleteGraph(graph)
-		if delErr != nil {
-			s.Logger.WithError(delErr).Error("cannot delete graph")
-		}
+	// TODO(interaction): Side effects is already committed, how to handle the subsequent errors?
+	err = s.Store.DeleteGraph(graph)
+	if err != nil {
+		return
 	}
 
 	return

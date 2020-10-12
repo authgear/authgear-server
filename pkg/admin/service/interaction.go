@@ -5,7 +5,7 @@ import "github.com/authgear/authgear-server/pkg/lib/interaction"
 type InteractionGraphService interface {
 	NewGraph(ctx *interaction.Context, intent interaction.Intent) (*interaction.Graph, error)
 	DryRun(webStateID string, fn func(*interaction.Context) (*interaction.Graph, error)) error
-	Run(webStateID string, graph *interaction.Graph, preserveGraph bool) error
+	Run(webStateID string, graph *interaction.Graph) error
 }
 
 type InteractionService struct {
@@ -34,7 +34,7 @@ func (s *InteractionService) Perform(intent interaction.Intent, input interface{
 		return graph, err
 	}
 
-	err = s.Graph.Run(stateID, graph, false)
+	err = s.Graph.Run(stateID, graph)
 	if err != nil {
 		return nil, err
 	}
