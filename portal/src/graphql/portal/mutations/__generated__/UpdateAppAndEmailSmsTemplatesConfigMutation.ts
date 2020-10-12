@@ -17,6 +17,10 @@ export interface UpdateAppAndEmailSmsTemplatesConfigMutation_updateAppConfig {
   id: string;
   rawAppConfig: GQL_AppConfig;
   effectiveAppConfig: GQL_AppConfig;
+  emailHtml: string;
+  emailMjml: string;
+  emailText: string;
+  smsText: string;
 }
 
 export interface UpdateAppAndEmailSmsTemplatesConfigMutation {
@@ -29,4 +33,8 @@ export interface UpdateAppAndEmailSmsTemplatesConfigMutation {
 export interface UpdateAppAndEmailSmsTemplatesConfigMutationVariables {
   appID: string;
   updateFiles: AppConfigFile[];
+  emailHtmlTemplatePath: string;
+  emailMjmlTemplatePath: string;
+  emailTextTemplatePath: string;
+  smsTextTemplatePath: string;
 }

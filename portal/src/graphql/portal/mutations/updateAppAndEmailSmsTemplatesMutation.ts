@@ -18,6 +18,10 @@ const updateAppAndEmailSmsTemplatesConfigMutation = gql`
   mutation UpdateAppAndEmailSmsTemplatesConfigMutation(
     $appID: ID!
     $updateFiles: [AppConfigFile!]!
+    $emailHtmlTemplatePath: String!
+    $emailMjmlTemplatePath: String!
+    $emailTextTemplatePath: String!
+    $smsTextTemplatePath: String!
   ) {
     updateAppConfig(
       input: { appID: $appID, updateFiles: $updateFiles, deleteFiles: [] }
@@ -25,6 +29,10 @@ const updateAppAndEmailSmsTemplatesConfigMutation = gql`
       id
       rawAppConfig
       effectiveAppConfig
+      emailHtml: rawConfigFile(path: $emailHtmlTemplatePath)
+      emailMjml: rawConfigFile(path: $emailMjmlTemplatePath)
+      emailText: rawConfigFile(path: $emailTextTemplatePath)
+      smsText: rawConfigFile(path: $smsTextTemplatePath)
     }
   }
 `;
@@ -98,6 +106,10 @@ export function useUpdateAppAndEmailSmsTemplatesConfigMutation(
         variables: {
           appID,
           updateFiles,
+          emailHtmlTemplatePath,
+          emailMjmlTemplatePath,
+          emailTextTemplatePath,
+          smsTextTemplatePath,
         },
       });
       return result.data?.updateAppConfig ?? null;
