@@ -154,6 +154,9 @@
 	"settings-totp-title": "Authenticator Apps / Devices",
 	"settings-totp-item-description": "Added at {time, datetime, long}",
 
+	"settings-oob-otp-title": "Channels for receiving verification code via SMS / Email",
+	"settings-oob-otp-item-description": "Added at {time, datetime, long}",
+
 	"enter-login-id-page-title--change": "Change your {key}",
 	"enter-login-id-page-title--add": "Enter your {key}",
 

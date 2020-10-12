@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+{{ template "auth_ui_html_head.html" . }}
+<body class="page">
+<main class="content">
+
+{{ template "auth_ui_header.html" . }}
+
+{{ template "auth_ui_nav_bar.html" }}
+
+{{ template "ERROR" . }}
+
+<section class="pane">
+  <section class="settings-oob-otp-row settings-oob-otp-title-section">
+    <h1 class="title primary-txt">
+      {{ template "settings-oob-otp-title" }}
+    </h1>
+  </section>
+
+  {{ range $.Authenticators }}
+    <form method="post" novalidate class="settings-oob-otp-row settings-oob-otp-item-section">
+      {{ if eq (index .Claims "https://authgear.com/claims/oob_otp/channel_type") "email" }}
+        <i class="icon fas fa-envelope" aria-hidden="true"></i>
+        <p class="title primary-txt">
+          {{ index .Claims "https://authgear.com/claims/oob_otp/email" }}
+        </p>
+      {{ end }}
+      {{ if eq (index .Claims "https://authgear.com/claims/oob_otp/channel_type") "sms" }}
+        <i class="icon fas fa-phone" aria-hidden="true"></i>
+        <p class="title primary-txt">
+          {{ index .Claims "https://authgear.com/claims/oob_otp/phone" }}
+        </p>
+      {{ end }}
+      <p class="desc secondary-txt">
+        <!-- FIXME(ui): Use user preferred timezone -->
+        {{ template "settings-totp-item-description" (makemap "time" .CreatedAt) }}
+      </p>
+      {{ $.CSRFField }}
+      <input type="hidden" name="x_authenticator_id" value="{{ .ID }}">
+      <button class="action btn destructive-btn" type="submit" name="x_action" value="remove">
+        {{ template "remove-button-label" }}
+      </button>
+    </form>
+  {{ end }}
+  <section class="settings-totp-row settings-totp-add-section">
+    <form class="primary-action" method="post" novalidate>
+      {{ $.CSRFField }}
+      <button class="action btn secondary-btn" type="submit" name="x_action" value="add">
+        {{ template "add-button-label" }}
+      </button>
+    </form>
+  </section>
+</section>
+
+</main>
+</body>
+</html>

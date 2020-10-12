@@ -857,3 +857,65 @@ a.btn {
   margin: 0;
   font-size: 1rem;
 }
+
+.settings-oob-otp-row {
+  margin: 10px 14px 0px 14px;
+  padding: 0 0 10px 0;
+}
+
+.settings-oob-otp-row:not(:last-child) {
+  border-bottom: 1px solid #E5E5E5;
+}
+
+.settings-oob-otp-title-section .title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.settings-oob-otp-item-section {
+  display: grid;
+  grid: "icon  name  action" auto
+        "icon  desc  ......" auto
+      /  36px  1fr   auto    auto;
+  font-size: 1rem;
+}
+
+.settings-oob-otp-item-section > * {
+  margin: 0;
+}
+
+.settings-oob-otp-item-section .icon {
+  align-self: start;
+  justify-self: center;
+  grid-area: icon;
+  margin: 2px;
+}
+
+.settings-oob-otp-item-section .name {
+  grid-area: name;
+  align-self: center;
+  /* We must keep using the default value justify-self: stretch */
+  /* So that this element takes exact 1fr width */
+  /* Otherwise it could overflow */
+  font-size: inherit;
+}
+
+.settings-oob-otp-item-section .desc {
+  grid-area: desc;
+  align-self: center;
+  /* We must keep using the default value justify-self: stretch */
+  /* So that this element takes exact 1fr width */
+  /* Otherwise it could overflow */
+  font-size: smaller;
+}
+
+.settings-oob-otp-item-section .action {
+  grid-area: action;
+  align-self: center;
+  justify-self: end;
+}
+
+.settings-oob-otp-add-section .action {
+  margin: 0;
+  font-size: 1rem;
+}
