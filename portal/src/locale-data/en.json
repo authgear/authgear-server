@@ -54,6 +54,7 @@
   "ScreenNav.single-sign-on": "Single-Sign On",
   "ScreenNav.passwords": "Passwords",
   "ScreenNav.client-applications": "Client Applications",
+  "ScreenNav.user-interface": "User Interface",
 
   "NavBreadcrumb.label": "Nested navigation",
 
@@ -318,6 +319,9 @@
   "PasswordField.error.confirm-password-not-match": "New password does not match with confirm password, please double check",
   "PasswordField.error.password-reused": "Password cannot be reused, please check password policies below",
   "PasswordField.error.containing-excluded-keywords": "Password contains excluded keywords, please check password policies below",
+
+  "UserInterfaceScreen.title": "User Interface",
+  "UserInterfaceScreen.custom-css.label": "Custom CSS",
 
   "PasswordStrengthMeter.password-strength": "Password Strength"
 }

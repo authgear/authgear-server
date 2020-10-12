@@ -1,0 +1,41 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.loading {
+  pointer-events: none;
+}
+
+.content {
+  margin: 30px 20px;
+}
+
+.title {
+  margin: 0 8px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.form {
+  margin: 15px 0 0;
+}
+
+.label {
+  margin: 0 8px 5px;
+}
+
+.codeEditor {
+  height: 400px;
+  border: 1px solid #eee;
+  border-radius: 2px;
+  margin: 0 8px 15px;
+}
+
+.saveButtonContainer {
+  width: 100%;
+  margin: 20px 8px 15px;
+  display: flex;
+  justify-content: flex-start;
+}

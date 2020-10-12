@@ -19,6 +19,7 @@ import PasswordsScreen from "./graphql/portal/PasswordsScreen";
 import OAuthClientConfigurationScreen from "./graphql/portal/OAuthClientConfigurationScreen";
 import CreateOAuthClientScreen from "./graphql/portal/CreateOAuthClientScreen";
 import EditOAuthClientScreen from "./graphql/portal/EditOAuthClientScreen";
+import UserInterfaceScreen from "./graphql/portal/UserInterfaceScreen";
 
 const AppRoot: React.FC = function AppRoot() {
   const { appID } = useParams();
@@ -83,6 +84,10 @@ const AppRoot: React.FC = function AppRoot() {
           <Route
             path="/configuration/oauth-clients/:clientID/edit"
             element={<EditOAuthClientScreen />}
+          />
+          <Route
+            path="/configuration/user-interface"
+            element={<UserInterfaceScreen />}
           />
         </Routes>
       </ScreenLayout>
