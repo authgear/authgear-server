@@ -8936,6 +8936,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 
 func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
+	handle := appProvider.Database
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
@@ -8969,7 +8970,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	handle := appProvider.Database
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -9045,6 +9045,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 	}
 	settingsHandler := &webapp2.SettingsHandler{
+		Database:       handle,
 		BaseViewModel:  baseViewModeler,
 		Renderer:       responseRenderer,
 		Authentication: authenticationConfig,

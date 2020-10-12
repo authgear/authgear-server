@@ -185,11 +185,12 @@
 
   <!-- Revoke all device tokens -->
   {{ if $has_mfa }}
-  <section class="settings-row settings-page-section-revoke-device-tokens">
-    <button type="button" class="action btn destructive-btn">
+  <form class="settings-row settings-page-section-revoke-device-tokens" method="post" novalidate>
+    {{ $.CSRFField }}
+    <button class="action btn destructive-btn" type="submit" name="x_action" value="revoke_devices">
       {{ template "revoke-all-device-tokens-button-label" }}
     </button>
-  </section>
+  </form>
   {{ end }}
 
 </section>
