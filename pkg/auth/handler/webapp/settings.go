@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -44,6 +45,7 @@ type SettingsAuthenticatorService interface {
 }
 
 type SettingsMFAService interface {
+	ListRecoveryCodes(userID string) ([]*mfa.RecoveryCode, error)
 	InvalidateAllDeviceTokens(userID string) error
 }
 

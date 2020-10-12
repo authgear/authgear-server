@@ -22,10 +22,12 @@
 
 <p class="description primary-txt">{{ template "recovery-code-storage-description" }}</p>
 
-<div class="recovery-codes">
-	{{ range $.RecoveryCodes }}
-	<p class="recovery-code">{{ . }}</p>
-	{{ end }}
+<div class="recovery-codes-container">
+	<ol class="recovery-codes">
+		{{ range $.RecoveryCodes }}
+			<li class="recovery-code">{{ . }}</li>
+		{{ end }}
+	</ol>
 </div>
 
 <p class="description primary-txt">{{ template "recovery-code-consumption-description" }}</p>

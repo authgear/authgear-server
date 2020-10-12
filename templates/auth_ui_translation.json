@@ -21,6 +21,7 @@
 	"apple-app-store-label": "Apple App Store",
 	"back-button-title": "Back",
 	"next-button-label": "Next",
+	"get-new-code-button-label": "Get new code",
 	"download-button-label": "Download",
 	"connect-button-label": "Connect",
 	"disconnect-button-label": "Disconnect",
@@ -192,5 +193,6 @@
 
 	"recovery-code-title": "Recovery Code",
 	"recovery-code-storage-description": "Keep these recovery codes somewhere safe but accessible",
-	"recovery-code-consumption-description": "You can only use each code once"
+	"recovery-code-consumption-description": "You can only use each code once",
+	"recovery-code-list-disabled": "Listing recovery code is disabled by administrator"
 }

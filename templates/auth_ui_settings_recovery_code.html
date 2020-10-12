@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+{{ template "auth_ui_html_head.html" . }}
+<body class="page">
+<main class="content">
+
+	{{ template "auth_ui_header.html" . }}
+
+	{{ template "auth_ui_nav_bar.html" }}
+
+	{{ template "ERROR" . }}
+
+	<section class="pane">
+		<section class="settings-recovery-code-row settings-recovery-code-title-section">
+			<h1 class="title primary-txt">
+				{{ template "recovery-code-title" }}
+			</h1>
+		</section>
+
+		<section class="settings-recovery-code-row settings-recovery-code-list-section">
+		{{ if $.AllowListRecoveryCodes }}
+			<p class="description primary-txt">{{ template "recovery-code-storage-description" }}</p>
+
+			<div class="recovery-codes-container">
+				<ol class="recovery-codes">
+					{{ range $.RecoveryCodes }}
+						<li class="recovery-code">{{ . }}</li>
+					{{ end }}
+				</ol>
+			</div>
+
+			<p class="description primary-txt">{{ template "recovery-code-consumption-description" }}</p>
+		{{ else }}
+			<p class="description primary-txt">{{ template "recovery-code-list-disabled" }}</p>
+		{{ end }}
+		</section>
+
+		<section class="settings-recovery-code-row settings-recovery-code-action-section">
+			<form method="post" novalidate>
+				{{ $.CSRFField }}
+				<button class="action btn primary-btn" type="submit" name="x_action" value="regenerate">
+					{{ template "get-new-code-button-label" }}
+				</button>
+			</form>
+			{{ if $.AllowListRecoveryCodes }}
+			<form method="post" novalidate>
+				{{ $.CSRFField }}
+				<button class="action btn primary-btn" type="submit" name="x_action" value="download">
+					{{ template "download-button-label" }}
+				</button>
+			</form>
+			{{ end}}
+		</section>
+	</section>
+
+</main>
+</body>
+</html>

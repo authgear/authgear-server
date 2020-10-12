@@ -578,18 +578,23 @@ a.btn {
   align-self: center;
 }
 
-.recovery-codes {
+.recovery-codes-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.recovery-codes {
+  padding: 0;
+  margin: 0;
+  column-count: 2;
 }
 
 .recovery-codes .recovery-code {
   white-space: pre;
   font-family: monospace;
   font-size: larger;
-  margin: 0;
-  padding: 0;
+  margin: 0 50px;
 }
 
 .setup-recovery-code-buttons {
@@ -917,5 +922,33 @@ a.btn {
 
 .settings-oob-otp-add-section .action {
   margin: 0;
+  font-size: 1rem;
+}
+
+.settings-recovery-code-row {
+  margin: 10px 14px 0px 14px;
+  padding: 0 0 10px 0;
+}
+
+.settings-recovery-code-title-section .title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.settings-recovery-code-list-section {
+  grid-area: action;
+  align-self: center;
+  justify-self: end;
+}
+
+.settings-recovery-code-action-section {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.settings-recovery-code-action-section .action {
+  margin: 5px;
+  padding: 4px 16px;
   font-size: 1rem;
 }
