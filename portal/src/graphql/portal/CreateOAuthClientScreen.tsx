@@ -185,7 +185,10 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
   );
 
   const isFormModified = useMemo(() => {
-    return !deepEqual(initialState, getReducedClientConfig(clientConfig));
+    return !deepEqual(
+      getReducedClientConfig(initialState),
+      getReducedClientConfig(clientConfig)
+    );
   }, [clientConfig, initialState]);
 
   return (

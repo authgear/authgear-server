@@ -27,7 +27,10 @@ export function getReducedClientConfig(
     ...rest
   } = clientConfig;
 
-  return rest;
+  return {
+    ...rest,
+    post_logout_redirect_uris: rest.post_logout_redirect_uris ?? [],
+  };
 }
 
 function constructClientConfigState(
