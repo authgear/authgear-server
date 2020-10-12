@@ -1,16 +1,24 @@
 package service
 
 import (
-	"encoding/json"
+	"bytes"
+	"context"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+	texttemplate "text/template"
 
+	certmanagerv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
+	certmanagermetav1 "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
+	certmanagerclientset "github.com/jetstack/cert-manager/pkg/client/clientset/versioned"
 	"github.com/spf13/afero"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1beta1 "k8s.io/api/networking/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -23,13 +31,29 @@ import (
 var ErrDuplicatedAppID = apierrors.AlreadyExists.WithReason("DuplicatedAppID").
 	New("duplicated app ID")
 
+type ingressDef struct {
+	AppID         string
+	Host          string
+	TLSSecretName string
+}
+
 type ConfigServiceLogger struct{ *log.Logger }
 
 func NewConfigServiceLogger(lf *log.Factory) ConfigServiceLogger {
 	return ConfigServiceLogger{lf.New("config-service")}
 }
 
+type CreateAppOptions struct {
+	AppID               string
+	Hosts               []string
+	AppConfigYAML       []byte
+	SecretConfigYAML    []byte
+	TranslationJSONPath string
+	TranslationJSON     []byte
+}
+
 type ConfigService struct {
+	Context      context.Context
 	Logger       ConfigServiceLogger
 	AppConfig    *portalconfig.AppConfig
 	Controller   *configsource.Controller
@@ -44,10 +68,10 @@ func (s *ConfigService) ListAllAppIDs() ([]string, error) {
 	return s.ConfigSource.AppIDResolver.AllAppIDs()
 }
 
-func (s *ConfigService) Create(appID string, hosts []string, appConfigYAML []byte, secretConfigYAML []byte) error {
+func (s *ConfigService) Create(opts *CreateAppOptions) error {
 	switch src := s.Controller.Handle.(type) {
 	case *configsource.Kubernetes:
-		err := s.createKubernetes(src, appID, hosts, appConfigYAML, secretConfigYAML)
+		err := s.createKubernetes(src, opts)
 		if err != nil {
 			return err
 		}
@@ -89,7 +113,7 @@ func (s *ConfigService) updateKubernetes(k *configsource.Kubernetes, appID strin
 		return err
 	}
 	secrets, err := k.Client.CoreV1().Secrets(k.Namespace).
-		List(metav1.ListOptions{LabelSelector: labelSelector})
+		List(s.Context, metav1.ListOptions{LabelSelector: labelSelector})
 	if err != nil {
 		s.Logger.WithError(err).Warn("Failed to load secrets")
 		return errors.New("failed to query data store")
@@ -120,7 +144,7 @@ func (s *ConfigService) updateKubernetes(k *configsource.Kubernetes, appID strin
 	}
 
 	if updated {
-		_, err = k.Client.CoreV1().Secrets(k.Namespace).Update(&secret)
+		_, err = k.Client.CoreV1().Secrets(k.Namespace).Update(s.Context, &secret, metav1.UpdateOptions{})
 		if err != nil {
 			return err
 		}
@@ -152,8 +176,8 @@ func (s *ConfigService) updateLocalFS(l *configsource.LocalFS, appID string, upd
 	return nil
 }
 
-func (s *ConfigService) createKubernetes(k *configsource.Kubernetes, appID string, hosts []string, appConfigYAML []byte, secretConfigYAML []byte) (err error) {
-	_, err = k.ResolveContext(appID)
+func (s *ConfigService) createKubernetes(k *configsource.Kubernetes, opts *CreateAppOptions) (err error) {
+	_, err = k.ResolveContext(opts.AppID)
 	if err != nil && !errors.Is(err, configsource.ErrAppNotFound) {
 		return err
 	} else if err == nil {
@@ -163,61 +187,122 @@ func (s *ConfigService) createKubernetes(k *configsource.Kubernetes, appID strin
 	// Setup config resource
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: s.AppConfig.Kubernetes.NewResourcePrefix + appID,
+			Name: s.AppConfig.Kubernetes.NewResourcePrefix + opts.AppID,
 			Labels: map[string]string{
-				configsource.LabelAppID: appID,
+				configsource.LabelAppID: opts.AppID,
 			},
 		},
 		Data: map[string][]byte{
-			configsource.EscapePath(configsource.AuthgearYAML):       appConfigYAML,
-			configsource.EscapePath(configsource.AuthgearSecretYAML): secretConfigYAML,
+			configsource.EscapePath(configsource.AuthgearYAML):       opts.AppConfigYAML,
+			configsource.EscapePath(configsource.AuthgearSecretYAML): opts.SecretConfigYAML,
 		},
 	}
-
-	// Update host mapping
-	hostMappingSelector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
-		MatchLabels: map[string]string{configsource.LabelHostMapping: "true"},
-	})
-	if err != nil {
-		return err
-	}
-	hostMappingList, err := k.Client.CoreV1().ConfigMaps(k.Namespace).
-		List(metav1.ListOptions{LabelSelector: hostMappingSelector.String()})
-	if err != nil {
-		return err
-	} else if len(hostMappingList.Items) != 1 {
-		return fmt.Errorf("failed to query host mapping (%d != 1)", len(hostMappingList.Items))
+	if opts.TranslationJSONPath != "" {
+		secret.Data[configsource.EscapePath(opts.TranslationJSONPath)] = opts.TranslationJSON
 	}
 
-	hostMapping := &hostMappingList.Items[0]
-	jsonString, ok := hostMapping.Data[configsource.HostMapJSON]
-	if !ok {
-		return errors.New("no host mapping JSON found")
+	tlsCertConfig := s.AppConfig.Kubernetes.DefaultDomainTLSCert
+	var ingresses []*networkingv1beta1.Ingress
+	for _, host := range opts.Hosts {
+		def := &ingressDef{
+			AppID: opts.AppID,
+			Host:  host,
+		}
+		if err = s.setupTLSCert(k, def, tlsCertConfig); err != nil {
+			return fmt.Errorf("cannot setup TLS certificate: %w", err)
+		}
+
+		ingress := &networkingv1beta1.Ingress{}
+		if err = s.generateIngress(def, ingress); err != nil {
+			return fmt.Errorf("cannot generate ingress resource: %w", err)
+		}
+		ingresses = append(ingresses, ingress)
 	}
-	data := []byte(jsonString)
-	var hostMap map[string]string
-	if err := json.Unmarshal(data, &hostMap); err != nil {
-		return fmt.Errorf("failed to parse host mapping: %w", err)
-	}
-	for _, h := range hosts {
-		hostMap[h] = appID
-	}
-	data, err = json.Marshal(hostMap)
-	if err != nil {
-		return err
-	}
-	hostMapping.Data[configsource.HostMapJSON] = string(data)
 
 	// Commit changes to Kubernetes
-	_, err = k.Client.CoreV1().ConfigMaps(k.Namespace).Update(hostMapping)
+	_, err = k.Client.CoreV1().Secrets(k.Namespace).Create(s.Context, secret, metav1.CreateOptions{})
 	if err != nil {
 		return err
 	}
 
-	_, err = k.Client.CoreV1().Secrets(k.Namespace).Create(secret)
+	for _, ingress := range ingresses {
+		_, err = k.Client.NetworkingV1beta1().Ingresses(k.Namespace).Create(s.Context, ingress, metav1.CreateOptions{})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *ConfigService) generateIngress(def *ingressDef, ingress *networkingv1beta1.Ingress) error {
+	tpl, err := ioutil.ReadFile(s.AppConfig.Kubernetes.IngressTemplateFile)
+	if err != nil {
+		return err
+	}
+
+	template, err := texttemplate.New("ingress").Parse(string(tpl))
+	if err != nil {
+		return err
+	}
+
+	ingressYAML := bytes.Buffer{}
+	err = template.Execute(&ingressYAML, def)
+	if err != nil {
+		return err
+	}
+
+	err = yaml.Unmarshal(ingressYAML.Bytes(), &ingress)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (s *ConfigService) setupTLSCert(k *configsource.Kubernetes, def *ingressDef, source portalconfig.TLSCertConfig) error {
+	switch source.Type {
+	case portalconfig.TLSCertNone:
+		return nil
+
+	case portalconfig.TLSCertStatic:
+		def.TLSSecretName = source.SecretName
+		return nil
+
+	case portalconfig.TLSCertCertManager:
+		def.TLSSecretName = "tls-" + def.Host
+		cert := &certmanagerv1.Certificate{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: k.Namespace,
+				Name:      "cert-" + def.Host,
+				Labels: map[string]string{
+					configsource.LabelAppID: def.AppID,
+				},
+			},
+			Spec: certmanagerv1.CertificateSpec{
+				SecretName: def.TLSSecretName,
+				IssuerRef: certmanagermetav1.ObjectReference{
+					Kind: source.IssuerKind,
+					Name: source.IssuerName,
+				},
+				CommonName: def.Host,
+			},
+		}
+
+		client, err := certmanagerclientset.NewForConfig(k.KubeConfig)
+		if err != nil {
+			return err
+		}
+
+		_, err = client.CertmanagerV1().Certificates(k.Namespace).
+			Create(context.Background(), cert, metav1.CreateOptions{})
+		if err != nil {
+			return err
+		}
+
+		return nil
+
+	default:
+		panic("config_service: unknown certificate type")
+	}
 }

@@ -321,7 +321,7 @@ const RemoveConfirmationDialog: React.FC<RemoveConfirmationDialogProps> = functi
     deletingAuthenticator,
     authenticatorID,
     authenticatorName,
-    onDismiss,
+    onDismiss: onDismissProps,
   } = props;
 
   const { renderToString } = useContext(Context);
@@ -329,6 +329,12 @@ const RemoveConfirmationDialog: React.FC<RemoveConfirmationDialogProps> = functi
   const onConfirmClicked = useCallback(() => {
     deleteAuthenticator(authenticatorID!);
   }, [deleteAuthenticator, authenticatorID]);
+
+  const onDismiss = useCallback(() => {
+    if (!deletingAuthenticator) {
+      onDismissProps();
+    }
+  }, [onDismissProps, deletingAuthenticator]);
 
   const dialogMessage = useMemo(() => {
     return renderToString(
@@ -350,6 +356,7 @@ const RemoveConfirmationDialog: React.FC<RemoveConfirmationDialogProps> = functi
     <Dialog
       hidden={!visible}
       dialogContentProps={removeConfirmDialogContentProps}
+      modalProps={{ isBlocking: deletingAuthenticator }}
       onDismiss={onDismiss}
     >
       <DialogFooter>
@@ -358,7 +365,7 @@ const RemoveConfirmationDialog: React.FC<RemoveConfirmationDialogProps> = functi
           labelId="confirm"
           loading={deletingAuthenticator}
         />
-        <DefaultButton onClick={onDismiss}>
+        <DefaultButton disabled={deletingAuthenticator} onClick={onDismiss}>
           <FormattedMessage id="cancel" />
         </DefaultButton>
       </DialogFooter>
@@ -619,11 +626,6 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
   const onConfirmDeleteAuthenticator = useCallback(
     (authenticatorID) => {
       deleteAuthenticator(authenticatorID)
-        .then((success) => {
-          if (!success) {
-            throw new Error();
-          }
-        })
         .catch(() => {})
         .finally(() => {
           dismissConfirmationDialog();

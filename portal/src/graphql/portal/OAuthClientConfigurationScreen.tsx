@@ -94,7 +94,7 @@ const ConfirmRemoveOAuthClientDialog: React.FC<ConfirmRemoveOAuthClientDialogPro
   const {
     visible,
     updatingAppConfig,
-    onDismiss,
+    onDismiss: onDismissProps,
     removeOAuthClient,
     clientId,
     clientName,
@@ -104,6 +104,12 @@ const ConfirmRemoveOAuthClientDialog: React.FC<ConfirmRemoveOAuthClientDialogPro
   const onConfirm = useCallback(() => {
     removeOAuthClient(clientId);
   }, [clientId, removeOAuthClient]);
+
+  const onDismiss = useCallback(() => {
+    if (!updatingAppConfig) {
+      onDismissProps();
+    }
+  }, [onDismissProps, updatingAppConfig]);
 
   const confirmRemoveDialogContentProps = useMemo(() => {
     return {
@@ -122,6 +128,7 @@ const ConfirmRemoveOAuthClientDialog: React.FC<ConfirmRemoveOAuthClientDialogPro
     <Dialog
       hidden={!visible}
       dialogContentProps={confirmRemoveDialogContentProps}
+      modalProps={{ isBlocking: updatingAppConfig }}
       onDismiss={onDismiss}
     >
       <DialogFooter
@@ -133,7 +140,7 @@ const ConfirmRemoveOAuthClientDialog: React.FC<ConfirmRemoveOAuthClientDialogPro
           labelId="confirm"
           loading={updatingAppConfig}
         />
-        <DefaultButton onClick={onDismiss}>
+        <DefaultButton disabled={updatingAppConfig} onClick={onDismiss}>
           <FormattedMessage id="cancel" />
         </DefaultButton>
       </DialogFooter>
