@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -123,6 +124,31 @@ func (h *SettingsTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			panic(err)
 		}
 	}
+
+	if r.Method == "POST" && r.Form.Get("x_action") == "add" {
+		err := h.Database.WithTx(func() error {
+			intent := &webapp.Intent{
+				RedirectURI: redirectURI,
+				Intent: intents.NewIntentAddAuthenticator(
+					*userID,
+					interaction.AuthenticationStageSecondary,
+					authn.AuthenticatorTypeTOTP,
+				),
+			}
+			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
+				input = &SettingsTOTPAdd{}
+				return
+			})
+			if err != nil {
+				return err
+			}
+			result.WriteResponse(w, r)
+			return nil
+		})
+		if err != nil {
+			panic(err)
+		}
+	}
 }
 
 type SettingsTOTPRemove struct {
@@ -135,4 +161,11 @@ func (i *SettingsTOTPRemove) GetAuthenticatorType() authn.AuthenticatorType {
 
 func (i *SettingsTOTPRemove) GetAuthenticatorID() string {
 	return i.AuthenticatorID
+}
+
+type SettingsTOTPAdd struct {
+}
+
+func (i *SettingsTOTPAdd) RequestedByUser() bool {
+	return true
 }
