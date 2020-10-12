@@ -104,11 +104,6 @@ interface APIInvariantViolationError {
   reason: "InvariantViolated";
 }
 
-interface APIDuplicatedIdentityError {
-  errorName: string;
-  reason: "DuplicatedIdentity";
-}
-
 interface APIInvalidError {
   errorName: string;
   reason: "Invalid";
@@ -134,7 +129,6 @@ type APIError =
   | APIValidationError
   | APIInvariantViolationError
   | APIInvalidError
-  | APIDuplicatedIdentityError
   | APIPasswordPolicyViolatedError;
 
 function isAPIError(value?: { [key: string]: any }): value is APIError {
@@ -203,9 +197,6 @@ export function handleUpdateAppConfigError(error: GraphQLError): Violation[] {
     }
     case "Invalid": {
       return [{ kind: "Invalid" }];
-    }
-    case "DuplicatedIdentity": {
-      return [{ kind: "DuplicatedIdentity" }];
     }
     case "PasswordPolicyViolated": {
       const causes = extensions.info.causes;
