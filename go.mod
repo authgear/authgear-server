@@ -7,7 +7,6 @@ require (
 	github.com/getsentry/sentry-go v0.6.1
 	github.com/go-gomail/gomail v0.0.0-20160411212932-81ebce5c23df
 	github.com/golang/mock v1.4.3
-	github.com/golang/protobuf v1.3.3 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/google/uuid v1.1.1
 	github.com/google/wire v0.4.0
@@ -19,6 +18,7 @@ require (
 	github.com/iawaknahc/gomessageformat v0.0.0-20200918074610-c0b982376e20
 	github.com/iawaknahc/jsonschema v0.0.0-20200904034036-e811a776237e
 	github.com/iawaknahc/originmatcher v0.0.0-20200622040912-c5bfd3560192
+	github.com/jetstack/cert-manager v1.0.3
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/joho/godotenv v1.3.0
 	github.com/julienschmidt/httprouter v1.3.0
@@ -33,7 +33,6 @@ require (
 	github.com/sfreiberg/gotwilio v0.0.0-20200424172909-47a95c1c632a
 	github.com/sirupsen/logrus v1.6.0
 	github.com/skygeario/go-confusable-homoglyphs v0.0.0-20191212061114-e2b2a60df110
-	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/spf13/afero v1.2.2
 	github.com/spf13/cobra v1.0.0
@@ -46,8 +45,8 @@ require (
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 	gopkg.in/h2non/gock.v1 v1.0.15
 	gopkg.in/yaml.v2 v2.3.0
-	k8s.io/api v0.17.0
-	k8s.io/apimachinery v0.17.0
-	k8s.io/client-go v0.17.0
+	k8s.io/api v0.19.0
+	k8s.io/apimachinery v0.19.0
+	k8s.io/client-go v0.19.0
 	sigs.k8s.io/yaml v1.2.0
 )

@@ -14,6 +14,12 @@ services:
     depends_on:
       - etcd
 
+  controller-manager:
+    image: gcr.io/google_containers/kube-controller-manager-amd64:v1.16.0
+    command: kube-controller-manager --master=http://api-server:8081
+    depends_on:
+      - etcd
+
 volumes:
   etcd_data:
     driver: local

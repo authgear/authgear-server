@@ -86,6 +86,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	controller := rootProvider.ConfigSourceController
 	configSource := deps.ProvideConfigSource(controller)
 	configService := &service.ConfigService{
+		Context:      context,
 		Logger:       configServiceLogger,
 		AppConfig:    appConfig,
 		Controller:   controller,
