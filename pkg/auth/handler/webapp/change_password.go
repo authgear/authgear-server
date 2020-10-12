@@ -89,7 +89,6 @@ func (h *ChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 	userID := session.GetUserID(r.Context())
 	intent := &webapp.Intent{
-		OldStateID:  StateID(r),
 		RedirectURI: "/settings",
 		Intent:      intents.NewIntentChangePrimaryPassword(*userID),
 	}
