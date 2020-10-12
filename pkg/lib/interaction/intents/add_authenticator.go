@@ -50,6 +50,27 @@ func (i *IntentAddAuthenticator) DeriveEdgesForNode(graph *interaction.Graph, no
 		}, nil
 
 	case *nodes.NodeDoCreateAuthenticator:
+		switch node.Stage {
+		case interaction.AuthenticationStagePrimary:
+			return nil, nil
+
+		case interaction.AuthenticationStageSecondary:
+			return []interaction.Edge{
+				&nodes.EdgeGenerateRecoveryCode{},
+			}, nil
+
+		default:
+			panic(fmt.Errorf("interaction: unexpected authentication stage: %v", node.Stage))
+		}
+
+	case *nodes.NodeGenerateRecoveryCodeEnd:
+		return []interaction.Edge{
+			&nodes.EdgeDoGenerateRecoveryCode{
+				RecoveryCodes: node.RecoveryCodes,
+			},
+		}, nil
+
+	case *nodes.NodeDoGenerateRecoveryCode:
 		return nil, nil
 
 	default:

@@ -7,8 +7,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -63,10 +65,11 @@ func (h *SettingsRecoveryCodeHandler) GetData(r *http.Request, state *webapp.Sta
 			return nil, err
 		}
 
-		viewModel.RecoveryCodes = make([]string, len(codes))
+		recoveryCodes := make([]string, len(codes))
 		for i, code := range codes {
-			viewModel.RecoveryCodes[i] = code.Code
+			recoveryCodes[i] = code.Code
 		}
+		viewModel.RecoveryCodes = formatRecoveryCodes(recoveryCodes)
 	}
 
 	viewmodels.Embed(data, baseViewModel)
@@ -80,6 +83,9 @@ func (h *SettingsRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	redirectURI := httputil.HostRelative(r.URL).String()
+	userID := *session.GetUserID(r.Context())
 
 	if r.Method == "GET" {
 		err := h.Database.WithTx(func() error {
@@ -119,6 +125,26 @@ func (h *SettingsRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 			}
 
 			h.Renderer.Render(w, r, TemplateItemTypeAuthUIDownloadRecoveryCodeTXT, data, setRecoveryCodeAttachmentHeaders)
+			return nil
+		})
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	if r.Method == "POST" && r.Form.Get("x_action") == "regenerate" {
+		err := h.Database.WithTx(func() error {
+			intent := &webapp.Intent{
+				RedirectURI: redirectURI,
+				Intent:      intents.NewIntentRegenerateRecoveryCode(userID),
+			}
+			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
+				return nil, nil
+			})
+			if err != nil {
+				return err
+			}
+			result.WriteResponse(w, r)
 			return nil
 		})
 		if err != nil {

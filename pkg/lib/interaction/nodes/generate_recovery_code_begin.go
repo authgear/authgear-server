@@ -9,27 +9,36 @@ func init() {
 	interaction.RegisterNode(&NodeGenerateRecoveryCodeBegin{})
 }
 
-type EdgeGenerateRecoveryCode struct{}
+type EdgeGenerateRecoveryCode struct {
+	IsRegenerate bool
+}
 
 func (e *EdgeGenerateRecoveryCode) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
-	// List all secondary authenticators and see how many of them are new.
-	// If all of them are new, the user just enrolled into secondary authentication, we need to (re)generate recovery code for them.
+	// Regenerate recovery codes if requested
+	doGenerate := e.IsRegenerate
 
-	userID := graph.MustGetUserID()
-	ais, err := ctx.Authenticators.List(
-		userID,
-		authenticator.KeepKind(authenticator.KindSecondary),
-	)
-	if err != nil {
-		return nil, err
+	if !doGenerate {
+		// List all secondary authenticators and see how many of them are new.
+		// If all of them are new, the user just enrolled into secondary authentication, we need to (re)generate recovery code for them.
+
+		userID := graph.MustGetUserID()
+		ais, err := ctx.Authenticators.List(
+			userID,
+			authenticator.KeepKind(authenticator.KindSecondary),
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		newSecondary := filterAuthenticators(
+			graph.GetUserNewAuthenticators(),
+			authenticator.KeepKind(authenticator.KindSecondary),
+		)
+
+		doGenerate = len(newSecondary) != 0 && len(newSecondary) == len(ais)
 	}
 
-	newSecondary := filterAuthenticators(
-		graph.GetUserNewAuthenticators(),
-		authenticator.KeepKind(authenticator.KindSecondary),
-	)
-
-	if len(newSecondary) != 0 && len(newSecondary) == len(ais) {
+	if doGenerate {
 		recoveryCodes := ctx.MFA.GenerateRecoveryCodes()
 		return &NodeGenerateRecoveryCodeBegin{
 			RecoveryCodes: recoveryCodes,
