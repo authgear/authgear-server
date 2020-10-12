@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { Label, Text } from "@fluentui/react";
 import { useParams } from "react-router-dom";
@@ -6,17 +6,21 @@ import cn from "classnames";
 import produce from "immer";
 import deepEqual from "deep-equal";
 
-import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
-import { useAppConfigQuery } from "./query/appConfigQuery";
+import { useUpdateAppAndEmailSmsTemplatesConfigMutation } from "./mutations/updateAppAndEmailSmsTemplatesMutation";
+import { useAppAndEmailSmsTemplatesQuery } from "./query/appAndEmailSmsTemplatesQuery";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import CodeEditor from "../../CodeEditor";
-import { PortalAPIAppConfig } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 
 import styles from "./PasswordlessAuthenticatorScreen.module.scss";
+
+const EMAIL_HTML_TEMPLATE_NAME = "authenticate_secondary_oob_email.html";
+const EMAIL_MJML_TEMPLATE_NAME = "authenticate_secondary_oob_email.mjml";
+const EMAIL_TEXT_TEMPLATE_NAME = "authenticate_secondary_oob_email.txt";
+const SMS_TEXT_TEMPLATE_NAME = "authenticate_secondary_oob_sms.txt";
 
 interface PasswordlessAuthenticatorScreenState {
   emailHtmlTemplate: string;
@@ -24,55 +28,45 @@ interface PasswordlessAuthenticatorScreenState {
   smsTemplate: string;
 }
 
-function constructStateFromAppConfig(
-  /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-  _appConfig: PortalAPIAppConfig | null
-): PasswordlessAuthenticatorScreenState {
-  return {
-    emailHtmlTemplate: "", // TODO: handle email template
-    emailPlainTextTemplate: "", // TODO: handle email template
-    smsTemplate: "", // TODO: handle sms template
-  };
-}
-
-function constructAppConfigFromState(
-  rawAppConfig: PortalAPIAppConfig,
-  /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-  _initialScreenState: PasswordlessAuthenticatorScreenState,
-  /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-  _screenState: PasswordlessAuthenticatorScreenState
-): PortalAPIAppConfig {
-  const newAppConfig = produce(rawAppConfig, (draftConfig) => {
-    // TODO: update email template
-    // TODO: update sms template
-
-    clearEmptyObject(draftConfig);
-  });
-
-  return newAppConfig;
-}
-
 const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthenticatorScreen() {
   const { appID } = useParams();
 
   const {
-    updateAppConfig,
-    loading: updatingAppConfig,
-    error: updateAppConfigError,
-  } = useUpdateAppConfigMutation(appID);
+    updateAppAndEmailSmsTemplatesConfig,
+    loading: updatingAppAndEmailSmsTemplateConfig,
+    error: updateAppAndEmailSmsTemplateConfigError,
+  } = useUpdateAppAndEmailSmsTemplatesConfigMutation(
+    appID,
+    `templates/${EMAIL_HTML_TEMPLATE_NAME}`,
+    `templates/${EMAIL_MJML_TEMPLATE_NAME}`,
+    `templates/${EMAIL_TEXT_TEMPLATE_NAME}`,
+    `templates/${SMS_TEXT_TEMPLATE_NAME}`
+  );
   const {
-    effectiveAppConfig,
+    emailAndSmsTemplates,
     rawAppConfig,
     loading,
     error,
     refetch,
-  } = useAppConfigQuery(appID);
+  } = useAppAndEmailSmsTemplatesQuery(
+    appID,
+    `templates/${EMAIL_HTML_TEMPLATE_NAME}`,
+    `templates/${EMAIL_MJML_TEMPLATE_NAME}`,
+    `templates/${EMAIL_TEXT_TEMPLATE_NAME}`,
+    `templates/${SMS_TEXT_TEMPLATE_NAME}`
+  );
 
-  const initialState = useMemo(() => {
-    return constructStateFromAppConfig(effectiveAppConfig);
-  }, [effectiveAppConfig]);
+  const initialState: PasswordlessAuthenticatorScreenState = useMemo(() => {
+    return {
+      emailHtmlTemplate: emailAndSmsTemplates?.emailHtml ?? "",
+      emailPlainTextTemplate: emailAndSmsTemplates?.emailText ?? "",
+      smsTemplate: emailAndSmsTemplates?.smsText ?? "",
+    };
+  }, [emailAndSmsTemplates]);
 
-  const [state, setState] = useState(initialState);
+  const [state, setState] = useState<PasswordlessAuthenticatorScreenState>(
+    initialState
+  );
 
   const isFormModified = useMemo(() => {
     return !deepEqual(initialState, state, { strict: true });
@@ -109,20 +103,65 @@ const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthentic
       return;
     }
 
-    const newAppConfig = constructAppConfigFromState(
-      rawAppConfig,
-      initialState,
-      state
-    );
+    const newAppConfig = produce(rawAppConfig, (draftConfig) => {
+      draftConfig.template = draftConfig.template ?? {};
+      draftConfig.template.items = draftConfig.template.items ?? [];
+
+      if (
+        state.emailHtmlTemplate !== initialState.emailHtmlTemplate &&
+        !draftConfig.template.items.some(
+          (item) => item.type === EMAIL_HTML_TEMPLATE_NAME
+        )
+      ) {
+        draftConfig.template.items.push({
+          type: EMAIL_HTML_TEMPLATE_NAME,
+          uri: `file:///templates/${EMAIL_HTML_TEMPLATE_NAME}`,
+        });
+      }
+
+      if (
+        state.emailPlainTextTemplate !== initialState.emailPlainTextTemplate &&
+        !draftConfig.template.items.some(
+          (item) => item.type === EMAIL_TEXT_TEMPLATE_NAME
+        )
+      ) {
+        draftConfig.template.items.push({
+          type: EMAIL_TEXT_TEMPLATE_NAME,
+          uri: `file:///templates/${EMAIL_TEXT_TEMPLATE_NAME}`,
+        });
+      }
+
+      if (
+        state.smsTemplate !== initialState.smsTemplate &&
+        !draftConfig.template.items.some(
+          (item) => item.type === SMS_TEXT_TEMPLATE_NAME
+        )
+      ) {
+        draftConfig.template.items.push({
+          type: SMS_TEXT_TEMPLATE_NAME,
+          uri: `file:///templates/${SMS_TEXT_TEMPLATE_NAME}`,
+        });
+      }
+
+      clearEmptyObject(draftConfig);
+    });
 
     // TODO: handle error
-    updateAppConfig(newAppConfig)
-      .then(() => {
-        // TODO: remove this alert after implementing templates saving
-        alert("SMS and email templates cannot be saved currently");
-      })
-      .catch(() => {});
-  }, [state, rawAppConfig, updateAppConfig, initialState]);
+    updateAppAndEmailSmsTemplatesConfig(newAppConfig, {
+      emailHtml:
+        state.emailHtmlTemplate !== initialState.emailHtmlTemplate
+          ? state.emailHtmlTemplate
+          : undefined,
+      emailText:
+        state.emailPlainTextTemplate !== initialState.emailPlainTextTemplate
+          ? state.emailPlainTextTemplate
+          : undefined,
+      smsText:
+        state.smsTemplate !== initialState.smsTemplate
+          ? state.smsTemplate
+          : undefined,
+    }).catch(() => {});
+  }, [state, rawAppConfig, initialState, updateAppAndEmailSmsTemplatesConfig]);
 
   const onSmsTemplateChange = useCallback((_event, value?: string) => {
     if (value === undefined) {
@@ -143,8 +182,14 @@ const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthentic
   }
 
   return (
-    <main className={cn(styles.root, { [styles.loading]: updatingAppConfig })}>
-      {updateAppConfigError && <ShowError error={updateAppConfigError} />}
+    <main
+      className={cn(styles.root, {
+        [styles.loading]: updatingAppAndEmailSmsTemplateConfig,
+      })}
+    >
+      {updateAppAndEmailSmsTemplateConfigError && (
+        <ShowError error={updateAppAndEmailSmsTemplateConfigError} />
+      )}
       <div className={styles.content}>
         <Text as="h1" className={styles.title}>
           <FormattedMessage id="PasswordlessAuthenticatorScreen.title" />
@@ -192,7 +237,7 @@ const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthentic
             <ButtonWithLoading
               disabled={!isFormModified}
               onClick={onSaveButtonClicked}
-              loading={updatingAppConfig}
+              loading={updatingAppAndEmailSmsTemplateConfig}
               labelId="save"
               loadingLabelId="saving"
             />
