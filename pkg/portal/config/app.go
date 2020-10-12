@@ -79,6 +79,7 @@ type AppSecretConfig struct {
 }
 
 type AppBrandingConfig struct {
+	AppName            string `envconfig:"APP_NAME"`
 	EmailDefaultSender string `envconfig:"EMAIL_DEFAULT_SENDER"`
 	SMSDefaultSender   string `envconfig:"SMS_DEFAULT_SENDER"`
 }

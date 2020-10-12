@@ -214,6 +214,9 @@ func (s *AppService) generateAppConfigAndTranslation(appID string) (*generateApp
 	})
 
 	translationObj := make(map[string]string)
+	if s.AppConfig.Branding.AppName != "" {
+		translationObj["app.app-name"] = s.AppConfig.Branding.AppName
+	}
 	if s.AppConfig.Branding.EmailDefaultSender != "" {
 		translationObj["email.default.sender"] = s.AppConfig.Branding.EmailDefaultSender
 	}
