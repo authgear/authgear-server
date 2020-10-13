@@ -6,7 +6,7 @@ import React, {
   useState,
 } from "react";
 import { useParams } from "react-router-dom";
-import { produce } from "immer";
+import { createDraft, produce } from "immer";
 import deepEqual from "deep-equal";
 import { Link, Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
@@ -19,8 +19,6 @@ import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import { useUpdateAppAndSecretConfigMutation } from "./mutations/updateAppAndSecretMutation";
 import { clearEmptyObject } from "../../util/misc";
-import { parseError } from "../../util/error";
-import { Violation } from "../../util/validation";
 import { nonNullable } from "../../util/types";
 import {
   OAuthClientCredentialItem,
@@ -32,6 +30,9 @@ import {
   PortalAPIAppConfig,
   PortalAPISecretConfig,
 } from "../../types";
+import { FormContext } from "../../error/FormContext";
+import { useValidationError } from "../../error/useValidationError";
+import ShowUnhandledValidationErrorCause from "../../error/ShowUnhandledValidationErrorCauses";
 
 import styles from "./SingleSignOnConfigurationScreen.module.scss";
 
@@ -67,7 +68,6 @@ interface WidgetWrapperProps {
   screenState: SingleSignOnScreenState;
   setScreenState: Dispatch<SetStateAction<SingleSignOnScreenState>>;
   providerType: OAuthSSOProviderType;
-  violations: Violation[];
 }
 
 function getScreenExtraState(
@@ -217,7 +217,11 @@ function updateAppConfigField(
     return;
   }
   if (field !== "type") {
-    provider[field] = newValue;
+    if (newValue !== "") {
+      provider[field] = newValue;
+    } else {
+      provider[field] = undefined;
+    }
   }
 }
 
@@ -375,36 +379,10 @@ function constructProviders(
   return providers.filter((provider) => extraState[provider.type].enabled);
 }
 
-// filter violations that can be handled by widget
-function filterViolations(violations: Violation[]) {
-  const widgetViolations: Violation[] = [];
-  const unhandledViolation: Violation[] = [];
-  for (const violation of violations) {
-    // general violation has no location -> not handled
-    const locationPrefix = "/identity/oauth/providers";
-    if (violation.kind !== "required") {
-      unhandledViolation.push(violation);
-      continue;
-    }
-    if (!violation.location.startsWith(locationPrefix)) {
-      unhandledViolation.push(violation);
-      continue;
-    }
-    widgetViolations.push(violation);
-  }
-  return { widgetViolations, unhandledViolation };
-}
-
 const SingleSignOnConfigurationWidgetWrapper: React.FC<WidgetWrapperProps> = function SingleSignOnConfigurationWidgetWrapper(
   props: WidgetWrapperProps
 ) {
-  const {
-    className,
-    violations,
-    providerType,
-    screenState,
-    setScreenState,
-  } = props;
+  const { className, providerType, screenState, setScreenState } = props;
   const { appConfig, extraState } = screenState;
 
   const alias = useMemo(() => providerTypeToAlias(appConfig!, providerType), [
@@ -439,16 +417,16 @@ const SingleSignOnConfigurationWidgetWrapper: React.FC<WidgetWrapperProps> = fun
     [alias, providerType, setScreenState]
   );
 
-  const errorLocation = useMemo(() => {
+  const jsonPointer = useMemo(() => {
     return providerIndex != null
       ? `/identity/oauth/providers/${providerIndex}`
-      : undefined;
+      : "";
   }, [providerIndex]);
 
   return (
     <SingleSignOnConfigurationWidget
       className={className}
-      errorLocation={errorLocation}
+      jsonPointer={jsonPointer}
       alias={alias ?? providerType}
       enabled={extraState[providerType].enabled}
       serviceProviderType={providerType}
@@ -464,7 +442,6 @@ const SingleSignOnConfigurationWidgetWrapper: React.FC<WidgetWrapperProps> = fun
       onTenantChange={onTenantChange}
       onKeyIDChange={onKeyIDChange}
       onTeamIDChange={onTeamIDChange}
-      violations={violations}
     />
   );
 };
@@ -530,7 +507,7 @@ const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = func
         if (providers.length > 0) {
           draftConfig.identity = draftConfig.identity ?? {};
           draftConfig.identity.oauth = draftConfig.identity.oauth ?? {};
-          draftConfig.identity.oauth.providers = providers;
+          draftConfig.identity.oauth.providers = createDraft(providers);
         } else {
           delete draftConfig.identity?.oauth?.providers;
         }
@@ -556,46 +533,46 @@ const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = func
     [rawAppConfig, state, updateAppConfig]
   );
 
-  const { widgetViolations, unhandledViolation } = useMemo(() => {
-    if (updateAppConfigError == null) {
-      return { widgetViolations: [], unhandledViolation: [] };
-    }
-    const violations = parseError(updateAppConfigError);
-    return filterViolations(violations);
-  }, [updateAppConfigError]);
+  const {
+    unhandledCauses,
+    otherError,
+    value: formContextValue,
+  } = useValidationError(updateAppConfigError);
 
   return (
-    <form className={styles.screenContent} onSubmit={onFormSubmit}>
-      <NavigationBlockerDialog blockNavigation={isFormModified} />
-      {unhandledViolation.length > 0 && (
-        <div className={styles.error}>
-          <ShowError error={updateAppConfigError} />
-        </div>
-      )}
-      {oauthSSOProviderTypes.map((providerType) => {
-        if (state.appConfig == null || state.secretConfig == null) {
-          return null;
-        }
-        return (
-          <SingleSignOnConfigurationWidgetWrapper
-            key={providerType}
-            providerType={providerType}
-            className={styles.widget}
-            screenState={state}
-            setScreenState={setState}
-            violations={widgetViolations}
-          />
-        );
-      })}
-      <ButtonWithLoading
-        type="submit"
-        className={styles.saveButton}
-        disabled={!isFormModified}
-        loading={updatingAppConfig}
-        labelId="save"
-        loadingLabelId="saving"
-      />
-    </form>
+    <FormContext.Provider value={formContextValue}>
+      <form className={styles.screenContent} onSubmit={onFormSubmit}>
+        <NavigationBlockerDialog blockNavigation={isFormModified} />
+        {otherError && (
+          <div className={styles.error}>
+            <ShowError error={otherError} />
+          </div>
+        )}
+        <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
+        {oauthSSOProviderTypes.map((providerType) => {
+          if (state.appConfig == null || state.secretConfig == null) {
+            return null;
+          }
+          return (
+            <SingleSignOnConfigurationWidgetWrapper
+              key={providerType}
+              providerType={providerType}
+              className={styles.widget}
+              screenState={state}
+              setScreenState={setState}
+            />
+          );
+        })}
+        <ButtonWithLoading
+          type="submit"
+          className={styles.saveButton}
+          disabled={!isFormModified}
+          loading={updatingAppConfig}
+          labelId="save"
+          loadingLabelId="saving"
+        />
+      </form>
+    </FormContext.Provider>
   );
 };
 
