@@ -6,7 +6,7 @@ import React, {
   useState,
 } from "react";
 import { useParams } from "react-router-dom";
-import { produce } from "immer";
+import { createDraft, produce } from "immer";
 import deepEqual from "deep-equal";
 import { Link, Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
@@ -217,7 +217,11 @@ function updateAppConfigField(
     return;
   }
   if (field !== "type") {
-    provider[field] = newValue;
+    if (newValue !== "") {
+      provider[field] = newValue;
+    } else {
+      provider[field] = undefined;
+    }
   }
 }
 
@@ -503,7 +507,7 @@ const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = func
         if (providers.length > 0) {
           draftConfig.identity = draftConfig.identity ?? {};
           draftConfig.identity.oauth = draftConfig.identity.oauth ?? {};
-          draftConfig.identity.oauth.providers = providers;
+          draftConfig.identity.oauth.providers = createDraft(providers);
         } else {
           delete draftConfig.identity?.oauth?.providers;
         }
