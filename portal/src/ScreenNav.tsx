@@ -11,9 +11,13 @@ function getAppRouterPath(location: Location) {
 }
 
 function getPath(url: string) {
-  // remove leading trailing slash, remove fragment
-  const regexpMatch = /^\/?([^#]*[^/#])\/?(#.*)?$/.exec(url);
-  return regexpMatch ? regexpMatch[1] : null;
+  // remove fragment
+  const path = new URL("scheme:" + url).pathname;
+  // remove leading trailing slash
+  const pathWithoutLeadingTrailingSlash = path
+    .replace(/^\//, "")
+    .replace(/\/$/, "");
+  return pathWithoutLeadingTrailingSlash;
 }
 
 function isPathSame(url1: string, url2: string) {
