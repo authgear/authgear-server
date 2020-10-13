@@ -25,11 +25,50 @@ func (l *Lazy) Value() (interface{}, error) {
 	if l.init != nil {
 		l.value, l.err = l.init()
 		l.init = nil
+	}
 
-		if lazy, ok := l.value.(*Lazy); ok {
-			l.value, l.err = lazy.Value()
+	// Recursively evaluate Lazy
+	for {
+		lazy, ok := l.value.(*Lazy)
+		if !ok {
+			break
+		}
+		l.value, l.err = lazy.Value()
+		if l.err != nil {
+			return nil, l.err
 		}
 	}
+
+	// Evaluate object with lazy values
+	if obj, ok := l.value.(map[string]interface{}); ok {
+		for key, value := range obj {
+			lazy := NewLazyValue(value)
+
+			forcedValue, err := lazy.Value()
+			if err != nil {
+				l.err = err
+				return nil, l.err
+			}
+
+			obj[key] = forcedValue
+		}
+	}
+
+	// Evaluate slice with lazy values
+	if slice, ok := l.value.([]interface{}); ok {
+		for idx, value := range slice {
+			lazy := NewLazyValue(value)
+
+			forcedValue, err := lazy.Value()
+			if err != nil {
+				l.err = err
+				return nil, l.err
+			}
+
+			slice[idx] = forcedValue
+		}
+	}
+
 	return l.value, l.err
 }
 
@@ -43,16 +82,12 @@ func (l *Lazy) Map(mapFn func(interface{}) (interface{}, error)) *Lazy {
 		if err != nil {
 			return nil, err
 		}
-
-		if lazy, ok := value.(*Lazy); ok {
-			return lazy.Value()
-		}
-		return value, nil
+		return NewLazyValue(value).Value()
 	})
 }
 
 func (l *Lazy) MapTo(value interface{}) *Lazy {
 	return l.Map(func(interface{}) (interface{}, error) {
-		return value, nil
+		return NewLazyValue(value).Value()
 	})
 }
