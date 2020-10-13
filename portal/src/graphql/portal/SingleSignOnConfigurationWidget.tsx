@@ -1,4 +1,4 @@
-import React, { useContext, useMemo } from "react";
+import React, { useContext } from "react";
 import cn from "classnames";
 import {
   Toggle,
@@ -10,13 +10,8 @@ import {
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 
 import ExtendableWidget from "../../ExtendableWidget";
+import FormTextField from "../../FormTextField";
 import { OAuthSSOProviderConfig, OAuthSSOProviderType } from "../../types";
-import {
-  errorFormatter,
-  makeMissingFieldSelector,
-  Violation,
-  violationSelector,
-} from "../../util/validation";
 
 import styles from "./SingleSignOnConfigurationWidget.module.scss";
 
@@ -33,7 +28,7 @@ interface WidgetHeaderProps extends WidgetHeaderLabelProps {
 interface SingleSignOnConfigurationWidgetProps {
   className?: string;
 
-  errorLocation?: string;
+  jsonPointer: string;
 
   enabled: boolean;
   alias: string;
@@ -51,14 +46,11 @@ interface SingleSignOnConfigurationWidgetProps {
   onTenantChange: ITextFieldProps["onChange"];
   onKeyIDChange: ITextFieldProps["onChange"];
   onTeamIDChange: ITextFieldProps["onChange"];
-  violations?: Violation[];
 }
 
 type WidgetTextFieldKey =
   | keyof Omit<OAuthSSOProviderConfig, "type">
   | "client_secret";
-
-type WidgetErrorMap = Partial<Record<WidgetTextFieldKey, string>>;
 
 interface OAuthProviderInfo {
   providerType: OAuthSSOProviderType;
@@ -168,7 +160,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
 ) {
   const {
     className,
-    errorLocation,
+    jsonPointer,
     enabled,
     alias,
     clientID,
@@ -184,7 +176,6 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
     onKeyIDChange,
     onTeamIDChange,
     serviceProviderType,
-    violations,
   } = props;
   const { renderToString } = useContext(Context);
 
@@ -194,52 +185,6 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
     iconNode,
     fields: visibleFields,
   } = oauthProviders[serviceProviderType];
-
-  const errorMap: WidgetErrorMap = useMemo(() => {
-    if (
-      errorLocation == null ||
-      violations == null ||
-      violations.length === 0
-    ) {
-      return {};
-    }
-
-    const violationMap = violationSelector(violations, {
-      alias: makeMissingFieldSelector(errorLocation, "alias"),
-      key_id: makeMissingFieldSelector(errorLocation, "key_id"),
-      client_id: makeMissingFieldSelector(errorLocation, "client_id"),
-      tenant: makeMissingFieldSelector(errorLocation, "tenant"),
-      team_id: makeMissingFieldSelector(errorLocation, "team_id"),
-    });
-
-    return {
-      alias: errorFormatter(
-        "SingleSignOnConfigurationScreen.widget.alias",
-        violationMap["alias"],
-        renderToString
-      ),
-      key_id: errorFormatter(
-        "SingleSignOnConfigurationScreen.widget.key-id",
-        violationMap["key_id"],
-        renderToString
-      ),
-      client_id: errorFormatter(
-        "SingleSignOnConfigurationScreen.widget.client-id",
-        violationMap["client_id"],
-        renderToString
-      ),
-      tenant: errorFormatter(
-        "SingleSignOnConfigurationScreen.widget.tenant",
-        violationMap["tenant"],
-        renderToString
-      ),
-      team_id: errorFormatter(
-        "SingleSignOnConfigurationScreen.widget.team-id",
-        violationMap["team_id"],
-        renderToString
-      ),
-    };
-  }, [renderToString, violations, errorLocation]);
 
   const messageID = "OAuthBranding." + providerType;
 
@@ -260,25 +205,27 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
       }
     >
       {visibleFields.has("alias") && (
-        <TextField
+        <FormTextField
+          jsonPointer={`${jsonPointer}/alias`}
+          parentJSONPointer={jsonPointer}
+          fieldName="alias"
+          fieldNameMessageID="SingleSignOnConfigurationScreen.widget.alias"
           className={styles.textField}
           styles={TEXT_FIELD_STYLE}
-          label={renderToString("SingleSignOnConfigurationScreen.widget.alias")}
           value={alias}
           onChange={onAliasChange}
-          errorMessage={errorMap["alias"]}
         />
       )}
       {visibleFields.has("client_id") && (
-        <TextField
+        <FormTextField
+          jsonPointer={`${jsonPointer}/client_id`}
+          parentJSONPointer={jsonPointer}
+          fieldName="client_id"
+          fieldNameMessageID="SingleSignOnConfigurationScreen.widget.client-id"
           className={styles.textField}
           styles={TEXT_FIELD_STYLE}
-          label={renderToString(
-            "SingleSignOnConfigurationScreen.widget.client-id"
-          )}
           value={clientID}
           onChange={onClientIDChange}
-          errorMessage={errorMap["client_id"]}
         />
       )}
       {visibleFields.has("client_secret") && (
@@ -298,39 +245,39 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
         />
       )}
       {visibleFields.has("tenant") && (
-        <TextField
+        <FormTextField
+          jsonPointer={`${jsonPointer}/tenant`}
+          parentJSONPointer={jsonPointer}
+          fieldName="tenant"
+          fieldNameMessageID="SingleSignOnConfigurationScreen.widget.tenant"
           className={styles.textField}
           styles={TEXT_FIELD_STYLE}
-          label={renderToString(
-            "SingleSignOnConfigurationScreen.widget.tenant"
-          )}
           value={tenant}
           onChange={onTenantChange}
-          errorMessage={errorMap["tenant"]}
         />
       )}
       {visibleFields.has("key_id") && (
-        <TextField
+        <FormTextField
+          jsonPointer={`${jsonPointer}/key_id`}
+          parentJSONPointer={jsonPointer}
+          fieldName="key-id"
+          fieldNameMessageID="SingleSignOnConfigurationScreen.widget.key-id"
           className={styles.textField}
           styles={TEXT_FIELD_STYLE}
-          label={renderToString(
-            "SingleSignOnConfigurationScreen.widget.key-id"
-          )}
           value={keyID}
           onChange={onKeyIDChange}
-          errorMessage={errorMap["key_id"]}
         />
       )}
       {visibleFields.has("team_id") && (
-        <TextField
+        <FormTextField
+          jsonPointer={`${jsonPointer}/team_id`}
+          parentJSONPointer={jsonPointer}
+          fieldName="team_id"
+          fieldNameMessageID="SingleSignOnConfigurationScreen.widget.team-id"
           className={styles.textField}
           styles={TEXT_FIELD_STYLE}
-          label={renderToString(
-            "SingleSignOnConfigurationScreen.widget.team-id"
-          )}
           value={teamID}
           onChange={onTeamIDChange}
-          errorMessage={errorMap["team_id"]}
         />
       )}
     </ExtendableWidget>
