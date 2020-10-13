@@ -170,7 +170,7 @@ const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function F
       </Label>
 
       <Label className={styles.label}>
-        <FormattedMessage id="PasswordsScreen.forgot-password.email.styled-content.label" />
+        <FormattedMessage id="PasswordsScreen.forgot-password.email.html-email.label" />
       </Label>
       <CodeEditor
         className={styles.htmlCodeEditor}
@@ -180,7 +180,7 @@ const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function F
       />
 
       <Label className={styles.label}>
-        <FormattedMessage id="PasswordsScreen.forgot-password.email.plain-content.label" />
+        <FormattedMessage id="PasswordsScreen.forgot-password.email.plaintext-email.label" />
       </Label>
       <CodeEditor
         className={styles.plainTextCodeEditor}
@@ -194,7 +194,7 @@ const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function F
       </Label>
 
       <Label className={styles.label}>
-        <FormattedMessage id="PasswordsScreen.forgot-password.sms.content.label" />
+        <FormattedMessage id="PasswordsScreen.forgot-password.sms.sms-body.label" />
       </Label>
       <CodeEditor
         className={styles.plainTextCodeEditor}
