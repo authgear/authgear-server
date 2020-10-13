@@ -43,6 +43,7 @@
 
   "show-error.retry": "Retry",
 
+  "generic-error.unknown-error": "Unknown error",
   "validation-error.required": "Required field `{fieldName}` is missing",
   "validation-error.general": "Invalid value",
   "validation-error.format": "Invalid format",
@@ -304,6 +305,8 @@
   "DNSConfigurationScreen.title": "DNS",
   "DNSConfigurationScreen.desc": "You can add a custom domain so that users will login via, for example, “identity.yourdomain.com”. In this case, Authgear could also provide a cookie session under “yourdomain.com”, so that your websites could share the session cookies under “*.yourdomain.com” for a better customers experiences.",
   "DNSConfigurationScreen.public-origin.header": "Public Origin",
+  "DNSConfigurationScreen.add-domain.generic-error": "Invalid domain",
+  "DNSConfigurationScreen.add-domain.duplicated-error": "Domain is already in use",
   "DNSConfigurationScreen.domain-list.title": "Domain List",
   "DNSConfigurationScreen.domain-list.header.domain": "Domain",
   "DNSConfigurationScreen.domain-list.header.status": "Status",

@@ -4,11 +4,13 @@ import { GraphQLError } from "graphql";
 import { APIValidationError } from "./validation";
 import { APIInvariantViolationError } from "./invariant";
 import { APIPasswordPolicyViolatedError } from "./password";
+import { APIDuplicatedDomainError } from "./duplicatedDomain";
 
 export type APIError =
   | APIValidationError
   | APIInvariantViolationError
-  | APIPasswordPolicyViolatedError;
+  | APIPasswordPolicyViolatedError
+  | APIDuplicatedDomainError;
 
 export function isAPIError(value?: { [key: string]: any }): value is APIError {
   if (value == null) {

@@ -32,6 +32,8 @@ import { useValidationError } from "../../error/useValidationError";
 import { clearEmptyObject } from "../../util/misc";
 
 import styles from "./DNSConfigurationScreen.module.scss";
+import { useCreateDomainMutation } from "./mutations/createDomainMutation";
+import { useGenericError } from "../../error/useGenericError";
 
 interface DNSConfigurationProps {
   domains: Domain[];
@@ -179,11 +181,39 @@ const PublicOriginConfiguration: React.FC<PublicOriginConfigurationProps> = func
 
 const AddDomainSection: React.FC = function AddDomainSection() {
   const { renderToString } = useContext(Context);
+  const { appID } = useParams();
   const { value: newDomain, onChange: onNewDomainChange } = useTextField("");
+  const {
+    createDomain,
+    loading: creatingDomain,
+    error: createDomainError,
+  } = useCreateDomainMutation(appID);
 
   const onAddClick = useCallback(() => {
-    // TODO: To be implemented
-  }, []);
+    createDomain(newDomain)
+      .then((success) => {
+        if (success) {
+          onNewDomainChange(null, "");
+        }
+      })
+      .catch(() => {});
+  }, [createDomain, newDomain, onNewDomainChange]);
+
+  const isModified = useMemo(() => {
+    return newDomain !== "";
+  }, [newDomain]);
+
+  // NOTE: if domain is invalid, generic error without extensions is thrown
+  const addDomainErrorMessage = useGenericError(
+    createDomainError,
+    [
+      {
+        errorMessageID: "DNSConfigurationScreen.add-domain.duplicated-error",
+        reason: "DuplicatedDomain",
+      },
+    ],
+    "DNSConfigurationScreen.add-domain.generic-error"
+  );
 
   return (
     <section className={styles.addDomain}>
@@ -195,11 +225,13 @@ const AddDomainSection: React.FC = function AddDomainSection() {
         styles={ADD_DOMAIN_TEXT_FIELD_STYLES}
         value={newDomain}
         onChange={onNewDomainChange}
+        errorMessage={addDomainErrorMessage}
       />
       <ButtonWithLoading
         className={styles.addDomainButton}
+        disabled={!isModified}
         iconProps={{ iconName: "CircleAdditionSolid" }}
-        loading={false}
+        loading={creatingDomain}
         labelId="add"
         onClick={onAddClick}
       />

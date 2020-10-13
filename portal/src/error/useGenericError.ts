@@ -43,7 +43,7 @@ function constructErrorMessageFromGenericGraphQLError(
       continue;
     }
     // for other error reason, only need to match reason
-    return rule.errorMessageID;
+    return renderToString(rule.errorMessageID);
   }
 
   // no matching rules
@@ -53,7 +53,7 @@ function constructErrorMessageFromGenericGraphQLError(
 export function useGenericError(
   error: unknown,
   rules: GenericErrorHandlingRule[],
-  fallbackErrorMessageID: string = "error.unknownError"
+  fallbackErrorMessageID: string = "generic-error.unknown-error"
 ): string | undefined {
   const { renderToString } = useContext(Context);
 
