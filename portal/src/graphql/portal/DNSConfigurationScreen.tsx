@@ -1,6 +1,7 @@
 import React, { useMemo, useContext, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import cn from "classnames";
+import produce from "immer";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import {
   Text,
@@ -17,14 +18,20 @@ import {
 
 import { useAppConfigQuery } from "./query/appConfigQuery";
 import { Domain, useDomainsQuery } from "./query/domainsQuery";
+import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
 import { PortalAPIAppConfig } from "../../types";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import ButtonWithLoading from "../../ButtonWithLoading";
+import FormTextField from "../../FormTextField";
+import ShowUnhandledValidationErrorCause from "../../error/ShowUnhandledValidationErrorCauses";
 import { actionButtonTheme, destructiveTheme } from "../../theme";
+import { useTextField } from "../../hook/useInput";
+import { FormContext } from "../../error/FormContext";
+import { useValidationError } from "../../error/useValidationError";
+import { clearEmptyObject } from "../../util/misc";
 
 import styles from "./DNSConfigurationScreen.module.scss";
-import { useTextField } from "../../hook/useInput";
 
 interface DNSConfigurationProps {
   domains: Domain[];
@@ -86,7 +93,14 @@ function makeDomainListColumn(renderToString: (messageID: string) => string) {
 const PublicOriginConfiguration: React.FC<PublicOriginConfigurationProps> = function PublicOriginConfiguration(
   props: PublicOriginConfigurationProps
 ) {
-  const { effectiveAppConfig } = props;
+  const { rawAppConfig, effectiveAppConfig } = props;
+  const { appID } = useParams();
+
+  const {
+    updateAppConfig,
+    loading: updatingAppConfig,
+    error: updateAppConfigError,
+  } = useUpdateAppConfigMutation(appID);
 
   const initialPublicOrigin = useMemo(() => {
     return effectiveAppConfig?.http?.public_origin ?? "";
@@ -96,37 +110,70 @@ const PublicOriginConfiguration: React.FC<PublicOriginConfigurationProps> = func
     initialPublicOrigin
   );
 
+  const isModified = useMemo(() => {
+    return initialPublicOrigin !== publicOrigin;
+  }, [initialPublicOrigin, publicOrigin]);
+
   const onSaveClick = useCallback(() => {
-    // TODO: to be implemented
-  }, []);
+    if (rawAppConfig == null) {
+      return;
+    }
+
+    const newAppConfig = produce(rawAppConfig, (draftConfig) => {
+      const newPublicOrigin =
+        publicOrigin.trim() !== "" ? publicOrigin : undefined;
+      draftConfig.http = draftConfig.http ?? {};
+      draftConfig.http.public_origin = newPublicOrigin;
+
+      clearEmptyObject(draftConfig);
+    });
+
+    updateAppConfig(newAppConfig).catch(() => {});
+  }, [publicOrigin, rawAppConfig, updateAppConfig]);
+
+  const {
+    value: formContextValue,
+    otherError,
+    unhandledCauses,
+  } = useValidationError(updateAppConfigError);
 
   return (
-    <section className={styles.publicOrigin}>
-      <Text
-        as="h2"
-        className={cn(
-          styles.header,
-          styles.subHeader,
-          styles.publicOriginHeader
-        )}
-      >
-        <FormattedMessage id="DNSConfigurationScreen.public-origin.header" />
-      </Text>
-      <div className={styles.publicOriginInput}>
-        <TextField
-          className={styles.publicOriginField}
-          value={publicOrigin}
-          onChange={onPublicOriginChange}
-        />
-        <ButtonWithLoading
-          className={styles.savePublicOriginButton}
-          labelId="save"
-          loadingLabelId="saving"
-          loading={false}
-          onClick={onSaveClick}
-        />
-      </div>
-    </section>
+    <FormContext.Provider value={formContextValue}>
+      <section className={styles.publicOrigin}>
+        {otherError && <ShowError error={otherError} />}
+        <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
+        <Text
+          as="h2"
+          className={cn(
+            styles.header,
+            styles.subHeader,
+            styles.publicOriginHeader
+          )}
+        >
+          <FormattedMessage id="DNSConfigurationScreen.public-origin.header" />
+        </Text>
+        <div className={styles.publicOriginInput}>
+          <FormTextField
+            jsonPointer="/http/public_origin"
+            parentJSONPointer="/http"
+            fieldName="public_origin"
+            fieldNameMessageID="DNSConfigurationScreen.public-origin.header"
+            hideLabel={true}
+            className={styles.publicOriginField}
+            value={publicOrigin}
+            onChange={onPublicOriginChange}
+          />
+          <ButtonWithLoading
+            className={styles.savePublicOriginButton}
+            disabled={!isModified}
+            labelId="save"
+            loadingLabelId="saving"
+            loading={updatingAppConfig}
+            onClick={onSaveClick}
+          />
+        </div>
+      </section>
+    </FormContext.Provider>
   );
 };
 
