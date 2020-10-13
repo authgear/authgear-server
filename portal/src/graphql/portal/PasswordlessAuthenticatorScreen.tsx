@@ -138,7 +138,6 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
       clearEmptyObject(draftConfig);
     });
 
-    // TODO: handle error
     updateAppAndEmailSmsTemplatesConfig(newAppConfig, {
       emailHtml:
         state.emailHtmlTemplate !== initialState.emailHtmlTemplate
