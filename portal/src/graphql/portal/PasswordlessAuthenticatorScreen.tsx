@@ -22,7 +22,6 @@ import { PortalAPIAppConfig, PortalAPIEmailAndSmsTemplates } from "../../types";
 import styles from "./PasswordlessAuthenticatorScreen.module.scss";
 
 const EMAIL_HTML_TEMPLATE_NAME = "authenticate_secondary_oob_email.html";
-const EMAIL_MJML_TEMPLATE_NAME = "authenticate_secondary_oob_email.mjml";
 const EMAIL_TEXT_TEMPLATE_NAME = "authenticate_secondary_oob_email.txt";
 const SMS_TEXT_TEMPLATE_NAME = "authenticate_secondary_oob_sms.txt";
 
@@ -231,7 +230,6 @@ const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthentic
   } = useUpdateAppAndEmailSmsTemplatesConfigMutation(
     appID,
     `templates/${EMAIL_HTML_TEMPLATE_NAME}`,
-    `templates/${EMAIL_MJML_TEMPLATE_NAME}`,
     `templates/${EMAIL_TEXT_TEMPLATE_NAME}`,
     `templates/${SMS_TEXT_TEMPLATE_NAME}`
   );
@@ -244,7 +242,6 @@ const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthentic
   } = useAppAndEmailSmsTemplatesQuery(
     appID,
     `templates/${EMAIL_HTML_TEMPLATE_NAME}`,
-    `templates/${EMAIL_MJML_TEMPLATE_NAME}`,
     `templates/${EMAIL_TEXT_TEMPLATE_NAME}`,
     `templates/${SMS_TEXT_TEMPLATE_NAME}`
   );

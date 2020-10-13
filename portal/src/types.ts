@@ -357,7 +357,6 @@ export interface PortalAPIApp {
 // EmailAndSmsTemplates
 export interface PortalAPIEmailAndSmsTemplates {
   emailHtml?: string;
-  emailMjml?: string;
   emailText?: string;
   smsText?: string;
 }

@@ -20,7 +20,6 @@ export interface AppAndEmailSmsTemplatesQuery_node_App {
   rawAppConfig: GQL_AppConfig;
   effectiveAppConfig: GQL_AppConfig;
   emailHtml: string;
-  emailMjml: string;
   emailText: string;
   smsText: string;
 }
@@ -37,7 +36,6 @@ export interface AppAndEmailSmsTemplatesQuery {
 export interface AppAndEmailSmsTemplatesQueryVariables {
   id: string;
   emailHtmlPath: string;
-  emailMjmlPath: string;
   emailTextPath: string;
   smsTextPath: string;
 }

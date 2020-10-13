@@ -13,7 +13,6 @@ export const andAndEmailSmsTemplatesQuery = gql`
   query AppAndEmailSmsTemplatesQuery(
     $id: ID!
     $emailHtmlPath: String!
-    $emailMjmlPath: String!
     $emailTextPath: String!
     $smsTextPath: String!
   ) {
@@ -24,7 +23,6 @@ export const andAndEmailSmsTemplatesQuery = gql`
         rawAppConfig
         effectiveAppConfig
         emailHtml: rawConfigFile(path: $emailHtmlPath)
-        emailMjml: rawConfigFile(path: $emailMjmlPath)
         emailText: rawConfigFile(path: $emailTextPath)
         smsText: rawConfigFile(path: $smsTextPath)
       }
@@ -48,7 +46,6 @@ export interface AppAndEmailSmsTemplatesQueryResult
 export const useAppAndEmailSmsTemplatesQuery = (
   appID: string,
   emailHtmlTemplatePath: string,
-  emailMjmlTemplatePath: string,
   emailTextTemplatePath: string,
   smsTextTemplatePath: string
 ): AppAndEmailSmsTemplatesQueryResult => {
@@ -60,7 +57,6 @@ export const useAppAndEmailSmsTemplatesQuery = (
     variables: {
       id: appID,
       emailHtmlPath: emailHtmlTemplatePath,
-      emailMjmlPath: emailMjmlTemplatePath,
       emailTextPath: emailTextTemplatePath,
       smsTextPath: smsTextTemplatePath,
     },
@@ -73,7 +69,6 @@ export const useAppAndEmailSmsTemplatesQuery = (
       effectiveAppConfig: appConfigNode?.effectiveAppConfig ?? null,
       emailAndSmsTemplates: {
         emailHtml: appConfigNode?.emailHtml,
-        emailMjml: appConfigNode?.emailMjml,
         emailText: appConfigNode?.emailText,
         smsText: appConfigNode?.smsText,
       },

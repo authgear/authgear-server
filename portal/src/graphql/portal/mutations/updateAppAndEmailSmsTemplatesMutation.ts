@@ -19,7 +19,6 @@ const updateAppAndEmailSmsTemplatesConfigMutation = gql`
     $appID: ID!
     $updateFiles: [AppConfigFile!]!
     $emailHtmlTemplatePath: String!
-    $emailMjmlTemplatePath: String!
     $emailTextTemplatePath: String!
     $smsTextTemplatePath: String!
   ) {
@@ -30,7 +29,6 @@ const updateAppAndEmailSmsTemplatesConfigMutation = gql`
       rawAppConfig
       effectiveAppConfig
       emailHtml: rawConfigFile(path: $emailHtmlTemplatePath)
-      emailMjml: rawConfigFile(path: $emailMjmlTemplatePath)
       emailText: rawConfigFile(path: $emailTextTemplatePath)
       smsText: rawConfigFile(path: $smsTextTemplatePath)
     }
@@ -41,7 +39,6 @@ export type AppAndEmailSmsTemplatesConfigUpdater = (
   appConfig: PortalAPIAppConfig,
   templateContents: {
     emailHtml?: string;
-    emailMjml?: string;
     emailText?: string;
     smsText?: string;
   }
@@ -50,7 +47,6 @@ export type AppAndEmailSmsTemplatesConfigUpdater = (
 export function useUpdateAppAndEmailSmsTemplatesConfigMutation(
   appID: string,
   emailHtmlTemplatePath: string,
-  emailMjmlTemplatePath: string,
   emailTextTemplatePath: string,
   smsTextTemplatePath: string
 ): {
@@ -67,7 +63,6 @@ export function useUpdateAppAndEmailSmsTemplatesConfigMutation(
       appConfig: PortalAPIAppConfig,
       templateContents: {
         emailHtml?: string;
-        emailMjml?: string;
         emailText?: string;
         smsText?: string;
       }
@@ -81,12 +76,6 @@ export function useUpdateAppAndEmailSmsTemplatesConfigMutation(
         updateFiles.push({
           path: emailHtmlTemplatePath,
           content: templateContents.emailHtml,
-        });
-      }
-      if (templateContents.emailMjml) {
-        updateFiles.push({
-          path: emailMjmlTemplatePath,
-          content: templateContents.emailMjml,
         });
       }
       if (templateContents.emailText) {
@@ -107,7 +96,6 @@ export function useUpdateAppAndEmailSmsTemplatesConfigMutation(
           appID,
           updateFiles,
           emailHtmlTemplatePath,
-          emailMjmlTemplatePath,
           emailTextTemplatePath,
           smsTextTemplatePath,
         },
@@ -117,7 +105,6 @@ export function useUpdateAppAndEmailSmsTemplatesConfigMutation(
     [
       appID,
       emailHtmlTemplatePath,
-      emailMjmlTemplatePath,
       emailTextTemplatePath,
       smsTextTemplatePath,
       mutationFunction,
