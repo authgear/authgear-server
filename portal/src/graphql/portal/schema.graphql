@@ -1,6 +1,9 @@
 """Authgear app"""
 type App implements Node {
   """"""
+  collaborators: [Collaborator!]!
+
+  """"""
   domains: [Domain!]!
 
   """"""
@@ -50,6 +53,18 @@ type AppEdge {
 
   """The item at the end of the edge"""
   node: App
+}
+
+"""Collaborator of an app"""
+type Collaborator {
+  """"""
+  createdAt: DateTime!
+
+  """"""
+  id: String!
+
+  """"""
+  userID: String!
 }
 
 """"""
