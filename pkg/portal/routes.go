@@ -38,7 +38,6 @@ func NewRouter(p *deps.RootProvider, staticAsset StaticAssetConfig) *httproute.R
 	// Actually the client check if viewer is null to determine session existence.
 	router.Add(transport.ConfigureGraphQLRoute(rootRoute), p.Handler(newGraphQLHandler))
 
-	// FIXME(portal): Access control to admin API.
 	router.Add(transport.ConfigureAdminAPIRoute(sessionRequiredRoute), p.Handler(newAdminAPIHandler))
 
 	if staticAsset.ServingEnabled {

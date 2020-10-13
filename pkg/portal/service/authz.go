@@ -1,17 +1,43 @@
 package service
 
+import (
+	"errors"
+
+	"github.com/authgear/authgear-server/pkg/portal/model"
+)
+
 type AuthzConfigService interface {
-	ListAllAppIDs() ([]string, error)
+	GetStaticAppIDs() ([]string, error)
+}
+
+type AuthzCollaboratorService interface {
+	ListCollaboratorsByUser(userID string) ([]*model.Collaborator, error)
 }
 
 type AuthzService struct {
-	AppConfigs AuthzConfigService
+	Configs       AuthzConfigService
+	Collaborators AuthzCollaboratorService
 }
 
 func (s *AuthzService) ListAuthorizedApps(userID string) ([]string, error) {
-	// FIXME(authz): extract authorized app from user labels
-	appIDs, err := s.AppConfigs.ListAllAppIDs()
-	return appIDs, err
+	appIDs, err := s.Configs.GetStaticAppIDs()
+	if errors.Is(err, ErrGetStaticAppIDsNotSupported) {
+		var cs []*model.Collaborator
+		cs, err = s.Collaborators.ListCollaboratorsByUser(userID)
+		if err == nil {
+			appIDs = make([]string, len(cs))
+			for i, c := range cs {
+				appIDs[i] = c.AppID
+			}
+		}
+	}
+
+	if err != nil {
+		return nil, err
+
+	}
+
+	return appIDs, nil
 }
 
 func (s *AuthzService) AddAuthorizedUser(appID string, userID string) error {

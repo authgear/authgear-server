@@ -50,6 +50,26 @@ func (s *CollaboratorService) ListCollaborators(appID string) ([]*model.Collabor
 	return cs, nil
 }
 
+func (s *CollaboratorService) ListCollaboratorsByUser(userID string) ([]*model.Collaborator, error) {
+	q := s.selectCollaborator().Where("user_id = ?", userID)
+	rows, err := s.SQLExecutor.QueryWith(q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var cs []*model.Collaborator
+	for rows.Next() {
+		c, err := scanCollaborator(rows)
+		if err != nil {
+			return nil, err
+		}
+		cs = append(cs, c)
+	}
+
+	return cs, nil
+}
+
 func (s *CollaboratorService) NewCollaborator(appID string, userID string) *model.Collaborator {
 	now := s.Clock.NowUTC()
 	c := &model.Collaborator{
