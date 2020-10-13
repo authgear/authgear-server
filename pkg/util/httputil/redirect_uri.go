@@ -7,15 +7,11 @@ import (
 )
 
 func HostRelative(u *url.URL) *url.URL {
-	uu := *u
-	uu.Scheme = ""
-	uu.Opaque = ""
-	uu.Host = ""
-	uu.User = nil
-	if uu.Path == "" {
-		uu.Path = "/"
+	uu := &url.URL{Path: "/"}
+	if u.Path != "" {
+		uu.Path = u.Path
 	}
-	return &uu
+	return uu
 }
 
 func GetRedirectURI(r *http.Request, trustProxy bool) (out string, err error) {

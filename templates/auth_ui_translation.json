@@ -9,6 +9,7 @@
 	"error-invalid-credentials": "invalid credentials",
 	"error-password-reset-failed": "This reset password link is invalid, used or expired. Please request a new one.",
 	"error-duplicated-identity": "This identity has been claimed by another user.",
+	"error-duplicated-authenticator": "This authenticator already has been added.",
 	"error-remove-last-identity": "Cannot disconnect. You need to keep at least 1 identity.",
 	"error-remove-last-primary-authenticator": "Cannot remove. You need to keep at least 1 primary authenticator for an identity.",
 	"error-remove-last-secondary-authenticator": "Cannot remove. Multi-factor authentication is required.",
@@ -20,11 +21,13 @@
 	"apple-app-store-label": "Apple App Store",
 	"back-button-title": "Back",
 	"next-button-label": "Next",
+	"get-new-code-button-label": "Get new code",
 	"download-button-label": "Download",
 	"connect-button-label": "Connect",
 	"disconnect-button-label": "Disconnect",
 	"change-button-label": "Change",
 	"setup-button-label": "Setup",
+	"add-button-label": "Add",
 	"remove-button-label": "Remove",
 	"details-button-label": "Details",
 	"change-password-button-label": "Change Password",
@@ -150,6 +153,12 @@
 	"settings-identity-login-id-username": "Username",
 	"settings-identity-login-id-raw": "Username",
 
+	"settings-totp-title": "Authenticator Apps / Devices",
+	"settings-totp-item-description": "Added at {time, datetime, long}",
+
+	"settings-oob-otp-title": "Channels for receiving verification code via SMS / Email",
+	"settings-oob-otp-item-description": "Added at {time, datetime, long}",
+
 	"enter-login-id-page-title--change": "Change your {key}",
 	"enter-login-id-page-title--add": "Enter your {key}",
 
@@ -184,5 +193,6 @@
 
 	"recovery-code-title": "Recovery Code",
 	"recovery-code-storage-description": "Keep these recovery codes somewhere safe but accessible",
-	"recovery-code-consumption-description": "You can only use each code once"
+	"recovery-code-consumption-description": "You can only use each code once",
+	"recovery-code-list-disabled": "Listing recovery code is disabled by administrator"
 }

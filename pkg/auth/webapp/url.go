@@ -16,10 +16,10 @@ func RemoveX(q url.Values) {
 }
 
 func MakeURL(u *url.URL, path string, inQuery url.Values) *url.URL {
-	uu := *u
+	uu := httputil.HostRelative(u)
 	uu.RawQuery = inQuery.Encode()
 	if path != "" {
 		uu.Path = path
 	}
-	return httputil.HostRelative(&uu)
+	return uu
 }

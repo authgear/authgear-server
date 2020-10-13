@@ -2,43 +2,46 @@
 <html>
 {{ template "auth_ui_html_head.html" . }}
 <body class="page">
-<div class="content">
+<main class="content">
 
-{{ template "auth_ui_header.html" . }}
+	{{ template "auth_ui_header.html" . }}
 
-{{ template "auth_ui_nav_bar.html" }}
+	{{ template "auth_ui_nav_bar.html" }}
 
-<div class="simple-form vertical-form form-fields-container pane">
+	{{ template "ERROR" . }}
 
-<h1 class="title primary-txt">
-	{{ template "recovery-code-title" }}
-</h1>
+	<section class="pane">
+		<section class="recovery-code-row recovery-code-title-section">
+			<h1 class="title primary-txt">
+				{{ template "recovery-code-title" }}
+			</h1>
+		</section>
 
-{{ template "ERROR" . }}
+		<section class="recovery-code-row recovery-code-list-section">
+			<p class="description primary-txt">{{ template "recovery-code-storage-description" }}</p>
 
-<form class="vertical-form form-fields-container" method="post" novalidate>
+			<div class="code-list-container">
+				<ol class="code-list">
+					{{ range $.RecoveryCodes }}
+						<li class="code-item">{{ . }}</li>
+					{{ end }}
+				</ol>
+			</div>
 
-{{ $.CSRFField }}
+			<p class="description primary-txt">{{ template "recovery-code-consumption-description" }}</p>
+		</section>
 
-<p class="description primary-txt">{{ template "recovery-code-storage-description" }}</p>
+		<section class="recovery-code-row recovery-code-action-section">
+			<a class="action btn primary-btn" target="_blank" href="{{ call $.MakeURLState "" "download" "true" }}">{{ template "download-button-label" }}</a>
+			<form method="post" novalidate target="_blank">
+				{{ $.CSRFField }}
+				<button class="action btn primary-btn" type="submit" name="submit" value="">
+					{{ template "next-button-label" }}
+				</button>
+			</form>
+		</section>
+	</section>
 
-<div class="recovery-codes">
-	{{ range $.RecoveryCodes }}
-	<p class="recovery-code">{{ . }}</p>
-	{{ end }}
-</div>
-
-<p class="description primary-txt">{{ template "recovery-code-consumption-description" }}</p>
-
-<div class="setup-recovery-code-buttons">
-	<button class="btn primary-btn" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
-	<a class="btn primary-btn" target="_blank" href="{{ call $.MakeURLState "" "download" "true" }}">{{ template "download-button-label" }}</a>
-</div>
-
-</form>
-
-</div>
-
-</div>
+</main>
 </body>
 </html>

@@ -62,8 +62,6 @@ const defineError = `
 		<!-- This error is handled differently -->
 	{{ else if eq .Error.reason "PasswordResetFailed" }}
 		<li class="error-txt">{{ template "error-password-reset-failed" }}</li>
-	{{ else if eq .Error.reason "DuplicatedIdentity" }}
-		<li class="error-txt">{{ template "error-duplicated-identity" }}</li>
 	{{ else if eq .Error.reason "NewPasswordTypo" }}
 		<li class="error-txt">{{ template "error-new-password-typo" }}</li>
 	{{ else if eq .Error.reason "InvariantViolated" }}
@@ -74,6 +72,10 @@ const defineError = `
 			<li class="error-txt">{{ template "error-remove-last-primary-authenticator" }}</li>
 		{{ else if (eq $cause.kind "RemoveLastSecondaryAuthenticator") }}
 			<li class="error-txt">{{ template "error-remove-last-secondary-authenticator" }}</li>
+		{{ else if (eq $cause.kind "DuplicatedIdentity") }}
+			<li class="error-txt">{{ template "error-duplicated-identity" }}</li>
+		{{ else if (eq $cause.kind "DuplicatedAuthenticator") }}
+			<li class="error-txt">{{ template "error-duplicated-authenticator" }}</li>
 		{{ else }}
 			<li class="error-txt">{{ . }}</li>
 		{{ end }}

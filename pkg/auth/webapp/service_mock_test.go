@@ -243,17 +243,17 @@ func (mr *MockGraphServiceMockRecorder) DryRun(webStateID, fn interface{}) *gomo
 }
 
 // Run mocks base method
-func (m *MockGraphService) Run(webStateID string, graph *interaction.Graph, preserveGraph bool) error {
+func (m *MockGraphService) Run(webStateID string, graph *interaction.Graph) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Run", webStateID, graph, preserveGraph)
+	ret := m.ctrl.Call(m, "Run", webStateID, graph)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Run indicates an expected call of Run
-func (mr *MockGraphServiceMockRecorder) Run(webStateID, graph, preserveGraph interface{}) *gomock.Call {
+func (mr *MockGraphServiceMockRecorder) Run(webStateID, graph interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Run", reflect.TypeOf((*MockGraphService)(nil).Run), webStateID, graph, preserveGraph)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Run", reflect.TypeOf((*MockGraphService)(nil).Run), webStateID, graph)
 }
 
 // MockCookieFactory is a mock of CookieFactory interface

@@ -578,29 +578,6 @@ a.btn {
   align-self: center;
 }
 
-.recovery-codes {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.recovery-codes .recovery-code {
-  white-space: pre;
-  font-family: monospace;
-  font-size: larger;
-  margin: 0;
-  padding: 0;
-}
-
-.setup-recovery-code-buttons {
-  display: flex;
-  flex-direction: row-reverse;
-}
-
-.setup-recovery-code-buttons > * {
-  margin: 0 6px;
-}
-
 .logout-row {
   margin: 14px 18px;
 }
@@ -801,4 +778,173 @@ a.btn {
   grid-area: action2;
   align-self: center;
   justify-self: end;
+}
+
+.settings-totp-row {
+  margin: 10px 14px 0px 14px;
+  padding: 0 0 10px 0;
+}
+
+.settings-totp-row:not(:last-child) {
+  border-bottom: 1px solid #E5E5E5;
+}
+
+.settings-totp-title-section .title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.settings-totp-item-section {
+  display: grid;
+  grid: "name  action" auto
+        "desc  ......" auto
+      /  1fr   auto    auto;
+  font-size: 1rem;
+}
+
+.settings-totp-item-section > * {
+  margin: 0;
+}
+
+.settings-totp-item-section .name {
+  grid-area: name;
+  align-self: center;
+  /* We must keep using the default value justify-self: stretch */
+  /* So that this element takes exact 1fr width */
+  /* Otherwise it could overflow */
+  font-size: inherit;
+}
+
+.settings-totp-item-section .desc {
+  grid-area: desc;
+  align-self: center;
+  /* We must keep using the default value justify-self: stretch */
+  /* So that this element takes exact 1fr width */
+  /* Otherwise it could overflow */
+  font-size: smaller;
+}
+
+.settings-totp-item-section .action {
+  grid-area: action;
+  align-self: center;
+  justify-self: end;
+}
+
+.settings-totp-add-section .action {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.settings-oob-otp-row {
+  margin: 10px 14px 0px 14px;
+  padding: 0 0 10px 0;
+}
+
+.settings-oob-otp-row:not(:last-child) {
+  border-bottom: 1px solid #E5E5E5;
+}
+
+.settings-oob-otp-title-section .title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.settings-oob-otp-item-section {
+  display: grid;
+  grid: "icon  name  action" auto
+        "icon  desc  ......" auto
+      /  36px  1fr   auto    auto;
+  font-size: 1rem;
+}
+
+.settings-oob-otp-item-section > * {
+  margin: 0;
+}
+
+.settings-oob-otp-item-section .icon {
+  align-self: start;
+  justify-self: center;
+  grid-area: icon;
+  margin: 2px;
+}
+
+.settings-oob-otp-item-section .name {
+  grid-area: name;
+  align-self: center;
+  /* We must keep using the default value justify-self: stretch */
+  /* So that this element takes exact 1fr width */
+  /* Otherwise it could overflow */
+  font-size: inherit;
+}
+
+.settings-oob-otp-item-section .desc {
+  grid-area: desc;
+  align-self: center;
+  /* We must keep using the default value justify-self: stretch */
+  /* So that this element takes exact 1fr width */
+  /* Otherwise it could overflow */
+  font-size: smaller;
+}
+
+.settings-oob-otp-item-section .action {
+  grid-area: action;
+  align-self: center;
+  justify-self: end;
+}
+
+.settings-oob-otp-add-section .action {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.recovery-code-row {
+  margin: 10px 14px 0px 14px;
+  padding: 0 0 10px 0;
+}
+
+.recovery-code-title-section .title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.recovery-code-list-section {
+  align-self: center;
+  justify-self: end;
+}
+
+.recovery-code-list-section .code-list-container {
+   display: flex;
+   justify-content: center;
+   padding: 16px;
+ }
+
+.recovery-code-list-section .code-list {
+  padding: 0;
+  margin: 0;
+  column-count: 2;
+}
+
+.recovery-code-list-section .code-item {
+  white-space: pre;
+  font-family: monospace;
+  font-size: larger;
+  margin: 0 50px;
+}
+
+.recovery-code-action-section {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.recovery-code-action-section .action {
+  margin: 5px;
+  padding: 4px 16px;
+  font-size: 1rem;
+}
+
+.recovery-codes-container {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
 }

@@ -6,9 +6,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -26,13 +29,12 @@ var TemplateAuthUISettingsHTML = template.Register(template.T{
 
 func ConfigureSettingsRoute(route httproute.Route) httproute.Route {
 	return route.
-		WithMethods("OPTIONS", "GET").
+		WithMethods("OPTIONS", "GET", "POST").
 		WithPathPattern("/settings")
 }
 
 type SettingsViewModel struct {
 	Authenticators           []*authenticator.Info
-	MFAActivated             bool
 	SecondaryTOTPAllowed     bool
 	SecondaryOOBOTPAllowed   bool
 	SecondaryPasswordAllowed bool
@@ -43,11 +45,12 @@ type SettingsAuthenticatorService interface {
 }
 
 type SettingsMFAService interface {
-	HasMFAActivated(userID string) (bool, error)
+	ListRecoveryCodes(userID string) ([]*mfa.RecoveryCode, error)
 	InvalidateAllDeviceTokens(userID string) error
 }
 
 type SettingsHandler struct {
+	Database       *db.Handle
 	BaseViewModel  *viewmodels.BaseViewModeler
 	Renderer       Renderer
 	Authentication *config.AuthenticationConfig
@@ -56,7 +59,8 @@ type SettingsHandler struct {
 }
 
 func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	userID := session.GetUserID(r.Context())
+	redirectURI := httputil.HostRelative(r.URL).String()
+	userID := *session.GetUserID(r.Context())
 
 	if r.Method == "GET" {
 		data := map[string]interface{}{}
@@ -64,11 +68,7 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		baseViewModel := h.BaseViewModel.ViewModel(r, nil)
 		viewmodels.Embed(data, baseViewModel)
 
-		authenticators, err := h.Authenticators.List(*userID)
-		if err != nil {
-			panic(err)
-		}
-		mfaActivated, err := h.MFA.HasMFAActivated(*userID)
+		authenticators, err := h.Authenticators.List(userID)
 		if err != nil {
 			panic(err)
 		}
@@ -89,7 +89,6 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		viewModel := SettingsViewModel{
 			Authenticators:           authenticators,
-			MFAActivated:             mfaActivated,
 			SecondaryTOTPAllowed:     totp,
 			SecondaryOOBOTPAllowed:   oobotp,
 			SecondaryPasswordAllowed: password,
@@ -98,5 +97,18 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUISettingsHTML, data)
 		return
+	}
+
+	if r.Method == "POST" && r.Form.Get("x_action") == "revoke_devices" {
+		err := h.Database.WithTx(func() error {
+			if err := h.MFA.InvalidateAllDeviceTokens(userID); err != nil {
+				return err
+			}
+			http.Redirect(w, r, redirectURI, http.StatusFound)
+			return nil
+		})
+		if err != nil {
+			panic(err)
+		}
 	}
 }

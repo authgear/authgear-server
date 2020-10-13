@@ -15,7 +15,8 @@ func init() {
 }
 
 type EdgeCreateAuthenticatorBegin struct {
-	Stage interaction.AuthenticationStage
+	Stage             interaction.AuthenticationStage
+	AuthenticatorType *authn.AuthenticatorType
 }
 
 func (e *EdgeCreateAuthenticatorBegin) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
@@ -25,15 +26,25 @@ func (e *EdgeCreateAuthenticatorBegin) Instantiate(ctx *interaction.Context, gra
 		skipMFASetup = skipMFASetupInput.SkipMFASetup()
 	}
 
+	requestedByUser := false
+	var requestedByUserInput interface{ RequestedByUser() bool }
+	if interaction.Input(input, &requestedByUserInput) {
+		requestedByUser = requestedByUserInput.RequestedByUser()
+	}
+
 	return &NodeCreateAuthenticatorBegin{
-		Stage:        e.Stage,
-		SkipMFASetup: skipMFASetup,
+		Stage:             e.Stage,
+		AuthenticatorType: e.AuthenticatorType,
+		SkipMFASetup:      skipMFASetup,
+		RequestedByUser:   requestedByUser,
 	}, nil
 }
 
 type NodeCreateAuthenticatorBegin struct {
-	Stage        interaction.AuthenticationStage `json:"stage"`
-	SkipMFASetup bool                            `json:"skip_mfa_setup"`
+	Stage             interaction.AuthenticationStage `json:"stage"`
+	AuthenticatorType *authn.AuthenticatorType        `json:"authenticator_type"`
+	SkipMFASetup      bool                            `json:"skip_mfa_setup"`
+	RequestedByUser   bool                            `json:"requested_by_user"`
 
 	Identity             *identity.Info               `json:"-"`
 	AuthenticationConfig *config.AuthenticationConfig `json:"-"`
@@ -47,7 +58,9 @@ func (n *NodeCreateAuthenticatorBegin) Prepare(ctx *interaction.Context, graph *
 		return err
 	}
 
-	n.Identity = graph.MustGetUserLastIdentity()
+	if n.Stage == interaction.AuthenticationStagePrimary {
+		n.Identity = graph.MustGetUserLastIdentity()
+	}
 	n.AuthenticationConfig = ctx.Config.Authentication
 	n.AuthenticatorConfig = ctx.Config.Authenticator
 	n.Authenticators = ais
@@ -196,37 +209,51 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Edge) {
 	// Determine whether we need to create secondary authenticator.
 
-	// 1. Check secondary authentication mode.
-	// If it is not required, then no secondary authenticator is needed.
-	mode := n.AuthenticationConfig.SecondaryAuthenticationMode
-	if mode != config.SecondaryAuthenticationModeRequired {
-		return nil
-	}
-
-	// 1.1. Skip setup if explicitly requested
+	// 1. Skip setup if explicitly requested
 	if n.SkipMFASetup {
 		return nil
 	}
 
-	// 2. Determine whether the user has at least one secondary authenticator.
-	// If yes, then no secondary authenticator is needed.
 	ais := filterAuthenticators(
 		n.Authenticators,
 		authenticator.KeepKind(authenticator.KindSecondary),
 	)
-	if len(ais) > 0 {
-		return nil
+
+	// 2. Check secondary authentication mode.
+	mode := n.AuthenticationConfig.SecondaryAuthenticationMode
+	switch mode {
+	case config.SecondaryAuthenticationModeIfRequested:
+		// Create only if requested by user
+		if !n.RequestedByUser {
+			return nil
+		}
+
+	case config.SecondaryAuthenticationModeIfExists:
+		// Same as IfRequested:
+		// Create only if requested by user
+		if !n.RequestedByUser {
+			return nil
+		}
+
+	case config.SecondaryAuthenticationModeRequired:
+		// Require at least one secondary authenticator:
+		// Skip creation if any secondary authenticator exists and
+		// not explicitly requested by user
+		if len(ais) > 0 && !n.RequestedByUser {
+			return nil
+		}
 	}
 
-	// If we reach here, the user does not any authenticator.
-	// Therefore, the authenticator must be default.
-	isDefault := true
+	// The created authenticator is default if no other default authenticator
+	// exists
+	isDefault := len(filterAuthenticators(ais, authenticator.KeepDefault)) == 0
 
 	// 3. Determine what secondary authenticator we allow the user to create.
 	// We have the following conditions to hold:
 	//   A. The secondary authenticator is allowed in the configuration.
 	//   B. The user does not have that type of secondary authenticator yet. (This is always true since we have 2)
 	//   C. The number of the secondary authenticator the user is less than maximum.
+	//   D. The secondary authenticator is required by the caller.
 
 	passwordCount := 0
 	totpCount := 0
@@ -290,6 +317,20 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 		default:
 			panic("interaction: unknown authenticator type: " + typ)
 		}
+	}
+
+	// Condition D.
+	if n.AuthenticatorType != nil {
+		t := *n.AuthenticatorType
+		n := 0
+		for _, e := range edges {
+			edge := e.(interaction.SortableAuthenticator)
+			if edge.AuthenticatorType() == t {
+				edges[n] = e
+				n++
+			}
+		}
+		edges = edges[:n]
 	}
 
 	interaction.SortAuthenticators(

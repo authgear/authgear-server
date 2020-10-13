@@ -303,7 +303,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 		return nil, err
 	}
 
-	err = h.Graphs.Run("", graph, false)
+	err = h.Graphs.Run("", graph)
 	if apierrors.IsAPIError(err) {
 		return nil, protocol.NewError("invalid_request", err.Error())
 	} else if err != nil {

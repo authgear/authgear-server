@@ -19,7 +19,7 @@ func TestHostRelative(t *testing.T) {
 		test("http://example.com", "/")
 		test("http://example.com/", "/")
 		test("http://example.com/a", "/a")
-		test("http://example.com/a?a", "/a?a")
-		test("http://example.com/a?a#a", "/a?a#a")
+		test("http://example.com/a?a", "/a")
+		test("http://example.com/a?a#a", "/a")
 	})
 }

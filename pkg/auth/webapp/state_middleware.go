@@ -32,13 +32,13 @@ func (m *StateMiddleware) Handle(next http.Handler) http.Handler {
 
 		state, err := m.States.Get(sid)
 		if err != nil {
-			u := *r.URL
+			u := httputil.HostRelative(r.URL)
 			q := u.Query()
 			RemoveX(q)
 			u.RawQuery = q.Encode()
 			u.Path = "/"
 
-			http.Redirect(w, r, httputil.HostRelative(&u).String(), http.StatusFound)
+			http.Redirect(w, r, u.String(), http.StatusFound)
 			return
 		}
 

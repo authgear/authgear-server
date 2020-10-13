@@ -39,7 +39,7 @@ type GraphService interface {
 	NewGraph(ctx *interaction.Context, intent interaction.Intent) (*interaction.Graph, error)
 	Get(instanceID string) (*interaction.Graph, error)
 	DryRun(webStateID string, fn func(*interaction.Context) (*interaction.Graph, error)) error
-	Run(webStateID string, graph *interaction.Graph, preserveGraph bool) error
+	Run(webStateID string, graph *interaction.Graph) error
 }
 
 type CookieFactory interface {
@@ -264,7 +264,7 @@ func (s *Service) afterPost(state *State, graph *interaction.Graph, edges []inte
 	// The graph finished. Apply its effect permanently
 	if finished {
 		s.Logger.Debugf("afterPost run graph")
-		inputError = s.Graph.Run(state.ID, graph, false)
+		inputError = s.Graph.Run(state.ID, graph)
 	}
 
 	var cookies []*http.Cookie
