@@ -5,12 +5,14 @@ import { APIValidationError } from "./validation";
 import { APIInvariantViolationError } from "./invariant";
 import { APIPasswordPolicyViolatedError } from "./password";
 import { APIDuplicatedDomainError } from "./duplicatedDomain";
+import { APIForbiddenError } from "./forbidden";
 
 export type APIError =
   | APIValidationError
   | APIInvariantViolationError
   | APIPasswordPolicyViolatedError
-  | APIDuplicatedDomainError;
+  | APIDuplicatedDomainError
+  | APIForbiddenError;
 
 export function isAPIError(value?: { [key: string]: any }): value is APIError {
   if (value == null) {

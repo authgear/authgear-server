@@ -1,4 +1,4 @@
-import React, { useMemo, useContext, useCallback } from "react";
+import React, { useMemo, useContext, useCallback, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import cn from "classnames";
 import produce from "immer";
@@ -14,11 +14,17 @@ import {
   VerticalDivider,
   TextField,
   ITextFieldProps,
+  Dialog,
+  IDialogProps,
+  DialogFooter,
+  DefaultButton,
 } from "@fluentui/react";
 
 import { useAppConfigQuery } from "./query/appConfigQuery";
 import { Domain, useDomainsQuery } from "./query/domainsQuery";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
+import { useCreateDomainMutation } from "./mutations/createDomainMutation";
+import { useDeleteDomainMutation } from "./mutations/deleteDomainMutation";
 import { PortalAPIAppConfig } from "../../types";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
@@ -29,11 +35,14 @@ import { actionButtonTheme, destructiveTheme } from "../../theme";
 import { useTextField } from "../../hook/useInput";
 import { FormContext } from "../../error/FormContext";
 import { useValidationError } from "../../error/useValidationError";
+import {
+  GenericErrorHandlingRule,
+  useGenericError,
+} from "../../error/useGenericError";
+import ErrorDialog from "../../error/ErrorDialog";
 import { clearEmptyObject } from "../../util/misc";
 
 import styles from "./DNSConfigurationScreen.module.scss";
-import { useCreateDomainMutation } from "./mutations/createDomainMutation";
-import { useGenericError } from "../../error/useGenericError";
 
 interface DNSConfigurationProps {
   domains: Domain[];
@@ -53,9 +62,20 @@ interface DomainListItem {
 }
 
 interface DomainListActionButtonsProps {
-  id: string;
+  domainID: string;
+  domain: string;
   isVerified: boolean;
-  onDeleteClick: (id: string) => void;
+  onDeleteClick: (domainID: string, domain: string) => void;
+}
+
+interface DeleteDomainDialogData {
+  domainID: string;
+  domain: string;
+}
+
+interface DeleteDomainDialogProps extends Partial<DeleteDomainDialogData> {
+  visible: boolean;
+  dismissDialog: () => void;
 }
 
 const ADD_DOMAIN_TEXT_FIELD_STYLES: ITextFieldProps["styles"] = {
@@ -242,17 +262,22 @@ const AddDomainSection: React.FC = function AddDomainSection() {
 const DomainListActionButtons: React.FC<DomainListActionButtonsProps> = function DomainListActionButtons(
   props: DomainListActionButtonsProps
 ) {
-  const { id, isVerified, onDeleteClick: onDeleteClickProps } = props;
+  const {
+    domainID,
+    domain,
+    isVerified,
+    onDeleteClick: onDeleteClickProps,
+  } = props;
 
   const navigate = useNavigate();
 
   const onVerifyClicked = useCallback(() => {
-    navigate(`./${id}/verify`);
-  }, [id, navigate]);
+    navigate(`./${domainID}/verify`);
+  }, [domainID, navigate]);
 
   const onDeleteClick = useCallback(() => {
-    onDeleteClickProps(id);
-  }, [id, onDeleteClickProps]);
+    onDeleteClickProps(domainID, domain);
+  }, [domainID, domain, onDeleteClickProps]);
 
   return (
     <section className={styles.actionButtonContainer}>
@@ -279,12 +304,95 @@ const DomainListActionButtons: React.FC<DomainListActionButtonsProps> = function
   );
 };
 
+const DeleteDomainDialog: React.FC<DeleteDomainDialogProps> = function DeleteDomainDialog(
+  props: DeleteDomainDialogProps
+) {
+  const { domain, domainID, visible, dismissDialog } = props;
+  const { appID } = useParams();
+  const { renderToString } = useContext(Context);
+
+  const {
+    deleteDomain,
+    loading: deletingDomain,
+    error: deleteDomainError,
+  } = useDeleteDomainMutation(appID);
+
+  const onConfirmClick = useCallback(() => {
+    deleteDomain(domainID!)
+      .catch(() => {})
+      .finally(() => {
+        dismissDialog();
+      });
+  }, [domainID, deleteDomain, dismissDialog]);
+
+  const errorRules: GenericErrorHandlingRule[] = [
+    {
+      reason: "Forbidden",
+      errorMessageID:
+        "DNSConfigurationScreen.delete-domain-dialog.forbidden-error",
+    },
+  ];
+
+  const dialogContentProps: IDialogProps["dialogContentProps"] = useMemo(() => {
+    return {
+      title: (
+        <FormattedMessage id="DNSConfigurationScreen.delete-domain-dialog.title" />
+      ),
+      subText: renderToString(
+        "DNSConfigurationScreen.delete-domain-dialog.message",
+        { domain: domain ?? "" }
+      ),
+    };
+  }, [renderToString, domain]);
+
+  return (
+    <>
+      <Dialog
+        hidden={!visible}
+        dialogContentProps={dialogContentProps}
+        modalProps={{ isBlocking: deletingDomain }}
+        onDismiss={dismissDialog}
+      >
+        <DialogFooter>
+          <ButtonWithLoading
+            theme={destructiveTheme}
+            loading={deletingDomain}
+            onClick={onConfirmClick}
+            disabled={!visible}
+            labelId="confirm"
+          />
+          <DefaultButton
+            onClick={dismissDialog}
+            disabled={deletingDomain || !visible}
+          >
+            <FormattedMessage id="cancel" />
+          </DefaultButton>
+        </DialogFooter>
+      </Dialog>
+      <ErrorDialog
+        error={deleteDomainError}
+        rules={errorRules}
+        fallbackErrorMessageID="DNSConfigurationScreen.delete-domain-dialog.generic-error"
+      />
+    </>
+  );
+};
+
 const DNSConfiguration: React.FC<DNSConfigurationProps> = function DNSConfiguration(
   props: DNSConfigurationProps
 ) {
   const { domains, rawAppConfig, effectiveAppConfig } = props;
 
   const { renderToString } = useContext(Context);
+
+  const [
+    deleteDomainDialogVisible,
+    setConfirmDeleteDomainDialogVisible,
+  ] = useState(false);
+  const [
+    deleteDomainDialogData,
+    setDeleteDomainDialogData,
+  ] = useState<DeleteDomainDialogData | null>(null);
 
   const domainListColumns: IColumn[] = useMemo(() => {
     return makeDomainListColumn(renderToString);
@@ -298,8 +406,16 @@ const DNSConfiguration: React.FC<DNSConfigurationProps> = function DNSConfigurat
     }));
   }, [domains]);
 
-  const onDeleteClick = useCallback((_id: string) => {
-    // TODO: to be implemented
+  const onDeleteClick = useCallback((domainID: string, domain: string) => {
+    setDeleteDomainDialogData({
+      domainID,
+      domain,
+    });
+    setConfirmDeleteDomainDialogVisible(true);
+  }, []);
+
+  const dismissDeleteDomainDialog = useCallback(() => {
+    setConfirmDeleteDomainDialogVisible(false);
   }, []);
 
   const renderDomainListColumn = useCallback<
@@ -326,7 +442,8 @@ const DNSConfiguration: React.FC<DNSConfigurationProps> = function DNSConfigurat
         case "action":
           return (
             <DomainListActionButtons
-              id={item.id}
+              domainID={item.id}
+              domain={item.domain}
               isVerified={item.isVerified}
               onDeleteClick={onDeleteClick}
             />
@@ -352,6 +469,12 @@ const DNSConfiguration: React.FC<DNSConfigurationProps> = function DNSConfigurat
 
   return (
     <section className={styles.content}>
+      <DeleteDomainDialog
+        domain={deleteDomainDialogData?.domain}
+        domainID={deleteDomainDialogData?.domainID}
+        visible={deleteDomainDialogVisible}
+        dismissDialog={dismissDeleteDomainDialog}
+      />
       <PublicOriginConfiguration
         rawAppConfig={rawAppConfig}
         effectiveAppConfig={effectiveAppConfig}
