@@ -318,6 +318,7 @@
   "DNSConfigurationScreen.delete-domain-dialog.message": "Are you sure you want to delete {domain}",
   "DNSConfigurationScreen.delete-domain-dialog.generic-error": "Failed to delete domain",
   "DNSConfigurationScreen.delete-domain-dialog.forbidden-error": "You have no permission to delete domain",
+  "DNSConfigurationScreen.verify-success-message": "Verified domain successfully",
 
   "PaginationWidget.First": "Go to the first page",
   "PaginationWidget.Prev": "Go to the previous page",

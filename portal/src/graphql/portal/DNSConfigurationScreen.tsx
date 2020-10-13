@@ -1,5 +1,5 @@
 import React, { useMemo, useContext, useCallback, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import cn from "classnames";
 import produce from "immer";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
@@ -18,6 +18,8 @@ import {
   IDialogProps,
   DialogFooter,
   DefaultButton,
+  MessageBar,
+  MessageBarType,
 } from "@fluentui/react";
 
 import { useAppConfigQuery } from "./query/appConfigQuery";
@@ -496,6 +498,8 @@ const DNSConfiguration: React.FC<DNSConfigurationProps> = function DNSConfigurat
 
 const DNSConfigurationScreen: React.FC = function DNSConfigurationScreen() {
   const { appID } = useParams();
+  const [searchParams] = useSearchParams();
+
   const {
     effectiveAppConfig,
     rawAppConfig,
@@ -509,6 +513,20 @@ const DNSConfigurationScreen: React.FC = function DNSConfigurationScreen() {
     error: fetchDomainsError,
     refetch: refetchDomains,
   } = useDomainsQuery(appID);
+
+  const initialVerifySuccessMessageBarVisible = useMemo(() => {
+    const verify = searchParams.get("verify");
+    return verify === "success";
+  }, [searchParams]);
+
+  const [
+    verifySuccessMessageBarVisible,
+    setVerifySuccessMessageBarVisible,
+  ] = useState(initialVerifySuccessMessageBarVisible);
+
+  const dismissVerifySuccessMessageBar = useCallback(() => {
+    setVerifySuccessMessageBarVisible(false);
+  }, []);
 
   if (fetchingAppConfig || fetchingDomains) {
     return <ShowLoading />;
@@ -528,17 +546,27 @@ const DNSConfigurationScreen: React.FC = function DNSConfigurationScreen() {
   }
   return (
     <main className={styles.root}>
-      <Text className={cn(styles.header, styles.mainHeader)} as="h1">
-        <FormattedMessage id="DNSConfigurationScreen.title" />
-      </Text>
-      <Text className={styles.desc}>
-        <FormattedMessage id="DNSConfigurationScreen.desc" />
-      </Text>
-      <DNSConfiguration
-        effectiveAppConfig={effectiveAppConfig}
-        rawAppConfig={rawAppConfig}
-        domains={domains ?? []}
-      />
+      {verifySuccessMessageBarVisible && (
+        <MessageBar
+          messageBarType={MessageBarType.success}
+          onDismiss={dismissVerifySuccessMessageBar}
+        >
+          <FormattedMessage id="DNSConfigurationScreen.verify-success-message" />
+        </MessageBar>
+      )}
+      <div className={styles.screen}>
+        <Text className={cn(styles.header, styles.mainHeader)} as="h1">
+          <FormattedMessage id="DNSConfigurationScreen.title" />
+        </Text>
+        <Text className={styles.desc}>
+          <FormattedMessage id="DNSConfigurationScreen.desc" />
+        </Text>
+        <DNSConfiguration
+          effectiveAppConfig={effectiveAppConfig}
+          rawAppConfig={rawAppConfig}
+          domains={domains ?? []}
+        />
+      </div>
     </main>
   );
 };
