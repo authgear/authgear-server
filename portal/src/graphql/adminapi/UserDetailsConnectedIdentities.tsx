@@ -614,9 +614,10 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
               labelId="confirm"
               onClick={onConfirmRemoveIdentity}
               loading={deletingIdentity}
+              disabled={!isConfirmationDialogVisible}
             />
             <DefaultButton
-              disabled={deletingIdentity}
+              disabled={deletingIdentity || !isConfirmationDialogVisible}
               onClick={onDismissConfirmationDialog}
             >
               <FormattedMessage id="cancel" />

@@ -139,8 +139,12 @@ const ConfirmRemoveOAuthClientDialog: React.FC<ConfirmRemoveOAuthClientDialogPro
           onClick={onConfirm}
           labelId="confirm"
           loading={updatingAppConfig}
+          disabled={!visible}
         />
-        <DefaultButton disabled={updatingAppConfig} onClick={onDismiss}>
+        <DefaultButton
+          disabled={updatingAppConfig || !visible}
+          onClick={onDismiss}
+        >
           <FormattedMessage id="cancel" />
         </DefaultButton>
       </DialogFooter>
