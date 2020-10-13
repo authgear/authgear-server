@@ -1,0 +1,77 @@
+.root {
+  margin: 30px;
+}
+
+.header {
+  display: block;
+  font-weight: 600;
+}
+
+.mainHeader {
+  font-size: 18px;
+}
+
+.subHeader {
+  font-size: 14px;
+}
+
+.desc {
+  display: block;
+  margin-bottom: 15px;
+  width: 650px;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.publicOrigin {
+  margin: 30px 0;
+}
+
+.publicOriginHeader {
+  margin-bottom: 15px;
+}
+
+.publicOriginField {
+  width: 500px;
+  margin-right: 10px;
+}
+
+.publicOriginInput {
+  display: flex;
+}
+
+.domainListColumn {
+  display: flex;
+  align-items: center;
+}
+
+.addDomain {
+  display: flex;
+  background-color: #f8f8f8;
+  padding: 10px;
+  border-bottom: 1px solid #edebe9;
+}
+
+.addDomainField {
+  width: 580px;
+}
+
+.addDomainButton {
+  border-radius: 0 2px 2px 0;
+}
+
+.actionButtonContainer {
+  display: flex;
+}
+
+.actionButton {
+  padding: 0;
+  font-size: 13px;
+  display: contents;
+}
+
+.divider {
+  height: 15px;
+  background-color: #edebe9;
+  margin: 0 8px;
+}
