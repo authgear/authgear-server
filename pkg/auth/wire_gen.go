@@ -229,10 +229,26 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -272,21 +288,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clock,
-		Config:        authenticationConfig,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
@@ -667,10 +668,26 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  verificationStoreRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -717,21 +734,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
@@ -1113,10 +1115,26 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -1299,10 +1317,26 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -1568,10 +1602,26 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -1611,21 +1661,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
@@ -1972,10 +2007,26 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -2015,21 +2066,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
@@ -2375,10 +2411,26 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -2419,21 +2471,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
@@ -2752,10 +2789,26 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -2804,21 +2857,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
@@ -3157,10 +3195,26 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -3201,21 +3255,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
@@ -3553,10 +3592,26 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -3597,21 +3652,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
@@ -3949,10 +3989,26 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -3993,21 +4049,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
@@ -4346,10 +4387,26 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -4390,21 +4447,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
@@ -4744,10 +4786,26 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -4788,21 +4846,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
@@ -5140,10 +5183,26 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -5184,21 +5243,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
@@ -5536,10 +5580,26 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -5580,21 +5640,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
@@ -5932,10 +5977,26 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -5976,21 +6037,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
@@ -6328,10 +6374,26 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -6372,21 +6434,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
@@ -6724,10 +6771,26 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -6768,21 +6831,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
@@ -7120,10 +7168,26 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -7164,21 +7228,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
@@ -7520,10 +7569,26 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -7564,21 +7629,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
@@ -7917,10 +7967,26 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -7961,21 +8027,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
@@ -8313,10 +8364,26 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -8357,21 +8424,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
@@ -8710,10 +8762,26 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -8754,21 +8822,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
@@ -9227,10 +9280,26 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -9271,21 +9340,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
@@ -9627,10 +9681,26 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -9671,21 +9741,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
@@ -10026,10 +10081,26 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -10070,21 +10141,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
@@ -10425,10 +10481,26 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -10469,21 +10541,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
@@ -10825,10 +10882,26 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -10869,21 +10942,6 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
 		Redis: redisHandle,
@@ -11200,10 +11258,26 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -11473,10 +11547,26 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -11525,21 +11615,6 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
@@ -11855,10 +11930,26 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -11907,21 +11998,6 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
@@ -12425,10 +12501,26 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		CodeStore:  verificationStoreRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -12598,10 +12690,26 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		CodeStore:  storeRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
@@ -12650,21 +12758,6 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{

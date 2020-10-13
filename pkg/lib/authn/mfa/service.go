@@ -63,6 +63,10 @@ func (s *Service) GenerateRecoveryCodes() []string {
 	return codes
 }
 
+func (s *Service) InvalidateAllRecoveryCode(userID string) error {
+	return s.RecoveryCodes.DeleteAll(userID)
+}
+
 func (s *Service) ReplaceRecoveryCodes(userID string, codes []string) ([]*RecoveryCode, error) {
 	codeModels := make([]*RecoveryCode, len(codes))
 	now := s.Clock.NowUTC()
