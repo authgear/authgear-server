@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 
@@ -9,13 +10,17 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/portal/db"
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 var ErrCollaboratorNotFound = apierrors.NotFound.WithReason("CollaboratorNotFound").New("collaborator not found")
+var ErrCollaboratorUnauthorized = apierrors.Unauthorized.WithReason("CollaboratorUnauthorized").New("collaborator unauthorized")
+var ErrCollaboratorSelfDeletion = apierrors.Forbidden.WithReason("CollaboratorSelfDeletion").New("cannot remove self from collaborator")
 
 type CollaboratorService struct {
+	Context     context.Context
 	Clock       clock.Clock
 	SQLBuilder  *db.SQLBuilder
 	SQLExecutor *db.SQLExecutor
@@ -114,6 +119,14 @@ func (s *CollaboratorService) GetCollaborator(id string) (*model.Collaborator, e
 }
 
 func (s *CollaboratorService) DeleteCollaborator(c *model.Collaborator) error {
+	sessionInfo := session.GetValidSessionInfo(s.Context)
+	if sessionInfo == nil {
+		return ErrCollaboratorUnauthorized
+	}
+	if c.UserID == sessionInfo.UserID {
+		return ErrCollaboratorSelfDeletion
+	}
+
 	_, err := s.SQLExecutor.ExecWith(s.SQLBuilder.
 		Delete(s.SQLBuilder.FullTableName("app_collaborator")).
 		Where("id = ?", c.ID),

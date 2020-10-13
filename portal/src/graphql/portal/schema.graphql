@@ -103,6 +103,18 @@ The `DateTime` scalar type represents a DateTime. The DateTime is serialized as 
 scalar DateTime
 
 """"""
+input DeleteCollaboratorInput {
+  """Collaborator ID."""
+  collaboratorID: String!
+}
+
+""""""
+type DeleteCollaboratorPayload {
+  """"""
+  app: App!
+}
+
+""""""
 input DeleteDomainInput {
   """Target app ID."""
   appID: ID!
@@ -148,6 +160,9 @@ type Mutation {
 
   """Create domain for target app"""
   createDomain(input: CreateDomainInput!): CreateDomainPayload!
+
+  """Delete collaborator of target app"""
+  deleteCollaborator(input: DeleteCollaboratorInput!): DeleteCollaboratorPayload!
 
   """Delete domain of target app"""
   deleteDomain(input: DeleteDomainInput!): DeleteDomainPayload!

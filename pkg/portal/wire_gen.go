@@ -106,6 +106,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	collaboratorService := &service.CollaboratorService{
+		Context:     context,
 		Clock:       clock,
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -205,6 +206,7 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	collaboratorService := &service.CollaboratorService{
+		Context:     context,
 		Clock:       clockClock,
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
