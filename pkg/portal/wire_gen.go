@@ -112,6 +112,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	authzService := &service.AuthzService{
+		Context:       context,
 		Configs:       configService,
 		Collaborators: collaboratorService,
 	}
@@ -154,6 +155,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Apps:          appLoader,
 		Domains:       domainLoader,
 		Collaborators: collaboratorLoader,
+		AuthzService:  authzService,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		DevMode:        devMode,
@@ -212,6 +214,7 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	authzService := &service.AuthzService{
+		Context:       context,
 		Configs:       configService,
 		Collaborators: collaboratorService,
 	}

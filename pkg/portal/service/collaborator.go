@@ -138,11 +138,17 @@ func (s *CollaboratorService) GetCollaborator(id string) (*model.Collaborator, e
 	return scanCollaborator(row)
 }
 
+func (s *CollaboratorService) GetCollaboratorByAppAndUser(appID string, userID string) (*model.Collaborator, error) {
+	q := s.selectCollaborator().Where("app_id = ? AND user_id = ?", appID, userID)
+	row, err := s.SQLExecutor.QueryRowWith(q)
+	if err != nil {
+		return nil, err
+	}
+	return scanCollaborator(row)
+}
+
 func (s *CollaboratorService) DeleteCollaborator(c *model.Collaborator) error {
 	sessionInfo := session.GetValidSessionInfo(s.Context)
-	if sessionInfo == nil {
-		return ErrCollaboratorUnauthorized
-	}
 	if c.UserID == sessionInfo.UserID {
 		return ErrCollaboratorSelfDeletion
 	}
@@ -184,16 +190,10 @@ func (s *CollaboratorService) SendInvitation(
 	inviteeEmail string,
 ) (*model.CollaboratorInvitation, error) {
 	sessionInfo := session.GetValidSessionInfo(s.Context)
-	if sessionInfo == nil {
-		return nil, ErrCollaboratorUnauthorized
-	}
 	invitedBy := sessionInfo.UserID
 
 	// FIXME(collaborator): Check if the invitee is collaborator
 	// It is impossible now because Admin API does not have getUserByClaim
-
-	// FIXME(collaborator): Check if the actor is a collaborator
-	// We should do this for all querys and mutations.
 
 	// Check if the invitee has a pending invitation already.
 	invitations, err := s.ListInvitations(appID)
@@ -253,11 +253,7 @@ func (s *CollaboratorService) DeleteInvitation(i *model.CollaboratorInvitation) 
 }
 
 func (s *CollaboratorService) AcceptInvitation(code string) (*model.Collaborator, error) {
-	sessionInfo := session.GetValidSessionInfo(s.Context)
-	if sessionInfo == nil {
-		return nil, ErrCollaboratorUnauthorized
-	}
-	actorID := sessionInfo.UserID
+	actorID := session.GetValidSessionInfo(s.Context).UserID
 
 	now := s.Clock.NowUTC()
 	q := s.selectCollaboratorInvitation().Where("code = ? AND expire_at > ?", code, now)

@@ -12,6 +12,10 @@ import (
 var deleteCollaboratorInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "DeleteCollaboratorInput",
 	Fields: graphql.InputObjectConfigFieldMap{
+		"appID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target app ID.",
+		},
 		"collaboratorID": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewNonNull(graphql.String),
 			Description: "Collaborator ID.",
@@ -39,8 +43,20 @@ var _ = registerMutationField(
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			input := p.Args["input"].(map[string]interface{})
 			collaboratorID := input["collaboratorID"].(string)
+			appNodeID := input["appID"].(string)
+			resolvedNodeID := relay.FromGlobalID(appNodeID)
+			if resolvedNodeID.Type != typeApp {
+				return nil, apierrors.NewInvalid("invalid app ID")
+			}
+			appID := resolvedNodeID.ID
 
 			gqlCtx := GQLContext(p.Context)
+
+			err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			if err != nil {
+				return nil, err
+			}
+
 			return gqlCtx.Collaborators.DeleteCollaborator(collaboratorID).
 				Map(func(value interface{}) (interface{}, error) {
 					c := value.(*model.Collaborator)
@@ -56,6 +72,10 @@ var _ = registerMutationField(
 var deleteCollaboratorInvitationInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "DeleteCollaboratorInvitationInput",
 	Fields: graphql.InputObjectConfigFieldMap{
+		"appID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target app ID.",
+		},
 		"collaboratorInvitationID": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewNonNull(graphql.String),
 			Description: "Collaborator invitation ID.",
@@ -82,9 +102,22 @@ var _ = registerMutationField(
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			input := p.Args["input"].(map[string]interface{})
+			appNodeID := input["appID"].(string)
 			collaboratorInvitationID := input["collaboratorInvitationID"].(string)
 
+			resolvedNodeID := relay.FromGlobalID(appNodeID)
+			if resolvedNodeID.Type != typeApp {
+				return nil, apierrors.NewInvalid("invalid app ID")
+			}
+			appID := resolvedNodeID.ID
+
 			gqlCtx := GQLContext(p.Context)
+
+			err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			if err != nil {
+				return nil, err
+			}
+
 			return gqlCtx.Collaborators.DeleteInvitation(collaboratorInvitationID).
 				Map(func(value interface{}) (interface{}, error) {
 					i := value.(*model.CollaboratorInvitation)
@@ -164,6 +197,12 @@ var _ = registerMutationField(
 			appID := resolvedNodeID.ID
 
 			gqlCtx := GQLContext(p.Context)
+
+			err = gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			if err != nil {
+				return nil, err
+			}
+
 			return gqlCtx.Collaborators.SendInvitation(appID, inviteeEmail).
 				Map(func(value interface{}) (interface{}, error) {
 					app := gqlCtx.Apps.Get(appID)

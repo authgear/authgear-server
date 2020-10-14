@@ -52,6 +52,12 @@ var _ = registerMutationField(
 			appID := resolvedNodeID.ID
 
 			gqlCtx := GQLContext(p.Context)
+
+			err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			if err != nil {
+				return nil, err
+			}
+
 			lazy := gqlCtx.Apps.Get(appID)
 			return lazy.
 				Map(func(value interface{}) (interface{}, error) {
@@ -111,6 +117,12 @@ var _ = registerMutationField(
 			appID := resolvedNodeID.ID
 
 			gqlCtx := GQLContext(p.Context)
+
+			err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			if err != nil {
+				return nil, err
+			}
+
 			lazy := gqlCtx.Apps.Get(appID)
 			return lazy.
 				Map(func(value interface{}) (interface{}, error) {
@@ -170,6 +182,12 @@ var _ = registerMutationField(
 			appID := resolvedNodeID.ID
 
 			gqlCtx := GQLContext(p.Context)
+
+			err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			if err != nil {
+				return nil, err
+			}
+
 			lazy := gqlCtx.Apps.Get(appID)
 			return lazy.
 				Map(func(value interface{}) (interface{}, error) {
@@ -178,7 +196,7 @@ var _ = registerMutationField(
 						Map(func(domain interface{}) (interface{}, error) {
 							return map[string]interface{}{
 								"domain": domain,
-								"app":          app,
+								"app":    app,
 							}, nil
 						}), nil
 				}).Value, nil
