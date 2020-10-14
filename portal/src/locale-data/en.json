@@ -273,6 +273,8 @@
   "PasswordlessAuthenticatorScreen.subsequent-logins.sms-body.label": "SMS body for subsequent logins",
 
   "OAuthClientConfiguration.title": "Client Applications",
+  "OAuthClientConfigurationScreen.allowed-origins.header": "Allowed Origins",
+  "OAuthClientConfigurationScreen.allowed-origins.desc": "Configure cross-origin resource sharing (CORS), allowing users to call Authgear from the list of domains specified here",
   "OAuthClientConfiguration.add-client-button": "Add Client",
   "OAuthClientConfiguration.client-list.name": "Name",
   "OAuthClientConfiguration.client-list.creation-date": "Creation Date",
