@@ -33,11 +33,10 @@ type AuthenticatorPasswordConfig struct {
 }
 
 func (c *AuthenticatorPasswordConfig) SetDefaults() {
-	if c.Policy != nil {
-		if c.Policy.MinLength == nil {
-			c.Policy.MinLength = newInt(1)
-		}
+	if c.Policy == nil {
+		c.Policy = &PasswordPolicyConfig{}
 	}
+	c.Policy.SetDefaults()
 }
 
 var _ = Schema.Add("PasswordPolicyConfig", `
@@ -72,6 +71,12 @@ type PasswordPolicyConfig struct {
 
 func (c *PasswordPolicyConfig) IsEnabled() bool {
 	return c.HistorySize > 0 || c.HistoryDays > 0
+}
+
+func (c *PasswordPolicyConfig) SetDefaults() {
+	if c.MinLength == nil {
+		c.MinLength = newInt(1)
+	}
 }
 
 var _ = Schema.Add("AuthenticatorTOTPConfig", `
