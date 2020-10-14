@@ -7,6 +7,7 @@ import { APIPasswordPolicyViolatedError } from "./password";
 import { APIDuplicatedDomainError } from "./duplicatedDomain";
 import { APIForbiddenError } from "./forbidden";
 import { APIInvalidDomainError } from "./invalidDomain";
+import { APIDomainVerificationFailedError } from "./domainVerificationFailed";
 
 export type APIError =
   | APIValidationError
@@ -14,7 +15,8 @@ export type APIError =
   | APIPasswordPolicyViolatedError
   | APIDuplicatedDomainError
   | APIForbiddenError
-  | APIInvalidDomainError;
+  | APIInvalidDomainError
+  | APIDomainVerificationFailedError;
 
 export function isAPIError(value?: { [key: string]: any }): value is APIError {
   if (value == null) {

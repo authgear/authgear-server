@@ -331,6 +331,7 @@
   "VerifyDomainScreen.list.header.record-type": "Type",
   "VerifyDomainScreen.list.header.host": "Host",
   "VerifyDomainScreen.list.header.value": "Value",
+  "VerifyDomainScreen.error.verification-error": "Failed to verify domain",
 
   "PaginationWidget.First": "Go to the first page",
   "PaginationWidget.Prev": "Go to the previous page",

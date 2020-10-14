@@ -16,8 +16,11 @@ import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import ButtonWithLoading from "../../ButtonWithLoading";
+import ErrorDialog from "../../error/ErrorDialog";
 import { Domain, useDomainsQuery } from "./query/domainsQuery";
+import { useVerifyDomainMutation } from "./mutations/verifyDomainMutation";
 import { copyToClipboard } from "../../util/clipboard";
+import { GenericErrorHandlingRule } from "../../error/useGenericError";
 
 import styles from "./VerifyDomainScreen.module.scss";
 
@@ -113,8 +116,15 @@ const VerifyDomain: React.FC<VerifyDomainProps> = function VerifyDomain(
 ) {
   const { domain, nonCustomVerifiedDomain } = props;
   const navigate = useNavigate();
+  const { appID } = useParams();
 
   const { renderToString } = useContext(Context);
+
+  const {
+    verifyDomain,
+    loading: verifyingDomain,
+    error: verifyDomainError,
+  } = useVerifyDomainMutation(appID);
 
   const dnsRecordListColumns = useMemo(() => {
     return makeDNSRecordListColumns(renderToString);
@@ -140,15 +150,31 @@ const VerifyDomain: React.FC<VerifyDomainProps> = function VerifyDomain(
   }, []);
 
   const onVerifyClick = useCallback(() => {
-    // TODO: to be implemented
-  }, []);
+    verifyDomain(domain.id)
+      .then((success) => {
+        if (success) {
+          navigate("../..?verify=success");
+        }
+      })
+      .catch(() => {});
+  }, [verifyDomain, domain, navigate]);
 
   const onCancelClick = useCallback(() => {
     navigate("../..");
   }, [navigate]);
 
+  const errorRules: GenericErrorHandlingRule[] = useMemo(() => {
+    return [
+      {
+        reason: "DomainVerificationFailed",
+        errorMessageID: "VerifyDomainScreen.error.verification-error",
+      },
+    ];
+  }, []);
+
   return (
     <section className={styles.content}>
+      <ErrorDialog error={verifyDomainError} rules={errorRules} />
       <Text className={styles.desc}>
         <span>
           <FormattedMessage id="VerifyDomainScreen.desc-main" />
@@ -168,7 +194,7 @@ const VerifyDomain: React.FC<VerifyDomainProps> = function VerifyDomain(
       >
         <ButtonWithLoading
           labelId="verify"
-          loading={false}
+          loading={verifyingDomain}
           onClick={onVerifyClick}
         />
         <DefaultButton onClick={onCancelClick}>
