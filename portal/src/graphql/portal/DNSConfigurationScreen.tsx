@@ -220,15 +220,22 @@ const AddDomainSection: React.FC = function AddDomainSection() {
     return newDomain !== "";
   }, [newDomain]);
 
-  // NOTE: if domain is invalid, generic error without extensions is thrown
-  const addDomainErrorMessage = useGenericError(
-    createDomainError,
-    [
+  const errorRules: GenericErrorHandlingRule[] = useMemo(() => {
+    return [
       {
         errorMessageID: "DNSConfigurationScreen.add-domain.duplicated-error",
         reason: "DuplicatedDomain",
       },
-    ],
+      {
+        errorMessageID: "DNSConfigurationScreen.add-domain.invalid-error",
+        reason: "InvalidDomain",
+      },
+    ];
+  }, []);
+
+  const addDomainErrorMessage = useGenericError(
+    createDomainError,
+    errorRules,
     "DNSConfigurationScreen.add-domain.generic-error"
   );
 
