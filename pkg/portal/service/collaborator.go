@@ -19,8 +19,8 @@ import (
 )
 
 var ErrCollaboratorNotFound = apierrors.NotFound.WithReason("CollaboratorNotFound").New("collaborator not found")
-var ErrCollaboratorUnauthorized = apierrors.Unauthorized.WithReason("CollaboratorUnauthorized").New("collaborator unauthorized")
 var ErrCollaboratorSelfDeletion = apierrors.Forbidden.WithReason("CollaboratorSelfDeletion").New("cannot remove self from collaborator")
+var ErrCollaboratorDuplicate = apierrors.AlreadyExists.WithReason("CollaboratorDuplicate").New("collaborator duplicate")
 
 var ErrCollaboratorInvitationNotFound = apierrors.NotFound.WithReason("CollaboratorInvitationNotFound").New("collaborator invitation not found")
 var ErrCollaboratorInvitationDuplicate = apierrors.AlreadyExists.WithReason("CollaboratorInvitationDuplicate").New("collaborator invitation duplicate")
@@ -192,8 +192,11 @@ func (s *CollaboratorService) SendInvitation(
 	sessionInfo := session.GetValidSessionInfo(s.Context)
 	invitedBy := sessionInfo.UserID
 
-	// FIXME(collaborator): Check if the invitee is collaborator
-	// It is impossible now because Admin API does not have getUserByClaim
+	// TODO(collaborator): Ideally we should prevent sending invitation to existing collaborator.
+	// However, this is not harmful to not have it.
+	// The collaborator will receive the invitation and they cannot accept it because
+	// we have database constraint to enforce this invariant.
+	// If Admin API have getUserByClaim, then we can detect this condition here.
 
 	// Check if the invitee has a pending invitation already.
 	invitations, err := s.ListInvitations(appID)
@@ -285,6 +288,15 @@ func (s *CollaboratorService) AcceptInvitation(code string) (*model.Collaborator
 	// FIXME(collaborator): Check if the inviteeEmail matches actor.
 	err = s.DeleteInvitation(invitation)
 	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.GetCollaboratorByAppAndUser(invitation.AppID, actorID)
+	if err == nil {
+		return nil, ErrCollaboratorDuplicate
+	}
+
+	if err != nil && !errors.Is(err, ErrCollaboratorNotFound) {
 		return nil, err
 	}
 
