@@ -1,5 +1,20 @@
+""""""
+input AcceptCollaboratorInvitationInput {
+  """Invitation code."""
+  code: String!
+}
+
+""""""
+type AcceptCollaboratorInvitationPayload {
+  """"""
+  app: App!
+}
+
 """Authgear app"""
 type App implements Node {
+  """"""
+  collaboratorInvitations: [CollaboratorInvitation!]!
+
   """"""
   collaborators: [Collaborator!]!
 
@@ -67,6 +82,24 @@ type Collaborator {
   userID: String!
 }
 
+"""Collaborator invitation of an app"""
+type CollaboratorInvitation {
+  """"""
+  createdAt: DateTime!
+
+  """"""
+  expireAt: DateTime!
+
+  """"""
+  id: String!
+
+  """"""
+  invitedBy: String!
+
+  """"""
+  inviteeEmail: String!
+}
+
 """"""
 input CreateAppInput {
   """ID of the new app."""
@@ -75,6 +108,21 @@ input CreateAppInput {
 
 """"""
 type CreateAppPayload {
+  """"""
+  app: App!
+}
+
+""""""
+input CreateCollaboratorInvitationInput {
+  """Target app ID."""
+  appID: ID!
+
+  """Invitee email address."""
+  inviteeEmail: String!
+}
+
+""""""
+type CreateCollaboratorInvitationPayload {
   """"""
   app: App!
 }
@@ -104,8 +152,26 @@ scalar DateTime
 
 """"""
 input DeleteCollaboratorInput {
+  """Target app ID."""
+  appID: ID!
+
   """Collaborator ID."""
   collaboratorID: String!
+}
+
+""""""
+input DeleteCollaboratorInvitationInput {
+  """Target app ID."""
+  appID: ID!
+
+  """Collaborator invitation ID."""
+  collaboratorInvitationID: String!
+}
+
+""""""
+type DeleteCollaboratorInvitationPayload {
+  """"""
+  app: App!
 }
 
 """"""
@@ -155,14 +221,23 @@ type Domain {
 
 """"""
 type Mutation {
+  """Accept collaborator invitation to the target app."""
+  acceptCollaboratorInvitation(input: AcceptCollaboratorInvitationInput!): AcceptCollaboratorInvitationPayload!
+
   """Create new app"""
   createApp(input: CreateAppInput!): CreateAppPayload!
+
+  """Invite a collaborator to the target app."""
+  createCollaboratorInvitation(input: CreateCollaboratorInvitationInput!): CreateCollaboratorInvitationPayload!
 
   """Create domain for target app"""
   createDomain(input: CreateDomainInput!): CreateDomainPayload!
 
-  """Delete collaborator of target app"""
+  """Delete collaborator of target app."""
   deleteCollaborator(input: DeleteCollaboratorInput!): DeleteCollaboratorPayload!
+
+  """Delete collaborator invitation of target app."""
+  deleteCollaboratorInvitation(input: DeleteCollaboratorInvitationInput!): DeleteCollaboratorInvitationPayload!
 
   """Delete domain of target app"""
   deleteDomain(input: DeleteDomainInput!): DeleteDomainPayload!

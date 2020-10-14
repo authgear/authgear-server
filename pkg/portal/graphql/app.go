@@ -84,6 +84,14 @@ var nodeApp = node(
 					return ctx.Collaborators.ListCollaborators(app.ID).Value, nil
 				},
 			},
+			"collaboratorInvitations": &graphql.Field{
+				Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(collaboratorInvitation))),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					ctx := GQLContext(p.Context)
+					app := p.Source.(*model.App)
+					return ctx.Collaborators.ListInvitations(app.ID).Value, nil
+				},
+			},
 		},
 	}),
 	&model.App{},
