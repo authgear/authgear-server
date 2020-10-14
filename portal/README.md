@@ -99,8 +99,32 @@ Follow the instruction on the webpage,
 
 Make sure you go to authgear portal page, use `http://localhost:8000` (access through proxy), the webpage needs to call graphQL server with the same domain and port. The api call fails if we access through port 1234 directly.
 
-# Two graphql schemas
+## Two graphql schemas
 
 We have two graphql schemas.
 We take advantage of [Babel 7 File-relative configuration](https://babeljs.io/docs/en/config-files#file-relative-configuration) to configure `babel-plugin-relay` differently.
 In this setup `relay-config` is useless to us.
+
+## Multi-tenant mode
+
+Some features (e.g. custom domains) requires multi-tenant mode to work properly.
+To setup multi-tenant mode:
+1. Setup local mock Kubernetes servers:
+    ```
+    cd hack/kube-apiserver
+    docker-compose up -d
+    ```
+2. Bootstrap Kubernetes resources:
+   ```
+   kubectl --kubeconfig=hack/kube-apiserver/.kubeconfig apply -f hack/kube-apiserver/k8s-ingress.yaml
+   ```
+3. Enable multi-tenant mode in Authgear & portal server:
+   refer to `.env.example.k8s` for example environment variables to set
+
+In this setup, the servers are hosted under different endpoint:
+- Portal UI: http://portal.localhost:8000/
+- Authgear: http://accounts.portal.localhost:3000/
+
+The local DNS may need to be updated to point both domain
+(`portal.localhost` and `accounts.portal.localhost`) to local IP (`127.0.0.1`),
+by either editing `/etc/hosts` or setup `dnsmasq`.
