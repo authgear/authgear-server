@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 var deleteCollaboratorInput = graphql.NewInputObject(graphql.InputObjectConfig{
@@ -110,6 +111,23 @@ var createCollaboratorInvitationInput = graphql.NewInputObject(graphql.InputObje
 	},
 })
 
+var createCollaboratorInvitationInputSchemaName = "CreateCollaboratorInvitationInputSchema"
+
+var createCollaboratorInvitationInputSchema = validation.NewMultipartSchema("").
+	Add(createCollaboratorInvitationInputSchemaName, `
+	{
+		"type": "object",
+		"properties": {
+			"appID": { "type": "string" },
+			"inviteeEmail": {
+				"type": "string",
+				"format": "email"
+			}
+		},
+		"required": ["appID", "inviteeEmail"]
+	}
+	`).Instantiate()
+
 var createCollaboratorInvitationPayload = graphql.NewObject(graphql.ObjectConfig{
 	Name: "CreateCollaboratorInvitationPayload",
 	Fields: graphql.Fields{
@@ -129,6 +147,13 @@ var _ = registerMutationField(
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			input := p.Args["input"].(map[string]interface{})
+			err := createCollaboratorInvitationInputSchema.PartValidator(
+				createCollaboratorInvitationInputSchemaName,
+			).ValidateValue(input)
+			if err != nil {
+				return nil, err
+			}
+
 			appNodeID := input["appID"].(string)
 			inviteeEmail := input["inviteeEmail"].(string)
 
@@ -137,8 +162,6 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInvalid("invalid app ID")
 			}
 			appID := resolvedNodeID.ID
-
-			// FIXME(collaborator): Use JSON schema to validate input.
 
 			gqlCtx := GQLContext(p.Context)
 			return gqlCtx.Collaborators.SendInvitation(appID, inviteeEmail).
