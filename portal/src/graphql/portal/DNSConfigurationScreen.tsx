@@ -120,14 +120,9 @@ const PublicOriginConfiguration: React.FC<PublicOriginConfigurationProps> = func
 
   const publicOriginOptionKeys = useMemo(() => {
     const keys = verifiedDomains.map((domain) => {
-      try {
-        // assume scheme included if success
-        const url = new URL(domain.domain);
-        return url.origin;
-      } catch {
-        // otherwise assume https scheme
-        return `https://${domain.domain}`;
-      }
+      // assume domain has no scheme
+      // use https scheme
+      return `https://${domain.domain}`;
     });
     if (initialPublicOrigin !== "" && !keys.includes(initialPublicOrigin)) {
       keys.unshift(initialPublicOrigin);
