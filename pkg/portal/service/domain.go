@@ -38,7 +38,7 @@ var ErrDomainNotCustom = apierrors.Forbidden.WithReason("DomainNotCustom").
 var DomainVerificationFailed = apierrors.Forbidden.WithReason("DomainVerificationFailed")
 
 type DomainConfigService interface {
-	CreateDomain(appID string, domain *model.Domain) error
+	CreateDomain(appID string, domainID string, domain string, isCustom bool) error
 	DeleteDomain(domain *model.Domain) error
 }
 
@@ -84,7 +84,7 @@ func (s *DomainService) CreateDomain(appID string, domain string, isVerified boo
 
 	domainModel := d.toModel(isVerified)
 	if isVerified {
-		err = s.DomainConfig.CreateDomain(appID, domainModel)
+		err = s.DomainConfig.CreateDomain(appID, domainModel.ID, domainModel.Domain, domainModel.IsCustom)
 		if err != nil {
 			return nil, err
 		}
@@ -173,7 +173,7 @@ func (s *DomainService) VerifyDomain(appID string, id string) (*model.Domain, er
 	}
 
 	domainModel := d.toModel(true)
-	err = s.DomainConfig.CreateDomain(appID, domainModel)
+	err = s.DomainConfig.CreateDomain(appID, domainModel.ID, domainModel.Domain, domainModel.IsCustom)
 	if err != nil {
 		return nil, err
 	}

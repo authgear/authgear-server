@@ -38,6 +38,7 @@ var ErrGetStaticAppIDsNotSupported = errors.New("only local FS config source can
 type ingressDef struct {
 	AppID         string
 	DomainID      string
+	IsCustom      bool
 	Host          string
 	TLSSecretName string
 }
@@ -118,10 +119,10 @@ func (s *ConfigService) UpdateConfig(appID string, updateFiles []*model.AppConfi
 	return nil
 }
 
-func (s *ConfigService) CreateDomain(appID string, domain *model.Domain) error {
+func (s *ConfigService) CreateDomain(appID string, domainID string, domain string, isCustom bool) error {
 	switch src := s.Controller.Handle.(type) {
 	case *configsource.Kubernetes:
-		err := s.createKubernetesIngress(src, appID, domain)
+		err := s.createKubernetesIngress(src, appID, domainID, domain, isCustom)
 		if err != nil {
 			return err
 		}
@@ -253,9 +254,15 @@ func (s *ConfigService) createKubernetes(k *configsource.Kubernetes, opts *Creat
 	return nil
 }
 
-func (s *ConfigService) createKubernetesIngress(k *configsource.Kubernetes, appID string, domain *model.Domain) error {
+func (s *ConfigService) createKubernetesIngress(
+	k *configsource.Kubernetes,
+	appID string,
+	domainID string,
+	domain string,
+	isCustom bool,
+) error {
 	var tlsCertConfig portalconfig.TLSCertConfig
-	if domain.IsCustom {
+	if isCustom {
 		tlsCertConfig = s.AppConfig.Kubernetes.CustomDomainTLSCert
 	} else {
 		tlsCertConfig = s.AppConfig.Kubernetes.DefaultDomainTLSCert
@@ -263,8 +270,9 @@ func (s *ConfigService) createKubernetesIngress(k *configsource.Kubernetes, appI
 
 	def := &ingressDef{
 		AppID:    appID,
-		DomainID: domain.ID,
-		Host:     domain.Domain,
+		DomainID: domainID,
+		IsCustom: isCustom,
+		Host:     domain,
 	}
 	setupCert, err := s.setupTLSCert(k, def, tlsCertConfig)
 	if err != nil {

@@ -42,7 +42,7 @@ type AppConfigService interface {
 	ResolveContext(appID string) (*config.AppContext, error)
 	UpdateConfig(appID string, updateFiles []*model.AppConfigFile, deleteFiles []string) error
 	Create(opts *CreateAppOptions) error
-	CreateDomain(appID string, domain *model.Domain) error
+	CreateDomain(appID string, domainID string, domain string, isCustom bool) error
 }
 
 type AppAuthzService interface {
@@ -165,14 +165,23 @@ func (s *AppService) Create(userID string, id string) error {
 		adminAPIHost: {},
 	}
 	for host := range hosts {
+		isMain := host == appHost
+
 		domain := host
 		if h, _, err := net.SplitHostPort(host); err == nil {
 			domain = h
 		}
 
-		_, err := s.AppDomains.CreateDomain(id, domain, true, false)
-		if err != nil {
-			return err
+		if isMain {
+			_, err := s.AppDomains.CreateDomain(id, domain, true, false)
+			if err != nil {
+				return err
+			}
+		} else {
+			err := s.AppConfigs.CreateDomain(id, "", domain, false)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
