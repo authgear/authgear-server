@@ -69,7 +69,16 @@ type CreatePasswordHandler struct {
 func (h *CreatePasswordHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-	identityInfo := graph.MustGetUserLastIdentity()
+
+	displayID := ""
+	var node CreateAuthenticatorBeginNode
+	if !graph.FindLastNode(&node) {
+		panic("create_authenticator_begin: expected graph has node implementing CreateAuthenticatorBeginNode")
+	}
+	if node.GetCreateAuthenticatorStage() == interaction.AuthenticationStagePrimary {
+		identityInfo := graph.MustGetUserLastIdentity()
+		displayID = identityInfo.DisplayID()
+	}
 
 	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModel(
 		h.PasswordPolicy.PasswordPolicy(),
@@ -87,7 +96,7 @@ func (h *CreatePasswordHandler) GetData(r *http.Request, state *webapp.State, gr
 	}
 
 	createPasswordViewModel := CreatePasswordViewModel{
-		IdentityDisplayID: identityInfo.DisplayID(),
+		IdentityDisplayID: displayID,
 		Alternatives:      alternatives,
 	}
 

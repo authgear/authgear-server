@@ -33,7 +33,7 @@
     </p>
     <p class="description secondary-txt">
       <!-- FIXME(ui): Use user preferred timezone -->
-      {{ template "settings-page-primary-password-description" (makemap "time" .CreatedAt) }}
+      {{ template "settings-page-primary-password-description" (makemap "time" .UpdatedAt) }}
     </p>
     <a class="action" href="/change_password">
       {{ template "change-password-button-label" }}
@@ -155,15 +155,25 @@
     {{ if $secondary_password }}
     <p class="description secondary-txt">
       <!-- FIXME(ui): Use user preferred timezone -->
-      {{ template "settings-page-secondary-password-description" (makemap "time" $secondary_password.CreatedAt) }}
+      {{ template "settings-page-secondary-password-description" (makemap "time" $secondary_password.UpdatedAt) }}
     </p>
-    <a class="action" href="#">
+    <a class="action secondary-btn" href="/change_secondary_password">
       {{ template "change-password-button-label" }}
     </a>
+    <form class="action-2" method="post" novalidate>
+      {{ $.CSRFField }}
+      <input type="hidden" name="x_authenticator_id" value="{{ $secondary_password.ID }}">
+      <button class="destructive-btn" type="submit" name="x_action" value="remove_secondary_password">
+        {{ template "remove-button-label" }}
+      </button>
+    </form>
     {{ else }}
-    <a class="action" href="#">
-      {{ template "setup-button-label" }}
-    </a>
+    <form class="action" method="post" novalidate>
+      {{ $.CSRFField }}
+      <button class="secondary-btn" type="submit" name="x_action" value="setup_secondary_password">
+        {{ template "setup-password-button-label" }}
+      </button>
+    </form>
     {{ end }}
   </section>
   {{ end }}

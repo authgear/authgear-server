@@ -108,6 +108,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 	router.Add(webapphandler.ConfigureSettingsRecoveryCodeRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsRecoveryCodeHandler))
 	router.Add(webapphandler.ConfigureSettingsRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsHandler))
 	router.Add(webapphandler.ConfigureChangePasswordRoute(webappAuthenticatedRoute), p.Handler(newWebAppChangePasswordHandler))
+	router.Add(webapphandler.ConfigureChangeSecondaryPasswordRoute(webappAuthenticatedRoute), p.Handler(newWebAppChangeSecondaryPasswordHandler))
 
 	router.Add(webapphandler.ConfigureSSOCallbackRoute(webappSSOCallbackRoute), p.Handler(newWebAppSSOCallbackHandler))
 

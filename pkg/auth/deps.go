@@ -39,6 +39,7 @@ var DependencySet = wire.NewSet(
 
 	wire.Bind(new(webapp.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 	wire.Bind(new(webapp.GraphService), new(*interaction.Service)),
+	wire.Bind(new(webapp.StateMiddlewareGraphs), new(*interaction.Service)),
 	wire.Bind(new(webapp.CookieFactory), new(*httputil.CookieFactory)),
 
 	wire.NewSet(

@@ -97,6 +97,10 @@ func (n *NodeCreateAuthenticatorBegin) GetCreateAuthenticatorEdges() ([]interact
 	return n.deriveEdges()
 }
 
+func (n *NodeCreateAuthenticatorBegin) GetCreateAuthenticatorStage() interaction.AuthenticationStage {
+	return n.Stage
+}
+
 func (n *NodeCreateAuthenticatorBegin) deriveEdges() ([]interaction.Edge, error) {
 	var edges []interaction.Edge
 	var err error

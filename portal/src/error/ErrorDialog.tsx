@@ -7,13 +7,14 @@ import { GenericErrorHandlingRule, useGenericError } from "./useGenericError";
 interface ErrorDialogProps {
   error: unknown;
   rules: GenericErrorHandlingRule[];
+  fallbackErrorMessageID?: string;
 }
 
 const ErrorDialog: React.FC<ErrorDialogProps> = function ErrorDialog(
   props: ErrorDialogProps
 ) {
-  const { error, rules } = props;
-  const errorMessage = useGenericError(error, rules);
+  const { error, rules, fallbackErrorMessageID } = props;
+  const errorMessage = useGenericError(error, rules, fallbackErrorMessageID);
 
   const [visible, setVisible] = useState(false);
 

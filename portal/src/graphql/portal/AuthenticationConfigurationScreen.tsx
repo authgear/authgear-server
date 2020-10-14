@@ -16,10 +16,16 @@ import { usePivotNavigation } from "../../hook/usePivot";
 
 import styles from "./AuthenticationConfigurationScreen.module.scss";
 
+const LOGIN_ID_PIVOT_KEY = "login-id";
+const AUTHENTICATOR_PIVOT_KEY = "authenticator";
+
 const AuthenticationScreen: React.FC = function AuthenticationScreen() {
   const { renderToString } = React.useContext(Context);
   const { appID } = useParams();
-  const { selectedKey, onLinkClick } = usePivotNavigation();
+  const { selectedKey, onLinkClick } = usePivotNavigation([
+    LOGIN_ID_PIVOT_KEY,
+    AUTHENTICATOR_PIVOT_KEY,
+  ]);
 
   const {
     updateAppConfig,
@@ -52,7 +58,7 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
         <div className={styles.tabsContainer}>
           <Pivot selectedKey={selectedKey} onLinkClick={onLinkClick}>
             <PivotItem
-              itemKey="login-id"
+              itemKey={LOGIN_ID_PIVOT_KEY}
               headerText={renderToString("AuthenticationScreen.login-id.title")}
             >
               <AuthenticationLoginIDSettings
@@ -64,7 +70,7 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
               />
             </PivotItem>
             <PivotItem
-              itemKey="authenticator"
+              itemKey={AUTHENTICATOR_PIVOT_KEY}
               headerText={renderToString(
                 "AuthenticationScreen.authenticator.title"
               )}

@@ -9,6 +9,7 @@ interface FormTextFieldProps extends ITextFieldProps {
   parentJSONPointer: RegExp | string;
   fieldName: string;
   fieldNameMessageID?: string;
+  hideLabel?: boolean;
 }
 
 const FormTextField: React.FC<FormTextFieldProps> = function FormTextField(
@@ -21,6 +22,7 @@ const FormTextField: React.FC<FormTextFieldProps> = function FormTextField(
     fieldNameMessageID,
     errorMessage: errorMessageProps,
     label: labelProps,
+    hideLabel,
     ...rest
   } = props;
 
@@ -43,7 +45,7 @@ const FormTextField: React.FC<FormTextFieldProps> = function FormTextField(
     <TextField
       {...rest}
       errorMessage={errorMessageProps ?? errorMessage}
-      label={labelProps ?? localizedFieldName}
+      label={hideLabel ? undefined : labelProps ?? localizedFieldName}
     />
   );
 };

@@ -3,6 +3,7 @@
 
   "loading": "Loading...",
 
+  "error": "Error",
   "action": "Action",
   "ok": "OK",
   "done": "Done",
@@ -15,6 +16,7 @@
   "details": "Details",
   "activated": "Activated",
   "remove": "Remove",
+  "delete": "Delete",
   "disable": "Disable",
   "confirm": "Confirm",
   "cancel": "Cancel",
@@ -42,6 +44,7 @@
 
   "show-error.retry": "Retry",
 
+  "generic-error.unknown-error": "Unknown error",
   "validation-error.required": "Required field `{fieldName}` is missing",
   "validation-error.general": "Invalid value",
   "validation-error.format": "Invalid format",
@@ -61,6 +64,7 @@
   "ScreenNav.passwordless-authenticator": "Passwordless Authenticator",
   "ScreenNav.client-applications": "Client Applications",
   "ScreenNav.user-interface": "User Interface",
+  "ScreenNav.dns": "DNS",
 
   "NavBreadcrumb.label": "Nested navigation",
 
@@ -298,6 +302,23 @@
   "ModifyOAuthClientForm.redirect-uris.invalid-error": "Invalid URIs",
   "ModifyOAuthClientForm.post-logout-redirect-uris-tooltip-message": "Users will be redirected to this path after they have logged out from Authgear.",
   "ModifyOAuthClientForm.post-logout-redirect-uris.invalid-error": "Invalid URIs",
+
+  "DNSConfigurationScreen.title": "DNS",
+  "DNSConfigurationScreen.desc": "You can add a custom domain so that users will login via, for example, “identity.yourdomain.com”. In this case, Authgear could also provide a cookie session under “yourdomain.com”, so that your websites could share the session cookies under “*.yourdomain.com” for a better customers experiences.",
+  "DNSConfigurationScreen.public-origin.header": "Public Origin",
+  "DNSConfigurationScreen.add-domain.generic-error": "Failed to add domain",
+  "DNSConfigurationScreen.add-domain.duplicated-error": "Domain is already in use",
+  "DNSConfigurationScreen.add-domain.invalid-error": "Invalid domain",
+  "DNSConfigurationScreen.domain-list.header.domain": "Domain",
+  "DNSConfigurationScreen.domain-list.header.status": "Status",
+  "DNSConfigurationScreen.domain-list.add-domain.placeholder": "Input New Domain",
+  "DNSConfigurationScreen.domain-list.status.not-verified": "Need Verify",
+  "DNSConfigurationScreen.domain-list.status.verified": "Configured",
+  "DNSConfigurationScreen.delete-domain-dialog.title": "Delete Domain",
+  "DNSConfigurationScreen.delete-domain-dialog.message": "Are you sure you want to delete {domain}",
+  "DNSConfigurationScreen.delete-domain-dialog.generic-error": "Failed to delete domain",
+  "DNSConfigurationScreen.delete-domain-dialog.forbidden-error": "You have no permission to delete domain",
+  "DNSConfigurationScreen.verify-success-message": "Verified domain successfully",
 
   "PaginationWidget.First": "Go to the first page",
   "PaginationWidget.Prev": "Go to the previous page",

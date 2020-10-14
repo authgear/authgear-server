@@ -220,3 +220,16 @@ config:
       keys:
         - key: email
           type: email
+
+---
+name: invalid-password-policy-for-min-length
+error: |-
+  invalid configuration:
+  /authenticator/password/policy/min_length: minimum
+    map[actual:0 minimum:1]
+config:
+  id: test
+  authenticator:
+    password:
+      policy:
+        min_length: 0

@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
+	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
@@ -277,10 +278,26 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		CodeStore:  verificationStoreRedis,
 		ClaimStore: storePQ,
 	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clock,
+		Config:        authenticationConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
 		Authenticators: service3,
 		Verification:   verificationService,
+		MFA:            mfaService,
 		IdentityConfig: identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
