@@ -76,6 +76,14 @@ var nodeApp = node(
 					return ctx.Domains.ListDomains(app.ID).Value, nil
 				},
 			},
+			"collaborators": &graphql.Field{
+				Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(collaborator))),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					ctx := GQLContext(p.Context)
+					app := p.Source.(*model.App)
+					return ctx.Collaborators.ListCollaborators(app.ID).Value, nil
+				},
+			},
 		},
 	}),
 	&model.App{},

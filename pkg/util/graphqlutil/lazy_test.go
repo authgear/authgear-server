@@ -68,5 +68,66 @@ func TestLazy(t *testing.T) {
 			So(must(lazy3.Value()), ShouldEqual, 123)
 			So(eval, ShouldEqual, 4)
 		})
+
+		Convey("should resolve value in objects", func() {
+			lazy1 := NewLazy(func() (interface{}, error) {
+				return map[string]interface{}{
+					"key": NewLazyValue(42),
+				}, nil
+			})
+			So(must(lazy1.Value()), ShouldResemble, map[string]interface{}{
+				"key": 42,
+			})
+
+			lazy2 := NewLazyValue(map[string]interface{}{
+				"key1": NewLazyValue(map[string]interface{}{
+					"key2": NewLazyValue(42),
+				}),
+			})
+			So(must(lazy2.Value()), ShouldResemble, map[string]interface{}{
+				"key1": map[string]interface{}{
+					"key2": 42,
+				},
+			})
+		})
+
+		Convey("should resolve value in slices", func() {
+			lazy1 := NewLazy(func() (interface{}, error) {
+				return []interface{}{
+					NewLazyValue(42),
+				}, nil
+			})
+			So(must(lazy1.Value()), ShouldResemble, []interface{}{42})
+
+			lazy2 := NewLazyValue([]interface{}{NewLazyValue([]interface{}{NewLazyValue(42)})})
+			So(must(lazy2.Value()), ShouldResemble, []interface{}{[]interface{}{42}})
+		})
+
+		Convey("should resolve value in arbitrary JSON compatible structure", func() {
+			lazyJSON := NewLazyValue(map[string]interface{}{
+				"apps": NewLazyValue([]interface{}{
+					NewLazyValue(map[string]interface{}{
+						"id": "1",
+						"domains": NewLazyValue([]interface{}{
+							NewLazyValue(map[string]interface{}{
+								"id": "2",
+							}),
+						}),
+					}),
+				}),
+			})
+			So(must(lazyJSON.Value()), ShouldResemble, map[string]interface{}{
+				"apps": []interface{}{
+					map[string]interface{}{
+						"id": "1",
+						"domains": []interface{}{
+							map[string]interface{}{
+								"id": "2",
+							},
+						},
+					},
+				},
+			})
+		})
 	})
 }

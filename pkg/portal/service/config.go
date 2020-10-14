@@ -33,6 +33,8 @@ var LabelDomainID = "authgear.com/domain-id"
 var ErrDuplicatedAppID = apierrors.AlreadyExists.WithReason("DuplicatedAppID").
 	New("duplicated app ID")
 
+var ErrGetStaticAppIDsNotSupported = errors.New("only local FS config source can get static app ID")
+
 type ingressDef struct {
 	AppID         string
 	DomainID      string
@@ -66,8 +68,15 @@ func (s *ConfigService) ResolveContext(appID string) (*config.AppContext, error)
 	return s.ConfigSource.ContextResolver.ResolveContext(appID)
 }
 
-func (s *ConfigService) ListAllAppIDs() ([]string, error) {
-	return s.ConfigSource.AppIDResolver.AllAppIDs()
+func (s *ConfigService) GetStaticAppIDs() ([]string, error) {
+	switch src := s.Controller.Handle.(type) {
+	case *configsource.Kubernetes:
+		return nil, ErrGetStaticAppIDsNotSupported
+	case *configsource.LocalFS:
+		return src.AllAppIDs()
+	default:
+		return nil, errors.New("unsupported configuration source")
+	}
 }
 
 func (s *ConfigService) Create(opts *CreateAppOptions) error {

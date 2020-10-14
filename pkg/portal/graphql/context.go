@@ -27,15 +27,21 @@ type DomainLoader interface {
 	VerifyDomain(appID string, id string) *graphqlutil.Lazy
 }
 
+type CollaboratorLoader interface {
+	ListCollaborators(appID string) *graphqlutil.Lazy
+	DeleteCollaborator(id string) *graphqlutil.Lazy
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("portal-graphql")} }
 
 type Context struct {
-	GQLLogger Logger
-	Viewer    ViewerLoader
-	Apps      AppLoader
-	Domains   DomainLoader
+	GQLLogger     Logger
+	Viewer        ViewerLoader
+	Apps          AppLoader
+	Domains       DomainLoader
+	Collaborators CollaboratorLoader
 }
 
 func (c *Context) Logger() *log.Logger {

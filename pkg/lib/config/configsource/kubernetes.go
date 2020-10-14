@@ -7,7 +7,6 @@ import (
 	"net"
 	"net/http"
 	"path/filepath"
-	"sort"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -193,30 +192,6 @@ func (k *Kubernetes) cleanupCache(done <-chan struct{}) {
 func (k *Kubernetes) Close() error {
 	close(k.done)
 	return nil
-}
-
-func (k *Kubernetes) AllAppIDs() ([]string, error) {
-	// FIXME(k8s): remove this after introducing proper authz
-	ingresses, err := k.Client.NetworkingV1beta1().Ingresses(k.Namespace).
-		List(k.Context, metav1.ListOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	apps := map[string]struct{}{}
-	for _, ingress := range ingresses.Items {
-		if appID, ok := ingress.Labels[LabelAppID]; ok && appID != "" {
-			apps[appID] = struct{}{}
-		}
-	}
-
-	var appIDs []string
-	for appID := range apps {
-		appIDs = append(appIDs, appID)
-	}
-	sort.Strings(appIDs)
-
-	return appIDs, nil
 }
 
 func (k *Kubernetes) ResolveAppID(r *http.Request) (string, error) {

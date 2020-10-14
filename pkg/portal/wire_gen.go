@@ -92,19 +92,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Controller:   controller,
 		ConfigSource: configSource,
 	}
-	authzService := &service.AuthzService{
-		AppConfigs: configService,
-	}
-	adminAPIConfig := rootProvider.AdminAPIConfig
 	clock := _wireSystemClockValue
-	adder := &authz.Adder{
-		Clock: clock,
-	}
-	adminAPIService := &service.AdminAPIService{
-		AdminAPIConfig: adminAPIConfig,
-		ConfigSource:   configSource,
-		AuthzAdder:     adder,
-	}
 	databaseConfig := rootProvider.DatabaseConfig
 	sqlBuilder := db.NewSQLBuilder(databaseConfig)
 	dbLogger := db.NewLogger(factory)
@@ -116,6 +104,25 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := &db.SQLExecutor{
 		Context:  context,
 		Database: handle,
+	}
+	collaboratorService := &service.CollaboratorService{
+		Context:     context,
+		Clock:       clock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authzService := &service.AuthzService{
+		Configs:       configService,
+		Collaborators: collaboratorService,
+	}
+	adminAPIConfig := rootProvider.AdminAPIConfig
+	adder := &authz.Adder{
+		Clock: clock,
+	}
+	adminAPIService := &service.AdminAPIService{
+		AdminAPIConfig: adminAPIConfig,
+		ConfigSource:   configSource,
+		AuthzAdder:     adder,
 	}
 	domainService := &service.DomainService{
 		Context:      context,
@@ -138,11 +145,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	domainLoader := &loader.DomainLoader{
 		Domains: domainService,
 	}
+	collaboratorLoader := &loader.CollaboratorLoader{
+		Collaborators: collaboratorService,
+	}
 	graphqlContext := &graphql.Context{
-		GQLLogger: logger,
-		Viewer:    viewerLoader,
-		Apps:      appLoader,
-		Domains:   domainLoader,
+		GQLLogger:     logger,
+		Viewer:        viewerLoader,
+		Apps:          appLoader,
+		Domains:       domainLoader,
+		Collaborators: collaboratorLoader,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		DevMode:        devMode,
@@ -166,11 +177,45 @@ func newRuntimeConfigHandler(p *deps.RequestProvider) http.Handler {
 }
 
 func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	rootProvider := p.RootProvider
-	adminAPIConfig := rootProvider.AdminAPIConfig
+	factory := rootProvider.LoggerFactory
+	configServiceLogger := service.NewConfigServiceLogger(factory)
+	appConfig := rootProvider.AppConfig
 	controller := rootProvider.ConfigSourceController
 	configSource := deps.ProvideConfigSource(controller)
+	configService := &service.ConfigService{
+		Context:      context,
+		Logger:       configServiceLogger,
+		AppConfig:    appConfig,
+		Controller:   controller,
+		ConfigSource: configSource,
+	}
 	clockClock := _wireSystemClockValue
+	databaseConfig := rootProvider.DatabaseConfig
+	sqlBuilder := db.NewSQLBuilder(databaseConfig)
+	logger := db.NewLogger(factory)
+	handle := &db.Handle{
+		Context: context,
+		Config:  databaseConfig,
+		Logger:  logger,
+	}
+	sqlExecutor := &db.SQLExecutor{
+		Context:  context,
+		Database: handle,
+	}
+	collaboratorService := &service.CollaboratorService{
+		Context:     context,
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authzService := &service.AuthzService{
+		Configs:       configService,
+		Collaborators: collaboratorService,
+	}
+	adminAPIConfig := rootProvider.AdminAPIConfig
 	adder := &authz.Adder{
 		Clock: clockClock,
 	}
@@ -179,9 +224,9 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		ConfigSource:   configSource,
 		AuthzAdder:     adder,
 	}
-	factory := rootProvider.LoggerFactory
 	adminAPILogger := transport.NewAdminAPILogger(factory)
 	adminAPIHandler := &transport.AdminAPIHandler{
+		Authz:            authzService,
 		ConfigResolver:   adminAPIService,
 		EndpointResolver: adminAPIService,
 		HostResolver:     adminAPIService,

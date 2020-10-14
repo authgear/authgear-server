@@ -8,4 +8,5 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(ViewerLoader), "*"),
 	wire.Struct(new(AppLoader), "*"),
 	wire.Struct(new(DomainLoader), "*"),
+	wire.Struct(new(CollaboratorLoader), "*"),
 )
