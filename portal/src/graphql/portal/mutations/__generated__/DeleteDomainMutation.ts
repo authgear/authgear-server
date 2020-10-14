@@ -7,12 +7,24 @@
 // GraphQL mutation operation: DeleteDomainMutation
 // ====================================================
 
+export interface DeleteDomainMutation_deleteDomain_app_domains {
+  __typename: "Domain";
+  id: string;
+  createdAt: GQL_DateTime;
+  domain: string;
+  apexDomain: string;
+  isCustom: boolean;
+  isVerified: boolean;
+  verificationDNSRecord: string;
+}
+
 export interface DeleteDomainMutation_deleteDomain_app {
   __typename: "App";
   /**
    * The ID of an object
    */
   id: string;
+  domains: DeleteDomainMutation_deleteDomain_app_domains[];
 }
 
 export interface DeleteDomainMutation_deleteDomain {

@@ -9,6 +9,15 @@ const createDomainMutation = gql`
     createDomain(input: { appID: $appID, domain: $domain }) {
       app {
         id
+        domains {
+          id
+          createdAt
+          domain
+          apexDomain
+          isCustom
+          isVerified
+          verificationDNSRecord
+        }
       }
       domain {
         id
@@ -34,9 +43,6 @@ export function useCreateDomainMutation(
     CreateDomainMutation
   >(createDomainMutation, {
     client,
-    // TODO: backend return whole list of domains so apollo can
-    // automatically update the domain list
-    refetchQueries: ["DomainsQuery"],
   });
   const createDomain = useCallback(
     async (domain: string) => {

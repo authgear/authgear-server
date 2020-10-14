@@ -9,6 +9,15 @@ const deleteDomainMutation = gql`
     deleteDomain(input: { appID: $appID, domainID: $domainID }) {
       app {
         id
+        domains {
+          id
+          createdAt
+          domain
+          apexDomain
+          isCustom
+          isVerified
+          verificationDNSRecord
+        }
       }
     }
   }
@@ -25,9 +34,6 @@ export function useDeleteDomainMutation(
     DeleteDomainMutation
   >(deleteDomainMutation, {
     client,
-    // TODO: backend return whole list of domains so apollo can
-    // automatically update the domain list
-    refetchQueries: ["DomainsQuery"],
   });
 
   const deleteDomain = useCallback(

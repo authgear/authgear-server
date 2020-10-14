@@ -7,12 +7,24 @@
 // GraphQL mutation operation: CreateDomainMutation
 // ====================================================
 
+export interface CreateDomainMutation_createDomain_app_domains {
+  __typename: "Domain";
+  id: string;
+  createdAt: GQL_DateTime;
+  domain: string;
+  apexDomain: string;
+  isCustom: boolean;
+  isVerified: boolean;
+  verificationDNSRecord: string;
+}
+
 export interface CreateDomainMutation_createDomain_app {
   __typename: "App";
   /**
    * The ID of an object
    */
   id: string;
+  domains: CreateDomainMutation_createDomain_app_domains[];
 }
 
 export interface CreateDomainMutation_createDomain_domain {
