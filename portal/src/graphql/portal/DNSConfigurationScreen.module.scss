@@ -28,7 +28,14 @@
 }
 
 .publicOriginHeader {
+  margin-bottom: 10px;
+}
+
+.publicOriginDesc {
+  display: block;
   margin-bottom: 15px;
+  font-size: 13px;
+  max-width: 500px;
 }
 
 .publicOriginField {
