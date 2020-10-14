@@ -118,6 +118,10 @@ To setup multi-tenant mode:
    ```
    kubectl --kubeconfig=hack/kube-apiserver/.kubeconfig apply -f hack/kube-apiserver/k8s-ingress.yaml
    ```
+
+   This step creates an app with id `accounts`.
+   If you want to have access to it, you have to add a row to `_portal_app_collaborator` manually.
+
 3. Enable multi-tenant mode in Authgear & portal server:
    refer to `.env.example.k8s` for example environment variables to set
 
