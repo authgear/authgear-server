@@ -20,6 +20,7 @@ import {
   DefaultButton,
   MessageBar,
   MessageBarType,
+  Dropdown,
 } from "@fluentui/react";
 
 import { useAppConfigQuery } from "./query/appConfigQuery";
@@ -31,12 +32,8 @@ import { PortalAPIAppConfig } from "../../types";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import ButtonWithLoading from "../../ButtonWithLoading";
-import FormTextField from "../../FormTextField";
-import ShowUnhandledValidationErrorCause from "../../error/ShowUnhandledValidationErrorCauses";
 import { actionButtonTheme, destructiveTheme } from "../../theme";
-import { useTextField } from "../../hook/useInput";
-import { FormContext } from "../../error/FormContext";
-import { useValidationError } from "../../error/useValidationError";
+import { useDropdown, useTextField } from "../../hook/useInput";
 import {
   GenericErrorHandlingRule,
   useGenericError,
@@ -55,6 +52,7 @@ interface DNSConfigurationProps {
 interface PublicOriginConfigurationProps {
   rawAppConfig: PortalAPIAppConfig | null;
   effectiveAppConfig: PortalAPIAppConfig | null;
+  verifiedDomains: Domain[];
 }
 
 interface DomainListItem {
@@ -117,7 +115,7 @@ function makeDomainListColumn(renderToString: (messageID: string) => string) {
 const PublicOriginConfiguration: React.FC<PublicOriginConfigurationProps> = function PublicOriginConfiguration(
   props: PublicOriginConfigurationProps
 ) {
-  const { rawAppConfig, effectiveAppConfig } = props;
+  const { rawAppConfig, effectiveAppConfig, verifiedDomains } = props;
   const { appID } = useParams();
 
   const {
@@ -130,9 +128,28 @@ const PublicOriginConfiguration: React.FC<PublicOriginConfigurationProps> = func
     return effectiveAppConfig?.http?.public_origin ?? "";
   }, [effectiveAppConfig]);
 
-  const { value: publicOrigin, onChange: onPublicOriginChange } = useTextField(
-    initialPublicOrigin
-  );
+  const publicOriginOptionKeys = useMemo(() => {
+    const keys = verifiedDomains.map((domain) => {
+      try {
+        // assume scheme included if success
+        const url = new URL(domain.domain);
+        return url.origin;
+      } catch {
+        // otherwise assume https scheme
+        return `https://${domain.domain}`;
+      }
+    });
+    if (initialPublicOrigin !== "" && !keys.includes(initialPublicOrigin)) {
+      keys.unshift(initialPublicOrigin);
+    }
+    return keys;
+  }, [verifiedDomains, initialPublicOrigin]);
+
+  const {
+    options: publicOriginOptions,
+    selectedKey: publicOrigin,
+    onChange: onPublicOriginChange,
+  } = useDropdown(publicOriginOptionKeys, initialPublicOrigin);
 
   const isModified = useMemo(() => {
     return initialPublicOrigin !== publicOrigin;
@@ -145,7 +162,7 @@ const PublicOriginConfiguration: React.FC<PublicOriginConfigurationProps> = func
 
     const newAppConfig = produce(rawAppConfig, (draftConfig) => {
       const newPublicOrigin =
-        publicOrigin.trim() !== "" ? publicOrigin : undefined;
+        publicOrigin?.trim() !== "" ? publicOrigin : undefined;
       draftConfig.http = draftConfig.http ?? {};
       draftConfig.http.public_origin = newPublicOrigin;
 
@@ -155,49 +172,36 @@ const PublicOriginConfiguration: React.FC<PublicOriginConfigurationProps> = func
     updateAppConfig(newAppConfig).catch(() => {});
   }, [publicOrigin, rawAppConfig, updateAppConfig]);
 
-  const {
-    value: formContextValue,
-    otherError,
-    unhandledCauses,
-  } = useValidationError(updateAppConfigError);
-
   return (
-    <FormContext.Provider value={formContextValue}>
-      <section className={styles.publicOrigin}>
-        {otherError && <ShowError error={otherError} />}
-        <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
-        <Text
-          as="h2"
-          className={cn(
-            styles.header,
-            styles.subHeader,
-            styles.publicOriginHeader
-          )}
-        >
-          <FormattedMessage id="DNSConfigurationScreen.public-origin.header" />
-        </Text>
-        <div className={styles.publicOriginInput}>
-          <FormTextField
-            jsonPointer="/http/public_origin"
-            parentJSONPointer="/http"
-            fieldName="public_origin"
-            fieldNameMessageID="DNSConfigurationScreen.public-origin.header"
-            hideLabel={true}
-            className={styles.publicOriginField}
-            value={publicOrigin}
-            onChange={onPublicOriginChange}
-          />
-          <ButtonWithLoading
-            className={styles.savePublicOriginButton}
-            disabled={!isModified}
-            labelId="save"
-            loadingLabelId="saving"
-            loading={updatingAppConfig}
-            onClick={onSaveClick}
-          />
-        </div>
-      </section>
-    </FormContext.Provider>
+    <section className={styles.publicOrigin}>
+      {updateAppConfigError && <ShowError error={updateAppConfigError} />}
+      <Text
+        as="h2"
+        className={cn(
+          styles.header,
+          styles.subHeader,
+          styles.publicOriginHeader
+        )}
+      >
+        <FormattedMessage id="DNSConfigurationScreen.public-origin.header" />
+      </Text>
+      <div className={styles.publicOriginInput}>
+        <Dropdown
+          className={styles.publicOriginField}
+          options={publicOriginOptions}
+          selectedKey={publicOrigin}
+          onChange={onPublicOriginChange}
+        />
+        <ButtonWithLoading
+          className={styles.savePublicOriginButton}
+          disabled={!isModified}
+          labelId="save"
+          loadingLabelId="saving"
+          loading={updatingAppConfig}
+          onClick={onSaveClick}
+        />
+      </div>
+    </section>
   );
 };
 
@@ -396,6 +400,10 @@ const DNSConfiguration: React.FC<DNSConfigurationProps> = function DNSConfigurat
     setDeleteDomainDialogData,
   ] = useState<DeleteDomainDialogData | null>(null);
 
+  const verifiedDomains = useMemo(() => {
+    return domains.filter((domain) => domain.isVerified);
+  }, [domains]);
+
   const domainListColumns: IColumn[] = useMemo(() => {
     return makeDomainListColumn(renderToString);
   }, [renderToString]);
@@ -480,6 +488,7 @@ const DNSConfiguration: React.FC<DNSConfigurationProps> = function DNSConfigurat
       <PublicOriginConfiguration
         rawAppConfig={rawAppConfig}
         effectiveAppConfig={effectiveAppConfig}
+        verifiedDomains={verifiedDomains}
       />
       <Text as="h2" className={cn(styles.header, styles.subHeader)}>
         <FormattedMessage id="DNSConfigurationScreen.domain-list.title" />
