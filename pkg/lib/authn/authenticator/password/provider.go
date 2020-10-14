@@ -57,19 +57,11 @@ func (p *Provider) New(userID string, password string, isDefault bool, kind stri
 		IsDefault: isDefault,
 		Kind:      kind,
 	}
-	// Empty password is not supported in password authenticator
-	// If the password is empty string means no password for this password authenticator
-	// In this case, the authenticator cannot be used to authenticate successfully
-	if password != "" {
-		err := p.isPasswordAllowed(userID, password)
-		if err != nil {
-			return nil, err
-		}
-
-		authen = p.populatePasswordHash(authen, password)
-	} else {
-		authen.PasswordHash = nil
+	err := p.isPasswordAllowed(userID, password)
+	if err != nil {
+		return nil, err
 	}
+	authen = p.populatePasswordHash(authen, password)
 	return authen, nil
 }
 
