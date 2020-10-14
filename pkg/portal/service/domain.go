@@ -36,6 +36,7 @@ var ErrDomainNotCustom = apierrors.Forbidden.WithReason("DomainNotCustom").
 	New("requested domain is not a custom domain")
 
 var DomainVerificationFailed = apierrors.Forbidden.WithReason("DomainVerificationFailed")
+var InvalidDomain = apierrors.Invalid.WithReason("InvalidDomain")
 
 type DomainConfigService interface {
 	CreateDomain(appID string, domainID string, domain string, isCustom bool) error
@@ -325,7 +326,7 @@ func newDomain(appID string, domainName string, createdAt time.Time, isCustom bo
 
 	apexDomain, err := publicsuffix.EffectiveTLDPlusOne(domainName)
 	if err != nil {
-		return nil, err
+		return nil, InvalidDomain.Errorf("invalid domain: %w", err)
 	}
 
 	return &domain{
