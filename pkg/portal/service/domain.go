@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"sort"
 	"strings"
 	"time"
 
@@ -62,7 +63,12 @@ func (s *DomainService) ListDomains(appID string) ([]*model.Domain, error) {
 		return nil, err
 	}
 
-	return append(pendingDomains, domains...), nil
+	result := append(pendingDomains, domains...)
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Domain < result[j].Domain
+	})
+
+	return result, nil
 }
 
 func (s *DomainService) CreateDomain(appID string, domain string, isVerified bool, isCustom bool) (*model.Domain, error) {
