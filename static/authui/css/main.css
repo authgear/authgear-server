@@ -613,8 +613,8 @@ a.btn {
 
 .settings-page-section-with-title-desc-action {
   display: grid;
-  grid: "title    action" auto
-        "desc     ......" auto
+  grid: "title    action  " auto
+        "desc     action-2" auto
       /  1fr       auto;
   gap: 8px;
 }
@@ -636,6 +636,12 @@ a.btn {
 
 .settings-page-section-with-title-desc-action .action {
   grid-area: action;
+  justify-self: end;
+}
+
+.settings-page-section-with-title-desc-action .action-2 {
+  grid-area: action-2;
+  justify-self: end;
 }
 
 .settings-page-section-with-title-info-desc-action {

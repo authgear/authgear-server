@@ -157,9 +157,16 @@
       <!-- FIXME(ui): Use user preferred timezone -->
       {{ template "settings-page-secondary-password-description" (makemap "time" $secondary_password.CreatedAt) }}
     </p>
-    <a class="action" href="#">
+    <a class="action secondary-btn" href="#">
       {{ template "change-password-button-label" }}
     </a>
+    <form class="action-2" method="post" novalidate>
+      {{ $.CSRFField }}
+      <input type="hidden" name="x_authenticator_id" value="{{ $secondary_password.ID }}">
+      <button class="destructive-btn" type="submit" name="x_action" value="remove_secondary_password">
+        {{ template "remove-button-label" }}
+      </button>
+    </form>
     {{ else }}
     <form class="action" method="post" novalidate>
       {{ $.CSRFField }}
