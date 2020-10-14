@@ -58,11 +58,13 @@ interface DomainListItem {
   id: string;
   domain: string;
   isVerified: boolean;
+  isCustom: boolean;
 }
 
 interface DomainListActionButtonsProps {
   domainID: string;
   domain: string;
+  isCustomDomain: boolean;
   isVerified: boolean;
   onDeleteClick: (domainID: string, domain: string) => void;
 }
@@ -268,11 +270,15 @@ const DomainListActionButtons: React.FC<DomainListActionButtonsProps> = function
   const {
     domainID,
     domain,
+    isCustomDomain,
     isVerified,
     onDeleteClick: onDeleteClickProps,
   } = props;
 
   const navigate = useNavigate();
+
+  const showDelete = isCustomDomain;
+  const showVerify = !isVerified;
 
   const onVerifyClicked = useCallback(() => {
     navigate(`./${domainID}/verify`);
@@ -282,27 +288,37 @@ const DomainListActionButtons: React.FC<DomainListActionButtonsProps> = function
     onDeleteClickProps(domainID, domain);
   }, [domainID, domain, onDeleteClickProps]);
 
+  if (!showDelete && !showVerify) {
+    return (
+      <section className={styles.actionButtonContainer}>
+        <Text>---</Text>
+      </section>
+    );
+  }
+
   return (
     <section className={styles.actionButtonContainer}>
-      {!isVerified && (
-        <>
-          <ActionButton
-            className={styles.actionButton}
-            theme={actionButtonTheme}
-            onClick={onVerifyClicked}
-          >
-            <FormattedMessage id="verify" />
-          </ActionButton>
-          <VerticalDivider className={styles.divider} />
-        </>
+      {showVerify && (
+        <ActionButton
+          className={styles.actionButton}
+          theme={actionButtonTheme}
+          onClick={onVerifyClicked}
+        >
+          <FormattedMessage id="verify" />
+        </ActionButton>
       )}
-      <ActionButton
-        className={styles.actionButton}
-        theme={destructiveTheme}
-        onClick={onDeleteClick}
-      >
-        <FormattedMessage id="delete" />
-      </ActionButton>
+      {showVerify && showDelete && (
+        <VerticalDivider className={styles.divider} />
+      )}
+      {showDelete && (
+        <ActionButton
+          className={styles.actionButton}
+          theme={destructiveTheme}
+          onClick={onDeleteClick}
+        >
+          <FormattedMessage id="delete" />
+        </ActionButton>
+      )}
     </section>
   );
 };
@@ -410,6 +426,7 @@ const DNSConfiguration: React.FC<DNSConfigurationProps> = function DNSConfigurat
       id: domain.id,
       domain: domain.domain,
       isVerified: domain.isVerified,
+      isCustom: domain.isCustom,
     }));
   }, [domains]);
 
@@ -452,6 +469,7 @@ const DNSConfiguration: React.FC<DNSConfigurationProps> = function DNSConfigurat
               domainID={item.id}
               domain={item.domain}
               isVerified={item.isVerified}
+              isCustomDomain={item.isCustom}
               onDeleteClick={onDeleteClick}
             />
           );
