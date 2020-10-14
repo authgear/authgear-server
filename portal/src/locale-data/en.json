@@ -325,6 +325,12 @@
   "DNSConfigurationScreen.verify-success-message": "Verified domain successfully",
 
   "VerifyDomainScreen.title": "Verify Domain",
+  "VerifyDomainScreen.desc-main": "Setup CNAME and add TXT record below to your DNS provider to verify your own ",
+  "VerifyDomainScreen.error.domain-not-found": "Requested domain is not found",
+  "VerifyDomainScreen.error.non-custom-verified-domain-not-found": "Cannot find domain which is non-custom and verified",
+  "VerifyDomainScreen.list.header.record-type": "Type",
+  "VerifyDomainScreen.list.header.host": "Host",
+  "VerifyDomainScreen.list.header.value": "Value",
 
   "PaginationWidget.First": "Go to the first page",
   "PaginationWidget.Prev": "Go to the previous page",
