@@ -8,7 +8,7 @@ import (
 
 func ProvideChecker(cfg *config.AuthenticatorPasswordConfig, s CheckerHistoryStore) *Checker {
 	return &Checker{
-		PwMinLength:            cfg.Policy.MinLength,
+		PwMinLength:            *cfg.Policy.MinLength,
 		PwUppercaseRequired:    cfg.Policy.UppercaseRequired,
 		PwLowercaseRequired:    cfg.Policy.LowercaseRequired,
 		PwDigitRequired:        cfg.Policy.DigitRequired,

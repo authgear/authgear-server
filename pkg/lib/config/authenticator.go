@@ -32,12 +32,20 @@ type AuthenticatorPasswordConfig struct {
 	Policy *PasswordPolicyConfig `json:"policy,omitempty"`
 }
 
+func (c *AuthenticatorPasswordConfig) SetDefaults() {
+	if c.Policy != nil {
+		if c.Policy.MinLength == nil {
+			c.Policy.MinLength = newInt(1)
+		}
+	}
+}
+
 var _ = Schema.Add("PasswordPolicyConfig", `
 {
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"min_length": { "type": "integer" },
+		"min_length": { "type": "integer", "minimum": 1 },
 		"uppercase_required": { "type": "boolean" },
 		"lowercase_required": { "type": "boolean" },
 		"digit_required": { "type": "boolean" },
@@ -51,7 +59,7 @@ var _ = Schema.Add("PasswordPolicyConfig", `
 `)
 
 type PasswordPolicyConfig struct {
-	MinLength             int          `json:"min_length,omitempty"`
+	MinLength             *int         `json:"min_length,omitempty"`
 	UppercaseRequired     bool         `json:"uppercase_required,omitempty"`
 	LowercaseRequired     bool         `json:"lowercase_required,omitempty"`
 	DigitRequired         bool         `json:"digit_required,omitempty"`
