@@ -76,26 +76,18 @@ func (p *Provider) New(userID string, password string, isDefault bool, kind stri
 // WithPassword return new authenticator pointer if password is changed
 // Otherwise original authenticator will be returned
 func (p *Provider) WithPassword(a *Authenticator, password string) (*Authenticator, error) {
-	var newAuthen *Authenticator
-	if password != "" {
-		err := p.isPasswordAllowed(a.UserID, password)
-		if err != nil {
-			return nil, err
-		}
-
-		// If password is not changed, skip the logic.
-		// Return original authenticator pointer
-		if pwd.Compare([]byte(password), a.PasswordHash) == nil {
-			return a, nil
-		}
-
-		newAuthen = p.populatePasswordHash(a, password)
-	} else {
-		c := *a
-		c.PasswordHash = nil
-		newAuthen = &c
+	err := p.isPasswordAllowed(a.UserID, password)
+	if err != nil {
+		return nil, err
 	}
 
+	// If password is not changed, skip the logic.
+	// Return original authenticator pointer
+	if pwd.Compare([]byte(password), a.PasswordHash) == nil {
+		return a, nil
+	}
+
+	newAuthen := p.populatePasswordHash(a, password)
 	return newAuthen, nil
 }
 
