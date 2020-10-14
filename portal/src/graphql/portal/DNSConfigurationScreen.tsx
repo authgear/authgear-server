@@ -13,7 +13,6 @@ import {
   ActionButton,
   VerticalDivider,
   TextField,
-  ITextFieldProps,
   Dialog,
   IDialogProps,
   DialogFooter,
@@ -77,13 +76,6 @@ interface DeleteDomainDialogProps extends Partial<DeleteDomainDialogData> {
   visible: boolean;
   dismissDialog: () => void;
 }
-
-const ADD_DOMAIN_TEXT_FIELD_STYLES: ITextFieldProps["styles"] = {
-  fieldGroup: {
-    borderRadius: "2px 0 0 2px",
-    borderRightWidth: "0",
-  },
-};
 
 const DOMAIN_LIST_STYLES: IDetailsListProps["styles"] = {
   headerWrapper: { marginTop: "-10px" },
@@ -215,15 +207,21 @@ const AddDomainSection: React.FC = function AddDomainSection() {
     error: createDomainError,
   } = useCreateDomainMutation(appID);
 
-  const onAddClick = useCallback(() => {
-    createDomain(newDomain)
-      .then((success) => {
-        if (success) {
-          onNewDomainChange(null, "");
-        }
-      })
-      .catch(() => {});
-  }, [createDomain, newDomain, onNewDomainChange]);
+  const onAddClick = useCallback(
+    (ev: React.FormEvent) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      createDomain(newDomain)
+        .then((success) => {
+          if (success) {
+            onNewDomainChange(null, "");
+          }
+        })
+        .catch(() => {});
+    },
+    [createDomain, newDomain, onNewDomainChange]
+  );
 
   const isModified = useMemo(() => {
     return newDomain !== "";
@@ -242,26 +240,25 @@ const AddDomainSection: React.FC = function AddDomainSection() {
   );
 
   return (
-    <section className={styles.addDomain}>
+    <form className={styles.addDomain} onSubmit={onAddClick}>
       <TextField
         className={styles.addDomainField}
         placeholder={renderToString(
           "DNSConfigurationScreen.domain-list.add-domain.placeholder"
         )}
-        styles={ADD_DOMAIN_TEXT_FIELD_STYLES}
         value={newDomain}
         onChange={onNewDomainChange}
         errorMessage={addDomainErrorMessage}
       />
       <ButtonWithLoading
+        type="submit"
         className={styles.addDomainButton}
         disabled={!isModified}
         iconProps={{ iconName: "CircleAdditionSolid" }}
         loading={creatingDomain}
         labelId="add"
-        onClick={onAddClick}
       />
-    </section>
+    </form>
   );
 };
 
