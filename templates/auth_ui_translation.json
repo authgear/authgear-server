@@ -30,6 +30,7 @@
 	"add-button-label": "Add",
 	"remove-button-label": "Remove",
 	"details-button-label": "Details",
+	"setup-password-button-label": "Setup Password",
 	"change-password-button-label": "Change Password",
 	"resend-verification-code-button-label": "Resend verification code",
 	"verification-status-label--unverified": "Not verified",

@@ -161,9 +161,12 @@
       {{ template "change-password-button-label" }}
     </a>
     {{ else }}
-    <a class="action" href="#">
-      {{ template "setup-button-label" }}
-    </a>
+    <form class="action" method="post" novalidate>
+      {{ $.CSRFField }}
+      <button class="secondary-btn" type="submit" name="x_action" value="setup_secondary_password">
+        {{ template "setup-password-button-label" }}
+      </button>
+    </form>
     {{ end }}
   </section>
   {{ end }}

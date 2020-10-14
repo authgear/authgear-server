@@ -28,6 +28,7 @@ func (i *CreateAuthenticatorBeginSetupTOTP) SetupTOTP() {}
 
 type CreateAuthenticatorBeginNode interface {
 	GetCreateAuthenticatorEdges() ([]interaction.Edge, error)
+	GetCreateAuthenticatorStage() interaction.AuthenticationStage
 }
 
 type CreateAuthenticatorBeginHandler struct {

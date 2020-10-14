@@ -4,11 +4,14 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -53,6 +56,7 @@ type SettingsHandler struct {
 	Database       *db.Handle
 	BaseViewModel  *viewmodels.BaseViewModeler
 	Renderer       Renderer
+	WebApp         WebAppService
 	Authentication *config.AuthenticationConfig
 	Authenticators SettingsAuthenticatorService
 	MFA            SettingsMFAService
@@ -111,4 +115,35 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 	}
+
+	if r.Method == "POST" && r.Form.Get("x_action") == "setup_secondary_password" {
+		err := h.Database.WithTx(func() error {
+			intent := &webapp.Intent{
+				RedirectURI: redirectURI,
+				Intent: intents.NewIntentAddAuthenticator(
+					userID,
+					interaction.AuthenticationStageSecondary,
+					authn.AuthenticatorTypePassword,
+				),
+			}
+			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
+				return &SettingsPasswordAdd{}, nil
+			})
+			if err != nil {
+				return err
+			}
+			result.WriteResponse(w, r)
+			return nil
+		})
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+type SettingsPasswordAdd struct {
+}
+
+func (i *SettingsPasswordAdd) RequestedByUser() bool {
+	return true
 }
