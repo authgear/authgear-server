@@ -138,12 +138,34 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   namespace: authgear
+  name: admin.accounts.localhost
+  labels:
+    authgear.com/app-id: accounts
+spec:
+  rules:
+    - host: admin.accounts.localhost
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  namespace: authgear
   name: portal.localhost
   labels:
     authgear.com/app-id: accounts
 spec:
   rules:
     - host: portal.localhost
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  namespace: authgear
+  name: accounts.localhost
+  labels:
+    authgear.com/app-id: accounts
+spec:
+  rules:
+    - host: accounts.localhost
 #---
 #apiVersion: cert-manager.io/v1
 #kind: Issuer
