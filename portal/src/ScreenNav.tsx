@@ -91,6 +91,12 @@ const ScreenNav: React.FC = function ScreenNav() {
             url: "configuration/dns",
             icon: "ServerProcesses",
           },
+          {
+            key: "Settings",
+            name: renderToString("ScreenNav.settings"),
+            url: "configuration/settings",
+            icon: "Settings",
+          },
         ],
       },
     ];
