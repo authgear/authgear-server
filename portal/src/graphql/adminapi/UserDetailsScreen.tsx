@@ -28,12 +28,20 @@ interface UserDetailsProps {
   loading: boolean;
 }
 
+const ACCOUNT_SECURITY_PIVOT_KEY = "account-security";
+const CONNECTED_IDENTITIES_PIVOT_KEY = "connected-identities";
+// const SESSION_PIVOT_KEY = "session"
+
 const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
 ) {
   const { data, loading, appConfig } = props;
   const { renderToString } = React.useContext(Context);
-  const { selectedKey, onLinkClick } = usePivotNavigation();
+  const { selectedKey, onLinkClick } = usePivotNavigation([
+    ACCOUNT_SECURITY_PIVOT_KEY,
+    CONNECTED_IDENTITIES_PIVOT_KEY,
+    // SESSION_PIVOT_KEY
+  ]);
 
   const availableLoginIdIdentities = useMemo(() => {
     const authenticationIdentities =
@@ -74,13 +82,13 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
       <div className={styles.userDetailsTab}>
         <Pivot selectedKey={selectedKey} onLinkClick={onLinkClick}>
           <PivotItem
-            itemKey="account-security"
+            itemKey={ACCOUNT_SECURITY_PIVOT_KEY}
             headerText={renderToString("UserDetails.account-security.header")}
           >
             <UserDetailsAccountSecurity authenticators={authenticators} />
           </PivotItem>
           <PivotItem
-            itemKey="connected-identities"
+            itemKey={CONNECTED_IDENTITIES_PIVOT_KEY}
             headerText={renderToString(
               "UserDetails.connected-identities.header"
             )}
@@ -93,7 +101,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
           </PivotItem>
           {/* TODO: implement session section
           <PivotItem
-            itemKey="session"
+            itemKey={SESSION_PIVOT_KEY}
             headerText={renderToString("UserDetails.session.header")}
           >
             <UserDetailsSession />

@@ -20,7 +20,10 @@ const FORGOT_PASSWORD_POLICY_KEY = "forgot_password";
 const PasswordsScreen: React.FC = function PasswordsScreen() {
   const { renderToString } = useContext(Context);
   const { appID } = useParams();
-  const { selectedKey, onLinkClick } = usePivotNavigation();
+  const { selectedKey, onLinkClick } = usePivotNavigation([
+    PASSWORD_POLICY_PIVOT_KEY,
+    FORGOT_PASSWORD_POLICY_KEY,
+  ]);
 
   const {
     updateAppConfig,

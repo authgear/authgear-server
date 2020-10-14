@@ -2,6 +2,29 @@ import React, { useMemo, useCallback, useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Context } from "@oursky/react-messageformat";
 import { Nav, INavLink, INavLinkGroup, INavProps } from "@fluentui/react";
+import { Location } from "history";
+
+function getAppRouterPath(location: Location) {
+  // app router -> /app/:appID/*
+  // discard first 3 segment (include leading slash)
+  return location.pathname.split("/").slice(3).join("/");
+}
+
+function getPath(url: string) {
+  // remove fragment
+  const path = new URL("scheme:" + url).pathname;
+  // remove leading trailing slash
+  const pathWithoutLeadingTrailingSlash = path
+    .replace(/^\//, "")
+    .replace(/\/$/, "");
+  return pathWithoutLeadingTrailingSlash;
+}
+
+function isPathSame(url1: string, url2: string) {
+  const path1 = getPath(url1);
+  const path2 = getPath(url2);
+  return path1 === path2;
+}
 
 const ScreenNav: React.FC = function ScreenNav() {
   const navigate = useNavigate();
@@ -71,18 +94,18 @@ const ScreenNav: React.FC = function ScreenNav() {
     (ev?: React.MouseEvent<HTMLElement>, item?: INavLink) => {
       ev?.stopPropagation();
       ev?.preventDefault();
-      if (item != null) {
+
+      const appRouterPath = getAppRouterPath(location);
+      if (item != null && !isPathSame(item.url, appRouterPath)) {
         navigate(item.url);
       }
     },
-    [navigate]
+    [navigate, location]
   );
 
   const selectedKey = useMemo(() => {
     const linkFound = navGroups[0].links.find((link) => {
-      // app router -> /app/:appID/*
-      // discard first 3 segment (include leading slash)
-      const appRouterPath = location.pathname.split("/").slice(3).join("/");
+      const appRouterPath = getAppRouterPath(location);
       return appRouterPath.startsWith(link.url);
     });
     return linkFound?.key;
