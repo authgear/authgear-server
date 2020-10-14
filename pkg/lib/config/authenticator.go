@@ -32,13 +32,6 @@ type AuthenticatorPasswordConfig struct {
 	Policy *PasswordPolicyConfig `json:"policy,omitempty"`
 }
 
-func (c *AuthenticatorPasswordConfig) SetDefaults() {
-	if c.Policy == nil {
-		c.Policy = &PasswordPolicyConfig{}
-	}
-	c.Policy.SetDefaults()
-}
-
 var _ = Schema.Add("PasswordPolicyConfig", `
 {
 	"type": "object",
