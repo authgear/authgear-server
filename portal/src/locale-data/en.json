@@ -308,7 +308,6 @@
   "DNSConfigurationScreen.public-origin.header": "Public Origin",
   "DNSConfigurationScreen.add-domain.generic-error": "Invalid domain",
   "DNSConfigurationScreen.add-domain.duplicated-error": "Domain is already in use",
-  "DNSConfigurationScreen.domain-list.title": "Domain List",
   "DNSConfigurationScreen.domain-list.header.domain": "Domain",
   "DNSConfigurationScreen.domain-list.header.status": "Status",
   "DNSConfigurationScreen.domain-list.add-domain.placeholder": "Input New Domain",

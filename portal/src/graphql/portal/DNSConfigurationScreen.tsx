@@ -79,10 +79,6 @@ interface DeleteDomainDialogProps extends Partial<DeleteDomainDialogData> {
   dismissDialog: () => void;
 }
 
-const DOMAIN_LIST_STYLES: IDetailsListProps["styles"] = {
-  headerWrapper: { marginTop: "-10px" },
-};
-
 function makeDomainListColumn(renderToString: (messageID: string) => string) {
   return [
     {
@@ -505,13 +501,9 @@ const DNSConfiguration: React.FC<DNSConfigurationProps> = function DNSConfigurat
         effectiveAppConfig={effectiveAppConfig}
         verifiedDomains={verifiedDomains}
       />
-      <Text as="h2" className={cn(styles.header, styles.subHeader)}>
-        <FormattedMessage id="DNSConfigurationScreen.domain-list.title" />
-      </Text>
       <DetailsList
         columns={domainListColumns}
         items={domainListItems}
-        styles={DOMAIN_LIST_STYLES}
         selectionMode={SelectionMode.none}
         onRenderItemColumn={renderDomainListColumn}
         onRenderDetailsHeader={renderDomainListHeader}
