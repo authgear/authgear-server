@@ -51,7 +51,7 @@ stringData:
   authgear.secrets.yaml: |-
     secrets:
       - data:
-          database_schema: app
+          database_schema: public
           database_url: 'postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable'
         key: db
       - data:
@@ -127,6 +127,17 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   namespace: authgear
+  name: admin.accounts.portal.localhost
+  labels:
+    authgear.com/app-id: accounts
+spec:
+  rules:
+    - host: admin.accounts.portal.localhost
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  namespace: authgear
   name: admin.accounts.localhost
   labels:
     authgear.com/app-id: accounts
@@ -145,19 +156,30 @@ spec:
   rules:
     - host: portal.localhost
 ---
-apiVersion: cert-manager.io/v1
-kind: Issuer
+apiVersion: extensions/v1beta1
+kind: Ingress
 metadata:
   namespace: authgear
-  name: letsencrypt-staging
+  name: accounts.localhost
+  labels:
+    authgear.com/app-id: accounts
 spec:
-  acme:
-    server: https://acme-staging-v02.api.letsencrypt.org/directory
-    email: authgear@example.com
-    privateKeySecretRef:
-      name: letsencrypt-staging
-    solvers:
-      - selector: {}
-        http01:
-          ingress:
-            class: nginx
+  rules:
+    - host: accounts.localhost
+#---
+#apiVersion: cert-manager.io/v1
+#kind: Issuer
+#metadata:
+#  namespace: authgear
+#  name: letsencrypt-staging
+#spec:
+#  acme:
+#    server: https://acme-staging-v02.api.letsencrypt.org/directory
+#    email: authgear@example.com
+#    privateKeySecretRef:
+#      name: letsencrypt-staging
+#    solvers:
+#      - selector: {}
+#        http01:
+#          ingress:
+#            class: nginx
