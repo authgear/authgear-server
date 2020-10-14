@@ -157,7 +157,7 @@
       <!-- FIXME(ui): Use user preferred timezone -->
       {{ template "settings-page-secondary-password-description" (makemap "time" $secondary_password.CreatedAt) }}
     </p>
-    <a class="action secondary-btn" href="#">
+    <a class="action secondary-btn" href="/change_secondary_password">
       {{ template "change-password-button-label" }}
     </a>
     <form class="action-2" method="post" novalidate>
