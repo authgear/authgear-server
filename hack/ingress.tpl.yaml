@@ -5,7 +5,9 @@ metadata:
   name: {{ .Host }}
   labels:
     authgear.com/app-id: {{ .AppID }}
+{{ if .IsCustom }}
     authgear.com/domain-id: {{ .DomainID }}
+{{ end }}
 spec:
   rules:
   - host: '{{ .Host }}'

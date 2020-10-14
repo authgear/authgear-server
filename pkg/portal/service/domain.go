@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"sort"
 	"strings"
 	"time"
 
@@ -36,9 +37,10 @@ var ErrDomainNotCustom = apierrors.Forbidden.WithReason("DomainNotCustom").
 	New("requested domain is not a custom domain")
 
 var DomainVerificationFailed = apierrors.Forbidden.WithReason("DomainVerificationFailed")
+var InvalidDomain = apierrors.Invalid.WithReason("InvalidDomain")
 
 type DomainConfigService interface {
-	CreateDomain(appID string, domain *model.Domain) error
+	CreateDomain(appID string, domainID string, domain string, isCustom bool) error
 	DeleteDomain(domain *model.Domain) error
 }
 
@@ -61,7 +63,12 @@ func (s *DomainService) ListDomains(appID string) ([]*model.Domain, error) {
 		return nil, err
 	}
 
-	return append(pendingDomains, domains...), nil
+	result := append(pendingDomains, domains...)
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Domain < result[j].Domain
+	})
+
+	return result, nil
 }
 
 func (s *DomainService) CreateDomain(appID string, domain string, isVerified bool, isCustom bool) (*model.Domain, error) {
@@ -84,7 +91,7 @@ func (s *DomainService) CreateDomain(appID string, domain string, isVerified boo
 
 	domainModel := d.toModel(isVerified)
 	if isVerified {
-		err = s.DomainConfig.CreateDomain(appID, domainModel)
+		err = s.DomainConfig.CreateDomain(appID, domainModel.ID, domainModel.Domain, domainModel.IsCustom)
 		if err != nil {
 			return nil, err
 		}
@@ -173,7 +180,7 @@ func (s *DomainService) VerifyDomain(appID string, id string) (*model.Domain, er
 	}
 
 	domainModel := d.toModel(true)
-	err = s.DomainConfig.CreateDomain(appID, domainModel)
+	err = s.DomainConfig.CreateDomain(appID, domainModel.ID, domainModel.Domain, domainModel.IsCustom)
 	if err != nil {
 		return nil, err
 	}
@@ -325,7 +332,7 @@ func newDomain(appID string, domainName string, createdAt time.Time, isCustom bo
 
 	apexDomain, err := publicsuffix.EffectiveTLDPlusOne(domainName)
 	if err != nil {
-		return nil, err
+		return nil, InvalidDomain.Errorf("invalid domain: %w", err)
 	}
 
 	return &domain{
