@@ -40,6 +40,10 @@ type VerificationService interface {
 	RemoveOrphanedClaims(identities []*identity.Info, authenticators []*authenticator.Info) error
 }
 
+type MFAService interface {
+	InvalidateAllRecoveryCode(userID string) error
+}
+
 // Coordinator represents interaction between identities, authenticators, and
 // other high-level features (such as verification).
 // FIXME(interaction): This is used to avoid circular dependency between
@@ -52,6 +56,7 @@ type Coordinator struct {
 	Identities     IdentityService
 	Authenticators AuthenticatorService
 	Verification   VerificationService
+	MFA            MFAService
 	IdentityConfig *config.IdentityConfig
 }
 
@@ -217,6 +222,20 @@ func (c *Coordinator) removeOrphans(userID string) error {
 	err = c.Verification.RemoveOrphanedClaims(identities, authenticators)
 	if err != nil {
 		return err
+	}
+
+	hasSecondaryAuth := false
+	for _, a := range authenticators {
+		if a.Kind == authenticator.KindSecondary {
+			hasSecondaryAuth = true
+			break
+		}
+	}
+	if !hasSecondaryAuth {
+		err = c.MFA.InvalidateAllRecoveryCode(userID)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

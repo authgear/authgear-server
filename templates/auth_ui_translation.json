@@ -30,6 +30,7 @@
 	"add-button-label": "Add",
 	"remove-button-label": "Remove",
 	"details-button-label": "Details",
+	"setup-password-button-label": "Setup Password",
 	"change-password-button-label": "Change Password",
 	"resend-verification-code-button-label": "Resend verification code",
 	"verification-status-label--unverified": "Not verified",
@@ -119,6 +120,9 @@
 
 	"change-password-page-title": "Change Password",
 	"change-password-page-description": "Please enter your new password below.",
+
+	"change-secondary-password-page-title": "Change Additional Password",
+	"change-secondary-password-page-description": "Please enter your new password below.",
 
 	"logout-button-hint": "Click the button to sign out",
 	"logout-button-label": "Sign out",
