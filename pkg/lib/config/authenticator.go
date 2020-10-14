@@ -37,7 +37,7 @@ var _ = Schema.Add("PasswordPolicyConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"min_length": { "type": "integer" },
+		"min_length": { "type": "integer", "minimum": 1 },
 		"uppercase_required": { "type": "boolean" },
 		"lowercase_required": { "type": "boolean" },
 		"digit_required": { "type": "boolean" },
@@ -51,7 +51,7 @@ var _ = Schema.Add("PasswordPolicyConfig", `
 `)
 
 type PasswordPolicyConfig struct {
-	MinLength             int          `json:"min_length,omitempty"`
+	MinLength             *int         `json:"min_length,omitempty"`
 	UppercaseRequired     bool         `json:"uppercase_required,omitempty"`
 	LowercaseRequired     bool         `json:"lowercase_required,omitempty"`
 	DigitRequired         bool         `json:"digit_required,omitempty"`
@@ -64,6 +64,12 @@ type PasswordPolicyConfig struct {
 
 func (c *PasswordPolicyConfig) IsEnabled() bool {
 	return c.HistorySize > 0 || c.HistoryDays > 0
+}
+
+func (c *PasswordPolicyConfig) SetDefaults() {
+	if c.MinLength == nil {
+		c.MinLength = newInt(1)
+	}
 }
 
 var _ = Schema.Add("AuthenticatorTOTPConfig", `

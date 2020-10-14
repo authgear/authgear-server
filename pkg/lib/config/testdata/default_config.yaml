@@ -273,7 +273,8 @@ identity:
     promotion: error
 authenticator:
   password:
-    policy: {}
+    policy:
+      min_length: 1
   totp:
     maximum: 99
   oob_otp:
