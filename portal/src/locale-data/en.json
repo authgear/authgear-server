@@ -380,5 +380,12 @@
   "SettingsScreen.title": "Settings",
   "SettingsScreen.portal_admins.title": "Portal Admins",
 
+  "PortalAdminsSettings.invite": "Invite",
+
+  "PortalAdminList.column.email": "Email",
+  "PortalAdminList.column.status": "Status",
+  "PortalAdminList.column.action": "Action",
+  "PortalAdminList.remove": "Remove",
+
   "PasswordStrengthMeter.password-strength": "Password Strength"
 }

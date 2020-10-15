@@ -3,6 +3,7 @@ import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { Pivot, PivotItem, Text } from "@fluentui/react";
 
 import { usePivotNavigation } from "../../hook/usePivot";
+import PortalAdminsSettings from "./PortalAdminsSettings";
 
 import styles from "./SettingsScreen.module.scss";
 
@@ -25,7 +26,9 @@ const SettingsScreen: React.FC = function SettingsScreen() {
             <PivotItem
               headerText={renderToString("SettingsScreen.portal_admins.title")}
               itemKey={PORTAL_ADMINS_PIVOT_KEY}
-            />
+            >
+              <PortalAdminsSettings />
+            </PivotItem>
           </Pivot>
         </div>
       </div>
