@@ -25,7 +25,6 @@ var ErrCollaboratorDuplicate = apierrors.AlreadyExists.WithReason("CollaboratorD
 var ErrCollaboratorInvitationNotFound = apierrors.NotFound.WithReason("CollaboratorInvitationNotFound").New("collaborator invitation not found")
 var ErrCollaboratorInvitationDuplicate = apierrors.AlreadyExists.WithReason("CollaboratorInvitationDuplicate").New("collaborator invitation duplicate")
 var ErrCollaboratorInvitationInvalidCode = apierrors.Invalid.WithReason("CollaboratorInvitationInvalidCode").New("collaborator invitation invalid code")
-var ErrCollaboratorInvitationDuplicateCode = apierrors.InternalError.WithReason("CollaboratorInvitationDuplicateCode").New("collaborator invitation duplicate code")
 
 type CollaboratorService struct {
 	Context     context.Context
@@ -277,10 +276,6 @@ func (s *CollaboratorService) AcceptInvitation(code string) (*model.Collaborator
 
 	if len(is) <= 0 {
 		return nil, ErrCollaboratorInvitationInvalidCode
-	}
-
-	if len(is) > 1 {
-		return nil, ErrCollaboratorInvitationDuplicateCode
 	}
 
 	invitation := is[0]
