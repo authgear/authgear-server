@@ -10,7 +10,7 @@ import {
   Text,
 } from "@fluentui/react";
 import { useNavigate, useParams } from "react-router-dom";
-import produce from "immer";
+import produce, { createDraft } from "immer";
 import deepEqual from "deep-equal";
 import { FormattedMessage } from "@oursky/react-messageformat";
 
@@ -131,6 +131,12 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
       name: undefined,
       client_id: genRandomHexadecimalString(),
       redirect_uris: [],
+      grant_types: [
+        "authorization_code",
+        "refresh_token",
+        "urn:authgear:params:oauth:grant-type:anonymous-request",
+      ],
+      response_types: ["code", "none"],
       access_token_lifetime_seconds: undefined,
       refresh_token_lifetime_seconds: undefined,
       post_logout_redirect_uris: undefined,
@@ -168,7 +174,7 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
       const newAppConfig = produce(rawAppConfig, (draftConfig) => {
         draftConfig.oauth = draftConfig.oauth ?? {};
         draftConfig.oauth.clients = draftConfig.oauth.clients ?? [];
-        draftConfig.oauth.clients.push(clientConfig);
+        draftConfig.oauth.clients.push(createDraft(clientConfig));
 
         clearEmptyObject(draftConfig);
       });
@@ -208,7 +214,7 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
       />
       <ButtonWithLoading
         type="submit"
-        disabled={!isFormModified}
+        disabled={!isFormModified || submittedForm}
         labelId="create"
         loading={updatingAppConfig}
       />

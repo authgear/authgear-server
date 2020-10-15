@@ -79,20 +79,26 @@ const AddUsernameForm: React.FC<AddUsernameFormProps> = function AddUsernameForm
   const [localViolations, setLocalViolations] = useState<Violation[]>([]);
   const [submittedForm, setSubmittedForm] = useState(false);
 
-  const { value: username, onChange: onUsernameChange } = useTextField("");
-  const { value: password, onChange: onPasswordChange } = useTextField("");
+  const initialFormData = useMemo(() => {
+    return {
+      password: "",
+      username: "",
+    };
+  }, []);
 
-  const screenState = useMemo(
-    () => ({
-      password,
-      username,
-    }),
-    [username, password]
-  );
+  const [formData, setFormData] = useState(initialFormData);
+  const { username, password } = formData;
+
+  const { onChange: onUsernameChange } = useTextField((value) => {
+    setFormData((prev) => ({ ...prev, username: value }));
+  });
+  const { onChange: onPasswordChange } = useTextField((value) => {
+    setFormData((prev) => ({ ...prev, password: value }));
+  });
 
   const isFormModified = useMemo(() => {
-    return !deepEqual({ username: "", password: "" }, screenState);
-  }, [screenState]);
+    return !deepEqual(formData, initialFormData);
+  }, [formData, initialFormData]);
 
   const onFormSubmit = useCallback(
     (ev: React.SyntheticEvent<HTMLElement>) => {
@@ -122,7 +128,7 @@ const AddUsernameForm: React.FC<AddUsernameFormProps> = function AddUsernameForm
 
   useEffect(() => {
     if (submittedForm) {
-      navigate("../#connected-identities");
+      navigate("..#connected-identities");
     }
   }, [submittedForm, navigate]);
 
@@ -200,7 +206,7 @@ const AddUsernameForm: React.FC<AddUsernameFormProps> = function AddUsernameForm
       )}
       <ButtonWithLoading
         type="submit"
-        disabled={!isFormModified}
+        disabled={!isFormModified || submittedForm}
         labelId="add"
         loading={creatingIdentity}
       />

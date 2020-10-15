@@ -37,6 +37,11 @@ interface ResetPasswordFormProps {
   appConfig: PortalAPIAppConfig | null;
 }
 
+interface ResetPasswordFormData {
+  newPassword: string;
+  confirmPassword: string;
+}
+
 const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
   props: ResetPasswordFormProps
 ) {
@@ -58,25 +63,25 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
     return appConfig?.authenticator?.password?.policy ?? {};
   }, [appConfig]);
 
-  const { value: newPassword, onChange: onNewPasswordChange } = useTextField(
-    ""
-  );
-  const {
-    value: confirmPassword,
-    onChange: onConfirmPasswordChange,
-  } = useTextField("");
+  const initialFormData = useMemo<ResetPasswordFormData>(() => {
+    return {
+      newPassword: "",
+      confirmPassword: "",
+    };
+  }, []);
+  const [formData, setFormData] = useState(initialFormData);
+  const { newPassword, confirmPassword } = formData;
 
-  const screenState = useMemo(
-    () => ({
-      newPassword,
-      confirmPassword,
-    }),
-    [newPassword, confirmPassword]
-  );
+  const { onChange: onNewPasswordChange } = useTextField((value) => {
+    setFormData((prev) => ({ ...prev, newPassword: value }));
+  });
+  const { onChange: onConfirmPasswordChange } = useTextField((value) => {
+    setFormData((prev) => ({ ...prev, confirmPassword: value }));
+  });
 
   const isFormModified = useMemo(() => {
-    return !deepEqual({ newPassword: "", confirmPassword: "" }, screenState);
-  }, [screenState]);
+    return !deepEqual({ newPassword: "", confirmPassword: "" }, formData);
+  }, [formData]);
 
   const onFormSubmit = useCallback(
     (ev: React.SyntheticEvent<HTMLElement>) => {
@@ -87,15 +92,15 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
       localValidatePassword(
         newLocalViolations,
         passwordPolicy,
-        screenState.newPassword,
-        screenState.confirmPassword
+        formData.newPassword,
+        formData.confirmPassword
       );
       setLocalViolations(newLocalViolations);
       if (newLocalViolations.length > 0) {
         return;
       }
 
-      resetPassword(screenState.newPassword)
+      resetPassword(formData.newPassword)
         .then((userID) => {
           if (userID != null) {
             setSubmittedForm(true);
@@ -103,12 +108,12 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
         })
         .catch(() => {});
     },
-    [screenState, passwordPolicy, resetPassword]
+    [formData, passwordPolicy, resetPassword]
   );
 
   useEffect(() => {
     if (submittedForm) {
-      navigate("../#account-security");
+      navigate("..#account-security");
     }
   }, [submittedForm, navigate]);
 
@@ -187,7 +192,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
       <ButtonWithLoading
         type="submit"
         className={styles.confirm}
-        disabled={!isFormModified}
+        disabled={!isFormModified || submittedForm}
         loading={resettingPassword}
         labelId="confirm"
       />

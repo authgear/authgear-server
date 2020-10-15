@@ -198,6 +198,7 @@ const AnonymousUsersConfiguration: React.FC<AnonymousUsersConfigurationProps> = 
         )}
         disabled={!state.enabled}
         options={conflictBehaviourOptions}
+        selectedKey={state.promotionConflictBehaviour}
         onChange={onConflictOptionChange}
       />
       <ButtonWithLoading

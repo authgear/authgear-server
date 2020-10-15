@@ -191,6 +191,8 @@ const PublicOriginConfiguration: React.FC<PublicOriginConfigurationProps> = func
     return effectiveAppConfig?.http?.public_origin ?? "";
   }, [effectiveAppConfig]);
 
+  const [publicOrigin, setPublicOrigin] = useState(initialPublicOrigin);
+
   const publicOriginOptionKeys = useMemo(() => {
     const keys = verifiedDomains.map(getPublicOriginFromDomain);
     if (initialPublicOrigin !== "" && !keys.includes(initialPublicOrigin)) {
@@ -201,10 +203,14 @@ const PublicOriginConfiguration: React.FC<PublicOriginConfigurationProps> = func
 
   const {
     options: publicOriginOptions,
-    selectedKey: publicOrigin,
     onChange: onPublicOriginChange,
-    resetOption: resetPublicOrigin,
-  } = useDropdown(publicOriginOptionKeys, initialPublicOrigin);
+  } = useDropdown(
+    publicOriginOptionKeys,
+    (option) => {
+      setPublicOrigin(option);
+    },
+    publicOrigin
+  );
 
   const isModified = useMemo(() => {
     return initialPublicOrigin !== publicOrigin;
@@ -213,6 +219,10 @@ const PublicOriginConfiguration: React.FC<PublicOriginConfigurationProps> = func
   const onSaveClick = useCallback(() => {
     savePublicOrigin(publicOrigin, rawAppConfig, updateAppConfig);
   }, [publicOrigin, rawAppConfig, updateAppConfig]);
+
+  const resetPublicOrigin = useCallback(() => {
+    setPublicOrigin(initialPublicOrigin);
+  }, [initialPublicOrigin]);
 
   // If selected domain is deleted, check if initial option is
   // also deleted. If not, reset to initial option.
@@ -285,7 +295,12 @@ const PublicOriginConfiguration: React.FC<PublicOriginConfigurationProps> = func
 const AddDomainSection: React.FC = function AddDomainSection() {
   const { renderToString } = useContext(Context);
   const { appID } = useParams();
-  const { value: newDomain, onChange: onNewDomainChange } = useTextField("");
+
+  const [newDomain, setNewDomain] = useState("");
+  const { onChange: onNewDomainChange } = useTextField((value) => {
+    setNewDomain(value);
+  });
+
   const {
     createDomain,
     loading: creatingDomain,

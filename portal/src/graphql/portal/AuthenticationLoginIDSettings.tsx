@@ -74,6 +74,21 @@ const widgetTitleMessageId: Record<LoginIDKeyType, string> = {
   phone: "AuthenticationWidget.phoneNumberTitle",
 };
 
+function updateScreenStateField<
+  K extends keyof AuthenticationLoginIDSettingsState
+>(
+  setState: React.Dispatch<
+    React.SetStateAction<AuthenticationLoginIDSettingsState>
+  >,
+  field: K,
+  action: React.SetStateAction<AuthenticationLoginIDSettingsState[K]>
+) {
+  setState((prev) => ({
+    ...prev,
+    [field]: typeof action === "function" ? action(prev[field]) : action,
+  }));
+}
+
 const WidgetHeader: React.FC<WidgetHeaderProps> = function (
   props: WidgetHeaderProps
 ) {
@@ -333,16 +348,27 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     return constructStateFromAppConfig(effectiveAppConfig);
   }, [effectiveAppConfig]);
 
-  const [loginIdKeyState, setLoginIdKeyState] = useState<LoginIDKeyState>(
-    initialState.loginIdKeyState
-  );
-  const [loginIdKeyTypes, setLoginIdKeyTypes] = useState<LoginIDKeyType[]>(
-    initialState.loginIdKeyTypes
-  );
+  const [state, setState] = useState(initialState);
+
+  const {
+    loginIdKeyState,
+    loginIdKeyTypes,
+
+    isBlockReservedUsername,
+    isExcludeKeywords,
+    isUsernameCaseSensitive,
+    isAsciiOnly,
+
+    isEmailCaseSensitive,
+    isIgnoreDotLocal,
+    isAllowPlus,
+
+    selectedCallingCodes,
+  } = state;
 
   const setLoginIdKeTypeState = useCallback(
     (loginIdKeyType: LoginIDKeyType, enabled: boolean) => {
-      setLoginIdKeyState((prev) => ({
+      updateScreenStateField(setState, "loginIdKeyState", (prev) => ({
         ...prev,
         [loginIdKeyType]: enabled,
       }));
@@ -358,27 +384,37 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     [setLoginIdKeTypeState]
   );
 
+  const updateExcludedKeywords = useCallback((list: string[]) => {
+    updateScreenStateField(setState, "excludedKeywords", list);
+  }, []);
+
   const {
-    list: excludedKeywords,
+    selectedItems: excludedKeywordItems,
     onChange: onExcludedKeywordsChange,
-    defaultSelectedItems: defaultSelectedExcludedKeywords,
     onResolveSuggestions: onResolveExcludedKeywordSuggestions,
-  } = useTagPickerWithNewTags(initialState.excludedKeywords);
+  } = useTagPickerWithNewTags(state.excludedKeywords, updateExcludedKeywords);
+
   const {
-    value: isBlockReservedUsername,
     onChange: onIsBlockReservedUsernameChange,
-  } = useCheckbox(initialState.isBlockReservedUsername);
-  const {
-    value: isExcludeKeywords,
-    onChange: onIsExcludeKeywordsChange,
-  } = useCheckbox(initialState.isExcludeKeywords);
-  const {
-    value: isUsernameCaseSensitive,
-    onChange: onIsUsernameCaseSensitiveChange,
-  } = useCheckbox(initialState.isUsernameCaseSensitive);
-  const { value: isAsciiOnly, onChange: onIsAsciiOnlyChange } = useCheckbox(
-    initialState.isAsciiOnly
+  } = useCheckbox((checked: boolean) =>
+    updateScreenStateField(setState, "isBlockReservedUsername", checked)
   );
+
+  const { onChange: onIsExcludeKeywordsChange } = useCheckbox(
+    (checked: boolean) => {
+      updateScreenStateField(setState, "isExcludeKeywords", checked);
+    }
+  );
+
+  const { onChange: onIsUsernameCaseSensitiveChange } = useCheckbox(
+    (checked: boolean) => {
+      updateScreenStateField(setState, "isUsernameCaseSensitive", !!checked);
+    }
+  );
+
+  const { onChange: onIsAsciiOnlyChange } = useCheckbox((checked: boolean) => {
+    updateScreenStateField(setState, "isAsciiOnly", checked);
+  });
 
   // email widget
   const setEmailEnabled = useCallback(
@@ -388,17 +424,21 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     [setLoginIdKeTypeState]
   );
 
-  const {
-    value: isEmailCaseSensitive,
-    onChange: onIsEmailCaseSensitiveChange,
-  } = useCheckbox(initialState.isEmailCaseSensitive);
-  const {
-    value: isIgnoreDotLocal,
-    onChange: onIsIgnoreDotLocalChange,
-  } = useCheckbox(initialState.isIgnoreDotLocal);
-  const { value: isAllowPlus, onChange: onIsAllowPlusChange } = useCheckbox(
-    initialState.isAllowPlus
+  const { onChange: onIsEmailCaseSensitiveChange } = useCheckbox(
+    (checked: boolean) => {
+      updateScreenStateField(setState, "isEmailCaseSensitive", checked);
+    }
   );
+
+  const { onChange: onIsIgnoreDotLocalChange } = useCheckbox(
+    (checked: boolean) => {
+      updateScreenStateField(setState, "isIgnoreDotLocal", checked);
+    }
+  );
+
+  const { onChange: onIsAllowPlusChange } = useCheckbox((checked: boolean) => {
+    updateScreenStateField(setState, "isAllowPlus", checked);
+  });
 
   // phone widget
   const setPhoneNumberEnabled = useCallback(
@@ -408,13 +448,13 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     [setLoginIdKeTypeState]
   );
 
-  const [selectedCallingCodes, setSelectedCallingCodes] = useState<string[]>(
-    initialState.selectedCallingCodes
-  );
-
   const onSelectedCallingCodesChange = useCallback(
     (newSelectedCallingCodes: string[]) => {
-      setSelectedCallingCodes(newSelectedCallingCodes);
+      updateScreenStateField(
+        setState,
+        "selectedCallingCodes",
+        newSelectedCallingCodes
+      );
     },
     []
   );
@@ -433,47 +473,14 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
   );
 
   const onWidgetSwapClicked = useCallback((index1: number, index2: number) => {
-    setLoginIdKeyTypes((prev) => swap(prev, index1, index2));
+    updateScreenStateField(setState, "loginIdKeyTypes", (prev) =>
+      swap(prev, index1, index2)
+    );
   }, []);
 
-  const screenState = useMemo(
-    () => ({
-      loginIdKeyState,
-      loginIdKeyTypes,
-
-      excludedKeywords,
-      isBlockReservedUsername,
-      isExcludeKeywords,
-      isUsernameCaseSensitive,
-      isAsciiOnly,
-
-      isEmailCaseSensitive,
-      isIgnoreDotLocal,
-      isAllowPlus,
-
-      selectedCallingCodes,
-    }),
-    [
-      loginIdKeyTypes,
-      loginIdKeyState,
-
-      excludedKeywords,
-      isBlockReservedUsername,
-      isExcludeKeywords,
-      isUsernameCaseSensitive,
-      isAsciiOnly,
-
-      isEmailCaseSensitive,
-      isIgnoreDotLocal,
-      isAllowPlus,
-
-      selectedCallingCodes,
-    ]
-  );
-
   const isFormModified = useMemo(() => {
-    return !deepEqual(initialState, screenState, { strict: true });
-  }, [initialState, screenState]);
+    return !deepEqual(initialState, state, { strict: true });
+  }, [initialState, state]);
 
   // on save
   const onFormSubmit = React.useCallback(
@@ -488,13 +495,12 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
       const newAppConfig = constructAppConfigFromState(
         rawAppConfig,
         initialState,
-        screenState
+        state
       );
 
-      // TODO: handle error
       updateAppConfig(newAppConfig).catch(() => {});
     },
-    [screenState, rawAppConfig, updateAppConfig, initialState]
+    [state, rawAppConfig, updateAppConfig, initialState]
   );
 
   const renderUsernameWidget = useCallback(
@@ -541,8 +547,8 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
                 }}
                 className={styles.widgetInputField}
                 disabled={!isExcludeKeywords}
+                selectedItems={excludedKeywordItems}
                 onChange={onExcludedKeywordsChange}
-                defaultSelectedItems={defaultSelectedExcludedKeywords}
                 onResolveSuggestions={onResolveExcludedKeywordSuggestions}
               />
             </CheckboxWithContent>
@@ -571,7 +577,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
       renderWidgetOrderAriaLabel,
       loginIdKeyState,
 
-      defaultSelectedExcludedKeywords,
+      excludedKeywordItems,
       isAsciiOnly,
       isUsernameCaseSensitive,
       isExcludeKeywords,

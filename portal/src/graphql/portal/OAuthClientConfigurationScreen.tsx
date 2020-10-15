@@ -110,12 +110,15 @@ const AllowedOriginsConfiguration: React.FC<AllowedOriginsConfigurationProps> = 
     return effectiveAppConfig?.http?.allowed_origins ?? [];
   }, [effectiveAppConfig]);
 
+  const [allowedOrigins, setAllowedOrigins] = useState<string[]>(
+    initialAllowedOrigins
+  );
+
   const {
-    list: allowedOrigins,
-    defaultSelectedItems: defaultAllowedOrigin,
+    selectedItems: allowedOriginItems,
     onChange: onAllowedOriginsChange,
     onResolveSuggestions: onResolveAllowedOriginsSuggestions,
-  } = useTagPickerWithNewTags(initialAllowedOrigins);
+  } = useTagPickerWithNewTags(allowedOrigins, setAllowedOrigins);
 
   const onSaveClick = useCallback(() => {
     if (rawAppConfig == null) {
@@ -150,8 +153,8 @@ const AllowedOriginsConfiguration: React.FC<AllowedOriginsConfigurationProps> = 
       </Text>
       <Stack horizontal={true} tokens={{ childrenGap: 10 }}>
         <TagPicker
+          selectedItems={allowedOriginItems}
           className={styles.allowedOriginsConfigurationPicker}
-          defaultSelectedItems={defaultAllowedOrigin}
           onChange={onAllowedOriginsChange}
           onResolveSuggestions={onResolveAllowedOriginsSuggestions}
         />

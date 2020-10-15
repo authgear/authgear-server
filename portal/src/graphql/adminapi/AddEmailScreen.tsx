@@ -25,6 +25,10 @@ import {
 
 import styles from "./AddEmailScreen.module.scss";
 
+interface AddEmailFormData {
+  email: string;
+}
+
 const AddEmailScreen: React.FC = function AddEmailScreen() {
   const { userID } = useParams();
   const navigate = useNavigate();
@@ -46,18 +50,21 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
     ];
   }, []);
 
-  const { value: email, onChange: onEmailChange } = useTextField("");
+  const initialFormData = useMemo(() => {
+    return {
+      email: "",
+    };
+  }, []);
+  const [formData, setFormData] = useState<AddEmailFormData>(initialFormData);
+  const { email } = formData;
 
-  const screenState = useMemo(
-    () => ({
-      email,
-    }),
-    [email]
-  );
+  const { onChange: onEmailChange } = useTextField((value) => {
+    setFormData((prev) => ({ ...prev, email: value }));
+  });
 
   const isFormModified = useMemo(() => {
-    return !deepEqual({ email: "" }, screenState);
-  }, [screenState]);
+    return !deepEqual(initialFormData, formData);
+  }, [initialFormData, formData]);
 
   const onFormSubmit = useCallback(
     (ev: React.SyntheticEvent<HTMLElement>) => {
@@ -77,7 +84,7 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
 
   useEffect(() => {
     if (submittedForm) {
-      navigate("../#connected-identities");
+      navigate("..#connected-identities");
     }
   }, [submittedForm, navigate]);
 
@@ -125,7 +132,7 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
         />
         <ButtonWithLoading
           type="submit"
-          disabled={!isFormModified}
+          disabled={!isFormModified || submittedForm}
           labelId="add"
           loading={creatingIdentity}
         />

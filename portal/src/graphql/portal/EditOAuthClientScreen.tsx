@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import deepEqual from "deep-equal";
-import produce from "immer";
+import produce, { createDraft } from "immer";
 import { Label, Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 
@@ -68,7 +68,7 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> = function EditOAu
         const clientConfigIndex = clients.findIndex(
           (client) => client.client_id === clientConfig.client_id
         );
-        clients[clientConfigIndex] = clientConfig;
+        clients[clientConfigIndex] = createDraft(clientConfig);
 
         clearEmptyObject(draftConfig);
       });

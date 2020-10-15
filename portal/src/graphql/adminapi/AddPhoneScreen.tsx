@@ -1,8 +1,8 @@
 import React, {
   useCallback,
   useContext,
-  useEffect,
   useMemo,
+  useEffect,
   useState,
 } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -16,7 +16,7 @@ import ButtonWithLoading from "../../ButtonWithLoading";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import UserDetailCommandBar from "./UserDetailCommandBar";
-import { useDropdown, useTextField } from "../../hook/useInput";
+import { useDropdown, useIntegerTextField } from "../../hook/useInput";
 import { useAppConfigQuery } from "../portal/query/appConfigQuery";
 import { useCreateLoginIDIdentityMutation } from "./mutations/createIdentityMutation";
 import { PortalAPIAppConfig } from "../../types";
@@ -46,19 +46,6 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
   } = useCreateLoginIDIdentityMutation(userID);
   const { renderToString } = useContext(Context);
 
-  const [submittedForm, setSubmittedForm] = useState<boolean>(false);
-
-  const { value: phone, onChange: _onPhoneChange } = useTextField("");
-
-  const onPhoneChange = useCallback(
-    (_event, value?: string) => {
-      if (value != null && /^[0-9]*$/.test(value)) {
-        _onPhoneChange(_event, value);
-      }
-    },
-    [_onPhoneChange]
-  );
-
   const countryCodeConfig = useMemo(() => {
     const countryCodeConfig = appConfig?.ui?.country_calling_code;
     const values = countryCodeConfig?.values ?? [];
@@ -68,6 +55,25 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
     };
   }, [appConfig]);
 
+  const initialFormData = useMemo(() => {
+    return {
+      phone: "",
+      countryCode: countryCodeConfig.default,
+    };
+  }, [countryCodeConfig]);
+
+  const [submittedForm, setSubmittedForm] = useState<boolean>(false);
+  const [formData, setFormData] = useState(initialFormData);
+
+  const { phone, countryCode } = formData;
+
+  const { onChange: onPhoneChange } = useIntegerTextField((value) => {
+    setFormData((prev) => ({
+      ...prev,
+      phone: value,
+    }));
+  });
+
   const displayCountryCode = useCallback((countryCode: string) => {
     return `+ ${countryCode}`;
   }, []);
@@ -75,27 +81,21 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
   const {
     options: countryCodeOptions,
     onChange: onCountryCodeChange,
-    selectedKey: countryCode,
   } = useDropdown(
     countryCodeConfig.values,
+    (option) => {
+      setFormData((prev) => ({
+        ...prev,
+        countryCode: option,
+      }));
+    },
     countryCodeConfig.default,
     displayCountryCode
   );
 
-  const screenState = useMemo(
-    () => ({
-      countryCode,
-      phone,
-    }),
-    [countryCode, phone]
-  );
-
   const isFormModified = useMemo(() => {
-    return !deepEqual(
-      { countryCode: countryCodeConfig.default, phone: "" },
-      screenState
-    );
-  }, [screenState, countryCodeConfig.default]);
+    return !deepEqual(initialFormData, formData);
+  }, [formData, initialFormData]);
 
   const onFormSubmit = useCallback(
     (ev: React.SyntheticEvent<HTMLElement>) => {
@@ -174,7 +174,7 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
       </section>
       <ButtonWithLoading
         type="submit"
-        disabled={!isFormModified}
+        disabled={!isFormModified || submittedForm}
         labelId="add"
         loading={creatingIdentity}
       />
