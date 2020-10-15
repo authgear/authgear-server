@@ -125,6 +125,9 @@ input CreateCollaboratorInvitationInput {
 type CreateCollaboratorInvitationPayload {
   """"""
   app: App!
+
+  """"""
+  collaboratorInvitation: CollaboratorInvitation!
 }
 
 """"""
@@ -152,18 +155,12 @@ scalar DateTime
 
 """"""
 input DeleteCollaboratorInput {
-  """Target app ID."""
-  appID: ID!
-
   """Collaborator ID."""
   collaboratorID: String!
 }
 
 """"""
 input DeleteCollaboratorInvitationInput {
-  """Target app ID."""
-  appID: ID!
-
   """Collaborator invitation ID."""
   collaboratorInvitationID: String!
 }

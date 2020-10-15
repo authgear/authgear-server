@@ -164,7 +164,8 @@ var createCollaboratorInvitationInputSchema = validation.NewMultipartSchema("").
 var createCollaboratorInvitationPayload = graphql.NewObject(graphql.ObjectConfig{
 	Name: "CreateCollaboratorInvitationPayload",
 	Fields: graphql.Fields{
-		"app": &graphql.Field{Type: graphql.NewNonNull(nodeApp)},
+		"app":                    &graphql.Field{Type: graphql.NewNonNull(nodeApp)},
+		"collaboratorInvitation": &graphql.Field{Type: graphql.NewNonNull(collaboratorInvitation)},
 	},
 })
 
@@ -207,7 +208,8 @@ var _ = registerMutationField(
 				Map(func(value interface{}) (interface{}, error) {
 					app := gqlCtx.Apps.Get(appID)
 					return map[string]interface{}{
-						"app": app,
+						"app":                    app,
+						"collaboratorInvitation": value,
 					}, nil
 				}).Value, nil
 		},
