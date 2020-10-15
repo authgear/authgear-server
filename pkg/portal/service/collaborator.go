@@ -106,7 +106,12 @@ func (s *CollaboratorService) NewCollaborator(appID string, userID string) *mode
 }
 
 func (s *CollaboratorService) CreateCollaborator(c *model.Collaborator) error {
-	_, err := s.SQLExecutor.ExecWith(s.SQLBuilder.
+	err := s.deleteExpiredInvitations()
+	if err != nil {
+		return err
+	}
+
+	_, err = s.SQLExecutor.ExecWith(s.SQLBuilder.
 		Insert(s.SQLBuilder.FullTableName("app_collaborator")).
 		Columns(
 			"id",
@@ -152,7 +157,12 @@ func (s *CollaboratorService) DeleteCollaborator(c *model.Collaborator) error {
 		return ErrCollaboratorSelfDeletion
 	}
 
-	_, err := s.SQLExecutor.ExecWith(s.SQLBuilder.
+	err := s.deleteExpiredInvitations()
+	if err != nil {
+		return err
+	}
+
+	_, err = s.SQLExecutor.ExecWith(s.SQLBuilder.
 		Delete(s.SQLBuilder.FullTableName("app_collaborator")).
 		Where("id = ?", c.ID),
 	)
@@ -223,6 +233,11 @@ func (s *CollaboratorService) SendInvitation(
 		ExpireAt:     expireAt,
 	}
 
+	err = s.deleteExpiredInvitations()
+	if err != nil {
+		return nil, err
+	}
+
 	err = s.createCollaboratorInvitation(i)
 	if err != nil {
 		return nil, err
@@ -243,7 +258,12 @@ func (s *CollaboratorService) GetInvitation(id string) (*model.CollaboratorInvit
 }
 
 func (s *CollaboratorService) DeleteInvitation(i *model.CollaboratorInvitation) error {
-	_, err := s.SQLExecutor.ExecWith(s.SQLBuilder.
+	err := s.deleteExpiredInvitations()
+	if err != nil {
+		return err
+	}
+
+	_, err = s.SQLExecutor.ExecWith(s.SQLBuilder.
 		Delete(s.SQLBuilder.FullTableName("app_collaborator_invitation")).
 		Where("id = ?", i.ID),
 	)
@@ -302,6 +322,18 @@ func (s *CollaboratorService) AcceptInvitation(code string) (*model.Collaborator
 	}
 
 	return collaborator, nil
+}
+
+func (s *CollaboratorService) deleteExpiredInvitations() error {
+	now := s.Clock.NowUTC()
+	_, err := s.SQLExecutor.ExecWith(s.SQLBuilder.
+		Delete(s.SQLBuilder.FullTableName("app_collaborator_invitation")).
+		Where("expire_at <= ?", now),
+	)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *CollaboratorService) createCollaboratorInvitation(i *model.CollaboratorInvitation) error {
