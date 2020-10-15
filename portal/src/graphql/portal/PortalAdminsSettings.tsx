@@ -5,6 +5,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import cn from "classnames";
 
 import { useCollaboratorsAndInvitationsQuery } from "./query/collaboratorsAndInvitationsQuery";
+import { useDeleteCollaboratorInvitationMutation } from "./mutations/deleteCollaboratorInvitationMutation";
+import { useDeleteCollaboratorMutation } from "./mutations/deleteCollaboratorMutation";
 import PortalAdminList from "./PortalAdminList";
 import RemovePortalAdminConfirmationDialog, {
   RemovePortalAdminConfirmationDialogData,
@@ -14,6 +16,7 @@ import RemovePortalAdminInvitationConfirmationDialog, {
 } from "./RemovePortalAdminInvitationConfirmationDialog";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
+import ErrorDialog from "../../error/ErrorDialog";
 
 import styles from "./PortalAdminsSettings.module.scss";
 
@@ -37,6 +40,16 @@ const PortalAdminsSettings: React.FC<PortalAdminsSettingsProps> = function Porta
     error: collaboratorsAndInvitationsError,
     refetch: refetchCollaboratorsAndInvitations,
   } = useCollaboratorsAndInvitationsQuery(appID);
+  const {
+    deleteCollaborator,
+    loading: deletingCollaborator,
+    error: deleteCollaboratorError,
+  } = useDeleteCollaboratorMutation();
+  const {
+    deleteCollaboratorInvitation,
+    loading: deletingCollaboratorInvitation,
+    error: deleteCollaboratorInvitationError,
+  } = useDeleteCollaboratorInvitationMutation();
 
   const [
     isRemovePortalAdminConfirmationDialogVisible,
@@ -68,9 +81,6 @@ const PortalAdminsSettings: React.FC<PortalAdminsSettingsProps> = function Porta
       },
     ];
   }, [navigate, renderToString]);
-
-  const deletingCollaborator = false;
-  const deletingCollaboratorInvitation = false;
 
   const onRemoveCollaboratorClicked = useCallback(
     (_event: React.MouseEvent<unknown>, id: string) => {
@@ -119,17 +129,27 @@ const PortalAdminsSettings: React.FC<PortalAdminsSettingsProps> = function Porta
     setIsRemovePortalAdminInvitationConfirmationDialogVisible(false);
   }, []);
 
-  const deleteCollaborator = useCallback((_userId: string) => {
-    // TODO: handle delete collaborator mutation
-    alert("Not yet implemented");
-    setIsRemovePortalAdminConfirmationDialogVisible(false);
-  }, []);
+  const onDeleteCollaborator = useCallback(
+    (userID: string) => {
+      deleteCollaborator(userID)
+        .catch(() => {})
+        .finally(() => {
+          setIsRemovePortalAdminConfirmationDialogVisible(false);
+        });
+    },
+    [deleteCollaborator]
+  );
 
-  const deleteCollaboratorInvitation = useCallback((_invitationID: string) => {
-    // TODO: handle delete collaborator invitation mutation
-    alert("Not yet implemented");
-    setIsRemovePortalAdminInvitationConfirmationDialogVisible(false);
-  }, []);
+  const OnDeleteCollaboratorInvitation = useCallback(
+    (invitationID: string) => {
+      deleteCollaboratorInvitation(invitationID)
+        .catch(() => {})
+        .finally(() => {
+          setIsRemovePortalAdminInvitationConfirmationDialogVisible(false);
+        });
+    },
+    [deleteCollaboratorInvitation]
+  );
 
   if (loadingCollaboratorsAndInvitations) {
     return <ShowLoading />;
@@ -164,15 +184,25 @@ const PortalAdminsSettings: React.FC<PortalAdminsSettingsProps> = function Porta
         visible={isRemovePortalAdminConfirmationDialogVisible}
         data={removePortalAdminConfirmationDialogData ?? undefined}
         onDismiss={dismissRemovePortalAdminConfirmationDialog}
-        deleteCollaborator={deleteCollaborator}
+        deleteCollaborator={onDeleteCollaborator}
         deletingCollaborator={deletingCollaborator}
       />
       <RemovePortalAdminInvitationConfirmationDialog
         visible={isRemovePortalAdminInvitationConfirmationDialogVisible}
         data={removePortalAdminInvitationConfirmationDialogData ?? undefined}
         onDismiss={dismissRemovePortalAdminInvitationConfirmationDialog}
-        deleteCollaboratorInvitation={deleteCollaboratorInvitation}
+        deleteCollaboratorInvitation={OnDeleteCollaboratorInvitation}
         deletingCollaboratorInvitation={deletingCollaboratorInvitation}
+      />
+      <ErrorDialog
+        error={deleteCollaboratorError}
+        rules={[]}
+        fallbackErrorMessageID="PortalAdminsSettings.delete-collaborator-dialog.generic-error"
+      />
+      <ErrorDialog
+        error={deleteCollaboratorInvitationError}
+        rules={[]}
+        fallbackErrorMessageID="PortalAdminsSettings.delete-collaborator-invitation-dialog.generic-error"
       />
     </div>
   );

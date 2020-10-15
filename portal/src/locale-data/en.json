@@ -381,6 +381,8 @@
   "SettingsScreen.portal_admins.title": "Portal Admins",
 
   "PortalAdminsSettings.invite": "Invite",
+  "PortalAdminsSettings.delete-collaborator-dialog.generic-error": "Failed to delete admin",
+  "PortalAdminsSettings.delete-collaborator-invitation-dialog.generic-error": "Failed to delete admin invitation",
 
   "RemovePortalAdminConfirmationDialog.title": "Remove Admin",
   "RemovePortalAdminConfirmationDialog.message": "Are you really want to remove admin {email}",
