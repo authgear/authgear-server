@@ -14,10 +14,16 @@ type AppService interface {
 
 type AppLoader struct {
 	Apps   AppService
+	Authz  AuthzService
 	loader *graphqlutil.DataLoader `wire:"-"`
 }
 
 func (l *AppLoader) Get(id string) *graphqlutil.Lazy {
+	err := l.Authz.CheckAccessOfViewer(id)
+	if err != nil {
+		return graphqlutil.NewLazyError(err)
+	}
+
 	if l.loader == nil {
 		l.loader = graphqlutil.NewDataLoader(func(keys []interface{}) ([]interface{}, error) {
 			ids := make([]string, len(keys))
@@ -51,6 +57,11 @@ func (l *AppLoader) List(userID string) *graphqlutil.Lazy {
 }
 
 func (l *AppLoader) UpdateConfig(app *model.App, updateFiles []*model.AppConfigFile, deleteFiles []string) *graphqlutil.Lazy {
+	err := l.Authz.CheckAccessOfViewer(app.ID)
+	if err != nil {
+		return graphqlutil.NewLazyError(err)
+	}
+
 	return graphqlutil.NewLazy(func() (interface{}, error) {
 		err := l.Apps.UpdateConfig(app, updateFiles, deleteFiles)
 		if err != nil {

@@ -37,10 +37,6 @@ type CollaboratorLoader interface {
 	AcceptInvitation(code string) *graphqlutil.Lazy
 }
 
-type AuthzService interface {
-	CheckAccessOfViewer(appID string) error
-}
-
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("portal-graphql")} }
@@ -51,7 +47,6 @@ type Context struct {
 	Apps          AppLoader
 	Domains       DomainLoader
 	Collaborators CollaboratorLoader
-	AuthzService  AuthzService
 }
 
 func (c *Context) Logger() *log.Logger {

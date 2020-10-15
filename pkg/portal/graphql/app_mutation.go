@@ -65,11 +65,6 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 
-			err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
-			if err != nil {
-				return nil, err
-			}
-
 			lazy := gqlCtx.Apps.Get(appID)
 			return lazy.
 				Map(func(value interface{}) (interface{}, error) {
