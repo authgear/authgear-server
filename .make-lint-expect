@@ -7,3 +7,8 @@ pkg/lib/oauth/handler/handler_authz.go cannot import github.com/authgear/authgea
 pkg/lib/oauth/handler/mock_test.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
 
 exit status 1
+pkg/portal/deps/deps_task.go cannot import github.com/authgear/authgear-server/pkg/worker/tasks
+pkg/portal/task/deps.go cannot import github.com/authgear/authgear-server/pkg/worker/tasks
+pkg/portal/wire_gen.go cannot import github.com/authgear/authgear-server/pkg/worker/tasks
+
+exit status 1

@@ -6,9 +6,12 @@ import (
 	adminauthz "github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/portal/db"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
+	"github.com/authgear/authgear-server/pkg/portal/endpoint"
 	"github.com/authgear/authgear-server/pkg/portal/graphql"
 	"github.com/authgear/authgear-server/pkg/portal/loader"
 	"github.com/authgear/authgear-server/pkg/portal/service"
+	"github.com/authgear/authgear-server/pkg/portal/task"
+	"github.com/authgear/authgear-server/pkg/portal/template"
 	"github.com/authgear/authgear-server/pkg/portal/transport"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
@@ -21,8 +24,12 @@ var DependencySet = wire.NewSet(
 	adminauthz.DependencySet,
 	clock.DependencySet,
 	db.DependencySet,
+	template.DependencySet,
+	endpoint.DependencySet,
 
 	wire.Bind(new(service.AuthzAdder), new(*adminauthz.Adder)),
+	wire.Bind(new(service.CollaboratorServiceTaskQueue), new(*task.InProcessQueue)),
+	wire.Bind(new(service.CollaboratorServiceEndpointsProvider), new(*endpoint.EndpointsProvider)),
 
 	loader.DependencySet,
 	wire.Bind(new(loader.AppService), new(*service.AppService)),
