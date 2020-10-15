@@ -14,6 +14,7 @@ export const collaboratorsAndInvitationsQuery = gql`
     node(id: $appID) {
       __typename
       ... on App {
+        id
         collaborators {
           id
           createdAt

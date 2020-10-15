@@ -29,6 +29,10 @@ export interface CollaboratorsAndInvitationsQuery_node_App_collaboratorInvitatio
 
 export interface CollaboratorsAndInvitationsQuery_node_App {
   __typename: "App";
+  /**
+   * The ID of an object
+   */
+  id: string;
   collaborators: CollaboratorsAndInvitationsQuery_node_App_collaborators[];
   collaboratorInvitations: CollaboratorsAndInvitationsQuery_node_App_collaboratorInvitations[];
 }
