@@ -110,7 +110,7 @@ func (r *Resolver) resolveReference(ctx *ResolveContext, t T) (reference *Refere
 		return
 	}
 
-	var items []languageTagger
+	var items []LanguageItem
 	for _, ref := range refs {
 		if ref.LanguageTag == "" {
 			ref.LanguageTag = string(intl.Fallback(r.FallbackLanguageTag))
@@ -118,12 +118,12 @@ func (r *Resolver) resolveReference(ctx *ResolveContext, t T) (reference *Refere
 		items = append(items, referenceLanguageTagger(ref))
 	}
 
-	matched, err := languageMatch(ctx.PreferredLanguageTags, r.FallbackLanguageTag, items)
+	matched, err := MatchLanguage(ctx.PreferredLanguageTags, r.FallbackLanguageTag, items)
 	if err != nil {
 		return
 	}
 
-	tagger := (*matched).(referenceLanguageTagger)
+	tagger := matched.(referenceLanguageTagger)
 	ref := Reference(tagger)
 	reference = &ref
 	return
@@ -190,20 +190,20 @@ func (r *Resolver) ResolveTranslations(ctx *ResolveContext, typ string) (transla
 	// Finally, we resolve each key.
 	translations = make(map[string]Translation)
 	for key, availableTransltion := range keyToTagToTranslation {
-		var items []languageTagger
+		var items []LanguageItem
 		for languageTag, value := range availableTransltion {
 			items = append(items, Translation{
 				LanguageTag: languageTag,
 				Value:       value,
 			})
 		}
-		var matched *languageTagger
-		matched, err = languageMatch(ctx.PreferredLanguageTags, r.FallbackLanguageTag, items)
+		var matched LanguageItem
+		matched, err = MatchLanguage(ctx.PreferredLanguageTags, r.FallbackLanguageTag, items)
 		if err != nil {
 			return
 		}
 
-		tagger := (*matched).(Translation)
+		tagger := matched.(Translation)
 		translations[key] = tagger
 	}
 
