@@ -175,7 +175,12 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -183,7 +188,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -264,6 +269,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -614,7 +620,12 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -622,7 +633,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -710,6 +721,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -1060,7 +1072,12 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -1068,7 +1085,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          logger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1262,7 +1279,12 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -1270,7 +1292,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          logger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1548,7 +1570,12 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -1556,7 +1583,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1637,6 +1664,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -1953,7 +1981,12 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -1961,7 +1994,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -2042,6 +2075,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -2357,7 +2391,12 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -2365,7 +2404,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -2447,6 +2486,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -2735,7 +2775,12 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -2743,7 +2788,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -2833,6 +2878,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -3141,7 +3187,12 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -3149,7 +3200,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -3231,6 +3282,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -3538,7 +3590,12 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -3546,7 +3603,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -3628,6 +3685,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -3935,7 +3993,12 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -3943,7 +4006,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -4025,6 +4088,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -4333,7 +4397,12 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -4341,7 +4410,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -4423,6 +4492,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -4732,7 +4802,12 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -4740,7 +4815,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -4822,6 +4897,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -5129,7 +5205,12 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -5137,7 +5218,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -5219,6 +5300,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -5526,7 +5608,12 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -5534,7 +5621,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -5616,6 +5703,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -5923,7 +6011,12 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -5931,7 +6024,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -6013,6 +6106,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -6320,7 +6414,12 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -6328,7 +6427,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -6410,6 +6509,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -6717,7 +6817,12 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -6725,7 +6830,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -6807,6 +6912,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -7114,7 +7220,12 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -7122,7 +7233,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -7204,6 +7315,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -7515,7 +7627,12 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -7523,7 +7640,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -7605,6 +7722,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -7913,7 +8031,12 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -7921,7 +8044,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -8003,6 +8126,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -8310,7 +8434,12 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -8318,7 +8447,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -8400,6 +8529,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -8708,7 +8838,12 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -8716,7 +8851,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -8798,6 +8933,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -9105,7 +9241,12 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -9113,7 +9254,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -9195,6 +9336,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -9505,7 +9647,12 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -9513,7 +9660,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -9595,6 +9742,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -9906,7 +10054,12 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -9914,7 +10067,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -9996,6 +10149,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -10306,7 +10460,12 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -10314,7 +10473,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -10396,6 +10555,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -10706,7 +10866,12 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -10714,7 +10879,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -10796,6 +10961,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -11107,7 +11273,12 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -11115,7 +11286,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -11197,6 +11368,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -11505,7 +11677,12 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -11513,7 +11690,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -11595,6 +11772,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -11880,7 +12058,12 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -11888,7 +12071,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          logger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -11973,6 +12156,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
+	queue := appProvider.TaskQueue
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
 		WelcomeMessageConfig: welcomeMessageConfig,
@@ -12170,7 +12354,12 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -12178,7 +12367,7 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -12268,6 +12457,7 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -12553,7 +12743,12 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -12561,7 +12756,7 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -12651,6 +12846,7 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
@@ -13124,7 +13320,12 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -13132,7 +13333,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -13313,7 +13514,12 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -13321,7 +13527,7 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -13411,6 +13617,7 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,
