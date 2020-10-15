@@ -1,9 +1,9 @@
-Verify your email on {{ .AppName }}
+Email Verification
 
-You have selected {{ .Email }} for verification. Please use the link to verify your account:
+This email is sent to verify {{ .email }} on {{ .appname }}. To do so, please visit the link below.
 
 {{ .URL }}
 
-Alternatively, use the code in the verification page: {{ .Code }}
+Alternatively, use this code in the verification page: {{ .Code }}
 
 If you didn't sign in or sign up please ignore this email.

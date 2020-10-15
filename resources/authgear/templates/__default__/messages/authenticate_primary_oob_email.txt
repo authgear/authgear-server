@@ -1,7 +1,7 @@
-Logging in to {{ .AppName }}
+Log in to {{ .AppName }}
 
 Please use the following one-time-password to complete the log in process.
 
 {{ .Code }}
 
-If you are not logging in your account please ignore this email.
+If you didn't trigger a login, please ignore this email.

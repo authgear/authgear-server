@@ -1,7 +1,7 @@
-Signing up on {{ .AppName }}
+Sign up on {{ .AppName }}
 
 Please use the following one-time-password to complete the sign up process.
 
 {{ .Code }}
 
-If you are not signing up your account please ignore this email.
+If you didn't sign up, please ignore this email.
