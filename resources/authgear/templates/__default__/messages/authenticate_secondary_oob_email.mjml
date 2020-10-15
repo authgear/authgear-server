@@ -5,10 +5,12 @@
   </mj-attributes>
 </mj-head>
 <mj-body background-color="#ffffff">
-  <mj-hero>
-      <mj-image width="200px" padding-top="20px" padding-bottom="0" align="left" src="https://uploads-ssl.webflow.com/5f30d184082f96442f7d34af/5f30d1c26a2b9d68d9a260f1_header-logo.png"/>
-  </mj-hero>
-  <mj-section>
+  <mj-section padding="20px 0 0">
+    <mj-column>
+      <mj-image align="left" width="150px" src="https://uploads-ssl.webflow.com/5f30d184082f96442f7d34af/5f30d1c26a2b9d68d9a260f1_header-logo.png"/>
+    </mj-column>
+  </mj-section>
+  <mj-section padding-top="10px">
     <mj-column>
       <mj-text font-weight="bold" font-size="24px">Log in to {{ .AppName }}</mj-text>
       <mj-text font-size="16px" padding-top="10px" line-height="24px">
@@ -26,5 +28,4 @@
       <mj-text font-size="14px" color="#555555" font-weight="light" align="left">If you didn't trigger a login, please ignore this email.</mj-text>
     </mj-column>
   </mj-section>
-</mj-body>
 </mjml>
