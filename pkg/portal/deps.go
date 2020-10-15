@@ -15,6 +15,8 @@ import (
 
 var DependencySet = wire.NewSet(
 	deps.DependencySet,
+	deps.TaskDependencySet,
+
 	service.DependencySet,
 	adminauthz.DependencySet,
 	clock.DependencySet,
