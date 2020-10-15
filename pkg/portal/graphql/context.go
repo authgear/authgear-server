@@ -30,6 +30,11 @@ type DomainLoader interface {
 type CollaboratorLoader interface {
 	ListCollaborators(appID string) *graphqlutil.Lazy
 	DeleteCollaborator(id string) *graphqlutil.Lazy
+
+	ListInvitations(appID string) *graphqlutil.Lazy
+	DeleteInvitation(id string) *graphqlutil.Lazy
+	SendInvitation(appID string, inviteeEmail string) *graphqlutil.Lazy
+	AcceptInvitation(code string) *graphqlutil.Lazy
 }
 
 type Logger struct{ *log.Logger }

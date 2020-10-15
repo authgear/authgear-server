@@ -64,6 +64,7 @@ var _ = registerMutationField(
 			appID := resolvedNodeID.ID
 
 			gqlCtx := GQLContext(p.Context)
+
 			lazy := gqlCtx.Apps.Get(appID)
 			return lazy.
 				Map(func(value interface{}) (interface{}, error) {

@@ -21,6 +21,10 @@ func NewLazyValue(value interface{}) *Lazy {
 	}
 }
 
+func NewLazyError(err error) *Lazy {
+	return &Lazy{err: err}
+}
+
 func (l *Lazy) Value() (interface{}, error) {
 	if l.init != nil {
 		l.value, l.err = l.init()

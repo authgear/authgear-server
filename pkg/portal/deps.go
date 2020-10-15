@@ -26,6 +26,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(loader.AppService), new(*service.AppService)),
 	wire.Bind(new(loader.DomainService), new(*service.DomainService)),
 	wire.Bind(new(loader.CollaboratorService), new(*service.CollaboratorService)),
+	wire.Bind(new(loader.AuthzService), new(*service.AuthzService)),
 
 	graphql.DependencySet,
 	wire.Bind(new(graphql.ViewerLoader), new(*loader.ViewerLoader)),
