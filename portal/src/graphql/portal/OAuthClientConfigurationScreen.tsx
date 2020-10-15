@@ -8,20 +8,25 @@ import {
   IColumn,
   MessageBar,
   SelectionMode,
+  Stack,
+  TagPicker,
   Text,
   VerticalDivider,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useNavigate, useParams } from "react-router-dom";
 import produce from "immer";
+import deepEqual from "deep-equal";
 
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import ButtonWithLoading from "../../ButtonWithLoading";
-import { PortalAPIAppConfig } from "../../types";
+import { PortalAPIApp, PortalAPIAppConfig } from "../../types";
 import { useAppConfigQuery } from "./query/appConfigQuery";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
+import { useTagPickerWithNewTags } from "../../hook/useInput";
 import { copyToClipboard } from "../../util/clipboard";
+import { clearEmptyObject, setFieldIfListNonEmpty } from "../../util/misc";
 import { actionButtonTheme } from "../../theme";
 
 import styles from "./OAuthClientConfigurationScreen.module.scss";
@@ -30,6 +35,14 @@ interface OAuthClientConfigurationProps {
   rawAppConfig: PortalAPIAppConfig | null;
   effectiveAppConfig: PortalAPIAppConfig | null;
   showNotification: (msg: string) => void;
+}
+
+interface AllowedOriginsConfigurationProps {
+  rawAppConfig: PortalAPIAppConfig | null;
+  effectiveAppConfig: PortalAPIAppConfig | null;
+  updateAppConfig: (
+    appConfig: PortalAPIAppConfig
+  ) => Promise<PortalAPIApp | null>;
 }
 
 interface OAuthClientListItem {
@@ -87,6 +100,71 @@ function makeOAuthClientListColumns(
     { key: "action", name: renderToString("action"), minWidth: 200 },
   ];
 }
+
+const AllowedOriginsConfiguration: React.FC<AllowedOriginsConfigurationProps> = function AllowedOriginsConfiguration(
+  props: AllowedOriginsConfigurationProps
+) {
+  const { effectiveAppConfig, rawAppConfig, updateAppConfig } = props;
+
+  const initialAllowedOrigins = useMemo(() => {
+    return effectiveAppConfig?.http?.allowed_origins ?? [];
+  }, [effectiveAppConfig]);
+
+  const {
+    list: allowedOrigins,
+    defaultSelectedItems: defaultAllowedOrigin,
+    onChange: onAllowedOriginsChange,
+    onResolveSuggestions: onResolveAllowedOriginsSuggestions,
+  } = useTagPickerWithNewTags(initialAllowedOrigins);
+
+  const onSaveClick = useCallback(() => {
+    if (rawAppConfig == null) {
+      return;
+    }
+
+    const newAppConfig = produce(rawAppConfig, (draftConfig) => {
+      draftConfig.http = draftConfig.http ?? {};
+      setFieldIfListNonEmpty(
+        draftConfig.http,
+        "allowed_origins",
+        allowedOrigins
+      );
+
+      clearEmptyObject(draftConfig);
+    });
+
+    updateAppConfig(newAppConfig).catch(() => {});
+  }, [rawAppConfig, updateAppConfig, allowedOrigins]);
+
+  const isModified = useMemo(() => {
+    return !deepEqual(allowedOrigins, initialAllowedOrigins);
+  }, [allowedOrigins, initialAllowedOrigins]);
+
+  return (
+    <section className={styles.allowedOriginsConfiguration}>
+      <Text as="h2" className={styles.allowedOriginsConfigurationHeader}>
+        <FormattedMessage id="OAuthClientConfigurationScreen.allowed-origins.header" />
+      </Text>
+      <Text className={styles.allowedOriginsConfigurationDesc}>
+        <FormattedMessage id="OAuthClientConfigurationScreen.allowed-origins.desc" />
+      </Text>
+      <Stack horizontal={true} tokens={{ childrenGap: 10 }}>
+        <TagPicker
+          className={styles.allowedOriginsConfigurationPicker}
+          defaultSelectedItems={defaultAllowedOrigin}
+          onChange={onAllowedOriginsChange}
+          onResolveSuggestions={onResolveAllowedOriginsSuggestions}
+        />
+        <ButtonWithLoading
+          labelId="save"
+          disabled={!isModified}
+          loading={false}
+          onClick={onSaveClick}
+        />
+      </Stack>
+    </section>
+  );
+};
 
 const ConfirmRemoveOAuthClientDialog: React.FC<ConfirmRemoveOAuthClientDialogProps> = function ConfirmRemoveOAuthClientDialog(
   props: ConfirmRemoveOAuthClientDialogProps
@@ -325,6 +403,12 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
 
   return (
     <section className={styles.content}>
+      {updateAppConfigError && <ShowError error={updateAppConfigError} />}
+      <AllowedOriginsConfiguration
+        effectiveAppConfig={effectiveAppConfig}
+        rawAppConfig={rawAppConfig}
+        updateAppConfig={updateAppConfig}
+      />
       <section className={styles.controlButtons}>
         <ActionButton
           theme={actionButtonTheme}
@@ -336,7 +420,6 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
           <FormattedMessage id="OAuthClientConfiguration.add-client-button" />
         </ActionButton>
       </section>
-      {updateAppConfigError && <ShowError error={updateAppConfigError} />}
       <DetailsList
         columns={oauthClientListColumns}
         items={oauthClientListItems}

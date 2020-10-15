@@ -273,6 +273,8 @@
   "PasswordlessAuthenticatorScreen.subsequent-logins.sms-body.label": "SMS body for subsequent logins",
 
   "OAuthClientConfiguration.title": "Client Applications",
+  "OAuthClientConfigurationScreen.allowed-origins.header": "Allowed Origins",
+  "OAuthClientConfigurationScreen.allowed-origins.desc": "Configure cross-origin resource sharing (CORS), allowing users to call Authgear from the list of domains specified here",
   "OAuthClientConfiguration.add-client-button": "Add Client",
   "OAuthClientConfiguration.client-list.name": "Name",
   "OAuthClientConfiguration.client-list.creation-date": "Creation Date",
@@ -306,6 +308,7 @@
   "DNSConfigurationScreen.title": "DNS",
   "DNSConfigurationScreen.desc": "You can add a custom domain so that users will login via, for example, “identity.yourdomain.com”. In this case, Authgear could also provide a cookie session under “yourdomain.com”, so that your websites could share the session cookies under “*.yourdomain.com” for a better customers experiences.",
   "DNSConfigurationScreen.public-origin.header": "Public Origin",
+  "DNSConfigurationScreen.public-origin.desc": "Pick a verified domain here as public domain of your app.",
   "DNSConfigurationScreen.add-domain.generic-error": "Failed to add domain",
   "DNSConfigurationScreen.add-domain.duplicated-error": "Domain is already in use",
   "DNSConfigurationScreen.add-domain.invalid-error": "Invalid domain",

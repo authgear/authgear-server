@@ -170,6 +170,9 @@ const PublicOriginConfiguration: React.FC<PublicOriginConfigurationProps> = func
       >
         <FormattedMessage id="DNSConfigurationScreen.public-origin.header" />
       </Text>
+      <Text className={styles.publicOriginDesc}>
+        <FormattedMessage id="DNSConfigurationScreen.public-origin.desc" />
+      </Text>
       <div className={styles.publicOriginInput}>
         <Dropdown
           className={styles.publicOriginField}
