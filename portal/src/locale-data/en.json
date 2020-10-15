@@ -362,11 +362,7 @@
   "UserInterfaceScreen.custom-css.label": "Custom CSS",
 
   "SettingsScreen.title": "Settings",
-  "SettingsScreen.general.title": "General",
   "SettingsScreen.portal_admins.title": "Portal Admins",
-  "SettingsScreen.smtp.title": "SMTP",
-  "SettingsScreen.sms_provider.title": "SMS Provider",
-  "SettingsScreen.session.title": "Session",
 
   "PasswordStrengthMeter.password-strength": "Password Strength"
 }
