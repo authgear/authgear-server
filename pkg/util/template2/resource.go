@@ -16,6 +16,10 @@ const ResourceArgPreferredLanguageTag = "preferred_language_tag"
 const ResourceArgDefaultLanguageTag = "default_language_tag"
 const LanguageTagDefault = "__default__"
 
+type Resource interface {
+	templateResource()
+}
+
 // HTML defines a HTML template
 type HTML struct {
 	// Name is the name of template
@@ -23,6 +27,8 @@ type HTML struct {
 	// ComponentDependencies is the HTML component templates this template depends on.
 	ComponentDependencies []*HTML
 }
+
+func (t *HTML) templateResource() {}
 
 func (t *HTML) ReadResource(fs resource.Fs) ([]resource.LayerFile, error) {
 	return readTemplates(fs, t.Name)
@@ -37,7 +43,7 @@ func (t *HTML) Merge(layers []resource.LayerFile, args map[string]interface{}) (
 }
 
 func (t *HTML) Parse(data []byte) (interface{}, error) {
-	tpl := htmltemplate.New("")
+	tpl := htmltemplate.New(t.Name)
 	tpl.Funcs(templateFuncMap)
 	_, err := tpl.Parse(string(data))
 	if err != nil {
@@ -54,6 +60,8 @@ type PlainText struct {
 	ComponentDependencies []*PlainText
 }
 
+func (t *PlainText) templateResource() {}
+
 func (t *PlainText) ReadResource(fs resource.Fs) ([]resource.LayerFile, error) {
 	return readTemplates(fs, t.Name)
 }
@@ -67,7 +75,7 @@ func (t *PlainText) Merge(layers []resource.LayerFile, args map[string]interface
 }
 
 func (t *PlainText) Parse(data []byte) (interface{}, error) {
-	tpl := texttemplate.New("")
+	tpl := texttemplate.New(t.Name)
 	tpl.Funcs(templateFuncMap)
 	_, err := tpl.Parse(string(data))
 	if err != nil {
