@@ -1,23 +1,48 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { TextField } from "@fluentui/react";
+import { useNavigate, useParams } from "react-router-dom";
 
 import NavBreadcrumb, { BreadcrumbItem } from "./NavBreadcrumb";
 import ButtonWithLoading from "./ButtonWithLoading";
 import NavigationBlockerDialog from "./NavigationBlockerDialog";
+import ShowError from "./ShowError";
+import FormTextField from "./FormTextField";
+import ShowUnhandledValidationErrorCause from "./error/ShowUnhandledValidationErrorCauses";
+import { useValidationError } from "./error/useValidationError";
+import { FormContext } from "./error/FormContext";
+import { useCreateCollaboratorInvitationMutation } from "./graphql/portal/mutations/createCollaboratorInvitationMutation";
 
 import styles from "./InviteAdminScreen.module.scss";
 
 const InviteAdminContent: React.FC = function InviteAdminContent() {
   const { renderToString } = useContext(Context);
+  const { appID } = useParams();
+  const navigate = useNavigate();
+
+  const {
+    createCollaboratorInvitation,
+    loading: creatingCollaboratorInvitation,
+    error: createCollaboratorInvitationError,
+  } = useCreateCollaboratorInvitationMutation(appID);
+
+  const {
+    unhandledCauses,
+    otherError,
+    value: formContextValue,
+  } = useValidationError(createCollaboratorInvitationError);
 
   const [email, setEmail] = useState("");
+  const [submittedForm, setSubmittedForm] = useState(false);
 
   const isFormModified = useMemo(() => {
     return email !== "";
   }, [email]);
-
-  const creatingCollaboratorInvitation = false;
 
   const onEmailChange = useCallback((_event, value?: string) => {
     if (value === undefined) {
@@ -26,31 +51,58 @@ const InviteAdminContent: React.FC = function InviteAdminContent() {
     setEmail(value);
   }, []);
 
-  const onFormSubmit = useCallback((ev: React.SyntheticEvent<HTMLElement>) => {
-    ev.preventDefault();
-    ev.stopPropagation();
+  const onFormSubmit = useCallback(
+    (ev: React.SyntheticEvent<HTMLElement>) => {
+      ev.preventDefault();
+      ev.stopPropagation();
 
-    // TODO: handle create collaborator invitation mutation
-    alert("Not yet implemented");
-  }, []);
+      createCollaboratorInvitation(email)
+        .then((invitationID) => {
+          if (invitationID !== null) {
+            setSubmittedForm(true);
+          }
+        })
+        .catch(() => {});
+    },
+    [createCollaboratorInvitation, email]
+  );
+
+  useEffect(() => {
+    if (submittedForm) {
+      navigate("../");
+    }
+  }, [submittedForm, navigate]);
 
   return (
-    <form className={styles.content} onSubmit={onFormSubmit}>
-      <TextField
-        className={styles.emailField}
-        type="text"
-        label={renderToString("InviteAdminScreen.email.label")}
-        value={email}
-        onChange={onEmailChange}
-      />
-      <ButtonWithLoading
-        type="submit"
-        disabled={!isFormModified}
-        labelId="InviteAdminScreen.add-user.label"
-        loading={creatingCollaboratorInvitation}
-      />
-      <NavigationBlockerDialog blockNavigation={isFormModified} />
-    </form>
+    <FormContext.Provider value={formContextValue}>
+      <form className={styles.content} onSubmit={onFormSubmit}>
+        {otherError && (
+          <div className={styles.error}>
+            <ShowError error={otherError} />
+          </div>
+        )}
+        <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
+        <FormTextField
+          jsonPointer="/inviteeEmail"
+          parentJSONPointer=""
+          fieldName="inviteeEmail"
+          className={styles.emailField}
+          type="text"
+          label={renderToString("InviteAdminScreen.email.label")}
+          value={email}
+          onChange={onEmailChange}
+        />
+        <ButtonWithLoading
+          type="submit"
+          disabled={!isFormModified}
+          labelId="InviteAdminScreen.add-user.label"
+          loading={creatingCollaboratorInvitation}
+        />
+        <NavigationBlockerDialog
+          blockNavigation={!submittedForm && isFormModified}
+        />
+      </form>
+    </FormContext.Provider>
   );
 };
 
