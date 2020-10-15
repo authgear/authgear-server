@@ -20,7 +20,7 @@ func (c *Controller) Start() {
 		golog.Fatalf("failed to load server config: %s", err)
 	}
 
-	p, err := deps.NewRootProvider(cfg.EnvironmentConfig, cfg.ConfigSource, &cfg.Authgear, &cfg.AdminAPI, &cfg.App, &cfg.Database)
+	p, err := deps.NewRootProvider(cfg.EnvironmentConfig, cfg.ConfigSource, &cfg.Authgear, &cfg.AdminAPI, &cfg.App, &cfg.Database, &cfg.SMTP)
 	if err != nil {
 		golog.Fatalf("failed to setup server: %s", err)
 	}

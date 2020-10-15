@@ -20,6 +20,7 @@ type RootProvider struct {
 	AdminAPIConfig     *portalconfig.AdminAPIConfig
 	AppConfig          *portalconfig.AppConfig
 	DatabaseConfig     *portalconfig.DatabaseConfig
+	SMTPConfig         *portalconfig.SMTPConfig
 	LoggerFactory      *log.Factory
 	SentryHub          *getsentry.Hub
 
@@ -33,6 +34,7 @@ func NewRootProvider(
 	adminAPIConfig *portalconfig.AdminAPIConfig,
 	appConfig *portalconfig.AppConfig,
 	dbConfig *portalconfig.DatabaseConfig,
+	smtpConfig *portalconfig.SMTPConfig,
 ) (*RootProvider, error) {
 	logLevel, err := log.ParseLevel(cfg.LogLevel)
 	if err != nil {
@@ -57,6 +59,7 @@ func NewRootProvider(
 		AdminAPIConfig:     adminAPIConfig,
 		AppConfig:          appConfig,
 		DatabaseConfig:     dbConfig,
+		SMTPConfig:         smtpConfig,
 		LoggerFactory:      loggerFactory,
 		SentryHub:          sentryHub,
 	}, nil

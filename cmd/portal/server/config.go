@@ -28,6 +28,9 @@ type Config struct {
 	// Database configures the backend database
 	Database portalconfig.DatabaseConfig `envconfig:"DATABASE"`
 
+	// SMTP configures SMTP.
+	SMTP portalconfig.SMTPConfig `envconfig:"SMTP"`
+
 	*config.EnvironmentConfig
 }
 
