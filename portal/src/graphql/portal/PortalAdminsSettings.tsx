@@ -1,10 +1,16 @@
-import React, { useMemo, useContext, useCallback } from "react";
+import React, { useMemo, useContext, useCallback, useState } from "react";
 import { Context } from "@oursky/react-messageformat";
 import { CommandBar, ICommandBarItemProps } from "@fluentui/react";
 import cn from "classnames";
 
 import PortalAdminList from "./PortalAdminList";
 import { Collaborator, CollaboratorInvitation } from "../../types";
+import RemovePortalAdminConfirmationDialog, {
+  RemovePortalAdminConfirmationDialogData,
+} from "./RemovePortalAdminConfirmationDialog";
+import RemovePortalAdminInvitationConfirmationDialog, {
+  RemovePortalAdminInvitationConfirmationDialogData,
+} from "./RemovePortalAdminInvitationConfirmationDialog";
 
 import styles from "./PortalAdminsSettings.module.scss";
 
@@ -18,6 +24,24 @@ const PortalAdminsSettings: React.FC<PortalAdminsSettingsProps> = function Porta
   const { className } = props;
 
   const { renderToString } = useContext(Context);
+
+  const [
+    isRemovePortalAdminConfirmationDialogVisible,
+    setIsRemovePortalAdminConfirmationDialogVisible,
+  ] = useState(false);
+  const [
+    removePortalAdminConfirmationDialogData,
+    setRemovePortalAdminConfirmationDialogData,
+  ] = useState<RemovePortalAdminConfirmationDialogData | null>(null);
+
+  const [
+    isRemovePortalAdminInvitationConfirmationDialogVisible,
+    setIsRemovePortalAdminInvitationConfirmationDialogVisible,
+  ] = useState(false);
+  const [
+    removePortalAdminInvitationConfirmationDialogData,
+    setRemovePortalAdminInvitationConfirmationDialogData,
+  ] = useState<RemovePortalAdminInvitationConfirmationDialogData | null>(null);
 
   const commandBarItems: ICommandBarItemProps[] = useMemo(() => {
     return [
@@ -114,19 +138,60 @@ const PortalAdminsSettings: React.FC<PortalAdminsSettingsProps> = function Porta
     []
   );
 
+  const deletingCollaborator = false;
+  const deletingCollaboratorInvitation = false;
+
   const onRemoveCollaboratorClicked = useCallback(
-    (_event: React.MouseEvent<unknown>, _id: string) => {
-      // TODO: handle remove collaborator clicked
+    (_event: React.MouseEvent<unknown>, id: string) => {
+      const collaborator = collaborators.find(
+        (collaborator) => collaborator.id === id
+      );
+      if (collaborator) {
+        setRemovePortalAdminConfirmationDialogData({
+          userID: id,
+          email: collaborator.email,
+        });
+        setIsRemovePortalAdminConfirmationDialogVisible(true);
+      }
     },
-    []
+    [collaborators]
   );
 
   const onRemoveCollaboratorInvitationClicked = useCallback(
-    (_event: React.MouseEvent<unknown>, _id: string) => {
-      // TODO: handle remove collaborator invitation clicked
+    (_event: React.MouseEvent<unknown>, id: string) => {
+      const collaboratorInvitation = collaboratorInvitations.find(
+        (collaboratorInvitation) => collaboratorInvitation.id === id
+      );
+      if (collaboratorInvitation) {
+        setRemovePortalAdminInvitationConfirmationDialogData({
+          invitationID: id,
+          email: collaboratorInvitation.inviteeEmail,
+        });
+        setIsRemovePortalAdminInvitationConfirmationDialogVisible(true);
+      }
     },
-    []
+    [collaboratorInvitations]
   );
+
+  const dismissRemovePortalAdminConfirmationDialog = useCallback(() => {
+    setIsRemovePortalAdminConfirmationDialogVisible(false);
+  }, []);
+
+  const dismissRemovePortalAdminInvitationConfirmationDialog = useCallback(() => {
+    setIsRemovePortalAdminInvitationConfirmationDialogVisible(false);
+  }, []);
+
+  const deleteCollaborator = useCallback((_userId: string) => {
+    // TODO: handle delete collaborator mutation
+    alert("Not yet implemented");
+    setIsRemovePortalAdminConfirmationDialogVisible(false);
+  }, []);
+
+  const deleteCollaboratorInvitation = useCallback((_invitationID: string) => {
+    // TODO: handle delete collaborator invitation mutation
+    alert("Not yet implemented");
+    setIsRemovePortalAdminInvitationConfirmationDialogVisible(false);
+  }, []);
 
   return (
     <div className={cn(styles.root, className)}>
@@ -143,6 +208,20 @@ const PortalAdminsSettings: React.FC<PortalAdminsSettingsProps> = function Porta
         onRemoveCollaboratorInvitationClicked={
           onRemoveCollaboratorInvitationClicked
         }
+      />
+      <RemovePortalAdminConfirmationDialog
+        visible={isRemovePortalAdminConfirmationDialogVisible}
+        data={removePortalAdminConfirmationDialogData ?? undefined}
+        onDismiss={dismissRemovePortalAdminConfirmationDialog}
+        deleteCollaborator={deleteCollaborator}
+        deletingCollaborator={deletingCollaborator}
+      />
+      <RemovePortalAdminInvitationConfirmationDialog
+        visible={isRemovePortalAdminInvitationConfirmationDialogVisible}
+        data={removePortalAdminInvitationConfirmationDialogData ?? undefined}
+        onDismiss={dismissRemovePortalAdminInvitationConfirmationDialog}
+        deleteCollaboratorInvitation={deleteCollaboratorInvitation}
+        deletingCollaboratorInvitation={deletingCollaboratorInvitation}
       />
     </div>
   );

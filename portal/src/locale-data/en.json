@@ -382,6 +382,12 @@
 
   "PortalAdminsSettings.invite": "Invite",
 
+  "RemovePortalAdminConfirmationDialog.title": "Remove Admin",
+  "RemovePortalAdminConfirmationDialog.message": "Are you really want to remove admin {email}",
+
+  "RemovePortalAdminInvitationConfirmationDialog.title": "Remove Admin Invitation",
+  "RemovePortalAdminInvitationConfirmationDialog.message": "Are you really want to remove admin invitation to {email}",
+
   "PortalAdminList.column.email": "Email",
   "PortalAdminList.column.status": "Status",
   "PortalAdminList.column.action": "Action",
