@@ -1,0 +1,18 @@
+<mjml>
+<mj-head>
+  <mj-attributes>
+    <mj-text align="center" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji" />
+    <mj-button border-radius="2px" background-color="#1F67EF" />
+  </mj-attributes>
+</mj-head>
+<mj-body>
+  <mj-section>
+    <mj-column>
+      <mj-text font-weight="bold" font-size="24px" padding="20px">Join {{ .AppName }} as a collaborator</mj-text>
+      <mj-text font-size="16px" padding="20px">You have been invited to join {{ .AppName }} as a collaborator. Please click the link below to view the invitation.</mj-text>
+      <mj-button href="{{ .Link }}" padding="20px">View invitation</mj-button>
+      <mj-text font-weight="light" font-size="12px" padding="20px">If you want to reject the invitation please ignore this email.</mj-text>
+    </mj-column>
+  </mj-section>
+</mj-body>
+</mjml>

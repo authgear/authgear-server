@@ -1,0 +1,7 @@
+Join {{ .AppName }} as a collaborator
+
+You have been invited to join {{ .AppName }} as a collaborator. Please click the link below to view the invitation.
+
+{{ .Link }}
+
+If you want to reject the invitation please ignore this email.
