@@ -331,6 +331,10 @@
   "VerifyDomainScreen.list.header.record-type": "Type",
   "VerifyDomainScreen.list.header.host": "Host",
   "VerifyDomainScreen.list.header.value": "Value",
+  "VerifyDomainScreen.error.duplicated-error": "Requested domain is already in use",
+  "VerifyDomainScreen.error.verified-error": "Requested domain is already verified",
+  "VerifyDomainScreen.error.not-found-error": "Domain not found",
+  "VerifyDomainScreen.error.not-custom-error": "Requested domain is not a custom domain",
   "VerifyDomainScreen.error.verification-error": "Failed to verify domain",
 
   "PaginationWidget.First": "Go to the first page",

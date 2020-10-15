@@ -166,6 +166,22 @@ const VerifyDomain: React.FC<VerifyDomainProps> = function VerifyDomain(
   const errorRules: GenericErrorHandlingRule[] = useMemo(() => {
     return [
       {
+        reason: "DuplicatedDomain",
+        errorMessageID: "VerifyDomainScreen.error.duplicated-error",
+      },
+      {
+        reason: "DomainVerified",
+        errorMessageID: "VerifyDomainScreen.error.verified-error",
+      },
+      {
+        reason: "DomainNotFound",
+        errorMessageID: "VerifyDomainScreen.error.not-found-error",
+      },
+      {
+        reason: "DomainNotCustom",
+        errorMessageID: "VerifyDomainScreen.error.not-custom-error",
+      },
+      {
         reason: "DomainVerificationFailed",
         errorMessageID: "VerifyDomainScreen.error.verification-error",
       },
