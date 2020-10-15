@@ -362,20 +362,3 @@ export interface PortalAPIEmailAndSmsTemplates {
   emailText?: string;
   smsText?: string;
 }
-
-// TODO: update interface
-export interface Collaborator {
-  createdAt: Date;
-  id: string;
-  userID: string;
-  email: string;
-}
-
-// TODO: update interface
-export interface CollaboratorInvitation {
-  createdAt: Date;
-  expireAt: Date;
-  id: string;
-  invitedBy: string;
-  inviteeEmail: string;
-}

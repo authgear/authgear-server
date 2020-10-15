@@ -9,8 +9,11 @@ import {
 } from "@fluentui/react";
 import cn from "classnames";
 
+import {
+  Collaborator,
+  CollaboratorInvitation,
+} from "./query/collaboratorsAndInvitationsQuery";
 import { destructiveTheme } from "../../theme";
-import { Collaborator, CollaboratorInvitation } from "../../types";
 import PaginationWidget from "../../PaginationWidget";
 
 import styles from "./PortalAdminList.module.scss";
@@ -106,14 +109,15 @@ const PortalAdminList: React.FC<PortalAdminListProps> = function PortalAdminList
       ...collaborators.map<PortalAdminListCollaboratorItem>((collaborator) => ({
         type: "collaborator",
         id: collaborator.id,
-        createdAt: collaborator.createdAt,
-        email: collaborator.email,
+        createdAt: new Date(collaborator.createdAt),
+        // TODO: obtain admin user email
+        email: "dummy@example.com",
       })),
       ...collaboratorInvitations.map<PortalAdminListCollaboratorInvitationItem>(
         (collaboratorInvitation) => ({
           type: "collaboratorInvitation",
           id: collaboratorInvitation.id,
-          createdAt: collaboratorInvitation.createdAt,
+          createdAt: new Date(collaboratorInvitation.createdAt),
           email: collaboratorInvitation.inviteeEmail,
         })
       ),

@@ -1,17 +1,19 @@
 import React, { useMemo, useContext, useCallback, useState } from "react";
 import { Context } from "@oursky/react-messageformat";
 import { CommandBar, ICommandBarItemProps } from "@fluentui/react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import cn from "classnames";
 
+import { useCollaboratorsAndInvitationsQuery } from "./query/collaboratorsAndInvitationsQuery";
 import PortalAdminList from "./PortalAdminList";
-import { Collaborator, CollaboratorInvitation } from "../../types";
 import RemovePortalAdminConfirmationDialog, {
   RemovePortalAdminConfirmationDialogData,
 } from "./RemovePortalAdminConfirmationDialog";
 import RemovePortalAdminInvitationConfirmationDialog, {
   RemovePortalAdminInvitationConfirmationDialogData,
 } from "./RemovePortalAdminInvitationConfirmationDialog";
+import ShowLoading from "../../ShowLoading";
+import ShowError from "../../ShowError";
 
 import styles from "./PortalAdminsSettings.module.scss";
 
@@ -25,7 +27,16 @@ const PortalAdminsSettings: React.FC<PortalAdminsSettingsProps> = function Porta
   const { className } = props;
 
   const { renderToString } = useContext(Context);
+  const { appID } = useParams();
   const navigate = useNavigate();
+
+  const {
+    collaborators,
+    collaboratorInvitations,
+    loading: loadingCollaboratorsAndInvitations,
+    error: collaboratorsAndInvitationsError,
+    refetch: refetchCollaboratorsAndInvitations,
+  } = useCollaboratorsAndInvitationsQuery(appID);
 
   const [
     isRemovePortalAdminConfirmationDialogVisible,
@@ -58,100 +69,22 @@ const PortalAdminsSettings: React.FC<PortalAdminsSettingsProps> = function Porta
     ];
   }, [navigate, renderToString]);
 
-  // TODO: use real data
-  const collaborators: Collaborator[] = useMemo(
-    () => [
-      {
-        createdAt: new Date("2020/10/01"),
-        id: "1",
-        userID: "1",
-        email: "user1@gmail.com",
-      },
-      {
-        createdAt: new Date("2020/10/03"),
-        id: "3",
-        userID: "3",
-        email: "user3@gmail.com",
-      },
-      {
-        createdAt: new Date("2020/10/04"),
-        id: "4",
-        userID: "4",
-        email: "user4@gmail.com",
-      },
-      {
-        createdAt: new Date("2020/10/05"),
-        id: "5",
-        userID: "5",
-        email: "user5@gmail.com",
-      },
-      {
-        createdAt: new Date("2020/10/06"),
-        id: "6",
-        userID: "6",
-        email: "user6@gmail.com",
-      },
-      {
-        createdAt: new Date("2020/10/07"),
-        id: "7",
-        userID: "7",
-        email: "user7@gmail.com",
-      },
-      {
-        createdAt: new Date("2020/10/09"),
-        id: "9",
-        userID: "9",
-        email: "user9@gmail.com",
-      },
-      {
-        createdAt: new Date("2020/10/10"),
-        id: "10",
-        userID: "10",
-        email: "user10@gmail.com",
-      },
-      {
-        createdAt: new Date("2020/10/11"),
-        id: "11",
-        userID: "11",
-        email: "user11@gmail.com",
-      },
-    ],
-    []
-  );
-
-  // TODO: use real data
-  const collaboratorInvitations: CollaboratorInvitation[] = useMemo(
-    () => [
-      {
-        createdAt: new Date("2020/10/02"),
-        expireAt: new Date("2021/10/02"),
-        id: "2",
-        invitedBy: "admin@gmail.com",
-        inviteeEmail: "user2@gmail.com",
-      },
-      {
-        createdAt: new Date("2020/10/08"),
-        expireAt: new Date("2021/10/08"),
-        id: "8",
-        invitedBy: "admin@gmail.com",
-        inviteeEmail: "user8@gmail.com",
-      },
-    ],
-    []
-  );
-
   const deletingCollaborator = false;
   const deletingCollaboratorInvitation = false;
 
   const onRemoveCollaboratorClicked = useCallback(
     (_event: React.MouseEvent<unknown>, id: string) => {
+      if (!collaborators) {
+        return;
+      }
       const collaborator = collaborators.find(
         (collaborator) => collaborator.id === id
       );
       if (collaborator) {
         setRemovePortalAdminConfirmationDialogData({
           userID: id,
-          email: collaborator.email,
+          // TODO: obtain admin user email
+          email: "dummy@example.com",
         });
         setIsRemovePortalAdminConfirmationDialogVisible(true);
       }
@@ -161,6 +94,9 @@ const PortalAdminsSettings: React.FC<PortalAdminsSettingsProps> = function Porta
 
   const onRemoveCollaboratorInvitationClicked = useCallback(
     (_event: React.MouseEvent<unknown>, id: string) => {
+      if (!collaboratorInvitations) {
+        return;
+      }
       const collaboratorInvitation = collaboratorInvitations.find(
         (collaboratorInvitation) => collaboratorInvitation.id === id
       );
@@ -195,6 +131,19 @@ const PortalAdminsSettings: React.FC<PortalAdminsSettingsProps> = function Porta
     setIsRemovePortalAdminInvitationConfirmationDialogVisible(false);
   }, []);
 
+  if (loadingCollaboratorsAndInvitations) {
+    return <ShowLoading />;
+  }
+
+  if (collaboratorsAndInvitationsError != null) {
+    return (
+      <ShowError
+        error={collaboratorsAndInvitationsError}
+        onRetry={refetchCollaboratorsAndInvitations}
+      />
+    );
+  }
+
   return (
     <div className={cn(styles.root, className)}>
       <CommandBar
@@ -204,8 +153,8 @@ const PortalAdminsSettings: React.FC<PortalAdminsSettingsProps> = function Porta
       />
       <PortalAdminList
         loading={false}
-        collaborators={collaborators}
-        collaboratorInvitations={collaboratorInvitations}
+        collaborators={collaborators ?? []}
+        collaboratorInvitations={collaboratorInvitations ?? []}
         onRemoveCollaboratorClicked={onRemoveCollaboratorClicked}
         onRemoveCollaboratorInvitationClicked={
           onRemoveCollaboratorInvitationClicked
