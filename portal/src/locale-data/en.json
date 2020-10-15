@@ -65,6 +65,7 @@
   "ScreenNav.client-applications": "Client Applications",
   "ScreenNav.user-interface": "User Interface",
   "ScreenNav.dns": "DNS",
+  "ScreenNav.settings": "Settings",
 
   "NavBreadcrumb.label": "Nested navigation",
 
@@ -362,6 +363,9 @@
 
   "UserInterfaceScreen.title": "User Interface",
   "UserInterfaceScreen.custom-css.label": "Custom CSS",
+
+  "SettingsScreen.title": "Settings",
+  "SettingsScreen.portal_admins.title": "Portal Admins",
 
   "PasswordStrengthMeter.password-strength": "Password Strength"
 }
