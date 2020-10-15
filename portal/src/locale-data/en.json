@@ -393,5 +393,9 @@
   "PortalAdminList.column.action": "Action",
   "PortalAdminList.remove": "Remove",
 
+  "InviteAdminScreen.title": "Add Admin",
+  "InviteAdminScreen.email.label": "Email",
+  "InviteAdminScreen.add-user.label": "Add User",
+
   "PasswordStrengthMeter.password-strength": "Password Strength"
 }

@@ -1,6 +1,7 @@
 import React, { useMemo, useContext, useCallback, useState } from "react";
 import { Context } from "@oursky/react-messageformat";
 import { CommandBar, ICommandBarItemProps } from "@fluentui/react";
+import { useNavigate } from "react-router-dom";
 import cn from "classnames";
 
 import PortalAdminList from "./PortalAdminList";
@@ -24,6 +25,7 @@ const PortalAdminsSettings: React.FC<PortalAdminsSettingsProps> = function Porta
   const { className } = props;
 
   const { renderToString } = useContext(Context);
+  const navigate = useNavigate();
 
   const [
     isRemovePortalAdminConfirmationDialogVisible,
@@ -50,11 +52,11 @@ const PortalAdminsSettings: React.FC<PortalAdminsSettingsProps> = function Porta
         text: renderToString("PortalAdminsSettings.invite"),
         iconProps: { iconName: "CirclePlus" },
         onClick: () => {
-          // TODO: handle invite admin action
+          navigate("./invite-admin");
         },
       },
     ];
-  }, [renderToString]);
+  }, [navigate, renderToString]);
 
   // TODO: use real data
   const collaborators: Collaborator[] = useMemo(

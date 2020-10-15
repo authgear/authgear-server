@@ -24,6 +24,7 @@ import UserInterfaceScreen from "./graphql/portal/UserInterfaceScreen";
 import DNSConfigurationScreen from "./graphql/portal/DNSConfigurationScreen";
 import VerifyDomainScreen from "./graphql/portal/VerifyDomainScreen";
 import SettingsScreen from "./graphql/portal/SettingsScreen";
+import InviteAdminScreen from "./InviteAdminScreen";
 
 const AppRoot: React.FC = function AppRoot() {
   const { appID } = useParams();
@@ -106,6 +107,10 @@ const AppRoot: React.FC = function AppRoot() {
             element={<VerifyDomainScreen />}
           />
           <Route path="/configuration/settings" element={<SettingsScreen />} />
+          <Route
+            path="/configuration/settings/invite-admin"
+            element={<InviteAdminScreen />}
+          />
         </Routes>
       </ScreenLayout>
     </ApolloProvider>
