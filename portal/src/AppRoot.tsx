@@ -34,7 +34,7 @@ const AppRoot: React.FC = function AppRoot() {
   }, [appID]);
   return (
     <ApolloProvider client={client}>
-      <ScreenLayout>
+      <ScreenLayout showScreenNav={true}>
         <Routes>
           <Route path="/" element={<Navigate to="users/" replace={true} />} />
           <Route path="/users/" element={<UsersScreen />} />
