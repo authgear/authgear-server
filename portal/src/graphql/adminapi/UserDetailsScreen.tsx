@@ -8,6 +8,7 @@ import NavBreadcrumb from "../../NavBreadcrumb";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import UserDetailCommandBar from "./UserDetailCommandBar";
+import { ModifiedIndicatorWrapper } from "../../ModifiedIndicatorPortal";
 import UserDetailSummary from "./UserDetailSummary";
 import UserDetailsAccountSecurity from "./UserDetailsAccountSecurity";
 import UserDetailsConnectedIdentities from "./UserDetailsConnectedIdentities";
@@ -141,14 +142,14 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
   return (
     <main className={styles.root}>
       <UserDetailCommandBar />
-      <div className={styles.screenContent}>
+      <ModifiedIndicatorWrapper className={styles.screenContent}>
         <NavBreadcrumb items={navBreadcrumbItems} />
         <UserDetails
           data={user}
           loading={loading || loadingAppConfig}
           appConfig={effectiveAppConfig}
         />
-      </div>
+      </ModifiedIndicatorWrapper>
     </main>
   );
 };

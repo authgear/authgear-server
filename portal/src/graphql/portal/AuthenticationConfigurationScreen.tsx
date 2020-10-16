@@ -9,6 +9,7 @@ import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import AuthenticationLoginIDSettings from "./AuthenticationLoginIDSettings";
 import AuthenticationAuthenticatorSettings from "./AuthenticationAuthenticatorSettings";
+import { ModifiedIndicatorWrapper } from "../../ModifiedIndicatorPortal";
 
 import { useAppConfigQuery } from "./query/appConfigQuery";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
@@ -51,7 +52,7 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
 
   return (
     <main className={cn(styles.root, { [styles.loading]: updatingAppConfig })}>
-      <div className={styles.content}>
+      <ModifiedIndicatorWrapper className={styles.content}>
         <Text as="h1" className={styles.title}>
           <FormattedMessage id="AuthenticationScreen.title" />
         </Text>
@@ -85,7 +86,7 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
             </PivotItem>
           </Pivot>
         </div>
-      </div>
+      </ModifiedIndicatorWrapper>
     </main>
   );
 };

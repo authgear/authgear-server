@@ -19,6 +19,7 @@ import { swap } from "../../OrderButtons";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import ShowError from "../../ShowError";
+import { ModifiedIndicatorPortal } from "../../ModifiedIndicatorPortal";
 import {
   PortalAPIAppConfig,
   primaryAuthenticatorTypes,
@@ -285,6 +286,14 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
     allowRetrieveRecoveryCode,
   } = state;
 
+  const isFormModified = useMemo(() => {
+    return !deepEqual(initialState, state, { strict: true });
+  }, [initialState, state]);
+
+  const resetForm = useCallback(() => {
+    setState(initialState);
+  }, [initialState]);
+
   const displaySecondaryAuthenticatorMode = useCallback(
     (key: string) => {
       const messageIdMap: Record<string, string> = {
@@ -324,10 +333,6 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
       updateScreenStateField(setState, "allowRetrieveRecoveryCode", checked);
     }
   );
-
-  const isFormModified = useMemo(() => {
-    return !deepEqual(initialState, state, { strict: true });
-  }, [initialState, state]);
 
   const onPrimarySwapClicked = React.useCallback(
     (index1: number, index2: number) => {
@@ -490,6 +495,10 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
   return (
     <form className={styles.root} onSubmit={onFormSubmit}>
       <NavigationBlockerDialog blockNavigation={isFormModified} />
+      <ModifiedIndicatorPortal
+        resetForm={resetForm}
+        isModified={isFormModified}
+      />
       {unhandledViolations.length > 0 && (
         <ShowError error={updateAppConfigError} />
       )}

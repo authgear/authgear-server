@@ -16,6 +16,7 @@ import produce from "immer";
 import ToggleWithContent from "../../ToggleWithContent";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
+import { ModifiedIndicatorPortal } from "../../ModifiedIndicatorPortal";
 import {
   setNumericFieldIfChanged,
   setFieldIfChanged,
@@ -194,6 +195,10 @@ const PasswordPolicySettings: React.FC<PasswordPolicySettingsProps> = function P
     );
   }, [initialState, state]);
 
+  const resetForm = useCallback(() => {
+    setState(initialState);
+  }, [initialState]);
+
   const minGuessableLevelOptions: IDropdownOption[] = useMemo(() => {
     return passwordPolicyGuessableLevels.map((level) => ({
       key: level,
@@ -349,6 +354,10 @@ const PasswordPolicySettings: React.FC<PasswordPolicySettingsProps> = function P
 
   return (
     <form className={cn(styles.root, className)} onSubmit={onFormSubmit}>
+      <ModifiedIndicatorPortal
+        resetForm={resetForm}
+        isModified={isFormModified}
+      />
       <TextField
         className={styles.textField}
         type="number"
@@ -399,6 +408,7 @@ const PasswordPolicySettings: React.FC<PasswordPolicySettingsProps> = function P
           "PasswordsScreen.password-policy.min-guessable-level.label"
         )}
         options={minGuessableLevelOptions}
+        selectedKey={state.minGuessableLevel}
         onChange={onMinGuessableLevelOptionChange}
       />
 

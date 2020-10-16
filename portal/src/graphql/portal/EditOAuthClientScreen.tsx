@@ -13,6 +13,10 @@ import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ModifyOAuthClientForm, {
   getReducedClientConfig,
 } from "./ModifyOAuthClientForm";
+import {
+  ModifiedIndicatorPortal,
+  ModifiedIndicatorWrapper,
+} from "../../ModifiedIndicatorPortal";
 import { useAppConfigQuery } from "./query/appConfigQuery";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
 import { OAuthClientConfig, PortalAPIAppConfig } from "../../types";
@@ -51,6 +55,17 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> = function EditOAu
     initialClientConfig
   );
 
+  const isFormModified = useMemo(() => {
+    return !deepEqual(
+      getReducedClientConfig(clientConfig),
+      getReducedClientConfig(initialClientConfig)
+    );
+  }, [clientConfig, initialClientConfig]);
+
+  const resetForm = useCallback(() => {
+    setClientConfig(initialClientConfig);
+  }, [initialClientConfig]);
+
   const onClientConfigChange = useCallback(
     (newClientConfig: OAuthClientConfig) => {
       setClientConfig(newClientConfig);
@@ -78,16 +93,13 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> = function EditOAu
     [clientConfig, updateAppConfig, rawAppConfig]
   );
 
-  const isFormModified = useMemo(() => {
-    return !deepEqual(
-      getReducedClientConfig(clientConfig),
-      getReducedClientConfig(initialClientConfig)
-    );
-  }, [clientConfig, initialClientConfig]);
-
   return (
     <form className={styles.form} onSubmit={onFormSubmit}>
       <NavigationBlockerDialog blockNavigation={isFormModified} />
+      <ModifiedIndicatorPortal
+        resetForm={resetForm}
+        isModified={isFormModified}
+      />
       <Label>
         <FormattedMessage id="EditOAuthClientScreen.client-id" />
       </Label>
@@ -163,11 +175,13 @@ const EditOAuthClientScreen: React.FC = function EditOAuthClientScreen() {
 
   return (
     <main className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
-      <EditOAuthClientForm
-        clientConfig={clientConfig}
-        rawAppConfig={rawAppConfig}
-      />
+      <ModifiedIndicatorWrapper className={styles.wrapper}>
+        <NavBreadcrumb items={navBreadcrumbItems} />
+        <EditOAuthClientForm
+          clientConfig={clientConfig}
+          rawAppConfig={rawAppConfig}
+        />
+      </ModifiedIndicatorWrapper>
     </main>
   );
 };

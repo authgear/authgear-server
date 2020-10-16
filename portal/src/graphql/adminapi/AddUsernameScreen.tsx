@@ -24,6 +24,10 @@ import PasswordField, {
 import ButtonWithLoading from "../../ButtonWithLoading";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
+import {
+  ModifiedIndicatorPortal,
+  ModifiedIndicatorWrapper,
+} from "../../ModifiedIndicatorPortal";
 import { useCreateLoginIDIdentityMutation } from "./mutations/createIdentityMutation";
 import { useTextField } from "../../hook/useInput";
 import {
@@ -31,11 +35,11 @@ import {
   Violation,
 } from "../../util/validation";
 import { parseError } from "../../util/error";
+import { nonNullable } from "../../util/types";
+import { AuthenticatorType } from "./__generated__/globalTypes";
 import { PortalAPIAppConfig } from "../../types";
 
 import styles from "./AddUsernameScreen.module.scss";
-import { nonNullable } from "../../util/types";
-import { AuthenticatorType } from "./__generated__/globalTypes";
 
 interface AddUsernameFormProps {
   appConfig: PortalAPIAppConfig | null;
@@ -99,6 +103,10 @@ const AddUsernameForm: React.FC<AddUsernameFormProps> = function AddUsernameForm
   const isFormModified = useMemo(() => {
     return !deepEqual(formData, initialFormData);
   }, [formData, initialFormData]);
+
+  const resetForm = useCallback(() => {
+    setFormData(initialFormData);
+  }, [initialFormData]);
 
   const onFormSubmit = useCallback(
     (ev: React.SyntheticEvent<HTMLElement>) => {
@@ -180,6 +188,10 @@ const AddUsernameForm: React.FC<AddUsernameFormProps> = function AddUsernameForm
 
   return (
     <form className={styles.content} onSubmit={onFormSubmit}>
+      <ModifiedIndicatorPortal
+        resetForm={resetForm}
+        isModified={isFormModified}
+      />
       {unhandledViolations.length > 0 && (
         <ShowError error={createIdentityError} />
       )}
@@ -252,8 +264,10 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
   return (
     <div className={styles.root}>
       <UserDetailCommandBar />
-      <NavBreadcrumb className={styles.breadcrumb} items={navBreadcrumbItems} />
-      <AddUsernameForm appConfig={effectiveAppConfig} user={user} />
+      <ModifiedIndicatorWrapper className={styles.wrapper}>
+        <NavBreadcrumb items={navBreadcrumbItems} />
+        <AddUsernameForm appConfig={effectiveAppConfig} user={user} />
+      </ModifiedIndicatorWrapper>
     </div>
   );
 };

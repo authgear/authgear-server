@@ -5,6 +5,7 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import { IdentityLists } from "./UserDetailsConnectedIdentities";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
+import { ModifiedIndicatorPortal } from "../../ModifiedIndicatorPortal";
 import { useDropdown } from "../../hook/useInput";
 
 import styles from "./PrimaryIdentitiesSelectionForm.module.scss";
@@ -36,6 +37,14 @@ const PrimaryIdentitiesSelectionForm: React.FC<PrimaryIdentitiesSelectionFormPro
 
   const [formData, setFormData] = useState(initialFormData);
   const { email, phone, username } = formData;
+
+  const isFormModified = useMemo(() => {
+    return !deepEqual(formData, initialFormData);
+  }, [formData, initialFormData]);
+
+  const resetForm = useCallback(() => {
+    setFormData(initialFormData);
+  }, [initialFormData]);
 
   const {
     options: primaryEmailOptions,
@@ -79,10 +88,6 @@ const PrimaryIdentitiesSelectionForm: React.FC<PrimaryIdentitiesSelectionFormPro
     username
   );
 
-  const isFormModified = useMemo(() => {
-    return !deepEqual(formData, initialFormData);
-  }, [formData, initialFormData]);
-
   const onSaveClicked = useCallback(() => {
     // TODO: to be implemented
   }, []);
@@ -90,6 +95,10 @@ const PrimaryIdentitiesSelectionForm: React.FC<PrimaryIdentitiesSelectionFormPro
   return (
     <div className={className}>
       <NavigationBlockerDialog blockNavigation={isFormModified} />
+      <ModifiedIndicatorPortal
+        resetForm={resetForm}
+        isModified={isFormModified}
+      />
       <section className={styles.primaryIdentities}>
         <Dropdown
           className={styles.primaryEmail}

@@ -38,6 +38,10 @@ import { PortalAPIApp, PortalAPIAppConfig } from "../../types";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import ButtonWithLoading from "../../ButtonWithLoading";
+import {
+  ModifiedIndicatorPortal,
+  ModifiedIndicatorWrapper,
+} from "../../ModifiedIndicatorPortal";
 import { actionButtonTheme, destructiveTheme } from "../../theme";
 import { useDropdown, useTextField } from "../../hook/useInput";
 import {
@@ -193,6 +197,14 @@ const PublicOriginConfiguration: React.FC<PublicOriginConfigurationProps> = func
 
   const [publicOrigin, setPublicOrigin] = useState(initialPublicOrigin);
 
+  const isModified = useMemo(() => {
+    return initialPublicOrigin !== publicOrigin;
+  }, [initialPublicOrigin, publicOrigin]);
+
+  const resetForm = useCallback(() => {
+    setPublicOrigin(initialPublicOrigin);
+  }, [initialPublicOrigin]);
+
   const publicOriginOptionKeys = useMemo(() => {
     const keys = verifiedDomains.map(getPublicOriginFromDomain);
     if (initialPublicOrigin !== "" && !keys.includes(initialPublicOrigin)) {
@@ -211,10 +223,6 @@ const PublicOriginConfiguration: React.FC<PublicOriginConfigurationProps> = func
     },
     publicOrigin
   );
-
-  const isModified = useMemo(() => {
-    return initialPublicOrigin !== publicOrigin;
-  }, [initialPublicOrigin, publicOrigin]);
 
   const onSaveClick = useCallback(() => {
     savePublicOrigin(publicOrigin, rawAppConfig, updateAppConfig);
@@ -258,6 +266,7 @@ const PublicOriginConfiguration: React.FC<PublicOriginConfigurationProps> = func
 
   return (
     <section className={styles.publicOrigin}>
+      <ModifiedIndicatorPortal resetForm={resetForm} isModified={isModified} />
       {updateAppConfigError && <ShowError error={updateAppConfigError} />}
       <Text
         as="h2"
@@ -673,13 +682,14 @@ const DNSConfigurationScreen: React.FC = function DNSConfigurationScreen() {
     <main className={styles.root}>
       {verifySuccessMessageBarVisible && (
         <MessageBar
+          className={styles.verifySuccessMessageBar}
           messageBarType={MessageBarType.success}
           onDismiss={dismissVerifySuccessMessageBar}
         >
           <FormattedMessage id="DNSConfigurationScreen.verify-success-message" />
         </MessageBar>
       )}
-      <div className={styles.screen}>
+      <ModifiedIndicatorWrapper className={styles.screen}>
         <Text className={cn(styles.header, styles.mainHeader)} as="h1">
           <FormattedMessage id="DNSConfigurationScreen.title" />
         </Text>
@@ -691,7 +701,7 @@ const DNSConfigurationScreen: React.FC = function DNSConfigurationScreen() {
           rawAppConfig={rawAppConfig}
           domains={domains ?? []}
         />
-      </div>
+      </ModifiedIndicatorWrapper>
     </main>
   );
 };

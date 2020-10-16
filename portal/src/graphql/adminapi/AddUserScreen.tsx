@@ -23,6 +23,10 @@ import { useCreateUserMutation } from "./mutations/createUserMutation";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
+import {
+  ModifiedIndicatorPortal,
+  ModifiedIndicatorWrapper,
+} from "../../ModifiedIndicatorPortal";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import PasswordField, {
@@ -185,6 +189,14 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
 
   const [formState, setFormState] = useState(initialFormState);
   const { username, email, phone, password, selectedLoginIdKey } = formState;
+
+  const resetForm = useCallback(() => {
+    setFormState(initialFormState);
+  }, [initialFormState]);
+
+  const isFormModified = useMemo(() => {
+    return !deepEqual(initialFormState, formState);
+  }, [initialFormState, formState]);
 
   const { onChange: onUsernameChange } = useTextField((value) => {
     setFormState((prev) => ({ ...prev, username: value }));
@@ -352,10 +364,6 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
     [selectedLoginIdKey, username, email, phone, password]
   );
 
-  const isFormModified = useMemo(() => {
-    return !deepEqual(initialFormState, formState);
-  }, [initialFormState, formState]);
-
   const onFormSubmit = useCallback(
     (ev: React.SyntheticEvent<HTMLElement>) => {
       ev.preventDefault();
@@ -405,6 +413,10 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
       {unhandledViolations.length > 0 && <ShowError error={createUserError} />}
       <NavigationBlockerDialog
         blockNavigation={!submittedForm && isFormModified}
+      />
+      <ModifiedIndicatorPortal
+        isModified={isFormModified}
+        resetForm={resetForm}
       />
       <ChoiceGroup
         className={styles.userInfo}
@@ -460,8 +472,10 @@ const AddUserScreen: React.FC = function AddUserScreen() {
 
   return (
     <main className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
-      <AddUserContent appConfig={effectiveAppConfig} />
+      <ModifiedIndicatorWrapper className={styles.wrapper}>
+        <NavBreadcrumb items={navBreadcrumbItems} />
+        <AddUserContent appConfig={effectiveAppConfig} />
+      </ModifiedIndicatorWrapper>
     </main>
   );
 };

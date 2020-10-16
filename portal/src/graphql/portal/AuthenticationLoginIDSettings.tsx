@@ -12,6 +12,7 @@ import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import CountryCallingCodeList from "./AuthenticationCountryCallingCodeList";
 import { useCheckbox, useTagPickerWithNewTags } from "../../hook/useInput";
+import { ModifiedIndicatorPortal } from "../../ModifiedIndicatorPortal";
 import {
   LoginIDKeyType,
   LoginIDKeyConfig,
@@ -350,6 +351,14 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
 
   const [state, setState] = useState(initialState);
 
+  const isFormModified = useMemo(() => {
+    return !deepEqual(initialState, state, { strict: true });
+  }, [initialState, state]);
+
+  const resetForm = useCallback(() => {
+    setState(initialState);
+  }, [initialState]);
+
   const {
     loginIdKeyState,
     loginIdKeyTypes,
@@ -477,10 +486,6 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
       swap(prev, index1, index2)
     );
   }, []);
-
-  const isFormModified = useMemo(() => {
-    return !deepEqual(initialState, state, { strict: true });
-  }, [initialState, state]);
 
   // on save
   const onFormSubmit = React.useCallback(
@@ -695,7 +700,10 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
   return (
     <form className={styles.root} onSubmit={onFormSubmit}>
       <NavigationBlockerDialog blockNavigation={isFormModified} />
-
+      <ModifiedIndicatorPortal
+        resetForm={resetForm}
+        isModified={isFormModified}
+      />
       {updateAppConfigError && <ShowError error={updateAppConfigError} />}
       <header className={styles.header}>
         <Text>

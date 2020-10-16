@@ -19,6 +19,10 @@ import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
+import {
+  ModifiedIndicatorPortal,
+  ModifiedIndicatorWrapper,
+} from "../../ModifiedIndicatorPortal";
 
 import styles from "./AnonymousUsersConfigurationScreen.module.scss";
 
@@ -143,6 +147,10 @@ const AnonymousUsersConfiguration: React.FC<AnonymousUsersConfigurationProps> = 
     return !deepEqual(initialState, state, { strict: true });
   }, [initialState, state]);
 
+  const resetForm = useCallback(() => {
+    setState(initialState);
+  }, [initialState]);
+
   const onSwitchToggled = useCallback(
     (_event, checked?: boolean) => {
       if (checked == null) {
@@ -184,6 +192,10 @@ const AnonymousUsersConfiguration: React.FC<AnonymousUsersConfigurationProps> = 
   return (
     <section className={styles.screenContent}>
       <NavigationBlockerDialog blockNavigation={isFormModified} />
+      <ModifiedIndicatorPortal
+        resetForm={resetForm}
+        isModified={isFormModified}
+      />
       <Toggle
         className={styles.enableToggle}
         checked={state.enabled}
@@ -239,15 +251,17 @@ const AnonymousUserConfigurationScreen: React.FC = function AnonymousUserConfigu
   return (
     <main className={styles.root}>
       {updateAppConfigError && <ShowError error={updateAppConfigError} />}
-      <Text as="h1" className={styles.title}>
-        <FormattedMessage id="AnonymousUsersConfigurationScreen.title" />
-      </Text>
-      <AnonymousUsersConfiguration
-        effectiveAppConfig={effectiveAppConfig}
-        rawAppConfig={rawAppConfig}
-        updateAppConfig={updateAppConfig}
-        updatingAppConfig={updatingAppConfig}
-      />
+      <ModifiedIndicatorWrapper className={styles.wrapper}>
+        <Text as="h1" className={styles.title}>
+          <FormattedMessage id="AnonymousUsersConfigurationScreen.title" />
+        </Text>
+        <AnonymousUsersConfiguration
+          effectiveAppConfig={effectiveAppConfig}
+          rawAppConfig={rawAppConfig}
+          updateAppConfig={updateAppConfig}
+          updatingAppConfig={updatingAppConfig}
+        />
+      </ModifiedIndicatorWrapper>
     </main>
   );
 };

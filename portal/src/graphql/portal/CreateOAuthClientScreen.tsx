@@ -22,6 +22,10 @@ import ModifyOAuthClientForm, {
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
+import {
+  ModifiedIndicatorPortal,
+  ModifiedIndicatorWrapper,
+} from "../../ModifiedIndicatorPortal";
 import { useAppConfigQuery } from "./query/appConfigQuery";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
 import { OAuthClientConfig, PortalAPIAppConfig } from "../../types";
@@ -126,7 +130,7 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
     error: updateAppConfigError,
   } = useUpdateAppConfigMutation(appID);
 
-  const initialState = useMemo(() => {
+  const initialClientConfig = useMemo(() => {
     return {
       name: undefined,
       client_id: genRandomHexadecimalString(),
@@ -144,8 +148,19 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
   }, []);
 
   const [clientConfig, setClientConfig] = useState<OAuthClientConfig>(
-    initialState
+    initialClientConfig
   );
+
+  const isFormModified = useMemo(() => {
+    return !deepEqual(
+      getReducedClientConfig(initialClientConfig),
+      getReducedClientConfig(clientConfig)
+    );
+  }, [clientConfig, initialClientConfig]);
+
+  const resetForm = useCallback(() => {
+    setClientConfig(initialClientConfig);
+  }, [initialClientConfig]);
 
   const [submittedForm, setSubmittedForm] = useState(false);
 
@@ -190,13 +205,6 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
     [rawAppConfig, clientConfig, onCreateClientSuccess, updateAppConfig]
   );
 
-  const isFormModified = useMemo(() => {
-    return !deepEqual(
-      getReducedClientConfig(initialState),
-      getReducedClientConfig(clientConfig)
-    );
-  }, [clientConfig, initialState]);
-
   return (
     <form className={styles.form} onSubmit={onFormSubmit}>
       <NavigationBlockerDialog
@@ -205,6 +213,10 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
       <CreateClientSuccessDialog
         visible={createClientSuccessDialogVisible}
         clientId={clientConfig.client_id}
+      />
+      <ModifiedIndicatorPortal
+        resetForm={resetForm}
+        isModified={isFormModified}
       />
       <ModifyOAuthClientForm
         className={styles.modifyClientForm}
@@ -259,8 +271,10 @@ const CreateOAuthClientScreen: React.FC = function CreateOAuthClientScreen() {
 
   return (
     <main className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
-      <CreateOAuthClientForm rawAppConfig={rawAppConfig} />
+      <ModifiedIndicatorWrapper className={styles.wrapper}>
+        <NavBreadcrumb items={navBreadcrumbItems} />
+        <CreateOAuthClientForm rawAppConfig={rawAppConfig} />
+      </ModifiedIndicatorWrapper>
     </main>
   );
 };

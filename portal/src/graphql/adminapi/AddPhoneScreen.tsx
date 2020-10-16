@@ -13,6 +13,10 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ButtonWithLoading from "../../ButtonWithLoading";
+import {
+  ModifiedIndicatorPortal,
+  ModifiedIndicatorWrapper,
+} from "../../ModifiedIndicatorPortal";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import UserDetailCommandBar from "./UserDetailCommandBar";
@@ -116,9 +120,13 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
 
   useEffect(() => {
     if (submittedForm) {
-      navigate("../#connected-identities");
+      navigate("..#connected-identities");
     }
   }, [submittedForm, navigate]);
+
+  const resetForm = useCallback(() => {
+    setFormData(initialFormData);
+  }, [initialFormData]);
 
   const { errorMessage, unhandledViolations } = useMemo(() => {
     const violations = parseError(createIdentityError);
@@ -152,6 +160,10 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
       )}
       <NavigationBlockerDialog
         blockNavigation={!submittedForm && isFormModified}
+      />
+      <ModifiedIndicatorPortal
+        resetForm={resetForm}
+        isModified={isFormModified}
       />
       <section className={styles.phoneNumberFields}>
         <Label className={styles.phoneNumberLabel}>
@@ -207,10 +219,10 @@ const AddPhoneScreen: React.FC = function AddPhoneScreen() {
   return (
     <div className={styles.root}>
       <UserDetailCommandBar />
-      <section className={styles.content}>
+      <ModifiedIndicatorWrapper className={styles.content}>
         <NavBreadcrumb items={navBreadcrumbItems} />
         <AddPhoneForm appConfig={effectiveAppConfig} />
-      </section>
+      </ModifiedIndicatorWrapper>
     </div>
   );
 };

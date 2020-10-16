@@ -22,6 +22,10 @@ import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import ButtonWithLoading from "../../ButtonWithLoading";
+import {
+  ModifiedIndicatorPortal,
+  ModifiedIndicatorWrapper,
+} from "../../ModifiedIndicatorPortal";
 import { useAppConfigQuery } from "../portal/query/appConfigQuery";
 import { useTextField } from "../../hook/useInput";
 import {
@@ -72,16 +76,20 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
   const [formData, setFormData] = useState(initialFormData);
   const { newPassword, confirmPassword } = formData;
 
+  const isFormModified = useMemo(() => {
+    return !deepEqual({ newPassword: "", confirmPassword: "" }, formData);
+  }, [formData]);
+
+  const resetForm = useCallback(() => {
+    setFormData(initialFormData);
+  }, [initialFormData]);
+
   const { onChange: onNewPasswordChange } = useTextField((value) => {
     setFormData((prev) => ({ ...prev, newPassword: value }));
   });
   const { onChange: onConfirmPasswordChange } = useTextField((value) => {
     setFormData((prev) => ({ ...prev, confirmPassword: value }));
   });
-
-  const isFormModified = useMemo(() => {
-    return !deepEqual({ newPassword: "", confirmPassword: "" }, formData);
-  }, [formData]);
 
   const onFormSubmit = useCallback(
     (ev: React.SyntheticEvent<HTMLElement>) => {
@@ -166,6 +174,10 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
 
   return (
     <form className={styles.form} onSubmit={onFormSubmit}>
+      <ModifiedIndicatorPortal
+        resetForm={resetForm}
+        isModified={isFormModified}
+      />
       {unhandledViolations.length > 0 && (
         <ShowError error={resetPasswordError} />
       )}
@@ -224,10 +236,10 @@ const ResetPasswordScreen: React.FC = function ResetPasswordScreen() {
 
   return (
     <main className={styles.root}>
-      <section className={styles.content}>
+      <ModifiedIndicatorWrapper className={styles.content}>
         <NavBreadcrumb items={navBreadcrumbItems} />
         <ResetPasswordForm appConfig={effectiveAppConfig} />
-      </section>
+      </ModifiedIndicatorWrapper>
     </main>
   );
 };

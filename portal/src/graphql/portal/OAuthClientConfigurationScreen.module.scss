@@ -2,15 +2,19 @@
   min-height: 100%;
 }
 
+.wrapper {
+  padding: 40px 30px;
+}
+
 .header {
   display: block;
   font-weight: 600;
   font-size: 18px;
-  margin: 30px;
+  margin-bottom: 30px;
 }
 
 .content {
-  margin: 0 20px;
+  margin: 0;
 }
 
 .allowedOriginsConfiguration {

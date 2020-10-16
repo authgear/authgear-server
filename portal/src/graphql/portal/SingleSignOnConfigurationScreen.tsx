@@ -16,6 +16,10 @@ import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
+import {
+  ModifiedIndicatorPortal,
+  ModifiedIndicatorWrapper,
+} from "../../ModifiedIndicatorPortal";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import { useUpdateAppAndSecretConfigMutation } from "./mutations/updateAppAndSecretMutation";
 import { clearEmptyObject } from "../../util/misc";
@@ -489,6 +493,10 @@ const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = func
     return !deepEqual(initialState, state);
   }, [state, initialState]);
 
+  const resetForm = useCallback(() => {
+    setState(initialState);
+  }, [initialState]);
+
   const onFormSubmit = useCallback(
     (ev: React.SyntheticEvent<HTMLElement>) => {
       ev.preventDefault();
@@ -543,6 +551,10 @@ const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = func
     <FormContext.Provider value={formContextValue}>
       <form className={styles.screenContent} onSubmit={onFormSubmit}>
         <NavigationBlockerDialog blockNavigation={isFormModified} />
+        <ModifiedIndicatorPortal
+          resetForm={resetForm}
+          isModified={isFormModified}
+        />
         {otherError && (
           <div className={styles.error}>
             <ShowError error={otherError} />
@@ -602,20 +614,22 @@ const SingleSignOnConfigurationScreen: React.FC = function SingleSignOnConfigura
 
   return (
     <main className={styles.root} role="main">
-      <Text as="h1" className={styles.header}>
-        <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
-      </Text>
-      <Link href="#" className={styles.helpLink}>
-        <FormattedMessage id="SingleSignOnConfigurationScreen.help-link" />
-      </Link>
-      <SingleSignOnConfiguration
-        rawAppConfig={rawAppConfig}
-        effectiveAppConfig={effectiveAppConfig}
-        secretConfig={secretConfig}
-        updatingAppConfig={updatingAppAndSecretConfig}
-        updateAppConfig={updateAppAndSecretConfig}
-        updateAppConfigError={updateAppAndSecretConfigError}
-      />
+      <ModifiedIndicatorWrapper className={styles.wrapper}>
+        <Text as="h1" className={styles.header}>
+          <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
+        </Text>
+        <Link href="#" className={styles.helpLink}>
+          <FormattedMessage id="SingleSignOnConfigurationScreen.help-link" />
+        </Link>
+        <SingleSignOnConfiguration
+          rawAppConfig={rawAppConfig}
+          effectiveAppConfig={effectiveAppConfig}
+          secretConfig={secretConfig}
+          updatingAppConfig={updatingAppAndSecretConfig}
+          updateAppConfig={updateAppAndSecretConfig}
+          updateAppConfigError={updateAppAndSecretConfigError}
+        />
+      </ModifiedIndicatorWrapper>
     </main>
   );
 };
