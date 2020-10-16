@@ -79,7 +79,7 @@ func (t *PlainText) Parse(data []byte) (interface{}, error) {
 	tpl.Funcs(templateFuncMap)
 	_, err := tpl.Parse(string(data))
 	if err != nil {
-		return nil, fmt.Errorf("invalid HTML template: %w", err)
+		return nil, fmt.Errorf("invalid text template: %w", err)
 	}
 	return tpl, nil
 }
