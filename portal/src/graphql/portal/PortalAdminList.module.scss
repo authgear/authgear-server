@@ -1,0 +1,20 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.acceptedStatus {
+  color: #33ba89;
+}
+
+.pendingStatus {
+  color: #fbca4e;
+}
+
+.actionButton {
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  display: contents;
+}

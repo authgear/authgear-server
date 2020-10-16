@@ -380,5 +380,26 @@
   "SettingsScreen.title": "Settings",
   "SettingsScreen.portal_admins.title": "Portal Admins",
 
+  "PortalAdminsSettings.invite": "Invite",
+  "PortalAdminsSettings.delete-collaborator-dialog.generic-error": "Failed to delete admin",
+  "PortalAdminsSettings.delete-collaborator-invitation-dialog.generic-error": "Failed to delete admin invitation",
+
+  "RemovePortalAdminConfirmationDialog.title": "Remove Admin",
+  "RemovePortalAdminConfirmationDialog.message": "Are you really want to remove admin {email}",
+
+  "RemovePortalAdminInvitationConfirmationDialog.title": "Remove Admin Invitation",
+  "RemovePortalAdminInvitationConfirmationDialog.message": "Are you really want to remove admin invitation to {email}",
+
+  "PortalAdminList.column.email": "Email",
+  "PortalAdminList.column.status": "Status",
+  "PortalAdminList.column.action": "Action",
+  "PortalAdminList.remove": "Remove",
+  "PortalAdminList.error.self-deletion": "You cannot remove yourself. Ask someone else to remove you.",
+
+  "InviteAdminScreen.title": "Add Admin",
+  "InviteAdminScreen.email.label": "Email",
+  "InviteAdminScreen.add-user.label": "Add User",
+  "InviteAdminScreen.duplicated-error": "Invitation has already been sent",
+
   "PasswordStrengthMeter.password-strength": "Password Strength"
 }

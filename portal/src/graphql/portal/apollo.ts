@@ -10,6 +10,14 @@ const client = new ApolloClient({
             // Take incoming data
             merge: false,
           },
+          collaborators: {
+            // Take incoming data
+            merge: false,
+          },
+          collaboratorInvitations: {
+            // Take incoming data
+            merge: false,
+          },
         },
       },
     },
