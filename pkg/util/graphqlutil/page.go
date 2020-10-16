@@ -3,7 +3,7 @@ package graphqlutil
 import (
 	"reflect"
 
-	"github.com/graphql-go/relay"
+	"github.com/authgear/graphql-go-relay"
 )
 
 const MaxPageSize uint64 = 20

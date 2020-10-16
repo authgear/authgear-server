@@ -1,8 +1,8 @@
 package graphql
 
 import (
+	"github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
-	"github.com/graphql-go/relay"
 
 	"github.com/authgear/authgear-server/pkg/admin/model"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"

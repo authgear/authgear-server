@@ -3,8 +3,8 @@ package graphql
 import (
 	"context"
 
+	"github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
-	"github.com/graphql-go/relay"
 
 	"github.com/authgear/authgear-server/pkg/portal/model"
 )

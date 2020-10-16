@@ -1,8 +1,8 @@
 package graphqlutil
 
 import (
+	"github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
-	"github.com/graphql-go/relay"
 )
 
 type Connection struct {

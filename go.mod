@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/Masterminds/squirrel v1.4.0
+	github.com/authgear/graphql-go-relay v0.0.0-20201016062217-aa2552cad643
 	github.com/getsentry/sentry-go v0.6.1
 	github.com/go-gomail/gomail v0.0.0-20160411212932-81ebce5c23df
 	github.com/golang/mock v1.4.3
@@ -14,7 +15,6 @@ require (
 	github.com/gorilla/csrf v1.7.0
 	github.com/graphql-go/graphql v0.7.9
 	github.com/graphql-go/handler v0.2.3
-	github.com/graphql-go/relay v0.0.0-20171208134043-54350098cfe5
 	github.com/iawaknahc/gomessageformat v0.0.0-20200918074610-c0b982376e20
 	github.com/iawaknahc/jsonschema v0.0.0-20200904034036-e811a776237e
 	github.com/iawaknahc/originmatcher v0.0.0-20200622040912-c5bfd3560192
@@ -38,7 +38,7 @@ require (
 	github.com/spf13/cobra v1.0.0
 	github.com/ua-parser/uap-go v0.0.0-20200325213135-e1c09f13e2fe
 	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
-	golang.org/x/net v0.0.0-20200707034311-ab3426394381
+	golang.org/x/net v0.0.0-20201010224723-4f7140c49acb
 	golang.org/x/text v0.3.3
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/fsnotify.v1 v1.4.7
