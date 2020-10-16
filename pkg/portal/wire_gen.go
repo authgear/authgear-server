@@ -18,10 +18,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/portal/task"
 	"github.com/authgear/authgear-server/pkg/portal/task/tasks"
-	"github.com/authgear/authgear-server/pkg/portal/template"
 	"github.com/authgear/authgear-server/pkg/portal/transport"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/intl"
+	"github.com/authgear/authgear-server/pkg/util/template"
 	"net/http"
 )
 
@@ -147,8 +148,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &endpoint.EndpointsProvider{
 		OriginProvider: requestOriginProvider,
 	}
-	defaultTemplateDirectory := rootProvider.DefaultTemplateDirectory
-	engine := template.NewEngine(defaultTemplateDirectory)
+	manager := rootProvider.Resources
+	defaultTemplateLanguage := _wireDefaultTemplateLanguageValue
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	collaboratorService := &service.CollaboratorService{
 		Context:        context,
 		Clock:          clock,
@@ -207,7 +215,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 }
 
 var (
-	_wireSystemClockValue = clock.NewSystemClock()
+	_wireSystemClockValue             = clock.NewSystemClock()
+	_wireDefaultTemplateLanguageValue = template.DefaultTemplateLanguage(intl.DefaultLanguage)
 )
 
 func newRuntimeConfigHandler(p *deps.RequestProvider) http.Handler {
@@ -278,8 +287,15 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &endpoint.EndpointsProvider{
 		OriginProvider: requestOriginProvider,
 	}
-	defaultTemplateDirectory := rootProvider.DefaultTemplateDirectory
-	engine := template.NewEngine(defaultTemplateDirectory)
+	manager := rootProvider.Resources
+	defaultTemplateLanguage := _wireDefaultTemplateLanguageValue
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	collaboratorService := &service.CollaboratorService{
 		Context:        context,
 		Clock:          clockClock,

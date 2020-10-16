@@ -1,3 +1,3 @@
 package config
 
-type DefaultTemplateDirectory string
+type DefaultResourceDirectory string

@@ -10,6 +10,7 @@ import (
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/sentry"
 )
 
@@ -22,16 +23,17 @@ type RootProvider struct {
 	DatabaseConfig           *portalconfig.DatabaseConfig
 	SMTPConfig               *portalconfig.SMTPConfig
 	MailConfig               *portalconfig.MailConfig
-	DefaultTemplateDirectory portalconfig.DefaultTemplateDirectory
+	DefaultResourceDirectory portalconfig.DefaultResourceDirectory
 	LoggerFactory            *log.Factory
 	SentryHub                *getsentry.Hub
 
 	ConfigSourceController *configsource.Controller
+	Resources              *resource.Manager
 }
 
 func NewRootProvider(
 	cfg *config.EnvironmentConfig,
-	defaultTemplateDirectory portalconfig.DefaultTemplateDirectory,
+	defaultResourceDirectory portalconfig.DefaultResourceDirectory,
 	configSourceConfig *configsource.Config,
 	authgearConfig *portalconfig.AuthgearConfig,
 	adminAPIConfig *portalconfig.AdminAPIConfig,
@@ -58,7 +60,7 @@ func NewRootProvider(
 
 	return &RootProvider{
 		EnvironmentConfig:        cfg,
-		DefaultTemplateDirectory: defaultTemplateDirectory,
+		DefaultResourceDirectory: defaultResourceDirectory,
 		ConfigSourceConfig:       configSourceConfig,
 		AuthgearConfig:           authgearConfig,
 		AdminAPIConfig:           adminAPIConfig,
@@ -68,6 +70,7 @@ func NewRootProvider(
 		MailConfig:               mailConfig,
 		LoggerFactory:            loggerFactory,
 		SentryHub:                sentryHub,
+		Resources:                NewResourceManager(string(defaultResourceDirectory)),
 	}, nil
 }
 
