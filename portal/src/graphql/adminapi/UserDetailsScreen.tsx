@@ -136,7 +136,7 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
   }
 
   if (appConfigError != null) {
-    return <ShowError error={error} onRetry={refetchAppConfig} />;
+    return <ShowError error={appConfigError} onRetry={refetchAppConfig} />;
   }
 
   return (
