@@ -18,7 +18,7 @@ RUN make build BIN_NAME=authgear-portal TARGET=portal GIT_HASH=$GIT_HASH
 # But we have a transitive dependency on icu4c so this is no longer the case.
 # RUN readelf -d ./authgear | grep 'There is no dynamic section in this file'
 
-# Stage 2: build the static files
+# Stage 2: Build the portal static files
 FROM node:12.18.3-buster as stage2
 ARG GIT_HASH
 # If the working directory is /src, Parcel will have some problem with it.
@@ -44,6 +44,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN update-ca-certificates
 COPY --from=stage1 /src/authgear-portal /usr/local/bin/
 COPY --from=stage2 /usr/src/app/dist/ ./static/
+COPY ./templates/ ./templates/
 ENV STATIC_ASSET_SERVING_ENABLED true
 USER nobody
 EXPOSE 3003

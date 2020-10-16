@@ -21,12 +21,11 @@ RUN make build BIN_NAME=authgear TARGET=authgear GIT_HASH=$GIT_HASH
 # Stage 2: Build the static files
 FROM node:12.18.3-buster as stage2
 ARG GIT_HASH
-WORKDIR /src
+WORKDIR /usr/src/app
 COPY ./scripts/npm/package.json ./scripts/npm/package-lock.json ./scripts/npm/
 RUN cd ./scripts/npm && npm ci
 COPY . .
 RUN make static GIT_HASH=$GIT_HASH
-RUN make html-email && rm ./templates/*.mjml
 
 # Stage 3: Prepare the actual fs we use to run the program
 FROM debian:buster-slim
@@ -45,8 +44,8 @@ RUN update-ca-certificates
 COPY ./reserved_name.txt .
 COPY ./migrations ./migrations
 COPY --from=stage1 /src/authgear /usr/local/bin/
-COPY --from=stage2 /src/dist/ ./dist/
-COPY --from=stage2 /src/templates/ ./templates/
+COPY --from=stage2 /usr/src/app/dist/ ./dist/
+COPY ./templates/ ./templates/
 USER nobody
 EXPOSE 3000
 ENV STATIC_ASSET_DIR ./dist
