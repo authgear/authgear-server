@@ -13,7 +13,10 @@ import {
   APIDomainVerificationFailedError,
   APIInvalidDomainError,
 } from "./domain";
-import { APIDuplicatedCollaboratorInvitationError } from "./collaboratorInvitation";
+import {
+  APIDuplicatedCollaboratorInvitationError,
+  APICollaboratorSelfDeletionError,
+} from "./collaborator";
 
 export type APIError =
   | APIValidationError
@@ -26,7 +29,8 @@ export type APIError =
   | APIDomainNotCustomError
   | APIDomainVerificationFailedError
   | APIInvalidDomainError
-  | APIDuplicatedCollaboratorInvitationError;
+  | APIDuplicatedCollaboratorInvitationError
+  | APICollaboratorSelfDeletionError;
 
 export function isAPIError(value?: { [key: string]: any }): value is APIError {
   if (value == null) {

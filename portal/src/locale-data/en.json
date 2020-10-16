@@ -394,6 +394,7 @@
   "PortalAdminList.column.status": "Status",
   "PortalAdminList.column.action": "Action",
   "PortalAdminList.remove": "Remove",
+  "PortalAdminList.error.self-deletion": "You cannot remove yourself. Ask someone else to remove you.",
 
   "InviteAdminScreen.title": "Add Admin",
   "InviteAdminScreen.email.label": "Email",

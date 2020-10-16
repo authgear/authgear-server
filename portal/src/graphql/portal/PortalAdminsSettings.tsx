@@ -196,7 +196,12 @@ const PortalAdminsSettings: React.FC<PortalAdminsSettingsProps> = function Porta
       />
       <ErrorDialog
         error={deleteCollaboratorError}
-        rules={[]}
+        rules={[
+          {
+            reason: "CollaboratorSelfDeletion",
+            errorMessageID: "PortalAdminList.error.self-deletion",
+          },
+        ]}
         fallbackErrorMessageID="PortalAdminsSettings.delete-collaborator-dialog.generic-error"
       />
       <ErrorDialog
