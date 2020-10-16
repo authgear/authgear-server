@@ -14,8 +14,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/sentry"
-	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 type RootProvider struct {
@@ -27,14 +27,14 @@ type RootProvider struct {
 	RedisPool                *redis.Pool
 	TaskQueueFactory         TaskQueueFactory
 	ReservedNameChecker      *loginid.ReservedNameChecker
-	DefaultTemplateDirectory string
+	DefaultResourceDirectory string
 }
 
 func NewRootProvider(
 	cfg *config.EnvironmentConfig,
 	configSourceConfig *configsource.Config,
 	reservedNameFilePath string,
-	defaultTemplateDirectory string,
+	defaultResourceDirectory string,
 	taskQueueFactory TaskQueueFactory,
 ) (*RootProvider, error) {
 	var p RootProvider
@@ -71,7 +71,7 @@ func NewRootProvider(
 		RedisPool:                redisPool,
 		TaskQueueFactory:         taskQueueFactory,
 		ReservedNameChecker:      reservedNameChecker,
-		DefaultTemplateDirectory: defaultTemplateDirectory,
+		DefaultResourceDirectory: defaultResourceDirectory,
 	}
 	return &p, nil
 }
@@ -97,20 +97,19 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		cfg.SecretConfig.LookupData(config.RedisCredentialsKey).(*config.RedisCredentials),
 		loggerFactory,
 	)
-	templateEngine := NewEngineWithConfig(
+	resourceManager := NewResourceManager(
 		appCtx.Fs,
-		p.DefaultTemplateDirectory,
-		cfg,
+		p.DefaultResourceDirectory,
 	)
 
 	provider := &AppProvider{
-		RootProvider:   p,
-		Context:        ctx,
-		Config:         cfg,
-		LoggerFactory:  loggerFactory,
-		Database:       database,
-		Redis:          redis,
-		TemplateEngine: templateEngine,
+		RootProvider:  p,
+		Context:       ctx,
+		Config:        cfg,
+		LoggerFactory: loggerFactory,
+		Database:      database,
+		Redis:         redis,
+		Resources:     resourceManager,
 	}
 	provider.TaskQueue = p.TaskQueueFactory(provider)
 	return provider
@@ -150,13 +149,13 @@ func (p *RootProvider) Task(factory func(provider *TaskProvider) task.Task) task
 type AppProvider struct {
 	*RootProvider
 
-	Context        context.Context
-	Config         *config.Config
-	LoggerFactory  *log.Factory
-	Database       *db.Handle
-	Redis          *redis.Handle
-	TaskQueue      task.Queue
-	TemplateEngine *template.Engine
+	Context       context.Context
+	Config        *config.Config
+	LoggerFactory *log.Factory
+	Database      *db.Handle
+	Redis         *redis.Handle
+	TaskQueue     task.Queue
+	Resources     *resource.Manager
 }
 
 func (p *AppProvider) NewRequestProvider(r *http.Request) *RequestProvider {

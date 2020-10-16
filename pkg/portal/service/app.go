@@ -19,7 +19,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
-	"github.com/authgear/authgear-server/pkg/util/fs"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -96,8 +95,9 @@ func (s *AppService) loadApp(id string) (*model.App, error) {
 		return nil, err
 	}
 
+	// FIXME(resource): fix secret redaction
 	appCtx = &config.AppContext{
-		Fs: &fs.OverlayFs{Base: appCtx.Fs, Overlay: &fs.AferoFs{Fs: overlayFs}},
+		Fs: appCtx.Fs,
 		Config: &config.Config{
 			AppConfig:    appCtx.Config.AppConfig,
 			SecretConfig: &secretConfig,

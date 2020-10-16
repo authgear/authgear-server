@@ -37,7 +37,7 @@ func (c *Controller) Start() {
 		cfg.EnvironmentConfig,
 		cfg.ConfigSource,
 		cfg.ReservedNameFilePath,
-		cfg.DefaultTemplateDirectory,
+		cfg.DefaultResourceDirectory,
 		taskQueueFactory,
 	)
 	if err != nil {

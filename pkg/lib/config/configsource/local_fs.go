@@ -9,8 +9,8 @@ import (
 	"gopkg.in/fsnotify.v1"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/fs"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
 type LocalFSLogger struct{ *log.Logger }
@@ -38,7 +38,7 @@ func (s *LocalFS) Open() error {
 	}
 
 	s.Fs = afero.NewBasePathFs(afero.NewOsFs(), dir)
-	appFs := &fs.AferoFs{Fs: s.Fs}
+	appFs := &resource.AferoFs{Fs: s.Fs}
 
 	cfg, err := loadConfig(appFs)
 	if err != nil {

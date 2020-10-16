@@ -46,6 +46,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/rand"
+	"github.com/authgear/authgear-server/pkg/util/template"
 	"net/http"
 )
 
@@ -263,7 +264,15 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Coordinator: coordinator,
 	}
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -708,7 +717,15 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Coordinator: coordinator,
 	}
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -1459,7 +1476,15 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -1870,7 +1895,15 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -2280,7 +2313,15 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -2864,7 +2905,15 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -3080,7 +3129,15 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -3483,7 +3540,15 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -3886,7 +3951,15 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -4290,7 +4363,15 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -4695,7 +4776,15 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -5098,7 +5187,15 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -5501,7 +5598,15 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -5904,7 +6009,15 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -6307,7 +6420,15 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -6710,7 +6831,15 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -7113,7 +7242,15 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -7516,7 +7653,15 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -7924,7 +8069,15 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -8327,7 +8480,15 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -8731,7 +8892,15 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -9134,7 +9303,15 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -9540,7 +9717,15 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -9947,7 +10132,15 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -10353,7 +10546,15 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -10759,7 +10960,15 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -11166,7 +11375,15 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -11570,7 +11787,15 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -12149,7 +12374,15 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Verification: verificationService,
 	}
 	hookLogger := hook.NewLogger(factory)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -12207,7 +12440,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
-	manager := &idpsession.Manager{
+	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
@@ -12230,7 +12463,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	manager2 := &session.Manager{
 		Users:               queries,
 		Hooks:               hookProvider,
-		IDPSessions:         manager,
+		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
 	}
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
@@ -12443,7 +12676,15 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -12832,7 +13073,15 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 	}
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -13088,7 +13337,15 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -13603,7 +13860,15 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,

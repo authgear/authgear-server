@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/fs"
+	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
 const (
@@ -13,7 +13,7 @@ const (
 	AuthgearSecretYAML = "authgear.secrets.yaml"
 )
 
-func loadConfig(fs fs.Fs) (*config.Config, error) {
+func loadConfig(fs resource.Fs) (*config.Config, error) {
 	appConfigFile, err := fs.Open(AuthgearYAML)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open app config file: %w", err)

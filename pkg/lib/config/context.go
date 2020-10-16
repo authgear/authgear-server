@@ -1,8 +1,8 @@
 package config
 
-import "github.com/authgear/authgear-server/pkg/util/fs"
+import "github.com/authgear/authgear-server/pkg/util/resource"
 
 type AppContext struct {
-	Fs     fs.Fs
+	Fs     resource.Fs
 	Config *Config
 }
