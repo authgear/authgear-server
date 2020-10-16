@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, { useCallback, useContext, useMemo } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import {
   ActionButton,
@@ -14,11 +14,8 @@ import {
   CollaboratorInvitation,
 } from "./query/collaboratorsAndInvitationsQuery";
 import { destructiveTheme } from "../../theme";
-import PaginationWidget from "../../PaginationWidget";
 
 import styles from "./PortalAdminList.module.scss";
-
-const pageSize = 10;
 
 interface PortalAdminListProps {
   className?: string;
@@ -79,8 +76,6 @@ const PortalAdminList: React.FC<PortalAdminListProps> = function PortalAdminList
 
   const { renderToString } = useContext(Context);
 
-  const [offset, setOffset] = useState(0);
-
   const columns: IColumn[] = useMemo(() => {
     return [
       {
@@ -124,10 +119,6 @@ const PortalAdminList: React.FC<PortalAdminListProps> = function PortalAdminList
     ];
   }, [collaboratorInvitations, collaborators]);
 
-  const paginatedItems: PortalAdminListItem[] = useMemo(() => {
-    return items.slice(offset, offset + pageSize);
-  }, [items, offset]);
-
   const onRenderItemColumn = useCallback(
     (item: PortalAdminListItem, _index?: number, column?: IColumn) => {
       switch (column?.key) {
@@ -162,10 +153,6 @@ const PortalAdminList: React.FC<PortalAdminListProps> = function PortalAdminList
     [onRemoveCollaboratorClicked, onRemoveCollaboratorInvitationClicked]
   );
 
-  const onChangeOffset = useCallback((offset: number) => {
-    setOffset(offset);
-  }, []);
-
   return (
     <div className={cn(styles.root, className)}>
       <ShimmeredDetailsList
@@ -174,14 +161,7 @@ const PortalAdminList: React.FC<PortalAdminListProps> = function PortalAdminList
         selectionMode={SelectionMode.none}
         layoutMode={DetailsListLayoutMode.justified}
         columns={columns}
-        items={paginatedItems}
-      />
-      <PaginationWidget
-        className={styles.pagination}
-        offset={offset}
-        pageSize={pageSize}
-        totalCount={collaborators.length + collaboratorInvitations.length}
-        onChangeOffset={onChangeOffset}
+        items={items}
       />
     </div>
   );
