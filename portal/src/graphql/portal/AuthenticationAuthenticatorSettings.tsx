@@ -295,8 +295,8 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
   }, [initialState]);
 
   const displaySecondaryAuthenticatorMode = useCallback(
-    (key: string) => {
-      const messageIdMap: Record<string, string> = {
+    (key: SecondaryAuthenticationMode) => {
+      const messageIdMap: Record<SecondaryAuthenticationMode, string> = {
         required: "AuthenticationAuthenticator.policy.require-mfa.required",
         if_exists: "AuthenticationAuthenticator.policy.require-mfa.if-exists",
         if_requested:
