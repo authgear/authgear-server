@@ -15,7 +15,6 @@ import i18nISOCountriesEnLocale from "i18n-iso-countries/langs/en.json";
 import styles from "./ReactApp.module.scss";
 import OAuthRedirect from "./OAuthRedirect";
 import AcceptAdminInvitationScreen from "./graphql/portal/AcceptAdminInvitationScreen";
-import ScreenLayout from "./ScreenLayout";
 
 // ReactAppRoutes defines the routes.
 const ReactAppRoutes: React.FC = function ReactAppRoutes() {
@@ -27,12 +26,10 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
         <Route path="/apps/create" element={<CreateAppScreen />} />
         <Route path="/app/:appID/*" element={<AppRoot />} />
         <Route path="/oauth-redirect" element={<OAuthRedirect />} />
-        <ScreenLayout showScreenNav={false}>
-          <Route
-            path="/collaborators/invitation"
-            element={<AcceptAdminInvitationScreen />}
-          />
-        </ScreenLayout>
+        <Route
+          path="/collaborators/invitation"
+          element={<AcceptAdminInvitationScreen />}
+        />
       </Routes>
     </BrowserRouter>
   );

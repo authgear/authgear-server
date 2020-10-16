@@ -9,6 +9,7 @@ import ButtonWithLoading from "../../ButtonWithLoading";
 import { useGenericError } from "../../error/useGenericError";
 
 import styles from "./AcceptAdminInvitationScreen.module.scss";
+import ScreenHeader from "../../ScreenHeader";
 
 const AcceptAdminInvitationScreen: React.FC = function AcceptAdminInvitationScreen() {
   const location = useLocation();
@@ -46,22 +47,25 @@ const AcceptAdminInvitationScreen: React.FC = function AcceptAdminInvitationScre
   }, [acceptCollaboratorInvitation, invitationCode, navigate]);
 
   return (
-    <main className={cn(styles.root, { [styles.loading]: loading })}>
-      {errorMessage && (
-        <MessageBar messageBarType={MessageBarType.error}>
-          <Text>{errorMessage}</Text>
-        </MessageBar>
-      )}
-      <Text as="h1" className={styles.title}>
-        <FormattedMessage id="AcceptAdminInvitationScreen.title" />
-      </Text>
-      <ButtonWithLoading
-        type="submit"
-        loading={loading}
-        labelId="AcceptAdminInvitationScreen.accept.label"
-        loadingLabelId="loading"
-        onClick={onAccept}
-      />
+    <main className={styles.root}>
+      <ScreenHeader />
+      <section className={cn(styles.body, { [styles.loading]: loading })}>
+        {errorMessage && (
+          <MessageBar messageBarType={MessageBarType.error}>
+            <Text>{errorMessage}</Text>
+          </MessageBar>
+        )}
+        <Text as="h1" className={styles.title}>
+          <FormattedMessage id="AcceptAdminInvitationScreen.title" />
+        </Text>
+        <ButtonWithLoading
+          type="submit"
+          loading={loading}
+          labelId="AcceptAdminInvitationScreen.accept.label"
+          loadingLabelId="loading"
+          onClick={onAccept}
+        />
+      </section>
     </main>
   );
 };
