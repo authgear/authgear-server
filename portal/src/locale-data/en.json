@@ -403,6 +403,8 @@
 
   "AcceptAdminInvitationScreen.title": "Admin Invitation",
   "AcceptAdminInvitationScreen.accept.label": "Accept",
+  "AcceptAdminInvitationScreen.invalid-code-error": "Invalid invitation code",
+  "AcceptAdminInvitationScreen.duplicated-collaborator-error": "Admin already exist",
 
   "PasswordStrengthMeter.password-strength": "Password Strength"
 }

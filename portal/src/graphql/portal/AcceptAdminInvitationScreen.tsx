@@ -1,12 +1,12 @@
 import React, { useCallback, useMemo } from "react";
-import { Text } from "@fluentui/react";
+import { MessageBar, MessageBarType, Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { useLocation, useNavigate } from "react-router-dom";
 import cn from "classnames";
 
 import { useAcceptCollaboratorInvitationMutation } from "./mutations/acceptCollaboratorInvitationMutation";
 import ButtonWithLoading from "../../ButtonWithLoading";
-import ShowError from "../../ShowError";
+import { useGenericError } from "../../error/useGenericError";
 
 import styles from "./AcceptAdminInvitationScreen.module.scss";
 
@@ -23,6 +23,17 @@ const AcceptAdminInvitationScreen: React.FC = function AcceptAdminInvitationScre
     loading,
     error,
   } = useAcceptCollaboratorInvitationMutation();
+  const errorMessage = useGenericError(error, [
+    {
+      reason: "CollaboratorInvitationInvalidCode",
+      errorMessageID: "AcceptAdminInvitationScreen.invalid-code-error",
+    },
+    {
+      reason: "CollaboratorDuplicate",
+      errorMessageID:
+        "AcceptAdminInvitationScreen.duplicated-collaborator-error",
+    },
+  ]);
 
   const onAccept = useCallback(() => {
     acceptCollaboratorInvitation(invitationCode ?? "")
@@ -36,7 +47,11 @@ const AcceptAdminInvitationScreen: React.FC = function AcceptAdminInvitationScre
 
   return (
     <main className={cn(styles.root, { [styles.loading]: loading })}>
-      {error && <ShowError error={error} />}
+      {errorMessage && (
+        <MessageBar messageBarType={MessageBarType.error}>
+          <Text>{errorMessage}</Text>
+        </MessageBar>
+      )}
       <Text as="h1" className={styles.title}>
         <FormattedMessage id="AcceptAdminInvitationScreen.title" />
       </Text>
