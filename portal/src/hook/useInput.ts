@@ -120,6 +120,7 @@ export function useDropdown<K extends string>(
   selectedKey?: K;
   options: IDropdownOption[];
   onChange: (_event: any, option?: IDropdownOption) => void;
+  resetOption: () => void;
 } {
   const [selectedKey, setSelectedKey] = useState<K | undefined>(initialOption);
   const options = useMemo(
@@ -135,9 +136,14 @@ export function useDropdown<K extends string>(
     setSelectedKey(option.key.toString() as K);
   }, []);
 
+  const resetOption = useCallback(() => {
+    setSelectedKey(initialOption);
+  }, [initialOption]);
+
   return {
     selectedKey,
     options,
     onChange,
+    resetOption,
   };
 }

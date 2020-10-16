@@ -4,16 +4,26 @@ import { GraphQLError } from "graphql";
 import { APIValidationError } from "./validation";
 import { APIInvariantViolationError } from "./invariant";
 import { APIPasswordPolicyViolatedError } from "./password";
-import { APIDuplicatedDomainError } from "./duplicatedDomain";
 import { APIForbiddenError } from "./forbidden";
-import { APIInvalidDomainError } from "./invalidDomain";
+import {
+  APIDuplicatedDomainError,
+  APIDomainVerifiedError,
+  APIDomainNotFoundError,
+  APIDomainNotCustomError,
+  APIDomainVerificationFailedError,
+  APIInvalidDomainError,
+} from "./domain";
 
 export type APIError =
   | APIValidationError
   | APIInvariantViolationError
   | APIPasswordPolicyViolatedError
-  | APIDuplicatedDomainError
   | APIForbiddenError
+  | APIDuplicatedDomainError
+  | APIDomainVerifiedError
+  | APIDomainNotFoundError
+  | APIDomainNotCustomError
+  | APIDomainVerificationFailedError
   | APIInvalidDomainError;
 
 export function isAPIError(value?: { [key: string]: any }): value is APIError {

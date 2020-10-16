@@ -22,6 +22,7 @@ import CreateOAuthClientScreen from "./graphql/portal/CreateOAuthClientScreen";
 import EditOAuthClientScreen from "./graphql/portal/EditOAuthClientScreen";
 import UserInterfaceScreen from "./graphql/portal/UserInterfaceScreen";
 import DNSConfigurationScreen from "./graphql/portal/DNSConfigurationScreen";
+import VerifyDomainScreen from "./graphql/portal/VerifyDomainScreen";
 import SettingsScreen from "./graphql/portal/SettingsScreen";
 
 const AppRoot: React.FC = function AppRoot() {
@@ -99,6 +100,10 @@ const AppRoot: React.FC = function AppRoot() {
           <Route
             path="/configuration/dns"
             element={<DNSConfigurationScreen />}
+          />
+          <Route
+            path="/configuration/dns/:domainID/verify"
+            element={<VerifyDomainScreen />}
           />
           <Route path="/configuration/settings" element={<SettingsScreen />} />
         </Routes>
