@@ -11,10 +11,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import NavBreadcrumb, { BreadcrumbItem } from "./NavBreadcrumb";
 import ButtonWithLoading from "./ButtonWithLoading";
 import NavigationBlockerDialog from "./NavigationBlockerDialog";
-import ShowError from "./ShowError";
 import FormTextField from "./FormTextField";
 import ShowUnhandledValidationErrorCause from "./error/ShowUnhandledValidationErrorCauses";
 import { useValidationError } from "./error/useValidationError";
+import { useGenericError } from "./error/useGenericError";
 import { FormContext } from "./error/FormContext";
 import { useCreateCollaboratorInvitationMutation } from "./graphql/portal/mutations/createCollaboratorInvitationMutation";
 
@@ -36,6 +36,13 @@ const InviteAdminContent: React.FC = function InviteAdminContent() {
     otherError,
     value: formContextValue,
   } = useValidationError(createCollaboratorInvitationError);
+
+  const otherErrorMessage = useGenericError(otherError, [
+    {
+      reason: "CollaboratorInvitationDuplicate",
+      errorMessageID: "InviteAdminScreen.duplicated-error",
+    },
+  ]);
 
   const [email, setEmail] = useState("");
   const [submittedForm, setSubmittedForm] = useState(false);
@@ -76,11 +83,6 @@ const InviteAdminContent: React.FC = function InviteAdminContent() {
   return (
     <FormContext.Provider value={formContextValue}>
       <form className={styles.content} onSubmit={onFormSubmit}>
-        {otherError && (
-          <div className={styles.error}>
-            <ShowError error={otherError} />
-          </div>
-        )}
         <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
         <FormTextField
           jsonPointer="/inviteeEmail"
@@ -89,6 +91,7 @@ const InviteAdminContent: React.FC = function InviteAdminContent() {
           className={styles.emailField}
           type="text"
           label={renderToString("InviteAdminScreen.email.label")}
+          errorMessage={otherErrorMessage}
           value={email}
           onChange={onEmailChange}
         />

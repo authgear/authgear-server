@@ -398,6 +398,7 @@
   "InviteAdminScreen.title": "Add Admin",
   "InviteAdminScreen.email.label": "Email",
   "InviteAdminScreen.add-user.label": "Add User",
+  "InviteAdminScreen.duplicated-error": "Invitation has already been sent",
 
   "PasswordStrengthMeter.password-strength": "Password Strength"
 }
