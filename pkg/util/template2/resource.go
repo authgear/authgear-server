@@ -38,14 +38,14 @@ func (t *HTML) MatchResource(path string) bool {
 	return matchTemplatePath(path, t.Name)
 }
 
-func (t *HTML) Merge(layers []resource.LayerFile, args map[string]interface{}) (*resource.LayerFile, error) {
+func (t *HTML) Merge(layers []resource.LayerFile, args map[string]interface{}) (*resource.MergedFile, error) {
 	return mergeTemplates(layers, args)
 }
 
-func (t *HTML) Parse(data []byte) (interface{}, error) {
+func (t *HTML) Parse(merged *resource.MergedFile) (interface{}, error) {
 	tpl := htmltemplate.New(t.Name)
 	tpl.Funcs(templateFuncMap)
-	_, err := tpl.Parse(string(data))
+	_, err := tpl.Parse(string(merged.Data))
 	if err != nil {
 		return nil, fmt.Errorf("invalid HTML template: %w", err)
 	}
@@ -70,14 +70,14 @@ func (t *PlainText) MatchResource(path string) bool {
 	return matchTemplatePath(path, t.Name)
 }
 
-func (t *PlainText) Merge(layers []resource.LayerFile, args map[string]interface{}) (*resource.LayerFile, error) {
+func (t *PlainText) Merge(layers []resource.LayerFile, args map[string]interface{}) (*resource.MergedFile, error) {
 	return mergeTemplates(layers, args)
 }
 
-func (t *PlainText) Parse(data []byte) (interface{}, error) {
+func (t *PlainText) Parse(merged *resource.MergedFile) (interface{}, error) {
 	tpl := texttemplate.New(t.Name)
 	tpl.Funcs(templateFuncMap)
-	_, err := tpl.Parse(string(data))
+	_, err := tpl.Parse(string(merged.Data))
 	if err != nil {
 		return nil, fmt.Errorf("invalid text template: %w", err)
 	}
@@ -135,7 +135,7 @@ func readTemplates(fs resource.Fs, templateName string) ([]resource.LayerFile, e
 
 type languageTemplate struct {
 	languageTag string
-	file        resource.LayerFile
+	data        []byte
 }
 
 func (t languageTemplate) GetLanguageTag() string {
@@ -144,7 +144,7 @@ func (t languageTemplate) GetLanguageTag() string {
 
 var templateLanguageTagRegex = regexp.MustCompile("^templates/([a-zA-Z0-9-_]+)/")
 
-func mergeTemplates(layers []resource.LayerFile, args map[string]interface{}) (*resource.LayerFile, error) {
+func mergeTemplates(layers []resource.LayerFile, args map[string]interface{}) (*resource.MergedFile, error) {
 	preferredLanguageTags, _ := args[ResourceArgPreferredLanguageTag].([]string)
 	defaultLanguageTag, _ := args[ResourceArgDefaultLanguageTag].(string)
 
@@ -153,7 +153,7 @@ func mergeTemplates(layers []resource.LayerFile, args map[string]interface{}) (*
 		langTag := templateLanguageTagRegex.FindStringSubmatch(file.Path)[1]
 		t := languageTemplate{
 			languageTag: langTag,
-			file:        file,
+			data:        file.Data,
 		}
 		if t.languageTag == LanguageTagDefault {
 			t.languageTag = defaultLanguageTag
@@ -177,5 +177,5 @@ func mergeTemplates(layers []resource.LayerFile, args map[string]interface{}) (*
 	}
 
 	tagger := matched.(languageTemplate)
-	return &tagger.file, nil
+	return &resource.MergedFile{Data: tagger.data}, nil
 }

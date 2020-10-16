@@ -36,22 +36,19 @@ func TestResourceManager(t *testing.T) {
 
 			data, err := manager.Read(resourceA, nil)
 			So(err, ShouldBeNil)
-			So(data, ShouldResemble, &resource.LayerFile{
-				Path: "resourceA.txt",
+			So(data, ShouldResemble, &resource.MergedFile{
 				Data: []byte("resource A in fs B"),
 			})
 
 			data, err = manager.Read(resourceB, nil)
 			So(err, ShouldBeNil)
-			So(data, ShouldResemble, &resource.LayerFile{
-				Path: "resources/B.txt",
+			So(data, ShouldResemble, &resource.MergedFile{
 				Data: []byte("resource B in fs A"),
 			})
 
 			data, err = manager.Read(resourceC, nil)
 			So(err, ShouldBeNil)
-			So(data, ShouldResemble, &resource.LayerFile{
-				Path: "resources/C.txt",
+			So(data, ShouldResemble, &resource.MergedFile{
 				Data: []byte("resource C in fs B"),
 			})
 		})

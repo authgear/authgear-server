@@ -11,7 +11,7 @@ import (
 type DefaultTemplateLanguage string
 
 type ResourceManager interface {
-	Read(desc resource.Descriptor, args map[string]interface{}) (*resource.LayerFile, error)
+	Read(desc resource.Descriptor, args map[string]interface{}) (*resource.MergedFile, error)
 }
 
 type Resolver struct {
@@ -28,7 +28,7 @@ func (r *Resolver) ResolveHTML(desc *HTML, preferredLanguages []string) (*htmlte
 		return nil, err
 	}
 
-	tpl, err := desc.Parse(file.Data)
+	tpl, err := desc.Parse(file)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func (r *Resolver) ResolvePlainText(desc *PlainText, preferredLanguages []string
 		return nil, err
 	}
 
-	tpl, err := desc.Parse(file.Data)
+	tpl, err := desc.Parse(file)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (r *Resolver) ResolveTranslations(preferredLanguages []string) (map[string]
 		return nil, err
 	}
 
-	ts, err := TranslationJSON.Parse(file.Data)
+	ts, err := TranslationJSON.Parse(file)
 	if err != nil {
 		return nil, err
 	}

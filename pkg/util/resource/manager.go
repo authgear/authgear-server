@@ -16,7 +16,7 @@ func NewManager(registry *Registry, fs []Fs) *Manager {
 	return &Manager{Registry: registry, Fs: fs}
 }
 
-func (m *Manager) Read(desc Descriptor, args map[string]interface{}) (*LayerFile, error) {
+func (m *Manager) Read(desc Descriptor, args map[string]interface{}) (*MergedFile, error) {
 	var layers []LayerFile
 	for _, fs := range m.Fs {
 		files, err := desc.ReadResource(fs)

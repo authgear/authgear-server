@@ -33,12 +33,12 @@ func TestTranslationResource(t *testing.T) {
 			_ = afero.WriteFile(fs, "templates/"+lang+"/translation.json", []byte(data), 0666)
 		}
 
-		read := func() (string, string, error) {
-			data, err := manager.Read(template.TranslationJSON, args)
+		read := func() (string, error) {
+			merged, err := manager.Read(template.TranslationJSON, args)
 			if err != nil {
-				return "", "", err
+				return "", err
 			}
-			return data.Path, string(data.Data), nil
+			return string(merged.Data), nil
 		}
 
 		compact := func(s string) string {
@@ -54,9 +54,8 @@ func TestTranslationResource(t *testing.T) {
 				"c": "default c in fs A"
 			}`)
 
-			path, data, err := read()
+			data, err := read()
 			So(err, ShouldBeNil)
-			So(path, ShouldEqual, "templates/translation.json")
 			So(data, ShouldEqual, compact(`{
 				"a": { "LanguageTag": "en", "Value": "default a in fs A" },
 				"b": { "LanguageTag": "en", "Value": "default b in fs A" },
@@ -78,9 +77,8 @@ func TestTranslationResource(t *testing.T) {
 				"c": "zh c in fs A"
 			}`)
 
-			path, data, err := read()
+			data, err := read()
 			So(err, ShouldBeNil)
-			So(path, ShouldEqual, "templates/translation.json")
 			So(data, ShouldEqual, compact(`{
 				"a": { "LanguageTag": "en", "Value": "default a in fs A" },
 				"b": { "LanguageTag": "en", "Value": "en b in fs A" },
@@ -88,9 +86,8 @@ func TestTranslationResource(t *testing.T) {
 			}`))
 
 			args[template.ResourceArgPreferredLanguageTag] = []string{"en"}
-			path, data, err = read()
+			data, err = read()
 			So(err, ShouldBeNil)
-			So(path, ShouldEqual, "templates/translation.json")
 			So(data, ShouldEqual, compact(`{
 				"a": { "LanguageTag": "en", "Value": "default a in fs A" },
 				"b": { "LanguageTag": "en", "Value": "en b in fs A" },
@@ -98,9 +95,8 @@ func TestTranslationResource(t *testing.T) {
 			}`))
 
 			args[template.ResourceArgPreferredLanguageTag] = []string{"zh"}
-			path, data, err = read()
+			data, err = read()
 			So(err, ShouldBeNil)
-			So(path, ShouldEqual, "templates/translation.json")
 			So(data, ShouldEqual, compact(`{
 				"a": { "LanguageTag": "en", "Value": "default a in fs A" },
 				"b": { "LanguageTag": "zh", "Value": "zh b in fs A" },
@@ -125,9 +121,8 @@ func TestTranslationResource(t *testing.T) {
 				"c": "zh c in fs B"
 			}`)
 
-			path, data, err := read()
+			data, err := read()
 			So(err, ShouldBeNil)
-			So(path, ShouldEqual, "templates/translation.json")
 			So(data, ShouldEqual, compact(`{
 				"a": { "LanguageTag": "en", "Value": "default a in fs A" },
 				"b": { "LanguageTag": "en", "Value": "en b in fs A" },
@@ -135,9 +130,8 @@ func TestTranslationResource(t *testing.T) {
 			}`))
 
 			args[template.ResourceArgPreferredLanguageTag] = []string{"en"}
-			path, data, err = read()
+			data, err = read()
 			So(err, ShouldBeNil)
-			So(path, ShouldEqual, "templates/translation.json")
 			So(data, ShouldEqual, compact(`{
 				"a": { "LanguageTag": "en", "Value": "default a in fs A" },
 				"b": { "LanguageTag": "en", "Value": "en b in fs A" },
@@ -145,9 +139,8 @@ func TestTranslationResource(t *testing.T) {
 			}`))
 
 			args[template.ResourceArgPreferredLanguageTag] = []string{"zh"}
-			path, data, err = read()
+			data, err = read()
 			So(err, ShouldBeNil)
-			So(path, ShouldEqual, "templates/translation.json")
 			So(data, ShouldEqual, compact(`{
 				"a": { "LanguageTag": "en", "Value": "default a in fs A" },
 				"b": { "LanguageTag": "zh", "Value": "zh b in fs B" },

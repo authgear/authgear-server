@@ -22,19 +22,19 @@ func (t *translationJSON) MatchResource(path string) bool {
 	return matchTemplatePath(path, translationJSONName)
 }
 
-func (t *translationJSON) Merge(layers []resource.LayerFile, args map[string]interface{}) (*resource.LayerFile, error) {
+func (t *translationJSON) Merge(layers []resource.LayerFile, args map[string]interface{}) (*resource.MergedFile, error) {
 	return mergeTranslations(layers, args)
 }
 
-func (t *translationJSON) Parse(data []byte) (interface{}, error) {
+func (t *translationJSON) Parse(merged *resource.MergedFile) (interface{}, error) {
 	var translations map[string]template.Translation
-	if err := json.Unmarshal(data, &translations); err != nil {
+	if err := json.Unmarshal(merged.Data, &translations); err != nil {
 		return nil, err
 	}
 	return translations, nil
 }
 
-func mergeTranslations(layers []resource.LayerFile, args map[string]interface{}) (*resource.LayerFile, error) {
+func mergeTranslations(layers []resource.LayerFile, args map[string]interface{}) (*resource.MergedFile, error) {
 	preferredLanguageTags, _ := args[ResourceArgPreferredLanguageTag].([]string)
 	defaultLanguageTag, _ := args[ResourceArgDefaultLanguageTag].(string)
 
@@ -97,8 +97,5 @@ func mergeTranslations(layers []resource.LayerFile, args map[string]interface{})
 		return nil, err
 	}
 
-	return &resource.LayerFile{
-		Path: "templates/" + translationJSONName,
-		Data: data,
-	}, nil
+	return &resource.MergedFile{Data: data}, nil
 }

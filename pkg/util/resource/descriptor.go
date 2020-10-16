@@ -7,11 +7,15 @@ type LayerFile struct {
 	Data []byte
 }
 
+type MergedFile struct {
+	Data []byte
+}
+
 type Descriptor interface {
 	ReadResource(fs Fs) ([]LayerFile, error)
 	MatchResource(path string) bool
-	Merge(layers []LayerFile, args map[string]interface{}) (*LayerFile, error)
-	Parse(data []byte) (interface{}, error)
+	Merge(layers []LayerFile, args map[string]interface{}) (*MergedFile, error)
+	Parse(merged *MergedFile) (interface{}, error)
 }
 
 // SimpleFile merges files from different layers, by using the top-most
@@ -35,14 +39,14 @@ func (f SimpleFile) MatchResource(path string) bool {
 	return path == f.Name
 }
 
-func (f SimpleFile) Merge(layers []LayerFile, args map[string]interface{}) (*LayerFile, error) {
+func (f SimpleFile) Merge(layers []LayerFile, args map[string]interface{}) (*MergedFile, error) {
 	file := layers[len(layers)-1]
-	return &file, nil
+	return &MergedFile{Data: file.Data}, nil
 }
 
-func (f SimpleFile) Parse(data []byte) (interface{}, error) {
+func (f SimpleFile) Parse(merged *MergedFile) (interface{}, error) {
 	if f.ParseFn == nil {
-		return data, nil
+		return merged.Data, nil
 	}
-	return f.ParseFn(data)
+	return f.ParseFn(merged.Data)
 }

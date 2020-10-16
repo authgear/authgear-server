@@ -32,20 +32,19 @@ func TestTemplateResource(t *testing.T) {
 			_ = afero.WriteFile(fs, "templates/"+lang+"/resource.txt", []byte(data), 0666)
 		}
 
-		read := func() (string, string, error) {
-			data, err := manager.Read(txt, args)
+		read := func() (string, error) {
+			merged, err := manager.Read(txt, args)
 			if err != nil {
-				return "", "", err
+				return "", err
 			}
-			return data.Path, string(data.Data), nil
+			return string(merged.Data), nil
 		}
 
 		Convey("it should return single resource", func() {
 			writeFile(fsA, "__default__", "default in fs A")
 
-			path, data, err := read()
+			data, err := read()
 			So(err, ShouldBeNil)
-			So(path, ShouldEqual, "templates/__default__/resource.txt")
 			So(data, ShouldEqual, "default in fs A")
 		})
 
@@ -54,21 +53,18 @@ func TestTemplateResource(t *testing.T) {
 			writeFile(fsA, "zh", "zh in fs A")
 			writeFile(fsA, "__default__", "default in fs A")
 
-			path, data, err := read()
+			data, err := read()
 			So(err, ShouldBeNil)
-			So(path, ShouldEqual, "templates/en/resource.txt")
 			So(data, ShouldEqual, "en in fs A")
 
 			args[template.ResourceArgPreferredLanguageTag] = []string{"en"}
-			path, data, err = read()
+			data, err = read()
 			So(err, ShouldBeNil)
-			So(path, ShouldEqual, "templates/en/resource.txt")
 			So(data, ShouldEqual, "en in fs A")
 
 			args[template.ResourceArgPreferredLanguageTag] = []string{"zh"}
-			path, data, err = read()
+			data, err = read()
 			So(err, ShouldBeNil)
-			So(path, ShouldEqual, "templates/zh/resource.txt")
 			So(data, ShouldEqual, "zh in fs A")
 		})
 
@@ -76,21 +72,18 @@ func TestTemplateResource(t *testing.T) {
 			writeFile(fsB, "zh", "zh in fs B")
 			writeFile(fsA, "__default__", "default in fs A")
 
-			path, data, err := read()
+			data, err := read()
 			So(err, ShouldBeNil)
-			So(path, ShouldEqual, "templates/__default__/resource.txt")
 			So(data, ShouldEqual, "default in fs A")
 
 			args[template.ResourceArgPreferredLanguageTag] = []string{"en"}
-			path, data, err = read()
+			data, err = read()
 			So(err, ShouldBeNil)
-			So(path, ShouldEqual, "templates/__default__/resource.txt")
 			So(data, ShouldEqual, "default in fs A")
 
 			args[template.ResourceArgPreferredLanguageTag] = []string{"zh"}
-			path, data, err = read()
+			data, err = read()
 			So(err, ShouldBeNil)
-			So(path, ShouldEqual, "templates/zh/resource.txt")
 			So(data, ShouldEqual, "zh in fs B")
 		})
 	})
