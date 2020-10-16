@@ -121,7 +121,7 @@ const PortalAdminList: React.FC<PortalAdminListProps> = function PortalAdminList
           email: collaboratorInvitation.inviteeEmail,
         })
       ),
-    ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    ];
   }, [collaboratorInvitations, collaborators]);
 
   const paginatedItems: PortalAdminListItem[] = useMemo(() => {
