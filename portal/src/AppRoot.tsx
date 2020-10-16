@@ -25,7 +25,6 @@ import DNSConfigurationScreen from "./graphql/portal/DNSConfigurationScreen";
 import VerifyDomainScreen from "./graphql/portal/VerifyDomainScreen";
 import SettingsScreen from "./graphql/portal/SettingsScreen";
 import InviteAdminScreen from "./graphql/portal/InviteAdminScreen";
-import AcceptAdminInvitationScreen from "./graphql/portal/AcceptAdminInvitationScreen";
 
 const AppRoot: React.FC = function AppRoot() {
   const { appID } = useParams();
@@ -111,10 +110,6 @@ const AppRoot: React.FC = function AppRoot() {
           <Route
             path="/configuration/settings/invite-admin"
             element={<InviteAdminScreen />}
-          />
-          <Route
-            path="/collaborators/invitation"
-            element={<AcceptAdminInvitationScreen />}
           />
         </Routes>
       </ScreenLayout>

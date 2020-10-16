@@ -39,7 +39,7 @@ const AcceptAdminInvitationScreen: React.FC = function AcceptAdminInvitationScre
     acceptCollaboratorInvitation(invitationCode ?? "")
       .then((appID) => {
         if (appID !== null) {
-          navigate("../../");
+          navigate(`/app/${appID}`);
         }
       })
       .catch(() => {});
