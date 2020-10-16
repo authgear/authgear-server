@@ -4,7 +4,6 @@ import ScreenNav from "./ScreenNav";
 import styles from "./ScreenLayout.module.scss";
 
 interface ScreenLayoutProps {
-  showScreenNav: boolean;
   children: React.ReactElement;
 }
 
@@ -15,11 +14,9 @@ const ScreenLayout: React.FC<ScreenLayoutProps> = function ScreenLayout(
     <div className={styles.root}>
       <ScreenHeader />
       <div className={styles.body}>
-        {props.showScreenNav && (
-          <div className={styles.nav}>
-            <ScreenNav />
-          </div>
-        )}
+        <div className={styles.nav}>
+          <ScreenNav />
+        </div>
         <div className={styles.content}>{props.children}</div>
       </div>
     </div>
