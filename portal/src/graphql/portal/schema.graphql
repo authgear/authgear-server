@@ -278,6 +278,12 @@ type Query {
     id: ID!
   ): Node
 
+  """Lookup nodes by a list of IDs."""
+  nodes(
+    """The list of node IDs."""
+    ids: [ID!]!
+  ): [Node]!
+
   """The current viewer"""
   viewer: User
 }

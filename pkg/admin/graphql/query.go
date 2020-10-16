@@ -10,7 +10,8 @@ import (
 var query = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Query",
 	Fields: graphql.Fields{
-		"node": nodeDefs.NodeField,
+		"node":  nodeDefs.NodeField,
+		"nodes": nodeDefs.NodesField,
 		"users": &graphql.Field{
 			Description: "All users",
 			Type:        connUser.ConnectionType,

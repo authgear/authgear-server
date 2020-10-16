@@ -8,20 +8,21 @@ import (
 	"github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 var nodeDefs = relay.NewNodeDefinitions(relay.NodeDefinitionsConfig{
 	IDFetcher: func(id string, info graphql.ResolveInfo, ctx context.Context) (interface{}, error) {
+		// If the ID is invalid, we should return null instead of returning an error.
+		// This behavior conforms the schema.
 		resolvedID := relay.FromGlobalID(id)
 		if resolvedID == nil {
-			return nil, apierrors.NewInvalid("invalid ID")
+			return nil, nil
 		}
 		resolver, ok := resolvers[resolvedID.Type]
 		if !ok {
-			return nil, apierrors.NewInvalid("invalid ID")
+			return nil, nil
 		}
 		return resolver(GQLContext(ctx), resolvedID.ID)
 	},

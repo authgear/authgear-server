@@ -11,7 +11,8 @@ import (
 var query = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Query",
 	Fields: graphql.Fields{
-		"node": nodeDefs.NodeField,
+		"node":  nodeDefs.NodeField,
+		"nodes": nodeDefs.NodesField,
 		"viewer": &graphql.Field{
 			Description: "The current viewer",
 			Type:        nodeUser,

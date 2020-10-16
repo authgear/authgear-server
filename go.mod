@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/Masterminds/squirrel v1.4.0
-	github.com/authgear/graphql-go-relay v0.0.0-20201016062217-aa2552cad643
+	github.com/authgear/graphql-go-relay v0.0.0-20201016065100-df672205b892
 	github.com/getsentry/sentry-go v0.6.1
 	github.com/go-gomail/gomail v0.0.0-20160411212932-81ebce5c23df
 	github.com/golang/mock v1.4.3
