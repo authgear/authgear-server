@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
-	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/portal/db"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/endpoint"
@@ -18,11 +17,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/portal/task"
+	"github.com/authgear/authgear-server/pkg/portal/task/tasks"
 	"github.com/authgear/authgear-server/pkg/portal/template"
 	"github.com/authgear/authgear-server/pkg/portal/transport"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/worker/tasks"
 	"net/http"
 )
 
@@ -122,23 +121,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:      devMode,
 		GomailDialer: dialer,
 	}
-	smsLogger := sms.NewLogger(factory)
-	messagingConfig := deps.ProvideMessageConfig()
-	twilioCredentials := deps.ProvideTwilioCredentials()
-	twilioClient := sms.NewTwilioClient(twilioCredentials)
-	nexmoCredentials := deps.ProvideNexmoCrednetials()
-	nexmoClient := sms.NewNexmoClient(nexmoCredentials)
-	client := &sms.Client{
-		Logger:          smsLogger,
-		DevMode:         devMode,
-		MessagingConfig: messagingConfig,
-		TwilioClient:    twilioClient,
-		NexmoClient:     nexmoClient,
-	}
 	sendMessagesLogger := tasks.NewSendMessagesLogger(factory)
 	sendMessagesTask := &tasks.SendMessagesTask{
 		EmailSender: sender,
-		SMSClient:   client,
 		Logger:      sendMessagesLogger,
 	}
 	inProcessExecutor := task.NewExecutor(inProcessExecutorLogger, sendMessagesTask)
@@ -276,23 +261,9 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:      devMode,
 		GomailDialer: dialer,
 	}
-	smsLogger := sms.NewLogger(factory)
-	messagingConfig := deps.ProvideMessageConfig()
-	twilioCredentials := deps.ProvideTwilioCredentials()
-	twilioClient := sms.NewTwilioClient(twilioCredentials)
-	nexmoCredentials := deps.ProvideNexmoCrednetials()
-	nexmoClient := sms.NewNexmoClient(nexmoCredentials)
-	client := &sms.Client{
-		Logger:          smsLogger,
-		DevMode:         devMode,
-		MessagingConfig: messagingConfig,
-		TwilioClient:    twilioClient,
-		NexmoClient:     nexmoClient,
-	}
 	sendMessagesLogger := tasks.NewSendMessagesLogger(factory)
 	sendMessagesTask := &tasks.SendMessagesTask{
 		EmailSender: sender,
-		SMSClient:   client,
 		Logger:      sendMessagesLogger,
 	}
 	inProcessExecutor := task.NewExecutor(inProcessExecutorLogger, sendMessagesTask)

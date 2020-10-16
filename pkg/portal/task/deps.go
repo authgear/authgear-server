@@ -3,7 +3,7 @@ package task
 import (
 	"github.com/google/wire"
 
-	"github.com/authgear/authgear-server/pkg/worker/tasks"
+	"github.com/authgear/authgear-server/pkg/portal/task/tasks"
 )
 
 var DependencySet = wire.NewSet(
