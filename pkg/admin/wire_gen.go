@@ -199,7 +199,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -207,7 +212,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
@@ -297,6 +302,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 	}
 	webEndpoints := &WebEndpoints{}
+	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
 		StaticAssetURLPrefix: staticAssetURLPrefix,
 		Translation:          translationService,

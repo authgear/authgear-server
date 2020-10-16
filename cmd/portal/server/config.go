@@ -27,6 +27,13 @@ type Config struct {
 	StaticAsset StaticAssetConfig `envconfig:"STATIC_ASSET"`
 	// Database configures the backend database
 	Database portalconfig.DatabaseConfig `envconfig:"DATABASE"`
+	// SMTP configures SMTP.
+	SMTP portalconfig.SMTPConfig `envconfig:"SMTP"`
+	// Mail configures email settings.
+	Mail portalconfig.MailConfig `envconfig:"MAIL"`
+
+	// DefaultTemplateDirectory sets the directory for default template files
+	DefaultTemplateDirectory portalconfig.DefaultTemplateDirectory `envconfig:"DEFAULT_TEMPLATE_DIRECTORY" default:"templates"`
 
 	*config.EnvironmentConfig
 }

@@ -6,14 +6,11 @@
 package worker
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task/executor"
-	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/worker/tasks"
 )
 
@@ -29,48 +26,6 @@ func newInProcessExecutor(p *deps.RootProvider) *executor.InProcessExecutor {
 	}
 	return inProcessExecutor
 }
-
-func newPwHousekeeperTask(p *deps.TaskProvider) task.Task {
-	appProvider := p.AppProvider
-	handle := appProvider.Database
-	factory := appProvider.LoggerFactory
-	pwHousekeeperLogger := tasks.NewPwHousekeeperLogger(factory)
-	clock := _wireSystemClockValue
-	config := appProvider.Config
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	appConfig := config.AppConfig
-	appID := appConfig.ID
-	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	context := p.Context
-	sqlExecutor := db.SQLExecutor{
-		Context:  context,
-		Database: handle,
-	}
-	historyStore := &password.HistoryStore{
-		Clock:       clock,
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	housekeeperLogger := password.NewHousekeeperLogger(factory)
-	authenticatorConfig := appConfig.Authenticator
-	authenticatorPasswordConfig := authenticatorConfig.Password
-	housekeeper := &password.Housekeeper{
-		Store:  historyStore,
-		Logger: housekeeperLogger,
-		Config: authenticatorPasswordConfig,
-	}
-	pwHousekeeperTask := &tasks.PwHousekeeperTask{
-		Database:      handle,
-		Logger:        pwHousekeeperLogger,
-		PwHousekeeper: housekeeper,
-	}
-	return pwHousekeeperTask
-}
-
-var (
-	_wireSystemClockValue = clock.NewSystemClock()
-)
 
 func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	appProvider := p.AppProvider

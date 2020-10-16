@@ -12,7 +12,6 @@ type Worker struct {
 
 func NewWorker(provider *deps.RootProvider) *Worker {
 	executor := newInProcessExecutor(provider)
-	tasks.ConfigurePwHousekeeperTask(executor, provider.Task(newPwHousekeeperTask))
 	tasks.ConfigureSendMessagesTask(executor, provider.Task(newSendMessagesTask))
 
 	return &Worker{Executor: executor}

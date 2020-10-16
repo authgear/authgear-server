@@ -14,25 +14,31 @@ import (
 )
 
 type RootProvider struct {
-	EnvironmentConfig  *config.EnvironmentConfig
-	ConfigSourceConfig *configsource.Config
-	AuthgearConfig     *portalconfig.AuthgearConfig
-	AdminAPIConfig     *portalconfig.AdminAPIConfig
-	AppConfig          *portalconfig.AppConfig
-	DatabaseConfig     *portalconfig.DatabaseConfig
-	LoggerFactory      *log.Factory
-	SentryHub          *getsentry.Hub
+	EnvironmentConfig        *config.EnvironmentConfig
+	ConfigSourceConfig       *configsource.Config
+	AuthgearConfig           *portalconfig.AuthgearConfig
+	AdminAPIConfig           *portalconfig.AdminAPIConfig
+	AppConfig                *portalconfig.AppConfig
+	DatabaseConfig           *portalconfig.DatabaseConfig
+	SMTPConfig               *portalconfig.SMTPConfig
+	MailConfig               *portalconfig.MailConfig
+	DefaultTemplateDirectory portalconfig.DefaultTemplateDirectory
+	LoggerFactory            *log.Factory
+	SentryHub                *getsentry.Hub
 
 	ConfigSourceController *configsource.Controller
 }
 
 func NewRootProvider(
 	cfg *config.EnvironmentConfig,
+	defaultTemplateDirectory portalconfig.DefaultTemplateDirectory,
 	configSourceConfig *configsource.Config,
 	authgearConfig *portalconfig.AuthgearConfig,
 	adminAPIConfig *portalconfig.AdminAPIConfig,
 	appConfig *portalconfig.AppConfig,
 	dbConfig *portalconfig.DatabaseConfig,
+	smtpConfig *portalconfig.SMTPConfig,
+	mailConfig *portalconfig.MailConfig,
 ) (*RootProvider, error) {
 	logLevel, err := log.ParseLevel(cfg.LogLevel)
 	if err != nil {
@@ -51,14 +57,17 @@ func NewRootProvider(
 	)
 
 	return &RootProvider{
-		EnvironmentConfig:  cfg,
-		ConfigSourceConfig: configSourceConfig,
-		AuthgearConfig:     authgearConfig,
-		AdminAPIConfig:     adminAPIConfig,
-		AppConfig:          appConfig,
-		DatabaseConfig:     dbConfig,
-		LoggerFactory:      loggerFactory,
-		SentryHub:          sentryHub,
+		EnvironmentConfig:        cfg,
+		DefaultTemplateDirectory: defaultTemplateDirectory,
+		ConfigSourceConfig:       configSourceConfig,
+		AuthgearConfig:           authgearConfig,
+		AdminAPIConfig:           adminAPIConfig,
+		AppConfig:                appConfig,
+		DatabaseConfig:           dbConfig,
+		SMTPConfig:               smtpConfig,
+		MailConfig:               mailConfig,
+		LoggerFactory:            loggerFactory,
+		SentryHub:                sentryHub,
 	}, nil
 }
 

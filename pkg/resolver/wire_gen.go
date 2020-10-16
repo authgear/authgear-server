@@ -224,7 +224,12 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
-	queue := appProvider.TaskQueue
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
 	passwordProvider := &password.Provider{
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
@@ -232,7 +237,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
-		TaskQueue:       queue,
+		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,

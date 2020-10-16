@@ -5,8 +5,6 @@ import (
 	"sort"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/task"
-	"github.com/authgear/authgear-server/pkg/lib/tasks"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
@@ -24,7 +22,7 @@ type Provider struct {
 	Logger          Logger
 	PasswordHistory *HistoryStore
 	PasswordChecker *Checker
-	TaskQueue       task.Queue
+	Housekeeper     *Housekeeper
 }
 
 func (p *Provider) Get(userID string, id string) (*Authenticator, error) {
@@ -147,9 +145,10 @@ func (p *Provider) UpdatePassword(a *Authenticator) error {
 		return err
 	}
 
-	p.TaskQueue.Enqueue(&tasks.PwHousekeeperParam{
-		UserID: a.UserID,
-	})
+	err = p.Housekeeper.Housekeep(a.UserID)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

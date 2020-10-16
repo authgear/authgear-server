@@ -7,13 +7,18 @@ package portal
 
 import (
 	"github.com/authgear/authgear-server/pkg/lib/admin/authz"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/portal/db"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
+	"github.com/authgear/authgear-server/pkg/portal/endpoint"
 	"github.com/authgear/authgear-server/pkg/portal/graphql"
 	"github.com/authgear/authgear-server/pkg/portal/loader"
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
+	"github.com/authgear/authgear-server/pkg/portal/task"
+	"github.com/authgear/authgear-server/pkg/portal/task/tasks"
+	"github.com/authgear/authgear-server/pkg/portal/template"
 	"github.com/authgear/authgear-server/pkg/portal/transport"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -105,11 +110,45 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Context:  context,
 		Database: handle,
 	}
+	mailConfig := rootProvider.MailConfig
+	inProcessExecutorLogger := task.NewInProcessExecutorLogger(factory)
+	mailLogger := mail.NewLogger(factory)
+	smtpConfig := rootProvider.SMTPConfig
+	smtpServerCredentials := deps.ProvideSMTPServerCredentials(smtpConfig)
+	dialer := mail.NewGomailDialer(smtpServerCredentials)
+	sender := &mail.Sender{
+		Logger:       mailLogger,
+		DevMode:      devMode,
+		GomailDialer: dialer,
+	}
+	sendMessagesLogger := tasks.NewSendMessagesLogger(factory)
+	sendMessagesTask := &tasks.SendMessagesTask{
+		EmailSender: sender,
+		Logger:      sendMessagesLogger,
+	}
+	inProcessExecutor := task.NewExecutor(inProcessExecutorLogger, sendMessagesTask)
+	inProcessQueue := &task.InProcessQueue{
+		Executor: inProcessExecutor,
+	}
+	trustProxy := environmentConfig.TrustProxy
+	requestOriginProvider := &endpoint.RequestOriginProvider{
+		Request:    request,
+		TrustProxy: trustProxy,
+	}
+	endpointsProvider := &endpoint.EndpointsProvider{
+		OriginProvider: requestOriginProvider,
+	}
+	defaultTemplateDirectory := rootProvider.DefaultTemplateDirectory
+	engine := template.NewEngine(defaultTemplateDirectory)
 	collaboratorService := &service.CollaboratorService{
-		Context:     context,
-		Clock:       clock,
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		Context:        context,
+		Clock:          clock,
+		SQLBuilder:     sqlBuilder,
+		SQLExecutor:    sqlExecutor,
+		MailConfig:     mailConfig,
+		TaskQueue:      inProcessQueue,
+		Endpoints:      endpointsProvider,
+		TemplateEngine: engine,
 	}
 	authzService := &service.AuthzService{
 		Context:       context,
@@ -209,11 +248,47 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		Context:  context,
 		Database: handle,
 	}
+	mailConfig := rootProvider.MailConfig
+	inProcessExecutorLogger := task.NewInProcessExecutorLogger(factory)
+	mailLogger := mail.NewLogger(factory)
+	environmentConfig := rootProvider.EnvironmentConfig
+	devMode := environmentConfig.DevMode
+	smtpConfig := rootProvider.SMTPConfig
+	smtpServerCredentials := deps.ProvideSMTPServerCredentials(smtpConfig)
+	dialer := mail.NewGomailDialer(smtpServerCredentials)
+	sender := &mail.Sender{
+		Logger:       mailLogger,
+		DevMode:      devMode,
+		GomailDialer: dialer,
+	}
+	sendMessagesLogger := tasks.NewSendMessagesLogger(factory)
+	sendMessagesTask := &tasks.SendMessagesTask{
+		EmailSender: sender,
+		Logger:      sendMessagesLogger,
+	}
+	inProcessExecutor := task.NewExecutor(inProcessExecutorLogger, sendMessagesTask)
+	inProcessQueue := &task.InProcessQueue{
+		Executor: inProcessExecutor,
+	}
+	trustProxy := environmentConfig.TrustProxy
+	requestOriginProvider := &endpoint.RequestOriginProvider{
+		Request:    request,
+		TrustProxy: trustProxy,
+	}
+	endpointsProvider := &endpoint.EndpointsProvider{
+		OriginProvider: requestOriginProvider,
+	}
+	defaultTemplateDirectory := rootProvider.DefaultTemplateDirectory
+	engine := template.NewEngine(defaultTemplateDirectory)
 	collaboratorService := &service.CollaboratorService{
-		Context:     context,
-		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		Context:        context,
+		Clock:          clockClock,
+		SQLBuilder:     sqlBuilder,
+		SQLExecutor:    sqlExecutor,
+		MailConfig:     mailConfig,
+		TaskQueue:      inProcessQueue,
+		Endpoints:      endpointsProvider,
+		TemplateEngine: engine,
 	}
 	authzService := &service.AuthzService{
 		Context:       context,

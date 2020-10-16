@@ -4,17 +4,24 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"net/url"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/lib/infra/task"
+	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/db"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/session"
+	"github.com/authgear/authgear-server/pkg/portal/task/tasks"
+	portaltemplate "github.com/authgear/authgear-server/pkg/portal/template"
 	"github.com/authgear/authgear-server/pkg/util/base32"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/rand"
+	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -26,11 +33,24 @@ var ErrCollaboratorInvitationNotFound = apierrors.NotFound.WithReason("Collabora
 var ErrCollaboratorInvitationDuplicate = apierrors.AlreadyExists.WithReason("CollaboratorInvitationDuplicate").New("collaborator invitation duplicate")
 var ErrCollaboratorInvitationInvalidCode = apierrors.Invalid.WithReason("CollaboratorInvitationInvalidCode").New("collaborator invitation invalid code")
 
+type CollaboratorServiceTaskQueue interface {
+	Enqueue(param task.Param)
+}
+
+type CollaboratorServiceEndpointsProvider interface {
+	AcceptCollaboratorInvitationEndpointURL() *url.URL
+}
+
 type CollaboratorService struct {
 	Context     context.Context
 	Clock       clock.Clock
 	SQLBuilder  *db.SQLBuilder
 	SQLExecutor *db.SQLExecutor
+
+	MailConfig     *portalconfig.MailConfig
+	TaskQueue      CollaboratorServiceTaskQueue
+	Endpoints      CollaboratorServiceEndpointsProvider
+	TemplateEngine *template.Engine
 }
 
 func (s *CollaboratorService) selectCollaborator() sq.SelectBuilder {
@@ -243,7 +263,49 @@ func (s *CollaboratorService) SendInvitation(
 		return nil, err
 	}
 
-	// FIXME(collaborator): Send the invitation email
+	link := s.Endpoints.AcceptCollaboratorInvitationEndpointURL()
+	q := link.Query()
+	q.Set("code", code)
+	link.RawQuery = q.Encode()
+
+	data := map[string]interface{}{
+		"AppName": appID,
+		"Link":    link,
+	}
+
+	renderCtx := &template.RenderContext{}
+
+	textBody, err := s.TemplateEngine.Render(
+		renderCtx,
+		portaltemplate.TemplateItemTypePortalCollaboratorInvitationEmailTXT,
+		data,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	htmlBody, err := s.TemplateEngine.Render(
+		renderCtx,
+		portaltemplate.TemplateItemTypePortalCollaboratorInvitationEmailHTML,
+		data,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	s.TaskQueue.Enqueue(&tasks.SendMessagesParam{
+		EmailMessages: []mail.SendOptions{
+			{
+				// TODO(collaborator): We should reuse translation service.
+				Sender:    s.MailConfig.Sender,
+				ReplyTo:   s.MailConfig.ReplyTo,
+				Subject:   "Collaborator invitation",
+				Recipient: inviteeEmail,
+				TextBody:  textBody,
+				HTMLBody:  htmlBody,
+			},
+		},
+	})
 
 	return i, nil
 }

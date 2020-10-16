@@ -18,13 +18,6 @@ func newInProcessExecutor(p *deps.RootProvider) *executor.InProcessExecutor {
 	))
 }
 
-func newPwHousekeeperTask(p *deps.TaskProvider) task.Task {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(task.Task), new(*authtask.PwHousekeeperTask)),
-	))
-}
-
 func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	panic(wire.Build(
 		DependencySet,
