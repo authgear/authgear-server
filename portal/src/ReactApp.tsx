@@ -13,6 +13,8 @@ import { client } from "./graphql/portal/apollo";
 import { registerLocale } from "i18n-iso-countries";
 import i18nISOCountriesEnLocale from "i18n-iso-countries/langs/en.json";
 import styles from "./ReactApp.module.scss";
+import OAuthRedirect from "./OAuthRedirect";
+import AcceptAdminInvitationScreen from "./graphql/portal/AcceptAdminInvitationScreen";
 
 // ReactAppRoutes defines the routes.
 const ReactAppRoutes: React.FC = function ReactAppRoutes() {
@@ -23,6 +25,11 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
         <Route path="/apps/" element={<AppsScreen />} />
         <Route path="/apps/create" element={<CreateAppScreen />} />
         <Route path="/app/:appID/*" element={<AppRoot />} />
+        <Route path="/oauth-redirect" element={<OAuthRedirect />} />
+        <Route
+          path="/collaborators/invitation"
+          element={<AcceptAdminInvitationScreen />}
+        />
       </Routes>
     </BrowserRouter>
   );

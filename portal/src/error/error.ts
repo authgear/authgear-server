@@ -16,6 +16,8 @@ import {
 import {
   APIDuplicatedCollaboratorInvitationError,
   APICollaboratorSelfDeletionError,
+  APICollaboratorDuplicateError,
+  APICollaboratorInvitationInvalidCodeError,
 } from "./collaborator";
 
 export type APIError =
@@ -30,7 +32,9 @@ export type APIError =
   | APIDomainVerificationFailedError
   | APIInvalidDomainError
   | APIDuplicatedCollaboratorInvitationError
-  | APICollaboratorSelfDeletionError;
+  | APICollaboratorSelfDeletionError
+  | APICollaboratorInvitationInvalidCodeError
+  | APICollaboratorDuplicateError;
 
 export function isAPIError(value?: { [key: string]: any }): value is APIError {
   if (value == null) {

@@ -17,11 +17,17 @@ interface ShowQueryResultProps extends AuthenticatedQuery {
   children?: React.ReactElement;
 }
 
+function encodeOAuthState(state: Record<string, unknown>): string {
+  return btoa(JSON.stringify(state));
+}
+
 const ShowQueryResult: React.FC<ShowQueryResultProps> = function ShowQueryResult(
   props: ShowQueryResultProps
 ) {
   const { viewer } = props;
-  const redirectURI = window.location.origin + "/";
+
+  const redirectURI = window.location.origin + "/oauth-redirect";
+  const originalPath = `${window.location.pathname}${window.location.search}`;
 
   useEffect(() => {
     if (viewer == null) {
@@ -32,12 +38,15 @@ const ShowQueryResult: React.FC<ShowQueryResultProps> = function ShowQueryResult
         .startAuthorization({
           redirectURI,
           prompt: "login",
+          state: encodeOAuthState({
+            originalPath,
+          }),
         })
         .catch((err) => {
           console.error(err);
         });
     }
-  }, [viewer, redirectURI]);
+  }, [viewer, redirectURI, originalPath]);
 
   if (viewer != null) {
     return props.children ?? null;

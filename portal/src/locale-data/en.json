@@ -401,5 +401,10 @@
   "InviteAdminScreen.add-user.label": "Add User",
   "InviteAdminScreen.duplicated-error": "Invitation has already been sent",
 
+  "AcceptAdminInvitationScreen.title": "Admin Invitation",
+  "AcceptAdminInvitationScreen.accept.label": "Accept",
+  "AcceptAdminInvitationScreen.invalid-code-error": "Invalid invitation code",
+  "AcceptAdminInvitationScreen.duplicated-collaborator-error": "Admin already exist",
+
   "PasswordStrengthMeter.password-strength": "Password Strength"
 }
