@@ -5,15 +5,26 @@
   width: 100vw;
 }
 
-.body {
-  flex: 1 0 0;
-  min-width: 0;
-  min-height: 0;
+.content {
+  margin: 15px 20px;
+}
 
-  margin: 8px 32px;
+.body {
+  margin: 0 20px;
+}
+
+.fieldLabel {
+  padding-bottom: 6px;
+  font-size: 14px;
+}
+
+.fieldDesc {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
 }
 
 .appIDField {
-  margin: 20px 0;
-  max-width: 200px;
+  max-width: 350px;
+  margin-bottom: 25px;
 }
