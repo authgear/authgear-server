@@ -8,15 +8,15 @@ import React, {
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useNavigate, useParams } from "react-router-dom";
 
-import NavBreadcrumb, { BreadcrumbItem } from "./NavBreadcrumb";
-import ButtonWithLoading from "./ButtonWithLoading";
-import NavigationBlockerDialog from "./NavigationBlockerDialog";
-import FormTextField from "./FormTextField";
-import ShowUnhandledValidationErrorCause from "./error/ShowUnhandledValidationErrorCauses";
-import { useValidationError } from "./error/useValidationError";
-import { useGenericError } from "./error/useGenericError";
-import { FormContext } from "./error/FormContext";
-import { useCreateCollaboratorInvitationMutation } from "./graphql/portal/mutations/createCollaboratorInvitationMutation";
+import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
+import ButtonWithLoading from "../../ButtonWithLoading";
+import NavigationBlockerDialog from "../../NavigationBlockerDialog";
+import FormTextField from "../../FormTextField";
+import ShowUnhandledValidationErrorCause from "../../error/ShowUnhandledValidationErrorCauses";
+import { useValidationError } from "../../error/useValidationError";
+import { useGenericError } from "../../error/useGenericError";
+import { FormContext } from "../../error/FormContext";
+import { useCreateCollaboratorInvitationMutation } from "./mutations/createCollaboratorInvitationMutation";
 
 import styles from "./InviteAdminScreen.module.scss";
 

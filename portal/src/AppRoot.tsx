@@ -24,7 +24,7 @@ import UserInterfaceScreen from "./graphql/portal/UserInterfaceScreen";
 import DNSConfigurationScreen from "./graphql/portal/DNSConfigurationScreen";
 import VerifyDomainScreen from "./graphql/portal/VerifyDomainScreen";
 import SettingsScreen from "./graphql/portal/SettingsScreen";
-import InviteAdminScreen from "./InviteAdminScreen";
+import InviteAdminScreen from "./graphql/portal/InviteAdminScreen";
 
 const AppRoot: React.FC = function AppRoot() {
   const { appID } = useParams();
