@@ -15,17 +15,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-const (
-	TemplateItemTypeAuthUIVerifyIdentityHTML string = "auth_ui_verify_identity.html"
+var TemplateWebVerifyIdentityHTML = template.RegisterHTML(
+	"web/verify_identity.html",
+	components...,
 )
-
-var TemplateAuthUIVerifyIdentityHTML = template.Register(template.T{
-	Type:                    TemplateItemTypeAuthUIVerifyIdentityHTML,
-	IsHTML:                  true,
-	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
-	Defines:                 defines,
-	ComponentTemplateTypes:  components,
-})
 
 const VerifyIdentityRequestSchema = "VerifyIdentityRequestSchema"
 
@@ -157,7 +150,7 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				return err
 			}
 
-			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIVerifyIdentityHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateWebVerifyIdentityHTML, data)
 			return nil
 		})
 		if err != nil {
@@ -179,7 +172,7 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				return err
 			}
 
-			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIVerifyIdentityHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateWebVerifyIdentityHTML, data)
 			return nil
 		})
 		if err != nil {

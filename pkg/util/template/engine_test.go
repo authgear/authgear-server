@@ -1,137 +1,102 @@
-package template
+package template_test
 
 import (
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
+	"github.com/spf13/afero"
+
+	"github.com/authgear/authgear-server/pkg/util/resource"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-func TestEngineRender(t *testing.T) {
-	Convey("Engine.Render", t, func() {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
+func TestEngine(t *testing.T) {
+	Convey("Engine", t, func() {
+		fs := afero.NewMemMapFs()
+		r := &resource.Registry{}
+		manager := resource.NewManager(r, []resource.Fs{resource.AferoFs{Fs: fs}})
+		resolver := &template.Resolver{
+			Resources:          manager,
+			DefaultLanguageTag: "en",
+		}
+		engine := &template.Engine{Resolver: resolver}
 
-		resolver := NewMockTemplateResolver(ctrl)
-		engine := &Engine{Resolver: resolver}
+		header := &template.HTML{Name: "header.html"}
+		footer := &template.HTML{Name: "footer.html"}
+		pageA := &template.HTML{Name: "pageA.html", ComponentDependencies: []*template.HTML{header, footer}}
+		pageB := &template.HTML{Name: "pageB.html", ComponentDependencies: []*template.HTML{header, footer}}
+		index := &template.HTML{Name: "index.html", ComponentDependencies: []*template.HTML{pageA, pageB}}
 
-		resolver.EXPECT().Resolve(gomock.Any(), gomock.Any()).Return(&Resolved{
-			T: T{
-				Type:   "page-a",
-				IsHTML: true,
-				Defines: []string{
-					`
-					{{- define "define-a" -}}
-					define-a
-					{{- end -}}
-					`,
-				},
-			},
-			Content: `<!DOCTYPE html>
-<html>
-<head><title>Hi</title></head>
-<body>
-{{ template "define-a" }}
-{{ template "component-a" }}
-<p>{{ template "greeting" (makemap "URL" .URL) }}</p>
-</body>
-</html>`,
-			Translations: map[string]Translation{
-				"greeting": Translation{
-					LanguageTag: "en",
-					Value:       `<a href="{URL}">Hi</a>`,
-				},
-			},
-			ComponentContents: []string{
-				`
-				{{- define "component-a" -}}
-				component-a
-				{{- end -}}
-				`,
-			},
-		}, nil)
-
-		out, err := engine.Render(&RenderContext{
-			ValidatorOptions: []ValidatorOption{
-				AllowRangeNode(true),
-				AllowTemplateNode(true),
-				AllowDeclaration(true),
-				MaxDepth(15),
-			},
-		}, "", map[string]interface{}{
-			"URL": "http://www.example.com",
-		})
-		So(err, ShouldBeNil)
-		So(out, ShouldEqual, `<!DOCTYPE html>
-<html>
-<head><title>Hi</title></head>
-<body>
-define-a
-component-a
-<p><a href="http://www.example.com">Hi</a></p>
-</body>
-</html>`)
-	})
-}
-
-func TestEngineTranslation(t *testing.T) {
-	Convey("Engine.Translation", t, func() {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
-
-		resolver := NewMockTemplateResolver(ctrl)
-		engine := &Engine{Resolver: resolver}
-
-		resolver.EXPECT().ResolveTranslations(gomock.Any(), "translation.json").Return(map[string]Translation{
-			`"greeting"`: {
-				LanguageTag: "en",
-				Value:       `Hello, {Name}`,
-			},
-		}, nil)
-
-		ctx := &RenderContext{
-			ValidatorOptions: []ValidatorOption{
-				AllowRangeNode(true),
-				AllowTemplateNode(true),
-				AllowDeclaration(true),
-				MaxDepth(15),
-			},
+		writeFile := func(lang string, name string, data string) {
+			_ = fs.MkdirAll("templates/"+lang, 0777)
+			_ = afero.WriteFile(fs, "templates/"+lang+"/"+name, []byte(data), 0666)
 		}
 
-		Convey("should render translation entry", func() {
-			translations, err := engine.Translation(ctx, "translation.json")
-			So(err, ShouldBeNil)
+		writeFile("__default__", "header.html", `default header`)
+		writeFile("zh", "header.html", `zh header`)
 
-			out, err := translations.RenderText(
-				`"greeting"`,
-				map[string]interface{}{
-					"Name": "<User>",
-				},
-			)
-			So(err, ShouldBeNil)
-			So(out, ShouldEqual, `Hello, <User>`)
+		writeFile("__default__", "footer.html", `{{ template "footer-name" }}`)
 
-			out, err = translations.RenderHTML(
-				`"greeting"`,
-				map[string]interface{}{
-					"Name": "<User>",
-				},
-			)
+		writeFile("__default__", "pageA.html",
+			`{{ template "header.html" }};{{ template "a-title" }};{{ template "footer.html" }}`,
+		)
+		writeFile("__default__", "pageB.html",
+			`{{ template "header.html" }};{{ template "b-title" }};{{ template "footer.html" }}`,
+		)
+		writeFile("en", "index.html", `{{ template "pageA.html" }}`)
+		writeFile("zh", "index.html", `{{ template "pageB.html" }}`)
+
+		writeFile("__default__", "translation.json", `{
+			"footer-name": "default footer",
+			"a-title": "default a title",
+			"b-title": "default b title"
+		}`)
+		writeFile("en", "translation.json", `{
+			"a-title": "en a title"
+		}`)
+		writeFile("zh", "translation.json", `{
+			"footer-name": "zh footer",
+			"b-title": "zh b title"
+		}`)
+
+		Convey("it should render correct localized template", func() {
+			data, err := engine.Render(index, []string{}, nil)
 			So(err, ShouldBeNil)
-			So(out, ShouldEqual, `Hello, &lt;User&gt;`)
+			So(data, ShouldEqual, "default header;en a title;default footer")
+
+			data, err = engine.Render(index, []string{"en"}, nil)
+			So(err, ShouldBeNil)
+			So(data, ShouldEqual, "default header;en a title;default footer")
+
+			data, err = engine.Render(index, []string{"zh"}, nil)
+			So(err, ShouldBeNil)
+			So(data, ShouldEqual, "zh header;zh b title;zh footer")
 		})
 
-		Convey("should fail when rendering non-existing translation entry", func() {
-			translations, err := engine.Translation(ctx, "translation.json")
+		Convey("it should render correct localized translation", func() {
+			m, err := engine.Translation([]string{"en"})
 			So(err, ShouldBeNil)
+			footer, err := m.RenderText("footer-name", nil)
+			So(err, ShouldBeNil)
+			So(footer, ShouldEqual, "default footer")
+			a, err := m.RenderText("a-title", nil)
+			So(err, ShouldBeNil)
+			So(a, ShouldEqual, "en a title")
+			b, err := m.RenderText("b-title", nil)
+			So(err, ShouldBeNil)
+			So(b, ShouldEqual, "default b title")
 
-			_, err = translations.RenderText(
-				"none",
-				map[string]interface{}{
-					"URL": "http://www.example.com",
-				},
-			)
-			So(IsNotFound(err), ShouldBeTrue)
+			m, err = engine.Translation([]string{"zh"})
+			So(err, ShouldBeNil)
+			footer, err = m.RenderText("footer-name", nil)
+			So(err, ShouldBeNil)
+			So(footer, ShouldEqual, "zh footer")
+			a, err = m.RenderText("a-title", nil)
+			So(err, ShouldBeNil)
+			So(a, ShouldEqual, "en a title")
+			b, err = m.RenderText("b-title", nil)
+			So(err, ShouldBeNil)
+			So(b, ShouldEqual, "zh b title")
 		})
 	})
 }

@@ -15,18 +15,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-const (
-	// nolint: gosec
-	TemplateItemTypeAuthUIChangePasswordHTML string = "auth_ui_change_password.html"
+var TemplateWebChangePasswordHTML = template.RegisterHTML(
+	"web/change_password.html",
+	components...,
 )
-
-var TemplateAuthUIChangePasswordHTML = template.Register(template.T{
-	Type:                    TemplateItemTypeAuthUIChangePasswordHTML,
-	IsHTML:                  true,
-	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
-	Defines:                 defines,
-	ComponentTemplateTypes:  components,
-})
 
 const ChangePasswordRequestSchema = "ChangePasswordRequestSchema"
 
@@ -105,7 +97,7 @@ func (h *ChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				return err
 			}
 
-			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIChangePasswordHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateWebChangePasswordHTML, data)
 			return nil
 		})
 		if err != nil {

@@ -17,12 +17,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
-	"github.com/authgear/authgear-server/pkg/lib/translation"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/fs"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 const RedactedValue = "<REDACTED>"
@@ -245,7 +245,7 @@ func (s *AppService) generateAppConfigAndTranslation(appHost string, appID strin
 	var translationJSON []byte
 	var translationJSONPath string
 	if len(translationObj) > 0 {
-		translationJSONPath = "templates/" + translation.TemplateItemTypeTranslationJSON
+		translationJSONPath = "templates/" + template.TranslationJSONName
 		translationJSON, err = json.Marshal(translationObj)
 		if err != nil {
 			return nil, err
@@ -253,7 +253,7 @@ func (s *AppService) generateAppConfigAndTranslation(appHost string, appID strin
 		cfg.Template = &config.TemplateConfig{
 			Items: []config.TemplateItem{
 				config.TemplateItem{
-					Type: config.TemplateItemType(translation.TemplateItemTypeTranslationJSON),
+					Type: config.TemplateItemType(template.TranslationJSONName),
 					URI:  "file:///" + translationJSONPath,
 				},
 			},

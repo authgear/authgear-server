@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+{{ template "__html_head.html" . }}
+<body class="page">
+<main class="content">
+
+	{{ template "__header.html" . }}
+
+	{{ template "__nav_bar.html" }}
+
+	{{ template "__error.html" . }}
+
+	<section class="pane">
+		<section class="recovery-code-row recovery-code-title-section">
+			<h1 class="title primary-txt">
+				{{ template "recovery-code-title" }}
+			</h1>
+		</section>
+
+		<section class="recovery-code-row recovery-code-list-section">
+			<p class="description primary-txt">{{ template "recovery-code-storage-description" }}</p>
+
+			<div class="code-list-container">
+				<ol class="code-list">
+					{{ range $.RecoveryCodes }}
+						<li class="code-item">{{ . }}</li>
+					{{ end }}
+				</ol>
+			</div>
+
+			<p class="description primary-txt">{{ template "recovery-code-consumption-description" }}</p>
+		</section>
+
+		<section class="recovery-code-row recovery-code-action-section">
+			<a class="action btn primary-btn" target="_blank" href="{{ call $.MakeURLState "" "download" "true" }}">{{ template "download-button-label" }}</a>
+			<form method="post" novalidate target="_blank">
+				{{ $.CSRFField }}
+				<button class="action btn primary-btn" type="submit" name="submit" value="">
+					{{ template "next-button-label" }}
+				</button>
+			</form>
+		</section>
+	</section>
+
+</main>
+</body>
+</html>

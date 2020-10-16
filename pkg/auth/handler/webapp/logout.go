@@ -12,17 +12,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-const (
-	TemplateItemTypeAuthUILogoutHTML string = "auth_ui_logout.html"
+var TemplateWebLogoutHTML = template.RegisterHTML(
+	"web/logout.html",
+	components...,
 )
-
-var TemplateAuthUILogoutHTML = template.Register(template.T{
-	Type:                    TemplateItemTypeAuthUILogoutHTML,
-	IsHTML:                  true,
-	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
-	Defines:                 defines,
-	ComponentTemplateTypes:  components,
-})
 
 func ConfigureLogoutRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -50,7 +43,7 @@ func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		viewmodels.Embed(data, baseViewModel)
 
-		h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUILogoutHTML, data)
+		h.Renderer.RenderHTML(w, r, TemplateWebLogoutHTML, data)
 		return
 	}
 

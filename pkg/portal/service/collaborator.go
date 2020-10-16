@@ -273,11 +273,9 @@ func (s *CollaboratorService) SendInvitation(
 		"Link":    link,
 	}
 
-	renderCtx := &template.RenderContext{}
-
 	textBody, err := s.TemplateEngine.Render(
-		renderCtx,
-		portaltemplate.TemplateItemTypePortalCollaboratorInvitationEmailTXT,
+		portaltemplate.TemplateCollaboratorInvitationEmailTXT,
+		nil,
 		data,
 	)
 	if err != nil {
@@ -285,8 +283,8 @@ func (s *CollaboratorService) SendInvitation(
 	}
 
 	htmlBody, err := s.TemplateEngine.Render(
-		renderCtx,
-		portaltemplate.TemplateItemTypePortalCollaboratorInvitationEmailHTML,
+		portaltemplate.TemplateCollaboratorInvitationEmailHTML,
+		nil,
 		data,
 	)
 	if err != nil {

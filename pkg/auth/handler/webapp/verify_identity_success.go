@@ -10,17 +10,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-const (
-	TemplateItemTypeAuthUIVerifyIdentitySuccessHTML string = "auth_ui_verify_identity_success.html"
+var TemplateWebVerifyIdentitySuccessHTML = template.RegisterHTML(
+	"web/verify_identity_success.html",
+	components...,
 )
-
-var TemplateAuthUIVerifyIdentitySuccessHTML = template.Register(template.T{
-	Type:                    TemplateItemTypeAuthUIVerifyIdentitySuccessHTML,
-	IsHTML:                  true,
-	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
-	Defines:                 defines,
-	ComponentTemplateTypes:  components,
-})
 
 func ConfigureVerifyIdentitySuccessRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -60,7 +53,7 @@ func (h *VerifyIdentitySuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.
 				return err
 			}
 
-			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIVerifyIdentitySuccessHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateWebVerifyIdentitySuccessHTML, data)
 			return nil
 		})
 		if err != nil {

@@ -16,17 +16,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-const (
-	TemplateItemTypeAuthUIPromoteHTML string = "auth_ui_promote.html"
+var TemplateWebPromoteHTML = template.RegisterHTML(
+	"web/promote.html",
+	components...,
 )
-
-var TemplateAuthUIPromoteHTML = template.Register(template.T{
-	Type:                    TemplateItemTypeAuthUIPromoteHTML,
-	IsHTML:                  true,
-	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
-	Defines:                 defines,
-	ComponentTemplateTypes:  components,
-})
 
 const PromoteWithLoginIDRequestSchema = "PromoteWithLoginIDRequestSchema"
 
@@ -172,7 +165,7 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIPromoteHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateWebPromoteHTML, data)
 			return nil
 		})
 		if err != nil {

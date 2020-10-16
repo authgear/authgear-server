@@ -5,22 +5,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-const (
-	TemplateItemTypeWelcomeEmailTXT  string = "welcome_email.txt"
-	TemplateItemTypeWelcomeEmailHTML string = "welcome_email.html"
+var (
+	TemplateMessageWelcomeMessageEmailTXT  = template.RegisterPlainText("messages/welcome_message_email.txt")
+	TemplateMessageWelcomeMessageEmailHTML = template.RegisterHTML("messages/welcome_message_email.html")
 )
 
-var TemplateWelcomeEmailTXT = template.Register(template.T{
-	Type: TemplateItemTypeWelcomeEmailTXT,
-})
-
-var TemplateWelcomeEmailHTML = template.Register(template.T{
-	Type:   TemplateItemTypeWelcomeEmailHTML,
-	IsHTML: true,
-})
-
 var messageWelcomeMessage = &translation.MessageSpec{
-	Name:          "welcome-message",
-	TXTEmailType:  TemplateItemTypeWelcomeEmailTXT,
-	HTMLEmailType: TemplateItemTypeWelcomeEmailHTML,
+	Name:              "welcome-message",
+	TXTEmailTemplate:  TemplateMessageWelcomeMessageEmailTXT,
+	HTMLEmailTemplate: TemplateMessageWelcomeMessageEmailHTML,
 }

@@ -17,17 +17,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-const (
-	TemplateItemTypeAuthUIEnterOOBOTPHTML string = "auth_ui_enter_oob_otp.html"
+var TemplateWebEnterOOBOTPHTML = template.RegisterHTML(
+	"web/enter_oob_otp.html",
+	components...,
 )
-
-var TemplateAuthUIEnterOOBOTPHTML = template.Register(template.T{
-	Type:                    TemplateItemTypeAuthUIEnterOOBOTPHTML,
-	IsHTML:                  true,
-	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
-	Defines:                 defines,
-	ComponentTemplateTypes:  components,
-})
 
 const EnterOOBOTPRequestSchema = "EnterOOBOTPRequestSchema"
 
@@ -162,7 +155,7 @@ func (h *EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIEnterOOBOTPHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateWebEnterOOBOTPHTML, data)
 			return nil
 		})
 		if err != nil {

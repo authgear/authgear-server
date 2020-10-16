@@ -22,17 +22,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-const (
-	TemplateItemTypeAuthUISetupTOTPHTML string = "auth_ui_setup_totp.html"
+var TemplateWebSetupTOTPHTML = template.RegisterHTML(
+	"web/setup_totp.html",
+	components...,
 )
-
-var TemplateAuthUISetupTOTPHTML = template.Register(template.T{
-	Type:                    TemplateItemTypeAuthUISetupTOTPHTML,
-	IsHTML:                  true,
-	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
-	Defines:                 defines,
-	ComponentTemplateTypes:  components,
-})
 
 const SetupTOTPRequestSchema = "SetupTOTPRequestSchema"
 
@@ -184,7 +177,7 @@ func (h *SetupTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUISetupTOTPHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateWebSetupTOTPHTML, data)
 			return nil
 		})
 		if err != nil {

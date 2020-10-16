@@ -13,18 +13,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-const (
-	// nolint: gosec
-	TemplateItemTypeAuthUIForgotPasswordHTML string = "auth_ui_forgot_password.html"
+var TemplateWebForgotPasswordHTML = template.RegisterHTML(
+	"web/forgot_password.html",
+	components...,
 )
-
-var TemplateAuthUIForgotPasswordHTML = template.Register(template.T{
-	Type:                    TemplateItemTypeAuthUIForgotPasswordHTML,
-	IsHTML:                  true,
-	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
-	Defines:                 defines,
-	ComponentTemplateTypes:  components,
-})
 
 const ForgotPasswordRequestSchema = "ForgotPasswordRequestSchema"
 
@@ -131,7 +123,7 @@ func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				return err
 			}
 
-			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIForgotPasswordHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateWebForgotPasswordHTML, data)
 			return nil
 		})
 		if err != nil {

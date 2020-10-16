@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+{{ template "__html_head.html" . }}
+<body class="page">
+<div class="content">
+
+{{ template "__header.html" . }}
+
+{{ template "__nav_bar.html" }}
+
+<div class="simple-form vertical-form form-fields-container pane">
+
+{{ if $.OOBOTPChannel }}
+{{ if eq $.OOBOTPChannel "sms" }}
+<h1 class="title primary-txt">{{ template "oob-otp-page-title--sms" }}</h1>
+{{ end }}
+{{ if eq $.OOBOTPChannel "email" }}
+<h1 class="title primary-txt">{{ template "oob-otp-page-title--email" }}</h1>
+{{ end }}
+{{ end }}
+
+{{ template "__error.html" . }}
+
+{{ if $.OOBOTPTarget }}
+<div class="description primary-txt">{{ template "oob-otp-description" (makemap "length" $.OOBOTPCodeLength "target" $.OOBOTPTarget) }}</div>
+{{ end }}
+
+<form class="vertical-form form-fields-container" method="post" novalidate>
+{{ $.CSRFField }}
+
+<input
+	class="input text-input primary-txt"
+	type="text"
+	inputmode="numeric"
+	pattern="[0-9]*"
+	autocomplete="one-time-code"
+	autocapitalize="none"
+	name="x_password"
+	placeholder="{{ template "oob-otp-placeholder" }}"
+>
+
+{{ range $.AuthenticationAlternatives }}
+{{ if eq .Type "device_token" }}
+<div class="device-token-control align-self-flex-start">
+<input class="device-token-input" id="device-token" type="checkbox" name="x_device_token" value="true">
+<label class="device-token-label primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
+</div>
+{{ end }}
+{{ end }}
+
+<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
+
+{{ range $.AuthenticationAlternatives }}
+{{ if eq .Type "totp" }}
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "enter-totp-instead" }}</a>
+{{ end }}
+{{ if eq .Type "password" }}
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "enter-password-instead" }}</a>
+{{ end }}
+{{ if eq .Type "oob_otp" }}
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "enter-oob-otp-instead" (makemap "target" .MaskedTarget) }}</a>
+{{ end }}
+{{ if eq .Type "recovery_code" }}
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "enter-recovery-code-instead" }}</a>
+{{ end }}
+{{ end }}
+
+{{ range $.CreateAuthenticatorAlternatives }}
+{{ if eq .Type "totp" }}
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "setup-totp-instead" }}</a>
+{{ end }}
+{{ if eq .Type "oob_otp" }}
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "setup-oob-otp-instead" }}</a>
+{{ end }}
+{{ if eq .Type "password" }}
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "setup-password-instead" }}</a>
+{{ end }}
+{{ end }}
+
+</form>
+
+<form class="link oob-otp-trigger-form" method="post" novalidate>
+{{ $.CSRFField }}
+
+<span class="primary-txt">{{ template "oob-otp-resend-button-hint" }}</span>
+<button id="resend-button" class="anchor" type="submit" name="trigger" value="true"
+	data-cooldown="{{ $.OOBOTPCodeSendCooldown }}"
+	data-label="{{ template "oob-otp-resend-button-label" }}"
+	data-label-unit="{{ template "oob-otp-resend-button-label--unit" }}">{{ template "oob-otp-resend-button-label" }}</button>
+</form>
+
+</div>
+
+</div>
+</body>
+</html>

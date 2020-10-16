@@ -16,18 +16,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-const (
-	// nolint: gosec
-	TemplateItemTypeAuthUICreatePasswordHTML string = "auth_ui_create_password.html"
+var TemplateWebCreatePasswordHTML = template.RegisterHTML(
+	"web/create_password.html",
+	components...,
 )
-
-var TemplateAuthUICreatePasswordHTML = template.Register(template.T{
-	Type:                    TemplateItemTypeAuthUICreatePasswordHTML,
-	IsHTML:                  true,
-	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
-	Defines:                 defines,
-	ComponentTemplateTypes:  components,
-})
 
 const CreatePasswordRequestSchema = "CreatePasswordRequestSchema"
 
@@ -137,7 +129,7 @@ func (h *CreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				return err
 			}
 
-			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUICreatePasswordHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateWebCreatePasswordHTML, data)
 			return nil
 		})
 		if err != nil {

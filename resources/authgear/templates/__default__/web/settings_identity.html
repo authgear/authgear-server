@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+{{ template "__html_head.html" . }}
+<body class="page">
+<main class="content">
+
+{{ template "__header.html" . }}
+
+{{ template "__nav_bar.html" }}
+
+{{ template "__error.html" . }}
+
+<section class="pane">
+  <section class="settings-identity-row settings-identity-title-section">
+    <h1 class="title primary-txt">
+      {{ template "settings-identity-title" }}
+    </h1>
+    <p class="description secondary-txt">
+      {{ template "settings-identity-description" }}
+    </p>
+  </section>
+
+  {{ range .IdentityCandidates }}
+  {{ $claim_verification_statuses := index $.VerificationStatuses .identity_id }}
+  {{ $verification_status := "disabled" }}
+  {{ if ne (len $claim_verification_statuses) 0 }}
+    {{ $verification_status = (index $claim_verification_statuses 0).Status }}
+  {{ end }}
+
+  <section class="settings-identity-row settings-identity-identity-section">
+    {{ $fa := "" }}
+
+    {{ if eq .type "oauth" }}
+    {{ if eq .provider_type "google" }}   {{ $fa = "fab fa-google" }}     {{ end }}
+    {{ if eq .provider_type "apple" }}    {{ $fa = "fab fa-apple"  }}     {{ end }}
+    {{ if eq .provider_type "facebook" }} {{ $fa = "fab fa-facebook-f" }} {{ end }}
+    {{ if eq .provider_type "linkedin" }} {{ $fa = "fab fa-linkedin-in" }}{{ end }}
+    {{ if eq .provider_type "azureadv2" }}{{ $fa = "fab fa-microsoft" }}  {{ end }}
+    {{ end }}
+
+    {{ if eq .type "login_id" }}
+    {{ if eq .login_id_type "email" }}   {{ $fa = "fas fa-envelope" }}{{ end }}
+    {{ if eq .login_id_type "username" }}{{ $fa = "fas fa-at" }}      {{ end }}
+    {{ if eq .login_id_type "phone" }}   {{ $fa = "fas fa-phone" }}   {{ end }}
+
+    {{ end }}
+
+    <i class="icon {{ $fa }}" aria-hidden="true"></i>
+    <h2 class="name primary-txt">
+      {{ if eq .type "oauth" }}
+        {{ if eq .provider_type "google" }}{{ template "settings-identity-oauth-google" }}{{ end }}
+        {{ if eq .provider_type "apple" }}{{ template "settings-identity-oauth-apple" }}{{ end }}
+        {{ if eq .provider_type "facebook" }}{{ template "settings-identity-oauth-facebook" }}{{ end }}
+        {{ if eq .provider_type "linkedin" }}{{ template "settings-identity-oauth-linkedin" }}{{ end }}
+        {{ if eq .provider_type "azureadv2" }}{{ template "settings-identity-oauth-azureadv2" }}{{ end }}
+      {{ end }}
+      {{ if eq .type "login_id" }}
+        {{ if eq .login_id_type "email" }}{{ template "settings-identity-login-id-email" }}{{ end }}
+        {{ if eq .login_id_type "phone" }}{{ template "settings-identity-login-id-phone" }}{{ end }}
+        {{ if eq .login_id_type "username" }}{{ template "settings-identity-login-id-username" }}{{ end }}
+        {{ if eq .login_id_type "raw" }}{{ template "settings-identity-login-id-raw" }}{{ end }}
+      {{ end }}
+    </h2>
+
+    {{ if .display_id }}
+    <h3 class="claim secondary-txt text-ellipsis">
+      {{ .display_id }}
+
+      <!-- TODO(verification): show verification for all identity types -->
+      {{ if eq .type "login_id" }}
+      {{ if .identity_id }}
+      {{ if or (eq $verification_status "pending") (eq $verification_status "required") }}
+      <span class="warn-txt">
+        ({{ template "verification-status-label--unverified" }})
+      </span>
+      {{ end }}
+      {{ if eq $verification_status "verified" }}
+      <span class="good-txt">
+        ({{ template "verification-status-label--verified" }})
+      </span>
+      {{ end }}
+      {{ end }}
+      {{ end }}
+    </h3>
+    {{ end }}
+
+    {{ if eq .type "oauth" }}
+    <form class="primary-action" method="post" novalidate>
+    {{ $.CSRFField }}
+    <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
+    <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
+    {{ if .identity_id }}
+    <button class="btn destructive-btn" type="submit" name="x_action" value="unlink_oauth">{{ template "disconnect-button-label" }}</button>
+    {{ else }}
+    <button class="anchor" type="submit" name="x_action" value="link_oauth" data-form-xhr="false">{{ template "connect-button-label" }}</button>
+    {{ end }}
+    </form>
+    {{ end }}
+
+    {{ if eq .type "login_id" }}
+    {{ if .identity_id }}
+    <a class="primary-action anchor" href="{{ call $.MakeURL "/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type "x_identity_id" .identity_id }}">{{ template "change-button-label" }}</a>
+    {{ else }}
+    <a class="primary-action anchor" href="{{ call $.MakeURL "/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type }}">
+      {{ if eq .login_id_type "username" }}
+      {{ template "setup-button-label" }}
+      {{ else }}
+      {{ template "connect-button-label" }}
+      {{ end }}
+    </a>
+    {{ end }}
+    {{ end }}
+
+    {{ if eq .type "login_id" }}
+    {{ if .identity_id }}
+    {{ if or (eq $verification_status "pending") (eq $verification_status "required") }}
+    <form class="secondary-action" method="post" novalidate>
+    {{ $.CSRFField }}
+    <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
+    <button class="anchor" type="submit" name="x_action" value="verify_login_id">
+      {{ template "resend-verification-code-button-label" }}
+    </button>
+    </form>
+    {{ end }}
+    {{ end }}
+    {{ end }}
+
+  </section>
+
+  {{ end }}
+</section>
+
+</main>
+</body>
+</html>

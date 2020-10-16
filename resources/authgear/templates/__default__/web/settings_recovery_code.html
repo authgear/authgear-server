@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+{{ template "__html_head.html" . }}
+<body class="page">
+<main class="content">
+
+	{{ template "__header.html" . }}
+
+	{{ template "__nav_bar.html" }}
+
+	{{ template "__error.html" . }}
+
+	<section class="pane">
+		<section class="recovery-code-row recovery-code-title-section">
+			<h1 class="title primary-txt">
+				{{ template "recovery-code-title" }}
+			</h1>
+		</section>
+
+		<section class="recovery-code-row recovery-code-list-section">
+			{{ if $.AllowListRecoveryCodes }}
+				<p class="description primary-txt">{{ template "recovery-code-storage-description" }}</p>
+
+				<div class="code-list-container">
+					<ol class="code-list">
+						{{ range $.RecoveryCodes }}
+							<li class="code-item">{{ . }}</li>
+						{{ end }}
+					</ol>
+				</div>
+
+				<p class="description primary-txt">{{ template "recovery-code-consumption-description" }}</p>
+			{{ else }}
+				<p class="description primary-txt">{{ template "recovery-code-list-disabled" }}</p>
+			{{ end }}
+		</section>
+
+		<section class="recovery-code-row recovery-code-action-section">
+			<form method="post" novalidate>
+				{{ $.CSRFField }}
+				<button class="action btn primary-btn" type="submit" name="x_action" value="regenerate">
+					{{ template "get-new-code-button-label" }}
+				</button>
+			</form>
+			{{ if $.AllowListRecoveryCodes }}
+				<form method="post" novalidate target="_blank">
+					{{ $.CSRFField }}
+					<button class="action btn primary-btn" type="submit" name="x_action" value="download" data-form-xhr="false">
+						{{ template "download-button-label" }}
+					</button>
+				</form>
+			{{ end}}
+		</section>
+	</section>
+
+</main>
+</body>
+</html>

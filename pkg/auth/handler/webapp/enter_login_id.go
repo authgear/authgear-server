@@ -16,17 +16,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-const (
-	TemplateItemTypeAuthUIEnterLoginIDHTML string = "auth_ui_enter_login_id.html"
+var TemplateWebEnterLoginIDHTML = template.RegisterHTML(
+	"web/enter_login_id.html",
+	components...,
 )
-
-var TemplateAuthUIEnterLoginIDHTML = template.Register(template.T{
-	Type:                    TemplateItemTypeAuthUIEnterLoginIDHTML,
-	IsHTML:                  true,
-	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
-	Defines:                 defines,
-	ComponentTemplateTypes:  components,
-})
 
 type EnterLoginIDViewModel struct {
 	LoginIDKey       string
@@ -159,7 +152,7 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 				return err
 			}
 
-			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIEnterLoginIDHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateWebEnterLoginIDHTML, data)
 			return nil
 		})
 		if err != nil {

@@ -14,17 +14,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-const (
-	TemplateItemTypeAuthUISettingsRecoveryCodeHTML string = "auth_ui_settings_recovery_code.html"
+var TemplateWebSettingsRecoveryCodeHTML = template.RegisterHTML(
+	"web/settings_recovery_code.html",
+	components...,
 )
-
-var TemplateAuthUISettingsRecoveryCodeHTML = template.Register(template.T{
-	Type:                    TemplateItemTypeAuthUISettingsRecoveryCodeHTML,
-	IsHTML:                  true,
-	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
-	Defines:                 defines,
-	ComponentTemplateTypes:  components,
-})
 
 func ConfigureSettingsRecoveryCodeRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -99,7 +92,7 @@ func (h *SettingsRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 				return err
 			}
 
-			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUISettingsRecoveryCodeHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateWebSettingsRecoveryCodeHTML, data)
 			return nil
 		})
 		if err != nil {
@@ -124,7 +117,7 @@ func (h *SettingsRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 				return err
 			}
 
-			h.Renderer.Render(w, r, TemplateItemTypeAuthUIDownloadRecoveryCodeTXT, data, setRecoveryCodeAttachmentHeaders)
+			h.Renderer.Render(w, r, TemplateWebDownloadRecoveryCodeTXT, data, setRecoveryCodeAttachmentHeaders)
 			return nil
 		})
 		if err != nil {
