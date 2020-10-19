@@ -6,6 +6,7 @@ import { usePivotNavigation } from "../../hook/usePivot";
 import GeneralSettings from "./GeneralSettings";
 import PortalAdminsSettings from "./PortalAdminsSettings";
 import SessionSettings from "./SessionSettings";
+import { ModifiedIndicatorWrapper } from "../../ModifiedIndicatorPortal";
 
 import styles from "./SettingsScreen.module.scss";
 
@@ -23,7 +24,7 @@ const SettingsScreen: React.FC = function SettingsScreen() {
 
   return (
     <main className={styles.root}>
-      <div className={styles.content}>
+      <ModifiedIndicatorWrapper className={styles.content}>
         <Text as="h1" className={styles.title}>
           <FormattedMessage id="SettingsScreen.title" />
         </Text>
@@ -49,7 +50,7 @@ const SettingsScreen: React.FC = function SettingsScreen() {
             </PivotItem>
           </Pivot>
         </div>
-      </div>
+      </ModifiedIndicatorWrapper>
     </main>
   );
 };

@@ -13,6 +13,7 @@ import ShowLoading from "../../ShowLoading";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ToggleWithContent from "../../ToggleWithContent";
+import { ModifiedIndicatorPortal } from "../../ModifiedIndicatorPortal";
 import { PortalAPIAppConfig, PortalAPIApp } from "../../types";
 import {
   clearEmptyObject,
@@ -177,8 +178,16 @@ const SessionForm: React.FC<SessionProps> = function SessionForm(props) {
     [state, rawAppConfig, updateAppConfig, initialState]
   );
 
+  const resetForm = useCallback(() => {
+    setState(initialState);
+  }, [initialState]);
+
   return (
     <form onSubmit={onFormSubmit}>
+      <ModifiedIndicatorPortal
+        resetForm={resetForm}
+        isModified={isFormModified}
+      />
       <Toggle
         className={styles.toggle}
         inlineLabel={true}
