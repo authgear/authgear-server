@@ -44,9 +44,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.CollaboratorLoader), new(*loader.CollaboratorLoader)),
 
 	transport.DependencySet,
-	wire.Bind(new(transport.AdminAPIConfigResolver), new(*service.AdminAPIService)),
-	wire.Bind(new(transport.AdminAPIEndpointResolver), new(*service.AdminAPIService)),
-	wire.Bind(new(transport.AdminAPIHostResolver), new(*service.AdminAPIService)),
-	wire.Bind(new(transport.AdminAPIAuthzAdder), new(*service.AdminAPIService)),
+	wire.Bind(new(transport.AdminAPIService), new(*service.AdminAPIService)),
 	wire.Bind(new(transport.AdminAPIAuthzService), new(*service.AuthzService)),
 )
