@@ -2,6 +2,7 @@ package template
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/util/resource"
@@ -108,7 +109,18 @@ func mergeTranslations(layers []resource.LayerFile, args map[string]interface{})
 		translationData[string(key)] = matched.(Translation)
 	}
 
-	data, err := json.Marshal(translationData)
+	var mergedData interface{}
+	if mergeRaw, _ := args[resource.ArgMergeRaw].(bool); mergeRaw {
+		rawData := make(map[string]string)
+		for key, t := range translationData {
+			rawData[key] = t.Value
+		}
+		mergedData = rawData
+	} else {
+		mergedData = translationData
+	}
+
+	data, err := json.Marshal(mergedData)
 	if err != nil {
 		return nil, err
 	}

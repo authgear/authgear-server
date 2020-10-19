@@ -2,6 +2,11 @@ package resource
 
 import "os"
 
+const (
+	// ArgMergeRaw indicates the merged data should be in same format of raw data
+	ArgMergeRaw = "merge_raw"
+)
+
 type LayerFile struct {
 	Path string
 	Data []byte
