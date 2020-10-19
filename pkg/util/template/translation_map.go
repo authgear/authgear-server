@@ -16,7 +16,7 @@ type TranslationMap struct {
 func (t *TranslationMap) RenderText(key string, args interface{}) (string, error) {
 	tree, ok := t.items[key]
 	if !ok {
-		return "", fmt.Errorf("translation key not found: %s", key)
+		return "", fmt.Errorf("%w: translation key not found: %s", ErrNotFound, key)
 	}
 
 	tpl := texttemplate.New("")
@@ -44,7 +44,7 @@ func (t *TranslationMap) RenderText(key string, args interface{}) (string, error
 func (t *TranslationMap) RenderHTML(key string, args interface{}) (string, error) {
 	tree, ok := t.items[key]
 	if !ok {
-		return "", fmt.Errorf("translation key not found: %s", key)
+		return "", fmt.Errorf("%w: translation key not found: %s", ErrNotFound, key)
 	}
 
 	tpl := htmltemplate.New("")

@@ -2,6 +2,7 @@ package translation
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -72,7 +73,7 @@ func (s *Service) emailMessageHeader(name string, args interface{}) (sender, rep
 	}
 
 	sender, err = t.RenderText(fmt.Sprintf("email.%s.sender", name), args)
-	if template.IsNotFound(err) {
+	if errors.Is(err, template.ErrNotFound) {
 		sender, err = t.RenderText("email.default.sender", args)
 	}
 	if err != nil {
@@ -80,7 +81,7 @@ func (s *Service) emailMessageHeader(name string, args interface{}) (sender, rep
 	}
 
 	replyTo, err = t.RenderText(fmt.Sprintf("email.%s.reply-to", name), args)
-	if template.IsNotFound(err) {
+	if errors.Is(err, template.ErrNotFound) {
 		replyTo, err = t.RenderText("email.default.reply-to", args)
 	}
 	if err != nil {
@@ -88,7 +89,7 @@ func (s *Service) emailMessageHeader(name string, args interface{}) (sender, rep
 	}
 
 	subject, err = t.RenderText(fmt.Sprintf("email.%s.subject", name), args)
-	if template.IsNotFound(err) {
+	if errors.Is(err, template.ErrNotFound) {
 		subject, err = t.RenderText("email.default.subject", args)
 	}
 	if err != nil {
@@ -130,7 +131,7 @@ func (s *Service) smsMessageHeader(name string, args interface{}) (sender string
 	}
 
 	sender, err = t.RenderText(fmt.Sprintf("sms.%s.sender", name), args)
-	if template.IsNotFound(err) {
+	if errors.Is(err, template.ErrNotFound) {
 		sender, err = t.RenderText("sms.default.sender", args)
 	}
 	if err != nil {
