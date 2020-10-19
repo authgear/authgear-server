@@ -18,6 +18,7 @@ type AuthzAdder interface {
 }
 
 type AdminAPIService struct {
+	AuthgearConfig *portalconfig.AuthgearConfig
 	AdminAPIConfig *portalconfig.AdminAPIConfig
 	ConfigSource   *configsource.ConfigSource
 	AuthzAdder     AuthzAdder
@@ -101,4 +102,8 @@ func (s *AdminAPIService) Director(appID string) (director func(*http.Request), 
 		}
 	}
 	return
+}
+
+func (s *AdminAPIService) SelfDirector() (director func(*http.Request), err error) {
+	return s.Director(s.AuthgearConfig.AppID)
 }

@@ -155,11 +155,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Configs:       configService,
 		Collaborators: collaboratorService,
 	}
+	authgearConfig := rootProvider.AuthgearConfig
 	adminAPIConfig := rootProvider.AdminAPIConfig
 	adder := &authz.Adder{
 		Clock: clock,
 	}
 	adminAPIService := &service.AdminAPIService{
+		AuthgearConfig: authgearConfig,
 		AdminAPIConfig: adminAPIConfig,
 		ConfigSource:   configSource,
 		AuthzAdder:     adder,
@@ -295,11 +297,13 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		Configs:       configService,
 		Collaborators: collaboratorService,
 	}
+	authgearConfig := rootProvider.AuthgearConfig
 	adminAPIConfig := rootProvider.AdminAPIConfig
 	adder := &authz.Adder{
 		Clock: clockClock,
 	}
 	adminAPIService := &service.AdminAPIService{
+		AuthgearConfig: authgearConfig,
 		AdminAPIConfig: adminAPIConfig,
 		ConfigSource:   configSource,
 		AuthzAdder:     adder,
