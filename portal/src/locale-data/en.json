@@ -414,6 +414,7 @@
 
   "SessionSettings.persistent-cookie.label": "Persistent Cookie",
   "SessionSettings.session-lifetime.label": "Session Lifetime (seconds)",
+  "SessionSettings.invalidate-session-after-idling.label": "Invalidate session after idling",
   "SessionSettings.idle-timeout.label": "Idle Timeout (seconds)",
 
   "PasswordStrengthMeter.password-strength": "Password Strength",

@@ -1,7 +1,7 @@
-import { Context } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { TextField, Toggle } from "@fluentui/react";
+import { Label, TextField, Toggle } from "@fluentui/react";
 import cn from "classnames";
 import produce from "immer";
 import deepEqual from "deep-equal";
@@ -12,6 +12,7 @@ import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
+import ToggleWithContent from "../../ToggleWithContent";
 import { PortalAPIAppConfig, PortalAPIApp } from "../../types";
 import {
   clearEmptyObject,
@@ -133,6 +134,19 @@ const SessionForm: React.FC<SessionProps> = function SessionForm(props) {
     }));
   }, []);
 
+  const onIdleTimeoutEnabledChange = useCallback(
+    (_event, checked?: boolean) => {
+      if (checked === undefined) {
+        return;
+      }
+      setState((state) => ({
+        ...state,
+        idleTimeoutEnabled: checked,
+      }));
+    },
+    []
+  );
+
   const onIdleTimeoutSecondsChange = useCallback((_event, value?: string) => {
     if (value === undefined) {
       return;
@@ -181,15 +195,26 @@ const SessionForm: React.FC<SessionProps> = function SessionForm(props) {
         value={state.lifetimeSeconds}
         onChange={onLifetimeSecondsChange}
       />
-      <TextField
-        className={styles.textField}
-        type="number"
-        min="1"
-        step="1"
-        label={renderToString("SessionSettings.idle-timeout.label")}
-        value={state.idleTimeoutSeconds}
-        onChange={onIdleTimeoutSecondsChange}
-      />
+      <ToggleWithContent
+        className={styles.toggleWithContent}
+        inlineLabel={true}
+        checked={state.idleTimeoutEnabled}
+        onChange={onIdleTimeoutEnabledChange}
+      >
+        <Label className={styles.toggleLabel}>
+          <FormattedMessage id="SessionSettings.invalidate-session-after-idling.label" />
+        </Label>
+        <TextField
+          className={styles.textField}
+          type="number"
+          min="1"
+          step="1"
+          disabled={!state.idleTimeoutEnabled}
+          label={renderToString("SessionSettings.idle-timeout.label")}
+          value={state.idleTimeoutSeconds}
+          onChange={onIdleTimeoutSecondsChange}
+        />
+      </ToggleWithContent>
 
       <div className={styles.saveButtonContainer}>
         <ButtonWithLoading
