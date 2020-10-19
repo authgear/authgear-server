@@ -8,8 +8,6 @@ import (
 	"net/url"
 	"path"
 	"regexp"
-	"strings"
-	texttemplate "text/template"
 
 	"github.com/spf13/afero"
 	"sigs.k8s.io/yaml"
@@ -328,25 +326,10 @@ func (s *AppService) generateSecretConfig() (*config.SecretConfig, error) {
 }
 
 func (s *AppService) generateAppHost(appID string) (string, error) {
-	if s.AppConfig.HostTemplate == "" {
-		return "", errors.New("app hostname template is not configured")
+	if s.AppConfig.HostSuffix == "" {
+		return "", errors.New("app hostname suffix is not configured")
 	}
-	t := texttemplate.New("host-template")
-	_, err := t.Parse(s.AppConfig.HostTemplate)
-	if err != nil {
-		return "", err
-	}
-	var buf strings.Builder
-
-	data := map[string]interface{}{
-		"AppID": appID,
-	}
-	err = t.Execute(&buf, data)
-	if err != nil {
-		return "", err
-	}
-
-	return buf.String(), nil
+	return appID + s.AppConfig.HostSuffix, nil
 }
 
 func (s *AppService) generateConfig(appHost string, appID string) (opts *CreateAppOptions, err error) {
