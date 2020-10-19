@@ -183,13 +183,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:   sqlBuilder,
 		SQLExecutor:  sqlExecutor,
 	}
+	appBaseResources := deps.ProvideAppBaseResources(rootProvider)
 	appService := &service.AppService{
-		Logger:      appServiceLogger,
-		AppConfig:   appConfig,
-		AppConfigs:  configService,
-		AppAuthz:    authzService,
-		AppAdminAPI: adminAPIService,
-		AppDomains:  domainService,
+		Logger:           appServiceLogger,
+		AppConfig:        appConfig,
+		AppConfigs:       configService,
+		AppAuthz:         authzService,
+		AppAdminAPI:      adminAPIService,
+		AppDomains:       domainService,
+		AppBaseResources: appBaseResources,
 	}
 	appLoader := &loader.AppLoader{
 		Apps:  appService,

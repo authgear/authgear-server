@@ -45,6 +45,7 @@ var DependencySet = wire.NewSet(
 	),
 	ProvideRequestContext,
 	ProvideConfigSource,
+	ProvideAppBaseResources,
 	wire.Bind(new(template.ResourceManager), new(*resource.Manager)),
 	wire.Value(template.DefaultTemplateLanguage(intl.DefaultLanguage)),
 )

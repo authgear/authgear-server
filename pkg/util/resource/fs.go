@@ -4,6 +4,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path"
 
 	"github.com/spf13/afero"
 )
@@ -45,4 +46,49 @@ func ReadFile(fs Fs, path string) ([]byte, error) {
 	defer file.Close()
 
 	return ioutil.ReadAll(file)
+}
+
+func readDirNames(fs Fs, dir string) ([]string, error) {
+	f, err := fs.Open(dir)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	return f.Readdirnames(0)
+}
+
+func ListFiles(fs Fs) ([]string, error) {
+	var paths []string
+
+	var list func(dir string) error
+	list = func(dir string) error {
+		files, err := readDirNames(fs, dir)
+		if err != nil {
+			return err
+		}
+
+		for _, f := range files {
+			p := path.Join(dir, f)
+			f, err := fs.Stat(p)
+			if err != nil {
+				return err
+			}
+
+			if f.IsDir() {
+				if err := list(p); err != nil {
+					return err
+				}
+				continue
+			}
+			paths = append(paths, p)
+		}
+		return nil
+	}
+
+	if err := list(""); err != nil {
+		return nil, err
+	}
+
+	return paths, nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/portal/resources"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -13,7 +14,7 @@ type AppLoader interface {
 	List(userID string) *graphqlutil.Lazy
 
 	Create(userID string, id string) *graphqlutil.Lazy
-	UpdateConfig(app *model.App, updateFiles []*model.AppConfigFile, deleteFiles []string) *graphqlutil.Lazy
+	UpdateResources(app *model.App, updates []resources.Update) *graphqlutil.Lazy
 }
 
 type DomainLoader interface {

@@ -2,6 +2,7 @@ package loader
 
 import (
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/portal/resources"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -9,7 +10,7 @@ type AppService interface {
 	GetMany(id []string) ([]*model.App, error)
 	List(userID string) ([]*model.App, error)
 	Create(userID string, id string) error
-	UpdateConfig(app *model.App, updateFiles []*model.AppConfigFile, deleteFiles []string) error
+	UpdateResources(app *model.App, updates []resources.Update) error
 }
 
 type AppLoader struct {
@@ -56,14 +57,14 @@ func (l *AppLoader) List(userID string) *graphqlutil.Lazy {
 	})
 }
 
-func (l *AppLoader) UpdateConfig(app *model.App, updateFiles []*model.AppConfigFile, deleteFiles []string) *graphqlutil.Lazy {
+func (l *AppLoader) UpdateResources(app *model.App, updates []resources.Update) *graphqlutil.Lazy {
 	_, err := l.Authz.CheckAccessOfViewer(app.ID)
 	if err != nil {
 		return graphqlutil.NewLazyError(err)
 	}
 
 	return graphqlutil.NewLazy(func() (interface{}, error) {
-		err := l.Apps.UpdateConfig(app, updateFiles, deleteFiles)
+		err := l.Apps.UpdateResources(app, updates)
 		if err != nil {
 			return nil, err
 		}

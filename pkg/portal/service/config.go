@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 	texttemplate "text/template"
 
 	certmanagerv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
@@ -25,6 +24,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/portal/resources"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -97,17 +97,17 @@ func (s *ConfigService) Create(opts *CreateAppOptions) error {
 	return nil
 }
 
-func (s *ConfigService) UpdateConfig(appID string, updateFiles []*model.AppConfigFile, deleteFiles []string) error {
+func (s *ConfigService) UpdateResources(appID string, updates []resources.Update) error {
 	switch src := s.Controller.Handle.(type) {
 	case *configsource.Kubernetes:
-		err := s.updateKubernetes(src, appID, updateFiles, deleteFiles)
+		err := s.updateKubernetes(src, appID, updates)
 		if err != nil {
 			return err
 		}
 		s.Controller.ReloadApp(appID)
 
 	case *configsource.LocalFS:
-		err := s.updateLocalFS(src, appID, updateFiles, deleteFiles)
+		err := s.updateLocalFS(src, appID, updates)
 		if err != nil {
 			return err
 		}
@@ -153,7 +153,7 @@ func (s *ConfigService) DeleteDomain(domain *model.Domain) error {
 	return nil
 }
 
-func (s *ConfigService) updateKubernetes(k *configsource.Kubernetes, appID string, updateFiles []*model.AppConfigFile, deleteFiles []string) error {
+func (s *ConfigService) updateKubernetes(k *configsource.Kubernetes, appID string, updates []resources.Update) error {
 	labelSelector, err := k.AppSelector(appID)
 	if err != nil {
 		return err
@@ -176,16 +176,18 @@ func (s *ConfigService) updateKubernetes(k *configsource.Kubernetes, appID strin
 	secret := secrets.Items[0]
 
 	updated := false
-	for _, file := range updateFiles {
-		path := strings.TrimPrefix(file.Path, "/")
-		secret.Data[configsource.EscapePath(path)] = []byte(file.Content)
-		updated = true
-	}
-	for _, path := range deleteFiles {
-		path := strings.TrimPrefix(path, "/")
-		if _, ok := secret.Data[configsource.EscapePath(path)]; ok {
-			delete(secret.Data, configsource.EscapePath(path))
-			updated = true
+	for _, u := range updates {
+		key := configsource.EscapePath(u.Path)
+		if u.Data == nil {
+			if _, ok := secret.Data[key]; ok {
+				delete(secret.Data, key)
+				updated = true
+			}
+		} else {
+			if !bytes.Equal(secret.Data[key], u.Data) {
+				secret.Data[key] = u.Data
+				updated = true
+			}
 		}
 	}
 
@@ -199,23 +201,24 @@ func (s *ConfigService) updateKubernetes(k *configsource.Kubernetes, appID strin
 	return nil
 }
 
-func (s *ConfigService) updateLocalFS(l *configsource.LocalFS, appID string, updateFiles []*model.AppConfigFile, deleteFiles []string) error {
+func (s *ConfigService) updateLocalFS(l *configsource.LocalFS, appID string, updates []resources.Update) error {
 	fs := l.Fs
-	for _, file := range updateFiles {
-		err := fs.MkdirAll(filepath.Dir(file.Path), 0777)
-		if err != nil {
-			return err
-		}
-		err = afero.WriteFile(fs, file.Path, []byte(file.Content), 0666)
-		if err != nil {
-			return err
-		}
-	}
-	for _, path := range deleteFiles {
-		err := fs.Remove(path)
-		// Ignore file not found errors
-		if err != nil && !os.IsNotExist(err) {
-			return err
+	for _, file := range updates {
+		if file.Data == nil {
+			err := fs.Remove(file.Path)
+			// Ignore file not found errors
+			if err != nil && !os.IsNotExist(err) {
+				return err
+			}
+		} else {
+			err := fs.MkdirAll(filepath.Dir(file.Path), 0777)
+			if err != nil {
+				return err
+			}
+			err = afero.WriteFile(fs, file.Path, file.Data, 0666)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

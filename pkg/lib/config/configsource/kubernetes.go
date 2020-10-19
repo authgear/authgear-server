@@ -335,7 +335,7 @@ func (a *k8sApp) doLoad(k *Kubernetes) (*config.AppContext, error) {
 	}
 	resources := k.BaseResources.Overlay(appFs)
 
-	appConfig, err := loadConfig(resources)
+	appConfig, err := LoadConfig(resources)
 	if err != nil {
 		return nil, err
 	}

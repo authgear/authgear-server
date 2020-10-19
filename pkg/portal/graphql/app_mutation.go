@@ -6,57 +6,60 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/portal/resources"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 )
 
-var appConfigFile = graphql.NewInputObject(graphql.InputObjectConfig{
-	Name:        "AppConfigFile",
-	Description: "A configuration file to update/create.",
+var appResourceUpdate = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name:        "AppResourceUpdate",
+	Description: "Update to resource file.",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"path": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewNonNull(graphql.String),
-			Description: "Path of the file.",
+			Description: "Path of the resource file to update.",
 		},
-		"content": &graphql.InputObjectFieldConfig{
-			Type:        graphql.NewNonNull(graphql.String),
-			Description: "New content of the file.",
+		"data": &graphql.InputObjectFieldConfig{
+			Type:        graphql.String,
+			Description: "New data of the resource file. Set to null to remove it.",
 		},
 	},
 })
 
-var updateAppConfigInput = graphql.NewInputObject(graphql.InputObjectConfig{
-	Name: "UpdateAppConfigInput",
+var updateAppResourcesInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "UpdateAppResourcesInput",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"appID": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewNonNull(graphql.ID),
 			Description: "App ID to update.",
 		},
-		"updateFiles": &graphql.InputObjectFieldConfig{
-			Type:        graphql.NewList(graphql.NewNonNull(appConfigFile)),
-			Description: "Configuration files to update/create.",
-		},
-		"deleteFiles": &graphql.InputObjectFieldConfig{
-			Type:        graphql.NewList(graphql.NewNonNull(graphql.String)),
-			Description: "Path to configuration files to delete.",
+		"updates": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewList(graphql.NewNonNull(appResourceUpdate)),
+			Description: "Resource file updates.",
 		},
 	},
 })
 
+var updateAppResourcesPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "UpdateAppResourcesPayload",
+	Fields: graphql.Fields{
+		"app": &graphql.Field{Type: graphql.NewNonNull(nodeApp)},
+	},
+})
+
 var _ = registerMutationField(
-	"updateAppConfig",
+	"updateAppResources",
 	&graphql.Field{
-		Description: "Update app configuration files",
-		Type:        graphql.NewNonNull(nodeApp),
+		Description: "Update app resource files",
+		Type:        graphql.NewNonNull(updateAppResourcesPayload),
 		Args: graphql.FieldConfigArgument{
 			"input": &graphql.ArgumentConfig{
-				Type: graphql.NewNonNull(updateAppConfigInput),
+				Type: graphql.NewNonNull(updateAppResourcesInput),
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			input := p.Args["input"].(map[string]interface{})
 			appNodeID := input["appID"].(string)
-			updateFiles, _ := input["updateFiles"].([]interface{})
-			deleteFiles, _ := input["deleteFiles"].([]interface{})
+			updates, _ := input["updates"].([]interface{})
 
 			resolvedNodeID := relay.FromGlobalID(appNodeID)
 			if resolvedNodeID.Type != typeApp {
@@ -70,23 +73,26 @@ var _ = registerMutationField(
 			return lazy.
 				Map(func(value interface{}) (interface{}, error) {
 					app := value.(*model.App)
-					var updateConfigFiles []*model.AppConfigFile
-					var deleteConfigFiles []string
-					for _, f := range updateFiles {
+					var resourceUpdates []resources.Update
+					for _, f := range updates {
 						f := f.(map[string]interface{})
 						path := f["path"].(string)
-						content := f["content"].(string)
-						updateConfigFiles = append(updateConfigFiles, &model.AppConfigFile{
-							Path:    path,
-							Content: content,
+						var data []byte
+						if stringData, ok := f["data"].(string); ok {
+							data = []byte(stringData)
+						}
+
+						resourceUpdates = append(resourceUpdates, resources.Update{
+							Path: path,
+							Data: data,
 						})
 					}
-					for _, p := range deleteFiles {
-						deleteConfigFiles = append(deleteConfigFiles, p.(string))
-					}
 
-					return gqlCtx.Apps.UpdateConfig(app, updateConfigFiles, deleteConfigFiles), nil
-				}).Value, nil
+					return map[string]interface{}{
+						"app": gqlCtx.Apps.UpdateResources(app, resourceUpdates),
+					}, nil
+				}).
+				Value, nil
 		},
 	},
 )

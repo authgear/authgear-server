@@ -7,6 +7,7 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/portal/resources"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -41,17 +42,24 @@ var nodeApp = node(
 					app := p.Source.(*model.App)
 					if len(paths) == 0 {
 						var err error
-						paths, err = app.ListResources()
+						paths, err = resources.List(app.Context.Resources)
 						if err != nil {
 							return nil, err
 						}
 					}
-					resources, err := app.LoadResources(paths...)
+					resources, err := resources.Load(app.Context.Resources, paths...)
 					if err != nil {
 						return nil, err
 					}
 
-					return resources, nil
+					var appRes []*model.AppResource
+					for _, r := range resources {
+						appRes = append(appRes, &model.AppResource{
+							Context:  app.Context,
+							Resource: r,
+						})
+					}
+					return appRes, nil
 				},
 			},
 			"rawAppConfig": &graphql.Field{

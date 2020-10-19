@@ -42,7 +42,7 @@ func (s *LocalFS) Open() error {
 	appFs := &resource.AferoFs{Fs: s.Fs}
 
 	resources := s.BaseResources.Overlay(appFs)
-	cfg, err := loadConfig(resources)
+	cfg, err := LoadConfig(resources)
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ func (s *LocalFS) watch(done <-chan struct{}) {
 func (s *LocalFS) reload() error {
 	appCtx := s.config.Load().(*config.AppContext)
 
-	newConfig, err := loadConfig(appCtx.Resources)
+	newConfig, err := LoadConfig(appCtx.Resources)
 	if err != nil {
 		return err
 	}
