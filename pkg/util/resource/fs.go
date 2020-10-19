@@ -16,11 +16,13 @@ type File interface {
 
 	Name() string
 	Stat() (os.FileInfo, error)
-	Readdir(n int) ([]os.FileInfo, error)
+	// Readdir does not follow symlinks, instead use Readdirnames to avoid surprises.
+	Readdirnames(n int) ([]string, error)
 }
 
 type Fs interface {
 	Open(name string) (File, error)
+	Stat(name string) (os.FileInfo, error)
 }
 
 type AferoFs struct {
@@ -29,6 +31,10 @@ type AferoFs struct {
 
 func (f AferoFs) Open(name string) (File, error) {
 	return f.Fs.Open(name)
+}
+
+func (f AferoFs) Stat(name string) (os.FileInfo, error) {
+	return f.Fs.Stat(name)
 }
 
 func ReadFile(fs Fs, path string) ([]byte, error) {

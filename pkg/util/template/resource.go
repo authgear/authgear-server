@@ -1,6 +1,7 @@
 package template
 
 import (
+	"errors"
 	"fmt"
 	htmltemplate "html/template"
 	"os"
@@ -109,14 +110,14 @@ func readTemplates(fs resource.Fs, templateName string) ([]resource.LayerFile, e
 	}
 	defer templatesDir.Close()
 
-	langTagDirs, err := templatesDir.Readdir(0)
+	langTagDirs, err := templatesDir.Readdirnames(0)
 	if err != nil {
 		return nil, err
 	}
 
 	var files []resource.LayerFile
 	for _, langTag := range langTagDirs {
-		p := path.Join("templates", langTag.Name(), templateName)
+		p := path.Join("templates", langTag, templateName)
 		data, err := resource.ReadFile(fs, p)
 		if os.IsNotExist(err) {
 			continue
