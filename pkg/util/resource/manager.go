@@ -16,6 +16,13 @@ func NewManager(registry *Registry, fs []Fs) *Manager {
 	return &Manager{Registry: registry, Fs: fs}
 }
 
+func (m *Manager) Overlay(fs Fs) *Manager {
+	newFs := make([]Fs, len(m.Fs)+1)
+	copy(newFs, m.Fs)
+	newFs[len(newFs)-1] = fs
+	return NewManager(m.Registry, newFs)
+}
+
 func (m *Manager) Read(desc Descriptor, args map[string]interface{}) (*MergedFile, error) {
 	var layers []LayerFile
 	for _, fs := range m.Fs {

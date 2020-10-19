@@ -1,3 +1,5 @@
 package config
 
-type DefaultResourceDirectory string
+type ResourceDirectory string
+
+type AppBaseResourceDirectory string

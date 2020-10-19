@@ -19,15 +19,15 @@ import (
 )
 
 type RootProvider struct {
-	EnvironmentConfig        *config.EnvironmentConfig
-	ConfigSourceConfig       *configsource.Config
-	LoggerFactory            *log.Factory
-	SentryHub                *getsentry.Hub
-	DatabasePool             *db.Pool
-	RedisPool                *redis.Pool
-	TaskQueueFactory         TaskQueueFactory
-	ReservedNameChecker      *loginid.ReservedNameChecker
-	DefaultResourceDirectory string
+	EnvironmentConfig   *config.EnvironmentConfig
+	ConfigSourceConfig  *configsource.Config
+	LoggerFactory       *log.Factory
+	SentryHub           *getsentry.Hub
+	DatabasePool        *db.Pool
+	RedisPool           *redis.Pool
+	TaskQueueFactory    TaskQueueFactory
+	ReservedNameChecker *loginid.ReservedNameChecker
+	BaseResources       *resource.Manager
 }
 
 func NewRootProvider(
@@ -63,15 +63,15 @@ func NewRootProvider(
 	}
 
 	p = RootProvider{
-		EnvironmentConfig:        cfg,
-		ConfigSourceConfig:       configSourceConfig,
-		LoggerFactory:            loggerFactory,
-		SentryHub:                sentryHub,
-		DatabasePool:             dbPool,
-		RedisPool:                redisPool,
-		TaskQueueFactory:         taskQueueFactory,
-		ReservedNameChecker:      reservedNameChecker,
-		DefaultResourceDirectory: defaultResourceDirectory,
+		EnvironmentConfig:   cfg,
+		ConfigSourceConfig:  configSourceConfig,
+		LoggerFactory:       loggerFactory,
+		SentryHub:           sentryHub,
+		DatabasePool:        dbPool,
+		RedisPool:           redisPool,
+		TaskQueueFactory:    taskQueueFactory,
+		ReservedNameChecker: reservedNameChecker,
+		BaseResources:       NewResourceManager(defaultResourceDirectory),
 	}
 	return &p, nil
 }
@@ -97,10 +97,6 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		cfg.SecretConfig.LookupData(config.RedisCredentialsKey).(*config.RedisCredentials),
 		loggerFactory,
 	)
-	resourceManager := NewResourceManager(
-		appCtx.Fs,
-		p.DefaultResourceDirectory,
-	)
 
 	provider := &AppProvider{
 		RootProvider:  p,
@@ -109,7 +105,7 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		LoggerFactory: loggerFactory,
 		Database:      database,
 		Redis:         redis,
-		Resources:     resourceManager,
+		Resources:     appCtx.Resources,
 	}
 	provider.TaskQueue = p.TaskQueueFactory(provider)
 	return provider

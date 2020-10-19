@@ -3,6 +3,6 @@ package config
 import "github.com/authgear/authgear-server/pkg/util/resource"
 
 type AppContext struct {
-	Fs     resource.Fs
-	Config *Config
+	Resources *resource.Manager
+	Config    *Config
 }

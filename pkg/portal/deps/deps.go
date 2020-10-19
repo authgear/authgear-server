@@ -22,7 +22,6 @@ func ProvideConfigSource(ctrl *configsource.Controller) *configsource.ConfigSour
 var DependencySet = wire.NewSet(
 	wire.FieldsOf(new(*RootProvider),
 		"EnvironmentConfig",
-		"DefaultResourceDirectory",
 		"ConfigSourceConfig",
 		"AuthgearConfig",
 		"AdminAPIConfig",

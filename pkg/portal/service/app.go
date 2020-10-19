@@ -11,7 +11,6 @@ import (
 	"strings"
 	texttemplate "text/template"
 
-	"github.com/spf13/afero"
 	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -21,15 +20,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
+	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
-
-const RedactedValue = "<REDACTED>"
-
-type redactionMapping struct {
-	target *string
-	secret string
-}
 
 type generateAppConfigAndTranslationResult struct {
 	AppConfig           *config.AppConfig
@@ -63,6 +56,8 @@ func NewAppServiceLogger(lf *log.Factory) AppServiceLogger {
 	return AppServiceLogger{lf.New("app-service")}
 }
 
+type AppBaseResource *resource.Manager
+
 type AppService struct {
 	Logger      AppServiceLogger
 	AppConfig   *portalconfig.AppConfig
@@ -76,32 +71,6 @@ func (s *AppService) loadApp(id string) (*model.App, error) {
 	appCtx, err := s.AppConfigs.ResolveContext(id)
 	if err != nil {
 		return nil, err
-	}
-
-	secretConfig := *appCtx.Config.SecretConfig
-	err = s.redactSecrets(&secretConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	secretConfigYAML, err := yaml.Marshal(secretConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	overlayFs := afero.NewBasePathFs(afero.NewMemMapFs(), "/")
-	err = afero.WriteFile(overlayFs, configsource.AuthgearSecretYAML, secretConfigYAML, 0666)
-	if err != nil {
-		return nil, err
-	}
-
-	// FIXME(resource): fix secret redaction
-	appCtx = &config.AppContext{
-		Fs: appCtx.Fs,
-		Config: &config.Config{
-			AppConfig:    appCtx.Config.AppConfig,
-			SecretConfig: &secretConfig,
-		},
 	}
 
 	return &model.App{
@@ -195,24 +164,6 @@ func (s *AppService) Create(userID string, id string) error {
 
 func (s *AppService) UpdateConfig(app *model.App, updateFiles []*model.AppConfigFile, deleteFiles []string) error {
 	PrepareUpdates(updateFiles, deleteFiles)
-
-	// Un-redact secrets
-	for _, file := range updateFiles {
-		if file.Path == "/"+configsource.AuthgearSecretYAML {
-			secretConfig, err := config.ParseSecret([]byte(file.Content))
-			if err != nil {
-				return err
-			}
-			if err := s.unredactSecrets(secretConfig); err != nil {
-				return err
-			}
-			cfgYAML, err := yaml.Marshal(secretConfig)
-			if err != nil {
-				return err
-			}
-			file.Content = string(cfgYAML)
-		}
-	}
 
 	err := ValidateConfig(app.ID, *app.Context.Config, updateFiles, deleteFiles)
 	if err != nil {
@@ -395,155 +346,6 @@ func (s *AppService) generateConfig(appHost string, appID string) (opts *CreateA
 	}
 
 	return
-}
-
-func (s *AppService) redactionMappings(cfg *config.SecretConfig) []redactionMapping {
-	var mappings []redactionMapping
-	addMapping := func(key config.SecretKey, emptyData config.SecretItemData, secret string, mapFn func(s config.SecretItemData) *string) {
-		// If the cluster secret is undefined, do not add the mapping.
-		if secret == "" {
-			return
-		}
-
-		// Otherwise redaction always occur even if the secret item has been removed from the secret config.
-		// This means if the secret config has the secret item missing,
-		// after redaction the item would be added again.
-		item, ok := cfg.Lookup(key)
-		if !ok {
-			cfg.Secrets = append(cfg.Secrets, config.SecretItem{
-				Key:  key,
-				Data: emptyData,
-			})
-			item = &cfg.Secrets[len(cfg.Secrets)-1]
-		}
-
-		mappings = append(mappings, redactionMapping{
-			target: mapFn(item.Data),
-			secret: secret,
-		})
-	}
-
-	addMapping(
-		config.DatabaseCredentialsKey,
-		&config.DatabaseCredentials{},
-		s.AppConfig.Secret.DatabaseURL,
-		func(s config.SecretItemData) *string {
-			return &s.(*config.DatabaseCredentials).DatabaseURL
-		},
-	)
-	addMapping(
-		config.DatabaseCredentialsKey,
-		&config.DatabaseCredentials{},
-		s.AppConfig.Secret.DatabaseSchema,
-		func(s config.SecretItemData) *string {
-			return &s.(*config.DatabaseCredentials).DatabaseSchema
-		},
-	)
-	addMapping(
-		config.RedisCredentialsKey,
-		&config.RedisCredentials{},
-		s.AppConfig.Secret.RedisURL,
-		func(s config.SecretItemData) *string {
-			return &s.(*config.RedisCredentials).RedisURL
-		},
-	)
-	addMapping(
-		config.SMTPServerCredentialsKey,
-		&config.SMTPServerCredentials{},
-		s.AppConfig.Secret.SMTPHost,
-		func(s config.SecretItemData) *string {
-			return &s.(*config.SMTPServerCredentials).Host
-		},
-	)
-	addMapping(
-		config.SMTPServerCredentialsKey,
-		&config.SMTPServerCredentials{},
-		s.AppConfig.Secret.SMTPUsername,
-		func(s config.SecretItemData) *string {
-			return &s.(*config.SMTPServerCredentials).Username
-		},
-	)
-	addMapping(
-		config.SMTPServerCredentialsKey,
-		&config.SMTPServerCredentials{},
-		s.AppConfig.Secret.SMTPPassword,
-		func(s config.SecretItemData) *string {
-			return &s.(*config.SMTPServerCredentials).Password
-		},
-	)
-	addMapping(
-		config.TwilioCredentialsKey,
-		&config.TwilioCredentials{},
-		s.AppConfig.Secret.TwilioAccountSID,
-		func(s config.SecretItemData) *string {
-			return &s.(*config.TwilioCredentials).AccountSID
-		},
-	)
-	addMapping(
-		config.TwilioCredentialsKey,
-		&config.TwilioCredentials{},
-		s.AppConfig.Secret.TwilioAuthToken,
-		func(s config.SecretItemData) *string {
-			return &s.(*config.TwilioCredentials).AuthToken
-		},
-	)
-	addMapping(
-		config.NexmoCredentialsKey,
-		&config.NexmoCredentials{},
-		s.AppConfig.Secret.NexmoAPIKey,
-		func(s config.SecretItemData) *string {
-			return &s.(*config.NexmoCredentials).APIKey
-		},
-	)
-	addMapping(
-		config.NexmoCredentialsKey,
-		&config.NexmoCredentials{},
-		s.AppConfig.Secret.NexmoAPISecret,
-		func(s config.SecretItemData) *string {
-			return &s.(*config.NexmoCredentials).APISecret
-		},
-	)
-
-	return mappings
-}
-
-func (s *AppService) redactSecrets(cfg *config.SecretConfig) error {
-	for _, mapping := range s.redactionMappings(cfg) {
-		// Add back the value as redacted even if the item is missing
-		if *mapping.target == "" || *mapping.target == mapping.secret {
-			*mapping.target = RedactedValue
-		}
-	}
-	for i, item := range cfg.Secrets {
-		data, err := json.Marshal(item.Data)
-		if err != nil {
-			return err
-		}
-
-		item.RawData = data
-		cfg.Secrets[i] = item
-	}
-	return nil
-}
-
-func (s *AppService) unredactSecrets(cfg *config.SecretConfig) error {
-	for _, mapping := range s.redactionMappings(cfg) {
-		// TODO(portal): allow bring-in credentials
-		if *mapping.target != RedactedValue {
-			return apierrors.NewForbidden("cannot change secret value")
-		}
-		*mapping.target = mapping.secret
-	}
-	for i, item := range cfg.Secrets {
-		data, err := json.Marshal(item.Data)
-		if err != nil {
-			return err
-		}
-
-		item.RawData = data
-		cfg.Secrets[i] = item
-	}
-	return nil
 }
 
 const ConfigFileMaxSize = 100 * 1024

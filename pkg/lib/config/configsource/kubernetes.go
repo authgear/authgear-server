@@ -46,10 +46,11 @@ func NewKubernetesLogger(lf *log.Factory) KubernetesLogger {
 }
 
 type Kubernetes struct {
-	Logger     KubernetesLogger
-	Clock      clock.Clock
-	TrustProxy config.TrustProxy
-	Config     *Config
+	Logger        KubernetesLogger
+	BaseResources *resource.Manager
+	Clock         clock.Clock
+	TrustProxy    config.TrustProxy
+	Config        *Config
 
 	Context    context.Context       `wire:"-"`
 	Namespace  string                `wire:"-"`
@@ -332,13 +333,15 @@ func (a *k8sApp) doLoad(k *Kubernetes) (*config.AppContext, error) {
 	if err != nil {
 		return nil, err
 	}
-	appConfig, err := loadConfig(appFs)
+	resources := k.BaseResources.Overlay(appFs)
+
+	appConfig, err := loadConfig(resources)
 	if err != nil {
 		return nil, err
 	}
 	return &config.AppContext{
-		Fs:     appFs,
-		Config: appConfig,
+		Resources: resources,
+		Config:    appConfig,
 	}, nil
 }
 

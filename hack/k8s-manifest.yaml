@@ -51,13 +51,6 @@ stringData:
   authgear.secrets.yaml: |-
     secrets:
       - data:
-          database_schema: public
-          database_url: 'postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable'
-        key: db
-      - data:
-          redis_url: 'redis://localhost'
-        key: redis
-      - data:
           keys:
             - alg: RS256
               d: >-

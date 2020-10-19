@@ -20,8 +20,9 @@ func NewLocalFSLogger(lf *log.Factory) LocalFSLogger {
 }
 
 type LocalFS struct {
-	Logger LocalFSLogger
-	Config *Config
+	Logger        LocalFSLogger
+	BaseResources *resource.Manager
+	Config        *Config
 
 	Fs               afero.Fs          `wire:"-"`
 	appConfigPath    string            `wire:"-"`
@@ -40,14 +41,15 @@ func (s *LocalFS) Open() error {
 	s.Fs = afero.NewBasePathFs(afero.NewOsFs(), dir)
 	appFs := &resource.AferoFs{Fs: s.Fs}
 
-	cfg, err := loadConfig(appFs)
+	resources := s.BaseResources.Overlay(appFs)
+	cfg, err := loadConfig(resources)
 	if err != nil {
 		return err
 	}
 
 	s.config.Store(&config.AppContext{
-		Fs:     appFs,
-		Config: cfg,
+		Resources: resources,
+		Config:    cfg,
 	})
 
 	if s.Config.Watch {
@@ -114,14 +116,14 @@ func (s *LocalFS) watch(done <-chan struct{}) {
 func (s *LocalFS) reload() error {
 	appCtx := s.config.Load().(*config.AppContext)
 
-	newConfig, err := loadConfig(appCtx.Fs)
+	newConfig, err := loadConfig(appCtx.Resources)
 	if err != nil {
 		return err
 	}
 
 	appCtx = &config.AppContext{
-		Fs:     appCtx.Fs,
-		Config: newConfig,
+		Resources: appCtx.Resources,
+		Config:    newConfig,
 	}
 	s.config.Store(appCtx)
 	return nil
