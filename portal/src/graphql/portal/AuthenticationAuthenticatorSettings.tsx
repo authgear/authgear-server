@@ -138,9 +138,11 @@ function useRenderItemColumn<KeyType extends string>(
 
 function useOnActivateClicked<KeyType extends string>(
   state: AuthenticatorListItem<KeyType>[],
-  setState: React.Dispatch<
-    React.SetStateAction<AuthenticatorListItem<KeyType>[]>
-  >
+  setState: (
+    stateUpdater: (
+      prev: AuthenticatorListItem<KeyType>[]
+    ) => AuthenticatorListItem<KeyType>[]
+  ) => void
 ) {
   const onActivateClicked = React.useCallback(
     (key: string, checked: boolean) => {
@@ -203,21 +205,6 @@ function getActivatedKeyListFromState<KeyType>(
   return state
     .filter((authenticator) => authenticator.activated)
     .map((authenticator) => authenticator.key);
-}
-
-function updateScreenStateField<
-  K extends keyof AuthenticationAuthenticatorScreenState
->(
-  setState: React.Dispatch<
-    React.SetStateAction<AuthenticationAuthenticatorScreenState>
-  >,
-  field: K,
-  action: React.SetStateAction<AuthenticationAuthenticatorScreenState[K]>
-) {
-  setState((prev) => ({
-    ...prev,
-    [field]: typeof action === "function" ? action(prev[field]) : action,
-  }));
 }
 
 const AuthenticationAuthenticatorSettings: React.FC<Props> = function AuthenticationAuthenticatorSettings(
@@ -314,7 +301,10 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
   } = useDropdown(
     ALL_REQUIRE_MFA_OPTIONS,
     (option) => {
-      updateScreenStateField(setState, "secondaryAuthenticationMode", option);
+      setState((prev) => ({
+        ...prev,
+        secondaryAuthenticationMode: option,
+      }));
     },
     secondaryAuthenticationMode,
     displaySecondaryAuthenticatorMode,
@@ -324,42 +314,62 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
 
   const { onChange: onRecoveryCodeNumberChange } = useIntegerTextField(
     (value) => {
-      updateScreenStateField(setState, "recoveryCodeNumber", value);
+      setState((prev) => ({
+        ...prev,
+        recoveryCodeNumber: value,
+      }));
     }
   );
 
   const { onChange: onAllowRetrieveRecoveryCodeChange } = useCheckbox(
     (checked: boolean) => {
-      updateScreenStateField(setState, "allowRetrieveRecoveryCode", checked);
+      setState((prev) => ({
+        ...prev,
+        allowRetrieveRecoveryCode: checked,
+      }));
     }
   );
 
   const onPrimarySwapClicked = React.useCallback(
     (index1: number, index2: number) => {
-      updateScreenStateField(setState, "primaryAuthenticators", (prev) =>
-        swap(prev, index1, index2)
-      );
+      setState((prev) => ({
+        ...prev,
+        primaryAuthenticators: swap(prev.primaryAuthenticators, index1, index2),
+      }));
     },
     []
   );
   const onSecondarySwapClicked = React.useCallback(
     (index1: number, index2: number) => {
-      updateScreenStateField(setState, "secondaryAuthenticators", (prev) =>
-        swap(prev, index1, index2)
-      );
+      setState((prev) => ({
+        ...prev,
+        secondaryAuthenticators: swap(
+          prev.secondaryAuthenticators,
+          index1,
+          index2
+        ),
+      }));
     },
     []
   );
 
   const onPrimaryActivateClicked = useOnActivateClicked(
     primaryAuthenticators,
-    (action) =>
-      updateScreenStateField(setState, "primaryAuthenticators", action)
+    (stateUpdater) => {
+      setState((prev) => ({
+        ...prev,
+        primaryAuthenticators: stateUpdater(prev.primaryAuthenticators),
+      }));
+    }
   );
   const onSecondaryActivateClicked = useOnActivateClicked(
     secondaryAuthenticators,
-    (action) =>
-      updateScreenStateField(setState, "secondaryAuthenticators", action)
+    (stateUpdater) => {
+      setState((prev) => ({
+        ...prev,
+        secondaryAuthenticators: stateUpdater(prev.secondaryAuthenticators),
+      }));
+    }
   );
 
   const renderPrimaryItemColumn = useRenderItemColumn(onPrimaryActivateClicked);
