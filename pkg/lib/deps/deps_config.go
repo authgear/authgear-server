@@ -13,7 +13,6 @@ var configDeps = wire.NewSet(
 		"ID",
 		"HTTP",
 		"Hook",
-		"Template",
 		"UI",
 		"Localization",
 		"Messaging",

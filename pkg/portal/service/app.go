@@ -202,14 +202,6 @@ func (s *AppService) generateAppConfigAndTranslation(appHost string, appID strin
 		if err != nil {
 			return nil, err
 		}
-		cfg.Template = &config.TemplateConfig{
-			Items: []config.TemplateItem{
-				config.TemplateItem{
-					Type: config.TemplateItemType(template.TranslationJSONName),
-					URI:  "file:///" + translationJSONPath,
-				},
-			},
-		}
 	}
 
 	result := &generateAppConfigAndTranslationResult{

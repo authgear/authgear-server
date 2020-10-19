@@ -28,7 +28,6 @@ var _ = Schema.Add("AppConfig", `
 		"database": { "$ref": "#/$defs/DatabaseConfig" },
 		"redis": { "$ref": "#/$defs/RedisConfig" },
 		"hook": { "$ref": "#/$defs/HookConfig" },
-		"template": { "$ref": "#/$defs/TemplateConfig" },
 		"ui": { "$ref": "#/$defs/UIConfig" },
 		"localization": { "$ref": "#/$defs/LocalizationConfig" },
 		"messaging": { "$ref": "#/$defs/MessagingConfig" },
@@ -53,7 +52,6 @@ type AppConfig struct {
 	Redis    *RedisConfig    `json:"redis,omitempty"`
 	Hook     *HookConfig     `json:"hook,omitempty"`
 
-	Template     *TemplateConfig     `json:"template,omitempty"`
 	UI           *UIConfig           `json:"ui,omitempty"`
 	Localization *LocalizationConfig `json:"localization,omitempty"`
 	Messaging    *MessagingConfig    `json:"messaging,omitempty"`
