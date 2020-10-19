@@ -1,4 +1,4 @@
-import React, { useCallback, useContext } from "react";
+import React, { useCallback, useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Context as LocaleContext,
@@ -16,6 +16,10 @@ interface CreateAppProps {
   createApp: (appID: string) => Promise<string | null>;
 }
 
+interface CreateAppFormData {
+  appID: string;
+}
+
 const CreateApp: React.FC<CreateAppProps> = function CreateApp(
   props: CreateAppProps
 ) {
@@ -23,7 +27,13 @@ const CreateApp: React.FC<CreateAppProps> = function CreateApp(
   const navigate = useNavigate();
   const { renderToString } = useContext(LocaleContext);
 
-  const { value: appID, onChange: onAppIDChange } = useTextField("");
+  const [formData, setFormData] = useState<CreateAppFormData>({
+    appID: "",
+  });
+  const { appID } = formData;
+  const { onChange: onAppIDChange } = useTextField((value) =>
+    setFormData((prev) => ({ ...prev, appID: value }))
+  );
 
   const onCreateClick = useCallback(() => {
     createApp(appID)

@@ -11,6 +11,10 @@ import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import UserDetailCommandBar from "./UserDetailCommandBar";
+import {
+  ModifiedIndicatorPortal,
+  ModifiedIndicatorWrapper,
+} from "../../ModifiedIndicatorPortal";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
@@ -24,6 +28,10 @@ import {
 } from "../../util/validation";
 
 import styles from "./AddEmailScreen.module.scss";
+
+interface AddEmailFormData {
+  email: string;
+}
 
 const AddEmailScreen: React.FC = function AddEmailScreen() {
   const { userID } = useParams();
@@ -46,18 +54,25 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
     ];
   }, []);
 
-  const { value: email, onChange: onEmailChange } = useTextField("");
+  const initialFormData = useMemo(() => {
+    return {
+      email: "",
+    };
+  }, []);
+  const [formData, setFormData] = useState<AddEmailFormData>(initialFormData);
+  const { email } = formData;
 
-  const screenState = useMemo(
-    () => ({
-      email,
-    }),
-    [email]
-  );
+  const { onChange: onEmailChange } = useTextField((value) => {
+    setFormData((prev) => ({ ...prev, email: value }));
+  });
 
   const isFormModified = useMemo(() => {
-    return !deepEqual({ email: "" }, screenState);
-  }, [screenState]);
+    return !deepEqual(initialFormData, formData);
+  }, [initialFormData, formData]);
+
+  const resetForm = useCallback(() => {
+    setFormData(initialFormData);
+  }, [initialFormData]);
 
   const onFormSubmit = useCallback(
     (ev: React.SyntheticEvent<HTMLElement>) => {
@@ -77,7 +92,7 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
 
   useEffect(() => {
     if (submittedForm) {
-      navigate("../#connected-identities");
+      navigate("..#connected-identities");
     }
   }, [submittedForm, navigate]);
 
@@ -108,28 +123,37 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
   return (
     <div className={styles.root}>
       <UserDetailCommandBar />
-      <NavBreadcrumb className={styles.breadcrumb} items={navBreadcrumbItems} />
-      <form className={styles.content} onSubmit={onFormSubmit}>
-        {unhandledViolations.length > 0 && (
-          <ShowError error={createIdentityError} />
-        )}
-        <NavigationBlockerDialog
-          blockNavigation={!submittedForm && isFormModified}
+      <ModifiedIndicatorWrapper>
+        <NavBreadcrumb
+          className={styles.breadcrumb}
+          items={navBreadcrumbItems}
         />
-        <TextField
-          className={styles.emailField}
-          label={renderToString("AddEmailScreen.email.label")}
-          value={email}
-          onChange={onEmailChange}
-          errorMessage={errorMessage.email}
+        <ModifiedIndicatorPortal
+          resetForm={resetForm}
+          isModified={isFormModified}
         />
-        <ButtonWithLoading
-          type="submit"
-          disabled={!isFormModified}
-          labelId="add"
-          loading={creatingIdentity}
-        />
-      </form>
+        <form className={styles.content} onSubmit={onFormSubmit}>
+          {unhandledViolations.length > 0 && (
+            <ShowError error={createIdentityError} />
+          )}
+          <NavigationBlockerDialog
+            blockNavigation={!submittedForm && isFormModified}
+          />
+          <TextField
+            className={styles.emailField}
+            label={renderToString("AddEmailScreen.email.label")}
+            value={email}
+            onChange={onEmailChange}
+            errorMessage={errorMessage.email}
+          />
+          <ButtonWithLoading
+            type="submit"
+            disabled={!isFormModified || submittedForm}
+            labelId="add"
+            loading={creatingIdentity}
+          />
+        </form>
+      </ModifiedIndicatorWrapper>
     </div>
   );
 };

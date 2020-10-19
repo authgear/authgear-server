@@ -1,6 +1,5 @@
-.root {
-  margin: 30px;
-  width: 620px;
+.wrapper {
+  padding: 40px;
 }
 
 .error {
@@ -11,7 +10,7 @@
   display: block;
   font-size: 18px;
   font-weight: 600;
-  margin-bottom: 20px;
+  margin: 0 0 20px;
 }
 
 .helpLink {
@@ -23,4 +22,5 @@
 
 .widget {
   margin-bottom: 20px;
+  width: 600px;
 }

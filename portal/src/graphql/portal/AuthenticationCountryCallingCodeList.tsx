@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useEffect, useMemo } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import Fuse from "fuse.js";
 import cn from "classnames";
 import produce from "immer";
@@ -240,7 +246,10 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> = function C
   const { renderToString } = useContext(Context);
   const { getTelecomCountryName } = useGetTelecomCountryName();
 
-  const { value: searchString, onChange: onSearchBoxChange } = useTextField("");
+  const [searchString, setSearchString] = useState("");
+  const { onChange: onSearchBoxChange } = useTextField((value) => {
+    setSearchString(value);
+  });
 
   const countryCodeListColumns = useMemo(
     () => makeCountryCodeListColumns(renderToString),

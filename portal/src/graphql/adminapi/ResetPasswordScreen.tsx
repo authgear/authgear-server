@@ -22,6 +22,10 @@ import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import ButtonWithLoading from "../../ButtonWithLoading";
+import {
+  ModifiedIndicatorPortal,
+  ModifiedIndicatorWrapper,
+} from "../../ModifiedIndicatorPortal";
 import { useAppConfigQuery } from "../portal/query/appConfigQuery";
 import { useTextField } from "../../hook/useInput";
 import {
@@ -35,6 +39,11 @@ import styles from "./ResetPasswordScreen.module.scss";
 
 interface ResetPasswordFormProps {
   appConfig: PortalAPIAppConfig | null;
+}
+
+interface ResetPasswordFormData {
+  newPassword: string;
+  confirmPassword: string;
 }
 
 const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
@@ -58,25 +67,29 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
     return appConfig?.authenticator?.password?.policy ?? {};
   }, [appConfig]);
 
-  const { value: newPassword, onChange: onNewPasswordChange } = useTextField(
-    ""
-  );
-  const {
-    value: confirmPassword,
-    onChange: onConfirmPasswordChange,
-  } = useTextField("");
-
-  const screenState = useMemo(
-    () => ({
-      newPassword,
-      confirmPassword,
-    }),
-    [newPassword, confirmPassword]
-  );
+  const initialFormData = useMemo<ResetPasswordFormData>(() => {
+    return {
+      newPassword: "",
+      confirmPassword: "",
+    };
+  }, []);
+  const [formData, setFormData] = useState(initialFormData);
+  const { newPassword, confirmPassword } = formData;
 
   const isFormModified = useMemo(() => {
-    return !deepEqual({ newPassword: "", confirmPassword: "" }, screenState);
-  }, [screenState]);
+    return !deepEqual(initialFormData, formData);
+  }, [formData, initialFormData]);
+
+  const resetForm = useCallback(() => {
+    setFormData(initialFormData);
+  }, [initialFormData]);
+
+  const { onChange: onNewPasswordChange } = useTextField((value) => {
+    setFormData((prev) => ({ ...prev, newPassword: value }));
+  });
+  const { onChange: onConfirmPasswordChange } = useTextField((value) => {
+    setFormData((prev) => ({ ...prev, confirmPassword: value }));
+  });
 
   const onFormSubmit = useCallback(
     (ev: React.SyntheticEvent<HTMLElement>) => {
@@ -87,15 +100,15 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
       localValidatePassword(
         newLocalViolations,
         passwordPolicy,
-        screenState.newPassword,
-        screenState.confirmPassword
+        formData.newPassword,
+        formData.confirmPassword
       );
       setLocalViolations(newLocalViolations);
       if (newLocalViolations.length > 0) {
         return;
       }
 
-      resetPassword(screenState.newPassword)
+      resetPassword(formData.newPassword)
         .then((userID) => {
           if (userID != null) {
             setSubmittedForm(true);
@@ -103,12 +116,12 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
         })
         .catch(() => {});
     },
-    [screenState, passwordPolicy, resetPassword]
+    [formData, passwordPolicy, resetPassword]
   );
 
   useEffect(() => {
     if (submittedForm) {
-      navigate("../#account-security");
+      navigate("..#account-security");
     }
   }, [submittedForm, navigate]);
 
@@ -161,6 +174,10 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
 
   return (
     <form className={styles.form} onSubmit={onFormSubmit}>
+      <ModifiedIndicatorPortal
+        resetForm={resetForm}
+        isModified={isFormModified}
+      />
       {unhandledViolations.length > 0 && (
         <ShowError error={resetPasswordError} />
       )}
@@ -187,7 +204,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
       <ButtonWithLoading
         type="submit"
         className={styles.confirm}
-        disabled={!isFormModified}
+        disabled={!isFormModified || submittedForm}
         loading={resettingPassword}
         labelId="confirm"
       />
@@ -219,10 +236,10 @@ const ResetPasswordScreen: React.FC = function ResetPasswordScreen() {
 
   return (
     <main className={styles.root}>
-      <section className={styles.content}>
+      <ModifiedIndicatorWrapper className={styles.content}>
         <NavBreadcrumb items={navBreadcrumbItems} />
         <ResetPasswordForm appConfig={effectiveAppConfig} />
-      </section>
+      </ModifiedIndicatorWrapper>
     </main>
   );
 };

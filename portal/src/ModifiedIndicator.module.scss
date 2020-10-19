@@ -1,0 +1,26 @@
+.messageBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.messageBarButton {
+  height: auto;
+  padding: 5px 20px 4px 16px;
+}
+
+.messageBarButtonIcon {
+  height: auto;
+  padding-right: 3px;
+}
+
+.wrapper {
+  position: relative;
+  min-width: 100%;
+  min-height: 100%;
+}

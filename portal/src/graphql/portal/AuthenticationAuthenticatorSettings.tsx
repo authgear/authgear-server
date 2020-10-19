@@ -19,6 +19,7 @@ import { swap } from "../../OrderButtons";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import ShowError from "../../ShowError";
+import { ModifiedIndicatorPortal } from "../../ModifiedIndicatorPortal";
 import {
   PortalAPIAppConfig,
   primaryAuthenticatorTypes,
@@ -29,7 +30,11 @@ import {
   SecondaryAuthenticationMode,
   PortalAPIApp,
 } from "../../types";
-import { useDropdown, useTextField } from "../../hook/useInput";
+import {
+  useDropdown,
+  useIntegerTextField,
+  useCheckbox,
+} from "../../hook/useInput";
 import { parseError } from "../../util/error";
 import {
   defaultFormatErrorMessageList,
@@ -133,9 +138,11 @@ function useRenderItemColumn<KeyType extends string>(
 
 function useOnActivateClicked<KeyType extends string>(
   state: AuthenticatorListItem<KeyType>[],
-  setState: React.Dispatch<
-    React.SetStateAction<AuthenticatorListItem<KeyType>[]>
-  >
+  setState: (
+    stateUpdater: (
+      prev: AuthenticatorListItem<KeyType>[]
+    ) => AuthenticatorListItem<KeyType>[]
+  ) => void
 ) {
   const onActivateClicked = React.useCallback(
     (key: string, checked: boolean) => {
@@ -235,15 +242,6 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
     return constructAuthenticatorListData(effectiveAppConfig);
   }, [effectiveAppConfig]);
 
-  const [
-    primaryAuthenticatorState,
-    setPrimaryAuthenticatorState,
-  ] = React.useState(initialAuthenticatorsState.primaryAuthenticators);
-  const [
-    secondaryAuthenticatorState,
-    setSecondaryAuthenticatorState,
-  ] = React.useState(initialAuthenticatorsState.secondaryAuthenticators);
-
   const initialPolicySectionState: PolicySectionState = useMemo(() => {
     const authenticationConfig = effectiveAppConfig?.authentication;
     return {
@@ -256,9 +254,36 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
     };
   }, [effectiveAppConfig]);
 
+  const initialState: AuthenticationAuthenticatorScreenState = useMemo(() => {
+    return {
+      ...initialAuthenticatorsState,
+      ...initialPolicySectionState,
+    };
+  }, [initialAuthenticatorsState, initialPolicySectionState]);
+
+  const [state, setState] = useState<AuthenticationAuthenticatorScreenState>(
+    initialState
+  );
+
+  const {
+    primaryAuthenticators,
+    secondaryAuthenticators,
+    secondaryAuthenticationMode,
+    recoveryCodeNumber,
+    allowRetrieveRecoveryCode,
+  } = state;
+
+  const isFormModified = useMemo(() => {
+    return !deepEqual(initialState, state, { strict: true });
+  }, [initialState, state]);
+
+  const resetForm = useCallback(() => {
+    setState(initialState);
+  }, [initialState]);
+
   const displaySecondaryAuthenticatorMode = useCallback(
-    (key: string) => {
-      const messageIdMap: Record<string, string> = {
+    (key: SecondaryAuthenticationMode) => {
+      const messageIdMap: Record<SecondaryAuthenticationMode, string> = {
         required: "AuthenticationAuthenticator.policy.require-mfa.required",
         if_exists: "AuthenticationAuthenticator.policy.require-mfa.if-exists",
         if_requested:
@@ -272,85 +297,79 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
 
   const {
     options: requireMFAOptions,
-    selectedKey: selectedRequireMFAOption,
     onChange: onRequireMFAOptionChange,
   } = useDropdown(
     ALL_REQUIRE_MFA_OPTIONS,
-    initialPolicySectionState.secondaryAuthenticationMode,
+    (option) => {
+      setState((prev) => ({
+        ...prev,
+        secondaryAuthenticationMode: option,
+      }));
+    },
+    secondaryAuthenticationMode,
     displaySecondaryAuthenticatorMode,
     // NOTE: not supported yet
     new Set(HIDDEN_REQUIRE_MFA_OPTIONS)
   );
 
-  const {
-    value: recoveryCodeNumber,
-    onChange: onRecoveryCodeNumberChange,
-  } = useTextField(initialPolicySectionState.recoveryCodeNumber, "integer");
-  const [
-    isAllowRetrieveRecoveryCode,
-    setIsAllowRetrieveRecoveryCode,
-  ] = useState(initialPolicySectionState.allowRetrieveRecoveryCode);
-  const onIsAllowRetrieveRecoveryCodeChange = useCallback(
-    (_event, checked?: boolean) => {
-      if (checked == null) {
-        return;
-      }
-      setIsAllowRetrieveRecoveryCode(checked);
+  const { onChange: onRecoveryCodeNumberChange } = useIntegerTextField(
+    (value) => {
+      setState((prev) => ({
+        ...prev,
+        recoveryCodeNumber: value,
+      }));
+    }
+  );
+
+  const { onChange: onAllowRetrieveRecoveryCodeChange } = useCheckbox(
+    (checked: boolean) => {
+      setState((prev) => ({
+        ...prev,
+        allowRetrieveRecoveryCode: checked,
+      }));
+    }
+  );
+
+  const onPrimarySwapClicked = React.useCallback(
+    (index1: number, index2: number) => {
+      setState((prev) => ({
+        ...prev,
+        primaryAuthenticators: swap(prev.primaryAuthenticators, index1, index2),
+      }));
+    },
+    []
+  );
+  const onSecondarySwapClicked = React.useCallback(
+    (index1: number, index2: number) => {
+      setState((prev) => ({
+        ...prev,
+        secondaryAuthenticators: swap(
+          prev.secondaryAuthenticators,
+          index1,
+          index2
+        ),
+      }));
     },
     []
   );
 
-  const initialState: AuthenticationAuthenticatorScreenState = useMemo(() => {
-    return {
-      ...initialAuthenticatorsState,
-      ...initialPolicySectionState,
-    };
-  }, [initialAuthenticatorsState, initialPolicySectionState]);
-
-  const screenState: AuthenticationAuthenticatorScreenState = useMemo(() => {
-    return {
-      primaryAuthenticators: primaryAuthenticatorState,
-      secondaryAuthenticators: secondaryAuthenticatorState,
-      secondaryAuthenticationMode: selectedRequireMFAOption ?? "if_exists",
-      recoveryCodeNumber,
-      allowRetrieveRecoveryCode: isAllowRetrieveRecoveryCode,
-    };
-  }, [
-    primaryAuthenticatorState,
-    secondaryAuthenticatorState,
-    selectedRequireMFAOption,
-    recoveryCodeNumber,
-    isAllowRetrieveRecoveryCode,
-  ]);
-
-  const isFormModified = useMemo(() => {
-    return !deepEqual(initialState, screenState, { strict: true });
-  }, [initialState, screenState]);
-
-  const onPrimarySwapClicked = React.useCallback(
-    (index1: number, index2: number) => {
-      setPrimaryAuthenticatorState(
-        swap(primaryAuthenticatorState, index1, index2)
-      );
-    },
-    [primaryAuthenticatorState]
-  );
-  const onSecondarySwapClicked = React.useCallback(
-    (index1: number, index2: number) => {
-      setSecondaryAuthenticatorState(
-        swap(secondaryAuthenticatorState, index1, index2)
-      );
-    },
-    [secondaryAuthenticatorState]
-  );
-
   const onPrimaryActivateClicked = useOnActivateClicked(
-    primaryAuthenticatorState,
-    setPrimaryAuthenticatorState
+    primaryAuthenticators,
+    (stateUpdater) => {
+      setState((prev) => ({
+        ...prev,
+        primaryAuthenticators: stateUpdater(prev.primaryAuthenticators),
+      }));
+    }
   );
   const onSecondaryActivateClicked = useOnActivateClicked(
-    secondaryAuthenticatorState,
-    setSecondaryAuthenticatorState
+    secondaryAuthenticators,
+    (stateUpdater) => {
+      setState((prev) => ({
+        ...prev,
+        secondaryAuthenticators: stateUpdater(prev.secondaryAuthenticators),
+      }));
+    }
   );
 
   const renderPrimaryItemColumn = useRenderItemColumn(onPrimaryActivateClicked);
@@ -360,15 +379,15 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
 
   const renderPrimaryAriaLabel = React.useCallback(
     (index?: number): string => {
-      return index != null ? primaryAuthenticatorState[index].key : "";
+      return index != null ? primaryAuthenticators[index].key : "";
     },
-    [primaryAuthenticatorState]
+    [primaryAuthenticators]
   );
   const renderSecondaryAriaLabel = React.useCallback(
     (index?: number): string => {
-      return index != null ? secondaryAuthenticatorState[index].key : "";
+      return index != null ? secondaryAuthenticators[index].key : "";
     },
-    [secondaryAuthenticatorState]
+    [secondaryAuthenticators]
   );
 
   const onFormSubmit = React.useCallback(
@@ -386,10 +405,10 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
         effectiveAppConfig.authentication?.secondary_authenticators ?? [];
 
       const activatedPrimaryKeyList = getActivatedKeyListFromState(
-        screenState.primaryAuthenticators
+        state.primaryAuthenticators
       );
       const activatedSecondaryKeyList = getActivatedKeyListFromState(
-        screenState.secondaryAuthenticators
+        state.secondaryAuthenticators
       );
 
       const newAppConfig = produce(rawAppConfig, (draftConfig) => {
@@ -419,21 +438,21 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
           authentication,
           "secondary_authentication_mode",
           initialState.secondaryAuthenticationMode,
-          screenState.secondaryAuthenticationMode
+          state.secondaryAuthenticationMode
         );
 
         setNumericFieldIfChanged(
           authentication.recovery_code,
           "count",
           initialState.recoveryCodeNumber,
-          screenState.recoveryCodeNumber
+          state.recoveryCodeNumber
         );
 
         setFieldIfChanged(
           authentication.recovery_code,
           "list_enabled",
           initialState.allowRetrieveRecoveryCode,
-          screenState.allowRetrieveRecoveryCode
+          state.allowRetrieveRecoveryCode
         );
 
         clearEmptyObject(draftConfig);
@@ -441,14 +460,7 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
 
       updateAppConfig(newAppConfig).catch(() => {});
     },
-    [
-      rawAppConfig,
-      effectiveAppConfig,
-      updateAppConfig,
-
-      initialState,
-      screenState,
-    ]
+    [rawAppConfig, effectiveAppConfig, updateAppConfig, initialState, state]
   );
 
   const { errorMessage, unhandledViolations } = useMemo(() => {
@@ -493,6 +505,10 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
   return (
     <form className={styles.root} onSubmit={onFormSubmit}>
       <NavigationBlockerDialog blockNavigation={isFormModified} />
+      <ModifiedIndicatorPortal
+        resetForm={resetForm}
+        isModified={isFormModified}
+      />
       {unhandledViolations.length > 0 && (
         <ShowError error={updateAppConfigError} />
       )}
@@ -504,7 +520,7 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
           <FormattedMessage id="AuthenticationAuthenticator.widgetHeader.primary" />
         </Text>
         <DetailsListWithOrdering
-          items={primaryAuthenticatorState}
+          items={primaryAuthenticators}
           columns={authenticatorColumns}
           onRenderItemColumn={renderPrimaryItemColumn}
           onSwapClicked={onPrimarySwapClicked}
@@ -521,7 +537,7 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
           <FormattedMessage id="AuthenticationAuthenticator.widgetHeader.secondary" />
         </Text>
         <DetailsListWithOrdering
-          items={secondaryAuthenticatorState}
+          items={secondaryAuthenticators}
           columns={authenticatorColumns}
           onRenderItemColumn={renderSecondaryItemColumn}
           onSwapClicked={onSecondarySwapClicked}
@@ -540,7 +556,7 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
             "AuthenticationAuthenticator.policy.require-mfa"
           )}
           options={requireMFAOptions}
-          selectedKey={selectedRequireMFAOption}
+          selectedKey={secondaryAuthenticationMode}
           onChange={onRequireMFAOptionChange}
         />
         <TextField
@@ -558,8 +574,8 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
           label={
             <FormattedMessage id="AuthenticationAuthenticator.policy.allow-retrieve-recovery-code" />
           }
-          checked={isAllowRetrieveRecoveryCode}
-          onChange={onIsAllowRetrieveRecoveryCodeChange}
+          checked={allowRetrieveRecoveryCode}
+          onChange={onAllowRetrieveRecoveryCodeChange}
         />
       </section>
 

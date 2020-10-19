@@ -1,13 +1,19 @@
-import React, { useContext, useEffect, useMemo } from "react";
+import React, { useContext, useMemo } from "react";
 import cn from "classnames";
+import produce from "immer";
 import { DirectionalHint, TagPicker, Text, TextField } from "@fluentui/react";
 import { Context } from "@oursky/react-messageformat";
 
 import LabelWithTooltip from "../../LabelWithTooltip";
-import { useTagPickerWithNewTags, useTextField } from "../../hook/useInput";
+import {
+  useIntegerTextField,
+  useTagPickerWithNewTags,
+  useTextField,
+} from "../../hook/useInput";
 import { OAuthClientConfig } from "../../types";
 import { parseError } from "../../util/error";
 import { defaultFormatErrorMessageList } from "../../util/validation";
+import { ensureNonEmptyString } from "../../util/misc";
 
 import styles from "./ModifyOAuthClientForm.module.scss";
 
@@ -33,38 +39,20 @@ export function getReducedClientConfig(
   };
 }
 
-function constructClientConfigState(
-  clientName: string,
-  clientId: string,
-  accessTokenLifetime: string,
-  refreshTokenLifetime: string,
-  redirectUris: string[],
-  postLogoutRedirectUris: string[]
+function updateClientConfig<K extends keyof OAuthClientConfig>(
+  clientConfig: OAuthClientConfig,
+  field: K,
+  newValue: OAuthClientConfig[K]
 ): OAuthClientConfig {
+  return produce(clientConfig, (draftConfig) => {
+    draftConfig[field] = newValue;
+  });
+}
+
+function convertIntegerStringToNumber(value: string): number | undefined {
   // Number("") = 0
-  const accessTokenLifetimeSec = Number(accessTokenLifetime);
-  const refreshTokenLifetimeSec = Number(refreshTokenLifetime);
-
-  const trimmedClientName = clientName.trim();
-  const name = trimmedClientName === "" ? undefined : trimmedClientName;
-
-  return {
-    name,
-    client_id: clientId,
-    redirect_uris: redirectUris,
-    post_logout_redirect_uris:
-      postLogoutRedirectUris.length > 0 ? postLogoutRedirectUris : undefined,
-    grant_types: [
-      "authorization_code",
-      "refresh_token",
-      "urn:authgear:params:oauth:grant-type:anonymous-request",
-    ],
-    response_types: ["code", "none"],
-    access_token_lifetime_seconds:
-      accessTokenLifetimeSec > 0 ? accessTokenLifetimeSec : undefined,
-    refresh_token_lifetime_seconds:
-      refreshTokenLifetimeSec > 0 ? refreshTokenLifetimeSec : undefined,
-  };
+  const numericValue = Number(value);
+  return numericValue === 0 ? undefined : numericValue;
 }
 
 const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function ModifyOAuthClientForm(
@@ -79,38 +67,61 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
 
   const { renderToString } = useContext(Context);
 
-  const { value: clientName, onChange: onClientNameChange } = useTextField(
-    clientConfig.name ?? ""
+  const { onChange: onClientNameChange } = useTextField((value) => {
+    onClientConfigChange(
+      updateClientConfig(clientConfig, "name", ensureNonEmptyString(value))
+    );
+  });
+
+  const { onChange: onAccessTokenLifetimeChange } = useIntegerTextField(
+    (value) => {
+      onClientConfigChange(
+        updateClientConfig(
+          clientConfig,
+          "access_token_lifetime_seconds",
+          convertIntegerStringToNumber(value)
+        )
+      );
+    }
+  );
+  const { onChange: onRefreshTokenLifetimeChange } = useIntegerTextField(
+    (value) => {
+      onClientConfigChange(
+        updateClientConfig(
+          clientConfig,
+          "refresh_token_lifetime_seconds",
+          convertIntegerStringToNumber(value)
+        )
+      );
+    }
   );
 
   const {
-    value: accessTokenLifetime,
-    onChange: onAccessTokenLifetimeChange,
-  } = useTextField(
-    clientConfig.access_token_lifetime_seconds?.toString() ?? "",
-    "integer"
-  );
-  const {
-    value: refreshTokenLifetime,
-    onChange: onRefreshTokenLifetimeChange,
-  } = useTextField(
-    clientConfig.refresh_token_lifetime_seconds?.toString() ?? "",
-    "integer"
-  );
-
-  const {
-    list: redirectUris,
+    selectedItems: redirectUriItems,
     onChange: onRedirectUrisChange,
     onResolveSuggestions: onResolveRedirectUrisSuggestions,
-    defaultSelectedItems: defaultSelectedRedirectUris,
-  } = useTagPickerWithNewTags(clientConfig.redirect_uris);
+  } = useTagPickerWithNewTags(clientConfig.redirect_uris, (list) => {
+    onClientConfigChange(
+      updateClientConfig(clientConfig, "redirect_uris", list)
+    );
+  });
 
   const {
-    list: postLogoutRedirectUris,
+    selectedItems: postLogoutRedirectUriItems,
     onChange: onPostLogoutRedirectUrisChange,
     onResolveSuggestions: onResolvePostLogoutUrisSuggestions,
-    defaultSelectedItems: defaultSelectedPostLogoutUris,
-  } = useTagPickerWithNewTags(clientConfig.post_logout_redirect_uris ?? []);
+  } = useTagPickerWithNewTags(
+    clientConfig.post_logout_redirect_uris ?? [],
+    (list) => {
+      onClientConfigChange(
+        updateClientConfig(
+          clientConfig,
+          "post_logout_redirect_uris",
+          list.length > 0 ? list : undefined
+        )
+      );
+    }
+  );
 
   const errorMessageMap = useMemo(() => {
     const clientNameErrorMessages: string[] = [];
@@ -168,34 +179,12 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
     };
   }, [updateAppConfigError, renderToString]);
 
-  useEffect(() => {
-    onClientConfigChange(
-      constructClientConfigState(
-        clientName,
-        clientConfig.client_id,
-        accessTokenLifetime,
-        refreshTokenLifetime,
-        redirectUris,
-        postLogoutRedirectUris
-      )
-    );
-  }, [
-    clientConfig.client_id,
-    onClientConfigChange,
-
-    clientName,
-    accessTokenLifetime,
-    refreshTokenLifetime,
-    redirectUris,
-    postLogoutRedirectUris,
-  ]);
-
   return (
     <section className={cn(styles.root, className)}>
       <TextField
         className={styles.inputField}
         label={renderToString("ModifyOAuthClientForm.name-label")}
-        value={clientName}
+        value={clientConfig.name ?? ""}
         onChange={onClientNameChange}
         required={true}
         errorMessage={errorMessageMap.clientName}
@@ -205,7 +194,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
         label={renderToString(
           "ModifyOAuthClientForm.acces-token-lifetime-label"
         )}
-        value={accessTokenLifetime}
+        value={clientConfig.access_token_lifetime_seconds?.toString() ?? ""}
         onChange={onAccessTokenLifetimeChange}
       />
       <TextField
@@ -213,7 +202,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
         label={renderToString(
           "ModifyOAuthClientForm.refresh-token-lifetime-label"
         )}
-        value={refreshTokenLifetime}
+        value={clientConfig.refresh_token_lifetime_seconds?.toString() ?? ""}
         onChange={onRefreshTokenLifetimeChange}
       />
       <LabelWithTooltip
@@ -227,7 +216,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
         className={styles.inputField}
         onChange={onRedirectUrisChange}
         onResolveSuggestions={onResolveRedirectUrisSuggestions}
-        defaultSelectedItems={defaultSelectedRedirectUris}
+        selectedItems={redirectUriItems}
       />
       <Text className={styles.errorMessage}>
         {errorMessageMap.redirectUris}
@@ -242,7 +231,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
         className={styles.inputField}
         onChange={onPostLogoutRedirectUrisChange}
         onResolveSuggestions={onResolvePostLogoutUrisSuggestions}
-        defaultSelectedItems={defaultSelectedPostLogoutUris}
+        selectedItems={postLogoutRedirectUriItems}
       />
       <Text className={styles.errorMessage}>
         {errorMessageMap.postLogoutRedirectUris}

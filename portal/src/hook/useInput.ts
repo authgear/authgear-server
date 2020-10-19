@@ -1,71 +1,80 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo } from "react";
 import { IDropdownOption, ITag } from "@fluentui/react";
 
-type TextFieldType = "integer" | "text";
-
-function textFieldValidate(value?: string, type?: TextFieldType): boolean {
-  switch (type) {
-    case "integer":
-      return /^[0-9]*$/.test(value ?? "");
-    default:
-      return true;
-  }
+export function useTextField(
+  onChange: (value: string) => void
+): { onChange: (_event: any, value?: string) => void } {
+  const onTextFieldChange = useCallback(
+    (_event, value?: string) => {
+      onChange(value ?? "");
+    },
+    [onChange]
+  );
+  return {
+    onChange: onTextFieldChange,
+  };
 }
 
-export const useTextField = (
-  initialValue: string,
-  type?: TextFieldType
-): { value: string; onChange: (_event: any, value?: string) => void } => {
-  const [textFieldValue, setTextFieldValue] = React.useState(initialValue);
-  const onChange = React.useCallback(
-    (_event, value?: string) => {
-      if (!textFieldValidate(value, type)) {
+export function useIntegerTextField(
+  onChange: (value: string) => void
+): { onChange: (_event: any, value?: string) => void } {
+  const onTextFieldChange = useCallback(
+    (_event: any, value?: string) => {
+      if (/^[0-9]*$/.test(value ?? "")) {
+        onChange(value ?? "");
+      }
+    },
+    [onChange]
+  );
+  return { onChange: onTextFieldChange };
+}
+
+export function useCheckbox(
+  onChange: (checked: boolean) => void
+): {
+  onChange: (_event: any, checked?: boolean) => void;
+} {
+  const onCheckboxChange = useCallback(
+    (_event, checked?: boolean) => {
+      if (checked == null) {
         return;
       }
-      setTextFieldValue(value ?? "");
+      onChange(checked);
     },
-    [setTextFieldValue, type]
+    [onChange]
   );
-  return {
-    value: textFieldValue,
-    onChange,
-  };
-};
 
-export const useCheckbox = (
-  initialValue: boolean
-): { value: boolean; onChange: (_event: any, value?: boolean) => void } => {
-  const [checked, setChecked] = React.useState(initialValue);
-  const onChange = React.useCallback(
-    (_event, value?: boolean) => {
-      setChecked(!!value);
-    },
-    [setChecked]
-  );
-  return {
-    value: checked,
-    onChange,
-  };
-};
+  return { onChange: onCheckboxChange };
+}
 
 export const useTagPickerWithNewTags = (
-  initialList: string[],
+  list: string[],
+  onListChange: (list: string[]) => void,
   suggestionList?: ITag[]
 ): {
-  list: string[];
-  defaultSelectedItems: ITag[];
+  selectedItems: ITag[];
   onChange: (items?: ITag[]) => void;
   onResolveSuggestions: (filterText: string, _tagList?: ITag[]) => ITag[];
 } => {
-  const [list, setList] = React.useState(initialList);
+  const onChange = React.useCallback(
+    (items?: ITag[]) => {
+      if (items == null) {
+        return;
+      }
+      const listItems = items.map((item) => item.name);
+      onListChange(listItems);
+    },
+    [onListChange]
+  );
 
-  const onChange = React.useCallback((items?: ITag[]) => {
-    if (items == null) {
-      return;
-    }
-    const listItems = items.map((item) => item.name);
-    setList(listItems);
-  }, []);
+  const selectedItems = React.useMemo(
+    () =>
+      list.map((text) => ({
+        key: text,
+        name: text,
+      })),
+    [list]
+  );
 
   const onResolveSuggestions = React.useCallback(
     (filterText: string, _tagList?: ITag[]): ITag[] => {
@@ -80,18 +89,8 @@ export const useTagPickerWithNewTags = (
     [suggestionList]
   );
 
-  const defaultSelectedItems = React.useMemo(
-    () =>
-      initialList.map((text) => ({
-        key: text,
-        name: text,
-      })),
-    [initialList]
-  );
-
   return {
-    list,
-    defaultSelectedItems,
+    selectedItems,
     onChange,
     onResolveSuggestions,
   };
@@ -113,37 +112,32 @@ export function makeDropdownOptions<K extends string>(
 
 export function useDropdown<K extends string>(
   keyList: K[],
-  initialOption?: K,
+  onChange: (option: K) => void,
+  selectedKey?: K,
   displayText?: (key: K) => string,
   hiddenSelections?: Set<K>
 ): {
-  selectedKey?: K;
   options: IDropdownOption[];
   onChange: (_event: any, option?: IDropdownOption) => void;
-  resetOption: () => void;
 } {
-  const [selectedKey, setSelectedKey] = useState<K | undefined>(initialOption);
   const options = useMemo(
     () =>
       makeDropdownOptions(keyList, selectedKey, displayText, hiddenSelections),
     [selectedKey, displayText, keyList, hiddenSelections]
   );
 
-  const onChange = useCallback((_event: any, option?: IDropdownOption) => {
-    if (option == null) {
-      return;
-    }
-    setSelectedKey(option.key.toString() as K);
-  }, []);
-
-  const resetOption = useCallback(() => {
-    setSelectedKey(initialOption);
-  }, [initialOption]);
+  const onSelectionChange = useCallback(
+    (_event: any, option?: IDropdownOption) => {
+      if (option == null) {
+        return;
+      }
+      onChange(option.key.toString() as K);
+    },
+    [onChange]
+  );
 
   return {
-    selectedKey,
     options,
-    onChange,
-    resetOption,
+    onChange: onSelectionChange,
   };
 }

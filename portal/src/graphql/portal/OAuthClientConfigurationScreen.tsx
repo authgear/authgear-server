@@ -21,6 +21,10 @@ import deepEqual from "deep-equal";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import ButtonWithLoading from "../../ButtonWithLoading";
+import {
+  ModifiedIndicatorPortal,
+  ModifiedIndicatorWrapper,
+} from "../../ModifiedIndicatorPortal";
 import { PortalAPIApp, PortalAPIAppConfig } from "../../types";
 import { useAppConfigQuery } from "./query/appConfigQuery";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
@@ -110,12 +114,15 @@ const AllowedOriginsConfiguration: React.FC<AllowedOriginsConfigurationProps> = 
     return effectiveAppConfig?.http?.allowed_origins ?? [];
   }, [effectiveAppConfig]);
 
+  const [allowedOrigins, setAllowedOrigins] = useState<string[]>(
+    initialAllowedOrigins
+  );
+
   const {
-    list: allowedOrigins,
-    defaultSelectedItems: defaultAllowedOrigin,
+    selectedItems: allowedOriginItems,
     onChange: onAllowedOriginsChange,
     onResolveSuggestions: onResolveAllowedOriginsSuggestions,
-  } = useTagPickerWithNewTags(initialAllowedOrigins);
+  } = useTagPickerWithNewTags(allowedOrigins, setAllowedOrigins);
 
   const onSaveClick = useCallback(() => {
     if (rawAppConfig == null) {
@@ -140,8 +147,13 @@ const AllowedOriginsConfiguration: React.FC<AllowedOriginsConfigurationProps> = 
     return !deepEqual(allowedOrigins, initialAllowedOrigins);
   }, [allowedOrigins, initialAllowedOrigins]);
 
+  const resetForm = useCallback(() => {
+    setAllowedOrigins(initialAllowedOrigins);
+  }, [initialAllowedOrigins]);
+
   return (
     <section className={styles.allowedOriginsConfiguration}>
+      <ModifiedIndicatorPortal resetForm={resetForm} isModified={isModified} />
       <Text as="h2" className={styles.allowedOriginsConfigurationHeader}>
         <FormattedMessage id="OAuthClientConfigurationScreen.allowed-origins.header" />
       </Text>
@@ -150,8 +162,8 @@ const AllowedOriginsConfiguration: React.FC<AllowedOriginsConfigurationProps> = 
       </Text>
       <Stack horizontal={true} tokens={{ childrenGap: 10 }}>
         <TagPicker
+          selectedItems={allowedOriginItems}
           className={styles.allowedOriginsConfigurationPicker}
-          defaultSelectedItems={defaultAllowedOrigin}
           onChange={onAllowedOriginsChange}
           onResolveSuggestions={onResolveAllowedOriginsSuggestions}
         />
@@ -470,19 +482,21 @@ const OAuthClientConfigurationScreen: React.FC = function OAuthClientConfigurati
 
   return (
     <main className={styles.root}>
-      {isNotificationVisible && (
-        <MessageBar onDismiss={dismissNotification}>
-          <p>{notificationMsg}</p>
-        </MessageBar>
-      )}
-      <Text as="h1" className={styles.header}>
-        <FormattedMessage id="OAuthClientConfiguration.title" />
-      </Text>
-      <OAuthClientConfiguration
-        rawAppConfig={rawAppConfig}
-        effectiveAppConfig={effectiveAppConfig}
-        showNotification={showNotification}
-      />
+      <ModifiedIndicatorWrapper className={styles.wrapper}>
+        {isNotificationVisible && (
+          <MessageBar onDismiss={dismissNotification}>
+            <p>{notificationMsg}</p>
+          </MessageBar>
+        )}
+        <Text as="h1" className={styles.header}>
+          <FormattedMessage id="OAuthClientConfiguration.title" />
+        </Text>
+        <OAuthClientConfiguration
+          rawAppConfig={rawAppConfig}
+          effectiveAppConfig={effectiveAppConfig}
+          showNotification={showNotification}
+        />
+      </ModifiedIndicatorWrapper>
     </main>
   );
 };

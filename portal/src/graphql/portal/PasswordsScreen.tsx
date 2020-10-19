@@ -6,6 +6,7 @@ import cn from "classnames";
 
 import PasswordPolicySettings from "./PasswordPolicySettings";
 import ForgotPasswordSettings from "./ForgotPasswordSettings";
+import { ModifiedIndicatorWrapper } from "../../ModifiedIndicatorPortal";
 import { useAppConfigQuery } from "./query/appConfigQuery";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
 import ShowLoading from "../../ShowLoading";
@@ -49,7 +50,7 @@ const PasswordsScreen: React.FC = function PasswordsScreen() {
   return (
     <main className={cn(styles.root, { [styles.loading]: updatingAppConfig })}>
       {updateAppConfigError && <ShowError error={updateAppConfigError} />}
-      <div className={styles.content}>
+      <ModifiedIndicatorWrapper className={styles.content}>
         <Text as="h1" className={styles.title}>
           <FormattedMessage id="PasswordsScreen.title" />
         </Text>
@@ -83,7 +84,7 @@ const PasswordsScreen: React.FC = function PasswordsScreen() {
             </PivotItem>
           </Pivot>
         </div>
-      </div>
+      </ModifiedIndicatorWrapper>
     </main>
   );
 };

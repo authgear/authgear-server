@@ -12,6 +12,10 @@ import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import FormTextField from "../../FormTextField";
+import {
+  ModifiedIndicatorPortal,
+  ModifiedIndicatorWrapper,
+} from "../../ModifiedIndicatorPortal";
 import ShowUnhandledValidationErrorCause from "../../error/ShowUnhandledValidationErrorCauses";
 import { useValidationError } from "../../error/useValidationError";
 import { useGenericError } from "../../error/useGenericError";
@@ -51,6 +55,10 @@ const InviteAdminContent: React.FC = function InviteAdminContent() {
     return email !== "";
   }, [email]);
 
+  const resetForm = useCallback(() => {
+    setEmail("");
+  }, []);
+
   const onEmailChange = useCallback((_event, value?: string) => {
     if (value === undefined) {
       return;
@@ -83,6 +91,10 @@ const InviteAdminContent: React.FC = function InviteAdminContent() {
   return (
     <FormContext.Provider value={formContextValue}>
       <form className={styles.content} onSubmit={onFormSubmit}>
+        <ModifiedIndicatorPortal
+          resetForm={resetForm}
+          isModified={isFormModified}
+        />
         <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
         <FormTextField
           jsonPointer="/inviteeEmail"
@@ -119,8 +131,13 @@ const InviteAdminScreen: React.FC = function InviteAdminScreen() {
 
   return (
     <main className={styles.root}>
-      <NavBreadcrumb className={styles.breadcrumb} items={navBreadcrumbItems} />
-      <InviteAdminContent />
+      <ModifiedIndicatorWrapper className={styles.wrapper}>
+        <NavBreadcrumb
+          className={styles.breadcrumb}
+          items={navBreadcrumbItems}
+        />
+        <InviteAdminContent />
+      </ModifiedIndicatorWrapper>
     </main>
   );
 };

@@ -4,6 +4,7 @@
   "loading": "Loading...",
 
   "error": "Error",
+  "reset": "Reset",
   "action": "Action",
   "ok": "OK",
   "done": "Done",
@@ -406,5 +407,9 @@
   "AcceptAdminInvitationScreen.invalid-code-error": "Invalid invitation code",
   "AcceptAdminInvitationScreen.duplicated-collaborator-error": "Admin already exist",
 
-  "PasswordStrengthMeter.password-strength": "Password Strength"
+  "PasswordStrengthMeter.password-strength": "Password Strength",
+
+  "ModifiedIndicator.message": "You have made unsaved changes",
+  "ModifiedIndicator.confirm-dialog.title": "Reset Form State",
+  "ModifiedIndicator.confirm-dialog.message": "Are you sure you want to reset form to initial state?"
 }

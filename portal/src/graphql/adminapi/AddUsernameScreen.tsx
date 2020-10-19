@@ -24,6 +24,10 @@ import PasswordField, {
 import ButtonWithLoading from "../../ButtonWithLoading";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
+import {
+  ModifiedIndicatorPortal,
+  ModifiedIndicatorWrapper,
+} from "../../ModifiedIndicatorPortal";
 import { useCreateLoginIDIdentityMutation } from "./mutations/createIdentityMutation";
 import { useTextField } from "../../hook/useInput";
 import {
@@ -31,11 +35,11 @@ import {
   Violation,
 } from "../../util/validation";
 import { parseError } from "../../util/error";
+import { nonNullable } from "../../util/types";
+import { AuthenticatorType } from "./__generated__/globalTypes";
 import { PortalAPIAppConfig } from "../../types";
 
 import styles from "./AddUsernameScreen.module.scss";
-import { nonNullable } from "../../util/types";
-import { AuthenticatorType } from "./__generated__/globalTypes";
 
 interface AddUsernameFormProps {
   appConfig: PortalAPIAppConfig | null;
@@ -79,20 +83,30 @@ const AddUsernameForm: React.FC<AddUsernameFormProps> = function AddUsernameForm
   const [localViolations, setLocalViolations] = useState<Violation[]>([]);
   const [submittedForm, setSubmittedForm] = useState(false);
 
-  const { value: username, onChange: onUsernameChange } = useTextField("");
-  const { value: password, onChange: onPasswordChange } = useTextField("");
+  const initialFormData = useMemo(() => {
+    return {
+      password: "",
+      username: "",
+    };
+  }, []);
 
-  const screenState = useMemo(
-    () => ({
-      password,
-      username,
-    }),
-    [username, password]
-  );
+  const [formData, setFormData] = useState(initialFormData);
+  const { username, password } = formData;
+
+  const { onChange: onUsernameChange } = useTextField((value) => {
+    setFormData((prev) => ({ ...prev, username: value }));
+  });
+  const { onChange: onPasswordChange } = useTextField((value) => {
+    setFormData((prev) => ({ ...prev, password: value }));
+  });
 
   const isFormModified = useMemo(() => {
-    return !deepEqual({ username: "", password: "" }, screenState);
-  }, [screenState]);
+    return !deepEqual(formData, initialFormData);
+  }, [formData, initialFormData]);
+
+  const resetForm = useCallback(() => {
+    setFormData(initialFormData);
+  }, [initialFormData]);
 
   const onFormSubmit = useCallback(
     (ev: React.SyntheticEvent<HTMLElement>) => {
@@ -122,7 +136,7 @@ const AddUsernameForm: React.FC<AddUsernameFormProps> = function AddUsernameForm
 
   useEffect(() => {
     if (submittedForm) {
-      navigate("../#connected-identities");
+      navigate("..#connected-identities");
     }
   }, [submittedForm, navigate]);
 
@@ -174,6 +188,10 @@ const AddUsernameForm: React.FC<AddUsernameFormProps> = function AddUsernameForm
 
   return (
     <form className={styles.content} onSubmit={onFormSubmit}>
+      <ModifiedIndicatorPortal
+        resetForm={resetForm}
+        isModified={isFormModified}
+      />
       {unhandledViolations.length > 0 && (
         <ShowError error={createIdentityError} />
       )}
@@ -200,7 +218,7 @@ const AddUsernameForm: React.FC<AddUsernameFormProps> = function AddUsernameForm
       )}
       <ButtonWithLoading
         type="submit"
-        disabled={!isFormModified}
+        disabled={!isFormModified || submittedForm}
         labelId="add"
         loading={creatingIdentity}
       />
@@ -246,8 +264,10 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
   return (
     <div className={styles.root}>
       <UserDetailCommandBar />
-      <NavBreadcrumb className={styles.breadcrumb} items={navBreadcrumbItems} />
-      <AddUsernameForm appConfig={effectiveAppConfig} user={user} />
+      <ModifiedIndicatorWrapper className={styles.wrapper}>
+        <NavBreadcrumb items={navBreadcrumbItems} />
+        <AddUsernameForm appConfig={effectiveAppConfig} user={user} />
+      </ModifiedIndicatorWrapper>
     </div>
   );
 };

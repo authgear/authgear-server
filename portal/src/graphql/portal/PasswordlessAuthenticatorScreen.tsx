@@ -17,6 +17,10 @@ import CodeEditor from "../../CodeEditor";
 import { clearEmptyObject } from "../../util/misc";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
+import {
+  ModifiedIndicatorPortal,
+  ModifiedIndicatorWrapper,
+} from "../../ModifiedIndicatorPortal";
 import { PortalAPIAppConfig, PortalAPIEmailAndSmsTemplates } from "../../types";
 
 import styles from "./PasswordlessAuthenticatorScreen.module.scss";
@@ -83,6 +87,10 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
   const isFormModified = useMemo(() => {
     return !deepEqual(initialState, state, { strict: true });
   }, [initialState, state]);
+
+  const resetForm = useCallback(() => {
+    setState(initialState);
+  }, [initialState]);
 
   const onSetupEmailHtmlTemplateChange = useCallback(
     (_event: unknown, value: string | undefined) => {
@@ -372,6 +380,10 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
       </div>
 
       <NavigationBlockerDialog blockNavigation={isFormModified} />
+      <ModifiedIndicatorPortal
+        resetForm={resetForm}
+        isModified={isFormModified}
+      />
     </div>
   );
 };
@@ -462,7 +474,7 @@ const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthentic
       {updateAppAndSetupEmailSmsTemplateConfigError && (
         <ShowError error={updateAppAndSetupEmailSmsTemplateConfigError} />
       )}
-      <div className={styles.content}>
+      <ModifiedIndicatorWrapper className={styles.content}>
         <Text as="h1" className={styles.title}>
           <FormattedMessage id="PasswordlessAuthenticatorScreen.title" />
         </Text>
@@ -483,7 +495,7 @@ const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthentic
             updatingAppAndAuthenticateEmailSmsTemplateConfig
           }
         />
-      </div>
+      </ModifiedIndicatorWrapper>
     </main>
   );
 };

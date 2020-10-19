@@ -8,11 +8,12 @@ import produce from "immer";
 import CodeEditor from "../../CodeEditor";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
+import { ModifiedIndicatorPortal } from "../../ModifiedIndicatorPortal";
+import TodoButtonWrapper from "../../TodoButtonWrapper";
 import { setFieldIfChanged, clearEmptyObject } from "../../util/misc";
 import { PortalAPIAppConfig, PortalAPIApp } from "../../types";
 
 import styles from "./ForgotPasswordSettings.module.scss";
-import TodoButtonWrapper from "../../TodoButtonWrapper";
 
 interface ForgotPasswordSettingsProps {
   className?: string;
@@ -93,6 +94,10 @@ const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function F
     return !deepEqual(initialState, state, { strict: true });
   }, [initialState, state]);
 
+  const resetForm = useCallback(() => {
+    setState(initialState);
+  }, [initialState]);
+
   const onEmailHtmlTemplateChange = useCallback(
     (_event: unknown, value: string | undefined) => {
       if (value === undefined) {
@@ -165,6 +170,10 @@ const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function F
 
   return (
     <form className={cn(styles.root, className)} onSubmit={onFormSubmit}>
+      <ModifiedIndicatorPortal
+        resetForm={resetForm}
+        isModified={isFormModified}
+      />
       <Label className={styles.boldLabel}>
         <FormattedMessage id="PasswordsScreen.forgot-password.email.label" />
       </Label>

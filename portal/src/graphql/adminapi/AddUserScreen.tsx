@@ -23,6 +23,10 @@ import { useCreateUserMutation } from "./mutations/createUserMutation";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
+import {
+  ModifiedIndicatorPortal,
+  ModifiedIndicatorWrapper,
+} from "../../ModifiedIndicatorPortal";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import PasswordField, {
@@ -48,7 +52,7 @@ interface AddUserContentProps {
   appConfig: PortalAPIAppConfig | null;
 }
 
-interface AddUserScreenState {
+interface AddUserFormState {
   selectedLoginIdKey?: LoginIDKey;
   username: string;
   email: string;
@@ -128,17 +132,15 @@ function getLoginIdKeyOptions(appConfig: PortalAPIAppConfig | null) {
 }
 
 function validate(
-  screenState: AddUserScreenState,
+  formState: AddUserFormState,
   passwordPolicy: PasswordPolicyConfig,
   passwordRequired: boolean
 ) {
   const errors: Violation[] = [];
   if (passwordRequired) {
-    const passwordCheckResult = zxcvbn(screenState.password);
+    const passwordCheckResult = zxcvbn(formState.password);
     const guessableLevel = extractGuessableLevel(passwordCheckResult);
-    if (
-      !isPasswordValid(passwordPolicy, screenState.password, guessableLevel)
-    ) {
+    if (!isPasswordValid(passwordPolicy, formState.password, guessableLevel)) {
       errors.push({ kind: "Invalid" });
     }
   }
@@ -175,13 +177,39 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
 
   const selectedLoginIdInLastSubmission = useRef<LoginIDKey | null>(null);
   const [submittedForm, setSubmittedForm] = useState(false);
-  const [selectedLoginIdKey, setSelectedLoginIdKey] = useState<
-    LoginIDKey | undefined
-  >(undefined);
-  const { value: username, onChange: onUsernameChange } = useTextField("");
-  const { value: email, onChange: onEmailChange } = useTextField("");
-  const { value: phone, onChange: onPhoneChange } = useTextField("");
-  const { value: password, onChange: onPasswordChange } = useTextField("");
+
+  const initialFormState = useMemo<AddUserFormState>(() => {
+    return {
+      username: "",
+      email: "",
+      phone: "",
+      password: "",
+    };
+  }, []);
+
+  const [formState, setFormState] = useState(initialFormState);
+  const { username, email, phone, password, selectedLoginIdKey } = formState;
+
+  const resetForm = useCallback(() => {
+    setFormState(initialFormState);
+  }, [initialFormState]);
+
+  const isFormModified = useMemo(() => {
+    return !deepEqual(initialFormState, formState);
+  }, [initialFormState, formState]);
+
+  const { onChange: onUsernameChange } = useTextField((value) => {
+    setFormState((prev) => ({ ...prev, username: value }));
+  });
+  const { onChange: onEmailChange } = useTextField((value) => {
+    setFormState((prev) => ({ ...prev, email: value }));
+  });
+  const { onChange: onPhoneChange } = useTextField((value) => {
+    setFormState((prev) => ({ ...prev, phone: value }));
+  });
+  const { onChange: onPasswordChange } = useTextField((value) => {
+    setFormState((prev) => ({ ...prev, password: value }));
+  });
 
   const onSelectLoginIdKey = useCallback(
     (_event, options?: IChoiceGroupOption) => {
@@ -189,7 +217,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
       if (!isLoginIDKey(loginIdKey)) {
         return;
       }
-      setSelectedLoginIdKey(loginIdKey);
+      setFormState((prev) => ({ ...prev, selectedLoginIdKey: loginIdKey }));
     },
     []
   );
@@ -336,16 +364,6 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
     [selectedLoginIdKey, username, email, phone, password]
   );
 
-  const isFormModified = useMemo(() => {
-    const initialState: AddUserScreenState = {
-      username: "",
-      email: "",
-      phone: "",
-      password: "",
-    };
-    return !deepEqual(initialState, screenState);
-  }, [screenState]);
-
   const onFormSubmit = useCallback(
     (ev: React.SyntheticEvent<HTMLElement>) => {
       ev.preventDefault();
@@ -396,6 +414,10 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
       <NavigationBlockerDialog
         blockNavigation={!submittedForm && isFormModified}
       />
+      <ModifiedIndicatorPortal
+        isModified={isFormModified}
+        resetForm={resetForm}
+      />
       <ChoiceGroup
         className={styles.userInfo}
         styles={{ label: { marginBottom: "15px", fontSize: "14px" } }}
@@ -418,7 +440,9 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
         className={styles.addUserButton}
         loading={creatingUser}
         labelId="AddUserScreen.add-user.label"
-        disabled={!isFormModified || selectedLoginIdKey == null}
+        disabled={
+          !isFormModified || selectedLoginIdKey == null || submittedForm
+        }
       />
     </form>
   );
@@ -448,8 +472,10 @@ const AddUserScreen: React.FC = function AddUserScreen() {
 
   return (
     <main className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
-      <AddUserContent appConfig={effectiveAppConfig} />
+      <ModifiedIndicatorWrapper className={styles.wrapper}>
+        <NavBreadcrumb items={navBreadcrumbItems} />
+        <AddUserContent appConfig={effectiveAppConfig} />
+      </ModifiedIndicatorWrapper>
     </main>
   );
 };

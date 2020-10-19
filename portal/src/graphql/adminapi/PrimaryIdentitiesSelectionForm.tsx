@@ -1,17 +1,24 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
+import deepEqual from "deep-equal";
 import { Dropdown, PrimaryButton } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { useDropdown } from "../../hook/useInput";
 
 import { IdentityLists } from "./UserDetailsConnectedIdentities";
+import NavigationBlockerDialog from "../../NavigationBlockerDialog";
+import { ModifiedIndicatorPortal } from "../../ModifiedIndicatorPortal";
+import { useDropdown } from "../../hook/useInput";
 
 import styles from "./PrimaryIdentitiesSelectionForm.module.scss";
-import deepEqual from "deep-equal";
-import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 
 interface PrimaryIdentitiesSelectionFormProps {
   className?: string;
   identityLists: IdentityLists;
+}
+
+interface PrimaryIdentitiesSelectionFormState {
+  email?: string;
+  phone?: string;
+  username?: string;
 }
 
 const PrimaryIdentitiesSelectionForm: React.FC<PrimaryIdentitiesSelectionFormProps> = function PrimaryIdentitiesSelectionForm(
@@ -19,45 +26,67 @@ const PrimaryIdentitiesSelectionForm: React.FC<PrimaryIdentitiesSelectionFormPro
 ) {
   const { className, identityLists } = props;
   const { renderToString } = useContext(Context);
+
+  const initialFormData = useMemo<PrimaryIdentitiesSelectionFormState>(() => {
+    return {
+      email: undefined,
+      phone: undefined,
+      username: undefined,
+    };
+  }, []);
+
+  const [formData, setFormData] = useState(initialFormData);
+  const { email, phone, username } = formData;
+
+  const isFormModified = useMemo(() => {
+    return !deepEqual(formData, initialFormData);
+  }, [formData, initialFormData]);
+
+  const resetForm = useCallback(() => {
+    setFormData(initialFormData);
+  }, [initialFormData]);
+
   const {
-    selectedKey: selectedPrimaryEmail,
     options: primaryEmailOptions,
     onChange: onPrimaryEmailOptionsChange,
-  } = useDropdown(identityLists.email.map((identity) => identity.claimValue));
+  } = useDropdown(
+    identityLists.email.map((identity) => identity.claimValue),
+    (option) => {
+      setFormData((prev) => ({
+        ...prev,
+        email: option,
+      }));
+    },
+    email
+  );
 
   const {
-    selectedKey: selectedPrimaryPhone,
     options: primaryPhoneOptions,
     onChange: onPrimaryPhoneOptionsChange,
-  } = useDropdown(identityLists.phone.map((identity) => identity.claimValue));
+  } = useDropdown(
+    identityLists.phone.map((identity) => identity.claimValue),
+    (option) => {
+      setFormData((prev) => ({
+        ...prev,
+        phone: option,
+      }));
+    },
+    phone
+  );
 
   const {
-    selectedKey: selectedPrimaryUsername,
     options: primaryUsernameOptions,
     onChange: onPrimaryUsernameOptionsChange,
   } = useDropdown(
-    identityLists.username.map((identity) => identity.claimValue)
+    identityLists.username.map((identity) => identity.claimValue),
+    (option) => {
+      setFormData((prev) => ({
+        ...prev,
+        username: option,
+      }));
+    },
+    username
   );
-
-  const primaryIdentitiesState = useMemo(
-    () => ({
-      email: selectedPrimaryEmail,
-      phone: selectedPrimaryPhone,
-      username: selectedPrimaryUsername,
-    }),
-    [selectedPrimaryEmail, selectedPrimaryPhone, selectedPrimaryUsername]
-  );
-
-  const isFormModified = useMemo(() => {
-    return !deepEqual(
-      {
-        email: undefined,
-        phone: undefined,
-        username: undefined,
-      },
-      primaryIdentitiesState
-    );
-  }, [primaryIdentitiesState]);
 
   const onSaveClicked = useCallback(() => {
     // TODO: to be implemented
@@ -66,9 +95,14 @@ const PrimaryIdentitiesSelectionForm: React.FC<PrimaryIdentitiesSelectionFormPro
   return (
     <div className={className}>
       <NavigationBlockerDialog blockNavigation={isFormModified} />
+      <ModifiedIndicatorPortal
+        resetForm={resetForm}
+        isModified={isFormModified}
+      />
       <section className={styles.primaryIdentities}>
         <Dropdown
           className={styles.primaryEmail}
+          selectedKey={email ?? null}
           disabled={identityLists.email.length === 0}
           options={primaryEmailOptions}
           onChange={onPrimaryEmailOptionsChange}
@@ -78,6 +112,7 @@ const PrimaryIdentitiesSelectionForm: React.FC<PrimaryIdentitiesSelectionFormPro
         />
         <Dropdown
           className={styles.primaryPhone}
+          selectedKey={phone ?? null}
           disabled={identityLists.phone.length === 0}
           options={primaryPhoneOptions}
           onChange={onPrimaryPhoneOptionsChange}
@@ -87,6 +122,7 @@ const PrimaryIdentitiesSelectionForm: React.FC<PrimaryIdentitiesSelectionFormPro
         />
         <Dropdown
           className={styles.primaryUsername}
+          selectedKey={username ?? null}
           disabled={identityLists.username.length === 0}
           options={primaryUsernameOptions}
           onChange={onPrimaryUsernameOptionsChange}
