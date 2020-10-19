@@ -7,13 +7,18 @@ import cn from "classnames";
 import PasswordPolicySettings from "./PasswordPolicySettings";
 import ForgotPasswordSettings from "./ForgotPasswordSettings";
 import { ModifiedIndicatorWrapper } from "../../ModifiedIndicatorPortal";
-import { useAppConfigQuery } from "./query/appConfigQuery";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
+import { useUpdateAppTemplatesMutation } from "./mutations/updateAppTemplatesMutation";
+import { useAppConfigQuery } from "./query/appConfigQuery";
+import { useAppTemplatesQuery } from "./query/appTemplatesQuery";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import { usePivotNavigation } from "../../hook/usePivot";
+import { ForgotPasswordMessageTemplates } from "../../templates";
 
 import styles from "./PasswordsScreen.module.scss";
+
+type ForgotPasswordMessageTemplateKeys = typeof ForgotPasswordMessageTemplates[number];
 
 const PASSWORD_POLICY_PIVOT_KEY = "password_policy";
 const FORGOT_PASSWORD_POLICY_KEY = "forgot_password";
@@ -32,24 +37,44 @@ const PasswordsScreen: React.FC = function PasswordsScreen() {
     error: updateAppConfigError,
   } = useUpdateAppConfigMutation(appID);
   const {
-    loading,
-    error,
+    updateAppTemplates,
+    loading: updatingTemplates,
+    error: updateTemplatesError,
+  } = useUpdateAppTemplatesMutation<ForgotPasswordMessageTemplateKeys>(appID);
+
+  const {
+    loading: loadingAppConfig,
+    error: loadAppConfigError,
     effectiveAppConfig,
     rawAppConfig,
     refetch,
   } = useAppConfigQuery(appID);
+  const {
+    templates,
+    loading: loadingTemplates,
+    error: loadTemplatesError,
+    refetch: refetchTemplates,
+  } = useAppTemplatesQuery(appID, ...ForgotPasswordMessageTemplates);
 
-  if (loading) {
+  if (loadingAppConfig || loadingTemplates) {
     return <ShowLoading />;
   }
 
-  if (error != null) {
-    return <ShowError error={error} onRetry={refetch} />;
+  if (loadAppConfigError != null) {
+    return <ShowError error={loadAppConfigError} onRetry={refetch} />;
+  }
+  if (loadTemplatesError != null) {
+    return <ShowError error={loadTemplatesError} onRetry={refetchTemplates} />;
   }
 
   return (
-    <main className={cn(styles.root, { [styles.loading]: updatingAppConfig })}>
+    <main
+      className={cn(styles.root, {
+        [styles.loading]: updatingAppConfig || updatingTemplates,
+      })}
+    >
       {updateAppConfigError && <ShowError error={updateAppConfigError} />}
+      {updateTemplatesError && <ShowError error={updateTemplatesError} />}
       <ModifiedIndicatorWrapper className={styles.content}>
         <Text as="h1" className={styles.title}>
           <FormattedMessage id="PasswordsScreen.title" />
@@ -78,8 +103,11 @@ const PasswordsScreen: React.FC = function PasswordsScreen() {
               <ForgotPasswordSettings
                 effectiveAppConfig={effectiveAppConfig}
                 rawAppConfig={rawAppConfig}
+                templates={templates}
                 updateAppConfig={updateAppConfig}
+                updateTemplates={updateAppTemplates}
                 updatingAppConfig={updatingAppConfig}
+                updatingTemplates={updatingTemplates}
               />
             </PivotItem>
           </Pivot>

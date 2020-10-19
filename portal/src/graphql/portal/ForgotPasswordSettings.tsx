@@ -5,24 +5,35 @@ import cn from "classnames";
 import deepEqual from "deep-equal";
 import produce from "immer";
 
+import { AppTemplatesUpdater } from "./mutations/updateAppTemplatesMutation";
 import CodeEditor from "../../CodeEditor";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import { ModifiedIndicatorPortal } from "../../ModifiedIndicatorPortal";
-import TodoButtonWrapper from "../../TodoButtonWrapper";
 import { setFieldIfChanged, clearEmptyObject } from "../../util/misc";
-import { PortalAPIAppConfig, PortalAPIApp } from "../../types";
+import { PortalAPIApp, PortalAPIAppConfig } from "../../types";
+import {
+  ForgotPasswordMessageTemplates,
+  TEMPLATE_FORGOT_PASSWORD_EMAIL_HTML,
+  TEMPLATE_FORGOT_PASSWORD_EMAIL_TEXT,
+  TEMPLATE_FORGOT_PASSWORD_SMS_TEXT,
+} from "../../templates";
 
 import styles from "./ForgotPasswordSettings.module.scss";
+
+type ForgotPasswordMessageTemplateKeys = typeof ForgotPasswordMessageTemplates[number];
 
 interface ForgotPasswordSettingsProps {
   className?: string;
   effectiveAppConfig: PortalAPIAppConfig | null;
   rawAppConfig: PortalAPIAppConfig | null;
+  templates: Record<ForgotPasswordMessageTemplateKeys, string>;
   updateAppConfig: (
     appConfig: PortalAPIAppConfig
   ) => Promise<PortalAPIApp | null>;
+  updateTemplates: AppTemplatesUpdater<ForgotPasswordMessageTemplateKeys>;
   updatingAppConfig: boolean;
+  updatingTemplates: boolean;
 }
 
 interface ForgotPasswordSettingsState {
@@ -32,24 +43,30 @@ interface ForgotPasswordSettingsState {
   resetCodeExpirySeconds: number;
 }
 
-function constructStateFromAppConfig(
-  appConfig: PortalAPIAppConfig | null
+function constructStateFromAppConfigAndTemplates(
+  appConfig: PortalAPIAppConfig | null,
+  templates: Record<ForgotPasswordMessageTemplateKeys, string>
 ): ForgotPasswordSettingsState {
   const forgot_password = appConfig?.forgot_password;
 
   return {
-    emailHtmlTemplate: "", // TODO: handle email template
-    emailPlainTextTemplate: "", // TODO: handle email template
-    smsTemplate: "", // TODO: handle sms template
+    emailHtmlTemplate: templates[TEMPLATE_FORGOT_PASSWORD_EMAIL_HTML],
+    emailPlainTextTemplate: templates[TEMPLATE_FORGOT_PASSWORD_EMAIL_TEXT],
+    smsTemplate: templates[TEMPLATE_FORGOT_PASSWORD_SMS_TEXT],
     resetCodeExpirySeconds: forgot_password?.reset_code_expiry_seconds ?? 0,
   };
 }
 
-function constructAppConfigFromState(
+function constructAppConfigAndUpdateTemplatesDataFromState(
   rawAppConfig: PortalAPIAppConfig,
   initialScreenState: ForgotPasswordSettingsState,
   screenState: ForgotPasswordSettingsState
-): PortalAPIAppConfig {
+): {
+  appConfig: PortalAPIAppConfig;
+  updateTemplatesData: Partial<
+    Record<ForgotPasswordMessageTemplateKeys, string>
+  >;
+} {
   const newAppConfig = produce(rawAppConfig, (draftConfig) => {
     draftConfig.forgot_password = draftConfig.forgot_password ?? {};
 
@@ -62,13 +79,33 @@ function constructAppConfigFromState(
       screenState.resetCodeExpirySeconds
     );
 
-    // TODO: update email template
-    // TODO: update sms template
-
     clearEmptyObject(draftConfig);
   });
 
-  return newAppConfig;
+  const updateTemplatesData: Partial<Record<
+    ForgotPasswordMessageTemplateKeys,
+    string
+  >> = {};
+  if (screenState.emailHtmlTemplate !== initialScreenState.emailHtmlTemplate) {
+    updateTemplatesData[TEMPLATE_FORGOT_PASSWORD_EMAIL_HTML] =
+      screenState.emailHtmlTemplate;
+  }
+  if (
+    screenState.emailPlainTextTemplate !==
+    initialScreenState.emailPlainTextTemplate
+  ) {
+    updateTemplatesData[TEMPLATE_FORGOT_PASSWORD_EMAIL_TEXT] =
+      screenState.emailPlainTextTemplate;
+  }
+  if (screenState.smsTemplate !== initialScreenState.smsTemplate) {
+    updateTemplatesData[TEMPLATE_FORGOT_PASSWORD_SMS_TEXT] =
+      screenState.smsTemplate;
+  }
+
+  return {
+    appConfig: newAppConfig,
+    updateTemplatesData,
+  };
 }
 
 const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function ForgotPasswordSettings(
@@ -78,15 +115,21 @@ const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function F
     className,
     effectiveAppConfig,
     rawAppConfig,
+    templates,
     updateAppConfig,
+    updateTemplates,
     updatingAppConfig,
+    updatingTemplates,
   } = props;
 
   const { renderToString } = useContext(Context);
 
   const initialState = useMemo(() => {
-    return constructStateFromAppConfig(effectiveAppConfig);
-  }, [effectiveAppConfig]);
+    return constructStateFromAppConfigAndTemplates(
+      effectiveAppConfig,
+      templates
+    );
+  }, [effectiveAppConfig, templates]);
 
   const [state, setState] = useState(initialState);
 
@@ -156,16 +199,19 @@ const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function F
         return;
       }
 
-      const newAppConfig = constructAppConfigFromState(
+      const {
+        appConfig: newAppConfig,
+        updateTemplatesData,
+      } = constructAppConfigAndUpdateTemplatesDataFromState(
         rawAppConfig,
         initialState,
         state
       );
 
-      // TODO: handle error
       updateAppConfig(newAppConfig).catch(() => {});
+      updateTemplates(updateTemplatesData).catch(() => {});
     },
-    [state, rawAppConfig, updateAppConfig, initialState]
+    [rawAppConfig, initialState, state, updateAppConfig, updateTemplates]
   );
 
   return (
@@ -225,15 +271,13 @@ const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function F
       />
 
       <div className={styles.saveButtonContainer}>
-        <TodoButtonWrapper>
-          <ButtonWithLoading
-            type="submit"
-            disabled={!isFormModified}
-            loading={updatingAppConfig}
-            labelId="save"
-            loadingLabelId="saving"
-          />
-        </TodoButtonWrapper>
+        <ButtonWithLoading
+          type="submit"
+          disabled={!isFormModified}
+          loading={updatingAppConfig || updatingTemplates}
+          labelId="save"
+          loadingLabelId="saving"
+        />
       </div>
       <NavigationBlockerDialog blockNavigation={isFormModified} />
     </form>
