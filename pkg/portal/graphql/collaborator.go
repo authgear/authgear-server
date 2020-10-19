@@ -2,6 +2,8 @@ package graphql
 
 import (
 	"github.com/graphql-go/graphql"
+
+	"github.com/authgear/authgear-server/pkg/portal/model"
 )
 
 var collaborator = graphql.NewObject(graphql.ObjectConfig{
@@ -14,9 +16,14 @@ var collaborator = graphql.NewObject(graphql.ObjectConfig{
 		// if we wanted to reference back the app, we would add "app"
 		// But adding it would result in a circular schema.
 
-		// The value is a plain user ID.
-		// Is there any better way to handle this field?
-		"userID": &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
+		"user": &graphql.Field{
+			Type: graphql.NewNonNull(nodeUser),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				source := p.Source.(*model.Collaborator)
+				gqlCtx := GQLContext(p.Context)
+				return gqlCtx.Users.Load(source.UserID).Value, nil
+			},
+		},
 
 		"createdAt": &graphql.Field{Type: graphql.NewNonNull(graphql.DateTime)},
 	},
@@ -32,9 +39,14 @@ var collaboratorInvitation = graphql.NewObject(graphql.ObjectConfig{
 		// if we wanted to reference back the app, we would add "app"
 		// But adding it would result in a circular schema.
 
-		// The value is a plain user ID.
-		// Is there any better way to handle this field?
-		"invitedBy": &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
+		"invitedBy": &graphql.Field{
+			Type: graphql.NewNonNull(nodeUser),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				source := p.Source.(*model.CollaboratorInvitation)
+				gqlCtx := GQLContext(p.Context)
+				return gqlCtx.Users.Load(source.InvitedBy).Value, nil
+			},
+		},
 
 		"inviteeEmail": &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
 		"createdAt":    &graphql.Field{Type: graphql.NewNonNull(graphql.DateTime)},

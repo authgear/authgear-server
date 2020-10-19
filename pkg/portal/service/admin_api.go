@@ -18,6 +18,7 @@ type AuthzAdder interface {
 }
 
 type AdminAPIService struct {
+	AuthgearConfig *portalconfig.AuthgearConfig
 	AdminAPIConfig *portalconfig.AdminAPIConfig
 	ConfigSource   *configsource.ConfigSource
 	AuthzAdder     AuthzAdder
@@ -68,6 +69,41 @@ func (s *AdminAPIService) ResolveEndpoint(appID string) (*url.URL, error) {
 	}
 }
 
-func (s *AdminAPIService) AddAuthz(appID config.AppID, authKey *config.AdminAPIAuthKey, hdr http.Header) (err error) {
-	return s.AuthzAdder.AddAuthz(s.AdminAPIConfig.Auth, appID, authKey, hdr)
+func (s *AdminAPIService) Director(appID string) (director func(*http.Request), err error) {
+	cfg, err := s.ResolveConfig(appID)
+	if err != nil {
+		return
+	}
+
+	authKey, ok := cfg.SecretConfig.LookupData(config.AdminAPIAuthKeyKey).(*config.AdminAPIAuthKey)
+	if !ok {
+		err = fmt.Errorf("failed to look up admin API auth key: %v", appID)
+		return
+	}
+
+	endpoint, err := s.ResolveEndpoint(appID)
+	if err != nil {
+		return
+	}
+
+	host, err := s.ResolveHost(appID)
+	if err != nil {
+		return
+	}
+
+	director = func(r *http.Request) {
+		r.URL = endpoint
+		r.Host = host
+		r.Header.Set("X-Forwarded-Host", r.Host)
+
+		err = s.AuthzAdder.AddAuthz(s.AdminAPIConfig.Auth, config.AppID(appID), authKey, r.Header)
+		if err != nil {
+			panic(err)
+		}
+	}
+	return
+}
+
+func (s *AdminAPIService) SelfDirector() (director func(*http.Request), err error) {
+	return s.Director(s.AuthgearConfig.AppID)
 }

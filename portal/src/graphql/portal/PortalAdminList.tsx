@@ -105,8 +105,7 @@ const PortalAdminList: React.FC<PortalAdminListProps> = function PortalAdminList
         type: "collaborator",
         id: collaborator.id,
         createdAt: new Date(collaborator.createdAt),
-        // TODO: use admin user email
-        email: collaborator.id,
+        email: collaborator.user.email ?? "",
       })),
       ...collaboratorInvitations.map<PortalAdminListCollaboratorInvitationItem>(
         (collaboratorInvitation) => ({

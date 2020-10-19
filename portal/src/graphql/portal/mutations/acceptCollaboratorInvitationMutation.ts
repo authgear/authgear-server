@@ -15,13 +15,19 @@ const acceptCollaboratorInvitationMutation = gql`
         collaborators {
           id
           createdAt
-          userID
+          user {
+            id
+            email
+          }
         }
         collaboratorInvitations {
           id
           createdAt
           expireAt
-          invitedBy
+          invitedBy {
+            id
+            email
+          }
           inviteeEmail
         }
       }

@@ -7,11 +7,20 @@
 // GraphQL mutation operation: DeleteCollaboratorMutation
 // ====================================================
 
+export interface DeleteCollaboratorMutation_deleteCollaborator_app_collaborators_user {
+  __typename: "User";
+  /**
+   * The ID of an object
+   */
+  id: string;
+  email: string | null;
+}
+
 export interface DeleteCollaboratorMutation_deleteCollaborator_app_collaborators {
   __typename: "Collaborator";
   id: string;
   createdAt: GQL_DateTime;
-  userID: string;
+  user: DeleteCollaboratorMutation_deleteCollaborator_app_collaborators_user;
 }
 
 export interface DeleteCollaboratorMutation_deleteCollaborator_app {

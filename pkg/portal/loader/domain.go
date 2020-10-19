@@ -18,7 +18,7 @@ type DomainLoader struct {
 }
 
 func (l *DomainLoader) ListDomains(appID string) *graphqlutil.Lazy {
-	err := l.Authz.CheckAccessOfViewer(appID)
+	_, err := l.Authz.CheckAccessOfViewer(appID)
 	if err != nil {
 		return graphqlutil.NewLazyError(err)
 	}
@@ -29,7 +29,7 @@ func (l *DomainLoader) ListDomains(appID string) *graphqlutil.Lazy {
 }
 
 func (l *DomainLoader) CreateDomain(appID string, domain string) *graphqlutil.Lazy {
-	err := l.Authz.CheckAccessOfViewer(appID)
+	_, err := l.Authz.CheckAccessOfViewer(appID)
 	if err != nil {
 		return graphqlutil.NewLazyError(err)
 	}
@@ -40,7 +40,7 @@ func (l *DomainLoader) CreateDomain(appID string, domain string) *graphqlutil.La
 }
 
 func (l *DomainLoader) DeleteDomain(appID string, id string) *graphqlutil.Lazy {
-	err := l.Authz.CheckAccessOfViewer(appID)
+	_, err := l.Authz.CheckAccessOfViewer(appID)
 	if err != nil {
 		return graphqlutil.NewLazyError(err)
 	}
@@ -51,7 +51,7 @@ func (l *DomainLoader) DeleteDomain(appID string, id string) *graphqlutil.Lazy {
 }
 
 func (l *DomainLoader) VerifyDomain(appID string, id string) *graphqlutil.Lazy {
-	err := l.Authz.CheckAccessOfViewer(appID)
+	_, err := l.Authz.CheckAccessOfViewer(appID)
 	if err != nil {
 		return graphqlutil.NewLazyError(err)
 	}

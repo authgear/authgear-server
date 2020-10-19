@@ -54,18 +54,21 @@ func (s *AuthzService) AddAuthorizedUser(appID string, userID string) error {
 	return s.Collaborators.CreateCollaborator(c)
 }
 
-func (s *AuthzService) CheckAccessOfViewer(appID string) error {
+func (s *AuthzService) CheckAccessOfViewer(appID string) (userID string, err error) {
 	sessionInfo := session.GetValidSessionInfo(s.Context)
 	if sessionInfo == nil {
-		return ErrForbidden
+		err = ErrForbidden
+		return
 	}
 
-	userID := sessionInfo.UserID
-	_, err := s.Collaborators.GetCollaboratorByAppAndUser(appID, userID)
+	userID = sessionInfo.UserID
+	_, err = s.Collaborators.GetCollaboratorByAppAndUser(appID, userID)
 	if errors.Is(err, ErrCollaboratorNotFound) {
-		return ErrForbidden
+		err = ErrForbidden
+		return
 	} else if err != nil {
-		return err
+		return
 	}
-	return nil
+
+	return
 }

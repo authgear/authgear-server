@@ -5,6 +5,7 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -18,8 +19,13 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 			Type:        nodeUser,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				ctx := GQLContext(p.Context)
-				lazy := ctx.Viewer.Get()
-				return lazy.Value, nil
+
+				sessionInfo := session.GetValidSessionInfo(p.Context)
+				if sessionInfo == nil {
+					return nil, nil
+				}
+
+				return ctx.Users.Load(sessionInfo.UserID).Value, nil
 			},
 		},
 		"apps": &graphql.Field{
@@ -28,20 +34,20 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 			Args:        relay.ConnectionArgs,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				ctx := GQLContext(p.Context)
-				viewer := ctx.Viewer.Get()
-				apps := viewer.Map(func(u interface{}) (interface{}, error) {
-					userID := u.(*model.User).ID
-					return ctx.Apps.List(userID), nil
-				})
-				result := apps.Map(func(value interface{}) (interface{}, error) {
+
+				sessionInfo := session.GetValidSessionInfo(p.Context)
+				if sessionInfo == nil {
+					return nil, nil
+				}
+
+				return ctx.Apps.List(sessionInfo.UserID).Map(func(value interface{}) (interface{}, error) {
 					var apps []interface{}
 					for _, i := range value.([]*model.App) {
 						apps = append(apps, i)
 					}
 					args := relay.NewConnectionArguments(p.Args)
 					return graphqlutil.NewConnectionFromArray(apps, args), nil
-				})
-				return result.Value, nil
+				}).Value, nil
 			},
 		},
 	},

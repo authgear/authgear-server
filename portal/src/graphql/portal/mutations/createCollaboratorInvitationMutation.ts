@@ -17,7 +17,10 @@ const createCollaboratorInvitationMutation = gql`
         id
         createdAt
         expireAt
-        invitedBy
+        invitedBy {
+          id
+          email
+        }
         inviteeEmail
       }
     }
