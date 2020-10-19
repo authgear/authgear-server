@@ -7,7 +7,6 @@ import {
   DefaultEffects,
   Text,
   Dropdown,
-  TextField,
   Toggle,
 } from "@fluentui/react";
 import produce from "immer";
@@ -20,6 +19,8 @@ import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import ShowError from "../../ShowError";
 import { ModifiedIndicatorPortal } from "../../ModifiedIndicatorPortal";
+import FormTextField from "../../FormTextField";
+import ShowUnhandledValidationErrorCause from "../../error/ShowUnhandledValidationErrorCauses";
 import {
   PortalAPIAppConfig,
   primaryAuthenticatorTypes,
@@ -35,17 +36,14 @@ import {
   useIntegerTextField,
   useCheckbox,
 } from "../../hook/useInput";
-import { parseError } from "../../util/error";
-import {
-  defaultFormatErrorMessageList,
-  Violation,
-} from "../../util/validation";
 import {
   isArrayEqualInOrder,
   clearEmptyObject,
   setFieldIfChanged,
   setNumericFieldIfChanged,
 } from "../../util/misc";
+import { FormContext } from "../../error/FormContext";
+import { useValidationError } from "../../error/useValidationError";
 
 import styles from "./AuthenticationAuthenticatorSettings.module.scss";
 
@@ -463,131 +461,99 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
     [rawAppConfig, effectiveAppConfig, updateAppConfig, initialState, state]
   );
 
-  const { errorMessage, unhandledViolations } = useMemo(() => {
-    const unhandledViolations: Violation[] = [];
-    const recoveryCodeNumberErrorMessages: string[] = [];
-    const violations = parseError(updateAppConfigError);
-    const recoveryCodeNumberLocation = "/authentication/recovery_code/count";
-
-    for (const violation of violations) {
-      if (violation.kind === "minimum") {
-        if (violation.location === recoveryCodeNumberLocation) {
-          recoveryCodeNumberErrorMessages.push(
-            renderToString(
-              "AuthenticationAuthenticator.policy.recovery-code-number.minimum-error",
-              { minimum: violation.minimum }
-            )
-          );
-          continue;
-        }
-      }
-      if (violation.kind === "maximum") {
-        if (violation.location === recoveryCodeNumberLocation) {
-          recoveryCodeNumberErrorMessages.push(
-            renderToString(
-              "AuthenticationAuthenticator.policy.recovery-code-number.maximum-error",
-              { maximum: violation.maximum }
-            )
-          );
-          continue;
-        }
-      }
-      unhandledViolations.push(violation);
-    }
-    const errorMessage = {
-      recoveryCodeNumber: defaultFormatErrorMessageList(
-        recoveryCodeNumberErrorMessages
-      ),
-    };
-    return { errorMessage, unhandledViolations };
-  }, [updateAppConfigError, renderToString]);
+  const {
+    unhandledCauses,
+    otherError,
+    value: formContextValue,
+  } = useValidationError(updateAppConfigError);
 
   return (
-    <form className={styles.root} onSubmit={onFormSubmit}>
-      <NavigationBlockerDialog blockNavigation={isFormModified} />
-      <ModifiedIndicatorPortal
-        resetForm={resetForm}
-        isModified={isFormModified}
-      />
-      {unhandledViolations.length > 0 && (
-        <ShowError error={updateAppConfigError} />
-      )}
-      <div
-        className={styles.widget}
-        style={{ boxShadow: DefaultEffects.elevation4 }}
-      >
-        <Text as="h2" className={styles.widgetHeader}>
-          <FormattedMessage id="AuthenticationAuthenticator.widgetHeader.primary" />
-        </Text>
-        <DetailsListWithOrdering
-          items={primaryAuthenticators}
-          columns={authenticatorColumns}
-          onRenderItemColumn={renderPrimaryItemColumn}
-          onSwapClicked={onPrimarySwapClicked}
-          selectionMode={SelectionMode.none}
-          renderAriaLabel={renderPrimaryAriaLabel}
+    <FormContext.Provider value={formContextValue}>
+      <form className={styles.root} onSubmit={onFormSubmit}>
+        <NavigationBlockerDialog blockNavigation={isFormModified} />
+        <ModifiedIndicatorPortal
+          resetForm={resetForm}
+          isModified={isFormModified}
         />
-      </div>
+        {otherError && <ShowError error={otherError} />}
+        <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
+        <div
+          className={styles.widget}
+          style={{ boxShadow: DefaultEffects.elevation4 }}
+        >
+          <Text as="h2" className={styles.widgetHeader}>
+            <FormattedMessage id="AuthenticationAuthenticator.widgetHeader.primary" />
+          </Text>
+          <DetailsListWithOrdering
+            items={primaryAuthenticators}
+            columns={authenticatorColumns}
+            onRenderItemColumn={renderPrimaryItemColumn}
+            onSwapClicked={onPrimarySwapClicked}
+            selectionMode={SelectionMode.none}
+            renderAriaLabel={renderPrimaryAriaLabel}
+          />
+        </div>
 
-      <div
-        className={styles.widget}
-        style={{ boxShadow: DefaultEffects.elevation4 }}
-      >
-        <Text as="h2" className={styles.widgetHeader}>
-          <FormattedMessage id="AuthenticationAuthenticator.widgetHeader.secondary" />
-        </Text>
-        <DetailsListWithOrdering
-          items={secondaryAuthenticators}
-          columns={authenticatorColumns}
-          onRenderItemColumn={renderSecondaryItemColumn}
-          onSwapClicked={onSecondarySwapClicked}
-          selectionMode={SelectionMode.none}
-          renderAriaLabel={renderSecondaryAriaLabel}
-        />
-      </div>
+        <div
+          className={styles.widget}
+          style={{ boxShadow: DefaultEffects.elevation4 }}
+        >
+          <Text as="h2" className={styles.widgetHeader}>
+            <FormattedMessage id="AuthenticationAuthenticator.widgetHeader.secondary" />
+          </Text>
+          <DetailsListWithOrdering
+            items={secondaryAuthenticators}
+            columns={authenticatorColumns}
+            onRenderItemColumn={renderSecondaryItemColumn}
+            onSwapClicked={onSecondarySwapClicked}
+            selectionMode={SelectionMode.none}
+            renderAriaLabel={renderSecondaryAriaLabel}
+          />
+        </div>
 
-      <section className={styles.policy}>
-        <Text className={styles.policyHeader} as="h2">
-          <FormattedMessage id="AuthenticationAuthenticator.policy.title" />
-        </Text>
-        <Dropdown
-          className={styles.requireMFADropdown}
-          label={renderToString(
-            "AuthenticationAuthenticator.policy.require-mfa"
-          )}
-          options={requireMFAOptions}
-          selectedKey={secondaryAuthenticationMode}
-          onChange={onRequireMFAOptionChange}
-        />
-        <TextField
-          className={styles.recoveryCodeNumber}
-          label={renderToString(
-            "AuthenticationAuthenticator.policy.recovery-code-number"
-          )}
-          value={recoveryCodeNumber}
-          onChange={onRecoveryCodeNumberChange}
-          errorMessage={errorMessage.recoveryCodeNumber}
-        />
-        <Toggle
-          className={styles.allowRetrieveRecoveryCode}
-          inlineLabel={true}
-          label={
-            <FormattedMessage id="AuthenticationAuthenticator.policy.allow-retrieve-recovery-code" />
-          }
-          checked={allowRetrieveRecoveryCode}
-          onChange={onAllowRetrieveRecoveryCodeChange}
-        />
-      </section>
+        <section className={styles.policy}>
+          <Text className={styles.policyHeader} as="h2">
+            <FormattedMessage id="AuthenticationAuthenticator.policy.title" />
+          </Text>
+          <Dropdown
+            className={styles.requireMFADropdown}
+            label={renderToString(
+              "AuthenticationAuthenticator.policy.require-mfa"
+            )}
+            options={requireMFAOptions}
+            selectedKey={secondaryAuthenticationMode}
+            onChange={onRequireMFAOptionChange}
+          />
+          <FormTextField
+            jsonPointer="/authentication/recovery_code/count"
+            parentJSONPointer="/authentication/recovery_code"
+            fieldName="count"
+            fieldNameMessageID="AuthenticationAuthenticator.policy.recovery-code-number"
+            className={styles.recoveryCodeNumber}
+            value={recoveryCodeNumber}
+            onChange={onRecoveryCodeNumberChange}
+          />
+          <Toggle
+            className={styles.allowRetrieveRecoveryCode}
+            inlineLabel={true}
+            label={
+              <FormattedMessage id="AuthenticationAuthenticator.policy.allow-retrieve-recovery-code" />
+            }
+            checked={allowRetrieveRecoveryCode}
+            onChange={onAllowRetrieveRecoveryCodeChange}
+          />
+        </section>
 
-      <ButtonWithLoading
-        type="submit"
-        className={styles.saveButton}
-        disabled={!isFormModified}
-        loading={updatingAppConfig}
-        labelId="save"
-        loadingLabelId="saving"
-      />
-    </form>
+        <ButtonWithLoading
+          type="submit"
+          className={styles.saveButton}
+          disabled={!isFormModified}
+          loading={updatingAppConfig}
+          labelId="save"
+          loadingLabelId="saving"
+        />
+      </form>
+    </FormContext.Provider>
   );
 };
 

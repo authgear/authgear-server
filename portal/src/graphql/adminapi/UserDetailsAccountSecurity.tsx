@@ -1,10 +1,4 @@
-import React, {
-  useMemo,
-  useCallback,
-  useContext,
-  useState,
-  useEffect,
-} from "react";
+import React, { useMemo, useCallback, useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import cn from "classnames";
 import {
@@ -20,15 +14,10 @@ import { FormattedMessage, Context } from "@oursky/react-messageformat";
 
 import { useDeleteAuthenticatorMutation } from "./mutations/deleteAuthenticatorMutation";
 import ListCellLayout from "../../ListCellLayout";
-import ShowError from "../../ShowError";
 import ButtonWithLoading from "../../ButtonWithLoading";
+import ErrorDialog from "../../error/ErrorDialog";
 import { destructiveTheme } from "../../theme";
 import { formatDatetime } from "../../util/formatDatetime";
-import { parseError } from "../../util/error";
-import {
-  defaultFormatErrorMessageList,
-  Violation,
-} from "../../util/validation";
 
 import styles from "./UserDetailsAccountSecurity.module.scss";
 
@@ -115,15 +104,6 @@ interface RemoveConfirmationDialogProps
   visible: boolean;
   deleteAuthenticator: (authenticatorID: string) => void;
   deletingAuthenticator: boolean;
-  onDismiss: () => void;
-}
-
-interface ErrorDialogData {
-  errorMessage: string;
-}
-
-interface ErrorDialogProps extends Partial<ErrorDialogData> {
-  visible: boolean;
   onDismiss: () => void;
 }
 
@@ -377,33 +357,6 @@ const RemoveConfirmationDialog: React.FC<RemoveConfirmationDialogProps> = functi
   );
 };
 
-const ErrorDialog: React.FC<ErrorDialogProps> = function ErrorDialog(
-  props: ErrorDialogProps
-) {
-  const { visible, errorMessage, onDismiss } = props;
-
-  const errorDialogContentProps = useMemo(() => {
-    return {
-      title: <FormattedMessage id="error" />,
-      subText: errorMessage,
-    };
-  }, [errorMessage]);
-
-  return (
-    <Dialog
-      hidden={!visible}
-      dialogContentProps={errorDialogContentProps}
-      onDismiss={onDismiss}
-    >
-      <DialogFooter>
-        <PrimaryButton onClick={onDismiss}>
-          <FormattedMessage id="ok" />
-        </PrimaryButton>
-      </DialogFooter>
-    </Dialog>
-  );
-};
-
 const PasswordAuthenticatorCell: React.FC<PasswordAuthenticatorCellProps> = function PasswordAuthenticatorCell(
   props: PasswordAuthenticatorCellProps
 ) {
@@ -549,15 +502,10 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
     isConfirmationDialogVisible,
     setIsConfirmationDialogVisible,
   ] = useState(false);
-  const [isErrorDialogVisible, setIsErrorDialogVisible] = useState(false);
   const [
     confirmationDialogData,
     setConfirmationDialogData,
   ] = useState<RemoveConfirmationDialogData | null>(null);
-  const [
-    errorDialogData,
-    setErrorDialogData,
-  ] = useState<ErrorDialogData | null>(null);
 
   const primaryAuthenticatorLists = useMemo(() => {
     return constructAuthenticatorLists(authenticators, "PRIMARY", locale);
@@ -638,38 +586,8 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
     [deleteAuthenticator, dismissConfirmationDialog]
   );
 
-  const { errorMessages, unhandledViolations } = useMemo(() => {
-    const violations = parseError(deleteAuthenticatorError);
-    const errorDialogErrorMessages: string[] = [];
-    const unhandledViolations: Violation[] = [];
-
-    for (const violation of violations) {
-      unhandledViolations.push(violation);
-    }
-
-    const errorMessages = {
-      errorDialog: defaultFormatErrorMessageList(errorDialogErrorMessages),
-    };
-
-    return { errorMessages, unhandledViolations };
-  }, [deleteAuthenticatorError]);
-
-  useEffect(() => {
-    if (errorMessages.errorDialog != null) {
-      setErrorDialogData({ errorMessage: errorMessages.errorDialog });
-      setIsErrorDialogVisible(true);
-    }
-  }, [errorMessages.errorDialog]);
-
-  const dismissErrorDialog = useCallback(() => {
-    setIsErrorDialogVisible(false);
-  }, []);
-
   return (
     <div className={styles.root}>
-      {unhandledViolations.length > 0 && (
-        <ShowError error={deleteAuthenticatorError} />
-      )}
       <RemoveConfirmationDialog
         visible={isConfirmationDialogVisible}
         authenticatorID={confirmationDialogData?.authenticatorID}
@@ -679,9 +597,9 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
         deletingAuthenticator={deletingAuthenticator}
       />
       <ErrorDialog
-        visible={isErrorDialogVisible}
-        errorMessage={errorDialogData?.errorMessage}
-        onDismiss={dismissErrorDialog}
+        rules={[]}
+        error={deleteAuthenticatorError}
+        fallbackErrorMessageID="UserDetails.account-security.remove-authenticator.generic-error"
       />
       {primaryAuthenticatorLists.hasVisibleList && (
         <div className={styles.authenticatorContainer}>

@@ -26,12 +26,15 @@ import {
   ModifiedIndicatorPortal,
   ModifiedIndicatorWrapper,
 } from "../../ModifiedIndicatorPortal";
+import ShowUnhandledValidationErrorCause from "../../error/ShowUnhandledValidationErrorCauses";
 import { useAppConfigQuery } from "./query/appConfigQuery";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
 import { OAuthClientConfig, PortalAPIAppConfig } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import { genRandomHexadecimalString } from "../../util/random";
 import { copyToClipboard } from "../../util/clipboard";
+import { FormContext } from "../../error/FormContext";
+import { useValidationError } from "../../error/useValidationError";
 
 import styles from "./CreateOAuthClientScreen.module.scss";
 
@@ -205,32 +208,41 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
     [rawAppConfig, clientConfig, onCreateClientSuccess, updateAppConfig]
   );
 
+  const {
+    otherError,
+    unhandledCauses,
+    value: formContextValue,
+  } = useValidationError(updateAppConfigError);
+
   return (
-    <form className={styles.form} onSubmit={onFormSubmit}>
-      <NavigationBlockerDialog
-        blockNavigation={!submittedForm && isFormModified}
-      />
-      <CreateClientSuccessDialog
-        visible={createClientSuccessDialogVisible}
-        clientId={clientConfig.client_id}
-      />
-      <ModifiedIndicatorPortal
-        resetForm={resetForm}
-        isModified={isFormModified}
-      />
-      <ModifyOAuthClientForm
-        className={styles.modifyClientForm}
-        clientConfig={clientConfig}
-        onClientConfigChange={onClientConfigChange}
-        updateAppConfigError={updateAppConfigError}
-      />
-      <ButtonWithLoading
-        type="submit"
-        disabled={!isFormModified || submittedForm}
-        labelId="create"
-        loading={updatingAppConfig}
-      />
-    </form>
+    <FormContext.Provider value={formContextValue}>
+      <form className={styles.form} onSubmit={onFormSubmit} noValidate={true}>
+        <NavigationBlockerDialog
+          blockNavigation={!submittedForm && isFormModified}
+        />
+        <CreateClientSuccessDialog
+          visible={createClientSuccessDialogVisible}
+          clientId={clientConfig.client_id}
+        />
+        <ModifiedIndicatorPortal
+          resetForm={resetForm}
+          isModified={isFormModified}
+        />
+        {otherError && <ShowError error={otherError} />}
+        <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
+        <ModifyOAuthClientForm
+          className={styles.modifyClientForm}
+          clientConfig={clientConfig}
+          onClientConfigChange={onClientConfigChange}
+        />
+        <ButtonWithLoading
+          type="submit"
+          disabled={!isFormModified || submittedForm}
+          labelId="create"
+          loading={updatingAppConfig}
+        />
+      </form>
+    </FormContext.Provider>
   );
 };
 

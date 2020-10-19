@@ -3,7 +3,6 @@ import React, {
   useCallback,
   useContext,
   useState,
-  useEffect,
   createContext,
 } from "react";
 import cn from "classnames";
@@ -23,11 +22,10 @@ import {
 // import PrimaryIdentitiesSelectionForm from "./PrimaryIdentitiesSelectionForm";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import ListCellLayout from "../../ListCellLayout";
+import ErrorDialog from "../../error/ErrorDialog";
 import { useDeleteIdentityMutation } from "./mutations/deleteIdentityMutation";
 import { useSetVerifiedStatusMutation } from "./mutations/setVerifiedStatusMutation";
 import { formatDatetime } from "../../util/formatDatetime";
-import { parseError } from "../../util/error";
-import { Violation } from "../../util/validation";
 import { OAuthSSOProviderType } from "../../types";
 import {
   destructiveTheme,
@@ -120,10 +118,6 @@ interface ConfirmationDialogData {
   identityName: string;
 }
 
-interface ErrorDialogData {
-  message: string;
-}
-
 const oauthIconMap: Record<OAuthSSOProviderType, React.ReactNode> = {
   apple: <i className={cn("fab", "fa-apple", styles.widgetLabelIcon)} />,
   google: <i className={cn("fab", "fa-google", styles.widgetLabelIcon)} />,
@@ -150,36 +144,6 @@ function getIcon(item: LoginIDIdentityListItem | OAuthIdentityListItem) {
     return oauthIconMap[item.providerType];
   }
   return loginIdIconMap[item.loginIDKey];
-}
-
-function getErrorMessageFromViolation(
-  violations: Violation[],
-  fallbackErrorMessageId: string,
-  renderToString: (messageId: string) => string
-) {
-  const errorMessageIds: string[] = [];
-  const unknownViolations: Violation[] = [];
-  for (const violation of violations) {
-    switch (violation.kind) {
-      case "RemoveLastIdentity":
-        errorMessageIds.push(
-          "UserDetails.connected-identities.remove-identity-error.connot-remove-last"
-        );
-        break;
-      default:
-        unknownViolations.push(violation);
-        break;
-    }
-  }
-
-  let errorMessage = null;
-  if (errorMessageIds.length > 0) {
-    errorMessage = errorMessageIds.map((id) => renderToString(id)).join("\n");
-  } else if (unknownViolations.length > 0) {
-    errorMessage = renderToString(fallbackErrorMessageId);
-  }
-
-  return errorMessage;
 }
 
 function checkIsClaimVerified(
@@ -348,16 +312,12 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
     isConfirmationDialogVisible,
     setIsConfirmationDialogVisible,
   ] = useState(false);
-  const [isErrorDialogVisible, setIsErrorDialogVisible] = useState(false);
 
   const [confirmationDialogData, setConfirmationDialogData] = useState<
     ConfirmationDialogData
   >({
     identityID: "",
     identityName: "",
-  });
-  const [errorDialogData, setErrorDialogData] = useState<ErrorDialogData>({
-    message: "",
   });
 
   const identityLists: IdentityLists = useMemo(() => {
@@ -479,47 +439,6 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
     });
   }, [confirmationDialogData, deleteIdentity, onDismissConfirmationDialog]);
 
-  const showErrorDialog = useCallback((errorMessage: string) => {
-    setErrorDialogData({
-      message: errorMessage,
-    });
-    setIsErrorDialogVisible(true);
-  }, []);
-
-  const onDismissErrorDialog = useCallback(() => {
-    setIsErrorDialogVisible(false);
-  }, []);
-
-  const handleError = useCallback(
-    (error: unknown, fallbackErrorMessageId: string) => {
-      const violations = parseError(error);
-      const errorMessage = getErrorMessageFromViolation(
-        violations,
-        fallbackErrorMessageId,
-        renderToString
-      );
-
-      if (errorMessage != null) {
-        showErrorDialog(errorMessage);
-      }
-    },
-    [renderToString, showErrorDialog]
-  );
-
-  useEffect(() => {
-    handleError(
-      deleteIdentityError,
-      "UserDetails.connected-identities.remove-identity-error.generic"
-    );
-  }, [deleteIdentityError, handleError]);
-
-  useEffect(() => {
-    handleError(
-      setVerifiedStatusError,
-      "UserDetails.connected-identities.verify-identity-error.generic"
-    );
-  }, [setVerifiedStatusError, handleError]);
-
   const onRenderIdentityCell = useCallback(
     (
       item?: OAuthIdentityListItem | LoginIDIdentityListItem,
@@ -589,15 +508,6 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
     };
   }, [confirmationDialogData, renderToString]);
 
-  const errorDialogContentProps = useMemo(() => {
-    return {
-      title: (
-        <FormattedMessage id="UserDetails.connected-identities.error-dialog-title" />
-      ),
-      subText: errorDialogData.message,
-    };
-  }, [errorDialogData]);
-
   return (
     <ConnectedIdentitiesMutationLoadingContext.Provider
       value={{ settingVerifiedStatus, deletingIdentity }}
@@ -624,17 +534,23 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
             </DefaultButton>
           </DialogFooter>
         </Dialog>
-        <Dialog
-          hidden={!isErrorDialogVisible}
-          dialogContentProps={errorDialogContentProps}
-          onDismiss={onDismissErrorDialog}
-        >
-          <DialogFooter>
-            <PrimaryButton onClick={onDismissErrorDialog}>
-              <FormattedMessage id="ok" />
-            </PrimaryButton>
-          </DialogFooter>
-        </Dialog>
+        <ErrorDialog
+          error={deleteIdentityError}
+          rules={[
+            {
+              reason: "InvariantViolated",
+              kind: "RemoveLastIdentity",
+              errorMessageID:
+                "UserDetails.connected-identities.remove-identity-error.connot-remove-last",
+            },
+          ]}
+          fallbackErrorMessageID="UserDetails.connected-identities.remove-identity-error.generic"
+        />
+        <ErrorDialog
+          error={setVerifiedStatusError}
+          rules={[]}
+          fallbackErrorMessageID="UserDetails.connected-identities.verify-identity-error.generic"
+        />
         <section className={styles.headerSection}>
           <Text as="h2" className={styles.header}>
             <FormattedMessage id="UserDetails.connected-identities.title" />

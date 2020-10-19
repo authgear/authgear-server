@@ -23,6 +23,9 @@ import { OAuthClientConfig, PortalAPIAppConfig } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 
 import styles from "./EditOAuthClientScreen.module.scss";
+import { useValidationError } from "../../error/useValidationError";
+import ShowUnhandledValidationErrorCause from "../../error/ShowUnhandledValidationErrorCauses";
+import { FormContext } from "../../error/FormContext";
 
 interface EditOAuthClientFormProps {
   clientConfig: OAuthClientConfig;
@@ -93,32 +96,40 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> = function EditOAu
     [clientConfig, updateAppConfig, rawAppConfig]
   );
 
-  return (
-    <form className={styles.form} onSubmit={onFormSubmit}>
-      <NavigationBlockerDialog blockNavigation={isFormModified} />
-      <ModifiedIndicatorPortal
-        resetForm={resetForm}
-        isModified={isFormModified}
-      />
-      <Label>
-        <FormattedMessage id="EditOAuthClientScreen.client-id" />
-      </Label>
-      <Text className={styles.clientIdField}>{clientConfig.client_id}</Text>
+  const {
+    otherError,
+    unhandledCauses,
+    value: formContextValue,
+  } = useValidationError(updateAppConfigError);
 
-      <ModifyOAuthClientForm
-        className={styles.modifyClientForm}
-        clientConfig={clientConfig}
-        onClientConfigChange={onClientConfigChange}
-        updateAppConfigError={updateAppConfigError}
-      />
-      <ButtonWithLoading
-        type="submit"
-        disabled={!isFormModified}
-        labelId="save"
-        loading={updatingAppConfig}
-        loadingLabelId="saving"
-      />
-    </form>
+  return (
+    <FormContext.Provider value={formContextValue}>
+      <form className={styles.form} onSubmit={onFormSubmit} noValidate={true}>
+        <NavigationBlockerDialog blockNavigation={isFormModified} />
+        <ModifiedIndicatorPortal
+          resetForm={resetForm}
+          isModified={isFormModified}
+        />
+        {otherError && <ShowError error={otherError} />}
+        <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
+        <Label>
+          <FormattedMessage id="EditOAuthClientScreen.client-id" />
+        </Label>
+        <Text className={styles.clientIdField}>{clientConfig.client_id}</Text>
+        <ModifyOAuthClientForm
+          className={styles.modifyClientForm}
+          clientConfig={clientConfig}
+          onClientConfigChange={onClientConfigChange}
+        />
+        <ButtonWithLoading
+          type="submit"
+          disabled={!isFormModified}
+          labelId="save"
+          loading={updatingAppConfig}
+          loadingLabelId="saving"
+        />
+      </form>
+    </FormContext.Provider>
   );
 };
 

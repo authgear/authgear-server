@@ -6,7 +6,7 @@ import React, {
   useState,
 } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Dropdown, Label, TextField } from "@fluentui/react";
+import { Dropdown, Label } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
@@ -20,15 +20,15 @@ import {
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import UserDetailCommandBar from "./UserDetailCommandBar";
+import FormTextField from "../../FormTextField";
 import { useDropdown, useIntegerTextField } from "../../hook/useInput";
 import { useAppConfigQuery } from "../portal/query/appConfigQuery";
 import { useCreateLoginIDIdentityMutation } from "./mutations/createIdentityMutation";
 import { PortalAPIAppConfig } from "../../types";
-import { parseError } from "../../util/error";
-import {
-  defaultFormatErrorMessageList,
-  Violation,
-} from "../../util/validation";
+import { useValidationError } from "../../error/useValidationError";
+import { useGenericError } from "../../error/useGenericError";
+import ShowUnhandledValidationErrorCause from "../../error/ShowUnhandledValidationErrorCauses";
+import { FormContext } from "../../error/FormContext";
 
 import styles from "./AddPhoneScreen.module.scss";
 
@@ -128,69 +128,67 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
     setFormData(initialFormData);
   }, [initialFormData]);
 
-  const { errorMessage, unhandledViolations } = useMemo(() => {
-    const violations = parseError(createIdentityError);
-    const phoneNumberFieldErrorMessages: string[] = [];
-    const unhandledViolations: Violation[] = [];
-    for (const violation of violations) {
-      if (violation.kind === "Invalid" || violation.kind === "format") {
-        phoneNumberFieldErrorMessages.push(
-          renderToString("AddPhoneScreen.error.invalid-phone-number")
-        );
-      } else if (violation.kind === "DuplicatedIdentity") {
-        phoneNumberFieldErrorMessages.push(
-          renderToString("AddPhoneScreen.error.duplicated-phone-number")
-        );
-      } else {
-        unhandledViolations.push(violation);
-      }
-    }
+  const {
+    unhandledCauses,
+    otherError,
+    value: formContextValue,
+  } = useValidationError(createIdentityError);
 
-    const errorMessage = {
-      phoneNumber: defaultFormatErrorMessageList(phoneNumberFieldErrorMessages),
-    };
-
-    return { errorMessage, unhandledViolations };
-  }, [createIdentityError, renderToString]);
+  const {
+    errorMessage: genericErrorMessage,
+    unrecognizedError,
+  } = useGenericError(otherError, [
+    {
+      reason: "InvariantViolated",
+      kind: "DuplicatedIdentity",
+      errorMessageID: "AddPhoneScreen.error.duplicated-phone-number",
+    },
+  ]);
 
   return (
-    <form className={styles.form} onSubmit={onFormSubmit}>
-      {unhandledViolations.length > 0 && (
-        <ShowError error={createIdentityError} />
-      )}
-      <NavigationBlockerDialog
-        blockNavigation={!submittedForm && isFormModified}
-      />
-      <ModifiedIndicatorPortal
-        resetForm={resetForm}
-        isModified={isFormModified}
-      />
-      <section className={styles.phoneNumberFields}>
-        <Label className={styles.phoneNumberLabel}>
-          <FormattedMessage id="AddPhoneScreen.phone.label" />
-        </Label>
-        <Dropdown
-          className={styles.countryCode}
-          options={countryCodeOptions}
-          selectedKey={countryCode}
-          onChange={onCountryCodeChange}
-          ariaLabel={renderToString("AddPhoneScreen.country-code.label")}
+    <FormContext.Provider value={formContextValue}>
+      <form className={styles.form} onSubmit={onFormSubmit}>
+        {unrecognizedError && <ShowError error={unrecognizedError} />}
+        <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
+        <NavigationBlockerDialog
+          blockNavigation={!submittedForm && isFormModified}
         />
-        <TextField
-          className={styles.phone}
-          value={phone}
-          onChange={onPhoneChange}
-          ariaLabel={renderToString("AddPhoneScreen.phone.label")}
-          errorMessage={errorMessage.phoneNumber}
+        <ModifiedIndicatorPortal
+          resetForm={resetForm}
+          isModified={isFormModified}
         />
-      </section>
-      <ButtonWithLoading
-        type="submit"
-        disabled={!isFormModified || submittedForm}
-        labelId="add"
-        loading={creatingIdentity}
-      />
-    </form>
+        <section className={styles.phoneNumberFields}>
+          <Label className={styles.phoneNumberLabel}>
+            <FormattedMessage id="AddPhoneScreen.phone.label" />
+          </Label>
+          <Dropdown
+            className={styles.countryCode}
+            options={countryCodeOptions}
+            selectedKey={countryCode}
+            onChange={onCountryCodeChange}
+            ariaLabel={renderToString("AddPhoneScreen.country-code.label")}
+          />
+          <FormTextField
+            jsonPointer=""
+            parentJSONPointer=""
+            fieldName="phone"
+            fieldNameMessageID="AddPhoneScreen.phone.label"
+            hideLabel={true}
+            className={styles.phone}
+            value={phone}
+            onChange={onPhoneChange}
+            ariaLabel={renderToString("AddPhoneScreen.phone.label")}
+            errorMessage={genericErrorMessage}
+          />
+        </section>
+        <ButtonWithLoading
+          type="submit"
+          disabled={!isFormModified || submittedForm}
+          labelId="add"
+          loading={creatingIdentity}
+        />
+      </form>
+    </FormContext.Provider>
   );
 };
 

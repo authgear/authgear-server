@@ -1,28 +1,56 @@
-import React, { useContext, useMemo } from "react";
+import React from "react";
 import cn from "classnames";
 import produce from "immer";
-import { DirectionalHint, TagPicker, Text, TextField } from "@fluentui/react";
-import { Context } from "@oursky/react-messageformat";
+import { DirectionalHint } from "@fluentui/react";
 
 import LabelWithTooltip from "../../LabelWithTooltip";
+import FormTextField from "../../FormTextField";
 import {
   useIntegerTextField,
   useTagPickerWithNewTags,
   useTextField,
 } from "../../hook/useInput";
 import { OAuthClientConfig } from "../../types";
-import { parseError } from "../../util/error";
-import { defaultFormatErrorMessageList } from "../../util/validation";
 import { ensureNonEmptyString } from "../../util/misc";
 
 import styles from "./ModifyOAuthClientForm.module.scss";
+import FormTagPicker from "../../FormTagPicker";
 
 interface ModifyOAuthClientFormProps {
   className?: string;
   clientConfig: OAuthClientConfig;
   onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
-  updateAppConfigError: unknown;
 }
+
+const jsonPointerRegExp: Pick<
+  Record<keyof OAuthClientConfig, { field: RegExp; parent: RegExp }>,
+  | "name"
+  | "access_token_lifetime_seconds"
+  | "refresh_token_lifetime_seconds"
+  | "redirect_uris"
+  | "post_logout_redirect_uris"
+> = {
+  name: {
+    field: /^\/oauth\/clients\/[0-9]+\/name$/,
+    parent: /^\/oauth\/clients\/[0-9]+$/,
+  },
+  access_token_lifetime_seconds: {
+    field: /^\/oauth\/clients\/[0-9]+\/access_token_lifetime_seconds$/,
+    parent: /^\/oauth\/clients\/[0-9]+$/,
+  },
+  refresh_token_lifetime_seconds: {
+    field: /^\/oauth\/clients\/[0-9]+\/refresh_token_lifetime_seconds$/,
+    parent: /^\/oauth\/clients\/[0-9]+$/,
+  },
+  redirect_uris: {
+    field: /^\/oauth\/clients\/[0-9]+\/redirect_uris(\/[0-9]+)?$/,
+    parent: /^\/oauth\/clients\/[0-9]+/,
+  },
+  post_logout_redirect_uris: {
+    field: /^\/oauth\/clients\/[0-9]+\/post_logout_redirect_uris(\/[0-9]+)?$/,
+    parent: /^\/oauth\/clients\/[0-9]+/,
+  },
+};
 
 export function getReducedClientConfig(
   clientConfig: OAuthClientConfig
@@ -58,14 +86,7 @@ function convertIntegerStringToNumber(value: string): number | undefined {
 const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function ModifyOAuthClientForm(
   props: ModifyOAuthClientFormProps
 ) {
-  const {
-    className,
-    clientConfig,
-    onClientConfigChange,
-    updateAppConfigError,
-  } = props;
-
-  const { renderToString } = useContext(Context);
+  const { className, clientConfig, onClientConfigChange } = props;
 
   const { onChange: onClientNameChange } = useTextField((value) => {
     onClientConfigChange(
@@ -123,119 +144,77 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
     }
   );
 
-  const errorMessageMap = useMemo(() => {
-    const clientNameErrorMessages: string[] = [];
-    const redirectUrisErrorMessages: string[] = [];
-    const postLogoutRedirectUrisErrorMessages: string[] = [];
-    const violations = parseError(updateAppConfigError);
-    const redirectUrisRegexp = /^\/oauth\/clients\/[^/]*\/redirect_uris(\/[0-9]*)?$/;
-    const postLogoutRedirectUrisRegexp = /^\/oauth\/clients\/[^/]*\/post_logout_redirect_uris(\/[0-9]*)?$/;
-    for (const violation of violations) {
-      switch (violation.kind) {
-        case "minItems":
-          if (redirectUrisRegexp.test(violation.location)) {
-            redirectUrisErrorMessages.push(
-              renderToString(
-                "ModifyOAuthClientForm.redirect-uris.min-items-error",
-                { minItems: violation.minItems }
-              )
-            );
-          }
-          break;
-        case "format":
-          if (redirectUrisRegexp.test(violation.location)) {
-            redirectUrisErrorMessages.push(
-              renderToString(
-                "ModifyOAuthClientForm.redirect-uris.invalid-error"
-              )
-            );
-          }
-          if (postLogoutRedirectUrisRegexp.test(violation.location)) {
-            postLogoutRedirectUrisErrorMessages.push(
-              renderToString(
-                "ModifyOAuthClientForm.post-logout-redirect-uris.invalid-error"
-              )
-            );
-          }
-          break;
-        case "required":
-          if (violation.missingField.includes("name")) {
-            clientNameErrorMessages.push(
-              renderToString("ModifyOAuthClientForm.name.required-error")
-            );
-          }
-          break;
-        default:
-          break;
-      }
-    }
-
-    return {
-      clientName: defaultFormatErrorMessageList(clientNameErrorMessages),
-      redirectUris: defaultFormatErrorMessageList(redirectUrisErrorMessages),
-      postLogoutRedirectUris: defaultFormatErrorMessageList(
-        postLogoutRedirectUrisErrorMessages
-      ),
-    };
-  }, [updateAppConfigError, renderToString]);
-
   return (
     <section className={cn(styles.root, className)}>
-      <TextField
+      <FormTextField
+        jsonPointer={jsonPointerRegExp.name.field}
+        parentJSONPointer={jsonPointerRegExp.name.parent}
+        fieldName="name"
+        fieldNameMessageID="ModifyOAuthClientForm.name-label"
         className={styles.inputField}
-        label={renderToString("ModifyOAuthClientForm.name-label")}
         value={clientConfig.name ?? ""}
         onChange={onClientNameChange}
         required={true}
-        errorMessage={errorMessageMap.clientName}
       />
-      <TextField
+      <FormTextField
+        jsonPointer={jsonPointerRegExp.access_token_lifetime_seconds.field}
+        parentJSONPointer={
+          jsonPointerRegExp.access_token_lifetime_seconds.parent
+        }
+        fieldName="access_token_lifetime_seconds"
+        fieldNameMessageID="ModifyOAuthClientForm.acces-token-lifetime-label"
         className={styles.inputField}
-        label={renderToString(
-          "ModifyOAuthClientForm.acces-token-lifetime-label"
-        )}
         value={clientConfig.access_token_lifetime_seconds?.toString() ?? ""}
         onChange={onAccessTokenLifetimeChange}
       />
-      <TextField
+      <FormTextField
+        jsonPointer={jsonPointerRegExp.refresh_token_lifetime_seconds.field}
+        parentJSONPointer={
+          jsonPointerRegExp.refresh_token_lifetime_seconds.parent
+        }
+        fieldName="refresh_token_lifetime_seconds"
+        fieldNameMessageID="ModifyOAuthClientForm.refresh-token-lifetime-label"
         className={styles.inputField}
-        label={renderToString(
-          "ModifyOAuthClientForm.refresh-token-lifetime-label"
-        )}
         value={clientConfig.refresh_token_lifetime_seconds?.toString() ?? ""}
         onChange={onRefreshTokenLifetimeChange}
       />
-      <LabelWithTooltip
-        labelId="ModifyOAuthClientForm.redirect-uris-label"
-        tooltipHeaderId="ModifyOAuthClientForm.redirect-uris-label"
-        tooltipMessageId="ModifyOAuthClientForm.redirect-uris-tooltip-message"
-        directionalHint={DirectionalHint.bottomLeftEdge}
-        required={true}
-      />
-      <TagPicker
+      <FormTagPicker
+        jsonPointer={jsonPointerRegExp.redirect_uris.field}
+        parentJSONPointer={jsonPointerRegExp.redirect_uris.parent}
+        fieldName="redirect_uris"
+        fieldNameMessageID="ModifyOAuthClientForm.redirect-uris-label"
+        label={
+          <LabelWithTooltip
+            labelId="ModifyOAuthClientForm.redirect-uris-label"
+            tooltipHeaderId="ModifyOAuthClientForm.redirect-uris-label"
+            tooltipMessageId="ModifyOAuthClientForm.redirect-uris-tooltip-message"
+            directionalHint={DirectionalHint.bottomLeftEdge}
+            required={true}
+          />
+        }
         className={styles.inputField}
         onChange={onRedirectUrisChange}
         onResolveSuggestions={onResolveRedirectUrisSuggestions}
         selectedItems={redirectUriItems}
       />
-      <Text className={styles.errorMessage}>
-        {errorMessageMap.redirectUris}
-      </Text>
-      <LabelWithTooltip
-        labelId="ModifyOAuthClientForm.post-logout-redirect-uris-label"
-        tooltipHeaderId="ModifyOAuthClientForm.post-logout-redirect-uris-label"
-        tooltipMessageId="ModifyOAuthClientForm.post-logout-redirect-uris-tooltip-message"
-        directionalHint={DirectionalHint.bottomLeftEdge}
-      />
-      <TagPicker
+      <FormTagPicker
+        jsonPointer={jsonPointerRegExp.post_logout_redirect_uris.field}
+        parentJSONPointer={jsonPointerRegExp.post_logout_redirect_uris.parent}
+        fieldName="post_logout_redirect_uris"
+        fieldNameMessageID="ModifyOAuthClientForm.post-logout-redirect-uris-label"
+        label={
+          <LabelWithTooltip
+            labelId="ModifyOAuthClientForm.post-logout-redirect-uris-label"
+            tooltipHeaderId="ModifyOAuthClientForm.post-logout-redirect-uris-label"
+            tooltipMessageId="ModifyOAuthClientForm.post-logout-redirect-uris-tooltip-message"
+            directionalHint={DirectionalHint.bottomLeftEdge}
+          />
+        }
         className={styles.inputField}
         onChange={onPostLogoutRedirectUrisChange}
         onResolveSuggestions={onResolvePostLogoutUrisSuggestions}
         selectedItems={postLogoutRedirectUriItems}
       />
-      <Text className={styles.errorMessage}>
-        {errorMessageMap.postLogoutRedirectUris}
-      </Text>
     </section>
   );
 };

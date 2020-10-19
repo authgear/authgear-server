@@ -6,7 +6,6 @@ import React, {
   useState,
 } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { TextField } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import deepEqual from "deep-equal";
 
@@ -17,10 +16,11 @@ import UserDetailCommandBar from "./UserDetailCommandBar";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import PasswordField, {
-  handleLocalPasswordViolations,
-  handlePasswordPolicyViolatedViolation,
   localValidatePassword,
+  passwordFieldErrorRules,
 } from "../../PasswordField";
+import ShowUnhandledValidationErrorCause from "../../error/ShowUnhandledValidationErrorCauses";
+import FormTextField from "../../FormTextField";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
@@ -30,11 +30,9 @@ import {
 } from "../../ModifiedIndicatorPortal";
 import { useCreateLoginIDIdentityMutation } from "./mutations/createIdentityMutation";
 import { useTextField } from "../../hook/useInput";
-import {
-  defaultFormatErrorMessageList,
-  Violation,
-} from "../../util/validation";
-import { parseError } from "../../util/error";
+import { useValidationError } from "../../error/useValidationError";
+import { FormContext } from "../../error/FormContext";
+import { useGenericError } from "../../error/useGenericError";
 import { nonNullable } from "../../util/types";
 import { AuthenticatorType } from "./__generated__/globalTypes";
 import { PortalAPIAppConfig } from "../../types";
@@ -80,7 +78,9 @@ const AddUsernameForm: React.FC<AddUsernameFormProps> = function AddUsernameForm
     error: createIdentityError,
   } = useCreateLoginIDIdentityMutation(userID);
 
-  const [localViolations, setLocalViolations] = useState<Violation[]>([]);
+  const [localValidationErrorMessage, setLocalViolationErrorMessage] = useState<
+    string | undefined
+  >(undefined);
   const [submittedForm, setSubmittedForm] = useState(false);
 
   const initialFormData = useMemo(() => {
@@ -106,6 +106,7 @@ const AddUsernameForm: React.FC<AddUsernameFormProps> = function AddUsernameForm
 
   const resetForm = useCallback(() => {
     setFormData(initialFormData);
+    setLocalViolationErrorMessage(undefined);
   }, [initialFormData]);
 
   const onFormSubmit = useCallback(
@@ -113,13 +114,17 @@ const AddUsernameForm: React.FC<AddUsernameFormProps> = function AddUsernameForm
       ev.preventDefault();
       ev.stopPropagation();
 
-      const newLocalViolations: Violation[] = [];
       if (isPasswordRequired) {
-        localValidatePassword(newLocalViolations, passwordPolicy, password);
-      }
-      setLocalViolations(newLocalViolations);
-      if (newLocalViolations.length > 0) {
-        return;
+        const localErrorMessageMap = localValidatePassword(
+          renderToString,
+          passwordPolicy,
+          password
+        );
+        setLocalViolationErrorMessage(localErrorMessageMap?.password);
+
+        if (localErrorMessageMap != null) {
+          return;
+        }
       }
 
       const requestPassword = isPasswordRequired ? password : undefined;
@@ -131,7 +136,14 @@ const AddUsernameForm: React.FC<AddUsernameFormProps> = function AddUsernameForm
         })
         .catch(() => {});
     },
-    [username, createIdentity, isPasswordRequired, password, passwordPolicy]
+    [
+      renderToString,
+      username,
+      createIdentity,
+      isPasswordRequired,
+      password,
+      passwordPolicy,
+    ]
   );
 
   useEffect(() => {
@@ -140,89 +152,65 @@ const AddUsernameForm: React.FC<AddUsernameFormProps> = function AddUsernameForm
     }
   }, [submittedForm, navigate]);
 
-  const { errorMessages, unhandledViolations } = useMemo(() => {
-    const violations =
-      localViolations.length > 0
-        ? localViolations
-        : parseError(createIdentityError);
+  const {
+    unhandledCauses,
+    otherError,
+    value: formContextValue,
+  } = useValidationError(createIdentityError);
 
-    const usernameFieldErrorMessages: string[] = [];
-    const passwordFieldErrorMessages: string[] = [];
-    const unhandledViolations: Violation[] = [];
-    for (const violation of violations) {
-      if (violation.kind === "Invalid" || violation.kind === "format") {
-        usernameFieldErrorMessages.push(
-          renderToString("AddUsernameScreen.error.invalid-username")
-        );
-      } else if (violation.kind === "DuplicatedIdentity") {
-        usernameFieldErrorMessages.push(
-          renderToString("AddUsernameScreen.error.duplicated-username")
-        );
-      } else if (violation.kind === "custom") {
-        handleLocalPasswordViolations(
-          renderToString,
-          violation,
-          passwordFieldErrorMessages,
-          null,
-          unhandledViolations
-        );
-      } else if (violation.kind === "PasswordPolicyViolated") {
-        handlePasswordPolicyViolatedViolation(
-          renderToString,
-          violation,
-          passwordFieldErrorMessages,
-          unhandledViolations
-        );
-      } else {
-        unhandledViolations.push(violation);
-      }
-    }
-
-    const errorMessages = {
-      username: defaultFormatErrorMessageList(usernameFieldErrorMessages),
-      password: defaultFormatErrorMessageList(passwordFieldErrorMessages),
-    };
-
-    return { errorMessages, unhandledViolations };
-  }, [createIdentityError, localViolations, renderToString]);
+  const { errorMessageMap, unrecognizedError } = useGenericError(otherError, [
+    {
+      reason: "InvariantViolated",
+      kind: "DuplicatedIdentity",
+      errorMessageID: "AddUsernameScreen.error.duplicated-username",
+      field: "username",
+    },
+    ...passwordFieldErrorRules,
+  ]);
 
   return (
-    <form className={styles.content} onSubmit={onFormSubmit}>
-      <ModifiedIndicatorPortal
-        resetForm={resetForm}
-        isModified={isFormModified}
-      />
-      {unhandledViolations.length > 0 && (
-        <ShowError error={createIdentityError} />
-      )}
-      <NavigationBlockerDialog
-        blockNavigation={!submittedForm && isFormModified}
-      />
-      <TextField
-        className={styles.usernameField}
-        label={renderToString("AddUsernameScreen.username.label")}
-        value={username}
-        onChange={onUsernameChange}
-        errorMessage={errorMessages.username}
-      />
-      {isPasswordRequired && (
-        <PasswordField
-          className={styles.password}
-          textFieldClassName={styles.passwordField}
-          passwordPolicy={passwordPolicy}
-          label={renderToString("AddUsernameScreen.password.label")}
-          value={password}
-          onChange={onPasswordChange}
-          errorMessage={errorMessages.password}
+    <FormContext.Provider value={formContextValue}>
+      <form className={styles.content} onSubmit={onFormSubmit}>
+        <ModifiedIndicatorPortal
+          resetForm={resetForm}
+          isModified={isFormModified}
         />
-      )}
-      <ButtonWithLoading
-        type="submit"
-        disabled={!isFormModified || submittedForm}
-        labelId="add"
-        loading={creatingIdentity}
-      />
-    </form>
+        {unrecognizedError && <ShowError error={unrecognizedError} />}
+        <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
+        <NavigationBlockerDialog
+          blockNavigation={!submittedForm && isFormModified}
+        />
+        <FormTextField
+          jsonPointer=""
+          parentJSONPointer=""
+          fieldName="username"
+          fieldNameMessageID="AddUsernameScreen.username.label"
+          className={styles.usernameField}
+          value={username}
+          onChange={onUsernameChange}
+          errorMessage={errorMessageMap.username}
+        />
+        {isPasswordRequired && (
+          <PasswordField
+            className={styles.password}
+            textFieldClassName={styles.passwordField}
+            passwordPolicy={passwordPolicy}
+            label={renderToString("AddUsernameScreen.password.label")}
+            value={password}
+            onChange={onPasswordChange}
+            errorMessage={
+              localValidationErrorMessage ?? errorMessageMap.password
+            }
+          />
+        )}
+        <ButtonWithLoading
+          type="submit"
+          disabled={!isFormModified || submittedForm}
+          labelId="add"
+          loading={creatingIdentity}
+        />
+      </form>
+    </FormContext.Provider>
   );
 };
 
