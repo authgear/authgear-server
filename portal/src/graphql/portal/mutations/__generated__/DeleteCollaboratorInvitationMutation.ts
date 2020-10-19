@@ -7,12 +7,21 @@
 // GraphQL mutation operation: DeleteCollaboratorInvitationMutation
 // ====================================================
 
+export interface DeleteCollaboratorInvitationMutation_deleteCollaboratorInvitation_app_collaboratorInvitations_invitedBy {
+  __typename: "User";
+  /**
+   * The ID of an object
+   */
+  id: string;
+  email: string | null;
+}
+
 export interface DeleteCollaboratorInvitationMutation_deleteCollaboratorInvitation_app_collaboratorInvitations {
   __typename: "CollaboratorInvitation";
   id: string;
   createdAt: GQL_DateTime;
   expireAt: GQL_DateTime;
-  invitedBy: string;
+  invitedBy: DeleteCollaboratorInvitationMutation_deleteCollaboratorInvitation_app_collaboratorInvitations_invitedBy;
   inviteeEmail: string;
 }
 

@@ -78,18 +78,28 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	devMode := environmentConfig.DevMode
-	factory := rootProvider.LoggerFactory
-	logger := graphql.NewLogger(factory)
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
-	viewerLoader := &loader.ViewerLoader{
-		Context: context,
-	}
-	appServiceLogger := service.NewAppServiceLogger(factory)
-	appConfig := rootProvider.AppConfig
-	configServiceLogger := service.NewConfigServiceLogger(factory)
+	authgearConfig := rootProvider.AuthgearConfig
+	adminAPIConfig := rootProvider.AdminAPIConfig
 	controller := rootProvider.ConfigSourceController
 	configSource := deps.ProvideConfigSource(controller)
+	clock := _wireSystemClockValue
+	adder := &authz.Adder{
+		Clock: clock,
+	}
+	adminAPIService := &service.AdminAPIService{
+		AuthgearConfig: authgearConfig,
+		AdminAPIConfig: adminAPIConfig,
+		ConfigSource:   configSource,
+		AuthzAdder:     adder,
+	}
+	userLoader := loader.NewUserLoader(adminAPIService)
+	factory := rootProvider.LoggerFactory
+	logger := graphql.NewLogger(factory)
+	appServiceLogger := service.NewAppServiceLogger(factory)
+	appConfig := rootProvider.AppConfig
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
+	configServiceLogger := service.NewConfigServiceLogger(factory)
 	configService := &service.ConfigService{
 		Context:      context,
 		Logger:       configServiceLogger,
@@ -97,7 +107,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Controller:   controller,
 		ConfigSource: configSource,
 	}
-	clock := _wireSystemClockValue
 	databaseConfig := rootProvider.DatabaseConfig
 	sqlBuilder := db.NewSQLBuilder(databaseConfig)
 	dbLogger := db.NewLogger(factory)
@@ -155,17 +164,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Configs:       configService,
 		Collaborators: collaboratorService,
 	}
-	authgearConfig := rootProvider.AuthgearConfig
-	adminAPIConfig := rootProvider.AdminAPIConfig
-	adder := &authz.Adder{
-		Clock: clock,
-	}
-	adminAPIService := &service.AdminAPIService{
-		AuthgearConfig: authgearConfig,
-		AdminAPIConfig: adminAPIConfig,
-		ConfigSource:   configSource,
-		AuthzAdder:     adder,
-	}
 	domainService := &service.DomainService{
 		Context:      context,
 		Clock:        clock,
@@ -194,8 +192,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Authz:         authzService,
 	}
 	graphqlContext := &graphql.Context{
+		Users:         userLoader,
 		GQLLogger:     logger,
-		Viewer:        viewerLoader,
 		Apps:          appLoader,
 		Domains:       domainLoader,
 		Collaborators: collaboratorLoader,

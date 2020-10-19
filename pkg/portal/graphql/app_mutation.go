@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/portal/session"
 )
 
 var appConfigFile = graphql.NewInputObject(graphql.InputObjectConfig{
@@ -124,12 +125,8 @@ var _ = registerMutationField(
 			appID := input["id"].(string)
 
 			gqlCtx := GQLContext(p.Context)
-			viewer := gqlCtx.Viewer.Get()
-			app := viewer.Map(func(u interface{}) (interface{}, error) {
-				userID := u.(*model.User).ID
-				return gqlCtx.Apps.Create(userID, appID), nil
-			})
-			return app.Map(func(app interface{}) (interface{}, error) {
+			actorID := session.GetValidSessionInfo(p.Context).UserID
+			return gqlCtx.Apps.Create(actorID, appID).Map(func(app interface{}) (interface{}, error) {
 				return map[string]interface{}{
 					"app": app,
 				}, nil

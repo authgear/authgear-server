@@ -15,6 +15,10 @@ type dataLoaderTask struct {
 	settle func(value interface{}, err error)
 }
 
+type DataLoaderInterface interface {
+	Load(key interface{}) *Lazy
+}
+
 type DataLoader struct {
 	MaxBatch int
 	loadFn   LoadFunc

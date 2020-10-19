@@ -93,8 +93,7 @@ const PortalAdminsSettings: React.FC<PortalAdminsSettingsProps> = function Porta
       if (collaborator) {
         setRemovePortalAdminConfirmationDialogData({
           userID: id,
-          // TODO: use admin user email
-          email: id,
+          email: collaborator.user.email ?? "",
         });
         setIsRemovePortalAdminConfirmationDialogVisible(true);
       }

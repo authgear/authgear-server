@@ -19,7 +19,7 @@ type AppLoader struct {
 }
 
 func (l *AppLoader) Get(id string) *graphqlutil.Lazy {
-	err := l.Authz.CheckAccessOfViewer(id)
+	_, err := l.Authz.CheckAccessOfViewer(id)
 	if err != nil {
 		return graphqlutil.NewLazyError(err)
 	}
@@ -57,7 +57,7 @@ func (l *AppLoader) List(userID string) *graphqlutil.Lazy {
 }
 
 func (l *AppLoader) UpdateConfig(app *model.App, updateFiles []*model.AppConfigFile, deleteFiles []string) *graphqlutil.Lazy {
-	err := l.Authz.CheckAccessOfViewer(app.ID)
+	_, err := l.Authz.CheckAccessOfViewer(app.ID)
 	if err != nil {
 		return graphqlutil.NewLazyError(err)
 	}

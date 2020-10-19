@@ -79,7 +79,7 @@ type Collaborator {
   id: String!
 
   """"""
-  userID: String!
+  user: User!
 }
 
 """Collaborator invitation of an app"""
@@ -94,7 +94,7 @@ type CollaboratorInvitation {
   id: String!
 
   """"""
-  invitedBy: String!
+  invitedBy: User!
 
   """"""
   inviteeEmail: String!
@@ -305,6 +305,9 @@ input UpdateAppConfigInput {
 
 """Portal User"""
 type User implements Node {
+  """"""
+  email: String
+
   """The ID of an object"""
   id: ID!
 }

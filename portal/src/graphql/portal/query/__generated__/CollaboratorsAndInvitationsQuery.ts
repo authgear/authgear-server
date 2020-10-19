@@ -11,11 +11,29 @@ export interface CollaboratorsAndInvitationsQuery_node_User {
   __typename: "User";
 }
 
+export interface CollaboratorsAndInvitationsQuery_node_App_collaborators_user {
+  __typename: "User";
+  /**
+   * The ID of an object
+   */
+  id: string;
+  email: string | null;
+}
+
 export interface CollaboratorsAndInvitationsQuery_node_App_collaborators {
   __typename: "Collaborator";
   id: string;
   createdAt: GQL_DateTime;
-  userID: string;
+  user: CollaboratorsAndInvitationsQuery_node_App_collaborators_user;
+}
+
+export interface CollaboratorsAndInvitationsQuery_node_App_collaboratorInvitations_invitedBy {
+  __typename: "User";
+  /**
+   * The ID of an object
+   */
+  id: string;
+  email: string | null;
 }
 
 export interface CollaboratorsAndInvitationsQuery_node_App_collaboratorInvitations {
@@ -23,7 +41,7 @@ export interface CollaboratorsAndInvitationsQuery_node_App_collaboratorInvitatio
   id: string;
   createdAt: GQL_DateTime;
   expireAt: GQL_DateTime;
-  invitedBy: string;
+  invitedBy: CollaboratorsAndInvitationsQuery_node_App_collaboratorInvitations_invitedBy;
   inviteeEmail: string;
 }
 

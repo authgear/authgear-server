@@ -15,7 +15,10 @@ const deleteCollaboratorMutation = gql`
         collaborators {
           id
           createdAt
-          userID
+          user {
+            id
+            email
+          }
         }
       }
     }

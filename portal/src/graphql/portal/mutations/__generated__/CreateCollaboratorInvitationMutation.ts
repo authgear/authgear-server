@@ -7,12 +7,21 @@
 // GraphQL mutation operation: CreateCollaboratorInvitationMutation
 // ====================================================
 
+export interface CreateCollaboratorInvitationMutation_createCollaboratorInvitation_collaboratorInvitation_invitedBy {
+  __typename: "User";
+  /**
+   * The ID of an object
+   */
+  id: string;
+  email: string | null;
+}
+
 export interface CreateCollaboratorInvitationMutation_createCollaboratorInvitation_collaboratorInvitation {
   __typename: "CollaboratorInvitation";
   id: string;
   createdAt: GQL_DateTime;
   expireAt: GQL_DateTime;
-  invitedBy: string;
+  invitedBy: CreateCollaboratorInvitationMutation_createCollaboratorInvitation_collaboratorInvitation_invitedBy;
   inviteeEmail: string;
 }
 

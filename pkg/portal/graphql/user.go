@@ -20,18 +20,14 @@ var nodeUser = node(
 		},
 		Fields: graphql.Fields{
 			"id": relay.GlobalIDField(typeUser, nil),
+			"email": &graphql.Field{
+				Type: graphql.String,
+			},
 		},
 	}),
 	&model.User{},
 	func(ctx context.Context, id string) (interface{}, error) {
 		gqlCtx := GQLContext(ctx)
-		lazy := gqlCtx.Viewer.Get()
-		return lazy.Map(func(value interface{}) (interface{}, error) {
-			user := value.(*model.User)
-			if user.ID != id {
-				return nil, nil
-			}
-			return user, nil
-		}), nil
+		return gqlCtx.Users.Load(id).Value, nil
 	},
 )

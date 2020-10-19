@@ -8,10 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-type ViewerLoader interface {
-	Get() *graphqlutil.Lazy
-}
-
 type AppLoader interface {
 	Get(id string) *graphqlutil.Lazy
 	List(userID string) *graphqlutil.Lazy
@@ -37,13 +33,17 @@ type CollaboratorLoader interface {
 	AcceptInvitation(code string) *graphqlutil.Lazy
 }
 
+type UserLoader interface {
+	graphqlutil.DataLoaderInterface
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("portal-graphql")} }
 
 type Context struct {
+	Users         UserLoader
 	GQLLogger     Logger
-	Viewer        ViewerLoader
 	Apps          AppLoader
 	Domains       DomainLoader
 	Collaborators CollaboratorLoader

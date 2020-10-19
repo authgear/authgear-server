@@ -23,7 +23,7 @@ type CollaboratorLoader struct {
 }
 
 func (l *CollaboratorLoader) ListCollaborators(appID string) *graphqlutil.Lazy {
-	err := l.Authz.CheckAccessOfViewer(appID)
+	_, err := l.Authz.CheckAccessOfViewer(appID)
 	if err != nil {
 		return graphqlutil.NewLazyError(err)
 	}
@@ -40,7 +40,7 @@ func (l *CollaboratorLoader) DeleteCollaborator(id string) *graphqlutil.Lazy {
 			return nil, err
 		}
 
-		err = l.Authz.CheckAccessOfViewer(c.AppID)
+		_, err = l.Authz.CheckAccessOfViewer(c.AppID)
 		if err != nil {
 			return nil, err
 		}
@@ -55,7 +55,7 @@ func (l *CollaboratorLoader) DeleteCollaborator(id string) *graphqlutil.Lazy {
 }
 
 func (l *CollaboratorLoader) ListInvitations(appID string) *graphqlutil.Lazy {
-	err := l.Authz.CheckAccessOfViewer(appID)
+	_, err := l.Authz.CheckAccessOfViewer(appID)
 	if err != nil {
 		return graphqlutil.NewLazyError(err)
 	}
@@ -72,7 +72,7 @@ func (l *CollaboratorLoader) DeleteInvitation(id string) *graphqlutil.Lazy {
 			return nil, err
 		}
 
-		err = l.Authz.CheckAccessOfViewer(i.AppID)
+		_, err = l.Authz.CheckAccessOfViewer(i.AppID)
 		if err != nil {
 			return nil, err
 		}
@@ -87,7 +87,7 @@ func (l *CollaboratorLoader) DeleteInvitation(id string) *graphqlutil.Lazy {
 }
 
 func (l *CollaboratorLoader) SendInvitation(appID string, inviteeEmail string) *graphqlutil.Lazy {
-	err := l.Authz.CheckAccessOfViewer(appID)
+	_, err := l.Authz.CheckAccessOfViewer(appID)
 	if err != nil {
 		return graphqlutil.NewLazyError(err)
 	}
