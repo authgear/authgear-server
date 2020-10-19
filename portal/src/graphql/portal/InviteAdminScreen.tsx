@@ -41,7 +41,7 @@ const InviteAdminContent: React.FC = function InviteAdminContent() {
     value: formContextValue,
   } = useValidationError(createCollaboratorInvitationError);
 
-  const otherErrorMessage = useGenericError(otherError, [
+  const { errorMessage: otherErrorMessage } = useGenericError(otherError, [
     {
       reason: "CollaboratorInvitationDuplicate",
       errorMessageID: "InviteAdminScreen.duplicated-error",

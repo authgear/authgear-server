@@ -14,7 +14,11 @@ const ErrorDialog: React.FC<ErrorDialogProps> = function ErrorDialog(
   props: ErrorDialogProps
 ) {
   const { error, rules, fallbackErrorMessageID } = props;
-  const errorMessage = useGenericError(error, rules, fallbackErrorMessageID);
+  const { errorMessage } = useGenericError(
+    error,
+    rules,
+    fallbackErrorMessageID
+  );
 
   const [visible, setVisible] = useState(false);
 

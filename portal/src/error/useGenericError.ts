@@ -54,17 +54,20 @@ export function useGenericError(
   error: unknown,
   rules: GenericErrorHandlingRule[],
   fallbackErrorMessageID: string = "generic-error.unknown-error"
-): string | undefined {
+): { errorMessage: string | undefined; unrecognizedError?: unknown } {
   const { renderToString } = useContext(Context);
 
   if (error == null) {
-    return undefined;
+    return { errorMessage: undefined };
   }
 
   const fallbackErrorMessage = renderToString(fallbackErrorMessageID);
   if (!isApolloError(error)) {
     console.warn("[Handle generic error]: Unhandled error\n", error);
-    return fallbackErrorMessage;
+    return {
+      errorMessage: fallbackErrorMessage,
+      unrecognizedError: error,
+    };
   }
 
   const errorMessageList: string[] = [];
@@ -89,5 +92,8 @@ export function useGenericError(
     errorMessageList.push(fallbackErrorMessage);
   }
 
-  return errorMessageList.join("\n");
+  return {
+    errorMessage: errorMessageList.join("\n"),
+    unrecognizedError: containUnrecognizedError ? error : undefined,
+  };
 }
