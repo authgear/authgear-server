@@ -5,58 +5,54 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
-type DomainService interface {
-	ListDomains(appID string) ([]*model.Domain, error)
-	CreateDomain(appID string, domain string, isVerified bool, isCustom bool) (*model.Domain, error)
-	DeleteDomain(appID string, id string) error
-	VerifyDomain(appID string, id string) (*model.Domain, error)
+type DomainLoaderDomainService interface {
+	GetMany(ids []string) ([]*model.Domain, error)
 }
 
 type DomainLoader struct {
-	Domains DomainService
-	Authz   AuthzService
+	*graphqlutil.DataLoader `wire:"-"`
+	DomainService           DomainLoaderDomainService
+	Authz                   AuthzService
 }
 
-func (l *DomainLoader) ListDomains(appID string) *graphqlutil.Lazy {
-	_, err := l.Authz.CheckAccessOfViewer(appID)
-	if err != nil {
-		return graphqlutil.NewLazyError(err)
+func NewDomainLoader(domainService DomainLoaderDomainService, authz AuthzService) *DomainLoader {
+	l := &DomainLoader{
+		DomainService: domainService,
+		Authz:         authz,
 	}
-
-	return graphqlutil.NewLazy(func() (interface{}, error) {
-		return l.Domains.ListDomains(appID)
-	})
+	l.DataLoader = graphqlutil.NewDataLoader(l.LoadFunc)
+	return l
 }
 
-func (l *DomainLoader) CreateDomain(appID string, domain string) *graphqlutil.Lazy {
-	_, err := l.Authz.CheckAccessOfViewer(appID)
-	if err != nil {
-		return graphqlutil.NewLazyError(err)
+func (l *DomainLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
+	// Prepare IDs.
+	ids := make([]string, len(keys))
+	for i, key := range keys {
+		ids[i] = key.(string)
 	}
 
-	return graphqlutil.NewLazy(func() (interface{}, error) {
-		return l.Domains.CreateDomain(appID, domain, false, true)
-	})
-}
-
-func (l *DomainLoader) DeleteDomain(appID string, id string) *graphqlutil.Lazy {
-	_, err := l.Authz.CheckAccessOfViewer(appID)
+	// Get entities.
+	domains, err := l.DomainService.GetMany(ids)
 	if err != nil {
-		return graphqlutil.NewLazyError(err)
+		return nil, err
 	}
 
-	return graphqlutil.NewLazy(func() (interface{}, error) {
-		return nil, l.Domains.DeleteDomain(appID, id)
-	})
-}
-
-func (l *DomainLoader) VerifyDomain(appID string, id string) *graphqlutil.Lazy {
-	_, err := l.Authz.CheckAccessOfViewer(appID)
-	if err != nil {
-		return graphqlutil.NewLazyError(err)
+	// Create map.
+	entityMap := make(map[string]*model.Domain)
+	for _, domain := range domains {
+		entityMap[domain.ID] = domain
 	}
 
-	return graphqlutil.NewLazy(func() (interface{}, error) {
-		return l.Domains.VerifyDomain(appID, id)
-	})
+	// Ensure output is in correct order.
+	out := make([]interface{}, len(keys))
+	for i, id := range ids {
+		entity := entityMap[id]
+		_, err := l.Authz.CheckAccessOfViewer(entity.AppID)
+		if err != nil {
+			out[i] = nil
+		} else {
+			out[i] = entity
+		}
+	}
+	return out, nil
 }

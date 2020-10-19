@@ -5,7 +5,7 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 var createDomainInput = graphql.NewInputObject(graphql.InputObjectConfig{
@@ -53,18 +53,16 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 
-			lazy := gqlCtx.Apps.Get(appID)
-			return lazy.
-				Map(func(value interface{}) (interface{}, error) {
-					app := value.(*model.App)
-					return gqlCtx.Domains.CreateDomain(appID, domain).
-						Map(func(domain interface{}) (interface{}, error) {
-							return map[string]interface{}{
-								"domain": domain,
-								"app":    app,
-							}, nil
-						}), nil
-				}).Value, nil
+			domainModel, err := gqlCtx.DomainService.CreateCustomDomain(appID, domain)
+			if err != nil {
+				return nil, err
+			}
+
+			gqlCtx.Domains.Prime(domainModel.ID, domainModel)
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"domain": gqlCtx.Domains.Load(domainModel.ID),
+				"app":    gqlCtx.Apps.Load(appID),
+			}).Value, nil
 		},
 	},
 )
@@ -113,17 +111,14 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 
-			lazy := gqlCtx.Apps.Get(appID)
-			return lazy.
-				Map(func(value interface{}) (interface{}, error) {
-					app := value.(*model.App)
-					return gqlCtx.Domains.DeleteDomain(appID, domainID).
-						Map(func(domain interface{}) (interface{}, error) {
-							return map[string]interface{}{
-								"app": app,
-							}, nil
-						}), nil
-				}).Value, nil
+			err := gqlCtx.DomainService.DeleteDomain(appID, domainID)
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"app": gqlCtx.Apps.Load(appID),
+			}).Value, nil
 		},
 	},
 )
@@ -173,18 +168,16 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 
-			lazy := gqlCtx.Apps.Get(appID)
-			return lazy.
-				Map(func(value interface{}) (interface{}, error) {
-					app := value.(*model.App)
-					return gqlCtx.Domains.VerifyDomain(appID, domainID).
-						Map(func(domain interface{}) (interface{}, error) {
-							return map[string]interface{}{
-								"domain": domain,
-								"app":    app,
-							}, nil
-						}), nil
-				}).Value, nil
+			domain, err := gqlCtx.DomainService.VerifyDomain(appID, domainID)
+			if err != nil {
+				return nil, err
+			}
+
+			gqlCtx.Domains.Prime(domain.ID, domain)
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"domain": gqlCtx.Domains.Load(domain.ID),
+				"app":    gqlCtx.Apps.Load(appID),
+			}).Value, nil
 		},
 	},
 )

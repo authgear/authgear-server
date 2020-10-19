@@ -6,6 +6,7 @@ import (
 
 type Domain struct {
 	ID                    string    `json:"id"`
+	AppID                 string    `json:"appID"`
 	CreatedAt             time.Time `json:"createdAt"`
 	Domain                string    `json:"domain"`
 	ApexDomain            string    `json:"apexDomain"`

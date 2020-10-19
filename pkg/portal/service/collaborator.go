@@ -8,6 +8,7 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
@@ -162,6 +163,26 @@ func (s *CollaboratorService) GetCollaborator(id string) (*model.Collaborator, e
 	return scanCollaborator(row)
 }
 
+func (s *CollaboratorService) GetManyCollaborators(ids []string) ([]*model.Collaborator, error) {
+	q := s.selectCollaborator().Where("id = ANY (?)", pq.Array(ids))
+	rows, err := s.SQLExecutor.QueryWith(q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var cs []*model.Collaborator
+	for rows.Next() {
+		c, err := scanCollaborator(rows)
+		if err != nil {
+			return nil, err
+		}
+		cs = append(cs, c)
+	}
+
+	return cs, nil
+}
+
 func (s *CollaboratorService) GetCollaboratorByAppAndUser(appID string, userID string) (*model.Collaborator, error) {
 	q := s.selectCollaborator().Where("app_id = ? AND user_id = ?", appID, userID)
 	row, err := s.SQLExecutor.QueryRowWith(q)
@@ -191,6 +212,26 @@ func (s *CollaboratorService) DeleteCollaborator(c *model.Collaborator) error {
 	}
 
 	return nil
+}
+
+func (s *CollaboratorService) GetManyInvitations(ids []string) ([]*model.CollaboratorInvitation, error) {
+	q := s.selectCollaboratorInvitation().Where("id = ANY (?)", pq.Array(ids))
+	rows, err := s.SQLExecutor.QueryWith(q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var is []*model.CollaboratorInvitation
+	for rows.Next() {
+		i, err := scanCollaboratorInvitation(rows)
+		if err != nil {
+			return nil, err
+		}
+		is = append(is, i)
+	}
+
+	return is, nil
 }
 
 func (s *CollaboratorService) ListInvitations(appID string) ([]*model.CollaboratorInvitation, error) {

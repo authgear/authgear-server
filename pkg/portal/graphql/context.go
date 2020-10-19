@@ -9,33 +9,50 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-type AppLoader interface {
-	Get(id string) *graphqlutil.Lazy
-	List(userID string) *graphqlutil.Lazy
+type UserLoader interface {
+	graphqlutil.DataLoaderInterface
+}
 
-	Create(userID string, id string) *graphqlutil.Lazy
-	UpdateResources(app *model.App, updates []resources.Update) *graphqlutil.Lazy
+type AppLoader interface {
+	graphqlutil.DataLoaderInterface
 }
 
 type DomainLoader interface {
-	ListDomains(appID string) *graphqlutil.Lazy
-	CreateDomain(appID string, domain string) *graphqlutil.Lazy
-	DeleteDomain(appID string, id string) *graphqlutil.Lazy
-	VerifyDomain(appID string, id string) *graphqlutil.Lazy
+	graphqlutil.DataLoaderInterface
 }
 
 type CollaboratorLoader interface {
-	ListCollaborators(appID string) *graphqlutil.Lazy
-	DeleteCollaborator(id string) *graphqlutil.Lazy
-
-	ListInvitations(appID string) *graphqlutil.Lazy
-	DeleteInvitation(id string) *graphqlutil.Lazy
-	SendInvitation(appID string, inviteeEmail string) *graphqlutil.Lazy
-	AcceptInvitation(code string) *graphqlutil.Lazy
+	graphqlutil.DataLoaderInterface
 }
 
-type UserLoader interface {
+type CollaboratorInvitationLoader interface {
 	graphqlutil.DataLoaderInterface
+}
+
+type AppService interface {
+	Get(id string) (*model.App, error)
+	List(userID string) ([]*model.App, error)
+	Create(userID string, id string) error
+	UpdateResources(app *model.App, updates []resources.Update) error
+}
+
+type DomainService interface {
+	ListDomains(appID string) ([]*model.Domain, error)
+	CreateCustomDomain(appID string, domain string) (*model.Domain, error)
+	DeleteDomain(appID string, id string) error
+	VerifyDomain(appID string, id string) (*model.Domain, error)
+}
+
+type CollaboratorService interface {
+	GetCollaborator(id string) (*model.Collaborator, error)
+	ListCollaborators(appID string) ([]*model.Collaborator, error)
+	DeleteCollaborator(c *model.Collaborator) error
+
+	GetInvitation(id string) (*model.CollaboratorInvitation, error)
+	ListInvitations(appID string) ([]*model.CollaboratorInvitation, error)
+	DeleteInvitation(i *model.CollaboratorInvitation) error
+	SendInvitation(appID string, inviteeEmail string) (*model.CollaboratorInvitation, error)
+	AcceptInvitation(code string) (*model.Collaborator, error)
 }
 
 type Logger struct{ *log.Logger }
@@ -43,11 +60,17 @@ type Logger struct{ *log.Logger }
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("portal-graphql")} }
 
 type Context struct {
-	Users         UserLoader
-	GQLLogger     Logger
-	Apps          AppLoader
-	Domains       DomainLoader
-	Collaborators CollaboratorLoader
+	GQLLogger Logger
+
+	Users                   UserLoader
+	Apps                    AppLoader
+	Domains                 DomainLoader
+	Collaborators           CollaboratorLoader
+	CollaboratorInvitations CollaboratorInvitationLoader
+
+	AppService          AppService
+	DomainService       DomainService
+	CollaboratorService CollaboratorService
 }
 
 func (c *Context) Logger() *log.Logger {

@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lib/pq"
 	"golang.org/x/net/publicsuffix"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -52,13 +53,37 @@ type DomainService struct {
 	SQLExecutor  *db.SQLExecutor
 }
 
-func (s *DomainService) ListDomains(appID string) ([]*model.Domain, error) {
-	pendingDomains, err := s.listDomains(appID, false)
+func (s *DomainService) GetMany(ids []string) ([]*model.Domain, error) {
+	var rawIDs []string
+	for _, id := range ids {
+		_, rawID, ok := parseDomainID(id)
+		if ok {
+			rawIDs = append(rawIDs, rawID)
+		}
+	}
+
+	pendingDomains, err := s.listDomains(rawIDs, false)
+	if err != nil {
+		return nil, err
+	}
+	domains, err := s.listDomains(rawIDs, true)
 	if err != nil {
 		return nil, err
 	}
 
-	domains, err := s.listDomains(appID, true)
+	var out []*model.Domain
+	out = append(out, pendingDomains...)
+	out = append(out, domains...)
+	return out, nil
+}
+
+func (s *DomainService) ListDomains(appID string) ([]*model.Domain, error) {
+	pendingDomains, err := s.listDomainsByAppID(appID, false)
+	if err != nil {
+		return nil, err
+	}
+
+	domains, err := s.listDomainsByAppID(appID, true)
 	if err != nil {
 		return nil, err
 	}
@@ -69,6 +94,10 @@ func (s *DomainService) ListDomains(appID string) ([]*model.Domain, error) {
 	})
 
 	return result, nil
+}
+
+func (s *DomainService) CreateCustomDomain(appID string, domain string) (*model.Domain, error) {
+	return s.CreateDomain(appID, domain, false, true)
 }
 
 func (s *DomainService) CreateDomain(appID string, domain string, isVerified bool, isCustom bool) (*model.Domain, error) {
@@ -123,7 +152,31 @@ func (s *DomainService) DeleteDomain(appID string, id string) error {
 	return nil
 }
 
-func (s *DomainService) listDomains(appID string, isVerified bool) ([]*model.Domain, error) {
+func (s *DomainService) listDomains(ids []string, isVerified bool) ([]*model.Domain, error) {
+	rows, err := s.SQLExecutor.QueryWith(
+		s.SQLBuilder.
+			Select("id", "app_id", "created_at", "domain", "apex_domain", "verification_nonce", "is_custom").
+			Where("id = ANY (?)", pq.Array(ids)).
+			From(s.SQLBuilder.FullTableName(domainTableName(isVerified))),
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var domains []*model.Domain
+	for rows.Next() {
+		d, err := scanDomain(rows)
+		if err != nil {
+			return nil, err
+		}
+		domains = append(domains, d.toModel(isVerified))
+	}
+
+	return domains, nil
+}
+
+func (s *DomainService) listDomainsByAppID(appID string, isVerified bool) ([]*model.Domain, error) {
 	rows, err := s.SQLExecutor.QueryWith(
 		s.SQLBuilder.
 			Select("id", "app_id", "created_at", "domain", "apex_domain", "verification_nonce", "is_custom").
@@ -357,6 +410,7 @@ func (d *domain) toModel(isVerified bool) *model.Domain {
 	return &model.Domain{
 		// Base64-encoded to avoid invalid k8s resource label invalid chars
 		ID:                    base64.RawURLEncoding.EncodeToString([]byte(prefix + d.ID)),
+		AppID:                 d.AppID,
 		CreatedAt:             d.CreatedAt,
 		Domain:                d.Domain,
 		ApexDomain:            d.ApexDomain,

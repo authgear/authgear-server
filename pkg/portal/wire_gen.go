@@ -83,6 +83,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	devMode := environmentConfig.DevMode
+	factory := rootProvider.LoggerFactory
+	logger := graphql.NewLogger(factory)
 	authgearConfig := rootProvider.AuthgearConfig
 	adminAPIConfig := rootProvider.AdminAPIConfig
 	controller := rootProvider.ConfigSourceController
@@ -98,8 +100,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AuthzAdder:     adder,
 	}
 	userLoader := loader.NewUserLoader(adminAPIService)
-	factory := rootProvider.LoggerFactory
-	logger := graphql.NewLogger(factory)
 	appServiceLogger := service.NewAppServiceLogger(factory)
 	appConfig := rootProvider.AppConfig
 	request := p.Request
@@ -193,24 +193,20 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppDomains:       domainService,
 		AppBaseResources: appBaseResources,
 	}
-	appLoader := &loader.AppLoader{
-		Apps:  appService,
-		Authz: authzService,
-	}
-	domainLoader := &loader.DomainLoader{
-		Domains: domainService,
-		Authz:   authzService,
-	}
-	collaboratorLoader := &loader.CollaboratorLoader{
-		Collaborators: collaboratorService,
-		Authz:         authzService,
-	}
+	appLoader := loader.NewAppLoader(appService, authzService)
+	domainLoader := loader.NewDomainLoader(domainService, authzService)
+	collaboratorLoader := loader.NewCollaboratorLoader(collaboratorService, authzService)
+	collaboratorInvitationLoader := loader.NewCollaboratorInvitationLoader(collaboratorService, authzService)
 	graphqlContext := &graphql.Context{
-		Users:         userLoader,
-		GQLLogger:     logger,
-		Apps:          appLoader,
-		Domains:       domainLoader,
-		Collaborators: collaboratorLoader,
+		GQLLogger:               logger,
+		Users:                   userLoader,
+		Apps:                    appLoader,
+		Domains:                 domainLoader,
+		Collaborators:           collaboratorLoader,
+		CollaboratorInvitations: collaboratorInvitationLoader,
+		AppService:              appService,
+		DomainService:           domainService,
+		CollaboratorService:     collaboratorService,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		DevMode:        devMode,
