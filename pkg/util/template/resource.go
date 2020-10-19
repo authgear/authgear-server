@@ -171,7 +171,15 @@ func mergeTemplates(layers []resource.LayerFile, args map[string]interface{}) (*
 	}
 
 	matched, err := MatchLanguage(preferredLanguageTags, defaultLanguageTag, items)
-	if err != nil {
+	if errors.Is(err, ErrNoLanguageMatch) {
+		if len(items) > 0 {
+			// Use first item in case of no match, to ensure resolution always succeed
+			matched = items[0]
+		} else {
+			// If no configured translation for a template, fail the resolution process
+			return nil, ErrNotFound
+		}
+	} else if err != nil {
 		return nil, err
 	}
 

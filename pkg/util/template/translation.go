@@ -93,7 +93,15 @@ func mergeTranslations(layers []resource.LayerFile, args map[string]interface{})
 		}
 		var matched LanguageItem
 		matched, err := MatchLanguage(preferredLanguageTags, defaultLanguageTag, items)
-		if err != nil {
+		if errors.Is(err, ErrNoLanguageMatch) {
+			if len(items) > 0 {
+				// Use first item in case of no match, to ensure resolution always succeed
+				matched = items[0]
+			} else {
+				// Ignore keys without translation
+				continue
+			}
+		} else if err != nil {
 			return nil, err
 		}
 
