@@ -9,13 +9,14 @@ export interface GenericErrorHandlingRule {
   reason: APIError["reason"];
   kind?: string;
   cause?: string;
+  field?: string;
 }
 
 function constructErrorMessageFromGenericGraphQLError(
   renderToString: (messageID: string, values?: Values) => string,
   error: GraphQLError,
   rules: GenericErrorHandlingRule[]
-): string | null {
+): { errorMessage: string; violatedRule: GenericErrorHandlingRule } | null {
   if (!isAPIError(error.extensions)) {
     return null;
   }
@@ -25,12 +26,16 @@ function constructErrorMessageFromGenericGraphQLError(
     if (extensions.reason !== rule.reason) {
       continue;
     }
+    const matchedResult = {
+      errorMessage: renderToString(rule.errorMessageID),
+      violatedRule: rule,
+    };
     // some error reason need special handling
     // depends on error info
     if (extensions.reason === "InvariantViolated") {
       const cause = extensions.info.cause;
-      if (cause.kind === rule.cause) {
-        return renderToString(rule.errorMessageID);
+      if (cause.kind === rule.kind) {
+        return matchedResult;
       }
       continue;
     }
@@ -38,12 +43,12 @@ function constructErrorMessageFromGenericGraphQLError(
       const causes = extensions.info.causes;
       const causeNames = causes.map((cause) => cause.Name);
       if (rule.cause != null && causeNames.includes(rule.cause)) {
-        return renderToString(rule.errorMessageID);
+        return matchedResult;
       }
       continue;
     }
     // for other error reason, only need to match reason
-    return renderToString(rule.errorMessageID);
+    return matchedResult;
   }
 
   // no matching rules
@@ -54,11 +59,15 @@ export function useGenericError(
   error: unknown,
   rules: GenericErrorHandlingRule[],
   fallbackErrorMessageID: string = "generic-error.unknown-error"
-): { errorMessage: string | undefined; unrecognizedError?: unknown } {
+): {
+  errorMessage: string | undefined;
+  errorMessageMap: Partial<Record<string, string>>;
+  unrecognizedError?: unknown;
+} {
   const { renderToString } = useContext(Context);
 
   if (error == null) {
-    return { errorMessage: undefined };
+    return { errorMessage: undefined, errorMessageMap: {} };
   }
 
   const fallbackErrorMessage = renderToString(fallbackErrorMessageID);
@@ -66,20 +75,29 @@ export function useGenericError(
     console.warn("[Handle generic error]: Unhandled error\n", error);
     return {
       errorMessage: fallbackErrorMessage,
+      errorMessageMap: {},
       unrecognizedError: error,
     };
   }
 
   const errorMessageList: string[] = [];
+  const errorMessageMap: Partial<Record<string, string>> = {};
   let containUnrecognizedError = false;
   for (const graphQLError of error.graphQLErrors) {
-    const errorMessage = constructErrorMessageFromGenericGraphQLError(
+    const violation = constructErrorMessageFromGenericGraphQLError(
       renderToString,
       graphQLError,
       rules
     );
-    if (errorMessage != null) {
+    if (violation != null) {
+      const { errorMessage, violatedRule } = violation;
       errorMessageList.push(errorMessage);
+      if (violatedRule.field != null) {
+        errorMessageMap[violatedRule.field] =
+          errorMessageMap[violatedRule.field] == null
+            ? errorMessage
+            : `${errorMessageMap[violatedRule.field]}\n${errorMessage}`;
+      }
     } else {
       console.warn(
         "[Handle generic error]: Contains unrecognized graphQL error \n",
@@ -94,6 +112,7 @@ export function useGenericError(
 
   return {
     errorMessage: errorMessageList.join("\n"),
+    errorMessageMap,
     unrecognizedError: containUnrecognizedError ? error : undefined,
   };
 }
