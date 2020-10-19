@@ -77,8 +77,8 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
   const { newPassword, confirmPassword } = formData;
 
   const isFormModified = useMemo(() => {
-    return !deepEqual({ newPassword: "", confirmPassword: "" }, formData);
-  }, [formData]);
+    return !deepEqual(initialFormData, formData);
+  }, [formData, initialFormData]);
 
   const resetForm = useCallback(() => {
     setFormData(initialFormData);
