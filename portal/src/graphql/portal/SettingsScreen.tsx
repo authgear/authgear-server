@@ -5,17 +5,20 @@ import { Pivot, PivotItem, Text } from "@fluentui/react";
 import { usePivotNavigation } from "../../hook/usePivot";
 import GeneralSettings from "./GeneralSettings";
 import PortalAdminsSettings from "./PortalAdminsSettings";
+import SessionSettings from "./SessionSettings";
 
 import styles from "./SettingsScreen.module.scss";
 
 const GENERAL_PIVOT_KEY = "general";
 const PORTAL_ADMINS_PIVOT_KEY = "portal_admins";
+const SESSION_PIVOT_KEY = "session";
 
 const SettingsScreen: React.FC = function SettingsScreen() {
   const { renderToString } = useContext(Context);
   const { selectedKey, onLinkClick } = usePivotNavigation([
     GENERAL_PIVOT_KEY,
     PORTAL_ADMINS_PIVOT_KEY,
+    SESSION_PIVOT_KEY,
   ]);
 
   return (
@@ -37,6 +40,12 @@ const SettingsScreen: React.FC = function SettingsScreen() {
               itemKey={PORTAL_ADMINS_PIVOT_KEY}
             >
               <PortalAdminsSettings />
+            </PivotItem>
+            <PivotItem
+              headerText={renderToString("SettingsScreen.session.title")}
+              itemKey={SESSION_PIVOT_KEY}
+            >
+              <SessionSettings />
             </PivotItem>
           </Pivot>
         </div>
