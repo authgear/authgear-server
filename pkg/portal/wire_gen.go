@@ -26,6 +26,10 @@ import (
 	"net/http"
 )
 
+import (
+	_ "github.com/authgear/authgear-server/pkg/auth"
+)
+
 // Injectors from wire.go:
 
 func newPanicEndMiddleware(p *deps.RequestProvider) httproute.Middleware {

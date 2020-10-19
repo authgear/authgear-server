@@ -48,6 +48,7 @@ func (s *LocalFS) Open() error {
 	}
 
 	s.config.Store(&config.AppContext{
+		AppFs:     appFs,
 		Resources: resources,
 		Config:    cfg,
 	})
@@ -122,6 +123,7 @@ func (s *LocalFS) reload() error {
 	}
 
 	appCtx = &config.AppContext{
+		AppFs:     appCtx.AppFs,
 		Resources: appCtx.Resources,
 		Config:    newConfig,
 	}

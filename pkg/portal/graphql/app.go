@@ -23,43 +23,49 @@ var nodeApp = node(
 			"id": relay.GlobalIDField(typeApp, func(obj interface{}, info graphql.ResolveInfo, ctx context.Context) (string, error) {
 				return obj.(*model.App).ID, nil
 			}),
-			"rawConfigFile": &graphql.Field{
-				Type: graphql.NewNonNull(graphql.String),
+			"resources": &graphql.Field{
+				Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(appResource))),
 				Args: graphql.FieldConfigArgument{
-					"path": &graphql.ArgumentConfig{
-						Type: graphql.NewNonNull(graphql.String),
+					"paths": &graphql.ArgumentConfig{
+						Type: graphql.NewList(graphql.NewNonNull(graphql.String)),
 					},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					path := p.Args["path"].(string)
+					var paths []string
+					if argPaths, ok := p.Args["paths"]; ok {
+						for _, path := range argPaths.([]interface{}) {
+							paths = append(paths, path.(string))
+						}
+					}
+
 					app := p.Source.(*model.App)
-					data, err := app.LoadFile(path)
+					if len(paths) == 0 {
+						var err error
+						paths, err = app.ListResources()
+						if err != nil {
+							return nil, err
+						}
+					}
+					resources, err := app.LoadResources(paths...)
 					if err != nil {
 						return nil, err
 					}
-					return string(data), nil
+
+					return resources, nil
 				},
 			},
 			"rawAppConfig": &graphql.Field{
 				Type: graphql.NewNonNull(AppConfig),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					app := p.Source.(*model.App)
-					cfg, err := app.LoadAppConfigFile()
-					if err != nil {
-						return nil, err
-					}
-					return cfg, nil
+					return app.LoadRawAppConfig()
 				},
 			},
 			"rawSecretConfig": &graphql.Field{
 				Type: graphql.NewNonNull(SecretConfig),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					app := p.Source.(*model.App)
-					cfg, err := app.LoadSecretConfigFile()
-					if err != nil {
-						return nil, err
-					}
-					return cfg, nil
+					return app.LoadRawSecretConfig()
 				},
 			},
 			"effectiveAppConfig": &graphql.Field{

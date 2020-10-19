@@ -340,6 +340,7 @@ func (a *k8sApp) doLoad(k *Kubernetes) (*config.AppContext, error) {
 		return nil, err
 	}
 	return &config.AppContext{
+		AppFs:     appFs,
 		Resources: resources,
 		Config:    appConfig,
 	}, nil
