@@ -98,8 +98,8 @@ func (l *IdentityLoader) Remove(identityInfo *identity.Info) *graphqlutil.Lazy {
 			return nil, err
 		}
 
-		l.loader.Reset(*identityInfo.ToRef())
-		l.listLoader.Reset(identityInfo.UserID)
+		l.loader.Clear(*identityInfo.ToRef())
+		l.listLoader.Clear(identityInfo.UserID)
 		return nil, nil
 	})
 }
@@ -131,7 +131,7 @@ func (l *IdentityLoader) Create(userID string, identityDef model.IdentityDef, pa
 			return nil, err
 		}
 
-		l.listLoader.Reset(userID)
+		l.listLoader.Clear(userID)
 		return graph.GetUserNewIdentities()[0], nil
 	})
 }

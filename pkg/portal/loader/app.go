@@ -69,7 +69,7 @@ func (l *AppLoader) UpdateResources(app *model.App, updates []resources.Update) 
 			return nil, err
 		}
 
-		l.loader.Reset(app.ID)
+		l.loader.Clear(app.ID)
 		return l.Get(app.ID), nil
 	})
 }

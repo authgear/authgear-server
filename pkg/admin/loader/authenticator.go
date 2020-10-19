@@ -94,8 +94,8 @@ func (l *AuthenticatorLoader) Remove(authenticatorInfo *authenticator.Info) *gra
 			return nil, err
 		}
 
-		l.loader.Reset(*authenticatorInfo.ToRef())
-		l.listLoader.Reset(authenticatorInfo.UserID)
+		l.loader.Clear(*authenticatorInfo.ToRef())
+		l.listLoader.Clear(authenticatorInfo.UserID)
 		return nil, nil
 	})
 }

@@ -17,6 +17,10 @@ type dataLoaderTask struct {
 
 type DataLoaderInterface interface {
 	Load(key interface{}) *Lazy
+	LoadMany(keys []interface{}) *Lazy
+	Clear(key interface{})
+	ClearAll()
+	Prime(key interface{}, value interface{})
 }
 
 type DataLoader struct {
@@ -50,13 +54,6 @@ func (l *DataLoader) run() {
 	l.queue = nil
 }
 
-func (l *DataLoader) Reset(key interface{}) {
-	if l == nil {
-		return
-	}
-	delete(l.cache, key)
-}
-
 func (l *DataLoader) Load(key interface{}) *Lazy {
 	p, ok := l.cache[key]
 	if !ok {
@@ -84,4 +81,29 @@ func (l *DataLoader) Load(key interface{}) *Lazy {
 		l.cache[key] = p
 	}
 	return p
+}
+
+func (l *DataLoader) LoadMany(keys []interface{}) *Lazy {
+	values := make([]interface{}, len(keys))
+	for idx, key := range keys {
+		value := l.Load(key)
+		values[idx] = value
+	}
+	return NewLazyValue(values)
+}
+
+func (l *DataLoader) Clear(key interface{}) {
+	delete(l.cache, key)
+}
+
+func (l *DataLoader) ClearAll() {
+	l.cache = make(map[interface{}]*Lazy)
+}
+
+func (l *DataLoader) Prime(key interface{}, value interface{}) {
+	_, ok := l.cache[key]
+	if ok {
+		return
+	}
+	l.cache[key] = NewLazyValue(value)
 }
