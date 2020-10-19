@@ -8,29 +8,27 @@ import {
   PortalAPIAppConfig,
   PortalAPISecretConfig,
 } from "../../../types";
-import { UpdateAppAndSecretConfigMutation } from "./__generated__/UpdateAppAndSecretConfigMutation";
+import {
+  UpdateAppAndSecretConfigMutation,
+  UpdateAppAndSecretConfigMutationVariables,
+} from "./__generated__/UpdateAppAndSecretConfigMutation";
 
 // relative to project root
 const APP_CONFIG_PATH = "./authgear.yaml";
-const SECRET_CONFIG_PATH = "./authgear.secrets.yaml";
+const SECRET_CONFIG_PATH = "authgear.secrets.yaml";
 
 const updateAppAndSecretConfigMutation = gql`
   mutation UpdateAppAndSecretConfigMutation(
     $appID: ID!
-    $appConfigFile: AppConfigFile!
-    $secretConfigFile: AppConfigFile!
+    $updates: [AppResourceUpdate!]!
   ) {
-    updateAppConfig(
-      input: {
-        appID: $appID
-        updateFiles: [$appConfigFile, $secretConfigFile]
-        deleteFiles: []
+    updateAppResources(input: { appID: $appID, updates: $updates }) {
+      app {
+        id
+        rawAppConfig
+        effectiveAppConfig
+        rawSecretConfig
       }
-    ) {
-      id
-      rawAppConfig
-      effectiveAppConfig
-      rawSecretConfig
     }
   }
 `;
@@ -46,7 +44,8 @@ export function useUpdateAppAndSecretConfigMutation(
   error: unknown;
 } {
   const [mutationFunction, { error, loading }] = useMutation<
-    UpdateAppAndSecretConfigMutation
+    UpdateAppAndSecretConfigMutation,
+    UpdateAppAndSecretConfigMutationVariables
   >(updateAppAndSecretConfigMutation, { client });
   const updateAppAndSecretConfig = React.useCallback(
     async (
@@ -59,14 +58,13 @@ export function useUpdateAppAndSecretConfigMutation(
       const result = await mutationFunction({
         variables: {
           appID,
-          appConfigFile: { path: APP_CONFIG_PATH, content: appConfigYaml },
-          secretConfigFile: {
-            path: SECRET_CONFIG_PATH,
-            content: secretConfigYaml,
-          },
+          updates: [
+            { path: APP_CONFIG_PATH, data: appConfigYaml },
+            { path: SECRET_CONFIG_PATH, data: secretConfigYaml },
+          ],
         },
       });
-      return result.data?.updateAppConfig ?? null;
+      return result.data?.updateAppResources.app ?? null;
     },
     [appID, mutationFunction]
   );

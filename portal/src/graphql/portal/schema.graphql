@@ -31,23 +31,14 @@ type App implements Node {
   rawAppConfig: AppConfig!
 
   """"""
-  rawConfigFile(path: String!): String!
+  rawSecretConfig: SecretConfig!
 
   """"""
-  rawSecretConfig: SecretConfig!
+  resources(paths: [String!]): [AppResource!]!
 }
 
 """The `AppConfig` scalar type represents an app config JSON object"""
 scalar AppConfig
-
-"""A configuration file to update/create."""
-input AppConfigFile {
-  """New content of the file."""
-  content: String!
-
-  """Path of the file."""
-  path: String!
-}
 
 """A connection to a list of items."""
 type AppConnection {
@@ -68,6 +59,27 @@ type AppEdge {
 
   """The item at the end of the edge"""
   node: App
+}
+
+"""Resource file for an app"""
+type AppResource {
+  """"""
+  data: String
+
+  """"""
+  effectiveData: String
+
+  """"""
+  path: String!
+}
+
+"""Update to resource file."""
+input AppResourceUpdate {
+  """New data of the resource file. Set to null to remove it."""
+  data: String
+
+  """Path of the resource file to update."""
+  path: String!
 }
 
 """Collaborator of an app"""
@@ -239,8 +251,8 @@ type Mutation {
   """Delete domain of target app"""
   deleteDomain(input: DeleteDomainInput!): DeleteDomainPayload!
 
-  """Update app configuration files"""
-  updateAppConfig(input: UpdateAppConfigInput!): App!
+  """Update app resource files"""
+  updateAppResources(input: UpdateAppResourcesInput!): UpdateAppResourcesPayload!
 
   """Request verification of a domain of target app"""
   verifyDomain(input: VerifyDomainInput!): VerifyDomainPayload!
@@ -292,15 +304,18 @@ type Query {
 scalar SecretConfig
 
 """"""
-input UpdateAppConfigInput {
+input UpdateAppResourcesInput {
   """App ID to update."""
   appID: ID!
 
-  """Path to configuration files to delete."""
-  deleteFiles: [String!]
+  """Resource file updates."""
+  updates: [AppResourceUpdate!]
+}
 
-  """Configuration files to update/create."""
-  updateFiles: [AppConfigFile!]
+""""""
+type UpdateAppResourcesPayload {
+  """"""
+  app: App!
 }
 
 """Portal User"""

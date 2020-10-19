@@ -3,37 +3,38 @@ import { FormattedMessage } from "@oursky/react-messageformat";
 import { Label, Text } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import cn from "classnames";
-import produce from "immer";
 import deepEqual from "deep-equal";
 
 import {
-  AppAndEmailSmsTemplatesConfigUpdater,
-  useUpdateAppAndEmailSmsTemplatesConfigMutation,
-} from "./mutations/updateAppAndEmailSmsTemplatesMutation";
-import { useAppAndEmailSmsTemplatesQuery } from "./query/appAndEmailSmsTemplatesQuery";
+  AppTemplatesUpdater,
+  useUpdateAppTemplatesMutation,
+} from "./mutations/updateAppTemplatesMutation";
+import { useAppTemplatesQuery } from "./query/appTemplatesQuery";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import CodeEditor from "../../CodeEditor";
-import { clearEmptyObject } from "../../util/misc";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import {
   ModifiedIndicatorPortal,
   ModifiedIndicatorWrapper,
 } from "../../ModifiedIndicatorPortal";
-import { PortalAPIAppConfig, PortalAPIEmailAndSmsTemplates } from "../../types";
 
 import styles from "./PasswordlessAuthenticatorScreen.module.scss";
+import {
+  SetupPrimaryOOBMessageTemplates,
+  AuthenticatePrimaryOOBMessageTemplates,
+  TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML,
+  TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TEXT,
+  TEMPLATE_AUTHENTICATE_PRIMARY_OOB_SMS_TEXT,
+  TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_HTML,
+  TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_TEXT,
+  TEMPLATE_SETUP_PRIMARY_OOB_SMS_TEXT,
+} from "../../templates";
 
-const SETUP_EMAIL_HTML_TEMPLATE_NAME = "setup_primary_oob_email.html";
-const SETUP_EMAIL_TEXT_TEMPLATE_NAME = "setup_primary_oob_email.txt";
-const SETUP_SMS_TEXT_TEMPLATE_NAME = "setup_primary_oob_sms.txt";
-const AUTHENTICATE_EMAIL_HTML_TEMPLATE_NAME =
-  "authenticate_secondary_oob_email.html";
-const AUTHENTICATE_EMAIL_TEXT_TEMPLATE_NAME =
-  "authenticate_secondary_oob_email.txt";
-const AUTHENTICATE_SMS_TEXT_TEMPLATE_NAME =
-  "authenticate_secondary_oob_sms.txt";
+type PrimaryOOBMessageTemplates =
+  | typeof SetupPrimaryOOBMessageTemplates[number]
+  | typeof AuthenticatePrimaryOOBMessageTemplates[number];
 
 interface PasswordlessAuthenticatorScreenState {
   setupEmailHtmlTemplate: string;
@@ -45,40 +46,30 @@ interface PasswordlessAuthenticatorScreenState {
 }
 
 interface PasswordlessAuthenticatorProps {
-  rawAppConfig: PortalAPIAppConfig | null;
-  setupEmailAndSmsTemplates: PortalAPIEmailAndSmsTemplates | null;
-  authenticateEmailAndSmsTemplates: PortalAPIEmailAndSmsTemplates | null;
-  updateAppAndSetupEmailSmsTemplatesConfig: AppAndEmailSmsTemplatesConfigUpdater;
-  updateAppAndAuthenticateEmailSmsTemplatesConfig: AppAndEmailSmsTemplatesConfigUpdater;
-  updatingAppAndSetupEmailSmsTemplateConfig: boolean;
-  updatingAppAndAuthenticateEmailSmsTemplateConfig: boolean;
+  templates: Record<PrimaryOOBMessageTemplates, string>;
+  updateTemplates: AppTemplatesUpdater<PrimaryOOBMessageTemplates>;
+  isUpdatingTemplates: boolean;
 }
 
 const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = function PasswordlessAuthenticator(
   props: PasswordlessAuthenticatorProps
 ) {
-  const {
-    rawAppConfig,
-    setupEmailAndSmsTemplates,
-    authenticateEmailAndSmsTemplates,
-    updateAppAndSetupEmailSmsTemplatesConfig,
-    updateAppAndAuthenticateEmailSmsTemplatesConfig,
-    updatingAppAndSetupEmailSmsTemplateConfig,
-    updatingAppAndAuthenticateEmailSmsTemplateConfig,
-  } = props;
+  const { templates, updateTemplates, isUpdatingTemplates } = props;
 
   const initialState: PasswordlessAuthenticatorScreenState = useMemo(() => {
     return {
-      setupEmailHtmlTemplate: setupEmailAndSmsTemplates?.emailHtml ?? "",
-      setupEmailPlainTextTemplate: setupEmailAndSmsTemplates?.emailText ?? "",
-      setupSmsTemplate: setupEmailAndSmsTemplates?.smsText ?? "",
+      setupEmailHtmlTemplate: templates[TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_HTML],
+      setupEmailPlainTextTemplate:
+        templates[TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_TEXT],
+      setupSmsTemplate: templates[TEMPLATE_SETUP_PRIMARY_OOB_SMS_TEXT],
       authenticateEmailHtmlTemplate:
-        authenticateEmailAndSmsTemplates?.emailHtml ?? "",
+        templates[TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML],
       authenticateEmailPlainTextTemplate:
-        authenticateEmailAndSmsTemplates?.emailText ?? "",
-      authenticateSmsTemplate: authenticateEmailAndSmsTemplates?.smsText ?? "",
+        templates[TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TEXT],
+      authenticateSmsTemplate:
+        templates[TEMPLATE_AUTHENTICATE_PRIMARY_OOB_SMS_TEXT],
     };
-  }, [setupEmailAndSmsTemplates, authenticateEmailAndSmsTemplates]);
+  }, [templates]);
 
   const [state, setState] = useState<PasswordlessAuthenticatorScreenState>(
     initialState
@@ -168,133 +159,44 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
   );
 
   const onSaveButtonClicked = useCallback(() => {
-    if (rawAppConfig == null) {
-      return;
+    const updates: Partial<Record<PrimaryOOBMessageTemplates, string>> = {};
+    if (state.setupEmailHtmlTemplate !== initialState.setupEmailHtmlTemplate) {
+      updates[TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_HTML] =
+        state.setupEmailHtmlTemplate;
+    }
+    if (
+      state.setupEmailPlainTextTemplate !==
+      initialState.setupEmailPlainTextTemplate
+    ) {
+      updates[TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_TEXT] =
+        state.setupEmailPlainTextTemplate;
+    }
+    if (state.setupSmsTemplate !== initialState.setupSmsTemplate) {
+      updates[TEMPLATE_SETUP_PRIMARY_OOB_SMS_TEXT] = state.setupSmsTemplate;
+    }
+    if (
+      state.authenticateEmailHtmlTemplate !==
+      initialState.authenticateEmailHtmlTemplate
+    ) {
+      updates[TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML] =
+        state.authenticateEmailHtmlTemplate;
+    }
+    if (
+      state.authenticateEmailPlainTextTemplate !==
+      initialState.authenticateEmailPlainTextTemplate
+    ) {
+      updates[TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TEXT] =
+        state.authenticateEmailPlainTextTemplate;
+    }
+    if (
+      state.authenticateSmsTemplate !== initialState.authenticateSmsTemplate
+    ) {
+      updates[TEMPLATE_AUTHENTICATE_PRIMARY_OOB_SMS_TEXT] =
+        state.authenticateSmsTemplate;
     }
 
-    // eslint-disable-next-line complexity
-    const newAppConfig = produce(rawAppConfig, (draftConfig) => {
-      draftConfig.template = draftConfig.template ?? {};
-      draftConfig.template.items = draftConfig.template.items ?? [];
-
-      if (
-        state.setupEmailHtmlTemplate !== initialState.setupEmailHtmlTemplate &&
-        !draftConfig.template.items.some(
-          (item) => item.type === SETUP_EMAIL_HTML_TEMPLATE_NAME
-        )
-      ) {
-        draftConfig.template.items.push({
-          type: SETUP_EMAIL_HTML_TEMPLATE_NAME,
-          uri: `file:///templates/${SETUP_EMAIL_HTML_TEMPLATE_NAME}`,
-        });
-      }
-
-      if (
-        state.setupEmailPlainTextTemplate !==
-          initialState.setupEmailPlainTextTemplate &&
-        !draftConfig.template.items.some(
-          (item) => item.type === SETUP_EMAIL_TEXT_TEMPLATE_NAME
-        )
-      ) {
-        draftConfig.template.items.push({
-          type: SETUP_EMAIL_TEXT_TEMPLATE_NAME,
-          uri: `file:///templates/${SETUP_EMAIL_TEXT_TEMPLATE_NAME}`,
-        });
-      }
-
-      if (
-        state.setupSmsTemplate !== initialState.setupSmsTemplate &&
-        !draftConfig.template.items.some(
-          (item) => item.type === SETUP_SMS_TEXT_TEMPLATE_NAME
-        )
-      ) {
-        draftConfig.template.items.push({
-          type: SETUP_SMS_TEXT_TEMPLATE_NAME,
-          uri: `file:///templates/${SETUP_SMS_TEXT_TEMPLATE_NAME}`,
-        });
-      }
-
-      if (
-        state.authenticateEmailHtmlTemplate !==
-          initialState.authenticateEmailHtmlTemplate &&
-        !draftConfig.template.items.some(
-          (item) => item.type === AUTHENTICATE_EMAIL_HTML_TEMPLATE_NAME
-        )
-      ) {
-        draftConfig.template.items.push({
-          type: AUTHENTICATE_EMAIL_HTML_TEMPLATE_NAME,
-          uri: `file:///templates/${AUTHENTICATE_EMAIL_HTML_TEMPLATE_NAME}`,
-        });
-      }
-
-      if (
-        state.authenticateEmailPlainTextTemplate !==
-          initialState.authenticateEmailPlainTextTemplate &&
-        !draftConfig.template.items.some(
-          (item) => item.type === AUTHENTICATE_EMAIL_TEXT_TEMPLATE_NAME
-        )
-      ) {
-        draftConfig.template.items.push({
-          type: AUTHENTICATE_EMAIL_TEXT_TEMPLATE_NAME,
-          uri: `file:///templates/${AUTHENTICATE_EMAIL_TEXT_TEMPLATE_NAME}`,
-        });
-      }
-
-      if (
-        state.authenticateSmsTemplate !==
-          initialState.authenticateSmsTemplate &&
-        !draftConfig.template.items.some(
-          (item) => item.type === AUTHENTICATE_SMS_TEXT_TEMPLATE_NAME
-        )
-      ) {
-        draftConfig.template.items.push({
-          type: AUTHENTICATE_SMS_TEXT_TEMPLATE_NAME,
-          uri: `file:///templates/${AUTHENTICATE_SMS_TEXT_TEMPLATE_NAME}`,
-        });
-      }
-
-      clearEmptyObject(draftConfig);
-    });
-
-    updateAppAndSetupEmailSmsTemplatesConfig(newAppConfig, {
-      emailHtml:
-        state.setupEmailHtmlTemplate !== initialState.setupEmailHtmlTemplate
-          ? state.setupEmailHtmlTemplate
-          : undefined,
-      emailText:
-        state.setupEmailPlainTextTemplate !==
-        initialState.setupEmailPlainTextTemplate
-          ? state.setupEmailPlainTextTemplate
-          : undefined,
-      smsText:
-        state.setupSmsTemplate !== initialState.setupSmsTemplate
-          ? state.setupSmsTemplate
-          : undefined,
-    }).catch(() => {});
-
-    updateAppAndAuthenticateEmailSmsTemplatesConfig(newAppConfig, {
-      emailHtml:
-        state.authenticateEmailHtmlTemplate !==
-        initialState.authenticateEmailHtmlTemplate
-          ? state.authenticateEmailHtmlTemplate
-          : undefined,
-      emailText:
-        state.authenticateEmailPlainTextTemplate !==
-        initialState.authenticateEmailPlainTextTemplate
-          ? state.authenticateEmailPlainTextTemplate
-          : undefined,
-      smsText:
-        state.authenticateSmsTemplate !== initialState.authenticateSmsTemplate
-          ? state.authenticateSmsTemplate
-          : undefined,
-    }).catch(() => {});
-  }, [
-    state,
-    rawAppConfig,
-    initialState,
-    updateAppAndSetupEmailSmsTemplatesConfig,
-    updateAppAndAuthenticateEmailSmsTemplatesConfig,
-  ]);
+    updateTemplates(updates).catch(() => {});
+  }, [state, initialState, updateTemplates]);
 
   return (
     <div className={styles.form}>
@@ -370,10 +272,7 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
         <ButtonWithLoading
           disabled={!isFormModified}
           onClick={onSaveButtonClicked}
-          loading={
-            updatingAppAndSetupEmailSmsTemplateConfig ||
-            updatingAppAndAuthenticateEmailSmsTemplateConfig
-          }
+          loading={isUpdatingTemplates}
           labelId="save"
           loadingLabelId="saving"
         />
@@ -392,108 +291,45 @@ const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthentic
   const { appID } = useParams();
 
   const {
-    updateAppAndEmailSmsTemplatesConfig: updateAppAndSetupEmailSmsTemplatesConfig,
-    loading: updatingAppAndSetupEmailSmsTemplateConfig,
-    error: updateAppAndSetupEmailSmsTemplateConfigError,
-  } = useUpdateAppAndEmailSmsTemplatesConfigMutation(
-    appID,
-    `templates/${SETUP_EMAIL_HTML_TEMPLATE_NAME}`,
-    `templates/${SETUP_EMAIL_TEXT_TEMPLATE_NAME}`,
-    `templates/${SETUP_SMS_TEXT_TEMPLATE_NAME}`
-  );
-  const {
-    updateAppAndEmailSmsTemplatesConfig: updateAppAndAuthenticateEmailSmsTemplatesConfig,
-    loading: updatingAppAndAuthenticateEmailSmsTemplateConfig,
-    error: updateAppAndAuthenticateEmailSmsTemplateConfigError,
-  } = useUpdateAppAndEmailSmsTemplatesConfigMutation(
-    appID,
-    `templates/${AUTHENTICATE_EMAIL_HTML_TEMPLATE_NAME}`,
-    `templates/${AUTHENTICATE_EMAIL_TEXT_TEMPLATE_NAME}`,
-    `templates/${AUTHENTICATE_SMS_TEXT_TEMPLATE_NAME}`
-  );
+    updateAppTemplates,
+    loading: isUpdatingTemplates,
+    error: updateTemplatesError,
+  } = useUpdateAppTemplatesMutation<PrimaryOOBMessageTemplates>(appID);
 
   const {
-    emailAndSmsTemplates: setupEmailAndSmsTemplates,
-    rawAppConfig,
-    loading: loadingSetupEmailAndSmsTemplates,
-    error: setupEmailAndSmsTemplatesError,
-    refetch: refetchSetupEmailAndSmsTemplates,
-  } = useAppAndEmailSmsTemplatesQuery(
+    templates,
+    loading: isLoadingTemplates,
+    error: loadTemplatesError,
+    refetch: refetchTemplates,
+  } = useAppTemplatesQuery(
     appID,
-    `templates/${SETUP_EMAIL_HTML_TEMPLATE_NAME}`,
-    `templates/${SETUP_EMAIL_TEXT_TEMPLATE_NAME}`,
-    `templates/${SETUP_SMS_TEXT_TEMPLATE_NAME}`
-  );
-  const {
-    emailAndSmsTemplates: authenticateEmailAndSmsTemplates,
-    loading: loadingAuthenticateEmailAndSmsTemplates,
-    error: authenticateEmailAndSmsTemplatesError,
-    refetch: refetchAuthenticateEmailAndSmsTemplates,
-  } = useAppAndEmailSmsTemplatesQuery(
-    appID,
-    `templates/${AUTHENTICATE_EMAIL_HTML_TEMPLATE_NAME}`,
-    `templates/${AUTHENTICATE_EMAIL_TEXT_TEMPLATE_NAME}`,
-    `templates/${AUTHENTICATE_SMS_TEXT_TEMPLATE_NAME}`
+    ...SetupPrimaryOOBMessageTemplates,
+    ...AuthenticatePrimaryOOBMessageTemplates
   );
 
-  if (
-    loadingAuthenticateEmailAndSmsTemplates ||
-    loadingSetupEmailAndSmsTemplates
-  ) {
+  if (isLoadingTemplates) {
     return <ShowLoading />;
   }
 
-  if (setupEmailAndSmsTemplatesError != null) {
-    return (
-      <ShowError
-        error={setupEmailAndSmsTemplatesError}
-        onRetry={refetchSetupEmailAndSmsTemplates}
-      />
-    );
-  }
-  if (authenticateEmailAndSmsTemplatesError != null) {
-    return (
-      <ShowError
-        error={authenticateEmailAndSmsTemplatesError}
-        onRetry={refetchAuthenticateEmailAndSmsTemplates}
-      />
-    );
+  if (loadTemplatesError) {
+    return <ShowError error={loadTemplatesError} onRetry={refetchTemplates} />;
   }
 
   return (
     <main
       className={cn(styles.root, {
-        [styles.loading]: updatingAppAndAuthenticateEmailSmsTemplateConfig,
+        [styles.loading]: isUpdatingTemplates,
       })}
     >
-      {updateAppAndAuthenticateEmailSmsTemplateConfigError && (
-        <ShowError
-          error={updateAppAndAuthenticateEmailSmsTemplateConfigError}
-        />
-      )}
-      {updateAppAndSetupEmailSmsTemplateConfigError && (
-        <ShowError error={updateAppAndSetupEmailSmsTemplateConfigError} />
-      )}
+      {updateTemplatesError && <ShowError error={updateTemplatesError} />}
       <ModifiedIndicatorWrapper className={styles.content}>
         <Text as="h1" className={styles.title}>
           <FormattedMessage id="PasswordlessAuthenticatorScreen.title" />
         </Text>
         <PasswordlessAuthenticator
-          setupEmailAndSmsTemplates={setupEmailAndSmsTemplates}
-          authenticateEmailAndSmsTemplates={authenticateEmailAndSmsTemplates}
-          rawAppConfig={rawAppConfig}
-          updateAppAndSetupEmailSmsTemplatesConfig={
-            updateAppAndSetupEmailSmsTemplatesConfig
-          }
-          updateAppAndAuthenticateEmailSmsTemplatesConfig={
-            updateAppAndAuthenticateEmailSmsTemplatesConfig
-          }
-          updatingAppAndSetupEmailSmsTemplateConfig={
-            updatingAppAndSetupEmailSmsTemplateConfig
-          }
-          updatingAppAndAuthenticateEmailSmsTemplateConfig={
-            updatingAppAndAuthenticateEmailSmsTemplateConfig
-          }
+          templates={templates}
+          updateTemplates={updateAppTemplates}
+          isUpdatingTemplates={isUpdatingTemplates}
         />
       </ModifiedIndicatorWrapper>
     </main>
