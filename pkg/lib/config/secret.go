@@ -64,6 +64,28 @@ func ParseSecret(inputYAML []byte) (*SecretConfig, error) {
 	return &config, nil
 }
 
+func (c *SecretConfig) Overlay(layers ...*SecretConfig) *SecretConfig {
+	items := make(map[SecretKey]SecretItem)
+	for _, item := range c.Secrets {
+		items[item.Key] = item
+	}
+	for _, layer := range layers {
+		for _, item := range layer.Secrets {
+			items[item.Key] = item
+		}
+	}
+
+	merged := &SecretConfig{}
+	for _, item := range items {
+		merged.Secrets = append(merged.Secrets, item)
+	}
+	sort.Slice(merged.Secrets, func(i, j int) bool {
+		return merged.Secrets[i].Key < merged.Secrets[j].Key
+	})
+
+	return merged
+}
+
 func (c *SecretConfig) Lookup(key SecretKey) (*SecretItem, bool) {
 	for _, item := range c.Secrets {
 		if item.Key == key {

@@ -50,11 +50,8 @@ func NewConfigServiceLogger(lf *log.Factory) ConfigServiceLogger {
 }
 
 type CreateAppOptions struct {
-	AppID               string
-	AppConfigYAML       []byte
-	SecretConfigYAML    []byte
-	TranslationJSONPath string
-	TranslationJSON     []byte
+	AppID     string
+	Resources map[string][]byte
 }
 
 type ConfigService struct {
@@ -233,6 +230,11 @@ func (s *ConfigService) createKubernetes(k *configsource.Kubernetes, opts *Creat
 		return ErrDuplicatedAppID
 	}
 
+	secretData := make(map[string][]byte)
+	for path, data := range opts.Resources {
+		secretData[configsource.EscapePath(path)] = data
+	}
+
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "app-" + opts.AppID,
@@ -240,13 +242,7 @@ func (s *ConfigService) createKubernetes(k *configsource.Kubernetes, opts *Creat
 				configsource.LabelAppID: opts.AppID,
 			},
 		},
-		Data: map[string][]byte{
-			configsource.EscapePath(configsource.AuthgearYAML):       opts.AppConfigYAML,
-			configsource.EscapePath(configsource.AuthgearSecretYAML): opts.SecretConfigYAML,
-		},
-	}
-	if opts.TranslationJSONPath != "" {
-		secret.Data[configsource.EscapePath(opts.TranslationJSONPath)] = opts.TranslationJSON
+		Data: secretData,
 	}
 
 	_, err = k.Client.CoreV1().Secrets(k.Namespace).Create(s.Context, secret, metav1.CreateOptions{})

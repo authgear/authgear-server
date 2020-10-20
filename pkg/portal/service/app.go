@@ -1,11 +1,11 @@
 package service
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
 	"net/url"
+	"path"
 	"regexp"
 
 	"github.com/spf13/afero"
@@ -21,14 +21,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/resource"
-	"github.com/authgear/authgear-server/pkg/util/template"
 )
-
-type generateAppConfigAndTranslationResult struct {
-	AppConfig           *config.AppConfig
-	TranslationJSONPath string
-	TranslationJSON     []byte
-}
 
 type AppConfigService interface {
 	ResolveContext(appID string) (*config.AppContext, error)
@@ -173,101 +166,30 @@ func (s *AppService) UpdateResources(app *model.App, updates []resources.Update)
 	return err
 }
 
-func (s *AppService) generateAppConfigAndTranslation(appHost string, appID string) (*generateAppConfigAndTranslationResult, error) {
-	appOrigin := &url.URL{Scheme: "https", Host: appHost}
-	cfg := config.GenerateAppConfigFromOptions(&config.GenerateAppConfigOptions{
+func (s *AppService) generateResources(appHost string, appID string) (map[string][]byte, error) {
+	appResources := make(map[string][]byte)
+
+	// Generate app config
+	publicOrigin := &url.URL{Scheme: "https", Host: appHost}
+	appConfig := config.GenerateAppConfigFromOptions(&config.GenerateAppConfigOptions{
 		AppID:        appID,
-		PublicOrigin: appOrigin.String(),
+		PublicOrigin: publicOrigin.String(),
 	})
-
-	translationObj := make(map[string]string)
-	if s.AppConfig.Branding.AppName != "" {
-		translationObj["app.app-name"] = s.AppConfig.Branding.AppName
+	appConfigYAML, err := yaml.Marshal(appConfig)
+	if err != nil {
+		return nil, err
 	}
-	if s.AppConfig.Branding.EmailDefaultSender != "" {
-		translationObj["email.default.sender"] = s.AppConfig.Branding.EmailDefaultSender
+	appResources[configsource.AuthgearYAML] = appConfigYAML
+
+	// Generate secret config
+	secretConfig := config.GenerateSecretConfigFromOptions(&config.GenerateSecretConfigOptions{}, corerand.SecureRand)
+	secretConfigYAML, err := yaml.Marshal(secretConfig)
+	if err != nil {
+		return nil, err
 	}
-	if s.AppConfig.Branding.SMSDefaultSender != "" {
-		translationObj["sms.default.sender"] = s.AppConfig.Branding.SMSDefaultSender
-	}
+	appResources[configsource.AuthgearSecretYAML] = secretConfigYAML
 
-	var err error
-	var translationJSON []byte
-	var translationJSONPath string
-	if len(translationObj) > 0 {
-		// FIXME(resource): This fix is temporary.
-		translationJSONPath = "templates/__default__/" + template.TranslationJSONName
-		translationJSON, err = json.Marshal(translationObj)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	result := &generateAppConfigAndTranslationResult{
-		AppConfig:           cfg,
-		TranslationJSONPath: translationJSONPath,
-		TranslationJSON:     translationJSON,
-	}
-	return result, nil
-}
-
-func (s *AppService) generateSecretConfig() (*config.SecretConfig, error) {
-	secrets := s.AppConfig.Secret
-	cfg := config.GenerateSecretConfigFromOptions(&config.GenerateSecretConfigOptions{
-		DatabaseURL:    secrets.DatabaseURL,
-		DatabaseSchema: secrets.DatabaseSchema,
-		RedisURL:       secrets.RedisURL,
-	}, corerand.SecureRand)
-
-	if secrets.SMTPHost != "" {
-		data, err := json.Marshal(&config.SMTPServerCredentials{
-			Host:     secrets.SMTPHost,
-			Port:     secrets.SMTPPort,
-			Mode:     config.SMTPMode(secrets.SMTPMode),
-			Username: secrets.SMTPUsername,
-			Password: secrets.SMTPPassword,
-		})
-		if err != nil {
-			panic(err)
-		}
-
-		cfg.Secrets = append(cfg.Secrets, config.SecretItem{
-			Key:     config.SMTPServerCredentialsKey,
-			RawData: data,
-		})
-	}
-
-	if secrets.TwilioAccountSID != "" {
-		data, err := json.Marshal(&config.TwilioCredentials{
-			AccountSID: secrets.TwilioAccountSID,
-			AuthToken:  secrets.TwilioAuthToken,
-		})
-		if err != nil {
-			panic(err)
-		}
-
-		cfg.Secrets = append(cfg.Secrets, config.SecretItem{
-			Key:     config.TwilioCredentialsKey,
-			RawData: data,
-		})
-	}
-
-	if secrets.NexmoAPIKey != "" {
-		data, err := json.Marshal(&config.NexmoCredentials{
-			APIKey:    secrets.NexmoAPIKey,
-			APISecret: secrets.NexmoAPISecret,
-		})
-		if err != nil {
-			panic(err)
-		}
-
-		cfg.Secrets = append(cfg.Secrets, config.SecretItem{
-			Key:     config.NexmoCredentialsKey,
-			RawData: data,
-		})
-	}
-
-	return cfg, nil
+	return appResources, nil
 }
 
 func (s *AppService) generateAppHost(appID string) (string, error) {
@@ -288,43 +210,27 @@ func (s *AppService) generateConfig(appHost string, appID string) (opts *CreateA
 		return
 	}
 
-	genResult, err := s.generateAppConfigAndTranslation(appHost, appID)
-	if err != nil {
-		return
-	}
-	appConfigYAML, err := yaml.Marshal(genResult.AppConfig)
+	files, err := s.generateResources(appHost, appID)
 	if err != nil {
 		return
 	}
 
-	secretConfig, err := s.generateSecretConfig()
-	if err != nil {
-		return
-	}
-	secretConfigYAML, err := yaml.Marshal(secretConfig)
-	if err != nil {
-		return
+	fs := afero.NewMemMapFs()
+	for p, data := range files {
+		_ = fs.MkdirAll(path.Dir(p), 0777)
+		_ = afero.WriteFile(fs, p, data, 0666)
 	}
 
-	// FIXME(resource): allow providing resource FS template for new apps
-	appFs := resource.AferoFs{Fs: afero.NewMemMapFs()}
-
+	appFs := resource.AferoFs{Fs: fs}
 	resMgr := (*resource.Manager)(s.AppBaseResources).Overlay(appFs)
-	updates := []resources.Update{
-		{Path: configsource.AuthgearYAML, Data: appConfigYAML},
-		{Path: configsource.AuthgearSecretYAML, Data: secretConfigYAML},
-	}
-	err = resources.Validate(appID, appFs, resMgr, updates)
+	err = resources.Validate(appID, appFs, resMgr, nil)
 	if err != nil {
 		return
 	}
 
 	opts = &CreateAppOptions{
-		AppID:               appID,
-		AppConfigYAML:       appConfigYAML,
-		SecretConfigYAML:    secretConfigYAML,
-		TranslationJSONPath: genResult.TranslationJSONPath,
-		TranslationJSON:     genResult.TranslationJSON,
+		AppID:     appID,
+		Resources: files,
 	}
 
 	return

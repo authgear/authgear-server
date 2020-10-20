@@ -3,7 +3,6 @@ package configsource
 import (
 	"fmt"
 	"os"
-	"sort"
 
 	"sigs.k8s.io/yaml"
 
@@ -46,24 +45,16 @@ func (f secretConfigKind) MatchResource(path string) bool {
 }
 
 func (f secretConfigKind) Merge(layers []resource.LayerFile, args map[string]interface{}) (*resource.MergedFile, error) {
-	items := map[string]config.SecretItem{}
+	var layerConfigs []*config.SecretConfig
 	for _, layer := range layers {
 		var layerConfig config.SecretConfig
 		if err := yaml.Unmarshal(layer.Data, &layerConfig); err != nil {
 			return nil, fmt.Errorf("malformed secret config: %w", err)
 		}
-		for _, item := range layerConfig.Secrets {
-			items[string(item.Key)] = item
-		}
+		layerConfigs = append(layerConfigs, &layerConfig)
 	}
 
-	var mergedConfig config.SecretConfig
-	for _, item := range items {
-		mergedConfig.Secrets = append(mergedConfig.Secrets, item)
-	}
-	sort.Slice(mergedConfig.Secrets, func(i, j int) bool {
-		return mergedConfig.Secrets[i].Key < mergedConfig.Secrets[j].Key
-	})
+	mergedConfig := (&config.SecretConfig{}).Overlay(layerConfigs...)
 	mergedYAML, err := yaml.Marshal(mergedConfig)
 	if err != nil {
 		return nil, err
