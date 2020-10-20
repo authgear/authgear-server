@@ -7,6 +7,7 @@ import ScreenHeader from "../../ScreenHeader";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import { useCreateAppMutation } from "./mutations/createAppMutation";
 import { useTextField } from "../../hook/useInput";
+import { useRuntimeConfig } from "../../context/RuntimeConfigContext";
 
 import styles from "./CreateAppScreen.module.scss";
 
@@ -20,14 +21,13 @@ interface CreateAppFormData {
 }
 
 const APP_ID_SCHEME = "https://";
-// TODO: get this from runtime-config.json
-const APP_ID_SUBDOMAIN = ".authgearapps.com";
 
 const CreateApp: React.FC<CreateAppProps> = function CreateApp(
   props: CreateAppProps
 ) {
   const { isCreating, createApp } = props;
   const navigate = useNavigate();
+  const runtimeConfig = useRuntimeConfig();
 
   const [formData, setFormData] = useState<CreateAppFormData>({
     appID: "",
@@ -61,7 +61,7 @@ const CreateApp: React.FC<CreateAppProps> = function CreateApp(
         disabled={isCreating}
         onChange={onAppIDChange}
         prefix={APP_ID_SCHEME}
-        suffix={APP_ID_SUBDOMAIN}
+        suffix={runtimeConfig?.app_host_suffix}
       />
       <PrimaryButton
         onClick={onCreateClick}
