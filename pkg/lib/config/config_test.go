@@ -84,5 +84,23 @@ func TestAppConfig(t *testing.T) {
 				})
 			}
 		})
+
+		Convey("get active country calling code", func() {
+			data, err := ioutil.ReadFile("testdata/country_calling_code_config_test.yaml")
+			if err != nil {
+				panic(err)
+			}
+
+			var cfg config.AppConfig
+			err = yaml.Unmarshal(data, &cfg)
+			if err != nil {
+				panic(err)
+			}
+
+			activeCountryCodes := cfg.UI.CountryCallingCode.GetActiveCountryCodes()
+			expectedActiveCountryCodes := []string{"2", "1", "4", "5"}
+
+			So(activeCountryCodes, ShouldResemble, expectedActiveCountryCodes)
+		})
 	})
 }
