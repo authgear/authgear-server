@@ -26,6 +26,8 @@ import {
   ScrollablePane,
   StickyPositionType,
   Sticky,
+  IconButton,
+  IIconProps,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
@@ -38,13 +40,16 @@ import styles from "./AuthenticationCountryCallingCodeList.module.scss";
 
 interface CountryCallingCodeListProps {
   allCountryCallingCodes: string[];
-  selectedCountryCallingCodes: string[];
-  onSelectedCountryCallingCodesChange: (newSelectedCodes: string[]) => void;
+  pinnedCountryCallingCodes: string[];
+  selectedCountryCallingCodes: Set<string>;
+  onPinnedCountryCallingCodesChange: (newPinnedCodes: string[]) => void;
+  onSelectedCountryCallingCodesChange: (newSelectedCodes: Set<string>) => void;
 }
 
 interface CountryCallingCodeListItem extends IObjectWithKey {
   key: string;
   selected: boolean;
+  pinned: boolean;
   countryName: string;
   callingCode: string;
 }
@@ -57,6 +62,13 @@ type CountryCallingCodeListData = Record<
 interface CountryCallingCodeListItemCheckboxProps extends ICheckboxProps {
   index?: number;
   onCheckboxClicked: (index: number, checked: boolean) => void;
+}
+
+interface CountryCallingCodeListPinButtonProps {
+  className?: string;
+  index?: number;
+  pinned?: boolean;
+  onPinClick: (index: number, checked: boolean) => void;
 }
 
 interface CountryCallingCodeListSelectAllProps extends ICheckboxProps {
@@ -74,18 +86,17 @@ const HEADER_STYLE = {
 };
 
 // instantiate fuzzy searcher
-const fuseSearcher = new Fuse<Omit<CountryCallingCodeListItem, "selected">>(
-  [],
-  {
-    shouldSort: false,
-    keys: ["countryName", "callingCode"],
-    // lower means more strict (smaller normalized Levenshtein distance)
-    threshold: 0.4,
-    // setting a large distance means location constraint will be
-    // satisfied no matter where the match is located
-    distance: 10000,
-  }
-);
+const fuseSearcher = new Fuse<
+  Omit<CountryCallingCodeListItem, "selected" | "pinned">
+>([], {
+  shouldSort: false,
+  keys: ["countryName", "callingCode"],
+  // lower means more strict (smaller normalized Levenshtein distance)
+  threshold: 0.4,
+  // setting a large distance means location constraint will be
+  // satisfied no matter where the match is located
+  distance: 10000,
+});
 
 function makeCountryCodeListColumns(
   renderToString: (messageId: string) => string
@@ -105,8 +116,8 @@ function makeCountryCodeListColumns(
       name: renderToString(
         "AuthenticationWidget.phone.list-header.country-or-area"
       ),
-      minWidth: 240,
-      maxWidth: 240,
+      minWidth: 180,
+      maxWidth: 180,
       isMultiline: true,
       className: cn(styles.countryNameCell, styles.callingCodeListColumn),
     },
@@ -122,8 +133,16 @@ function makeCountryCodeListColumns(
       key: "order",
       name: renderToString("AuthenticationWidget.phone.list-header.order"),
       fieldName: "order",
-      minWidth: 155,
-      maxWidth: 155,
+      minWidth: 140,
+      maxWidth: 140,
+      className: styles.callingCodeListColumn,
+    },
+    {
+      key: "pinned",
+      name: renderToString("AuthenticationWidget.phone.list-header.pinned"),
+      fieldName: "pinned",
+      minWidth: 140,
+      maxWidth: 140,
       className: styles.callingCodeListColumn,
     },
   ];
@@ -152,34 +171,79 @@ function constructCallingCodeListData(
 
 function constructCallingCodeListItem(
   allCountryCallingCodes: string[],
-  selectedCountryCallingCodes: string[],
+  selectedCountryCallingCodes: Set<string>,
+  pinnedCountryCallingCodes: string[],
   callingCodeListData: CountryCallingCodeListData,
   searchString: string
 ): CountryCallingCodeListItem[] {
-  const selectedCountryCallingCodeSet = new Set(selectedCountryCallingCodes);
-  const inputUnselectedCountryCallingCodes = allCountryCallingCodes.filter(
-    (callingCode) => !selectedCountryCallingCodeSet.has(callingCode)
+  const pinnedCountryCallingCodeSet = new Set(pinnedCountryCallingCodes);
+  const inputUnpinnedCountryCallingCodes = allCountryCallingCodes.filter(
+    (callingCode) => !pinnedCountryCallingCodeSet.has(callingCode)
   );
 
-  let rawUnselectedCodeList: string[] = inputUnselectedCountryCallingCodes;
+  let rawUnpinnedCodeList: string[] = inputUnpinnedCountryCallingCodes;
   if (searchString.trim() !== "") {
     const matchedCallingCodeItems = fuseSearcher.search(searchString);
-    const matchedUnselectedCodes = matchedCallingCodeItems
-      .filter((item) => !selectedCountryCallingCodeSet.has(item.callingCode))
+    const matchedUnpinnedCodes = matchedCallingCodeItems
+      .filter((item) => !pinnedCountryCallingCodeSet.has(item.callingCode))
       .map((item) => item.callingCode);
-    rawUnselectedCodeList = matchedUnselectedCodes;
+    rawUnpinnedCodeList = matchedUnpinnedCodes;
   }
 
-  const unselectedCodeList = rawUnselectedCodeList.sort(
+  const unpinnedCodeList = rawUnpinnedCodeList.sort(
     (code1, code2) => Number(code1) - Number(code2)
   );
 
-  const codeList = selectedCountryCallingCodes.concat(unselectedCodeList);
+  const codeList = pinnedCountryCallingCodes.concat(unpinnedCodeList);
 
   return codeList.map((callingCode) => ({
     ...callingCodeListData[callingCode],
-    selected: selectedCountryCallingCodeSet.has(callingCode),
+    pinned: pinnedCountryCallingCodeSet.has(callingCode),
+    selected: selectedCountryCallingCodes.has(callingCode),
   }));
+}
+
+function getModifiedItem(
+  countryCallingCodeList: CountryCallingCodeListItem[],
+  index: number
+): CountryCallingCodeListItem | null {
+  if (!(index >= 0 && index < countryCallingCodeList.length)) {
+    return null;
+  }
+  return countryCallingCodeList[index];
+}
+
+function updateCountryCallingCodeList(
+  codes: string[],
+  targetCode: string,
+  checked: boolean
+) {
+  return produce(codes, (draftCodes) => {
+    const targetIndex = codes.findIndex(
+      (callingCode) => callingCode === targetCode
+    );
+    if (checked && targetIndex === -1) {
+      draftCodes.push(targetCode);
+    }
+    if (!checked && targetIndex > -1) {
+      draftCodes.splice(targetIndex, 1);
+    }
+  });
+}
+
+function updateCountryCallingCodeSet(
+  codes: Set<string>,
+  targetCode: string,
+  checked: boolean
+) {
+  const newCodes = new Set(codes);
+  if (checked) {
+    newCodes.add(targetCode);
+  } else {
+    newCodes.delete(targetCode);
+  }
+
+  return newCodes;
 }
 
 const CountryCallingCodeListItemCheckbox: React.FC<CountryCallingCodeListItemCheckboxProps> = function CountryCallingCodeListItemCheckbox(
@@ -198,6 +262,32 @@ const CountryCallingCodeListItemCheckbox: React.FC<CountryCallingCodeListItemChe
   );
 
   return <Checkbox {...rest} onChange={onChange} />;
+};
+
+const CountryCallingCodeListPinButton: React.FC<CountryCallingCodeListPinButtonProps> = function CountryCallingCodeListPinButton(
+  props: CountryCallingCodeListPinButtonProps
+) {
+  const { className, index, pinned, onPinClick } = props;
+
+  const iconProps: IIconProps = useMemo(() => {
+    const iconName = pinned ? "PinnedSolid" : "Pinned";
+    return { iconName };
+  }, [pinned]);
+
+  const onButtonClick = useCallback(() => {
+    if (index == null || pinned == null) {
+      return;
+    }
+    onPinClick(index, !pinned);
+  }, [index, pinned, onPinClick]);
+
+  return (
+    <IconButton
+      className={className}
+      iconProps={iconProps}
+      onClick={onButtonClick}
+    />
+  );
 };
 
 const CountryCallingCodeListSelectAll: React.FC<CountryCallingCodeListSelectAllProps> = function CountryCallingCodeListSelectAll(
@@ -240,7 +330,9 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> = function C
 ) {
   const {
     allCountryCallingCodes,
+    pinnedCountryCallingCodes,
     selectedCountryCallingCodes,
+    onPinnedCountryCallingCodesChange,
     onSelectedCountryCallingCodesChange,
   } = props;
   const { renderToString } = useContext(Context);
@@ -258,13 +350,13 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> = function C
 
   const isCallingCodePartiallySelected = useMemo(() => {
     return (
-      selectedCountryCallingCodes.length > 0 &&
-      selectedCountryCallingCodes.length < allCountryCallingCodes.length
+      selectedCountryCallingCodes.size > 0 &&
+      selectedCountryCallingCodes.size < allCountryCallingCodes.length
     );
   }, [selectedCountryCallingCodes, allCountryCallingCodes]);
 
   const isCallingCodeAllSelected = useMemo(() => {
-    return selectedCountryCallingCodes.length === allCountryCallingCodes.length;
+    return selectedCountryCallingCodes.size === allCountryCallingCodes.length;
   }, [selectedCountryCallingCodes, allCountryCallingCodes]);
 
   const countryCallingCodeListData = useMemo(() => {
@@ -286,11 +378,13 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> = function C
     return constructCallingCodeListItem(
       allCountryCallingCodes,
       selectedCountryCallingCodes,
+      pinnedCountryCallingCodes,
       countryCallingCodeListData,
       searchString
     );
   }, [
     allCountryCallingCodes,
+    pinnedCountryCallingCodes,
     selectedCountryCallingCodes,
     countryCallingCodeListData,
     searchString,
@@ -298,52 +392,91 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> = function C
 
   const onCallingCodeSwap = useCallback(
     (index1: number, index2: number) => {
-      onSelectedCountryCallingCodesChange(
-        swap(selectedCountryCallingCodes, index1, index2)
+      onPinnedCountryCallingCodesChange(
+        swap(pinnedCountryCallingCodes, index1, index2)
       );
     },
-    [onSelectedCountryCallingCodesChange, selectedCountryCallingCodes]
+    [onPinnedCountryCallingCodesChange, pinnedCountryCallingCodes]
   );
 
+  // NOTE: pinned code must be selected
+  // if unselected code is pinned, select the code
+  const onCallingCodePinned = useCallback(
+    (index: number, pinned: boolean) => {
+      const modifiedItem = getModifiedItem(countryCallingCodeList, index);
+      if (modifiedItem == null) {
+        return;
+      }
+      onPinnedCountryCallingCodesChange(
+        updateCountryCallingCodeList(
+          pinnedCountryCallingCodes,
+          modifiedItem.callingCode,
+          pinned
+        )
+      );
+      if (pinned && !modifiedItem.selected) {
+        onSelectedCountryCallingCodesChange(
+          updateCountryCallingCodeSet(
+            selectedCountryCallingCodes,
+            modifiedItem.callingCode,
+            true
+          )
+        );
+      }
+    },
+    [
+      countryCallingCodeList,
+      onPinnedCountryCallingCodesChange,
+      onSelectedCountryCallingCodesChange,
+      pinnedCountryCallingCodes,
+      selectedCountryCallingCodes,
+    ]
+  );
+
+  // NOTE: pinned code must be selected
+  // if pinned code is deselected, unpin the code
   const onCallingCodeSelected = useCallback(
     (index: number, selected: boolean) => {
-      const newSelectedCallingCodes = produce(
-        selectedCountryCallingCodes,
-        (draftSelectedCallingCodes) => {
-          if (!(index >= 0 && index < countryCallingCodeList.length)) {
-            return;
-          }
-          const modifiedItem = countryCallingCodeList[index];
-          const targetIndex = draftSelectedCallingCodes.findIndex(
-            (callingCode) => callingCode === modifiedItem.callingCode
-          );
-          if (selected && targetIndex === -1) {
-            draftSelectedCallingCodes.push(modifiedItem.callingCode);
-          }
-          if (!selected && targetIndex > -1) {
-            draftSelectedCallingCodes.splice(targetIndex, 1);
-          }
-        }
+      const modifiedItem = getModifiedItem(countryCallingCodeList, index);
+      if (modifiedItem == null) {
+        return;
+      }
+      onSelectedCountryCallingCodesChange(
+        updateCountryCallingCodeSet(
+          selectedCountryCallingCodes,
+          modifiedItem.callingCode,
+          selected
+        )
       );
-
-      onSelectedCountryCallingCodesChange(newSelectedCallingCodes);
+      if (!selected && modifiedItem.pinned) {
+        onPinnedCountryCallingCodesChange(
+          updateCountryCallingCodeList(
+            pinnedCountryCallingCodes,
+            modifiedItem.callingCode,
+            false
+          )
+        );
+      }
     },
     [
       countryCallingCodeList,
       onSelectedCountryCallingCodesChange,
+      onPinnedCountryCallingCodesChange,
       selectedCountryCallingCodes,
+      pinnedCountryCallingCodes,
     ]
   );
 
   const selectAllCallingCode = useCallback(() => {
     onSelectedCountryCallingCodesChange(
-      countryCallingCodeList.map((item) => item.callingCode)
+      new Set(countryCallingCodeList.map((item) => item.callingCode))
     );
   }, [countryCallingCodeList, onSelectedCountryCallingCodesChange]);
 
   const unselectAllCallingCode = useCallback(() => {
-    onSelectedCountryCallingCodesChange([]);
-  }, [onSelectedCountryCallingCodesChange]);
+    onSelectedCountryCallingCodesChange(new Set());
+    onPinnedCountryCallingCodesChange([]);
+  }, [onSelectedCountryCallingCodesChange, onPinnedCountryCallingCodesChange]);
 
   const onRenderCallingCodeItemColumn = React.useCallback(
     (item?: CountryCallingCodeListItem, index?: number, column?: IColumn) => {
@@ -357,11 +490,11 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> = function C
             />
           );
         case "order":
-          if (item?.selected) {
+          if (item?.pinned) {
             return (
               <OrderButtons
                 index={index}
-                itemCount={selectedCountryCallingCodes.length}
+                itemCount={pinnedCountryCallingCodes.length}
                 onSwapClicked={onCallingCodeSwap}
                 renderAriaLabel={() => item.countryName}
               />
@@ -372,15 +505,29 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> = function C
               <FormattedMessage id="AuthenticationWidget.phone.default-order" />
             </span>
           );
+        case "pinned":
+          return (
+            <CountryCallingCodeListPinButton
+              index={index}
+              className={styles.pin}
+              pinned={item?.pinned ?? false}
+              onPinClick={onCallingCodePinned}
+            />
+          );
         case "countryName":
           return <span>{item?.countryName}</span>;
         case "callingCode":
           return <span>{item?.callingCode}</span>;
         default:
-          return <span>{item?.callingCode}</span>;
+          return null;
       }
     },
-    [onCallingCodeSwap, selectedCountryCallingCodes, onCallingCodeSelected]
+    [
+      onCallingCodeSwap,
+      pinnedCountryCallingCodes,
+      onCallingCodePinned,
+      onCallingCodeSelected,
+    ]
   );
 
   const onRenderCallingCodeListHeader = useCallback<
@@ -435,18 +582,18 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> = function C
         return null;
       }
       const { itemIndex } = props;
-      const isLastSelectedRow =
-        itemIndex === selectedCountryCallingCodes.length - 1;
+      const isLastPinnedRow =
+        itemIndex === pinnedCountryCallingCodes.length - 1;
       return (
         <DetailsRow
           {...props}
           className={cn(styles.callingCodeListRow, {
-            [styles.lastSelectedCallingCode]: isLastSelectedRow,
+            [styles.lastPinnedCallingCode]: isLastPinnedRow,
           })}
         />
       );
     },
-    [selectedCountryCallingCodes]
+    [pinnedCountryCallingCodes]
   );
 
   return (

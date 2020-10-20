@@ -172,6 +172,8 @@
   "AuthenticationScreen.title": "Authentication",
   "AuthenticationScreen.login-id.title": "Login ID",
   "AuthenticationScreen.login-id.order": "Order",
+  "AuthenticationScreen.login-id.error.calling-code-min-items": "Require at least 1 pinned calling code and 1 active calling code",
+  "AuthenticationScreen.login-id.error.generic": "Failed to update app config",
   "AuthenticationScreen.authenticator.title": "Authenticator",
 
   "AuthenticationWidget.usernameTitle": "Username",
@@ -192,6 +194,7 @@
   "AuthenticationWidget.phone.list-header.country-or-area": "Country / Area",
   "AuthenticationWidget.phone.list-header.code": "Code",
   "AuthenticationWidget.phone.list-header.order": "Order",
+  "AuthenticationWidget.phone.list-header.pinned": "Pinned for Selection",
   "AuthenticationWidget.phone.default-order": "Default (ascending)",
 
   "calling-code-area.gmss": "Global Mobile Satellite System",

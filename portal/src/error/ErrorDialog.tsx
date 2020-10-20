@@ -5,6 +5,7 @@ import { FormattedMessage } from "@oursky/react-messageformat";
 import { GenericErrorHandlingRule, useGenericError } from "./useGenericError";
 
 interface ErrorDialogProps {
+  errorMessage?: string;
   error: unknown;
   rules: GenericErrorHandlingRule[];
   fallbackErrorMessageID?: string;
@@ -13,12 +14,22 @@ interface ErrorDialogProps {
 const ErrorDialog: React.FC<ErrorDialogProps> = function ErrorDialog(
   props: ErrorDialogProps
 ) {
-  const { error, rules, fallbackErrorMessageID } = props;
-  const { errorMessage } = useGenericError(
+  const {
+    errorMessage: errorMessageProps,
+    error,
+    rules,
+    fallbackErrorMessageID,
+  } = props;
+
+  const { errorMessage: genericErrorMessage } = useGenericError(
     error,
     rules,
     fallbackErrorMessageID
   );
+
+  const errorMessage = useMemo(() => {
+    return errorMessageProps ?? genericErrorMessage;
+  }, [errorMessageProps, genericErrorMessage]);
 
   const [visible, setVisible] = useState(false);
 
