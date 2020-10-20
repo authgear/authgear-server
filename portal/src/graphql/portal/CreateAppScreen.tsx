@@ -1,15 +1,15 @@
-import React, { useCallback, useContext, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Context as LocaleContext,
-  FormattedMessage,
-} from "@oursky/react-messageformat";
-import { PrimaryButton, Text, TextField } from "@fluentui/react";
+import { FormattedMessage } from "@oursky/react-messageformat";
+import { Label, PrimaryButton, Text, TextField } from "@fluentui/react";
 import ShowError from "../../ShowError";
 import ScreenHeader from "../../ScreenHeader";
-import styles from "./CreateAppScreen.module.scss";
+import NavBreadcrumb from "../../NavBreadcrumb";
 import { useCreateAppMutation } from "./mutations/createAppMutation";
 import { useTextField } from "../../hook/useInput";
+import { useRuntimeConfig } from "../../context/RuntimeConfigContext";
+
+import styles from "./CreateAppScreen.module.scss";
 
 interface CreateAppProps {
   isCreating: boolean;
@@ -20,12 +20,14 @@ interface CreateAppFormData {
   appID: string;
 }
 
+const APP_ID_SCHEME = "https://";
+
 const CreateApp: React.FC<CreateAppProps> = function CreateApp(
   props: CreateAppProps
 ) {
   const { isCreating, createApp } = props;
   const navigate = useNavigate();
-  const { renderToString } = useContext(LocaleContext);
+  const runtimeConfig = useRuntimeConfig();
 
   const [formData, setFormData] = useState<CreateAppFormData>({
     appID: "",
@@ -47,15 +49,19 @@ const CreateApp: React.FC<CreateAppProps> = function CreateApp(
 
   return (
     <main className={styles.body}>
-      <Text as="h1" variant="xLarge" block={true}>
-        <FormattedMessage id="CreateAppScreen.title" />
+      <Label className={styles.fieldLabel}>
+        <FormattedMessage id="CreateAppScreen.app-id.label" />
+      </Label>
+      <Text className={styles.fieldDesc}>
+        <FormattedMessage id="CreateAppScreen.app-id.desc" />
       </Text>
       <TextField
         className={styles.appIDField}
-        label={renderToString("CreateAppScreen.app-id.label")}
         value={appID}
         disabled={isCreating}
         onChange={onAppIDChange}
+        prefix={APP_ID_SCHEME}
+        suffix={runtimeConfig?.app_host_suffix}
       />
       <PrimaryButton
         onClick={onCreateClick}
@@ -69,11 +75,22 @@ const CreateApp: React.FC<CreateAppProps> = function CreateApp(
 
 const CreateAppScreen: React.FC = function CreateAppScreen() {
   const { loading, error, createApp } = useCreateAppMutation();
+
+  const navBreadcrumbItems = React.useMemo(() => {
+    return [
+      { to: "..", label: <FormattedMessage id="AppsScreen.title" /> },
+      { to: ".", label: <FormattedMessage id="CreateAppScreen.title" /> },
+    ];
+  }, []);
+
   return (
     <div className={styles.root}>
       <ScreenHeader />
       {error && <ShowError error={error} />}
-      <CreateApp isCreating={loading} createApp={createApp} />
+      <section className={styles.content}>
+        <NavBreadcrumb items={navBreadcrumbItems} />
+        <CreateApp isCreating={loading} createApp={createApp} />
+      </section>
     </div>
   );
 };

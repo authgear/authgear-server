@@ -15,6 +15,10 @@ import i18nISOCountriesEnLocale from "i18n-iso-countries/langs/en.json";
 import styles from "./ReactApp.module.scss";
 import OAuthRedirect from "./OAuthRedirect";
 import AcceptAdminInvitationScreen from "./graphql/portal/AcceptAdminInvitationScreen";
+import {
+  RuntimeConfig,
+  RuntimeConfigContext,
+} from "./context/RuntimeConfigContext";
 
 // ReactAppRoutes defines the routes.
 const ReactAppRoutes: React.FC = function ReactAppRoutes() {
@@ -40,6 +44,9 @@ const ReactApp: React.FC = function ReactApp() {
   const [configured, setConfigured] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<null | unknown>(null);
+  const [runtimeConfigState, setRuntimeConfig] = useState<RuntimeConfig | null>(
+    null
+  );
 
   useEffect(() => {
     if (!configured && !loading && error == null) {
@@ -48,6 +55,7 @@ const ReactApp: React.FC = function ReactApp() {
       fetch("/api/runtime-config.json")
         .then(async (response) => {
           const runtimeConfig = await response.json();
+          setRuntimeConfig(runtimeConfig);
           await authgear.configure({
             clientID: runtimeConfig.authgear_client_id,
             endpoint: runtimeConfig.authgear_endpoint,
@@ -90,7 +98,9 @@ const ReactApp: React.FC = function ReactApp() {
   return (
     <LocaleProvider locale="en" messageByID={MESSAGES}>
       <ApolloProvider client={client}>
-        <div className={styles.root}>{children}</div>
+        <RuntimeConfigContext.Provider value={runtimeConfigState}>
+          <div className={styles.root}>{children}</div>
+        </RuntimeConfigContext.Provider>
       </ApolloProvider>
     </LocaleProvider>
   );

@@ -6,13 +6,43 @@
 }
 
 .body {
-  flex: 1 0 0;
-  min-width: 0;
-  min-height: 0;
-
-  margin: 8px 32px;
+  margin: 20px 40px 40px;
 }
 
-.commandBar {
-  border-bottom: 1px solid #edebe9;
+.header {
+  margin-bottom: 30px;
+}
+.cardsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  margin: -7px;
+  width: 950px;
+  padding-bottom: 30px;
+}
+
+.card {
+  display: block;
+  padding: 20px;
+  margin: 7px;
+  min-width: 300px;
+  max-width: 300px;
+  min-height: 125px;
+  border-radius: 3px;
+}
+
+.cardAppID {
+  display: block;
+  font-weight: 700;
+  color: #000000;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.cardAppName {
+  display: block;
+  font-weight: 500;
+  color: #176df3;
+  margin-bottom: 20px;
+  font-size: 22px;
+  overflow-wrap: break-word;
 }

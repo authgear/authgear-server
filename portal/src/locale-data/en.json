@@ -70,11 +70,12 @@
 
   "NavBreadcrumb.label": "Nested navigation",
 
-  "AppsScreen.title": "Apps",
+  "AppsScreen.title": "Select App",
   "AppsScreen.create-app": "Create App",
 
   "CreateAppScreen.title": "Create App",
   "CreateAppScreen.app-id.label": "App ID",
+  "CreateAppScreen.app-id.desc": "It will appear in the endpoint of your app:",
 
   "UsersScreen.title": "Users",
   "UsersScreen.add-user": "Add User",

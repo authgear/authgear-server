@@ -8,9 +8,29 @@
   height: 48px;
 }
 
+.headerLeft {
+  display: flex;
+  align-items: center;
+  color: #ffffff;
+}
+
+.headerArrow {
+  padding-right: 10px;
+  font-size: 14px;
+}
+
+.headerAppID {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.logoLink {
+  display: flex;
+}
+
 .logo {
   height: 24px;
-  margin: 12px;
+  margin: 12px 10px;
 }
 
 .logoutButton {
