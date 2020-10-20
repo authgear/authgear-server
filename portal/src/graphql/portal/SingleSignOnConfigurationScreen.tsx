@@ -11,6 +11,7 @@ import deepEqual from "deep-equal";
 import { Link, Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 
+import { ExternalLinks } from "../../externalLinks";
 import SingleSignOnConfigurationWidget from "./SingleSignOnConfigurationWidget";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
@@ -618,7 +619,11 @@ const SingleSignOnConfigurationScreen: React.FC = function SingleSignOnConfigura
         <Text as="h1" className={styles.header}>
           <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
         </Text>
-        <Link href="#" className={styles.helpLink}>
+        <Link
+          href={ExternalLinks.SSOScreenHelp}
+          target="_blank"
+          className={styles.helpLink}
+        >
           <FormattedMessage id="SingleSignOnConfigurationScreen.help-link" />
         </Link>
         <SingleSignOnConfiguration
