@@ -1,4 +1,10 @@
-import React, { useMemo, useContext, useState, useCallback } from "react";
+import React, {
+  useMemo,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { TextField, Label } from "@fluentui/react";
 import cn from "classnames";
@@ -217,6 +223,14 @@ const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function F
     },
     [rawAppConfig, initialState, state, updateAppConfig, updateTemplates]
   );
+
+  // Set state to initialState after updating
+  useEffect(() => {
+    if (!updatingAppConfig || !updatingTemplates) {
+      setState(initialState);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [updatingAppConfig, updatingTemplates]);
 
   return (
     <form className={cn(styles.root, className)} onSubmit={onFormSubmit}>

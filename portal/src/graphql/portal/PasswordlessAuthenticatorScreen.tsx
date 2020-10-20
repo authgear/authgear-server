@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { Label, Text } from "@fluentui/react";
 import { useParams } from "react-router-dom";
@@ -212,6 +212,14 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
 
     updateTemplates(updates).catch(() => {});
   }, [state, initialState, updateTemplates]);
+
+  // Set state to initialState after updating templates
+  useEffect(() => {
+    if (!isUpdatingTemplates) {
+      setState(initialState);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isUpdatingTemplates]);
 
   return (
     <div className={styles.form}>
