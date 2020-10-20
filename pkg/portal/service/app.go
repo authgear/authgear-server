@@ -195,7 +195,8 @@ func (s *AppService) generateAppConfigAndTranslation(appHost string, appID strin
 	var translationJSON []byte
 	var translationJSONPath string
 	if len(translationObj) > 0 {
-		translationJSONPath = "templates/" + template.TranslationJSONName
+		// FIXME(resource): This fix is temporary.
+		translationJSONPath = "templates/__default__/" + template.TranslationJSONName
 		translationJSON, err = json.Marshal(translationObj)
 		if err != nil {
 			return nil, err
