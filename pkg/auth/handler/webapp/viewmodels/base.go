@@ -43,7 +43,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, anyError interface{}) BaseV
 		RequestURL:          r.URL.String(),
 		CSRFField:           csrf.TemplateField(r),
 		StaticAssetURL:      m.StaticAssets.StaticAssetURL,
-		CountryCallingCodes: m.AuthUI.CountryCallingCode.Values,
+		CountryCallingCodes: m.AuthUI.CountryCallingCode.GetActiveCountryCodes(),
 		SliceContains:       sliceContains,
 		MakeURL: func(path string, pairs ...string) string {
 			u := r.URL

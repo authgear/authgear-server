@@ -145,15 +145,21 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 		}
 	}
 
-	countryCallingCodeDefaultOK := false
-	for _, code := range c.UI.CountryCallingCode.Values {
-		if code == c.UI.CountryCallingCode.Default {
-			countryCallingCodeDefaultOK = true
+	countryCallingCodePinnedOK := true
+	countryCallingCodeAllowListMap := make(map[string]bool)
+	for _, code := range c.UI.CountryCallingCode.AllowList {
+		countryCallingCodeAllowListMap[code] = true
+	}
+
+	for _, pinnedCode := range c.UI.CountryCallingCode.PinnedList {
+		if !countryCallingCodeAllowListMap[pinnedCode] {
+			countryCallingCodePinnedOK = false
 		}
 	}
-	if !countryCallingCodeDefaultOK {
-		ctx.Child("ui", "country_calling_code", "default").
-			EmitErrorMessage("default country calling code is unlisted")
+
+	if !countryCallingCodePinnedOK {
+		ctx.Child("ui", "country_calling_code", "pinned_list").
+			EmitErrorMessage("pinned country calling code is unlisted")
 	}
 }
 
