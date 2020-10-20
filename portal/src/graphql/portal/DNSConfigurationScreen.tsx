@@ -26,7 +26,6 @@ import {
   MessageBar,
   MessageBarType,
   Dropdown,
-  IDropdownOption,
 } from "@fluentui/react";
 
 import { useAppConfigQuery } from "./query/appConfigQuery";
@@ -119,43 +118,6 @@ function getPublicOriginFromDomain(domain: Domain): string {
   return `https://${domain.domain}`;
 }
 
-function getDefaultPublicDomainOption(
-  verifiedDomains: Domain[]
-): { option?: IDropdownOption; domain?: Domain } {
-  const defaultDomain = verifiedDomains
-    .map((domain) => ({
-      ...domain,
-      createdTimestamp: new Date(domain.createdAt).getTime(),
-    }))
-    .sort(
-      (domain1, domain2) => domain1.createdTimestamp - domain2.createdTimestamp
-    )
-    .find((domain) => !domain.isCustom);
-
-  if (defaultDomain == null) {
-    return {};
-  }
-  const defaultDomainKey = getPublicOriginFromDomain(defaultDomain);
-  return {
-    option: {
-      key: defaultDomainKey,
-      text: defaultDomainKey,
-    },
-    domain: defaultDomain,
-  };
-}
-
-function isOriginIncludedInOptions(
-  verifiedDomains: Domain[],
-  origin: string | undefined
-): boolean {
-  return (
-    verifiedDomains.find(
-      (domain) => getPublicOriginFromDomain(domain) === origin
-    ) != null
-  );
-}
-
 function savePublicOrigin(
   publicOrigin: string | undefined,
   rawAppConfig: PortalAPIAppConfig | null,
@@ -167,9 +129,15 @@ function savePublicOrigin(
     return;
   }
 
+  const newPublicOrigin =
+    publicOrigin?.trim() !== "" ? publicOrigin : undefined;
+
+  if (newPublicOrigin == null) {
+    // required field, cannot save if field missing
+    return;
+  }
+
   const newAppConfig = produce(rawAppConfig, (draftConfig) => {
-    const newPublicOrigin =
-      publicOrigin?.trim() !== "" ? publicOrigin : undefined;
     draftConfig.http = draftConfig.http ?? {};
     draftConfig.http.public_origin = newPublicOrigin;
 
@@ -177,6 +145,10 @@ function savePublicOrigin(
   });
 
   updateAppConfig(newAppConfig).catch(() => {});
+}
+
+function getVerifiedDomains(domains: Domain[]): Domain[] {
+  return domains.filter((domain) => domain.isVerified);
 }
 
 const PublicOriginConfiguration: React.FC<PublicOriginConfigurationProps> = function PublicOriginConfiguration(
@@ -232,37 +204,13 @@ const PublicOriginConfiguration: React.FC<PublicOriginConfigurationProps> = func
     setPublicOrigin(initialPublicOrigin);
   }, [initialPublicOrigin]);
 
-  // If selected domain is deleted, check if initial option is
-  // also deleted. If not, reset to initial option.
-  // Otherwise fallback to default non-custom domain
-  // and save, set to undefined if not found.
+  // if selected public origin is deleted
+  // reset to public origin in config
   useEffect(() => {
-    if (!isOriginIncludedInOptions(verifiedDomains, publicOrigin)) {
-      if (publicOrigin === initialPublicOrigin) {
-        const {
-          option: defaultDomainOption,
-          domain: defaultDomain,
-        } = getDefaultPublicDomainOption(verifiedDomains);
-        onPublicOriginChange(null, defaultDomainOption);
-        savePublicOrigin(
-          defaultDomain ? getPublicOriginFromDomain(defaultDomain) : undefined,
-          rawAppConfig,
-          updateAppConfig
-        );
-      } else {
-        resetPublicOrigin();
-      }
+    if (!publicOriginOptionKeys.includes(publicOrigin)) {
+      resetPublicOrigin();
     }
-  }, [
-    verifiedDomains,
-    publicOrigin,
-    initialPublicOrigin,
-
-    rawAppConfig,
-    updateAppConfig,
-    resetPublicOrigin,
-    onPublicOriginChange,
-  ]);
+  }, [publicOrigin, publicOriginOptionKeys, resetPublicOrigin]);
 
   return (
     <section className={styles.publicOrigin}>
@@ -528,7 +476,7 @@ const DNSConfiguration: React.FC<DNSConfigurationProps> = function DNSConfigurat
   ] = useState<DeleteDomainDialogData | null>(null);
 
   const verifiedDomains = useMemo(() => {
-    return domains.filter((domain) => domain.isVerified);
+    return getVerifiedDomains(domains);
   }, [domains]);
 
   const domainListColumns: IColumn[] = useMemo(() => {
