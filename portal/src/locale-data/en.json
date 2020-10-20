@@ -408,7 +408,7 @@
   "AcceptAdminInvitationScreen.invalid-code-error": "Invalid invitation code",
   "AcceptAdminInvitationScreen.duplicated-collaborator-error": "Admin already exist",
 
-  "GeneralSettings.app-name.label": "App Name",
+  "GeneralSettings.app-id.label": "App ID",
 
   "PasswordStrengthMeter.password-strength": "Password Strength",
 
