@@ -1,4 +1,4 @@
-Log in to {{ .AppName }} with this one-time password {{ .Code }}.
+Log in to {{ template "app.name" }} with this one-time password {{ .Code }}.
 
 Ignore this if you are not logging in.
 

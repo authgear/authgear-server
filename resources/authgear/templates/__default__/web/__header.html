@@ -1,7 +1,3 @@
 {{ define "__header.html" }}
-{{ if .LogoURI }}
-<div class="logo" style="background-image: url('{{ .LogoURI }}'); background-position: center; background-size: contain; background-repeat: no-repeat"></div>
-{{ else }}
-<div class="logo"></div>
-{{ end }}
+<div class="logo" style="background-image: url('{{ call $.StaticAssetURL "app-logo" }}')"></div>
 {{ end }}

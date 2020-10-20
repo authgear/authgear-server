@@ -3,7 +3,6 @@ package otp
 import (
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
@@ -16,16 +15,14 @@ type EndpointsProvider interface {
 }
 
 type TranslationService interface {
-	AppMetadata() (*translation.AppMetadata, error)
 	EmailMessageData(msg *translation.MessageSpec, args interface{}) (*translation.EmailMessageData, error)
 	SMSMessageData(msg *translation.MessageSpec, args interface{}) (*translation.SMSMessageData, error)
 }
 
 type MessageSender struct {
-	StaticAssetURLPrefix config.StaticAssetURLPrefix
-	Translation          TranslationService
-	Endpoints            EndpointsProvider
-	TaskQueue            task.Queue
+	Translation TranslationService
+	Endpoints   EndpointsProvider
+	TaskQueue   task.Queue
 }
 
 type SendOptions struct {
@@ -35,20 +32,13 @@ type SendOptions struct {
 }
 
 func (s *MessageSender) makeData(opts SendOptions) (*MessageTemplateContext, error) {
-	appMeta, err := s.Translation.AppMetadata()
-	if err != nil {
-		return nil, err
-	}
-
 	ctx := &MessageTemplateContext{
-		AppName: appMeta.AppName,
 		// To be filled by caller
-		Email:                "",
-		Phone:                "",
-		Code:                 opts.OTP,
-		URL:                  opts.URL,
-		Host:                 s.Endpoints.BaseURL().Host,
-		StaticAssetURLPrefix: string(s.StaticAssetURLPrefix),
+		Email: "",
+		Phone: "",
+		Code:  opts.OTP,
+		URL:   opts.URL,
+		Host:  s.Endpoints.BaseURL().Host,
 	}
 
 	return ctx, nil

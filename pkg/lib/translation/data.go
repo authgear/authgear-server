@@ -1,10 +1,5 @@
 package translation
 
-type AppMetadata struct {
-	AppName string
-	LogoURI string
-}
-
 type EmailMessageData struct {
 	Sender   string
 	ReplyTo  string

@@ -12,9 +12,9 @@
   </mj-section>
   <mj-section padding-top="10px">
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px">Sign up on {{ .AppName }}</mj-text>
+      <mj-text font-weight="bold" font-size="24px">Sign up on {{ template "app.name" }}</mj-text>
       <mj-text font-size="16px" padding-top="10px" line-height="24px">
-        The textbox below contains a one-time password generated to copmlete your sign up process.
+        The textbox below contains a one-time password generated to complete your sign up process.
       </mj-text>
     </mj-column>
   </mj-section>

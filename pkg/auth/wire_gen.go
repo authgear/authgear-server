@@ -263,7 +263,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -279,10 +278,9 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -309,16 +307,15 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clock,
-		URLs:                 webappURLProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clock,
+		URLs:           webappURLProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -715,7 +712,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -738,10 +734,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -768,16 +763,15 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -1468,13 +1462,31 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	handle := appProvider.Database
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
+	identityConfig := appConfig.Identity
+	loginIDConfig := identityConfig.LoginID
+	formPrefiller := &webapp2.FormPrefiller{
+		LoginID: loginIDConfig,
+		UI:      uiConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -1483,26 +1495,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
-	}
-	identityConfig := appConfig.Identity
-	loginIDConfig := identityConfig.LoginID
-	formPrefiller := &webapp2.FormPrefiller{
-		LoginID: loginIDConfig,
-		UI:      uiConfig,
-	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -1510,6 +1502,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -1517,6 +1510,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -1679,6 +1673,11 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -1688,10 +1687,9 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -1717,16 +1715,15 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -1822,7 +1819,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -1886,13 +1882,31 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	handle := appProvider.Database
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
+	identityConfig := appConfig.Identity
+	loginIDConfig := identityConfig.LoginID
+	formPrefiller := &webapp2.FormPrefiller{
+		LoginID: loginIDConfig,
+		UI:      uiConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -1901,26 +1915,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
-	}
-	identityConfig := appConfig.Identity
-	loginIDConfig := identityConfig.LoginID
-	formPrefiller := &webapp2.FormPrefiller{
-		LoginID: loginIDConfig,
-		UI:      uiConfig,
-	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -1928,6 +1922,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -1935,6 +1930,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -2097,6 +2093,11 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -2106,10 +2107,9 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -2135,16 +2135,15 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -2240,7 +2239,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -2301,15 +2299,33 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
+	identityConfig := appConfig.Identity
+	loginIDConfig := identityConfig.LoginID
+	formPrefiller := &webapp2.FormPrefiller{
+		LoginID: loginIDConfig,
+		UI:      uiConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -2318,26 +2334,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
-	}
-	identityConfig := appConfig.Identity
-	loginIDConfig := identityConfig.LoginID
-	formPrefiller := &webapp2.FormPrefiller{
-		LoginID: loginIDConfig,
-		UI:      uiConfig,
-	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -2345,6 +2341,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -2352,6 +2349,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -2514,6 +2512,11 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -2524,10 +2527,9 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -2553,16 +2555,15 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -2658,7 +2659,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -2899,7 +2899,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -2923,10 +2922,9 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -2953,16 +2951,15 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -3115,15 +3112,27 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -3132,20 +3141,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
-	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -3153,6 +3148,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -3160,6 +3156,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -3324,6 +3321,11 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -3334,10 +3336,9 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -3363,16 +3364,15 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -3468,7 +3468,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -3525,15 +3524,27 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -3542,20 +3553,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
-	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -3563,6 +3560,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -3570,6 +3568,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -3734,6 +3733,11 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -3744,10 +3748,9 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -3773,16 +3776,15 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -3878,7 +3880,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -3935,15 +3936,27 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -3952,20 +3965,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
-	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -3973,6 +3972,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -3980,6 +3980,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -4144,6 +4145,11 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -4154,10 +4160,9 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -4183,16 +4188,15 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -4288,7 +4292,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -4346,15 +4349,27 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -4363,20 +4378,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
-	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -4384,6 +4385,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -4391,6 +4393,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -4555,6 +4558,11 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -4565,10 +4573,9 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -4594,16 +4601,15 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -4699,7 +4705,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -4758,15 +4763,27 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -4775,20 +4792,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
-	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -4796,6 +4799,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -4803,6 +4807,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -4967,6 +4972,11 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -4977,10 +4987,9 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -5006,16 +5015,15 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -5111,7 +5119,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -5168,15 +5175,27 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -5185,20 +5204,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
-	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -5206,6 +5211,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -5213,6 +5219,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -5377,6 +5384,11 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -5387,10 +5399,9 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -5416,16 +5427,15 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -5521,7 +5531,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -5578,15 +5587,27 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -5595,20 +5616,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
-	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -5616,6 +5623,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -5623,6 +5631,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -5787,6 +5796,11 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -5797,10 +5811,9 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -5826,16 +5839,15 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -5931,7 +5943,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -5988,15 +5999,27 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -6005,20 +6028,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
-	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -6026,6 +6035,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -6033,6 +6043,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -6197,6 +6208,11 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -6207,10 +6223,9 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -6236,16 +6251,15 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -6341,7 +6355,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -6398,15 +6411,27 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -6415,20 +6440,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
-	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -6436,6 +6447,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -6443,6 +6455,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -6607,6 +6620,11 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -6617,10 +6635,9 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -6646,16 +6663,15 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -6751,7 +6767,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -6808,15 +6823,27 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -6825,20 +6852,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
-	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -6846,6 +6859,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -6853,6 +6867,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -7017,6 +7032,11 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -7027,10 +7047,9 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -7056,16 +7075,15 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -7161,7 +7179,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -7218,15 +7235,27 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -7235,20 +7264,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
-	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -7256,6 +7271,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -7263,6 +7279,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -7427,6 +7444,11 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -7437,10 +7459,9 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -7466,16 +7487,15 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -7571,7 +7591,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -7628,15 +7647,33 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
+	identityConfig := appConfig.Identity
+	loginIDConfig := identityConfig.LoginID
+	formPrefiller := &webapp2.FormPrefiller{
+		LoginID: loginIDConfig,
+		UI:      uiConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -7645,26 +7682,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
-	}
-	identityConfig := appConfig.Identity
-	loginIDConfig := identityConfig.LoginID
-	formPrefiller := &webapp2.FormPrefiller{
-		LoginID: loginIDConfig,
-		UI:      uiConfig,
-	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -7672,6 +7689,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -7679,6 +7697,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -7841,6 +7860,11 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -7851,10 +7875,9 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -7880,16 +7903,15 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -7985,7 +8007,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -8043,15 +8064,27 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -8060,20 +8093,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
-	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -8081,6 +8100,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -8088,6 +8108,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -8252,6 +8273,11 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -8262,10 +8288,9 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -8291,16 +8316,15 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -8396,7 +8420,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -8453,15 +8476,27 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -8470,20 +8505,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
-	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -8491,6 +8512,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -8498,6 +8520,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -8662,6 +8685,11 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -8672,10 +8700,9 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -8701,16 +8728,15 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -8806,7 +8832,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -8864,15 +8889,27 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -8881,20 +8918,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
-	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -8902,6 +8925,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -8909,6 +8933,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -9073,6 +9098,11 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -9083,10 +9113,9 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -9112,16 +9141,15 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -9217,7 +9245,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -9274,15 +9301,27 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -9291,20 +9330,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
-	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -9312,6 +9337,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -9319,6 +9345,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -9483,6 +9510,11 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -9493,10 +9525,9 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -9522,16 +9553,15 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -9627,7 +9657,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -9687,15 +9716,27 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -9704,20 +9745,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
-	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -9725,6 +9752,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -9732,6 +9760,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -9896,6 +9925,11 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -9906,10 +9940,9 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -9935,16 +9968,15 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -10040,7 +10072,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -10101,15 +10132,27 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -10118,20 +10161,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
-	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -10139,6 +10168,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -10146,6 +10176,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -10310,6 +10341,11 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -10320,10 +10356,9 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -10349,16 +10384,15 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -10454,7 +10488,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -10514,15 +10547,27 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -10531,20 +10576,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
-	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -10552,6 +10583,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -10559,6 +10591,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -10723,6 +10756,11 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -10733,10 +10771,9 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -10762,16 +10799,15 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -10867,7 +10903,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -10927,15 +10962,27 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -10944,20 +10991,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
-	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -10965,6 +10998,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -10972,6 +11006,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -11136,6 +11171,11 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -11146,10 +11186,9 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -11175,16 +11214,15 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -11280,7 +11318,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -11341,15 +11378,27 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -11358,20 +11407,6 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
-	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -11379,6 +11414,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -11386,6 +11422,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -11550,6 +11587,11 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -11560,10 +11602,9 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -11589,16 +11630,15 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -11694,7 +11734,6 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -11752,15 +11791,27 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.Database
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -11769,20 +11820,6 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
-	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -11790,6 +11827,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -11797,6 +11835,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -11961,6 +12000,11 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -11971,10 +12015,9 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -12000,16 +12043,15 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -12105,7 +12147,6 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -12437,15 +12478,19 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
 	}
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	uiConfig := appConfig.UI
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -12646,7 +12691,6 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -12670,10 +12714,9 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -12700,16 +12743,15 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -13042,7 +13084,6 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 	}
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -13066,10 +13107,9 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -13096,16 +13136,15 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -13307,15 +13346,27 @@ func newPanicAPIMiddleware(p *deps.RequestProvider) httproute.Middleware {
 
 func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
+	staticAssetResolver := &webapp.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -13323,20 +13374,6 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
-	}
-	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		AuthUI:               uiConfig,
-		Translation:          translationService,
-		ForgotPassword:       forgotPasswordConfig,
-		Authentication:       authenticationConfig,
 	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
@@ -13837,7 +13874,6 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -13861,10 +13897,9 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            endpointsProvider,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -13891,16 +13926,15 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 urlProvider,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,

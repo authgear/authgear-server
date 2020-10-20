@@ -17,6 +17,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
+type TemplateData struct {
+	Email string
+	Code  string
+	Link  string
+}
+
 type AuthenticatorService interface {
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
@@ -32,7 +38,6 @@ type URLProvider interface {
 }
 
 type TranslationService interface {
-	AppMetadata() (*translation.AppMetadata, error)
 	EmailMessageData(msg *translation.MessageSpec, args interface{}) (*translation.EmailMessageData, error)
 	SMSMessageData(msg *translation.MessageSpec, args interface{}) (*translation.SMSMessageData, error)
 }
@@ -44,9 +49,8 @@ func NewProviderLogger(lf *log.Factory) ProviderLogger {
 }
 
 type Provider struct {
-	StaticAssetURLPrefix config.StaticAssetURLPrefix
-	Translation          TranslationService
-	Config               *config.ForgotPasswordConfig
+	Translation TranslationService
+	Config      *config.ForgotPasswordConfig
 
 	Store     *Store
 	Clock     clock.Clock
@@ -141,16 +145,10 @@ func (p *Provider) newCode(userID string) (code *Code, codeStr string) {
 func (p *Provider) sendEmail(email string, code string) error {
 	u := p.URLs.ResetPasswordURL(code)
 
-	appMeta, err := p.Translation.AppMetadata()
-	if err != nil {
-		return err
-	}
-
-	data := map[string]interface{}{
-		"Email":   email,
-		"Code":    code,
-		"Link":    u.String(),
-		"AppName": appMeta.AppName,
+	data := TemplateData{
+		Email: email,
+		Code:  code,
+		Link:  u.String(),
 	}
 
 	msg, err := p.Translation.EmailMessageData(messageForgotPassword, data)
@@ -177,15 +175,9 @@ func (p *Provider) sendEmail(email string, code string) error {
 func (p *Provider) sendSMS(phone string, code string) (err error) {
 	u := p.URLs.ResetPasswordURL(code)
 
-	appMeta, err := p.Translation.AppMetadata()
-	if err != nil {
-		return err
-	}
-
-	data := map[string]interface{}{
-		"code":    code,
-		"link":    u.String(),
-		"appname": appMeta.AppName,
+	data := TemplateData{
+		Code: code,
+		Link: u.String(),
 	}
 
 	msg, err := p.Translation.SMSMessageData(messageForgotPassword, data)

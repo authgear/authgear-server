@@ -1,4 +1,4 @@
-Log in to {{ .AppName }}
+Log in to {{ template "app.name" }}
 
 Please use the following one-time password to complete the log in process.
 

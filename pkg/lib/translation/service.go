@@ -40,32 +40,6 @@ func (s *Service) renderTemplate(tpl template.Resource, args interface{}) (strin
 	return out, nil
 }
 
-func (s *Service) AppMetadata() (*AppMetadata, error) {
-	t, err := s.translationMap()
-	if err != nil {
-		return nil, err
-	}
-
-	args := map[string]interface{}{
-		"StaticAssetURLPrefix": s.EnvironmentConfig.StaticAssetURLPrefix,
-	}
-
-	appName, err := t.RenderText("app.app-name", args)
-	if err != nil {
-		return nil, err
-	}
-
-	logoURI, err := t.RenderText("app.logo-uri", args)
-	if err != nil {
-		return nil, err
-	}
-
-	return &AppMetadata{
-		AppName: appName,
-		LogoURI: logoURI,
-	}, nil
-}
-
 func (s *Service) emailMessageHeader(name string, args interface{}) (sender, replyTo, subject string, err error) {
 	t, err := s.translationMap()
 	if err != nil {

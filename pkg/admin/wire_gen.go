@@ -299,7 +299,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(configConfig)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -316,10 +315,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	webEndpoints := &WebEndpoints{}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            webEndpoints,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   webEndpoints,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -343,16 +341,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 webEndpoints,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           webEndpoints,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,

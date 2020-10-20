@@ -16,13 +16,11 @@ const (
 )
 
 type MessageTemplateContext struct {
-	AppName              string
-	Email                string
-	Phone                string
-	Code                 string
-	URL                  string
-	Host                 string
-	StaticAssetURLPrefix string
+	Email string
+	Phone string
+	Code  string
+	URL   string
+	Host  string
 }
 
 var (

@@ -7,6 +7,7 @@ import (
 var DependencySet = wire.NewSet(
 	wire.Struct(new(URLProvider), "*"),
 	wire.Struct(new(AuthenticateURLProvider), "*"),
+	wire.Struct(new(StaticAssetResolver), "*"),
 
 	NewCSRFCookieDef,
 	NewUATokenCookieDef,

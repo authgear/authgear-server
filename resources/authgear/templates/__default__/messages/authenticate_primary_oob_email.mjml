@@ -12,7 +12,7 @@
   </mj-section>
   <mj-section padding-top="10px">
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px">Log in to {{ .AppName }}</mj-text>
+      <mj-text font-weight="bold" font-size="24px">Log in to {{ template "app.name" }}</mj-text>
       <mj-text font-size="16px" padding-top="10px" line-height="24px">
         A one-time password has been generated for you to sign in. Simply copy it from the below textbox.
       </mj-text>
