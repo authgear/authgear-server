@@ -225,7 +225,7 @@ a.btn {
   /* The logo is intended to be fixed height */
   height: 90px;
   margin: 6px;
-  background-image: url("../image/ic_app_logo.png");
+  background-image: url("app_logo.png");
   background-position: center;
   background-size: 60px 60px;
   background-repeat: no-repeat;

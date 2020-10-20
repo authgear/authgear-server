@@ -77,7 +77,6 @@ func (c *Controller) Start() {
 				configSrcController.GetConfigSource(),
 				auth.StaticAssetConfig{
 					ServingEnabled: cfg.StaticAsset.ServingEnabled,
-					Directory:      cfg.StaticAsset.Dir,
 				},
 			),
 		}

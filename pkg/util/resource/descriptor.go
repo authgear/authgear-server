@@ -23,10 +23,9 @@ type Descriptor interface {
 	Parse(merged *MergedFile) (interface{}, error)
 }
 
-// SimpleFile merges files from different layers, by using the top-most
-// layer available.
 type SimpleFile struct {
 	Name    string
+	MergeFn func(layers []LayerFile) ([]byte, error)
 	ParseFn func(data []byte) (interface{}, error)
 }
 
@@ -45,6 +44,13 @@ func (f SimpleFile) MatchResource(path string) bool {
 }
 
 func (f SimpleFile) Merge(layers []LayerFile, args map[string]interface{}) (*MergedFile, error) {
+	if f.MergeFn != nil {
+		data, err := f.MergeFn(layers)
+		if err != nil {
+			return nil, err
+		}
+		return &MergedFile{Data: data}, nil
+	}
 	file := layers[len(layers)-1]
 	return &MergedFile{Data: file.Data}, nil
 }

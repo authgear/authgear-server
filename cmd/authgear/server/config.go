@@ -96,6 +96,4 @@ func (c *Config) Validate() error {
 type StaticAssetConfig struct {
 	// ServingEnabled sets whether serving static assets is enabled
 	ServingEnabled bool `envconfig:"SERVING_ENABLED" default:"true"`
-	// Dir sets the local directory of static assets
-	Dir string `envconfig:"DIR" default:"./static"`
 }

@@ -13253,6 +13253,15 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 	return createAuthenticatorBeginHandler
 }
 
+func newWebAppStaticAssetsHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	manager := appProvider.Resources
+	staticAssetsHandler := &webapp2.StaticAssetsHandler{
+		Resources: manager,
+	}
+	return staticAssetsHandler
+}
+
 // Injectors from wire_middleware.go:
 
 func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
