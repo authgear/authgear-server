@@ -4,8 +4,6 @@ import (
 	"github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -35,48 +33,59 @@ var nodeUser = entity(
 				Type: connIdentity.ConnectionType,
 				Args: relay.ConnectionArgs,
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					ref := p.Source.(*user.User)
-					identities := GQLContext(p.Context).Identities.List(ref.ID)
-					result := identities.Map(func(value interface{}) (interface{}, error) {
-						var identities []interface{}
-						for _, i := range value.([]*identity.Ref) {
-							identities = append(identities, i)
-						}
-						args := relay.NewConnectionArguments(p.Args)
-						return graphqlutil.NewConnectionFromArray(identities, args), nil
-					})
-					return result.Value, nil
+					source := p.Source.(*user.User)
+					gqlCtx := GQLContext(p.Context)
+					refs, err := gqlCtx.IdentityFacade.List(source.ID)
+					if err != nil {
+						return nil, err
+					}
+
+					var identities []interface{}
+					for _, i := range refs {
+						identities = append(identities, i)
+					}
+					args := relay.NewConnectionArguments(p.Args)
+					return graphqlutil.NewConnectionFromArray(identities, args), nil
 				},
 			},
 			"authenticators": &graphql.Field{
 				Type: connAuthenticator.ConnectionType,
 				Args: relay.ConnectionArgs,
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					ref := p.Source.(*user.User)
-					authenticators := GQLContext(p.Context).Authenticators.List(ref.ID)
-					result := authenticators.Map(func(value interface{}) (interface{}, error) {
-						var authenticators []interface{}
-						for _, i := range value.([]*authenticator.Ref) {
-							authenticators = append(authenticators, i)
-						}
-						args := relay.NewConnectionArguments(p.Args)
-						return graphqlutil.NewConnectionFromArray(authenticators, args), nil
-					})
-					return result.Value, nil
+					source := p.Source.(*user.User)
+					gqlCtx := GQLContext(p.Context)
+					refs, err := gqlCtx.AuthenticatorFacade.List(source.ID)
+					if err != nil {
+						return nil, err
+					}
+
+					var authenticators []interface{}
+					for _, i := range refs {
+						authenticators = append(authenticators, i)
+					}
+					args := relay.NewConnectionArguments(p.Args)
+					return graphqlutil.NewConnectionFromArray(authenticators, args), nil
+
 				},
 			},
 			"verifiedClaims": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(claim))),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					u := p.Source.(*user.User)
-					return GQLContext(p.Context).Verification.Get(u.ID).Value, nil
+					source := p.Source.(*user.User)
+					gqlCtx := GQLContext(p.Context)
+					claims, err := gqlCtx.VerificationFacade.Get(source.ID)
+					if err != nil {
+						return nil, err
+					}
+
+					return claims, nil
 				},
 			},
 		},
 	}),
 	&user.User{},
 	func(ctx *Context, id string) (interface{}, error) {
-		return ctx.Users.Get(id).Value, nil
+		return ctx.Users.Load(id).Value, nil
 	},
 )
 

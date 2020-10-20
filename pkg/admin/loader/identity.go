@@ -1,137 +1,85 @@
 package loader
 
 import (
-	"errors"
-	"sort"
+	"strings"
 
-	"github.com/authgear/authgear-server/pkg/admin/model"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
-	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
-type IdentityService interface {
-	GetMany(ref []*identity.Ref) ([]*identity.Info, error)
-	Count(userID string) (uint64, error)
-	ListRefsByUsers(userIDs []string) ([]*identity.Ref, error)
+func EncodeIdentityID(ref *identity.Ref) string {
+	return strings.Join([]string{
+		ref.UserID,
+		string(ref.Type),
+		ref.ID,
+	}, "|")
+}
+
+func DecodeIdentityID(id string) (*identity.Ref, error) {
+	parts := strings.Split(id, "|")
+	if len(parts) != 3 {
+		return nil, apierrors.NewInvalid("invalid ID")
+	}
+	return &identity.Ref{
+		UserID: parts[0],
+		Type:   authn.IdentityType(parts[1]),
+		Meta:   model.Meta{ID: parts[2]},
+	}, nil
+}
+
+type IdentityLoaderIdentityService interface {
+	GetMany(refs []*identity.Ref) ([]*identity.Info, error)
 }
 
 type IdentityLoader struct {
-	Identities  IdentityService
-	Interaction InteractionService
-	loader      *graphqlutil.DataLoader `wire:"-"`
-	listLoader  *graphqlutil.DataLoader `wire:"-"`
+	*graphqlutil.DataLoader `wire:"-"`
+
+	Identities IdentityLoaderIdentityService
 }
 
-func (l *IdentityLoader) Get(ref *identity.Ref) *graphqlutil.Lazy {
-	if l.loader == nil {
-		l.loader = graphqlutil.NewDataLoader(func(keys []interface{}) ([]interface{}, error) {
-			refs := make([]*identity.Ref, len(keys))
-			for i, key := range keys {
-				ref := key.(identity.Ref)
-				refs[i] = &ref
-			}
-
-			infos, err := l.Identities.GetMany(refs)
-			if err != nil {
-				return nil, err
-			}
-
-			infoMap := make(map[string]*identity.Info)
-			for _, i := range infos {
-				infoMap[i.ID] = i
-			}
-			values := make([]interface{}, len(keys))
-			for i, ref := range refs {
-				values[i] = infoMap[ref.ID]
-			}
-			return values, nil
-		})
+func NewIdentityLoader(identities IdentityLoaderIdentityService) *IdentityLoader {
+	l := &IdentityLoader{
+		Identities: identities,
 	}
-	return l.loader.Load(*ref)
+	l.DataLoader = graphqlutil.NewDataLoader(l.LoadFunc)
+	return l
 }
 
-func (l *IdentityLoader) List(userID string) *graphqlutil.Lazy {
-	if l.listLoader == nil {
-		l.listLoader = graphqlutil.NewDataLoader(func(keys []interface{}) ([]interface{}, error) {
-			ids := make([]string, len(keys))
-			for i, id := range keys {
-				ids[i] = id.(string)
-			}
-
-			refs, err := l.Identities.ListRefsByUsers(ids)
-			if err != nil {
-				return nil, err
-			}
-
-			sort.Slice(refs, func(i, j int) bool {
-				if refs[i].CreatedAt != refs[j].CreatedAt {
-					return refs[i].CreatedAt.Before(refs[j].CreatedAt)
-				}
-				return refs[i].ID < refs[j].ID
-			})
-
-			refsMap := make(map[string][]*identity.Ref)
-			for _, u := range refs {
-				userRefs := refsMap[u.UserID]
-				refsMap[u.UserID] = append(userRefs, u)
-			}
-			values := make([]interface{}, len(keys))
-			for i, id := range ids {
-				values[i] = refsMap[id]
-			}
-			return values, nil
-		})
-	}
-	return l.listLoader.Load(userID)
-}
-
-func (l *IdentityLoader) Remove(identityInfo *identity.Info) *graphqlutil.Lazy {
-	return graphqlutil.NewLazy(func() (interface{}, error) {
-		_, err := l.Interaction.Perform(
-			interactionintents.NewIntentRemoveIdentity(identityInfo.UserID),
-			&removeIdentityInput{identityInfo: identityInfo},
-		)
+func (l *IdentityLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
+	// Prepare refs.
+	refs := make([]*identity.Ref, len(keys))
+	for i, key := range keys {
+		ref, err := DecodeIdentityID(key.(string))
 		if err != nil {
 			return nil, err
 		}
+		refs[i] = ref
+	}
 
-		l.loader.Clear(*identityInfo.ToRef())
-		l.listLoader.Clear(identityInfo.UserID)
-		return nil, nil
-	})
-}
+	// Get entities.
+	entities, err := l.Identities.GetMany(refs)
+	if err != nil {
+		return nil, err
+	}
 
-func (l *IdentityLoader) Create(userID string, identityDef model.IdentityDef, password string) *graphqlutil.Lazy {
-	return graphqlutil.NewLazy(func() (interface{}, error) {
-		var input interface{} = &addIdentityInput{identityDef: identityDef}
-		if password != "" {
-			input = &addPasswordInput{inner: input, password: password}
-		}
+	// Create map.
+	entityMap := make(map[string]*identity.Info)
+	for _, entity := range entities {
+		entityMap[EncodeIdentityID(entity.ToRef())] = entity
+	}
 
-		graph, err := l.Interaction.Perform(
-			interactionintents.NewIntentAddIdentity(userID),
-			input,
-		)
-		var errInputRequired *interaction.ErrInputRequired
-		if errors.As(err, &errInputRequired) {
-			switch graph.CurrentNode().(type) {
-			case *nodes.NodeCreateAuthenticatorBegin:
-				// TODO(interaction): better interpretation of input required error?
-				return nil, interaction.NewInvariantViolated(
-					"PasswordRequired",
-					"password is required",
-					nil,
-				)
-			}
-		}
+	// Ensure output is in correct order.
+	out := make([]interface{}, len(keys))
+	for i, key := range keys {
+		entity := entityMap[key.(string)]
 		if err != nil {
-			return nil, err
+			out[i] = nil
+		} else {
+			out[i] = entity
 		}
-
-		l.listLoader.Clear(userID)
-		return graph.GetUserNewIdentities()[0], nil
-	})
+	}
+	return out, nil
 }

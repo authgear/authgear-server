@@ -1,4 +1,4 @@
-package loader
+package facade
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/model"

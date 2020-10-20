@@ -6,37 +6,46 @@ import (
 	"github.com/authgear/authgear-server/pkg/admin/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 type UserLoader interface {
-	Get(id string) *graphqlutil.Lazy
-	QueryPage(args graphqlutil.PageArgs) (*graphqlutil.PageResult, error)
-
-	Create(identityDef model.IdentityDef, password string) *graphqlutil.Lazy
-	ResetPassword(id string, password string) *graphqlutil.Lazy
+	graphqlutil.DataLoaderInterface
 }
 
 type IdentityLoader interface {
-	Get(ref *identity.Ref) *graphqlutil.Lazy
-	List(userID string) *graphqlutil.Lazy
-
-	Remove(identityInfo *identity.Info) *graphqlutil.Lazy
-	Create(userID string, identityDef model.IdentityDef, password string) *graphqlutil.Lazy
+	graphqlutil.DataLoaderInterface
 }
 
 type AuthenticatorLoader interface {
-	Get(ref *authenticator.Ref) *graphqlutil.Lazy
-	List(userID string) *graphqlutil.Lazy
-
-	Remove(authenticatorInfo *authenticator.Info) *graphqlutil.Lazy
+	graphqlutil.DataLoaderInterface
 }
 
-type VerificationLoader interface {
-	Get(userID string) *graphqlutil.Lazy
+type UserFacade interface {
+	Get(userID string) (*user.User, error)
+	QueryPage(args graphqlutil.PageArgs) (*graphqlutil.PageResult, error)
+	Create(identityDef model.IdentityDef, password string) (*user.User, error)
+	ResetPassword(id string, password string) error
+}
 
-	SetVerified(userID string, claimName string, claimValue string, isVerified bool) *graphqlutil.Lazy
+type IdentityFacade interface {
+	Get(ref *identity.Ref) (*identity.Info, error)
+	List(userID string) ([]*identity.Ref, error)
+	Remove(identityInfo *identity.Info) error
+	Create(userID string, identityDef model.IdentityDef, password string) (*identity.Info, error)
+}
+
+type AuthenticatorFacade interface {
+	Get(ref *authenticator.Ref) (*authenticator.Info, error)
+	List(userID string) ([]*authenticator.Ref, error)
+	Remove(authenticatorInfo *authenticator.Info) error
+}
+
+type VerificationFacade interface {
+	Get(userID string) ([]model.Claim, error)
+	SetVerified(userID string, claimName string, claimValue string, isVerified bool) error
 }
 
 type Logger struct{ *log.Logger }
@@ -44,11 +53,16 @@ type Logger struct{ *log.Logger }
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("admin-graphql")} }
 
 type Context struct {
-	GQLLogger      Logger
+	GQLLogger Logger
+
 	Users          UserLoader
 	Identities     IdentityLoader
 	Authenticators AuthenticatorLoader
-	Verification   VerificationLoader
+
+	UserFacade          UserFacade
+	IdentityFacade      IdentityFacade
+	AuthenticatorFacade AuthenticatorFacade
+	VerificationFacade  VerificationFacade
 }
 
 func (c *Context) Logger() *log.Logger {

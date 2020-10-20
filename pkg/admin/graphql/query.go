@@ -18,7 +18,8 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 			Args:        relay.ConnectionArgs,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				args := relay.NewConnectionArguments(p.Args)
-				result, err := GQLContext(p.Context).Users.QueryPage(graphqlutil.NewPageArgs(args))
+				gqlCtx := GQLContext(p.Context)
+				result, err := gqlCtx.UserFacade.QueryPage(graphqlutil.NewPageArgs(args))
 				if err != nil {
 					return nil, err
 				}
