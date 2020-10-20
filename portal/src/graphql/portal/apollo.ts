@@ -11,7 +11,6 @@ const client = new ApolloClient({
       App: {
         fields: {
           resources: {
-            keyArgs: [],
             merge(
               existing: AppResource[] | undefined,
               incoming: AppResource[]
