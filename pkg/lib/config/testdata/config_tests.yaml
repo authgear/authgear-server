@@ -180,12 +180,13 @@ config:
 name: unlisted-ccc
 error: |-
   invalid configuration:
-  /ui/country_calling_code/default: default country calling code is unlisted
+  /ui/country_calling_code/pinned_list: pinned country calling code is unlisted
 config:
   id: test
   ui:
     country_calling_code:
-      default: xxx
+      pinned_list: 
+        - xxx
 
 ---
 name: no-usable-primary-authenticator-for-username
