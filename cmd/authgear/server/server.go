@@ -36,7 +36,6 @@ func (c *Controller) Start() {
 	p, err := deps.NewRootProvider(
 		cfg.EnvironmentConfig,
 		cfg.ConfigSource,
-		cfg.ReservedNameFilePath,
 		cfg.BuiltinResourceDirectory,
 		cfg.CustomResourceDirectory,
 		taskQueueFactory,

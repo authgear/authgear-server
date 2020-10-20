@@ -139,11 +139,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	rootProvider := appProvider.RootProvider
-	reservedNameChecker := rootProvider.ReservedNameChecker
+	manager := appProvider.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -298,9 +297,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	manager := appProvider.Resources
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(configConfig)
 	resolver := &template.Resolver{
 		Resources:          manager,

@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/wire"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
@@ -19,7 +20,6 @@ var rootDeps = wire.NewSet(
 	wire.FieldsOf(new(*RootProvider),
 		"EnvironmentConfig",
 		"ConfigSourceConfig",
-		"ReservedNameChecker",
 	),
 	wire.FieldsOf(new(*config.EnvironmentConfig),
 		"TrustProxy",
@@ -49,6 +49,7 @@ var appRootDeps = wire.NewSet(
 
 	wire.Bind(new(hook.DatabaseHandle), new(*db.Handle)),
 	wire.Bind(new(template.ResourceManager), new(*resource.Manager)),
+	wire.Bind(new(loginid.ResourceManager), new(*resource.Manager)),
 )
 
 var RootDependencySet = wire.NewSet(

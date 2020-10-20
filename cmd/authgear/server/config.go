@@ -35,8 +35,6 @@ type Config struct {
 	BuiltinResourceDirectory string `envconfig:"BUILTIN_RESOURCE_DIRECTORY" default:"resources/authgear"`
 	// CustomResourceDirectory sets the directory for customized resource files
 	CustomResourceDirectory string `envconfig:"CUSTOM_RESOURCE_DIRECTORY"`
-	// ReservedNameFilePath sets the file path for reserved name list
-	ReservedNameFilePath string `envconfig:"RESERVED_NAME_FILE_PATH" default:"reserved_name.txt"`
 	// StaticAsset configures serving static asset
 	StaticAsset StaticAssetConfig `envconfig:"STATIC_ASSET"`
 

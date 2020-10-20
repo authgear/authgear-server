@@ -6,7 +6,6 @@ import (
 
 	getsentry "github.com/getsentry/sentry-go"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -19,21 +18,19 @@ import (
 )
 
 type RootProvider struct {
-	EnvironmentConfig   *config.EnvironmentConfig
-	ConfigSourceConfig  *configsource.Config
-	LoggerFactory       *log.Factory
-	SentryHub           *getsentry.Hub
-	DatabasePool        *db.Pool
-	RedisPool           *redis.Pool
-	TaskQueueFactory    TaskQueueFactory
-	ReservedNameChecker *loginid.ReservedNameChecker
-	BaseResources       *resource.Manager
+	EnvironmentConfig  *config.EnvironmentConfig
+	ConfigSourceConfig *configsource.Config
+	LoggerFactory      *log.Factory
+	SentryHub          *getsentry.Hub
+	DatabasePool       *db.Pool
+	RedisPool          *redis.Pool
+	TaskQueueFactory   TaskQueueFactory
+	BaseResources      *resource.Manager
 }
 
 func NewRootProvider(
 	cfg *config.EnvironmentConfig,
 	configSourceConfig *configsource.Config,
-	reservedNameFilePath string,
 	builtinResourceDirectory string,
 	customResourceDirectory string,
 	taskQueueFactory TaskQueueFactory,
@@ -58,21 +55,16 @@ func NewRootProvider(
 
 	dbPool := db.NewPool()
 	redisPool := redis.NewPool()
-	reservedNameChecker, err := loginid.NewReservedNameChecker(reservedNameFilePath)
-	if err != nil {
-		return nil, err
-	}
 
 	p = RootProvider{
-		EnvironmentConfig:   cfg,
-		ConfigSourceConfig:  configSourceConfig,
-		LoggerFactory:       loggerFactory,
-		SentryHub:           sentryHub,
-		DatabasePool:        dbPool,
-		RedisPool:           redisPool,
-		TaskQueueFactory:    taskQueueFactory,
-		ReservedNameChecker: reservedNameChecker,
-		BaseResources:       NewResourceManager(builtinResourceDirectory, customResourceDirectory),
+		EnvironmentConfig:  cfg,
+		ConfigSourceConfig: configSourceConfig,
+		LoggerFactory:      loggerFactory,
+		SentryHub:          sentryHub,
+		DatabasePool:       dbPool,
+		RedisPool:          redisPool,
+		TaskQueueFactory:   taskQueueFactory,
+		BaseResources:      NewResourceManager(builtinResourceDirectory, customResourceDirectory),
 	}
 	return &p, nil
 }

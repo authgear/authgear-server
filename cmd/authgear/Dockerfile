@@ -41,7 +41,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tzdata \
     && rm -rf /var/lib/apt/lists/*
 RUN update-ca-certificates
-COPY ./reserved_name.txt .
 COPY ./migrations ./migrations
 COPY --from=stage1 /src/authgear /usr/local/bin/
 COPY --from=stage2 /usr/src/app/dist/ ./dist/

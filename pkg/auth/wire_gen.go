@@ -124,10 +124,10 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
+	manager := appProvider.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -264,7 +264,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Coordinator: coordinator,
 	}
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	manager := appProvider.Resources
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -569,10 +568,10 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
+	manager := appProvider.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -717,7 +716,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Coordinator: coordinator,
 	}
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	manager := appProvider.Resources
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -1028,10 +1026,10 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
+	manager := appProvider.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -1235,10 +1233,10 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
+	manager := appProvider.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -1535,10 +1533,9 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -1954,10 +1951,9 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -2372,10 +2368,9 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -2755,11 +2750,10 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	rootProvider := appProvider.RootProvider
-	reservedNameChecker := rootProvider.ReservedNameChecker
+	manager := appProvider.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -2903,9 +2897,9 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	manager := appProvider.Resources
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -3184,10 +3178,9 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -3595,10 +3588,9 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -4006,10 +3998,9 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -4418,10 +4409,9 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -4831,10 +4821,9 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -5242,10 +5231,9 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -5653,10 +5641,9 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -6064,10 +6051,9 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -6475,10 +6461,9 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -6886,10 +6871,9 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -7297,10 +7281,9 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -7712,10 +7695,9 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -8124,10 +8106,9 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -8535,10 +8516,9 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -8947,10 +8927,9 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -9358,10 +9337,9 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -9772,10 +9750,9 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -10187,10 +10164,9 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -10601,10 +10577,9 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -11015,10 +10990,9 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -11430,10 +11404,9 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -11842,10 +11815,9 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -12221,10 +12193,10 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
+	manager := appProvider.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -12374,7 +12346,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Verification: verificationService,
 	}
 	hookLogger := hook.NewLogger(factory)
-	manager := appProvider.Resources
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -12526,11 +12497,10 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	rootProvider := appProvider.RootProvider
-	reservedNameChecker := rootProvider.ReservedNameChecker
+	manager := appProvider.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -12674,9 +12644,9 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	manager := appProvider.Resources
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -12923,11 +12893,10 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	rootProvider := appProvider.RootProvider
-	reservedNameChecker := rootProvider.ReservedNameChecker
+	manager := appProvider.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -13071,9 +13040,9 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	manager := appProvider.Resources
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -13517,10 +13486,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
+	manager := appProvider.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -13710,11 +13679,10 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	rootProvider := appProvider.RootProvider
-	reservedNameChecker := rootProvider.ReservedNameChecker
+	manager := appProvider.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -13858,9 +13826,9 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	manager := appProvider.Resources
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,

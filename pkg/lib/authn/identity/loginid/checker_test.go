@@ -6,6 +6,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
 func newLoginIDKeyConfig(key string, t config.LoginIDKeyType, maxLength int) config.LoginIDKeyConfig {
@@ -40,7 +41,6 @@ func newLoginIDTypesConfig() *config.LoginIDTypesConfig {
 func TestLoginIDChecker(t *testing.T) {
 	Convey("LoginIDChecker.Validate", t, func() {
 		Convey("Validate by config: username (0-1), email (0-1)", func() {
-			reservedNameChecker, _ := NewReservedNameChecker("../../../../../reserved_name.txt")
 			keysConfig := []config.LoginIDKeyConfig{
 				newLoginIDKeyConfig("username", config.LoginIDKeyTypeUsername, 10),
 				newLoginIDKeyConfig("email", config.LoginIDKeyTypeEmail, 30),
@@ -54,8 +54,8 @@ func TestLoginIDChecker(t *testing.T) {
 			checker := &Checker{
 				Config: cfg,
 				TypeCheckerFactory: &TypeCheckerFactory{
-					Config:              cfg,
-					ReservedNameChecker: reservedNameChecker,
+					Config:    cfg,
+					Resources: resource.NewManager(resource.DefaultRegistry, nil),
 				},
 			}
 			var loginID Spec

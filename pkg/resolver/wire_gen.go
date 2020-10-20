@@ -164,10 +164,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	reservedNameChecker := rootProvider.ReservedNameChecker
+	manager := appProvider.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -354,11 +354,10 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	rootProvider := appProvider.RootProvider
-	reservedNameChecker := rootProvider.ReservedNameChecker
+	manager := appProvider.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,

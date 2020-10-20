@@ -9,22 +9,21 @@ import (
 func TestReservedNameChecker(t *testing.T) {
 
 	Convey("TestReservedNameChecker", t, func() {
-		checker, _ := NewReservedNameChecker("../../../../../reserved_name.txt")
+		checker := NewReservedNameChecker([]string{
+			"is",
+			"mail",
+		})
 
 		var result bool
-		var err error
 
-		result, err = checker.IsReserved("is")
-		So(err, ShouldBeNil)
+		result = checker.IsReserved("is")
 		So(result, ShouldBeTrue)
 
-		result, err = checker.IsReserved("mail")
-		So(err, ShouldBeNil)
+		result = checker.IsReserved("mail")
 		So(result, ShouldBeTrue)
 
-		result, err = checker.IsReserved("faseng")
+		result = checker.IsReserved("faseng")
 		So(result, ShouldBeFalse)
-		So(err, ShouldBeNil)
 	})
 
 }

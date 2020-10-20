@@ -122,7 +122,10 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 				{"faseng_chima-the.cat", ""},
 			}
 
-			reversedNameChecker, _ := NewReservedNameChecker("../../../../../reserved_name.txt")
+			reversedNameChecker := NewReservedNameChecker([]string{
+				"admin",
+				"settings",
+			})
 			n := &UsernameChecker{
 				Config: &config.LoginIDUsernameConfig{
 					BlockReservedUsernames: newTrue(),
