@@ -13,8 +13,7 @@ import {
   UpdateAppAndSecretConfigMutationVariables,
 } from "./__generated__/UpdateAppAndSecretConfigMutation";
 
-// relative to project root
-const APP_CONFIG_PATH = "./authgear.yaml";
+const APP_CONFIG_PATH = "authgear.yaml";
 const SECRET_CONFIG_PATH = "authgear.secrets.yaml";
 
 const updateAppAndSecretConfigMutation = gql`
