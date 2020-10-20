@@ -160,7 +160,7 @@ h1, h2, h3, h4, h5, h6 {
   height: 32px;
   border-bottom: solid 1px #a19f9d;
   padding: 0 28px 0 8px;
-  background-image: url("../image/ic_select_arrow.png");
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAAH2U1dRAAAABGdBTUEAALGPC/xhBQAAAA9QTFRFAAAAaGhdYV9cYF9dYF5cYSRWqgAAAAR0Uk5TABZp1J65f3sAAAB5SURBVCjPxdDLDYJQEIXhb7wUcBMswIUFDIECRPrvyQVXEY0rTTyrOX/mDQibIrewyh3YqSO5FHQfUrZOcEDMlISYS75N/EInqBjbGCU5VhhXQMkVMM6trlT/1Xm4R/11/cfUSL+03Rp5+EaePDENO09My8tt8ctbbxZSCTDnykmRAAAAAElFTkSuQmCC');
   background-position: right 5px center;
   background-size: 12px auto;
   background-repeat: no-repeat;
