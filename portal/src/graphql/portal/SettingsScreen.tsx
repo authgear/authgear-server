@@ -3,15 +3,18 @@ import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { Pivot, PivotItem, Text } from "@fluentui/react";
 
 import { usePivotNavigation } from "../../hook/usePivot";
+import GeneralSettings from "./GeneralSettings";
 import PortalAdminsSettings from "./PortalAdminsSettings";
 
 import styles from "./SettingsScreen.module.scss";
 
+const GENERAL_PIVOT_KEY = "general";
 const PORTAL_ADMINS_PIVOT_KEY = "portal_admins";
 
 const SettingsScreen: React.FC = function SettingsScreen() {
   const { renderToString } = useContext(Context);
   const { selectedKey, onLinkClick } = usePivotNavigation([
+    GENERAL_PIVOT_KEY,
     PORTAL_ADMINS_PIVOT_KEY,
   ]);
 
@@ -23,6 +26,12 @@ const SettingsScreen: React.FC = function SettingsScreen() {
         </Text>
         <div className={styles.tabsContainer}>
           <Pivot onLinkClick={onLinkClick} selectedKey={selectedKey}>
+            <PivotItem
+              headerText={renderToString("SettingsScreen.general.title")}
+              itemKey={GENERAL_PIVOT_KEY}
+            >
+              <GeneralSettings />
+            </PivotItem>
             <PivotItem
               headerText={renderToString("SettingsScreen.portal_admins.title")}
               itemKey={PORTAL_ADMINS_PIVOT_KEY}

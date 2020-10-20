@@ -380,6 +380,7 @@
   "UserInterfaceScreen.custom-css.label": "Custom CSS",
 
   "SettingsScreen.title": "Settings",
+  "SettingsScreen.general.title": "General",
   "SettingsScreen.portal_admins.title": "Portal Admins",
 
   "PortalAdminsSettings.invite": "Invite",
@@ -407,6 +408,8 @@
   "AcceptAdminInvitationScreen.accept.label": "Accept",
   "AcceptAdminInvitationScreen.invalid-code-error": "Invalid invitation code",
   "AcceptAdminInvitationScreen.duplicated-collaborator-error": "Admin already exist",
+
+  "GeneralSettings.app-id.label": "App ID",
 
   "PasswordStrengthMeter.password-strength": "Password Strength",
 
