@@ -16,16 +16,19 @@ func ConfigureRuntimeConfigRoute(route httproute.Route) httproute.Route {
 type RuntimeConfig struct {
 	AuthgearClientID string `json:"authgear_client_id"`
 	AuthgearEndpoint string `json:"authgear_endpoint"`
+	AppHostSuffix    string `json:"app_host_suffix"`
 }
 
 type RuntimeConfigHandler struct {
 	AuthgearConfig *config.AuthgearConfig
+	AppConfig      *config.AppConfig
 }
 
 func (h *RuntimeConfigHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c := RuntimeConfig{
 		AuthgearClientID: h.AuthgearConfig.ClientID,
 		AuthgearEndpoint: h.AuthgearConfig.Endpoint,
+		AppHostSuffix:    h.AppConfig.HostSuffix,
 	}
 
 	b, err := json.Marshal(c)

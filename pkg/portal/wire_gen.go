@@ -213,8 +213,10 @@ var (
 func newRuntimeConfigHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
 	authgearConfig := rootProvider.AuthgearConfig
+	appConfig := rootProvider.AppConfig
 	runtimeConfigHandler := &transport.RuntimeConfigHandler{
 		AuthgearConfig: authgearConfig,
+		AppConfig:      appConfig,
 	}
 	return runtimeConfigHandler
 }

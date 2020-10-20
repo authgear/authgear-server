@@ -5,11 +5,11 @@ import (
 )
 
 type AppConfig struct {
-	HostTemplate string              `envconfig:"HOST_TEMPLATE"`
-	IDPattern    string              `envconfig:"ID_PATTERN" default:"^[a-z0-9][a-z0-9-]{2,30}[a-z0-9]$"`
-	Secret       AppSecretConfig     `envconfig:"SECRET"`
-	Kubernetes   AppKubernetesConfig `envconfig:"KUBERNETES"`
-	Branding     AppBrandingConfig   `envconfig:"BRANDING"`
+	HostSuffix string              `envconfig:"HOST_SUFFIX"`
+	IDPattern  string              `envconfig:"ID_PATTERN" default:"^[a-z0-9][a-z0-9-]{2,30}[a-z0-9]$"`
+	Secret     AppSecretConfig     `envconfig:"SECRET"`
+	Kubernetes AppKubernetesConfig `envconfig:"KUBERNETES"`
+	Branding   AppBrandingConfig   `envconfig:"BRANDING"`
 }
 
 type TLSCertType string
