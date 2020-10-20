@@ -6,11 +6,18 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
-func NewResourceManager(defaultResourceDir string) *resource.Manager {
+func NewResourceManager(builtinResourceDir string, customResourceDir string) *resource.Manager {
+	var fs []resource.Fs
+	fs = append(fs,
+		resource.AferoFs{Fs: afero.NewBasePathFs(afero.OsFs{}, builtinResourceDir)},
+	)
+	if customResourceDir != "" {
+		fs = append(fs,
+			resource.AferoFs{Fs: afero.NewBasePathFs(afero.OsFs{}, customResourceDir)},
+		)
+	}
 	return &resource.Manager{
 		Registry: resource.DefaultRegistry.Clone(),
-		Fs: []resource.Fs{
-			resource.AferoFs{Fs: afero.NewBasePathFs(afero.OsFs{}, defaultResourceDir)},
-		},
+		Fs:       fs,
 	}
 }

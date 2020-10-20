@@ -34,7 +34,8 @@ func NewRootProvider(
 	cfg *config.EnvironmentConfig,
 	configSourceConfig *configsource.Config,
 	reservedNameFilePath string,
-	defaultResourceDirectory string,
+	builtinResourceDirectory string,
+	customResourceDirectory string,
 	taskQueueFactory TaskQueueFactory,
 ) (*RootProvider, error) {
 	var p RootProvider
@@ -71,7 +72,7 @@ func NewRootProvider(
 		RedisPool:           redisPool,
 		TaskQueueFactory:    taskQueueFactory,
 		ReservedNameChecker: reservedNameChecker,
-		BaseResources:       NewResourceManager(defaultResourceDirectory),
+		BaseResources:       NewResourceManager(builtinResourceDirectory, customResourceDirectory),
 	}
 	return &p, nil
 }

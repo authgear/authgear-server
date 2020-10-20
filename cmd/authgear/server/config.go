@@ -31,8 +31,10 @@ type Config struct {
 	// ConfigSource configures the source of app configurations
 	ConfigSource *configsource.Config `envconfig:"CONFIG_SOURCE"`
 
-	// BaseResourceDirectory sets the directory for base resource files
-	BaseResourceDirectory string `envconfig:"BASE_RESOURCE_DIRECTORY" default:"resources/authgear"`
+	// BuiltinResourceDirectory sets the directory for built-in resource files
+	BuiltinResourceDirectory string `envconfig:"BUILTIN_RESOURCE_DIRECTORY" default:"resources/authgear"`
+	// CustomResourceDirectory sets the directory for customized resource files
+	CustomResourceDirectory string `envconfig:"CUSTOM_RESOURCE_DIRECTORY"`
 	// ReservedNameFilePath sets the file path for reserved name list
 	ReservedNameFilePath string `envconfig:"RESERVED_NAME_FILE_PATH" default:"reserved_name.txt"`
 	// StaticAsset configures serving static asset

@@ -8,6 +8,11 @@ type AppConfig struct {
 	HostSuffix string              `envconfig:"HOST_SUFFIX"`
 	IDPattern  string              `envconfig:"ID_PATTERN" default:"^[a-z0-9][a-z0-9-]{2,30}[a-z0-9]$"`
 	Kubernetes AppKubernetesConfig `envconfig:"KUBERNETES"`
+
+	// BuiltinResourceDirectory sets the directory for built-in resource files
+	BuiltinResourceDirectory string `envconfig:"BUILTIN_RESOURCE_DIRECTORY" default:"resources/authgear"`
+	// CustomResourceDirectory sets the directory for customized resource files
+	CustomResourceDirectory string `envconfig:"CUSTOM_RESOURCE_DIRECTORY"`
 }
 
 type TLSCertType string

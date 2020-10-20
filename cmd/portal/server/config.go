@@ -32,11 +32,10 @@ type Config struct {
 	// Mail configures email settings.
 	Mail portalconfig.MailConfig `envconfig:"MAIL"`
 
-	// ResourceDirectory sets the directory for app base resource files
-	AppBaseResourceDirectory portalconfig.AppBaseResourceDirectory `envconfig:"APP_BASE_RESOURCE_DIRECTORY" default:"resources/authgear"`
-
-	// ResourceDirectory sets the directory for resource files
-	ResourceDirectory portalconfig.ResourceDirectory `envconfig:"RESOURCE_DIRECTORY" default:"resources/portal"`
+	// BuiltinResourceDirectory sets the directory for built-in resource files
+	BuiltinResourceDirectory string `envconfig:"BUILTIN_RESOURCE_DIRECTORY" default:"resources/portal"`
+	// CustomResourceDirectory sets the directory for customized resource files
+	CustomResourceDirectory string `envconfig:"CUSTOM_RESOURCE_DIRECTORY"`
 
 	*config.EnvironmentConfig
 }
