@@ -158,41 +158,56 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
     []
   );
 
+  // eslint-disable-next-line complexity
   const onSaveButtonClicked = useCallback(() => {
-    const updates: Partial<Record<PrimaryOOBMessageTemplates, string>> = {};
+    const updates: Partial<Record<
+      PrimaryOOBMessageTemplates,
+      string | null
+    >> = {};
     if (state.setupEmailHtmlTemplate !== initialState.setupEmailHtmlTemplate) {
       updates[TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_HTML] =
-        state.setupEmailHtmlTemplate;
+        state.setupEmailHtmlTemplate !== ""
+          ? state.setupEmailHtmlTemplate
+          : null;
     }
     if (
       state.setupEmailPlainTextTemplate !==
       initialState.setupEmailPlainTextTemplate
     ) {
       updates[TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_TEXT] =
-        state.setupEmailPlainTextTemplate;
+        state.setupEmailPlainTextTemplate !== ""
+          ? state.setupEmailPlainTextTemplate
+          : null;
     }
     if (state.setupSmsTemplate !== initialState.setupSmsTemplate) {
-      updates[TEMPLATE_SETUP_PRIMARY_OOB_SMS_TEXT] = state.setupSmsTemplate;
+      updates[TEMPLATE_SETUP_PRIMARY_OOB_SMS_TEXT] =
+        state.setupSmsTemplate !== "" ? state.setupSmsTemplate : null;
     }
     if (
       state.authenticateEmailHtmlTemplate !==
       initialState.authenticateEmailHtmlTemplate
     ) {
       updates[TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML] =
-        state.authenticateEmailHtmlTemplate;
+        state.authenticateEmailHtmlTemplate !== ""
+          ? state.authenticateEmailHtmlTemplate
+          : null;
     }
     if (
       state.authenticateEmailPlainTextTemplate !==
       initialState.authenticateEmailPlainTextTemplate
     ) {
       updates[TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TEXT] =
-        state.authenticateEmailPlainTextTemplate;
+        state.authenticateEmailPlainTextTemplate !== ""
+          ? state.authenticateEmailPlainTextTemplate
+          : null;
     }
     if (
       state.authenticateSmsTemplate !== initialState.authenticateSmsTemplate
     ) {
       updates[TEMPLATE_AUTHENTICATE_PRIMARY_OOB_SMS_TEXT] =
-        state.authenticateSmsTemplate;
+        state.authenticateSmsTemplate !== ""
+          ? state.authenticateSmsTemplate
+          : null;
     }
 
     updateTemplates(updates).catch(() => {});

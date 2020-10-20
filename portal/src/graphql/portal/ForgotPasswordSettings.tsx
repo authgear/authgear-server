@@ -64,7 +64,7 @@ function constructAppConfigAndUpdateTemplatesDataFromState(
 ): {
   appConfig: PortalAPIAppConfig;
   updateTemplatesData: Partial<
-    Record<ForgotPasswordMessageTemplateKeys, string>
+    Record<ForgotPasswordMessageTemplateKeys, string | null>
   >;
 } {
   const newAppConfig = produce(rawAppConfig, (draftConfig) => {
@@ -84,22 +84,26 @@ function constructAppConfigAndUpdateTemplatesDataFromState(
 
   const updateTemplatesData: Partial<Record<
     ForgotPasswordMessageTemplateKeys,
-    string
+    string | null
   >> = {};
   if (screenState.emailHtmlTemplate !== initialScreenState.emailHtmlTemplate) {
     updateTemplatesData[TEMPLATE_FORGOT_PASSWORD_EMAIL_HTML] =
-      screenState.emailHtmlTemplate;
+      screenState.emailHtmlTemplate !== ""
+        ? screenState.emailHtmlTemplate
+        : null;
   }
   if (
     screenState.emailPlainTextTemplate !==
     initialScreenState.emailPlainTextTemplate
   ) {
     updateTemplatesData[TEMPLATE_FORGOT_PASSWORD_EMAIL_TEXT] =
-      screenState.emailPlainTextTemplate;
+      screenState.emailPlainTextTemplate !== ""
+        ? screenState.emailPlainTextTemplate
+        : null;
   }
   if (screenState.smsTemplate !== initialScreenState.smsTemplate) {
     updateTemplatesData[TEMPLATE_FORGOT_PASSWORD_SMS_TEXT] =
-      screenState.smsTemplate;
+      screenState.smsTemplate !== "" ? screenState.smsTemplate : null;
   }
 
   return {
