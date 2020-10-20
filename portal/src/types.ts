@@ -230,17 +230,6 @@ interface OAuthConfig {
   clients?: OAuthClientConfig[];
 }
 
-// TemplateConfig
-export interface TemplateItem {
-  type: string;
-  uri: string;
-  language_tag?: string;
-}
-
-export interface TemplateConfig {
-  items?: TemplateItem[];
-}
-
 // PortalAPIAppConfig
 export interface PortalAPIAppConfig {
   http?: HTTPConfig;
@@ -251,7 +240,6 @@ export interface PortalAPIAppConfig {
   ui?: UIConfig;
   forgot_password?: ForgotPasswordConfig;
   oauth?: OAuthConfig;
-  template?: TemplateConfig;
 }
 
 // secret config
@@ -354,11 +342,4 @@ export interface PortalAPIApp {
   rawAppConfig?: PortalAPIAppConfig;
   effectiveAppConfig?: PortalAPIAppConfig;
   secretConfig?: PortalAPISecretConfig;
-}
-
-// EmailAndSmsTemplates
-export interface PortalAPIEmailAndSmsTemplates {
-  emailHtml?: string;
-  emailText?: string;
-  smsText?: string;
 }

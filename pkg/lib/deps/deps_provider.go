@@ -11,6 +11,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/resource"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 var rootDeps = wire.NewSet(
@@ -42,10 +44,11 @@ var appRootDeps = wire.NewSet(
 		"Database",
 		"Redis",
 		"TaskQueue",
-		"TemplateEngine",
+		"Resources",
 	),
 
 	wire.Bind(new(hook.DatabaseHandle), new(*db.Handle)),
+	wire.Bind(new(template.ResourceManager), new(*resource.Manager)),
 )
 
 var RootDependencySet = wire.NewSet(
@@ -53,6 +56,7 @@ var RootDependencySet = wire.NewSet(
 	wire.FieldsOf(new(*RootProvider),
 		"LoggerFactory",
 		"SentryHub",
+		"BaseResources",
 	),
 )
 

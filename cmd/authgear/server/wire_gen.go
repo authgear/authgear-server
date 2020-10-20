@@ -19,19 +19,22 @@ func newConfigSourceController(p *deps.RootProvider) *configsource.Controller {
 	config := p.ConfigSourceConfig
 	factory := p.LoggerFactory
 	localFSLogger := configsource.NewLocalFSLogger(factory)
+	manager := p.BaseResources
 	localFS := &configsource.LocalFS{
-		Logger: localFSLogger,
-		Config: config,
+		Logger:        localFSLogger,
+		BaseResources: manager,
+		Config:        config,
 	}
 	kubernetesLogger := configsource.NewKubernetesLogger(factory)
 	clock := _wireSystemClockValue
 	environmentConfig := p.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	kubernetes := &configsource.Kubernetes{
-		Logger:     kubernetesLogger,
-		Clock:      clock,
-		TrustProxy: trustProxy,
-		Config:     config,
+		Logger:        kubernetesLogger,
+		BaseResources: manager,
+		Clock:         clock,
+		TrustProxy:    trustProxy,
+		Config:        config,
 	}
 	controller := configsource.NewController(config, localFS, kubernetes)
 	return controller

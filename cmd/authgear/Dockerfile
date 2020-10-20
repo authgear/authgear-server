@@ -45,7 +45,7 @@ COPY ./reserved_name.txt .
 COPY ./migrations ./migrations
 COPY --from=stage1 /src/authgear /usr/local/bin/
 COPY --from=stage2 /usr/src/app/dist/ ./dist/
-COPY ./templates/ ./templates/
+COPY ./resources/authgear/ ./resources/authgear/
 USER nobody
 EXPOSE 3000
 ENV STATIC_ASSET_DIR ./dist

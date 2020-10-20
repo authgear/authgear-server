@@ -3,13 +3,13 @@
 // @generated
 // This file was automatically generated and should not be edited.
 
-import { AppConfigFile } from "./../../__generated__/globalTypes";
+import { AppResourceUpdate } from "./../../__generated__/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: UpdateAppAndSecretConfigMutation
 // ====================================================
 
-export interface UpdateAppAndSecretConfigMutation_updateAppConfig {
+export interface UpdateAppAndSecretConfigMutation_updateAppResources_app {
   __typename: "App";
   /**
    * The ID of an object
@@ -20,15 +20,19 @@ export interface UpdateAppAndSecretConfigMutation_updateAppConfig {
   rawSecretConfig: GQL_SecretConfig;
 }
 
+export interface UpdateAppAndSecretConfigMutation_updateAppResources {
+  __typename: "UpdateAppResourcesPayload";
+  app: UpdateAppAndSecretConfigMutation_updateAppResources_app;
+}
+
 export interface UpdateAppAndSecretConfigMutation {
   /**
-   * Update app configuration files
+   * Update app resource files
    */
-  updateAppConfig: UpdateAppAndSecretConfigMutation_updateAppConfig;
+  updateAppResources: UpdateAppAndSecretConfigMutation_updateAppResources;
 }
 
 export interface UpdateAppAndSecretConfigMutationVariables {
   appID: string;
-  appConfigFile: AppConfigFile;
-  secretConfigFile: AppConfigFile;
+  updates: AppResourceUpdate[];
 }

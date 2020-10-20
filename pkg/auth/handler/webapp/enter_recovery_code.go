@@ -13,17 +13,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-const (
-	TemplateItemTypeAuthUIEnterRecoveryCodeHTML string = "auth_ui_enter_recovery_code.html"
+var TemplateWebEnterRecoveryCodeHTML = template.RegisterHTML(
+	"web/enter_recovery_code.html",
+	components...,
 )
-
-var TemplateAuthUIEnterRecoveryCodeHTML = template.Register(template.T{
-	Type:                    TemplateItemTypeAuthUIEnterRecoveryCodeHTML,
-	IsHTML:                  true,
-	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
-	Defines:                 defines,
-	ComponentTemplateTypes:  components,
-})
 
 const EnterRecoveryCodeRequestSchema = "EnterRecoveryCodeRequestSchema"
 
@@ -109,7 +102,7 @@ func (h *EnterRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 				return err
 			}
 
-			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIEnterRecoveryCodeHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateWebEnterRecoveryCodeHTML, data)
 			return nil
 		})
 		if err != nil {

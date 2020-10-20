@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"net/url"
-	"path"
 	"regexp"
 
 	"github.com/spf13/afero"
@@ -15,20 +14,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
-	"github.com/authgear/authgear-server/pkg/lib/translation"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
+	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/model"
-	"github.com/authgear/authgear-server/pkg/util/fs"
+	"github.com/authgear/authgear-server/pkg/portal/resources"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
+	"github.com/authgear/authgear-server/pkg/util/resource"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
-
-const RedactedValue = "<REDACTED>"
-
-type redactionMapping struct {
-	target *string
-	secret string
-}
 
 type generateAppConfigAndTranslationResult struct {
 	AppConfig           *config.AppConfig
@@ -38,7 +32,7 @@ type generateAppConfigAndTranslationResult struct {
 
 type AppConfigService interface {
 	ResolveContext(appID string) (*config.AppContext, error)
-	UpdateConfig(appID string, updateFiles []*model.AppConfigFile, deleteFiles []string) error
+	UpdateResources(appID string, updates []resources.Update) error
 	Create(opts *CreateAppOptions) error
 	CreateDomain(appID string, domainID string, domain string, isCustom bool) error
 }
@@ -62,44 +56,22 @@ func NewAppServiceLogger(lf *log.Factory) AppServiceLogger {
 	return AppServiceLogger{lf.New("app-service")}
 }
 
+type AppBaseResource *resource.Manager
+
 type AppService struct {
-	Logger      AppServiceLogger
-	AppConfig   *portalconfig.AppConfig
-	AppConfigs  AppConfigService
-	AppAuthz    AppAuthzService
-	AppAdminAPI AppAdminAPIService
-	AppDomains  AppDomainService
+	Logger           AppServiceLogger
+	AppConfig        *portalconfig.AppConfig
+	AppConfigs       AppConfigService
+	AppAuthz         AppAuthzService
+	AppAdminAPI      AppAdminAPIService
+	AppDomains       AppDomainService
+	AppBaseResources deps.AppBaseResources
 }
 
 func (s *AppService) loadApp(id string) (*model.App, error) {
 	appCtx, err := s.AppConfigs.ResolveContext(id)
 	if err != nil {
 		return nil, err
-	}
-
-	secretConfig := *appCtx.Config.SecretConfig
-	err = s.redactSecrets(&secretConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	secretConfigYAML, err := yaml.Marshal(secretConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	overlayFs := afero.NewBasePathFs(afero.NewMemMapFs(), "/")
-	err = afero.WriteFile(overlayFs, configsource.AuthgearSecretYAML, secretConfigYAML, 0666)
-	if err != nil {
-		return nil, err
-	}
-
-	appCtx = &config.AppContext{
-		Fs: &fs.OverlayFs{Base: appCtx.Fs, Overlay: &fs.AferoFs{Fs: overlayFs}},
-		Config: &config.Config{
-			AppConfig:    appCtx.Config.AppConfig,
-			SecretConfig: &secretConfig,
-		},
 	}
 
 	return &model.App{
@@ -191,33 +163,13 @@ func (s *AppService) Create(userID string, id string) error {
 	return nil
 }
 
-func (s *AppService) UpdateConfig(app *model.App, updateFiles []*model.AppConfigFile, deleteFiles []string) error {
-	PrepareUpdates(updateFiles, deleteFiles)
-
-	// Un-redact secrets
-	for _, file := range updateFiles {
-		if file.Path == "/"+configsource.AuthgearSecretYAML {
-			secretConfig, err := config.ParseSecret([]byte(file.Content))
-			if err != nil {
-				return err
-			}
-			if err := s.unredactSecrets(secretConfig); err != nil {
-				return err
-			}
-			cfgYAML, err := yaml.Marshal(secretConfig)
-			if err != nil {
-				return err
-			}
-			file.Content = string(cfgYAML)
-		}
-	}
-
-	err := ValidateConfig(app.ID, *app.Context.Config, updateFiles, deleteFiles)
+func (s *AppService) UpdateResources(app *model.App, updates []resources.Update) error {
+	err := resources.Validate(app.ID, app.Context.AppFs, app.Context.Resources, updates)
 	if err != nil {
 		return err
 	}
 
-	err = s.AppConfigs.UpdateConfig(app.ID, updateFiles, deleteFiles)
+	err = s.AppConfigs.UpdateResources(app.ID, updates)
 	return err
 }
 
@@ -243,18 +195,10 @@ func (s *AppService) generateAppConfigAndTranslation(appHost string, appID strin
 	var translationJSON []byte
 	var translationJSONPath string
 	if len(translationObj) > 0 {
-		translationJSONPath = "templates/" + translation.TemplateItemTypeTranslationJSON
+		translationJSONPath = "templates/" + template.TranslationJSONName
 		translationJSON, err = json.Marshal(translationObj)
 		if err != nil {
 			return nil, err
-		}
-		cfg.Template = &config.TemplateConfig{
-			Items: []config.TemplateItem{
-				config.TemplateItem{
-					Type: config.TemplateItemType(translation.TemplateItemTypeTranslationJSON),
-					URI:  "file:///" + translationJSONPath,
-				},
-			},
 		}
 	}
 
@@ -361,10 +305,15 @@ func (s *AppService) generateConfig(appHost string, appID string) (opts *CreateA
 		return
 	}
 
-	err = ValidateConfig(appID, config.Config{}, []*model.AppConfigFile{
-		{Path: "/" + configsource.AuthgearYAML, Content: string(appConfigYAML)},
-		{Path: "/" + configsource.AuthgearSecretYAML, Content: string(secretConfigYAML)},
-	}, nil)
+	// FIXME(resource): allow providing resource FS template for new apps
+	appFs := resource.AferoFs{Fs: afero.NewMemMapFs()}
+
+	resMgr := (*resource.Manager)(s.AppBaseResources).Overlay(appFs)
+	updates := []resources.Update{
+		{Path: configsource.AuthgearYAML, Data: appConfigYAML},
+		{Path: configsource.AuthgearSecretYAML, Data: secretConfigYAML},
+	}
+	err = resources.Validate(appID, appFs, resMgr, updates)
 	if err != nil {
 		return
 	}
@@ -378,243 +327,4 @@ func (s *AppService) generateConfig(appHost string, appID string) (opts *CreateA
 	}
 
 	return
-}
-
-func (s *AppService) redactionMappings(cfg *config.SecretConfig) []redactionMapping {
-	var mappings []redactionMapping
-	addMapping := func(key config.SecretKey, emptyData config.SecretItemData, secret string, mapFn func(s config.SecretItemData) *string) {
-		// If the cluster secret is undefined, do not add the mapping.
-		if secret == "" {
-			return
-		}
-
-		// Otherwise redaction always occur even if the secret item has been removed from the secret config.
-		// This means if the secret config has the secret item missing,
-		// after redaction the item would be added again.
-		item, ok := cfg.Lookup(key)
-		if !ok {
-			cfg.Secrets = append(cfg.Secrets, config.SecretItem{
-				Key:  key,
-				Data: emptyData,
-			})
-			item = &cfg.Secrets[len(cfg.Secrets)-1]
-		}
-
-		mappings = append(mappings, redactionMapping{
-			target: mapFn(item.Data),
-			secret: secret,
-		})
-	}
-
-	addMapping(
-		config.DatabaseCredentialsKey,
-		&config.DatabaseCredentials{},
-		s.AppConfig.Secret.DatabaseURL,
-		func(s config.SecretItemData) *string {
-			return &s.(*config.DatabaseCredentials).DatabaseURL
-		},
-	)
-	addMapping(
-		config.DatabaseCredentialsKey,
-		&config.DatabaseCredentials{},
-		s.AppConfig.Secret.DatabaseSchema,
-		func(s config.SecretItemData) *string {
-			return &s.(*config.DatabaseCredentials).DatabaseSchema
-		},
-	)
-	addMapping(
-		config.RedisCredentialsKey,
-		&config.RedisCredentials{},
-		s.AppConfig.Secret.RedisURL,
-		func(s config.SecretItemData) *string {
-			return &s.(*config.RedisCredentials).RedisURL
-		},
-	)
-	addMapping(
-		config.SMTPServerCredentialsKey,
-		&config.SMTPServerCredentials{},
-		s.AppConfig.Secret.SMTPHost,
-		func(s config.SecretItemData) *string {
-			return &s.(*config.SMTPServerCredentials).Host
-		},
-	)
-	addMapping(
-		config.SMTPServerCredentialsKey,
-		&config.SMTPServerCredentials{},
-		s.AppConfig.Secret.SMTPUsername,
-		func(s config.SecretItemData) *string {
-			return &s.(*config.SMTPServerCredentials).Username
-		},
-	)
-	addMapping(
-		config.SMTPServerCredentialsKey,
-		&config.SMTPServerCredentials{},
-		s.AppConfig.Secret.SMTPPassword,
-		func(s config.SecretItemData) *string {
-			return &s.(*config.SMTPServerCredentials).Password
-		},
-	)
-	addMapping(
-		config.TwilioCredentialsKey,
-		&config.TwilioCredentials{},
-		s.AppConfig.Secret.TwilioAccountSID,
-		func(s config.SecretItemData) *string {
-			return &s.(*config.TwilioCredentials).AccountSID
-		},
-	)
-	addMapping(
-		config.TwilioCredentialsKey,
-		&config.TwilioCredentials{},
-		s.AppConfig.Secret.TwilioAuthToken,
-		func(s config.SecretItemData) *string {
-			return &s.(*config.TwilioCredentials).AuthToken
-		},
-	)
-	addMapping(
-		config.NexmoCredentialsKey,
-		&config.NexmoCredentials{},
-		s.AppConfig.Secret.NexmoAPIKey,
-		func(s config.SecretItemData) *string {
-			return &s.(*config.NexmoCredentials).APIKey
-		},
-	)
-	addMapping(
-		config.NexmoCredentialsKey,
-		&config.NexmoCredentials{},
-		s.AppConfig.Secret.NexmoAPISecret,
-		func(s config.SecretItemData) *string {
-			return &s.(*config.NexmoCredentials).APISecret
-		},
-	)
-
-	return mappings
-}
-
-func (s *AppService) redactSecrets(cfg *config.SecretConfig) error {
-	for _, mapping := range s.redactionMappings(cfg) {
-		// Add back the value as redacted even if the item is missing
-		if *mapping.target == "" || *mapping.target == mapping.secret {
-			*mapping.target = RedactedValue
-		}
-	}
-	for i, item := range cfg.Secrets {
-		data, err := json.Marshal(item.Data)
-		if err != nil {
-			return err
-		}
-
-		item.RawData = data
-		cfg.Secrets[i] = item
-	}
-	return nil
-}
-
-func (s *AppService) unredactSecrets(cfg *config.SecretConfig) error {
-	for _, mapping := range s.redactionMappings(cfg) {
-		// TODO(portal): allow bring-in credentials
-		if *mapping.target != RedactedValue {
-			return apierrors.NewForbidden("cannot change secret value")
-		}
-		*mapping.target = mapping.secret
-	}
-	for i, item := range cfg.Secrets {
-		data, err := json.Marshal(item.Data)
-		if err != nil {
-			return err
-		}
-
-		item.RawData = data
-		cfg.Secrets[i] = item
-	}
-	return nil
-}
-
-const ConfigFileMaxSize = 100 * 1024
-
-func PrepareUpdates(updateFiles []*model.AppConfigFile, deleteFiles []string) {
-	// Normalize the paths.
-	for _, file := range updateFiles {
-		file.Path = path.Clean("/" + file.Path)
-	}
-	for i, p := range deleteFiles {
-		deleteFiles[i] = path.Clean("/" + p)
-	}
-}
-
-func ValidateConfig(appID string, cfg config.Config, updateFiles []*model.AppConfigFile, deleteFiles []string) error {
-	// Validate file size.
-	for _, f := range updateFiles {
-		if len(f.Content) > ConfigFileMaxSize {
-			return fmt.Errorf("%s is too large: %v > %v", f.Path, len(f.Content), ConfigFileMaxSize)
-		}
-	}
-
-	// Validate configuration YAML.
-	for _, file := range updateFiles {
-		if file.Path == "/"+configsource.AuthgearYAML {
-			appConfig, err := config.Parse([]byte(file.Content))
-			if err != nil {
-				return fmt.Errorf("%s is invalid: %w", file.Path, err)
-			} else if string(appConfig.ID) != appID {
-				return fmt.Errorf("%s is invalid: invalid app ID", file.Path)
-			}
-			cfg.AppConfig = appConfig
-		} else if file.Path == "/"+configsource.AuthgearSecretYAML {
-			secretConfig, err := config.ParseSecret([]byte(file.Content))
-			if err != nil {
-				return fmt.Errorf("%s is invalid: %w", file.Path, err)
-			}
-			cfg.SecretConfig = secretConfig
-		}
-	}
-	err := cfg.SecretConfig.Validate(cfg.AppConfig)
-	if err != nil {
-		return fmt.Errorf("invalid configuration: %w", err)
-	}
-
-	templatePaths := map[string]struct{}{}
-	oldTemplatePaths := map[string]struct{}{}
-	for _, item := range cfg.AppConfig.Template.Items {
-		u, err := url.Parse(item.URI)
-		if err != nil {
-			return fmt.Errorf("invalid URI for template '%s': %w", item.Type, err)
-		}
-		if u.Scheme != "file" {
-			return fmt.Errorf("invalid URI for template '%s': only 'file' scheme is supported", item.Type)
-		}
-		if u.Path != path.Clean(u.Path) {
-			return fmt.Errorf("invalid URI for template '%s': path must be normalized", item.Type)
-		}
-		templatePaths[u.Path] = struct{}{}
-	}
-	nullableOldConfig := cfg.AppConfig
-	if nullableOldConfig != nil {
-		for _, item := range nullableOldConfig.Template.Items {
-			u, err := url.Parse(item.URI)
-			if err != nil || u.Scheme != "file" {
-				continue
-			}
-			oldTemplatePaths[u.Path] = struct{}{}
-		}
-	}
-
-	for _, f := range updateFiles {
-		if f.Path == "/"+configsource.AuthgearYAML || f.Path == "/"+configsource.AuthgearSecretYAML {
-			continue
-		}
-		if _, ok := templatePaths[f.Path]; !ok {
-			return fmt.Errorf("invalid file '%s': file is not referenced from configuration", f.Path)
-		}
-	}
-	for _, p := range deleteFiles {
-		// Forbid deleting configuration YAML.
-		if p == "/"+configsource.AuthgearYAML || p == "/"+configsource.AuthgearSecretYAML {
-			return errors.New("cannot delete main configuration YAML files")
-		}
-		if _, ok := oldTemplatePaths[p]; !ok {
-			return fmt.Errorf("invalid file '%s': file is not referenced from configuration", p)
-		}
-	}
-
-	return nil
 }

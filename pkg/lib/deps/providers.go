@@ -14,27 +14,27 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/sentry"
-	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 type RootProvider struct {
-	EnvironmentConfig        *config.EnvironmentConfig
-	ConfigSourceConfig       *configsource.Config
-	LoggerFactory            *log.Factory
-	SentryHub                *getsentry.Hub
-	DatabasePool             *db.Pool
-	RedisPool                *redis.Pool
-	TaskQueueFactory         TaskQueueFactory
-	ReservedNameChecker      *loginid.ReservedNameChecker
-	DefaultTemplateDirectory string
+	EnvironmentConfig   *config.EnvironmentConfig
+	ConfigSourceConfig  *configsource.Config
+	LoggerFactory       *log.Factory
+	SentryHub           *getsentry.Hub
+	DatabasePool        *db.Pool
+	RedisPool           *redis.Pool
+	TaskQueueFactory    TaskQueueFactory
+	ReservedNameChecker *loginid.ReservedNameChecker
+	BaseResources       *resource.Manager
 }
 
 func NewRootProvider(
 	cfg *config.EnvironmentConfig,
 	configSourceConfig *configsource.Config,
 	reservedNameFilePath string,
-	defaultTemplateDirectory string,
+	defaultResourceDirectory string,
 	taskQueueFactory TaskQueueFactory,
 ) (*RootProvider, error) {
 	var p RootProvider
@@ -63,15 +63,15 @@ func NewRootProvider(
 	}
 
 	p = RootProvider{
-		EnvironmentConfig:        cfg,
-		ConfigSourceConfig:       configSourceConfig,
-		LoggerFactory:            loggerFactory,
-		SentryHub:                sentryHub,
-		DatabasePool:             dbPool,
-		RedisPool:                redisPool,
-		TaskQueueFactory:         taskQueueFactory,
-		ReservedNameChecker:      reservedNameChecker,
-		DefaultTemplateDirectory: defaultTemplateDirectory,
+		EnvironmentConfig:   cfg,
+		ConfigSourceConfig:  configSourceConfig,
+		LoggerFactory:       loggerFactory,
+		SentryHub:           sentryHub,
+		DatabasePool:        dbPool,
+		RedisPool:           redisPool,
+		TaskQueueFactory:    taskQueueFactory,
+		ReservedNameChecker: reservedNameChecker,
+		BaseResources:       NewResourceManager(defaultResourceDirectory),
 	}
 	return &p, nil
 }
@@ -97,20 +97,15 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		cfg.SecretConfig.LookupData(config.RedisCredentialsKey).(*config.RedisCredentials),
 		loggerFactory,
 	)
-	templateEngine := NewEngineWithConfig(
-		appCtx.Fs,
-		p.DefaultTemplateDirectory,
-		cfg,
-	)
 
 	provider := &AppProvider{
-		RootProvider:   p,
-		Context:        ctx,
-		Config:         cfg,
-		LoggerFactory:  loggerFactory,
-		Database:       database,
-		Redis:          redis,
-		TemplateEngine: templateEngine,
+		RootProvider:  p,
+		Context:       ctx,
+		Config:        cfg,
+		LoggerFactory: loggerFactory,
+		Database:      database,
+		Redis:         redis,
+		Resources:     appCtx.Resources,
 	}
 	provider.TaskQueue = p.TaskQueueFactory(provider)
 	return provider
@@ -150,13 +145,13 @@ func (p *RootProvider) Task(factory func(provider *TaskProvider) task.Task) task
 type AppProvider struct {
 	*RootProvider
 
-	Context        context.Context
-	Config         *config.Config
-	LoggerFactory  *log.Factory
-	Database       *db.Handle
-	Redis          *redis.Handle
-	TaskQueue      task.Queue
-	TemplateEngine *template.Engine
+	Context       context.Context
+	Config        *config.Config
+	LoggerFactory *log.Factory
+	Database      *db.Handle
+	Redis         *redis.Handle
+	TaskQueue     task.Queue
+	Resources     *resource.Manager
 }
 
 func (p *AppProvider) NewRequestProvider(r *http.Request) *RequestProvider {

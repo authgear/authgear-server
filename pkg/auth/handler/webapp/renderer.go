@@ -12,9 +12,9 @@ import (
 type Renderer interface {
 	// Render renders the template into response body.
 	// Content-Length is set before calling beforeWrite.
-	Render(w http.ResponseWriter, r *http.Request, templateType string, data interface{}, beforeWrite func(w http.ResponseWriter))
+	Render(w http.ResponseWriter, r *http.Request, tpl template.Resource, data interface{}, beforeWrite func(w http.ResponseWriter))
 	// RenderHTML is a shorthand of Render that renders HTML.
-	RenderHTML(w http.ResponseWriter, r *http.Request, templateType string, data interface{})
+	RenderHTML(w http.ResponseWriter, r *http.Request, tpl *template.HTML, data interface{})
 }
 
 type ResponseRendererLogger struct{ *log.Logger }
@@ -28,27 +28,15 @@ type ResponseRenderer struct {
 	Logger         ResponseRendererLogger
 }
 
-func (r *ResponseRenderer) Render(w http.ResponseWriter, req *http.Request, templateType string, data interface{}, beforeWrite func(w http.ResponseWriter)) {
+func (r *ResponseRenderer) Render(w http.ResponseWriter, req *http.Request, tpl template.Resource, data interface{}, beforeWrite func(w http.ResponseWriter)) {
 	r.Logger.WithFields(map[string]interface{}{
 		"data": data,
 	}).Debug("render with data")
 
 	preferredLanguageTags := intl.GetPreferredLanguageTags(req.Context())
-	validatorOptions := []template.ValidatorOption{
-		template.AllowRangeNode(true),
-		template.AllowTemplateNode(true),
-		template.AllowDeclaration(true),
-		template.MaxDepth(15),
-	}
-
-	renderCtx := &template.RenderContext{
-		PreferredLanguageTags: preferredLanguageTags,
-		ValidatorOptions:      validatorOptions,
-	}
-
 	out, err := r.TemplateEngine.Render(
-		renderCtx,
-		templateType,
+		tpl,
+		preferredLanguageTags,
 		data,
 	)
 	if err != nil {
@@ -66,8 +54,8 @@ func (r *ResponseRenderer) Render(w http.ResponseWriter, req *http.Request, temp
 	}
 }
 
-func (r *ResponseRenderer) RenderHTML(w http.ResponseWriter, req *http.Request, templateType string, data interface{}) {
-	r.Render(w, req, templateType, data, func(w http.ResponseWriter) {
+func (r *ResponseRenderer) RenderHTML(w http.ResponseWriter, req *http.Request, tpl *template.HTML, data interface{}) {
+	r.Render(w, req, tpl, data, func(w http.ResponseWriter) {
 		// It is very important to specify the encoding because browsers assume ASCII if encoding is not specified.
 		// No need to use FormatMediaType because the value is constant.
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")

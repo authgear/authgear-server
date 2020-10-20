@@ -40,6 +40,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/rand"
+	"github.com/authgear/authgear-server/pkg/util/template"
 	"net/http"
 )
 
@@ -295,7 +296,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	engine := appProvider.TemplateEngine
+	manager := appProvider.Resources
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(configConfig)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,

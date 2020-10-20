@@ -10,28 +10,31 @@ import (
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/sentry"
 )
 
 type RootProvider struct {
-	EnvironmentConfig        *config.EnvironmentConfig
-	ConfigSourceConfig       *configsource.Config
-	AuthgearConfig           *portalconfig.AuthgearConfig
-	AdminAPIConfig           *portalconfig.AdminAPIConfig
-	AppConfig                *portalconfig.AppConfig
-	DatabaseConfig           *portalconfig.DatabaseConfig
-	SMTPConfig               *portalconfig.SMTPConfig
-	MailConfig               *portalconfig.MailConfig
-	DefaultTemplateDirectory portalconfig.DefaultTemplateDirectory
-	LoggerFactory            *log.Factory
-	SentryHub                *getsentry.Hub
+	EnvironmentConfig  *config.EnvironmentConfig
+	ConfigSourceConfig *configsource.Config
+	AuthgearConfig     *portalconfig.AuthgearConfig
+	AdminAPIConfig     *portalconfig.AdminAPIConfig
+	AppConfig          *portalconfig.AppConfig
+	DatabaseConfig     *portalconfig.DatabaseConfig
+	SMTPConfig         *portalconfig.SMTPConfig
+	MailConfig         *portalconfig.MailConfig
+	LoggerFactory      *log.Factory
+	SentryHub          *getsentry.Hub
 
 	ConfigSourceController *configsource.Controller
+	Resources              *resource.Manager
+	AppBaseResources       *resource.Manager
 }
 
 func NewRootProvider(
 	cfg *config.EnvironmentConfig,
-	defaultTemplateDirectory portalconfig.DefaultTemplateDirectory,
+	resourceDirectory portalconfig.ResourceDirectory,
+	appBaseResourceDirectory portalconfig.AppBaseResourceDirectory,
 	configSourceConfig *configsource.Config,
 	authgearConfig *portalconfig.AuthgearConfig,
 	adminAPIConfig *portalconfig.AdminAPIConfig,
@@ -57,17 +60,18 @@ func NewRootProvider(
 	)
 
 	return &RootProvider{
-		EnvironmentConfig:        cfg,
-		DefaultTemplateDirectory: defaultTemplateDirectory,
-		ConfigSourceConfig:       configSourceConfig,
-		AuthgearConfig:           authgearConfig,
-		AdminAPIConfig:           adminAPIConfig,
-		AppConfig:                appConfig,
-		DatabaseConfig:           dbConfig,
-		SMTPConfig:               smtpConfig,
-		MailConfig:               mailConfig,
-		LoggerFactory:            loggerFactory,
-		SentryHub:                sentryHub,
+		EnvironmentConfig:  cfg,
+		ConfigSourceConfig: configSourceConfig,
+		AuthgearConfig:     authgearConfig,
+		AdminAPIConfig:     adminAPIConfig,
+		AppConfig:          appConfig,
+		DatabaseConfig:     dbConfig,
+		SMTPConfig:         smtpConfig,
+		MailConfig:         mailConfig,
+		LoggerFactory:      loggerFactory,
+		SentryHub:          sentryHub,
+		Resources:          NewResourceManager(string(resourceDirectory)),
+		AppBaseResources:   NewResourceManager(string(appBaseResourceDirectory)),
 	}, nil
 }
 

@@ -8,6 +8,9 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/util/intl"
+	"github.com/authgear/authgear-server/pkg/util/resource"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 func ProvideRequestContext(r *http.Request) context.Context { return r.Context() }
@@ -19,7 +22,6 @@ func ProvideConfigSource(ctrl *configsource.Controller) *configsource.ConfigSour
 var DependencySet = wire.NewSet(
 	wire.FieldsOf(new(*RootProvider),
 		"EnvironmentConfig",
-		"DefaultTemplateDirectory",
 		"ConfigSourceConfig",
 		"AuthgearConfig",
 		"AdminAPIConfig",
@@ -30,6 +32,7 @@ var DependencySet = wire.NewSet(
 		"SentryHub",
 		"LoggerFactory",
 		"ConfigSourceController",
+		"Resources",
 	),
 	wire.FieldsOf(new(*config.EnvironmentConfig),
 		"TrustProxy",
@@ -42,4 +45,7 @@ var DependencySet = wire.NewSet(
 	),
 	ProvideRequestContext,
 	ProvideConfigSource,
+	ProvideAppBaseResources,
+	wire.Bind(new(template.ResourceManager), new(*resource.Manager)),
+	wire.Value(template.DefaultTemplateLanguage(intl.DefaultLanguage)),
 )

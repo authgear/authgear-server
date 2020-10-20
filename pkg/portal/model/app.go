@@ -1,12 +1,11 @@
 package model
 
 import (
-	"io/ioutil"
-
 	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/portal/resources"
 )
 
 type App struct {
@@ -14,46 +13,33 @@ type App struct {
 	Context *config.AppContext
 }
 
-func (a *App) LoadFile(path string) ([]byte, error) {
-	file, err := a.Context.Fs.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	data, err := ioutil.ReadAll(file)
+func (a *App) LoadRawAppConfig() (*config.AppConfig, error) {
+	files, err := configsource.AppConfig.ReadResource(a.Context.AppFs)
 	if err != nil {
 		return nil, err
 	}
 
-	return data, nil
-}
-
-func (a *App) LoadAppConfigFile() (*config.AppConfig, error) {
-	data, err := a.LoadFile(configsource.AuthgearYAML)
-	if err != nil {
-		return nil, err
-	}
 	var cfg *config.AppConfig
-	if err := yaml.Unmarshal(data, &cfg); err != nil {
+	if err := yaml.Unmarshal(files[0].Data, &cfg); err != nil {
 		return nil, err
 	}
 	return cfg, nil
 }
 
-func (a *App) LoadSecretConfigFile() (*config.SecretConfig, error) {
-	data, err := a.LoadFile(configsource.AuthgearSecretYAML)
+func (a *App) LoadRawSecretConfig() (*config.SecretConfig, error) {
+	files, err := configsource.SecretConfig.ReadResource(a.Context.AppFs)
 	if err != nil {
 		return nil, err
 	}
+
 	var cfg *config.SecretConfig
-	if err := yaml.Unmarshal(data, &cfg); err != nil {
+	if err := yaml.Unmarshal(files[0].Data, &cfg); err != nil {
 		return nil, err
 	}
 	return cfg, nil
 }
 
-type AppConfigFile struct {
-	Path    string
-	Content string
+type AppResource struct {
+	resources.Resource
+	Context *config.AppContext
 }

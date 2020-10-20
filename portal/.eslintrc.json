@@ -14,7 +14,7 @@
   "env": {
     "browser": true
   },
-  "globals": { "Set": "readonly" },
+  "globals": { "Set": "readonly", "Map": "readonly" },
   "rules": {
     "no-use-before-define": "off",
     "react/jsx-no-bind": "off",

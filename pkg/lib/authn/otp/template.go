@@ -25,79 +25,57 @@ type MessageTemplateContext struct {
 	StaticAssetURLPrefix string
 }
 
-const (
-	TemplateItemTypeVerificationSMSTXT    string = "verification_sms.txt"
-	TemplateItemTypeVerificationEmailTXT  string = "verification_email.txt"
-	TemplateItemTypeVerificationEmailHTML string = "verification_email.html"
-
-	TemplateItemTypeSetupPrimaryOOBSMSTXT    string = "setup_primary_oob_sms.txt"
-	TemplateItemTypeSetupPrimaryOOBEmailTXT  string = "setup_primary_oob_email.txt"
-	TemplateItemTypeSetupPrimaryOOBEmailHTML string = "setup_primary_oob_email.html"
-
-	TemplateItemTypeSetupSecondaryOOBSMSTXT    string = "setup_secondary_oob_sms.txt"
-	TemplateItemTypeSetupSecondaryOOBEmailTXT  string = "setup_secondary_oob_email.txt"
-	TemplateItemTypeSetupSecondaryOOBEmailHTML string = "setup_secondary_oob_email.html"
-
-	TemplateItemTypeAuthenticatePrimaryOOBSMSTXT    string = "authenticate_primary_oob_sms.txt"
-	TemplateItemTypeAuthenticatePrimaryOOBEmailTXT  string = "authenticate_primary_oob_email.txt"
-	TemplateItemTypeAuthenticatePrimaryOOBEmailHTML string = "authenticate_primary_oob_email.html"
-
-	TemplateItemTypeAuthenticateSecondaryOOBSMSTXT    string = "authenticate_secondary_oob_sms.txt"
-	TemplateItemTypeAuthenticateSecondaryOOBEmailTXT  string = "authenticate_secondary_oob_email.txt"
-	TemplateItemTypeAuthenticateSecondaryOOBEmailHTML string = "authenticate_secondary_oob_email.html"
-)
-
 var (
-	TemplateVerificationSMSTXT    = template.Register(template.T{Type: TemplateItemTypeVerificationSMSTXT})
-	TemplateVerificationEmailTXT  = template.Register(template.T{Type: TemplateItemTypeVerificationEmailTXT})
-	TemplateVerificationEmailHTML = template.Register(template.T{Type: TemplateItemTypeVerificationEmailHTML, IsHTML: true})
+	TemplateMessageVerificationSMSTXT    = template.RegisterPlainText("messages/verification_sms.txt")
+	TemplateMessageVerificationEmailTXT  = template.RegisterPlainText("messages/verification_email.txt")
+	TemplateMessageVerificationEmailHTML = template.RegisterHTML("messages/verification_email.html")
 
-	TemplateSetupPrimaryOOBSMSTXT    = template.Register(template.T{Type: TemplateItemTypeSetupPrimaryOOBSMSTXT})
-	TemplateSetupPrimaryOOBEmailTXT  = template.Register(template.T{Type: TemplateItemTypeSetupPrimaryOOBEmailTXT})
-	TemplateSetupPrimaryOOBEmailHTML = template.Register(template.T{Type: TemplateItemTypeSetupPrimaryOOBEmailHTML, IsHTML: true})
+	TemplateMessageSetupPrimaryOOBSMSTXT    = template.RegisterPlainText("messages/setup_primary_oob_sms.txt")
+	TemplateMessageSetupPrimaryOOBEmailTXT  = template.RegisterPlainText("messages/setup_primary_oob_email.txt")
+	TemplateMessageSetupPrimaryOOBEmailHTML = template.RegisterHTML("messages/setup_primary_oob_email.html")
 
-	TemplateSetupSecondaryOOBSMSTXT    = template.Register(template.T{Type: TemplateItemTypeSetupSecondaryOOBSMSTXT})
-	TemplateSetupSecondaryOOBEmailTXT  = template.Register(template.T{Type: TemplateItemTypeSetupSecondaryOOBEmailTXT})
-	TemplateSetupSecondaryOOBEmailHTML = template.Register(template.T{Type: TemplateItemTypeSetupSecondaryOOBEmailHTML, IsHTML: true})
+	TemplateMessageSetupSecondaryOOBSMSTXT    = template.RegisterPlainText("messages/setup_secondary_oob_sms.txt")
+	TemplateMessageSetupSecondaryOOBEmailTXT  = template.RegisterPlainText("messages/setup_secondary_oob_email.txt")
+	TemplateMessageSetupSecondaryOOBEmailHTML = template.RegisterHTML("messages/setup_secondary_oob_email.txt")
 
-	TemplateAuthenticatePrimaryOOBSMSTXT    = template.Register(template.T{Type: TemplateItemTypeAuthenticatePrimaryOOBSMSTXT})
-	TemplateAuthenticatePrimaryOOBEmailTXT  = template.Register(template.T{Type: TemplateItemTypeAuthenticatePrimaryOOBEmailTXT})
-	TemplateAuthenticatePrimaryOOBEmailHTML = template.Register(template.T{Type: TemplateItemTypeAuthenticatePrimaryOOBEmailHTML, IsHTML: true})
+	TemplateMessageAuthenticatePrimaryOOBSMSTXT    = template.RegisterPlainText("messages/authenticate_primary_oob_sms.txt")
+	TemplateMessageAuthenticatePrimaryOOBEmailTXT  = template.RegisterPlainText("messages/authenticate_primary_oob_email.txt")
+	TemplateMessageAuthenticatePrimaryOOBEmailHTML = template.RegisterHTML("messages/authenticate_primary_oob_email.html")
 
-	TemplateAuthenticateSecondaryOOBSMSTXT    = template.Register(template.T{Type: TemplateItemTypeAuthenticateSecondaryOOBSMSTXT})
-	TemplateAuthenticateSecondaryOOBEmailTXT  = template.Register(template.T{Type: TemplateItemTypeAuthenticateSecondaryOOBEmailTXT})
-	TemplateAuthenticateSecondaryOOBEmailHTML = template.Register(template.T{Type: TemplateItemTypeAuthenticateSecondaryOOBEmailHTML, IsHTML: true})
+	TemplateMessageAuthenticateSecondaryOOBSMSTXT    = template.RegisterPlainText("messages/authenticate_secondary_oob_sms.txt")
+	TemplateMessageAuthenticateSecondaryOOBEmailTXT  = template.RegisterPlainText("messages/authenticate_secondary_oob_email.txt")
+	TemplateMessageAuthenticateSecondaryOOBEmailHTML = template.RegisterHTML("messages/authenticate_secondary_oob_email.html")
 )
 
 var (
 	messageVerification = &translation.MessageSpec{
-		Name:          "verification",
-		TXTEmailType:  TemplateItemTypeVerificationEmailTXT,
-		HTMLEmailType: TemplateItemTypeVerificationEmailHTML,
-		SMSType:       TemplateItemTypeVerificationSMSTXT,
+		Name:              "verification",
+		TXTEmailTemplate:  TemplateMessageVerificationEmailTXT,
+		HTMLEmailTemplate: TemplateMessageVerificationEmailHTML,
+		SMSTemplate:       TemplateMessageVerificationSMSTXT,
 	}
 	messageSetupPrimaryOOB = &translation.MessageSpec{
-		Name:          "setup-primary-oob",
-		TXTEmailType:  TemplateItemTypeSetupPrimaryOOBEmailTXT,
-		HTMLEmailType: TemplateItemTypeSetupPrimaryOOBEmailHTML,
-		SMSType:       TemplateItemTypeSetupPrimaryOOBSMSTXT,
+		Name:              "setup-primary-oob",
+		TXTEmailTemplate:  TemplateMessageSetupPrimaryOOBEmailTXT,
+		HTMLEmailTemplate: TemplateMessageSetupPrimaryOOBEmailHTML,
+		SMSTemplate:       TemplateMessageSetupPrimaryOOBSMSTXT,
 	}
 	messageSetupSecondaryOOB = &translation.MessageSpec{
-		Name:          "setup-secondary-oob",
-		TXTEmailType:  TemplateItemTypeSetupSecondaryOOBEmailTXT,
-		HTMLEmailType: TemplateItemTypeSetupSecondaryOOBEmailHTML,
-		SMSType:       TemplateItemTypeSetupSecondaryOOBSMSTXT,
+		Name:              "setup-secondary-oob",
+		TXTEmailTemplate:  TemplateMessageSetupSecondaryOOBEmailTXT,
+		HTMLEmailTemplate: TemplateMessageSetupSecondaryOOBEmailHTML,
+		SMSTemplate:       TemplateMessageSetupSecondaryOOBSMSTXT,
 	}
 	messageAuthenticatePrimaryOOB = &translation.MessageSpec{
-		Name:          "authenticate-primary-oob",
-		TXTEmailType:  TemplateItemTypeAuthenticatePrimaryOOBEmailTXT,
-		HTMLEmailType: TemplateItemTypeAuthenticatePrimaryOOBEmailHTML,
-		SMSType:       TemplateItemTypeAuthenticatePrimaryOOBSMSTXT,
+		Name:              "authenticate-primary-oob",
+		TXTEmailTemplate:  TemplateMessageAuthenticatePrimaryOOBEmailTXT,
+		HTMLEmailTemplate: TemplateMessageAuthenticatePrimaryOOBEmailHTML,
+		SMSTemplate:       TemplateMessageAuthenticatePrimaryOOBSMSTXT,
 	}
 	messageAuthenticateSecondaryOOB = &translation.MessageSpec{
-		Name:          "authenticate-secondary-oob",
-		TXTEmailType:  TemplateItemTypeAuthenticateSecondaryOOBEmailTXT,
-		HTMLEmailType: TemplateItemTypeAuthenticateSecondaryOOBEmailHTML,
-		SMSType:       TemplateItemTypeAuthenticateSecondaryOOBSMSTXT,
+		Name:              "authenticate-secondary-oob",
+		TXTEmailTemplate:  TemplateMessageAuthenticateSecondaryOOBEmailTXT,
+		HTMLEmailTemplate: TemplateMessageAuthenticateSecondaryOOBEmailHTML,
+		SMSTemplate:       TemplateMessageAuthenticateSecondaryOOBSMSTXT,
 	}
 )

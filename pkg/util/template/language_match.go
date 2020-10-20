@@ -4,12 +4,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/intl"
 )
 
-type languageTagger interface {
+type LanguageItem interface {
 	GetLanguageTag() string
 }
 
-func languageMatch(preferred []string, fallback string, items []languageTagger) (matched *languageTagger, err error) {
-	languageTagToItem := make(map[string]languageTagger)
+func MatchLanguage(preferred []string, fallback string, items []LanguageItem) (matched LanguageItem, err error) {
+	languageTagToItem := make(map[string]LanguageItem)
 
 	var rawSupported []string
 	for _, item := range items {
@@ -28,5 +28,5 @@ func languageMatch(preferred []string, fallback string, items []languageTagger) 
 		return
 	}
 
-	return &item, nil
+	return item, nil
 }

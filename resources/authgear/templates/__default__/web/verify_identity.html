@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+{{ template "__html_head.html" . }}
+<body class="page">
+<div class="content">
+
+{{ template "__header.html" . }}
+
+{{ if $.IdentityDisplayID }}
+{{ template "__nav_bar.html" }}
+{{ else }}
+{{ template "__nav_bar.html" true }}
+{{ end }}
+
+<div class="simple-form vertical-form form-fields-container pane">
+
+{{ if $.IdentityDisplayID }}
+{{ if eq $.VerificationCodeChannel "sms" }}
+<h1 class="title primary-txt">{{ template "verify-user-page-title--sms" }}</h1>
+{{ end }}
+{{ if eq $.VerificationCodeChannel "email" }}
+<h1 class="title primary-txt">{{ template "verify-user-page-title--email" }}</h1>
+{{ end }}
+{{ end }}
+
+{{ template "__error.html" . }}
+
+{{ if $.IdentityDisplayID }}
+<div class="description primary-txt">{{ template "verify-user-description" (makemap "length" $.VerificationCodeLength "target" $.IdentityDisplayID) }}</div>
+
+<form class="vertical-form form-fields-container" method="post" novalidate>
+{{ $.CSRFField }}
+
+{{ if eq $.VerificationCodeChannel "sms" }}
+	<input
+		class="input text-input primary-txt"
+		type="text"
+		inputmode="numeric"
+		pattern="[0-9]*"
+		autocomplete="one-time-code"
+		autocapitalize="none"
+		name="x_password"
+		placeholder="{{ template "verify-user-placeholder" }}"
+		value="{{ $.VerificationCode }}"
+	>
+{{ end }}
+{{ if eq $.VerificationCodeChannel "email" }}
+	<input
+		class="input text-input primary-txt"
+		type="text"
+		autocomplete="one-time-code"
+		autocapitalize="characters"
+		name="x_password"
+		placeholder="{{ template "verify-user-placeholder" }}"
+		value="{{ $.VerificationCode }}"
+	>
+{{ end }}
+<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
+</form>
+
+<form class="link verify-user-trigger-form" method="post" novalidate>
+{{ $.CSRFField }}
+
+<span class="primary-txt">{{ template "verify-user-resend-button-hint" }}</span>
+<button id="resend-button" class="anchor" type="submit" name="trigger" value="true"
+	data-cooldown="{{ $.VerificationCodeSendCooldown }}"
+	data-label="{{ template "verify-user-resend-button-label" }}"
+	data-label-unit="{{ template "verify-user-resend-button-label--unit" }}">{{ template "verify-user-resend-button-label" }}</button>
+</form>
+
+{{ end }}
+
+</div>
+
+</div>
+</body>
+</html>

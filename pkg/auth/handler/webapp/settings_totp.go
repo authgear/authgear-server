@@ -16,17 +16,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-const (
-	TemplateItemTypeAuthUISettingsTOTPHTML string = "auth_ui_settings_totp.html"
+var TemplateWebSettingsTOTPHTML = template.RegisterHTML(
+	"web/settings_totp.html",
+	components...,
 )
-
-var TemplateAuthUISettingsTOTPHTML = template.Register(template.T{
-	Type:                    TemplateItemTypeAuthUISettingsTOTPHTML,
-	IsHTML:                  true,
-	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
-	Defines:                 defines,
-	ComponentTemplateTypes:  components,
-})
 
 func ConfigureSettingsTOTPRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -94,7 +87,7 @@ func (h *SettingsTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 				return err
 			}
 
-			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUISettingsTOTPHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateWebSettingsTOTPHTML, data)
 			return nil
 		})
 		if err != nil {

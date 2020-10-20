@@ -10,18 +10,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-const (
-	// nolint: gosec
-	TemplateItemTypeAuthUIResetPasswordSuccessHTML string = "auth_ui_reset_password_success.html"
+var TemplateWebResetPasswordSuccessHTML = template.RegisterHTML(
+	"web/reset_password_success.html",
+	components...,
 )
-
-var TemplateAuthUIResetPasswordSuccessHTML = template.Register(template.T{
-	Type:                    TemplateItemTypeAuthUIResetPasswordSuccessHTML,
-	IsHTML:                  true,
-	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
-	Defines:                 defines,
-	ComponentTemplateTypes:  components,
-})
 
 func ConfigureResetPasswordSuccessRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -61,7 +53,7 @@ func (h *ResetPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 				return err
 			}
 
-			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIResetPasswordSuccessHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateWebResetPasswordSuccessHTML, data)
 			return nil
 		})
 		if err != nil {

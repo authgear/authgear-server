@@ -17,17 +17,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-const (
-	TemplateItemTypeAuthUISettingsIdentityHTML string = "auth_ui_settings_identity.html"
+var TemplateWebSettingsIdentityHTML = template.RegisterHTML(
+	"web/settings_identity.html",
+	components...,
 )
-
-var TemplateAuthUISettingsIdentityHTML = template.Register(template.T{
-	Type:                    TemplateItemTypeAuthUISettingsIdentityHTML,
-	IsHTML:                  true,
-	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
-	Defines:                 defines,
-	ComponentTemplateTypes:  components,
-})
 
 func ConfigureSettingsIdentityRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -146,7 +139,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 				return err
 			}
 
-			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUISettingsIdentityHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateWebSettingsIdentityHTML, data)
 			return nil
 		})
 		if err != nil {

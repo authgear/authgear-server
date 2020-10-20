@@ -11,9 +11,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/loader"
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/task"
-	"github.com/authgear/authgear-server/pkg/portal/template"
 	"github.com/authgear/authgear-server/pkg/portal/transport"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/template"
+
+	// Import auth package to ensure correct content of registries
+	_ "github.com/authgear/authgear-server/pkg/auth"
 )
 
 var DependencySet = wire.NewSet(

@@ -14,18 +14,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-const (
-	// nolint: gosec
-	TemplateItemTypeAuthUIResetPasswordHTML string = "auth_ui_reset_password.html"
+var TemplateWebResetPasswordHTML = template.RegisterHTML(
+	"web/reset_password.html",
+	components...,
 )
-
-var TemplateAuthUIResetPasswordHTML = template.Register(template.T{
-	Type:                    TemplateItemTypeAuthUIResetPasswordHTML,
-	IsHTML:                  true,
-	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
-	Defines:                 defines,
-	ComponentTemplateTypes:  components,
-})
 
 const ResetPasswordRequestSchema = "ResetPasswordRequestSchema"
 
@@ -115,7 +107,7 @@ func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 				return err
 			}
 
-			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIResetPasswordHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateWebResetPasswordHTML, data)
 			return nil
 		})
 		if err != nil {

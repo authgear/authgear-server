@@ -26,9 +26,9 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/fs"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
 const (
@@ -46,10 +46,11 @@ func NewKubernetesLogger(lf *log.Factory) KubernetesLogger {
 }
 
 type Kubernetes struct {
-	Logger     KubernetesLogger
-	Clock      clock.Clock
-	TrustProxy config.TrustProxy
-	Config     *Config
+	Logger        KubernetesLogger
+	BaseResources *resource.Manager
+	Clock         clock.Clock
+	TrustProxy    config.TrustProxy
+	Config        *Config
 
 	Context    context.Context       `wire:"-"`
 	Namespace  string                `wire:"-"`
@@ -270,7 +271,7 @@ func (k *Kubernetes) newController(
 	return ctrl
 }
 
-func MakeAppFS(secret *corev1.Secret) (fs.Fs, error) {
+func MakeAppFS(secret *corev1.Secret) (resource.Fs, error) {
 	// Construct a FS that treats `a` and `/a` the same.
 	// The template is loaded by a file URI which is always an absoluted path.
 	appFs := afero.NewBasePathFs(afero.NewMemMapFs(), "/")
@@ -287,7 +288,7 @@ func MakeAppFS(secret *corev1.Secret) (fs.Fs, error) {
 		create(path, data)
 	}
 
-	return &fs.AferoFs{Fs: appFs}, nil
+	return &resource.AferoFs{Fs: appFs}, nil
 }
 
 type k8sApp struct {
@@ -332,13 +333,16 @@ func (a *k8sApp) doLoad(k *Kubernetes) (*config.AppContext, error) {
 	if err != nil {
 		return nil, err
 	}
-	appConfig, err := loadConfig(appFs)
+	resources := k.BaseResources.Overlay(appFs)
+
+	appConfig, err := LoadConfig(resources)
 	if err != nil {
 		return nil, err
 	}
 	return &config.AppContext{
-		Fs:     appFs,
-		Config: appConfig,
+		AppFs:     appFs,
+		Resources: resources,
+		Config:    appConfig,
 	}, nil
 }
 

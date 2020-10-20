@@ -22,7 +22,8 @@ func (c *Controller) Start() {
 
 	p, err := deps.NewRootProvider(
 		cfg.EnvironmentConfig,
-		cfg.DefaultTemplateDirectory,
+		cfg.ResourceDirectory,
+		cfg.AppBaseResourceDirectory,
 		cfg.ConfigSource,
 		&cfg.Authgear,
 		&cfg.AdminAPI,

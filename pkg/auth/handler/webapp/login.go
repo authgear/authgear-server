@@ -18,17 +18,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-const (
-	TemplateItemTypeAuthUILoginHTML string = "auth_ui_login.html"
+var TemplateWebLoginHTML = template.RegisterHTML(
+	"web/login.html",
+	components...,
 )
-
-var TemplateAuthUILoginHTML = template.Register(template.T{
-	Type:                    TemplateItemTypeAuthUILoginHTML,
-	IsHTML:                  true,
-	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
-	Defines:                 defines,
-	ComponentTemplateTypes:  components,
-})
 
 const LoginWithLoginIDRequestSchema = "LoginWithLoginIDRequestSchema"
 
@@ -165,7 +158,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUILoginHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateWebLoginHTML, data)
 			return nil
 		})
 		if err != nil {

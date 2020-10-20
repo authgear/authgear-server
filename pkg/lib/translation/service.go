@@ -2,18 +2,13 @@ package translation
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
-
-const TemplateItemTypeTranslationJSON string = "translation.json"
-
-var TemplateTranslationJSON = template.Register(template.T{
-	Type: TemplateItemTypeTranslationJSON,
-})
 
 type Service struct {
 	Context           context.Context
@@ -26,22 +21,7 @@ type Service struct {
 func (s *Service) translationMap() (*template.TranslationMap, error) {
 	if s.translations == nil {
 		preferredLanguageTags := intl.GetPreferredLanguageTags(s.Context)
-		validatorOptions := []template.ValidatorOption{
-			template.AllowRangeNode(true),
-			template.AllowTemplateNode(true),
-			template.AllowDeclaration(true),
-			template.MaxDepth(15),
-		}
-
-		renderCtx := &template.RenderContext{
-			PreferredLanguageTags: preferredLanguageTags,
-			ValidatorOptions:      validatorOptions,
-		}
-
-		t, err := s.TemplateEngine.Translation(
-			renderCtx,
-			TemplateItemTypeTranslationJSON,
-		)
+		t, err := s.TemplateEngine.Translation(preferredLanguageTags)
 		if err != nil {
 			return nil, err
 		}
@@ -50,14 +30,9 @@ func (s *Service) translationMap() (*template.TranslationMap, error) {
 	return s.translations, nil
 }
 
-func (s *Service) renderTemplate(typ string, args interface{}) (string, error) {
+func (s *Service) renderTemplate(tpl template.Resource, args interface{}) (string, error) {
 	preferredLanguageTags := intl.GetPreferredLanguageTags(s.Context)
-
-	renderCtx := &template.RenderContext{
-		PreferredLanguageTags: preferredLanguageTags,
-	}
-
-	out, err := s.TemplateEngine.Render(renderCtx, typ, args)
+	out, err := s.TemplateEngine.Render(tpl, preferredLanguageTags, args)
 	if err != nil {
 		return "", err
 	}
@@ -98,7 +73,7 @@ func (s *Service) emailMessageHeader(name string, args interface{}) (sender, rep
 	}
 
 	sender, err = t.RenderText(fmt.Sprintf("email.%s.sender", name), args)
-	if template.IsNotFound(err) {
+	if errors.Is(err, template.ErrNotFound) {
 		sender, err = t.RenderText("email.default.sender", args)
 	}
 	if err != nil {
@@ -106,7 +81,7 @@ func (s *Service) emailMessageHeader(name string, args interface{}) (sender, rep
 	}
 
 	replyTo, err = t.RenderText(fmt.Sprintf("email.%s.reply-to", name), args)
-	if template.IsNotFound(err) {
+	if errors.Is(err, template.ErrNotFound) {
 		replyTo, err = t.RenderText("email.default.reply-to", args)
 	}
 	if err != nil {
@@ -114,7 +89,7 @@ func (s *Service) emailMessageHeader(name string, args interface{}) (sender, rep
 	}
 
 	subject, err = t.RenderText(fmt.Sprintf("email.%s.subject", name), args)
-	if template.IsNotFound(err) {
+	if errors.Is(err, template.ErrNotFound) {
 		subject, err = t.RenderText("email.default.subject", args)
 	}
 	if err != nil {
@@ -130,12 +105,12 @@ func (s *Service) EmailMessageData(msg *MessageSpec, args interface{}) (*EmailMe
 		return nil, err
 	}
 
-	textBody, err := s.renderTemplate(msg.TXTEmailType, args)
+	textBody, err := s.renderTemplate(msg.TXTEmailTemplate, args)
 	if err != nil {
 		return nil, err
 	}
 
-	htmlBody, err := s.renderTemplate(msg.HTMLEmailType, args)
+	htmlBody, err := s.renderTemplate(msg.HTMLEmailTemplate, args)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +131,7 @@ func (s *Service) smsMessageHeader(name string, args interface{}) (sender string
 	}
 
 	sender, err = t.RenderText(fmt.Sprintf("sms.%s.sender", name), args)
-	if template.IsNotFound(err) {
+	if errors.Is(err, template.ErrNotFound) {
 		sender, err = t.RenderText("sms.default.sender", args)
 	}
 	if err != nil {
@@ -172,7 +147,7 @@ func (s *Service) SMSMessageData(msg *MessageSpec, args interface{}) (*SMSMessag
 		return nil, err
 	}
 
-	body, err := s.renderTemplate(msg.SMSType, args)
+	body, err := s.renderTemplate(msg.SMSTemplate, args)
 	if err != nil {
 		return nil, err
 	}

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+{{ template "__html_head.html" . }}
+<body class="page">
+<div class="content">
+
+{{ template "__header.html" . }}
+
+{{ template "__nav_bar.html" }}
+
+<div class="simple-form vertical-form form-fields-container pane">
+
+<h1 class="title primary-txt">
+	{{ if eq $.InputType "phone" }}
+	{{ template "setup-oob-otp-title--sms" }}
+	{{ end }}
+	{{ if eq $.InputType "email" }}
+	{{ template "setup-oob-otp-title--email" }}
+	{{ end }}
+</h1>
+
+{{ template "__error.html" . }}
+
+<form class="vertical-form form-fields-container" method="post" novalidate>
+
+{{ $.CSRFField }}
+
+{{ if eq $.InputType "phone" }}
+<div class="phone-input">
+	<select class="input select primary-txt" name="x_calling_code">
+		{{ range $.CountryCallingCodes }}
+		<option
+			value="{{ . }}"
+			{{ if $.x_calling_code }}{{ if eq $.x_calling_code . }}
+			selected
+			{{ end }}{{ end }}
+			>
+			+{{ . }}
+		</option>
+		{{ end }}
+	</select>
+	<input
+		class="input text-input primary-txt"
+		type="text"
+		inputmode="numeric"
+		pattern="[0-9]*"
+		autocomplete="one-time-code"
+		autocapitalize="none"
+		name="x_national_number"
+		placeholder="{{ template "phone-number-placeholder" }}"
+	>
+</div>
+{{ else }}
+<input
+	class="input text-input primary-txt"
+	type="{{ $.InputType }}"
+	name="x_email"
+	autocomplete="email"
+	autocapitalize="none"
+	placeholder="{{ template "email-placeholder" }}"
+>
+{{ end }}
+
+{{ if eq $.InputType "email" }}
+<a class="link align-self-flex-start" href="{{ call $.MakeURLState "" "x_input_type" "phone" }}">
+	{{ template "setup-oob-otp-use-phone-description" }}
+</a>
+{{ end }}
+
+{{ if eq $.InputType "phone" }}
+<a class="link align-self-flex-start" href="{{ call $.MakeURLState "" "x_input_type" "email" }}">
+	{{ template "setup-oob-otp-use-email-description" }}
+</a>
+{{ end }}
+
+{{ range $.Alternatives }}
+{{ if eq .Type "totp" }}
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "setup-totp-instead" }}</a>
+{{ end }}
+{{ if eq .Type "oob_otp" }}
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "setup-oob-otp-instead" }}</a>
+{{ end }}
+{{ if eq .Type "password" }}
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "setup-password-instead" }}</a>
+{{ end }}
+{{ end }}
+
+<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
+
+</form>
+
+</div>
+
+</div>
+</body>
+</html>

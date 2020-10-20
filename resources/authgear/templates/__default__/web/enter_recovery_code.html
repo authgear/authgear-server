@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+{{ template "__html_head.html" . }}
+<body class="page">
+<div class="content">
+
+{{ template "__header.html" . }}
+
+{{ template "__nav_bar.html" }}
+
+<div class="simple-form vertical-form form-fields-container pane">
+
+<h1 class="title primary-txt">{{ template "enter-recovery-code-title" }}</h1>
+
+{{ template "__error.html" . }}
+
+<p class="description primary-txt">{{ template "enter-recovery-code-description" }}</p>
+
+<form class="vertical-form form-fields-container" method="post" novalidate>
+{{ $.CSRFField }}
+
+<input
+	class="input text-input primary-txt"
+	type="text"
+	autocomplete="one-time-code"
+	autocapitalize="characters"
+	name="x_code"
+	placeholder="{{ template "enter-recovery-code-placeholder" }}"
+>
+
+<!-- device token checkbox is intentionally not supported here -->
+
+{{ range $.Alternatives }}
+{{ if eq .Type "totp" }}
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "enter-totp-instead" }}</a>
+{{ end }}
+{{ if eq .Type "password" }}
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "enter-password-instead" }}</a>
+{{ end }}
+{{ if eq .Type "oob_otp" }}
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "enter-oob-otp-instead" (makemap "target" .MaskedTarget) }}</a>
+{{ end }}
+{{ if eq .Type "recovery_code" }}
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "enter-recovery-code-instead" }}</a>
+{{ end }}
+{{ end }}
+
+<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
+
+</form>
+
+</div>
+
+</div>
+</body>
+</html>

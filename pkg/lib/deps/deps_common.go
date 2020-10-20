@@ -33,6 +33,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 var CommonDependencySet = wire.NewSet(
@@ -40,6 +41,7 @@ var CommonDependencySet = wire.NewSet(
 	utilsDeps,
 
 	db.DependencySet,
+	template.DependencySet,
 
 	wire.NewSet(
 		challenge.DependencySet,

@@ -44,7 +44,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN update-ca-certificates
 COPY --from=stage1 /src/authgear-portal /usr/local/bin/
 COPY --from=stage2 /usr/src/app/dist/ ./static/
-COPY ./templates/ ./templates/
+COPY ./resources/ ./resources/
 ENV STATIC_ASSET_SERVING_ENABLED true
 USER nobody
 EXPOSE 3003

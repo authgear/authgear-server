@@ -8,10 +8,10 @@
 //==============================================================
 
 /**
- * A configuration file to update/create.
+ * Update to resource file.
  */
-export interface AppConfigFile {
-  content: string;
+export interface AppResourceUpdate {
+  data?: string | null;
   path: string;
 }
 

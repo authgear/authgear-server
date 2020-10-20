@@ -1,51 +1,43 @@
 package configsource
 
 import (
+	"errors"
 	"fmt"
-	"io/ioutil"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/fs"
+	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
-const (
-	AuthgearYAML       = "authgear.yaml"
-	AuthgearSecretYAML = "authgear.secrets.yaml"
-)
-
-func loadConfig(fs fs.Fs) (*config.Config, error) {
-	appConfigFile, err := fs.Open(AuthgearYAML)
-	if err != nil {
-		return nil, fmt.Errorf("cannot open app config file: %w", err)
+func LoadConfig(res *resource.Manager) (*config.Config, error) {
+	appConfigFile, err := res.Read(AppConfig, nil)
+	if errors.Is(err, resource.ErrResourceNotFound) {
+		return nil, fmt.Errorf("missing '%s': %w", AuthgearYAML, err)
+	} else if err != nil {
+		return nil, err
 	}
-	appConfigYAML, err := ioutil.ReadAll(appConfigFile)
+	appConfig, err := AppConfig.Parse(appConfigFile)
 	if err != nil {
-		return nil, fmt.Errorf("cannot read app config file: %w", err)
-	}
-	appConfig, err := config.Parse(appConfigYAML)
-	if err != nil {
-		return nil, fmt.Errorf("cannot parse app config: %w", err)
+		return nil, err
 	}
 
-	secretConfigFile, err := fs.Open(AuthgearSecretYAML)
-	if err != nil {
-		return nil, fmt.Errorf("cannot open secret config file: %w", err)
+	secretConfigFile, err := res.Read(SecretConfig, nil)
+	if errors.Is(err, resource.ErrResourceNotFound) {
+		return nil, fmt.Errorf("missing '%s': %w", AuthgearSecretYAML, err)
+	} else if err != nil {
+		return nil, err
 	}
-	secretConfigYAML, err := ioutil.ReadAll(secretConfigFile)
+	secretConfig, err := SecretConfig.Parse(secretConfigFile)
 	if err != nil {
-		return nil, fmt.Errorf("cannot read secret config file: %w", err)
-	}
-	secretConfig, err := config.ParseSecret(secretConfigYAML)
-	if err != nil {
-		return nil, fmt.Errorf("cannot parse secret config: %w", err)
+		return nil, err
 	}
 
-	if err = secretConfig.Validate(appConfig); err != nil {
+	cfg := &config.Config{
+		AppConfig:    appConfig.(*config.AppConfig),
+		SecretConfig: secretConfig.(*config.SecretConfig),
+	}
+	if err = cfg.SecretConfig.Validate(cfg.AppConfig); err != nil {
 		return nil, fmt.Errorf("invalid secret config: %w", err)
 	}
 
-	return &config.Config{
-		AppConfig:    appConfig,
-		SecretConfig: secretConfig,
-	}, nil
+	return cfg, nil
 }

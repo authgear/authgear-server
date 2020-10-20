@@ -15,18 +15,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-const (
-	// nolint: gosec
-	TemplateItemTypeAuthUIChangeSecondaryPasswordHTML string = "auth_ui_change_secondary_password.html"
+var TemplateWebChangeSecondaryPasswordHTML = template.RegisterHTML(
+	"web/change_secondary_password.html",
+	components...,
 )
-
-var TemplateAuthUIChangeSecondaryPasswordHTML = template.Register(template.T{
-	Type:                    TemplateItemTypeAuthUIChangeSecondaryPasswordHTML,
-	IsHTML:                  true,
-	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
-	Defines:                 defines,
-	ComponentTemplateTypes:  components,
-})
 
 const ChangeSecondaryPasswordRequestSchema = "ChangeSecondaryPasswordRequestSchema"
 
@@ -96,7 +88,7 @@ func (h *ChangeSecondaryPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 				return err
 			}
 
-			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIChangeSecondaryPasswordHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateWebChangeSecondaryPasswordHTML, data)
 			return nil
 		})
 		if err != nil {

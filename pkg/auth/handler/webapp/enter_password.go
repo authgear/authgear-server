@@ -13,18 +13,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-const (
-	// nolint: gosec
-	TemplateItemTypeAuthUIEnterPasswordHTML string = "auth_ui_enter_password.html"
+var TemplateWebEnterPasswordHTML = template.RegisterHTML(
+	"web/enter_password.html",
+	components...,
 )
-
-var TemplateAuthUIEnterPasswordHTML = template.Register(template.T{
-	Type:                    TemplateItemTypeAuthUIEnterPasswordHTML,
-	IsHTML:                  true,
-	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
-	Defines:                 defines,
-	ComponentTemplateTypes:  components,
-})
 
 const EnterPasswordRequestSchema = "EnterPasswordRequestSchema"
 
@@ -121,7 +113,7 @@ func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 				return err
 			}
 
-			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIEnterPasswordHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateWebEnterPasswordHTML, data)
 			return nil
 		})
 		if err != nil {

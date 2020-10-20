@@ -17,17 +17,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-const (
-	TemplateItemTypeAuthUISetupOOBOTPHTML string = "auth_ui_setup_oob_otp.html"
+var TemplateWebSetupOOBOTPHTML = template.RegisterHTML(
+	"web/setup_oob_otp.html",
+	components...,
 )
-
-var TemplateAuthUISetupOOBOTPHTML = template.Register(template.T{
-	Type:                    TemplateItemTypeAuthUISetupOOBOTPHTML,
-	IsHTML:                  true,
-	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
-	Defines:                 defines,
-	ComponentTemplateTypes:  components,
-})
 
 const SetupOOBOTPRequestSchema = "SetupOOBOTPRequestSchema"
 
@@ -214,7 +207,7 @@ func (h *SetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUISetupOOBOTPHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateWebSetupOOBOTPHTML, data)
 			return nil
 		})
 		if err != nil {

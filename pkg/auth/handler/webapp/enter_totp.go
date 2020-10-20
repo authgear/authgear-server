@@ -13,17 +13,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-const (
-	TemplateItemTypeAuthUIEnterTOTPHTML string = "auth_ui_enter_totp.html"
+var TemplateWebEnterTOTPHTML = template.RegisterHTML(
+	"web/enter_totp.html",
+	components...,
 )
-
-var TemplateAuthUIEnterTOTPHTML = template.Register(template.T{
-	Type:                    TemplateItemTypeAuthUIEnterTOTPHTML,
-	IsHTML:                  true,
-	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
-	Defines:                 defines,
-	ComponentTemplateTypes:  components,
-})
 
 const EnterTOTPRequestSchema = "EnterTOTPRequestSchema"
 
@@ -116,7 +109,7 @@ func (h *EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIEnterTOTPHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateWebEnterTOTPHTML, data)
 			return nil
 		})
 		if err != nil {

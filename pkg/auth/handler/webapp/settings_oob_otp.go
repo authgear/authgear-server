@@ -16,17 +16,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-const (
-	TemplateItemTypeAuthUISettingsOOBOTPHTML string = "auth_ui_settings_oob_otp.html"
+var TemplateWebSettingsOOBOTPHTML = template.RegisterHTML(
+	"web/settings_oob_otp.html",
+	components...,
 )
-
-var TemplateAuthUISettingsOOBOTPHTML = template.Register(template.T{
-	Type:                    TemplateItemTypeAuthUISettingsOOBOTPHTML,
-	IsHTML:                  true,
-	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
-	Defines:                 defines,
-	ComponentTemplateTypes:  components,
-})
 
 func ConfigureSettingsOOBOTPRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -94,7 +87,7 @@ func (h *SettingsOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				return err
 			}
 
-			h.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUISettingsOOBOTPHTML, data)
+			h.Renderer.RenderHTML(w, r, TemplateWebSettingsOOBOTPHTML, data)
 			return nil
 		})
 		if err != nil {

@@ -4,19 +4,24 @@ import yaml from "js-yaml";
 
 import { client } from "../../portal/apollo";
 import { PortalAPIApp, PortalAPIAppConfig } from "../../../types";
-import { UpdateAppConfigMutation } from "./__generated__/UpdateAppConfigMutation";
+import {
+  UpdateAppConfigMutation,
+  UpdateAppConfigMutationVariables,
+} from "./__generated__/UpdateAppConfigMutation";
 
-// relative to project root
-const APP_CONFIG_PATH = "./authgear.yaml";
+const APP_CONFIG_PATH = "authgear.yaml";
 
 const updateAppConfigMutation = gql`
-  mutation UpdateAppConfigMutation($appID: ID!, $updateFile: AppConfigFile!) {
-    updateAppConfig(
-      input: { appID: $appID, updateFiles: [$updateFile], deleteFiles: [] }
-    ) {
-      id
-      rawAppConfig
-      effectiveAppConfig
+  mutation UpdateAppConfigMutation(
+    $appID: ID!
+    $updates: [AppResourceUpdate!]!
+  ) {
+    updateAppResources(input: { appID: $appID, updates: $updates }) {
+      app {
+        id
+        rawAppConfig
+        effectiveAppConfig
+      }
     }
   }
 `;
@@ -31,7 +36,8 @@ export function useUpdateAppConfigMutation(
   error: unknown;
 } {
   const [mutationFunction, { error, loading }] = useMutation<
-    UpdateAppConfigMutation
+    UpdateAppConfigMutation,
+    UpdateAppConfigMutationVariables
   >(updateAppConfigMutation, { client });
   const updateAppConfig = React.useCallback(
     async (appConfig: PortalAPIAppConfig) => {
@@ -40,10 +46,10 @@ export function useUpdateAppConfigMutation(
       const result = await mutationFunction({
         variables: {
           appID,
-          updateFile: { path: APP_CONFIG_PATH, content: appConfigYaml },
+          updates: [{ path: APP_CONFIG_PATH, data: appConfigYaml }],
         },
       });
-      return result.data?.updateAppConfig ?? null;
+      return result.data?.updateAppResources.app ?? null;
     },
     [appID, mutationFunction]
   );

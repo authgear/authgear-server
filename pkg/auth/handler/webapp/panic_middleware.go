@@ -7,17 +7,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-const (
-	TemplateItemTypeAuthUIErrorHTML string = "auth_ui_error.html"
+var TemplateWebFatalErrorHTML = template.RegisterHTML(
+	"web/fatal_error.html",
+	components...,
 )
-
-var TemplateAuthUIErrorHTML = template.Register(template.T{
-	Type:                    TemplateItemTypeAuthUIErrorHTML,
-	IsHTML:                  true,
-	TranslationTemplateType: TemplateItemTypeAuthUITranslationJSON,
-	Defines:                 defines,
-	ComponentTemplateTypes:  components,
-})
 
 type PanicMiddleware struct {
 	BaseViewModel *viewmodels.BaseViewModeler
@@ -31,7 +24,7 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 				data := make(map[string]interface{})
 				baseViewModel := m.BaseViewModel.ViewModel(r, err)
 				viewmodels.Embed(data, baseViewModel)
-				m.Renderer.RenderHTML(w, r, TemplateItemTypeAuthUIErrorHTML, data)
+				m.Renderer.RenderHTML(w, r, TemplateWebFatalErrorHTML, data)
 
 				// Rethrow
 				panic(err)

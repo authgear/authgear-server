@@ -4,6 +4,7 @@ import (
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 var configDeps = wire.NewSet(
@@ -12,7 +13,6 @@ var configDeps = wire.NewSet(
 		"ID",
 		"HTTP",
 		"Hook",
-		"Template",
 		"UI",
 		"Localization",
 		"Messaging",
@@ -35,8 +35,13 @@ var configDeps = wire.NewSet(
 		"TOTP",
 		"OOB",
 	),
+	ProvideDefaultTemplateLanguage,
 	secretDeps,
 )
+
+func ProvideDefaultTemplateLanguage(c *config.Config) template.DefaultTemplateLanguage {
+	return template.DefaultTemplateLanguage(c.AppConfig.Localization.FallbackLanguage)
+}
 
 var secretDeps = wire.NewSet(
 	ProvideDatabaseCredentials,

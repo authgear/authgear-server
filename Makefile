@@ -80,7 +80,7 @@ push-image:
 
 .PHONY: html-email
 html-email:
-	for t in templates/*.mjml; do \
+	for t in $$(find resources -name '*.mjml'); do \
 		./scripts/npm/node_modules/.bin/mjml -l strict "$$t" > "$${t%.mjml}.html"; \
 	done
 
