@@ -35,3 +35,5 @@ export const ForgotPasswordMessageTemplates = [
   TEMPLATE_FORGOT_PASSWORD_EMAIL_TEXT,
   TEMPLATE_FORGOT_PASSWORD_SMS_TEXT,
 ] as const;
+
+export const STATIC_AUTHGEAR_CSS = "static/authgear.css";

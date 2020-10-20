@@ -3,72 +3,46 @@ import { FormattedMessage } from "@oursky/react-messageformat";
 import { Label, Text } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import cn from "classnames";
-import produce from "immer";
 import deepEqual from "deep-equal";
 
-import { useAppConfigQuery } from "./query/appConfigQuery";
-import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import CodeEditor from "../../CodeEditor";
-import { clearEmptyObject } from "../../util/misc";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
-import { PortalAPIApp, PortalAPIAppConfig } from "../../types";
 
 import styles from "./UserInterfaceScreen.module.scss";
+import {
+  AppRawTemplatesUpdater,
+  useUpdateAppRawTemplatesMutation,
+} from "./mutations/updateAppRawTemplatesMutation";
+import { STATIC_AUTHGEAR_CSS } from "../../templates";
+import { useAppRawTemplatesQuery } from "./query/appRawTemplatesQuery";
 
 interface UserInterfaceScreenState {
   customCss: string;
 }
 
 interface UserInterfaceProps {
-  effectiveAppConfig: PortalAPIAppConfig | null;
-  rawAppConfig: PortalAPIAppConfig | null;
-  updateAppConfig: (
-    appConfig: PortalAPIAppConfig
-  ) => Promise<PortalAPIApp | null>;
-  updatingAppConfig: boolean;
+  templates: Record<typeof STATIC_AUTHGEAR_CSS, string | null>;
+  updateTemplates: AppRawTemplatesUpdater<typeof STATIC_AUTHGEAR_CSS>;
+  isUpdatingTemplates: boolean;
 }
 
-function constructStateFromAppConfig(
-  appConfig: PortalAPIAppConfig | null
+function constructState(
+  templates: UserInterfaceProps["templates"]
 ): UserInterfaceScreenState {
   return {
-    customCss: appConfig?.ui?.custom_css ?? "",
+    customCss: templates[STATIC_AUTHGEAR_CSS] ?? "",
   };
-}
-
-function constructNewAppConfigFromState(
-  state: UserInterfaceScreenState,
-  initialState: UserInterfaceScreenState,
-  appConfig: PortalAPIAppConfig
-) {
-  return produce(appConfig, (draftConfig) => {
-    draftConfig.ui = draftConfig.ui ?? {};
-
-    if (state.customCss !== initialState.customCss) {
-      draftConfig.ui.custom_css = state.customCss;
-    }
-
-    clearEmptyObject(draftConfig);
-  });
 }
 
 const UserInterface: React.FC<UserInterfaceProps> = function UserInterface(
   props: UserInterfaceProps
 ) {
-  const {
-    effectiveAppConfig,
-    rawAppConfig,
-    updateAppConfig,
-    updatingAppConfig,
-  } = props;
+  const { templates, updateTemplates, isUpdatingTemplates } = props;
 
-  const initialState = useMemo(
-    () => constructStateFromAppConfig(effectiveAppConfig),
-    [effectiveAppConfig]
-  );
+  const initialState = useMemo(() => constructState(templates), [templates]);
 
   const [state, setState] = useState<UserInterfaceScreenState>(initialState);
 
@@ -90,19 +64,11 @@ const UserInterface: React.FC<UserInterfaceProps> = function UserInterface(
   );
 
   const onSaveButtonClicked = useCallback(() => {
-    if (rawAppConfig == null) {
-      return;
-    }
-
-    const newAppConfig = constructNewAppConfigFromState(
-      state,
-      initialState,
-      rawAppConfig
-    );
-
-    // TODO: handle error
-    updateAppConfig(newAppConfig).catch(() => {});
-  }, [state, rawAppConfig, initialState, updateAppConfig]);
+    const updates: Partial<Record<typeof STATIC_AUTHGEAR_CSS, string>> = {
+      [STATIC_AUTHGEAR_CSS]: state.customCss,
+    };
+    updateTemplates(updates).catch(() => {});
+  }, [state, updateTemplates]);
 
   return (
     <div className={styles.form}>
@@ -120,7 +86,7 @@ const UserInterface: React.FC<UserInterfaceProps> = function UserInterface(
         <ButtonWithLoading
           disabled={!isFormModified}
           onClick={onSaveButtonClicked}
-          loading={updatingAppConfig}
+          loading={isUpdatingTemplates}
           labelId="save"
           loadingLabelId="saving"
         />
@@ -135,42 +101,41 @@ const UserInterfaceScreen: React.FC = function UserInterfaceScreen() {
   const { appID } = useParams();
 
   const {
-    effectiveAppConfig,
-    rawAppConfig,
-    loading,
-    error,
-    refetch,
-  } = useAppConfigQuery(appID);
-  const {
-    loading: updatingAppConfig,
-    error: updateAppConfigError,
-    updateAppConfig,
-  } = useUpdateAppConfigMutation(appID);
+    updateAppRawTemplates,
+    loading: isUpdatingTemplates,
+    error: updateTemplatesError,
+  } = useUpdateAppRawTemplatesMutation<typeof STATIC_AUTHGEAR_CSS>(appID);
 
-  if (loading) {
+  const {
+    templates,
+    loading: isLoadingTemplates,
+    error: loadTemplatesError,
+    refetch: refetchTemplates,
+  } = useAppRawTemplatesQuery(appID, STATIC_AUTHGEAR_CSS);
+
+  if (isLoadingTemplates) {
     return <ShowLoading />;
   }
 
-  if (error != null) {
-    return <ShowError error={error} onRetry={refetch} />;
+  if (loadTemplatesError) {
+    return <ShowError error={loadTemplatesError} onRetry={refetchTemplates} />;
   }
 
   return (
     <main
       className={cn(styles.root, {
-        [styles.loading]: updatingAppConfig,
+        [styles.loading]: isUpdatingTemplates,
       })}
     >
-      {updateAppConfigError && <ShowError error={updateAppConfigError} />}
+      {updateTemplatesError && <ShowError error={updateTemplatesError} />}
       <div className={styles.content}>
         <Text as="h1" className={styles.title}>
           <FormattedMessage id="UserInterfaceScreen.title" />
         </Text>
         <UserInterface
-          effectiveAppConfig={effectiveAppConfig}
-          rawAppConfig={rawAppConfig}
-          updateAppConfig={updateAppConfig}
-          updatingAppConfig={updatingAppConfig}
+          templates={templates}
+          updateTemplates={updateAppRawTemplates}
+          isUpdatingTemplates={isUpdatingTemplates}
         />
       </div>
     </main>

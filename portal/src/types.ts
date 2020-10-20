@@ -203,7 +203,6 @@ interface UICountryCallingCodeConfig {
 }
 
 interface UIConfig {
-  custom_css?: string;
   country_calling_code?: UICountryCallingCodeConfig;
 }
 
