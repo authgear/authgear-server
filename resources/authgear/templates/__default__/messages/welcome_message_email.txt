@@ -1,5 +1,3 @@
-Hello {{ .email }},
+Welcome to {{ .AppName }}.
 
-Welcome to {{ .appname }}.
-
-Thanks.
+Hello {{ .Email }}, thank you for signing up.

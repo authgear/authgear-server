@@ -44,8 +44,8 @@ func (p *Provider) send(emails []string) error {
 	var emailMessages []mail.SendOptions
 	for _, email := range emails {
 		data := map[string]interface{}{
-			"email":   email,
-			"appname": appMeta.AppName,
+			"Email":   email,
+			"AppName": appMeta.AppName,
 		}
 
 		msg, err := p.Translation.EmailMessageData(messageWelcomeMessage, data)
