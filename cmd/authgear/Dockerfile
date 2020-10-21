@@ -43,10 +43,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN update-ca-certificates
 COPY ./migrations ./migrations
 COPY --from=stage1 /src/authgear /usr/local/bin/
-COPY --from=stage2 /usr/src/app/dist/ ./dist/
 COPY ./resources/authgear/ ./resources/authgear/
+COPY --from=stage2 /usr/src/app/dist/ ./resources/authgear/static/
 USER nobody
 EXPOSE 3000
-ENV STATIC_ASSET_DIR ./dist
-ENV STATIC_ASSET_URL_PREFIX /static/$GIT_HASH
+ENV STATIC_ASSET_URL_PREFIX /static
 CMD ["authgear", "start"]

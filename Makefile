@@ -86,12 +86,11 @@ html-email:
 
 .PHONY: static
 static:
-	rm -rf ./dist
-	mkdir -p "./dist/${GIT_HASH}"
+	rm -rf ./dist/*
 	# Start by copying src
-	cp -R ./static/. "./dist/${GIT_HASH}"
+	cp -R ./resources/authgear/static/. ./dist
 	# Process CSS
-	./scripts/npm/node_modules/.bin/postcss './static/**/*.css' --base './static/' --dir "./dist/${GIT_HASH}" --config ./scripts/npm/postcss.config.js
+	./scripts/npm/node_modules/.bin/postcss './resources/authgear/static/**/*.css' --base './resources/authgear/static/' --dir './dist' --config ./scripts/npm/postcss.config.js
 
 .PHONY: export-schemas
 export-schemas:
