@@ -24,7 +24,7 @@ const AcceptAdminInvitationScreen: React.FC = function AcceptAdminInvitationScre
     loading,
     error,
   } = useAcceptCollaboratorInvitationMutation();
-  const errorMessage = useGenericError(error, [
+  const { errorMessage } = useGenericError(error, [
     {
       reason: "CollaboratorInvitationInvalidCode",
       errorMessageID: "AcceptAdminInvitationScreen.invalid-code-error",

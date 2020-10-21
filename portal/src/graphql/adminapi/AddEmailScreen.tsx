@@ -1,14 +1,7 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { TextField } from "@fluentui/react";
 import deepEqual from "deep-equal";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "@oursky/react-messageformat";
 
 import UserDetailCommandBar from "./UserDetailCommandBar";
 import {
@@ -19,13 +12,13 @@ import NavBreadcrumb from "../../NavBreadcrumb";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ShowError from "../../ShowError";
+import FormTextField from "../../FormTextField";
+import ShowUnhandledValidationErrorCause from "../../error/ShowUnhandledValidationErrorCauses";
 import { useCreateLoginIDIdentityMutation } from "./mutations/createIdentityMutation";
 import { useTextField } from "../../hook/useInput";
-import { parseError } from "../../util/error";
-import {
-  defaultFormatErrorMessageList,
-  Violation,
-} from "../../util/validation";
+import { FormContext } from "../../error/FormContext";
+import { useValidationError } from "../../error/useValidationError";
+import { useGenericError } from "../../error/useGenericError";
 
 import styles from "./AddEmailScreen.module.scss";
 
@@ -42,7 +35,6 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
     loading: creatingIdentity,
     error: createIdentityError,
   } = useCreateLoginIDIdentityMutation(userID);
-  const { renderToString } = useContext(Context);
 
   const [submittedForm, setSubmittedForm] = useState<boolean>(false);
 
@@ -96,29 +88,22 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
     }
   }, [submittedForm, navigate]);
 
-  const { errorMessage, unhandledViolations } = useMemo(() => {
-    const violations = parseError(createIdentityError);
-    const emailFieldErrorMessages: string[] = [];
-    const unhandledViolations: Violation[] = [];
-    for (const violation of violations) {
-      if (violation.kind === "Invalid" || violation.kind === "format") {
-        emailFieldErrorMessages.push(
-          renderToString("AddEmailScreen.error.invalid-email")
-        );
-      } else if (violation.kind === "DuplicatedIdentity") {
-        emailFieldErrorMessages.push(
-          renderToString("AddEmailScreen.error.duplicated-email")
-        );
-      } else {
-        unhandledViolations.push(violation);
-      }
-    }
+  const {
+    unhandledCauses,
+    otherError,
+    value: formContextValue,
+  } = useValidationError(createIdentityError);
 
-    const errorMessage = {
-      email: defaultFormatErrorMessageList(emailFieldErrorMessages),
-    };
-    return { errorMessage, unhandledViolations };
-  }, [createIdentityError, renderToString]);
+  const {
+    errorMessage: genericErrorMessage,
+    unrecognizedError,
+  } = useGenericError(otherError, [
+    {
+      reason: "InvariantViolated",
+      kind: "DuplicatedIdentity",
+      errorMessageID: "AddEmailScreen.error.duplicated-email",
+    },
+  ]);
 
   return (
     <div className={styles.root}>
@@ -132,27 +117,35 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
           resetForm={resetForm}
           isModified={isFormModified}
         />
-        <form className={styles.content} onSubmit={onFormSubmit}>
-          {unhandledViolations.length > 0 && (
-            <ShowError error={createIdentityError} />
-          )}
-          <NavigationBlockerDialog
-            blockNavigation={!submittedForm && isFormModified}
-          />
-          <TextField
-            className={styles.emailField}
-            label={renderToString("AddEmailScreen.email.label")}
-            value={email}
-            onChange={onEmailChange}
-            errorMessage={errorMessage.email}
-          />
-          <ButtonWithLoading
-            type="submit"
-            disabled={!isFormModified || submittedForm}
-            labelId="add"
-            loading={creatingIdentity}
-          />
-        </form>
+        <FormContext.Provider value={formContextValue}>
+          <form className={styles.content} onSubmit={onFormSubmit}>
+            {unrecognizedError && (
+              <div className={styles.error}>
+                <ShowError error={unrecognizedError} />
+              </div>
+            )}
+            <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
+            <NavigationBlockerDialog
+              blockNavigation={!submittedForm && isFormModified}
+            />
+            <FormTextField
+              jsonPointer=""
+              parentJSONPointer=""
+              fieldName="email"
+              fieldNameMessageID="AddEmailScreen.email.label"
+              className={styles.emailField}
+              value={email}
+              onChange={onEmailChange}
+              errorMessage={genericErrorMessage}
+            />
+            <ButtonWithLoading
+              type="submit"
+              disabled={!isFormModified || submittedForm}
+              labelId="add"
+              loading={creatingIdentity}
+            />
+          </form>
+        </FormContext.Provider>
       </ModifiedIndicatorWrapper>
     </div>
   );

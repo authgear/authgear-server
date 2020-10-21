@@ -6,13 +6,10 @@ import { Context, FormattedMessage, Values } from "@oursky/react-messageformat";
 
 import PasswordStrengthMeter from "./PasswordStrengthMeter";
 import { PasswordPolicyConfig } from "./types";
+import { GenericErrorHandlingRule } from "./error/useGenericError";
+import { defaultFormatErrorMessageList } from "./util/validation";
 
 import styles from "./PasswordField.module.scss";
-import {
-  CustomViolation,
-  PasswordPolicyViolatedViolation,
-  Violation,
-} from "./util/validation";
 
 export type GuessableLevel = 0 | 1 | 2 | 3 | 4 | 5;
 export type GuessableLevelNames = Record<GuessableLevel, string>;
@@ -28,6 +25,26 @@ interface PasswordPolicyData {
   messageId: string;
   messageValues?: Values;
 }
+
+export type PasswordFieldLocalErrorMessageMap = {
+  password?: string;
+  confirmPassword?: string;
+} | null;
+
+export const passwordFieldErrorRules: GenericErrorHandlingRule[] = [
+  {
+    reason: "PasswordPolicyViolated",
+    cause: "PasswordReused",
+    errorMessageID: "PasswordField.error.password-reused",
+    field: "password",
+  },
+  {
+    reason: "PasswordPolicyViolated",
+    cause: "PasswordContainingExcludedKeywords",
+    errorMessageID: "PasswordField.error.containing-excluded-keywords",
+    field: "password",
+  },
+];
 
 function checkPasswordPolicy(
   passwordPolicy: PasswordPolicyConfig,
@@ -87,16 +104,19 @@ export enum PasswordFieldErrorID {
 }
 
 export function localValidatePassword(
-  violations: Violation[],
+  renderToString: (messageId: string) => string,
   passwordPolicy: PasswordPolicyConfig,
   password: string,
   confirmPassword?: string
-): void {
+): PasswordFieldLocalErrorMessageMap {
+  let isValid = true;
+  const passwordErrorMessages: string[] = [];
+  const confirmPasswordErrorMessages: string[] = [];
   if (confirmPassword != null && password !== confirmPassword) {
-    violations.push({
-      kind: "custom",
-      id: PasswordFieldErrorID.ConfirmPasswordNotMatch,
-    });
+    confirmPasswordErrorMessages.push(
+      renderToString("PasswordField.error.confirm-password-not-match")
+    );
+    isValid = false;
   }
 
   const guessableLevel = extractGuessableLevel(zxcvbn(password));
@@ -106,54 +126,20 @@ export function localValidatePassword(
     guessableLevel
   );
   if (!passwordValid) {
-    violations.push({
-      kind: "custom",
-      id: PasswordFieldErrorID.InvalidPassword,
-    });
-  }
-}
-
-export function handleLocalPasswordViolations(
-  renderToString: (messageId: string) => string,
-  violation: CustomViolation,
-  passwordErrorMessages: string[],
-  confirmPasswordErrorMessages: string[] | null,
-  unhandledViolations: Violation[]
-): void {
-  switch (violation.id) {
-    case "invalid-password":
-      passwordErrorMessages.push(
-        renderToString("PasswordField.error.invalid-password")
-      );
-      break;
-    case "confirm-password-not-match":
-      confirmPasswordErrorMessages?.push(
-        renderToString("PasswordField.error.confirm-password-not-match")
-      );
-      break;
-    default:
-      unhandledViolations.push(violation);
-      break;
-  }
-}
-
-export function handlePasswordPolicyViolatedViolation(
-  renderToString: (messageId: string) => string,
-  violation: PasswordPolicyViolatedViolation,
-  passwordErrorMessages: string[],
-  unknownViolations: Violation[]
-): void {
-  if (violation.causes.includes("PasswordReused")) {
     passwordErrorMessages.push(
-      renderToString("PasswordField.error.password-reused")
+      renderToString("PasswordField.error.invalid-password")
     );
-  } else if (violation.causes.includes("PasswordContainingExcludedKeywords")) {
-    passwordErrorMessages.push(
-      renderToString("PasswordField.error.containing-excluded-keywords")
-    );
-  } else {
-    unknownViolations.push(violation);
+    isValid = false;
   }
+
+  return isValid
+    ? null
+    : {
+        password: defaultFormatErrorMessageList(passwordErrorMessages),
+        confirmPassword: defaultFormatErrorMessageList(
+          confirmPasswordErrorMessages
+        ),
+      };
 }
 
 function renderGuessableLevelNames(

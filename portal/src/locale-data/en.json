@@ -86,8 +86,8 @@
   "AddUserScreen.add-user.label": "Add User",
   "AddUserScreen.cannot-add-user": "Please enable at least one of username, email or phone in authentication screen",
   "AddUserScreen.error.invalid-password": "Please check password policies below",
-  "AddUserScreen.error.invalid-identity": "Invalid {loginIdType}",
-  "AddUserScreen.error.duplicated-identity": "Duplicated {loginIdType}",
+  "AddUserScreen.error.duplicated-identity": "Duplicated identity",
+  "AddUserScreen.error.invalid-identity": "Invalid identity",
 
   "UserDetailsScreen.title": "User Details",
 
@@ -122,6 +122,7 @@
   "UserDetails.account-security.secondary.password": "Additional Password",
   "UserDetails.account-security.remove-confirm-dialog.title": "Remove Authenticator",
   "UserDetails.account-security.remove-confirm-dialog.message": "Are you sure you want to remove authenticator {authenticatorName}",
+  "UserDetails.account-security.remove-authenticator.generic-error": "Failed to remove authenticator",
 
   "ResetPasswordScreen.title": "Reset Password",
   "ResetPasswordScreen.new-password": "New Password",
@@ -145,26 +146,22 @@
 
   "UserDetails.connected-identities.confirm-remove-identity-title": "Remove Identity",
   "UserDetails.connected-identities.confirm-remove-identity-message": "Are you sure you want to remove identity {identityName}",
-  "UserDetails.connected-identities.error-dialog-title": "Error",
   "UserDetails.connected-identities.remove-identity-error.generic": "Failed to remove identity",
   "UserDetails.connected-identities.remove-identity-error.connot-remove-last": "Cannot remove last identity",
   "UserDetails.connected-identities.verify-identity-error.generic": "Failed to set verified status of identity claim",
 
   "AddEmailScreen.title": "Add Email",
   "AddEmailScreen.email.label": "Email",
-  "AddEmailScreen.error.invalid-email": "Invalid Email",
   "AddEmailScreen.error.duplicated-email": "Email already exist",
 
   "AddPhoneScreen.title": "Add Phone",
   "AddPhoneScreen.phone.label": "Phone Number",
   "AddPhoneScreen.country-code.label": "Country Code",
-  "AddPhoneScreen.error.invalid-phone-number": "Invalid phone number",
   "AddPhoneScreen.error.duplicated-phone-number": "Phone number already exist",
 
   "AddUsernameScreen.title": "Add Username",
   "AddUsernameScreen.username.label": "Username",
   "AddUsernameScreen.password.label": "Password",
-  "AddUsernameScreen.error.invalid-username": "Invalid username",
   "AddUsernameScreen.error.duplicated-username": "Username already exist",
 
   "UserDetails.session.header": "Session",
@@ -213,8 +210,6 @@
   "AuthenticationAuthenticator.policy.require-mfa.if-requested": "Required if user enabled Multi-factor Authenticator",
   "AuthenticationAuthenticator.policy.recovery-code-number": "Number of Recovery Code",
   "AuthenticationAuthenticator.policy.allow-retrieve-recovery-code": "Allow user to retrieve recovery code again",
-  "AuthenticationAuthenticator.policy.recovery-code-number.minimum-error": "The minimum number of recovery code is {minimum}",
-  "AuthenticationAuthenticator.policy.recovery-code-number.maximum-error": "The maximum number of recovery code is {maximum}",
 
   "AnonymousUsersConfigurationScreen.title": "Anonymous Users",
   "AnonymousUsersConfigurationScreen.enable.label": "Enable anonymous users?",
@@ -297,16 +292,12 @@
   "EditOAuthClientScreen.client-not-found": "Client ID {clientID} is not found",
 
   "ModifyOAuthClientForm.name-label": "Name",
-  "ModifyOAuthClientForm.name.required-error": "Client name is required",
   "ModifyOAuthClientForm.acces-token-lifetime-label": "Access Token Lifetime (in seconds)",
   "ModifyOAuthClientForm.refresh-token-lifetime-label": "Refresh Token Lifetime (in seconds)",
   "ModifyOAuthClientForm.redirect-uris-label": "Redirect URIs",
   "ModifyOAuthClientForm.redirect-uris-tooltip-message": "Users will be redirected to this path after they have authenticated with Authgear.",
   "ModifyOAuthClientForm.post-logout-redirect-uris-label": "Post Logout Redirect URIs",
-  "ModifyOAuthClientForm.redirect-uris.min-items-error": "Require at least {minItems} URIs",
-  "ModifyOAuthClientForm.redirect-uris.invalid-error": "Invalid URIs",
   "ModifyOAuthClientForm.post-logout-redirect-uris-tooltip-message": "Users will be redirected to this path after they have logged out from Authgear.",
-  "ModifyOAuthClientForm.post-logout-redirect-uris.invalid-error": "Invalid URIs",
 
   "DNSConfigurationScreen.title": "DNS",
   "DNSConfigurationScreen.desc": "You can add a custom domain so that users will login via, for example, “identity.yourdomain.com”. In this case, Authgear could also provide a cookie session under “yourdomain.com”, so that your websites could share the session cookies under “*.yourdomain.com” for a better customers experiences.",
