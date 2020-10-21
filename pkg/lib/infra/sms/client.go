@@ -8,6 +8,7 @@ import (
 )
 
 var ErrNoAvailableClient = errors.New("no available SMS client")
+var ErrAmbiguousClient = errors.New("ambiguous SMS client")
 
 type SendOptions struct {
 	Sender string
@@ -54,7 +55,18 @@ func (c *Client) Send(opts SendOptions) error {
 		}
 		client = c.TwilioClient
 	default:
-		return ErrNoAvailableClient
+		if c.NexmoClient == nil && c.TwilioClient == nil {
+			return ErrNoAvailableClient
+		}
+		if c.NexmoClient != nil && c.TwilioClient != nil {
+			return ErrAmbiguousClient
+		}
+		if c.NexmoClient != nil {
+			client = c.NexmoClient
+		}
+		if c.TwilioClient != nil {
+			client = c.TwilioClient
+		}
 	}
 
 	return client.Send(opts.Sender, opts.To, opts.Body)
