@@ -18,6 +18,8 @@ const deleteDomainMutation = gql`
           isVerified
           verificationDNSRecord
         }
+        rawAppConfig
+        effectiveAppConfig
       }
     }
   }

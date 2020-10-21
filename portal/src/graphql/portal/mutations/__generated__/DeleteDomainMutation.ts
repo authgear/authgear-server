@@ -25,6 +25,8 @@ export interface DeleteDomainMutation_deleteDomain_app {
    */
   id: string;
   domains: DeleteDomainMutation_deleteDomain_app_domains[];
+  rawAppConfig: GQL_AppConfig;
+  effectiveAppConfig: GQL_AppConfig;
 }
 
 export interface DeleteDomainMutation_deleteDomain {
