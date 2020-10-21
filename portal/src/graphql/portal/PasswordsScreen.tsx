@@ -40,7 +40,10 @@ const PasswordsScreen: React.FC = function PasswordsScreen() {
     updateAppTemplates,
     loading: updatingTemplates,
     error: updateTemplatesError,
-  } = useUpdateAppTemplatesMutation<ForgotPasswordMessageTemplateKeys>(appID);
+  } = useUpdateAppTemplatesMutation<ForgotPasswordMessageTemplateKeys>(
+    appID,
+    ...ForgotPasswordMessageTemplates
+  );
 
   const {
     loading: loadingAppConfig,
@@ -54,7 +57,10 @@ const PasswordsScreen: React.FC = function PasswordsScreen() {
     loading: loadingTemplates,
     error: loadTemplatesError,
     refetch: refetchTemplates,
-  } = useAppTemplatesQuery(appID, ...ForgotPasswordMessageTemplates);
+  } = useAppTemplatesQuery<ForgotPasswordMessageTemplateKeys>(
+    appID,
+    ...ForgotPasswordMessageTemplates
+  );
 
   if (loadingAppConfig || loadingTemplates) {
     return <ShowLoading />;

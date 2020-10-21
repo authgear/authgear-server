@@ -34,7 +34,8 @@ export type AppTemplatesUpdater<TemplatePath extends string> = (
 ) => Promise<PortalAPIApp | null>;
 
 export function useUpdateAppTemplatesMutation<TemplatePath extends string>(
-  appID: string
+  appID: string,
+  ...paths: TemplatePath[]
 ): {
   updateAppTemplates: AppTemplatesUpdater<TemplatePath>;
   loading: boolean;
@@ -46,13 +47,11 @@ export function useUpdateAppTemplatesMutation<TemplatePath extends string>(
   >(updateAppTemplatesMutation, { client });
   const updateAppTemplates = React.useCallback(
     async (updateTemplates: { [path in TemplatePath]?: string | null }) => {
-      const paths: string[] = [];
       const updates: AppResourceUpdate[] = [];
       for (const [path, data] of Object.entries(updateTemplates)) {
         if (data === undefined) {
           continue;
         }
-        paths.push(path);
         updates.push({ path, data: data as string | null });
       }
 
@@ -65,7 +64,7 @@ export function useUpdateAppTemplatesMutation<TemplatePath extends string>(
       });
       return result.data?.updateAppResources.app ?? null;
     },
-    [appID, mutationFunction]
+    [appID, mutationFunction, paths]
   );
   return { updateAppTemplates, error, loading };
 }

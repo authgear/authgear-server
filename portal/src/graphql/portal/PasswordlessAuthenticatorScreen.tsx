@@ -317,14 +317,18 @@ const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthentic
     updateAppTemplates,
     loading: isUpdatingTemplates,
     error: updateTemplatesError,
-  } = useUpdateAppTemplatesMutation<PrimaryOOBMessageTemplates>(appID);
+  } = useUpdateAppTemplatesMutation<PrimaryOOBMessageTemplates>(
+    appID,
+    ...SetupPrimaryOOBMessageTemplates,
+    ...AuthenticatePrimaryOOBMessageTemplates
+  );
 
   const {
     templates,
     loading: isLoadingTemplates,
     error: loadTemplatesError,
     refetch: refetchTemplates,
-  } = useAppTemplatesQuery(
+  } = useAppTemplatesQuery<PrimaryOOBMessageTemplates>(
     appID,
     ...SetupPrimaryOOBMessageTemplates,
     ...AuthenticatePrimaryOOBMessageTemplates
