@@ -1,6 +1,6 @@
 Email Verification
 
-This email is sent to verify {{ .email }} on {{ .appname }}. To do so, please visit the link below.
+This email is sent to verify {{ .Email }} on {{ .AppName }}. To do so, please visit the link below.
 
 {{ .URL }}
 
