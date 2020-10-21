@@ -147,11 +147,10 @@ func (p *Provider) sendEmail(email string, code string) error {
 	}
 
 	data := map[string]interface{}{
-		"static_asset_url_prefix": string(p.StaticAssetURLPrefix),
-		"email":                   email,
-		"code":                    code,
-		"link":                    u.String(),
-		"appname":                 appMeta.AppName,
+		"Email":   email,
+		"Code":    code,
+		"Link":    u.String(),
+		"AppName": appMeta.AppName,
 	}
 
 	msg, err := p.Translation.EmailMessageData(messageForgotPassword, data)
