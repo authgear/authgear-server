@@ -273,9 +273,12 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -729,9 +732,12 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -1480,11 +1486,16 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -1517,7 +1528,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -1525,7 +1535,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -1901,11 +1910,16 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -1938,7 +1952,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -1946,7 +1959,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -2319,13 +2331,18 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -2358,7 +2375,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -2366,7 +2382,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -2926,9 +2941,12 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -3140,13 +3158,18 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -3173,7 +3196,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -3181,7 +3203,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -3553,13 +3574,18 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -3586,7 +3612,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -3594,7 +3619,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -3966,13 +3990,18 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -3999,7 +4028,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -4007,7 +4035,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -4380,13 +4407,18 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -4413,7 +4445,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -4421,7 +4452,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -4795,13 +4825,18 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -4828,7 +4863,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -4836,7 +4870,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -5208,13 +5241,18 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -5241,7 +5279,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -5249,7 +5286,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -5621,13 +5657,18 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -5654,7 +5695,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -5662,7 +5702,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -6034,13 +6073,18 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -6067,7 +6111,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -6075,7 +6118,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -6447,13 +6489,18 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -6480,7 +6527,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -6488,7 +6534,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -6860,13 +6905,18 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -6893,7 +6943,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -6901,7 +6950,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -7273,13 +7321,18 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -7306,7 +7359,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -7314,7 +7366,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -7686,13 +7737,18 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -7725,7 +7781,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -7733,7 +7788,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -8104,13 +8158,18 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -8137,7 +8196,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -8145,7 +8203,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -8517,13 +8574,18 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -8550,7 +8612,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -8558,7 +8619,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -8931,13 +8991,18 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -8964,7 +9029,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -8972,7 +9036,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -9344,13 +9407,18 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -9377,7 +9445,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -9385,7 +9452,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -9760,13 +9826,18 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -9793,7 +9864,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -9801,7 +9871,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -10177,13 +10246,18 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -10210,7 +10284,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -10218,7 +10291,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -10593,13 +10665,18 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -10626,7 +10703,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -10634,7 +10710,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -11009,13 +11084,18 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -11042,7 +11122,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -11050,7 +11129,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -11426,13 +11504,18 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -11459,7 +11542,6 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -11467,7 +11549,6 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -11840,13 +11921,18 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -11873,7 +11959,6 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Logger:         responseRendererLogger,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
 	redisStore := &webapp.RedisStore{
@@ -11881,7 +11966,6 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Redis: redisHandle,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -12443,9 +12527,12 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -12748,9 +12835,12 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -13148,9 +13238,12 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		Resolver: resolver,
 	}
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -13411,13 +13504,18 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	uiConfig := appConfig.UI
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
@@ -13945,9 +14043,12 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Resolver: resolver,
 	}
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}

@@ -309,9 +309,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
 		Config:             httpConfig,
+		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}

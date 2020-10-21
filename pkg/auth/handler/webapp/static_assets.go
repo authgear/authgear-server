@@ -41,7 +41,9 @@ func (h *StaticAssetsHandler) Open(name string) (http.File, error) {
 		return nil, os.ErrNotExist
 	}
 
-	merged, err := h.Resources.Read(desc, nil)
+	merged, err := h.Resources.Read(desc, map[string]interface{}{
+		web.ResourceArgRequestedPath: p,
+	})
 	if errors.Is(err, resource.ErrResourceNotFound) {
 		return nil, os.ErrNotExist
 	} else if err != nil {

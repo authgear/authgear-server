@@ -1,14 +1,20 @@
 package web
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"path"
 	"strings"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
+
+const ResourceArgPreferredLanguageTag = "preferred_language_tag"
+const ResourceArgDefaultLanguageTag = "default_language_tag"
+const ResourceArgRequestedPath = "requested_path"
 
 var StaticAssetResources = map[string]resource.Descriptor{
 	"web-js":     WebJS,
@@ -23,7 +29,9 @@ type ResourceManager interface {
 }
 
 type StaticAssetResolver struct {
+	Context            context.Context
 	Config             *config.HTTPConfig
+	Localization       *config.LocalizationConfig
 	StaticAssetsPrefix config.StaticAssetURLPrefix
 	Resources          ResourceManager
 }
@@ -34,7 +42,11 @@ func (r *StaticAssetResolver) StaticAssetURL(id string) (string, error) {
 		return "", fmt.Errorf("unknown static asset: %s", id)
 	}
 
-	merged, err := r.Resources.Read(desc, nil)
+	preferredLanguageTags := intl.GetPreferredLanguageTags(r.Context)
+	merged, err := r.Resources.Read(desc, map[string]interface{}{
+		ResourceArgPreferredLanguageTag: preferredLanguageTags,
+		ResourceArgDefaultLanguageTag:   r.Localization.FallbackLanguage,
+	})
 	if err != nil {
 		return "", err
 	}

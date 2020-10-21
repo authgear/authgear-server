@@ -13,6 +13,7 @@ type LayerFile struct {
 }
 
 type MergedFile struct {
+	Args map[string]interface{}
 	Data []byte
 }
 
