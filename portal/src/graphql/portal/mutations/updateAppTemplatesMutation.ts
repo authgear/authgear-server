@@ -27,10 +27,12 @@ const updateAppTemplatesMutation = gql`
   }
 `;
 
+export type UpdateAppTemplatesData<TemplatePath extends string> = {
+  [path in TemplatePath]?: string | null;
+};
+
 export type AppTemplatesUpdater<TemplatePath extends string> = (
-  updateTemplates: {
-    [path in TemplatePath]?: string | null;
-  }
+  updateTemplates: UpdateAppTemplatesData<TemplatePath>
 ) => Promise<PortalAPIApp | null>;
 
 export function useUpdateAppTemplatesMutation<TemplatePath extends string>(

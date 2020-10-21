@@ -1,17 +1,11 @@
-import React, {
-  useMemo,
-  useContext,
-  useState,
-  useCallback,
-  useEffect,
-} from "react";
+import React, { useMemo, useContext, useState, useCallback } from "react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { TextField, Label } from "@fluentui/react";
 import cn from "classnames";
 import deepEqual from "deep-equal";
 import produce from "immer";
 
-import { AppTemplatesUpdater } from "./mutations/updateAppTemplatesMutation";
+import { UpdateAppTemplatesData } from "./mutations/updateAppTemplatesMutation";
 import CodeEditor from "../../CodeEditor";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
@@ -34,12 +28,13 @@ interface ForgotPasswordSettingsProps {
   effectiveAppConfig: PortalAPIAppConfig | null;
   rawAppConfig: PortalAPIAppConfig | null;
   templates: Record<ForgotPasswordMessageTemplateKeys, string>;
-  updateAppConfig: (
-    appConfig: PortalAPIAppConfig
+  updateAppConfigAndTemplates: (
+    appConfig: PortalAPIAppConfig,
+    updateTemplatesData: UpdateAppTemplatesData<
+      ForgotPasswordMessageTemplateKeys
+    >
   ) => Promise<PortalAPIApp | null>;
-  updateTemplates: AppTemplatesUpdater<ForgotPasswordMessageTemplateKeys>;
-  updatingAppConfig: boolean;
-  updatingTemplates: boolean;
+  updatingAppConfigAndTemplates: boolean;
 }
 
 interface ForgotPasswordSettingsState {
@@ -126,10 +121,8 @@ const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function F
     effectiveAppConfig,
     rawAppConfig,
     templates,
-    updateAppConfig,
-    updateTemplates,
-    updatingAppConfig,
-    updatingTemplates,
+    updateAppConfigAndTemplates,
+    updatingAppConfigAndTemplates,
   } = props;
 
   const { renderToString } = useContext(Context);
@@ -218,19 +211,13 @@ const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function F
         state
       );
 
-      updateAppConfig(newAppConfig).catch(() => {});
-      updateTemplates(updateTemplatesData).catch(() => {});
+      updateAppConfigAndTemplates(
+        newAppConfig,
+        updateTemplatesData
+      ).catch(() => {});
     },
-    [rawAppConfig, initialState, state, updateAppConfig, updateTemplates]
+    [rawAppConfig, initialState, state, updateAppConfigAndTemplates]
   );
-
-  // Set state to initialState after updating
-  useEffect(() => {
-    if (!updatingAppConfig || !updatingTemplates) {
-      setState(initialState);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [updatingAppConfig, updatingTemplates]);
 
   return (
     <form className={cn(styles.root, className)} onSubmit={onFormSubmit}>
@@ -292,7 +279,7 @@ const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function F
         <ButtonWithLoading
           type="submit"
           disabled={!isFormModified}
-          loading={updatingAppConfig || updatingTemplates}
+          loading={updatingAppConfigAndTemplates}
           labelId="save"
           loadingLabelId="saving"
         />

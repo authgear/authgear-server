@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { Label, Text } from "@fluentui/react";
 import { useParams } from "react-router-dom";
@@ -7,6 +7,7 @@ import deepEqual from "deep-equal";
 
 import {
   AppTemplatesUpdater,
+  UpdateAppTemplatesData,
   useUpdateAppTemplatesMutation,
 } from "./mutations/updateAppTemplatesMutation";
 import { useAppTemplatesQuery } from "./query/appTemplatesQuery";
@@ -213,14 +214,6 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
     updateTemplates(updates).catch(() => {});
   }, [state, initialState, updateTemplates]);
 
-  // Set state to initialState after updating templates
-  useEffect(() => {
-    if (!isUpdatingTemplates) {
-      setState(initialState);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isUpdatingTemplates]);
-
   return (
     <div className={styles.form}>
       <Label className={styles.boldLabel}>
@@ -313,6 +306,8 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
 const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthenticatorScreen() {
   const { appID } = useParams();
 
+  const [remountIdentifier, setRemountIdentifier] = useState(0);
+
   const {
     updateAppTemplates,
     loading: isUpdatingTemplates,
@@ -332,6 +327,17 @@ const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthentic
     appID,
     ...SetupPrimaryOOBMessageTemplates,
     ...AuthenticatePrimaryOOBMessageTemplates
+  );
+
+  const updateAppTemplatesAndRemountChildren = useCallback(
+    async (
+      updateTemplatesData: UpdateAppTemplatesData<PrimaryOOBMessageTemplates>
+    ) => {
+      const app = await updateAppTemplates(updateTemplatesData);
+      setRemountIdentifier((prev) => prev + 1);
+      return app;
+    },
+    [updateAppTemplates]
   );
 
   if (isLoadingTemplates) {
@@ -354,8 +360,9 @@ const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthentic
           <FormattedMessage id="PasswordlessAuthenticatorScreen.title" />
         </Text>
         <PasswordlessAuthenticator
+          key={remountIdentifier}
           templates={templates}
-          updateTemplates={updateAppTemplates}
+          updateTemplates={updateAppTemplatesAndRemountChildren}
           isUpdatingTemplates={isUpdatingTemplates}
         />
       </ModifiedIndicatorWrapper>
