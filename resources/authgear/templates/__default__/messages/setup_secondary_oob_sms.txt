@@ -1,5 +1,5 @@
-{{ .Code }} is your {{ .AppName }} one-time-password.
+Sign up on {{ .AppName }} with this one-time password {{ .Code }}.
 
-Please ignore if you are not signing up your account.
+Ignore this if you are not signing up.
 
 @{{ .Host }} #{{ .Code }}
