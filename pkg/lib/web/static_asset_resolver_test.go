@@ -1,4 +1,4 @@
-package webapp
+package web
 
 import (
 	"testing"

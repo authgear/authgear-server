@@ -1,4 +1,4 @@
-package webapp
+package web
 
 import (
 	"fmt"
@@ -11,10 +11,11 @@ import (
 )
 
 var StaticAssetResources = map[string]resource.Descriptor{
-	"web-js":    WebJS,
-	"web-css":   WebCSS,
-	"app-logo":  AppLogo,
-	"zxcvbn-js": ZxcvbnJS,
+	"web-js":     WebJS,
+	"web-css":    WebCSS,
+	"app-logo":   AppLogo,
+	"app-banner": AppBanner,
+	"zxcvbn-js":  ZxcvbnJS,
 }
 
 type ResourceManager interface {

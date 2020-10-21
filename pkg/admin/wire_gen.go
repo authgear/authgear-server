@@ -38,6 +38,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/rand"
@@ -307,10 +308,18 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpConfig := appConfig.HTTP
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	staticAssetResolver := &web.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	webEndpoints := &WebEndpoints{}
 	queue := appProvider.TaskQueue
@@ -437,7 +446,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       rand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{

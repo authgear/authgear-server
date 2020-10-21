@@ -42,6 +42,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -271,10 +272,18 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpConfig := appConfig.HTTP
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	staticAssetResolver := &web.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
@@ -411,7 +420,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clock,
 		Random:       rand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -720,10 +728,18 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpConfig := appConfig.HTTP
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	staticAssetResolver := &web.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -842,7 +858,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Queries:  queries,
 	}
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -1468,7 +1483,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	httpConfig := appConfig.HTTP
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -1677,6 +1692,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -1888,7 +1904,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	httpConfig := appConfig.HTTP
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -2097,6 +2113,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
@@ -2307,7 +2324,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -2516,6 +2533,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -2907,10 +2925,18 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpConfig := appConfig.HTTP
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	staticAssetResolver := &web.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -3055,7 +3081,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -3120,7 +3145,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -3325,6 +3350,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -3532,7 +3558,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -3737,6 +3763,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -3944,7 +3971,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -4149,6 +4176,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -4357,7 +4385,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -4562,6 +4590,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -4771,7 +4800,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -4976,6 +5005,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -5183,7 +5213,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -5388,6 +5418,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -5595,7 +5626,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -5800,6 +5831,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -6007,7 +6039,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -6212,6 +6244,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -6419,7 +6452,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -6624,6 +6657,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -6831,7 +6865,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -7036,6 +7070,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -7243,7 +7278,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -7448,6 +7483,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -7655,7 +7691,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -7864,6 +7900,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -8072,7 +8109,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -8277,6 +8314,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -8484,7 +8522,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -8689,6 +8727,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -8897,7 +8936,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -9102,6 +9141,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -9309,7 +9349,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -9514,6 +9554,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -9724,7 +9765,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -9929,6 +9970,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -10140,7 +10182,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -10345,6 +10387,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -10555,7 +10598,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -10760,6 +10803,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -10970,7 +11014,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -11175,6 +11219,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -11386,7 +11431,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -11591,6 +11636,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -11799,7 +11845,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -12004,6 +12050,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -12395,10 +12442,18 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpConfig := appConfig.HTTP
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	staticAssetResolver := &web.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -12450,7 +12505,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sessionConfig := appConfig.Session
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
@@ -12479,12 +12533,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 	}
 	uiConfig := appConfig.UI
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	staticAssetResolver := &webapp.StaticAssetResolver{
-		Config:             httpConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -12699,10 +12747,18 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpConfig := appConfig.HTTP
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	staticAssetResolver := &web.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -12847,7 +12903,6 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -13092,10 +13147,18 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpConfig := appConfig.HTTP
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	staticAssetResolver := &web.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -13240,7 +13303,6 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -13354,7 +13416,7 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
-	staticAssetResolver := &webapp.StaticAssetResolver{
+	staticAssetResolver := &web.StaticAssetResolver{
 		Config:             httpConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
@@ -13882,10 +13944,18 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpConfig := appConfig.HTTP
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	staticAssetResolver := &web.StaticAssetResolver{
+		Config:             httpConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
@@ -14030,7 +14100,6 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:        clockClock,
 		Random:       idpsessionRand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{

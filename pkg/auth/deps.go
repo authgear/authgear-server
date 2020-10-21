@@ -25,6 +25,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	oidchandler "github.com/authgear/authgear-server/pkg/lib/oauth/oidc/handler"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
@@ -41,7 +42,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(webapp.GraphService), new(*interaction.Service)),
 	wire.Bind(new(webapp.StateMiddlewareGraphs), new(*interaction.Service)),
 	wire.Bind(new(webapp.CookieFactory), new(*httputil.CookieFactory)),
-	wire.Bind(new(webapp.ResourceManager), new(*resource.Manager)),
 
 	wire.NewSet(
 		wire.Struct(new(MainOriginProvider), "*"),
@@ -77,7 +77,7 @@ var DependencySet = wire.NewSet(
 	ProvideOAuthMetadataProviders,
 
 	viewmodelswebapp.DependencySet,
-	wire.Bind(new(viewmodelswebapp.StaticAssetResolver), new(*webapp.StaticAssetResolver)),
+	wire.Bind(new(viewmodelswebapp.StaticAssetResolver), new(*web.StaticAssetResolver)),
 
 	handlerwebapp.DependencySet,
 	wire.Bind(new(handlerwebapp.SettingsAuthenticatorService), new(*authenticatorservice.Service)),

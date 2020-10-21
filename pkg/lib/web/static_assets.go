@@ -1,4 +1,4 @@
-package webapp
+package web
 
 import (
 	"bytes"
@@ -17,10 +17,15 @@ const (
 	zxcvbnJSPath = "static/zxcvbn.js"
 )
 
-var appLogoPaths = map[string]string{
-	"image/png":  "static/app_logo.png",
-	"image/jpeg": "static/app_logo.jpeg",
-	"image/gif":  "static/app_logo.gif",
+const (
+	appLogoFilename   = "static/app_logo"
+	appBannerFilename = "static/app_banner"
+)
+
+var imageExtensions = map[string]string{
+	"image/png":  ".png",
+	"image/jpeg": ".jpeg",
+	"image/gif":  ".gif",
 }
 
 type StaticAsset struct {
@@ -67,48 +72,52 @@ var WebCSS = resource.RegisterResource(resource.SimpleFile{
 	},
 })
 
-var AppLogo = resource.RegisterResource(appLogo{})
+var AppLogo = resource.RegisterResource(imageAsset{Name: appLogoFilename})
+var AppBanner = resource.RegisterResource(imageAsset{Name: appBannerFilename})
 
-type appLogo struct{}
+type imageAsset struct {
+	Name string
+}
 
-func (a appLogo) ReadResource(fs resource.Fs) ([]resource.LayerFile, error) {
+func (a imageAsset) ReadResource(fs resource.Fs) ([]resource.LayerFile, error) {
 	var files []resource.LayerFile
-	for _, p := range appLogoPaths {
-		data, err := resource.ReadFile(fs, p)
+	for _, ext := range imageExtensions {
+		path := a.Name + ext
+		data, err := resource.ReadFile(fs, path)
 		if os.IsNotExist(err) {
 			continue
 		} else if err != nil {
 			return nil, err
 		}
-		files = append(files, resource.LayerFile{Path: p, Data: data})
+		files = append(files, resource.LayerFile{Path: path, Data: data})
 	}
 	if len(files) >= 2 {
-		return nil, fmt.Errorf("duplicated app logo files: %s, %s", files[0].Path, files[1].Path)
+		return nil, fmt.Errorf("duplicated image files: %s, %s", files[0].Path, files[1].Path)
 	}
 	return files, nil
 }
 
-func (a appLogo) MatchResource(path string) bool {
-	for _, p := range appLogoPaths {
-		if p == path {
+func (a imageAsset) MatchResource(path string) bool {
+	for _, ext := range imageExtensions {
+		if path == a.Name+ext {
 			return true
 		}
 	}
 	return false
 }
 
-func (a appLogo) Merge(layers []resource.LayerFile, args map[string]interface{}) (*resource.MergedFile, error) {
+func (a imageAsset) Merge(layers []resource.LayerFile, args map[string]interface{}) (*resource.MergedFile, error) {
 	return &resource.MergedFile{Data: layers[len(layers)-1].Data}, nil
 }
 
-func (a appLogo) Parse(merged *resource.MergedFile) (interface{}, error) {
+func (a imageAsset) Parse(merged *resource.MergedFile) (interface{}, error) {
 	mimeType := http.DetectContentType(merged.Data)
-	path, ok := appLogoPaths[mimeType]
+	ext, ok := imageExtensions[mimeType]
 	if !ok {
-		return nil, fmt.Errorf("invalid app logo format: %s", mimeType)
+		return nil, fmt.Errorf("invalid image format: %s", mimeType)
 	}
 	return &StaticAsset{
-		Path: path,
+		Path: a.Name + ext,
 		Data: merged.Data,
 	}, nil
 }

@@ -10,10 +10,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
+type StaticAssetResolver interface {
+	StaticAssetURL(id string) (url string, err error)
+}
+
 type Service struct {
 	Context           context.Context
 	EnvironmentConfig *config.EnvironmentConfig
 	TemplateEngine    *template.Engine
+	StaticAssets      StaticAssetResolver
 
 	translations *template.TranslationMap `wire:"-"`
 }
@@ -31,8 +36,12 @@ func (s *Service) translationMap() (*template.TranslationMap, error) {
 }
 
 func (s *Service) renderTemplate(tpl template.Resource, args interface{}) (string, error) {
+	data := make(map[string]interface{})
+	template.Embed(data, args)
+	data["StaticAssetURL"] = s.StaticAssets.StaticAssetURL
+
 	preferredLanguageTags := intl.GetPreferredLanguageTags(s.Context)
-	out, err := s.TemplateEngine.Render(tpl, preferredLanguageTags, args)
+	out, err := s.TemplateEngine.Render(tpl, preferredLanguageTags, data)
 	if err != nil {
 		return "", err
 	}

@@ -8,7 +8,7 @@ import (
 
 	aferomem "github.com/spf13/afero/mem"
 
-	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
@@ -34,7 +34,7 @@ func (h *StaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *StaticAssetsHandler) Open(name string) (http.File, error) {
-	p := path.Join(webapp.StaticAssetResourcePrefix, name)
+	p := path.Join(web.StaticAssetResourcePrefix, name)
 
 	desc, ok := h.Resources.Resolve(p)
 	if !ok {
@@ -53,7 +53,7 @@ func (h *StaticAssetsHandler) Open(name string) (http.File, error) {
 		return nil, err
 	}
 
-	sAsset := asset.(*webapp.StaticAsset)
+	sAsset := asset.(*web.StaticAsset)
 	if sAsset.Path != p {
 		return nil, os.ErrNotExist
 	}

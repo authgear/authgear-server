@@ -7,7 +7,7 @@
 <mj-body background-color="#ffffff">
   <mj-section padding="20px 0 0">
     <mj-column>
-      <mj-image align="left" width="150px" src="https://uploads-ssl.webflow.com/5f30d184082f96442f7d34af/5f30d1c26a2b9d68d9a260f1_header-logo.png"/>
+      <mj-image align="left" width="150px" src="{{ call $.StaticAssetURL `app-logo` }}"/>
     </mj-column>
   </mj-section>
   <mj-section padding-top="10px">
