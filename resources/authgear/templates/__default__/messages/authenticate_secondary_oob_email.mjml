@@ -1,25 +1,31 @@
 <mjml>
 <mj-head>
   <mj-attributes>
-    <mj-text align="center" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji" />
+    <mj-text align="left" font-family="Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji" />
   </mj-attributes>
 </mj-head>
-<mj-body>
+<mj-body background-color="#ffffff">
+  <mj-section padding="20px 0 0">
+    <mj-column>
+      <mj-image align="left" width="150px" src="https://uploads-ssl.webflow.com/5f30d184082f96442f7d34af/5f30d1c26a2b9d68d9a260f1_header-logo.png"/>
+    </mj-column>
+  </mj-section>
+  <mj-section padding-top="10px">
+    <mj-column>
+      <mj-text font-weight="bold" font-size="24px">Log in to {{ .AppName }}</mj-text>
+      <mj-text font-size="16px" padding-top="10px" line-height="24px">
+        A one-time password has been generated for you to sign in. Simply copy it from the below textbox.
+      </mj-text>
+    </mj-column>
+  </mj-section>
+  <mj-section padding="0 20px">
+    <mj-column width="320px" background-color="#f1f4f5">
+      <mj-text font-size="32px" font-weight="heavy" font-family="monospace" letter-spacing="12px" padding="24px 24px 24px 40px">{{ .Code }}</mj-text>
+    </mj-column>
+  </mj-section>
   <mj-section>
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px" padding="20px">Logging in to {{ .AppName }}</mj-text>
-      <mj-text font-size="16px" padding="20px">Please use the following one-time-password to complete the log in process.</mj-text>
+      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">If you didn't trigger a login, please ignore this email.</mj-text>
     </mj-column>
   </mj-section>
-  <mj-section>
-    <mj-column width="250px" background-color="#f1f4f5">
-      <mj-text font-size="36px" font-weight="heavy" font-family="monospace" letter-spacing="16px" padding="24px 24px 24px 40px">{{ .Code }}</mj-text>
-    </mj-column>
-  </mj-section>
-  <mj-section>
-    <mj-column>
-      <mj-text font-weight="light" font-size="12px" padding="20px">If you are not logging in your account please ignore this email.</mj-text>
-    </mj-column>
-  </mj-section>
-</mj-body>
 </mjml>

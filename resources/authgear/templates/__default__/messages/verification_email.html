@@ -56,12 +56,6 @@
           .mj-outlook-group-fix { width:100% !important; }
         </style>
         <![endif]-->
-  <!--[if !mso]><!-->
-  <link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700" rel="stylesheet" type="text/css">
-  <style type="text/css">
-    @import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700);
-  </style>
-  <!--<![endif]-->
   <style type="text/css">
     @media only screen and (min-width:480px) {
       .mj-column-per-100 {
@@ -71,11 +65,20 @@
     }
   </style>
   <style type="text/css">
+    @media only screen and (max-width:480px) {
+      table.mj-full-width-mobile {
+        width: 100% !important;
+      }
+
+      td.mj-full-width-mobile {
+        width: auto !important;
+      }
+    }
   </style>
 </head>
 
-<body>
-  <div style="">
+<body style="background-color:#f3f3f3;">
+  <div style="background-color:#f3f3f3;">
     <!--[if mso | IE]>
       <table
          align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600"
@@ -87,7 +90,7 @@
       <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
         <tbody>
           <tr>
-            <td style="direction:ltr;font-size:0px;padding:20px 0;text-align:center;">
+            <td style="direction:ltr;font-size:0px;padding:20px 0 0;text-align:center;">
               <!--[if mso | IE]>
                   <table role="presentation" border="0" cellpadding="0" cellspacing="0">
                 
@@ -100,13 +103,16 @@
               <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
                 <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
                   <tr>
-                    <td align="center" style="font-size:0px;padding:20px;word-break:break-word;">
-                      <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;font-size:24px;font-weight:bold;line-height:1;text-align:center;color:#000000;">Verify your email on {{ .AppName }}</div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td align="center" style="font-size:0px;padding:20px;word-break:break-word;">
-                      <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;font-size:16px;line-height:1;text-align:center;color:#000000;">You have selected {{ .Email }} for verification. Please use the following code to complete the verification.</div>
+                    <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                      <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
+                        <tbody>
+                          <tr>
+                            <td style="width:150px;">
+                              <img height="auto" src="https://uploads-ssl.webflow.com/5f30d184082f96442f7d34af/5f30d1c26a2b9d68d9a260f1_header-logo.png" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="150" />
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </td>
                   </tr>
                 </table>
@@ -128,61 +134,6 @@
         </tr>
       </table>
       
-        <table
-           align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:600px;" width="600"
-        >
-          <tr>
-            <td  style="line-height:0;font-size:0;mso-line-height-rule:exactly;">
-              <v:image
-                 style="border:0;mso-position-horizontal:center;position:absolute;top:0;width:600px;z-index:-3;" xmlns:v="urn:schemas-microsoft-com:vml"
-              />
-      <![endif]-->
-    <div style="margin:0 auto;max-width:600px;">
-      <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
-        <tr style="vertical-align:top;">
-          <td style="background:#ffffff;background-position:center center;background-repeat:no-repeat;padding:0px;vertical-align:top;" height="0">
-            <!--[if mso | IE]>
-        <table
-           border="0" cellpadding="0" cellspacing="0" style="width:600px;" width="600"
-        >
-          <tr>
-            <td  style="">
-      <![endif]-->
-            <div class="mj-hero-content" style="margin:0px auto;">
-              <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;margin:0px;">
-                <tr>
-                  <td style="">
-                    <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;margin:0px;">
-                      <tr>
-                        <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                          <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
-                            <tr>
-                              <td align="center" bgcolor="#166BEF" role="presentation" style="border:none;border-radius:3px;cursor:auto;mso-padding-alt:10px 25px;background:#166BEF;" valign="middle">
-                                <a href="{{ .URL }}" style="display:inline-block;background:#166BEF;color:#ffffff;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:3px;" target="_blank"> Verify Account </a>
-                              </td>
-                            </tr>
-                          </table>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-            </div>
-            <!--[if mso | IE]>
-            </td>
-          </tr>
-        </table>
-      <![endif]-->
-          </td>
-        </tr>
-      </table>
-    </div>
-    <!--[if mso | IE]>
-          </td>
-        </tr>
-      </table>
-    
       <table
          align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600"
       >
@@ -204,12 +155,58 @@
             >
           <![endif]-->
               <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
-                <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
-                  <tr>
-                    <td align="center" style="font-size:0px;padding:20px;word-break:break-word;">
-                      <div style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;font-size:12px;font-weight:light;line-height:1;text-align:center;color:#000000;">If you didn't sign in or sign up please ignore this email.</div>
-                    </td>
-                  </tr>
+                <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
+                  <tbody>
+                    <tr>
+                      <td style="background-color:#ffffff;border-radius:2px;vertical-align:top;padding:16px 8px;">
+                        <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="" width="100%">
+                          <tr>
+                            <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                              <div style="font-family:Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;font-size:24px;font-weight:bold;line-height:1;text-align:left;color:#000000;">Email Verification</div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                              <p style="border-top:solid 1px #c7c7c7;font-size:1px;margin:0px auto;width:100%;">
+                              </p>
+                              <!--[if mso | IE]>
+        <table
+           align="center" border="0" cellpadding="0" cellspacing="0" style="border-top:solid 1px #c7c7c7;font-size:1px;margin:0px auto;width:534px;" role="presentation" width="534px"
+        >
+          <tr>
+            <td style="height:0;line-height:0;">
+              &nbsp;
+            </td>
+          </tr>
+        </table>
+      <![endif]-->
+                            </td>
+                          </tr>
+                          <tr>
+                            <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                              <div style="font-family:Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;font-size:16px;line-height:24px;text-align:left;color:#000000;">This email is sent to verify {{ .email }} on {{ .appname }}. To do so, please click the button below.</div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td align="center" vertical-align="middle" style="font-size:0px;padding:24px 0;word-break:break-word;">
+                              <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;width:300px;line-height:100%;">
+                                <tr>
+                                  <td align="center" bgcolor="#1F67EF" role="presentation" style="border:none;border-radius:2px;cursor:auto;mso-padding-alt:10px 25px;background:#1F67EF;" valign="middle">
+                                    <a href="{{ .link }}" style="display:inline-block;width:250px;background:#1F67EF;color:#ffffff;font-family:Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:2px;" target="_blank"> Verify Email </a>
+                                  </td>
+                                </tr>
+                              </table>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                              <div style="font-family:Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;font-size:14px;font-weight:light;line-height:1;text-align:left;color:#555555;">If you didn't sign in or sign up, please ignore this email.</div>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </tbody>
                 </table>
               </div>
               <!--[if mso | IE]>
