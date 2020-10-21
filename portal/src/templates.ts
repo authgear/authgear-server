@@ -23,3 +23,15 @@ export const AuthenticatePrimaryOOBMessageTemplates = [
   TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TEXT,
   TEMPLATE_AUTHENTICATE_PRIMARY_OOB_SMS_TEXT,
 ] as const;
+
+export const TEMPLATE_FORGOT_PASSWORD_EMAIL_HTML =
+  "templates/__default__/messages/forgot_password_email.html";
+export const TEMPLATE_FORGOT_PASSWORD_EMAIL_TEXT =
+  "templates/__default__/messages/forgot_password_email.txt";
+export const TEMPLATE_FORGOT_PASSWORD_SMS_TEXT =
+  "templates/__default__/messages/forgot_password_sms.txt";
+export const ForgotPasswordMessageTemplates = [
+  TEMPLATE_FORGOT_PASSWORD_EMAIL_HTML,
+  TEMPLATE_FORGOT_PASSWORD_EMAIL_TEXT,
+  TEMPLATE_FORGOT_PASSWORD_SMS_TEXT,
+] as const;

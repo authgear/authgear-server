@@ -7,6 +7,7 @@ import deepEqual from "deep-equal";
 
 import {
   AppTemplatesUpdater,
+  UpdateAppTemplatesData,
   useUpdateAppTemplatesMutation,
 } from "./mutations/updateAppTemplatesMutation";
 import { useAppTemplatesQuery } from "./query/appTemplatesQuery";
@@ -158,41 +159,56 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
     []
   );
 
+  // eslint-disable-next-line complexity
   const onSaveButtonClicked = useCallback(() => {
-    const updates: Partial<Record<PrimaryOOBMessageTemplates, string>> = {};
+    const updates: Partial<Record<
+      PrimaryOOBMessageTemplates,
+      string | null
+    >> = {};
     if (state.setupEmailHtmlTemplate !== initialState.setupEmailHtmlTemplate) {
       updates[TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_HTML] =
-        state.setupEmailHtmlTemplate;
+        state.setupEmailHtmlTemplate !== ""
+          ? state.setupEmailHtmlTemplate
+          : null;
     }
     if (
       state.setupEmailPlainTextTemplate !==
       initialState.setupEmailPlainTextTemplate
     ) {
       updates[TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_TEXT] =
-        state.setupEmailPlainTextTemplate;
+        state.setupEmailPlainTextTemplate !== ""
+          ? state.setupEmailPlainTextTemplate
+          : null;
     }
     if (state.setupSmsTemplate !== initialState.setupSmsTemplate) {
-      updates[TEMPLATE_SETUP_PRIMARY_OOB_SMS_TEXT] = state.setupSmsTemplate;
+      updates[TEMPLATE_SETUP_PRIMARY_OOB_SMS_TEXT] =
+        state.setupSmsTemplate !== "" ? state.setupSmsTemplate : null;
     }
     if (
       state.authenticateEmailHtmlTemplate !==
       initialState.authenticateEmailHtmlTemplate
     ) {
       updates[TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML] =
-        state.authenticateEmailHtmlTemplate;
+        state.authenticateEmailHtmlTemplate !== ""
+          ? state.authenticateEmailHtmlTemplate
+          : null;
     }
     if (
       state.authenticateEmailPlainTextTemplate !==
       initialState.authenticateEmailPlainTextTemplate
     ) {
       updates[TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TEXT] =
-        state.authenticateEmailPlainTextTemplate;
+        state.authenticateEmailPlainTextTemplate !== ""
+          ? state.authenticateEmailPlainTextTemplate
+          : null;
     }
     if (
       state.authenticateSmsTemplate !== initialState.authenticateSmsTemplate
     ) {
       updates[TEMPLATE_AUTHENTICATE_PRIMARY_OOB_SMS_TEXT] =
-        state.authenticateSmsTemplate;
+        state.authenticateSmsTemplate !== ""
+          ? state.authenticateSmsTemplate
+          : null;
     }
 
     updateTemplates(updates).catch(() => {});
@@ -290,21 +306,38 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
 const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthenticatorScreen() {
   const { appID } = useParams();
 
+  const [remountIdentifier, setRemountIdentifier] = useState(0);
+
   const {
     updateAppTemplates,
     loading: isUpdatingTemplates,
     error: updateTemplatesError,
-  } = useUpdateAppTemplatesMutation<PrimaryOOBMessageTemplates>(appID);
+  } = useUpdateAppTemplatesMutation<PrimaryOOBMessageTemplates>(
+    appID,
+    ...SetupPrimaryOOBMessageTemplates,
+    ...AuthenticatePrimaryOOBMessageTemplates
+  );
 
   const {
     templates,
     loading: isLoadingTemplates,
     error: loadTemplatesError,
     refetch: refetchTemplates,
-  } = useAppTemplatesQuery(
+  } = useAppTemplatesQuery<PrimaryOOBMessageTemplates>(
     appID,
     ...SetupPrimaryOOBMessageTemplates,
     ...AuthenticatePrimaryOOBMessageTemplates
+  );
+
+  const updateAppTemplatesAndRemountChildren = useCallback(
+    async (
+      updateTemplatesData: UpdateAppTemplatesData<PrimaryOOBMessageTemplates>
+    ) => {
+      const app = await updateAppTemplates(updateTemplatesData);
+      setRemountIdentifier((prev) => prev + 1);
+      return app;
+    },
+    [updateAppTemplates]
   );
 
   if (isLoadingTemplates) {
@@ -327,8 +360,9 @@ const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthentic
           <FormattedMessage id="PasswordlessAuthenticatorScreen.title" />
         </Text>
         <PasswordlessAuthenticator
+          key={remountIdentifier}
           templates={templates}
-          updateTemplates={updateAppTemplates}
+          updateTemplates={updateAppTemplatesAndRemountChildren}
           isUpdatingTemplates={isUpdatingTemplates}
         />
       </ModifiedIndicatorWrapper>
