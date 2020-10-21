@@ -373,6 +373,7 @@
   "SettingsScreen.title": "Settings",
   "SettingsScreen.general.title": "General",
   "SettingsScreen.portal_admins.title": "Portal Admins",
+  "SettingsScreen.session.title": "Session",
 
   "PortalAdminsSettings.invite": "Invite",
   "PortalAdminsSettings.delete-collaborator-dialog.generic-error": "Failed to delete admin",
@@ -401,6 +402,11 @@
   "AcceptAdminInvitationScreen.duplicated-collaborator-error": "Admin already exist",
 
   "GeneralSettings.app-id.label": "App ID",
+
+  "SessionSettings.persistent-cookie.label": "Persistent Cookie",
+  "SessionSettings.session-lifetime.label": "Session Lifetime (seconds)",
+  "SessionSettings.invalidate-session-after-idling.label": "Invalidate session after idling",
+  "SessionSettings.idle-timeout.label": "Idle Timeout (seconds)",
 
   "PasswordStrengthMeter.password-strength": "Password Strength",
 

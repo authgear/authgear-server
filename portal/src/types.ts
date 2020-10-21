@@ -230,6 +230,15 @@ interface OAuthConfig {
   clients?: OAuthClientConfig[];
 }
 
+// SessionConfig
+export interface SessionConfig {
+  cookie_domain?: string;
+  cookie_non_persistent?: boolean;
+  idle_timeout_enabled?: boolean;
+  idle_timeout_seconds?: DurationSeconds;
+  lifetime_seconds?: DurationSeconds;
+}
+
 // PortalAPIAppConfig
 export interface PortalAPIAppConfig {
   http?: HTTPConfig;
@@ -240,6 +249,7 @@ export interface PortalAPIAppConfig {
   ui?: UIConfig;
   forgot_password?: ForgotPasswordConfig;
   oauth?: OAuthConfig;
+  session?: SessionConfig;
 }
 
 // secret config
