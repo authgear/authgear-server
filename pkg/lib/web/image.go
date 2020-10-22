@@ -27,7 +27,7 @@ var imageExtensions = map[string]string{
 	"image/gif":  ".gif",
 }
 
-var imageRegex = regexp.MustCompile(`^(.+)_([a-zA-Z0-9-]+)\.(png|jpeg|gif)$`)
+var imageRegex = regexp.MustCompile(`^static/([a-zA-Z0-9-]+)/(.+)\.(png|jpeg|gif)$`)
 
 const argResolvedLanguageTag = "resolved_language_tag"
 
@@ -36,44 +36,44 @@ type imageAsset struct {
 }
 
 func (a imageAsset) ReadResource(fs resource.Fs) ([]resource.LayerFile, error) {
-	dir := path.Dir(a.Name)
-	fileNames, err := resource.ReadDirNames(fs, dir)
+	staticDir, err := fs.Open("static")
 	if os.IsNotExist(err) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
 	}
+	defer staticDir.Close()
 
-	langFiles := make(map[string]resource.LayerFile)
-	for _, fileName := range fileNames {
-		p := path.Join(dir, fileName)
-		matches := imageRegex.FindStringSubmatch(p)
-		if len(matches) != 4 {
-			continue
-		}
-		name := matches[1]
-		languageTag := matches[2]
-		if name != a.Name {
-			continue
-		}
-		if f, ok := langFiles[languageTag]; ok {
-			return nil, fmt.Errorf("duplicated image files: %s, %s", f.Path, p)
-		}
-
-		data, err := resource.ReadFile(fs, p)
-		if os.IsNotExist(err) {
-			continue
-		} else if err != nil {
-			return nil, err
-		}
-
-		langFiles[languageTag] = resource.LayerFile{Path: p, Data: data}
+	langTagDirs, err := staticDir.Readdirnames(0)
+	if err != nil {
+		return nil, err
 	}
 
 	var files []resource.LayerFile
-	for _, file := range langFiles {
-		files = append(files, file)
+	for _, langTag := range langTagDirs {
+		stat, err := fs.Stat(path.Join("static", langTag))
+		if err != nil {
+			return nil, err
+		}
+		if !stat.IsDir() {
+			continue
+		}
+
+		for _, ext := range imageExtensions {
+			p := path.Join("static", langTag, a.Name+ext)
+			data, err := resource.ReadFile(fs, p)
+			if os.IsNotExist(err) {
+				continue
+			} else if err != nil {
+				return nil, err
+			}
+			files = append(files, resource.LayerFile{
+				Path: p,
+				Data: data,
+			})
+		}
 	}
+
 	return files, nil
 }
 
@@ -82,7 +82,7 @@ func (a imageAsset) MatchResource(path string) bool {
 	if len(matches) != 4 {
 		return false
 	}
-	return matches[1] == a.Name
+	return matches[2] == a.Name
 }
 
 func (a imageAsset) Merge(layers []resource.LayerFile, args map[string]interface{}) (*resource.MergedFile, error) {
@@ -93,14 +93,14 @@ func (a imageAsset) Merge(layers []resource.LayerFile, args map[string]interface
 	if p, ok := args[ResourceArgRequestedPath].(string); ok {
 		match := imageRegex.FindStringSubmatch(p)
 		if len(match) == 4 {
-			languageTag := match[2]
+			languageTag := match[1]
 			preferredLanguageTags = []string{languageTag}
 		}
 	}
 
 	images := make(map[string]template.LanguageItem)
 	for _, file := range layers {
-		languageTag := imageRegex.FindStringSubmatch(file.Path)[2]
+		languageTag := imageRegex.FindStringSubmatch(file.Path)[1]
 		images[languageTag] = languageImage{
 			languageTag: languageTag,
 			data:        file.Data,
@@ -143,9 +143,9 @@ func (a imageAsset) Parse(merged *resource.MergedFile) (interface{}, error) {
 
 	var path string
 	if langTag, ok := merged.Args[argResolvedLanguageTag]; ok {
-		path = fmt.Sprintf("%s_%s%s", a.Name, langTag, ext)
+		path = fmt.Sprintf("%s%s/%s%s", StaticAssetResourcePrefix, langTag, a.Name, ext)
 	} else {
-		path = a.Name + ext
+		path = StaticAssetResourcePrefix + a.Name + ext
 	}
 
 	return &StaticAsset{

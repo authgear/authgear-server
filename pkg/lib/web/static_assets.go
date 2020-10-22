@@ -9,14 +9,14 @@ import (
 const StaticAssetResourcePrefix = "static/"
 
 const (
-	webJSPath    = "static/authgear.js"
-	webCSSPath   = "static/authgear.css"
-	zxcvbnJSPath = "static/zxcvbn.js"
+	webJSName    = "authgear.js"
+	webCSSName   = "authgear.css"
+	zxcvbnJSName = "zxcvbn.js"
 )
 
 const (
-	appLogoFilename   = "static/app_logo"
-	appBannerFilename = "static/app_banner"
+	appLogoNamePrefix   = "app_logo"
+	appBannerNamePrefix = "app_banner"
 )
 
 type StaticAsset struct {
@@ -25,7 +25,7 @@ type StaticAsset struct {
 }
 
 var WebJS = resource.RegisterResource(resource.SimpleFile{
-	Name: webJSPath,
+	Name: StaticAssetResourcePrefix + webJSName,
 	MergeFn: func(layers []resource.LayerFile) ([]byte, error) {
 		// Concat JS by wrapping each one in an IIFE
 		output := bytes.Buffer{}
@@ -38,14 +38,14 @@ var WebJS = resource.RegisterResource(resource.SimpleFile{
 	},
 	ParseFn: func(data []byte) (interface{}, error) {
 		return &StaticAsset{
-			Path: webJSPath,
+			Path: StaticAssetResourcePrefix + webJSName,
 			Data: data,
 		}, nil
 	},
 })
 
 var WebCSS = resource.RegisterResource(resource.SimpleFile{
-	Name: webCSSPath,
+	Name: StaticAssetResourcePrefix + webCSSName,
 	MergeFn: func(layers []resource.LayerFile) ([]byte, error) {
 		// Concat CSS by simply joining together
 		output := bytes.Buffer{}
@@ -57,22 +57,22 @@ var WebCSS = resource.RegisterResource(resource.SimpleFile{
 	},
 	ParseFn: func(data []byte) (interface{}, error) {
 		return &StaticAsset{
-			Path: webCSSPath,
+			Path: StaticAssetResourcePrefix + webCSSName,
 			Data: data,
 		}, nil
 	},
 })
 
-var AppLogo = resource.RegisterResource(imageAsset{Name: appLogoFilename})
-var AppBanner = resource.RegisterResource(imageAsset{Name: appBannerFilename})
+var AppLogo = resource.RegisterResource(imageAsset{Name: appLogoNamePrefix})
+var AppBanner = resource.RegisterResource(imageAsset{Name: appBannerNamePrefix})
 
 // zxcvbn version commit hash: 67c4ece9efc40c9d0a1d7d995b2b22a91be500c2
 
 var ZxcvbnJS = resource.RegisterResource(resource.SimpleFile{
-	Name: zxcvbnJSPath,
+	Name: StaticAssetResourcePrefix + zxcvbnJSName,
 	ParseFn: func(data []byte) (interface{}, error) {
 		return &StaticAsset{
-			Path: zxcvbnJSPath,
+			Path: StaticAssetResourcePrefix + zxcvbnJSName,
 			Data: data,
 		}, nil
 	},
