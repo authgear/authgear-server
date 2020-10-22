@@ -4,7 +4,6 @@ import (
 	"github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
-	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -40,14 +39,20 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					return nil, nil
 				}
 
-				return ctx.Apps.List(sessionInfo.UserID).Map(func(value interface{}) (interface{}, error) {
-					var apps []interface{}
-					for _, i := range value.([]*model.App) {
-						apps = append(apps, i)
-					}
-					args := relay.NewConnectionArguments(p.Args)
-					return graphqlutil.NewConnectionFromArray(apps, args), nil
-				}).Value, nil
+				// Access control is not needed here cause List returns accessible apps.
+				apps, err := ctx.AppService.List(sessionInfo.UserID)
+				if err != nil {
+					return nil, err
+				}
+				args := relay.NewConnectionArguments(p.Args)
+
+				out := make([]interface{}, len(apps))
+				for i, app := range apps {
+					out[i] = app
+					ctx.Apps.Prime(app.ID, app)
+				}
+
+				return graphqlutil.NewConnectionFromArray(out, args), nil
 			},
 		},
 	},

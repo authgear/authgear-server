@@ -6,6 +6,7 @@
 package admin
 
 import (
+	facade2 "github.com/authgear/authgear-server/pkg/admin/facade"
 	"github.com/authgear/authgear-server/pkg/admin/graphql"
 	"github.com/authgear/authgear-server/pkg/admin/loader"
 	service3 "github.com/authgear/authgear-server/pkg/admin/service"
@@ -290,6 +291,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Identities:   identityFacade,
 		Verification: verificationService,
 	}
+	userLoader := loader.NewUserLoader(queries)
+	identityLoader := loader.NewIdentityLoader(serviceService)
+	authenticatorLoader := loader.NewAuthenticatorLoader(service4)
 	interactionLogger := interaction.NewLogger(factory)
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
@@ -476,27 +480,30 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	serviceInteractionService := &service3.InteractionService{
 		Graph: interactionService,
 	}
-	userLoader := &loader.UserLoader{
+	userFacade := &facade2.UserFacade{
 		Users:       queries,
 		Interaction: serviceInteractionService,
 	}
-	identityLoader := &loader.IdentityLoader{
+	facadeIdentityFacade := &facade2.IdentityFacade{
 		Identities:  serviceService,
 		Interaction: serviceInteractionService,
 	}
-	authenticatorLoader := &loader.AuthenticatorLoader{
+	facadeAuthenticatorFacade := &facade2.AuthenticatorFacade{
 		Authenticators: service4,
 		Interaction:    serviceInteractionService,
 	}
-	verificationLoader := &loader.VerificationLoader{
+	verificationFacade := &facade2.VerificationFacade{
 		Verification: verificationService,
 	}
 	graphqlContext := &graphql.Context{
-		GQLLogger:      logger,
-		Users:          userLoader,
-		Identities:     identityLoader,
-		Authenticators: authenticatorLoader,
-		Verification:   verificationLoader,
+		GQLLogger:           logger,
+		Users:               userLoader,
+		Identities:          identityLoader,
+		Authenticators:      authenticatorLoader,
+		UserFacade:          userFacade,
+		IdentityFacade:      facadeIdentityFacade,
+		AuthenticatorFacade: facadeAuthenticatorFacade,
+		VerificationFacade:  verificationFacade,
 	}
 	devMode := environmentConfig.DevMode
 	graphQLHandler := &transport.GraphQLHandler{

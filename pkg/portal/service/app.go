@@ -68,7 +68,7 @@ type AppService struct {
 	AppBaseResources deps.AppBaseResources
 }
 
-func (s *AppService) loadApp(id string) (*model.App, error) {
+func (s *AppService) Get(id string) (*model.App, error) {
 	appCtx, err := s.AppConfigs.ResolveContext(id)
 	if err != nil {
 		return nil, err
@@ -82,7 +82,7 @@ func (s *AppService) loadApp(id string) (*model.App, error) {
 
 func (s *AppService) GetMany(ids []string) (out []*model.App, err error) {
 	for _, id := range ids {
-		app, err := s.loadApp(id)
+		app, err := s.Get(id)
 		if err != nil {
 			return nil, err
 		}

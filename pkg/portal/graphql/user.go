@@ -27,6 +27,7 @@ var nodeUser = node(
 	}),
 	&model.User{},
 	func(ctx context.Context, id string) (interface{}, error) {
+		// FIXME(portal): How can we determine if the viewer can access this user?
 		gqlCtx := GQLContext(ctx)
 		return gqlCtx.Users.Load(id).Value, nil
 	},

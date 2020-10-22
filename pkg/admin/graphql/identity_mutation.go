@@ -4,9 +4,10 @@ import (
 	"github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
+	"github.com/authgear/authgear-server/pkg/admin/loader"
 	"github.com/authgear/authgear-server/pkg/admin/model"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 var deleteIdentityInput = graphql.NewInputObject(graphql.InputObjectConfig{
@@ -46,25 +47,26 @@ var _ = registerMutationField(
 			if resolvedNodeID == nil || resolvedNodeID.Type != typeIdentity {
 				return nil, apierrors.NewInvalid("invalid identity ID")
 			}
-			identityRef, err := decodeIdentityID(resolvedNodeID.ID)
+			identityRef, err := loader.DecodeIdentityID(resolvedNodeID.ID)
 			if err != nil {
 				return nil, apierrors.NewInvalid("invalid identity ID")
 			}
 
 			gqlCtx := GQLContext(p.Context)
-			lazy := gqlCtx.Identities.Get(identityRef)
-			return lazy.
-				Map(func(value interface{}) (interface{}, error) {
-					i := value.(*identity.Info)
-					if i == nil {
-						return nil, apierrors.NewNotFound("identity not found")
-					}
-					return gqlCtx.Identities.Remove(i).
-						MapTo(gqlCtx.Users.Get(i.UserID)), nil
-				}).
-				Map(func(u interface{}) (interface{}, error) {
-					return map[string]interface{}{"user": u}, nil
-				}).Value, nil
+
+			info, err := gqlCtx.IdentityFacade.Get(identityRef)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.IdentityFacade.Remove(info)
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"user": gqlCtx.Users.Load(info.UserID),
+			}).Value, nil
 		},
 	},
 )
@@ -128,20 +130,16 @@ var _ = registerMutationField(
 			password, _ := input["password"].(string)
 
 			gqlCtx := GQLContext(p.Context)
-			return gqlCtx.Users.Get(userID).
-				Map(func(u interface{}) (interface{}, error) {
-					if u == nil {
-						return nil, apierrors.NewNotFound("user not found")
-					}
-					return gqlCtx.Identities.Create(userID, identityDef, password).
-						Map(func(i interface{}) (interface{}, error) {
-							return map[string]interface{}{
-								"user":     u,
-								"identity": i,
-							}, nil
-						}), nil
-				}).
-				Value, nil
+
+			info, err := gqlCtx.IdentityFacade.Create(userID, identityDef, password)
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"user":     gqlCtx.Users.Load(userID),
+				"identity": info,
+			}).Value, nil
 		},
 	},
 )

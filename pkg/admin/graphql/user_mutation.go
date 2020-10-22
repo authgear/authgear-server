@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/admin/model"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 var createUserInput = graphql.NewInputObject(graphql.InputObjectConfig{
@@ -53,13 +54,15 @@ var _ = registerMutationField(
 			password, _ := input["password"].(string)
 
 			gqlCtx := GQLContext(p.Context)
-			return gqlCtx.Users.Create(identityDef, password).
-				Map(func(u interface{}) (interface{}, error) {
-					return map[string]interface{}{
-						"user": u,
-					}, nil
-				}).
-				Value, nil
+
+			user, err := gqlCtx.UserFacade.Create(identityDef, password)
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"user": user,
+			}).Value, nil
 		},
 	},
 )
@@ -110,19 +113,15 @@ var _ = registerMutationField(
 			password, _ := input["password"].(string)
 
 			gqlCtx := GQLContext(p.Context)
-			return gqlCtx.Users.Get(userID).
-				Map(func(u interface{}) (interface{}, error) {
-					if u == nil {
-						return nil, apierrors.NewNotFound("user not found")
-					}
-					return gqlCtx.Users.ResetPassword(userID, password), nil
-				}).
-				Map(func(u interface{}) (interface{}, error) {
-					return map[string]interface{}{
-						"user": u,
-					}, nil
-				}).
-				Value, nil
+
+			err := gqlCtx.UserFacade.ResetPassword(userID, password)
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"user": gqlCtx.Users.Load(userID),
+			}).Value, nil
 		},
 	},
 )
@@ -183,19 +182,15 @@ var _ = registerMutationField(
 			isVerified, _ := input["isVerified"].(bool)
 
 			gqlCtx := GQLContext(p.Context)
-			return gqlCtx.Users.Get(userID).
-				Map(func(u interface{}) (interface{}, error) {
-					if u == nil {
-						return nil, apierrors.NewNotFound("user not found")
-					}
-					return gqlCtx.Verification.SetVerified(userID, claimName, claimValue, isVerified).MapTo(u), nil
-				}).
-				Map(func(u interface{}) (interface{}, error) {
-					return map[string]interface{}{
-						"user": u,
-					}, nil
-				}).
-				Value, nil
+
+			err := gqlCtx.VerificationFacade.SetVerified(userID, claimName, claimValue, isVerified)
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"user": gqlCtx.Users.Load(userID),
+			}).Value, nil
 		},
 	},
 )

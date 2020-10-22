@@ -3,13 +3,10 @@ package graphql
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/graphql-go/graphql"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/admin/loader"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -53,7 +50,7 @@ var nodeAuthenticator = entity(
 		Fields: graphql.Fields{
 			"id": entityIDField(typeAuthenticator, func(obj interface{}) (string, error) {
 				ref := obj.(interface{ ToRef() *authenticator.Ref }).ToRef()
-				return encodeAuthenticatorID(ref), nil
+				return loader.EncodeAuthenticatorID(ref), nil
 			}),
 			"createdAt": entityCreatedAtField(loadAuthenticator),
 			"updatedAt": entityUpdatedAtField(loadAuthenticator),
@@ -113,41 +110,18 @@ var nodeAuthenticator = entity(
 	}),
 	&authenticator.Info{},
 	func(ctx *Context, id string) (interface{}, error) {
-		ref, err := decodeAuthenticatorID(id)
-		if err != nil {
-			return nil, err
-		}
-
-		return ctx.Authenticators.Get(ref).Value, nil
+		return ctx.Authenticators.Load(id).Value, nil
 	},
 )
 
 var connAuthenticator = graphqlutil.NewConnectionDef(nodeAuthenticator)
-
-func encodeAuthenticatorID(ref *authenticator.Ref) string {
-	return strings.Join([]string{
-		string(ref.Type),
-		ref.ID,
-	}, "|")
-}
-
-func decodeAuthenticatorID(id string) (*authenticator.Ref, error) {
-	parts := strings.Split(id, "|")
-	if len(parts) != 2 {
-		return nil, apierrors.NewInvalid("invalid ID")
-	}
-	return &authenticator.Ref{
-		Type: authn.AuthenticatorType(parts[0]),
-		Meta: model.Meta{ID: parts[1]},
-	}, nil
-}
 
 func loadAuthenticator(ctx context.Context, obj interface{}) *graphqlutil.Lazy {
 	switch obj := obj.(type) {
 	case *authenticator.Info:
 		return graphqlutil.NewLazyValue(obj)
 	case *authenticator.Ref:
-		return GQLContext(ctx).Authenticators.Get(obj)
+		return GQLContext(ctx).Authenticators.Load(loader.EncodeAuthenticatorID(obj))
 	default:
 		panic(fmt.Sprintf("graphql: unknown authenticator type: %T", obj))
 	}

@@ -36,9 +36,9 @@ var DependencySet = wire.NewSet(
 
 	loader.DependencySet,
 	wire.Bind(new(loader.UserLoaderAdminAPIService), new(*service.AdminAPIService)),
-	wire.Bind(new(loader.AppService), new(*service.AppService)),
-	wire.Bind(new(loader.DomainService), new(*service.DomainService)),
-	wire.Bind(new(loader.CollaboratorService), new(*service.CollaboratorService)),
+	wire.Bind(new(loader.AppLoaderAppService), new(*service.AppService)),
+	wire.Bind(new(loader.DomainLoaderDomainService), new(*service.DomainService)),
+	wire.Bind(new(loader.CollaboratorLoaderCollaboratorService), new(*service.CollaboratorService)),
 	wire.Bind(new(loader.AuthzService), new(*service.AuthzService)),
 
 	graphql.DependencySet,
@@ -46,6 +46,11 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.AppLoader), new(*loader.AppLoader)),
 	wire.Bind(new(graphql.DomainLoader), new(*loader.DomainLoader)),
 	wire.Bind(new(graphql.CollaboratorLoader), new(*loader.CollaboratorLoader)),
+	wire.Bind(new(graphql.CollaboratorInvitationLoader), new(*loader.CollaboratorInvitationLoader)),
+	wire.Bind(new(graphql.AuthzService), new(*service.AuthzService)),
+	wire.Bind(new(graphql.AppService), new(*service.AppService)),
+	wire.Bind(new(graphql.DomainService), new(*service.DomainService)),
+	wire.Bind(new(graphql.CollaboratorService), new(*service.CollaboratorService)),
 
 	transport.DependencySet,
 	wire.Bind(new(transport.AdminAPIService), new(*service.AdminAPIService)),

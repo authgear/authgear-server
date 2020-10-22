@@ -5,7 +5,8 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/portal/session"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -42,14 +43,25 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 
-			return gqlCtx.Collaborators.DeleteCollaborator(collaboratorID).
-				Map(func(value interface{}) (interface{}, error) {
-					c := value.(*model.Collaborator)
-					app := gqlCtx.Apps.Get(c.AppID)
-					return map[string]interface{}{
-						"app": app,
-					}, nil
-				}).Value, nil
+			collaborator, err := gqlCtx.CollaboratorService.GetCollaborator(collaboratorID)
+			if err != nil {
+				return nil, err
+			}
+
+			// Access Control: collaborator.
+			_, err = gqlCtx.AuthzService.CheckAccessOfViewer(collaborator.AppID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.CollaboratorService.DeleteCollaborator(collaborator)
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"app": gqlCtx.Apps.Load(collaborator.AppID),
+			}).Value, nil
 		},
 	},
 )
@@ -87,14 +99,25 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 
-			return gqlCtx.Collaborators.DeleteInvitation(collaboratorInvitationID).
-				Map(func(value interface{}) (interface{}, error) {
-					i := value.(*model.CollaboratorInvitation)
-					app := gqlCtx.Apps.Get(i.AppID)
-					return map[string]interface{}{
-						"app": app,
-					}, nil
-				}).Value, nil
+			invitation, err := gqlCtx.CollaboratorService.GetInvitation(collaboratorInvitationID)
+			if err != nil {
+				return nil, err
+			}
+
+			// Access Control: collaborator.
+			_, err = gqlCtx.AuthzService.CheckAccessOfViewer(invitation.AppID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.CollaboratorService.DeleteInvitation(invitation)
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"app": gqlCtx.Apps.Load(invitation.AppID),
+			}).Value, nil
 		},
 	},
 )
@@ -168,14 +191,22 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 
-			return gqlCtx.Collaborators.SendInvitation(appID, inviteeEmail).
-				Map(func(value interface{}) (interface{}, error) {
-					app := gqlCtx.Apps.Get(appID)
-					return map[string]interface{}{
-						"app":                    app,
-						"collaboratorInvitation": value,
-					}, nil
-				}).Value, nil
+			// Access Control: collaborator.
+			_, err = gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			invitation, err := gqlCtx.CollaboratorService.SendInvitation(appID, inviteeEmail)
+			if err != nil {
+				return nil, err
+			}
+
+			gqlCtx.CollaboratorInvitations.Prime(invitation.ID, invitation)
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"app":                    gqlCtx.Apps.Load(appID),
+				"collaboratorInvitation": gqlCtx.CollaboratorInvitations.Load(invitation.ID),
+			}).Value, nil
 		},
 	},
 )
@@ -212,14 +243,21 @@ var _ = registerMutationField(
 			code := input["code"].(string)
 
 			gqlCtx := GQLContext(p.Context)
-			return gqlCtx.Collaborators.AcceptInvitation(code).
-				Map(func(value interface{}) (interface{}, error) {
-					c := value.(*model.Collaborator)
-					app := gqlCtx.Apps.Get(c.AppID)
-					return map[string]interface{}{
-						"app": app,
-					}, nil
-				}).Value, nil
+
+			// Access Control: authenicated user.
+			sessionInfo := session.GetValidSessionInfo(p.Context)
+			if sessionInfo == nil {
+				return nil, ErrForbidden
+			}
+
+			collaborator, err := gqlCtx.CollaboratorService.AcceptInvitation(code)
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"app": gqlCtx.Apps.Load(collaborator.AppID),
+			}).Value, nil
 		},
 	},
 )

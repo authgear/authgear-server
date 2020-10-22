@@ -87,7 +87,19 @@ var nodeApp = node(
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					ctx := GQLContext(p.Context)
 					app := p.Source.(*model.App)
-					return ctx.Domains.ListDomains(app.ID).Value, nil
+					domains, err := ctx.DomainService.ListDomains(app.ID)
+					if err != nil {
+						return nil, err
+					}
+
+					ids := make([]interface{}, len(domains))
+					for i, domain := range domains {
+						id := domain.ID
+						ids[i] = id
+						ctx.Domains.Prime(id, domain)
+					}
+
+					return ctx.Domains.LoadMany(ids).Value, nil
 				},
 			},
 			"collaborators": &graphql.Field{
@@ -95,7 +107,19 @@ var nodeApp = node(
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					ctx := GQLContext(p.Context)
 					app := p.Source.(*model.App)
-					return ctx.Collaborators.ListCollaborators(app.ID).Value, nil
+					collaborators, err := ctx.CollaboratorService.ListCollaborators(app.ID)
+					if err != nil {
+						return nil, err
+					}
+
+					ids := make([]interface{}, len(collaborators))
+					for i, collaborator := range collaborators {
+						id := collaborator.ID
+						ids[i] = id
+						ctx.Collaborators.Prime(id, collaborator)
+					}
+
+					return ctx.Collaborators.LoadMany(ids).Value, nil
 				},
 			},
 			"collaboratorInvitations": &graphql.Field{
@@ -103,7 +127,19 @@ var nodeApp = node(
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					ctx := GQLContext(p.Context)
 					app := p.Source.(*model.App)
-					return ctx.Collaborators.ListInvitations(app.ID).Value, nil
+					invitations, err := ctx.CollaboratorService.ListInvitations(app.ID)
+					if err != nil {
+						return nil, err
+					}
+
+					ids := make([]interface{}, len(invitations))
+					for i, invitation := range invitations {
+						id := invitation.ID
+						ids[i] = id
+						ctx.CollaboratorInvitations.Prime(id, invitation)
+					}
+
+					return ctx.CollaboratorInvitations.LoadMany(ids).Value, nil
 				},
 			},
 		},
@@ -111,8 +147,11 @@ var nodeApp = node(
 	&model.App{},
 	func(ctx context.Context, id string) (interface{}, error) {
 		gqlCtx := GQLContext(ctx)
-		lazy := gqlCtx.Apps.Get(id)
-		return lazy.Value, nil
+		_, err := gqlCtx.AuthzService.CheckAccessOfViewer(id)
+		if err != nil {
+			return nil, err
+		}
+		return gqlCtx.Apps.Load(id).Value, nil
 	},
 )
 

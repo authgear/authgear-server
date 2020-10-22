@@ -5,108 +5,109 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
-type CollaboratorService interface {
-	ListCollaborators(appID string) ([]*model.Collaborator, error)
-	GetCollaborator(id string) (*model.Collaborator, error)
-	DeleteCollaborator(c *model.Collaborator) error
-
-	ListInvitations(appID string) ([]*model.CollaboratorInvitation, error)
-	GetInvitation(id string) (*model.CollaboratorInvitation, error)
-	DeleteInvitation(i *model.CollaboratorInvitation) error
-	SendInvitation(appID string, inviteeEmail string) (*model.CollaboratorInvitation, error)
-	AcceptInvitation(code string) (*model.Collaborator, error)
+type CollaboratorLoaderCollaboratorService interface {
+	GetManyCollaborators(ids []string) ([]*model.Collaborator, error)
+	GetManyInvitations(ids []string) ([]*model.CollaboratorInvitation, error)
 }
 
 type CollaboratorLoader struct {
-	Collaborators CollaboratorService
-	Authz         AuthzService
+	*graphqlutil.DataLoader `wire:"-"`
+	CollaboratorService     CollaboratorLoaderCollaboratorService
+	Authz                   AuthzService
 }
 
-func (l *CollaboratorLoader) ListCollaborators(appID string) *graphqlutil.Lazy {
-	_, err := l.Authz.CheckAccessOfViewer(appID)
-	if err != nil {
-		return graphqlutil.NewLazyError(err)
+func NewCollaboratorLoader(
+	collaboratorService CollaboratorLoaderCollaboratorService,
+	authz AuthzService,
+) *CollaboratorLoader {
+	l := &CollaboratorLoader{
+		CollaboratorService: collaboratorService,
+		Authz:               authz,
+	}
+	l.DataLoader = graphqlutil.NewDataLoader(l.LoadFunc)
+	return l
+}
+
+func (l *CollaboratorLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
+	// Prepare IDs.
+	ids := make([]string, len(keys))
+	for i, key := range keys {
+		ids[i] = key.(string)
 	}
 
-	return graphqlutil.NewLazy(func() (interface{}, error) {
-		return l.Collaborators.ListCollaborators(appID)
-	})
-}
-
-func (l *CollaboratorLoader) DeleteCollaborator(id string) *graphqlutil.Lazy {
-	return graphqlutil.NewLazy(func() (interface{}, error) {
-		c, err := l.Collaborators.GetCollaborator(id)
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = l.Authz.CheckAccessOfViewer(c.AppID)
-		if err != nil {
-			return nil, err
-		}
-
-		err = l.Collaborators.DeleteCollaborator(c)
-		if err != nil {
-			return nil, err
-		}
-
-		return c, nil
-	})
-}
-
-func (l *CollaboratorLoader) ListInvitations(appID string) *graphqlutil.Lazy {
-	_, err := l.Authz.CheckAccessOfViewer(appID)
+	// Get entities.
+	collaborators, err := l.CollaboratorService.GetManyCollaborators(ids)
 	if err != nil {
-		return graphqlutil.NewLazyError(err)
+		return nil, err
 	}
 
-	return graphqlutil.NewLazy(func() (interface{}, error) {
-		return l.Collaborators.ListInvitations(appID)
-	})
-}
-
-func (l *CollaboratorLoader) DeleteInvitation(id string) *graphqlutil.Lazy {
-	return graphqlutil.NewLazy(func() (interface{}, error) {
-		i, err := l.Collaborators.GetInvitation(id)
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = l.Authz.CheckAccessOfViewer(i.AppID)
-		if err != nil {
-			return nil, err
-		}
-
-		err = l.Collaborators.DeleteInvitation(i)
-		if err != nil {
-			return nil, err
-		}
-
-		return i, nil
-	})
-}
-
-func (l *CollaboratorLoader) SendInvitation(appID string, inviteeEmail string) *graphqlutil.Lazy {
-	_, err := l.Authz.CheckAccessOfViewer(appID)
-	if err != nil {
-		return graphqlutil.NewLazyError(err)
+	// Create map.
+	entityMap := make(map[string]*model.Collaborator)
+	for _, domain := range collaborators {
+		entityMap[domain.ID] = domain
 	}
 
-	return graphqlutil.NewLazy(func() (interface{}, error) {
-		i, err := l.Collaborators.SendInvitation(appID, inviteeEmail)
+	// Ensure output is in correct order.
+	out := make([]interface{}, len(keys))
+	for i, id := range ids {
+		entity := entityMap[id]
+		_, err := l.Authz.CheckAccessOfViewer(entity.AppID)
 		if err != nil {
-			return nil, err
+			out[i] = nil
+		} else {
+			out[i] = entity
 		}
-		return i, nil
-	})
+	}
+	return out, nil
 }
 
-func (l *CollaboratorLoader) AcceptInvitation(code string) *graphqlutil.Lazy {
-	return graphqlutil.NewLazy(func() (interface{}, error) {
-		c, err := l.Collaborators.AcceptInvitation(code)
+type CollaboratorInvitationLoader struct {
+	*graphqlutil.DataLoader `wire:"-"`
+	CollaboratorService     CollaboratorLoaderCollaboratorService
+	Authz                   AuthzService
+}
+
+func NewCollaboratorInvitationLoader(
+	collaboratorService CollaboratorLoaderCollaboratorService,
+	authz AuthzService,
+) *CollaboratorInvitationLoader {
+	l := &CollaboratorInvitationLoader{
+		CollaboratorService: collaboratorService,
+		Authz:               authz,
+	}
+	l.DataLoader = graphqlutil.NewDataLoader(l.LoadFunc)
+	return l
+}
+
+func (l *CollaboratorInvitationLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
+	// Prepare IDs.
+	ids := make([]string, len(keys))
+	for i, key := range keys {
+		ids[i] = key.(string)
+	}
+
+	// Get entities.
+	invitations, err := l.CollaboratorService.GetManyInvitations(ids)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create map.
+	entityMap := make(map[string]*model.CollaboratorInvitation)
+	for _, domain := range invitations {
+		entityMap[domain.ID] = domain
+	}
+
+	// Ensure output is in correct order.
+	out := make([]interface{}, len(keys))
+	for i, id := range ids {
+		entity := entityMap[id]
+		_, err := l.Authz.CheckAccessOfViewer(entity.AppID)
 		if err != nil {
-			return nil, err
+			out[i] = nil
+		} else {
+			out[i] = entity
 		}
-		return c, nil
-	})
+	}
+	return out, nil
 }

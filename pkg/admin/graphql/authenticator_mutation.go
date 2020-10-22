@@ -4,8 +4,9 @@ import (
 	"github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
+	"github.com/authgear/authgear-server/pkg/admin/loader"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 var deleteAuthenticatorInput = graphql.NewInputObject(graphql.InputObjectConfig{
@@ -45,25 +46,26 @@ var _ = registerMutationField(
 			if resolvedNodeID == nil || resolvedNodeID.Type != typeAuthenticator {
 				return nil, apierrors.NewInvalid("invalid authenticator ID")
 			}
-			authenticatorRef, err := decodeAuthenticatorID(resolvedNodeID.ID)
+			authenticatorRef, err := loader.DecodeAuthenticatorID(resolvedNodeID.ID)
 			if err != nil {
 				return nil, apierrors.NewInvalid("invalid authenticator ID")
 			}
 
 			gqlCtx := GQLContext(p.Context)
-			lazy := gqlCtx.Authenticators.Get(authenticatorRef)
-			return lazy.
-				Map(func(value interface{}) (interface{}, error) {
-					i := value.(*authenticator.Info)
-					if i == nil {
-						return nil, apierrors.NewNotFound("authenticator not found")
-					}
-					return gqlCtx.Authenticators.Remove(i).
-						MapTo(gqlCtx.Users.Get(i.UserID)), nil
-				}).
-				Map(func(u interface{}) (interface{}, error) {
-					return map[string]interface{}{"user": u}, nil
-				}).Value, nil
+
+			info, err := gqlCtx.AuthenticatorFacade.Get(authenticatorRef)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.AuthenticatorFacade.Remove(info)
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"user": gqlCtx.Users.Load(info.UserID),
+			}).Value, nil
 		},
 	},
 )

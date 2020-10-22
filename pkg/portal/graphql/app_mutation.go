@@ -5,10 +5,12 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/resources"
 	"github.com/authgear/authgear-server/pkg/portal/session"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
+
+var ErrForbidden = apierrors.Forbidden.WithReason("Forbidden").New("forbidden")
 
 var appResourceUpdate = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name:        "AppResourceUpdate",
@@ -69,30 +71,41 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 
-			lazy := gqlCtx.Apps.Get(appID)
-			return lazy.
-				Map(func(value interface{}) (interface{}, error) {
-					app := value.(*model.App)
-					var resourceUpdates []resources.Update
-					for _, f := range updates {
-						f := f.(map[string]interface{})
-						path := f["path"].(string)
-						var data []byte
-						if stringData, ok := f["data"].(string); ok {
-							data = []byte(stringData)
-						}
+			// Access control: collaborator.
+			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			if err != nil {
+				return nil, err
+			}
 
-						resourceUpdates = append(resourceUpdates, resources.Update{
-							Path: path,
-							Data: data,
-						})
-					}
+			app, err := gqlCtx.AppService.Get(appID)
+			if err != nil {
+				return nil, err
+			}
 
-					return map[string]interface{}{
-						"app": gqlCtx.Apps.UpdateResources(app, resourceUpdates),
-					}, nil
-				}).
-				Value, nil
+			var resourceUpdates []resources.Update
+			for _, f := range updates {
+				f := f.(map[string]interface{})
+				path := f["path"].(string)
+				var data []byte
+				if stringData, ok := f["data"].(string); ok {
+					data = []byte(stringData)
+				}
+
+				resourceUpdates = append(resourceUpdates, resources.Update{
+					Path: path,
+					Data: data,
+				})
+			}
+
+			err = gqlCtx.AppService.UpdateResources(app, resourceUpdates)
+			if err != nil {
+				return nil, err
+			}
+
+			// App is not primed here intentionally.
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"app": gqlCtx.Apps.Load(appID),
+			}).Value, nil
 		},
 	},
 )
@@ -131,11 +144,23 @@ var _ = registerMutationField(
 			appID := input["id"].(string)
 
 			gqlCtx := GQLContext(p.Context)
-			actorID := session.GetValidSessionInfo(p.Context).UserID
-			return gqlCtx.Apps.Create(actorID, appID).Map(func(app interface{}) (interface{}, error) {
-				return map[string]interface{}{
-					"app": app,
-				}, nil
+
+			// Access Control: authenicated user.
+			sessionInfo := session.GetValidSessionInfo(p.Context)
+			if sessionInfo == nil {
+				return nil, ErrForbidden
+			}
+
+			actorID := sessionInfo.UserID
+
+			err := gqlCtx.AppService.Create(actorID, appID)
+			if err != nil {
+				return nil, err
+			}
+
+			appLazy := gqlCtx.Apps.Load(appID)
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"app": appLazy,
 			}).Value, nil
 		},
 	},
