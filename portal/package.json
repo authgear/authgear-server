@@ -54,6 +54,7 @@
     "luxon": "1.25.0",
     "react": "17.0.0-rc.0",
     "react-dom": "17.0.0-rc.0",
+    "react-helmet-async": "1.0.7",
     "react-router-dom": "6.0.0-beta.0",
     "zxcvbn": "4.4.2"
   }

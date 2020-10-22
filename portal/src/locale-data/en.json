@@ -1,5 +1,8 @@
 {
   "error.failed-to-initialize-app": "Failed to initialize the app. Please refresh this page to retry.",
+  "system.name": "Authgear",
+  "system.title": "Authgear Portal",
+  "system.logo-uri": "/img/logo.png",
 
   "loading": "Loading...",
 
@@ -219,7 +222,8 @@
   "AnonymousIdentityConflictBehaviour.error": "Show Error",
 
   "SingleSignOnConfigurationScreen.title": "Single-Sign On",
-  "SingleSignOnConfigurationScreen.help-link": "Need help? View our SSO integration documentations",
+  "SingleSignOnConfigurationScreen.help-link-label": "Need help? View our SSO integration documentations",
+  "SingleSignOnConfigurationScreen.help-link-href": "https://docs.authgear.com/how-tos/how-to-setup-sso-integrations",
   "SingleSignOnConfigurationScreen.widget.alias": "Alias",
   "SingleSignOnConfigurationScreen.widget.client-id": "Client ID",
   "SingleSignOnConfigurationScreen.widget.client-secret": "Client Secret",

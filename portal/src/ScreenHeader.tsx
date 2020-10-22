@@ -3,7 +3,6 @@ import { Link, useParams } from "react-router-dom";
 import { Context } from "@oursky/react-messageformat";
 import authgear from "@authgear/web";
 import { Icon, IconButton, Text } from "@fluentui/react";
-import srcLogo from "./image/screen-header-logo@3x.png";
 import { useAppConfigQuery } from "./graphql/portal/query/appConfigQuery";
 
 import styles from "./ScreenHeader.module.scss";
@@ -68,7 +67,11 @@ const ScreenHeader: React.FC = function ScreenHeader() {
     <header className={styles.header} style={headerStyle}>
       <div className={styles.headerLeft}>
         <Link to="/" className={styles.logoLink}>
-          <img className={styles.logo} alt="Authgear" src={srcLogo} />
+          <img
+            className={styles.logo}
+            alt={renderToString("system.name")}
+            src={renderToString("system.logo-uri")}
+          />
         </Link>
         {appID && <ScreenHeaderAppSection appID={appID} />}
       </div>

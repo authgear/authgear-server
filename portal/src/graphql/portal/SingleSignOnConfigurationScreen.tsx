@@ -2,6 +2,7 @@ import React, {
   Dispatch,
   SetStateAction,
   useCallback,
+  useContext,
   useMemo,
   useState,
 } from "react";
@@ -9,9 +10,8 @@ import { useParams } from "react-router-dom";
 import { createDraft, produce } from "immer";
 import deepEqual from "deep-equal";
 import { Link, Text } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
-import { ExternalLinks } from "../../externalLinks";
 import SingleSignOnConfigurationWidget from "./SingleSignOnConfigurationWidget";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
@@ -604,6 +604,7 @@ const SingleSignOnConfigurationScreen: React.FC = function SingleSignOnConfigura
     loading: updatingAppAndSecretConfig,
     error: updateAppAndSecretConfigError,
   } = useUpdateAppAndSecretConfigMutation(appID);
+  const { renderToString } = useContext(Context);
 
   if (loading) {
     return <ShowLoading />;
@@ -620,11 +621,13 @@ const SingleSignOnConfigurationScreen: React.FC = function SingleSignOnConfigura
           <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
         </Text>
         <Link
-          href={ExternalLinks.SSOScreenHelp}
+          href={renderToString(
+            "SingleSignOnConfigurationScreen.help-link-href"
+          )}
           target="_blank"
           className={styles.helpLink}
         >
-          <FormattedMessage id="SingleSignOnConfigurationScreen.help-link" />
+          <FormattedMessage id="SingleSignOnConfigurationScreen.help-link-label" />
         </Link>
         <SingleSignOnConfiguration
           rawAppConfig={rawAppConfig}

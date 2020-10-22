@@ -1,8 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { LocaleProvider, FormattedMessage } from "@oursky/react-messageformat";
+import {
+  LocaleProvider,
+  FormattedMessage,
+  Context,
+} from "@oursky/react-messageformat";
 import { ApolloProvider } from "@apollo/client";
 import authgear from "@authgear/web";
+import { Helmet, HelmetProvider } from "react-helmet-async";
 import Authenticated from "./graphql/portal/Authenticated";
 import AppsScreen from "./graphql/portal/AppsScreen";
 import CreateAppScreen from "./graphql/portal/CreateAppScreen";
@@ -58,6 +63,22 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
   );
 };
 
+const PortalRoot = function PortalRoot() {
+  const { renderToString } = useContext(Context);
+  return (
+    <>
+      <Helmet>
+        <title>{renderToString("system.title")} </title>
+      </Helmet>
+      <div className={styles.root}>
+        <Authenticated>
+          <ReactAppRoutes />
+        </Authenticated>
+      </div>
+    </>
+  );
+};
+
 // ReactApp is responsible for fetching runtime config and initialize authgear SDK.
 const ReactApp: React.FC = function ReactApp() {
   const [systemConfig, setSystemConfig] = useState<SystemConfig | null>(null);
@@ -94,15 +115,13 @@ const ReactApp: React.FC = function ReactApp() {
 
   return (
     <LocaleProvider locale="en" messageByID={systemConfig.translations.en}>
-      <ApolloProvider client={client}>
-        <SystemConfigContext.Provider value={systemConfig}>
-          <div className={styles.root}>
-            <Authenticated>
-              <ReactAppRoutes />
-            </Authenticated>
-          </div>
-        </SystemConfigContext.Provider>
-      </ApolloProvider>
+      <HelmetProvider>
+        <ApolloProvider client={client}>
+          <SystemConfigContext.Provider value={systemConfig}>
+            <PortalRoot />
+          </SystemConfigContext.Provider>
+        </ApolloProvider>
+      </HelmetProvider>
     </LocaleProvider>
   );
 };
