@@ -71,6 +71,12 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 
+			// Access control: collaborator.
+			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			if err != nil {
+				return nil, err
+			}
+
 			app, err := gqlCtx.AppService.Get(appID)
 			if err != nil {
 				return nil, err
@@ -138,6 +144,8 @@ var _ = registerMutationField(
 			appID := input["id"].(string)
 
 			gqlCtx := GQLContext(p.Context)
+
+			// Access Control: authenicated user.
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
 				return nil, ErrForbidden

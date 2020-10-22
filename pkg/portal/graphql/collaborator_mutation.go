@@ -5,6 +5,7 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -43,6 +44,12 @@ var _ = registerMutationField(
 			gqlCtx := GQLContext(p.Context)
 
 			collaborator, err := gqlCtx.CollaboratorService.GetCollaborator(collaboratorID)
+			if err != nil {
+				return nil, err
+			}
+
+			// Access Control: collaborator.
+			_, err = gqlCtx.AuthzService.CheckAccessOfViewer(collaborator.AppID)
 			if err != nil {
 				return nil, err
 			}
@@ -93,6 +100,12 @@ var _ = registerMutationField(
 			gqlCtx := GQLContext(p.Context)
 
 			invitation, err := gqlCtx.CollaboratorService.GetInvitation(collaboratorInvitationID)
+			if err != nil {
+				return nil, err
+			}
+
+			// Access Control: collaborator.
+			_, err = gqlCtx.AuthzService.CheckAccessOfViewer(invitation.AppID)
 			if err != nil {
 				return nil, err
 			}
@@ -178,6 +191,12 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 
+			// Access Control: collaborator.
+			_, err = gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			if err != nil {
+				return nil, err
+			}
+
 			invitation, err := gqlCtx.CollaboratorService.SendInvitation(appID, inviteeEmail)
 			if err != nil {
 				return nil, err
@@ -224,6 +243,12 @@ var _ = registerMutationField(
 			code := input["code"].(string)
 
 			gqlCtx := GQLContext(p.Context)
+
+			// Access Control: authenicated user.
+			sessionInfo := session.GetValidSessionInfo(p.Context)
+			if sessionInfo == nil {
+				return nil, ErrForbidden
+			}
 
 			collaborator, err := gqlCtx.CollaboratorService.AcceptInvitation(code)
 			if err != nil {

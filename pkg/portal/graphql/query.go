@@ -39,6 +39,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					return nil, nil
 				}
 
+				// Access control is not needed here cause List returns accessible apps.
 				apps, err := ctx.AppService.List(sessionInfo.UserID)
 				if err != nil {
 					return nil, err

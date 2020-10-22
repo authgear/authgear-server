@@ -204,6 +204,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Domains:                 domainLoader,
 		Collaborators:           collaboratorLoader,
 		CollaboratorInvitations: collaboratorInvitationLoader,
+		AuthzService:            authzService,
 		AppService:              appService,
 		DomainService:           domainService,
 		CollaboratorService:     collaboratorService,

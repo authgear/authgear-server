@@ -53,6 +53,12 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 
+			// Access Control: collaborator.
+			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			if err != nil {
+				return nil, err
+			}
+
 			domainModel, err := gqlCtx.DomainService.CreateCustomDomain(appID, domain)
 			if err != nil {
 				return nil, err
@@ -111,7 +117,13 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 
-			err := gqlCtx.DomainService.DeleteDomain(appID, domainID)
+			// Access Control: collaborator.
+			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.DomainService.DeleteDomain(appID, domainID)
 			if err != nil {
 				return nil, err
 			}
@@ -167,6 +179,12 @@ var _ = registerMutationField(
 			appID := resolvedNodeID.ID
 
 			gqlCtx := GQLContext(p.Context)
+
+			// Access Control: collaborator.
+			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			if err != nil {
+				return nil, err
+			}
 
 			domain, err := gqlCtx.DomainService.VerifyDomain(appID, domainID)
 			if err != nil {

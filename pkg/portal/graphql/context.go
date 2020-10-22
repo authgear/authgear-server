@@ -55,6 +55,10 @@ type CollaboratorService interface {
 	AcceptInvitation(code string) (*model.Collaborator, error)
 }
 
+type AuthzService interface {
+	CheckAccessOfViewer(appID string) (userID string, err error)
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("portal-graphql")} }
@@ -68,6 +72,7 @@ type Context struct {
 	Collaborators           CollaboratorLoader
 	CollaboratorInvitations CollaboratorInvitationLoader
 
+	AuthzService        AuthzService
 	AppService          AppService
 	DomainService       DomainService
 	CollaboratorService CollaboratorService
