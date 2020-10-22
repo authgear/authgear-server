@@ -38,6 +38,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/rand"
@@ -139,11 +140,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	rootProvider := appProvider.RootProvider
-	reservedNameChecker := rootProvider.ReservedNameChecker
+	manager := appProvider.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:              loginIDConfig,
-		ReservedNameChecker: reservedNameChecker,
+		Config:    loginIDConfig,
+		Resources: manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -298,9 +298,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	manager := appProvider.Resources
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(configConfig)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -309,18 +308,28 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
 		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
 	}
 	webEndpoints := &WebEndpoints{}
 	queue := appProvider.TaskQueue
 	messageSender := &otp.MessageSender{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Endpoints:            webEndpoints,
-		TaskQueue:            queue,
+		Translation: translationService,
+		Endpoints:   webEndpoints,
+		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -344,16 +353,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		StaticAssetURLPrefix: staticAssetURLPrefix,
-		Translation:          translationService,
-		Config:               forgotPasswordConfig,
-		Store:                forgotpasswordStore,
-		Clock:                clockClock,
-		URLs:                 webEndpoints,
-		TaskQueue:            queue,
-		Logger:               providerLogger,
-		Identities:           identityFacade,
-		Authenticators:       authenticatorFacade,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           webEndpoints,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -441,7 +449,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       rand,
 	}
-	httpConfig := appConfig.HTTP
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{

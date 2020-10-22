@@ -32,19 +32,23 @@ type GenerateSecretConfigOptions struct {
 func GenerateSecretConfigFromOptions(opts *GenerateSecretConfigOptions, rand io.Reader) *SecretConfig {
 	var items []SecretItem
 
-	items = append(items, SecretItem{
-		Key: DatabaseCredentialsKey,
-		Data: &DatabaseCredentials{
-			DatabaseURL:    opts.DatabaseURL,
-			DatabaseSchema: opts.DatabaseSchema,
-		},
-	})
-	items = append(items, SecretItem{
-		Key: RedisCredentialsKey,
-		Data: &RedisCredentials{
-			RedisURL: opts.RedisURL,
-		},
-	})
+	if opts.DatabaseURL != "" {
+		items = append(items, SecretItem{
+			Key: DatabaseCredentialsKey,
+			Data: &DatabaseCredentials{
+				DatabaseURL:    opts.DatabaseURL,
+				DatabaseSchema: opts.DatabaseSchema,
+			},
+		})
+	}
+	if opts.RedisURL != "" {
+		items = append(items, SecretItem{
+			Key: RedisCredentialsKey,
+			Data: &RedisCredentials{
+				RedisURL: opts.RedisURL,
+			},
+		})
+	}
 
 	items = append(items, SecretItem{
 		Key:  OIDCKeyMaterialsKey,

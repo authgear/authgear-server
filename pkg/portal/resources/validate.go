@@ -6,7 +6,9 @@ import (
 	"path"
 
 	"github.com/spf13/afero"
+	"sigs.k8s.io/yaml"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
@@ -42,7 +44,7 @@ func Validate(appID string, appFs resource.Fs, resources *resource.Manager, upda
 	}
 
 	// Construct new resource manager.
-	newResources, err := constructResources(resources, appFs, updates)
+	newResources, newAppFs, err := constructResources(resources, appFs, updates)
 	if err != nil {
 		return err
 	}
@@ -84,16 +86,45 @@ func Validate(appID string, appFs resource.Fs, resources *resource.Manager, upda
 		return fmt.Errorf("invalid resource '%s': incorrect app ID", configsource.AuthgearYAML)
 	}
 
-	// FIXME(resource): disallow overriding base secrets
+	// Disable overriding base secrets
+	baseSecrets := map[config.SecretKey]struct{}{}
+	appSecrets := map[config.SecretKey]struct{}{}
+	for _, fs := range newResources.Fs {
+		layers, err := configsource.SecretConfig.ReadResource(fs)
+		if err != nil {
+			return err
+		}
+
+		var secrets map[config.SecretKey]struct{}
+		if fs == newAppFs {
+			secrets = appSecrets
+		} else {
+			secrets = baseSecrets
+		}
+		for _, layer := range layers {
+			var secretCfg *config.SecretConfig
+			if err := yaml.Unmarshal(layer.Data, &secretCfg); err != nil {
+				return err
+			}
+			for _, item := range secretCfg.Secrets {
+				secrets[item.Key] = struct{}{}
+			}
+		}
+	}
+	for key := range appSecrets {
+		if _, ok := baseSecrets[key]; ok {
+			return fmt.Errorf("invalid resource '%s': cannot override secret '%s' defined in base config", configsource.AuthgearSecretYAML, key)
+		}
+	}
 
 	return nil
 }
 
-func constructResources(resources *resource.Manager, appFs resource.Fs, updates []Update) (*resource.Manager, error) {
+func constructResources(resources *resource.Manager, appFs resource.Fs, updates []Update) (*resource.Manager, resource.Fs, error) {
 	newFs := afero.NewMemMapFs()
 	paths, err := resource.ListFiles(appFs)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	for _, p := range paths {
 		err := func() error {
@@ -113,7 +144,7 @@ func constructResources(resources *resource.Manager, appFs resource.Fs, updates 
 			return nil
 		}()
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 	for _, u := range updates {
@@ -125,13 +156,14 @@ func constructResources(resources *resource.Manager, appFs resource.Fs, updates 
 		}
 	}
 
+	newAppFs := resource.Fs(&resource.AferoFs{Fs: newFs})
 	var newResFs []resource.Fs
 	for _, fs := range resources.Fs {
 		if fs == appFs {
-			newResFs = append(newResFs, &resource.AferoFs{Fs: newFs})
+			newResFs = append(newResFs, newAppFs)
 		} else {
 			newResFs = append(newResFs, fs)
 		}
 	}
-	return resource.NewManager(resources.Registry, newResFs), nil
+	return resource.NewManager(resources.Registry, newResFs), newAppFs, nil
 }

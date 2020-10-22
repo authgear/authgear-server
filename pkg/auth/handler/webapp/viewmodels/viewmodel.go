@@ -1,11 +1,11 @@
 package viewmodels
 
 import (
-	"fmt"
 	"net/url"
 	"reflect"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 func sliceContains(slice []interface{}, value interface{}) bool {
@@ -24,18 +24,8 @@ func asAPIError(anyError interface{}) *apierrors.APIError {
 	return nil
 }
 
-// Embed embeds the given struct s into data.
 func Embed(data map[string]interface{}, s interface{}) {
-	v := reflect.ValueOf(s)
-	typ := v.Type()
-	if typ.Kind() != reflect.Struct {
-		panic(fmt.Errorf("webapp: expected struct but was %T", s))
-	}
-	numField := typ.NumField()
-	for i := 0; i < numField; i++ {
-		structField := typ.Field(i)
-		data[structField.Name] = v.Field(i).Interface()
-	}
+	template.Embed(data, s)
 }
 
 func EmbedForm(data map[string]interface{}, form url.Values) {

@@ -21,9 +21,13 @@ func TestValidate(t *testing.T) {
 			SecretConfig: configtest.FixtureSecretConfig(0),
 		}
 		config.PopulateDefaultValues(cfg.AppConfig)
+
+		baseFs := afero.NewMemMapFs()
 		appFs := afero.NewMemMapFs()
+		baseResourceFs := &resource.AferoFs{Fs: baseFs}
 		appResourceFs := &resource.AferoFs{Fs: appFs}
 		resMgr := resource.NewManager(resource.DefaultRegistry, []resource.Fs{
+			baseResourceFs,
 			appResourceFs,
 		})
 		validate := func(updates []resources.Update) error {
@@ -85,12 +89,6 @@ func TestValidate(t *testing.T) {
 			So(err, ShouldBeError, `invalid resource 'authgear.secrets.yaml': cannot parse secret config: invalid secrets:
 <root>: required
   map[actual:<nil> expected:[secrets] missing:[secrets]]`)
-
-			err = validate([]resources.Update{{
-				Path: "authgear.secrets.yaml",
-				Data: []byte("secrets: []"),
-			}})
-			So(err.Error(), ShouldStartWith, `invalid resource 'authgear.secrets.yaml': cannot parse secret config: invalid secrets`)
 		})
 
 		Convey("forbid deleting configuration YAML", func() {
@@ -113,6 +111,17 @@ func TestValidate(t *testing.T) {
 				Data: nil,
 			}})
 			So(err, ShouldBeError, `invalid resource 'unknown.txt': unknown resource path`)
+		})
+
+		Convey("forbid overriding base secrets", func() {
+			secretConfigYAML, _ := yaml.Marshal(cfg.SecretConfig)
+			_ = afero.WriteFile(baseFs, "authgear.secrets.yaml", secretConfigYAML, 0666)
+
+			err := validate([]resources.Update{{
+				Path: "authgear.secrets.yaml",
+				Data: []byte("secrets: [{data: {redis_url: redis://localhost}, key: redis}]"),
+			}})
+			So(err, ShouldBeError, `invalid resource 'authgear.secrets.yaml': cannot override secret 'redis' defined in base config`)
 		})
 	})
 }

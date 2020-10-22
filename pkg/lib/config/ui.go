@@ -7,14 +7,12 @@ var _ = Schema.Add("UIConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"custom_css": { "type": "string" },
 		"country_calling_code": { "$ref": "#/$defs/UICountryCallingCodeConfig" }
 	}
 }
 `)
 
 type UIConfig struct {
-	CustomCSS          string                      `json:"custom_css,omitempty"`
 	CountryCallingCode *UICountryCallingCodeConfig `json:"country_calling_code,omitempty"`
 }
 

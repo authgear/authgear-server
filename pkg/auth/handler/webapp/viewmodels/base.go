@@ -11,18 +11,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/translation"
 )
 
 // BaseViewModel contains data that are common to all pages.
 type BaseViewModel struct {
 	RequestURL            string
 	CSRFField             htmltemplate.HTML
-	CSS                   htmltemplate.CSS
-	AppName               string
-	LogoURI               string
+	StaticAssetURL        func(id string) (url string, err error)
 	CountryCallingCodes   []string
-	StaticAssetURLPrefix  string
 	SliceContains         func([]interface{}, interface{}) bool
 	MakeURL               func(path string, pairs ...string) string
 	MakeURLState          func(path string, pairs ...string) string
@@ -31,34 +27,24 @@ type BaseViewModel struct {
 	PublicSignupDisabled  bool
 }
 
-type TranslationService interface {
-	AppMetadata() (*translation.AppMetadata, error)
+type StaticAssetResolver interface {
+	StaticAssetURL(id string) (url string, err error)
 }
 
 type BaseViewModeler struct {
-	StaticAssetURLPrefix config.StaticAssetURLPrefix
-	AuthUI               *config.UIConfig
-	Translation          TranslationService
-	ForgotPassword       *config.ForgotPasswordConfig
-	Authentication       *config.AuthenticationConfig
+	AuthUI         *config.UIConfig
+	StaticAssets   StaticAssetResolver
+	ForgotPassword *config.ForgotPasswordConfig
+	Authentication *config.AuthenticationConfig
 }
 
 func (m *BaseViewModeler) ViewModel(r *http.Request, anyError interface{}) BaseViewModel {
-	appMeta, err := m.Translation.AppMetadata()
-	if err != nil {
-		panic(err)
-	}
-
 	model := BaseViewModel{
-		RequestURL: r.URL.String(),
-		CSRFField:  csrf.TemplateField(r),
-		// We assume the CSS provided by the developer is trusted.
-		CSS:                  htmltemplate.CSS(m.AuthUI.CustomCSS),
-		AppName:              appMeta.AppName,
-		LogoURI:              appMeta.LogoURI,
-		CountryCallingCodes:  m.AuthUI.CountryCallingCode.Values,
-		StaticAssetURLPrefix: string(m.StaticAssetURLPrefix),
-		SliceContains:        sliceContains,
+		RequestURL:          r.URL.String(),
+		CSRFField:           csrf.TemplateField(r),
+		StaticAssetURL:      m.StaticAssets.StaticAssetURL,
+		CountryCallingCodes: m.AuthUI.CountryCallingCode.Values,
+		SliceContains:       sliceContains,
 		MakeURL: func(path string, pairs ...string) string {
 			u := r.URL
 			inQuery := url.Values{}

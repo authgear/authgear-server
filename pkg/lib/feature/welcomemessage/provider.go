@@ -9,8 +9,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 )
 
+type TemplateData struct {
+	Email string
+}
+
 type TranslationService interface {
-	AppMetadata() (*translation.AppMetadata, error)
 	EmailMessageData(msg *translation.MessageSpec, args interface{}) (*translation.EmailMessageData, error)
 	SMSMessageData(msg *translation.MessageSpec, args interface{}) (*translation.SMSMessageData, error)
 }
@@ -36,17 +39,9 @@ func (p *Provider) send(emails []string) error {
 		return nil
 	}
 
-	appMeta, err := p.Translation.AppMetadata()
-	if err != nil {
-		return err
-	}
-
 	var emailMessages []mail.SendOptions
 	for _, email := range emails {
-		data := map[string]interface{}{
-			"Email":   email,
-			"AppName": appMeta.AppName,
-		}
+		data := TemplateData{Email: email}
 
 		msg, err := p.Translation.EmailMessageData(messageWelcomeMessage, data)
 		if err != nil {

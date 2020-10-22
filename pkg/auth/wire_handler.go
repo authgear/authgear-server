@@ -277,3 +277,10 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		wire.Bind(new(http.Handler), new(*handlerwebapp.CreateAuthenticatorBeginHandler)),
 	))
 }
+
+func newWebAppStaticAssetsHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.StaticAssetsHandler)),
+	))
+}

@@ -1,6 +1,7 @@
 package loginid
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"golang.org/x/text/secure/precis"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -21,8 +23,8 @@ type TypeChecker interface {
 }
 
 type TypeCheckerFactory struct {
-	Config              *config.LoginIDConfig
-	ReservedNameChecker *ReservedNameChecker
+	Config    *config.LoginIDConfig
+	Resources ResourceManager
 }
 
 func (f *TypeCheckerFactory) NewChecker(loginIDKeyType config.LoginIDKeyType) TypeChecker {
@@ -32,10 +34,27 @@ func (f *TypeCheckerFactory) NewChecker(loginIDKeyType config.LoginIDKeyType) Ty
 			Config: f.Config.Types.Email,
 		}
 	case config.LoginIDKeyTypeUsername:
-		return &UsernameChecker{
-			Config:              f.Config.Types.Username,
-			ReservedNameChecker: f.ReservedNameChecker,
+		checker := &UsernameChecker{
+			Config: f.Config.Types.Username,
 		}
+
+		rawData, err := f.Resources.Read(ReservedNameTXT, nil)
+		if errors.Is(err, resource.ErrResourceNotFound) {
+			// No reserved usernames
+			rawData = &resource.MergedFile{Data: nil}
+		} else if err != nil {
+			checker.Error = err
+			return checker
+		}
+
+		data, err := ReservedNameTXT.Parse(rawData)
+		if err != nil {
+			checker.Error = err
+			return checker
+		}
+
+		checker.ReservedNameChecker = NewReservedNameChecker(data.(ReservedNameData))
+		return checker
 	case config.LoginIDKeyTypePhone:
 		return &PhoneChecker{}
 	}
@@ -73,9 +92,15 @@ func (c *EmailChecker) Validate(ctx *validation.Context, loginID string) {
 type UsernameChecker struct {
 	Config              *config.LoginIDUsernameConfig
 	ReservedNameChecker *ReservedNameChecker
+	Error               error
 }
 
 func (c *UsernameChecker) Validate(ctx *validation.Context, loginID string) {
+	if c.Error != nil {
+		ctx.AddError(c.Error)
+		return
+	}
+
 	// Ensure the login id is valid for Identifier profile
 	// and use the casefolded value for checking blacklist
 	// https://godoc.org/golang.org/x/text/secure/precis#NewIdentifier
@@ -87,12 +112,7 @@ func (c *UsernameChecker) Validate(ctx *validation.Context, loginID string) {
 	}
 
 	if *c.Config.BlockReservedUsernames {
-		reserved, err := c.ReservedNameChecker.IsReserved(cfLoginID)
-		if err != nil {
-			ctx.AddError(err)
-			return
-		}
-		if reserved {
+		if c.ReservedNameChecker.IsReserved(cfLoginID) {
 			ctx.EmitErrorMessage("username is not allowed")
 			return
 		}

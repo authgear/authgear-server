@@ -48,7 +48,7 @@ func ReadFile(fs Fs, path string) ([]byte, error) {
 	return ioutil.ReadAll(file)
 }
 
-func readDirNames(fs Fs, dir string) ([]string, error) {
+func ReadDirNames(fs Fs, dir string) ([]string, error) {
 	f, err := fs.Open(dir)
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func ListFiles(fs Fs) ([]string, error) {
 
 	var list func(dir string) error
 	list = func(dir string) error {
-		files, err := readDirNames(fs, dir)
+		files, err := ReadDirNames(fs, dir)
 		if err != nil {
 			return err
 		}

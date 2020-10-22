@@ -7,14 +7,14 @@
 <mj-body background-color="#ffffff">
   <mj-section padding="20px 0 0">
     <mj-column>
-      <mj-image align="left" width="150px" src="https://uploads-ssl.webflow.com/5f30d184082f96442f7d34af/5f30d1c26a2b9d68d9a260f1_header-logo.png"/>
+      <mj-image align="left" width="150px" src="{{ call $.StaticAssetURL `app-logo` }}"/>
     </mj-column>
   </mj-section>
   <mj-section padding-top="10px">
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px">Sign up on {{ .AppName }}</mj-text>
+      <mj-text font-weight="bold" font-size="24px">Sign up on {{ template "app.name" }}</mj-text>
       <mj-text font-size="16px" padding-top="10px" line-height="24px">
-        The textbox below contains a one-time password generated to copmlete your sign up process.
+        The textbox below contains a one-time password generated to complete your sign up process.
       </mj-text>
     </mj-column>
   </mj-section>

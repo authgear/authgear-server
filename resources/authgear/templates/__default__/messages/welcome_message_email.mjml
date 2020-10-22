@@ -8,14 +8,14 @@
 <mj-body background-color="#f3f3f3">
   <mj-section padding="20px 0 0">
     <mj-column>
-      <mj-image align="left" width="150px" src="https://uploads-ssl.webflow.com/5f30d184082f96442f7d34af/5f30d1c26a2b9d68d9a260f1_header-logo.png"/>
+      <mj-image align="left" width="150px" src="{{ call $.StaticAssetURL `app-logo` }}"/>
     </mj-column>
   </mj-section>
   <mj-section>
     <mj-column background-color="#ffffff" border-radius="2px" padding="16px 8px">
-      <mj-text font-weight="bold" font-size="24px" align="left">Welcome to {{ .AppName }}</mj-text>
+      <mj-text font-weight="bold" font-size="24px" align="left">Welcome to {{ template "app.name" }}</mj-text>
       <mj-divider border-width="1px" border-color="#c7c7c7" />
-        <mj-text font-size="16px" align="left" line-height="24px">Hello {{ .Email}}, thank you for signing up.</mj-text>
+        <mj-text font-size="16px" align="left" line-height="24px">Hello {{ .Email }}, thank you for signing up.</mj-text>
     </mj-column>
   </mj-section>
 </mj-body>

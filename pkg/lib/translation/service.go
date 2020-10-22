@@ -10,10 +10,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
+type StaticAssetResolver interface {
+	StaticAssetURL(id string) (url string, err error)
+}
+
 type Service struct {
 	Context           context.Context
 	EnvironmentConfig *config.EnvironmentConfig
 	TemplateEngine    *template.Engine
+	StaticAssets      StaticAssetResolver
 
 	translations *template.TranslationMap `wire:"-"`
 }
@@ -31,39 +36,17 @@ func (s *Service) translationMap() (*template.TranslationMap, error) {
 }
 
 func (s *Service) renderTemplate(tpl template.Resource, args interface{}) (string, error) {
+	data := make(map[string]interface{})
+	template.Embed(data, args)
+	data["StaticAssetURL"] = s.StaticAssets.StaticAssetURL
+
 	preferredLanguageTags := intl.GetPreferredLanguageTags(s.Context)
-	out, err := s.TemplateEngine.Render(tpl, preferredLanguageTags, args)
+	out, err := s.TemplateEngine.Render(tpl, preferredLanguageTags, data)
 	if err != nil {
 		return "", err
 	}
 
 	return out, nil
-}
-
-func (s *Service) AppMetadata() (*AppMetadata, error) {
-	t, err := s.translationMap()
-	if err != nil {
-		return nil, err
-	}
-
-	args := map[string]interface{}{
-		"StaticAssetURLPrefix": s.EnvironmentConfig.StaticAssetURLPrefix,
-	}
-
-	appName, err := t.RenderText("app.app-name", args)
-	if err != nil {
-		return nil, err
-	}
-
-	logoURI, err := t.RenderText("app.logo-uri", args)
-	if err != nil {
-		return nil, err
-	}
-
-	return &AppMetadata{
-		AppName: appName,
-		LogoURI: logoURI,
-	}, nil
 }
 
 func (s *Service) emailMessageHeader(name string, args interface{}) (sender, replyTo, subject string, err error) {

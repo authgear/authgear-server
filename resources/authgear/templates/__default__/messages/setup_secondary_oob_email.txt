@@ -1,4 +1,4 @@
-Sign up on {{ .AppName }}
+Sign up on {{ template "app.name" }}
 
 Please use the following one-time-password to complete the sign up process.
 

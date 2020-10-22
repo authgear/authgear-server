@@ -1,38 +1,22 @@
 package loginid
 
-import (
-	"io/ioutil"
-	"os"
-	"strings"
-)
+type ReservedNameData []string
 
 type ReservedNameChecker struct {
-	reservedWords []string
+	data map[string]struct{}
 }
 
-func NewReservedNameChecker(sourceFile string) (*ReservedNameChecker, error) {
-	f, err := os.Open(sourceFile)
-	if err != nil {
-		return nil, err
+func NewReservedNameChecker(data ReservedNameData) *ReservedNameChecker {
+	wordMap := make(map[string]struct{})
+	for _, word := range data {
+		wordMap[word] = struct{}{}
 	}
-	content, err := ioutil.ReadAll(f)
-	if err != nil {
-		return nil, err
-	}
-
-	reservedWords := strings.Split(string(content), "\n")
-
 	return &ReservedNameChecker{
-		reservedWords: reservedWords,
-	}, nil
+		data: wordMap,
+	}
 }
 
-func (c *ReservedNameChecker) IsReserved(name string) (bool, error) {
-	for i := 0; i < len(c.reservedWords); i++ {
-		if c.reservedWords[i] == name {
-			return true, nil
-		}
-	}
-
-	return false, nil
+func (c *ReservedNameChecker) IsReserved(name string) bool {
+	_, isReserved := c.data[name]
+	return isReserved
 }

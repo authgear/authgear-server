@@ -36,8 +36,8 @@ func (c *Controller) Start() {
 	p, err := deps.NewRootProvider(
 		cfg.EnvironmentConfig,
 		cfg.ConfigSource,
-		cfg.ReservedNameFilePath,
-		cfg.BaseResourceDirectory,
+		cfg.BuiltinResourceDirectory,
+		cfg.CustomResourceDirectory,
 		taskQueueFactory,
 	)
 	if err != nil {
@@ -77,7 +77,6 @@ func (c *Controller) Start() {
 				configSrcController.GetConfigSource(),
 				auth.StaticAssetConfig{
 					ServingEnabled: cfg.StaticAsset.ServingEnabled,
-					Directory:      cfg.StaticAsset.Dir,
 				},
 			),
 		}

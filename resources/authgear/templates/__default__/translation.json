@@ -1,6 +1,5 @@
 {
-  "app.app-name": "Authgear",
-  "app.logo-uri": "",
+  "app.name": "Authgear",
 
   "email.default.sender": "no-reply@authgear.com",
   "email.default.reply-to": "",

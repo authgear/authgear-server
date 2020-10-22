@@ -33,8 +33,10 @@ type RootProvider struct {
 
 func NewRootProvider(
 	cfg *config.EnvironmentConfig,
-	resourceDirectory portalconfig.ResourceDirectory,
-	appBaseResourceDirectory portalconfig.AppBaseResourceDirectory,
+	builtinResourceDirectory string,
+	customResourceDirectory string,
+	appBuiltinResourceDirectory string,
+	appCustomResourceDirectory string,
 	configSourceConfig *configsource.Config,
 	authgearConfig *portalconfig.AuthgearConfig,
 	adminAPIConfig *portalconfig.AdminAPIConfig,
@@ -70,8 +72,8 @@ func NewRootProvider(
 		MailConfig:         mailConfig,
 		LoggerFactory:      loggerFactory,
 		SentryHub:          sentryHub,
-		Resources:          NewResourceManager(string(resourceDirectory)),
-		AppBaseResources:   NewResourceManager(string(appBaseResourceDirectory)),
+		Resources:          NewResourceManager(builtinResourceDirectory, customResourceDirectory),
+		AppBaseResources:   NewResourceManager(appBuiltinResourceDirectory, appCustomResourceDirectory),
 	}, nil
 }
 

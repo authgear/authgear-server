@@ -108,7 +108,7 @@
                         <tbody>
                           <tr>
                             <td style="width:150px;">
-                              <img height="auto" src="https://uploads-ssl.webflow.com/5f30d184082f96442f7d34af/5f30d1c26a2b9d68d9a260f1_header-logo.png" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="150" />
+                              <img height="auto" src="{{ call $.StaticAssetURL `app-logo` }}" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="150" />
                             </td>
                           </tr>
                         </tbody>
@@ -162,7 +162,7 @@
                         <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="" width="100%">
                           <tr>
                             <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                              <div style="font-family:Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;font-size:24px;font-weight:bold;line-height:1;text-align:left;color:#000000;">Welcome to {{ .AppName }}</div>
+                              <div style="font-family:Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;font-size:24px;font-weight:bold;line-height:1;text-align:left;color:#000000;">Welcome to {{ template "app.name" }}</div>
                             </td>
                           </tr>
                           <tr>
@@ -184,7 +184,7 @@
                           </tr>
                           <tr>
                             <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                              <div style="font-family:Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;font-size:16px;line-height:24px;text-align:left;color:#000000;">Hello {{ .Email}}, thank you for signing up.</div>
+                              <div style="font-family:Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;font-size:16px;line-height:24px;text-align:left;color:#000000;">Hello {{ .Email }}, thank you for signing up.</div>
                             </td>
                           </tr>
                         </table>
