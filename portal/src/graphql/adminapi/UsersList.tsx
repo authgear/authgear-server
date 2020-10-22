@@ -33,9 +33,9 @@ import { encodeOffsetToCursor } from "../../util/pagination";
 import { formatDatetime } from "../../util/formatDatetime";
 import { extractUserInfoFromIdentities } from "../../util/user";
 import { nonNullable } from "../../util/types";
-import { actionButtonTheme } from "../../theme";
 
 import styles from "./UsersList.module.scss";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
 interface PlainUsersListProps {
   className?: string;
@@ -86,6 +86,7 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
   const edges = props.users?.edges;
 
   const { renderToString, locale } = useContext(Context);
+  const { themes } = useSystemConfig();
 
   const columns: IColumn[] = [
     {
@@ -200,7 +201,7 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
             <ActionButton
               className={styles.actionButton}
               styles={{ flexContainer: { alignItems: "normal" } }}
-              theme={actionButtonTheme}
+              theme={themes.actionButton}
               onClick={(event) =>
                 onDisableUserClicked(event, item.id, item.username)
               }
@@ -216,7 +217,7 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
           );
       }
     },
-    [onDisableUserClicked]
+    [onDisableUserClicked, themes.actionButton]
   );
 
   const dismissDisableUserDialog = useCallback(() => {

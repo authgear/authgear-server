@@ -7,8 +7,7 @@ import {
   SpinnerSize,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-
-import { theme } from "./theme";
+import { useSystemConfig } from "./context/SystemConfigContext";
 
 interface ButtonWithLoadingProps extends IButtonProps {
   loading: boolean;
@@ -29,14 +28,15 @@ const ButtonWithLoading: React.FC<ButtonWithLoadingProps> = function ButtonWithL
     ...rest
   } = props;
   const { renderToString } = useContext(Context);
+  const { themes } = useSystemConfig();
 
   const disabled = loading || disabledProps;
   const textColor = useMemo(() => {
-    const buttonTheme = props.theme ?? theme;
+    const buttonTheme = props.theme ?? themes.main;
     const normalTextColor = buttonTheme.palette.white;
     const disableTextColor = buttonTheme.palette.neutralTertiary;
     return disabled ? disableTextColor : normalTextColor;
-  }, [disabled, props.theme]);
+  }, [disabled, props.theme, themes.main]);
 
   return (
     <PrimaryButton disabled={disabled} {...rest}>

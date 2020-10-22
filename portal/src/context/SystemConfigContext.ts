@@ -1,14 +1,17 @@
 import { createContext, useContext } from "react";
-
 import { SystemConfig } from "../system-config";
-export { SystemConfig };
 
-type SystemConfigContextValue = SystemConfig | null;
+type SystemConfigContextValue = SystemConfig;
 
-export const SystemConfigContext = createContext<SystemConfigContextValue>(
+export const SystemConfigContext = createContext<SystemConfigContextValue | null>(
   null
 );
 
 export function useSystemConfig(): SystemConfigContextValue {
-  return useContext(SystemConfigContext);
+  const value = useContext(SystemConfigContext);
+  if (!value) {
+    // Should not happen at runtime
+    throw Error();
+  }
+  return value;
 }

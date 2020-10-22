@@ -16,10 +16,10 @@ import { useDeleteAuthenticatorMutation } from "./mutations/deleteAuthenticatorM
 import ListCellLayout from "../../ListCellLayout";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import ErrorDialog from "../../error/ErrorDialog";
-import { destructiveTheme } from "../../theme";
 import { formatDatetime } from "../../util/formatDatetime";
 
 import styles from "./UserDetailsAccountSecurity.module.scss";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
 // authenticator type recognized by portal
 type PrimaryAuthenticatorType = "PASSWORD" | "OOB_OTP";
@@ -363,6 +363,7 @@ const PasswordAuthenticatorCell: React.FC<PasswordAuthenticatorCellProps> = func
   const { id, kind, lastUpdated, showConfirmationDialog } = props;
   const navigate = useNavigate();
   const { renderToString } = useContext(Context);
+  const { themes } = useSystemConfig();
 
   const labelId = getLocaleKeyWithAuthenticatorType("PASSWORD", kind);
 
@@ -401,7 +402,7 @@ const PasswordAuthenticatorCell: React.FC<PasswordAuthenticatorCellProps> = func
             styles.removePasswordButton
           )}
           onClick={onRemoveClicked}
-          theme={destructiveTheme}
+          theme={themes.destructive}
         >
           <FormattedMessage id="remove" />
         </DefaultButton>
@@ -414,6 +415,7 @@ const TOTPAuthenticatorCell: React.FC<TOTPAuthenticatorCellProps> = function TOT
   props: TOTPAuthenticatorCellProps
 ) {
   const { id, kind, label, addedOn, showConfirmationDialog } = props;
+  const { themes } = useSystemConfig();
 
   const onRemoveClicked = useCallback(() => {
     showConfirmationDialog(id, label);
@@ -438,7 +440,7 @@ const TOTPAuthenticatorCell: React.FC<TOTPAuthenticatorCellProps> = function TOT
             styles.totpRemoveButton
           )}
           onClick={onRemoveClicked}
-          theme={destructiveTheme}
+          theme={themes.destructive}
         >
           <FormattedMessage id="remove" />
         </DefaultButton>
@@ -451,6 +453,7 @@ const OOBOTPAuthenticatorCell: React.FC<OOBOTPAuthenticatorCellProps> = function
   props: OOBOTPAuthenticatorCellProps
 ) {
   const { id, label, iconName, kind, addedOn, showConfirmationDialog } = props;
+  const { themes } = useSystemConfig();
 
   const onRemoveClicked = useCallback(() => {
     showConfirmationDialog(id, label);
@@ -477,7 +480,7 @@ const OOBOTPAuthenticatorCell: React.FC<OOBOTPAuthenticatorCellProps> = function
             styles.oobOtpRemoveButton
           )}
           onClick={onRemoveClicked}
-          theme={destructiveTheme}
+          theme={themes.destructive}
         >
           <FormattedMessage id="remove" />
         </DefaultButton>

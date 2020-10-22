@@ -8,7 +8,7 @@ import {
 } from "@fluentui/react";
 
 import ButtonWithLoading from "../../ButtonWithLoading";
-import { destructiveTheme } from "../../theme";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
 export interface RemovePortalAdminConfirmationDialogData {
   userID: string;
@@ -35,6 +35,7 @@ const RemovePortalAdminConfirmationDialog: React.FC<RemovePortalAdminConfirmatio
   } = props;
 
   const { renderToString } = useContext(Context);
+  const { themes } = useSystemConfig();
 
   const dialogContentProps: IDialogContentProps = useMemo(() => {
     return {
@@ -68,7 +69,7 @@ const RemovePortalAdminConfirmationDialog: React.FC<RemovePortalAdminConfirmatio
         <ButtonWithLoading
           onClick={onConfirmClicked}
           labelId="confirm"
-          theme={destructiveTheme}
+          theme={themes.destructive}
           loading={deletingCollaborator}
           disabled={!visible}
         />

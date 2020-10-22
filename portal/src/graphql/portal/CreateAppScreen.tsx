@@ -61,7 +61,7 @@ const CreateApp: React.FC<CreateAppProps> = function CreateApp(
         disabled={isCreating}
         onChange={onAppIDChange}
         prefix={APP_ID_SCHEME}
-        suffix={systemConfig?.appHostSuffix}
+        suffix={systemConfig.appHostSuffix}
       />
       <PrimaryButton
         onClick={onCreateClick}

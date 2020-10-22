@@ -41,7 +41,6 @@ import {
   ModifiedIndicatorPortal,
   ModifiedIndicatorWrapper,
 } from "../../ModifiedIndicatorPortal";
-import { actionButtonTheme, destructiveTheme } from "../../theme";
 import { useDropdown, useTextField } from "../../hook/useInput";
 import {
   GenericErrorHandlingRule,
@@ -51,6 +50,7 @@ import ErrorDialog from "../../error/ErrorDialog";
 import { clearEmptyObject } from "../../util/misc";
 
 import styles from "./DNSConfigurationScreen.module.scss";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
 interface DNSConfigurationProps {
   domains: Domain[];
@@ -337,6 +337,7 @@ const DomainListActionButtons: React.FC<DomainListActionButtonsProps> = function
     onDeleteClick: onDeleteClickProps,
   } = props;
 
+  const { themes } = useSystemConfig();
   const navigate = useNavigate();
 
   const showDelete = isCustomDomain;
@@ -363,7 +364,7 @@ const DomainListActionButtons: React.FC<DomainListActionButtonsProps> = function
       {showVerify && (
         <ActionButton
           className={styles.actionButton}
-          theme={actionButtonTheme}
+          theme={themes.actionButton}
           onClick={onVerifyClicked}
         >
           <FormattedMessage id="verify" />
@@ -375,7 +376,7 @@ const DomainListActionButtons: React.FC<DomainListActionButtonsProps> = function
       {showDelete && (
         <ActionButton
           className={styles.actionButton}
-          theme={destructiveTheme}
+          theme={themes.destructive}
           onClick={onDeleteClick}
         >
           <FormattedMessage id="delete" />
@@ -391,6 +392,7 @@ const DeleteDomainDialog: React.FC<DeleteDomainDialogProps> = function DeleteDom
   const { domain, domainID, visible, dismissDialog } = props;
   const { appID } = useParams();
   const { renderToString } = useContext(Context);
+  const { themes } = useSystemConfig();
 
   const {
     deleteDomain,
@@ -436,7 +438,7 @@ const DeleteDomainDialog: React.FC<DeleteDomainDialogProps> = function DeleteDom
       >
         <DialogFooter>
           <ButtonWithLoading
-            theme={destructiveTheme}
+            theme={themes.destructive}
             loading={deletingDomain}
             onClick={onConfirmClick}
             disabled={!visible}

@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LocaleProvider, FormattedMessage } from "@oursky/react-messageformat";
 import { ApolloProvider } from "@apollo/client";
 import authgear from "@authgear/web";
-import ShowLoading from "./ShowLoading";
 import Authenticated from "./graphql/portal/Authenticated";
 import AppsScreen from "./graphql/portal/AppsScreen";
 import CreateAppScreen from "./graphql/portal/CreateAppScreen";
@@ -15,14 +14,29 @@ import i18nISOCountriesEnLocale from "i18n-iso-countries/langs/en.json";
 import styles from "./ReactApp.module.scss";
 import OAuthRedirect from "./OAuthRedirect";
 import AcceptAdminInvitationScreen from "./graphql/portal/AcceptAdminInvitationScreen";
+import { SystemConfigContext } from "./context/SystemConfigContext";
 import {
   SystemConfig,
-  SystemConfigContext,
-} from "./context/SystemConfigContext";
+  PartialSystemConfig,
+  defaultSystemConfig,
+  instantiateSystemConfig,
+  mergeSystemConfig,
+} from "./system-config";
+import { loadTheme } from "@fluentui/react";
 
 async function loadSystemConfig(): Promise<SystemConfig> {
   const resp = await fetch("/api/system-config.json");
-  return resp.json();
+  const config = (await resp.json()) as PartialSystemConfig;
+  const mergedConfig = mergeSystemConfig(defaultSystemConfig, config);
+  return instantiateSystemConfig(mergedConfig);
+}
+
+async function initApp(systemConfig: SystemConfig) {
+  loadTheme(systemConfig.themes.main);
+  await authgear.configure({
+    clientID: systemConfig.authgearClientID,
+    endpoint: systemConfig.authgearEndpoint,
+  });
 }
 
 // ReactAppRoutes defines the routes.
@@ -46,62 +60,47 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
 
 // ReactApp is responsible for fetching runtime config and initialize authgear SDK.
 const ReactApp: React.FC = function ReactApp() {
-  const [configured, setConfigured] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<null | unknown>(null);
   const [systemConfig, setSystemConfig] = useState<SystemConfig | null>(null);
+  const [error, setError] = useState<null | unknown>(null);
 
   useEffect(() => {
-    if (!configured && !loading && error == null) {
-      setLoading(true);
-
+    if (!systemConfig && error == null) {
       loadSystemConfig()
         .then(async (cfg) => {
+          await initApp(cfg);
           setSystemConfig(cfg);
-          await authgear.configure({
-            clientID: cfg.authgearClientID,
-            endpoint: cfg.authgearEndpoint,
-          });
-          setConfigured(true);
         })
-        .then(
-          () => {
-            setLoading(false);
-          },
-          (err) => {
-            setLoading(false);
-            setError(err);
-          }
-        );
+        .catch((err) => {
+          setError(err);
+        });
     }
-  }, [configured, loading, error]);
-
-  let children: React.ReactElement;
+  }, [systemConfig, error]);
 
   if (error != null) {
-    children = (
-      <p>
-        <FormattedMessage id="error.failed-to-initialize-app" />
-      </p>
+    return (
+      <LocaleProvider locale="en" messageByID={MESSAGES}>
+        <p>
+          <FormattedMessage id="error.failed-to-initialize-app" />
+        </p>
+      </LocaleProvider>
     );
-  } else if (loading) {
-    children = <ShowLoading />;
-  } else {
-    children = (
-      <Authenticated>
-        <ReactAppRoutes />
-      </Authenticated>
-    );
+  } else if (!systemConfig) {
+    // Avoid rendering components from @fluentui/react, since themes are not loaded yet.
+    return null;
   }
 
   // register locale for country code translation
   registerLocale(i18nISOCountriesEnLocale);
 
   return (
-    <LocaleProvider locale="en" messageByID={MESSAGES}>
+    <LocaleProvider locale="en" messageByID={systemConfig.translations.en}>
       <ApolloProvider client={client}>
         <SystemConfigContext.Provider value={systemConfig}>
-          <div className={styles.root}>{children}</div>
+          <div className={styles.root}>
+            <Authenticated>
+              <ReactAppRoutes />
+            </Authenticated>
+          </div>
         </SystemConfigContext.Provider>
       </ApolloProvider>
     </LocaleProvider>
