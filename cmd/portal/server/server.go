@@ -61,7 +61,6 @@ func (c *Controller) Start() {
 		ListenAddress: cfg.PortalListenAddr,
 		Handler: portal.NewRouter(p, portal.StaticAssetConfig{
 			ServingEnabled: cfg.StaticAsset.ServingEnabled,
-			Directory:      cfg.StaticAsset.Dir,
 		}),
 	})
 	server.Start(c.logger, specs)

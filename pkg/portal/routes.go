@@ -41,10 +41,7 @@ func NewRouter(p *deps.RootProvider, staticAsset StaticAssetConfig) *httproute.R
 	router.Add(transport.ConfigureAdminAPIRoute(sessionRequiredRoute), p.Handler(newAdminAPIHandler))
 
 	if staticAsset.ServingEnabled {
-		router.NotFound(http.FileServer(&httputil.TryFileSystem{
-			Fallback: "/index.html",
-			FS:       http.Dir(staticAsset.Directory),
-		}))
+		router.NotFound(p.Handler(newStaticAssetsHandler))
 	}
 
 	return router

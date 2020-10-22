@@ -9,4 +9,5 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(RuntimeConfigHandler), "*"),
 	NewAdminAPILogger,
 	wire.Struct(new(AdminAPIHandler), "*"),
+	wire.Struct(new(StaticAssetsHandler), "*"),
 )

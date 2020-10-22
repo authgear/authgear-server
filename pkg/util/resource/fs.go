@@ -17,7 +17,8 @@ type File interface {
 
 	Name() string
 	Stat() (os.FileInfo, error)
-	// Readdir does not follow symlinks, instead use Readdirnames to avoid surprises.
+	// Readdir does not follow symlinks, use Readdirnames instead to avoid surprises.
+	Readdir(count int) ([]os.FileInfo, error)
 	Readdirnames(n int) ([]string, error)
 }
 

@@ -33,9 +33,9 @@ type Config struct {
 	Mail portalconfig.MailConfig `envconfig:"MAIL"`
 
 	// BuiltinResourceDirectory sets the directory for built-in resource files
-	BuiltinResourceDirectory string `envconfig:"BUILTIN_RESOURCE_DIRECTORY" default:"resources/portal"`
+	BuiltinResourceDirectory string `envconfig:"PORTAL_BUILTIN_RESOURCE_DIRECTORY" default:"resources/portal"`
 	// CustomResourceDirectory sets the directory for customized resource files
-	CustomResourceDirectory string `envconfig:"CUSTOM_RESOURCE_DIRECTORY"`
+	CustomResourceDirectory string `envconfig:"PORTAL_CUSTOM_RESOURCE_DIRECTORY"`
 
 	*config.EnvironmentConfig
 }
@@ -95,7 +95,5 @@ func (c *Config) Validate() error {
 
 type StaticAssetConfig struct {
 	// ServingEnabled sets whether serving static assets is enabled
-	ServingEnabled bool `envconfig:"SERVING_ENABLED" default:"false"`
-	// Dir sets the local directory of static assets
-	Dir string `envconfig:"DIR" default:"./static"`
+	ServingEnabled bool `envconfig:"SERVING_ENABLED" default:"true"`
 }

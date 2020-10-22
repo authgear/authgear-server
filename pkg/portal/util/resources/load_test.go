@@ -6,7 +6,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/spf13/afero"
 
-	"github.com/authgear/authgear-server/pkg/portal/resources"
+	"github.com/authgear/authgear-server/pkg/portal/util/resources"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 

@@ -5,7 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
-	"github.com/authgear/authgear-server/pkg/portal/resources"
+	"github.com/authgear/authgear-server/pkg/portal/util/resources"
 )
 
 type App struct {

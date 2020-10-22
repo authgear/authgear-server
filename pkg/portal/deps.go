@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/task"
 	"github.com/authgear/authgear-server/pkg/portal/transport"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/template"
 
 	// Import auth package to ensure correct content of registries
@@ -55,4 +56,5 @@ var DependencySet = wire.NewSet(
 	transport.DependencySet,
 	wire.Bind(new(transport.AdminAPIService), new(*service.AdminAPIService)),
 	wire.Bind(new(transport.AdminAPIAuthzService), new(*service.AuthzService)),
+	wire.Bind(new(transport.ResourceManager), new(*resource.Manager)),
 )

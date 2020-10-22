@@ -335,3 +335,12 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	}
 	return adminAPIHandler
 }
+
+func newStaticAssetsHandler(p *deps.RequestProvider) http.Handler {
+	rootProvider := p.RootProvider
+	manager := rootProvider.Resources
+	staticAssetsHandler := &transport.StaticAssetsHandler{
+		Resources: manager,
+	}
+	return staticAssetsHandler
+}
