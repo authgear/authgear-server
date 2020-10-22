@@ -116,7 +116,7 @@ To setup multi-tenant mode:
     ```
 2. Bootstrap Kubernetes resources:
    ```
-   kubectl --kubeconfig=hack/kube-apiserver/.kubeconfig apply -f hack/kube-apiserver/k8s-ingress.yaml
+   kubectl --kubeconfig=hack/kube-apiserver/.kubeconfig apply -f hack/k8s-manifest.yaml
    ```
 
    This step creates an app with id `accounts`.
