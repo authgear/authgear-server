@@ -25,9 +25,9 @@ stringData:
           client_id: portal
           grant_types: []
           post_logout_redirect_uris:
-            - 'http://portal.localhost:8000/'
+            - 'http://portal.localhost:8000/oauth-redirect'
           redirect_uris:
-            - 'http://portal.localhost:8000/'
+            - 'http://portal.localhost:8000/oauth-redirect'
           response_types:
             - none
     authentication:

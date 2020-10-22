@@ -70,9 +70,9 @@ oauth:
       # Note that the trailing slash is very important here
       # URIs are compared byte by byte.
       redirect_uris:
-        - "http://localhost:8000/"
+        - "http://localhost:8000/oauth-redirect"
       post_logout_redirect_uris:
-        - "http://localhost:8000/"
+        - "http://localhost:8000/oauth-redirect"
       grant_types: []
       response_types: ["none"]
 ```
