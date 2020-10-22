@@ -70,9 +70,9 @@ oauth:
       # Note that the trailing slash is very important here
       # URIs are compared byte by byte.
       redirect_uris:
-        - "http://localhost:8000/"
+        - "http://localhost:8000/oauth-redirect"
       post_logout_redirect_uris:
-        - "http://localhost:8000/"
+        - "http://localhost:8000/oauth-redirect"
       grant_types: []
       response_types: ["none"]
 ```
@@ -116,7 +116,7 @@ To setup multi-tenant mode:
     ```
 2. Bootstrap Kubernetes resources:
    ```
-   kubectl --kubeconfig=hack/kube-apiserver/.kubeconfig apply -f hack/kube-apiserver/k8s-ingress.yaml
+   kubectl --kubeconfig=hack/kube-apiserver/.kubeconfig apply -f hack/k8s-manifest.yaml
    ```
 
    This step creates an app with id `accounts`.
