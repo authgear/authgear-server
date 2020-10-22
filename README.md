@@ -83,8 +83,8 @@ To avoid doing the above every time you open a new shell, you may want to add it
    To generate the necessary config and secret yaml file, run
 
    ```sh
-   go run ./cmd/authgear init config
-   go run ./cmd/authgear init secrets
+   go run ./cmd/authgear init config --output ./var/authgear.yaml
+   go run ./cmd/authgear init secrets --output ./var/authgear.secrets.yaml
    ```
 
    then follow the instructions. For database URL and schema, use the following,

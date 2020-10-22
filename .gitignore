@@ -1,8 +1,7 @@
 /tmp
 .env
-/authgear
-/authgear.yaml
-/authgear.secrets.yaml
+/var/authgear.yaml
+/var/authgear.secrets.yaml
 /tls-cert.pem
 /tls-key.pem
 
