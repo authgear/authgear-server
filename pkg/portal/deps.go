@@ -57,4 +57,5 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(transport.AdminAPIService), new(*service.AdminAPIService)),
 	wire.Bind(new(transport.AdminAPIAuthzService), new(*service.AuthzService)),
 	wire.Bind(new(transport.ResourceManager), new(*resource.Manager)),
+	wire.Bind(new(transport.SystemConfigProvider), new(*service.SystemConfigProvider)),
 )

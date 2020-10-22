@@ -7,7 +7,7 @@ import ScreenHeader from "../../ScreenHeader";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import { useCreateAppMutation } from "./mutations/createAppMutation";
 import { useTextField } from "../../hook/useInput";
-import { useRuntimeConfig } from "../../context/RuntimeConfigContext";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
 import styles from "./CreateAppScreen.module.scss";
 
@@ -27,7 +27,7 @@ const CreateApp: React.FC<CreateAppProps> = function CreateApp(
 ) {
   const { isCreating, createApp } = props;
   const navigate = useNavigate();
-  const runtimeConfig = useRuntimeConfig();
+  const systemConfig = useSystemConfig();
 
   const [formData, setFormData] = useState<CreateAppFormData>({
     appID: "",
@@ -61,7 +61,7 @@ const CreateApp: React.FC<CreateAppProps> = function CreateApp(
         disabled={isCreating}
         onChange={onAppIDChange}
         prefix={APP_ID_SCHEME}
-        suffix={runtimeConfig?.app_host_suffix}
+        suffix={systemConfig?.appHostSuffix}
       />
       <PrimaryButton
         onClick={onCreateClick}

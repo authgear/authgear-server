@@ -33,7 +33,7 @@ func NewRouter(p *deps.RootProvider, staticAsset StaticAssetConfig) *httproute.R
 	rootRoute := httproute.Route{Middleware: rootChain}
 	sessionRequiredRoute := httproute.Route{Middleware: sessionRequiredChain}
 
-	router.Add(transport.ConfigureRuntimeConfigRoute(rootRoute), p.Handler(newRuntimeConfigHandler))
+	router.Add(transport.ConfigureSystemConfigRoute(rootRoute), p.Handler(newSystemConfigHandler))
 	// It is OK to access portal graphql endpoint without session.
 	// Actually the client check if viewer is null to determine session existence.
 	router.Add(transport.ConfigureGraphQLRoute(rootRoute), p.Handler(newGraphQLHandler))

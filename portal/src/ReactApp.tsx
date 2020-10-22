@@ -16,9 +16,14 @@ import styles from "./ReactApp.module.scss";
 import OAuthRedirect from "./OAuthRedirect";
 import AcceptAdminInvitationScreen from "./graphql/portal/AcceptAdminInvitationScreen";
 import {
-  RuntimeConfig,
-  RuntimeConfigContext,
-} from "./context/RuntimeConfigContext";
+  SystemConfig,
+  SystemConfigContext,
+} from "./context/SystemConfigContext";
+
+async function loadSystemConfig(): Promise<SystemConfig> {
+  const resp = await fetch("/api/system-config.json");
+  return resp.json();
+}
 
 // ReactAppRoutes defines the routes.
 const ReactAppRoutes: React.FC = function ReactAppRoutes() {
@@ -44,21 +49,18 @@ const ReactApp: React.FC = function ReactApp() {
   const [configured, setConfigured] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<null | unknown>(null);
-  const [runtimeConfigState, setRuntimeConfig] = useState<RuntimeConfig | null>(
-    null
-  );
+  const [systemConfig, setSystemConfig] = useState<SystemConfig | null>(null);
 
   useEffect(() => {
     if (!configured && !loading && error == null) {
       setLoading(true);
 
-      fetch("/api/runtime-config.json")
-        .then(async (response) => {
-          const runtimeConfig = await response.json();
-          setRuntimeConfig(runtimeConfig);
+      loadSystemConfig()
+        .then(async (cfg) => {
+          setSystemConfig(cfg);
           await authgear.configure({
-            clientID: runtimeConfig.authgear_client_id,
-            endpoint: runtimeConfig.authgear_endpoint,
+            clientID: cfg.authgearClientID,
+            endpoint: cfg.authgearEndpoint,
           });
           setConfigured(true);
         })
@@ -98,9 +100,9 @@ const ReactApp: React.FC = function ReactApp() {
   return (
     <LocaleProvider locale="en" messageByID={MESSAGES}>
       <ApolloProvider client={client}>
-        <RuntimeConfigContext.Provider value={runtimeConfigState}>
+        <SystemConfigContext.Provider value={systemConfig}>
           <div className={styles.root}>{children}</div>
-        </RuntimeConfigContext.Provider>
+        </SystemConfigContext.Provider>
       </ApolloProvider>
     </LocaleProvider>
   );

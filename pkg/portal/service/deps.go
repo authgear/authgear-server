@@ -11,6 +11,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(ConfigService), "*"),
 	wire.Struct(new(DomainService), "*"),
 	wire.Struct(new(CollaboratorService), "*"),
+	wire.Struct(new(SystemConfigProvider), "*"),
 	NewConfigServiceLogger,
 	NewAppServiceLogger,
 
