@@ -1,3 +1,4 @@
+/* global process */
 import React, { useCallback } from "react";
 import { MessageBar, MessageBarType, MessageBarButton } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
@@ -11,6 +12,8 @@ const ShowError: React.FC<ShowErrorProps> = function ShowError(
   props: ShowErrorProps
 ) {
   const { error, onRetry } = props;
+
+  const showErrorStack = process.env.NODE_ENV === "development";
 
   const onClickRetry = useCallback(
     (e: React.MouseEvent<HTMLElement>) => {
@@ -28,8 +31,10 @@ const ShowError: React.FC<ShowErrorProps> = function ShowError(
         {error.name}: {error.message}
       </React.Fragment>
     );
-    children.push(<br key="2" />);
-    children.push(<React.Fragment key="3">{error.stack}</React.Fragment>);
+    if (showErrorStack) {
+      children.push(<br key="2" />);
+      children.push(<React.Fragment key="3">{error.stack}</React.Fragment>);
+    }
   } else {
     children.push(<React.Fragment key="4">{String(error)}</React.Fragment>);
   }
