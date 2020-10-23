@@ -198,10 +198,7 @@ function localValidate(
   renderToString: (messageID: string) => string,
   state: AuthenticationLoginIDSettingsState
 ): string | undefined {
-  if (
-    state.pinnedCallingCodes.length === 0 ||
-    state.selectedCallingCodes.size === 0
-  ) {
+  if (state.selectedCallingCodes.size === 0) {
     return renderToString(
       "AuthenticationScreen.login-id.error.calling-code-min-items"
     );

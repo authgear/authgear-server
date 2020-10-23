@@ -45,6 +45,6 @@ func (p *FormPrefiller) Prefill(form url.Values) {
 	}
 
 	if _, ok := form["x_calling_code"]; !ok {
-		form.Set("x_calling_code", p.UI.CountryCallingCode.PinnedList[0])
+		form.Set("x_calling_code", p.UI.CountryCallingCode.GetActiveCountryCodes()[0])
 	}
 }

@@ -226,8 +226,6 @@ ui:
       - '995'
       - '996'
       - '998'
-    pinned_list:
-      - '1'
 localization:
   fallback_language: en
 messaging:

@@ -22,7 +22,7 @@ var _ = Schema.Add("UICountryCallingCodeConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"allowlist": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
-		"pinned_list": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+		"pinned_list": { "type": "array", "items": { "type": "string" } }
 	}
 }
 `)
@@ -35,9 +35,6 @@ type UICountryCallingCodeConfig struct {
 func (c *UICountryCallingCodeConfig) SetDefaults() {
 	if c.AllowList == nil {
 		c.AllowList = phone.CountryCallingCodes
-	}
-	if c.PinnedList == nil {
-		c.PinnedList = []string{c.AllowList[0]}
 	}
 }
 
