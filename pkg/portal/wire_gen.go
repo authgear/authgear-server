@@ -238,7 +238,14 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
 	rootProvider := p.RootProvider
+	pool := rootProvider.Database
 	factory := rootProvider.LoggerFactory
+	logger := db.NewLogger(factory)
+	handle := &db.Handle{
+		Context: context,
+		Pool:    pool,
+		Logger:  logger,
+	}
 	configServiceLogger := service.NewConfigServiceLogger(factory)
 	appConfig := rootProvider.AppConfig
 	controller := rootProvider.ConfigSourceController
@@ -253,13 +260,6 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	databaseConfig := rootProvider.DatabaseConfig
 	sqlBuilder := db.NewSQLBuilder(databaseConfig)
-	pool := rootProvider.Database
-	logger := db.NewLogger(factory)
-	handle := &db.Handle{
-		Context: context,
-		Pool:    pool,
-		Logger:  logger,
-	}
 	sqlExecutor := &db.SQLExecutor{
 		Context:  context,
 		Database: handle,
@@ -331,6 +331,7 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	}
 	adminAPILogger := transport.NewAdminAPILogger(factory)
 	adminAPIHandler := &transport.AdminAPIHandler{
+		Database: handle,
 		Authz:    authzService,
 		AdminAPI: adminAPIService,
 		Logger:   adminAPILogger,
