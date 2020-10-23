@@ -31,6 +31,7 @@ var DependencySet = wire.NewSet(
 		"MailConfig",
 		"SentryHub",
 		"LoggerFactory",
+		"Database",
 		"ConfigSourceController",
 		"Resources",
 	),

@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/graphql-go-relay"
 
+	"github.com/authgear/authgear-server/pkg/portal/db"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -30,6 +31,7 @@ func NewAdminAPILogger(lf *log.Factory) AdminAPILogger {
 }
 
 type AdminAPIHandler struct {
+	Database *db.Handle
 	Authz    AdminAPIAuthzService
 	AdminAPI AdminAPIService
 	Logger   AdminAPILogger
@@ -52,7 +54,11 @@ func (h *AdminAPIHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appIDs, err := h.Authz.ListAuthorizedApps(sessionInfo.UserID)
+	var appIDs []string
+	err := h.Database.ReadOnly(func() (err error) {
+		appIDs, err = h.Authz.ListAuthorizedApps(sessionInfo.UserID)
+		return
+	})
 	if err != nil {
 		h.Logger.WithError(err).Errorf("failed to list authorized apps")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
