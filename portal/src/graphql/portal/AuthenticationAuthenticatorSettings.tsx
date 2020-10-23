@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import {
   IColumn,
   Checkbox,
@@ -89,6 +89,22 @@ const HIDDEN_REQUIRE_MFA_OPTIONS: SecondaryAuthenticationMode[] = [
   "if_requested",
 ];
 
+const primaryAuthenticatorTypeLocaleKey: Record<string, string> = {
+  oob_otp: "AuthenticatorType.primary.oob-otp",
+  password: "AuthenticatorType.primary.password",
+};
+
+const secondaryAuthenticatorTypeLocalKey: Record<string, string> = {
+  totp: "AuthenticatorType.secondary.totp",
+  oob_otp: "AuthenticatorType.secondary.oob-otp",
+  password: "AuthenticatorType.secondary.password",
+};
+
+const authenticatorTypeLocaleKey = {
+  primary: primaryAuthenticatorTypeLocaleKey,
+  secondary: secondaryAuthenticatorTypeLocalKey,
+};
+
 const AuthenticatorCheckbox: React.FC<AuthenticatorCheckboxProps> = function AuthenticatorCheckbox(
   props: AuthenticatorCheckboxProps
 ) {
@@ -102,12 +118,17 @@ const AuthenticatorCheckbox: React.FC<AuthenticatorCheckboxProps> = function Aut
   return <Checkbox {...props} onChange={onChange} />;
 };
 
-function useRenderItemColumn<KeyType extends string>(
+function useRenderItemColumn(
+  kind: "primary" | "secondary",
   onCheckboxClicked: (key: string, checked: boolean) => void
 ) {
+  const { renderToString } = useContext(Context);
+
   const renderItemColumn = React.useCallback(
     (
-      item: AuthenticatorListItem<KeyType>,
+      item: AuthenticatorListItem<
+        PrimaryAuthenticatorType | SecondaryAuthenticatorType
+      >,
       _index?: number,
       column?: IColumn
     ) => {
@@ -122,14 +143,18 @@ function useRenderItemColumn<KeyType extends string>(
             />
           );
 
-        case "key":
-          return <span>{item.key}</span>;
+        case "key": {
+          const authenticatorName = renderToString(
+            authenticatorTypeLocaleKey[kind][item.key]
+          );
+          return <span>{authenticatorName}</span>;
+        }
 
         default:
           return <span>{item.key}</span>;
       }
     },
-    [onCheckboxClicked]
+    [onCheckboxClicked, kind, renderToString]
   );
   return renderItemColumn;
 }
@@ -370,8 +395,12 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
     }
   );
 
-  const renderPrimaryItemColumn = useRenderItemColumn(onPrimaryActivateClicked);
+  const renderPrimaryItemColumn = useRenderItemColumn(
+    "primary",
+    onPrimaryActivateClicked
+  );
   const renderSecondaryItemColumn = useRenderItemColumn(
+    "secondary",
     onSecondaryActivateClicked
   );
 
