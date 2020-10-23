@@ -4,7 +4,7 @@ import { Checkbox, Toggle, TagPicker, Label, Text } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
-import ShowError from "../../ShowError";
+import ErrorDialog from "../../error/ErrorDialog";
 import WidgetWithOrdering from "../../WidgetWithOrdering";
 import { swap } from "../../OrderButtons";
 import CheckboxWithContent from "../../CheckboxWithContent";
@@ -63,7 +63,8 @@ interface AuthenticationLoginIDSettingsState {
   isIgnoreDotLocal: boolean;
   isAllowPlus: boolean;
 
-  selectedCallingCodes: string[];
+  selectedCallingCodes: Set<string>;
+  pinnedCallingCodes: string[];
 }
 
 const ALL_LOGIN_ID_KEYS: LoginIDKeyType[] = ["username", "email", "phone"];
@@ -168,8 +169,11 @@ function constructStateFromAppConfig(
   const emailConfig = appConfig?.identity?.login_id?.types?.email;
 
   // phone widget
-  const selectedCallingCodes =
-    appConfig?.ui?.country_calling_code?.values ?? [];
+  const selectedCallingCodes = new Set(
+    appConfig?.ui?.country_calling_code?.allowlist ?? []
+  );
+  const pinnedCallingCodes =
+    appConfig?.ui?.country_calling_code?.pinned_list ?? [];
 
   return {
     loginIdKeyState,
@@ -186,7 +190,21 @@ function constructStateFromAppConfig(
     isAllowPlus: !emailConfig?.block_plus_sign,
 
     selectedCallingCodes,
+    pinnedCallingCodes,
   };
+}
+
+function localValidate(
+  renderToString: (messageID: string) => string,
+  state: AuthenticationLoginIDSettingsState
+): string | undefined {
+  if (state.selectedCallingCodes.size === 0) {
+    return renderToString(
+      "AuthenticationScreen.login-id.error.calling-code-min-items"
+    );
+  }
+
+  return undefined;
 }
 
 function mutateUsernameConfig(
@@ -268,7 +286,19 @@ function mutatePhoneConfig(
       screenState.selectedCallingCodes
     )
   ) {
-    appConfig.ui.country_calling_code.values = screenState.selectedCallingCodes;
+    appConfig.ui.country_calling_code.allowlist = Array.from(
+      screenState.selectedCallingCodes
+    );
+  }
+
+  if (
+    !deepEqual(
+      initialScreenState.pinnedCallingCodes,
+      screenState.pinnedCallingCodes
+    )
+  ) {
+    appConfig.ui.country_calling_code.pinned_list =
+      screenState.pinnedCallingCodes;
   }
 }
 
@@ -335,6 +365,9 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
   }, [effectiveAppConfig]);
 
   const [state, setState] = useState(initialState);
+  const [localErrorMessage, setLocalErrorMessage] = useState<
+    string | undefined
+  >();
 
   const isFormModified = useMemo(() => {
     return !deepEqual(initialState, state, { strict: true });
@@ -357,6 +390,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     isIgnoreDotLocal,
     isAllowPlus,
 
+    pinnedCallingCodes,
     selectedCallingCodes,
   } = state;
 
@@ -468,10 +502,20 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
   );
 
   const onSelectedCallingCodesChange = useCallback(
-    (newSelectedCallingCodes: string[]) => {
+    (newSelectedCallingCodes: Set<string>) => {
       setState((prev) => ({
         ...prev,
         selectedCallingCodes: newSelectedCallingCodes,
+      }));
+    },
+    []
+  );
+
+  const onPinnedCallingCodesChange = useCallback(
+    (newPinnedCallingCodes: string[]) => {
+      setState((prev) => ({
+        ...prev,
+        pinnedCallingCodes: newPinnedCallingCodes,
       }));
     },
     []
@@ -507,6 +551,13 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
         return;
       }
 
+      const localErrorMessage = localValidate(renderToString, state);
+      setLocalErrorMessage(localErrorMessage);
+
+      if (localErrorMessage != null) {
+        return;
+      }
+
       const newAppConfig = constructAppConfigFromState(
         rawAppConfig,
         initialState,
@@ -515,7 +566,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
 
       updateAppConfig(newAppConfig).catch(() => {});
     },
-    [state, rawAppConfig, updateAppConfig, initialState]
+    [renderToString, state, rawAppConfig, updateAppConfig, initialState]
   );
 
   const renderUsernameWidget = useCallback(
@@ -682,7 +733,9 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
           <CountryCallingCodeList
             allCountryCallingCodes={supportedCountryCallingCodes}
             selectedCountryCallingCodes={selectedCallingCodes}
+            pinnedCountryCallingCodes={pinnedCallingCodes}
             onSelectedCountryCallingCodesChange={onSelectedCallingCodesChange}
+            onPinnedCountryCallingCodesChange={onPinnedCallingCodesChange}
           />
         </WidgetWithOrdering>
       );
@@ -694,7 +747,9 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
       loginIdKeyState,
 
       selectedCallingCodes,
+      pinnedCallingCodes,
       onSelectedCallingCodesChange,
+      onPinnedCallingCodesChange,
     ]
   );
 
@@ -714,7 +769,12 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
         resetForm={resetForm}
         isModified={isFormModified}
       />
-      {updateAppConfigError && <ShowError error={updateAppConfigError} />}
+      <ErrorDialog
+        errorMessage={localErrorMessage}
+        error={updateAppConfigError}
+        rules={[]}
+        fallbackErrorMessageID="AuthenticationScreen.login-id.error.generic"
+      />
       <header className={styles.header}>
         <Text>
           <FormattedMessage id="AuthenticationScreen.login-id.title" />

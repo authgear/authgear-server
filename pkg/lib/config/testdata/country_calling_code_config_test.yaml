@@ -1,0 +1,10 @@
+id: test
+ui: 
+  country_calling_code:
+    allowlist:
+      - '5'
+      - '4'
+    pinned_list:
+      - '2'
+      - '1'
+      - '4'

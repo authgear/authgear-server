@@ -21,22 +21,39 @@ var _ = Schema.Add("UICountryCallingCodeConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"values": { "type": "array", "items": { "type": "string" } },
-		"default": { "type": "string" }
+		"allowlist": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+		"pinned_list": { "type": "array", "items": { "type": "string" } }
 	}
 }
 `)
 
 type UICountryCallingCodeConfig struct {
-	Values  []string `json:"values,omitempty"`
-	Default string   `json:"default,omitempty"`
+	AllowList  []string `json:"allowlist,omitempty"`
+	PinnedList []string `json:"pinned_list,omitempty"`
 }
 
 func (c *UICountryCallingCodeConfig) SetDefaults() {
-	if c.Values == nil {
-		c.Values = phone.CountryCallingCodes
+	if c.AllowList == nil {
+		c.AllowList = phone.CountryCallingCodes
 	}
-	if c.Default == "" {
-		c.Default = c.Values[0]
+}
+
+// NOTE: Pinned list has order, goes before allow list
+// while allow list follows default order.
+// Country code in either pinned / allow list is counted as active
+func (c *UICountryCallingCodeConfig) GetActiveCountryCodes() []string {
+	isCodePinned := make(map[string]bool)
+	for _, code := range c.PinnedList {
+		isCodePinned[code] = true
 	}
+
+	activeCountryCodes := []string{}
+	activeCountryCodes = append(activeCountryCodes, c.PinnedList...)
+	for _, code := range c.AllowList {
+		if !isCodePinned[code] {
+			activeCountryCodes = append(activeCountryCodes, code)
+		}
+	}
+
+	return activeCountryCodes
 }

@@ -29,6 +29,7 @@ import { useValidationError } from "../../error/useValidationError";
 import { useGenericError } from "../../error/useGenericError";
 import ShowUnhandledValidationErrorCause from "../../error/ShowUnhandledValidationErrorCauses";
 import { FormContext } from "../../error/FormContext";
+import { getActiveCountryCallingCode } from "../../util/countryCallingCode";
 
 import styles from "./AddPhoneScreen.module.scss";
 
@@ -52,17 +53,20 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
 
   const countryCodeConfig = useMemo(() => {
     const countryCodeConfig = appConfig?.ui?.country_calling_code;
-    const values = countryCodeConfig?.values ?? [];
+    const allowList = countryCodeConfig?.allowlist ?? [];
+    const pinnedList = countryCodeConfig?.pinned_list ?? [];
+    const values = getActiveCountryCallingCode(pinnedList, allowList);
+    const defaultCallingCode = values[0];
     return {
       values,
-      default: countryCodeConfig?.default ?? values[0],
+      defaultCallingCode,
     };
   }, [appConfig]);
 
   const initialFormData = useMemo(() => {
     return {
       phone: "",
-      countryCode: countryCodeConfig.default,
+      countryCode: countryCodeConfig.defaultCallingCode,
     };
   }, [countryCodeConfig]);
 
@@ -93,7 +97,7 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
         countryCode: option,
       }));
     },
-    countryCodeConfig.default,
+    countryCodeConfig.defaultCallingCode,
     displayCountryCode
   );
 

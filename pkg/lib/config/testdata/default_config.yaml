@@ -16,7 +16,7 @@ hook:
   sync_hook_total_timeout_seconds: 10
 ui:
   country_calling_code:
-    values:
+    allowlist:
       - '1'
       - '7'
       - '20'
@@ -226,7 +226,6 @@ ui:
       - '995'
       - '996'
       - '998'
-    default: '1'
 localization:
   fallback_language: en
 messaging:

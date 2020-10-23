@@ -198,8 +198,8 @@ interface VerificationConfig {
 
 // UIConfig
 interface UICountryCallingCodeConfig {
-  default?: string;
-  values?: string[];
+  allowlist?: string[];
+  pinned_list?: string[];
 }
 
 interface UIConfig {
