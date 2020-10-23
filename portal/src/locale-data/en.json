@@ -420,5 +420,10 @@
   "AuthenticatorType.primary.oob-otp": "Passwordless via SMS / Email",
   "AuthenticatorType.secondary.totp": "Authenticator Apps / Devices",
   "AuthenticatorType.secondary.oob-otp": "Verification code via SMS / Email",
-  "AuthenticatorType.secondary.password": "Additional Password"
+  "AuthenticatorType.secondary.password": "Additional Password",
+
+  "ShowUnhandledValidationErrorCause.title": "Validation error",
+  "ShowUnhandledValidationErrorCause.kind": "Kind: {kind}",
+  "ShowUnhandledValidationErrorCause.location": "Location: {location}",
+  "ShowUnhandledValidationErrorCause.details": "Details: {details}"
 }
