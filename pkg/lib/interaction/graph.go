@@ -246,13 +246,23 @@ func (g *Graph) GetACR(amrValues []string) string {
 // Apply applies the effect the the graph nodes into the context.
 func (g *Graph) Apply(ctx *Context) error {
 	for i, node := range g.Nodes {
-		graph := *g
-		graph.Nodes = graph.Nodes[:i+1]
-		if err := node.Prepare(ctx, &graph); err != nil {
+		// Prepare the node with sliced graph.
+		slicedGraph := *g
+		slicedGraph.Nodes = slicedGraph.Nodes[:i+1]
+		if err := node.Prepare(ctx, &slicedGraph); err != nil {
 			return err
 		}
-		if err := node.Apply(ctx.perform, &graph); err != nil {
+
+		effs, err := node.GetEffects()
+		if err != nil {
 			return err
+		}
+		for _, eff := range effs {
+			// Apply the effect with unsliced graph.
+			err = eff.apply(ctx, g, i)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -302,9 +312,15 @@ func (g *Graph) Accept(ctx *Context, input interface{}) (*Graph, []Edge, error) 
 		if err != nil {
 			return nil, nil, err
 		}
-		err = nextNode.Apply(ctx.perform, graph)
+		effs, err := nextNode.GetEffects()
 		if err != nil {
 			return nil, nil, err
+		}
+		for _, eff := range effs {
+			err = eff.apply(ctx, graph, len(graph.Nodes)-1)
+			if err != nil {
+				return nil, nil, err
+			}
 		}
 	}
 }

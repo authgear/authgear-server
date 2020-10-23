@@ -16,8 +16,8 @@ func (t testNode) Prepare(ctx *interaction.Context, graph *interaction.Graph) er
 	return nil
 }
 
-func (t testNode) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	return nil
+func (t testNode) GetEffects() ([]interaction.Effect, error) {
+	return nil, nil
 }
 
 func (t testNode) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

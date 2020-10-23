@@ -139,7 +139,6 @@ type CookieFactory interface {
 }
 
 type Context struct {
-	IsDryRun     bool   `wire:"-"`
 	IsCommitting bool   `wire:"-"`
 	WebStateID   string `wire:"-"`
 
@@ -185,8 +184,4 @@ func (c *Context) commit() error {
 func (c *Context) rollback() error {
 	_, err := c.Database.ExecWith(interactionGraphSavePoint.Rollback())
 	return err
-}
-
-func (c *Context) perform(effect Effect) error {
-	return effect.apply(c)
 }

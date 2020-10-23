@@ -47,18 +47,19 @@ func (mr *MockNodeMockRecorder) Prepare(ctx, graph interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Prepare", reflect.TypeOf((*MockNode)(nil).Prepare), ctx, graph)
 }
 
-// Apply mocks base method
-func (m *MockNode) Apply(perform func(interaction.Effect) error, graph *interaction.Graph) error {
+// GetEffects mocks base method
+func (m *MockNode) GetEffects() ([]interaction.Effect, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Apply", perform, graph)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "GetEffects")
+	ret0, _ := ret[0].([]interaction.Effect)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// Apply indicates an expected call of Apply
-func (mr *MockNodeMockRecorder) Apply(perform, graph interface{}) *gomock.Call {
+// GetEffects indicates an expected call of GetEffects
+func (mr *MockNodeMockRecorder) GetEffects() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Apply", reflect.TypeOf((*MockNode)(nil).Apply), perform, graph)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEffects", reflect.TypeOf((*MockNode)(nil).GetEffects))
 }
 
 // DeriveEdges mocks base method
