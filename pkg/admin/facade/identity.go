@@ -53,7 +53,7 @@ func (f *IdentityFacade) Remove(identityInfo *identity.Info) error {
 	return nil
 }
 
-func (f *IdentityFacade) Create(userID string, identityDef model.IdentityDef, password string) (*identity.Info, error) {
+func (f *IdentityFacade) Create(userID string, identityDef model.IdentityDef, password string) (*identity.Ref, error) {
 	var input interface{} = &addIdentityInput{identityDef: identityDef}
 	if password != "" {
 		input = &addPasswordInput{inner: input, password: password}
@@ -79,5 +79,5 @@ func (f *IdentityFacade) Create(userID string, identityDef model.IdentityDef, pa
 		return nil, err
 	}
 
-	return graph.GetUserNewIdentities()[0], nil
+	return graph.GetUserNewIdentities()[0].ToRef(), nil
 }

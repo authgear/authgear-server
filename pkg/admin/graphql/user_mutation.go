@@ -55,13 +55,13 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 
-			user, err := gqlCtx.UserFacade.Create(identityDef, password)
+			userID, err := gqlCtx.UserFacade.Create(identityDef, password)
 			if err != nil {
 				return nil, err
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"user": user,
+				"user": gqlCtx.Users.Load(userID),
 			}).Value, nil
 		},
 	},

@@ -26,7 +26,7 @@ type AuthenticatorLoader interface {
 type UserFacade interface {
 	Get(userID string) (*user.User, error)
 	QueryPage(args graphqlutil.PageArgs) (*graphqlutil.PageResult, error)
-	Create(identityDef model.IdentityDef, password string) (*user.User, error)
+	Create(identityDef model.IdentityDef, password string) (string, error)
 	ResetPassword(id string, password string) error
 }
 
@@ -34,7 +34,7 @@ type IdentityFacade interface {
 	Get(ref *identity.Ref) (*identity.Info, error)
 	List(userID string) ([]*identity.Ref, error)
 	Remove(identityInfo *identity.Info) error
-	Create(userID string, identityDef model.IdentityDef, password string) (*identity.Info, error)
+	Create(userID string, identityDef model.IdentityDef, password string) (*identity.Ref, error)
 }
 
 type AuthenticatorFacade interface {
