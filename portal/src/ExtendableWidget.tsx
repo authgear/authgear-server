@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useCallback,
-  useEffect,
-  useMemo,
-  useContext,
-} from "react";
+import React, { useMemo, useContext } from "react";
 import { IconButton, DefaultEffects } from "@fluentui/react";
 import { Context } from "@oursky/react-messageformat";
 import cn from "classnames";
@@ -13,8 +7,9 @@ import styles from "./ExtendableWidget.module.scss";
 
 interface ExtendableWidgetProps {
   HeaderComponent: React.ReactNode;
-  initiallyExtended: boolean;
-  extendable: boolean;
+  extended: boolean;
+  onExtendClicked: () => void;
+  extendButtonDisabled: boolean;
   readOnly?: boolean;
   extendButtonAriaLabelId: string;
   children: React.ReactNode;
@@ -31,28 +26,15 @@ const ExtendableWidget: React.FC<ExtendableWidgetProps> = function ExtendableWid
   const {
     className,
     HeaderComponent,
-    initiallyExtended,
-    extendable,
+    extended,
+    onExtendClicked,
+    extendButtonDisabled,
     readOnly,
     children,
     extendButtonAriaLabelId,
   } = props;
 
-  const [extended, setExtended] = useState(initiallyExtended);
-
   const { renderToString } = useContext(Context);
-
-  const onExtendClicked = useCallback(() => {
-    const stateAftertoggle = !extended;
-    setExtended(stateAftertoggle);
-  }, [extended]);
-
-  // Collapse when extendable becomes false.
-  useEffect(() => {
-    if (!extendable && extended) {
-      onExtendClicked();
-    }
-  }, [extendable, extended, onExtendClicked]);
 
   const buttonAriaLabel = useMemo(
     () => renderToString(extendButtonAriaLabelId),
@@ -74,7 +56,7 @@ const ExtendableWidget: React.FC<ExtendableWidgetProps> = function ExtendableWid
           styles={buttonStyles}
           ariaLabel={buttonAriaLabel}
           onClick={onExtendClicked}
-          disabled={!extendable}
+          disabled={extendButtonDisabled}
           iconProps={ICON_PROPS}
         />
       </div>

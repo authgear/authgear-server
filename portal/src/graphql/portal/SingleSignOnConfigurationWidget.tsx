@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import cn from "classnames";
 import {
   Toggle,
@@ -188,13 +188,27 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
 
   const messageID = "OAuthBranding." + providerType;
 
+  const [extended, setExtended] = useState(enabled);
+
+  // Always extended when enabled
+  // Collapse on disabled
+  // make sure text field mounted for showing error
+  useEffect(() => {
+    setExtended(enabled);
+  }, [enabled]);
+
+  const onExtendClicked = useCallback(() => {
+    setExtended(!extended);
+  }, [extended]);
+
   return (
     <ExtendableWidget
       className={className}
       extendButtonAriaLabelId={messageID}
-      extendable={true}
+      extendButtonDisabled={enabled}
+      extended={extended}
+      onExtendClicked={onExtendClicked}
       readOnly={!enabled}
-      initiallyExtended={enabled}
       HeaderComponent={
         <WidgetHeader
           icon={iconNode}
