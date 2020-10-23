@@ -101,18 +101,7 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 	}
 
 	authenticatorTypes := map[authn.AuthenticatorType]struct{}{}
-	for i, a := range c.Authentication.PrimaryAuthenticators {
-		if _, ok := authenticatorTypes[a]; ok {
-			ctx.Child("authentication", "primary_authenticators", strconv.Itoa(i)).
-				EmitErrorMessage("duplicated authenticator type")
-		}
-		authenticatorTypes[a] = struct{}{}
-	}
-	for i, a := range c.Authentication.SecondaryAuthenticators {
-		if _, ok := authenticatorTypes[a]; ok {
-			ctx.Child("authentication", "secondary_authenticators", strconv.Itoa(i)).
-				EmitErrorMessage("duplicated authenticator type")
-		}
+	for _, a := range c.Authentication.PrimaryAuthenticators {
 		authenticatorTypes[a] = struct{}{}
 	}
 
