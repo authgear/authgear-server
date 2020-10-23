@@ -3,27 +3,24 @@ package db
 import (
 	"context"
 	"database/sql"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 
-	"github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 type Handle struct {
 	Context context.Context
-	Config  *config.DatabaseConfig
+	Pool    *Pool
 	Logger  Logger
 
-	database *sqlx.DB `wire:"-"`
-	tx       *sqlx.Tx `wire:"-"`
+	tx *sqlx.Tx `wire:"-"`
 }
 
 func (h *Handle) Conn() (sqlx.ExtContext, error) {
 	tx := h.tx
 	if tx == nil {
-		return h.openDB()
+		panic("db: transaction not started")
 	}
 	return tx, nil
 }
@@ -83,7 +80,7 @@ func (h *Handle) beginTx() error {
 		panic("db: a transaction has already begun")
 	}
 
-	db, err := h.openDB()
+	db, err := h.Pool.Open()
 	if err != nil {
 		return err
 	}
@@ -125,21 +122,4 @@ func (h *Handle) rollbackTx() error {
 
 	h.tx = nil
 	return nil
-}
-
-func (h *Handle) openDB() (*sqlx.DB, error) {
-	if h.database == nil {
-		db, err := sqlx.Open("postgres", h.Config.DatabaseURL)
-		if err != nil {
-			return nil, errorutil.HandledWithMessage(err, "failed to connect to database")
-		}
-
-		db.SetMaxOpenConns(h.Config.MaxOpenConn)
-		db.SetMaxIdleConns(h.Config.MaxIdleConn)
-		db.SetConnMaxLifetime(time.Second * time.Duration(h.Config.ConnMaxLifetimeSeconds))
-		db.SetConnMaxIdleTime(time.Second * time.Duration(h.Config.ConnMaxIdleTimeSeconds))
-
-		h.database = db
-	}
-	return h.database, nil
 }
