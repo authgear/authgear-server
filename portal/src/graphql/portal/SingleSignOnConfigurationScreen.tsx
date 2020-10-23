@@ -556,7 +556,7 @@ const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = func
           resetForm={resetForm}
           isModified={isFormModified}
         />
-        {otherError && (
+        {(unhandledCauses ?? []).length === 0 && otherError && (
           <div className={styles.error}>
             <ShowError error={otherError} />
           </div>

@@ -36,17 +36,21 @@ const InviteAdminContent: React.FC = function InviteAdminContent() {
   } = useCreateCollaboratorInvitationMutation(appID);
 
   const {
-    unhandledCauses,
+    unhandledCauses: rawUnhandledCauses,
     otherError,
     value: formContextValue,
   } = useValidationError(createCollaboratorInvitationError);
 
-  const { errorMessage: otherErrorMessage } = useGenericError(otherError, [
-    {
-      reason: "CollaboratorInvitationDuplicate",
-      errorMessageID: "InviteAdminScreen.duplicated-error",
-    },
-  ]);
+  const { errorMessage: otherErrorMessage, unhandledCauses } = useGenericError(
+    otherError,
+    rawUnhandledCauses,
+    [
+      {
+        reason: "CollaboratorInvitationDuplicate",
+        errorMessageID: "InviteAdminScreen.duplicated-error",
+      },
+    ]
+  );
 
   const [email, setEmail] = useState("");
   const [submittedForm, setSubmittedForm] = useState(false);

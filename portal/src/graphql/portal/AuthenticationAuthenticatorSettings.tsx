@@ -504,7 +504,9 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
           resetForm={resetForm}
           isModified={isFormModified}
         />
-        {otherError && <ShowError error={otherError} />}
+        {(unhandledCauses ?? []).length === 0 && otherError && (
+          <ShowError error={otherError} />
+        )}
         <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
         <div
           className={styles.widget}

@@ -228,7 +228,9 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
           resetForm={resetForm}
           isModified={isFormModified}
         />
-        {otherError && <ShowError error={otherError} />}
+        {(unhandledCauses ?? []).length === 0 && otherError && (
+          <ShowError error={otherError} />
+        )}
         <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
         <ModifyOAuthClientForm
           className={styles.modifyClientForm}

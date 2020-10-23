@@ -12,10 +12,10 @@ interface FieldRegister {
 
 type ErrorCausesMap = Partial<Record<string, ValidationFailedErrorInfoCause[]>>;
 
-function isLocationMatchWithJSONPointer(
+export function isLocationMatchWithJSONPointer(
   jsonPointer: RegExp | string,
   location: string
-) {
+): boolean {
   if (typeof jsonPointer === "string") {
     return location.startsWith(jsonPointer);
   }
@@ -106,5 +106,9 @@ export function useValidationError(
       handleValidationErrorCause(cause, fields, matchedCauses, unhandledCauses);
     }
   }
-  return { unhandledCauses, value: { registerField, causes: matchedCauses } };
+  return {
+    unhandledCauses,
+    value: { registerField, causes: matchedCauses },
+    otherError: unhandledCauses.length > 0 ? error : undefined,
+  };
 }

@@ -209,6 +209,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
 
   const { errorMessageMap, unrecognizedError } = useGenericError(
     createUserError,
+    [],
     [
       ...passwordFieldErrorRules,
       {
@@ -221,6 +222,8 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
       // cannot distinguish which field fails the validation
       {
         reason: "ValidationFailed",
+        jsonPointer: "",
+        kind: "format",
         errorMessageID: "AddUserScreen.error.invalid-identity",
         field: selectedLoginIdInLastSubmission.current ?? "",
       },
