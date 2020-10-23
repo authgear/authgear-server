@@ -79,6 +79,8 @@
   "CreateAppScreen.title": "Create App",
   "CreateAppScreen.app-id.label": "App ID",
   "CreateAppScreen.app-id.desc": "It will appear in the endpoint of your app:",
+  "CreateAppScreen.error.duplicated-app-id": "App ID already exist",
+  "CreateAppScreen.error.generic": "Failed to create app",
 
   "UsersScreen.title": "Users",
   "UsersScreen.add-user": "Add User",
