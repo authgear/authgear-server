@@ -70,11 +70,11 @@ type Provider struct {
 // The code becomes invalid if it is consumed.
 // Finally the code is sent to the login ID asynchronously.
 func (p *Provider) SendCode(loginID string) error {
-	emailIdentities, err := p.Identities.ListByClaim("email", loginID)
+	emailIdentities, err := p.Identities.ListByClaim(string(authn.ClaimEmail), loginID)
 	if err != nil {
 		return err
 	}
-	phoneIdentities, err := p.Identities.ListByClaim("phone", loginID)
+	phoneIdentities, err := p.Identities.ListByClaim(string(authn.ClaimPhoneNumber), loginID)
 	if err != nil {
 		return err
 	}
@@ -98,7 +98,7 @@ func (p *Provider) SendCode(loginID string) error {
 	}
 
 	for _, info := range emailIdentities {
-		email := info.Claims["email"].(string)
+		email := info.Claims[string(authn.ClaimEmail)].(string)
 		code, codeStr := p.newCode(info.UserID)
 
 		if err := p.Store.Create(code); err != nil {
@@ -112,7 +112,7 @@ func (p *Provider) SendCode(loginID string) error {
 	}
 
 	for _, info := range phoneIdentities {
-		phone := info.Claims["phone"].(string)
+		phone := info.Claims[string(authn.ClaimPhoneNumber)].(string)
 		code, codeStr := p.newCode(info.UserID)
 
 		if err := p.Store.Create(code); err != nil {
