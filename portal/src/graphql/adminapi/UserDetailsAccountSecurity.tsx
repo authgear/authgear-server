@@ -112,16 +112,16 @@ const LABEL_PLACEHOLDER = "---";
 const primaryAuthenticatorTypeLocaleKeyMap: {
   [key in AuthenticatorType]?: string;
 } = {
-  PASSWORD: "UserDetails.account-security.primary.password",
-  OOB_OTP: "UserDetails.account-security.primary.oob-otp",
+  PASSWORD: "AuthenticatorType.primary.password",
+  OOB_OTP: "AuthenticatorType.primary.oob-otp",
 };
 
 const secondaryAuthenticatorTypeLocaleKeyMap: {
   [key in AuthenticatorType]?: string;
 } = {
-  PASSWORD: "UserDetails.account-security.secondary.password",
-  TOTP: "UserDetails.account-security.secondary.totp",
-  OOB_OTP: "UserDetails.account-security.secondary.oob-otp",
+  PASSWORD: "AuthenticatorType.secondary.password",
+  TOTP: "AuthenticatorType.secondary.totp",
+  OOB_OTP: "AuthenticatorType.secondary.oob-otp",
 };
 
 function getLocaleKeyWithAuthenticatorType(
@@ -622,7 +622,7 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
                 as="h3"
                 className={cn(styles.header, styles.authenticatorTypeHeader)}
               >
-                <FormattedMessage id="UserDetails.account-security.primary.oob-otp" />
+                <FormattedMessage id="AuthenticatorType.primary.oob-otp" />
               </Text>
               <List
                 className={cn(styles.list, styles.oobOtpList)}
@@ -648,7 +648,7 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
                   as="h3"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
                 >
-                  <FormattedMessage id="UserDetails.account-security.secondary.totp" />
+                  <FormattedMessage id="AuthenticatorType.secondary.totp" />
                 </Text>
                 <List
                   className={cn(styles.list, styles.totpList)}
@@ -663,7 +663,7 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
                 as="h3"
                 className={cn(styles.header, styles.authenticatorTypeHeader)}
               >
-                <FormattedMessage id="UserDetails.account-security.secondary.oob-otp" />
+                <FormattedMessage id="AuthenticatorType.secondary.oob-otp" />
               </Text>
               <List
                 className={cn(styles.list, styles.oobOtpList)}

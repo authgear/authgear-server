@@ -114,12 +114,7 @@
   "UserDetails.account-security.added-on": "Added: {datetime}",
   "UserDetails.account-security.reset-password": "Reset Password",
   "UserDetails.account-security.primary": "Primary Authenticators",
-  "UserDetails.account-security.primary.password": "Password",
-  "UserDetails.account-security.primary.oob-otp": "Passwordless via SMS / Email",
   "UserDetails.account-security.secondary": "Multi-factor Authentications",
-  "UserDetails.account-security.secondary.totp": "Authenticator Apps / Devices",
-  "UserDetails.account-security.secondary.oob-otp": "Verification code via SMS / Email",
-  "UserDetails.account-security.secondary.password": "Additional Password",
   "UserDetails.account-security.remove-confirm-dialog.title": "Remove Authenticator",
   "UserDetails.account-security.remove-confirm-dialog.message": "Are you sure you want to remove authenticator {authenticatorName}",
   "UserDetails.account-security.remove-authenticator.generic-error": "Failed to remove authenticator",
@@ -412,5 +407,11 @@
 
   "ModifiedIndicator.message": "You have made unsaved changes",
   "ModifiedIndicator.confirm-dialog.title": "Reset Form State",
-  "ModifiedIndicator.confirm-dialog.message": "Are you sure you want to reset form to initial state?"
+  "ModifiedIndicator.confirm-dialog.message": "Are you sure you want to reset form to initial state?",
+
+  "AuthenticatorType.primary.password": "Password",
+  "AuthenticatorType.primary.oob-otp": "Passwordless via SMS / Email",
+  "AuthenticatorType.secondary.totp": "Authenticator Apps / Devices",
+  "AuthenticatorType.secondary.oob-otp": "Verification code via SMS / Email",
+  "AuthenticatorType.secondary.password": "Additional Password"
 }
