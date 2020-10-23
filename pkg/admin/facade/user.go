@@ -39,7 +39,7 @@ func (f *UserFacade) QueryPage(args graphqlutil.PageArgs) (*graphqlutil.PageResu
 	})), nil
 }
 
-func (f *UserFacade) Create(identityDef model.IdentityDef, password string) (*user.User, error) {
+func (f *UserFacade) Create(identityDef model.IdentityDef, password string) (string, error) {
 	graph, err := f.Interaction.Perform(
 		interactionintents.NewIntentSignup(),
 		&createUserInput{
@@ -52,7 +52,7 @@ func (f *UserFacade) Create(identityDef model.IdentityDef, password string) (*us
 		switch graph.CurrentNode().(type) {
 		case *nodes.NodeCreateAuthenticatorBegin:
 			// TODO(interaction): better interpretation of input required error?
-			return nil, interaction.NewInvariantViolated(
+			return "", interaction.NewInvariantViolated(
 				"PasswordRequired",
 				"password is required",
 				nil,
@@ -60,14 +60,14 @@ func (f *UserFacade) Create(identityDef model.IdentityDef, password string) (*us
 		}
 	}
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	userID, ok := graph.GetNewUserID()
 	if !ok {
-		return nil, apierrors.NewInternalError("user is not created")
+		return "", apierrors.NewInternalError("user is not created")
 	}
-	return f.Users.GetRaw(userID)
+	return userID, nil
 }
 
 func (f *UserFacade) ResetPassword(id string, password string) error {
