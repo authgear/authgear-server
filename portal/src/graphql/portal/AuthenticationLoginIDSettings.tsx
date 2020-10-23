@@ -170,7 +170,7 @@ function constructStateFromAppConfig(
 
   // phone widget
   const selectedCallingCodes = new Set(
-    appConfig?.ui?.country_calling_code?.allow_list ?? []
+    appConfig?.ui?.country_calling_code?.allowlist ?? []
   );
   const pinnedCallingCodes =
     appConfig?.ui?.country_calling_code?.pinned_list ?? [];
@@ -289,7 +289,7 @@ function mutatePhoneConfig(
       screenState.selectedCallingCodes
     )
   ) {
-    appConfig.ui.country_calling_code.allow_list = Array.from(
+    appConfig.ui.country_calling_code.allowlist = Array.from(
       screenState.selectedCallingCodes
     );
   }

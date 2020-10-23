@@ -1,7 +1,7 @@
 id: test
 ui: 
   country_calling_code:
-    allow_list:
+    allowlist:
       - '5'
       - '4'
     pinned_list:

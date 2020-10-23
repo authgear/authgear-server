@@ -16,7 +16,7 @@ hook:
   sync_hook_total_timeout_seconds: 10
 ui:
   country_calling_code:
-    allow_list:
+    allowlist:
       - '1'
       - '7'
       - '20'

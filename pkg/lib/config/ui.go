@@ -21,14 +21,14 @@ var _ = Schema.Add("UICountryCallingCodeConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"allow_list": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+		"allowlist": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
 		"pinned_list": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
 	}
 }
 `)
 
 type UICountryCallingCodeConfig struct {
-	AllowList  []string `json:"allow_list,omitempty"`
+	AllowList  []string `json:"allowlist,omitempty"`
 	PinnedList []string `json:"pinned_list,omitempty"`
 }
 

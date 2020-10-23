@@ -53,7 +53,7 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
 
   const countryCodeConfig = useMemo(() => {
     const countryCodeConfig = appConfig?.ui?.country_calling_code;
-    const allowList = countryCodeConfig?.allow_list ?? [];
+    const allowList = countryCodeConfig?.allowlist ?? [];
     const pinnedList = countryCodeConfig?.pinned_list ?? [];
     const values = getActiveCountryCallingCode(pinnedList, allowList);
     const defaultCallingCode = pinnedList[0];
