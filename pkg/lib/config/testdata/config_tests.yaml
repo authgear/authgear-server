@@ -144,9 +144,7 @@ config:
 
 ---
 name: dupe-authenticator-type
-error: |-
-  invalid configuration:
-  /authentication/secondary_authenticators/1: duplicated authenticator type
+error: null
 config:
   id: test
   authentication:
