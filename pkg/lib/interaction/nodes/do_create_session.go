@@ -63,78 +63,71 @@ func (n *NodeDoCreateSession) Prepare(ctx *interaction.Context, graph *interacti
 	return nil
 }
 
-func (n *NodeDoCreateSession) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	err := perform(interaction.EffectOnCommit(func(ctx *interaction.Context) error {
-		if n.Reason != session.CreateReasonPromote {
-			return nil
-		}
+func (n *NodeDoCreateSession) GetEffects() ([]interaction.Effect, error) {
+	return []interaction.Effect{
+		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			if n.Reason != session.CreateReasonPromote {
+				return nil
+			}
 
-		newUser, err := ctx.Users.Get(n.Session.Attrs.UserID)
-		if err != nil {
-			return err
-		}
-
-		anonUser := newUser
-		if identityCheck, ok := getIdentityConflictNode(graph); ok && identityCheck.DuplicatedIdentity != nil {
-			// Logging as existing user when promoting: old user is different.
-			anonUser, err = ctx.Users.Get(identityCheck.NewIdentity.UserID)
+			newUser, err := ctx.Users.Get(n.Session.Attrs.UserID)
 			if err != nil {
 				return err
 			}
-		}
 
-		var identities []model.Identity
-		for _, info := range graph.GetUserNewIdentities() {
-			identities = append(identities, info.ToModel())
-		}
+			anonUser := newUser
+			if identityCheck, ok := getIdentityConflictNode(graph); ok && identityCheck.DuplicatedIdentity != nil {
+				// Logging as existing user when promoting: old user is different.
+				anonUser, err = ctx.Users.Get(identityCheck.NewIdentity.UserID)
+				if err != nil {
+					return err
+				}
+			}
 
-		err = ctx.Hooks.DispatchEvent(&event.UserPromoteEvent{
-			AnonymousUser: *anonUser,
-			User:          *newUser,
-			Identities:    identities,
-		})
-		if err != nil {
-			return err
-		}
+			var identities []model.Identity
+			for _, info := range graph.GetUserNewIdentities() {
+				identities = append(identities, info.ToModel())
+			}
 
-		return nil
-	}))
-	if err != nil {
-		return err
-	}
+			err = ctx.Hooks.DispatchEvent(&event.UserPromoteEvent{
+				AnonymousUser: *anonUser,
+				User:          *newUser,
+				Identities:    identities,
+			})
+			if err != nil {
+				return err
+			}
 
-	err = perform(interaction.EffectOnCommit(func(ctx *interaction.Context) error {
-		user, err := ctx.Users.Get(n.Session.Attrs.UserID)
-		if err != nil {
-			return err
-		}
+			return nil
+		}),
+		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			user, err := ctx.Users.Get(n.Session.Attrs.UserID)
+			if err != nil {
+				return err
+			}
 
-		err = ctx.Users.UpdateLoginTime(user, n.Session.CreatedAt)
-		if err != nil {
-			return err
-		}
+			err = ctx.Users.UpdateLoginTime(user, n.Session.CreatedAt)
+			if err != nil {
+				return err
+			}
 
-		err = ctx.Hooks.DispatchEvent(&event.SessionCreateEvent{
-			Reason:  string(n.Reason),
-			User:    *user,
-			Session: *n.Session.ToAPIModel(),
-		})
-		if err != nil {
-			return err
-		}
+			err = ctx.Hooks.DispatchEvent(&event.SessionCreateEvent{
+				Reason:  string(n.Reason),
+				User:    *user,
+				Session: *n.Session.ToAPIModel(),
+			})
+			if err != nil {
+				return err
+			}
 
-		err = ctx.Sessions.Create(n.Session)
-		if err != nil {
-			return err
-		}
+			err = ctx.Sessions.Create(n.Session)
+			if err != nil {
+				return err
+			}
 
-		return nil
-	}))
-	if err != nil {
-		return err
-	}
-
-	return nil
+			return nil
+		}),
+	}, nil
 }
 
 func (n *NodeDoCreateSession) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

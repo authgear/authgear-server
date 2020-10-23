@@ -45,8 +45,8 @@ func (n *NodeRemoveIdentity) Prepare(ctx *interaction.Context, graph *interactio
 	return nil
 }
 
-func (n *NodeRemoveIdentity) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	return nil
+func (n *NodeRemoveIdentity) GetEffects() ([]interaction.Effect, error) {
+	return nil, nil
 }
 
 func (n *NodeRemoveIdentity) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

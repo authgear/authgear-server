@@ -52,8 +52,8 @@ func (n *NodeEnsureVerificationBegin) Prepare(ctx *interaction.Context, graph *i
 	return nil
 }
 
-func (n *NodeEnsureVerificationBegin) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	return nil
+func (n *NodeEnsureVerificationBegin) GetEffects() ([]interaction.Effect, error) {
+	return nil, nil
 }
 
 func (n *NodeEnsureVerificationBegin) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
@@ -92,8 +92,8 @@ func (n *NodeEnsureVerificationEnd) Prepare(ctx *interaction.Context, graph *int
 	return nil
 }
 
-func (n *NodeEnsureVerificationEnd) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	return nil
+func (n *NodeEnsureVerificationEnd) GetEffects() ([]interaction.Effect, error) {
+	return nil, nil
 }
 
 func (n *NodeEnsureVerificationEnd) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

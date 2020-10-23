@@ -20,8 +20,8 @@ func (n *NodeForgotPasswordBegin) Prepare(ctx *interaction.Context, graph *inter
 	return nil
 }
 
-func (n *NodeForgotPasswordBegin) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	return nil
+func (n *NodeForgotPasswordBegin) GetEffects() ([]interaction.Effect, error) {
+	return nil, nil
 }
 
 func (n *NodeForgotPasswordBegin) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
@@ -83,8 +83,8 @@ func (n *NodeForgotPasswordEnd) Prepare(ctx *interaction.Context, graph *interac
 	return nil
 }
 
-func (n *NodeForgotPasswordEnd) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	return nil
+func (n *NodeForgotPasswordEnd) GetEffects() ([]interaction.Effect, error) {
+	return nil, nil
 }
 
 func (n *NodeForgotPasswordEnd) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

@@ -26,20 +26,17 @@ func (n *NodeDoGenerateRecoveryCode) Prepare(ctx *interaction.Context, graph *in
 	return nil
 }
 
-func (n *NodeDoGenerateRecoveryCode) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	err := perform(interaction.EffectRun(func(ctx *interaction.Context) error {
-		if len(n.RecoveryCodes) > 0 {
-			_, err := ctx.MFA.ReplaceRecoveryCodes(graph.MustGetUserID(), n.RecoveryCodes)
-			return err
-		}
+func (n *NodeDoGenerateRecoveryCode) GetEffects() ([]interaction.Effect, error) {
+	return []interaction.Effect{
+		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			if len(n.RecoveryCodes) > 0 {
+				_, err := ctx.MFA.ReplaceRecoveryCodes(graph.MustGetUserID(), n.RecoveryCodes)
+				return err
+			}
 
-		return nil
-	}))
-	if err != nil {
-		return err
-	}
-
-	return nil
+			return nil
+		}),
+	}, nil
 }
 
 func (n *NodeDoGenerateRecoveryCode) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

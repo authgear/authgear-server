@@ -194,8 +194,8 @@ func (n *NodeCreateAuthenticatorOOBSetup) Prepare(ctx *interaction.Context, grap
 	return nil
 }
 
-func (n *NodeCreateAuthenticatorOOBSetup) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	return nil
+func (n *NodeCreateAuthenticatorOOBSetup) GetEffects() ([]interaction.Effect, error) {
+	return nil, nil
 }
 
 func (n *NodeCreateAuthenticatorOOBSetup) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

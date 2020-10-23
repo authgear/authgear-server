@@ -63,8 +63,8 @@ func (n *NodeAuthenticationTOTP) Prepare(ctx *interaction.Context, graph *intera
 	return nil
 }
 
-func (n *NodeAuthenticationTOTP) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	return nil
+func (n *NodeAuthenticationTOTP) GetEffects() ([]interaction.Effect, error) {
+	return nil, nil
 }
 
 func (n *NodeAuthenticationTOTP) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

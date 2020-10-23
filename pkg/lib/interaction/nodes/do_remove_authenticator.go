@@ -31,63 +31,60 @@ func (n *NodeDoRemoveAuthenticator) Prepare(ctx *interaction.Context, graph *int
 	return nil
 }
 
-func (n *NodeDoRemoveAuthenticator) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	err := perform(interaction.EffectRun(func(ctx *interaction.Context) error {
-		userID := graph.MustGetUserID()
+func (n *NodeDoRemoveAuthenticator) GetEffects() ([]interaction.Effect, error) {
+	return []interaction.Effect{
+		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			userID := graph.MustGetUserID()
 
-		as, err := ctx.Authenticators.List(userID)
-		if err != nil {
-			return err
-		}
-
-		switch n.Authenticator.Kind {
-		case authenticator.KindPrimary:
-			// Ensure all identities have matching primary authenticator.
-			is, err := ctx.Identities.ListByUser(userID)
+			as, err := ctx.Authenticators.List(userID)
 			if err != nil {
 				return err
 			}
 
-			for _, i := range is {
-				primaryAuths := filterAuthenticators(as, authenticator.KeepPrimaryAuthenticatorOfIdentity(i))
-				if len(primaryAuths) == 1 && primaryAuths[0].ID == n.Authenticator.ID {
+			switch n.Authenticator.Kind {
+			case authenticator.KindPrimary:
+				// Ensure all identities have matching primary authenticator.
+				is, err := ctx.Identities.ListByUser(userID)
+				if err != nil {
+					return err
+				}
+
+				for _, i := range is {
+					primaryAuths := filterAuthenticators(as, authenticator.KeepPrimaryAuthenticatorOfIdentity(i))
+					if len(primaryAuths) == 1 && primaryAuths[0].ID == n.Authenticator.ID {
+						return interaction.NewInvariantViolated(
+							"RemoveLastPrimaryAuthenticator",
+							"cannot remove last primary authenticator for identity",
+							map[string]interface{}{"identity_id": i.ID},
+						)
+					}
+				}
+
+			case authenticator.KindSecondary:
+				// Ensure authenticators conform to MFA requirement configuration
+				if n.BypassMFARequirement {
+					break
+				}
+				secondaries := filterAuthenticators(as, authenticator.KeepKind(authenticator.KindSecondary))
+				mode := ctx.Config.Authentication.SecondaryAuthenticationMode
+				if mode == config.SecondaryAuthenticationModeRequired &&
+					len(secondaries) == 1 && secondaries[0].ID == n.Authenticator.ID {
 					return interaction.NewInvariantViolated(
-						"RemoveLastPrimaryAuthenticator",
-						"cannot remove last primary authenticator for identity",
-						map[string]interface{}{"identity_id": i.ID},
+						"RemoveLastSecondaryAuthenticator",
+						"cannot remove last secondary authenticator",
+						nil,
 					)
 				}
 			}
 
-		case authenticator.KindSecondary:
-			// Ensure authenticators conform to MFA requirement configuration
-			if n.BypassMFARequirement {
-				break
+			err = ctx.Authenticators.Delete(n.Authenticator)
+			if err != nil {
+				return err
 			}
-			secondaries := filterAuthenticators(as, authenticator.KeepKind(authenticator.KindSecondary))
-			mode := ctx.Config.Authentication.SecondaryAuthenticationMode
-			if mode == config.SecondaryAuthenticationModeRequired &&
-				len(secondaries) == 1 && secondaries[0].ID == n.Authenticator.ID {
-				return interaction.NewInvariantViolated(
-					"RemoveLastSecondaryAuthenticator",
-					"cannot remove last secondary authenticator",
-					nil,
-				)
-			}
-		}
 
-		err = ctx.Authenticators.Delete(n.Authenticator)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	}))
-	if err != nil {
-		return err
-	}
-
-	return nil
+			return nil
+		}),
+	}, nil
 }
 
 func (n *NodeDoRemoveAuthenticator) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

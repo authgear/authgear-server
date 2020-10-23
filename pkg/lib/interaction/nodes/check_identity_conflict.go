@@ -39,8 +39,8 @@ func (n *NodeCheckIdentityConflict) Prepare(ctx *interaction.Context, graph *int
 	return nil
 }
 
-func (n *NodeCheckIdentityConflict) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	return nil
+func (n *NodeCheckIdentityConflict) GetEffects() ([]interaction.Effect, error) {
+	return nil, nil
 }
 
 func (n *NodeCheckIdentityConflict) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

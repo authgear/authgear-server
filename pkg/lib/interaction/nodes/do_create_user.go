@@ -42,27 +42,20 @@ func (n *NodeDoCreateUser) Prepare(ctx *interaction.Context, graph *interaction.
 	return nil
 }
 
-func (n *NodeDoCreateUser) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	err := perform(interaction.EffectRun(func(ctx *interaction.Context) error {
-		_, err := ctx.Users.Create(n.CreateUserID)
-		return err
-	}))
-	if err != nil {
-		return err
-	}
-
-	err = perform(interaction.EffectOnCommit(func(ctx *interaction.Context) error {
-		u, err := ctx.Users.GetRaw(n.CreateUserID)
-		if err != nil {
+func (n *NodeDoCreateUser) GetEffects() ([]interaction.Effect, error) {
+	return []interaction.Effect{
+		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			_, err := ctx.Users.Create(n.CreateUserID)
 			return err
-		}
-		return ctx.Users.AfterCreate(u, graph.GetUserNewIdentities())
-	}))
-	if err != nil {
-		return err
-	}
-
-	return nil
+		}),
+		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			u, err := ctx.Users.GetRaw(n.CreateUserID)
+			if err != nil {
+				return err
+			}
+			return ctx.Users.AfterCreate(u, graph.GetUserNewIdentities())
+		}),
+	}, nil
 }
 
 func (n *NodeDoCreateUser) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

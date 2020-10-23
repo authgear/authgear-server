@@ -114,8 +114,8 @@ func (n *NodeUseIdentityOAuthUserInfo) Prepare(ctx *interaction.Context, graph *
 	return nil
 }
 
-func (n *NodeUseIdentityOAuthUserInfo) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	return nil
+func (n *NodeUseIdentityOAuthUserInfo) GetEffects() ([]interaction.Effect, error) {
+	return nil, nil
 }
 
 func (n *NodeUseIdentityOAuthUserInfo) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

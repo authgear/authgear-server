@@ -93,8 +93,8 @@ func (n *NodeAuthenticationOOBTrigger) Prepare(ctx *interaction.Context, graph *
 	return nil
 }
 
-func (n *NodeAuthenticationOOBTrigger) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	return nil
+func (n *NodeAuthenticationOOBTrigger) GetEffects() ([]interaction.Effect, error) {
+	return nil, nil
 }
 
 func (n *NodeAuthenticationOOBTrigger) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

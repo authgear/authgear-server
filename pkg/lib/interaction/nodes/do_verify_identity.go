@@ -31,21 +31,18 @@ func (n *NodeDoVerifyIdentity) Prepare(ctx *interaction.Context, graph *interact
 	return nil
 }
 
-func (n *NodeDoVerifyIdentity) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	err := perform(interaction.EffectRun(func(ctx *interaction.Context) error {
-		if n.NewVerifiedClaim != nil {
-			if err := ctx.Verification.MarkClaimVerified(n.NewVerifiedClaim); err != nil {
-				return err
+func (n *NodeDoVerifyIdentity) GetEffects() ([]interaction.Effect, error) {
+	return []interaction.Effect{
+		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			if n.NewVerifiedClaim != nil {
+				if err := ctx.Verification.MarkClaimVerified(n.NewVerifiedClaim); err != nil {
+					return err
+				}
 			}
-		}
 
-		return nil
-	}))
-	if err != nil {
-		return err
-	}
-
-	return nil
+			return nil
+		}),
+	}, nil
 }
 
 func (n *NodeDoVerifyIdentity) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
