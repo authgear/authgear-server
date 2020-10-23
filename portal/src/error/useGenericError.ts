@@ -40,7 +40,7 @@ interface OtherErrorHandlingRule extends BaseErrorHandlingRule {
   >;
 }
 
-type GenericErrorHandlingRule =
+export type GenericErrorHandlingRule =
   | ValidationErrorHandlingRule
   | InvariantViolationErrorHandlingRule
   | PasswordPolicyViolationErrorHandlingRule

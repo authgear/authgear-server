@@ -211,6 +211,7 @@
   "AuthenticationAuthenticator.policy.require-mfa.if-requested": "Required if user enabled Multi-factor Authenticator",
   "AuthenticationAuthenticator.policy.recovery-code-number": "Number of Recovery Code",
   "AuthenticationAuthenticator.policy.allow-retrieve-recovery-code": "Allow user to retrieve recovery code again",
+  "AuthenticationAuthenticator.error.no-primary-authenticator": "No usable primary authenticator is enabled",
 
   "AnonymousUsersConfigurationScreen.title": "Anonymous Users",
   "AnonymousUsersConfigurationScreen.enable.label": "Enable anonymous users?",

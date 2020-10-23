@@ -17,7 +17,7 @@ import DetailsListWithOrdering from "../../DetailsListWithOrdering";
 import { swap } from "../../OrderButtons";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ButtonWithLoading from "../../ButtonWithLoading";
-import ShowError from "../../ShowError";
+import ErrorDialog from "../../error/ErrorDialog";
 import { ModifiedIndicatorPortal } from "../../ModifiedIndicatorPortal";
 import FormTextField from "../../FormTextField";
 import ShowUnhandledValidationErrorCause from "../../error/ShowUnhandledValidationErrorCauses";
@@ -44,6 +44,10 @@ import {
 } from "../../util/misc";
 import { FormContext } from "../../error/FormContext";
 import { useValidationError } from "../../error/useValidationError";
+import {
+  GenericErrorHandlingRule,
+  useGenericError,
+} from "../../error/useGenericError";
 
 import styles from "./AuthenticationAuthenticatorSettings.module.scss";
 
@@ -491,10 +495,31 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
   );
 
   const {
-    unhandledCauses,
+    unhandledCauses: rawUnhandledCauses,
     otherError,
     value: formContextValue,
   } = useValidationError(updateAppConfigError);
+
+  // TODO: refine this error, include more info for distinguishing
+  // general validation error
+  const errorRules: GenericErrorHandlingRule[] = useMemo(
+    () => [
+      {
+        reason: "ValidationFailed",
+        kind: "general",
+        jsonPointer: /\/authentication\/identities\/[0-9]+/,
+        errorMessageID:
+          "AuthenticationAuthenticator.error.no-primary-authenticator",
+      },
+    ],
+    []
+  );
+
+  const { errorMessage, unhandledCauses } = useGenericError(
+    otherError,
+    rawUnhandledCauses,
+    errorRules
+  );
 
   return (
     <FormContext.Provider value={formContextValue}>
@@ -504,9 +529,7 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
           resetForm={resetForm}
           isModified={isFormModified}
         />
-        {(unhandledCauses ?? []).length === 0 && otherError && (
-          <ShowError error={otherError} />
-        )}
+        <ErrorDialog error={null} rules={[]} errorMessage={errorMessage} />
         <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
         <div
           className={styles.widget}
