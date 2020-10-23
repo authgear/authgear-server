@@ -72,10 +72,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
-func newRuntimeConfigHandler(p *deps.RequestProvider) http.Handler {
+func newSystemConfigHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(http.Handler), new(*transport.RuntimeConfigHandler)),
+		wire.Bind(new(http.Handler), new(*transport.SystemConfigHandler)),
 	))
 }
 
@@ -83,5 +83,12 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*transport.AdminAPIHandler)),
+	))
+}
+
+func newStaticAssetsHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.StaticAssetsHandler)),
 	))
 }

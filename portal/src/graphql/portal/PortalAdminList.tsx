@@ -13,9 +13,9 @@ import {
   Collaborator,
   CollaboratorInvitation,
 } from "./query/collaboratorsAndInvitationsQuery";
-import { destructiveTheme } from "../../theme";
 
 import styles from "./PortalAdminList.module.scss";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
 interface PortalAdminListProps {
   className?: string;
@@ -73,6 +73,7 @@ const PortalAdminList: React.FC<PortalAdminListProps> = function PortalAdminList
     onRemoveCollaboratorClicked,
     onRemoveCollaboratorInvitationClicked,
   } = props;
+  const { themes } = useSystemConfig();
 
   const { renderToString } = useContext(Context);
 
@@ -133,7 +134,7 @@ const PortalAdminList: React.FC<PortalAdminListProps> = function PortalAdminList
             <ActionButton
               className={styles.actionButton}
               styles={{ flexContainer: { alignItems: "normal" } }}
-              theme={destructiveTheme}
+              theme={themes.destructive}
               onClick={(event) => {
                 if (isPortalAdminListCollaboratorItem(item)) {
                   onRemoveCollaboratorClicked(event, item.id);
@@ -149,7 +150,11 @@ const PortalAdminList: React.FC<PortalAdminListProps> = function PortalAdminList
           return null;
       }
     },
-    [onRemoveCollaboratorClicked, onRemoveCollaboratorInvitationClicked]
+    [
+      onRemoveCollaboratorClicked,
+      onRemoveCollaboratorInvitationClicked,
+      themes.destructive,
+    ]
   );
 
   return (

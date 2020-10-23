@@ -1,9 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { LocaleProvider, FormattedMessage } from "@oursky/react-messageformat";
+import {
+  LocaleProvider,
+  FormattedMessage,
+  Context,
+} from "@oursky/react-messageformat";
 import { ApolloProvider } from "@apollo/client";
 import authgear from "@authgear/web";
-import ShowLoading from "./ShowLoading";
+import { Helmet, HelmetProvider } from "react-helmet-async";
 import Authenticated from "./graphql/portal/Authenticated";
 import AppsScreen from "./graphql/portal/AppsScreen";
 import CreateAppScreen from "./graphql/portal/CreateAppScreen";
@@ -15,10 +19,30 @@ import i18nISOCountriesEnLocale from "i18n-iso-countries/langs/en.json";
 import styles from "./ReactApp.module.scss";
 import OAuthRedirect from "./OAuthRedirect";
 import AcceptAdminInvitationScreen from "./graphql/portal/AcceptAdminInvitationScreen";
+import { SystemConfigContext } from "./context/SystemConfigContext";
 import {
-  RuntimeConfig,
-  RuntimeConfigContext,
-} from "./context/RuntimeConfigContext";
+  SystemConfig,
+  PartialSystemConfig,
+  defaultSystemConfig,
+  instantiateSystemConfig,
+  mergeSystemConfig,
+} from "./system-config";
+import { loadTheme } from "@fluentui/react";
+
+async function loadSystemConfig(): Promise<SystemConfig> {
+  const resp = await fetch("/api/system-config.json");
+  const config = (await resp.json()) as PartialSystemConfig;
+  const mergedConfig = mergeSystemConfig(defaultSystemConfig, config);
+  return instantiateSystemConfig(mergedConfig);
+}
+
+async function initApp(systemConfig: SystemConfig) {
+  loadTheme(systemConfig.themes.main);
+  await authgear.configure({
+    clientID: systemConfig.authgearClientID,
+    endpoint: systemConfig.authgearEndpoint,
+  });
+}
 
 // ReactAppRoutes defines the routes.
 const ReactAppRoutes: React.FC = function ReactAppRoutes() {
@@ -39,69 +63,65 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
   );
 };
 
+const PortalRoot = function PortalRoot() {
+  const { renderToString } = useContext(Context);
+  return (
+    <>
+      <Helmet>
+        <title>{renderToString("system.title")} </title>
+      </Helmet>
+      <div className={styles.root}>
+        <Authenticated>
+          <ReactAppRoutes />
+        </Authenticated>
+      </div>
+    </>
+  );
+};
+
 // ReactApp is responsible for fetching runtime config and initialize authgear SDK.
 const ReactApp: React.FC = function ReactApp() {
-  const [configured, setConfigured] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [systemConfig, setSystemConfig] = useState<SystemConfig | null>(null);
   const [error, setError] = useState<null | unknown>(null);
-  const [runtimeConfigState, setRuntimeConfig] = useState<RuntimeConfig | null>(
-    null
-  );
 
   useEffect(() => {
-    if (!configured && !loading && error == null) {
-      setLoading(true);
-
-      fetch("/api/runtime-config.json")
-        .then(async (response) => {
-          const runtimeConfig = await response.json();
-          setRuntimeConfig(runtimeConfig);
-          await authgear.configure({
-            clientID: runtimeConfig.authgear_client_id,
-            endpoint: runtimeConfig.authgear_endpoint,
-          });
-          setConfigured(true);
+    if (!systemConfig && error == null) {
+      loadSystemConfig()
+        .then(async (cfg) => {
+          await initApp(cfg);
+          setSystemConfig(cfg);
         })
-        .then(
-          () => {
-            setLoading(false);
-          },
-          (err) => {
-            setLoading(false);
-            setError(err);
-          }
-        );
+        .catch((err) => {
+          setError(err);
+        });
     }
-  }, [configured, loading, error]);
-
-  let children: React.ReactElement;
+  }, [systemConfig, error]);
 
   if (error != null) {
-    children = (
-      <p>
-        <FormattedMessage id="error.failed-to-initialize-app" />
-      </p>
+    return (
+      <LocaleProvider locale="en" messageByID={MESSAGES}>
+        <p>
+          <FormattedMessage id="error.failed-to-initialize-app" />
+        </p>
+      </LocaleProvider>
     );
-  } else if (loading) {
-    children = <ShowLoading />;
-  } else {
-    children = (
-      <Authenticated>
-        <ReactAppRoutes />
-      </Authenticated>
-    );
+  } else if (!systemConfig) {
+    // Avoid rendering components from @fluentui/react, since themes are not loaded yet.
+    return null;
   }
 
   // register locale for country code translation
   registerLocale(i18nISOCountriesEnLocale);
 
   return (
-    <LocaleProvider locale="en" messageByID={MESSAGES}>
-      <ApolloProvider client={client}>
-        <RuntimeConfigContext.Provider value={runtimeConfigState}>
-          <div className={styles.root}>{children}</div>
-        </RuntimeConfigContext.Provider>
-      </ApolloProvider>
+    <LocaleProvider locale="en" messageByID={systemConfig.translations.en}>
+      <HelmetProvider>
+        <ApolloProvider client={client}>
+          <SystemConfigContext.Provider value={systemConfig}>
+            <PortalRoot />
+          </SystemConfigContext.Provider>
+        </ApolloProvider>
+      </HelmetProvider>
     </LocaleProvider>
   );
 };

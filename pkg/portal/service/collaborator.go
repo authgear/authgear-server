@@ -16,9 +16,9 @@ import (
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/db"
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/portal/resource"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/portal/task/tasks"
-	portaltemplate "github.com/authgear/authgear-server/pkg/portal/template"
 	"github.com/authgear/authgear-server/pkg/util/base32"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/rand"
@@ -315,7 +315,7 @@ func (s *CollaboratorService) SendInvitation(
 	}
 
 	textBody, err := s.TemplateEngine.Render(
-		portaltemplate.TemplateCollaboratorInvitationEmailTXT,
+		resource.TemplateCollaboratorInvitationEmailTXT,
 		nil,
 		data,
 	)
@@ -324,7 +324,7 @@ func (s *CollaboratorService) SendInvitation(
 	}
 
 	htmlBody, err := s.TemplateEngine.Render(
-		portaltemplate.TemplateCollaboratorInvitationEmailHTML,
+		resource.TemplateCollaboratorInvitationEmailHTML,
 		nil,
 		data,
 	)

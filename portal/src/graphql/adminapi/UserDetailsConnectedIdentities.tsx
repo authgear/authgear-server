@@ -27,14 +27,10 @@ import { useDeleteIdentityMutation } from "./mutations/deleteIdentityMutation";
 import { useSetVerifiedStatusMutation } from "./mutations/setVerifiedStatusMutation";
 import { formatDatetime } from "../../util/formatDatetime";
 import { OAuthSSOProviderType } from "../../types";
-import {
-  destructiveTheme,
-  verifyButtonTheme,
-  defaultButtonTheme,
-} from "../../theme";
 import { UserQuery_node_User_verifiedClaims } from "./query/__generated__/UserQuery";
 
 import styles from "./UserDetailsConnectedIdentities.module.scss";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
 interface IdentityClaim extends Record<string, unknown> {
   email?: string;
@@ -167,6 +163,7 @@ const VerifyButton: React.FC<VerifyButtonProps> = function VerifyButton(
   props: VerifyButtonProps
 ) {
   const { verified, verifying, toggleVerified } = props;
+  const { themes } = useSystemConfig();
   const { settingVerifiedStatus } = useContext(
     ConnectedIdentitiesMutationLoadingContext
   );
@@ -184,7 +181,7 @@ const VerifyButton: React.FC<VerifyButtonProps> = function VerifyButton(
       <ButtonWithLoading
         className={cn(styles.controlButton, styles.unverifyButton)}
         disabled={settingVerifiedStatus}
-        theme={defaultButtonTheme}
+        theme={themes.defaultButton}
         onClick={onClickUnverify}
         labelId="unverify"
         loading={verifying}
@@ -196,7 +193,7 @@ const VerifyButton: React.FC<VerifyButtonProps> = function VerifyButton(
     <ButtonWithLoading
       className={cn(styles.controlButton, styles.verifyButton)}
       disabled={settingVerifiedStatus}
-      theme={verifyButtonTheme}
+      theme={themes.verifyButton}
       onClick={onClickVerify}
       loading={verifying}
       labelId="verify"
@@ -219,6 +216,7 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
     onRemoveClicked: _onRemoveClicked,
   } = props;
 
+  const { themes } = useSystemConfig();
   const { settingVerifiedStatus } = useContext(
     ConnectedIdentitiesMutationLoadingContext
   );
@@ -279,7 +277,7 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
       <DefaultButton
         className={cn(styles.controlButton, styles.removeButton)}
         disabled={settingVerifiedStatus}
-        theme={destructiveTheme}
+        theme={themes.destructive}
         onClick={onRemoveClicked}
       >
         <FormattedMessage id={removeButtonTextId[identityType]} />

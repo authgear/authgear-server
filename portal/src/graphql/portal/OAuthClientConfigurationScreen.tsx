@@ -31,9 +31,9 @@ import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation"
 import { useTagPickerWithNewTags } from "../../hook/useInput";
 import { copyToClipboard } from "../../util/clipboard";
 import { clearEmptyObject, setFieldIfListNonEmpty } from "../../util/misc";
-import { actionButtonTheme } from "../../theme";
 
 import styles from "./OAuthClientConfigurationScreen.module.scss";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
 interface OAuthClientConfigurationProps {
   rawAppConfig: PortalAPIAppConfig | null;
@@ -247,6 +247,7 @@ const OAuthClientListActionCell: React.FC<OAuthClientListActionCellProps> = func
 ) {
   const { clientId, clientName, onCopyComplete, onRemoveClientClick } = props;
   const navigate = useNavigate();
+  const { themes } = useSystemConfig();
 
   const onEditClick = useCallback(() => {
     navigate(`./${clientId}/edit`);
@@ -267,7 +268,7 @@ const OAuthClientListActionCell: React.FC<OAuthClientListActionCellProps> = func
     <div className={styles.clientListColumn}>
       <ActionButton
         className={styles.listActionButton}
-        theme={actionButtonTheme}
+        theme={themes.actionButton}
         onClick={onEditClick}
       >
         <FormattedMessage id="edit" />
@@ -275,7 +276,7 @@ const OAuthClientListActionCell: React.FC<OAuthClientListActionCellProps> = func
       <VerticalDivider className={styles.listActionButtonDivider} />
       <ActionButton
         className={styles.listActionButton}
-        theme={actionButtonTheme}
+        theme={themes.actionButton}
         onClick={onCopyClick}
       >
         <FormattedMessage id="copy" />
@@ -283,7 +284,7 @@ const OAuthClientListActionCell: React.FC<OAuthClientListActionCellProps> = func
       <VerticalDivider className={styles.listActionButtonDivider} />
       <ActionButton
         className={styles.listActionButton}
-        theme={actionButtonTheme}
+        theme={themes.actionButton}
         onClick={onRemoveClick}
       >
         <FormattedMessage id="remove" />
@@ -299,6 +300,7 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
   const { renderToString } = useContext(Context);
   const { appID } = useParams();
   const navigate = useNavigate();
+  const { themes } = useSystemConfig();
 
   const {
     updateAppConfig,
@@ -423,7 +425,7 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
       />
       <section className={styles.controlButtons}>
         <ActionButton
-          theme={actionButtonTheme}
+          theme={themes.actionButton}
           className={styles.addClientButton}
           onClick={onAddOAuthClientClick}
           iconProps={{ iconName: "CirclePlus" }}

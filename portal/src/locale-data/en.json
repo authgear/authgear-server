@@ -1,5 +1,8 @@
 {
   "error.failed-to-initialize-app": "Failed to initialize the app. Please refresh this page to retry.",
+  "system.name": "Authgear",
+  "system.title": "Authgear Portal",
+  "system.logo-uri": "/img/logo.png",
 
   "loading": "Loading...",
 
@@ -219,7 +222,8 @@
   "AnonymousIdentityConflictBehaviour.error": "Show Error",
 
   "SingleSignOnConfigurationScreen.title": "Single-Sign On",
-  "SingleSignOnConfigurationScreen.help-link": "Need help? View our SSO integration documentations",
+  "SingleSignOnConfigurationScreen.help-link-label": "Need help? View our SSO integration documentations",
+  "SingleSignOnConfigurationScreen.help-link-href": "https://docs.authgear.com/how-tos/how-to-setup-sso-integrations",
   "SingleSignOnConfigurationScreen.widget.alias": "Alias",
   "SingleSignOnConfigurationScreen.widget.client-id": "Client ID",
   "SingleSignOnConfigurationScreen.widget.client-secret": "Client Secret",
@@ -272,7 +276,7 @@
 
   "OAuthClientConfiguration.title": "Client Applications",
   "OAuthClientConfigurationScreen.allowed-origins.header": "Allowed Origins",
-  "OAuthClientConfigurationScreen.allowed-origins.desc": "Configure cross-origin resource sharing (CORS), allowing users to call Authgear from the list of domains specified here",
+  "OAuthClientConfigurationScreen.allowed-origins.desc": "Configure cross-origin resource sharing (CORS), allowing HTTP requests from the list of domains specified here",
   "OAuthClientConfiguration.add-client-button": "Add Client",
   "OAuthClientConfiguration.client-list.name": "Name",
   "OAuthClientConfiguration.client-list.creation-date": "Creation Date",
@@ -295,12 +299,12 @@
   "ModifyOAuthClientForm.acces-token-lifetime-label": "Access Token Lifetime (in seconds)",
   "ModifyOAuthClientForm.refresh-token-lifetime-label": "Refresh Token Lifetime (in seconds)",
   "ModifyOAuthClientForm.redirect-uris-label": "Redirect URIs",
-  "ModifyOAuthClientForm.redirect-uris-tooltip-message": "Users will be redirected to this path after they have authenticated with Authgear.",
+  "ModifyOAuthClientForm.redirect-uris-tooltip-message": "Users will be redirected to this path after they have authenticated.",
   "ModifyOAuthClientForm.post-logout-redirect-uris-label": "Post Logout Redirect URIs",
-  "ModifyOAuthClientForm.post-logout-redirect-uris-tooltip-message": "Users will be redirected to this path after they have logged out from Authgear.",
+  "ModifyOAuthClientForm.post-logout-redirect-uris-tooltip-message": "Users will be redirected to this path after they have logged out.",
 
   "DNSConfigurationScreen.title": "DNS",
-  "DNSConfigurationScreen.desc": "You can add a custom domain so that users will login via, for example, “identity.yourdomain.com”. In this case, Authgear could also provide a cookie session under “yourdomain.com”, so that your websites could share the session cookies under “*.yourdomain.com” for a better customers experiences.",
+  "DNSConfigurationScreen.desc": "You can add a custom domain so that users will login via, for example, “identity.yourdomain.com”. In this case, a session cookie of domain “yourdomain.com” is written so that your websites can share the session cookies under “*.yourdomain.com” for better customers experiences.",
   "DNSConfigurationScreen.public-origin.header": "Public Origin",
   "DNSConfigurationScreen.public-origin.desc": "Pick a verified domain here as public domain of your app.",
   "DNSConfigurationScreen.add-domain.generic-error": "Failed to add domain",

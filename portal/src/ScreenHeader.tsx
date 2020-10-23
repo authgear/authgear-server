@@ -1,13 +1,12 @@
-import React, { useCallback, useContext } from "react";
+import React, { useCallback, useContext, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Context } from "@oursky/react-messageformat";
 import authgear from "@authgear/web";
 import { Icon, IconButton, Text } from "@fluentui/react";
-import srcLogo from "./image/screen-header-logo@3x.png";
-import { invertedTheme } from "./theme";
 import { useAppConfigQuery } from "./graphql/portal/query/appConfigQuery";
 
 import styles from "./ScreenHeader.module.scss";
+import { useSystemConfig } from "./context/SystemConfigContext";
 
 interface ScreenHeaderAppSectionProps {
   appID: string;
@@ -40,6 +39,7 @@ const ScreenHeaderAppSection: React.FC<ScreenHeaderAppSectionProps> = function S
 
 const ScreenHeader: React.FC = function ScreenHeader() {
   const { renderToString } = useContext(Context);
+  const { themes } = useSystemConfig();
   const { appID } = useParams();
 
   const labelSignOut = renderToString("header.sign-out");
@@ -56,11 +56,22 @@ const ScreenHeader: React.FC = function ScreenHeader() {
       });
   }, [redirectURI]);
 
+  const headerStyle = useMemo(
+    () => ({
+      backgroundColor: themes.main.palette.themePrimary,
+    }),
+    [themes.main]
+  );
+
   return (
-    <header className={styles.header}>
+    <header className={styles.header} style={headerStyle}>
       <div className={styles.headerLeft}>
         <Link to="/" className={styles.logoLink}>
-          <img className={styles.logo} alt="Authgear" src={srcLogo} />
+          <img
+            className={styles.logo}
+            alt={renderToString("system.name")}
+            src={renderToString("system.logo-uri")}
+          />
         </Link>
         {appID && <ScreenHeaderAppSection appID={appID} />}
       </div>
@@ -70,7 +81,7 @@ const ScreenHeader: React.FC = function ScreenHeader() {
         onClick={onClickLogout}
         title={labelSignOut}
         ariaLabel={labelSignOut}
-        theme={invertedTheme}
+        theme={themes.inverted}
       />
     </header>
   );

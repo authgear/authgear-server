@@ -52,3 +52,7 @@ func (m *Manager) Resolve(path string) (Descriptor, bool) {
 	}
 	return nil, false
 }
+
+func (m *Manager) Filesystems() []Fs {
+	return m.Fs
+}

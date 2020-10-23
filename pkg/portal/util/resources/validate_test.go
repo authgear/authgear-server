@@ -9,7 +9,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	configtest "github.com/authgear/authgear-server/pkg/lib/config/test"
-	"github.com/authgear/authgear-server/pkg/portal/resources"
+	"github.com/authgear/authgear-server/pkg/portal/util/resources"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 

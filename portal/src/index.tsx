@@ -14,14 +14,11 @@ import "./index.scss";
 
 import React from "react";
 import { render } from "react-dom";
-import { initializeIcons, loadTheme } from "@fluentui/react";
+import { initializeIcons } from "@fluentui/react";
 
 import ReactApp from "./ReactApp";
-import { theme } from "./theme";
 
 initializeIcons();
-
-loadTheme(theme);
 
 /* NOTE: disabled axe as it does not work well with monaco editor
  *       screen with monaco editor is extremely slow

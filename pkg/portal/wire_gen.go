@@ -222,15 +222,20 @@ var (
 	_wireDefaultTemplateLanguageValue = template.DefaultTemplateLanguage(intl.DefaultLanguage)
 )
 
-func newRuntimeConfigHandler(p *deps.RequestProvider) http.Handler {
+func newSystemConfigHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
 	authgearConfig := rootProvider.AuthgearConfig
 	appConfig := rootProvider.AppConfig
-	runtimeConfigHandler := &transport.RuntimeConfigHandler{
+	manager := rootProvider.Resources
+	systemConfigProvider := &service.SystemConfigProvider{
 		AuthgearConfig: authgearConfig,
 		AppConfig:      appConfig,
+		Resources:      manager,
 	}
-	return runtimeConfigHandler
+	systemConfigHandler := &transport.SystemConfigHandler{
+		SystemConfig: systemConfigProvider,
+	}
+	return systemConfigHandler
 }
 
 func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
@@ -334,4 +339,13 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		Logger:   adminAPILogger,
 	}
 	return adminAPIHandler
+}
+
+func newStaticAssetsHandler(p *deps.RequestProvider) http.Handler {
+	rootProvider := p.RootProvider
+	manager := rootProvider.Resources
+	staticAssetsHandler := &transport.StaticAssetsHandler{
+		Resources: manager,
+	}
+	return staticAssetsHandler
 }

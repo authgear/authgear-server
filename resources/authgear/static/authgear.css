@@ -2,6 +2,10 @@
 /* The font-size of focusable elements must be >= 16px otherwise */
 /* Safari iOS will zoom the page. */
 
+:root {
+  --color-primary: #155bef;
+}
+
 html, body {
   margin: 0;
   padding: 0;
@@ -66,7 +70,7 @@ a {
 /* a:link is more specific than .primary-btn so we need to add :not here */
 a:not(.btn):link,
 a:not(.btn):visited {
-  color: #166bef;
+  color: var(--color-primary);
 }
 
 select {
@@ -148,7 +152,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .input:focus {
-  border-bottom-color: #166bef;
+  border-bottom-color: var(--color-primary);
 }
 
 .input::placeholder {
@@ -178,12 +182,12 @@ h1, h2, h3, h4, h5, h6 {
 
 .primary-btn {
   color: white;
-  background-color: #166bef;
+  background-color: var(--color-primary);
   min-width: 100px;
 }
 
 .secondary-btn {
-  color: #166bef;
+  color: var(--color-primary);
 }
 
 .destructive-btn {
@@ -201,7 +205,7 @@ button.link {
 button.anchor {
   /* NOTE(1) */
   font-size: 1rem;
-  color: #166bef;
+  color: var(--color-primary);
 }
 
 a.btn {
@@ -228,7 +232,7 @@ a.btn {
   background-position: center;
   background-size: 60px 60px;
   background-repeat: no-repeat;
-  background-color: #eaf1fc;
+  background-color: var(--color-primary);
 }
 
 .pane {
