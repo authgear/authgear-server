@@ -42,7 +42,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 	webappSSOCallbackChain := httproute.Chain(
 		rootChain,
 		p.Middleware(newPanicWriteEmptyResponseMiddleware),
-		httproute.MiddlewareFunc(webapp.PostNoCacheMiddleware),
+		httproute.MiddlewareFunc(httputil.NoCache),
 	)
 	scopedChain := httproute.Chain(
 		rootChain,
@@ -56,7 +56,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 		httproute.MiddlewareFunc(webapp.IntlMiddleware),
 		p.Middleware(newCSPMiddleware),
 		p.Middleware(newCSRFMiddleware),
-		httproute.MiddlewareFunc(webapp.PostNoCacheMiddleware),
+		httproute.MiddlewareFunc(httputil.NoCache),
 	)
 	webappPageChain := httproute.Chain(
 		webappChain,
