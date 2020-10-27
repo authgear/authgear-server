@@ -208,10 +208,6 @@ func (s *Service) PostInput(stateID string, inputer func() (interface{}, error))
 		return nil, err
 	}
 
-	return s.post(state, inputer)
-}
-
-func (s *Service) post(state *State, inputer func() (interface{}, error)) (result *Result, err error) {
 	// Immutable state
 	state.SetID(NewID())
 
