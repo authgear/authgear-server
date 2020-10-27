@@ -215,6 +215,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -327,6 +328,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -690,6 +692,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -809,6 +812,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -1173,6 +1177,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	redisHandle := appProvider.Redis
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -1390,6 +1395,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	redisHandle := appProvider.Redis
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -1700,6 +1706,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -1800,6 +1807,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -2140,6 +2148,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -2240,6 +2249,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -2580,6 +2590,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -2680,6 +2691,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -2984,6 +2996,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -3103,6 +3116,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -3435,6 +3449,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -3535,6 +3550,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -3867,6 +3883,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -3967,6 +3984,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -4299,6 +4317,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -4399,6 +4418,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -4732,6 +4752,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -4832,6 +4853,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -5166,6 +5188,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -5266,6 +5289,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -5598,6 +5622,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -5698,6 +5723,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -6030,6 +6056,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -6130,6 +6157,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -6462,6 +6490,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -6562,6 +6591,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -6894,6 +6924,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -6994,6 +7025,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -7326,6 +7358,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -7426,6 +7459,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -7758,6 +7792,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -7858,6 +7893,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -8194,6 +8230,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -8294,6 +8331,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -8627,6 +8665,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -8727,6 +8766,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -9059,6 +9099,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -9159,6 +9200,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -9492,6 +9534,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -9592,6 +9635,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -9924,6 +9968,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -10024,6 +10069,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -10359,6 +10405,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -10459,6 +10506,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -10795,6 +10843,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -10895,6 +10944,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -11230,6 +11280,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -11330,6 +11381,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -11665,6 +11717,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -11765,6 +11818,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -12101,6 +12155,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -12201,6 +12256,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -12534,6 +12590,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -12634,6 +12691,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -12934,6 +12992,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	redisHandle := appProvider.Redis
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -13257,6 +13316,7 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -13376,6 +13436,7 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -13676,6 +13737,7 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -13795,6 +13857,7 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -14301,6 +14364,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: handle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -14507,6 +14571,7 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: handle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -14626,6 +14691,7 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: handle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)

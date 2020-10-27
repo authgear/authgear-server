@@ -262,6 +262,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: handle,
 	}
 	limiter := &ratelimit.Limiter{

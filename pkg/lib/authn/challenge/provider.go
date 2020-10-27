@@ -85,7 +85,7 @@ func (p *Provider) Consume(token string) (*Purpose, error) {
 }
 
 func challengeKey(appID config.AppID, token string) string {
-	return fmt.Sprintf("%s:challenge:%s", appID, token)
+	return fmt.Sprintf("app:%s:challenge:%s", appID, token)
 }
 
 func toMilliseconds(d time.Duration) int64 {

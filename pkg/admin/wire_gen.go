@@ -240,6 +240,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	redisHandle := appProvider.Redis
 	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	limiter := &ratelimit.Limiter{
@@ -362,6 +363,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)

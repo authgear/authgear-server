@@ -53,5 +53,5 @@ func (s *EventStoreRedis) ResetEventStream(sessionID string) error {
 }
 
 func accessEventStreamKey(appID config.AppID, sessionID string) string {
-	return fmt.Sprintf("%s:access-events:%s", appID, sessionID)
+	return fmt.Sprintf("app:%s:access-events:%s", appID, sessionID)
 }
