@@ -3,6 +3,8 @@ package portal
 import (
 	"net/http"
 
+	graphqlhandler "github.com/graphql-go/handler"
+
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/transport"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -25,20 +27,33 @@ func NewRouter(p *deps.RootProvider, staticAsset StaticAssetConfig) *httproute.R
 		p.Middleware(newSessionInfoMiddleware),
 	)
 
-	sessionRequiredChain := httproute.Chain(
+	graphqlChain := httproute.Chain(
+		rootChain,
+		httputil.CheckContentType([]string{
+			graphqlhandler.ContentTypeJSON,
+			graphqlhandler.ContentTypeGraphQL,
+		}),
+	)
+
+	adminAPIChain := httproute.Chain(
 		rootChain,
 		p.Middleware(newSessionRequiredMiddleware),
+		httputil.CheckContentType([]string{
+			graphqlhandler.ContentTypeJSON,
+			graphqlhandler.ContentTypeGraphQL,
+		}),
 	)
 
 	rootRoute := httproute.Route{Middleware: rootChain}
-	sessionRequiredRoute := httproute.Route{Middleware: sessionRequiredChain}
+	graphqlRoute := httproute.Route{Middleware: graphqlChain}
+	adminAPIRoute := httproute.Route{Middleware: adminAPIChain}
 
 	router.Add(transport.ConfigureSystemConfigRoute(rootRoute), p.Handler(newSystemConfigHandler))
 	// It is OK to access portal graphql endpoint without session.
 	// Actually the client check if viewer is null to determine session existence.
-	router.Add(transport.ConfigureGraphQLRoute(rootRoute), p.Handler(newGraphQLHandler))
+	router.Add(transport.ConfigureGraphQLRoute(graphqlRoute), p.Handler(newGraphQLHandler))
 
-	router.Add(transport.ConfigureAdminAPIRoute(sessionRequiredRoute), p.Handler(newAdminAPIHandler))
+	router.Add(transport.ConfigureAdminAPIRoute(adminAPIRoute), p.Handler(newAdminAPIHandler))
 
 	if staticAsset.ServingEnabled {
 		router.NotFound(p.Handler(newStaticAssetsHandler))
