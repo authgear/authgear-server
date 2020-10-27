@@ -79,6 +79,8 @@
   "CreateAppScreen.title": "Create App",
   "CreateAppScreen.app-id.label": "App ID",
   "CreateAppScreen.app-id.desc": "It will appear in the endpoint of your app:",
+  "CreateAppScreen.error.duplicated-app-id": "App ID already exist",
+  "CreateAppScreen.error.generic": "Failed to create app",
 
   "UsersScreen.title": "Users",
   "UsersScreen.add-user": "Add User",
@@ -211,6 +213,7 @@
   "AuthenticationAuthenticator.policy.require-mfa.if-requested": "Required if user enabled Multi-factor Authenticator",
   "AuthenticationAuthenticator.policy.recovery-code-number": "Number of Recovery Code",
   "AuthenticationAuthenticator.policy.allow-retrieve-recovery-code": "Allow user to retrieve recovery code again",
+  "AuthenticationAuthenticator.error.no-primary-authenticator": "No usable primary authenticator is enabled",
 
   "AnonymousUsersConfigurationScreen.title": "Anonymous Users",
   "AnonymousUsersConfigurationScreen.enable.label": "Enable anonymous users?",
@@ -420,5 +423,10 @@
   "AuthenticatorType.primary.oob-otp": "Passwordless via SMS / Email",
   "AuthenticatorType.secondary.totp": "Authenticator Apps / Devices",
   "AuthenticatorType.secondary.oob-otp": "Verification code via SMS / Email",
-  "AuthenticatorType.secondary.password": "Additional Password"
+  "AuthenticatorType.secondary.password": "Additional Password",
+
+  "ShowUnhandledValidationErrorCause.title": "Validation error",
+  "ShowUnhandledValidationErrorCause.kind": "Kind: {kind}",
+  "ShowUnhandledValidationErrorCause.location": "Location: {location}",
+  "ShowUnhandledValidationErrorCause.details": "Details: {details}"
 }

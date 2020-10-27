@@ -133,7 +133,7 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
   }, [initialFormData]);
 
   const {
-    unhandledCauses,
+    unhandledCauses: rawUnhandledCauses,
     otherError,
     value: formContextValue,
   } = useValidationError(createIdentityError);
@@ -141,7 +141,8 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
   const {
     errorMessage: genericErrorMessage,
     unrecognizedError,
-  } = useGenericError(otherError, [
+    unhandledCauses,
+  } = useGenericError(otherError, rawUnhandledCauses, [
     {
       reason: "InvariantViolated",
       kind: "DuplicatedIdentity",

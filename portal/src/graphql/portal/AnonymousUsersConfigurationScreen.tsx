@@ -17,6 +17,7 @@ import {
 import { clearEmptyObject } from "../../util/misc";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
+import ErrorDialog from "../../error/ErrorDialog";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import {
@@ -71,16 +72,21 @@ function constructStateFromAppConfig(
 function constructNewAppConfigFromState(
   state: AnonymousUsersConfigurationScreenState,
   initialState: AnonymousUsersConfigurationScreenState,
-  appConfig: PortalAPIAppConfig
+  rawAppConfig: PortalAPIAppConfig,
+  effectiveAppConfig: PortalAPIAppConfig
 ) {
-  return produce(appConfig, (draftConfig) => {
+  return produce(rawAppConfig, (draftConfig) => {
     draftConfig.identity = draftConfig.identity ?? {};
     draftConfig.identity.on_conflict = draftConfig.identity.on_conflict ?? {};
     const onConflict = draftConfig.identity.on_conflict;
 
     draftConfig.authentication = draftConfig.authentication ?? {};
+    // if raw config does not contain authentication.identities, effective
+    // config is ["oauth", "login_id"], so effective config is used to
+    // avoid enabling anonymous user will remove "oauth" and "login_id"
+    // from effective config of authentication.identities
     draftConfig.authentication.identities =
-      draftConfig.authentication.identities ?? [];
+      effectiveAppConfig.authentication?.identities ?? [];
     const { authentication } = draftConfig;
     const authenticationIdentitiesSet = new Set(authentication.identities);
 
@@ -177,17 +183,18 @@ const AnonymousUsersConfiguration: React.FC<AnonymousUsersConfigurationProps> = 
   );
 
   const onSaveClicked = useCallback(() => {
-    if (rawAppConfig == null) {
+    if (rawAppConfig == null || effectiveAppConfig == null) {
       return;
     }
     const newAppConfig = constructNewAppConfigFromState(
       state,
       initialState,
-      rawAppConfig
+      rawAppConfig,
+      effectiveAppConfig
     );
-    // TODO: handle error
+
     updateAppConfig(newAppConfig).catch(() => {});
-  }, [updateAppConfig, rawAppConfig, initialState, state]);
+  }, [updateAppConfig, rawAppConfig, effectiveAppConfig, initialState, state]);
 
   return (
     <section className={styles.screenContent}>
@@ -250,7 +257,7 @@ const AnonymousUserConfigurationScreen: React.FC = function AnonymousUserConfigu
 
   return (
     <main className={styles.root}>
-      {updateAppConfigError && <ShowError error={updateAppConfigError} />}
+      <ErrorDialog error={updateAppConfigError} rules={[]} />
       <ModifiedIndicatorWrapper className={styles.wrapper}>
         <Text as="h1" className={styles.title}>
           <FormattedMessage id="AnonymousUsersConfigurationScreen.title" />

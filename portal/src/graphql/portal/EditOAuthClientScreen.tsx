@@ -110,7 +110,9 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> = function EditOAu
           resetForm={resetForm}
           isModified={isFormModified}
         />
-        {otherError && <ShowError error={otherError} />}
+        {(unhandledCauses ?? []).length && otherError && (
+          <ShowError error={otherError} />
+        )}
         <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
         <Label>
           <FormattedMessage id="EditOAuthClientScreen.client-id" />

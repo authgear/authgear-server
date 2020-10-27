@@ -299,6 +299,7 @@ const AddDomainSection: React.FC = function AddDomainSection() {
 
   const { errorMessage: addDomainErrorMessage } = useGenericError(
     createDomainError,
+    [],
     errorRules,
     "DNSConfigurationScreen.add-domain.generic-error"
   );

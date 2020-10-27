@@ -89,7 +89,7 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
   }, [submittedForm, navigate]);
 
   const {
-    unhandledCauses,
+    unhandledCauses: rawUnhandledCauses,
     otherError,
     value: formContextValue,
   } = useValidationError(createIdentityError);
@@ -97,7 +97,8 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
   const {
     errorMessage: genericErrorMessage,
     unrecognizedError,
-  } = useGenericError(otherError, [
+    unhandledCauses,
+  } = useGenericError(otherError, rawUnhandledCauses, [
     {
       reason: "InvariantViolated",
       kind: "DuplicatedIdentity",

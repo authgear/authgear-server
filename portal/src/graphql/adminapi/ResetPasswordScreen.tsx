@@ -127,6 +127,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
 
   const { errorMessage, unrecognizedError } = useGenericError(
     resetPasswordError,
+    [],
     passwordFieldErrorRules
   );
 

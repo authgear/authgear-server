@@ -24,17 +24,21 @@ const AcceptAdminInvitationScreen: React.FC = function AcceptAdminInvitationScre
     loading,
     error,
   } = useAcceptCollaboratorInvitationMutation();
-  const { errorMessage } = useGenericError(error, [
-    {
-      reason: "CollaboratorInvitationInvalidCode",
-      errorMessageID: "AcceptAdminInvitationScreen.invalid-code-error",
-    },
-    {
-      reason: "CollaboratorDuplicate",
-      errorMessageID:
-        "AcceptAdminInvitationScreen.duplicated-collaborator-error",
-    },
-  ]);
+  const { errorMessage } = useGenericError(
+    error,
+    [],
+    [
+      {
+        reason: "CollaboratorInvitationInvalidCode",
+        errorMessageID: "AcceptAdminInvitationScreen.invalid-code-error",
+      },
+      {
+        reason: "CollaboratorDuplicate",
+        errorMessageID:
+          "AcceptAdminInvitationScreen.duplicated-collaborator-error",
+      },
+    ]
+  );
 
   const onAccept = useCallback(() => {
     acceptCollaboratorInvitation(invitationCode ?? "")

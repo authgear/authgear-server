@@ -3,11 +3,13 @@ import { Dialog, DialogFooter, PrimaryButton } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 
 import { GenericErrorHandlingRule, useGenericError } from "./useGenericError";
+import { ValidationFailedErrorInfoCause } from "./validation";
 
 interface ErrorDialogProps {
   errorMessage?: string;
   error: unknown;
   rules: GenericErrorHandlingRule[];
+  unhandledCauses?: ValidationFailedErrorInfoCause[];
   fallbackErrorMessageID?: string;
 }
 
@@ -18,11 +20,13 @@ const ErrorDialog: React.FC<ErrorDialogProps> = function ErrorDialog(
     errorMessage: errorMessageProps,
     error,
     rules,
+    unhandledCauses,
     fallbackErrorMessageID,
   } = props;
 
   const { errorMessage: genericErrorMessage } = useGenericError(
     error,
+    unhandledCauses,
     rules,
     fallbackErrorMessageID
   );

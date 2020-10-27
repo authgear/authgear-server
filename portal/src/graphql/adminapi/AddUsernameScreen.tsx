@@ -153,12 +153,16 @@ const AddUsernameForm: React.FC<AddUsernameFormProps> = function AddUsernameForm
   }, [submittedForm, navigate]);
 
   const {
-    unhandledCauses,
+    unhandledCauses: rawUnhandledCauses,
     otherError,
     value: formContextValue,
   } = useValidationError(createIdentityError);
 
-  const { errorMessageMap, unrecognizedError } = useGenericError(otherError, [
+  const {
+    errorMessageMap,
+    unrecognizedError,
+    unhandledCauses,
+  } = useGenericError(otherError, rawUnhandledCauses, [
     {
       reason: "InvariantViolated",
       kind: "DuplicatedIdentity",

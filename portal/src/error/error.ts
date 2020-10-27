@@ -19,6 +19,7 @@ import {
   APICollaboratorDuplicateError,
   APICollaboratorInvitationInvalidCodeError,
 } from "./collaborator";
+import { APIDuplicatedAppIDError } from "./apps";
 
 export type APIError =
   | APIValidationError
@@ -34,7 +35,8 @@ export type APIError =
   | APIDuplicatedCollaboratorInvitationError
   | APICollaboratorSelfDeletionError
   | APICollaboratorInvitationInvalidCodeError
-  | APICollaboratorDuplicateError;
+  | APICollaboratorDuplicateError
+  | APIDuplicatedAppIDError;
 
 export function isAPIError(value?: { [key: string]: any }): value is APIError {
   if (value == null) {

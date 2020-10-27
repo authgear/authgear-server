@@ -8,12 +8,14 @@ import NavBreadcrumb from "../../NavBreadcrumb";
 import { useCreateAppMutation } from "./mutations/createAppMutation";
 import { useTextField } from "../../hook/useInput";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import { useGenericError } from "../../error/useGenericError";
 
 import styles from "./CreateAppScreen.module.scss";
 
 interface CreateAppProps {
   isCreating: boolean;
   createApp: (appID: string) => Promise<string | null>;
+  errorMessage: string | undefined;
 }
 
 interface CreateAppFormData {
@@ -25,7 +27,7 @@ const APP_ID_SCHEME = "https://";
 const CreateApp: React.FC<CreateAppProps> = function CreateApp(
   props: CreateAppProps
 ) {
-  const { isCreating, createApp } = props;
+  const { isCreating, createApp, errorMessage } = props;
   const navigate = useNavigate();
   const systemConfig = useSystemConfig();
 
@@ -62,6 +64,7 @@ const CreateApp: React.FC<CreateAppProps> = function CreateApp(
         onChange={onAppIDChange}
         prefix={APP_ID_SCHEME}
         suffix={systemConfig.appHostSuffix}
+        errorMessage={errorMessage}
       />
       <PrimaryButton
         onClick={onCreateClick}
@@ -83,13 +86,30 @@ const CreateAppScreen: React.FC = function CreateAppScreen() {
     ];
   }, []);
 
+  const { errorMessage, unrecognizedError } = useGenericError(
+    error,
+    [],
+    [
+      {
+        reason: "DuplicatedAppID",
+        errorMessageID: "CreateAppScreen.error.duplicated-app-id",
+      },
+    ],
+
+    "CreateAppScreen.error.generic"
+  );
+
   return (
     <div className={styles.root}>
       <ScreenHeader />
-      {error && <ShowError error={error} />}
+      {unrecognizedError && <ShowError error={unrecognizedError} />}
       <section className={styles.content}>
         <NavBreadcrumb items={navBreadcrumbItems} />
-        <CreateApp isCreating={loading} createApp={createApp} />
+        <CreateApp
+          isCreating={loading}
+          createApp={createApp}
+          errorMessage={errorMessage}
+        />
       </section>
     </div>
   );
