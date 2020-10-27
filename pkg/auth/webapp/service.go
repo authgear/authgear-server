@@ -194,7 +194,7 @@ func (s *Service) PostIntent(intent *Intent, inputer func() (interface{}, error)
 	})
 
 	// Regardless of err, we need to return result.
-	result, err = s.afterPost(state, graph, edges, err, clearCookie)
+	result, err = s.afterPost(state, graph, edges, err, clearCookie, true)
 	if err != nil {
 		return
 	}
@@ -247,7 +247,7 @@ func (s *Service) PostInput(stateID string, inputer func() (interface{}, error))
 	})
 
 	// Regardless of err, we need to return result.
-	result, err = s.afterPost(state, graph, edges, err, clearCookie)
+	result, err = s.afterPost(state, graph, edges, err, clearCookie, false)
 	if err != nil {
 		return
 	}
@@ -255,7 +255,7 @@ func (s *Service) PostInput(stateID string, inputer func() (interface{}, error))
 	return
 }
 
-func (s *Service) afterPost(state *State, graph *interaction.Graph, edges []interaction.Edge, inputError error, clearCookie *interaction.ErrClearCookie) (*Result, error) {
+func (s *Service) afterPost(state *State, graph *interaction.Graph, edges []interaction.Edge, inputError error, clearCookie *interaction.ErrClearCookie, isNewIntent bool) (*Result, error) {
 	finished := graph != nil && len(edges) == 0 && inputError == nil
 	// The graph finished. Apply its effect permanently
 	if finished {
@@ -265,8 +265,7 @@ func (s *Service) afterPost(state *State, graph *interaction.Graph, edges []inte
 
 	var cookies []*http.Cookie
 
-	state.UserAgentToken = s.getUserAgentToken()
-	if state.UserAgentToken == "" {
+	if isNewIntent {
 		token, userAgentTokenCookie := s.generateUserAgentToken()
 		state.UserAgentToken = token
 		cookies = append(cookies, userAgentTokenCookie)
