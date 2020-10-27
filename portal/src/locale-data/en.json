@@ -303,6 +303,7 @@
   "ModifyOAuthClientForm.redirect-uris-tooltip-message": "Users will be redirected to this path after they have authenticated.",
   "ModifyOAuthClientForm.post-logout-redirect-uris-label": "Post Logout Redirect URIs",
   "ModifyOAuthClientForm.post-logout-redirect-uris-tooltip-message": "Users will be redirected to this path after they have logged out.",
+  "ModifyOAuthClientForm.add-uri": "Add URI",
 
   "DNSConfigurationScreen.title": "DNS",
   "DNSConfigurationScreen.desc": "You can add a custom domain so that users will login via, for example, “identity.yourdomain.com”. In this case, a session cookie of domain “yourdomain.com” is written so that your websites can share the session cookies under “*.yourdomain.com” for better customers experiences.",
