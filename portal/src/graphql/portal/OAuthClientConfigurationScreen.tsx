@@ -305,7 +305,7 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
   const { renderToString } = useContext(Context);
   const { appID } = useParams();
   const navigate = useNavigate();
-  const { themes } = useSystemConfig();
+  const { themes, authgearEndpoint } = useSystemConfig();
 
   const {
     updateAppConfig,
@@ -433,6 +433,19 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
         {(unhandledCauses ?? []).length === 0 && otherError && (
           <ShowError error={otherError} />
         )}
+        <section className={styles.apiEndpointSession}>
+          <Text as="h2" className={styles.allowedOriginsConfigurationHeader}>
+            <FormattedMessage id="OAuthClientConfigurationScreen.api-endpoint.header" />
+          </Text>
+          <Text className={styles.allowedOriginsConfigurationDesc}>
+            <FormattedMessage
+              id="OAuthClientConfigurationScreen.api-endpoint.desc"
+              values={{
+                apiEndpoint: authgearEndpoint,
+              }}
+            />
+          </Text>
+        </section>
         <AllowedOriginsConfiguration
           effectiveAppConfig={effectiveAppConfig}
           rawAppConfig={rawAppConfig}
