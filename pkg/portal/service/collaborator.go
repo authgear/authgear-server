@@ -4,10 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"net/http"
 	"net/url"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/authgear/graphql-go-relay"
 	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -21,6 +24,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/task/tasks"
 	"github.com/authgear/authgear-server/pkg/util/base32"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
@@ -34,12 +38,18 @@ var ErrCollaboratorInvitationNotFound = apierrors.NotFound.WithReason("Collabora
 var ErrCollaboratorInvitationDuplicate = apierrors.AlreadyExists.WithReason("CollaboratorInvitationDuplicate").New("collaborator invitation duplicate")
 var ErrCollaboratorInvitationInvalidCode = apierrors.Invalid.WithReason("CollaboratorInvitationInvalidCode").New("collaborator invitation invalid code")
 
+var ErrCollaboratorInvitationInvalidEmail = apierrors.Invalid.WithReason("CollaboratorInvitationInvalidEmail").New("the email with the actor does match the invitee email")
+
 type CollaboratorServiceTaskQueue interface {
 	Enqueue(param task.Param)
 }
 
 type CollaboratorServiceEndpointsProvider interface {
 	AcceptCollaboratorInvitationEndpointURL() *url.URL
+}
+
+type CollaboratorServiceAdminAPIService interface {
+	SelfDirector() (func(*http.Request), error)
 }
 
 type CollaboratorService struct {
@@ -52,6 +62,7 @@ type CollaboratorService struct {
 	TaskQueue      CollaboratorServiceTaskQueue
 	Endpoints      CollaboratorServiceEndpointsProvider
 	TemplateEngine *template.Engine
+	AdminAPI       CollaboratorServiceAdminAPIService
 }
 
 func (s *CollaboratorService) selectCollaborator() sq.SelectBuilder {
@@ -401,7 +412,11 @@ func (s *CollaboratorService) AcceptInvitation(code string) (*model.Collaborator
 
 	invitation := is[0]
 
-	// FIXME(collaborator): Check if the inviteeEmail matches actor.
+	err = s.checkInviteeEmail(invitation, actorID)
+	if err != nil {
+		return nil, err
+	}
+
 	err = s.DeleteInvitation(invitation)
 	if err != nil {
 		return nil, err
@@ -461,6 +476,91 @@ func (s *CollaboratorService) createCollaboratorInvitation(i *model.Collaborator
 	)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (s *CollaboratorService) checkInviteeEmail(i *model.CollaboratorInvitation, actorID string) error {
+	id := relay.ToGlobalID("User", actorID)
+
+	params := graphqlutil.DoParams{
+		OperationName: "getUserNodes",
+		Query: `
+		query getUserNodes($ids: [ID!]!) {
+			nodes(ids: $ids) {
+				... on User {
+					id
+					verifiedClaims {
+						name
+						value
+					}
+				}
+			}
+		}
+		`,
+		Variables: map[string]interface{}{
+			"ids": []interface{}{id},
+		},
+	}
+
+	r, err := http.NewRequest("POST", "/graphql", nil)
+	if err != nil {
+		return err
+	}
+
+	director, err := s.AdminAPI.SelfDirector()
+	if err != nil {
+		return err
+	}
+
+	director(r)
+
+	result, err := graphqlutil.HTTPDo(r, params)
+	if err != nil {
+		return err
+	}
+
+	if result.HasErrors() {
+		return fmt.Errorf("unexpected graphql errors: %v", result.Errors)
+	}
+
+	var userModels []*model.User
+	data := result.Data.(map[string]interface{})
+	nodes := data["nodes"].([]interface{})
+	for _, iface := range nodes {
+		// It could be null.
+		userNode, ok := iface.(map[string]interface{})
+		if !ok {
+			userModels = append(userModels, nil)
+		} else {
+			userModel := &model.User{}
+			globalID := userNode["id"].(string)
+			userModel.ID = globalID
+
+			// Use the last email claim.
+			verifiedClaims := userNode["verifiedClaims"].([]interface{})
+			for _, iface := range verifiedClaims {
+				claim := iface.(map[string]interface{})
+				name := claim["name"].(string)
+				value := claim["value"].(string)
+				if name == "email" {
+					userModel.Email = value
+				}
+			}
+
+			userModels = append(userModels, userModel)
+		}
+	}
+
+	if len(userModels) != 1 {
+		return fmt.Errorf("expected exact one user")
+	}
+
+	user := userModels[0]
+
+	if user.Email != i.InviteeEmail {
+		return ErrCollaboratorInvitationInvalidEmail
 	}
 
 	return nil

@@ -17,3 +17,8 @@ export interface APICollaboratorDuplicateError {
   errorName: "AlreadyExists";
   reason: "CollaboratorDuplicate";
 }
+
+export interface APICollaboratorInvitationInvalidEmailError {
+  errorName: "Invalid";
+  reason: "CollaboratorInvitationInvalidEmail";
+}

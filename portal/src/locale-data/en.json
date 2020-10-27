@@ -404,6 +404,7 @@
   "AcceptAdminInvitationScreen.title": "Admin Invitation",
   "AcceptAdminInvitationScreen.accept.label": "Accept",
   "AcceptAdminInvitationScreen.invalid-code-error": "Invalid invitation code",
+  "AcceptAdminInvitationScreen.invalid-email-error": "The invitee email does not match your email. Did you log in a different user?",
   "AcceptAdminInvitationScreen.duplicated-collaborator-error": "Admin already exist",
 
   "GeneralSettings.app-id.label": "App ID",

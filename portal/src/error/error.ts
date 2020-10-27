@@ -18,6 +18,7 @@ import {
   APICollaboratorSelfDeletionError,
   APICollaboratorDuplicateError,
   APICollaboratorInvitationInvalidCodeError,
+  APICollaboratorInvitationInvalidEmailError,
 } from "./collaborator";
 import { APIDuplicatedAppIDError } from "./apps";
 
@@ -35,6 +36,7 @@ export type APIError =
   | APIDuplicatedCollaboratorInvitationError
   | APICollaboratorSelfDeletionError
   | APICollaboratorInvitationInvalidCodeError
+  | APICollaboratorInvitationInvalidEmailError
   | APICollaboratorDuplicateError
   | APIDuplicatedAppIDError;
 

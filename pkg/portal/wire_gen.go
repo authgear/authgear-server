@@ -171,6 +171,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue:      inProcessQueue,
 		Endpoints:      endpointsProvider,
 		TemplateEngine: engine,
+		AdminAPI:       adminAPIService,
 	}
 	authzService := &service.AuthzService{
 		Context:       context,
@@ -308,21 +309,6 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	collaboratorService := &service.CollaboratorService{
-		Context:        context,
-		Clock:          clockClock,
-		SQLBuilder:     sqlBuilder,
-		SQLExecutor:    sqlExecutor,
-		MailConfig:     mailConfig,
-		TaskQueue:      inProcessQueue,
-		Endpoints:      endpointsProvider,
-		TemplateEngine: engine,
-	}
-	authzService := &service.AuthzService{
-		Context:       context,
-		Configs:       configService,
-		Collaborators: collaboratorService,
-	}
 	authgearConfig := rootProvider.AuthgearConfig
 	adminAPIConfig := rootProvider.AdminAPIConfig
 	adder := &authz.Adder{
@@ -333,6 +319,22 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		AdminAPIConfig: adminAPIConfig,
 		ConfigSource:   configSource,
 		AuthzAdder:     adder,
+	}
+	collaboratorService := &service.CollaboratorService{
+		Context:        context,
+		Clock:          clockClock,
+		SQLBuilder:     sqlBuilder,
+		SQLExecutor:    sqlExecutor,
+		MailConfig:     mailConfig,
+		TaskQueue:      inProcessQueue,
+		Endpoints:      endpointsProvider,
+		TemplateEngine: engine,
+		AdminAPI:       adminAPIService,
+	}
+	authzService := &service.AuthzService{
+		Context:       context,
+		Configs:       configService,
+		Collaborators: collaboratorService,
 	}
 	adminAPILogger := transport.NewAdminAPILogger(factory)
 	adminAPIHandler := &transport.AdminAPIHandler{
