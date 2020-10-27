@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import cn from "classnames";
+import { ScrollablePane } from "@fluentui/react";
 
 import { ModifiedIndicator, ModifiedIndicatorProps } from "./ModifiedIndicator";
 
@@ -22,9 +22,13 @@ export const ModifiedIndicatorWrapper: React.FC<ModifiedIndicatorWrapperProps> =
   const { className } = props;
 
   return (
-    <div className={cn(className, styles.wrapper)}>
+    <div className={styles.wrapper}>
       <ModifiedIndicatorContainer />
-      {props.children}
+      <div className={styles.scrollWrapper}>
+        <ScrollablePane>
+          <div className={className}>{props.children}</div>
+        </ScrollablePane>
+      </div>
     </div>
   );
 };
