@@ -34,6 +34,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(service.AuthzAdder), new(*adminauthz.Adder)),
 	wire.Bind(new(service.CollaboratorServiceTaskQueue), new(*task.InProcessQueue)),
 	wire.Bind(new(service.CollaboratorServiceEndpointsProvider), new(*endpoint.EndpointsProvider)),
+	wire.Bind(new(service.CollaboratorServiceAdminAPIService), new(*service.AdminAPIService)),
 	wire.Bind(new(service.ResourceManager), new(*resource.Manager)),
 
 	loader.DependencySet,
