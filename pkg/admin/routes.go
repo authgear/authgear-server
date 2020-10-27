@@ -3,6 +3,8 @@ package admin
 import (
 	"net/http"
 
+	graphqlhandler "github.com/graphql-go/handler"
+
 	"github.com/authgear/authgear-server/pkg/admin/transport"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
@@ -31,6 +33,10 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 		p.Middleware(newPanicLogMiddleware),
 		p.Middleware(func(p *deps.RequestProvider) httproute.Middleware {
 			return newAuthorizationMiddleware(p, auth)
+		}),
+		httputil.CheckContentType([]string{
+			graphqlhandler.ContentTypeJSON,
+			graphqlhandler.ContentTypeGraphQL,
 		}),
 	)
 
