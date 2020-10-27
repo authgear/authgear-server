@@ -122,7 +122,10 @@ To setup multi-tenant mode:
    This step creates an app with id `accounts`.
    If you want to have access to it, you have to add a row to `_portal_app_collaborator` manually.
 
-3. Enable multi-tenant mode in Authgear & portal server:
+3. Setup default resources:
+   Update hack/k8s-resources/authgear.secrets.yaml to match your configuration.
+
+4. Enable multi-tenant mode in Authgear & portal server:
    refer to `.env.example.k8s` for example environment variables to set
 
 In this setup, the servers are hosted under different endpoint:
