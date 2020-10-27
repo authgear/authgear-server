@@ -234,6 +234,33 @@ function getActivatedKeyListFromState<KeyType>(
     .map((authenticator) => authenticator.key);
 }
 
+function getEffectiveState(state: AuthenticationAuthenticatorScreenState) {
+  const {
+    primaryAuthenticators,
+    secondaryAuthenticators,
+    ...reducedState
+  } = state;
+
+  return {
+    activePrimaryAuthenticatorKeylist: getActivatedKeyListFromState(
+      primaryAuthenticators
+    ),
+    activatedSecondaryAuthenticatorKeyList: getActivatedKeyListFromState(
+      secondaryAuthenticators
+    ),
+    ...reducedState,
+  };
+}
+
+function isStateEquivalent(
+  state1: AuthenticationAuthenticatorScreenState,
+  state2: AuthenticationAuthenticatorScreenState
+): boolean {
+  return deepEqual(getEffectiveState(state1), getEffectiveState(state2), {
+    strict: true,
+  });
+}
+
 const AuthenticationAuthenticatorSettings: React.FC<Props> = function AuthenticationAuthenticatorSettings(
   props: Props
 ) {
@@ -301,7 +328,7 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
   } = state;
 
   const isFormModified = useMemo(() => {
-    return !deepEqual(initialState, state, { strict: true });
+    return !isStateEquivalent(initialState, state);
   }, [initialState, state]);
 
   const resetForm = useCallback(() => {
