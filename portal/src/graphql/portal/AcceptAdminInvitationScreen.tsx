@@ -37,6 +37,10 @@ const AcceptAdminInvitationScreen: React.FC = function AcceptAdminInvitationScre
         errorMessageID:
           "AcceptAdminInvitationScreen.duplicated-collaborator-error",
       },
+      {
+        reason: "CollaboratorInvitationInvalidEmail",
+        errorMessageID: "AcceptAdminInvitationScreen.invalid-email-error",
+      },
     ]
   );
 
