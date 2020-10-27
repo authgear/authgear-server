@@ -35,6 +35,23 @@ func (s *Service) translationMap() (*template.TranslationMap, error) {
 	return s.translations, nil
 }
 
+func (s *Service) appMetadata(data map[string]interface{}) error {
+	t, err := s.translationMap()
+	if err != nil {
+		return err
+	}
+
+	// TODO(l10n): investigate on how to allow referencing other translation natively.
+	appName, err := t.RenderText("app.name", nil)
+	if err != nil {
+		return err
+	}
+
+	data["AppName"] = appName
+
+	return nil
+}
+
 func (s *Service) renderTemplate(tpl template.Resource, args interface{}) (string, error) {
 	data := make(map[string]interface{})
 	template.Embed(data, args)
@@ -55,25 +72,32 @@ func (s *Service) emailMessageHeader(name string, args interface{}) (sender, rep
 		return
 	}
 
-	sender, err = t.RenderText(fmt.Sprintf("email.%s.sender", name), args)
+	data := make(map[string]interface{})
+	template.Embed(data, args)
+	err = s.appMetadata(data)
+	if err != nil {
+		return
+	}
+
+	sender, err = t.RenderText(fmt.Sprintf("email.%s.sender", name), data)
 	if errors.Is(err, template.ErrNotFound) {
-		sender, err = t.RenderText("email.default.sender", args)
+		sender, err = t.RenderText("email.default.sender", data)
 	}
 	if err != nil {
 		return
 	}
 
-	replyTo, err = t.RenderText(fmt.Sprintf("email.%s.reply-to", name), args)
+	replyTo, err = t.RenderText(fmt.Sprintf("email.%s.reply-to", name), data)
 	if errors.Is(err, template.ErrNotFound) {
-		replyTo, err = t.RenderText("email.default.reply-to", args)
+		replyTo, err = t.RenderText("email.default.reply-to", data)
 	}
 	if err != nil {
 		return
 	}
 
-	subject, err = t.RenderText(fmt.Sprintf("email.%s.subject", name), args)
+	subject, err = t.RenderText(fmt.Sprintf("email.%s.subject", name), data)
 	if errors.Is(err, template.ErrNotFound) {
-		subject, err = t.RenderText("email.default.subject", args)
+		subject, err = t.RenderText("email.default.subject", data)
 	}
 	if err != nil {
 		return
@@ -113,9 +137,16 @@ func (s *Service) smsMessageHeader(name string, args interface{}) (sender string
 		return
 	}
 
-	sender, err = t.RenderText(fmt.Sprintf("sms.%s.sender", name), args)
+	data := make(map[string]interface{})
+	template.Embed(data, args)
+	err = s.appMetadata(data)
+	if err != nil {
+		return
+	}
+
+	sender, err = t.RenderText(fmt.Sprintf("sms.%s.sender", name), data)
 	if errors.Is(err, template.ErrNotFound) {
-		sender, err = t.RenderText("sms.default.sender", args)
+		sender, err = t.RenderText("sms.default.sender", data)
 	}
 	if err != nil {
 		return
