@@ -2,6 +2,7 @@ package webapp
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -23,6 +24,7 @@ func ConfigureForgotPasswordSuccessRoute(route httproute.Route) httproute.Route 
 
 type ForgotPasswordSuccessViewModel struct {
 	GivenLoginID string
+	RedirectURI  string
 }
 
 type ForgotPasswordSuccessNode interface {
@@ -40,6 +42,19 @@ func (h *ForgotPasswordSuccessHandler) GetData(r *http.Request, state *webapp.St
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
 	forgotPasswordSuccessViewModel := ForgotPasswordSuccessViewModel{}
+
+	redirectURI := "/login"
+	if rawRedirectURI, ok := state.Extra["redirect_uri"].(string); ok {
+		u, err := url.Parse(rawRedirectURI)
+		if err == nil {
+			redirectURI = (&url.URL{
+				Path:     u.Path,
+				RawQuery: u.RawQuery,
+			}).String()
+		}
+	}
+	forgotPasswordSuccessViewModel.RedirectURI = redirectURI
+
 	if loginID, ok := state.Extra["login_id"]; ok {
 		forgotPasswordSuccessViewModel.GivenLoginID = loginID.(string)
 	}

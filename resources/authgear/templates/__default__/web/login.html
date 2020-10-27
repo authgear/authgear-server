@@ -117,7 +117,7 @@
 				{{ end }}
 
 				{{ if $.ForgotPasswordEnabled }}
-				<a class="link align-self-flex-start" href="{{ call $.MakeURL "/forgot_password" }}">{{ template "forgot-password-button-label" }}</a>
+				<a class="link align-self-flex-start" href="{{ call $.MakeURL "/forgot_password" "redirect_uri" $.RequestURI }}">{{ template "forgot-password-button-label" }}</a>
 				{{ end }}
 
 				{{ if or $.LoginPageLoginIDHasPhone (not (eq $.LoginPageTextLoginIDVariant "none")) }}

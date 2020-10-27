@@ -13,6 +13,7 @@ func init() {
 
 type NodeForgotPasswordBegin struct {
 	LoginIDKeys []config.LoginIDKeyConfig `json:"-"`
+	RedirectURI string                    `json:"redirect_uri"`
 }
 
 func (n *NodeForgotPasswordBegin) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -29,7 +30,10 @@ func (n *NodeForgotPasswordBegin) DeriveEdges(graph *interaction.Graph) ([]inter
 }
 
 func (n *NodeForgotPasswordBegin) edge() *EdgeForgotPasswordSelectLoginID {
-	return &EdgeForgotPasswordSelectLoginID{Configs: n.LoginIDKeys}
+	return &EdgeForgotPasswordSelectLoginID{
+		Configs:     n.LoginIDKeys,
+		RedirectURI: n.RedirectURI,
+	}
 }
 
 func (n *NodeForgotPasswordBegin) GetIdentityCandidates() []identity.Candidate {
@@ -41,7 +45,8 @@ type InputForgotPasswordSelectLoginID interface {
 }
 
 type EdgeForgotPasswordSelectLoginID struct {
-	Configs []config.LoginIDKeyConfig
+	Configs     []config.LoginIDKeyConfig
+	RedirectURI string
 }
 
 // GetIdentityCandidates implements IdentityCandidatesGetter.
@@ -67,11 +72,15 @@ func (e *EdgeForgotPasswordSelectLoginID) Instantiate(ctx *interaction.Context, 
 		return nil, err
 	}
 
-	return &NodeForgotPasswordEnd{LoginID: loginID}, nil
+	return &NodeForgotPasswordEnd{
+		LoginID:     loginID,
+		RedirectURI: e.RedirectURI,
+	}, nil
 }
 
 type NodeForgotPasswordEnd struct {
-	LoginID string `json:"login_id"`
+	LoginID     string `json:"login_id"`
+	RedirectURI string `json:"redirect_uri"`
 }
 
 // GetLoginID implements ForgotPasswordSuccessNode.
