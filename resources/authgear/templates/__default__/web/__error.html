@@ -52,6 +52,8 @@
                 {{ else }}
                     <li class="error-txt">{{ . }}</li>
                 {{ end }}
+            {{ else if eq .Error.reason "WebUIInvalidState" }}
+                <li class="error-txt">{{ template "error-web-ui-invalid-state" }}</li>
             {{ else }}
                 <li class="error-txt">{{ .Error.message }}</li>
             {{ end }}
