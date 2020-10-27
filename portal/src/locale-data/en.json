@@ -286,6 +286,7 @@
   "OAuthClientConfiguration.client-id-copied": "Client ID is copied to clipboard",
   "OAuthClientConfigurationScreen.confirm-remove-dialog.title": "Remove OAuth Client",
   "OAuthClientConfigurationScreen.confirm-remove-dialog.message": "Are you sure you want to remove OAuth client {clientName} ?",
+  "OAuthClientConfigurationScreen.add-origin": "Add Origin",
 
   "CreateOAuthClientScreen.title": "Create Client Application",
   "CreateOAuthClientScreen.success-dialog.title": "Created Client Sucessfully",

@@ -8,8 +8,6 @@ import {
   IColumn,
   MessageBar,
   SelectionMode,
-  Stack,
-  TagPicker,
   Text,
   VerticalDivider,
 } from "@fluentui/react";
@@ -25,15 +23,18 @@ import {
   ModifiedIndicatorPortal,
   ModifiedIndicatorWrapper,
 } from "../../ModifiedIndicatorPortal";
+import FormTextFieldList from "../../FormTextFieldList";
 import { PortalAPIApp, PortalAPIAppConfig } from "../../types";
 import { useAppConfigQuery } from "./query/appConfigQuery";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
-import { useTagPickerWithNewTags } from "../../hook/useInput";
 import { copyToClipboard } from "../../util/clipboard";
 import { clearEmptyObject, setFieldIfListNonEmpty } from "../../util/misc";
+import { useSystemConfig } from "../../context/SystemConfigContext";
+import { useValidationError } from "../../error/useValidationError";
+import { FormContext } from "../../error/FormContext";
+import ShowUnhandledValidationErrorCause from "../../error/ShowUnhandledValidationErrorCauses";
 
 import styles from "./OAuthClientConfigurationScreen.module.scss";
-import { useSystemConfig } from "../../context/SystemConfigContext";
 
 interface OAuthClientConfigurationProps {
   rawAppConfig: PortalAPIAppConfig | null;
@@ -105,6 +106,10 @@ function makeOAuthClientListColumns(
   ];
 }
 
+function getAllowedOriginJSONPointer(index: number): string {
+  return `/http/allowed_origins/${index}`;
+}
+
 const AllowedOriginsConfiguration: React.FC<AllowedOriginsConfigurationProps> = function AllowedOriginsConfiguration(
   props: AllowedOriginsConfigurationProps
 ) {
@@ -118,11 +123,9 @@ const AllowedOriginsConfiguration: React.FC<AllowedOriginsConfigurationProps> = 
     initialAllowedOrigins
   );
 
-  const {
-    selectedItems: allowedOriginItems,
-    onChange: onAllowedOriginsChange,
-    onResolveSuggestions: onResolveAllowedOriginsSuggestions,
-  } = useTagPickerWithNewTags(allowedOrigins, setAllowedOrigins);
+  const onAllowedOriginsChange = useCallback((list: string[]) => {
+    setAllowedOrigins(list);
+  }, []);
 
   const onSaveClick = useCallback(() => {
     if (rawAppConfig == null) {
@@ -160,20 +163,22 @@ const AllowedOriginsConfiguration: React.FC<AllowedOriginsConfigurationProps> = 
       <Text className={styles.allowedOriginsConfigurationDesc}>
         <FormattedMessage id="OAuthClientConfigurationScreen.allowed-origins.desc" />
       </Text>
-      <Stack horizontal={true} tokens={{ childrenGap: 10 }}>
-        <TagPicker
-          selectedItems={allowedOriginItems}
-          className={styles.allowedOriginsConfigurationPicker}
-          onChange={onAllowedOriginsChange}
-          onResolveSuggestions={onResolveAllowedOriginsSuggestions}
-        />
-        <ButtonWithLoading
-          labelId="save"
-          disabled={!isModified}
-          loading={false}
-          onClick={onSaveClick}
-        />
-      </Stack>
+      <FormTextFieldList
+        className={styles.allowedOriginsInputList}
+        jsonPointer="/http/allowed_origins"
+        parentJSONPointer="/http"
+        getItemJSONPointer={getAllowedOriginJSONPointer}
+        fieldName="allowed_origins"
+        list={allowedOrigins}
+        onListChange={onAllowedOriginsChange}
+        addButtonLabelMessageID="OAuthClientConfigurationScreen.add-origin"
+      />
+      <ButtonWithLoading
+        labelId="save"
+        disabled={!isModified}
+        loading={false}
+        onClick={onSaveClick}
+      />
     </section>
   );
 };
@@ -415,40 +420,51 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
     [onClientIdCopied, onRemoveClientClick]
   );
 
+  const {
+    otherError,
+    unhandledCauses,
+    value: formContextValue,
+  } = useValidationError(updateAppConfigError);
+
   return (
-    <section className={styles.content}>
-      {updateAppConfigError && <ShowError error={updateAppConfigError} />}
-      <AllowedOriginsConfiguration
-        effectiveAppConfig={effectiveAppConfig}
-        rawAppConfig={rawAppConfig}
-        updateAppConfig={updateAppConfig}
-      />
-      <section className={styles.controlButtons}>
-        <ActionButton
-          theme={themes.actionButton}
-          className={styles.addClientButton}
-          onClick={onAddOAuthClientClick}
-          iconProps={{ iconName: "CirclePlus" }}
-          styles={ADD_CLIENT_BUTTON_STYLES}
-        >
-          <FormattedMessage id="OAuthClientConfiguration.add-client-button" />
-        </ActionButton>
+    <FormContext.Provider value={formContextValue}>
+      <section className={styles.content}>
+        <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
+        {(unhandledCauses ?? []).length === 0 && otherError && (
+          <ShowError error={otherError} />
+        )}
+        <AllowedOriginsConfiguration
+          effectiveAppConfig={effectiveAppConfig}
+          rawAppConfig={rawAppConfig}
+          updateAppConfig={updateAppConfig}
+        />
+        <section className={styles.controlButtons}>
+          <ActionButton
+            theme={themes.actionButton}
+            className={styles.addClientButton}
+            onClick={onAddOAuthClientClick}
+            iconProps={{ iconName: "CirclePlus" }}
+            styles={ADD_CLIENT_BUTTON_STYLES}
+          >
+            <FormattedMessage id="OAuthClientConfiguration.add-client-button" />
+          </ActionButton>
+        </section>
+        <DetailsList
+          columns={oauthClientListColumns}
+          items={oauthClientListItems}
+          selectionMode={SelectionMode.none}
+          onRenderItemColumn={onRenderOAuthClientColumns}
+        />
+        <ConfirmRemoveOAuthClientDialog
+          visible={confirmRemoveDialogVisible}
+          updatingAppConfig={updatingAppConfig}
+          onDismiss={dismissConfirmRemoveDialog}
+          removeOAuthClient={removeOAuthClient}
+          clientName={confirmRemoveDialogData.clientName}
+          clientId={confirmRemoveDialogData.clientId}
+        />
       </section>
-      <DetailsList
-        columns={oauthClientListColumns}
-        items={oauthClientListItems}
-        selectionMode={SelectionMode.none}
-        onRenderItemColumn={onRenderOAuthClientColumns}
-      />
-      <ConfirmRemoveOAuthClientDialog
-        visible={confirmRemoveDialogVisible}
-        updatingAppConfig={updatingAppConfig}
-        onDismiss={dismissConfirmRemoveDialog}
-        removeOAuthClient={removeOAuthClient}
-        clientName={confirmRemoveDialogData.clientName}
-        clientId={confirmRemoveDialogData.clientId}
-      />
-    </section>
+    </FormContext.Provider>
   );
 };
 
