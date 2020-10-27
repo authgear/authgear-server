@@ -51,8 +51,8 @@ func (n *NodeAuthenticationEnd) Prepare(ctx *interaction.Context, graph *interac
 	return nil
 }
 
-func (n *NodeAuthenticationEnd) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	return nil
+func (n *NodeAuthenticationEnd) GetEffects() ([]interaction.Effect, error) {
+	return nil, nil
 }
 
 func (n *NodeAuthenticationEnd) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

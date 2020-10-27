@@ -51,9 +51,15 @@ func (s *Service) NewGraph(ctx *Context, intent Intent) (*Graph, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = node.Apply(ctx.perform, graph)
+	effs, err := node.GetEffects()
 	if err != nil {
 		return nil, err
+	}
+	for _, eff := range effs {
+		err = eff.apply(ctx, graph, 0)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return graph, nil
@@ -77,7 +83,7 @@ func (s *Service) DryRun(webStateID string, fn func(*Context) (*Graph, error)) (
 		}
 	}()
 
-	ctx.IsDryRun = true
+	ctx.IsCommitting = false
 	ctx.WebStateID = webStateID
 	graph, err := fn(ctx)
 	if err != nil {
@@ -116,7 +122,7 @@ func (s *Service) Run(webStateID string, graph *Graph) (err error) {
 		}
 	}()
 
-	ctx.IsDryRun = false
+	ctx.IsCommitting = false
 	ctx.WebStateID = webStateID
 	err = graph.Apply(ctx)
 	if err != nil {

@@ -33,8 +33,8 @@ func (n *NodeGenerateRecoveryCodeEnd) Prepare(ctx *interaction.Context, graph *i
 	return nil
 }
 
-func (n *NodeGenerateRecoveryCodeEnd) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	return nil
+func (n *NodeGenerateRecoveryCodeEnd) GetEffects() ([]interaction.Effect, error) {
+	return nil, nil
 }
 
 func (n *NodeGenerateRecoveryCodeEnd) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

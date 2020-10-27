@@ -49,8 +49,8 @@ func (n *NodeCreateAuthenticatorTOTP) Prepare(ctx *interaction.Context, graph *i
 	return nil
 }
 
-func (n *NodeCreateAuthenticatorTOTP) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	return nil
+func (n *NodeCreateAuthenticatorTOTP) GetEffects() ([]interaction.Effect, error) {
+	return nil, nil
 }
 
 func (n *NodeCreateAuthenticatorTOTP) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

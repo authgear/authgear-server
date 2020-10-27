@@ -82,8 +82,8 @@ func (n *NodeVerifyIdentity) Prepare(ctx *interaction.Context, graph *interactio
 	return nil
 }
 
-func (n *NodeVerifyIdentity) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	return nil
+func (n *NodeVerifyIdentity) GetEffects() ([]interaction.Effect, error) {
+	return nil, nil
 }
 
 func (n *NodeVerifyIdentity) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

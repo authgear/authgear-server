@@ -32,24 +32,21 @@ func (n *NodeDoCreateAuthenticator) Prepare(ctx *interaction.Context, graph *int
 	return nil
 }
 
-func (n *NodeDoCreateAuthenticator) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	err := perform(interaction.EffectRun(func(ctx *interaction.Context) error {
-		for _, a := range n.Authenticators {
-			err := ctx.Authenticators.Create(a)
-			if errors.Is(err, authenticator.ErrAuthenticatorAlreadyExists) {
-				return interaction.ErrDuplicatedAuthenticator
-			} else if err != nil {
-				return err
+func (n *NodeDoCreateAuthenticator) GetEffects() ([]interaction.Effect, error) {
+	return []interaction.Effect{
+		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			for _, a := range n.Authenticators {
+				err := ctx.Authenticators.Create(a)
+				if errors.Is(err, authenticator.ErrAuthenticatorAlreadyExists) {
+					return interaction.ErrDuplicatedAuthenticator
+				} else if err != nil {
+					return err
+				}
 			}
-		}
 
-		return nil
-	}))
-	if err != nil {
-		return err
-	}
-
-	return nil
+			return nil
+		}),
+	}, nil
 }
 
 func (n *NodeDoCreateAuthenticator) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

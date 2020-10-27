@@ -92,27 +92,27 @@ func TestGraph(t *testing.T) {
 		Convey("should go to deepest node", func() {
 			var inputRequired *interaction.ErrInputRequired
 
-			nodeB.EXPECT().Apply(any, any)
+			nodeB.EXPECT().GetEffects()
 			graph, edges, err := g.Accept(ctx, input1{})
 			So(errors.As(err, &inputRequired), ShouldBeTrue)
 			So(graph.Nodes, ShouldResemble, []interaction.Node{nodeA, nodeB})
 			So(edges, ShouldResemble, []interaction.Edge{edgeD})
 
-			nodeB.EXPECT().Apply(any, any)
-			nodeD.EXPECT().Apply(any, any)
+			nodeB.EXPECT().GetEffects()
+			nodeD.EXPECT().GetEffects()
 			graph, edges, err = g.Accept(ctx, input2{})
 			So(err, ShouldBeNil)
 			So(graph.Nodes, ShouldResemble, []interaction.Node{nodeA, nodeB, nodeD})
 			So(edges, ShouldResemble, []interaction.Edge{})
 
-			nodeC.EXPECT().Apply(any, any)
+			nodeC.EXPECT().GetEffects()
 			graph, edges, err = g.Accept(ctx, input3{})
 			So(errors.As(err, &inputRequired), ShouldBeTrue)
 			So(graph.Nodes, ShouldResemble, []interaction.Node{nodeA, nodeC})
 			So(edges, ShouldResemble, []interaction.Edge{edgeB, edgeE})
 
-			nodeB.EXPECT().Apply(any, any)
-			nodeD.EXPECT().Apply(any, any)
+			nodeB.EXPECT().GetEffects()
+			nodeD.EXPECT().GetEffects()
 			graph, edges, err = graph.Accept(ctx, input2{})
 			So(err, ShouldBeNil)
 			So(graph.Nodes, ShouldResemble, []interaction.Node{nodeA, nodeC, nodeB, nodeD})
@@ -122,7 +122,7 @@ func TestGraph(t *testing.T) {
 		Convey("should process looping edge", func() {
 			var inputRequired *interaction.ErrInputRequired
 
-			nodeC.EXPECT().Apply(any, any)
+			nodeC.EXPECT().GetEffects()
 			graph, edges, err := g.Accept(ctx, input3{})
 			So(errors.As(err, &inputRequired), ShouldBeTrue)
 			So(graph.Nodes, ShouldResemble, []interaction.Node{nodeA, nodeC})
@@ -133,8 +133,8 @@ func TestGraph(t *testing.T) {
 			So(graph.Nodes, ShouldResemble, []interaction.Node{nodeA, nodeC})
 			So(edges, ShouldResemble, []interaction.Edge{edgeB, edgeE})
 
-			nodeB.EXPECT().Apply(any, any)
-			nodeD.EXPECT().Apply(any, any)
+			nodeB.EXPECT().GetEffects()
+			nodeD.EXPECT().GetEffects()
 			graph, edges, err = graph.Accept(ctx, input2{})
 			So(err, ShouldBeNil)
 			So(graph.Nodes, ShouldResemble, []interaction.Node{nodeA, nodeC, nodeB, nodeD})
@@ -152,8 +152,8 @@ func (n *testGraphGetAMRnode) Prepare(ctx *interaction.Context, graph *interacti
 	return nil
 }
 
-func (n *testGraphGetAMRnode) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	return nil
+func (n *testGraphGetAMRnode) GetEffects() ([]interaction.Effect, error) {
+	return nil, nil
 }
 
 func (n *testGraphGetAMRnode) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

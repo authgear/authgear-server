@@ -28,54 +28,47 @@ func (n *NodeDoRemoveIdentity) Prepare(ctx *interaction.Context, graph *interact
 	return nil
 }
 
-func (n *NodeDoRemoveIdentity) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	err := perform(interaction.EffectRun(func(ctx *interaction.Context) error {
-		userID := graph.MustGetUserID()
-		identityInfos, err := ctx.Identities.ListByUser(userID)
-		if err != nil {
-			return err
-		}
+func (n *NodeDoRemoveIdentity) GetEffects() ([]interaction.Effect, error) {
+	return []interaction.Effect{
+		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			userID := graph.MustGetUserID()
+			identityInfos, err := ctx.Identities.ListByUser(userID)
+			if err != nil {
+				return err
+			}
 
-		if len(identityInfos) <= 1 {
-			return interaction.NewInvariantViolated(
-				"RemoveLastIdentity",
-				"cannot remove last identity",
-				nil,
-			)
-		}
+			if len(identityInfos) <= 1 {
+				return interaction.NewInvariantViolated(
+					"RemoveLastIdentity",
+					"cannot remove last identity",
+					nil,
+				)
+			}
 
-		err = ctx.Identities.Delete(n.Identity)
-		if err != nil {
-			return err
-		}
+			err = ctx.Identities.Delete(n.Identity)
+			if err != nil {
+				return err
+			}
 
-		return nil
-	}))
-	if err != nil {
-		return err
-	}
+			return nil
+		}),
+		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			user, err := ctx.Users.Get(n.Identity.UserID)
+			if err != nil {
+				return err
+			}
 
-	err = perform(interaction.EffectOnCommit(func(ctx *interaction.Context) error {
-		user, err := ctx.Users.Get(n.Identity.UserID)
-		if err != nil {
-			return err
-		}
+			err = ctx.Hooks.DispatchEvent(&event.IdentityDeleteEvent{
+				User:     *user,
+				Identity: n.Identity.ToModel(),
+			})
+			if err != nil {
+				return err
+			}
 
-		err = ctx.Hooks.DispatchEvent(&event.IdentityDeleteEvent{
-			User:     *user,
-			Identity: n.Identity.ToModel(),
-		})
-		if err != nil {
-			return err
-		}
-
-		return nil
-	}))
-	if err != nil {
-		return err
-	}
-
-	return nil
+			return nil
+		}),
+	}, nil
 }
 
 func (n *NodeDoRemoveIdentity) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

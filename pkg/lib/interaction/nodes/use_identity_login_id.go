@@ -99,8 +99,8 @@ func (n *NodeUseIdentityLoginID) Prepare(ctx *interaction.Context, graph *intera
 	return nil
 }
 
-func (n *NodeUseIdentityLoginID) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	return nil
+func (n *NodeUseIdentityLoginID) GetEffects() ([]interaction.Effect, error) {
+	return nil, nil
 }
 
 func (n *NodeUseIdentityLoginID) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

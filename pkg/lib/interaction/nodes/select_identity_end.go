@@ -40,8 +40,8 @@ func (n *NodeSelectIdentityEnd) Prepare(ctx *interaction.Context, graph *interac
 	return nil
 }
 
-func (n *NodeSelectIdentityEnd) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	return nil
+func (n *NodeSelectIdentityEnd) GetEffects() ([]interaction.Effect, error) {
+	return nil, nil
 }
 
 func (n *NodeSelectIdentityEnd) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

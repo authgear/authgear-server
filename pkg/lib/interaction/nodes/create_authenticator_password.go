@@ -59,8 +59,8 @@ func (n *NodeCreateAuthenticatorPassword) Prepare(ctx *interaction.Context, grap
 	return nil
 }
 
-func (n *NodeCreateAuthenticatorPassword) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	return nil
+func (n *NodeCreateAuthenticatorPassword) GetEffects() ([]interaction.Effect, error) {
+	return nil, nil
 }
 
 func (n *NodeCreateAuthenticatorPassword) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

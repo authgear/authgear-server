@@ -9,10 +9,10 @@ import (
 type Node interface {
 	// Prepare the node with data required by DeriveEdges.
 	Prepare(ctx *Context, graph *Graph) error
-	// Apply the effects of this node to context.
-	// This may be ran multiple times, due to replaying the graph.
+	// GetEffects describe the effects of this node.
+	// The effects may be ran multiple times, due replaying the graph.
 	// So no external visible side effect is allowed.
-	Apply(perform func(eff Effect) error, graph *Graph) error
+	GetEffects() (effs []Effect, err error)
 	DeriveEdges(graph *Graph) ([]Edge, error)
 }
 

@@ -35,8 +35,8 @@ func (n *NodeChangePasswordBegin) Prepare(ctx *interaction.Context, graph *inter
 	return nil
 }
 
-func (n *NodeChangePasswordBegin) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	return nil
+func (n *NodeChangePasswordBegin) GetEffects() ([]interaction.Effect, error) {
+	return nil, nil
 }
 
 func (n *NodeChangePasswordBegin) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
@@ -105,12 +105,12 @@ type NodeChangePasswordEnd struct {
 	NewAuthenticator *authenticator.Info             `json:"new_authenticator,omitempty"`
 }
 
-func (n *NodeChangePasswordEnd) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
+func (n *NodeChangePasswordEnd) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeChangePasswordEnd) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
-	return nil
+func (n *NodeChangePasswordEnd) GetEffects() ([]interaction.Effect, error) {
+	return nil, nil
 }
 
 func (n *NodeChangePasswordEnd) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

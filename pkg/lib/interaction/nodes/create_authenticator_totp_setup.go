@@ -62,8 +62,8 @@ func (n *NodeCreateAuthenticatorTOTPSetup) Prepare(ctx *interaction.Context, gra
 	return nil
 }
 
-func (n *NodeCreateAuthenticatorTOTPSetup) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	return nil
+func (n *NodeCreateAuthenticatorTOTPSetup) GetEffects() ([]interaction.Effect, error) {
+	return nil, nil
 }
 
 func (n *NodeCreateAuthenticatorTOTPSetup) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

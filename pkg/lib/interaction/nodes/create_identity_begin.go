@@ -31,8 +31,8 @@ func (n *NodeCreateIdentityBegin) Prepare(ctx *interaction.Context, graph *inter
 	return nil
 }
 
-func (n *NodeCreateIdentityBegin) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	return nil
+func (n *NodeCreateIdentityBegin) GetEffects() ([]interaction.Effect, error) {
+	return nil, nil
 }
 
 func (n *NodeCreateIdentityBegin) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

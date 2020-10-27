@@ -30,49 +30,42 @@ func (n *NodeDoCreateIdentity) Prepare(ctx *interaction.Context, graph *interact
 	return nil
 }
 
-func (n *NodeDoCreateIdentity) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	err := perform(interaction.EffectRun(func(ctx *interaction.Context) error {
-		if _, err := ctx.Identities.CheckDuplicated(n.Identity); err != nil {
-			if errors.Is(err, identity.ErrIdentityAlreadyExists) {
-				return interaction.ErrDuplicatedIdentity
+func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
+	return []interaction.Effect{
+		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			if _, err := ctx.Identities.CheckDuplicated(n.Identity); err != nil {
+				if errors.Is(err, identity.ErrIdentityAlreadyExists) {
+					return interaction.ErrDuplicatedIdentity
+				}
+				return err
 			}
-			return err
-		}
-		if err := ctx.Identities.Create(n.Identity); err != nil {
-			return err
-		}
+			if err := ctx.Identities.Create(n.Identity); err != nil {
+				return err
+			}
 
-		return nil
-	}))
-	if err != nil {
-		return err
-	}
-
-	err = perform(interaction.EffectOnCommit(func(ctx *interaction.Context) error {
-		if _, creating := graph.GetNewUserID(); creating {
 			return nil
-		}
+		}),
+		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			if _, creating := graph.GetNewUserID(); creating {
+				return nil
+			}
 
-		user, err := ctx.Users.Get(n.Identity.UserID)
-		if err != nil {
-			return err
-		}
+			user, err := ctx.Users.Get(n.Identity.UserID)
+			if err != nil {
+				return err
+			}
 
-		err = ctx.Hooks.DispatchEvent(&event.IdentityCreateEvent{
-			User:     *user,
-			Identity: n.Identity.ToModel(),
-		})
-		if err != nil {
-			return err
-		}
+			err = ctx.Hooks.DispatchEvent(&event.IdentityCreateEvent{
+				User:     *user,
+				Identity: n.Identity.ToModel(),
+			})
+			if err != nil {
+				return err
+			}
 
-		return nil
-	}))
-	if err != nil {
-		return err
-	}
-
-	return nil
+			return nil
+		}),
+	}, nil
 }
 
 func (n *NodeDoCreateIdentity) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

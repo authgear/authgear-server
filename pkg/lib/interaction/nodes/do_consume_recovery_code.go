@@ -52,15 +52,12 @@ func (n *NodeDoConsumeRecoveryCode) Prepare(ctx *interaction.Context, graph *int
 	return nil
 }
 
-func (n *NodeDoConsumeRecoveryCode) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	err := perform(interaction.EffectRun(func(ctx *interaction.Context) error {
-		return ctx.MFA.ConsumeRecoveryCode(n.RecoveryCode)
-	}))
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (n *NodeDoConsumeRecoveryCode) GetEffects() ([]interaction.Effect, error) {
+	return []interaction.Effect{
+		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			return ctx.MFA.ConsumeRecoveryCode(n.RecoveryCode)
+		}),
+	}, nil
 }
 
 func (n *NodeDoConsumeRecoveryCode) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

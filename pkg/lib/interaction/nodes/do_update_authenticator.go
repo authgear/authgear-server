@@ -32,15 +32,12 @@ func (n *NodeDoUpdateAuthenticator) Prepare(ctx *interaction.Context, graph *int
 	return nil
 }
 
-func (n *NodeDoUpdateAuthenticator) Apply(perform func(eff interaction.Effect) error, graph *interaction.Graph) error {
-	err := perform(interaction.EffectRun(func(ctx *interaction.Context) error {
-		return ctx.Authenticators.Update(n.AuthenticatorAfterUpdate)
-	}))
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (n *NodeDoUpdateAuthenticator) GetEffects() ([]interaction.Effect, error) {
+	return []interaction.Effect{
+		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			return ctx.Authenticators.Update(n.AuthenticatorAfterUpdate)
+		}),
+	}, nil
 }
 
 func (n *NodeDoUpdateAuthenticator) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
