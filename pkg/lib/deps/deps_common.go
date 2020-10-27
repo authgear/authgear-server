@@ -29,6 +29,7 @@ import (
 	oidchandler "github.com/authgear/authgear-server/pkg/lib/oauth/oidc/handler"
 	oauthpq "github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	oauthredis "github.com/authgear/authgear-server/pkg/lib/oauth/redis"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -199,5 +200,14 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		web.DependencySet,
 		wire.Bind(new(translation.StaticAssetResolver), new(*web.StaticAssetResolver)),
+	),
+
+	wire.NewSet(
+		ratelimit.DependencySet,
+		wire.Bind(new(interaction.RateLimiter), new(*ratelimit.Limiter)),
+		wire.Bind(new(authenticatorservice.RateLimiter), new(*ratelimit.Limiter)),
+		wire.Bind(new(otp.RateLimiter), new(*ratelimit.Limiter)),
+		wire.Bind(new(forgotpassword.RateLimiter), new(*ratelimit.Limiter)),
+		wire.Bind(new(welcomemessage.RateLimiter), new(*ratelimit.Limiter)),
 	),
 )

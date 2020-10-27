@@ -6,9 +6,16 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/tasks"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 )
+
+type SendOptions struct {
+	OTP         string
+	URL         string
+	MessageType MessageType
+}
 
 type EndpointsProvider interface {
 	BaseURL() *url.URL
@@ -19,16 +26,15 @@ type TranslationService interface {
 	SMSMessageData(msg *translation.MessageSpec, args interface{}) (*translation.SMSMessageData, error)
 }
 
+type RateLimiter interface {
+	TakeToken(bucket ratelimit.Bucket) error
+}
+
 type MessageSender struct {
 	Translation TranslationService
 	Endpoints   EndpointsProvider
+	RateLimiter RateLimiter
 	TaskQueue   task.Queue
-}
-
-type SendOptions struct {
-	OTP         string
-	URL         string
-	MessageType MessageType
 }
 
 func (s *MessageSender) makeData(opts SendOptions) (*MessageTemplateContext, error) {
@@ -72,17 +78,20 @@ func (s *MessageSender) SendEmail(email string, opts SendOptions) error {
 		return err
 	}
 
+	err = s.RateLimiter.TakeToken(mail.RateLimitBucket(email, spec.Name))
+	if err != nil {
+		return err
+	}
+
 	s.TaskQueue.Enqueue(&tasks.SendMessagesParam{
-		EmailMessages: []mail.SendOptions{
-			{
-				Sender:    msg.Sender,
-				ReplyTo:   msg.ReplyTo,
-				Subject:   msg.Subject,
-				Recipient: data.Email,
-				TextBody:  msg.TextBody,
-				HTMLBody:  msg.HTMLBody,
-			},
-		},
+		EmailMessages: []mail.SendOptions{{
+			Sender:    msg.Sender,
+			ReplyTo:   msg.ReplyTo,
+			Subject:   msg.Subject,
+			Recipient: email,
+			TextBody:  msg.TextBody,
+			HTMLBody:  msg.HTMLBody,
+		}},
 	})
 
 	return nil
@@ -116,14 +125,17 @@ func (s *MessageSender) SendSMS(phone string, opts SendOptions) (err error) {
 		return err
 	}
 
+	err = s.RateLimiter.TakeToken(sms.RateLimitBucket(phone, spec.Name))
+	if err != nil {
+		return err
+	}
+
 	s.TaskQueue.Enqueue(&tasks.SendMessagesParam{
-		SMSMessages: []sms.SendOptions{
-			{
-				Sender: msg.Sender,
-				To:     data.Phone,
-				Body:   msg.Body,
-			},
-		},
+		SMSMessages: []sms.SendOptions{{
+			Sender: msg.Sender,
+			To:     phone,
+			Body:   msg.Body,
+		}},
 	})
 
 	return

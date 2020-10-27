@@ -24,6 +24,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -259,11 +260,21 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Store:  oobStore,
 		Clock:  clock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: handle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clock,
+	}
 	service3 := &service2.Service{
-		Store:    store2,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       store2,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification

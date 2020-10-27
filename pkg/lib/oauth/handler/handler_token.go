@@ -272,7 +272,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 		}
 
 		var edges []interaction.Edge
-		graph, edges, err = graph.Accept(ctx, &anonymousTokenInput{
+		graph, edges, err = h.Graphs.Accept(ctx, graph, &anonymousTokenInput{
 			JWT: r.JWT(),
 		})
 		if len(edges) != 0 {

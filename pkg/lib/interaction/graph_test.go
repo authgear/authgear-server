@@ -1,4 +1,4 @@
-package interaction_test
+package interaction
 
 import (
 	"errors"
@@ -9,11 +9,10 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
 func TestGraph(t *testing.T) {
-	Convey("Graph.Accept", t, func() {
+	Convey("Graph.accept", t, func() {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 		any := gomock.Any()
@@ -37,130 +36,130 @@ func TestGraph(t *testing.T) {
 		edgeD := NewMockEdge(ctrl)
 		edgeE := NewMockEdge(ctrl)
 
-		ctx := &interaction.Context{}
-		g := &interaction.Graph{Nodes: []interaction.Node{nodeA}}
+		ctx := &Context{}
+		g := &Graph{Nodes: []Node{nodeA}}
 
 		nodeA.EXPECT().Prepare(ctx, any).AnyTimes().Return(nil)
 		nodeA.EXPECT().DeriveEdges(any).AnyTimes().Return(
-			[]interaction.Edge{edgeB, edgeC}, nil,
+			[]Edge{edgeB, edgeC}, nil,
 		)
 		nodeB.EXPECT().Prepare(ctx, any).AnyTimes().Return(nil)
 		nodeB.EXPECT().DeriveEdges(any).AnyTimes().Return(
-			[]interaction.Edge{edgeD}, nil,
+			[]Edge{edgeD}, nil,
 		)
 		nodeC.EXPECT().Prepare(ctx, any).AnyTimes().Return(nil)
 		nodeC.EXPECT().DeriveEdges(any).AnyTimes().Return(
-			[]interaction.Edge{edgeB, edgeE}, nil,
+			[]Edge{edgeB, edgeE}, nil,
 		)
 		nodeD.EXPECT().Prepare(ctx, any).AnyTimes().Return(nil)
 		nodeD.EXPECT().DeriveEdges(any).AnyTimes().Return(
-			[]interaction.Edge{}, nil,
+			[]Edge{}, nil,
 		)
 
 		edgeB.EXPECT().Instantiate(ctx, any, any).AnyTimes().DoAndReturn(
-			func(ctx *interaction.Context, g *interaction.Graph, input interface{}) (interaction.Node, error) {
+			func(ctx *Context, g *Graph, input interface{}) (Node, error) {
 				if _, ok := input.(input1); ok {
 					return nodeB, nil
 				}
 				if _, ok := input.(input2); ok {
 					return nodeB, nil
 				}
-				return nil, interaction.ErrIncompatibleInput
+				return nil, ErrIncompatibleInput
 			})
 		edgeC.EXPECT().Instantiate(ctx, any, any).AnyTimes().DoAndReturn(
-			func(ctx *interaction.Context, g *interaction.Graph, input interface{}) (interaction.Node, error) {
+			func(ctx *Context, g *Graph, input interface{}) (Node, error) {
 				if _, ok := input.(input3); ok {
 					return nodeC, nil
 				}
-				return nil, interaction.ErrIncompatibleInput
+				return nil, ErrIncompatibleInput
 			})
 		edgeD.EXPECT().Instantiate(ctx, any, any).AnyTimes().DoAndReturn(
-			func(ctx *interaction.Context, g *interaction.Graph, input interface{}) (interaction.Node, error) {
+			func(ctx *Context, g *Graph, input interface{}) (Node, error) {
 				if _, ok := input.(input2); ok {
 					return nodeD, nil
 				}
-				return nil, interaction.ErrIncompatibleInput
+				return nil, ErrIncompatibleInput
 			})
 		edgeE.EXPECT().Instantiate(ctx, any, any).AnyTimes().DoAndReturn(
-			func(ctx *interaction.Context, g *interaction.Graph, input interface{}) (interaction.Node, error) {
+			func(ctx *Context, g *Graph, input interface{}) (Node, error) {
 				if _, ok := input.(input4); ok {
-					return nil, interaction.ErrSameNode
+					return nil, ErrSameNode
 				}
-				return nil, interaction.ErrIncompatibleInput
+				return nil, ErrIncompatibleInput
 			})
 
 		Convey("should go to deepest node", func() {
-			var inputRequired *interaction.ErrInputRequired
+			var inputRequired *ErrInputRequired
 
 			nodeB.EXPECT().GetEffects()
-			graph, edges, err := g.Accept(ctx, input1{})
+			graph, edges, err := g.accept(ctx, input1{})
 			So(errors.As(err, &inputRequired), ShouldBeTrue)
-			So(graph.Nodes, ShouldResemble, []interaction.Node{nodeA, nodeB})
-			So(edges, ShouldResemble, []interaction.Edge{edgeD})
+			So(graph.Nodes, ShouldResemble, []Node{nodeA, nodeB})
+			So(edges, ShouldResemble, []Edge{edgeD})
 
 			nodeB.EXPECT().GetEffects()
 			nodeD.EXPECT().GetEffects()
-			graph, edges, err = g.Accept(ctx, input2{})
+			graph, edges, err = g.accept(ctx, input2{})
 			So(err, ShouldBeNil)
-			So(graph.Nodes, ShouldResemble, []interaction.Node{nodeA, nodeB, nodeD})
-			So(edges, ShouldResemble, []interaction.Edge{})
+			So(graph.Nodes, ShouldResemble, []Node{nodeA, nodeB, nodeD})
+			So(edges, ShouldResemble, []Edge{})
 
 			nodeC.EXPECT().GetEffects()
-			graph, edges, err = g.Accept(ctx, input3{})
+			graph, edges, err = g.accept(ctx, input3{})
 			So(errors.As(err, &inputRequired), ShouldBeTrue)
-			So(graph.Nodes, ShouldResemble, []interaction.Node{nodeA, nodeC})
-			So(edges, ShouldResemble, []interaction.Edge{edgeB, edgeE})
+			So(graph.Nodes, ShouldResemble, []Node{nodeA, nodeC})
+			So(edges, ShouldResemble, []Edge{edgeB, edgeE})
 
 			nodeB.EXPECT().GetEffects()
 			nodeD.EXPECT().GetEffects()
-			graph, edges, err = graph.Accept(ctx, input2{})
+			graph, edges, err = graph.accept(ctx, input2{})
 			So(err, ShouldBeNil)
-			So(graph.Nodes, ShouldResemble, []interaction.Node{nodeA, nodeC, nodeB, nodeD})
-			So(edges, ShouldResemble, []interaction.Edge{})
+			So(graph.Nodes, ShouldResemble, []Node{nodeA, nodeC, nodeB, nodeD})
+			So(edges, ShouldResemble, []Edge{})
 		})
 
 		Convey("should process looping edge", func() {
-			var inputRequired *interaction.ErrInputRequired
+			var inputRequired *ErrInputRequired
 
 			nodeC.EXPECT().GetEffects()
-			graph, edges, err := g.Accept(ctx, input3{})
+			graph, edges, err := g.accept(ctx, input3{})
 			So(errors.As(err, &inputRequired), ShouldBeTrue)
-			So(graph.Nodes, ShouldResemble, []interaction.Node{nodeA, nodeC})
-			So(edges, ShouldResemble, []interaction.Edge{edgeB, edgeE})
+			So(graph.Nodes, ShouldResemble, []Node{nodeA, nodeC})
+			So(edges, ShouldResemble, []Edge{edgeB, edgeE})
 
-			graph, edges, err = graph.Accept(ctx, input4{})
+			graph, edges, err = graph.accept(ctx, input4{})
 			So(errors.As(err, &inputRequired), ShouldBeTrue)
-			So(graph.Nodes, ShouldResemble, []interaction.Node{nodeA, nodeC})
-			So(edges, ShouldResemble, []interaction.Edge{edgeB, edgeE})
+			So(graph.Nodes, ShouldResemble, []Node{nodeA, nodeC})
+			So(edges, ShouldResemble, []Edge{edgeB, edgeE})
 
 			nodeB.EXPECT().GetEffects()
 			nodeD.EXPECT().GetEffects()
-			graph, edges, err = graph.Accept(ctx, input2{})
+			graph, edges, err = graph.accept(ctx, input2{})
 			So(err, ShouldBeNil)
-			So(graph.Nodes, ShouldResemble, []interaction.Node{nodeA, nodeC, nodeB, nodeD})
-			So(edges, ShouldResemble, []interaction.Edge{})
+			So(graph.Nodes, ShouldResemble, []Node{nodeA, nodeC, nodeB, nodeD})
+			So(edges, ShouldResemble, []Edge{})
 		})
 	})
 }
 
 type testGraphGetAMRnode struct {
-	Stage         interaction.AuthenticationStage
+	Stage         AuthenticationStage
 	Authenticator *authenticator.Info
 }
 
-func (n *testGraphGetAMRnode) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *testGraphGetAMRnode) Prepare(ctx *Context, graph *Graph) error {
 	return nil
 }
 
-func (n *testGraphGetAMRnode) GetEffects() ([]interaction.Effect, error) {
+func (n *testGraphGetAMRnode) GetEffects() ([]Effect, error) {
 	return nil, nil
 }
 
-func (n *testGraphGetAMRnode) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *testGraphGetAMRnode) DeriveEdges(graph *Graph) ([]Edge, error) {
 	return nil, nil
 }
 
-func (n *testGraphGetAMRnode) UserAuthenticator(stage interaction.AuthenticationStage) (*authenticator.Info, bool) {
+func (n *testGraphGetAMRnode) UserAuthenticator(stage AuthenticationStage) (*authenticator.Info, bool) {
 	if n.Stage == stage && n.Authenticator != nil {
 		return n.Authenticator, true
 	}
@@ -169,17 +168,17 @@ func (n *testGraphGetAMRnode) UserAuthenticator(stage interaction.Authentication
 
 func TestGraphGetAMRACR(t *testing.T) {
 	Convey("GraphGetAMRACR", t, func() {
-		var graph *interaction.Graph
+		var graph *Graph
 		var amr []string
 
-		graph = &interaction.Graph{}
+		graph = &Graph{}
 		So(graph.GetAMR(), ShouldBeEmpty)
 
 		// password
-		graph = &interaction.Graph{
-			Nodes: []interaction.Node{
+		graph = &Graph{
+			Nodes: []Node{
 				&testGraphGetAMRnode{
-					Stage: interaction.AuthenticationStagePrimary,
+					Stage: AuthenticationStagePrimary,
 					Authenticator: &authenticator.Info{
 						Type: authn.AuthenticatorTypePassword,
 					},
@@ -191,10 +190,10 @@ func TestGraphGetAMRACR(t *testing.T) {
 		So(graph.GetACR(amr), ShouldEqual, "")
 
 		// oob
-		graph = &interaction.Graph{
-			Nodes: []interaction.Node{
+		graph = &Graph{
+			Nodes: []Node{
 				&testGraphGetAMRnode{
-					Stage: interaction.AuthenticationStagePrimary,
+					Stage: AuthenticationStagePrimary,
 					Authenticator: &authenticator.Info{
 						Type: authn.AuthenticatorTypeOOB,
 						Claims: map[string]interface{}{
@@ -209,16 +208,16 @@ func TestGraphGetAMRACR(t *testing.T) {
 		So(graph.GetACR(amr), ShouldEqual, "")
 
 		// password + email oob
-		graph = &interaction.Graph{
-			Nodes: []interaction.Node{
+		graph = &Graph{
+			Nodes: []Node{
 				&testGraphGetAMRnode{
-					Stage: interaction.AuthenticationStagePrimary,
+					Stage: AuthenticationStagePrimary,
 					Authenticator: &authenticator.Info{
 						Type: authn.AuthenticatorTypePassword,
 					},
 				},
 				&testGraphGetAMRnode{
-					Stage: interaction.AuthenticationStageSecondary,
+					Stage: AuthenticationStageSecondary,
 					Authenticator: &authenticator.Info{
 						Type: authn.AuthenticatorTypeOOB,
 						Claims: map[string]interface{}{
@@ -233,16 +232,16 @@ func TestGraphGetAMRACR(t *testing.T) {
 		So(graph.GetACR(amr), ShouldEqual, authn.ACRMFA)
 
 		// password + SMS oob
-		graph = &interaction.Graph{
-			Nodes: []interaction.Node{
+		graph = &Graph{
+			Nodes: []Node{
 				&testGraphGetAMRnode{
-					Stage: interaction.AuthenticationStagePrimary,
+					Stage: AuthenticationStagePrimary,
 					Authenticator: &authenticator.Info{
 						Type: authn.AuthenticatorTypePassword,
 					},
 				},
 				&testGraphGetAMRnode{
-					Stage: interaction.AuthenticationStageSecondary,
+					Stage: AuthenticationStageSecondary,
 					Authenticator: &authenticator.Info{
 						Type: authn.AuthenticatorTypeOOB,
 						Claims: map[string]interface{}{
@@ -257,10 +256,10 @@ func TestGraphGetAMRACR(t *testing.T) {
 		So(graph.GetACR(amr), ShouldEqual, authn.ACRMFA)
 
 		// oauth + totp
-		graph = &interaction.Graph{
-			Nodes: []interaction.Node{
+		graph = &Graph{
+			Nodes: []Node{
 				&testGraphGetAMRnode{
-					Stage: interaction.AuthenticationStageSecondary,
+					Stage: AuthenticationStageSecondary,
 					Authenticator: &authenticator.Info{
 						Type: authn.AuthenticatorTypeTOTP,
 					},
@@ -273,15 +272,15 @@ func TestGraphGetAMRACR(t *testing.T) {
 	})
 }
 
-type findNodeA struct{ interaction.Node }
+type findNodeA struct{ Node }
 
 func (*findNodeA) A() {}
 
-type findNodeB struct{ interaction.Node }
+type findNodeB struct{ Node }
 
 func (*findNodeB) B() {}
 
-type findNodeC struct{ interaction.Node }
+type findNodeC struct{ Node }
 
 func (*findNodeC) B() {}
 func (*findNodeC) C() {}
@@ -291,8 +290,8 @@ func TestGraphFindLastNode(t *testing.T) {
 		nodeA := &findNodeA{}
 		nodeB := &findNodeB{}
 		nodeC := &findNodeC{}
-		graph := &interaction.Graph{
-			Nodes: []interaction.Node{nodeA, nodeB, nodeC},
+		graph := &Graph{
+			Nodes: []Node{nodeA, nodeB, nodeC},
 		}
 
 		var a interface{ A() }

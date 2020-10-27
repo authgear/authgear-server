@@ -5,6 +5,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/tasks"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 )
@@ -18,8 +19,13 @@ type TranslationService interface {
 	SMSMessageData(msg *translation.MessageSpec, args interface{}) (*translation.SMSMessageData, error)
 }
 
+type RateLimiter interface {
+	TakeToken(bucket ratelimit.Bucket) error
+}
+
 type Provider struct {
 	Translation          TranslationService
+	RateLimiter          RateLimiter
 	WelcomeMessageConfig *config.WelcomeMessageConfig
 	TaskQueue            task.Queue
 }
@@ -44,6 +50,11 @@ func (p *Provider) send(emails []string) error {
 		data := TemplateData{Email: email}
 
 		msg, err := p.Translation.EmailMessageData(messageWelcomeMessage, data)
+		if err != nil {
+			return err
+		}
+
+		err = p.RateLimiter.TakeToken(mail.RateLimitBucket(email, messageWelcomeMessage.Name))
 		if err != nil {
 			return err
 		}

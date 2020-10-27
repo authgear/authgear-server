@@ -38,6 +38,7 @@ import (
 	handler2 "github.com/authgear/authgear-server/pkg/lib/oauth/oidc/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -212,11 +213,21 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clock,
+	}
 	service3 := &service2.Service{
-		Store:    store2,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       store2,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -292,6 +303,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -328,6 +340,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -345,6 +358,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -426,9 +440,11 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      provider,
@@ -441,6 +457,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -671,11 +688,21 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -758,6 +785,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -794,6 +822,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -811,6 +840,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -867,9 +897,11 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -882,6 +914,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -1137,15 +1170,25 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	redisHandle := appProvider.Redis
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    store2,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       store2,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
-	redisHandle := appProvider.Redis
 	storeRedis := &verification.StoreRedis{
 		Redis: redisHandle,
 		AppID: appID,
@@ -1344,15 +1387,25 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	redisHandle := appProvider.Redis
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    store2,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       store2,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
-	redisHandle := appProvider.Redis
 	storeRedis := &verification.StoreRedis{
 		Redis: redisHandle,
 		AppID: appID,
@@ -1645,11 +1698,21 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -1714,6 +1777,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -1749,6 +1813,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -1766,6 +1831,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -1847,9 +1913,11 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -1862,6 +1930,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -2069,11 +2138,21 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -2138,6 +2217,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -2173,6 +2253,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -2190,6 +2271,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -2271,9 +2353,11 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -2286,6 +2370,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -2387,6 +2472,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	trustProxy := environmentConfig.TrustProxy
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
@@ -2492,11 +2578,21 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -2550,7 +2646,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -2562,6 +2657,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -2597,6 +2693,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -2614,6 +2711,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -2695,9 +2793,11 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -2710,6 +2810,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -2769,6 +2870,9 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
@@ -2878,11 +2982,21 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -2930,8 +3044,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -2956,7 +3068,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -2968,6 +3079,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -3004,6 +3116,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -3021,6 +3134,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -3102,9 +3216,11 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -3117,6 +3233,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -3208,6 +3325,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	trustProxy := environmentConfig.TrustProxy
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -3315,11 +3433,21 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -3373,7 +3501,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -3385,6 +3512,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -3420,6 +3548,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -3437,6 +3566,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -3518,9 +3648,11 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -3533,6 +3665,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -3624,6 +3757,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	trustProxy := environmentConfig.TrustProxy
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -3731,11 +3865,21 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -3789,7 +3933,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -3801,6 +3944,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -3836,6 +3980,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -3853,6 +3998,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -3934,9 +4080,11 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -3949,6 +4097,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -4040,6 +4189,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	trustProxy := environmentConfig.TrustProxy
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -4147,11 +4297,21 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -4205,7 +4365,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -4217,6 +4376,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -4252,6 +4412,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -4269,6 +4430,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -4350,9 +4512,11 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -4365,6 +4529,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -4457,6 +4622,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	trustProxy := environmentConfig.TrustProxy
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -4564,11 +4730,21 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -4622,7 +4798,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -4634,6 +4809,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -4669,6 +4845,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -4686,6 +4863,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -4767,9 +4945,11 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -4782,6 +4962,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -4875,6 +5056,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	trustProxy := environmentConfig.TrustProxy
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -4982,11 +5164,21 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -5040,7 +5232,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -5052,6 +5243,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -5087,6 +5279,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -5104,6 +5297,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -5185,9 +5379,11 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -5200,6 +5396,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -5291,6 +5488,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	trustProxy := environmentConfig.TrustProxy
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -5398,11 +5596,21 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -5456,7 +5664,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -5468,6 +5675,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -5503,6 +5711,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -5520,6 +5729,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -5601,9 +5811,11 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -5616,6 +5828,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -5707,6 +5920,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	trustProxy := environmentConfig.TrustProxy
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -5814,11 +6028,21 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -5872,7 +6096,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -5884,6 +6107,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -5919,6 +6143,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -5936,6 +6161,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -6017,9 +6243,11 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -6032,6 +6260,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -6123,6 +6352,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	trustProxy := environmentConfig.TrustProxy
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -6230,11 +6460,21 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -6288,7 +6528,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -6300,6 +6539,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -6335,6 +6575,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -6352,6 +6593,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -6433,9 +6675,11 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -6448,6 +6692,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -6539,6 +6784,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	trustProxy := environmentConfig.TrustProxy
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -6646,11 +6892,21 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -6704,7 +6960,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -6716,6 +6971,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -6751,6 +7007,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -6768,6 +7025,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -6849,9 +7107,11 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -6864,6 +7124,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -6955,6 +7216,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	trustProxy := environmentConfig.TrustProxy
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -7062,11 +7324,21 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -7120,7 +7392,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -7132,6 +7403,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -7167,6 +7439,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -7184,6 +7457,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -7265,9 +7539,11 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -7280,6 +7556,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -7371,6 +7648,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	trustProxy := environmentConfig.TrustProxy
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -7478,11 +7756,21 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -7536,7 +7824,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -7548,6 +7835,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -7583,6 +7871,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -7600,6 +7889,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -7681,9 +7971,11 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -7696,6 +7988,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -7793,6 +8086,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	trustProxy := environmentConfig.TrustProxy
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
@@ -7898,11 +8192,21 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -7956,7 +8260,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -7968,6 +8271,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -8003,6 +8307,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -8020,6 +8325,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -8101,9 +8407,11 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -8116,6 +8424,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -8208,6 +8517,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	trustProxy := environmentConfig.TrustProxy
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -8315,11 +8625,21 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -8373,7 +8693,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -8385,6 +8704,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -8420,6 +8740,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -8437,6 +8758,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -8518,9 +8840,11 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -8533,6 +8857,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -8624,6 +8949,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	trustProxy := environmentConfig.TrustProxy
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -8731,11 +9057,21 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -8789,7 +9125,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -8801,6 +9136,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -8836,6 +9172,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -8853,6 +9190,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -8934,9 +9272,11 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -8949,6 +9289,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -9041,6 +9382,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	trustProxy := environmentConfig.TrustProxy
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -9148,11 +9490,21 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -9206,7 +9558,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -9218,6 +9569,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -9253,6 +9605,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -9270,6 +9623,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -9351,9 +9705,11 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -9366,6 +9722,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -9457,6 +9814,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	trustProxy := environmentConfig.TrustProxy
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -9564,11 +9922,21 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -9622,7 +9990,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -9634,6 +10001,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -9669,6 +10037,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -9686,6 +10055,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -9767,9 +10137,11 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -9782,6 +10154,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -9876,6 +10249,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	trustProxy := environmentConfig.TrustProxy
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -9983,11 +10357,21 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -10041,7 +10425,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -10053,6 +10436,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -10088,6 +10472,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -10105,6 +10490,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -10186,9 +10572,11 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -10201,6 +10589,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -10296,6 +10685,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	trustProxy := environmentConfig.TrustProxy
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -10403,11 +10793,21 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -10461,7 +10861,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -10473,6 +10872,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -10508,6 +10908,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -10525,6 +10926,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -10606,9 +11008,11 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -10621,6 +11025,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -10715,6 +11120,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	trustProxy := environmentConfig.TrustProxy
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -10822,11 +11228,21 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -10880,7 +11296,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -10892,6 +11307,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -10927,6 +11343,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -10944,6 +11361,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -11025,9 +11443,11 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -11040,6 +11460,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -11134,6 +11555,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	trustProxy := environmentConfig.TrustProxy
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -11241,11 +11663,21 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -11299,7 +11731,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -11311,6 +11742,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -11346,6 +11778,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -11363,6 +11796,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -11444,9 +11878,11 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -11459,6 +11895,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -11554,6 +11991,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	trustProxy := environmentConfig.TrustProxy
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -11661,11 +12099,21 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -11719,7 +12167,6 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -11731,6 +12178,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -11766,6 +12214,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -11783,6 +12232,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -11864,9 +12314,11 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -11879,6 +12331,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -11971,6 +12424,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	trustProxy := environmentConfig.TrustProxy
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -12078,11 +12532,21 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -12136,7 +12600,6 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -12148,6 +12611,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -12183,6 +12647,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -12200,6 +12665,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -12281,9 +12747,11 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -12296,6 +12764,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -12462,15 +12931,25 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	redisHandle := appProvider.Redis
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    store2,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       store2,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
-	redisHandle := appProvider.Redis
 	storeRedis := &verification.StoreRedis{
 		Redis: redisHandle,
 		AppID: appID,
@@ -12546,6 +13025,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -12663,6 +13143,9 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
@@ -12772,11 +13255,21 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -12824,8 +13317,6 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -12850,7 +13341,6 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -12862,6 +13352,7 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -12898,6 +13389,7 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -12915,6 +13407,7 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -12996,9 +13489,11 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -13011,6 +13506,7 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -13066,6 +13562,9 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
@@ -13175,11 +13674,21 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -13227,8 +13736,6 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -13253,7 +13760,6 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -13265,6 +13771,7 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -13301,6 +13808,7 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -13318,6 +13826,7 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -13399,9 +13908,11 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -13414,6 +13925,7 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -13787,11 +14299,21 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: handle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    store2,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       store2,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -13871,6 +14393,9 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Database: dbHandle,
 	}
 	clockClock := _wireSystemClockValue
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
@@ -13980,11 +14505,21 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		Redis: handle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service3 := &service2.Service{
-		Store:    serviceStore,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
@@ -14032,8 +14567,6 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -14058,7 +14591,6 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -14070,6 +14602,7 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -14106,6 +14639,7 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -14123,6 +14657,7 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -14204,9 +14739,11 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -14219,6 +14756,7 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
