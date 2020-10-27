@@ -73,6 +73,7 @@ type ForgotPasswordHandler struct {
 func (h *ForgotPasswordHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	return &webapp.Intent{
 		RedirectURI: "/forgot_password/success",
+		OldStateID:  StateID(r),
 		KeepState:   true,
 		Intent:      intents.NewIntentForgotPassword(),
 	}

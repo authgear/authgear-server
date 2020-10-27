@@ -6,7 +6,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
@@ -56,7 +55,7 @@ func (h *ResetPasswordHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	}
 }
 
-func (h *ResetPasswordHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *ResetPasswordHandler) GetData(r *http.Request, state *webapp.State) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	var anyError interface{}
 	if state != nil {
@@ -65,7 +64,7 @@ func (h *ResetPasswordHandler) GetData(r *http.Request, state *webapp.State, gra
 	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
 	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModel(
 		h.PasswordPolicy.PasswordPolicy(),
-		state.Error,
+		anyError,
 	)
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, passwordPolicyViewModel)
@@ -97,12 +96,12 @@ func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 	if r.Method == "GET" {
 		err := h.Database.WithTx(func() error {
-			state, graph, err := h.WebApp.GetIntent(intent)
+			state, err := h.WebApp.GetState(StateID(r))
 			if err != nil {
 				return err
 			}
 
-			data, err := h.GetData(r, state, graph)
+			data, err := h.GetData(r, state)
 			if err != nil {
 				return err
 			}
