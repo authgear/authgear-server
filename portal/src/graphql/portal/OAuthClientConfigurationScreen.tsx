@@ -438,15 +438,15 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
           rawAppConfig={rawAppConfig}
           updateAppConfig={updateAppConfig}
         />
-        <section className={styles.apiEndpointSession}>
-          <Text as="h2" className={styles.allowedOriginsConfigurationHeader}>
-            <FormattedMessage id="OAuthClientConfigurationScreen.api-endpoint.header" />
+        <section className={styles.clientEndpointSession}>
+          <Text as="h2" className={styles.clientEndpointSessionHeader}>
+            <FormattedMessage id="OAuthClientConfigurationScreen.client-endpoint.header" />
           </Text>
-          <Text className={styles.allowedOriginsConfigurationDesc}>
+          <Text className={styles.clientEndpointSessionDesc}>
             <FormattedMessage
-              id="OAuthClientConfigurationScreen.api-endpoint.desc"
+              id="OAuthClientConfigurationScreen.client-endpoint.desc"
               values={{
-                apiEndpoint: authgearEndpoint,
+                clientEndpoint: authgearEndpoint,
               }}
             />
           </Text>
