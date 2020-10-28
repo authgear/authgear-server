@@ -121,7 +121,7 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 			for _, p := range appConfig.Identity.OAuth.Providers {
 				found := false
 				for _, item := range oauth.Items {
-					if p.Alias == item.Alias {
+					if p.Alias == item.Alias && item.ClientSecret != "" {
 						found = true
 					}
 				}
