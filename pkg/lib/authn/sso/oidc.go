@@ -9,12 +9,11 @@ import (
 	"time"
 
 	"github.com/lestrrat-go/jwx/jwk"
-	"github.com/lestrrat-go/jwx/jws"
 	"github.com/lestrrat-go/jwx/jwt"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/jwtutil"
+	"github.com/authgear/authgear-server/pkg/util/jwsutil"
 )
 
 type jwtClock struct {
@@ -128,23 +127,8 @@ func (d *OIDCDiscoveryDocument) ExchangeCode(
 	}
 
 	idToken := []byte(tokenResp.IDToken())
-	hdr, payload, err := jwtutil.SplitWithoutVerify(idToken)
-	if err != nil {
-		return nil, NewSSOFailed(SSOUnauthorized, "invalid ID token")
-	}
 
-	keyID := hdr.KeyID()
-	if keyID == "" {
-		return nil, NewSSOFailed(SSOUnauthorized, "no kid")
-	}
-
-	keys := jwks.LookupKeyID(keyID)
-	if len(keys) != 1 {
-		return nil, NewSSOFailed(SSOUnauthorized, "failed to find signing key")
-	}
-	key := keys[0]
-
-	_, err = jws.VerifyWithJWK(idToken, key)
+	_, payload, err := jwsutil.VerifyWithSet(jwks, idToken)
 	if err != nil {
 		return nil, NewSSOFailed(SSOUnauthorized, "invalid JWT signature")
 	}
