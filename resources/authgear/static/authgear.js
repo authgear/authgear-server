@@ -1,18 +1,39 @@
-window.addEventListener("load", function() {
-  // global variables
-  // They must be reset to their initial values when back-forward cache kicks in.
-  var FORM_SUBMITTED;
+// global variables
+// They must be reset to their initial values when back-forward cache kicks in.
+var FORM_SUBMITTED;
 
-  function initializeGlobals() {
-    FORM_SUBMITTED = false;
+function initializeGlobals() {
+  FORM_SUBMITTED = false;
+}
+
+window.addEventListener("pageshow", function(e) {
+  if (e.persisted) {
+    initializeGlobals();
   }
-  initializeGlobals();
+});
 
-  window.addEventListener("pageshow", function(e) {
-    if (e.persisted) {
-      initializeGlobals();
+function attachHistoryListener() {
+  window.addEventListener("popstate", function(e) {
+    var meta = document.querySelector('meta[name="x-authgear-request-url"]');
+    if (meta == null) {
+      return;
+    }
+
+    var currentURL = new URL(window.location.href);
+    // meta.content is without protocol, host, port.
+    // URL constructor is not smart enough to parse it.
+    // Therefore we need to tell them the base URL.
+    var pageURL = new URL(meta.content, currentURL);
+
+    if (currentURL.pathname !== pageURL.pathname) {
+      window.location.reload();
     }
   });
+}
+attachHistoryListener();
+
+function setupPage() {
+  initializeGlobals();
 
   function attachBackButtonClick() {
     var els = document.querySelectorAll(".btn.back-btn");
@@ -186,6 +207,7 @@ window.addEventListener("load", function() {
   function handleXHRFormSubmission(e) {
     var currentURLString = window.location.href;
     var responseURLString = this.responseURL;
+    var responseHTML = this.responseText;
 
     var currentURL = new URL(currentURLString);
     var responseURL = new URL(responseURLString);
@@ -198,7 +220,23 @@ window.addEventListener("load", function() {
       } else {
         history.pushState({}, "", responseURLString);
       }
-      window.location.reload();
+
+      // Replace current document with newly loaded document.
+      var parser = new DOMParser();
+      var newDocument = parser.parseFromString(responseHTML, "text/html");
+      document.body.replaceWith(newDocument.body);
+      // Manually update content of head, to avoid flickering caused by reloading CSS.
+      document.head.title = newDocument.head.title;
+      var metaElements = document.querySelectorAll("meta");
+      for (var i = 0; i < metaElements.length; i++) {
+        metaElements[i].remove();
+      }
+      metaElements = newDocument.querySelectorAll("meta");
+      for (var i = 0; i < metaElements.length; i++) {
+        document.head.appendChild(metaElements[i]);
+      }
+      setupPage();
+
     } else {
       // Otherwise redirect natively.
       window.location.href = responseURLString;
@@ -331,29 +369,10 @@ window.addEventListener("load", function() {
     }
   }
 
-  function attachHistoryListener() {
-    window.addEventListener("popstate", function(e) {
-      var meta = document.querySelector('meta[name="x-authgear-request-url"]');
-      if (meta == null) {
-        return;
-      }
-
-      var currentURL = new URL(window.location.href);
-      // meta.content is without protocol, host, port.
-      // URL constructor is not smart enough to parse it.
-      // Therefore we need to tell them the base URL.
-      var pageURL = new URL(meta.content, currentURL);
-
-      if (currentURL.pathname !== pageURL.pathname) {
-        window.location.reload();
-      }
-    });
-  }
-
   attachBackButtonClick();
   attachPasswordPolicyCheck();
   attachResendButtonBehavior();
   attachFormSubmitOnceOnly();
   attachFormSubmitXHR();
-  attachHistoryListener();
-});
+}
+window.addEventListener("load", setupPage);
