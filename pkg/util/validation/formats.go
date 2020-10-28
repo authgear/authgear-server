@@ -16,6 +16,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["email"] = FormatEmail{AllowName: false}
 	jsonschemaformat.DefaultChecker["email-name-addr"] = FormatEmail{AllowName: true}
 	jsonschemaformat.DefaultChecker["uri"] = FormatURI{}
+	jsonschemaformat.DefaultChecker["http_origin"] = FormatHTTPOrigin{}
 }
 
 // FormatPhone checks if input is a phone number in E.164 format.
@@ -84,6 +85,37 @@ func (f FormatURI) CheckFormat(value interface{}) error {
 	cleaned := filepath.Clean(p)
 	if !filepath.IsAbs(p) || cleaned != p {
 		return errors.New("input URL must be normalized")
+	}
+
+	return nil
+}
+
+// FormatHTTPOrigin checks if input is a valid origin with http/https scheme,
+// host and optional port only.
+type FormatHTTPOrigin struct {
+}
+
+func (f FormatHTTPOrigin) CheckFormat(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	u, err := url.Parse(str)
+	if err != nil {
+		return err
+	}
+
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return errors.New("expect input URL with scheme http / https")
+	}
+
+	if u.Host == "" {
+		return errors.New("expect input URL with non-empty host")
+	}
+
+	if u.User != nil || u.RawPath != "" || u.RawQuery != "" || u.RawFragment != "" {
+		return errors.New("expect input URL without user info, path, query and fragment")
 	}
 
 	return nil
