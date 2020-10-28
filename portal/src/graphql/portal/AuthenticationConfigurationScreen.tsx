@@ -23,16 +23,18 @@ const AUTHENTICATOR_PIVOT_KEY = "authenticator";
 const AuthenticationScreen: React.FC = function AuthenticationScreen() {
   const { renderToString } = React.useContext(Context);
   const { appID } = useParams();
-  const { selectedKey, onLinkClick } = usePivotNavigation([
-    LOGIN_ID_PIVOT_KEY,
-    AUTHENTICATOR_PIVOT_KEY,
-  ]);
 
   const {
     updateAppConfig,
     loading: updatingAppConfig,
     error: updateAppConfigError,
+    resetError: resetUpdateAppConfigError,
   } = useUpdateAppConfigMutation(appID);
+
+  const { selectedKey, onLinkClick } = usePivotNavigation(
+    [LOGIN_ID_PIVOT_KEY, AUTHENTICATOR_PIVOT_KEY],
+    resetUpdateAppConfigError
+  );
 
   const {
     loading,
