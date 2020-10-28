@@ -2,6 +2,7 @@ package configsource
 
 import (
 	"net/http"
+	"path"
 	"path/filepath"
 	"sync/atomic"
 
@@ -24,12 +25,10 @@ type LocalFS struct {
 	BaseResources *resource.Manager
 	Config        *Config
 
-	Fs               afero.Fs          `wire:"-"`
-	appConfigPath    string            `wire:"-"`
-	secretConfigPath string            `wire:"-"`
-	config           atomic.Value      `wire:"-"`
-	watcher          *fsnotify.Watcher `wire:"-"`
-	done             chan<- struct{}   `wire:"-"`
+	Fs      afero.Fs          `wire:"-"`
+	config  atomic.Value      `wire:"-"`
+	watcher *fsnotify.Watcher `wire:"-"`
+	done    chan<- struct{}   `wire:"-"`
 }
 
 func (s *LocalFS) Open() error {
@@ -54,6 +53,9 @@ func (s *LocalFS) Open() error {
 	})
 
 	if s.Config.Watch {
+		appConfigPath := path.Join(dir, AuthgearYAML)
+		secretConfigPath := path.Join(dir, AuthgearSecretYAML)
+
 		s.watcher, err = fsnotify.NewWatcher()
 		if err != nil {
 			return err
@@ -63,10 +65,10 @@ func (s *LocalFS) Open() error {
 		s.done = done
 		go s.watch(done)
 
-		if err = s.watcher.Add(s.appConfigPath); err != nil {
+		if err = s.watcher.Add(appConfigPath); err != nil {
 			return err
 		}
-		if err = s.watcher.Add(s.secretConfigPath); err != nil {
+		if err = s.watcher.Add(secretConfigPath); err != nil {
 			return err
 		}
 	}
