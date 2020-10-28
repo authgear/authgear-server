@@ -11,6 +11,8 @@ const errorMessageID: Record<ValidationFailedErrorInfoCause["kind"], string> = {
   minItems: "validation-error.minItems",
   minimum: "validation-error.minimum",
   maximum: "validation-error.maximum",
+  minLength: "validation-error.minLength",
+  maxLength: "validation-error.maxLength",
 };
 
 interface FormFieldData {
@@ -50,7 +52,13 @@ function constructErrorMessageFromValidationErrorCause(
   // unrecognized error kind (violation type) => throw error in get message value
   try {
     const errorMessageValues = getReactMessageFormatValues(cause);
-    return renderToString(errorMessageID[cause.kind], errorMessageValues);
+    const messageID = errorMessageID[cause.kind];
+    // NOTE: catch error cause not defined in type definition
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (messageID == null) {
+      throw new Error();
+    }
+    return renderToString(messageID, errorMessageValues);
   } catch {
     console.warn(
       "[Unhandled validation error cause]: Unrecognized cause kind\n",

@@ -55,6 +55,8 @@
   "validation-error.minItems": "Expect at least {expected} items",
   "validation-error.minimum": "Expect number larger than or equal to {minimum}",
   "validation-error.maximum": "Expect number smaller than or equal to {maximum}",
+  "validation-error.minLength": "Expect string with length greater than or equal to {expected, plural, one{1 character} other{# characters}}",
+  "validation-error.maxLength": "Expect string with length less than or equal to {expected, plural, one{1 character} other{# characters}}",
 
   "TodoButtonWrapper.dialog-title": "Feature Not Ready",
   "TodoButtonWrapper.dialog-message": "This feature is not yet implemented",
@@ -286,6 +288,7 @@
   "OAuthClientConfiguration.client-id-copied": "Client ID is copied to clipboard",
   "OAuthClientConfigurationScreen.confirm-remove-dialog.title": "Remove OAuth Client",
   "OAuthClientConfigurationScreen.confirm-remove-dialog.message": "Are you sure you want to remove OAuth client {clientName} ?",
+  "OAuthClientConfigurationScreen.add-origin": "Add Origin",
 
   "CreateOAuthClientScreen.title": "Create Client Application",
   "CreateOAuthClientScreen.success-dialog.title": "Created Client Sucessfully",
@@ -303,6 +306,7 @@
   "ModifyOAuthClientForm.redirect-uris-tooltip-message": "Users will be redirected to this path after they have authenticated.",
   "ModifyOAuthClientForm.post-logout-redirect-uris-label": "Post Logout Redirect URIs",
   "ModifyOAuthClientForm.post-logout-redirect-uris-tooltip-message": "Users will be redirected to this path after they have logged out.",
+  "ModifyOAuthClientForm.add-uri": "Add URI",
 
   "DNSConfigurationScreen.title": "DNS",
   "DNSConfigurationScreen.desc": "You can add a custom domain so that users will login via, for example, “identity.yourdomain.com”. In this case, a session cookie of domain “yourdomain.com” is written so that your websites can share the session cookies under “*.yourdomain.com” for better customers experiences.",

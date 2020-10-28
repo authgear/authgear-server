@@ -14,7 +14,9 @@ export type ValidationFailedErrorInfoCause =
   | FormatErrorCause
   | MinItemsErrorCause
   | MinimumErrorCause
-  | MaximumErrorCause;
+  | MaximumErrorCause
+  | MinLengthErrorCause
+  | MaxLengthErrorCause;
 
 export interface RequiredErrorCause {
   location: string;
@@ -66,5 +68,23 @@ export interface MaximumErrorCause {
   details: {
     actual: number;
     maximum: number;
+  };
+}
+
+export interface MinLengthErrorCause {
+  location: string;
+  kind: "minLength";
+  details: {
+    actual: number;
+    expected: number;
+  };
+}
+
+export interface MaxLengthErrorCause {
+  location: string;
+  kind: "maxLength";
+  details: {
+    actual: number;
+    expected: number;
   };
 }

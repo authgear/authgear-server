@@ -16,8 +16,10 @@ import (
 
 func TestAppConfig(t *testing.T) {
 	Convey("AppConfig", t, func() {
+		minimalAppConfig := `{ "id": "test", "http": { "public_origin": "http://test" } }`
+
 		Convey("populate default values", func() {
-			cfg, err := config.Parse([]byte(`{ "id": "test" }`))
+			cfg, err := config.Parse([]byte(minimalAppConfig))
 			So(err, ShouldBeNil)
 
 			data, err := ioutil.ReadFile("testdata/default_config.yaml")
@@ -35,7 +37,7 @@ func TestAppConfig(t *testing.T) {
 		})
 
 		Convey("round-trip default configuration", func() {
-			cfg, err := config.Parse([]byte(`{ "id": "test" }`))
+			cfg, err := config.Parse([]byte(minimalAppConfig))
 			So(err, ShouldBeNil)
 
 			data, err := yaml.Marshal(cfg)

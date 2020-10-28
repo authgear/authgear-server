@@ -2,14 +2,27 @@ name: empty-config
 error: null
 config:
   id: test
+  http:
+    public_origin: http://test
 
 ---
 name: missing-id
 error: |-
   invalid configuration:
   <root>: required
-    map[actual:<nil> expected:[id] missing:[id]]
-config: {}
+    map[actual:[http] expected:[http id] missing:[id]]
+config: 
+  http:
+    public_origin: http://test
+
+---
+name: missing-http
+error: |-
+  invalid configuration:
+  <root>: required
+    map[actual:[id] expected:[http id] missing:[http]]
+config: 
+  id: test
 
 ---
 name: invalid-id
@@ -19,6 +32,8 @@ error: |-
     map[actual:[integer number] expected:[string]]
 config:
   id: 123
+  http:
+    public_origin: http://test
 
 ---
 name: public-signup-disabled
@@ -28,6 +43,8 @@ error: |-
     map[actual:[integer number] expected:[boolean]]
 config:
   id: test
+  http:
+    public_origin: http://test
   authentication:
     public_signup_disabled: 42
 
@@ -38,6 +55,8 @@ error: |-
   /oauth/clients/0/refresh_token_lifetime_seconds: refresh token lifetime must be greater than or equal to access token lifetime
 config:
   id: test
+  http:
+    public_origin: http://test
   oauth:
     clients:
       - name: Test Client
@@ -55,6 +74,8 @@ error: |-
     map[actual:100 minimum:300]
 config:
   id: test
+  http:
+    public_origin: http://test
   oauth:
     clients:
       - name: Test Client
@@ -71,6 +92,8 @@ error: |-
   /identity/oauth/providers/1: duplicated OAuth provider
 config:
   id: test
+  http:
+    public_origin: http://test
   identity:
     oauth:
       providers:
@@ -89,6 +112,8 @@ error: |-
     map[actual:[client_id type] expected:[alias client_id type] missing:[alias]]
 config:
   id: test
+  http:
+    public_origin: http://test
   identity:
     oauth:
       providers:
@@ -102,6 +127,8 @@ error: |-
   /identity/oauth/providers/1: duplicated OAuth provider alias
 config:
   id: test
+  http:
+    public_origin: http://test
   identity:
     oauth:
       providers:
@@ -120,6 +147,8 @@ error: |-
     map[actual:[alias client_id type] expected:[key_id team_id] missing:[key_id team_id]]
 config:
   id: test
+  http:
+    public_origin: http://test
   identity:
     oauth:
       providers:
@@ -135,6 +164,8 @@ error: |-
     map[actual:[alias client_id type] expected:[tenant] missing:[tenant]]
 config:
   id: test
+  http:
+    public_origin: http://test
   identity:
     oauth:
       providers:
@@ -147,6 +178,8 @@ name: dupe-authenticator-type
 error: null
 config:
   id: test
+  http:
+    public_origin: http://test
   authentication:
     primary_authenticators: [oob_otp]
     secondary_authenticators: [totp, oob_otp]
@@ -159,6 +192,8 @@ error: |-
     map[actual:totp expected:[password oob_otp]]
 config:
   id: test
+  http:
+    public_origin: http://test
   authentication:
     primary_authenticators: [totp]
 
@@ -170,6 +205,8 @@ error: |-
     map[actual:foobar expected:[error login]]
 config:
   id: test
+  http:
+    public_origin: http://test
   identity:
     on_conflict:
       promotion: foobar
@@ -181,6 +218,8 @@ error: |-
   /ui/country_calling_code/pinned_list: pinned country calling code is unlisted
 config:
   id: test
+  http:
+    public_origin: http://test
   ui:
     country_calling_code:
       pinned_list: 
@@ -193,6 +232,8 @@ error: |-
   /authentication/identities/0: no usable primary authenticator is enabled
 config:
   id: test
+  http:
+    public_origin: http://test
   authentication:
     identities: [login_id]
     primary_authenticators: [oob_otp]
@@ -210,6 +251,8 @@ error: |-
   /authentication/identities/0: no usable primary authenticator is enabled
 config:
   id: test
+  http:
+    public_origin: http://test
   authentication:
     identities: [login_id]
     primary_authenticators: []
@@ -228,6 +271,8 @@ error: |-
     map[actual:0 minimum:1]
 config:
   id: test
+  http:
+    public_origin: http://test
   authenticator:
     password:
       policy:

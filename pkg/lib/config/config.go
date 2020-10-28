@@ -40,14 +40,14 @@ var _ = Schema.Add("AppConfig", `
 		"welcome_message": { "$ref": "#/$defs/WelcomeMessageConfig" },
 		"verification": { "$ref": "#/$defs/VerificationConfig" }
 	},
-	"required": ["id"]
+	"required": ["id", "http"]
 }
 `)
 
 type AppConfig struct {
 	ID AppID `json:"id"`
 
-	HTTP     *HTTPConfig     `json:"http,omitempty"`
+	HTTP     *HTTPConfig     `json:"http"`
 	Database *DatabaseConfig `json:"database,omitempty"`
 	Redis    *RedisConfig    `json:"redis,omitempty"`
 	Hook     *HookConfig     `json:"hook,omitempty"`

@@ -75,4 +75,89 @@ func TestSchemaValidate(t *testing.T) {
 			},
 		})
 	})
+
+	Convey("custom origin validator", t, func() {
+		schema := validation.NewMultipartSchema("schemaA")
+		schema.Add("schemaA", `
+		{
+			"type": "object",
+			"properties": {
+				"b": { "$ref": "#/$defs/schemaB" }
+			}
+		}
+`)
+		schema.Add("schemaB", `
+		{
+			"type": "string",
+			"format": "http_origin"
+		}
+`)
+
+		schema.Instantiate()
+
+		err := schema.Validator().Validate(strings.NewReader(`
+		{
+			"b": "http://abc"
+		}
+`))
+		So(err, ShouldBeNil)
+
+		err = schema.Validator().Validate(strings.NewReader(`
+		{
+			"b": "htt://abc"
+		}
+`))
+		So(err, ShouldResemble, &validation.AggregatedError{
+			Message: "invalid value",
+			Errors: []validation.Error{
+				{
+					Location: "/b",
+					Keyword:  "format",
+					Info: map[string]interface{}{
+						"error":  "expect input URL with scheme http / https",
+						"format": "http_origin",
+					},
+				},
+			},
+		})
+
+		err = schema.Validator().Validate(strings.NewReader(`
+		{
+			"b": "http://"
+		}
+`))
+		So(err, ShouldResemble, &validation.AggregatedError{
+			Message: "invalid value",
+			Errors: []validation.Error{
+				{
+					Location: "/b",
+					Keyword:  "format",
+					Info: map[string]interface{}{
+						"error":  "expect input URL with non-empty host",
+						"format": "http_origin",
+					},
+				},
+			},
+		})
+
+		err = schema.Validator().Validate(strings.NewReader(`
+		{
+			"b": "http://abc?x=hello"
+		}
+`))
+		So(err, ShouldResemble, &validation.AggregatedError{
+			Message: "invalid value",
+			Errors: []validation.Error{
+				{
+					Location: "/b",
+					Keyword:  "format",
+					Info: map[string]interface{}{
+						"error":  "expect input URL without user info, path, query and fragment",
+						"format": "http_origin",
+					},
+				},
+			},
+		})
+
+	})
 }

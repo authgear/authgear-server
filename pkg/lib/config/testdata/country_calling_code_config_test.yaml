@@ -1,4 +1,6 @@
 id: test
+http:
+  public_origin: http://test
 ui: 
   country_calling_code:
     allowlist:

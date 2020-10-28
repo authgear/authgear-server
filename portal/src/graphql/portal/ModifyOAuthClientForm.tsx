@@ -1,20 +1,16 @@
-import React from "react";
+import React, { useCallback } from "react";
 import cn from "classnames";
 import produce from "immer";
 import { DirectionalHint } from "@fluentui/react";
 
 import LabelWithTooltip from "../../LabelWithTooltip";
 import FormTextField from "../../FormTextField";
-import {
-  useIntegerTextField,
-  useTagPickerWithNewTags,
-  useTextField,
-} from "../../hook/useInput";
+import FormTextFieldList from "../../FormTextFieldList";
+import { useIntegerTextField, useTextField } from "../../hook/useInput";
 import { OAuthClientConfig } from "../../types";
 import { ensureNonEmptyString } from "../../util/misc";
 
 import styles from "./ModifyOAuthClientForm.module.scss";
-import FormTagPicker from "../../FormTagPicker";
 
 interface ModifyOAuthClientFormProps {
   className?: string;
@@ -23,7 +19,14 @@ interface ModifyOAuthClientFormProps {
 }
 
 const jsonPointerRegExp: Pick<
-  Record<keyof OAuthClientConfig, { field: RegExp; parent: RegExp }>,
+  Record<
+    keyof OAuthClientConfig,
+    {
+      field: RegExp;
+      parent: RegExp;
+      getItemJSONPointer?: (index: number) => RegExp;
+    }
+  >,
   | "name"
   | "access_token_lifetime_seconds"
   | "refresh_token_lifetime_seconds"
@@ -43,12 +46,16 @@ const jsonPointerRegExp: Pick<
     parent: /^\/oauth\/clients\/[0-9]+$/,
   },
   redirect_uris: {
-    field: /^\/oauth\/clients\/[0-9]+\/redirect_uris(\/[0-9]+)?$/,
-    parent: /^\/oauth\/clients\/[0-9]+/,
+    field: /^\/oauth\/clients\/[0-9]+\/redirect_uris$/,
+    parent: /^\/oauth\/clients\/[0-9]+$/,
+    getItemJSONPointer: (index) =>
+      new RegExp(`^/oauth/clients/[0-9]+/redirect_uris/${index}$`),
   },
   post_logout_redirect_uris: {
-    field: /^\/oauth\/clients\/[0-9]+\/post_logout_redirect_uris(\/[0-9]+)?$/,
-    parent: /^\/oauth\/clients\/[0-9]+/,
+    field: /^\/oauth\/clients\/[0-9]+\/post_logout_redirect_uris$/,
+    parent: /^\/oauth\/clients\/[0-9]+$/,
+    getItemJSONPointer: (index) =>
+      new RegExp(`^/oauth/clients/[0-9]+/post_logout_redirect_uris/${index}$`),
   },
 };
 
@@ -117,23 +124,17 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
     }
   );
 
-  const {
-    selectedItems: redirectUriItems,
-    onChange: onRedirectUrisChange,
-    onResolveSuggestions: onResolveRedirectUrisSuggestions,
-  } = useTagPickerWithNewTags(clientConfig.redirect_uris, (list) => {
-    onClientConfigChange(
-      updateClientConfig(clientConfig, "redirect_uris", list)
-    );
-  });
+  const onRedirectUrisChange = useCallback(
+    (list: string[]) => {
+      onClientConfigChange(
+        updateClientConfig(clientConfig, "redirect_uris", list)
+      );
+    },
+    [onClientConfigChange, clientConfig]
+  );
 
-  const {
-    selectedItems: postLogoutRedirectUriItems,
-    onChange: onPostLogoutRedirectUrisChange,
-    onResolveSuggestions: onResolvePostLogoutUrisSuggestions,
-  } = useTagPickerWithNewTags(
-    clientConfig.post_logout_redirect_uris ?? [],
-    (list) => {
+  const onPostLogoutRedirectUrisChange = useCallback(
+    (list: string[]) => {
       onClientConfigChange(
         updateClientConfig(
           clientConfig,
@@ -141,7 +142,8 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
           list.length > 0 ? list : undefined
         )
       );
-    }
+    },
+    [onClientConfigChange, clientConfig]
   );
 
   return (
@@ -178,11 +180,16 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
         value={clientConfig.refresh_token_lifetime_seconds?.toString() ?? ""}
         onChange={onRefreshTokenLifetimeChange}
       />
-      <FormTagPicker
+      <FormTextFieldList
+        className={styles.inputFieldList}
         jsonPointer={jsonPointerRegExp.redirect_uris.field}
         parentJSONPointer={jsonPointerRegExp.redirect_uris.parent}
+        getItemJSONPointer={jsonPointerRegExp.redirect_uris.getItemJSONPointer!}
         fieldName="redirect_uris"
         fieldNameMessageID="ModifyOAuthClientForm.redirect-uris-label"
+        list={clientConfig.redirect_uris}
+        onListChange={onRedirectUrisChange}
+        addButtonLabelMessageID="ModifyOAuthClientForm.add-uri"
         label={
           <LabelWithTooltip
             labelId="ModifyOAuthClientForm.redirect-uris-label"
@@ -192,16 +199,19 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
             required={true}
           />
         }
-        className={styles.inputField}
-        onChange={onRedirectUrisChange}
-        onResolveSuggestions={onResolveRedirectUrisSuggestions}
-        selectedItems={redirectUriItems}
       />
-      <FormTagPicker
+      <FormTextFieldList
+        className={styles.inputFieldList}
         jsonPointer={jsonPointerRegExp.post_logout_redirect_uris.field}
         parentJSONPointer={jsonPointerRegExp.post_logout_redirect_uris.parent}
+        getItemJSONPointer={
+          jsonPointerRegExp.post_logout_redirect_uris.getItemJSONPointer!
+        }
         fieldName="post_logout_redirect_uris"
         fieldNameMessageID="ModifyOAuthClientForm.post-logout-redirect-uris-label"
+        list={clientConfig.post_logout_redirect_uris ?? []}
+        onListChange={onPostLogoutRedirectUrisChange}
+        addButtonLabelMessageID="ModifyOAuthClientForm.add-uri"
         label={
           <LabelWithTooltip
             labelId="ModifyOAuthClientForm.post-logout-redirect-uris-label"
@@ -210,10 +220,6 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
             directionalHint={DirectionalHint.bottomLeftEdge}
           />
         }
-        className={styles.inputField}
-        onChange={onPostLogoutRedirectUrisChange}
-        onResolveSuggestions={onResolvePostLogoutUrisSuggestions}
-        selectedItems={postLogoutRedirectUriItems}
       />
     </section>
   );
