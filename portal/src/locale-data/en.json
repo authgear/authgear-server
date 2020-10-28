@@ -55,8 +55,8 @@
   "validation-error.minItems": "Expect at least {expected} items",
   "validation-error.minimum": "Expect number larger than or equal to {minimum}",
   "validation-error.maximum": "Expect number smaller than or equal to {maximum}",
-  "validation-error.minLength": "Expect string with length greater than or equal to {expected} characters",
-  "validation-error.maxLength": "Expect string with length less than or equal to {expected} characters",
+  "validation-error.minLength": "Expect string with length greater than or equal to {expected, plural, one{1 character} other{# characters}}",
+  "validation-error.maxLength": "Expect string with length less than or equal to {expected, plural, one{1 character} other{# characters}}",
 
   "TodoButtonWrapper.dialog-title": "Feature Not Ready",
   "TodoButtonWrapper.dialog-message": "This feature is not yet implemented",
