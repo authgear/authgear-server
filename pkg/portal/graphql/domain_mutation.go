@@ -1,10 +1,16 @@
 package graphql
 
 import (
+	"net/url"
+
 	"github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
+	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/portal/util/resources"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -123,9 +129,36 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			app, err := gqlCtx.AppService.Get(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			domains, err := gqlCtx.DomainService.ListDomains(appID)
+			if err != nil {
+				return nil, err
+			}
+
 			err = gqlCtx.DomainService.DeleteDomain(appID, domainID)
 			if err != nil {
 				return nil, err
+			}
+
+			// Update public origin if matches the deleted domain.
+			var deletedDomain string
+			var defaultDomain string
+			for _, d := range domains {
+				if d.ID == domainID {
+					deletedDomain = d.Domain
+				} else if !d.IsCustom {
+					defaultDomain = d.Domain
+				}
+			}
+			if deletedDomain != "" && defaultDomain != "" {
+				err = deleteDomainUpdatePublicOrigin(gqlCtx, app, deletedDomain, defaultDomain)
+				if err != nil {
+					return nil, err
+				}
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
@@ -134,6 +167,50 @@ var _ = registerMutationField(
 		},
 	},
 )
+
+func deleteDomainUpdatePublicOrigin(ctx *Context, app *model.App, deletedDomain string, defaultDomain string) error {
+	rawAppConf, err := app.LoadRawAppConfig()
+	if err != nil {
+		return err
+	}
+
+	if rawAppConf.HTTP == nil || rawAppConf.HTTP.PublicOrigin == "" {
+		return nil
+	}
+
+	u, err := url.Parse(rawAppConf.HTTP.PublicOrigin)
+	if err != nil {
+		// Ignore invalid public origin
+		return nil
+	}
+
+	if u.Host != deletedDomain {
+		// Ignore if public origin does not match deleted domain.
+		return nil
+	}
+
+	// Replace public origin with default domain.
+	u = &url.URL{
+		Scheme: "https",
+		Host:   defaultDomain,
+	}
+	rawAppConf.HTTP.PublicOrigin = u.String()
+
+	data, err := yaml.Marshal(rawAppConf)
+	if err != nil {
+		return err
+	}
+
+	err = ctx.AppService.UpdateResources(app, []resources.Update{{
+		Path: configsource.AuthgearYAML,
+		Data: data,
+	}})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 var verifyDomainInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "VerifyDomainInput",
