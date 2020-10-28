@@ -124,6 +124,11 @@ function getOrCreateSecret(secretConfigState: PortalAPISecretConfig) {
       data: { items: [] },
     };
     secretConfigState.secrets.push(secret);
+    // Sync secret item order with server side.
+    // Otherwise the error json pointer would not match.
+    secretConfigState.secrets = secretConfigState.secrets.sort((a, b) =>
+      a.key.localeCompare(b.key)
+    );
   }
   return secret;
 }
