@@ -126,7 +126,12 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 					}
 				}
 				if !found {
-					ctx.EmitErrorMessage(fmt.Sprintf("OAuth client credentials for '%s' is required", p.Alias))
+					ctx.Child("secrets", "sso.oauth.client", p.Alias).EmitError(
+						"required",
+						map[string]interface{}{
+							"missing": "client_secret",
+						},
+					)
 				}
 			}
 		}
