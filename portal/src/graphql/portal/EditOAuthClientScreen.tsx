@@ -30,12 +30,13 @@ import { FormContext } from "../../error/FormContext";
 interface EditOAuthClientFormProps {
   clientConfig: OAuthClientConfig;
   rawAppConfig: PortalAPIAppConfig;
+  resetForm: () => void;
 }
 
 const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> = function EditOAuthClientForm(
   props: EditOAuthClientFormProps
 ) {
-  const { clientConfig: clientConfigProps, rawAppConfig } = props;
+  const { clientConfig: clientConfigProps, rawAppConfig, resetForm } = props;
   const { appID } = useParams();
 
   const {
@@ -64,10 +65,6 @@ const EditOAuthClientForm: React.FC<EditOAuthClientFormProps> = function EditOAu
       getReducedClientConfig(initialClientConfig)
     );
   }, [clientConfig, initialClientConfig]);
-
-  const resetForm = useCallback(() => {
-    setClientConfig(initialClientConfig);
-  }, [initialClientConfig]);
 
   const onClientConfigChange = useCallback(
     (newClientConfig: OAuthClientConfig) => {
@@ -163,6 +160,11 @@ const EditOAuthClientScreen: React.FC = function EditOAuthClientScreen() {
     return clients.find((client) => client.client_id === clientID);
   }, [effectiveAppConfig, clientID]);
 
+  const [remountIdentifier, setRemountIdentifier] = useState(0);
+  const resetForm = useCallback(() => {
+    setRemountIdentifier((prev) => prev + 1);
+  }, []);
+
   if (loading) {
     return <ShowLoading />;
   }
@@ -191,8 +193,10 @@ const EditOAuthClientScreen: React.FC = function EditOAuthClientScreen() {
       <ModifiedIndicatorWrapper className={styles.wrapper}>
         <NavBreadcrumb items={navBreadcrumbItems} />
         <EditOAuthClientForm
+          key={remountIdentifier}
           clientConfig={clientConfig}
           rawAppConfig={rawAppConfig}
+          resetForm={resetForm}
         />
       </ModifiedIndicatorWrapper>
     </main>

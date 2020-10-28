@@ -40,18 +40,29 @@ const PasswordsScreen: React.FC = function PasswordsScreen() {
     resetError: resetUpdateAppConfigError,
   } = useUpdateAppConfigMutation(appID);
 
-  const { selectedKey, onLinkClick } = usePivotNavigation(
-    [PASSWORD_POLICY_PIVOT_KEY, FORGOT_PASSWORD_POLICY_KEY],
-    resetUpdateAppConfigError
-  );
-
   const {
     updateAppTemplates,
     loading: updatingTemplates,
     error: updateTemplatesError,
+    resetError: resetUpdateTemplatesError,
   } = useUpdateAppTemplatesMutation<ForgotPasswordMessageTemplateKeys>(
     appID,
     ...ForgotPasswordMessageTemplates
+  );
+
+  const resetError = useCallback(() => {
+    resetUpdateAppConfigError();
+    resetUpdateTemplatesError();
+  }, [resetUpdateAppConfigError, resetUpdateTemplatesError]);
+
+  const resetForm = useCallback(() => {
+    setRemountIdentifier((prev) => prev + 1);
+    resetError();
+  }, [resetError]);
+
+  const { selectedKey, onLinkClick } = usePivotNavigation(
+    [PASSWORD_POLICY_PIVOT_KEY, FORGOT_PASSWORD_POLICY_KEY],
+    resetError
   );
 
   const {
@@ -132,6 +143,7 @@ const PasswordsScreen: React.FC = function PasswordsScreen() {
                 rawAppConfig={rawAppConfig}
                 updateAppConfig={updateAppConfigAndRemountChildren}
                 updatingAppConfig={updatingAppConfig}
+                resetForm={resetForm}
               />
             </PivotItem>
             <PivotItem
@@ -151,6 +163,7 @@ const PasswordsScreen: React.FC = function PasswordsScreen() {
                 updatingAppConfigAndTemplates={
                   updatingAppConfig || updatingTemplates
                 }
+                resetForm={resetForm}
               />
             </PivotItem>
           </Pivot>

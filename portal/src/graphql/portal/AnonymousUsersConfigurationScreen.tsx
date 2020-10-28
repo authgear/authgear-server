@@ -8,7 +8,6 @@ import { Text, Toggle, Dropdown, IDropdownOption } from "@fluentui/react";
 import { useAppConfigQuery } from "./query/appConfigQuery";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
 import {
-  PortalAPIApp,
   PortalAPIAppConfig,
   PromotionConflictBehaviour,
   promotionConflictBehaviours,
@@ -35,10 +34,7 @@ interface AnonymousUsersConfigurationScreenState {
 interface AnonymousUsersConfigurationProps {
   effectiveAppConfig: PortalAPIAppConfig | null;
   rawAppConfig: PortalAPIAppConfig | null;
-  updateAppConfig: (
-    appConfig: PortalAPIAppConfig
-  ) => Promise<PortalAPIApp | null>;
-  updatingAppConfig: boolean;
+  resetForm: () => void;
 }
 
 const DEFAULT_CONFLICT_BEHAVIOUR: PromotionConflictBehaviour = "error";
@@ -131,13 +127,16 @@ function constructConflictBehaviourOptions(
 const AnonymousUsersConfiguration: React.FC<AnonymousUsersConfigurationProps> = function AnonymousUsersConfiguration(
   props: AnonymousUsersConfigurationProps
 ) {
-  const {
-    effectiveAppConfig,
-    rawAppConfig,
-    updateAppConfig,
-    updatingAppConfig,
-  } = props;
+  const { effectiveAppConfig, rawAppConfig, resetForm } = props;
+
   const { renderToString } = useContext(Context);
+  const { appID } = useParams();
+
+  const {
+    loading: updatingAppConfig,
+    error: updateAppConfigError,
+    updateAppConfig,
+  } = useUpdateAppConfigMutation(appID);
 
   const initialState = useMemo(
     () => constructStateFromAppConfig(effectiveAppConfig),
@@ -152,10 +151,6 @@ const AnonymousUsersConfiguration: React.FC<AnonymousUsersConfigurationProps> = 
   const isFormModified = useMemo(() => {
     return !deepEqual(initialState, state, { strict: true });
   }, [initialState, state]);
-
-  const resetForm = useCallback(() => {
-    setState(initialState);
-  }, [initialState]);
 
   const onSwitchToggled = useCallback(
     (_event, checked?: boolean) => {
@@ -198,6 +193,7 @@ const AnonymousUsersConfiguration: React.FC<AnonymousUsersConfigurationProps> = 
 
   return (
     <section className={styles.screenContent}>
+      <ErrorDialog error={updateAppConfigError} rules={[]} />
       <NavigationBlockerDialog blockNavigation={isFormModified} />
       <ModifiedIndicatorPortal
         resetForm={resetForm}
@@ -241,11 +237,11 @@ const AnonymousUserConfigurationScreen: React.FC = function AnonymousUserConfigu
     error,
     refetch,
   } = useAppConfigQuery(appID);
-  const {
-    loading: updatingAppConfig,
-    error: updateAppConfigError,
-    updateAppConfig,
-  } = useUpdateAppConfigMutation(appID);
+
+  const [remountIdentifier, setRemountIdentifier] = useState(0);
+  const resetForm = useCallback(() => {
+    setRemountIdentifier((prev) => prev + 1);
+  }, []);
 
   if (loading) {
     return <ShowLoading />;
@@ -257,16 +253,15 @@ const AnonymousUserConfigurationScreen: React.FC = function AnonymousUserConfigu
 
   return (
     <main className={styles.root}>
-      <ErrorDialog error={updateAppConfigError} rules={[]} />
       <ModifiedIndicatorWrapper className={styles.wrapper}>
         <Text as="h1" className={styles.title}>
           <FormattedMessage id="AnonymousUsersConfigurationScreen.title" />
         </Text>
         <AnonymousUsersConfiguration
+          key={remountIdentifier}
           effectiveAppConfig={effectiveAppConfig}
           rawAppConfig={rawAppConfig}
-          updateAppConfig={updateAppConfig}
-          updatingAppConfig={updatingAppConfig}
+          resetForm={resetForm}
         />
       </ModifiedIndicatorWrapper>
     </main>

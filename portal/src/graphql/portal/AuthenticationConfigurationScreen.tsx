@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Pivot, PivotItem, Text } from "@fluentui/react";
 import cn from "classnames";
@@ -44,6 +44,13 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
     refetch,
   } = useAppConfigQuery(appID);
 
+  const [remountIdentifier, setRemountIdentifier] = useState(0);
+
+  const resetForm = useCallback(() => {
+    setRemountIdentifier((prev) => prev + 1);
+    resetUpdateAppConfigError();
+  }, [resetUpdateAppConfigError]);
+
   if (loading) {
     return <ShowLoading />;
   }
@@ -65,11 +72,13 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
               headerText={renderToString("AuthenticationScreen.login-id.title")}
             >
               <AuthenticationLoginIDSettings
+                key={remountIdentifier}
                 effectiveAppConfig={effectiveAppConfig}
                 rawAppConfig={rawAppConfig}
                 updateAppConfig={updateAppConfig}
                 updatingAppConfig={updatingAppConfig}
                 updateAppConfigError={updateAppConfigError}
+                resetForm={resetForm}
               />
             </PivotItem>
             <PivotItem
@@ -79,11 +88,13 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
               )}
             >
               <AuthenticationAuthenticatorSettings
+                key={remountIdentifier}
                 effectiveAppConfig={effectiveAppConfig}
                 rawAppConfig={rawAppConfig}
                 updateAppConfig={updateAppConfig}
                 updatingAppConfig={updatingAppConfig}
                 updateAppConfigError={updateAppConfigError}
+                resetForm={resetForm}
               />
             </PivotItem>
           </Pivot>

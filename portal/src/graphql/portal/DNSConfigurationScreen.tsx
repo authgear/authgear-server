@@ -62,6 +62,7 @@ interface PublicOriginConfigurationProps {
   rawAppConfig: PortalAPIAppConfig | null;
   effectiveAppConfig: PortalAPIAppConfig | null;
   verifiedDomains: Domain[];
+  resetForm: () => void;
 }
 
 interface DomainListItem {
@@ -154,7 +155,12 @@ function getVerifiedDomains(domains: Domain[]): Domain[] {
 const PublicOriginConfiguration: React.FC<PublicOriginConfigurationProps> = function PublicOriginConfiguration(
   props: PublicOriginConfigurationProps
 ) {
-  const { rawAppConfig, effectiveAppConfig, verifiedDomains } = props;
+  const {
+    rawAppConfig,
+    effectiveAppConfig,
+    verifiedDomains,
+    resetForm,
+  } = props;
   const { appID } = useParams();
 
   const {
@@ -172,10 +178,6 @@ const PublicOriginConfiguration: React.FC<PublicOriginConfigurationProps> = func
   const isModified = useMemo(() => {
     return initialPublicOrigin !== publicOrigin;
   }, [initialPublicOrigin, publicOrigin]);
-
-  const resetForm = useCallback(() => {
-    setPublicOrigin(initialPublicOrigin);
-  }, [initialPublicOrigin]);
 
   const publicOriginOptionKeys = useMemo(() => {
     const keys = verifiedDomains.map(getPublicOriginFromDomain);
@@ -478,6 +480,11 @@ const DNSConfiguration: React.FC<DNSConfigurationProps> = function DNSConfigurat
     setDeleteDomainDialogData,
   ] = useState<DeleteDomainDialogData | null>(null);
 
+  const [remountIdentifier, setRemountIdentifier] = useState(0);
+  const resetForm = useCallback(() => {
+    setRemountIdentifier((prev) => prev + 1);
+  }, []);
+
   const verifiedDomains = useMemo(() => {
     return getVerifiedDomains(domains);
   }, [domains]);
@@ -566,9 +573,11 @@ const DNSConfiguration: React.FC<DNSConfigurationProps> = function DNSConfigurat
         dismissDialog={dismissDeleteDomainDialog}
       />
       <PublicOriginConfiguration
+        key={remountIdentifier}
         rawAppConfig={rawAppConfig}
         effectiveAppConfig={effectiveAppConfig}
         verifiedDomains={verifiedDomains}
+        resetForm={resetForm}
       />
       <DetailsList
         columns={domainListColumns}

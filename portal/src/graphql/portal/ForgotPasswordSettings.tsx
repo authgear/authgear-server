@@ -35,6 +35,7 @@ interface ForgotPasswordSettingsProps {
     >
   ) => Promise<PortalAPIApp | null>;
   updatingAppConfigAndTemplates: boolean;
+  resetForm: () => void;
 }
 
 interface ForgotPasswordSettingsState {
@@ -123,6 +124,7 @@ const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function F
     templates,
     updateAppConfigAndTemplates,
     updatingAppConfigAndTemplates,
+    resetForm,
   } = props;
 
   const { renderToString } = useContext(Context);
@@ -139,10 +141,6 @@ const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function F
   const isFormModified = useMemo(() => {
     return !deepEqual(initialState, state, { strict: true });
   }, [initialState, state]);
-
-  const resetForm = useCallback(() => {
-    setState(initialState);
-  }, [initialState]);
 
   const onEmailHtmlTemplateChange = useCallback(
     (_event: unknown, value: string | undefined) => {

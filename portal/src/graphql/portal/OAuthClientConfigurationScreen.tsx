@@ -48,6 +48,7 @@ interface AllowedOriginsConfigurationProps {
   updateAppConfig: (
     appConfig: PortalAPIAppConfig
   ) => Promise<PortalAPIApp | null>;
+  resetForm: () => void;
 }
 
 interface OAuthClientListItem {
@@ -113,7 +114,12 @@ function getAllowedOriginJSONPointer(index: number): string {
 const AllowedOriginsConfiguration: React.FC<AllowedOriginsConfigurationProps> = function AllowedOriginsConfiguration(
   props: AllowedOriginsConfigurationProps
 ) {
-  const { effectiveAppConfig, rawAppConfig, updateAppConfig } = props;
+  const {
+    effectiveAppConfig,
+    rawAppConfig,
+    updateAppConfig,
+    resetForm,
+  } = props;
 
   const initialAllowedOrigins = useMemo(() => {
     return effectiveAppConfig?.http?.allowed_origins ?? [];
@@ -149,10 +155,6 @@ const AllowedOriginsConfiguration: React.FC<AllowedOriginsConfigurationProps> = 
   const isModified = useMemo(() => {
     return !deepEqual(allowedOrigins, initialAllowedOrigins);
   }, [allowedOrigins, initialAllowedOrigins]);
-
-  const resetForm = useCallback(() => {
-    setAllowedOrigins(initialAllowedOrigins);
-  }, [initialAllowedOrigins]);
 
   return (
     <section className={styles.allowedOriginsConfiguration}>
@@ -311,7 +313,14 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
     updateAppConfig,
     loading: updatingAppConfig,
     error: updateAppConfigError,
+    resetError: resetUpdateAppConfigError,
   } = useUpdateAppConfigMutation(appID);
+
+  const [remountIdentifier, setRemountIdentifier] = useState(0);
+  const resetForm = useCallback(() => {
+    setRemountIdentifier((prev) => prev + 1);
+    resetUpdateAppConfigError();
+  }, [resetUpdateAppConfigError]);
 
   const [confirmRemoveDialogData, setConfirmRemoveDialogData] = useState<
     ConfirmRemoveDialogData
@@ -434,9 +443,11 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
           <ShowError error={otherError} />
         )}
         <AllowedOriginsConfiguration
+          key={remountIdentifier}
           effectiveAppConfig={effectiveAppConfig}
           rawAppConfig={rawAppConfig}
           updateAppConfig={updateAppConfig}
+          resetForm={resetForm}
         />
         <section className={styles.clientEndpointSession}>
           <Text as="h2" className={styles.clientEndpointSessionHeader}>

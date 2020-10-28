@@ -24,7 +24,14 @@ import { useCreateCollaboratorInvitationMutation } from "./mutations/createColla
 
 import styles from "./InviteAdminScreen.module.scss";
 
-const InviteAdminContent: React.FC = function InviteAdminContent() {
+interface InviteAdminContentProps {
+  resetForm: () => void;
+}
+
+const InviteAdminContent: React.FC<InviteAdminContentProps> = function InviteAdminContent(
+  props: InviteAdminContentProps
+) {
+  const { resetForm } = props;
   const { renderToString } = useContext(Context);
   const { appID } = useParams();
   const navigate = useNavigate();
@@ -58,10 +65,6 @@ const InviteAdminContent: React.FC = function InviteAdminContent() {
   const isFormModified = useMemo(() => {
     return email !== "";
   }, [email]);
-
-  const resetForm = useCallback(() => {
-    setEmail("");
-  }, []);
 
   const onEmailChange = useCallback((_event, value?: string) => {
     if (value === undefined) {
@@ -133,6 +136,11 @@ const InviteAdminScreen: React.FC = function InviteAdminScreen() {
     ];
   }, []);
 
+  const [remountIdentifier, setRemountIdentifier] = useState(0);
+  const resetForm = useCallback(() => {
+    setRemountIdentifier((prev) => prev + 1);
+  }, []);
+
   return (
     <main className={styles.root}>
       <ModifiedIndicatorWrapper className={styles.wrapper}>
@@ -140,7 +148,7 @@ const InviteAdminScreen: React.FC = function InviteAdminScreen() {
           className={styles.breadcrumb}
           items={navBreadcrumbItems}
         />
-        <InviteAdminContent />
+        <InviteAdminContent key={remountIdentifier} resetForm={resetForm} />
       </ModifiedIndicatorWrapper>
     </main>
   );

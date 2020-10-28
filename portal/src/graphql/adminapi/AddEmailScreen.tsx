@@ -22,11 +22,18 @@ import { useGenericError } from "../../error/useGenericError";
 
 import styles from "./AddEmailScreen.module.scss";
 
+interface AddEmailFormProps {
+  resetForm: () => void;
+}
+
 interface AddEmailFormData {
   email: string;
 }
 
-const AddEmailScreen: React.FC = function AddEmailScreen() {
+const AddEmailForm: React.FC<AddEmailFormProps> = function AddEmailForm(
+  props: AddEmailFormProps
+) {
+  const { resetForm } = props;
   const { userID } = useParams();
   const navigate = useNavigate();
 
@@ -37,14 +44,6 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
   } = useCreateLoginIDIdentityMutation(userID);
 
   const [submittedForm, setSubmittedForm] = useState<boolean>(false);
-
-  const navBreadcrumbItems = useMemo(() => {
-    return [
-      { to: "../../..", label: <FormattedMessage id="UsersScreen.title" /> },
-      { to: "../", label: <FormattedMessage id="UserDetailsScreen.title" /> },
-      { to: ".", label: <FormattedMessage id="AddEmailScreen.title" /> },
-    ];
-  }, []);
 
   const initialFormData = useMemo(() => {
     return {
@@ -61,10 +60,6 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
   const isFormModified = useMemo(() => {
     return !deepEqual(initialFormData, formData);
   }, [initialFormData, formData]);
-
-  const resetForm = useCallback(() => {
-    setFormData(initialFormData);
-  }, [initialFormData]);
 
   const onFormSubmit = useCallback(
     (ev: React.SyntheticEvent<HTMLElement>) => {
@@ -107,6 +102,57 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
   ]);
 
   return (
+    <FormContext.Provider value={formContextValue}>
+      <form className={styles.content} onSubmit={onFormSubmit}>
+        {unrecognizedError && (
+          <div className={styles.error}>
+            <ShowError error={unrecognizedError} />
+          </div>
+        )}
+        <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
+        <ModifiedIndicatorPortal
+          resetForm={resetForm}
+          isModified={isFormModified}
+        />
+        <NavigationBlockerDialog
+          blockNavigation={!submittedForm && isFormModified}
+        />
+        <FormTextField
+          jsonPointer=""
+          parentJSONPointer=""
+          fieldName="email"
+          fieldNameMessageID="AddEmailScreen.email.label"
+          className={styles.emailField}
+          value={email}
+          onChange={onEmailChange}
+          errorMessage={genericErrorMessage}
+        />
+        <ButtonWithLoading
+          type="submit"
+          disabled={!isFormModified || submittedForm}
+          labelId="add"
+          loading={creatingIdentity}
+        />
+      </form>
+    </FormContext.Provider>
+  );
+};
+
+const AddEmailScreen: React.FC = function AddEmailScreen() {
+  const navBreadcrumbItems = useMemo(() => {
+    return [
+      { to: "../../..", label: <FormattedMessage id="UsersScreen.title" /> },
+      { to: "../", label: <FormattedMessage id="UserDetailsScreen.title" /> },
+      { to: ".", label: <FormattedMessage id="AddEmailScreen.title" /> },
+    ];
+  }, []);
+
+  const [remountIdentifier, setRemountIdentifier] = useState(0);
+  const resetForm = useCallback(() => {
+    setRemountIdentifier((prev) => prev + 1);
+  }, []);
+
+  return (
     <div className={styles.root}>
       <UserDetailCommandBar />
       <ModifiedIndicatorWrapper>
@@ -114,39 +160,7 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
           className={styles.breadcrumb}
           items={navBreadcrumbItems}
         />
-        <ModifiedIndicatorPortal
-          resetForm={resetForm}
-          isModified={isFormModified}
-        />
-        <FormContext.Provider value={formContextValue}>
-          <form className={styles.content} onSubmit={onFormSubmit}>
-            {unrecognizedError && (
-              <div className={styles.error}>
-                <ShowError error={unrecognizedError} />
-              </div>
-            )}
-            <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
-            <NavigationBlockerDialog
-              blockNavigation={!submittedForm && isFormModified}
-            />
-            <FormTextField
-              jsonPointer=""
-              parentJSONPointer=""
-              fieldName="email"
-              fieldNameMessageID="AddEmailScreen.email.label"
-              className={styles.emailField}
-              value={email}
-              onChange={onEmailChange}
-              errorMessage={genericErrorMessage}
-            />
-            <ButtonWithLoading
-              type="submit"
-              disabled={!isFormModified || submittedForm}
-              labelId="add"
-              loading={creatingIdentity}
-            />
-          </form>
-        </FormContext.Provider>
+        <AddEmailForm key={remountIdentifier} resetForm={resetForm} />
       </ModifiedIndicatorWrapper>
     </div>
   );

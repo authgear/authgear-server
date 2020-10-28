@@ -35,12 +35,13 @@ import styles from "./AddPhoneScreen.module.scss";
 
 interface AddPhoneFormProps {
   appConfig: PortalAPIAppConfig | null;
+  resetForm: () => void;
 }
 
 const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
   props: AddPhoneFormProps
 ) {
-  const { appConfig } = props;
+  const { appConfig, resetForm } = props;
   const { userID } = useParams();
   const navigate = useNavigate();
 
@@ -128,10 +129,6 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
     }
   }, [submittedForm, navigate]);
 
-  const resetForm = useCallback(() => {
-    setFormData(initialFormData);
-  }, [initialFormData]);
-
   const {
     unhandledCauses: rawUnhandledCauses,
     otherError,
@@ -211,6 +208,11 @@ const AddPhoneScreen: React.FC = function AddPhoneScreen() {
     ];
   }, []);
 
+  const [remountIdentifier, setRemountIdentifier] = useState(0);
+  const resetForm = useCallback(() => {
+    setRemountIdentifier((prev) => prev + 1);
+  }, []);
+
   if (loading) {
     return <ShowLoading />;
   }
@@ -224,7 +226,11 @@ const AddPhoneScreen: React.FC = function AddPhoneScreen() {
       <UserDetailCommandBar />
       <ModifiedIndicatorWrapper className={styles.content}>
         <NavBreadcrumb items={navBreadcrumbItems} />
-        <AddPhoneForm appConfig={effectiveAppConfig} />
+        <AddPhoneForm
+          key={remountIdentifier}
+          appConfig={effectiveAppConfig}
+          resetForm={resetForm}
+        />
       </ModifiedIndicatorWrapper>
     </div>
   );

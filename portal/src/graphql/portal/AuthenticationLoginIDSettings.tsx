@@ -39,6 +39,7 @@ interface Props {
   ) => Promise<PortalAPIApp | null>;
   updatingAppConfig: boolean;
   updateAppConfigError: unknown;
+  resetForm: () => void;
 }
 
 interface WidgetHeaderProps {
@@ -357,6 +358,7 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
     updateAppConfig,
     updatingAppConfig,
     updateAppConfigError,
+    resetForm,
   } = props;
   const { renderToString } = useContext(Context);
 
@@ -372,10 +374,6 @@ const AuthenticationLoginIDSettings: React.FC<Props> = function AuthenticationLo
   const isFormModified = useMemo(() => {
     return !deepEqual(initialState, state, { strict: true });
   }, [initialState, state]);
-
-  const resetForm = useCallback(() => {
-    setState(initialState);
-  }, [initialState]);
 
   const {
     loginIdKeyState,

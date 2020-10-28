@@ -42,6 +42,7 @@ interface PasswordPolicySettingsProps {
     appConfig: PortalAPIAppConfig
   ) => Promise<PortalAPIApp | null>;
   updatingAppConfig: boolean;
+  resetForm: () => void;
 }
 
 interface PasswordPolicySettingsState {
@@ -176,6 +177,7 @@ const PasswordPolicySettings: React.FC<PasswordPolicySettingsProps> = function P
     rawAppConfig,
     updateAppConfig,
     updatingAppConfig,
+    resetForm,
   } = props;
 
   const { renderToString } = useContext(Context);
@@ -194,10 +196,6 @@ const PasswordPolicySettings: React.FC<PasswordPolicySettingsProps> = function P
       { strict: true }
     );
   }, [initialState, state]);
-
-  const resetForm = useCallback(() => {
-    setState(initialState);
-  }, [initialState]);
 
   const minGuessableLevelOptions: IDropdownOption[] = useMemo(() => {
     return passwordPolicyGuessableLevels.map((level) => ({

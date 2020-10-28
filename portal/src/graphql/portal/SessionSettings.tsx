@@ -34,6 +34,7 @@ interface SessionProps {
     appConfig: PortalAPIAppConfig
   ) => Promise<PortalAPIApp | null>;
   updatingAppConfig: boolean;
+  resetForm: () => void;
 }
 
 interface SessionState {
@@ -101,6 +102,7 @@ const SessionForm: React.FC<SessionProps> = function SessionForm(props) {
     rawAppConfig,
     updateAppConfig,
     updatingAppConfig,
+    resetForm,
   } = props;
 
   const { renderToString } = useContext(Context);
@@ -178,10 +180,6 @@ const SessionForm: React.FC<SessionProps> = function SessionForm(props) {
     [state, rawAppConfig, updateAppConfig, initialState]
   );
 
-  const resetForm = useCallback(() => {
-    setState(initialState);
-  }, [initialState]);
-
   return (
     <form onSubmit={onFormSubmit}>
       <ModifiedIndicatorPortal
@@ -257,7 +255,14 @@ const SessionSettings: React.FC<SessionSettingsProps> = function SessionSettings
     loading: updatingAppConfig,
     error: updateAppConfigError,
     updateAppConfig,
+    resetError: resetUpdateAppConfigError,
   } = useUpdateAppConfigMutation(appID);
+
+  const [remountIdentifier, setRemountIdentifier] = useState(0);
+  const resetForm = useCallback(() => {
+    setRemountIdentifier((prev) => prev + 1);
+    resetUpdateAppConfigError();
+  }, [resetUpdateAppConfigError]);
 
   if (loading) {
     return <ShowLoading />;
@@ -275,10 +280,12 @@ const SessionSettings: React.FC<SessionSettingsProps> = function SessionSettings
     >
       {updateAppConfigError && <ShowError error={updateAppConfigError} />}
       <SessionForm
+        key={remountIdentifier}
         effectiveAppConfig={effectiveAppConfig}
         rawAppConfig={rawAppConfig}
         updateAppConfig={updateAppConfig}
         updatingAppConfig={updatingAppConfig}
+        resetForm={resetForm}
       />
     </main>
   );

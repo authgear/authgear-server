@@ -45,6 +45,7 @@ function isLoginIDKey(value?: string): value is LoginIDKey {
 
 interface AddUserContentProps {
   appConfig: PortalAPIAppConfig | null;
+  resetForm: () => void;
 }
 
 interface AddUserFormState {
@@ -144,7 +145,7 @@ const LoginIdIdentityOption: React.FC<LoginIdIdentityOptionProps> = function (
 const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
   props: AddUserContentProps
 ) {
-  const { appConfig } = props;
+  const { appConfig, resetForm } = props;
   const { renderToString } = useContext(Context);
 
   const navigate = useNavigate();
@@ -173,11 +174,6 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
 
   const [formState, setFormState] = useState(initialFormState);
   const { username, email, phone, password, selectedLoginIdKey } = formState;
-
-  const resetForm = useCallback(() => {
-    setFormState(initialFormState);
-    setLocalValidationErrorMessage(undefined);
-  }, [initialFormState]);
 
   const isFormModified = useMemo(() => {
     return !deepEqual(initialFormState, formState);
@@ -414,6 +410,11 @@ const AddUserScreen: React.FC = function AddUserScreen() {
     appID
   );
 
+  const [remountIdentifier, setRemountIdentifier] = useState(0);
+  const resetForm = useCallback(() => {
+    setRemountIdentifier((prev) => prev + 1);
+  }, []);
+
   if (loading) {
     return <ShowLoading />;
   }
@@ -426,7 +427,11 @@ const AddUserScreen: React.FC = function AddUserScreen() {
     <main className={styles.root}>
       <ModifiedIndicatorWrapper className={styles.wrapper}>
         <NavBreadcrumb items={navBreadcrumbItems} />
-        <AddUserContent appConfig={effectiveAppConfig} />
+        <AddUserContent
+          key={remountIdentifier}
+          appConfig={effectiveAppConfig}
+          resetForm={resetForm}
+        />
       </ModifiedIndicatorWrapper>
     </main>
   );
