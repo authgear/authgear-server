@@ -15,7 +15,11 @@ import (
 
 // BaseViewModel contains data that are common to all pages.
 type BaseViewModel struct {
-	RequestURL            string
+	// RequestURL is the absolute request URL.
+	RequestURL string
+	// RequestURI is the request URI as appeared in the first line of the HTTP textual format.
+	// That is, it is the path plus the optional query.
+	RequestURI            string
 	CSRFField             htmltemplate.HTML
 	StaticAssetURL        func(id string) (url string, err error)
 	CountryCallingCodes   []string
@@ -39,8 +43,13 @@ type BaseViewModeler struct {
 }
 
 func (m *BaseViewModeler) ViewModel(r *http.Request, anyError interface{}) BaseViewModel {
+	requestURI := &url.URL{
+		Path:     r.URL.Path,
+		RawQuery: r.URL.RawQuery,
+	}
 	model := BaseViewModel{
 		RequestURL:          r.URL.String(),
+		RequestURI:          requestURI.String(),
 		CSRFField:           csrf.TemplateField(r),
 		StaticAssetURL:      m.StaticAssets.StaticAssetURL,
 		CountryCallingCodes: m.AuthUI.CountryCallingCode.GetActiveCountryCodes(),

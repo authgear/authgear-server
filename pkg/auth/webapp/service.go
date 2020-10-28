@@ -442,7 +442,8 @@ func (s *Service) collectExtras(node interaction.Node) map[string]interface{} {
 	switch node := node.(type) {
 	case *nodes.NodeForgotPasswordEnd:
 		return map[string]interface{}{
-			"login_id": node.LoginID,
+			"login_id":     node.LoginID,
+			"redirect_uri": node.RedirectURI,
 		}
 	case *nodes.NodeEnsureVerificationEnd:
 		return map[string]interface{}{
