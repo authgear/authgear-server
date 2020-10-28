@@ -1,13 +1,7 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import cn from "classnames";
-import {
-  Toggle,
-  Label,
-  TextField,
-  ITextFieldProps,
-  IToggleProps,
-} from "@fluentui/react";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { Toggle, Label, ITextFieldProps, IToggleProps } from "@fluentui/react";
+import { FormattedMessage } from "@oursky/react-messageformat";
 
 import ExtendableWidget from "../../ExtendableWidget";
 import FormTextField from "../../FormTextField";
@@ -29,6 +23,7 @@ interface SingleSignOnConfigurationWidgetProps {
   className?: string;
 
   jsonPointer: string;
+  clientSecretJsonPointer: string;
 
   enabled: boolean;
   alias: string;
@@ -161,6 +156,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
   const {
     className,
     jsonPointer,
+    clientSecretJsonPointer,
     enabled,
     alias,
     clientID,
@@ -177,7 +173,6 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
     onTeamIDChange,
     serviceProviderType,
   } = props;
-  const { renderToString } = useContext(Context);
 
   const {
     providerType,
@@ -243,7 +238,11 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
         />
       )}
       {visibleFields.has("client_secret") && (
-        <TextField
+        <FormTextField
+          jsonPointer={`${clientSecretJsonPointer}/client_secret`}
+          parentJSONPointer={clientSecretJsonPointer}
+          fieldName="client_secret"
+          fieldNameMessageID="SingleSignOnConfigurationScreen.widget.client-secret"
           className={styles.textField}
           styles={
             isSecretFieldTextArea
@@ -251,9 +250,6 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
               : TEXT_FIELD_STYLE
           }
           multiline={isSecretFieldTextArea}
-          label={renderToString(
-            "SingleSignOnConfigurationScreen.widget.client-secret"
-          )}
           value={clientSecret}
           onChange={onClientSecretChange}
         />

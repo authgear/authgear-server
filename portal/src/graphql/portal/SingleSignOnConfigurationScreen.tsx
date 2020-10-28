@@ -428,10 +428,15 @@ const SingleSignOnConfigurationWidgetWrapper: React.FC<WidgetWrapperProps> = fun
       : "";
   }, [providerIndex]);
 
+  const clientSecretJsonPointer = useMemo(() => {
+    return `/secrets/sso.oauth.client/${providerType}`;
+  }, [providerType]);
+
   return (
     <SingleSignOnConfigurationWidget
       className={className}
       jsonPointer={jsonPointer}
+      clientSecretJsonPointer={clientSecretJsonPointer}
       alias={alias ?? providerType}
       enabled={extraState[providerType].enabled}
       serviceProviderType={providerType}
