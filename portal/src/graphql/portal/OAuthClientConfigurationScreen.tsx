@@ -433,6 +433,11 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
         {(unhandledCauses ?? []).length === 0 && otherError && (
           <ShowError error={otherError} />
         )}
+        <AllowedOriginsConfiguration
+          effectiveAppConfig={effectiveAppConfig}
+          rawAppConfig={rawAppConfig}
+          updateAppConfig={updateAppConfig}
+        />
         <section className={styles.apiEndpointSession}>
           <Text as="h2" className={styles.allowedOriginsConfigurationHeader}>
             <FormattedMessage id="OAuthClientConfigurationScreen.api-endpoint.header" />
@@ -446,11 +451,6 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
             />
           </Text>
         </section>
-        <AllowedOriginsConfiguration
-          effectiveAppConfig={effectiveAppConfig}
-          rawAppConfig={rawAppConfig}
-          updateAppConfig={updateAppConfig}
-        />
         <section className={styles.controlButtons}>
           <ActionButton
             theme={themes.actionButton}
