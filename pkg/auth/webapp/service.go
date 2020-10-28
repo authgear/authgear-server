@@ -40,6 +40,7 @@ type GraphService interface {
 	Get(instanceID string) (*interaction.Graph, error)
 	DryRun(webStateID string, fn func(*interaction.Context) (*interaction.Graph, error)) error
 	Run(webStateID string, graph *interaction.Graph) error
+	Accept(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (*interaction.Graph, []interaction.Edge, error)
 }
 
 type CookieFactory interface {
@@ -175,7 +176,7 @@ func (s *Service) PostIntent(intent *Intent, inputer func() (interface{}, error)
 			return
 		}
 
-		graph, edges, err = graph.Accept(ctx, input)
+		graph, edges, err = s.Graph.Accept(ctx, graph, input)
 
 		errors.As(err, &clearCookie)
 
@@ -230,7 +231,7 @@ func (s *Service) PostInput(stateID string, inputer func() (interface{}, error))
 		}
 
 		var newGraph *interaction.Graph
-		newGraph, edges, err = graph.Accept(ctx, input)
+		newGraph, edges, err = s.Graph.Accept(ctx, graph, input)
 
 		errors.As(err, &clearCookie)
 

@@ -19,6 +19,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -138,13 +139,19 @@ type CookieFactory interface {
 	ClearCookie(def *httputil.CookieDef) *http.Cookie
 }
 
+type RateLimiter interface {
+	TakeToken(bucket ratelimit.Bucket) error
+}
+
 type Context struct {
 	IsCommitting bool   `wire:"-"`
 	WebStateID   string `wire:"-"`
 
-	Database db.SQLExecutor
-	Clock    clock.Clock
-	Config   *config.AppConfig
+	Request    *http.Request
+	Database   db.SQLExecutor
+	Clock      clock.Clock
+	Config     *config.AppConfig
+	TrustProxy config.TrustProxy
 
 	Identities               IdentityService
 	Authenticators           AuthenticatorService
@@ -158,6 +165,7 @@ type Context struct {
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
 	Verification             VerificationService
 	VerificationCodeSender   VerificationCodeSender
+	RateLimiter              RateLimiter
 
 	Challenges           ChallengeProvider
 	Users                UserService

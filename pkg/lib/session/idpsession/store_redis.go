@@ -232,9 +232,9 @@ func toMilliseconds(d time.Duration) int64 {
 }
 
 func sessionKey(appID config.AppID, sessionID string) string {
-	return fmt.Sprintf("%s:session:%s", appID, sessionID)
+	return fmt.Sprintf("app:%s:session:%s", appID, sessionID)
 }
 
 func sessionListKey(appID config.AppID, userID string) string {
-	return fmt.Sprintf("%s:session-list:%s", appID, userID)
+	return fmt.Sprintf("app:%s:session-list:%s", appID, userID)
 }

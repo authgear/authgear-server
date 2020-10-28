@@ -6,6 +6,7 @@ type InteractionGraphService interface {
 	NewGraph(ctx *interaction.Context, intent interaction.Intent) (*interaction.Graph, error)
 	DryRun(webStateID string, fn func(*interaction.Context) (*interaction.Graph, error)) error
 	Run(webStateID string, graph *interaction.Graph) error
+	Accept(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (*interaction.Graph, []interaction.Edge, error)
 }
 
 type InteractionService struct {
@@ -23,7 +24,7 @@ func (s *InteractionService) Perform(intent interaction.Intent, input interface{
 			return nil, err
 		}
 
-		graph, _, err = graph.Accept(ctx, input)
+		graph, _, err = s.Graph.Accept(ctx, graph, input)
 		if err != nil {
 			return nil, err
 		}

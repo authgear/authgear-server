@@ -7,11 +7,13 @@ import (
 
 	redigo "github.com/gomodule/redigo/redis"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 type Store struct {
+	AppID config.AppID
 	Redis *redis.Handle
 }
 
@@ -21,7 +23,7 @@ func (s *Store) Create(code *Code) (err error) {
 		return
 	}
 
-	key := codeKey(code.CodeHash)
+	key := codeKey(s.AppID, code.CodeHash)
 
 	err = s.Redis.WithConn(func(conn redis.Conn) error {
 		_, err := redigo.String(conn.Do("SET", key, bytes, "PX", codeExpire(code), "NX"))
@@ -40,7 +42,7 @@ func (s *Store) Update(code *Code) (err error) {
 		return
 	}
 
-	key := codeKey(code.CodeHash)
+	key := codeKey(s.AppID, code.CodeHash)
 
 	err = s.Redis.WithConn(func(conn redis.Conn) error {
 		_, err := redigo.String(conn.Do("SET", key, bytes, "PX", codeExpire(code), "XX"))
@@ -54,7 +56,7 @@ func (s *Store) Update(code *Code) (err error) {
 }
 
 func (s *Store) Get(codeHash string) (code *Code, err error) {
-	key := codeKey(codeHash)
+	key := codeKey(s.AppID, codeHash)
 
 	err = s.Redis.WithConn(func(conn redis.Conn) error {
 		data, err := redigo.Bytes(conn.Do("GET", key))
@@ -71,8 +73,8 @@ func (s *Store) Get(codeHash string) (code *Code, err error) {
 	return
 }
 
-func codeKey(codeHash string) string {
-	return fmt.Sprintf("forgotpassword-code:%s", codeHash)
+func codeKey(appID config.AppID, codeHash string) string {
+	return fmt.Sprintf("app:%s:forgotpassword-code:%s", appID, codeHash)
 }
 
 func codeExpire(code *Code) int64 {

@@ -3,6 +3,7 @@ package nodes
 import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -27,6 +28,12 @@ func (e *EdgeDoCreateUser) Instantiate(ctx *interaction.Context, graph *interact
 	allowed := !publicSignupDisabled || bypassPublicSignupDisabled
 	if !allowed {
 		return nil, ErrNoPublicSignup
+	}
+
+	ip := httputil.GetIP(ctx.Request, bool(ctx.TrustProxy))
+	err := ctx.RateLimiter.TakeToken(interaction.SignupRateLimitBucket(ip))
+	if err != nil {
+		return nil, err
 	}
 
 	return &NodeDoCreateUser{

@@ -256,6 +256,22 @@ func (mr *MockGraphServiceMockRecorder) Run(webStateID, graph interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Run", reflect.TypeOf((*MockGraphService)(nil).Run), webStateID, graph)
 }
 
+// Accept mocks base method
+func (m *MockGraphService) Accept(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (*interaction.Graph, []interaction.Edge, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Accept", ctx, graph, input)
+	ret0, _ := ret[0].(*interaction.Graph)
+	ret1, _ := ret[1].([]interaction.Edge)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// Accept indicates an expected call of Accept
+func (mr *MockGraphServiceMockRecorder) Accept(ctx, graph, input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Accept", reflect.TypeOf((*MockGraphService)(nil).Accept), ctx, graph, input)
+}
+
 // MockCookieFactory is a mock of CookieFactory interface
 type MockCookieFactory struct {
 	ctrl     *gomock.Controller

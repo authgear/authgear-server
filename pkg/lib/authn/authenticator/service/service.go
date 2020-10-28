@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 )
 
 type PasswordAuthenticatorProvider interface {
@@ -43,11 +44,16 @@ type OOBOTPAuthenticatorProvider interface {
 	Authenticate(secret string, channel authn.AuthenticatorOOBChannel, code string) error
 }
 
+type RateLimiter interface {
+	TakeToken(bucket ratelimit.Bucket) error
+}
+
 type Service struct {
-	Store    *Store
-	Password PasswordAuthenticatorProvider
-	TOTP     TOTPAuthenticatorProvider
-	OOBOTP   OOBOTPAuthenticatorProvider
+	Store       *Store
+	Password    PasswordAuthenticatorProvider
+	TOTP        TOTPAuthenticatorProvider
+	OOBOTP      OOBOTPAuthenticatorProvider
+	RateLimiter RateLimiter
 }
 
 func (s *Service) Get(userID string, typ authn.AuthenticatorType, id string) (*authenticator.Info, error) {
@@ -302,6 +308,11 @@ func (s *Service) Delete(info *authenticator.Info) error {
 }
 
 func (s *Service) VerifySecret(info *authenticator.Info, state map[string]string, secret string) error {
+	err := s.RateLimiter.TakeToken(AuthenticateSecretRateLimitBucket(info.UserID, info.Type))
+	if err != nil {
+		return err
+	}
+
 	switch info.Type {
 	case authn.AuthenticatorTypePassword:
 		a := passwordFromAuthenticatorInfo(info)

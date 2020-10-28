@@ -35,6 +35,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
@@ -236,15 +237,26 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Store:  oobStore,
 		Clock:  clockClock,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	redisHandle := appProvider.Redis
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	service4 := &service2.Service{
-		Store:    store2,
-		Password: passwordProvider,
-		TOTP:     totpProvider,
-		OOBOTP:   oobProvider,
+		Store:       store2,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
-	redisHandle := appProvider.Redis
 	storeRedis := &verification.StoreRedis{
 		Redis: redisHandle,
 		AppID: appID,
@@ -295,11 +307,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	identityLoader := loader.NewIdentityLoader(serviceService)
 	authenticatorLoader := loader.NewAuthenticatorLoader(service4)
 	interactionLogger := interaction.NewLogger(factory)
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(configConfig)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -329,6 +342,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   webEndpoints,
+		RateLimiter: limiter,
 		TaskQueue:   queue,
 	}
 	codeSender := &oob.CodeSender{
@@ -349,6 +363,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
 		Redis: redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
@@ -362,6 +377,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         providerLogger,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -375,6 +391,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
+		RateLimiter:          limiter,
 		WelcomeMessageConfig: welcomeMessageConfig,
 		TaskQueue:            queue,
 	}
@@ -422,7 +439,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	trustProxy := environmentConfig.TrustProxy
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
@@ -452,9 +468,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
+		Request:                  request,
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
@@ -467,6 +485,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,

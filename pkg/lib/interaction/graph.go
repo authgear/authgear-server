@@ -269,7 +269,7 @@ func (g *Graph) Apply(ctx *Context) error {
 }
 
 // Accept run the graph to the deepest node using the input
-func (g *Graph) Accept(ctx *Context, input interface{}) (*Graph, []Edge, error) {
+func (g *Graph) accept(ctx *Context, input interface{}) (*Graph, []Edge, error) {
 	graph := g
 	for {
 		node := graph.CurrentNode()

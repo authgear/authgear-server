@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/tasks"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -42,6 +43,10 @@ type TranslationService interface {
 	SMSMessageData(msg *translation.MessageSpec, args interface{}) (*translation.SMSMessageData, error)
 }
 
+type RateLimiter interface {
+	TakeToken(bucket ratelimit.Bucket) error
+}
+
 type ProviderLogger struct{ *log.Logger }
 
 func NewProviderLogger(lf *log.Factory) ProviderLogger {
@@ -61,6 +66,7 @@ type Provider struct {
 
 	Identities     IdentityService
 	Authenticators AuthenticatorService
+	RateLimiter    RateLimiter
 }
 
 // SendCode checks if loginID is an existing login ID.
@@ -156,17 +162,20 @@ func (p *Provider) sendEmail(email string, code string) error {
 		return err
 	}
 
+	err = p.RateLimiter.TakeToken(mail.RateLimitBucket(email, messageForgotPassword.Name))
+	if err != nil {
+		return err
+	}
+
 	p.TaskQueue.Enqueue(&tasks.SendMessagesParam{
-		EmailMessages: []mail.SendOptions{
-			{
-				Sender:    msg.Sender,
-				ReplyTo:   msg.ReplyTo,
-				Subject:   msg.Subject,
-				Recipient: email,
-				TextBody:  msg.TextBody,
-				HTMLBody:  msg.HTMLBody,
-			},
-		},
+		EmailMessages: []mail.SendOptions{{
+			Sender:    msg.Sender,
+			ReplyTo:   msg.ReplyTo,
+			Subject:   msg.Subject,
+			Recipient: email,
+			TextBody:  msg.TextBody,
+			HTMLBody:  msg.HTMLBody,
+		}},
 	})
 
 	return nil
@@ -185,14 +194,17 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 		return err
 	}
 
+	err = p.RateLimiter.TakeToken(sms.RateLimitBucket(phone, messageForgotPassword.Name))
+	if err != nil {
+		return err
+	}
+
 	p.TaskQueue.Enqueue(&tasks.SendMessagesParam{
-		SMSMessages: []sms.SendOptions{
-			{
-				Sender: msg.Sender,
-				To:     phone,
-				Body:   msg.Body,
-			},
-		},
+		SMSMessages: []sms.SendOptions{{
+			Sender: msg.Sender,
+			To:     phone,
+			Body:   msg.Body,
+		}},
 	})
 
 	return
