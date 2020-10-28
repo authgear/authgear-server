@@ -158,11 +158,13 @@ function getWidgetData(state: SingleSignOnScreenState, alias?: string) {
       : undefined;
 
   const secretConfigState = state.secretConfig!;
-  const [secret] = extractSecretFromConfig(secretConfigState);
-  const [secretItem] = getSecretItemFromSecret(secret, alias);
+  const [secret, secretIndex] = extractSecretFromConfig(secretConfigState);
+  const [secretItem, secretItemIndex] = getSecretItemFromSecret(secret, alias);
 
   return {
     providerIndex,
+    secretIndex,
+    secretItemIndex,
     clientID: provider?.client_id,
     clientSecret: secretItem?.client_secret ?? "",
     tenant: provider?.tenant,
@@ -405,6 +407,8 @@ const SingleSignOnConfigurationWidgetWrapper: React.FC<WidgetWrapperProps> = fun
 
   const {
     providerIndex,
+    secretIndex,
+    secretItemIndex,
     clientID,
     clientSecret,
     tenant,
@@ -437,8 +441,10 @@ const SingleSignOnConfigurationWidgetWrapper: React.FC<WidgetWrapperProps> = fun
   }, [providerIndex]);
 
   const clientSecretJsonPointer = useMemo(() => {
-    return `/secrets/sso.oauth.client/${providerType}`;
-  }, [providerType]);
+    return secretIndex !== -1 && secretItemIndex !== -1
+      ? `/secrets/${secretIndex}/data/items/${secretItemIndex}`
+      : "";
+  }, [secretIndex, secretItemIndex]);
 
   return (
     <SingleSignOnConfigurationWidget

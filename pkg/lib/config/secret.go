@@ -86,26 +86,33 @@ func (c *SecretConfig) Overlay(layers ...*SecretConfig) *SecretConfig {
 	return merged
 }
 
-func (c *SecretConfig) Lookup(key SecretKey) (*SecretItem, bool) {
-	for _, item := range c.Secrets {
+func (c *SecretConfig) Lookup(key SecretKey) (*SecretItem, bool, int) {
+	for index, item := range c.Secrets {
 		if item.Key == key {
-			return &item, true
+			return &item, true, index
 		}
 	}
-	return nil, false
+	return nil, false, -1
 }
 
 func (c *SecretConfig) LookupData(key SecretKey) SecretItemData {
-	if item, ok := c.Lookup(key); ok {
+	if item, ok, _ := c.Lookup(key); ok {
 		return item.Data
 	}
 	return nil
 }
 
+func (c *SecretConfig) LookupDataWithIndex(key SecretKey) (SecretItemData, int) {
+	if item, ok, index := c.Lookup(key); ok {
+		return item.Data, index
+	}
+	return nil, -1
+}
+
 func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 	ctx := &validation.Context{}
 	require := func(key SecretKey, item string) {
-		if _, ok := c.Lookup(key); !ok {
+		if _, ok, _ := c.Lookup(key); !ok {
 			ctx.EmitErrorMessage(fmt.Sprintf("%s (secret '%s') is required", item, key))
 		}
 	}
@@ -116,22 +123,30 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 
 	if len(appConfig.Identity.OAuth.Providers) > 0 {
 		require(OAuthClientCredentialsKey, "OAuth client credentials")
-		oauth, ok := c.LookupData(OAuthClientCredentialsKey).(*OAuthClientCredentials)
+		data, secretIndex := c.LookupDataWithIndex(OAuthClientCredentialsKey)
+		oauth, ok := data.(*OAuthClientCredentials)
 		if ok {
 			for _, p := range appConfig.Identity.OAuth.Providers {
-				found := false
-				for _, item := range oauth.Items {
-					if p.Alias == item.Alias && item.ClientSecret != "" {
-						found = true
+				var matchedItem *OAuthClientCredentialsItem = nil
+				var matchedItemIndex int = -1
+				for index, item := range oauth.Items {
+					if p.Alias == item.Alias {
+						matchedItem = &item
+						matchedItemIndex = index
+						break
 					}
 				}
-				if !found {
-					ctx.Child("secrets", "sso.oauth.client", p.Alias).EmitError(
-						"required",
-						map[string]interface{}{
-							"missing": "client_secret",
-						},
-					)
+				if matchedItem == nil {
+					ctx.EmitErrorMessage(fmt.Sprintf("OAuth client credentials for '%s' is required", p.Alias))
+				} else {
+					if matchedItem.ClientSecret == "" {
+						ctx.Child("secrets", fmt.Sprintf("%d", secretIndex), "data", "items", fmt.Sprintf("%d", matchedItemIndex)).EmitError(
+							"required",
+							map[string]interface{}{
+								"missing": "client_secret",
+							},
+						)
+					}
 				}
 			}
 		}
