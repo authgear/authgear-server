@@ -12,7 +12,7 @@ import {
   VerticalDivider,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import produce from "immer";
 import deepEqual from "deep-equal";
 
@@ -447,6 +447,10 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
               id="OAuthClientConfigurationScreen.client-endpoint.desc"
               values={{
                 clientEndpoint: authgearEndpoint,
+                dnsUrl: "../dns",
+              }}
+              components={{
+                Link,
               }}
             />
           </Text>
