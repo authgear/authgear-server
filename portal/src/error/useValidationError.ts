@@ -17,7 +17,7 @@ export function isLocationMatchWithJSONPointer(
   location: string
 ): boolean {
   if (typeof jsonPointer === "string") {
-    return location.startsWith(jsonPointer);
+    return location === jsonPointer;
   }
   return jsonPointer.test(location);
 }
