@@ -117,7 +117,7 @@ function createNewProvider(
 }
 
 function getOrCreateSecret(secretConfigState: PortalAPISecretConfig) {
-  let secret = extractSecretFromConfig(secretConfigState);
+  let [secret] = extractSecretFromConfig(secretConfigState);
   if (secret == null) {
     secret = {
       key: "sso.oauth.client",
@@ -135,8 +135,15 @@ function getProviderIndex(appConfig: PortalAPIAppConfig, alias: string) {
   return index == null || index < 0 ? undefined : index;
 }
 
-function getSecretItemFromSecret(secret?: OAuthSecretItem, alias?: string) {
-  return secret?.data.items.find((item) => item.alias === alias);
+function getSecretItemFromSecret(
+  secret?: OAuthSecretItem,
+  alias?: string
+): [OAuthClientCredentialItem | undefined, number] {
+  const index = secret?.data.items.findIndex((item) => item.alias === alias);
+  if (index === undefined) {
+    return [undefined, -1];
+  }
+  return [secret!.data.items[index], index];
 }
 
 function getWidgetData(state: SingleSignOnScreenState, alias?: string) {
@@ -151,8 +158,8 @@ function getWidgetData(state: SingleSignOnScreenState, alias?: string) {
       : undefined;
 
   const secretConfigState = state.secretConfig!;
-  const secret = extractSecretFromConfig(secretConfigState);
-  const secretItem = getSecretItemFromSecret(secret, alias);
+  const [secret] = extractSecretFromConfig(secretConfigState);
+  const [secretItem] = getSecretItemFromSecret(secret, alias);
 
   return {
     providerIndex,
@@ -189,7 +196,7 @@ function onProviderToggled(
       alias = providerType;
       createNewProvider(appConfigState, providerType, alias);
     }
-    const secretItem = getSecretItemFromSecret(secret, alias);
+    const [secretItem] = getSecretItemFromSecret(secret, alias);
     if (secretItem == null) {
       secret.data.items.push({
         alias,
@@ -230,13 +237,16 @@ function updateAppConfigField(
   }
 }
 
-function extractSecretFromConfig(secretConfigState: PortalAPISecretConfig) {
-  for (const secret of secretConfigState.secrets) {
+function extractSecretFromConfig(
+  secretConfigState: PortalAPISecretConfig
+): [OAuthSecretItem | undefined, number | undefined] {
+  for (let index = 0; index < secretConfigState.secrets.length; index++) {
+    const secret = secretConfigState.secrets[index];
     if (secret.key === "sso.oauth.client") {
-      return secret;
+      return [secret, index];
     }
   }
-  return undefined;
+  return [undefined, undefined];
 }
 
 function updateClientSecretField(
@@ -244,14 +254,12 @@ function updateClientSecretField(
   alias: string,
   newValue: string
 ) {
-  const secret = extractSecretFromConfig(secretConfigState);
+  const [secret] = extractSecretFromConfig(secretConfigState);
   if (secret == null) {
     return;
   }
 
-  let secretItem:
-    | OAuthClientCredentialItem
-    | undefined = getSecretItemFromSecret(secret, alias);
+  let [secretItem] = getSecretItemFromSecret(secret, alias);
 
   // create item if not exist, clean up on save
   if (secretItem == null) {
@@ -273,8 +281,8 @@ function updateAlias(
     updateAppConfigField(state.appConfig, oldAlias, "alias", newAlias);
   }
   if (state.secretConfig != null) {
-    const secret = extractSecretFromConfig(state.secretConfig);
-    const secretItem = getSecretItemFromSecret(secret, oldAlias);
+    const [secret] = extractSecretFromConfig(state.secretConfig);
+    const [secretItem] = getSecretItemFromSecret(secret, oldAlias);
     if (secretItem != null) {
       secretItem.alias = newAlias;
     } else {
@@ -533,7 +541,7 @@ const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = func
         const enabledAlias = providers
           .map((provider) => provider.alias)
           .filter(nonNullable);
-        const secret = extractSecretFromConfig(draftConfig);
+        const [secret] = extractSecretFromConfig(draftConfig);
         if (secret != null) {
           const newSecretItems = secret.data.items.filter((item) =>
             enabledAlias.includes(item.alias)
