@@ -98,7 +98,7 @@ To avoid doing the above every time you open a new shell, you may want to add it
    make sure the db container is running
 
    ```sh
-   go run ./cmd/authgear migrate up
+   go run ./cmd/authgear migrate up -f ./var/authgear.secrets.yaml
    ```
    
 To create new migration:

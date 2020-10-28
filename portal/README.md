@@ -2,7 +2,7 @@
 
 # Prerequisite
 
-Follow [authgear setup guide](../README.md) to start Authgear
+Follow [authgear setup guide](../README.md) to start Authgear.
 
 # Setup locally
 
@@ -21,13 +21,9 @@ This container listen to port 8000. For redirection configuration, please refer 
 
 ## Setup environment variable
 
-We need to set up the environment variables:
-- `AUTHGEAR_CLIENT_ID=portal`
-- `AUTHGEAR_ENDPOINT=http://localhost:3000`
-- `DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable`
-- `DATABASE_SCHEMA=portal` (optional)
+We need to set up environment variables for Authgear servers and portal server.
 
-See `.env.example` for details.
+Make a copy of `.env.example` as `.env`, and update it if necessary.
 
 ## Setup graphQL server
 
@@ -56,11 +52,15 @@ This command should start a web development server on port 1234.
 We need the following `authgear.yaml` to setup authgear for the portal.
 
 ```yaml
+id: accounts # Make sure the ID matches AUTHGEAR_APP_ID environment variable.
 http:
+  # Make sure this matches the host used to access main Authgear server.
+  public_origin: 'http://localhost:3000'
   allowed_origins:
     # The SDK uses XHR to fetch the OAuth/OIDC configuration,
     # So we have to allow the origin of the portal.
-    - localhost:8000
+    # For simplicity, allow all origin for development setup.
+    - "*"
 oauth:
   clients:
     # Create a client for the portal.
