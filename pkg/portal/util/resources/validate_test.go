@@ -74,11 +74,11 @@ func TestValidate(t *testing.T) {
 			}})
 			So(err, ShouldBeError, `invalid resource 'authgear.yaml': cannot parse app config: invalid configuration:
 <root>: required
-  map[actual:<nil> expected:[id] missing:[id]]`)
+  map[actual:<nil> expected:[http id] missing:[http id]]`)
 
 			err = validate([]resources.Update{{
 				Path: "authgear.yaml",
-				Data: []byte("id: test"),
+				Data: []byte("id: test\nhttp:\n  public_origin: \"http://test\""),
 			}})
 			So(err, ShouldBeError, `invalid resource 'authgear.yaml': incorrect app ID`)
 

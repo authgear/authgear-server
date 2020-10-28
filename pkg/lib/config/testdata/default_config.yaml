@@ -1,6 +1,6 @@
 id: test
 http:
-  public_origin: ""
+  public_origin: "http://test"
 database:
   max_open_connection: 2
   max_idle_connection: 2
