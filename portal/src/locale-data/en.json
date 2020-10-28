@@ -307,7 +307,7 @@
   "DNSConfigurationScreen.title": "DNS",
   "DNSConfigurationScreen.desc": "You can add a custom domain so that users will login via, for example, “identity.yourdomain.com”. In this case, a session cookie of domain “yourdomain.com” is written so that your websites can share the session cookies under “*.yourdomain.com” for better customers experiences.",
   "DNSConfigurationScreen.public-origin.header": "Public Origin",
-  "DNSConfigurationScreen.public-origin.desc": "Pick a verified domain here as public domain of your app.",
+  "DNSConfigurationScreen.public-origin.desc": "Pick a verified domain here as the public origin of your app. The public origin will appear in the messages sent from the app, e.g. reset password emails.",
   "DNSConfigurationScreen.add-domain.generic-error": "Failed to add domain",
   "DNSConfigurationScreen.add-domain.duplicated-error": "Domain is already in use",
   "DNSConfigurationScreen.add-domain.invalid-error": "Invalid domain",
