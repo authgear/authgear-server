@@ -20,6 +20,12 @@ func CheckContentType(raws []string) httproute.MiddlewareFunc {
 
 	return httproute.MiddlewareFunc(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Body == nil {
+				// Content-Type is irrelevant without body.
+				next.ServeHTTP(w, r)
+				return
+			}
+
 			requestContentType := r.Header.Get("Content-Type")
 			isAllowed := false
 			for _, allowedMediaType := range allowedMediaTypes {
