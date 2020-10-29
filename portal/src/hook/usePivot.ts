@@ -22,7 +22,8 @@ export function usePivotNavigation(
 
   useEffect(() => {
     if (!isHashValid(validItemKeys, hash)) {
-      navigate(`#${initialSelectedKey}`);
+      // NOTE: avoid adding extra entry to history stack
+      navigate(`#${initialSelectedKey}`, { replace: true });
     }
   }, [validItemKeys, hash, initialSelectedKey, navigate]);
 
