@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/Masterminds/squirrel v1.4.0
 	github.com/authgear/graphql-go-relay v0.0.0-20201016065100-df672205b892
+	github.com/dlclark/regexp2 v1.4.0 // indirect
 	github.com/getsentry/sentry-go v0.6.1
 	github.com/go-gomail/gomail v0.0.0-20160411212932-81ebce5c23df
 	github.com/golang/mock v1.4.3
@@ -25,7 +26,7 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lestrrat-go/jwx v1.0.3
 	github.com/lib/pq v1.7.0
-	github.com/nbutton23/zxcvbn-go v0.0.0-20180912185939-ae427f1e4c1d
+	github.com/lithdew/quickjs v0.0.0-20200714182134-aaa42285c9d2
 	github.com/njern/gonexmo v2.0.0+incompatible
 	github.com/nyaruka/phonenumbers v1.0.56
 	github.com/pquerna/otp v1.2.0
@@ -36,10 +37,12 @@ require (
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/spf13/afero v1.2.2
 	github.com/spf13/cobra v1.0.0
+	github.com/test-go/testify v1.1.4 // indirect
+	github.com/trustelem/zxcvbn v1.0.1
 	github.com/ua-parser/uap-go v0.0.0-20200325213135-e1c09f13e2fe
 	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
 	golang.org/x/net v0.0.0-20201010224723-4f7140c49acb
-	golang.org/x/text v0.3.3
+	golang.org/x/text v0.3.4
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
