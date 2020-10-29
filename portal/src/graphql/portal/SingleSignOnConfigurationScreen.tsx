@@ -124,11 +124,6 @@ function getOrCreateSecret(secretConfigState: PortalAPISecretConfig) {
       data: { items: [] },
     };
     secretConfigState.secrets.push(secret);
-    // Sync secret item order with server side.
-    // Otherwise the error json pointer would not match.
-    secretConfigState.secrets = secretConfigState.secrets.sort((a, b) =>
-      a.key.localeCompare(b.key)
-    );
   }
   return secret;
 }
@@ -445,9 +440,9 @@ const SingleSignOnConfigurationWidgetWrapper: React.FC<WidgetWrapperProps> = fun
       : "";
   }, [providerIndex]);
 
-  const clientSecretJsonPointer = useMemo(() => {
+  const clientSecretParentJsonPointer = useMemo(() => {
     return secretIndex !== -1 && secretItemIndex !== -1
-      ? `/secrets/${secretIndex}/data/items/${secretItemIndex}`
+      ? RegExp(`^/secrets/[0-9]+/data/items/${secretItemIndex}$`)
       : "";
   }, [secretIndex, secretItemIndex]);
 
@@ -455,7 +450,7 @@ const SingleSignOnConfigurationWidgetWrapper: React.FC<WidgetWrapperProps> = fun
     <SingleSignOnConfigurationWidget
       className={className}
       jsonPointer={jsonPointer}
-      clientSecretJsonPointer={clientSecretJsonPointer}
+      clientSecretParentJsonPointer={clientSecretParentJsonPointer}
       alias={alias ?? providerType}
       enabled={extraState[providerType].enabled}
       serviceProviderType={providerType}

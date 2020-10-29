@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import cn from "classnames";
 import { Toggle, Label, ITextFieldProps, IToggleProps } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
@@ -23,7 +23,7 @@ interface SingleSignOnConfigurationWidgetProps {
   className?: string;
 
   jsonPointer: string;
-  clientSecretJsonPointer: string;
+  clientSecretParentJsonPointer: string | RegExp;
 
   enabled: boolean;
   alias: string;
@@ -156,7 +156,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
   const {
     className,
     jsonPointer,
-    clientSecretJsonPointer,
+    clientSecretParentJsonPointer,
     enabled,
     alias,
     clientID,
@@ -184,6 +184,17 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
   const messageID = "OAuthBranding." + providerType;
 
   const [extended, setExtended] = useState(enabled);
+
+  const clientSecretJSONPointer = useMemo(() => {
+    if (typeof clientSecretParentJsonPointer === "string") {
+      return clientSecretParentJsonPointer
+        ? `${clientSecretParentJsonPointer}/client_secret`
+        : "";
+    }
+    return new RegExp(
+      `${clientSecretParentJsonPointer.source.replace("$", "")}/client_secret$`
+    );
+  }, [clientSecretParentJsonPointer]);
 
   // Always extended when enabled
   // Collapse on disabled
@@ -239,8 +250,8 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
       )}
       {visibleFields.has("client_secret") && (
         <FormTextField
-          jsonPointer={`${clientSecretJsonPointer}/client_secret`}
-          parentJSONPointer={clientSecretJsonPointer}
+          jsonPointer={clientSecretJSONPointer}
+          parentJSONPointer={clientSecretParentJsonPointer}
           fieldName="client_secret"
           fieldNameMessageID="SingleSignOnConfigurationScreen.widget.client-secret"
           className={styles.textField}
