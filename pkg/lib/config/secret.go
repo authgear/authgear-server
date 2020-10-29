@@ -144,7 +144,9 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 						ctx.Child("secrets", fmt.Sprintf("%d", secretIndex), "data", "items", fmt.Sprintf("%d", matchedItemIndex)).EmitError(
 							"required",
 							map[string]interface{}{
-								"missing": "client_secret",
+								"expected": []string{"alias", "client_secret"},
+								"actual":   []string{"alias"},
+								"missing":  []string{"client_secret"},
 							},
 						)
 					}
