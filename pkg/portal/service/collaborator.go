@@ -71,6 +71,7 @@ func (s *CollaboratorService) selectCollaborator() sq.SelectBuilder {
 		"app_id",
 		"user_id",
 		"created_at",
+		"role",
 	).From(s.SQLBuilder.FullTableName("app_collaborator"))
 }
 
@@ -150,12 +151,14 @@ func (s *CollaboratorService) CreateCollaborator(c *model.Collaborator) error {
 			"app_id",
 			"user_id",
 			"created_at",
+			"role",
 		).
 		Values(
 			c.ID,
 			c.AppID,
 			c.UserID,
 			c.CreatedAt,
+			c.Role,
 		),
 	)
 	if err != nil {
@@ -574,6 +577,7 @@ func scanCollaborator(scan db.Scanner) (*model.Collaborator, error) {
 		&c.AppID,
 		&c.UserID,
 		&c.CreatedAt,
+		&c.Role,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrCollaboratorNotFound
