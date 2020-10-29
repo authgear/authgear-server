@@ -86,33 +86,33 @@ func (c *SecretConfig) Overlay(layers ...*SecretConfig) *SecretConfig {
 	return merged
 }
 
-func (c *SecretConfig) Lookup(key SecretKey) (*SecretItem, bool, int) {
+func (c *SecretConfig) Lookup(key SecretKey) (int, *SecretItem, bool) {
 	for index, item := range c.Secrets {
 		if item.Key == key {
-			return &item, true, index
+			return index, &item, true
 		}
 	}
-	return nil, false, -1
+	return -1, nil, false
 }
 
 func (c *SecretConfig) LookupData(key SecretKey) SecretItemData {
-	if item, ok, _ := c.Lookup(key); ok {
+	if _, item, ok := c.Lookup(key); ok {
 		return item.Data
 	}
 	return nil
 }
 
-func (c *SecretConfig) LookupDataWithIndex(key SecretKey) (SecretItemData, int) {
-	if item, ok, index := c.Lookup(key); ok {
-		return item.Data, index
+func (c *SecretConfig) LookupDataWithIndex(key SecretKey) (int, SecretItemData, bool) {
+	if index, item, ok := c.Lookup(key); ok {
+		return index, item.Data, true
 	}
-	return nil, -1
+	return -1, nil, false
 }
 
 func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 	ctx := &validation.Context{}
 	require := func(key SecretKey, item string) {
-		if _, ok, _ := c.Lookup(key); !ok {
+		if _, _, ok := c.Lookup(key); !ok {
 			ctx.EmitErrorMessage(fmt.Sprintf("%s (secret '%s') is required", item, key))
 		}
 	}
@@ -123,7 +123,7 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 
 	if len(appConfig.Identity.OAuth.Providers) > 0 {
 		require(OAuthClientCredentialsKey, "OAuth client credentials")
-		data, secretIndex := c.LookupDataWithIndex(OAuthClientCredentialsKey)
+		secretIndex, data, _ := c.LookupDataWithIndex(OAuthClientCredentialsKey)
 		oauth, ok := data.(*OAuthClientCredentials)
 		if ok {
 			for _, p := range appConfig.Identity.OAuth.Providers {
