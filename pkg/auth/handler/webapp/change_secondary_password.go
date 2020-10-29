@@ -26,10 +26,11 @@ var ChangeSecondaryPasswordSchema = validation.NewMultipartSchema("").
 		{
 			"type": "object",
 			"properties": {
-				"x_password": { "type": "string" },
+				"x_old_password": { "type": "string" },
+				"x_new_password": { "type": "string" },
 				"x_confirm_password": { "type": "string" }
 			},
-			"required": ["x_password", "x_confirm_password"]
+			"required": ["x_old_password", "x_new_password", "x_confirm_password"]
 		}
 	`).Instantiate()
 
@@ -104,7 +105,8 @@ func (h *ChangeSecondaryPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 					return
 				}
 
-				newPassword := r.Form.Get("x_password")
+				oldPassword := r.Form.Get("x_old_password")
+				newPassword := r.Form.Get("x_new_password")
 				confirmPassword := r.Form.Get("x_confirm_password")
 				err = pwd.ConfirmPassword(newPassword, confirmPassword)
 				if err != nil {
@@ -112,7 +114,8 @@ func (h *ChangeSecondaryPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 				}
 
 				input = &ChangePasswordInput{
-					Password: newPassword,
+					OldPassword: oldPassword,
+					NewPassword: newPassword,
 				}
 				return
 			})
