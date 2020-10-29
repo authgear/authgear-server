@@ -51,6 +51,9 @@ type NodeDoUseAuthenticator struct {
 
 // GetCookies implements CookiesGetter
 func (n *NodeDoUseAuthenticator) GetCookies() []*http.Cookie {
+	if n.DeviceTokenCookie == nil {
+		return nil
+	}
 	return []*http.Cookie{n.DeviceTokenCookie}
 }
 
