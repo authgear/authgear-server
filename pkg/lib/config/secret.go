@@ -129,7 +129,8 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 			for _, p := range appConfig.Identity.OAuth.Providers {
 				var matchedItem *OAuthClientCredentialsItem = nil
 				var matchedItemIndex int = -1
-				for index, item := range oauth.Items {
+				for index := range oauth.Items {
+					item := oauth.Items[index]
 					if p.Alias == item.Alias {
 						matchedItem = &item
 						matchedItemIndex = index
