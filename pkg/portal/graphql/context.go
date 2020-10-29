@@ -3,6 +3,7 @@ package graphql
 import (
 	"context"
 
+	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/util/resources"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -47,6 +48,7 @@ type CollaboratorService interface {
 	GetCollaborator(id string) (*model.Collaborator, error)
 	GetCollaboratorByAppAndUser(appID string, userID string) (*model.Collaborator, error)
 	ListCollaborators(appID string) ([]*model.Collaborator, error)
+	ListCollaboratorsByUser(userID string) ([]*model.Collaborator, error)
 	DeleteCollaborator(c *model.Collaborator) error
 
 	GetInvitation(id string) (*model.CollaboratorInvitation, error)
@@ -66,6 +68,8 @@ func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("portal-graphql")}
 
 type Context struct {
 	GQLLogger Logger
+
+	AppConfig *portalconfig.AppConfig
 
 	Users                   UserLoader
 	Apps                    AppLoader

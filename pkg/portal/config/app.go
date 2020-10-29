@@ -13,6 +13,8 @@ type AppConfig struct {
 	BuiltinResourceDirectory string `envconfig:"BUILTIN_RESOURCE_DIRECTORY" default:"resources/authgear"`
 	// CustomResourceDirectory sets the directory for customized resource files
 	CustomResourceDirectory string `envconfig:"CUSTOM_RESOURCE_DIRECTORY"`
+
+	MaxOwnedApps int `envconfig:"MAX_OWNED_APPS" default:"-1"`
 }
 
 type TLSCertType string

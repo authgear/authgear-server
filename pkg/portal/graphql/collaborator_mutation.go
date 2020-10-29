@@ -61,8 +61,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 			if selfCollab.Role.Level() > targetCollab.Role.Level() {
-				// TODO(authz): better error
-				return nil, ErrForbidden
+				return nil, AccessDenied.Errorf("insufficient permission to delete %s collaborators", targetCollab.Role)
 			}
 
 			err = gqlCtx.CollaboratorService.DeleteCollaborator(targetCollab)
@@ -258,7 +257,7 @@ var _ = registerMutationField(
 			// Access Control: authenicated user.
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
-				return nil, ErrForbidden
+				return nil, AccessDenied.New("only authenticated users can accept invitations")
 			}
 
 			collaborator, err := gqlCtx.CollaboratorService.AcceptInvitation(code)

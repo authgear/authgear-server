@@ -85,6 +85,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	devMode := environmentConfig.DevMode
 	factory := rootProvider.LoggerFactory
 	logger := graphql.NewLogger(factory)
+	appConfig := rootProvider.AppConfig
 	authgearConfig := rootProvider.AuthgearConfig
 	adminAPIConfig := rootProvider.AdminAPIConfig
 	controller := rootProvider.ConfigSourceController
@@ -101,7 +102,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userLoader := loader.NewUserLoader(adminAPIService)
 	appServiceLogger := service.NewAppServiceLogger(factory)
-	appConfig := rootProvider.AppConfig
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
 	configServiceLogger := service.NewConfigServiceLogger(factory)
@@ -202,6 +202,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	collaboratorInvitationLoader := loader.NewCollaboratorInvitationLoader(collaboratorService, authzService)
 	graphqlContext := &graphql.Context{
 		GQLLogger:               logger,
+		AppConfig:               appConfig,
 		Users:                   userLoader,
 		Apps:                    appLoader,
 		Domains:                 domainLoader,
