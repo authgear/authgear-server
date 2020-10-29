@@ -8,6 +8,8 @@
                             <li class="error-txt">{{ template "error-login-id-required" (makemap "variant" $.LoginPageTextLoginIDVariant) }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_password" ) }}
                             <li class="error-txt">{{ template "error-password-or-code-required" }}</li>
+                        {{ else if (call $.SliceContains .details.missing "x_confirm_password" ) }}
+                            <li class="error-txt">{{ template "error-confirm-password-required" }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_calling_code" ) }}
                             <li class="error-txt">{{ template "error-calling-code-required" }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_national_number" ) }}

@@ -16,6 +16,7 @@
 
   "error-login-id-required": "{variant, select, email {email} username {username} other {email or username}} is required",
   "error-password-or-code-required": "password or code is required",
+  "error-confirm-password-required": "confirm password is required",
   "error-calling-code-required": "calling code is required",
   "error-phone-number-required": "phone is required",
   "error-phone-number-format": "phone must contains digits only",
