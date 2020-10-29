@@ -43,24 +43,35 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 
-			collaborator, err := gqlCtx.CollaboratorService.GetCollaborator(collaboratorID)
+			targetCollab, err := gqlCtx.CollaboratorService.GetCollaborator(collaboratorID)
 			if err != nil {
 				return nil, err
 			}
+
+			appID := targetCollab.AppID
 
 			// Access Control: collaborator.
-			_, err = gqlCtx.AuthzService.CheckAccessOfViewer(collaborator.AppID)
+			userID, err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.CollaboratorService.DeleteCollaborator(collaborator)
+			selfCollab, err := gqlCtx.CollaboratorService.GetCollaboratorByAppAndUser(appID, userID)
+			if err != nil {
+				return nil, err
+			}
+			if selfCollab.Role.Level() > targetCollab.Role.Level() {
+				// TODO(authz): better error
+				return nil, ErrForbidden
+			}
+
+			err = gqlCtx.CollaboratorService.DeleteCollaborator(targetCollab)
 			if err != nil {
 				return nil, err
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"app": gqlCtx.Apps.Load(collaborator.AppID),
+				"app": gqlCtx.Apps.Load(appID),
 			}).Value, nil
 		},
 	},

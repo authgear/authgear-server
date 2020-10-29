@@ -45,6 +45,7 @@ type DomainService interface {
 
 type CollaboratorService interface {
 	GetCollaborator(id string) (*model.Collaborator, error)
+	GetCollaboratorByAppAndUser(appID string, userID string) (*model.Collaborator, error)
 	ListCollaborators(appID string) ([]*model.Collaborator, error)
 	DeleteCollaborator(c *model.Collaborator) error
 
