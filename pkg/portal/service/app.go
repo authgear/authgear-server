@@ -17,11 +17,16 @@ import (
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
 	"github.com/authgear/authgear-server/pkg/portal/util/resources"
+	"github.com/authgear/authgear-server/pkg/util/blocklist"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
+
+var ErrAppIDReserved = apierrors.Forbidden.WithReason("AppIDReserved").
+	New("requested app ID is reserved")
 
 type AppConfigService interface {
 	ResolveContext(appID string) (*config.AppContext, error)
@@ -58,6 +63,7 @@ type AppService struct {
 	AppAuthz         AppAuthzService
 	AppAdminAPI      AppAdminAPIService
 	AppDomains       AppDomainService
+	Resources        ResourceManager
 	AppBaseResources deps.AppBaseResources
 }
 
@@ -95,6 +101,10 @@ func (s *AppService) List(userID string) ([]*model.App, error) {
 }
 
 func (s *AppService) Create(userID string, id string) error {
+	if err := s.validateAppID(id); err != nil {
+		return err
+	}
+
 	s.Logger.
 		WithField("user_id", userID).
 		WithField("app_id", id).
@@ -235,4 +245,25 @@ func (s *AppService) generateConfig(appHost string, appID string) (opts *CreateA
 	}
 
 	return
+}
+
+func (s *AppService) validateAppID(appID string) error {
+	rawData, err := s.Resources.Read(portalresource.ReservedAppIDTXT, nil)
+	if errors.Is(err, resource.ErrResourceNotFound) {
+		// No reserved usernames
+		rawData = &resource.MergedFile{Data: nil}
+	} else if err != nil {
+		return err
+	}
+
+	list, err := portalresource.ReservedAppIDTXT.Parse(rawData)
+	if err != nil {
+		return err
+	}
+
+	if list.(*blocklist.Blocklist).IsBlocked(appID) {
+		return ErrAppIDReserved
+	}
+
+	return nil
 }
