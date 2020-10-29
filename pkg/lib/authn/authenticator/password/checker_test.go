@@ -81,11 +81,11 @@ func TestPasswordCheckingFuncs(t *testing.T) {
 		_, ok = checkPasswordGuessableLevel(p, 5, userInputs)
 		So(ok, ShouldEqual, false)
 		_, ok = checkPasswordGuessableLevel(p, 4, userInputs)
-		So(ok, ShouldEqual, false)
+		So(ok, ShouldEqual, true)
 		_, ok = checkPasswordGuessableLevel(p, 3, userInputs)
-		So(ok, ShouldEqual, false)
+		So(ok, ShouldEqual, true)
 		_, ok = checkPasswordGuessableLevel(p, 2, userInputs)
-		So(ok, ShouldEqual, false)
+		So(ok, ShouldEqual, true)
 		_, ok = checkPasswordGuessableLevel(p, 1, userInputs)
 		So(ok, ShouldEqual, true)
 		_, ok = checkPasswordGuessableLevel(p, 0, userInputs)
@@ -308,7 +308,7 @@ func TestValidatePassword(t *testing.T) {
 			PasswordPolicyViolated,
 			map[string]interface{}{
 				"causes": []apierrors.Cause{
-					Policy{Name: PasswordBelowGuessableLevel, Info: map[string]interface{}{"min_level": 5, "pw_level": 1}},
+					Policy{Name: PasswordBelowGuessableLevel, Info: map[string]interface{}{"min_level": 5, "pw_level": 2}},
 				},
 			},
 		)
