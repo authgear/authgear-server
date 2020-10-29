@@ -152,25 +152,12 @@ var _ = registerMutationField(
 
 			actorID := sessionInfo.UserID
 
-			if gqlCtx.AppConfig.MaxOwnedApps >= 0 {
-				collaborators, err := gqlCtx.CollaboratorService.ListCollaboratorsByUser(actorID)
-				if err != nil {
-					return nil, err
-				}
-
-				numOwnedApps := 0
-				for _, c := range collaborators {
-					if c.Role == model.CollaboratorRoleOwner {
-						numOwnedApps++
-					}
-				}
-
-				if numOwnedApps >= gqlCtx.AppConfig.MaxOwnedApps {
-					return nil, QuotaExceeded.Errorf("you can only own a maximum of %d apps", gqlCtx.AppConfig.MaxOwnedApps)
-				}
+			err := checkAppQuota(gqlCtx, actorID)
+			if err != nil {
+				return nil, err
 			}
 
-			err := gqlCtx.AppService.Create(actorID, appID)
+			err = gqlCtx.AppService.Create(actorID, appID)
 			if err != nil {
 				return nil, err
 			}
@@ -182,3 +169,33 @@ var _ = registerMutationField(
 		},
 	},
 )
+
+func checkAppQuota(ctx *Context, userID string) error {
+	quota, err := ctx.AppService.GetMaxOwnedApps(userID)
+	if err != nil {
+		return err
+	}
+
+	if quota < 0 {
+		// Negative quota: skip checking
+		return nil
+	}
+
+	collaborators, err := ctx.CollaboratorService.ListCollaboratorsByUser(userID)
+	if err != nil {
+		return err
+	}
+
+	numOwnedApps := 0
+	for _, c := range collaborators {
+		if c.Role == model.CollaboratorRoleOwner {
+			numOwnedApps++
+		}
+	}
+
+	if numOwnedApps >= quota {
+		return QuotaExceeded.Errorf("you can only own a maximum of %d apps", quota)
+	}
+
+	return nil
+}

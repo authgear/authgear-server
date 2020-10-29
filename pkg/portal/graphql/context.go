@@ -3,7 +3,6 @@ package graphql
 import (
 	"context"
 
-	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/util/resources"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -35,6 +34,7 @@ type AppService interface {
 	List(userID string) ([]*model.App, error)
 	Create(userID string, id string) error
 	UpdateResources(app *model.App, updates []resources.Update) error
+	GetMaxOwnedApps(userID string) (int, error)
 }
 
 type DomainService interface {
@@ -68,8 +68,6 @@ func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("portal-graphql")}
 
 type Context struct {
 	GQLLogger Logger
-
-	AppConfig *portalconfig.AppConfig
 
 	Users                   UserLoader
 	Apps                    AppLoader

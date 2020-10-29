@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
+	"github.com/authgear/authgear-server/pkg/portal/db"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
@@ -57,7 +58,10 @@ func NewAppServiceLogger(lf *log.Factory) AppServiceLogger {
 type AppBaseResource *resource.Manager
 
 type AppService struct {
-	Logger           AppServiceLogger
+	Logger      AppServiceLogger
+	SQLBuilder  *db.SQLBuilder
+	SQLExecutor *db.SQLExecutor
+
 	AppConfig        *portalconfig.AppConfig
 	AppConfigs       AppConfigService
 	AppAuthz         AppAuthzService
@@ -98,6 +102,25 @@ func (s *AppService) List(userID string) ([]*model.App, error) {
 	}
 
 	return s.GetMany(appIDs)
+}
+func (s *AppService) GetMaxOwnedApps(userID string) (int, error) {
+	// On errors: ignore and return default quota.
+
+	q := s.SQLBuilder.Select("max_own_apps").
+		From(s.SQLBuilder.FullTableName("user_app_quota")).
+		Where("user_id = ?", userID)
+	row, err := s.SQLExecutor.QueryRowWith(q)
+	if err != nil {
+		return s.AppConfig.MaxOwnedApps, nil
+	}
+
+	var quota int
+	err = row.Scan(&quota)
+	if err != nil {
+		return s.AppConfig.MaxOwnedApps, nil
+	}
+
+	return quota, nil
 }
 
 func (s *AppService) Create(userID string, id string) error {
