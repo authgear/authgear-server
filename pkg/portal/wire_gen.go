@@ -101,19 +101,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userLoader := loader.NewUserLoader(adminAPIService)
 	appServiceLogger := service.NewAppServiceLogger(factory)
-	appConfig := rootProvider.AppConfig
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
-	configServiceLogger := service.NewConfigServiceLogger(factory)
-	configService := &service.ConfigService{
-		Context:      context,
-		Logger:       configServiceLogger,
-		AppConfig:    appConfig,
-		Controller:   controller,
-		ConfigSource: configSource,
-	}
 	databaseConfig := rootProvider.DatabaseConfig
 	sqlBuilder := db.NewSQLBuilder(databaseConfig)
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
 	pool := rootProvider.Database
 	dbLogger := db.NewLogger(factory)
 	handle := &db.Handle{
@@ -124,6 +115,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := &db.SQLExecutor{
 		Context:  context,
 		Database: handle,
+	}
+	appConfig := rootProvider.AppConfig
+	configServiceLogger := service.NewConfigServiceLogger(factory)
+	configService := &service.ConfigService{
+		Context:      context,
+		Logger:       configServiceLogger,
+		AppConfig:    appConfig,
+		Controller:   controller,
+		ConfigSource: configSource,
 	}
 	mailConfig := rootProvider.MailConfig
 	inProcessExecutorLogger := task.NewInProcessExecutorLogger(factory)
@@ -188,6 +188,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	appBaseResources := deps.ProvideAppBaseResources(rootProvider)
 	appService := &service.AppService{
 		Logger:           appServiceLogger,
+		SQLBuilder:       sqlBuilder,
+		SQLExecutor:      sqlExecutor,
 		AppConfig:        appConfig,
 		AppConfigs:       configService,
 		AppAuthz:         authzService,

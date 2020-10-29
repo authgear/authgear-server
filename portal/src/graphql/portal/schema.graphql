@@ -91,6 +91,9 @@ type Collaborator {
   id: String!
 
   """"""
+  role: CollaboratorRole!
+
+  """"""
   user: User!
 }
 
@@ -110,6 +113,15 @@ type CollaboratorInvitation {
 
   """"""
   inviteeEmail: String!
+}
+
+""""""
+enum CollaboratorRole {
+  """"""
+  EDITOR
+
+  """"""
+  OWNER
 }
 
 """"""

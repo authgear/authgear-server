@@ -16,7 +16,7 @@ type AuthzConfigService interface {
 }
 
 type AuthzCollaboratorService interface {
-	NewCollaborator(appID string, userID string) *model.Collaborator
+	NewCollaborator(appID string, userID string, role model.CollaboratorRole) *model.Collaborator
 	CreateCollaborator(c *model.Collaborator) error
 	ListCollaboratorsByUser(userID string) ([]*model.Collaborator, error)
 	GetCollaboratorByAppAndUser(appID string, userID string) (*model.Collaborator, error)
@@ -49,8 +49,8 @@ func (s *AuthzService) ListAuthorizedApps(userID string) ([]string, error) {
 	return appIDs, nil
 }
 
-func (s *AuthzService) AddAuthorizedUser(appID string, userID string) error {
-	c := s.Collaborators.NewCollaborator(appID, userID)
+func (s *AuthzService) AddAuthorizedUser(appID string, userID string, role model.CollaboratorRole) error {
+	c := s.Collaborators.NewCollaborator(appID, userID, role)
 	return s.Collaborators.CreateCollaborator(c)
 }
 

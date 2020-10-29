@@ -6,6 +6,18 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/model"
 )
 
+var collaboratorRole = graphql.NewEnum(graphql.EnumConfig{
+	Name: "CollaboratorRole",
+	Values: graphql.EnumValueConfigMap{
+		"OWNER": &graphql.EnumValueConfig{
+			Value: model.CollaboratorRoleOwner,
+		},
+		"EDITOR": &graphql.EnumValueConfig{
+			Value: model.CollaboratorRoleEditor,
+		},
+	},
+})
+
 var collaborator = graphql.NewObject(graphql.ObjectConfig{
 	Name:        "Collaborator",
 	Description: "Collaborator of an app",
@@ -26,6 +38,7 @@ var collaborator = graphql.NewObject(graphql.ObjectConfig{
 		},
 
 		"createdAt": &graphql.Field{Type: graphql.NewNonNull(graphql.DateTime)},
+		"role":      &graphql.Field{Type: graphql.NewNonNull(collaboratorRole)},
 	},
 })
 

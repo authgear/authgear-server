@@ -34,6 +34,7 @@ type AppService interface {
 	List(userID string) ([]*model.App, error)
 	Create(userID string, id string) error
 	UpdateResources(app *model.App, updates []resources.Update) error
+	GetMaxOwnedApps(userID string) (int, error)
 }
 
 type DomainService interface {
@@ -45,7 +46,9 @@ type DomainService interface {
 
 type CollaboratorService interface {
 	GetCollaborator(id string) (*model.Collaborator, error)
+	GetCollaboratorByAppAndUser(appID string, userID string) (*model.Collaborator, error)
 	ListCollaborators(appID string) ([]*model.Collaborator, error)
+	ListCollaboratorsByUser(userID string) ([]*model.Collaborator, error)
 	DeleteCollaborator(c *model.Collaborator) error
 
 	GetInvitation(id string) (*model.CollaboratorInvitation, error)

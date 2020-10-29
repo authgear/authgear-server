@@ -5,12 +5,11 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/portal/util/resources"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
-
-var ErrForbidden = apierrors.Forbidden.WithReason("Forbidden").New("forbidden")
 
 var appResourceUpdate = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name:        "AppResourceUpdate",
@@ -148,12 +147,17 @@ var _ = registerMutationField(
 			// Access Control: authenicated user.
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
-				return nil, ErrForbidden
+				return nil, AccessDenied.New("only authenticated users can create app")
 			}
 
 			actorID := sessionInfo.UserID
 
-			err := gqlCtx.AppService.Create(actorID, appID)
+			err := checkAppQuota(gqlCtx, actorID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.AppService.Create(actorID, appID)
 			if err != nil {
 				return nil, err
 			}
@@ -165,3 +169,33 @@ var _ = registerMutationField(
 		},
 	},
 )
+
+func checkAppQuota(ctx *Context, userID string) error {
+	quota, err := ctx.AppService.GetMaxOwnedApps(userID)
+	if err != nil {
+		return err
+	}
+
+	if quota < 0 {
+		// Negative quota: skip checking
+		return nil
+	}
+
+	collaborators, err := ctx.CollaboratorService.ListCollaboratorsByUser(userID)
+	if err != nil {
+		return err
+	}
+
+	numOwnedApps := 0
+	for _, c := range collaborators {
+		if c.Role == model.CollaboratorRoleOwner {
+			numOwnedApps++
+		}
+	}
+
+	if numOwnedApps >= quota {
+		return QuotaExceeded.Errorf("you can only own a maximum of %d apps", quota)
+	}
+
+	return nil
+}
