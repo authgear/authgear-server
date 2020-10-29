@@ -14,13 +14,20 @@ import (
 type GenerateAppConfigOptions struct {
 	AppID        string
 	PublicOrigin string
+	CookieDomain string
 }
 
 func GenerateAppConfigFromOptions(opts *GenerateAppConfigOptions) *AppConfig {
-	return &AppConfig{
+	cfg := &AppConfig{
 		ID:   AppID(opts.AppID),
 		HTTP: &HTTPConfig{PublicOrigin: opts.PublicOrigin},
 	}
+	if opts.CookieDomain != "" {
+		cfg.Session = &SessionConfig{
+			CookieDomain: &opts.CookieDomain,
+		}
+	}
+	return cfg
 }
 
 type GenerateSecretConfigOptions struct {

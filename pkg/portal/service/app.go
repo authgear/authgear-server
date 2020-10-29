@@ -174,6 +174,7 @@ func (s *AppService) generateResources(appHost string, appID string) (map[string
 	appConfig := config.GenerateAppConfigFromOptions(&config.GenerateAppConfigOptions{
 		AppID:        appID,
 		PublicOrigin: publicOrigin.String(),
+		CookieDomain: appHost,
 	})
 	appConfigYAML, err := yaml.Marshal(appConfig)
 	if err != nil {
