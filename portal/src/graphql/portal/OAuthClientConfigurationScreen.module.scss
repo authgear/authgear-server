@@ -18,6 +18,25 @@
   margin: 0;
 }
 
+.clientEndpointSession {
+  margin: 0 10px 20px;
+}
+
+.clientEndpointSessionHeader {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.clientEndpointSessionDesc {
+  display: block;
+  margin-bottom: 15px;
+  max-width: 500px;
+  font-size: 13px;
+  line-height: 1.3;
+  white-space: pre;
+}
+
 .allowedOriginsConfiguration {
   margin: 0 10px 20px;
 }

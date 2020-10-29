@@ -278,6 +278,8 @@
   "PasswordlessAuthenticatorScreen.subsequent-logins.sms-body.label": "SMS body for subsequent logins",
 
   "OAuthClientConfiguration.title": "Client Applications",
+  "OAuthClientConfigurationScreen.client-endpoint.header": "Endpoint And Client Applications",
+  "OAuthClientConfigurationScreen.client-endpoint.desc": "Configure client applications to be used at the endpoint:\n{a, react, href{clientEndpoint} children{{clientEndpoint}}}\nYou can change this endpoint at the {Link, react, to{{dnsUrl}} children{DNS section}} of the page with your custom domains.",
   "OAuthClientConfigurationScreen.allowed-origins.header": "Allowed Origins",
   "OAuthClientConfigurationScreen.allowed-origins.desc": "Configure cross-origin resource sharing (CORS), allowing HTTP requests from the list of domains specified here",
   "OAuthClientConfiguration.add-client-button": "Add Client",

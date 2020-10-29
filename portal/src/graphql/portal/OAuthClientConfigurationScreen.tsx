@@ -12,7 +12,7 @@ import {
   VerticalDivider,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import produce from "immer";
 import deepEqual from "deep-equal";
 
@@ -305,7 +305,7 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
   const { renderToString } = useContext(Context);
   const { appID } = useParams();
   const navigate = useNavigate();
-  const { themes } = useSystemConfig();
+  const { themes, authgearEndpoint } = useSystemConfig();
 
   const {
     updateAppConfig,
@@ -438,6 +438,23 @@ const OAuthClientConfiguration: React.FC<OAuthClientConfigurationProps> = functi
           rawAppConfig={rawAppConfig}
           updateAppConfig={updateAppConfig}
         />
+        <section className={styles.clientEndpointSession}>
+          <Text as="h2" className={styles.clientEndpointSessionHeader}>
+            <FormattedMessage id="OAuthClientConfigurationScreen.client-endpoint.header" />
+          </Text>
+          <Text className={styles.clientEndpointSessionDesc}>
+            <FormattedMessage
+              id="OAuthClientConfigurationScreen.client-endpoint.desc"
+              values={{
+                clientEndpoint: authgearEndpoint,
+                dnsUrl: "../dns",
+              }}
+              components={{
+                Link,
+              }}
+            />
+          </Text>
+        </section>
         <section className={styles.controlButtons}>
           <ActionButton
             theme={themes.actionButton}
