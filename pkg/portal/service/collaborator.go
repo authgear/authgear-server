@@ -127,13 +127,14 @@ func (s *CollaboratorService) ListCollaboratorsByUser(userID string) ([]*model.C
 	return cs, nil
 }
 
-func (s *CollaboratorService) NewCollaborator(appID string, userID string) *model.Collaborator {
+func (s *CollaboratorService) NewCollaborator(appID string, userID string, role model.CollaboratorRole) *model.Collaborator {
 	now := s.Clock.NowUTC()
 	c := &model.Collaborator{
 		ID:        uuid.New(),
 		AppID:     appID,
 		UserID:    userID,
 		CreatedAt: now,
+		Role:      role,
 	}
 	return c
 }
@@ -434,7 +435,7 @@ func (s *CollaboratorService) AcceptInvitation(code string) (*model.Collaborator
 		return nil, err
 	}
 
-	collaborator := s.NewCollaborator(invitation.AppID, actorID)
+	collaborator := s.NewCollaborator(invitation.AppID, actorID, model.CollaboratorRoleEditor)
 	err = s.CreateCollaborator(collaborator)
 	if err != nil {
 		return nil, err

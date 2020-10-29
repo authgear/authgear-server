@@ -36,7 +36,7 @@ type AppConfigService interface {
 }
 
 type AppAuthzService interface {
-	AddAuthorizedUser(appID string, userID string) error
+	AddAuthorizedUser(appID string, userID string, role model.CollaboratorRole) error
 	ListAuthorizedApps(userID string) ([]string, error)
 }
 
@@ -158,7 +158,7 @@ func (s *AppService) Create(userID string, id string) error {
 		}
 	}
 
-	err = s.AppAuthz.AddAuthorizedUser(id, userID)
+	err = s.AppAuthz.AddAuthorizedUser(id, userID, model.CollaboratorRoleOwner)
 	if err != nil {
 		return err
 	}
