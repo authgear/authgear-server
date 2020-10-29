@@ -193,6 +193,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppAuthz:         authzService,
 		AppAdminAPI:      adminAPIService,
 		AppDomains:       domainService,
+		Resources:        manager,
 		AppBaseResources: appBaseResources,
 	}
 	appLoader := loader.NewAppLoader(appService, authzService)
