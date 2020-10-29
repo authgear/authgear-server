@@ -1,8 +1,11 @@
 import React, { useMemo } from "react";
 import { Routes, Route, useParams, Navigate } from "react-router-dom";
 import { ApolloProvider } from "@apollo/client";
+
 import { makeClient } from "./graphql/adminapi/apollo";
+import { useAppConfigQuery } from "./graphql/portal/query/appConfigQuery";
 import ScreenLayout from "./ScreenLayout";
+import ShowLoading from "./ShowLoading";
 
 import UsersScreen from "./graphql/adminapi/UsersScreen";
 import AddUserScreen from "./graphql/adminapi/AddUserScreen";
@@ -31,6 +34,22 @@ const AppRoot: React.FC = function AppRoot() {
   const client = useMemo(() => {
     return makeClient(appID);
   }, [appID]);
+
+  // NOTE: check if appID actually exist in authorized app list
+  const { effectiveAppConfig, loading, error } = useAppConfigQuery(appID);
+  if (loading) {
+    return <ShowLoading />;
+  }
+
+  // if node is null after loading without error, treat this as invalid
+  // request, frontend cannot distinguish between inaccessible and not found
+  const isInvalidAppID = error == null && effectiveAppConfig == null;
+
+  // redirect to app list if app id is invalid
+  if (isInvalidAppID) {
+    return <Navigate to="/apps" replace={true} />;
+  }
+
   return (
     <ApolloProvider client={client}>
       <ScreenLayout>
