@@ -46,6 +46,7 @@ func (n *NodeChangePasswordBegin) DeriveEdges(graph *interaction.Graph) ([]inter
 }
 
 type InputChangePassword interface {
+	GetOldPassword() string
 	GetNewPassword() string
 }
 
@@ -59,6 +60,7 @@ func (e *EdgeChangePassword) Instantiate(ctx *interaction.Context, graph *intera
 		return nil, interaction.ErrIncompatibleInput
 	}
 
+	oldPassword := input.GetOldPassword()
 	newPassword := input.GetNewPassword()
 
 	userID := graph.MustGetUserID()
@@ -80,8 +82,14 @@ func (e *EdgeChangePassword) Instantiate(ctx *interaction.Context, graph *intera
 		err = fmt.Errorf("changepassword: detected user %s having more than 1 password", userID)
 		return
 	}
-
 	oldInfo := ais[0]
+
+	err = ctx.Authenticators.VerifySecret(oldInfo, nil, oldPassword)
+	if err != nil {
+		err = interaction.ErrInvalidCredentials
+		return
+	}
+
 	changed, newInfo, err := ctx.Authenticators.WithSecret(oldInfo, newPassword)
 	if err != nil {
 		return

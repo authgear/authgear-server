@@ -26,10 +26,11 @@ var ChangePasswordSchema = validation.NewMultipartSchema("").
 		{
 			"type": "object",
 			"properties": {
-				"x_password": { "type": "string" },
+				"x_old_password": { "type": "string" },
+				"x_new_password": { "type": "string" },
 				"x_confirm_password": { "type": "string" }
 			},
-			"required": ["x_password", "x_confirm_password"]
+			"required": ["x_old_password", "x_new_password", "x_confirm_password"]
 		}
 	`).Instantiate()
 
@@ -64,12 +65,16 @@ func (h *ChangePasswordHandler) GetData(r *http.Request, state *webapp.State) (m
 }
 
 type ChangePasswordInput struct {
-	Password string
+	OldPassword string
+	NewPassword string
 }
 
 // GetNewPassword implements InputChangePassword.
+func (i *ChangePasswordInput) GetOldPassword() string {
+	return i.OldPassword
+}
 func (i *ChangePasswordInput) GetNewPassword() string {
-	return i.Password
+	return i.NewPassword
 }
 
 func (h *ChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -113,7 +118,8 @@ func (h *ChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 					return
 				}
 
-				newPassword := r.Form.Get("x_password")
+				oldPassword := r.Form.Get("x_old_password")
+				newPassword := r.Form.Get("x_new_password")
 				confirmPassword := r.Form.Get("x_confirm_password")
 				err = pwd.ConfirmPassword(newPassword, confirmPassword)
 				if err != nil {
@@ -121,7 +127,8 @@ func (h *ChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				}
 
 				input = &ChangePasswordInput{
-					Password: newPassword,
+					OldPassword: oldPassword,
+					NewPassword: newPassword,
 				}
 				return
 			})
