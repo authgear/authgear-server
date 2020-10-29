@@ -1,6 +1,9 @@
 package resource
 
-import "os"
+import (
+	"bytes"
+	"os"
+)
 
 const (
 	// ArgMergeRaw indicates the merged data should be in same format of raw data
@@ -57,6 +60,42 @@ func (f SimpleFile) Merge(layers []LayerFile, args map[string]interface{}) (*Mer
 }
 
 func (f SimpleFile) Parse(merged *MergedFile) (interface{}, error) {
+	if f.ParseFn == nil {
+		return merged.Data, nil
+	}
+	return f.ParseFn(merged.Data)
+}
+
+type JoinedFile struct {
+	Name      string
+	Separator []byte
+	ParseFn   func(data []byte) (interface{}, error)
+}
+
+func (f JoinedFile) ReadResource(fs Fs) ([]LayerFile, error) {
+	data, err := ReadFile(fs, f.Name)
+	if os.IsNotExist(err) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+	return []LayerFile{{Path: f.Name, Data: data}}, nil
+}
+
+func (f JoinedFile) MatchResource(path string) bool {
+	return path == f.Name
+}
+
+func (f JoinedFile) Merge(layers []LayerFile, args map[string]interface{}) (*MergedFile, error) {
+	var data [][]byte
+	for _, layer := range layers {
+		data = append(data, layer.Data)
+	}
+	mergedData := bytes.Join(data, f.Separator)
+	return &MergedFile{Data: mergedData}, nil
+}
+
+func (f JoinedFile) Parse(merged *MergedFile) (interface{}, error) {
 	if f.ParseFn == nil {
 		return merged.Data, nil
 	}

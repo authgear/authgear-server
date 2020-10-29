@@ -10,6 +10,7 @@ import (
 	"golang.org/x/text/secure/precis"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/blocklist"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -47,13 +48,13 @@ func (f *TypeCheckerFactory) NewChecker(loginIDKeyType config.LoginIDKeyType) Ty
 			return checker
 		}
 
-		data, err := ReservedNameTXT.Parse(rawData)
+		list, err := ReservedNameTXT.Parse(rawData)
 		if err != nil {
 			checker.Error = err
 			return checker
 		}
 
-		checker.ReservedNameChecker = NewReservedNameChecker(data.(ReservedNameData))
+		checker.ReservedNames = list.(*blocklist.Blocklist)
 		return checker
 	case config.LoginIDKeyTypePhone:
 		return &PhoneChecker{}
@@ -90,9 +91,9 @@ func (c *EmailChecker) Validate(ctx *validation.Context, loginID string) {
 }
 
 type UsernameChecker struct {
-	Config              *config.LoginIDUsernameConfig
-	ReservedNameChecker *ReservedNameChecker
-	Error               error
+	Config        *config.LoginIDUsernameConfig
+	ReservedNames *blocklist.Blocklist
+	Error         error
 }
 
 func (c *UsernameChecker) Validate(ctx *validation.Context, loginID string) {
@@ -112,7 +113,7 @@ func (c *UsernameChecker) Validate(ctx *validation.Context, loginID string) {
 	}
 
 	if *c.Config.BlockReservedUsernames {
-		if c.ReservedNameChecker.IsReserved(cfLoginID) {
+		if c.ReservedNames.IsBlocked(cfLoginID) {
 			ctx.EmitErrorMessage("username is not allowed")
 			return
 		}

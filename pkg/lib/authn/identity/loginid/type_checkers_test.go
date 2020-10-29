@@ -6,6 +6,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/blocklist"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -122,17 +123,17 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 				{"faseng_chima-the.cat", ""},
 			}
 
-			reversedNameChecker := NewReservedNameChecker([]string{
-				"admin",
-				"settings",
-			})
+			reversedNames, _ := blocklist.New(`
+				admin
+				settings
+			`)
 			n := &UsernameChecker{
 				Config: &config.LoginIDUsernameConfig{
 					BlockReservedUsernames: newTrue(),
 					ExcludedKeywords:       []string{"authgear"},
 					ASCIIOnly:              newTrue(),
 				},
-				ReservedNameChecker: reversedNameChecker,
+				ReservedNames: reversedNames,
 			}
 
 			for _, c := range cases {
