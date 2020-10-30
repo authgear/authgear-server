@@ -10,6 +10,10 @@
                             <li class="error-txt">{{ template "error-login-id-required" (makemap "variant" $.LoginIDType) }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_password" ) }}
                             <li class="error-txt">{{ template "error-password-or-code-required" }}</li>
+                        {{ else if (call $.SliceContains .details.missing "x_old_password" ) }}
+                            <li class="error-txt">{{ template "error-old-password-required" }}</li>
+                        {{ else if (call $.SliceContains .details.missing "x_new_password" ) }}
+                            <li class="error-txt">{{ template "error-new-password-required" }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_confirm_password" ) }}
                             <li class="error-txt">{{ template "error-confirm-password-required" }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_email" ) }}
