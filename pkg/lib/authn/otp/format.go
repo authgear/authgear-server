@@ -15,7 +15,7 @@ type Format struct {
 var (
 	FormatNumeric = &Format{
 		Alphabet: "0123456789",
-		Length:   4,
+		Length:   6,
 	}
 	FormatComplex = &Format{
 		Alphabet: base32.Alphabet,

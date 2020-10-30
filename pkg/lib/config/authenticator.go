@@ -114,7 +114,7 @@ var _ = Schema.Add("AuthenticatorOOBSMSConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"maximum": { "type": "integer" },
-		"code_digits": { "type": "integer", "minimum": 4, "maximum": 8 }
+		"code_digits": { "type": "integer", "minimum": 6, "maximum": 8 }
 	}
 }
 `)
@@ -139,7 +139,7 @@ var _ = Schema.Add("AuthenticatorOOBEmailConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"maximum": { "type": "integer" },
-		"code_digits": { "type": "integer", "minimum": 4, "maximum": 8 }
+		"code_digits": { "type": "integer", "minimum": 6, "maximum": 8 }
 	}
 }
 `)
