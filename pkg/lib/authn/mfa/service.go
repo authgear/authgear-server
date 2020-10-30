@@ -2,6 +2,7 @@ package mfa
 
 import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -20,11 +21,16 @@ type StoreRecoveryCode interface {
 	UpdateConsumed(code *RecoveryCode) error
 }
 
+type RateLimiter interface {
+	TakeToken(bucket ratelimit.Bucket) error
+}
+
 type Service struct {
 	DeviceTokens  StoreDeviceToken
 	RecoveryCodes StoreRecoveryCode
 	Clock         clock.Clock
 	Config        *config.AuthenticationConfig
+	RateLimiter   RateLimiter
 }
 
 func (s *Service) GenerateDeviceToken() string {
@@ -47,7 +53,12 @@ func (s *Service) CreateDeviceToken(userID string, token string) (*DeviceToken, 
 }
 
 func (s *Service) VerifyDeviceToken(userID string, token string) error {
-	_, err := s.DeviceTokens.Get(userID, token)
+	err := s.RateLimiter.TakeToken(DeviceTokenAuthRateLimitBucket(userID))
+	if err != nil {
+		return err
+	}
+
+	_, err = s.DeviceTokens.Get(userID, token)
 	return err
 }
 
@@ -91,10 +102,15 @@ func (s *Service) ReplaceRecoveryCodes(userID string, codes []string) ([]*Recove
 	return codeModels, nil
 }
 
-func (s *Service) GetRecoveryCode(userID string, code string) (*RecoveryCode, error) {
+func (s *Service) VerifyRecoveryCode(userID string, code string) (*RecoveryCode, error) {
 	code, err := NormalizeRecoveryCode(code)
 	if err != nil {
 		err = ErrRecoveryCodeNotFound
+		return nil, err
+	}
+
+	err = s.RateLimiter.TakeToken(RecoveryCodeAuthRateLimitBucket(userID))
+	if err != nil {
 		return nil, err
 	}
 

@@ -267,11 +267,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -287,6 +288,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
