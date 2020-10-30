@@ -1,11 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import Fuse from "fuse.js";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import produce from "immer";
 import {
@@ -35,6 +28,7 @@ import { useTextField } from "../../hook/useInput";
 import OrderButtons, { swap } from "../../OrderButtons";
 import { useGetTelecomCountryName } from "../../util/translations";
 import countryCallingCodeMap from "../../data/countryCodeMap.json";
+import { useExactKeywordSearch } from "../../util/search";
 
 import styles from "./AuthenticationCountryCallingCodeList.module.scss";
 
@@ -56,7 +50,11 @@ interface CountryCallingCodeListItem extends IObjectWithKey {
 
 type CountryCallingCodeListData = Record<
   string,
-  { key: string; countryName: string; callingCode: string }
+  {
+    key: string;
+    countryName: string;
+    callingCode: string;
+  }
 >;
 
 interface CountryCallingCodeListItemCheckboxProps extends ICheckboxProps {
@@ -84,19 +82,6 @@ const HEADER_STYLE = {
     paddingLeft: "15px !important",
   },
 };
-
-// instantiate fuzzy searcher
-const fuseSearcher = new Fuse<
-  Omit<CountryCallingCodeListItem, "selected" | "pinned">
->([], {
-  shouldSort: false,
-  keys: ["countryName", "callingCode"],
-  // lower means more strict (smaller normalized Levenshtein distance)
-  threshold: 0.4,
-  // setting a large distance means location constraint will be
-  // satisfied no matter where the match is located
-  distance: 10000,
-});
 
 function makeCountryCodeListColumns(
   renderToString: (messageId: string) => string
@@ -170,25 +155,20 @@ function constructCallingCodeListData(
 }
 
 function constructCallingCodeListItem(
-  allCountryCallingCodes: string[],
   selectedCountryCallingCodes: Set<string>,
   pinnedCountryCallingCodes: string[],
   callingCodeListData: CountryCallingCodeListData,
-  searchString: string
+  matchedCallingCodes: {
+    key: string;
+    countryName: string;
+    callingCode: string;
+  }[]
 ): CountryCallingCodeListItem[] {
   const pinnedCountryCallingCodeSet = new Set(pinnedCountryCallingCodes);
-  const inputUnpinnedCountryCallingCodes = allCountryCallingCodes.filter(
-    (callingCode) => !pinnedCountryCallingCodeSet.has(callingCode)
-  );
 
-  let rawUnpinnedCodeList: string[] = inputUnpinnedCountryCallingCodes;
-  if (searchString.trim() !== "") {
-    const matchedCallingCodeItems = fuseSearcher.search(searchString);
-    const matchedUnpinnedCodes = matchedCallingCodeItems
-      .filter((item) => !pinnedCountryCallingCodeSet.has(item.callingCode))
-      .map((item) => item.callingCode);
-    rawUnpinnedCodeList = matchedUnpinnedCodes;
-  }
+  const rawUnpinnedCodeList: string[] = matchedCallingCodes
+    .filter((item) => !pinnedCountryCallingCodeSet.has(item.callingCode))
+    .map((item) => item.callingCode);
 
   const unpinnedCodeList = rawUnpinnedCodeList.sort(
     (code1, code2) => Number(code1) - Number(code2)
@@ -343,6 +323,24 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> = function C
     setSearchString(value);
   });
 
+  const countryCallingCodeListData = useMemo(() => {
+    return constructCallingCodeListData(
+      allCountryCallingCodes,
+      getTelecomCountryName
+    );
+  }, [allCountryCallingCodes, getTelecomCountryName]);
+
+  const dataList = useMemo(() => {
+    return allCountryCallingCodes.map(
+      (callingCode) => countryCallingCodeListData[callingCode]
+    );
+  }, [countryCallingCodeListData, allCountryCallingCodes]);
+
+  const { search } = useExactKeywordSearch(dataList, [
+    "callingCode",
+    "countryName",
+  ]);
+
   const countryCodeListColumns = useMemo(
     () => makeCountryCodeListColumns(renderToString),
     [renderToString]
@@ -359,35 +357,20 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> = function C
     return selectedCountryCallingCodes.size === allCountryCallingCodes.length;
   }, [selectedCountryCallingCodes, allCountryCallingCodes]);
 
-  const countryCallingCodeListData = useMemo(() => {
-    return constructCallingCodeListData(
-      allCountryCallingCodes,
-      getTelecomCountryName
-    );
-  }, [allCountryCallingCodes, getTelecomCountryName]);
-
-  // initialize collection for fuzzy search
-  useEffect(() => {
-    const list = allCountryCallingCodes.map(
-      (callingCode) => countryCallingCodeListData[callingCode]
-    );
-    fuseSearcher.setCollection(list);
-  }, [countryCallingCodeListData, allCountryCallingCodes]);
-
   const countryCallingCodeList: CountryCallingCodeListItem[] = useMemo(() => {
+    const matchedCallingCodes = search(searchString);
     return constructCallingCodeListItem(
-      allCountryCallingCodes,
       selectedCountryCallingCodes,
       pinnedCountryCallingCodes,
       countryCallingCodeListData,
-      searchString
+      matchedCallingCodes
     );
   }, [
-    allCountryCallingCodes,
     pinnedCountryCallingCodes,
     selectedCountryCallingCodes,
     countryCallingCodeListData,
     searchString,
+    search,
   ]);
 
   const onCallingCodeSwap = useCallback(
