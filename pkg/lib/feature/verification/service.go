@@ -33,10 +33,6 @@ type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("verification")} }
 
-// TODO(verification): make secondary OOB-OTP authenticators verified,
-//                     doing so now would create circular dependency in
-//                     orphan removal.
-
 type Service struct {
 	Logger     Logger
 	Config     *config.VerificationConfig
