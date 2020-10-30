@@ -43,12 +43,14 @@ function requiredCauseSelector(
   return cause.details.missing.includes(fieldName);
 }
 
+// Single cause can be matched to multiple fields
 function handleValidationErrorCause(
   cause: ValidationFailedErrorInfoCause,
   fields: FieldRegister[],
   matchedCauses: ErrorCausesMap,
   unhandledCauses: ValidationFailedErrorInfoCause[]
 ) {
+  let matched = false;
   for (const field of fields) {
     const isMatch =
       requiredCauseSelector(cause, field.parentJSONPointer, field.fieldName) ||
@@ -57,12 +59,14 @@ function handleValidationErrorCause(
     if (isMatch) {
       matchedCauses[jsonPointerString] = matchedCauses[jsonPointerString] ?? [];
       matchedCauses[jsonPointerString]?.push(cause);
-      return;
+      matched = true;
     }
   }
 
-  // no matching fields
-  unhandledCauses.push(cause);
+  if (!matched) {
+    // no matching fields
+    unhandledCauses.push(cause);
+  }
 }
 
 export function useValidationError(
