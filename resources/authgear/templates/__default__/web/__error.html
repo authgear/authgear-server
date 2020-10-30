@@ -4,8 +4,10 @@
             {{ if eq .Error.reason "ValidationFailed" }}
                 {{ range .Error.info.causes }}
                     {{ if (eq .kind "required") }}
-                        {{ if (call $.SliceContains .details.missing "x_login_id" ) }}
+                        {{ if (and (call $.SliceContains .details.missing "x_login_id" ) ($.LoginPageTextLoginIDVariant)) }}
                             <li class="error-txt">{{ template "error-login-id-required" (makemap "variant" $.LoginPageTextLoginIDVariant) }}</li>
+                        {{ else if (and (call $.SliceContains .details.missing "x_login_id" ) ($.LoginIDType)) }}
+                            <li class="error-txt">{{ template "error-login-id-required" (makemap "variant" $.LoginIDType) }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_password" ) }}
                             <li class="error-txt">{{ template "error-password-or-code-required" }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_confirm_password" ) }}

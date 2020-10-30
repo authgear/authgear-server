@@ -43,6 +43,7 @@ func NewEnterLoginIDViewModel(r *http.Request) EnterLoginIDViewModel {
 }
 
 const RemoveLoginIDRequest = "RemoveLoginIDRequest"
+const AddOrUpdateLoginIDRequest = "AddOrUpdateLoginIDRequest"
 
 var EnterLoginIDSchema = validation.NewMultipartSchema("").
 	Add(RemoveLoginIDRequest, `
@@ -53,6 +54,30 @@ var EnterLoginIDSchema = validation.NewMultipartSchema("").
 				"x_identity_id": { "type": "string" }
 			},
 			"required": ["x_login_id_key", "x_identity_id"]
+		}
+	`).
+	Add(AddOrUpdateLoginIDRequest, `
+		{
+			"type": "object",
+			"properties": {
+				"x_login_id_input_type": { "type": "string" },
+				"x_login_id_key": { "type": "string" },
+				"x_login_id_type": { "type": "string" },
+				"x_login_id": { "type": "string" }
+			},
+			"required": ["x_login_id_input_type", "x_login_id_key", "x_login_id_type"],
+			"allOf": [
+				{
+					"if": {
+						"properties": {
+							"x_login_id_key": { "type": "string", "enum": ["username", "email"] }
+						}
+					},
+					"then": {
+						"required": ["x_login_id"]
+					}
+				}
+			]
 		}
 	`).Instantiate()
 
@@ -201,6 +226,11 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			}
 
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
+				err = EnterLoginIDSchema.PartValidator(AddOrUpdateLoginIDRequest).ValidateValue(FormToJSON(r.Form))
+				if err != nil {
+					return nil, err
+				}
+
 				newLoginID, err := FormToLoginID(r.Form)
 				if err != nil {
 					return nil, err
