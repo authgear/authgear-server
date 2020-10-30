@@ -42,7 +42,6 @@ import styles from "./SingleSignOnConfigurationScreen.module.scss";
 
 interface SingleSignOnConfigurationProps {
   rawAppConfig: PortalAPIAppConfig | null;
-  effectiveAppConfig: PortalAPIAppConfig | null;
   secretConfig: PortalAPISecretConfig | null;
   resetForm: () => void;
 }
@@ -70,10 +69,10 @@ interface WidgetWrapperProps {
 }
 
 function getScreenExtraState(
-  effectiveAppConfig: PortalAPIAppConfig | null
+  appConfig: PortalAPIAppConfig | null
 ): SingleSignOnScreenExtraState {
   const extraState: Partial<SingleSignOnScreenExtraState> = {};
-  const providers = effectiveAppConfig?.identity?.oauth?.providers ?? [];
+  const providers = appConfig?.identity?.oauth?.providers ?? [];
   for (const providerType of oauthSSOProviderTypes) {
     const enabled =
       providers.find((provider) => provider.type === providerType) != null;
@@ -467,7 +466,7 @@ const SingleSignOnConfigurationWidgetWrapper: React.FC<WidgetWrapperProps> = fun
 const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = function SingleSignOnConfiguration(
   props: SingleSignOnConfigurationProps
 ) {
-  const { rawAppConfig, effectiveAppConfig, secretConfig, resetForm } = props;
+  const { rawAppConfig, secretConfig, resetForm } = props;
 
   const { appID } = useParams();
   const {
@@ -478,8 +477,8 @@ const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = func
 
   const initialState: SingleSignOnScreenState = useMemo(() => {
     const initialAppConfigState =
-      effectiveAppConfig != null
-        ? produce(effectiveAppConfig, (draftConfig) => {
+      rawAppConfig != null
+        ? produce(rawAppConfig, (draftConfig) => {
             draftConfig.identity = draftConfig.identity ?? {};
             draftConfig.identity.oauth = draftConfig.identity.oauth ?? {};
             draftConfig.identity.oauth.providers =
@@ -497,9 +496,9 @@ const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = func
     return {
       appConfig: initialAppConfigState,
       secretConfig: initialSecretConfigState,
-      extraState: getScreenExtraState(effectiveAppConfig),
+      extraState: getScreenExtraState(rawAppConfig),
     };
-  }, [effectiveAppConfig, secretConfig]);
+  }, [rawAppConfig, secretConfig]);
 
   const [state, setState] = useState(initialState);
 
@@ -602,7 +601,6 @@ const SingleSignOnConfigurationScreen: React.FC = function SingleSignOnConfigura
   const { appID } = useParams();
   const {
     rawAppConfig,
-    effectiveAppConfig,
     secretConfig,
     loading,
     error,
@@ -641,7 +639,6 @@ const SingleSignOnConfigurationScreen: React.FC = function SingleSignOnConfigura
         <SingleSignOnConfiguration
           key={remountIdentifier}
           rawAppConfig={rawAppConfig}
-          effectiveAppConfig={effectiveAppConfig}
           secretConfig={secretConfig}
           resetForm={resetForm}
         />
