@@ -281,7 +281,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
         <FormTextField
           jsonPointer={`${jsonPointer}/key_id`}
           parentJSONPointer={jsonPointer}
-          fieldName="key-id"
+          fieldName="key_id"
           fieldNameMessageID="SingleSignOnConfigurationScreen.widget.key-id"
           className={styles.textField}
           styles={TEXT_FIELD_STYLE}
