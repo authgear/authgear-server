@@ -1,13 +1,7 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import cn from "classnames";
-import {
-  Toggle,
-  Label,
-  TextField,
-  ITextFieldProps,
-  IToggleProps,
-} from "@fluentui/react";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { Toggle, Label, ITextFieldProps, IToggleProps } from "@fluentui/react";
+import { FormattedMessage } from "@oursky/react-messageformat";
 
 import ExtendableWidget from "../../ExtendableWidget";
 import FormTextField from "../../FormTextField";
@@ -29,6 +23,7 @@ interface SingleSignOnConfigurationWidgetProps {
   className?: string;
 
   jsonPointer: string;
+  clientSecretParentJsonPointer: string | RegExp;
 
   enabled: boolean;
   alias: string;
@@ -161,6 +156,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
   const {
     className,
     jsonPointer,
+    clientSecretParentJsonPointer,
     enabled,
     alias,
     clientID,
@@ -177,7 +173,6 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
     onTeamIDChange,
     serviceProviderType,
   } = props;
-  const { renderToString } = useContext(Context);
 
   const {
     providerType,
@@ -189,6 +184,17 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
   const messageID = "OAuthBranding." + providerType;
 
   const [extended, setExtended] = useState(enabled);
+
+  const clientSecretJSONPointer = useMemo(() => {
+    if (typeof clientSecretParentJsonPointer === "string") {
+      return clientSecretParentJsonPointer
+        ? `${clientSecretParentJsonPointer}/client_secret`
+        : "";
+    }
+    return new RegExp(
+      `${clientSecretParentJsonPointer.source.replace("$", "")}/client_secret$`
+    );
+  }, [clientSecretParentJsonPointer]);
 
   // Always extended when enabled
   // Collapse on disabled
@@ -243,7 +249,11 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
         />
       )}
       {visibleFields.has("client_secret") && (
-        <TextField
+        <FormTextField
+          jsonPointer={clientSecretJSONPointer}
+          parentJSONPointer={clientSecretParentJsonPointer}
+          fieldName="client_secret"
+          fieldNameMessageID="SingleSignOnConfigurationScreen.widget.client-secret"
           className={styles.textField}
           styles={
             isSecretFieldTextArea
@@ -251,9 +261,6 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
               : TEXT_FIELD_STYLE
           }
           multiline={isSecretFieldTextArea}
-          label={renderToString(
-            "SingleSignOnConfigurationScreen.widget.client-secret"
-          )}
           value={clientSecret}
           onChange={onClientSecretChange}
         />
@@ -274,7 +281,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
         <FormTextField
           jsonPointer={`${jsonPointer}/key_id`}
           parentJSONPointer={jsonPointer}
-          fieldName="key-id"
+          fieldName="key_id"
           fieldNameMessageID="SingleSignOnConfigurationScreen.widget.key-id"
           className={styles.textField}
           styles={TEXT_FIELD_STYLE}
