@@ -12,7 +12,6 @@ import deepEqual from "deep-equal";
 import { useAppConfigQuery } from "../portal/query/appConfigQuery";
 import { useUserQuery } from "./query/userQuery";
 import { UserQuery_node_User } from "./query/__generated__/UserQuery";
-import UserDetailCommandBar from "./UserDetailCommandBar";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import PasswordField, {
@@ -256,7 +255,6 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
 
   return (
     <div className={styles.root}>
-      <UserDetailCommandBar />
       <ModifiedIndicatorWrapper className={styles.wrapper}>
         <NavBreadcrumb items={navBreadcrumbItems} />
         <AddUsernameForm

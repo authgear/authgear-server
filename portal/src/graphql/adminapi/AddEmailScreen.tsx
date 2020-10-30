@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import deepEqual from "deep-equal";
 import { FormattedMessage } from "@oursky/react-messageformat";
 
-import UserDetailCommandBar from "./UserDetailCommandBar";
 import {
   ModifiedIndicatorPortal,
   ModifiedIndicatorWrapper,
@@ -154,7 +153,6 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
 
   return (
     <div className={styles.root}>
-      <UserDetailCommandBar />
       <ModifiedIndicatorWrapper>
         <NavBreadcrumb
           className={styles.breadcrumb}

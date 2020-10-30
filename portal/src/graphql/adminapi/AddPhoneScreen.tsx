@@ -19,7 +19,6 @@ import {
 } from "../../ModifiedIndicatorPortal";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-import UserDetailCommandBar from "./UserDetailCommandBar";
 import FormTextField from "../../FormTextField";
 import { useDropdown, useIntegerTextField } from "../../hook/useInput";
 import { useAppConfigQuery } from "../portal/query/appConfigQuery";
@@ -223,7 +222,6 @@ const AddPhoneScreen: React.FC = function AddPhoneScreen() {
 
   return (
     <div className={styles.root}>
-      <UserDetailCommandBar />
       <ModifiedIndicatorWrapper className={styles.content}>
         <NavBreadcrumb items={navBreadcrumbItems} />
         <AddPhoneForm
