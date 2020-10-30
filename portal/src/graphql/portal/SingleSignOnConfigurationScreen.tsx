@@ -211,7 +211,7 @@ function onProviderToggled(
     }
     const index = secret.data.items.findIndex((item) => item.alias === alias);
     if (index >= 0) {
-      secret.data.items.slice(index, 1);
+      secret.data.items.splice(index, 1);
     }
   }
 
