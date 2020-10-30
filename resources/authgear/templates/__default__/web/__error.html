@@ -33,6 +33,8 @@
                         {{ end }}
                     {{ else if (eq .kind "maxLength") }}
                         <li class="error-txt">{{ template "error-max-length" (makemap "expected" .details.expected) }}</li>
+                    {{ else if (eq .kind "general") }}
+                        <li class="error-txt">{{ .details.msg }}</li>
                     {{ else }}
                         <li class="error-txt">{{ . }}</li>
                     {{ end }}
