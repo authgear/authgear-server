@@ -26,7 +26,7 @@ func (e *EdgeConsumeRecoveryCode) Instantiate(ctx *interaction.Context, graph *i
 	userID := graph.MustGetUserID()
 	recoveryCode := input.GetRecoveryCode()
 
-	rc, err := ctx.MFA.GetRecoveryCode(userID, recoveryCode)
+	rc, err := ctx.MFA.VerifyRecoveryCode(userID, recoveryCode)
 	if errors.Is(err, mfa.ErrRecoveryCodeNotFound) {
 		return &NodeAuthenticationEnd{
 			Stage:  interaction.AuthenticationStageSecondary,

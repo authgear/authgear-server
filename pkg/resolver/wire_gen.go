@@ -289,11 +289,12 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clock,
-		CodeStore:  verificationStoreRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clock,
+		CodeStore:   verificationStoreRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -309,6 +310,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -423,12 +425,23 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
 	verificationService := &verification.Service{
-		Logger:     logger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      logger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	resolveHandlerLogger := handler.NewResolveHandlerLogger(factory)
 	resolveHandler := &handler.ResolveHandler{

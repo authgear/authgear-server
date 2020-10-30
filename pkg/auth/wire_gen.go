@@ -242,11 +242,12 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -262,6 +263,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -719,11 +721,12 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  verificationStoreRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   verificationStoreRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -739,6 +742,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -1204,11 +1208,12 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -1224,6 +1229,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -1422,11 +1428,12 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -1442,6 +1449,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -1733,11 +1741,12 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -1753,6 +1762,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -2175,11 +2185,12 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -2195,6 +2206,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -2617,11 +2629,12 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -2637,6 +2650,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -3023,11 +3037,12 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -3043,6 +3058,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -3476,11 +3492,12 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -3496,6 +3513,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -3910,11 +3928,12 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -3930,6 +3949,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -4344,11 +4364,12 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -4364,6 +4385,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -4779,11 +4801,12 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -4799,6 +4822,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -5215,11 +5239,12 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -5235,6 +5260,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -5649,11 +5675,12 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -5669,6 +5696,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -6083,11 +6111,12 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -6103,6 +6132,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -6517,11 +6547,12 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -6537,6 +6568,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -6951,11 +6983,12 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -6971,6 +7004,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -7385,11 +7419,12 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -7405,6 +7440,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -7819,11 +7855,12 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -7839,6 +7876,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -8257,11 +8295,12 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -8277,6 +8316,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -8692,11 +8732,12 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -8712,6 +8753,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -9126,11 +9168,12 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -9146,6 +9189,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -9561,11 +9605,12 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -9581,6 +9626,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -9995,11 +10041,12 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -10015,6 +10062,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -10432,11 +10480,12 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -10452,6 +10501,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -10870,11 +10920,12 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -10890,6 +10941,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -11307,11 +11359,12 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -11327,6 +11380,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -11744,11 +11798,12 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -11764,6 +11819,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -12182,11 +12238,12 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -12202,6 +12259,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -12617,11 +12675,12 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -12637,6 +12696,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -13019,11 +13079,12 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -13039,6 +13100,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -13343,11 +13405,12 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -13363,6 +13426,7 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -13764,11 +13828,12 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: redisHandle,
@@ -13784,6 +13849,7 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -14391,11 +14457,12 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  verificationStoreRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   verificationStoreRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -14411,6 +14478,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,
@@ -14598,11 +14666,12 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Logger:     verificationLogger,
-		Config:     verificationConfig,
-		Clock:      clockClock,
-		CodeStore:  storeRedis,
-		ClaimStore: storePQ,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -14618,6 +14687,7 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
 		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:     serviceService,

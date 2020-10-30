@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
@@ -29,16 +30,21 @@ type ClaimStore interface {
 	Delete(id string) error
 }
 
+type RateLimiter interface {
+	TakeToken(bucket ratelimit.Bucket) error
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("verification")} }
 
 type Service struct {
-	Logger     Logger
-	Config     *config.VerificationConfig
-	Clock      clock.Clock
-	CodeStore  CodeStore
-	ClaimStore ClaimStore
+	Logger      Logger
+	Config      *config.VerificationConfig
+	Clock       clock.Clock
+	CodeStore   CodeStore
+	ClaimStore  ClaimStore
+	RateLimiter RateLimiter
 }
 
 func (s *Service) claimVerificationConfig(claimName string) *config.VerificationClaimConfig {
@@ -234,6 +240,11 @@ func (s *Service) VerifyCode(id string, code string) (*Code, error) {
 	if errors.Is(err, ErrCodeNotFound) {
 		return nil, ErrInvalidVerificationCode
 	} else if err != nil {
+		return nil, err
+	}
+
+	err = s.RateLimiter.TakeToken(VerifyRateLimitBucket(codeModel.UserID))
+	if err != nil {
 		return nil, err
 	}
 
