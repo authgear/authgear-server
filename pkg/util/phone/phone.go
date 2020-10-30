@@ -16,19 +16,6 @@ var ErrNotInE164Format = errors.New("not in E.164 format")
 // ErrPhoneNumberInvalid means phone number doesn't pass validation
 var ErrPhoneNumberInvalid = errors.New("invalid phone number")
 
-// EnsureE164 ensures the given phone is in E.164 format.
-func EnsureE164(phone string) error {
-	num, err := phonenumbers.Parse(phone, "")
-	if err != nil {
-		return err
-	}
-	formatted := phonenumbers.Format(num, phonenumbers.E164)
-	if formatted != phone {
-		return ErrNotInE164Format
-	}
-	return nil
-}
-
 func combineCallingCodeWithNumber(nationalNumber string, callingCode string) string {
 	nationalNumber = strings.TrimSpace(nationalNumber)
 	callingCode = strings.TrimSpace(callingCode)
@@ -40,17 +27,16 @@ func combineCallingCodeWithNumber(nationalNumber string, callingCode string) str
 
 // According to https://godoc.org/github.com/nyaruka/phonenumbers#Parse,
 // no validation is performed during parsing, so we need to call IsValidNumber to check
-func Parse(nationalNumber string, callingCode string) (e164 string, err error) {
-	rawInput := combineCallingCodeWithNumber(nationalNumber, callingCode)
-	// check if rawInput contains non-numeric character(s)
+func ParseCombinedPhoneNumber(phone string) (e164 string, err error) {
+	// check if input contains non-numeric character(s)
 	// The nationalNumber part of phone is parsed to uint64,
 	// letters in input phone number will be parsed successfully.
-	isNumericString, _ := regexp.Match(`^\+[0-9\ \-]*$`, []byte(rawInput))
+	isNumericString, _ := regexp.Match(`^\+[0-9\ \-]*$`, []byte(phone))
 	if !isNumericString {
 		err = ErrNotInE164Format
 		return
 	}
-	num, err := phonenumbers.Parse(rawInput, "")
+	num, err := phonenumbers.Parse(phone, "")
 	if err != nil {
 		return
 	}
@@ -61,6 +47,25 @@ func Parse(nationalNumber string, callingCode string) (e164 string, err error) {
 	}
 	e164 = phonenumbers.Format(num, phonenumbers.E164)
 	return
+}
+
+// Parse to E164 format
+func Parse(nationalNumber string, callingCode string) (e164 string, err error) {
+	rawInput := combineCallingCodeWithNumber(nationalNumber, callingCode)
+	e164, err = ParseCombinedPhoneNumber(rawInput)
+	return
+}
+
+// EnsureE164 ensures the given phone is in E.164 format.
+func EnsureE164(phone string) error {
+	formatted, err := ParseCombinedPhoneNumber(phone)
+	if err != nil {
+		return err
+	}
+	if formatted != phone {
+		return ErrNotInE164Format
+	}
+	return nil
 }
 
 // Mask masks the give phone number.

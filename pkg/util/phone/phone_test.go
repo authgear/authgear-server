@@ -8,12 +8,19 @@ import (
 
 func TestPhone(t *testing.T) {
 	Convey("Phone", t, func() {
+		// EnsureE164 uses same validation logic as Parse
 		Convey("EnsureE164", func() {
 			good := "+85223456789"
 			So(EnsureE164(good), ShouldBeNil)
 
 			bad := " +85223456789 "
 			So(EnsureE164(bad), ShouldBeError, "not in E.164 format")
+
+			withLetter := "+85222a"
+			So(EnsureE164(withLetter), ShouldBeError, "not in E.164 format")
+
+			tooShort := "+85222"
+			So(EnsureE164(tooShort), ShouldBeError, "invalid phone number")
 
 			nonsense := "a"
 			So(EnsureE164(nonsense), ShouldNotBeNil)
