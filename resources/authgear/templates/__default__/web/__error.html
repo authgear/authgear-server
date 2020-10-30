@@ -54,6 +54,8 @@
                 {{ end }}
             {{ else if eq .Error.reason "WebUIInvalidState" }}
                 <li class="error-txt">{{ template "error-web-ui-invalid-state" }}</li>
+            {{ else if eq .Error.reason "WebUIInvalidUserAgentToken" }}
+                <li class="error-txt">{{ template "error-web-ui-invalid-user-agent-token" }}</li>
             {{ else if eq .Error.reason "RateLimited" }}
                 <li class="error-txt">{{ template "error-rate-limited" }}</li>
             {{ else }}

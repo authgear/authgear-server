@@ -8,12 +8,9 @@ import (
 
 	goredis "github.com/gomodule/redigo/redis"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 )
-
-var ErrInvalidState = apierrors.Invalid.WithReason("WebUIInvalidState").New("the claimed session is invalid")
 
 type RedisStore struct {
 	AppID config.AppID

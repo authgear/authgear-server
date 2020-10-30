@@ -86,7 +86,8 @@ func (s *Service) GetState(stateID string) (*State, error) {
 		return nil, err
 	}
 	if state.UserAgentToken != s.getUserAgentToken() {
-		return nil, ErrInvalidState
+		// Include state because some caller GetIntent may want to recover from error.
+		return state, ErrInvalidUserAgentToken
 	}
 	return state, nil
 }
@@ -96,9 +97,18 @@ func (s *Service) GetIntent(intent *Intent) (state *State, graph *interaction.Gr
 	if intent.OldStateID != "" {
 		var oldState *State
 		oldState, err = s.GetState(intent.OldStateID)
-		if err != nil {
+		// If there is an error in the first operation of the interaction,
+		// We will create a state for storing the error.
+		// When the user retry, we will generate a new user agent token.
+		// At this moment, when the user clicks the back button,
+		// We will try to access the previous state, which expects the previous user agent token.
+		// This would result in invalid user agent token.
+		//
+		// We try to detect this case and ignore the error.
+		if err != nil && !errors.Is(err, ErrInvalidUserAgentToken) {
 			return
 		}
+		err = nil
 
 		state.RestoreFrom(oldState)
 	}
