@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
+import { Text } from "@fluentui/react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import deepEqual from "deep-equal";
@@ -35,6 +36,7 @@ import { useGenericError } from "../../error/useGenericError";
 import { nonNullable } from "../../util/types";
 import { AuthenticatorType } from "./__generated__/globalTypes";
 import { PortalAPIAppConfig } from "../../types";
+import { canCreateLoginIDIdentity } from "../../util/loginID";
 
 import styles from "./AddUsernameScreen.module.scss";
 
@@ -166,6 +168,14 @@ const AddUsernameForm: React.FC<AddUsernameFormProps> = function AddUsernameForm
     },
     ...passwordFieldErrorRules,
   ]);
+
+  if (!canCreateLoginIDIdentity(appConfig)) {
+    return (
+      <Text className={styles.helpText}>
+        <FormattedMessage id="CreateIdentity.require-login-id" />
+      </Text>
+    );
+  }
 
   return (
     <FormContext.Provider value={formContextValue}>

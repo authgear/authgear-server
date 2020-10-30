@@ -3,16 +3,21 @@
   min-height: 100%;
 }
 
-.breadcrumb {
-  margin: 0 25px;
-  padding-top: 20px;
+.wrapper {
+  padding: 10px 20px 40px;
+}
+
+.helpText {
+  display: block;
+  margin: 10px 20px;
+  font-size: 15px;
 }
 
 .content {
-  margin: 0 35px 30px;
+  margin: 0 20px;
 }
 
 .emailField {
   width: 320px;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }

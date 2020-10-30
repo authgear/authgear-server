@@ -6,7 +6,7 @@ import React, {
   useState,
 } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Dropdown, Label } from "@fluentui/react";
+import { Dropdown, Label, Text } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
@@ -29,6 +29,7 @@ import { useGenericError } from "../../error/useGenericError";
 import ShowUnhandledValidationErrorCause from "../../error/ShowUnhandledValidationErrorCauses";
 import { FormContext } from "../../error/FormContext";
 import { getActiveCountryCallingCode } from "../../util/countryCallingCode";
+import { canCreateLoginIDIdentity } from "../../util/loginID";
 
 import styles from "./AddPhoneScreen.module.scss";
 
@@ -145,6 +146,14 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
       errorMessageID: "AddPhoneScreen.error.duplicated-phone-number",
     },
   ]);
+
+  if (!canCreateLoginIDIdentity(appConfig)) {
+    return (
+      <Text className={styles.helpText}>
+        <FormattedMessage id="CreateIdentity.require-login-id" />
+      </Text>
+    );
+  }
 
   return (
     <FormContext.Provider value={formContextValue}>

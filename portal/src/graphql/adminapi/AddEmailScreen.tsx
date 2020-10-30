@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Text } from "@fluentui/react";
 import { useNavigate, useParams } from "react-router-dom";
 import deepEqual from "deep-equal";
 import { FormattedMessage } from "@oursky/react-messageformat";
@@ -12,16 +13,21 @@ import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ShowError from "../../ShowError";
 import FormTextField from "../../FormTextField";
+import ShowLoading from "../../ShowLoading";
 import ShowUnhandledValidationErrorCause from "../../error/ShowUnhandledValidationErrorCauses";
+import { useAppConfigQuery } from "../portal/query/appConfigQuery";
 import { useCreateLoginIDIdentityMutation } from "./mutations/createIdentityMutation";
 import { useTextField } from "../../hook/useInput";
 import { FormContext } from "../../error/FormContext";
 import { useValidationError } from "../../error/useValidationError";
 import { useGenericError } from "../../error/useGenericError";
+import { PortalAPIAppConfig } from "../../types";
+import { canCreateLoginIDIdentity } from "../../util/loginID";
 
 import styles from "./AddEmailScreen.module.scss";
 
 interface AddEmailFormProps {
+  appConfig: PortalAPIAppConfig | null;
   resetForm: () => void;
 }
 
@@ -32,7 +38,7 @@ interface AddEmailFormData {
 const AddEmailForm: React.FC<AddEmailFormProps> = function AddEmailForm(
   props: AddEmailFormProps
 ) {
-  const { resetForm } = props;
+  const { resetForm, appConfig } = props;
   const { userID } = useParams();
   const navigate = useNavigate();
 
@@ -100,6 +106,14 @@ const AddEmailForm: React.FC<AddEmailFormProps> = function AddEmailForm(
     },
   ]);
 
+  if (!canCreateLoginIDIdentity(appConfig)) {
+    return (
+      <Text className={styles.helpText}>
+        <FormattedMessage id="CreateIdentity.require-login-id" />
+      </Text>
+    );
+  }
+
   return (
     <FormContext.Provider value={formContextValue}>
       <form className={styles.content} onSubmit={onFormSubmit}>
@@ -138,6 +152,11 @@ const AddEmailForm: React.FC<AddEmailFormProps> = function AddEmailForm(
 };
 
 const AddEmailScreen: React.FC = function AddEmailScreen() {
+  const { appID } = useParams();
+  const { effectiveAppConfig, loading, error, refetch } = useAppConfigQuery(
+    appID
+  );
+
   const navBreadcrumbItems = useMemo(() => {
     return [
       { to: "../../..", label: <FormattedMessage id="UsersScreen.title" /> },
@@ -151,14 +170,23 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
     setRemountIdentifier((prev) => prev + 1);
   }, []);
 
+  if (loading) {
+    return <ShowLoading />;
+  }
+
+  if (error != null) {
+    return <ShowError error={error} onRetry={refetch} />;
+  }
+
   return (
     <div className={styles.root}>
-      <ModifiedIndicatorWrapper>
-        <NavBreadcrumb
-          className={styles.breadcrumb}
-          items={navBreadcrumbItems}
+      <ModifiedIndicatorWrapper className={styles.wrapper}>
+        <NavBreadcrumb items={navBreadcrumbItems} />
+        <AddEmailForm
+          key={remountIdentifier}
+          appConfig={effectiveAppConfig}
+          resetForm={resetForm}
         />
-        <AddEmailForm key={remountIdentifier} resetForm={resetForm} />
       </ModifiedIndicatorWrapper>
     </div>
   );
