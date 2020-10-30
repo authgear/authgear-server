@@ -58,7 +58,13 @@ function handleValidationErrorCause(
     const jsonPointerString = String(field.jsonPointer);
     if (isMatch) {
       matchedCauses[jsonPointerString] = matchedCauses[jsonPointerString] ?? [];
-      matchedCauses[jsonPointerString]?.push(cause);
+      if (
+        !matchedCauses[jsonPointerString]?.some(
+          (matchedCause) => matchedCause.location === cause.location
+        )
+      ) {
+        matchedCauses[jsonPointerString]?.push(cause);
+      }
       matched = true;
     }
   }
