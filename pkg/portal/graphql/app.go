@@ -147,9 +147,10 @@ var nodeApp = node(
 	&model.App{},
 	func(ctx context.Context, id string) (interface{}, error) {
 		gqlCtx := GQLContext(ctx)
+		// return nil without error for both inaccessible / not found apps
 		_, err := gqlCtx.AuthzService.CheckAccessOfViewer(id)
 		if err != nil {
-			return nil, err
+			return nil, nil
 		}
 		return gqlCtx.Apps.Load(id).Value, nil
 	},
