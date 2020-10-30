@@ -32,6 +32,7 @@ func TestBlocklist(t *testing.T) {
 			So(list.IsBlocked("test"), ShouldBeFalse)
 			So(list.IsBlocked("admin"), ShouldBeFalse)
 			So(list.IsBlocked("adm1n"), ShouldBeTrue)
+			So(list.IsBlocked("adm1n1"), ShouldBeFalse)
 			So(list.IsBlocked("www"), ShouldBeTrue)
 			So(list.IsBlocked("www01"), ShouldBeFalse)
 			So(list.IsBlocked("www02"), ShouldBeTrue)

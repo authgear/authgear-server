@@ -50,7 +50,7 @@ func New(data string) (*Blocklist, error) {
 			e.pattern = pattern
 		} else {
 			// Plain text pattern
-			e.pattern = regexp.MustCompile(regexp.QuoteMeta(line))
+			e.pattern = regexp.MustCompile("^" + regexp.QuoteMeta(line) + "$")
 		}
 
 		entries = append(entries, e)
