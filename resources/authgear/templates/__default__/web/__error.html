@@ -4,10 +4,16 @@
             {{ if eq .Error.reason "ValidationFailed" }}
                 {{ range .Error.info.causes }}
                     {{ if (eq .kind "required") }}
-                        {{ if (call $.SliceContains .details.missing "x_login_id" ) }}
+                        {{ if (and (call $.SliceContains .details.missing "x_login_id" ) ($.LoginPageTextLoginIDVariant)) }}
                             <li class="error-txt">{{ template "error-login-id-required" (makemap "variant" $.LoginPageTextLoginIDVariant) }}</li>
+                        {{ else if (and (call $.SliceContains .details.missing "x_login_id" ) ($.LoginIDType)) }}
+                            <li class="error-txt">{{ template "error-login-id-required" (makemap "variant" $.LoginIDType) }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_password" ) }}
                             <li class="error-txt">{{ template "error-password-or-code-required" }}</li>
+                        {{ else if (call $.SliceContains .details.missing "x_confirm_password" ) }}
+                            <li class="error-txt">{{ template "error-confirm-password-required" }}</li>
+                        {{ else if (call $.SliceContains .details.missing "x_email" ) }}
+                            <li class="error-txt">{{ template "error-email-required" }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_calling_code" ) }}
                             <li class="error-txt">{{ template "error-calling-code-required" }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_national_number" ) }}
@@ -25,6 +31,10 @@
                         {{ else }}
                             <li class="error-txt">{{ . }}</li>
                         {{ end }}
+                    {{ else if (eq .kind "maxLength") }}
+                        <li class="error-txt">{{ template "error-max-length" (makemap "expected" .details.expected) }}</li>
+                    {{ else if (eq .kind "general") }}
+                        <li class="error-txt">{{ .details.msg }}</li>
                     {{ else }}
                         <li class="error-txt">{{ . }}</li>
                     {{ end }}
