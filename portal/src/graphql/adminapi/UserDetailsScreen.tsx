@@ -7,7 +7,7 @@ import { useAppConfigQuery } from "../portal/query/appConfigQuery";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-import UserDetailCommandBar from "./UserDetailCommandBar";
+// import UserDetailCommandBar from "./UserDetailCommandBar";
 import { ModifiedIndicatorWrapper } from "../../ModifiedIndicatorPortal";
 import UserDetailSummary from "./UserDetailSummary";
 import UserDetailsAccountSecurity from "./UserDetailsAccountSecurity";
@@ -141,7 +141,9 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
 
   return (
     <main className={styles.root}>
-      <UserDetailCommandBar />
+      {/* TODO: implement actions in command bar
+        <UserDetailCommandBar />
+      */}
       <ModifiedIndicatorWrapper className={styles.screenContent}>
         <NavBreadcrumb items={navBreadcrumbItems} />
         <UserDetails
