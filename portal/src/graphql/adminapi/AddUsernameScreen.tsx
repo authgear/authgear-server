@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
+import { Text } from "@fluentui/react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import deepEqual from "deep-equal";
@@ -12,7 +13,6 @@ import deepEqual from "deep-equal";
 import { useAppConfigQuery } from "../portal/query/appConfigQuery";
 import { useUserQuery } from "./query/userQuery";
 import { UserQuery_node_User } from "./query/__generated__/UserQuery";
-import UserDetailCommandBar from "./UserDetailCommandBar";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import PasswordField, {
@@ -36,6 +36,7 @@ import { useGenericError } from "../../error/useGenericError";
 import { nonNullable } from "../../util/types";
 import { AuthenticatorType } from "./__generated__/globalTypes";
 import { PortalAPIAppConfig } from "../../types";
+import { canCreateLoginIDIdentity } from "../../util/loginID";
 
 import styles from "./AddUsernameScreen.module.scss";
 
@@ -168,6 +169,14 @@ const AddUsernameForm: React.FC<AddUsernameFormProps> = function AddUsernameForm
     ...passwordFieldErrorRules,
   ]);
 
+  if (!canCreateLoginIDIdentity(appConfig)) {
+    return (
+      <Text className={styles.helpText}>
+        <FormattedMessage id="CreateIdentity.require-login-id" />
+      </Text>
+    );
+  }
+
   return (
     <FormContext.Provider value={formContextValue}>
       <form className={styles.content} onSubmit={onFormSubmit}>
@@ -256,7 +265,6 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
 
   return (
     <div className={styles.root}>
-      <UserDetailCommandBar />
       <ModifiedIndicatorWrapper className={styles.wrapper}>
         <NavBreadcrumb items={navBreadcrumbItems} />
         <AddUsernameForm

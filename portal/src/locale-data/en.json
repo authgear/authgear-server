@@ -152,6 +152,8 @@
   "UserDetails.connected-identities.remove-identity-error.connot-remove-last": "Cannot remove last identity",
   "UserDetails.connected-identities.verify-identity-error.generic": "Failed to set verified status of identity claim",
 
+  "CreateIdentity.require-login-id": "You need to add \"login_id\" to identities list in authgear config",
+
   "AddEmailScreen.title": "Add Email",
   "AddEmailScreen.email.label": "Email",
   "AddEmailScreen.error.duplicated-email": "Email already exist",
