@@ -242,8 +242,10 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -335,8 +337,10 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clock,
 		URLs:           webappURLProvider,
@@ -721,8 +725,10 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   verificationStoreRedis,
 		ClaimStore:  storePQ,
@@ -821,8 +827,10 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -1208,8 +1216,10 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -1428,8 +1438,10 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -1741,8 +1753,10 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -1822,8 +1836,10 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -2185,8 +2201,10 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -2266,8 +2284,10 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -2629,8 +2649,10 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -2710,8 +2732,10 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -3037,8 +3061,10 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -3137,8 +3163,10 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -3492,8 +3520,10 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -3573,8 +3603,10 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -3928,8 +3960,10 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -4009,8 +4043,10 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -4364,8 +4400,10 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -4445,8 +4483,10 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -4801,8 +4841,10 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -4882,8 +4924,10 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -5239,8 +5283,10 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -5320,8 +5366,10 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -5675,8 +5723,10 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -5756,8 +5806,10 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -6111,8 +6163,10 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -6192,8 +6246,10 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -6547,8 +6603,10 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -6628,8 +6686,10 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -6983,8 +7043,10 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -7064,8 +7126,10 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -7419,8 +7483,10 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -7500,8 +7566,10 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -7855,8 +7923,10 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -7936,8 +8006,10 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -8295,8 +8367,10 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -8376,8 +8450,10 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -8732,8 +8808,10 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -8813,8 +8891,10 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -9168,8 +9248,10 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -9249,8 +9331,10 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -9605,8 +9689,10 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -9686,8 +9772,10 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -10041,8 +10129,10 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -10122,8 +10212,10 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -10480,8 +10572,10 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -10561,8 +10655,10 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -10920,8 +11016,10 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -11001,8 +11099,10 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -11359,8 +11459,10 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -11440,8 +11542,10 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -11798,8 +11902,10 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -11879,8 +11985,10 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -12238,8 +12346,10 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -12319,8 +12429,10 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -12675,8 +12787,10 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -12756,8 +12870,10 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -13079,8 +13195,10 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -13405,8 +13523,10 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -13505,8 +13625,10 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -13828,8 +13950,10 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -13928,8 +14052,10 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,
@@ -14457,8 +14583,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   verificationStoreRedis,
 		ClaimStore:  storePQ,
@@ -14666,8 +14794,10 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -14766,8 +14896,10 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           urlProvider,

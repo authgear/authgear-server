@@ -1,4 +1,4 @@
-package verification
+package forgotpassword
 
 import (
 	"fmt"
@@ -9,17 +9,17 @@ import (
 
 // TODO(rate-limit): allow configuration of bucket size & reset period
 
-func GenerateRateLimitBucket(userID string) ratelimit.Bucket {
+func GenerateRateLimitBucket(loginID string) ratelimit.Bucket {
 	return ratelimit.Bucket{
-		Key:         fmt.Sprintf("verification-generate-code:%s", userID),
+		Key:         fmt.Sprintf("reset-password-generate-code:%s", loginID),
 		Size:        10,
 		ResetPeriod: 1 * time.Minute,
 	}
 }
 
-func VerifyRateLimitBucket(ip string) ratelimit.Bucket {
+func VerifyIPRateLimitBucket(ip string) ratelimit.Bucket {
 	return ratelimit.Bucket{
-		Key:         fmt.Sprintf("verification-verify-code:%s", ip),
+		Key:         fmt.Sprintf("reset-password-verify-ip:%s", ip),
 		Size:        10,
 		ResetPeriod: 1 * time.Minute,
 	}

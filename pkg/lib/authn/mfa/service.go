@@ -103,14 +103,14 @@ func (s *Service) ReplaceRecoveryCodes(userID string, codes []string) ([]*Recove
 }
 
 func (s *Service) VerifyRecoveryCode(userID string, code string) (*RecoveryCode, error) {
-	code, err := NormalizeRecoveryCode(code)
+	err := s.RateLimiter.TakeToken(RecoveryCodeAuthRateLimitBucket(userID))
 	if err != nil {
-		err = ErrRecoveryCodeNotFound
 		return nil, err
 	}
 
-	err = s.RateLimiter.TakeToken(RecoveryCodeAuthRateLimitBucket(userID))
+	code, err = NormalizeRecoveryCode(code)
 	if err != nil {
+		err = ErrRecoveryCodeNotFound
 		return nil, err
 	}
 
