@@ -255,24 +255,16 @@ func (k *Kubernetes) newController(
 		}
 	}
 
-	fifo := cache.NewDeltaFIFOWithOptions(cache.DeltaFIFOOptions{
-		KeyFunction: cache.MetaNamespaceKeyFunc,
-	})
-	ctrl := cache.New(&cache.Config{
-		Queue:         fifo,
-		ListerWatcher: listWatch,
-		ObjectType:    objType,
-
-		Process: func(obj interface{}) error {
-			for _, d := range obj.(cache.Deltas) {
-				switch d.Type {
-				case cache.Sync, cache.Added, cache.Updated:
-					k.onUpdate(d.Object.(metav1.Object))
-				case cache.Deleted:
-					k.onDelete(d.Object.(metav1.Object))
-				}
-			}
-			return nil
+	// We use Informer because FIFODelta does not fire Deleted event.
+	_, ctrl := cache.NewInformer(listWatch, objType, time.Hour, cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			k.onUpdate(obj.(metav1.Object))
+		},
+		UpdateFunc: func(old, obj interface{}) {
+			k.onUpdate(obj.(metav1.Object))
+		},
+		DeleteFunc: func(obj interface{}) {
+			k.onDelete(obj.(metav1.Object))
 		},
 	})
 	return ctrl
