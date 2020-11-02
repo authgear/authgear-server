@@ -5,12 +5,14 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -78,10 +80,16 @@ func (h *VerifyIdentityHandler) GetData(r *http.Request, state *webapp.State, gr
 	}
 	var n VerifyIdentityNode
 	if graph.FindLastNode(&n) {
-		viewModel.IdentityDisplayID = n.GetVerificationIdentity().DisplayID()
+		rawIdentityDisplayID := n.GetVerificationIdentity().DisplayID()
 		viewModel.VerificationCodeSendCooldown = n.GetVerificationCodeSendCooldown()
 		viewModel.VerificationCodeLength = n.GetVerificationCodeLength()
 		viewModel.VerificationCodeChannel = n.GetVerificationCodeChannel()
+		switch authn.AuthenticatorOOBChannel(viewModel.VerificationCodeChannel) {
+		case authn.AuthenticatorOOBChannelSMS:
+			viewModel.IdentityDisplayID = phone.Mask(rawIdentityDisplayID)
+		default:
+			viewModel.IdentityDisplayID = rawIdentityDisplayID
+		}
 	}
 
 	viewmodels.Embed(data, baseViewModel)
