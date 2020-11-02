@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
@@ -87,6 +88,8 @@ func (h *VerifyIdentityHandler) GetData(r *http.Request, state *webapp.State, gr
 		switch authn.AuthenticatorOOBChannel(viewModel.VerificationCodeChannel) {
 		case authn.AuthenticatorOOBChannelSMS:
 			viewModel.IdentityDisplayID = phone.Mask(rawIdentityDisplayID)
+		case authn.AuthenticatorOOBChannelEmail:
+			viewModel.IdentityDisplayID = mail.MaskAddress(rawIdentityDisplayID)
 		default:
 			viewModel.IdentityDisplayID = rawIdentityDisplayID
 		}
