@@ -8,7 +8,6 @@ var _ = Schema.Add("SessionConfig", `
 		"lifetime_seconds": { "$ref": "#/$defs/DurationSeconds" },
 		"idle_timeout_enabled": { "type": "boolean" },
 		"idle_timeout_seconds": { "$ref": "#/$defs/DurationSeconds" },
-		"cookie_domain": { "type": "string" },
 		"cookie_non_persistent": { "type": "boolean" }
 	}
 }
@@ -18,7 +17,6 @@ type SessionConfig struct {
 	Lifetime            DurationSeconds `json:"lifetime_seconds,omitempty"`
 	IdleTimeoutEnabled  bool            `json:"idle_timeout_enabled,omitempty"`
 	IdleTimeout         DurationSeconds `json:"idle_timeout_seconds,omitempty"`
-	CookieDomain        *string         `json:"cookie_domain,omitempty"`
 	CookieNonPersistent bool            `json:"cookie_non_persistent,omitempty"`
 }
 

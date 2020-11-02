@@ -14224,7 +14224,7 @@ func newCSRFMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	trustProxy := environmentConfig.TrustProxy
 	csrfMiddleware := &webapp.CSRFMiddleware{
 		Secret:     csrfKeyMaterials,
-		Cookie:     csrfCookieDef,
+		CookieDef:  csrfCookieDef,
 		TrustProxy: trustProxy,
 	}
 	return csrfMiddleware

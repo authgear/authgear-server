@@ -20,5 +20,9 @@ func NewUATokenCookieDef(httpCfg *config.HTTPConfig) CookieDef {
 		MaxAge:            nil,                   // Use HTTP session cookie; expires when browser closes
 	}
 
+	if httpCfg.CookieDomain != nil {
+		def.Domain = *httpCfg.CookieDomain
+	}
+
 	return CookieDef{Def: def}
 }

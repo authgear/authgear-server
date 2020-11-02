@@ -31,8 +31,8 @@ func NewSessionCookieDef(httpCfg *config.HTTPConfig, sessionCfg *config.SessionC
 		def.MaxAge = &maxAge
 	}
 
-	if sessionCfg.CookieDomain != nil {
-		def.Domain = *sessionCfg.CookieDomain
+	if httpCfg.CookieDomain != nil {
+		def.Domain = *httpCfg.CookieDomain
 	}
 
 	return CookieDef{Def: def}

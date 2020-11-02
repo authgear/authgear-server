@@ -21,5 +21,9 @@ func NewDeviceTokenCookieDef(httpCfg *config.HTTPConfig, cfg *config.Authenticat
 	maxAge := int(cfg.DeviceToken.ExpireIn.Duration().Seconds())
 	def.MaxAge = &maxAge
 
+	if httpCfg.CookieDomain != nil {
+		def.Domain = *httpCfg.CookieDomain
+	}
+
 	return CookieDef{Def: def}
 }

@@ -23,9 +23,7 @@ func GenerateAppConfigFromOptions(opts *GenerateAppConfigOptions) *AppConfig {
 		HTTP: &HTTPConfig{PublicOrigin: opts.PublicOrigin},
 	}
 	if opts.CookieDomain != "" {
-		cfg.Session = &SessionConfig{
-			CookieDomain: &opts.CookieDomain,
-		}
+		cfg.HTTP.CookieDomain = &opts.CookieDomain
 	}
 	return cfg
 }
