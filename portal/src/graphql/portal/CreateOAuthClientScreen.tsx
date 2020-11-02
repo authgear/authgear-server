@@ -40,6 +40,7 @@ import styles from "./CreateOAuthClientScreen.module.scss";
 
 interface CreateOAuthClientFormProps {
   rawAppConfig: PortalAPIAppConfig;
+  resetForm: () => void;
 }
 
 interface CreateClientSuccessDialogProps {
@@ -125,7 +126,7 @@ const CreateClientSuccessDialog: React.FC<CreateClientSuccessDialogProps> = func
 const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function CreateOAuthClientForm(
   props: CreateOAuthClientFormProps
 ) {
-  const { rawAppConfig } = props;
+  const { rawAppConfig, resetForm } = props;
   const { appID } = useParams();
   const {
     updateAppConfig,
@@ -160,10 +161,6 @@ const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function Cre
       getReducedClientConfig(clientConfig)
     );
   }, [clientConfig, initialClientConfig]);
-
-  const resetForm = useCallback(() => {
-    setClientConfig(initialClientConfig);
-  }, [initialClientConfig]);
 
   const [submittedForm, setSubmittedForm] = useState(false);
 
@@ -271,6 +268,11 @@ const CreateOAuthClientScreen: React.FC = function CreateOAuthClientScreen() {
     ];
   }, []);
 
+  const [remountIdentifier, setRemountIdentifier] = useState(0);
+  const resetForm = useCallback(() => {
+    setRemountIdentifier((prev) => prev + 1);
+  }, []);
+
   if (loading) {
     return <ShowLoading />;
   }
@@ -287,7 +289,11 @@ const CreateOAuthClientScreen: React.FC = function CreateOAuthClientScreen() {
     <main className={styles.root}>
       <ModifiedIndicatorWrapper className={styles.wrapper}>
         <NavBreadcrumb items={navBreadcrumbItems} />
-        <CreateOAuthClientForm rawAppConfig={rawAppConfig} />
+        <CreateOAuthClientForm
+          key={remountIdentifier}
+          rawAppConfig={rawAppConfig}
+          resetForm={resetForm}
+        />
       </ModifiedIndicatorWrapper>
     </main>
   );

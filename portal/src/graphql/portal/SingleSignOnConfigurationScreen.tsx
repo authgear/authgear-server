@@ -31,7 +31,6 @@ import {
   OAuthSSOProviderConfig,
   OAuthSSOProviderType,
   oauthSSOProviderTypes,
-  PortalAPIApp,
   PortalAPIAppConfig,
   PortalAPISecretConfig,
 } from "../../types";
@@ -45,12 +44,7 @@ interface SingleSignOnConfigurationProps {
   rawAppConfig: PortalAPIAppConfig | null;
   effectiveAppConfig: PortalAPIAppConfig | null;
   secretConfig: PortalAPISecretConfig | null;
-  updatingAppConfig: boolean;
-  updateAppConfig: (
-    appConfig: PortalAPIAppConfig,
-    secretConfig: PortalAPISecretConfig
-  ) => Promise<PortalAPIApp | null>;
-  updateAppConfigError: unknown;
+  resetForm: () => void;
 }
 
 export interface OAuthSSOProviderExtraState {
@@ -473,14 +467,14 @@ const SingleSignOnConfigurationWidgetWrapper: React.FC<WidgetWrapperProps> = fun
 const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = function SingleSignOnConfiguration(
   props: SingleSignOnConfigurationProps
 ) {
+  const { rawAppConfig, effectiveAppConfig, secretConfig, resetForm } = props;
+
+  const { appID } = useParams();
   const {
-    rawAppConfig,
-    effectiveAppConfig,
-    secretConfig,
-    updateAppConfig,
-    updatingAppConfig,
-    updateAppConfigError,
-  } = props;
+    updateAppAndSecretConfig: updateAppConfig,
+    loading: updatingAppConfig,
+    error: updateAppConfigError,
+  } = useUpdateAppAndSecretConfigMutation(appID);
 
   const initialState: SingleSignOnScreenState = useMemo(() => {
     const initialAppConfigState =
@@ -512,10 +506,6 @@ const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = func
   const isFormModified = useMemo(() => {
     return !deepEqual(initialState, state);
   }, [state, initialState]);
-
-  const resetForm = useCallback(() => {
-    setState(initialState);
-  }, [initialState]);
 
   const onFormSubmit = useCallback(
     (ev: React.SyntheticEvent<HTMLElement>) => {
@@ -618,12 +608,12 @@ const SingleSignOnConfigurationScreen: React.FC = function SingleSignOnConfigura
     error,
     refetch,
   } = useAppAndSecretConfigQuery(appID);
-  const {
-    updateAppAndSecretConfig,
-    loading: updatingAppAndSecretConfig,
-    error: updateAppAndSecretConfigError,
-  } = useUpdateAppAndSecretConfigMutation(appID);
   const { renderToString } = useContext(Context);
+
+  const [remountIdentifier, setRemountIdentifier] = useState(0);
+  const resetForm = useCallback(() => {
+    setRemountIdentifier((prev) => prev + 1);
+  }, []);
 
   if (loading) {
     return <ShowLoading />;
@@ -649,12 +639,11 @@ const SingleSignOnConfigurationScreen: React.FC = function SingleSignOnConfigura
           <FormattedMessage id="SingleSignOnConfigurationScreen.help-link-label" />
         </Link>
         <SingleSignOnConfiguration
+          key={remountIdentifier}
           rawAppConfig={rawAppConfig}
           effectiveAppConfig={effectiveAppConfig}
           secretConfig={secretConfig}
-          updatingAppConfig={updatingAppAndSecretConfig}
-          updateAppConfig={updateAppAndSecretConfig}
-          updateAppConfigError={updateAppAndSecretConfigError}
+          resetForm={resetForm}
         />
       </ModifiedIndicatorWrapper>
     </main>

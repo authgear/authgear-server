@@ -42,6 +42,7 @@ import styles from "./AddUsernameScreen.module.scss";
 interface AddUsernameFormProps {
   appConfig: PortalAPIAppConfig | null;
   user: UserQuery_node_User | null;
+  resetForm: () => void;
 }
 
 function determineIsPasswordRequired(user: UserQuery_node_User | null) {
@@ -58,7 +59,7 @@ function determineIsPasswordRequired(user: UserQuery_node_User | null) {
 const AddUsernameForm: React.FC<AddUsernameFormProps> = function AddUsernameForm(
   props: AddUsernameFormProps
 ) {
-  const { appConfig, user } = props;
+  const { appConfig, user, resetForm } = props;
 
   const { userID } = useParams();
   const navigate = useNavigate();
@@ -103,11 +104,6 @@ const AddUsernameForm: React.FC<AddUsernameFormProps> = function AddUsernameForm
   const isFormModified = useMemo(() => {
     return !deepEqual(formData, initialFormData);
   }, [formData, initialFormData]);
-
-  const resetForm = useCallback(() => {
-    setFormData(initialFormData);
-    setLocalViolationErrorMessage(undefined);
-  }, [initialFormData]);
 
   const onFormSubmit = useCallback(
     (ev: React.SyntheticEvent<HTMLElement>) => {
@@ -241,6 +237,11 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
     ];
   }, []);
 
+  const [remountIdentifier, setRemountIdentifier] = useState(0);
+  const resetForm = useCallback(() => {
+    setRemountIdentifier((prev) => prev + 1);
+  }, []);
+
   if (loadingUser || loadingAppConfig) {
     return <ShowLoading />;
   }
@@ -258,7 +259,12 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
       <UserDetailCommandBar />
       <ModifiedIndicatorWrapper className={styles.wrapper}>
         <NavBreadcrumb items={navBreadcrumbItems} />
-        <AddUsernameForm appConfig={effectiveAppConfig} user={user} />
+        <AddUsernameForm
+          key={remountIdentifier}
+          appConfig={effectiveAppConfig}
+          user={user}
+          resetForm={resetForm}
+        />
       </ModifiedIndicatorWrapper>
     </div>
   );

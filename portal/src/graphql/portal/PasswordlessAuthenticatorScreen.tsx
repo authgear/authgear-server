@@ -50,12 +50,13 @@ interface PasswordlessAuthenticatorProps {
   templates: Record<PrimaryOOBMessageTemplates, string>;
   updateTemplates: AppTemplatesUpdater<PrimaryOOBMessageTemplates>;
   isUpdatingTemplates: boolean;
+  resetForm: () => void;
 }
 
 const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = function PasswordlessAuthenticator(
   props: PasswordlessAuthenticatorProps
 ) {
-  const { templates, updateTemplates, isUpdatingTemplates } = props;
+  const { templates, updateTemplates, isUpdatingTemplates, resetForm } = props;
 
   const initialState: PasswordlessAuthenticatorScreenState = useMemo(() => {
     return {
@@ -79,10 +80,6 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
   const isFormModified = useMemo(() => {
     return !deepEqual(initialState, state, { strict: true });
   }, [initialState, state]);
-
-  const resetForm = useCallback(() => {
-    setState(initialState);
-  }, [initialState]);
 
   const onSetupEmailHtmlTemplateChange = useCallback(
     (_event: unknown, value: string | undefined) => {
@@ -312,6 +309,7 @@ const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthentic
     updateAppTemplates,
     loading: isUpdatingTemplates,
     error: updateTemplatesError,
+    resetError: resetUpdateTemplateError,
   } = useUpdateAppTemplatesMutation<PrimaryOOBMessageTemplates>(
     appID,
     ...SetupPrimaryOOBMessageTemplates,
@@ -340,6 +338,11 @@ const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthentic
     [updateAppTemplates]
   );
 
+  const resetForm = useCallback(() => {
+    setRemountIdentifier((prev) => prev + 1);
+    resetUpdateTemplateError();
+  }, [resetUpdateTemplateError]);
+
   if (isLoadingTemplates) {
     return <ShowLoading />;
   }
@@ -364,6 +367,7 @@ const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthentic
           templates={templates}
           updateTemplates={updateAppTemplatesAndRemountChildren}
           isUpdatingTemplates={isUpdatingTemplates}
+          resetForm={resetForm}
         />
       </ModifiedIndicatorWrapper>
     </main>

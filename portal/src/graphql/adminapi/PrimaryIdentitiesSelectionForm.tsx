@@ -13,6 +13,7 @@ import styles from "./PrimaryIdentitiesSelectionForm.module.scss";
 interface PrimaryIdentitiesSelectionFormProps {
   className?: string;
   identityLists: IdentityLists;
+  resetForm: () => void;
 }
 
 interface PrimaryIdentitiesSelectionFormState {
@@ -24,7 +25,7 @@ interface PrimaryIdentitiesSelectionFormState {
 const PrimaryIdentitiesSelectionForm: React.FC<PrimaryIdentitiesSelectionFormProps> = function PrimaryIdentitiesSelectionForm(
   props: PrimaryIdentitiesSelectionFormProps
 ) {
-  const { className, identityLists } = props;
+  const { className, identityLists, resetForm } = props;
   const { renderToString } = useContext(Context);
 
   const initialFormData = useMemo<PrimaryIdentitiesSelectionFormState>(() => {
@@ -41,10 +42,6 @@ const PrimaryIdentitiesSelectionForm: React.FC<PrimaryIdentitiesSelectionFormPro
   const isFormModified = useMemo(() => {
     return !deepEqual(formData, initialFormData);
   }, [formData, initialFormData]);
-
-  const resetForm = useCallback(() => {
-    setFormData(initialFormData);
-  }, [initialFormData]);
 
   const {
     options: primaryEmailOptions,

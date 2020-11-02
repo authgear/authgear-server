@@ -59,6 +59,7 @@ interface Props {
   ) => Promise<PortalAPIApp | null>;
   updatingAppConfig: boolean;
   updateAppConfigError: unknown;
+  resetForm: () => void;
 }
 
 interface AuthenticatorCheckboxProps extends ICheckboxProps {
@@ -270,6 +271,7 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
     updateAppConfig,
     updatingAppConfig,
     updateAppConfigError,
+    resetForm,
   } = props;
   const { renderToString } = React.useContext(Context);
 
@@ -330,10 +332,6 @@ const AuthenticationAuthenticatorSettings: React.FC<Props> = function Authentica
   const isFormModified = useMemo(() => {
     return !isStateEquivalent(initialState, state);
   }, [initialState, state]);
-
-  const resetForm = useCallback(() => {
-    setState(initialState);
-  }, [initialState]);
 
   const displaySecondaryAuthenticatorMode = useCallback(
     (key: SecondaryAuthenticationMode) => {

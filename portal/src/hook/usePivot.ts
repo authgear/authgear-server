@@ -7,7 +7,8 @@ function isHashValid(validItemKeys: string[], hash: string): boolean {
 }
 
 export function usePivotNavigation(
-  validItemKeys: string[]
+  validItemKeys: string[],
+  onSwitchTab?: () => void
 ): {
   selectedKey: string;
   onLinkClick: (item?: { props: IPivotItemProps }) => void;
@@ -31,10 +32,13 @@ export function usePivotNavigation(
     (item?: { props: IPivotItemProps }) => {
       const itemKey = item?.props.itemKey;
       if (typeof itemKey === "string") {
-        if (itemKey !== hash) navigate(`#${itemKey}`);
+        if (itemKey !== hash) {
+          onSwitchTab?.();
+          navigate(`#${itemKey}`);
+        }
       }
     },
-    [navigate, hash]
+    [navigate, hash, onSwitchTab]
   );
 
   const selectedKey = isHashValid(validItemKeys, hash)

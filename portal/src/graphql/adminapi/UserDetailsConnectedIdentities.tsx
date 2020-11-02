@@ -295,6 +295,13 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
   const { userID } = useParams();
   const navigate = useNavigate();
 
+  /* TODO: implement save primary identities
+  const [remountIdentifier, setRemountIdentifier] = useState(0);
+  const resetForm = useCallback(() => {
+    setRemountIdentifier((prev) => prev + 1);
+  }, []);
+  */
+
   const {
     deleteIdentity,
     loading: deletingIdentity,
@@ -620,8 +627,10 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
           <FormattedMessage id="UserDetails.connected-identities.primary-identities.title" />
         </Text>
         <PrimaryIdentitiesSelectionForm
+          key={remountIdentifier}
           className={styles.primaryIdentitiesForm}
           identityLists={identityLists}
+          resetForm={resetForm}
         />
         */}
       </div>

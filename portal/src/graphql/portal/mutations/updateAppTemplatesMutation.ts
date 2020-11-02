@@ -1,6 +1,7 @@
 import React from "react";
-import { useMutation, gql } from "@apollo/client";
+import { gql } from "@apollo/client";
 
+import { useGraphqlMutation } from "../../../hook/graphql";
 import { client } from "../apollo";
 import { AppResourceUpdate } from "../__generated__/globalTypes";
 import {
@@ -42,8 +43,9 @@ export function useUpdateAppTemplatesMutation<TemplatePath extends string>(
   updateAppTemplates: AppTemplatesUpdater<TemplatePath>;
   loading: boolean;
   error: unknown;
+  resetError: () => void;
 } {
-  const [mutationFunction, { error, loading }] = useMutation<
+  const [mutationFunction, { error, loading }, resetError] = useGraphqlMutation<
     UpdateAppTemplatesMutation,
     UpdateAppTemplatesMutationVariables
   >(updateAppTemplatesMutation, { client });
@@ -68,5 +70,5 @@ export function useUpdateAppTemplatesMutation<TemplatePath extends string>(
     },
     [appID, mutationFunction, paths]
   );
-  return { updateAppTemplates, error, loading };
+  return { updateAppTemplates, error, loading, resetError };
 }

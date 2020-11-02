@@ -1,7 +1,8 @@
 import React from "react";
-import { useMutation, gql } from "@apollo/client";
+import { gql } from "@apollo/client";
 import yaml from "js-yaml";
 
+import { useGraphqlMutation } from "../../../hook/graphql";
 import { client } from "../../portal/apollo";
 import { PortalAPIApp, PortalAPIAppConfig } from "../../../types";
 import {
@@ -34,8 +35,9 @@ export function useUpdateAppConfigMutation(
   ) => Promise<PortalAPIApp | null>;
   loading: boolean;
   error: unknown;
+  resetError: () => void;
 } {
-  const [mutationFunction, { error, loading }] = useMutation<
+  const [mutationFunction, { error, loading }, resetError] = useGraphqlMutation<
     UpdateAppConfigMutation,
     UpdateAppConfigMutationVariables
   >(updateAppConfigMutation, { client });
@@ -53,5 +55,5 @@ export function useUpdateAppConfigMutation(
     },
     [appID, mutationFunction]
   );
-  return { updateAppConfig, error, loading };
+  return { updateAppConfig, error, loading, resetError };
 }

@@ -35,6 +35,7 @@ import styles from "./ResetPasswordScreen.module.scss";
 
 interface ResetPasswordFormProps {
   appConfig: PortalAPIAppConfig | null;
+  resetForm: () => void;
 }
 
 interface ResetPasswordFormData {
@@ -45,7 +46,7 @@ interface ResetPasswordFormData {
 const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
   props: ResetPasswordFormProps
 ) {
-  const { appConfig } = props;
+  const { appConfig, resetForm } = props;
 
   const { userID } = useParams();
   const navigate = useNavigate();
@@ -78,11 +79,6 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
   const isFormModified = useMemo(() => {
     return !deepEqual(initialFormData, formData);
   }, [formData, initialFormData]);
-
-  const resetForm = useCallback(() => {
-    setFormData(initialFormData);
-    setLocalValidationErrorMessageMap(null);
-  }, [initialFormData]);
 
   const { onChange: onNewPasswordChange } = useTextField((value) => {
     setFormData((prev) => ({ ...prev, newPassword: value }));
@@ -191,6 +187,11 @@ const ResetPasswordScreen: React.FC = function ResetPasswordScreen() {
     ];
   }, []);
 
+  const [remountIdentifier, setRemountIdentifier] = useState(0);
+  const resetForm = useCallback(() => {
+    setRemountIdentifier((prev) => prev + 1);
+  }, []);
+
   if (loading) {
     return <ShowLoading />;
   }
@@ -203,7 +204,11 @@ const ResetPasswordScreen: React.FC = function ResetPasswordScreen() {
     <main className={styles.root}>
       <ModifiedIndicatorWrapper className={styles.content}>
         <NavBreadcrumb items={navBreadcrumbItems} />
-        <ResetPasswordForm appConfig={effectiveAppConfig} />
+        <ResetPasswordForm
+          key={remountIdentifier}
+          appConfig={effectiveAppConfig}
+          resetForm={resetForm}
+        />
       </ModifiedIndicatorWrapper>
     </main>
   );
