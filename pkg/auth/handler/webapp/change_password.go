@@ -58,6 +58,7 @@ func (h *ChangePasswordHandler) GetData(r *http.Request, state *webapp.State) (m
 	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModel(
 		h.PasswordPolicy.PasswordPolicy(),
 		anyError,
+		viewmodels.GetDefaultPasswordPolicyViewModelOptions(),
 	)
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, passwordPolicyViewModel)
