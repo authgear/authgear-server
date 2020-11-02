@@ -26,7 +26,7 @@
 {{ template "__error.html" . }}
 
 {{ if $.IdentityDisplayID }}
-<div class="description primary-txt">{{ template "verify-user-description" (makemap "length" $.VerificationCodeLength "target" $.IdentityDisplayID) }}</div>
+<div class="description primary-txt">{{ template "verify-user-description" (dict "length" $.VerificationCodeLength "target" $.IdentityDisplayID) }}</div>
 
 <form class="vertical-form form-fields-container" method="post" novalidate>
 {{ $.CSRFField }}

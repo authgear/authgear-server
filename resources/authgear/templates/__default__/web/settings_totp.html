@@ -24,7 +24,7 @@
       </p>
       <p class="desc secondary-txt">
         <!-- FIXME(ui): Use user preferred timezone -->
-        {{ template "settings-totp-item-description" (makemap "time" .CreatedAt) }}
+        {{ template "settings-totp-item-description" (dict "time" .CreatedAt) }}
       </p>
       {{ $.CSRFField }}
       <input type="hidden" name="x_authenticator_id" value="{{ .ID }}">

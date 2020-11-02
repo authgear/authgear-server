@@ -62,7 +62,7 @@ Each translation key is parsed as template so you can just use `{{ template }}` 
 ```
 
 ```html
-<p>{{ template "email.sent" (makemap "email" .email "name" .name) }}</p>
+<p>{{ template "email.sent" (dict "email" .email "name" .name) }}</p>
 <!-- <p>Hi John, an email has been sent to john.doe@example.com</p -->
 ```
 

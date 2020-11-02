@@ -12,9 +12,9 @@
 
 <h1 class="title primary-txt">
 	{{ if $.IdentityID }}
-	{{ template "enter-login-id-page-title--change" (makemap "key" $.LoginIDKey) }}
+	{{ template "enter-login-id-page-title--change" (dict "key" $.LoginIDKey) }}
 	{{ else }}
-	{{ template "enter-login-id-page-title--add" (makemap "key" $.LoginIDKey) }}
+	{{ template "enter-login-id-page-title--add" (dict "key" $.LoginIDKey) }}
 	{{ end }}
 </h1>
 
@@ -56,7 +56,7 @@
 	autocomplete="username"
 	autocapitalize="none"
 	name="x_login_id"
-	placeholder="{{ template "login-id-placeholder" (makemap "variant" .LoginIDType) }}"
+	placeholder="{{ template "login-id-placeholder" (dict "variant" .LoginIDType) }}"
 >
 {{ end }}
 
