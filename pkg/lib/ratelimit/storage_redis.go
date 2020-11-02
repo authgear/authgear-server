@@ -67,13 +67,8 @@ func (s storageRedisConn) GetResetTime(bucket Bucket, now time.Time) (time.Time,
 }
 
 func (s storageRedisConn) Reset(bucket Bucket, now time.Time) error {
-	resetTime := now.Add(bucket.ResetPeriod).UnixNano()
-	_, err := s.Conn.Do("HSET", redisBucketKey(s.AppID, bucket), "token_taken", 0, "reset_time", resetTime)
-	if err != nil {
-		return err
-	}
-	// Ignore error
-	_, _ = s.Conn.Do("PEXPIREAT", redisBucketKey(s.AppID, bucket), resetTime/1000000)
+	// Delete bucket data, so TakeToken would regenerate the bucket.
+	_, _ = s.Conn.Do("DEL", redisBucketKey(s.AppID, bucket))
 	return nil
 }
 

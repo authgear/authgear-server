@@ -257,6 +257,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	storeRedis := &verification.StoreRedis{
 		Redis: redisHandle,
 		AppID: appID,
@@ -267,8 +270,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
+		Request:     request,
 		Logger:      verificationLogger,
 		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
 		Clock:       clockClock,
 		CodeStore:   storeRedis,
 		ClaimStore:  storePQ,
@@ -309,9 +314,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	identityLoader := loader.NewIdentityLoader(serviceService)
 	authenticatorLoader := loader.NewAuthenticatorLoader(service4)
 	interactionLogger := interaction.NewLogger(factory)
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
@@ -370,8 +372,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           webEndpoints,

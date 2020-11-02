@@ -2,6 +2,7 @@ package verification
 
 import (
 	"errors"
+	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -10,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -39,8 +41,11 @@ type Logger struct{ *log.Logger }
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("verification")} }
 
 type Service struct {
-	Logger      Logger
-	Config      *config.VerificationConfig
+	Request    *http.Request
+	Logger     Logger
+	Config     *config.VerificationConfig
+	TrustProxy config.TrustProxy
+
 	Clock       clock.Clock
 	CodeStore   CodeStore
 	ClaimStore  ClaimStore
@@ -196,6 +201,11 @@ func (s *Service) IsUserVerified(identities []*identity.Info) (bool, error) {
 }
 
 func (s *Service) CreateNewCode(id string, info *identity.Info) (*Code, error) {
+	err := s.RateLimiter.TakeToken(GenerateRateLimitBucket(id))
+	if err != nil {
+		return nil, err
+	}
+
 	if info.Type != authn.IdentityTypeLoginID {
 		panic("verification: expect login ID identity")
 	}
@@ -223,7 +233,7 @@ func (s *Service) CreateNewCode(id string, info *identity.Info) (*Code, error) {
 		ExpireAt:     s.Clock.NowUTC().Add(s.Config.CodeExpiry.Duration()),
 	}
 
-	err := s.CodeStore.Create(codeModel)
+	err = s.CodeStore.Create(codeModel)
 	if err != nil {
 		return nil, err
 	}
@@ -236,15 +246,15 @@ func (s *Service) GetCode(id string) (*Code, error) {
 }
 
 func (s *Service) VerifyCode(id string, code string) (*Code, error) {
+	err := s.RateLimiter.TakeToken(VerifyRateLimitBucket(httputil.GetIP(s.Request, bool(s.TrustProxy))))
+	if err != nil {
+		return nil, err
+	}
+
 	codeModel, err := s.CodeStore.Get(id)
 	if errors.Is(err, ErrCodeNotFound) {
 		return nil, ErrInvalidVerificationCode
 	} else if err != nil {
-		return nil, err
-	}
-
-	err = s.RateLimiter.TakeToken(VerifyRateLimitBucket(codeModel.UserID))
-	if err != nil {
 		return nil, err
 	}
 

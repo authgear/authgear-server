@@ -2,6 +2,7 @@ package forgotpassword
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn"
@@ -15,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/tasks"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -54,8 +56,10 @@ func NewProviderLogger(lf *log.Factory) ProviderLogger {
 }
 
 type Provider struct {
+	Request     *http.Request
 	Translation TranslationService
 	Config      *config.ForgotPasswordConfig
+	TrustProxy  config.TrustProxy
 
 	Store     *Store
 	Clock     clock.Clock
@@ -76,6 +80,11 @@ type Provider struct {
 // The code becomes invalid if it is consumed.
 // Finally the code is sent to the login ID asynchronously.
 func (p *Provider) SendCode(loginID string) error {
+	err := p.RateLimiter.TakeToken(GenerateRateLimitBucket(loginID))
+	if err != nil {
+		return err
+	}
+
 	emailIdentities, err := p.Identities.ListByClaim(string(authn.ClaimEmail), loginID)
 	if err != nil {
 		return err
@@ -218,6 +227,11 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 // newPassword is checked against the password policy so
 // password policy error may also be returned.
 func (p *Provider) ResetPasswordByCode(codeStr string, newPassword string) (oldInfo *authenticator.Info, newInfo *authenticator.Info, err error) {
+	err = p.RateLimiter.TakeToken(VerifyIPRateLimitBucket(httputil.GetIP(p.Request, bool(p.TrustProxy))))
+	if err != nil {
+		return
+	}
+
 	codeHash := HashCode(codeStr)
 	code, err := p.Store.Get(codeHash)
 	if err != nil {
