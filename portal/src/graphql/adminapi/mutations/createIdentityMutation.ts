@@ -49,13 +49,15 @@ interface Identity {
   claims: Record<string, unknown>;
 }
 
+export type CreateIdentityFunction = (
+  loginIDIdentity: IdentityDefinitionLoginID,
+  password?: string
+) => Promise<Identity | undefined>;
+
 export function useCreateLoginIDIdentityMutation(
   userID: string
 ): {
-  createIdentity: (
-    loginIDIdentity: IdentityDefinitionLoginID,
-    password?: string
-  ) => Promise<Identity | undefined>;
+  createIdentity: CreateIdentityFunction;
   loading: boolean;
   error: unknown;
 } {
