@@ -414,6 +414,7 @@ a.btn {
 .phone-input {
   display: flex;
   flex-direction: row;
+  align-items: flex-end;
 }
 
 .phone-input [name="x_calling_code"] {
