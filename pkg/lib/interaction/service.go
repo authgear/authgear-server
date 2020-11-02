@@ -146,10 +146,18 @@ func (s *Service) Run(webStateID string, graph *Graph) (err error) {
 }
 
 func (s *Service) Accept(ctx *Context, graph *Graph, input interface{}) (*Graph, []Edge, error) {
-	ip := httputil.GetIP(ctx.Request, bool(ctx.TrustProxy))
-	err := ctx.RateLimiter.TakeToken(RequestRateLimitBucket(ip))
-	if err != nil {
-		return nil, nil, err
+	bypassRateLimit := false
+	var bypassInput interface{ BypassInteractionIPRateLimit() bool }
+	if Input(input, &bypassInput) {
+		bypassRateLimit = bypassInput.BypassInteractionIPRateLimit()
+	}
+
+	if !bypassRateLimit {
+		ip := httputil.GetIP(ctx.Request, bool(ctx.TrustProxy))
+		err := ctx.RateLimiter.TakeToken(RequestRateLimitBucket(ip))
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
 	return graph.accept(ctx, input)

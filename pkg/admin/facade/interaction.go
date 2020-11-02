@@ -15,6 +15,11 @@ type InteractionService interface {
 // adminAPIOp represents common characteristics applicable to Admin API operations.
 type adminAPIOp struct{}
 
+// BypassInteractionIPRateLimit indicates Admin API operations does not check
+// for interaction rate limits on IP; Admin API requests are commonly issued
+// from single IP.
+func (adminAPIOp) BypassInteractionIPRateLimit() bool { return true }
+
 // BypassMFARequirement indicates Admin API operations does not check
 // for MFA requirement invariant; Admin API can create/delete secondary
 // authenticators freely.
