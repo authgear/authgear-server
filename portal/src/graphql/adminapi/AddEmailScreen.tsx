@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Text } from "@fluentui/react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import deepEqual from "deep-equal";
 import { FormattedMessage } from "@oursky/react-messageformat";
 
@@ -9,18 +9,20 @@ import {
   ModifiedIndicatorWrapper,
 } from "../../ModifiedIndicatorPortal";
 import NavBreadcrumb from "../../NavBreadcrumb";
-import ButtonWithLoading from "../../ButtonWithLoading";
-import NavigationBlockerDialog from "../../NavigationBlockerDialog";
+import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import FormTextField from "../../FormTextField";
-import ShowLoading from "../../ShowLoading";
+import AddIdentityForm from "./AddIdentityForm";
 import ShowUnhandledValidationErrorCause from "../../error/ShowUnhandledValidationErrorCauses";
 import { useAppConfigQuery } from "../portal/query/appConfigQuery";
+import { useUserQuery } from "./query/userQuery";
+import { UserQuery_node_User } from "./query/__generated__/UserQuery";
 import { useCreateLoginIDIdentityMutation } from "./mutations/createIdentityMutation";
 import { useTextField } from "../../hook/useInput";
 import { FormContext } from "../../error/FormContext";
 import { useValidationError } from "../../error/useValidationError";
 import { useGenericError } from "../../error/useGenericError";
+import { passwordFieldErrorRules } from "../../PasswordField";
 import { PortalAPIAppConfig } from "../../types";
 import { canCreateLoginIDIdentity } from "../../util/loginID";
 
@@ -28,19 +30,20 @@ import styles from "./AddEmailScreen.module.scss";
 
 interface AddEmailFormProps {
   appConfig: PortalAPIAppConfig | null;
+  user: UserQuery_node_User | null;
   resetForm: () => void;
 }
 
 interface AddEmailFormData {
   email: string;
+  password: string;
 }
 
 const AddEmailForm: React.FC<AddEmailFormProps> = function AddEmailForm(
   props: AddEmailFormProps
 ) {
-  const { resetForm, appConfig } = props;
+  const { resetForm, appConfig, user } = props;
   const { userID } = useParams();
-  const navigate = useNavigate();
 
   const {
     createIdentity,
@@ -48,45 +51,25 @@ const AddEmailForm: React.FC<AddEmailFormProps> = function AddEmailForm(
     error: createIdentityError,
   } = useCreateLoginIDIdentityMutation(userID);
 
-  const [submittedForm, setSubmittedForm] = useState<boolean>(false);
-
   const initialFormData = useMemo(() => {
     return {
       email: "",
+      password: "",
     };
   }, []);
   const [formData, setFormData] = useState<AddEmailFormData>(initialFormData);
-  const { email } = formData;
+  const { email, password } = formData;
 
   const { onChange: onEmailChange } = useTextField((value) => {
     setFormData((prev) => ({ ...prev, email: value }));
+  });
+  const { onChange: onPasswordChange } = useTextField((value) => {
+    setFormData((prev) => ({ ...prev, password: value }));
   });
 
   const isFormModified = useMemo(() => {
     return !deepEqual(initialFormData, formData);
   }, [initialFormData, formData]);
-
-  const onFormSubmit = useCallback(
-    (ev: React.SyntheticEvent<HTMLElement>) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-
-      createIdentity({ key: "email", value: email })
-        .then((identity) => {
-          if (identity != null) {
-            setSubmittedForm(true);
-          }
-        })
-        .catch(() => {});
-    },
-    [email, createIdentity]
-  );
-
-  useEffect(() => {
-    if (submittedForm) {
-      navigate("..#connected-identities");
-    }
-  }, [submittedForm, navigate]);
 
   const {
     unhandledCauses: rawUnhandledCauses,
@@ -95,7 +78,7 @@ const AddEmailForm: React.FC<AddEmailFormProps> = function AddEmailForm(
   } = useValidationError(createIdentityError);
 
   const {
-    errorMessage: genericErrorMessage,
+    errorMessageMap,
     unrecognizedError,
     unhandledCauses,
   } = useGenericError(otherError, rawUnhandledCauses, [
@@ -103,7 +86,9 @@ const AddEmailForm: React.FC<AddEmailFormProps> = function AddEmailForm(
       reason: "InvariantViolated",
       kind: "DuplicatedIdentity",
       errorMessageID: "AddEmailScreen.error.duplicated-email",
+      field: "email",
     },
+    ...passwordFieldErrorRules,
   ]);
 
   if (!canCreateLoginIDIdentity(appConfig)) {
@@ -116,46 +101,59 @@ const AddEmailForm: React.FC<AddEmailFormProps> = function AddEmailForm(
 
   return (
     <FormContext.Provider value={formContextValue}>
-      <form className={styles.content} onSubmit={onFormSubmit}>
-        {unrecognizedError && (
-          <div className={styles.error}>
-            <ShowError error={unrecognizedError} />
-          </div>
-        )}
-        <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
-        <ModifiedIndicatorPortal
-          resetForm={resetForm}
-          isModified={isFormModified}
-        />
-        <NavigationBlockerDialog
-          blockNavigation={!submittedForm && isFormModified}
-        />
-        <FormTextField
-          jsonPointer=""
-          parentJSONPointer=""
-          fieldName="email"
-          fieldNameMessageID="AddEmailScreen.email.label"
-          className={styles.emailField}
-          value={email}
-          onChange={onEmailChange}
-          errorMessage={genericErrorMessage}
-        />
-        <ButtonWithLoading
-          type="submit"
-          disabled={!isFormModified || submittedForm}
-          labelId="add"
-          loading={creatingIdentity}
-        />
-      </form>
+      {unrecognizedError && (
+        <div className={styles.error}>
+          <ShowError error={unrecognizedError} />
+        </div>
+      )}
+      <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
+      <ModifiedIndicatorPortal
+        resetForm={resetForm}
+        isModified={isFormModified}
+      />
+      <AddIdentityForm
+        className={styles.content}
+        appConfig={appConfig}
+        user={user}
+        loginIDKey="email"
+        loginID={email}
+        loginIDField={
+          <FormTextField
+            jsonPointer=""
+            parentJSONPointer=""
+            fieldName="email"
+            fieldNameMessageID="AddEmailScreen.email.label"
+            className={styles.emailField}
+            value={email}
+            onChange={onEmailChange}
+            errorMessage={errorMessageMap.email}
+          />
+        }
+        password={password}
+        onPasswordChange={onPasswordChange}
+        passwordFieldErrorMessage={errorMessageMap.password}
+        isFormModified={isFormModified}
+        createIdentity={createIdentity}
+        creatingIdentity={creatingIdentity}
+      />
     </FormContext.Provider>
   );
 };
 
 const AddEmailScreen: React.FC = function AddEmailScreen() {
-  const { appID } = useParams();
-  const { effectiveAppConfig, loading, error, refetch } = useAppConfigQuery(
-    appID
-  );
+  const { appID, userID } = useParams();
+  const {
+    user,
+    loading: loadingUser,
+    error: userError,
+    refetch: refetchUser,
+  } = useUserQuery(userID);
+  const {
+    effectiveAppConfig,
+    loading: loadingAppConfig,
+    error: appConfigError,
+    refetch: refetchAppConfig,
+  } = useAppConfigQuery(appID);
 
   const navBreadcrumbItems = useMemo(() => {
     return [
@@ -170,12 +168,16 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
     setRemountIdentifier((prev) => prev + 1);
   }, []);
 
-  if (loading) {
+  if (loadingUser || loadingAppConfig) {
     return <ShowLoading />;
   }
 
-  if (error != null) {
-    return <ShowError error={error} onRetry={refetch} />;
+  if (userError != null) {
+    return <ShowError error={userError} onRetry={refetchUser} />;
+  }
+
+  if (appConfigError != null) {
+    return <ShowError error={appConfigError} onRetry={refetchAppConfig} />;
   }
 
   return (
@@ -185,6 +187,7 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
         <AddEmailForm
           key={remountIdentifier}
           appConfig={effectiveAppConfig}
+          user={user}
           resetForm={resetForm}
         />
       </ModifiedIndicatorWrapper>
