@@ -22,7 +22,7 @@
 {{ template "__error.html" . }}
 
 {{ if $.OOBOTPTarget }}
-<div class="description primary-txt">{{ template "oob-otp-description" (makemap "length" $.OOBOTPCodeLength "target" $.OOBOTPTarget) }}</div>
+<div class="description primary-txt">{{ template "oob-otp-description" (dict "length" $.OOBOTPCodeLength "target" $.OOBOTPTarget) }}</div>
 {{ end }}
 
 <form class="vertical-form form-fields-container" method="post" novalidate>
@@ -58,7 +58,7 @@
 <a class="link align-self-flex-start" href="{{ .URL }}">{{ template "enter-password-instead" }}</a>
 {{ end }}
 {{ if eq .Type "oob_otp" }}
-<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "enter-oob-otp-instead" (makemap "target" .MaskedTarget) }}</a>
+<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "enter-oob-otp-instead" (dict "target" .MaskedTarget) }}</a>
 {{ end }}
 {{ if eq .Type "recovery_code" }}
 <a class="link align-self-flex-start" href="{{ .URL }}">{{ template "enter-recovery-code-instead" }}</a>

@@ -3,6 +3,9 @@ module github.com/authgear/authgear-server
 go 1.13
 
 require (
+	github.com/Masterminds/goutils v1.1.0 // indirect
+	github.com/Masterminds/semver v1.5.0 // indirect
+	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/Masterminds/squirrel v1.4.0
 	github.com/authgear/graphql-go-relay v0.0.0-20201016065100-df672205b892
 	github.com/dlclark/regexp2 v1.4.0 // indirect
@@ -16,6 +19,7 @@ require (
 	github.com/gorilla/csrf v1.7.0
 	github.com/graphql-go/graphql v0.7.9
 	github.com/graphql-go/handler v0.2.3
+	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/iawaknahc/gomessageformat v0.0.0-20200918074610-c0b982376e20
 	github.com/iawaknahc/jsonschema v0.0.0-20200904034036-e811a776237e
 	github.com/iawaknahc/originmatcher v0.0.0-20200622040912-c5bfd3560192

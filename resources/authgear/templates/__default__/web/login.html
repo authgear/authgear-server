@@ -95,14 +95,14 @@
 					autocomplete="username"
 					autocapitalize="none"
 					name="x_login_id"
-					placeholder="{{ template "login-id-placeholder" (makemap "variant" $.LoginPageTextLoginIDVariant) }}"
+					placeholder="{{ template "login-id-placeholder" (dict "variant" $.LoginPageTextLoginIDVariant) }}"
 				>
 				<!-- This field is for Chrome and Safari to consider the above field as username for autocomplete -->
 				<input style="display: none" aria-hidden="true" type="password" autocomplete="current-password" name="">
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if (not (eq $.LoginPageTextLoginIDVariant "none")) }}
-				<a class="link align-self-flex-start" href="{{ call $.MakeURL "" "x_login_id_input_type" $.LoginPageTextLoginIDInputType }}">{{ template "use-text-login-id-description" (makemap "variant" $.LoginPageTextLoginIDVariant) }}</a>
+				<a class="link align-self-flex-start" href="{{ call $.MakeURL "" "x_login_id_input_type" $.LoginPageTextLoginIDInputType }}">{{ template "use-text-login-id-description" (dict "variant" $.LoginPageTextLoginIDVariant) }}</a>
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if $.x_login_id_input_type }}{{ if not (eq $.x_login_id_input_type "phone") }}{{ if $.LoginPageLoginIDHasPhone }}

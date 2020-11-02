@@ -33,7 +33,7 @@
     </p>
     <p class="description secondary-txt">
       <!-- FIXME(ui): Use user preferred timezone -->
-      {{ template "settings-page-primary-password-description" (makemap "time" .UpdatedAt) }}
+      {{ template "settings-page-primary-password-description" (dict "time" .UpdatedAt) }}
     </p>
     <a class="action" href="/change_password">
       {{ template "change-password-button-label" }}
@@ -64,7 +64,7 @@
     </p>
     <p class="description secondary-txt">
       <!-- FIXME(ui): Use user preferred timezone -->
-      {{ template "settings-page-primary-oob-otp-description" (makemap "time" .CreatedAt) }}
+      {{ template "settings-page-primary-oob-otp-description" (dict "time" .CreatedAt) }}
     </p>
     <a class="action" href="/settings/identity">
       {{ template "details-button-label" }}
@@ -155,7 +155,7 @@
     {{ if $secondary_password }}
     <p class="description secondary-txt">
       <!-- FIXME(ui): Use user preferred timezone -->
-      {{ template "settings-page-secondary-password-description" (makemap "time" $secondary_password.UpdatedAt) }}
+      {{ template "settings-page-secondary-password-description" (dict "time" $secondary_password.UpdatedAt) }}
     </p>
     <a class="action secondary-btn" href="/change_secondary_password">
       {{ template "change-password-button-label" }}
