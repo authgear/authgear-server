@@ -14,4 +14,5 @@ var templateValidator = NewValidator(
 var templateFuncMap = map[string]interface{}{
 	messageformat.TemplateRuntimeFuncName: messageformat.TemplateRuntimeFunc,
 	"makemap":                             MakeMap,
+	"add":                                 Add,
 }
