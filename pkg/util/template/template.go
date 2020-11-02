@@ -1,6 +1,7 @@
 package template
 
 import (
+	"github.com/Masterminds/sprig"
 	messageformat "github.com/iawaknahc/gomessageformat"
 )
 
@@ -11,8 +12,11 @@ var templateValidator = NewValidator(
 	MaxDepth(15),
 )
 
-var templateFuncMap = map[string]interface{}{
-	messageformat.TemplateRuntimeFuncName: messageformat.TemplateRuntimeFunc,
-	"makemap":                             MakeMap,
-	"add":                                 Add,
+func MakeTemplateFuncMap() map[string]interface{} {
+	var templateFuncMap = sprig.FuncMap()
+	templateFuncMap[messageformat.TemplateRuntimeFuncName] = messageformat.TemplateRuntimeFunc
+	templateFuncMap["makemap"] = MakeMap
+	return templateFuncMap
 }
+
+var templateFuncMap = MakeTemplateFuncMap()
