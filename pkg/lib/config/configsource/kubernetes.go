@@ -146,6 +146,7 @@ func (k *Kubernetes) invalidateHostMap(ingress *networkingv1beta1.Ingress) {
 			k.Logger.WithField("host", host).Info("host invalidated")
 			k.hostMap.Delete(host)
 		}
+		k.ingressMap.Delete(ingress.UID)
 	}
 
 	for _, host := range extractIngressHosts(ingress) {
@@ -155,7 +156,13 @@ func (k *Kubernetes) invalidateHostMap(ingress *networkingv1beta1.Ingress) {
 }
 
 func (k *Kubernetes) updateHostMap(appID string, ingress *networkingv1beta1.Ingress) {
-	for _, host := range extractIngressHosts(ingress) {
+	hosts := extractIngressHosts(ingress)
+
+	k.ingressMap.Store(ingress.UID, &ingressSnapshot{
+		Hosts: hosts,
+	})
+
+	for _, host := range hosts {
 		k.hostMap.Store(host, appID)
 		k.Logger.WithField("host", host).WithField("app_id", appID).Info("host accepted")
 	}
