@@ -156,6 +156,15 @@ func (k *Kubernetes) invalidateHostMap(ingress *networkingv1beta1.Ingress) {
 }
 
 func (k *Kubernetes) updateHostMap(appID string, ingress *networkingv1beta1.Ingress) {
+	// Invalidate the hosts of the old ingress.
+	snapshot, ok := k.ingressMap.Load(ingress.UID)
+	if ok {
+		for _, host := range snapshot.(*ingressSnapshot).Hosts {
+			k.Logger.WithField("host", host).Info("host invalidated")
+			k.hostMap.Delete(host)
+		}
+	}
+
 	hosts := extractIngressHosts(ingress)
 
 	k.ingressMap.Store(ingress.UID, &ingressSnapshot{
