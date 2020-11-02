@@ -13,7 +13,7 @@ var templateValidator = NewValidator(
 )
 
 func MakeTemplateFuncMap() map[string]interface{} {
-	var templateFuncMap = sprig.FuncMap()
+	var templateFuncMap = sprig.HermeticHtmlFuncMap()
 	templateFuncMap[messageformat.TemplateRuntimeFuncName] = messageformat.TemplateRuntimeFunc
 	templateFuncMap["makemap"] = MakeMap
 	return templateFuncMap
