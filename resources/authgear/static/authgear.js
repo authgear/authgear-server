@@ -384,11 +384,15 @@ function setupPage() {
     }
 
     showPasswordButton.addEventListener("click", function(e) {
+      e.preventDefault();
+      e.stopPropagation();
       wrapper.classList.add("show-password");
       input.type = "text";
     });
 
     hidePasswordButton.addEventListener("click", function(e) {
+      e.preventDefault();
+      e.stopPropagation();
       wrapper.classList.remove("show-password");
       input.type = "password";
     });
