@@ -159,6 +159,39 @@ h1, h2, h3, h4, h5, h6 {
   color: #a19f9d;
 }
 
+.password-input-wrapper {
+  display: flex;
+  padding: 6px 12px;
+  border-radius: 0;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-bottom-color: #a19f9d;
+}
+
+.password-input-wrapper .input {
+  flex: 1;
+  padding: 0 12px 0 0;
+  border: none;
+}
+
+.password-input-wrapper .show-password-button {
+  display: inline-block;
+  flex: none;
+}
+
+.password-input-wrapper.show-password .show-password-button {
+  display: none;
+}
+
+.password-input-wrapper .hide-password-button {
+  display: none;
+  flex: none;
+}
+
+.password-input-wrapper.show-password .hide-password-button {
+  display: inline-block;
+}
+
 .select {
   background-color: transparent;
   height: 32px;

@@ -369,10 +369,48 @@ function setupPage() {
     }
   }
 
+  function attachShowAndHidePasswordButtonClickToWrapper(wrapper) {
+    var input = wrapper.querySelector(".input");
+    var showPasswordButton = wrapper.querySelector(".show-password-button");
+    var hidePasswordButton = wrapper.querySelector(".hide-password-button");
+    if (!input || !showPasswordButton || !hidePasswordButton) {
+      return;
+    }
+
+    if (wrapper.classList.contains("show-password")) {
+      input.type = "text";
+    } else {
+      input.type = "password";
+    }
+
+    showPasswordButton.addEventListener("click", function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      wrapper.classList.add("show-password");
+      input.type = "text";
+    });
+
+    hidePasswordButton.addEventListener("click", function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      wrapper.classList.remove("show-password");
+      input.type = "password";
+    });
+  }
+
+  function attachShowAndHidePasswordButtonClick() {
+    var wrappers = document.querySelectorAll(".password-input-wrapper");
+    for (var i = 0; i < wrappers.length; ++i) {
+      var wrapper = wrappers[i];
+      attachShowAndHidePasswordButtonClickToWrapper(wrapper);
+    }
+  }
+
   attachBackButtonClick();
   attachPasswordPolicyCheck();
   attachResendButtonBehavior();
   attachFormSubmitOnceOnly();
   attachFormSubmitXHR();
+  attachShowAndHidePasswordButtonClick();
 }
 window.addEventListener("load", setupPage);
