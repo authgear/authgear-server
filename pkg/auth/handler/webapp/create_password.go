@@ -67,7 +67,8 @@ func (h *CreatePasswordHandler) GetData(r *http.Request, state *webapp.State, gr
 	if !graph.FindLastNode(&node) {
 		panic("create_authenticator_begin: expected graph has node implementing CreateAuthenticatorBeginNode")
 	}
-	if node.GetCreateAuthenticatorStage() == interaction.AuthenticationStagePrimary {
+	isPrimary := node.GetCreateAuthenticatorStage() == interaction.AuthenticationStagePrimary
+	if isPrimary {
 		identityInfo := graph.MustGetUserLastIdentity()
 		displayID = identityInfo.DisplayID()
 	}
@@ -75,6 +76,11 @@ func (h *CreatePasswordHandler) GetData(r *http.Request, state *webapp.State, gr
 	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModel(
 		h.PasswordPolicy.PasswordPolicy(),
 		state.Error,
+		&viewmodels.PasswordPolicyViewModelOptions{
+			// Hide reuse password policy when creating new
+			// password through web UI (sign up)
+			IsNew: isPrimary,
+		},
 	)
 
 	alternatives, err := DeriveCreateAuthenticatorAlternatives(
