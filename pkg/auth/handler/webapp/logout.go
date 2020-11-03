@@ -55,7 +55,7 @@ func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			redirectURI := webapp.GetRedirectURI(r, bool(h.TrustProxy))
+			redirectURI := webapp.GetRedirectURI(r, bool(h.TrustProxy), "/settings")
 			http.Redirect(w, r, redirectURI, http.StatusFound)
 			return nil
 		})

@@ -89,7 +89,7 @@ func (h *SignupHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *
 func (h *SignupHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	return &webapp.Intent{
 		OldStateID:  StateID(r),
-		RedirectURI: webapp.GetRedirectURI(r, bool(h.TrustProxy)),
+		RedirectURI: webapp.GetRedirectURI(r, bool(h.TrustProxy), "/settings"),
 		Intent:      intents.NewIntentSignup(),
 	}
 }

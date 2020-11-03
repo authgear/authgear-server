@@ -6,12 +6,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-const DefaultRedirectURI = "/settings"
-
-func GetRedirectURI(r *http.Request, trustProxy bool) string {
+func GetRedirectURI(r *http.Request, trustProxy bool, defaultURI string) string {
 	redirectURI, err := httputil.GetRedirectURI(r, trustProxy)
 	if err != nil {
-		return DefaultRedirectURI
+		return defaultURI
 	}
 	return redirectURI
 }
