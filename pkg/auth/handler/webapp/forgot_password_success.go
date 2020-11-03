@@ -38,9 +38,9 @@ type ForgotPasswordSuccessHandler struct {
 	WebApp        WebAppService
 }
 
-func (h *ForgotPasswordSuccessHandler) GetData(r *http.Request, state *webapp.State) (map[string]interface{}, error) {
+func (h *ForgotPasswordSuccessHandler) GetData(r *http.Request, rw http.ResponseWriter, state *webapp.State) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
-	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	forgotPasswordSuccessViewModel := ForgotPasswordSuccessViewModel{}
 
 	redirectURI := "/login"
@@ -76,7 +76,7 @@ func (h *ForgotPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.
 				return err
 			}
 
-			data, err := h.GetData(r, state)
+			data, err := h.GetData(r, w, state)
 			if err != nil {
 				return err
 			}

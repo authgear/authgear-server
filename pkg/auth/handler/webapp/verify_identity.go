@@ -72,10 +72,10 @@ func (h *VerifyIdentityHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	}
 }
 
-func (h *VerifyIdentityHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *VerifyIdentityHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
-	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewModel := VerifyIdentityViewModel{
 		VerificationCode: r.Form.Get("code"),
 	}
@@ -101,10 +101,11 @@ func (h *VerifyIdentityHandler) GetData(r *http.Request, state *webapp.State, gr
 	return data, nil
 }
 
-func (h *VerifyIdentityHandler) GetErrorData(r *http.Request, err error) (map[string]interface{}, error) {
+func (h *VerifyIdentityHandler) GetErrorData(r *http.Request, rw http.ResponseWriter, err error) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
-	baseViewModel := h.BaseViewModel.ViewModel(r, err)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
+	baseViewModel.SetError(err)
 	viewModel := VerifyIdentityViewModel{}
 
 	viewmodels.Embed(data, baseViewModel)
@@ -151,12 +152,12 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 	if r.Method == "GET" && inInteraction {
 		err := h.Database.WithTx(func() error {
-			state, graph, err := h.WebApp.Get(id)
+			_, graph, err := h.WebApp.Get(id)
 			if err != nil {
 				return err
 			}
 
-			data, err := h.GetData(r, state, graph)
+			data, err := h.GetData(r, w, graph)
 			if err != nil {
 				return err
 			}
@@ -171,12 +172,12 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 	if r.Method == "GET" && !inInteraction {
 		err := h.Database.WithTx(func() error {
-			state, graph, err := h.WebApp.GetIntent(h.MakeIntent(r))
+			_, graph, err := h.WebApp.GetIntent(h.MakeIntent(r))
 			var data map[string]interface{}
 			if err != nil {
-				data, err = h.GetErrorData(r, err)
+				data, err = h.GetErrorData(r, w, err)
 			} else {
-				data, err = h.GetData(r, state, graph)
+				data, err = h.GetData(r, w, graph)
 			}
 
 			if err != nil {

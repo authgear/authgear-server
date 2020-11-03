@@ -80,13 +80,9 @@ func (h *ForgotPasswordHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	}
 }
 
-func (h *ForgotPasswordHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *ForgotPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
-	var anyError interface{}
-	if state != nil {
-		anyError = state.Error
-	}
-	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithGraph(graph)
 	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
@@ -115,12 +111,12 @@ func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 	if r.Method == "GET" {
 		err := h.Database.WithTx(func() error {
-			state, graph, err := h.WebApp.GetIntent(intent)
+			_, graph, err := h.WebApp.GetIntent(intent)
 			if err != nil {
 				return err
 			}
 
-			data, err := h.GetData(r, state, graph)
+			data, err := h.GetData(r, w, graph)
 			if err != nil {
 				return err
 			}

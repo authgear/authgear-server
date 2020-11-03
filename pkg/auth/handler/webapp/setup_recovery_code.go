@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
-	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -66,15 +65,9 @@ func (h *SetupRecoveryCodeHandler) MakeViewModel(graph *interaction.Graph) Setup
 	}
 }
 
-func (h *SetupRecoveryCodeHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *SetupRecoveryCodeHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
-
-	var anyError interface{}
-	if state != nil {
-		anyError = state.Error
-	}
-
-	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewModel := h.MakeViewModel(graph)
 
 	viewmodels.Embed(data, baseViewModel)
@@ -92,12 +85,12 @@ func (h *SetupRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		download := r.Form.Get("download") == "true"
 		if download {
 			err := h.Database.WithTx(func() error {
-				state, graph, err := h.WebApp.Get(StateID(r))
+				_, graph, err := h.WebApp.Get(StateID(r))
 				if err != nil {
 					return err
 				}
 
-				data, err := h.GetData(r, state, graph)
+				data, err := h.GetData(r, w, graph)
 				if err != nil {
 					return err
 				}
@@ -110,12 +103,12 @@ func (h *SetupRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 			}
 		} else {
 			err := h.Database.WithTx(func() error {
-				state, graph, err := h.WebApp.Get(StateID(r))
+				_, graph, err := h.WebApp.Get(StateID(r))
 				if err != nil {
 					return err
 				}
 
-				data, err := h.GetData(r, state, graph)
+				data, err := h.GetData(r, w, graph)
 				if err != nil {
 					return err
 				}

@@ -76,13 +76,9 @@ type PromoteHandler struct {
 	CSRFCookie    webapp.CSRFCookieDef
 }
 
-func (h *PromoteHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *PromoteHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
-	var anyError interface{}
-	if state != nil {
-		anyError = state.Error
-	}
-	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
 	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithGraph(graph)
@@ -155,12 +151,12 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "GET" {
 		err := h.Database.WithTx(func() error {
-			state, graph, err := h.WebApp.Get(StateID(r))
+			_, graph, err := h.WebApp.Get(StateID(r))
 			if err != nil {
 				return err
 			}
 
-			data, err := h.GetData(r, state, graph)
+			data, err := h.GetData(r, w, graph)
 			if err != nil {
 				return err
 			}

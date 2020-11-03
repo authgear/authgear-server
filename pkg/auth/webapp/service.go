@@ -45,6 +45,7 @@ type GraphService interface {
 
 type CookieFactory interface {
 	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
+	ClearCookie(def *httputil.CookieDef) *http.Cookie
 }
 
 type ServiceLogger struct{ *log.Logger }
@@ -59,7 +60,8 @@ type Service struct {
 	Store         Store
 	Graph         GraphService
 	CookieFactory CookieFactory
-	UATokenCookie CookieDef
+	UATokenCookie UATokenCookieDef
+	ErrorCookie   *ErrorCookie
 }
 
 func (s *Service) getUserAgentToken() string {
@@ -279,6 +281,14 @@ func (s *Service) afterPost(state *State, graph *interaction.Graph, edges []inte
 	}
 
 	state.Error = apierrors.AsAPIError(inputError)
+	if state.Error != nil {
+		errCookie, err := s.ErrorCookie.SetError(state.Error)
+		if err != nil {
+			return nil, err
+		}
+		cookies = append(cookies, errCookie)
+	}
+
 	if graph != nil {
 		state.GraphInstanceID = graph.InstanceID
 		state.Extra = s.collectExtras(graph.CurrentNode())

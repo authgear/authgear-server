@@ -64,10 +64,10 @@ type EnterOOBOTPNode interface {
 	GetOOBOTPCodeLength() int
 }
 
-func (h *EnterOOBOTPHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
-	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewModel := EnterOOBOTPViewModel{}
 	var n EnterOOBOTPNode
 	if graph.FindLastNode(&n) {
@@ -150,7 +150,7 @@ func (h *EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			data, err := h.GetData(r, state, graph)
+			data, err := h.GetData(r, w, state, graph)
 			if err != nil {
 				return err
 			}

@@ -139,15 +139,9 @@ func (h *SetupTOTPHandler) MakeViewModel(stateID string, graph *interaction.Grap
 	}, nil
 }
 
-func (h *SetupTOTPHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *SetupTOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
-
-	var anyError interface{}
-	if state != nil {
-		anyError = state.Error
-	}
-
-	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	// Use previous state ID because the current node should be NodeCreateAuthenticatorTOTPSetup.
 	viewModel, err := h.MakeViewModel(state.PrevID, graph)
 	if err != nil {
@@ -172,7 +166,7 @@ func (h *SetupTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			data, err := h.GetData(r, state, graph)
+			data, err := h.GetData(r, w, state, graph)
 			if err != nil {
 				return err
 			}

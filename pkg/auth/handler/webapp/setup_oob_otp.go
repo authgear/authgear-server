@@ -164,15 +164,9 @@ type SetupOOBOTPHandler struct {
 	WebApp        WebAppService
 }
 
-func (h *SetupOOBOTPHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *SetupOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
-
-	var anyError interface{}
-	if state != nil {
-		anyError = state.Error
-	}
-
-	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	// Use current state ID because the current node should be NodeCreateAuthenticatorBegin.
 	viewModel, err := NewSetupOOBOTPViewModel(state.ID, graph, r.Form.Get("x_input_type"))
 	if err != nil {
@@ -202,7 +196,7 @@ func (h *SetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			data, err := h.GetData(r, state, graph)
+			data, err := h.GetData(r, w, state, graph)
 			if err != nil {
 				return err
 			}

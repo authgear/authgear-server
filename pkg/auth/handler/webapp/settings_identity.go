@@ -83,14 +83,9 @@ func (i *SettingsIdentityUnlinkOAuth) GetIdentityID() string {
 	return i.IdentityID
 }
 
-func (h *SettingsIdentityHandler) GetData(r *http.Request, state *webapp.State) (map[string]interface{}, error) {
+func (h *SettingsIdentityHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
-	var anyError interface{}
-	if state != nil {
-		anyError = state.Error
-	}
-
-	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	userID := session.GetUserID(r.Context())
 	candidates, err := h.Identities.ListCandidates(*userID)
 	if err != nil {
@@ -129,12 +124,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 
 	if r.Method == "GET" {
 		err := h.Database.WithTx(func() error {
-			state, err := h.WebApp.GetState(StateID(r))
-			if err != nil {
-				return err
-			}
-
-			data, err := h.GetData(r, state)
+			data, err := h.GetData(r, w)
 			if err != nil {
 				return err
 			}

@@ -48,16 +48,12 @@ type ChangePasswordHandler struct {
 	PasswordPolicy PasswordPolicy
 }
 
-func (h *ChangePasswordHandler) GetData(r *http.Request, state *webapp.State) (map[string]interface{}, error) {
+func (h *ChangePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
-	var anyError interface{}
-	if state != nil {
-		anyError = state.Error
-	}
-	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModel(
 		h.PasswordPolicy.PasswordPolicy(),
-		anyError,
+		baseViewModel.RawError,
 		viewmodels.GetDefaultPasswordPolicyViewModelOptions(),
 	)
 	viewmodels.Embed(data, baseViewModel)
@@ -93,12 +89,7 @@ func (h *ChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 	if r.Method == "GET" {
 		err := h.Database.WithTx(func() error {
-			state, err := h.WebApp.GetState(StateID(r))
-			if err != nil {
-				return err
-			}
-
-			data, err := h.GetData(r, state)
+			data, err := h.GetData(r, w)
 			if err != nil {
 				return err
 			}

@@ -58,9 +58,9 @@ type CreatePasswordHandler struct {
 	PasswordPolicy PasswordPolicy
 }
 
-func (h *CreatePasswordHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *CreatePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
-	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 
 	displayID := ""
 	var node CreateAuthenticatorBeginNode
@@ -75,7 +75,7 @@ func (h *CreatePasswordHandler) GetData(r *http.Request, state *webapp.State, gr
 
 	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModel(
 		h.PasswordPolicy.PasswordPolicy(),
-		state.Error,
+		baseViewModel.RawError,
 		&viewmodels.PasswordPolicyViewModelOptions{
 			// Hide reuse password policy when creating new
 			// password through web UI (sign up)
@@ -130,7 +130,7 @@ func (h *CreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				return err
 			}
 
-			data, err := h.GetData(r, state, graph)
+			data, err := h.GetData(r, w, state, graph)
 			if err != nil {
 				return err
 			}
