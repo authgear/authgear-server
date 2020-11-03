@@ -108,6 +108,7 @@ const CreateClientSuccessDialog: React.FC<CreateClientSuccessDialogProps> = func
           className={styles.copyButtonCallout}
           target={`.${styles.dialogCopyIcon}`}
           directionalHint={DirectionalHint.bottomLeftEdge}
+          hideOverflow={true}
         >
           <Text>
             <FormattedMessage id="CreateOAuthClientScreen.success-dialog.copied" />
