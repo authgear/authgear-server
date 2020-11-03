@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -135,28 +134,6 @@ func NewSetupOOBOTPViewModel(stateID string, graph *interaction.Graph, inputType
 	}, nil
 }
 
-type SetupOOBOTPInput struct {
-	InputType string
-	Target    string
-}
-
-var _ nodes.InputCreateAuthenticatorOOBSetup = &SetupOOBOTPInput{}
-
-func (i *SetupOOBOTPInput) GetOOBChannel() authn.AuthenticatorOOBChannel {
-	switch i.InputType {
-	case "email":
-		return authn.AuthenticatorOOBChannelEmail
-	case "phone":
-		return authn.AuthenticatorOOBChannelSMS
-	default:
-		panic("webapp: unknown input type: " + i.InputType)
-	}
-}
-
-func (i *SetupOOBOTPInput) GetOOBTarget() string {
-	return i.Target
-}
-
 type SetupOOBOTPHandler struct {
 	Database      *db.Handle
 	BaseViewModel *viewmodels.BaseViewModeler
@@ -219,7 +196,7 @@ func (h *SetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 				target, inputType, err := FormToOOBTarget(r.Form)
 
-				input = &SetupOOBOTPInput{
+				input = &InputSetupOOB{
 					InputType: inputType,
 					Target:    target,
 				}

@@ -92,8 +92,9 @@ func (h *SettingsOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				Intent:      intents.NewIntentRemoveAuthenticator(*userID),
 			}
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				input = &SettingsOOBOTPRemove{
-					AuthenticatorID: authenticatorID,
+				input = &InputRemoveAuthenticator{
+					Type: authn.AuthenticatorTypeOOB,
+					ID:   authenticatorID,
 				}
 				return
 			})
@@ -119,7 +120,7 @@ func (h *SettingsOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				),
 			}
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				input = &SettingsOOBOTPAdd{}
+				input = &InputCreateAuthenticator{}
 				return
 			})
 			if err != nil {
@@ -132,23 +133,4 @@ func (h *SettingsOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 			panic(err)
 		}
 	}
-}
-
-type SettingsOOBOTPRemove struct {
-	AuthenticatorID string
-}
-
-func (i *SettingsOOBOTPRemove) GetAuthenticatorType() authn.AuthenticatorType {
-	return authn.AuthenticatorTypeOOB
-}
-
-func (i *SettingsOOBOTPRemove) GetAuthenticatorID() string {
-	return i.AuthenticatorID
-}
-
-type SettingsOOBOTPAdd struct {
-}
-
-func (i *SettingsOOBOTPAdd) RequestedByUser() bool {
-	return true
 }

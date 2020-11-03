@@ -24,26 +24,6 @@ func ConfigureAuthenticationBeginRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/authentication_begin")
 }
 
-type AuthenticationBeginDeviceToken struct {
-	DeviceToken string
-}
-
-var _ nodes.InputUseDeviceToken = &AuthenticationBeginDeviceToken{}
-
-func (i *AuthenticationBeginDeviceToken) GetDeviceToken() string {
-	return i.DeviceToken
-}
-
-type AuthenticationBeginInput struct {
-	AuthenticatorIndex int
-}
-
-var _ nodes.InputAuthenticationOOBTrigger = &AuthenticationBeginInput{}
-
-func (i *AuthenticationBeginInput) GetOOBAuthenticatorIndex() int {
-	return i.AuthenticatorIndex
-}
-
 type AuthenticationBeginNode interface {
 	GetAuthenticationEdges() ([]interaction.Edge, error)
 }
@@ -117,7 +97,7 @@ func (h *AuthenticationBeginHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 			for _, edge := range edges {
 				if _, ok := edge.(*nodes.EdgeUseDeviceToken); ok {
 					result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
-						input = &AuthenticationBeginDeviceToken{
+						input = &InputAuthDeviceToken{
 							DeviceToken: deviceTokenCookie.Value,
 						}
 						return
@@ -151,7 +131,7 @@ func (h *AuthenticationBeginHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 				authenticatorIndex = 0
 			}
 			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
-				input = &AuthenticationBeginInput{
+				input = &InputTriggerOOB{
 					AuthenticatorIndex: authenticatorIndex,
 				}
 				return

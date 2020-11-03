@@ -90,15 +90,6 @@ func (h *ForgotPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter,
 	return data, nil
 }
 
-type ForgotPasswordLoginID struct {
-	LoginID string
-}
-
-// GetLoginID implements InputForgotPasswordSelectLoginID.
-func (i *ForgotPasswordLoginID) GetLoginID() string {
-	return i.LoginID
-}
-
 func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -142,7 +133,7 @@ func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 					return
 				}
 
-				input = &ForgotPasswordLoginID{
+				input = &InputForgotPassword{
 					LoginID: loginID,
 				}
 				return

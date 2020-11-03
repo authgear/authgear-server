@@ -7,10 +7,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
-	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -136,53 +134,6 @@ func (h *EnterLoginIDHandler) GetData(r *http.Request, rw http.ResponseWriter) (
 	return data, nil
 }
 
-type EnterLoginIDRemoveLoginID struct {
-	IdentityID string
-}
-
-func (i *EnterLoginIDRemoveLoginID) GetIdentityType() authn.IdentityType {
-	return authn.IdentityTypeLoginID
-}
-
-func (i *EnterLoginIDRemoveLoginID) GetIdentityID() string {
-	return i.IdentityID
-}
-
-type EnterLoginIDLoginID struct {
-	LoginIDType string
-	LoginIDKey  string
-	LoginID     string
-}
-
-var _ nodes.InputUseIdentityLoginID = &EnterLoginIDLoginID{}
-var _ nodes.InputCreateAuthenticatorOOBSetup = &EnterLoginIDLoginID{}
-
-// GetLoginIDKey implements InputUseIdentityLoginID.
-func (i *EnterLoginIDLoginID) GetLoginIDKey() string {
-	return i.LoginIDKey
-}
-
-// GetLoginIDKey implements InputUseIdentityLoginID.
-func (i *EnterLoginIDLoginID) GetLoginID() string {
-	return i.LoginID
-}
-
-func (i *EnterLoginIDLoginID) GetOOBChannel() authn.AuthenticatorOOBChannel {
-	switch i.LoginIDType {
-	case string(config.LoginIDKeyTypeEmail):
-		return authn.AuthenticatorOOBChannelEmail
-	case string(config.LoginIDKeyTypePhone):
-		return authn.AuthenticatorOOBChannelSMS
-	default:
-		return ""
-	}
-}
-
-// GetOOBTarget implements InputCreateAuthenticatorOOBSetup.
-func (i *EnterLoginIDLoginID) GetOOBTarget() string {
-	return i.LoginID
-}
-
 func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -216,8 +167,9 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			}
 
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				input = &EnterLoginIDRemoveLoginID{
-					IdentityID: identityID,
+				input = &InputRemoveIdentity{
+					Type: authn.IdentityTypeLoginID,
+					ID:   identityID,
 				}
 				return
 			})
@@ -259,10 +211,10 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 					return nil, err
 				}
 
-				input = &EnterLoginIDLoginID{
-					LoginIDType: loginIDType,
-					LoginIDKey:  loginIDKey,
-					LoginID:     newLoginID,
+				input = &InputNewLoginID{
+					LoginIDType:  loginIDType,
+					LoginIDKey:   loginIDKey,
+					LoginIDValue: newLoginID,
 				}
 				return
 			})

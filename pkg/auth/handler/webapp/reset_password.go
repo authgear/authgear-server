@@ -68,21 +68,6 @@ func (h *ResetPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter) 
 	return data, nil
 }
 
-type ResetPasswordInput struct {
-	Code     string
-	Password string
-}
-
-// GetCode implements InputResetPassword.
-func (i *ResetPasswordInput) GetCode() string {
-	return i.Code
-}
-
-// GetNewPassword implements InputResetPassword.
-func (i *ResetPasswordInput) GetNewPassword() string {
-	return i.Password
-}
-
 func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -122,7 +107,7 @@ func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 					return
 				}
 
-				input = &ResetPasswordInput{
+				input = &InputResetPassword{
 					Code:     code,
 					Password: newPassword,
 				}

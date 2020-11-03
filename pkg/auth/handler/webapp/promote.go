@@ -5,11 +5,8 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -86,61 +83,6 @@ func (h *PromoteHandler) GetData(r *http.Request, rw http.ResponseWriter, graph 
 	return data, nil
 }
 
-type PromoteOAuth struct {
-	ProviderAlias    string
-	NonceSource      *http.Cookie
-	ErrorRedirectURI string
-}
-
-var _ nodes.InputUseIdentityOAuthProvider = &PromoteOAuth{}
-
-func (i *PromoteOAuth) GetProviderAlias() string {
-	return i.ProviderAlias
-}
-
-func (i *PromoteOAuth) GetNonceSource() *http.Cookie {
-	return i.NonceSource
-}
-
-func (i *PromoteOAuth) GetErrorRedirectURI() string {
-	return i.ErrorRedirectURI
-}
-
-type PromoteLoginID struct {
-	LoginIDType  string
-	LoginIDKey   string
-	LoginIDValue string
-}
-
-var _ nodes.InputUseIdentityLoginID = &PromoteLoginID{}
-var _ nodes.InputCreateAuthenticatorOOBSetup = &PromoteLoginID{}
-
-// GetLoginIDKey implements InputCreateIdentityLoginID.
-func (i *PromoteLoginID) GetLoginIDKey() string {
-	return i.LoginIDKey
-}
-
-// GetLoginID implements InputCreateIdentityLoginID.
-func (i *PromoteLoginID) GetLoginID() string {
-	return i.LoginIDValue
-}
-
-func (i *PromoteLoginID) GetOOBChannel() authn.AuthenticatorOOBChannel {
-	switch i.LoginIDType {
-	case string(config.LoginIDKeyTypeEmail):
-		return authn.AuthenticatorOOBChannelEmail
-	case string(config.LoginIDKeyTypePhone):
-		return authn.AuthenticatorOOBChannelSMS
-	default:
-		return ""
-	}
-}
-
-// GetOOBTarget implements InputCreateAuthenticatorOOBSetup.
-func (i *PromoteLoginID) GetOOBTarget() string {
-	return i.LoginIDValue
-}
-
 func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -176,7 +118,7 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
 			stateID := StateID(r)
 			result, err := h.WebApp.PostInput(stateID, func() (input interface{}, err error) {
-				input = &PromoteOAuth{
+				input = &InputUseOAuth{
 					ProviderAlias:    providerAlias,
 					NonceSource:      nonceSource,
 					ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
@@ -210,7 +152,7 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				loginIDKey := r.Form.Get("x_login_id_key")
 				loginIDType := r.Form.Get("x_login_id_type")
 
-				input = &PromoteLoginID{
+				input = &InputNewLoginID{
 					LoginIDType:  loginIDType,
 					LoginIDKey:   loginIDKey,
 					LoginIDValue: loginIDValue,

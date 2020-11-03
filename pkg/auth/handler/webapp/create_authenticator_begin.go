@@ -20,12 +20,6 @@ func ConfigureCreateAuthenticatorBeginRoute(route httproute.Route) httproute.Rou
 		WithPathPattern("/create_authenticator_begin")
 }
 
-type CreateAuthenticatorBeginSetupTOTP struct{}
-
-var _ nodes.InputCreateAuthenticatorTOTPSetup = &CreateAuthenticatorBeginSetupTOTP{}
-
-func (i *CreateAuthenticatorBeginSetupTOTP) SetupTOTP() {}
-
 type CreateAuthenticatorBeginNode interface {
 	GetCreateAuthenticatorEdges() ([]interaction.Edge, error)
 	GetCreateAuthenticatorStage() interaction.AuthenticationStage
@@ -94,7 +88,7 @@ func (h *CreateAuthenticatorBeginHandler) ServeHTTP(w http.ResponseWriter, r *ht
 			}).String(), http.StatusFound)
 		case *nodes.EdgeCreateAuthenticatorTOTPSetup:
 			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
-				input = &CreateAuthenticatorBeginSetupTOTP{}
+				input = &InputSelectTOTP{}
 				return
 			})
 			if err != nil {

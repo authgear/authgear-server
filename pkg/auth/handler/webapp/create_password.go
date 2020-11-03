@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -106,17 +105,6 @@ func (h *CreatePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter,
 	return data, nil
 }
 
-type CreatePasswordInput struct {
-	Password string
-}
-
-var _ nodes.InputCreateAuthenticatorPassword = &CreatePasswordInput{}
-
-// GetPassword implements InputCreateAuthenticatorPassword.
-func (i *CreatePasswordInput) GetPassword() string {
-	return i.Password
-}
-
 func (h *CreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -158,7 +146,7 @@ func (h *CreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 					return
 				}
 
-				input = &CreatePasswordInput{
+				input = &InputSetupPassword{
 					Password: newPassword,
 				}
 				return

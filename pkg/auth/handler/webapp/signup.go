@@ -5,12 +5,10 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
-	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -88,61 +86,6 @@ func (h *SignupHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *
 	return data, nil
 }
 
-type SignupOAuth struct {
-	ProviderAlias    string
-	NonceSource      *http.Cookie
-	ErrorRedirectURI string
-}
-
-var _ nodes.InputUseIdentityOAuthProvider = &SignupOAuth{}
-
-func (i *SignupOAuth) GetProviderAlias() string {
-	return i.ProviderAlias
-}
-
-func (i *SignupOAuth) GetNonceSource() *http.Cookie {
-	return i.NonceSource
-}
-
-func (i *SignupOAuth) GetErrorRedirectURI() string {
-	return i.ErrorRedirectURI
-}
-
-type SignupLoginID struct {
-	LoginIDType  string
-	LoginIDKey   string
-	LoginIDValue string
-}
-
-var _ nodes.InputUseIdentityLoginID = &SignupLoginID{}
-var _ nodes.InputCreateAuthenticatorOOBSetup = &SignupLoginID{}
-
-// GetLoginIDKey implements InputCreateIdentityLoginID.
-func (i *SignupLoginID) GetLoginIDKey() string {
-	return i.LoginIDKey
-}
-
-// GetLoginID implements InputCreateIdentityLoginID.
-func (i *SignupLoginID) GetLoginID() string {
-	return i.LoginIDValue
-}
-
-func (i *SignupLoginID) GetOOBChannel() authn.AuthenticatorOOBChannel {
-	switch i.LoginIDType {
-	case string(config.LoginIDKeyTypeEmail):
-		return authn.AuthenticatorOOBChannelEmail
-	case string(config.LoginIDKeyTypePhone):
-		return authn.AuthenticatorOOBChannelSMS
-	default:
-		return ""
-	}
-}
-
-// GetOOBTarget implements InputCreateAuthenticatorOOBSetup.
-func (i *SignupLoginID) GetOOBTarget() string {
-	return i.LoginIDValue
-}
-
 func (h *SignupHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	return &webapp.Intent{
 		OldStateID:  StateID(r),
@@ -187,7 +130,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err := h.Database.WithTx(func() error {
 			nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				input = &SignupOAuth{
+				input = &InputUseOAuth{
 					ProviderAlias:    providerAlias,
 					NonceSource:      nonceSource,
 					ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
@@ -222,7 +165,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				loginIDKey := r.Form.Get("x_login_id_key")
 				loginIDType := r.Form.Get("x_login_id_type")
 
-				input = &SignupLoginID{
+				input = &InputNewLoginID{
 					LoginIDType:  loginIDType,
 					LoginIDKey:   loginIDKey,
 					LoginIDValue: loginIDValue,

@@ -61,19 +61,6 @@ func (h *ChangePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter)
 	return data, nil
 }
 
-type ChangePasswordInput struct {
-	OldPassword string
-	NewPassword string
-}
-
-// GetNewPassword implements InputChangePassword.
-func (i *ChangePasswordInput) GetOldPassword() string {
-	return i.OldPassword
-}
-func (i *ChangePasswordInput) GetNewPassword() string {
-	return i.NewPassword
-}
-
 func (h *ChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -118,7 +105,7 @@ func (h *ChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 					return
 				}
 
-				input = &ChangePasswordInput{
+				input = &InputChangePassword{
 					OldPassword: oldPassword,
 					NewPassword: newPassword,
 				}

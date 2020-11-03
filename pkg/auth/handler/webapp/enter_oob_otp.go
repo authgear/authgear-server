@@ -118,25 +118,6 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, st
 	return data, nil
 }
 
-type EnterOOBOTPResend struct{}
-
-func (i *EnterOOBOTPResend) DoResend() {}
-
-type EnterOOBOTPInput struct {
-	Code        string
-	DeviceToken bool
-}
-
-// GetOOBOTP implements InputAuthenticationOOB.
-func (i *EnterOOBOTPInput) GetOOBOTP() string {
-	return i.Code
-}
-
-// CreateDeviceToken implements InputCreateDeviceToken.
-func (i *EnterOOBOTPInput) CreateDeviceToken() bool {
-	return i.DeviceToken
-}
-
 func (h *EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -168,7 +149,7 @@ func (h *EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" && trigger {
 		err := h.Database.WithTx(func() error {
 			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
-				input = &EnterOOBOTPResend{}
+				input = &InputResendCode{}
 				return
 			})
 			if err != nil {
@@ -194,7 +175,7 @@ func (h *EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				code := r.Form.Get("x_password")
 				deviceToken := r.Form.Get("x_device_token") == "true"
 
-				input = &EnterOOBOTPInput{
+				input = &InputAuthOOB{
 					Code:        code,
 					DeviceToken: deviceToken,
 				}

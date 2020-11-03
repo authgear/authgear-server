@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
-	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/phone"
@@ -87,43 +86,6 @@ func (h *LoginHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *i
 	return data, nil
 }
 
-type LoginOAuth struct {
-	ProviderAlias    string
-	NonceSource      *http.Cookie
-	ErrorRedirectURI string
-}
-
-var _ nodes.InputUseIdentityOAuthProvider = &LoginOAuth{}
-
-func (i *LoginOAuth) GetProviderAlias() string {
-	return i.ProviderAlias
-}
-
-func (i *LoginOAuth) GetNonceSource() *http.Cookie {
-	return i.NonceSource
-}
-
-func (i *LoginOAuth) GetErrorRedirectURI() string {
-	return i.ErrorRedirectURI
-}
-
-type LoginLoginID struct {
-	LoginIDKey string
-	LoginID    string
-}
-
-var _ nodes.InputUseIdentityLoginID = &LoginLoginID{}
-
-// GetLoginIDKey implements InputSelectIdentityLoginID.
-func (i *LoginLoginID) GetLoginIDKey() string {
-	return i.LoginIDKey
-}
-
-// GetLoginID implements InputSelectIdentityLoginID.
-func (i *LoginLoginID) GetLoginID() string {
-	return i.LoginID
-}
-
 func (h *LoginHandler) MakeIntent(r *http.Request) *webapp.Intent {
 	return &webapp.Intent{
 		OldStateID:  StateID(r),
@@ -168,7 +130,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err := h.Database.WithTx(func() error {
 			nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				input = &LoginOAuth{
+				input = &InputUseOAuth{
 					ProviderAlias:    providerAlias,
 					NonceSource:      nonceSource,
 					ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
@@ -200,7 +162,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 
-				input = &LoginLoginID{
+				input = &InputUseLoginID{
 					LoginID: loginID,
 				}
 				return

@@ -7,7 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -73,17 +72,6 @@ func (h *EnterRecoveryCodeHandler) GetData(r *http.Request, rw http.ResponseWrit
 	return data, nil
 }
 
-type EnterRecoveryCodeInput struct {
-	Code string
-}
-
-var _ nodes.InputConsumeRecoveryCode = &EnterRecoveryCodeInput{}
-
-// GetRecoveryCode implements InputConsumeRecoveryCode.
-func (i *EnterRecoveryCodeInput) GetRecoveryCode() string {
-	return i.Code
-}
-
 func (h *EnterRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -120,7 +108,7 @@ func (h *EnterRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 
 				code := r.Form.Get("x_code")
 
-				input = &EnterRecoveryCodeInput{
+				input = &InputAuthRecoveryCode{
 					Code: code,
 				}
 				return

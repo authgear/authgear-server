@@ -114,19 +114,6 @@ func (h *VerifyIdentityHandler) GetErrorData(r *http.Request, rw http.ResponseWr
 	return data, nil
 }
 
-type VerificationCodeResend struct{}
-
-func (i *VerificationCodeResend) DoResend() {}
-
-type VerificationCodeInput struct {
-	Code string
-}
-
-// GetVerificationCode implements InputVerifyIdentityCheckCode.
-func (i *VerificationCodeInput) GetVerificationCode() string {
-	return i.Code
-}
-
 func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -197,7 +184,7 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	if r.Method == "POST" && trigger {
 		err := h.Database.WithTx(func() error {
 			result, err := h.WebApp.PostInput(id, func() (input interface{}, err error) {
-				input = &VerificationCodeResend{}
+				input = &InputResendCode{}
 				return
 			})
 			if err != nil {
@@ -222,7 +209,7 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 				code := r.Form.Get("x_password")
 
-				input = &VerificationCodeInput{
+				input = &InputVerificationCode{
 					Code: code,
 				}
 				return

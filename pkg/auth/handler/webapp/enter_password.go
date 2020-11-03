@@ -7,7 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -77,24 +76,6 @@ func (h *EnterPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, 
 	return data, nil
 }
 
-type EnterPasswordInput struct {
-	Password    string
-	DeviceToken bool
-}
-
-var _ nodes.InputAuthenticationPassword = &EnterPasswordInput{}
-var _ nodes.InputCreateDeviceToken = &EnterPasswordInput{}
-
-// GetPassword implements InputAuthenticationPassword
-func (i *EnterPasswordInput) GetPassword() string {
-	return i.Password
-}
-
-// CreateDeviceToken implements InputCreateDeviceToken.
-func (i *EnterPasswordInput) CreateDeviceToken() bool {
-	return i.DeviceToken
-}
-
 func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -132,7 +113,7 @@ func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 				plainPassword := r.Form.Get("x_password")
 				deviceToken := r.Form.Get("x_device_token") == "true"
 
-				input = &EnterPasswordInput{
+				input = &InputAuthPassword{
 					Password:    plainPassword,
 					DeviceToken: deviceToken,
 				}

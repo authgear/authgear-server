@@ -14,7 +14,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	coreimage "github.com/authgear/authgear-server/pkg/util/image"
@@ -54,23 +53,6 @@ type SetupTOTPViewModel struct {
 
 type SetupTOTPNode interface {
 	GetTOTPAuthenticator() *authenticator.Info
-}
-
-type SetupTOTPInput struct {
-	Code        string
-	DisplayName string
-}
-
-var _ nodes.InputCreateAuthenticatorTOTP = &SetupTOTPInput{}
-
-// GetTOTP implements InputCreateAuthenticatorTOTP.
-func (i *SetupTOTPInput) GetTOTP() string {
-	return i.Code
-}
-
-// GetTOTPDisplayName implements InputCreateAuthenticatorTOTP.
-func (i *SetupTOTPInput) GetTOTPDisplayName() string {
-	return i.DisplayName
 }
 
 type SetupTOTPEndpointsProvider interface {
@@ -192,7 +174,7 @@ func (h *SetupTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				// FIXME(mfa): decide a proper display name.
 				displayName := fmt.Sprintf("TOTP @ %s", now.Format(time.RFC3339))
 
-				input = &SetupTOTPInput{
+				input = &InputSetupTOTP{
 					Code:        r.Form.Get("x_code"),
 					DisplayName: displayName,
 				}

@@ -126,7 +126,7 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				),
 			}
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				return &SettingsPasswordAdd{}, nil
+				return &InputCreateAuthenticator{}, nil
 			})
 			if err != nil {
 				return err
@@ -146,8 +146,9 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				Intent:      intents.NewIntentRemoveAuthenticator(userID),
 			}
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				return &SettingsPasswordRemove{
-					AuthenticatorID: authenticatorID,
+				return &InputRemoveAuthenticator{
+					Type: authn.AuthenticatorTypePassword,
+					ID:   authenticatorID,
 				}, nil
 			})
 			if err != nil {
@@ -160,23 +161,4 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 	}
-}
-
-type SettingsPasswordAdd struct {
-}
-
-func (i *SettingsPasswordAdd) RequestedByUser() bool {
-	return true
-}
-
-type SettingsPasswordRemove struct {
-	AuthenticatorID string
-}
-
-func (i *SettingsPasswordRemove) GetAuthenticatorType() authn.AuthenticatorType {
-	return authn.AuthenticatorTypePassword
-}
-
-func (i *SettingsPasswordRemove) GetAuthenticatorID() string {
-	return i.AuthenticatorID
 }

@@ -92,8 +92,9 @@ func (h *SettingsTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 				Intent:      intents.NewIntentRemoveAuthenticator(*userID),
 			}
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				input = &SettingsTOTPRemove{
-					AuthenticatorID: authenticatorID,
+				input = &InputRemoveAuthenticator{
+					Type: authn.AuthenticatorTypeTOTP,
+					ID:   authenticatorID,
 				}
 				return
 			})
@@ -119,7 +120,7 @@ func (h *SettingsTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 				),
 			}
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				input = &SettingsTOTPAdd{}
+				input = &InputCreateAuthenticator{}
 				return
 			})
 			if err != nil {
@@ -132,23 +133,4 @@ func (h *SettingsTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			panic(err)
 		}
 	}
-}
-
-type SettingsTOTPRemove struct {
-	AuthenticatorID string
-}
-
-func (i *SettingsTOTPRemove) GetAuthenticatorType() authn.AuthenticatorType {
-	return authn.AuthenticatorTypeTOTP
-}
-
-func (i *SettingsTOTPRemove) GetAuthenticatorID() string {
-	return i.AuthenticatorID
-}
-
-type SettingsTOTPAdd struct {
-}
-
-func (i *SettingsTOTPAdd) RequestedByUser() bool {
-	return true
 }

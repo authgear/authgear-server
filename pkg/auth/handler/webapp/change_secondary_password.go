@@ -105,7 +105,7 @@ func (h *ChangeSecondaryPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 					return
 				}
 
-				input = &ChangePasswordInput{
+				input = &InputChangePassword{
 					OldPassword: oldPassword,
 					NewPassword: newPassword,
 				}

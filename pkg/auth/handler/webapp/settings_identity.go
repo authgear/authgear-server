@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
-	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -49,38 +48,6 @@ type SettingsIdentityHandler struct {
 	Identities    SettingsIdentityService
 	Verification  SettingsVerificationService
 	CSRFCookie    webapp.CSRFCookieDef
-}
-
-type SettingsIdentityLinkOAuth struct {
-	ProviderAlias    string
-	NonceSource      *http.Cookie
-	ErrorRedirectURI string
-}
-
-var _ nodes.InputUseIdentityOAuthProvider = &SettingsIdentityLinkOAuth{}
-
-func (i *SettingsIdentityLinkOAuth) GetProviderAlias() string {
-	return i.ProviderAlias
-}
-
-func (i *SettingsIdentityLinkOAuth) GetNonceSource() *http.Cookie {
-	return i.NonceSource
-}
-
-func (i *SettingsIdentityLinkOAuth) GetErrorRedirectURI() string {
-	return i.ErrorRedirectURI
-}
-
-type SettingsIdentityUnlinkOAuth struct {
-	IdentityID string
-}
-
-func (i *SettingsIdentityUnlinkOAuth) GetIdentityType() authn.IdentityType {
-	return authn.IdentityTypeOAuth
-}
-
-func (i *SettingsIdentityUnlinkOAuth) GetIdentityID() string {
-	return i.IdentityID
 }
 
 func (h *SettingsIdentityHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -144,7 +111,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 				Intent:      intents.NewIntentAddIdentity(*userID),
 			}
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				input = &SettingsIdentityLinkOAuth{
+				input = &InputUseOAuth{
 					ProviderAlias:    providerAlias,
 					NonceSource:      nonceSource,
 					ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
@@ -169,8 +136,9 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 				Intent:      intents.NewIntentRemoveIdentity(*userID),
 			}
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				input = &SettingsIdentityUnlinkOAuth{
-					IdentityID: identityID,
+				input = &InputRemoveIdentity{
+					Type: authn.IdentityTypeOAuth,
+					ID:   identityID,
 				}
 				return
 			})

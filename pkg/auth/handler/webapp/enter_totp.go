@@ -7,7 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -73,24 +72,6 @@ func (h *EnterTOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, stat
 	return data, nil
 }
 
-type EnterTOTPInput struct {
-	Code        string
-	DeviceToken bool
-}
-
-var _ nodes.InputAuthenticationTOTP = &EnterTOTPInput{}
-var _ nodes.InputCreateDeviceToken = &EnterTOTPInput{}
-
-// GetTOTP implements InputAuthenticationTOTP.
-func (i *EnterTOTPInput) GetTOTP() string {
-	return i.Code
-}
-
-// CreateDeviceToken implements InputCreateDeviceToken.
-func (i *EnterTOTPInput) CreateDeviceToken() bool {
-	return i.DeviceToken
-}
-
 func (h *EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -128,7 +109,7 @@ func (h *EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				code := r.Form.Get("x_code")
 				deviceToken := r.Form.Get("x_device_token") == "true"
 
-				input = &EnterTOTPInput{
+				input = &InputAuthTOTP{
 					Code:        code,
 					DeviceToken: deviceToken,
 				}

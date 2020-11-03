@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -36,13 +35,6 @@ type SetupRecoveryCodeViewModel struct {
 type SetupRecoveryCodeNode interface {
 	GetRecoveryCodes() []string
 }
-
-type SetupRecoveryCodeInput struct{}
-
-var _ nodes.InputGenerateRecoveryCodeEnd = &SetupRecoveryCodeInput{}
-
-// ViewedSetupRecoveryCodes implements InputGenerateRecoveryCodeEnd.
-func (i *SetupRecoveryCodeInput) ViewedRecoveryCodes() {}
 
 type SetupRecoveryCodeHandler struct {
 	Database      *db.Handle
@@ -125,7 +117,7 @@ func (h *SetupRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 	if r.Method == "POST" {
 		err := h.Database.WithTx(func() error {
 			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
-				input = &SetupRecoveryCodeInput{}
+				input = &InputSetupRecoveryCode{}
 				return
 			})
 			if err != nil {
