@@ -932,7 +932,12 @@ a.btn {
 .recovery-code-list-section .code-list {
   padding: 0;
   margin: 0;
-  column-count: 2;
+}
+
+@media (min-width: 576px) {
+  .recovery-code-list-section .code-list {
+    column-count: 2;
+  }
 }
 
 .recovery-code-list-section .code-item {
