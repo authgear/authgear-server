@@ -26,9 +26,14 @@ type EnterLoginIDViewModel struct {
 	LoginIDType      string
 	LoginIDInputType string
 	IdentityID       string
+	DisplayID        string
 }
 
-func NewEnterLoginIDViewModel(r *http.Request) EnterLoginIDViewModel {
+type EnterLoginIDService interface {
+	GetLoginIDDisplayID(userID string, loginIDKey string) (displayID string, err error)
+}
+
+func NewEnterLoginIDViewModel(r *http.Request, displayID string) EnterLoginIDViewModel {
 	loginIDKey := r.Form.Get("x_login_id_key")
 	loginIDType := r.Form.Get("x_login_id_type")
 	loginIDInputType := r.Form.Get("x_login_id_input_type")
@@ -39,6 +44,7 @@ func NewEnterLoginIDViewModel(r *http.Request) EnterLoginIDViewModel {
 		LoginIDType:      loginIDType,
 		LoginIDInputType: loginIDInputType,
 		IdentityID:       identityID,
+		DisplayID:        displayID,
 	}
 }
 
@@ -104,6 +110,7 @@ type EnterLoginIDHandler struct {
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
 	WebApp        WebAppService
+	Identities    EnterLoginIDService
 }
 
 func (h *EnterLoginIDHandler) GetData(r *http.Request, state *webapp.State) (map[string]interface{}, error) {
@@ -114,8 +121,15 @@ func (h *EnterLoginIDHandler) GetData(r *http.Request, state *webapp.State) (map
 		anyError = state.Error
 	}
 
+	userID := session.GetUserID(r.Context())
+	loginIDKey := r.Form.Get("x_login_id_key")
+
 	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
-	enterLoginIDViewModel := NewEnterLoginIDViewModel(r)
+	displayID, err := h.Identities.GetLoginIDDisplayID(*userID, loginIDKey)
+	if err != nil {
+		return nil, err
+	}
+	enterLoginIDViewModel := NewEnterLoginIDViewModel(r, displayID)
 
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, enterLoginIDViewModel)
@@ -199,7 +213,7 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 	if r.Method == "POST" && r.Form.Get("x_action") == "remove" {
 		err := h.Database.WithTx(func() error {
-			enterLoginIDViewModel := NewEnterLoginIDViewModel(r)
+			identityID := r.Form.Get("x_identity_id")
 
 			intent := &webapp.Intent{
 				RedirectURI: "/settings/identity",
@@ -208,7 +222,7 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
 				input = &EnterLoginIDRemoveLoginID{
-					IdentityID: enterLoginIDViewModel.IdentityID,
+					IdentityID: identityID,
 				}
 				return
 			})
@@ -225,14 +239,16 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 	if r.Method == "POST" && r.Form.Get("x_action") == "add_or_update" {
 		err := h.Database.WithTx(func() error {
-			enterLoginIDViewModel := NewEnterLoginIDViewModel(r)
+			loginIDKey := r.Form.Get("x_login_id_key")
+			loginIDType := r.Form.Get("x_login_id_type")
+			identityID := r.Form.Get("x_identity_id")
 
 			intent := &webapp.Intent{
 				RedirectURI: "/settings/identity",
 			}
 
-			if enterLoginIDViewModel.IdentityID != "" {
-				intent.Intent = intents.NewIntentUpdateIdentity(*userID, enterLoginIDViewModel.IdentityID)
+			if identityID != "" {
+				intent.Intent = intents.NewIntentUpdateIdentity(*userID, identityID)
 			} else {
 				intent.Intent = intents.NewIntentAddIdentity(*userID)
 			}
@@ -249,8 +265,8 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 				}
 
 				input = &EnterLoginIDLoginID{
-					LoginIDType: enterLoginIDViewModel.LoginIDType,
-					LoginIDKey:  enterLoginIDViewModel.LoginIDKey,
+					LoginIDType: loginIDType,
+					LoginIDKey:  loginIDKey,
 					LoginID:     newLoginID,
 				}
 				return
