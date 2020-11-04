@@ -13,7 +13,8 @@
 				{{ if eq .type "oauth" }}
 				<form class="authorize-idp-form" method="post" novalidate>
 				{{ $.CSRFField }}
-				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_provider_alias" value="{{ .provider_alias }}" data-form-xhr="false">
+				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_action" value="oauth" data-form-xhr="false">
+					<input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
 					<span class="sso-btn-content">
 					{{- if eq .provider_type "apple" -}}
 					<i class="fab fa-apple" aria-hidden="true"></i>
@@ -106,13 +107,13 @@
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if $.x_login_id_input_type }}{{ if not (eq $.x_login_id_input_type "phone") }}{{ if $.LoginPageLoginIDHasPhone }}
-				<a class="link align-self-flex-start" href="{{ call $.MakeURLState "" "x_login_id_input_type" "phone" }}">{{ template "use-phone-login-id-description" }}</a>
+				<a class="link align-self-flex-start" href="{{ call $.MakeURL "" "x_login_id_input_type" "phone" }}">{{ template "use-phone-login-id-description" }}</a>
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if not $.PublicSignupDisabled }}
 				<div class="link">
 					<span class="primary-text">{{ template "signup-button-hint" }}</span>
-					<a href="{{ call $.MakeURLState "/signup" }}">{{ template "signup-button-label" }}</a>
+					<a href="{{ call $.MakeURL "/signup" }}">{{ template "signup-button-label" }}</a>
 				</div>
 				{{ end }}
 
@@ -121,7 +122,7 @@
 				{{ end }}
 
 				{{ if or $.LoginPageLoginIDHasPhone (not (eq $.LoginPageTextLoginIDVariant "none")) }}
-				<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
+				<button class="btn primary-btn align-self-flex-end" type="submit" name="x_action" value="login_id">{{ template "next-button-label" }}</button>
 				{{ end }}
 			</form>
 		</div>

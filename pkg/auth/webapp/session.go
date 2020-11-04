@@ -22,6 +22,16 @@ type SessionOptions struct {
 	RedirectURI     string
 	KeepAfterFinish bool
 	UILocales       string
+	Extra           map[string]interface{}
+}
+
+func NewSessionOptionsFromSession(s *Session) SessionOptions {
+	return SessionOptions{
+		RedirectURI:     s.RedirectURI,
+		KeepAfterFinish: s.KeepAfterFinish,
+		UILocales:       s.UILocales,
+		Extra:           nil, // Omit extra by default
+	}
 }
 
 type SessionStep struct {
@@ -50,16 +60,28 @@ type Session struct {
 	UILocales string `json:"ui_locales,omitempty"`
 }
 
-func NewSession(options SessionOptions) *Session {
+func newSessionID() string {
 	const (
 		idAlphabet string = base32.Alphabet
 		idLength   int    = 32
 	)
-	return &Session{
-		ID:              corerand.StringWithAlphabet(idLength, idAlphabet, corerand.SecureRand),
+	return corerand.StringWithAlphabet(idLength, idAlphabet, corerand.SecureRand)
+}
+
+func NewSession(options SessionOptions) *Session {
+	s := &Session{
+		ID:              newSessionID(),
 		RedirectURI:     options.RedirectURI,
 		KeepAfterFinish: options.KeepAfterFinish,
 		Extra:           make(map[string]interface{}),
 		UILocales:       options.UILocales,
 	}
+	for k, v := range options.Extra {
+		s.Extra[k] = v
+	}
+	return s
+}
+
+func (s *Session) CurrentStep() SessionStep {
+	return s.Steps[len(s.Steps)-1]
 }

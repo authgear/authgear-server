@@ -23,6 +23,9 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(SessionMiddlewareStore), new(*SessionStoreRedis)),
 
 	wire.Struct(new(SessionStoreRedis), "*"),
+	wire.Bind(new(SessionStore), new(*SessionStoreRedis)),
+	wire.Struct(new(Service2), "*"),
+
 	wire.Struct(new(RedisStore), "*"),
 	wire.Bind(new(Store), new(*RedisStore)),
 	wire.Struct(new(Service), "*"),

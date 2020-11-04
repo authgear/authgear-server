@@ -5,8 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -67,13 +65,11 @@ func ConfigureSignupRoute(route httproute.Route) httproute.Route {
 }
 
 type SignupHandler struct {
-	TrustProxy    config.TrustProxy
-	Database      *db.Handle
-	BaseViewModel *viewmodels.BaseViewModeler
-	FormPrefiller *FormPrefiller
-	Renderer      Renderer
-	WebApp        WebAppService
-	CSRFCookie    webapp.CSRFCookieDef
+	ControllerFactory ControllerFactory
+	BaseViewModel     *viewmodels.BaseViewModeler
+	FormPrefiller     *FormPrefiller
+	Renderer          Renderer
+	CSRFCookie        webapp.CSRFCookieDef
 }
 
 func (h *SignupHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -86,100 +82,80 @@ func (h *SignupHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *
 	return data, nil
 }
 
-func (h *SignupHandler) MakeIntent(r *http.Request) *webapp.Intent {
-	return &webapp.Intent{
-		OldStateID:  StateID(r),
-		RedirectURI: webapp.GetRedirectURI(r, bool(h.TrustProxy), "/settings"),
-		Intent:      intents.NewIntentSignup(),
-	}
-}
-
 func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	ctrl, err := h.ControllerFactory.New(r, w)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	intent := h.MakeIntent(r)
-
 	h.FormPrefiller.Prefill(r.Form)
 
-	if r.Method == "GET" {
-		err := h.Database.WithTx(func() error {
-			_, graph, err := h.WebApp.GetIntent(intent)
-			if err != nil {
-				return err
-			}
+	opts := webapp.SessionOptions{
+		RedirectURI: ctrl.RedirectURI("/settings"),
+	}
+	intent := intents.NewIntentSignup()
 
-			data, err := h.GetData(r, w, graph)
-			if err != nil {
-				return err
-			}
+	ctrl.Get(func() error {
+		graph, err := ctrl.EntryPointGet(opts, intent)
+		if err != nil {
+			return err
+		}
 
-			h.Renderer.RenderHTML(w, r, TemplateWebSignupHTML, data)
-			return nil
+		data, err := h.GetData(r, w, graph)
+		if err != nil {
+			return err
+		}
+
+		h.Renderer.RenderHTML(w, r, TemplateWebSignupHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("oauth", func() error {
+		providerAlias := r.Form.Get("x_provider_alias")
+		nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			input = &InputUseOAuth{
+				ProviderAlias:    providerAlias,
+				NonceSource:      nonceSource,
+				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
+			}
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
 
-	providerAlias := r.Form.Get("x_provider_alias")
+		result.WriteResponse(w, r)
+		return nil
+	})
 
-	if r.Method == "POST" && providerAlias != "" {
-		err := h.Database.WithTx(func() error {
-			nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
-			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				input = &InputUseOAuth{
-					ProviderAlias:    providerAlias,
-					NonceSource:      nonceSource,
-					ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
-				}
+	ctrl.PostAction("login_id", func() error {
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			err = SignupSchema.PartValidator(SignupWithLoginIDRequestSchema).ValidateValue(FormToJSON(r.Form))
+			if err != nil {
 				return
-			})
-			if err != nil {
-				return err
 			}
-			result.WriteResponse(w, r)
-			return nil
-		})
-		if err != nil {
-			panic(err)
-		}
-		return
-	}
 
-	if r.Method == "POST" {
-		err := h.Database.WithTx(func() error {
-			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				err = SignupSchema.PartValidator(SignupWithLoginIDRequestSchema).ValidateValue(FormToJSON(r.Form))
-				if err != nil {
-					return
-				}
-
-				loginIDValue, err := FormToLoginID(r.Form)
-				if err != nil {
-					return
-				}
-
-				loginIDKey := r.Form.Get("x_login_id_key")
-				loginIDType := r.Form.Get("x_login_id_type")
-
-				input = &InputNewLoginID{
-					LoginIDType:  loginIDType,
-					LoginIDKey:   loginIDKey,
-					LoginIDValue: loginIDValue,
-				}
+			loginIDValue, err := FormToLoginID(r.Form)
+			if err != nil {
 				return
-			})
-			if err != nil {
-				return err
 			}
-			result.WriteResponse(w, r)
-			return nil
+
+			loginIDKey := r.Form.Get("x_login_id_key")
+			loginIDType := r.Form.Get("x_login_id_type")
+
+			input = &InputNewLoginID{
+				LoginIDType:  loginIDType,
+				LoginIDKey:   loginIDKey,
+				LoginIDValue: loginIDValue,
+			}
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
 }

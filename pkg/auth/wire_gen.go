@@ -1564,74 +1564,37 @@ func newWebAppRootHandler(p *deps.RequestProvider) http.Handler {
 
 func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	handle := appProvider.Database
+	request := p.Request
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	redisHandle := appProvider.Redis
+	sessionStoreRedis := &webapp.SessionStoreRedis{
+		AppID: appID,
+		Redis: redisHandle,
+	}
+	httpConfig := appConfig.HTTP
+	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	handle := appProvider.Database
-	config := appProvider.Config
-	appConfig := config.AppConfig
-	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
-	httpConfig := appConfig.HTTP
-	localizationConfig := appConfig.Localization
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	manager := appProvider.Resources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	errorCookie := &webapp.ErrorCookie{
 		Cookie:        errorCookieDef,
 		CookieFactory: cookieFactory,
 	}
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-	}
-	identityConfig := appConfig.Identity
-	loginIDConfig := identityConfig.LoginID
-	formPrefiller := &webapp2.FormPrefiller{
-		LoginID: loginIDConfig,
-		UI:      uiConfig,
-	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
-	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	factory := appProvider.LoggerFactory
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	serviceLogger := webapp.NewServiceLogger(factory)
-	appID := appConfig.ID
-	redisHandle := appProvider.Redis
-	redisStore := &webapp.RedisStore{
-		AppID: appID,
-		Redis: redisHandle,
-	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	authenticationConfig := appConfig.Authentication
+	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
@@ -1643,6 +1606,8 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	loginIDConfig := identityConfig.LoginID
+	manager := appProvider.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		Config:    loginIDConfig,
 		Resources: manager,
@@ -1804,6 +1769,23 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	localizationConfig := appConfig.Localization
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -1843,6 +1825,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
 		AppID: appID,
 		Redis: redisHandle,
@@ -1994,99 +1977,85 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	uaTokenCookieDef := webapp.NewUATokenCookieDef(httpConfig)
-	webappService := &webapp.Service{
-		Logger:        serviceLogger,
+	webappService2 := &webapp.Service2{
 		Request:       request,
-		Store:         redisStore,
-		Graph:         interactionService,
-		CookieFactory: cookieFactory,
-		UATokenCookie: uaTokenCookieDef,
+		Sessions:      sessionStoreRedis,
+		SessionCookie: sessionCookieDef,
 		ErrorCookie:   errorCookie,
+		CookieFactory: cookieFactory,
+		Graph:         interactionService,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:   handle,
+		Page:       webappService2,
+		Renderer:   responseRenderer,
+		TrustProxy: trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
+	}
+	uiConfig := appConfig.UI
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+		ErrorCookie:    errorCookie,
+	}
+	formPrefiller := &webapp2.FormPrefiller{
+		LoginID: loginIDConfig,
+		UI:      uiConfig,
 	}
 	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	loginHandler := &webapp2.LoginHandler{
-		TrustProxy:    trustProxy,
-		Database:      handle,
-		BaseViewModel: baseViewModeler,
-		FormPrefiller: formPrefiller,
-		Renderer:      responseRenderer,
-		WebApp:        webappService,
-		CSRFCookie:    csrfCookieDef,
+		ControllerFactory: controllerFactory,
+		BaseViewModel:     baseViewModeler,
+		FormPrefiller:     formPrefiller,
+		Renderer:          responseRenderer,
+		CSRFCookie:        csrfCookieDef,
 	}
 	return loginHandler
 }
 
 func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	handle := appProvider.Database
+	request := p.Request
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	redisHandle := appProvider.Redis
+	sessionStoreRedis := &webapp.SessionStoreRedis{
+		AppID: appID,
+		Redis: redisHandle,
+	}
+	httpConfig := appConfig.HTTP
+	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	handle := appProvider.Database
-	config := appProvider.Config
-	appConfig := config.AppConfig
-	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
-	httpConfig := appConfig.HTTP
-	localizationConfig := appConfig.Localization
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	manager := appProvider.Resources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	errorCookie := &webapp.ErrorCookie{
 		Cookie:        errorCookieDef,
 		CookieFactory: cookieFactory,
 	}
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-	}
-	identityConfig := appConfig.Identity
-	loginIDConfig := identityConfig.LoginID
-	formPrefiller := &webapp2.FormPrefiller{
-		LoginID: loginIDConfig,
-		UI:      uiConfig,
-	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
-	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	factory := appProvider.LoggerFactory
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	serviceLogger := webapp.NewServiceLogger(factory)
-	appID := appConfig.ID
-	redisHandle := appProvider.Redis
-	redisStore := &webapp.RedisStore{
-		AppID: appID,
-		Redis: redisHandle,
-	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	authenticationConfig := appConfig.Authentication
+	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
@@ -2098,6 +2067,8 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	loginIDConfig := identityConfig.LoginID
+	manager := appProvider.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		Config:    loginIDConfig,
 		Resources: manager,
@@ -2259,6 +2230,23 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	localizationConfig := appConfig.Localization
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -2298,6 +2286,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
 		AppID: appID,
 		Redis: redisHandle,
@@ -2449,25 +2438,48 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	uaTokenCookieDef := webapp.NewUATokenCookieDef(httpConfig)
-	webappService := &webapp.Service{
-		Logger:        serviceLogger,
+	webappService2 := &webapp.Service2{
 		Request:       request,
-		Store:         redisStore,
-		Graph:         interactionService,
-		CookieFactory: cookieFactory,
-		UATokenCookie: uaTokenCookieDef,
+		Sessions:      sessionStoreRedis,
+		SessionCookie: sessionCookieDef,
 		ErrorCookie:   errorCookie,
+		CookieFactory: cookieFactory,
+		Graph:         interactionService,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:   handle,
+		Page:       webappService2,
+		Renderer:   responseRenderer,
+		TrustProxy: trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
+	}
+	uiConfig := appConfig.UI
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+		ErrorCookie:    errorCookie,
+	}
+	formPrefiller := &webapp2.FormPrefiller{
+		LoginID: loginIDConfig,
+		UI:      uiConfig,
 	}
 	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	signupHandler := &webapp2.SignupHandler{
-		TrustProxy:    trustProxy,
-		Database:      handle,
-		BaseViewModel: baseViewModeler,
-		FormPrefiller: formPrefiller,
-		Renderer:      responseRenderer,
-		WebApp:        webappService,
-		CSRFCookie:    csrfCookieDef,
+		ControllerFactory: controllerFactory,
+		BaseViewModel:     baseViewModeler,
+		FormPrefiller:     formPrefiller,
+		Renderer:          responseRenderer,
+		CSRFCookie:        csrfCookieDef,
 	}
 	return signupHandler
 }

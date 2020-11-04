@@ -8,6 +8,9 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(FormPrefiller), "*"),
 	wire.Bind(new(Renderer), new(*ResponseRenderer)),
 
+	wire.Struct(new(ControllerDeps), "*"),
+	wire.Struct(new(ControllerFactory), "*"),
+
 	wire.Struct(new(PanicMiddleware), "*"),
 
 	wire.Struct(new(StaticAssetsHandler), "*"),

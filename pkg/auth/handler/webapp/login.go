@@ -6,8 +6,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -67,13 +65,11 @@ func ConfigureLoginRoute(route httproute.Route) httproute.Route {
 }
 
 type LoginHandler struct {
-	TrustProxy    config.TrustProxy
-	Database      *db.Handle
-	BaseViewModel *viewmodels.BaseViewModeler
-	FormPrefiller *FormPrefiller
-	Renderer      Renderer
-	WebApp        WebAppService
-	CSRFCookie    webapp.CSRFCookieDef
+	ControllerFactory ControllerFactory
+	BaseViewModel     *viewmodels.BaseViewModeler
+	FormPrefiller     *FormPrefiller
+	Renderer          Renderer
+	CSRFCookie        webapp.CSRFCookieDef
 }
 
 func (h *LoginHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -86,97 +82,77 @@ func (h *LoginHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *i
 	return data, nil
 }
 
-func (h *LoginHandler) MakeIntent(r *http.Request) *webapp.Intent {
-	return &webapp.Intent{
-		OldStateID:  StateID(r),
-		RedirectURI: webapp.GetRedirectURI(r, bool(h.TrustProxy), "/settings"),
-		Intent:      intents.NewIntentLogin(),
-	}
-}
-
 func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	ctrl, err := h.ControllerFactory.New(r, w)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	intent := h.MakeIntent(r)
-
 	h.FormPrefiller.Prefill(r.Form)
 
-	if r.Method == "GET" {
-		err := h.Database.WithTx(func() error {
-			_, graph, err := h.WebApp.GetIntent(intent)
-			if err != nil {
-				return err
-			}
+	opts := webapp.SessionOptions{
+		RedirectURI: ctrl.RedirectURI("/settings"),
+	}
+	intent := intents.NewIntentLogin()
 
-			data, err := h.GetData(r, w, graph)
-			if err != nil {
-				return err
-			}
+	ctrl.Get(func() error {
+		graph, err := ctrl.EntryPointGet(opts, intent)
+		if err != nil {
+			return err
+		}
 
-			h.Renderer.RenderHTML(w, r, TemplateWebLoginHTML, data)
-			return nil
+		data, err := h.GetData(r, w, graph)
+		if err != nil {
+			return err
+		}
+
+		h.Renderer.RenderHTML(w, r, TemplateWebLoginHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("oauth", func() error {
+		providerAlias := r.Form.Get("x_provider_alias")
+		nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			input = &InputUseOAuth{
+				ProviderAlias:    providerAlias,
+				NonceSource:      nonceSource,
+				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
+			}
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
 
-	providerAlias := r.Form.Get("x_provider_alias")
+		result.WriteResponse(w, r)
+		return nil
+	})
 
-	if r.Method == "POST" && providerAlias != "" {
-		err := h.Database.WithTx(func() error {
-			nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
-			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				input = &InputUseOAuth{
-					ProviderAlias:    providerAlias,
-					NonceSource:      nonceSource,
-					ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
-				}
+	ctrl.PostAction("login_id", func() error {
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			err = LoginSchema.PartValidator(LoginWithLoginIDRequestSchema).ValidateValue(FormToJSON(r.Form))
+			if err != nil {
 				return
-			})
-			if err != nil {
-				return err
 			}
-			result.WriteResponse(w, r)
-			return nil
-		})
-		if err != nil {
-			panic(err)
-		}
-		return
-	}
 
-	if r.Method == "POST" {
-		err := h.Database.WithTx(func() error {
-			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				err = LoginSchema.PartValidator(LoginWithLoginIDRequestSchema).ValidateValue(FormToJSON(r.Form))
-				if err != nil {
-					return
-				}
-
-				loginID, err := FormToLoginID(r.Form)
-				if err != nil {
-					return
-				}
-
-				input = &InputUseLoginID{
-					LoginID: loginID,
-				}
+			loginID, err := FormToLoginID(r.Form)
+			if err != nil {
 				return
-			})
-			if err != nil {
-				return err
 			}
-			result.WriteResponse(w, r)
-			return nil
+
+			input = &InputUseLoginID{
+				LoginID: loginID,
+			}
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
 }
 
 // FormToLoginID returns the raw login ID or the parsed phone number.
