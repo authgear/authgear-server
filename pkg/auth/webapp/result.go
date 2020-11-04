@@ -21,7 +21,7 @@ func (r *Result) WriteResponse(w http.ResponseWriter, req *http.Request) {
 		httputil.UpdateCookie(w, cookie)
 	}
 
-	if r.state.Error != nil {
+	if r.state != nil && r.state.Error != nil {
 		if r.errorRedirectURI != nil {
 			http.Redirect(w, req, AttachStateID(r.state.ID, r.errorRedirectURI).String(), http.StatusFound)
 			return

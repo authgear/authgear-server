@@ -82,6 +82,15 @@ func (s *SessionStoreRedis) Get(id string) (session *Session, err error) {
 	return
 }
 
+func (s *SessionStoreRedis) Delete(id string) error {
+	key := sessionKey(string(s.AppID), id)
+	err := s.Redis.WithConn(func(conn redis.Conn) error {
+		_, err := conn.Do("DEL", key)
+		return err
+	})
+	return err
+}
+
 func sessionKey(appID string, id string) string {
 	return fmt.Sprintf("app:%s:webapp-session:%s", appID, id)
 }

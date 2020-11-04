@@ -13,9 +13,8 @@ import (
 
 type PageService interface {
 	Get(path string, session *webapp.Session) (*interaction.Graph, error)
-	GetWithIntent(path string, session *webapp.Session, intent interaction.Intent) (*interaction.Graph, error)
+	GetWithIntent(session *webapp.Session, intent interaction.Intent) (*interaction.Graph, error)
 	PostWithIntent(
-		path string,
 		session *webapp.Session,
 		intent interaction.Intent,
 		inputFn func() (interface{}, error),
@@ -123,7 +122,7 @@ func (c *Controller) EntryPointGet(
 	opts webapp.SessionOptions,
 	intent interaction.Intent,
 ) (*interaction.Graph, error) {
-	return c.Page.GetWithIntent(c.path, c.EntryPointSession(opts), intent)
+	return c.Page.GetWithIntent(c.EntryPointSession(opts), intent)
 }
 
 func (c *Controller) EntryPointPost(
@@ -131,7 +130,7 @@ func (c *Controller) EntryPointPost(
 	intent interaction.Intent,
 	inputFn func() (interface{}, error),
 ) (*webapp.Result, error) {
-	return c.Page.PostWithIntent(c.path, c.EntryPointSession(opts), intent, inputFn)
+	return c.Page.PostWithIntent(c.EntryPointSession(opts), intent, inputFn)
 }
 
 func (c *Controller) InteractionSession() (*webapp.Session, error) {
