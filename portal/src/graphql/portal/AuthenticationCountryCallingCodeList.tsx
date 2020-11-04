@@ -589,6 +589,7 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> = function C
       <div className={styles.listWrapper}>
         <ScrollablePane>
           <DetailsList
+            className={styles.detailsList}
             columns={countryCodeListColumns}
             items={countryCallingCodeList}
             selectionMode={SelectionMode.none}

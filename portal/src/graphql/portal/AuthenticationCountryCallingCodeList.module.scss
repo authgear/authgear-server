@@ -25,3 +25,8 @@
 .lastPinnedCallingCode {
   border-bottom: 1px solid #c4c4c4;
 }
+
+// Fix horizontal scrollbar appears on windows browser
+.detailsList {
+  overflow-x: hidden;
+}
