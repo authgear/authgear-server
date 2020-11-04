@@ -1,9 +1,22 @@
 package webapp
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/util/base32"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 )
+
+type sessionContextKey struct{}
+
+func GetSession(ctx context.Context) *Session {
+	s, _ := ctx.Value(sessionContextKey{}).(*Session)
+	return s
+}
+
+func WithSession(ctx context.Context, session *Session) context.Context {
+	return context.WithValue(ctx, sessionContextKey{}, session)
+}
 
 type SessionOptions struct {
 	RedirectURI     string

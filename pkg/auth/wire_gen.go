@@ -15262,3 +15262,28 @@ func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	return stateMiddleware
 }
+
+func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	appProvider := p.AppProvider
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	handle := appProvider.Redis
+	sessionStoreRedis := &webapp.SessionStoreRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	httpConfig := appConfig.HTTP
+	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	sessionMiddleware := &webapp.SessionMiddleware{
+		States:        sessionStoreRedis,
+		Cookie:        sessionCookieDef,
+		CookieFactory: cookieFactory,
+	}
+	return sessionMiddleware
+}

@@ -8,12 +8,9 @@ import (
 
 	goredis "github.com/gomodule/redigo/redis"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 )
-
-var ErrInvalidSession = apierrors.Invalid.WithReason("WebUIInvalidSession").New("session expired or invalid")
 
 const SessionExpiryDuration = 5 * time.Minute
 

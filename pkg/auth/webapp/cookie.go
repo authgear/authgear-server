@@ -30,6 +30,26 @@ func NewUATokenCookieDef(httpCfg *config.HTTPConfig) UATokenCookieDef {
 	return UATokenCookieDef{Def: def}
 }
 
+type SessionCookieDef struct {
+	Def *httputil.CookieDef
+}
+
+func NewSessionCookieDef(httpCfg *config.HTTPConfig) SessionCookieDef {
+	def := &httputil.CookieDef{
+		Name:              httpCfg.CookiePrefix + "web_session",
+		Path:              "/",
+		AllowScriptAccess: false,
+		SameSite:          http.SameSiteLaxMode,
+		MaxAge:            nil, // Use HTTP session cookie; expires when browser closes
+	}
+
+	if httpCfg.CookieDomain != nil {
+		def.Domain = *httpCfg.CookieDomain
+	}
+
+	return SessionCookieDef{Def: def}
+}
+
 type ErrorCookieDef struct {
 	Def *httputil.CookieDef
 }
