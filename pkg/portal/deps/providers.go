@@ -31,6 +31,8 @@ type RootProvider struct {
 	ConfigSourceController *configsource.Controller
 	Resources              *resource.Manager
 	AppBaseResources       *resource.Manager
+
+	SecretKeyAllowlist portalconfig.SecretKeyAllowlist
 }
 
 func NewRootProvider(
@@ -46,6 +48,7 @@ func NewRootProvider(
 	dbConfig *portalconfig.DatabaseConfig,
 	smtpConfig *portalconfig.SMTPConfig,
 	mailConfig *portalconfig.MailConfig,
+	secretKeyAllowlist portalconfig.SecretKeyAllowlist,
 ) (*RootProvider, error) {
 	logLevel, err := log.ParseLevel(cfg.LogLevel)
 	if err != nil {
@@ -77,6 +80,7 @@ func NewRootProvider(
 		Database:           db.NewPool(dbConfig),
 		Resources:          NewPortalResourceManager(builtinResourceDirectory, customResourceDirectory),
 		AppBaseResources:   NewAppResourceManager(appBuiltinResourceDirectory, appCustomResourceDirectory),
+		SecretKeyAllowlist: secretKeyAllowlist,
 	}, nil
 }
 
