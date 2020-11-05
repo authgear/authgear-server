@@ -107,15 +107,15 @@ func (h *AuthenticationBeginHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		selectedEdge := edges[edgeIndex]
 		switch selectedEdge := selectedEdge.(type) {
 		case *nodes.EdgeConsumeRecoveryCode:
-			u := session.CurrentStepURL()
+			u := session.CurrentStep().URL()
 			u.Path = "/enter_recovery_code"
 			http.Redirect(w, r, u.String(), http.StatusFound)
 		case *nodes.EdgeAuthenticationPassword:
-			u := session.CurrentStepURL()
+			u := session.CurrentStep().URL()
 			u.Path = "/enter_password"
 			http.Redirect(w, r, u.String(), http.StatusFound)
 		case *nodes.EdgeAuthenticationTOTP:
-			u := session.CurrentStepURL()
+			u := session.CurrentStep().URL()
 			u.Path = "/enter_totp"
 			http.Redirect(w, r, u.String(), http.StatusFound)
 		case *nodes.EdgeAuthenticationOOBTrigger:
@@ -163,10 +163,9 @@ func DeriveAuthenticationAlternatives(session *webapp.Session, graph *interactio
 	}
 
 	var u *url.URL
-	for i := len(session.Steps) - 1; i >= 0; i-- {
-		step := session.Steps[i]
+	for _, step := range session.Steps {
 		if step.Path == "/authentication_begin" {
-			u = session.StepURL(i)
+			u = step.URL()
 			break
 		}
 	}

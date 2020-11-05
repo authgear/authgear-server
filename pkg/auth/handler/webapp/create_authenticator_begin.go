@@ -71,11 +71,11 @@ func (h *CreateAuthenticatorBeginHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		selectedEdge := edges[edgeIndex]
 		switch selectedEdge := selectedEdge.(type) {
 		case *nodes.EdgeCreateAuthenticatorPassword:
-			u := session.CurrentStepURL()
+			u := session.CurrentStep().URL()
 			u.Path = "/create_password"
 			http.Redirect(w, r, u.String(), http.StatusFound)
 		case *nodes.EdgeCreateAuthenticatorOOBSetup:
-			u := session.CurrentStepURL()
+			u := session.CurrentStep().URL()
 			u.Path = "/setup_oob_otp"
 			http.Redirect(w, r, u.String(), http.StatusFound)
 		case *nodes.EdgeCreateAuthenticatorTOTPSetup:
@@ -110,10 +110,9 @@ func DeriveCreateAuthenticatorAlternatives(session *webapp.Session, graph *inter
 	}
 
 	var u *url.URL
-	for i := len(session.Steps) - 1; i >= 0; i-- {
-		step := session.Steps[i]
+	for _, step := range session.Steps {
 		if step.Path == "/create_authenticator_begin" {
-			u = session.StepURL(i)
+			u = step.URL()
 			break
 		}
 	}

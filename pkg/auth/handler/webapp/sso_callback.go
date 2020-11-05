@@ -2,7 +2,6 @@ package webapp
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -39,14 +38,6 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	handler := func() error {
-		session, err := ctrl.InteractionSession()
-		if err != nil {
-			return err
-		}
-
-		// Always use the current step of session
-		r.Form.Set("x_step", strconv.Itoa(len(session.Steps)))
-
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
 			input = &data
 			return

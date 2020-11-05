@@ -3,7 +3,6 @@ package webapp
 import (
 	"context"
 	"net/url"
-	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/util/base32"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
@@ -39,6 +38,13 @@ func NewSessionOptionsFromSession(s *Session) SessionOptions {
 type SessionStep struct {
 	GraphID string `json:"graph_id"`
 	Path    string `json:"path"`
+}
+
+func (s SessionStep) URL() *url.URL {
+	query := url.Values{}
+	query.Set("x_step", s.GraphID)
+	u := url.URL{Path: s.Path, RawQuery: query.Encode()}
+	return &u
 }
 
 type Session struct {
@@ -86,15 +92,4 @@ func NewSession(options SessionOptions) *Session {
 
 func (s *Session) CurrentStep() SessionStep {
 	return s.Steps[len(s.Steps)-1]
-}
-
-func (s *Session) StepURL(index int) *url.URL {
-	query := url.Values{}
-	query.Set("x_step", strconv.Itoa(index+1))
-	u := url.URL{Path: s.Steps[index].Path, RawQuery: query.Encode()}
-	return &u
-}
-
-func (s *Session) CurrentStepURL() *url.URL {
-	return s.StepURL(len(s.Steps) - 1)
 }

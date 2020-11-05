@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -32,26 +31,24 @@ type Service2 struct {
 }
 
 func (s *Service2) rewindSessionHistory(session *Session, path string) *SessionStep {
-	step, err := strconv.Atoi(s.Request.Form.Get("x_step"))
-	if err != nil {
-		step = 0
-	}
-	if step < 0 {
-		step = 0
-	} else if step > len(session.Steps) {
-		step = len(session.Steps)
-	}
-	session.Steps = session.Steps[:step]
-
-	if len(session.Steps) == 0 {
-		return nil
+	stepGraphID := s.Request.Form.Get("x_step")
+	var curStep *SessionStep
+	for _, step := range session.Steps {
+		if step.GraphID == stepGraphID {
+			s := step
+			curStep = &s
+			break
+		}
 	}
 
-	curStep := session.CurrentStep()
-	if !isStepPathMatch(curStep, path) {
+	if curStep == nil && len(session.Steps) > 0 {
+		s := session.CurrentStep()
+		curStep = &s
+	}
+	if curStep == nil || !isStepPathMatch(*curStep, path) {
 		return nil
 	}
-	return &curStep
+	return curStep
 }
 
 func (s *Service2) Get(path string, session *Session) (*interaction.Graph, error) {
@@ -237,7 +234,7 @@ func (s *Service2) afterPost(
 			GraphID: graph.InstanceID,
 			Path:    redirectURI,
 		})
-		redirectURI = session.CurrentStepURL().String()
+		redirectURI = session.CurrentStep().URL().String()
 	} else {
 		u := url.URL{
 			Path:     s.Request.URL.Path,
