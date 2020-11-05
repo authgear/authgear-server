@@ -319,7 +319,7 @@ func (s *Service2) afterPost(
 
 	// Transition to redirect URI
 	if isFinished {
-		result.redirectURI = session.RedirectURI
+		result.redirectURI = deriveFinishRedirectURI(session, graph)
 	} else if interactionErr == nil {
 		if a, ok := graph.CurrentNode().(interface{ GetRedirectURI() string }); ok {
 			result.redirectURI = a.GetRedirectURI()
@@ -410,6 +410,16 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 	default:
 		panic(fmt.Errorf("webapp: unexpected node: %T", graph.CurrentNode()))
 	}
+}
+
+func deriveFinishRedirectURI(session *Session, graph *interaction.Graph) string {
+	switch graph.CurrentNode().(type) {
+	case *nodes.NodeForgotPasswordEnd:
+		return "/forgot_password/success"
+	case *nodes.NodeResetPasswordEnd:
+		return "/reset_password/success"
+	}
+	return session.RedirectURI
 }
 
 func collectExtras(node interaction.Node) map[string]interface{} {

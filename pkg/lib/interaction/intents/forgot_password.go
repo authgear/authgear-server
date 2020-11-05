@@ -9,20 +9,14 @@ func init() {
 	interaction.RegisterIntent(&IntentForgotPassword{})
 }
 
-type IntentForgotPassword struct {
-	RedirectURI string
-}
+type IntentForgotPassword struct{}
 
-func NewIntentForgotPassword(redirectURI string) *IntentForgotPassword {
-	return &IntentForgotPassword{
-		RedirectURI: redirectURI,
-	}
+func NewIntentForgotPassword() *IntentForgotPassword {
+	return &IntentForgotPassword{}
 }
 
 func (i *IntentForgotPassword) InstantiateRootNode(ctx *interaction.Context, graph *interaction.Graph) (interaction.Node, error) {
-	return &nodes.NodeForgotPasswordBegin{
-		RedirectURI: i.RedirectURI,
-	}, nil
+	return &nodes.NodeForgotPasswordBegin{}, nil
 }
 
 func (i *IntentForgotPassword) DeriveEdgesForNode(graph *interaction.Graph, node interaction.Node) ([]interaction.Edge, error) {

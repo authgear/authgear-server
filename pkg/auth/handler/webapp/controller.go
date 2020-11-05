@@ -117,6 +117,7 @@ func (c *Controller) EntryPointSession(opts webapp.SessionOptions) *webapp.Sessi
 		if opts.RedirectURI != "" {
 			s.RedirectURI = opts.RedirectURI
 		}
+		s.KeepAfterFinish = opts.KeepAfterFinish
 	}
 
 	return s

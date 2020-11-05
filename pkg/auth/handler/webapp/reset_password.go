@@ -66,7 +66,6 @@ func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	}
 
 	opts := webapp.SessionOptions{
-		RedirectURI:     "/reset_password/success",
 		KeepAfterFinish: true,
 	}
 	intent := intents.NewIntentResetPassword()

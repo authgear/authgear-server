@@ -86,11 +86,9 @@ func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	}
 
 	opts := webapp.SessionOptions{
-		RedirectURI:     "/forgot_password/success",
 		KeepAfterFinish: true,
 	}
-	// TODO: should not need redirect URI anymore
-	intent := intents.NewIntentForgotPassword("")
+	intent := intents.NewIntentForgotPassword()
 
 	h.FormPrefiller.Prefill(r.Form)
 
