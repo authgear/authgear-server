@@ -26,11 +26,11 @@ var AppConfig = resource.RegisterResource(resource.SimpleFile{
 	},
 })
 
-var SecretConfig = resource.RegisterResource(secretConfigKind{})
+var SecretConfig = resource.RegisterResource(SecretConfigResourceType{})
 
-type secretConfigKind struct{}
+type SecretConfigResourceType struct{}
 
-func (f secretConfigKind) ReadResource(fs resource.Fs) ([]resource.LayerFile, error) {
+func (f SecretConfigResourceType) ReadResource(fs resource.Fs) ([]resource.LayerFile, error) {
 	data, err := resource.ReadFile(fs, AuthgearSecretYAML)
 	if os.IsNotExist(err) {
 		return nil, nil
@@ -40,11 +40,11 @@ func (f secretConfigKind) ReadResource(fs resource.Fs) ([]resource.LayerFile, er
 	return []resource.LayerFile{{Path: AuthgearSecretYAML, Data: data}}, nil
 }
 
-func (f secretConfigKind) MatchResource(path string) bool {
+func (f SecretConfigResourceType) MatchResource(path string) bool {
 	return path == AuthgearSecretYAML
 }
 
-func (f secretConfigKind) Merge(layers []resource.LayerFile, args map[string]interface{}) (*resource.MergedFile, error) {
+func (f SecretConfigResourceType) Merge(layers []resource.LayerFile, args map[string]interface{}) (*resource.MergedFile, error) {
 	var layerConfigs []*config.SecretConfig
 	for _, layer := range layers {
 		var layerConfig config.SecretConfig
@@ -63,7 +63,7 @@ func (f secretConfigKind) Merge(layers []resource.LayerFile, args map[string]int
 	return &resource.MergedFile{Data: mergedYAML}, nil
 }
 
-func (f secretConfigKind) Parse(merged *resource.MergedFile) (interface{}, error) {
+func (f SecretConfigResourceType) Parse(merged *resource.MergedFile) (interface{}, error) {
 	secretConfig, err := config.ParseSecret(merged.Data)
 	if err != nil {
 		return nil, fmt.Errorf("cannot parse secret config: %w", err)
