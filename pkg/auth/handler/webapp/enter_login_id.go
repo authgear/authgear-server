@@ -126,11 +126,16 @@ func (h *EnterLoginIDHandler) GetData(r *http.Request, state *webapp.State) (map
 	identityID := r.Form.Get("x_identity_id")
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
-	idnInfo, err := h.Identities.Get(*userID, authn.IdentityTypeLoginID, identityID)
-	if err != nil {
-		return nil, err
+	var enterLoginIDViewModel EnterLoginIDViewModel
+	if identityID != "" {
+		idnInfo, err := h.Identities.Get(*userID, authn.IdentityTypeLoginID, identityID)
+		if err != nil {
+			return nil, err
+		}
+		enterLoginIDViewModel = NewEnterLoginIDViewModel(r, idnInfo.DisplayID())
+	} else {
+		enterLoginIDViewModel = NewEnterLoginIDViewModel(r, "")
 	}
-	enterLoginIDViewModel := NewEnterLoginIDViewModel(r, idnInfo.DisplayID())
 
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, enterLoginIDViewModel)
