@@ -78,8 +78,8 @@ func (c *Controller) RequireUserID() string {
 	return *userID
 }
 
-func (c *Controller) RedirectURI(defaultRedirectURI string) string {
-	return webapp.GetRedirectURI(c.request, bool(c.TrustProxy), defaultRedirectURI)
+func (c *Controller) RedirectURI() string {
+	return webapp.GetRedirectURI(c.request, bool(c.TrustProxy), "")
 }
 
 func (c *Controller) Get(fn func() error) {
@@ -114,6 +114,9 @@ func (c *Controller) EntryPointSession(opts webapp.SessionOptions) *webapp.Sessi
 		s = webapp.NewSession(opts)
 	} else {
 		s = webapp.NewSession(webapp.NewSessionOptionsFromSession(s))
+		if opts.RedirectURI != "" {
+			s.RedirectURI = opts.RedirectURI
+		}
 	}
 
 	return s

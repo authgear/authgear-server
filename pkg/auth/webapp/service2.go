@@ -339,6 +339,9 @@ func (s *Service2) afterPost(
 	}
 	s.Logger.Debugf("interaction: redirect to" + result.redirectURI)
 
+	// Collect extras
+	session.Extra = collectExtras(graph.CurrentNode())
+
 	// Persist/discard session
 	if isFinished && !session.KeepAfterFinish {
 		err := s.Sessions.Delete(session.ID)
@@ -406,5 +409,24 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 		return SessionStepVerifyIdentity
 	default:
 		panic(fmt.Errorf("webapp: unexpected node: %T", graph.CurrentNode()))
+	}
+}
+
+func collectExtras(node interaction.Node) map[string]interface{} {
+	switch node := node.(type) {
+	case *nodes.NodeForgotPasswordEnd:
+		return map[string]interface{}{
+			"login_id": node.LoginID,
+		}
+	case *nodes.NodeEnsureVerificationEnd:
+		return map[string]interface{}{
+			"display_id": node.Identity.DisplayID(),
+		}
+	case *nodes.NodeDoVerifyIdentity:
+		return map[string]interface{}{
+			"display_id": node.Identity.DisplayID(),
+		}
+	default:
+		return nil
 	}
 }

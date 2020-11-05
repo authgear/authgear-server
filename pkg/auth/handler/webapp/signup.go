@@ -91,7 +91,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.FormPrefiller.Prefill(r.Form)
 
 	opts := webapp.SessionOptions{
-		RedirectURI: ctrl.RedirectURI("/settings"),
+		RedirectURI: ctrl.RedirectURI(),
 	}
 	intent := intents.NewIntentSignup()
 

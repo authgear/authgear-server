@@ -124,7 +124,7 @@
 				</div>
 
 				{{ if .ForgotPasswordEnabled }}
-				<a class="link align-self-flex-start" href="{{ call $.MakeURL "/forgot_password" "redirect_uri" $.RequestURI }}">{{ template "forgot-password-button-label" }}</a>
+				<a class="link align-self-flex-start" href="{{ call $.MakeURL "/forgot_password" }}">{{ template "forgot-password-button-label" }}</a>
 				{{ end }}
 
 				<button class="btn primary-btn align-self-flex-end" type="submit" name="x_action" value="login_id">

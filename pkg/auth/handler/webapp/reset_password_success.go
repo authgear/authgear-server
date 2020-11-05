@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -21,10 +20,9 @@ func ConfigureResetPasswordSuccessRoute(route httproute.Route) httproute.Route {
 }
 
 type ResetPasswordSuccessHandler struct {
-	Database      *db.Handle
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      Renderer
-	WebApp        WebAppService
+	ControllerFactory ControllerFactory
+	BaseViewModel     *viewmodels.BaseViewModeler
+	Renderer          Renderer
 }
 
 func (h *ResetPasswordSuccessHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -35,23 +33,19 @@ func (h *ResetPasswordSuccessHandler) GetData(r *http.Request, rw http.ResponseW
 }
 
 func (h *ResetPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	ctrl, err := h.ControllerFactory.New(r, w)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	if r.Method == "GET" {
-		err := h.Database.WithTx(func() error {
-			data, err := h.GetData(r, w)
-			if err != nil {
-				return err
-			}
-
-			h.Renderer.RenderHTML(w, r, TemplateWebResetPasswordSuccessHTML, data)
-			return nil
-		})
+	ctrl.Get(func() error {
+		data, err := h.GetData(r, w)
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
+
+		h.Renderer.RenderHTML(w, r, TemplateWebResetPasswordSuccessHTML, data)
+		return nil
+	})
 }
