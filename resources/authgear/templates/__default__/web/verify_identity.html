@@ -55,14 +55,14 @@
 		value="{{ $.VerificationCode }}"
 	>
 {{ end }}
-<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
+<button class="btn primary-btn align-self-flex-end" type="submit" name="x_action" value="submit">{{ template "next-button-label" }}</button>
 </form>
 
 <form class="link verify-user-trigger-form" method="post" novalidate>
 {{ $.CSRFField }}
 
 <span class="primary-txt">{{ template "verify-user-resend-button-hint" }}</span>
-<button id="resend-button" class="anchor" type="submit" name="trigger" value="true"
+<button id="resend-button" class="anchor" type="submit" name="x_action" value="resend"
 	data-cooldown="{{ $.VerificationCodeSendCooldown }}"
 	data-label="{{ template "verify-user-resend-button-label" }}"
 	data-label-unit="{{ template "verify-user-resend-button-label--unit" }}">{{ template "verify-user-resend-button-label" }}</button>

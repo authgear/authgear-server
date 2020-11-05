@@ -6,6 +6,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/base32"
+	"github.com/authgear/authgear-server/pkg/util/rand"
 )
 
 const (
@@ -42,4 +44,9 @@ func (c *Code) SendResult() *otp.CodeSendResult {
 		CodeLength:   len(c.Code),
 		SendCooldown: SendCooldownSeconds,
 	}
+}
+
+func NewCodeID() string {
+	code := rand.StringWithAlphabet(16, base32.Alphabet, rand.SecureRand)
+	return code
 }

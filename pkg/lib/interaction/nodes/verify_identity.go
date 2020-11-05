@@ -21,7 +21,7 @@ type EdgeVerifyIdentity struct {
 func (e *EdgeVerifyIdentity) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	node := &NodeVerifyIdentity{
 		Identity: e.Identity,
-		CodeID:   ctx.WebStateID,
+		CodeID:   verification.NewCodeID(),
 	}
 	result, err := node.SendCode(ctx)
 	if err != nil {
@@ -108,7 +108,7 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context) (*otp.CodeSendRe
 		}
 	}
 
-	result, err := ctx.VerificationCodeSender.SendCode(code, ctx.WebStateID)
+	result, err := ctx.VerificationCodeSender.SendCode(code)
 	if err != nil {
 		return nil, err
 	}

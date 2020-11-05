@@ -44,10 +44,10 @@ func (p *URLProvider) ResetPasswordURL(code string) *url.URL {
 	)
 }
 
-func (p *URLProvider) VerifyIdentityURL(code string, webStateID string) *url.URL {
+func (p *URLProvider) VerifyIdentityURL(code string, id string) *url.URL {
 	return urlutil.WithQueryParamsAdded(
 		p.Endpoints.VerifyIdentityEndpointURL(),
-		map[string]string{"code": code, "state": webStateID},
+		map[string]string{"code": code, "id": id},
 	)
 }
 
