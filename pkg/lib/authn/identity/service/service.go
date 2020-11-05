@@ -395,26 +395,6 @@ func (s *Service) CheckDuplicated(is *identity.Info) (dupeIdentity *identity.Inf
 	return
 }
 
-func (s *Service) GetLoginIDDisplayID(userID string, loginIDKey string) (displayID string, err error) {
-	var loginIDs []*loginid.Identity
-
-	if userID != "" {
-		loginIDs, err = s.LoginID.List(userID)
-		if err != nil {
-			return
-		}
-		// No need to consider anonymous identity
-	}
-
-	for _, iden := range loginIDs {
-		if iden.LoginIDKey == loginIDKey {
-			displayID = loginIDToIdentityInfo(iden).DisplayID()
-		}
-	}
-
-	return
-}
-
 func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err error) {
 	var loginIDs []*loginid.Identity
 	var oauths []*oauth.Identity

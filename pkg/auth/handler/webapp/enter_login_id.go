@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
@@ -30,7 +31,7 @@ type EnterLoginIDViewModel struct {
 }
 
 type EnterLoginIDService interface {
-	GetLoginIDDisplayID(userID string, loginIDKey string) (displayID string, err error)
+	Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error)
 }
 
 func NewEnterLoginIDViewModel(r *http.Request, displayID string) EnterLoginIDViewModel {
@@ -122,14 +123,14 @@ func (h *EnterLoginIDHandler) GetData(r *http.Request, state *webapp.State) (map
 	}
 
 	userID := session.GetUserID(r.Context())
-	loginIDKey := r.Form.Get("x_login_id_key")
+	identityID := r.Form.Get("x_identity_id")
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
-	displayID, err := h.Identities.GetLoginIDDisplayID(*userID, loginIDKey)
+	idnInfo, err := h.Identities.Get(*userID, authn.IdentityTypeLoginID, identityID)
 	if err != nil {
 		return nil, err
 	}
-	enterLoginIDViewModel := NewEnterLoginIDViewModel(r, displayID)
+	enterLoginIDViewModel := NewEnterLoginIDViewModel(r, idnInfo.DisplayID())
 
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, enterLoginIDViewModel)
