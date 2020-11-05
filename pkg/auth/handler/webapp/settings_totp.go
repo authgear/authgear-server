@@ -7,7 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -32,12 +31,11 @@ type SettingsTOTPViewModel struct {
 }
 
 type SettingsTOTPHandler struct {
-	Database       *db.Handle
-	BaseViewModel  *viewmodels.BaseViewModeler
-	Renderer       Renderer
-	WebApp         WebAppService
-	Authenticators SettingsAuthenticatorService
-	CSRFCookie     webapp.CSRFCookieDef
+	ControllerFactory ControllerFactory
+	BaseViewModel     *viewmodels.BaseViewModeler
+	Renderer          Renderer
+	Authenticators    SettingsAuthenticatorService
+	CSRFCookie        webapp.CSRFCookieDef
 }
 
 func (h *SettingsTOTPHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -61,76 +59,66 @@ func (h *SettingsTOTPHandler) GetData(r *http.Request, rw http.ResponseWriter) (
 }
 
 func (h *SettingsTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	ctrl, err := h.ControllerFactory.New(r, w)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	redirectURI := httputil.HostRelative(r.URL).String()
 	authenticatorID := r.Form.Get("x_authenticator_id")
-	userID := session.GetUserID(r.Context())
+	userID := ctrl.RequireUserID()
 
-	if r.Method == "GET" {
-		err := h.Database.WithTx(func() error {
-			data, err := h.GetData(r, w)
-			if err != nil {
-				return err
+	ctrl.Get(func() error {
+		data, err := h.GetData(r, w)
+		if err != nil {
+			return err
+		}
+
+		h.Renderer.RenderHTML(w, r, TemplateWebSettingsTOTPHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("remove", func() error {
+		opts := webapp.SessionOptions{
+			RedirectURI: redirectURI,
+		}
+		intent := intents.NewIntentRemoveAuthenticator(userID)
+
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			input = &InputRemoveAuthenticator{
+				Type: authn.AuthenticatorTypeTOTP,
+				ID:   authenticatorID,
 			}
-
-			h.Renderer.RenderHTML(w, r, TemplateWebSettingsTOTPHTML, data)
-			return nil
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
 
-	if r.Method == "POST" && r.Form.Get("x_action") == "remove" {
-		err := h.Database.WithTx(func() error {
-			intent := &webapp.Intent{
-				RedirectURI: redirectURI,
-				Intent:      intents.NewIntentRemoveAuthenticator(*userID),
-			}
-			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				input = &InputRemoveAuthenticator{
-					Type: authn.AuthenticatorTypeTOTP,
-					ID:   authenticatorID,
-				}
-				return
-			})
-			if err != nil {
-				return err
-			}
-			result.WriteResponse(w, r)
-			return nil
+		result.WriteResponse(w, r)
+		return nil
+	})
+
+	ctrl.PostAction("add", func() error {
+		opts := webapp.SessionOptions{
+			RedirectURI: redirectURI,
+		}
+		intent := intents.NewIntentAddAuthenticator(
+			userID,
+			interaction.AuthenticationStageSecondary,
+			authn.AuthenticatorTypeTOTP,
+		)
+
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			input = &InputCreateAuthenticator{}
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
 
-	if r.Method == "POST" && r.Form.Get("x_action") == "add" {
-		err := h.Database.WithTx(func() error {
-			intent := &webapp.Intent{
-				RedirectURI: redirectURI,
-				Intent: intents.NewIntentAddAuthenticator(
-					*userID,
-					interaction.AuthenticationStageSecondary,
-					authn.AuthenticatorTypeTOTP,
-				),
-			}
-			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				input = &InputCreateAuthenticator{}
-				return
-			})
-			if err != nil {
-				return err
-			}
-			result.WriteResponse(w, r)
-			return nil
-		})
-		if err != nil {
-			panic(err)
-		}
-	}
+		result.WriteResponse(w, r)
+		return nil
+	})
 }
