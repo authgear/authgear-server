@@ -31,6 +31,17 @@ type Service2 struct {
 	Graph GraphService
 }
 
+func (s *Service2) CreateSession(session *Session, redirectURI string) (*Result, error) {
+	if err := s.Sessions.Create(session); err != nil {
+		return nil, err
+	}
+	result := &Result{
+		redirectURI: redirectURI,
+		cookies:     []*http.Cookie{s.CookieFactory.ValueCookie(s.SessionCookie.Def, session.ID)},
+	}
+	return result, nil
+}
+
 func (s *Service2) UpdateSession(session *Session) error {
 	return s.Sessions.Update(session)
 }

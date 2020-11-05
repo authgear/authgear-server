@@ -22,6 +22,7 @@ type SessionOptions struct {
 	RedirectURI     string
 	KeepAfterFinish bool
 	UILocales       string
+	Prompt          string
 	Extra           map[string]interface{}
 }
 
@@ -30,6 +31,7 @@ func NewSessionOptionsFromSession(s *Session) SessionOptions {
 		RedirectURI:     s.RedirectURI,
 		KeepAfterFinish: s.KeepAfterFinish,
 		UILocales:       s.UILocales,
+		Prompt:          s.Prompt,
 		Extra:           nil, // Omit extra by default
 	}
 }
@@ -50,6 +52,9 @@ type Session struct {
 	// Extra is used to store extra information for use of webapp.
 	Extra map[string]interface{} `json:"extra"`
 
+	// Prompt is used to indicate requested authentication behavior
+	Prompt string `json:"prompt,omitempty"`
+
 	// UILocales are the locale to be used to render UI, passed in from OAuth
 	// flow or query parameter.
 	UILocales string `json:"ui_locales,omitempty"`
@@ -69,6 +74,7 @@ func NewSession(options SessionOptions) *Session {
 		RedirectURI:     options.RedirectURI,
 		KeepAfterFinish: options.KeepAfterFinish,
 		Extra:           make(map[string]interface{}),
+		Prompt:          options.Prompt,
 		UILocales:       options.UILocales,
 	}
 	for k, v := range options.Extra {
