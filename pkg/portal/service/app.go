@@ -55,8 +55,6 @@ func NewAppServiceLogger(lf *log.Factory) AppServiceLogger {
 	return AppServiceLogger{lf.New("app-service")}
 }
 
-type AppBaseResource *resource.Manager
-
 type AppService struct {
 	Logger      AppServiceLogger
 	SQLBuilder  *db.SQLBuilder

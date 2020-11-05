@@ -75,8 +75,8 @@ func NewRootProvider(
 		LoggerFactory:      loggerFactory,
 		SentryHub:          sentryHub,
 		Database:           db.NewPool(dbConfig),
-		Resources:          NewResourceManager(builtinResourceDirectory, customResourceDirectory),
-		AppBaseResources:   NewResourceManager(appBuiltinResourceDirectory, appCustomResourceDirectory),
+		Resources:          NewPortalResourceManager(builtinResourceDirectory, customResourceDirectory),
+		AppBaseResources:   NewAppResourceManager(appBuiltinResourceDirectory, appCustomResourceDirectory),
 	}, nil
 }
 
