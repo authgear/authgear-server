@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -31,7 +32,7 @@ type Service2 struct {
 }
 
 func (s *Service2) rewindSessionHistory(session *Session, path string) *SessionStep {
-	step, err := strconv.Atoi(s.Request.URL.Query().Get("x_step"))
+	step, err := strconv.Atoi(s.Request.Form.Get("x_step"))
 	if err != nil {
 		step = 0
 	}
@@ -47,7 +48,7 @@ func (s *Service2) rewindSessionHistory(session *Session, path string) *SessionS
 	}
 
 	curStep := session.CurrentStep()
-	if curStep.Path != path {
+	if !isStepPathMatch(curStep, path) {
 		return nil
 	}
 	return &curStep
@@ -225,26 +226,34 @@ func (s *Service2) afterPost(
 	}
 
 	// Transition to redirect URI.
-	redirectURI, isExternalRedirect := deriveRedirectURI(interactionErr, graph)
-	if !isExternalRedirect {
-		// Internal redirect: redirectURI is a path.
-		if interactionErr == nil {
-			// Push step into history if success
-			session.Steps = append(session.Steps, SessionStep{
-				GraphID: graph.InstanceID,
-				Path:    redirectURI,
-			})
-		}
+	var redirectURI string
+	if finished {
+		redirectURI = session.RedirectURI
+	} else if interactionErr == nil {
+		redirectURI = deriveRedirectPath(graph)
 
-		if len(session.Steps) > 0 {
-			// Append current step index to redirect URI
-			query := url.Values{}
-			query.Set("x_step", strconv.Itoa(len(session.Steps)))
-			uri := url.URL{
-				Path:     redirectURI,
-				RawQuery: query.Encode(),
-			}
-			redirectURI = uri.String()
+		// Push next step into history
+		session.Steps = append(session.Steps, SessionStep{
+			GraphID: graph.InstanceID,
+			Path:    redirectURI,
+		})
+		redirectURI = session.CurrentStepURL().String()
+	} else {
+		u := url.URL{
+			Path:     s.Request.URL.Path,
+			RawQuery: s.Request.URL.RawQuery,
+		}
+		redirectURI = u.String()
+	}
+
+	node := graph.CurrentNode()
+	if interactionErr == nil {
+		if a, ok := node.(interface{ GetRedirectURI() string }); ok {
+			redirectURI = a.GetRedirectURI()
+		}
+	} else {
+		if a, ok := node.(interface{ GetErrorRedirectURI() string }); ok {
+			redirectURI = a.GetErrorRedirectURI()
 		}
 	}
 
@@ -274,21 +283,28 @@ func (s *Service2) afterPost(
 	}, nil
 }
 
-// nolint:gocyclo
-func deriveRedirectURI(err error, graph *interaction.Graph) (uri string, isExternal bool) {
-	node := graph.CurrentNode()
-	if err != nil {
-		if a, ok := node.(interface{ GetErrorRedirectURI() string }); ok {
-			return a.GetErrorRedirectURI(), true
+func isStepPathMatch(step SessionStep, path string) bool {
+	switch step.Path {
+	case "/authentication_begin":
+		switch path {
+		case "/enter_recovery_code", "/enter_password", "/enter_totp":
+			return true
 		}
-	} else {
-		if a, ok := node.(interface{ GetRedirectURI() string }); ok {
-			return a.GetRedirectURI(), true
+	case "/create_authenticator_begin":
+		switch path {
+		case "/create_password", "/setup_oob_otp":
+			return true
 		}
+	case "/sso/oauth2/callback":
+		return strings.HasPrefix(path, "/sso/oauth2/callback/")
 	}
+	return step.Path == path
+}
 
+// nolint:gocyclo
+func deriveRedirectPath(graph *interaction.Graph) string {
 	var path string
-	switch node.(type) {
+	switch graph.CurrentNode().(type) {
 	case *nodes.NodeSelectIdentityBegin:
 		switch intent := graph.Intent.(type) {
 		case *intents.IntentAuthenticate:
@@ -303,6 +319,9 @@ func deriveRedirectURI(err error, graph *interaction.Graph) (uri string, isExter
 		default:
 			panic(fmt.Errorf("webapp: unexpected intent: %T", graph.Intent))
 		}
+	case *nodes.NodeUseIdentityOAuthProvider:
+		// A pseudo-path to indicate a OAuth redirect step.
+		path = "/sso/oauth2/callback"
 	case *nodes.NodeDoUseUser:
 		switch graph.Intent.(type) {
 		case *intents.IntentRemoveIdentity:
@@ -346,5 +365,5 @@ func deriveRedirectURI(err error, graph *interaction.Graph) (uri string, isExter
 		panic(fmt.Errorf("webapp: unexpected node: %T", graph.CurrentNode()))
 	}
 
-	return path, false
+	return path
 }

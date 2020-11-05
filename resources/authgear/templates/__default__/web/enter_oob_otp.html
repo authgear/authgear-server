@@ -48,7 +48,7 @@
 {{ end }}
 {{ end }}
 
-<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
+<button class="btn primary-btn align-self-flex-end" type="submit" name="x_action" value="submit">{{ template "next-button-label" }}</button>
 
 {{ range $.AuthenticationAlternatives }}
 {{ if eq .Type "totp" }}
@@ -83,7 +83,7 @@
 {{ $.CSRFField }}
 
 <span class="primary-txt">{{ template "oob-otp-resend-button-hint" }}</span>
-<button id="resend-button" class="anchor" type="submit" name="trigger" value="true"
+<button id="resend-button" class="anchor" type="submit" name="x_action" value="resend"
 	data-cooldown="{{ $.OOBOTPCodeSendCooldown }}"
 	data-label="{{ template "oob-otp-resend-button-label" }}"
 	data-label-unit="{{ template "oob-otp-resend-button-label--unit" }}">{{ template "oob-otp-resend-button-label" }}</button>

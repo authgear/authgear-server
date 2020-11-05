@@ -8,7 +8,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -26,17 +25,15 @@ type CreateAuthenticatorBeginNode interface {
 }
 
 type CreateAuthenticatorBeginHandler struct {
-	Database *db.Handle
-	WebApp   WebAppService
+	ControllerFactory ControllerFactory
 }
 
 func (h *CreateAuthenticatorBeginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	ctrl, err := h.ControllerFactory.New(r, w)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	var err error
 
 	edgeIndexString := r.Form.Get("x_edge")
 	if edgeIndexString == "" {
@@ -47,47 +44,42 @@ func (h *CreateAuthenticatorBeginHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		edgeIndex = 0
 	}
 
-	var state *webapp.State
-	var graph *interaction.Graph
-
-	err = h.Database.WithTx(func() error {
-		state, graph, err = h.WebApp.Get(StateID(r))
+	ctrl.Get(func() error {
+		session, err := ctrl.InteractionSession()
 		if err != nil {
 			return err
 		}
 
-		return nil
-	})
-	if err != nil {
-		panic(err)
-	}
+		graph, err := ctrl.InteractionGet()
+		if err != nil {
+			return err
+		}
 
-	var node CreateAuthenticatorBeginNode
-	if !graph.FindLastNode(&node) {
-		panic("create_authenticator_begin: expected graph has node implementing CreateAuthenticatorBeginNode")
-	}
-	edges, err := node.GetCreateAuthenticatorEdges()
-	if err != nil {
-		panic(err)
-	}
+		var node CreateAuthenticatorBeginNode
+		if !graph.FindLastNode(&node) {
+			panic("create_authenticator_begin: expected graph has node implementing CreateAuthenticatorBeginNode")
+		}
+		edges, err := node.GetCreateAuthenticatorEdges()
+		if err != nil {
+			panic(err)
+		}
 
-	if edgeIndex >= len(edges) {
-		edgeIndex = 0
-	}
+		if edgeIndex >= len(edges) {
+			edgeIndex = 0
+		}
 
-	err = h.Database.WithTx(func() error {
 		selectedEdge := edges[edgeIndex]
 		switch selectedEdge := selectedEdge.(type) {
 		case *nodes.EdgeCreateAuthenticatorPassword:
-			http.Redirect(w, r, webapp.AttachStateID(state.ID, &url.URL{
-				Path: "/create_password",
-			}).String(), http.StatusFound)
+			u := session.CurrentStepURL()
+			u.Path = "/create_password"
+			http.Redirect(w, r, u.String(), http.StatusFound)
 		case *nodes.EdgeCreateAuthenticatorOOBSetup:
-			http.Redirect(w, r, webapp.AttachStateID(state.ID, &url.URL{
-				Path: "/setup_oob_otp",
-			}).String(), http.StatusFound)
+			u := session.CurrentStepURL()
+			u.Path = "/setup_oob_otp"
+			http.Redirect(w, r, u.String(), http.StatusFound)
 		case *nodes.EdgeCreateAuthenticatorTOTPSetup:
-			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
+			result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
 				input = &InputSelectTOTP{}
 				return
 			})
@@ -111,11 +103,24 @@ type CreateAuthenticatorAlternative struct {
 	URL  string
 }
 
-func DeriveCreateAuthenticatorAlternatives(stateID string, graph *interaction.Graph, currentType authn.AuthenticatorType) (alternatives []CreateAuthenticatorAlternative, err error) {
+func DeriveCreateAuthenticatorAlternatives(session *webapp.Session, graph *interaction.Graph, currentType authn.AuthenticatorType) (alternatives []CreateAuthenticatorAlternative, err error) {
 	var node CreateAuthenticatorBeginNode
 	if !graph.FindLastNode(&node) {
 		panic("create_authenticator_begin: expected graph has node implementing CreateAuthenticatorBeginNode")
 	}
+
+	var u *url.URL
+	for i := len(session.Steps) - 1; i >= 0; i-- {
+		step := session.Steps[i]
+		if step.Path == "/create_authenticator_begin" {
+			u = session.StepURL(i)
+			break
+		}
+	}
+	if u == nil {
+		panic("authentication_begin: expected session has authentication_begin step")
+	}
+	q := u.Query()
 
 	edges, err := node.GetCreateAuthenticatorEdges()
 	if err != nil {
@@ -123,8 +128,8 @@ func DeriveCreateAuthenticatorAlternatives(stateID string, graph *interaction.Gr
 	}
 
 	for i, edge := range edges {
-		q := url.Values{}
 		q.Set("x_edge", strconv.Itoa(i))
+		u.RawQuery = q.Encode()
 
 		var typ authn.AuthenticatorType
 		switch edge.(type) {
@@ -141,10 +146,7 @@ func DeriveCreateAuthenticatorAlternatives(stateID string, graph *interaction.Gr
 		if typ != currentType {
 			alternatives = append(alternatives, CreateAuthenticatorAlternative{
 				Type: string(typ),
-				URL: webapp.AttachStateID(stateID, &url.URL{
-					Path:     "/create_authenticator_begin",
-					RawQuery: q.Encode(),
-				}).String(),
+				URL:  u.String(),
 			})
 		}
 	}

@@ -39,8 +39,8 @@ func NewSessionCookieDef(httpCfg *config.HTTPConfig) SessionCookieDef {
 		Name:              httpCfg.CookiePrefix + "web_session",
 		Path:              "/",
 		AllowScriptAccess: false,
-		SameSite:          http.SameSiteLaxMode,
-		MaxAge:            nil, // Use HTTP session cookie; expires when browser closes
+		SameSite:          http.SameSiteNoneMode, // For resumption after redirecting from OAuth providers
+		MaxAge:            nil,                   // Use HTTP session cookie; expires when browser closes
 	}
 
 	if httpCfg.CookieDomain != nil {

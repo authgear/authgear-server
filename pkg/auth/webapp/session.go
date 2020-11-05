@@ -2,6 +2,8 @@ package webapp
 
 import (
 	"context"
+	"net/url"
+	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/util/base32"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
@@ -84,4 +86,15 @@ func NewSession(options SessionOptions) *Session {
 
 func (s *Session) CurrentStep() SessionStep {
 	return s.Steps[len(s.Steps)-1]
+}
+
+func (s *Session) StepURL(index int) *url.URL {
+	query := url.Values{}
+	query.Set("x_step", strconv.Itoa(index+1))
+	u := url.URL{Path: s.Steps[index].Path, RawQuery: query.Encode()}
+	return &u
+}
+
+func (s *Session) CurrentStepURL() *url.URL {
+	return s.StepURL(len(s.Steps) - 1)
 }

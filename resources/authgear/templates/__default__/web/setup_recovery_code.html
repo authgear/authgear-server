@@ -32,10 +32,15 @@
 		</section>
 
 		<section class="recovery-code-row recovery-code-action-section">
-			<a class="action btn primary-btn" target="_blank" href="{{ call $.MakeURLState "" "download" "true" }}">{{ template "download-button-label" }}</a>
 			<form method="post" novalidate target="_blank">
 				{{ $.CSRFField }}
-				<button class="action btn primary-btn" type="submit" name="submit" value="">
+				<button class="action btn primary-btn" type="submit" name="x_action" value="download" data-form-xhr="false">
+					{{ template "download-button-label" }}
+				</button>
+			</form>
+			<form method="post" novalidate>
+				{{ $.CSRFField }}
+				<button class="action btn primary-btn" type="submit" name="x_action" value="proceed" data-form-xhr="false">
 					{{ template "next-button-label" }}
 				</button>
 			</form>

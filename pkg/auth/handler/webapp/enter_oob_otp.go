@@ -7,7 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
@@ -51,10 +50,9 @@ type EnterOOBOTPViewModel struct {
 }
 
 type EnterOOBOTPHandler struct {
-	Database      *db.Handle
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      Renderer
-	WebApp        WebAppService
+	ControllerFactory ControllerFactory
+	BaseViewModel     *viewmodels.BaseViewModeler
+	Renderer          Renderer
 }
 
 type EnterOOBOTPNode interface {
@@ -64,7 +62,7 @@ type EnterOOBOTPNode interface {
 	GetOOBOTPCodeLength() int
 }
 
-func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
@@ -88,8 +86,7 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, st
 	case *nodes.NodeAuthenticationOOBTrigger:
 		var err error
 		viewModel.AuthenticationAlternatives, err = DeriveAuthenticationAlternatives(
-			// Use previous state ID because the current node is NodeAuthenticationOOBTrigger.
-			state.PrevID,
+			session,
 			graph,
 			AuthenticationTypeOOB,
 			n.GetOOBOTPTarget(),
@@ -99,8 +96,7 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, st
 		}
 	case *nodes.NodeCreateAuthenticatorOOBSetup:
 		alternatives, err := DeriveCreateAuthenticatorAlternatives(
-			// Use previous state ID because the current node is NodeCreateAuthenticatorOOBSetup.
-			state.PrevID,
+			session,
 			graph,
 			authn.AuthenticatorTypeOOB,
 		)
@@ -119,76 +115,66 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, st
 }
 
 func (h *EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	ctrl, err := h.ControllerFactory.New(r, w)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	if r.Method == "GET" {
-		err := h.Database.WithTx(func() error {
-			state, graph, err := h.WebApp.Get(StateID(r))
-			if err != nil {
-				return err
-			}
+	ctrl.Get(func() error {
+		session, err := ctrl.InteractionSession()
+		if err != nil {
+			return err
+		}
 
-			data, err := h.GetData(r, w, state, graph)
-			if err != nil {
-				return err
-			}
+		graph, err := ctrl.InteractionGet()
+		if err != nil {
+			return err
+		}
 
-			h.Renderer.RenderHTML(w, r, TemplateWebEnterOOBOTPHTML, data)
-			return nil
+		data, err := h.GetData(r, w, session, graph)
+		if err != nil {
+			return err
+		}
+
+		h.Renderer.RenderHTML(w, r, TemplateWebEnterOOBOTPHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("resend", func() error {
+		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+			input = &InputResendCode{}
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
 
-	trigger := r.Form.Get("trigger") == "true"
+		result.WriteResponse(w, r)
+		return nil
+	})
 
-	if r.Method == "POST" && trigger {
-		err := h.Database.WithTx(func() error {
-			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
-				input = &InputResendCode{}
+	ctrl.PostAction("submit", func() error {
+		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+			err = EnterOOBOTPSchema.PartValidator(EnterOOBOTPRequestSchema).ValidateValue(FormToJSON(r.Form))
+			if err != nil {
 				return
-			})
-			if err != nil {
-				return err
 			}
-			result.WriteResponse(w, r)
-			return nil
+
+			code := r.Form.Get("x_password")
+			deviceToken := r.Form.Get("x_device_token") == "true"
+
+			input = &InputAuthOOB{
+				Code:        code,
+				DeviceToken: deviceToken,
+			}
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-		return
-	}
 
-	if r.Method == "POST" {
-		err := h.Database.WithTx(func() error {
-			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
-				err = EnterOOBOTPSchema.PartValidator(EnterOOBOTPRequestSchema).ValidateValue(FormToJSON(r.Form))
-				if err != nil {
-					return
-				}
-
-				code := r.Form.Get("x_password")
-				deviceToken := r.Form.Get("x_device_token") == "true"
-
-				input = &InputAuthOOB{
-					Code:        code,
-					DeviceToken: deviceToken,
-				}
-				return
-			})
-			if err != nil {
-				return err
-			}
-			result.WriteResponse(w, r)
-			return nil
-		})
-		if err != nil {
-			panic(err)
-		}
-	}
+		result.WriteResponse(w, r)
+		return nil
+	})
 }

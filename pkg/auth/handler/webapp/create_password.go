@@ -7,7 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
@@ -50,14 +49,13 @@ type PasswordPolicy interface {
 }
 
 type CreatePasswordHandler struct {
-	Database       *db.Handle
-	BaseViewModel  *viewmodels.BaseViewModeler
-	Renderer       Renderer
-	WebApp         WebAppService
-	PasswordPolicy PasswordPolicy
+	ControllerFactory ControllerFactory
+	BaseViewModel     *viewmodels.BaseViewModeler
+	Renderer          Renderer
+	PasswordPolicy    PasswordPolicy
 }
 
-func (h *CreatePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *CreatePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 
@@ -83,8 +81,7 @@ func (h *CreatePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter,
 	)
 
 	alternatives, err := DeriveCreateAuthenticatorAlternatives(
-		// Use current state ID because the current node should be NodeCreateAuthenticatorBegin.
-		state.ID,
+		session,
 		graph,
 		authn.AuthenticatorTypePassword,
 	)
@@ -106,59 +103,56 @@ func (h *CreatePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter,
 }
 
 func (h *CreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	ctrl, err := h.ControllerFactory.New(r, w)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	if r.Method == "GET" {
-		err := h.Database.WithTx(func() error {
-			state, graph, err := h.WebApp.Get(StateID(r))
-			if err != nil {
-				return err
-			}
-
-			data, err := h.GetData(r, w, state, graph)
-			if err != nil {
-				return err
-			}
-
-			h.Renderer.RenderHTML(w, r, TemplateWebCreatePasswordHTML, data)
-			return nil
-		})
+	ctrl.Get(func() error {
+		session, err := ctrl.InteractionSession()
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
 
-	if r.Method == "POST" {
-		err := h.Database.WithTx(func() error {
-			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
-				err = CreatePasswordSchema.PartValidator(CreatePasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
-				if err != nil {
-					return
-				}
+		graph, err := ctrl.InteractionGet()
+		if err != nil {
+			return err
+		}
 
-				newPassword := r.Form.Get("x_password")
-				confirmPassword := r.Form.Get("x_confirm_password")
-				err = pwd.ConfirmPassword(newPassword, confirmPassword)
-				if err != nil {
-					return
-				}
+		data, err := h.GetData(r, w, session, graph)
+		if err != nil {
+			return err
+		}
 
-				input = &InputSetupPassword{
-					Password: newPassword,
-				}
+		h.Renderer.RenderHTML(w, r, TemplateWebCreatePasswordHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("", func() error {
+		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+			err = CreatePasswordSchema.PartValidator(CreatePasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
+			if err != nil {
 				return
-			})
-			if err != nil {
-				return err
 			}
-			result.WriteResponse(w, r)
-			return nil
+
+			newPassword := r.Form.Get("x_password")
+			confirmPassword := r.Form.Get("x_confirm_password")
+			err = pwd.ConfirmPassword(newPassword, confirmPassword)
+			if err != nil {
+				return
+			}
+
+			input = &InputSetupPassword{
+				Password: newPassword,
+			}
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
 }

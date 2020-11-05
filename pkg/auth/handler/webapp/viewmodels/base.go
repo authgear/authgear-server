@@ -26,7 +26,7 @@ type BaseViewModel struct {
 	CountryCallingCodes   []string
 	SliceContains         func([]interface{}, interface{}) bool
 	MakeURL               func(path string, pairs ...string) string
-	MakeURLState          func(path string, pairs ...string) string
+	MakeCurrentStepURL    func(pairs ...string) string
 	RawError              *apierrors.APIError
 	Error                 interface{}
 	ForgotPasswordEnabled bool
@@ -88,17 +88,17 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 			}
 			return webapp.MakeURL(u, path, inQuery).String()
 		},
-		MakeURLState: func(path string, pairs ...string) string {
+		MakeCurrentStepURL: func(pairs ...string) string {
 			u := r.URL
 			inQuery := url.Values{}
 			for i := 0; i < len(pairs); i += 2 {
 				inQuery.Set(pairs[i], pairs[i+1])
 			}
-			sid := r.Form.Get("x_sid")
-			if sid != "" {
-				inQuery.Set("x_sid", sid)
+			step := r.Form.Get("x_step")
+			if step != "" {
+				inQuery.Set("x_step", step)
 			}
-			return webapp.MakeURL(u, path, inQuery).String()
+			return webapp.MakeURL(u, u.Path, inQuery).String()
 		},
 		ForgotPasswordEnabled: *m.ForgotPassword.Enabled,
 		PublicSignupDisabled:  m.Authentication.PublicSignupDisabled,

@@ -2,9 +2,9 @@ package webapp
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -15,20 +15,19 @@ func ConfigureSSOCallbackRoute(route httproute.Route) httproute.Route {
 }
 
 type SSOCallbackHandler struct {
-	Database   *db.Handle
-	WebApp     WebAppService
-	CSRFCookie webapp.CSRFCookieDef
+	ControllerFactory ControllerFactory
+	CSRFCookie        webapp.CSRFCookieDef
 }
 
 func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	ctrl, err := h.ControllerFactory.New(r, w)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
 
-	stateID := r.Form.Get("state")
 	data := InputOAuthCallback{
 		ProviderAlias: httproute.GetParam(r, "alias"),
 		NonceSource:   nonceSource,
@@ -39,8 +38,16 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ErrorDescription: r.Form.Get("error_description"),
 	}
 
-	err := h.Database.WithTx(func() error {
-		result, err := h.WebApp.PostInput(stateID, func() (input interface{}, err error) {
+	handler := func() error {
+		session, err := ctrl.InteractionSession()
+		if err != nil {
+			return err
+		}
+
+		// Always use the current step of session
+		r.Form.Set("x_step", strconv.Itoa(len(session.Steps)))
+
+		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
 			input = &data
 			return
 		})
@@ -49,8 +56,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		result.WriteResponse(w, r)
 		return nil
-	})
-	if err != nil {
-		panic(err)
 	}
+	ctrl.Get(handler)
+	ctrl.PostAction("", handler)
 }

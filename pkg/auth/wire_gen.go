@@ -1566,6 +1566,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
+	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -1978,6 +1979,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Store:   interactionStoreRedis,
 	}
 	webappService2 := &webapp.Service2{
+		Logger:        serviceLogger,
 		Request:       request,
 		Sessions:      sessionStoreRedis,
 		SessionCookie: sessionCookieDef,
@@ -2027,6 +2029,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
+	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -2439,6 +2442,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Store:   interactionStoreRedis,
 	}
 	webappService2 := &webapp.Service2{
+		Logger:        serviceLogger,
 		Request:       request,
 		Sessions:      sessionStoreRedis,
 		SessionCookie: sessionCookieDef,
@@ -2940,17 +2944,28 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 
 func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	handle := appProvider.Database
 	factory := appProvider.LoggerFactory
+	handle := appProvider.Database
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
-	redisStore := &webapp.RedisStore{
+	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
+	}
+	httpConfig := appConfig.HTTP
+	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	errorCookie := &webapp.ErrorCookie{
+		Cookie:        errorCookieDef,
+		CookieFactory: cookieFactory,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -2959,9 +2974,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
@@ -3146,7 +3158,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	httpConfig := appConfig.HTTP
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
@@ -3284,7 +3295,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -3348,26 +3358,34 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	uaTokenCookieDef := webapp.NewUATokenCookieDef(httpConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
-	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
-	}
-	webappService := &webapp.Service{
+	webappService2 := &webapp.Service2{
 		Logger:        serviceLogger,
 		Request:       request,
-		Store:         redisStore,
-		Graph:         interactionService,
-		CookieFactory: cookieFactory,
-		UATokenCookie: uaTokenCookieDef,
+		Sessions:      sessionStoreRedis,
+		SessionCookie: sessionCookieDef,
 		ErrorCookie:   errorCookie,
+		CookieFactory: cookieFactory,
+		Graph:         interactionService,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:   handle,
+		Page:       webappService2,
+		Renderer:   responseRenderer,
+		TrustProxy: trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	ssoCallbackHandler := &webapp2.SSOCallbackHandler{
-		Database:   handle,
-		WebApp:     webappService,
-		CSRFCookie: csrfCookieDef,
+		ControllerFactory: controllerFactory,
+		CSRFCookie:        csrfCookieDef,
 	}
 	return ssoCallbackHandler
 }
@@ -3822,68 +3840,37 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 
 func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	config := appProvider.Config
 	appConfig := config.AppConfig
-	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	appID := appConfig.ID
+	redisHandle := appProvider.Redis
+	sessionStoreRedis := &webapp.SessionStoreRedis{
+		AppID: appID,
+		Redis: redisHandle,
+	}
 	httpConfig := appConfig.HTTP
-	localizationConfig := appConfig.Localization
+	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	manager := appProvider.Resources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
 	trustProxy := environmentConfig.TrustProxy
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	errorCookie := &webapp.ErrorCookie{
 		Cookie:        errorCookieDef,
 		CookieFactory: cookieFactory,
 	}
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
-	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	factory := appProvider.LoggerFactory
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	serviceLogger := webapp.NewServiceLogger(factory)
-	appID := appConfig.ID
-	redisHandle := appProvider.Redis
-	redisStore := &webapp.RedisStore{
-		AppID: appID,
-		Redis: redisHandle,
-	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -3897,6 +3884,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
+	manager := appProvider.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		Config:    loginIDConfig,
 		Resources: manager,
@@ -4058,6 +4046,23 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	localizationConfig := appConfig.Localization
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -4097,6 +4102,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
 		AppID: appID,
 		Redis: redisHandle,
@@ -4248,89 +4254,79 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	uaTokenCookieDef := webapp.NewUATokenCookieDef(httpConfig)
-	webappService := &webapp.Service{
+	webappService2 := &webapp.Service2{
 		Logger:        serviceLogger,
 		Request:       request,
-		Store:         redisStore,
-		Graph:         interactionService,
-		CookieFactory: cookieFactory,
-		UATokenCookie: uaTokenCookieDef,
+		Sessions:      sessionStoreRedis,
+		SessionCookie: sessionCookieDef,
 		ErrorCookie:   errorCookie,
+		CookieFactory: cookieFactory,
+		Graph:         interactionService,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:   handle,
+		Page:       webappService2,
+		Renderer:   responseRenderer,
+		TrustProxy: trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
+	}
+	uiConfig := appConfig.UI
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+		ErrorCookie:    errorCookie,
 	}
 	enterPasswordHandler := &webapp2.EnterPasswordHandler{
-		Database:      handle,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		WebApp:        webappService,
+		ControllerFactory: controllerFactory,
+		BaseViewModel:     baseViewModeler,
+		Renderer:          responseRenderer,
 	}
 	return enterPasswordHandler
 }
 
 func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	config := appProvider.Config
 	appConfig := config.AppConfig
-	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	appID := appConfig.ID
+	redisHandle := appProvider.Redis
+	sessionStoreRedis := &webapp.SessionStoreRedis{
+		AppID: appID,
+		Redis: redisHandle,
+	}
 	httpConfig := appConfig.HTTP
-	localizationConfig := appConfig.Localization
+	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	manager := appProvider.Resources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
 	trustProxy := environmentConfig.TrustProxy
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	errorCookie := &webapp.ErrorCookie{
 		Cookie:        errorCookieDef,
 		CookieFactory: cookieFactory,
 	}
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
-	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	factory := appProvider.LoggerFactory
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	serviceLogger := webapp.NewServiceLogger(factory)
-	appID := appConfig.ID
-	redisHandle := appProvider.Redis
-	redisStore := &webapp.RedisStore{
-		AppID: appID,
-		Redis: redisHandle,
-	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -4344,6 +4340,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
+	manager := appProvider.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		Config:    loginIDConfig,
 		Resources: manager,
@@ -4505,6 +4502,23 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	localizationConfig := appConfig.Localization
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -4544,6 +4558,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
 		AppID: appID,
 		Redis: redisHandle,
@@ -4695,90 +4710,80 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	uaTokenCookieDef := webapp.NewUATokenCookieDef(httpConfig)
-	webappService := &webapp.Service{
+	webappService2 := &webapp.Service2{
 		Logger:        serviceLogger,
 		Request:       request,
-		Store:         redisStore,
-		Graph:         interactionService,
-		CookieFactory: cookieFactory,
-		UATokenCookie: uaTokenCookieDef,
+		Sessions:      sessionStoreRedis,
+		SessionCookie: sessionCookieDef,
 		ErrorCookie:   errorCookie,
+		CookieFactory: cookieFactory,
+		Graph:         interactionService,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:   handle,
+		Page:       webappService2,
+		Renderer:   responseRenderer,
+		TrustProxy: trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
+	}
+	uiConfig := appConfig.UI
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+		ErrorCookie:    errorCookie,
 	}
 	createPasswordHandler := &webapp2.CreatePasswordHandler{
-		Database:       handle,
-		BaseViewModel:  baseViewModeler,
-		Renderer:       responseRenderer,
-		WebApp:         webappService,
-		PasswordPolicy: passwordChecker,
+		ControllerFactory: controllerFactory,
+		BaseViewModel:     baseViewModeler,
+		Renderer:          responseRenderer,
+		PasswordPolicy:    passwordChecker,
 	}
 	return createPasswordHandler
 }
 
 func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	config := appProvider.Config
 	appConfig := config.AppConfig
-	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	appID := appConfig.ID
+	redisHandle := appProvider.Redis
+	sessionStoreRedis := &webapp.SessionStoreRedis{
+		AppID: appID,
+		Redis: redisHandle,
+	}
 	httpConfig := appConfig.HTTP
-	localizationConfig := appConfig.Localization
+	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	manager := appProvider.Resources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
 	trustProxy := environmentConfig.TrustProxy
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	errorCookie := &webapp.ErrorCookie{
 		Cookie:        errorCookieDef,
 		CookieFactory: cookieFactory,
 	}
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
-	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	factory := appProvider.LoggerFactory
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	serviceLogger := webapp.NewServiceLogger(factory)
-	appID := appConfig.ID
-	redisHandle := appProvider.Redis
-	redisStore := &webapp.RedisStore{
-		AppID: appID,
-		Redis: redisHandle,
-	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -4792,6 +4797,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
+	manager := appProvider.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		Config:    loginIDConfig,
 		Resources: manager,
@@ -4953,6 +4959,23 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	localizationConfig := appConfig.Localization
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -4992,6 +5015,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
 		AppID: appID,
 		Redis: redisHandle,
@@ -5143,91 +5167,81 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	uaTokenCookieDef := webapp.NewUATokenCookieDef(httpConfig)
-	webappService := &webapp.Service{
+	webappService2 := &webapp.Service2{
 		Logger:        serviceLogger,
 		Request:       request,
-		Store:         redisStore,
-		Graph:         interactionService,
-		CookieFactory: cookieFactory,
-		UATokenCookie: uaTokenCookieDef,
+		Sessions:      sessionStoreRedis,
+		SessionCookie: sessionCookieDef,
 		ErrorCookie:   errorCookie,
+		CookieFactory: cookieFactory,
+		Graph:         interactionService,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:   handle,
+		Page:       webappService2,
+		Renderer:   responseRenderer,
+		TrustProxy: trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
+	}
+	uiConfig := appConfig.UI
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+		ErrorCookie:    errorCookie,
 	}
 	setupTOTPHandler := &webapp2.SetupTOTPHandler{
-		Database:      handle,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		WebApp:        webappService,
-		Clock:         clockClock,
-		Endpoints:     endpointsProvider,
+		ControllerFactory: controllerFactory,
+		BaseViewModel:     baseViewModeler,
+		Renderer:          responseRenderer,
+		Clock:             clockClock,
+		Endpoints:         endpointsProvider,
 	}
 	return setupTOTPHandler
 }
 
 func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	config := appProvider.Config
 	appConfig := config.AppConfig
-	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	appID := appConfig.ID
+	redisHandle := appProvider.Redis
+	sessionStoreRedis := &webapp.SessionStoreRedis{
+		AppID: appID,
+		Redis: redisHandle,
+	}
 	httpConfig := appConfig.HTTP
-	localizationConfig := appConfig.Localization
+	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	manager := appProvider.Resources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
 	trustProxy := environmentConfig.TrustProxy
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	errorCookie := &webapp.ErrorCookie{
 		Cookie:        errorCookieDef,
 		CookieFactory: cookieFactory,
 	}
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
-	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	factory := appProvider.LoggerFactory
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	serviceLogger := webapp.NewServiceLogger(factory)
-	appID := appConfig.ID
-	redisHandle := appProvider.Redis
-	redisStore := &webapp.RedisStore{
-		AppID: appID,
-		Redis: redisHandle,
-	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -5241,6 +5255,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
+	manager := appProvider.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		Config:    loginIDConfig,
 		Resources: manager,
@@ -5402,6 +5417,23 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	localizationConfig := appConfig.Localization
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -5441,6 +5473,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
 		AppID: appID,
 		Redis: redisHandle,
@@ -5592,89 +5625,79 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	uaTokenCookieDef := webapp.NewUATokenCookieDef(httpConfig)
-	webappService := &webapp.Service{
+	webappService2 := &webapp.Service2{
 		Logger:        serviceLogger,
 		Request:       request,
-		Store:         redisStore,
-		Graph:         interactionService,
-		CookieFactory: cookieFactory,
-		UATokenCookie: uaTokenCookieDef,
+		Sessions:      sessionStoreRedis,
+		SessionCookie: sessionCookieDef,
 		ErrorCookie:   errorCookie,
+		CookieFactory: cookieFactory,
+		Graph:         interactionService,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:   handle,
+		Page:       webappService2,
+		Renderer:   responseRenderer,
+		TrustProxy: trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
+	}
+	uiConfig := appConfig.UI
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+		ErrorCookie:    errorCookie,
 	}
 	enterTOTPHandler := &webapp2.EnterTOTPHandler{
-		Database:      handle,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		WebApp:        webappService,
+		ControllerFactory: controllerFactory,
+		BaseViewModel:     baseViewModeler,
+		Renderer:          responseRenderer,
 	}
 	return enterTOTPHandler
 }
 
 func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	config := appProvider.Config
 	appConfig := config.AppConfig
-	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	appID := appConfig.ID
+	redisHandle := appProvider.Redis
+	sessionStoreRedis := &webapp.SessionStoreRedis{
+		AppID: appID,
+		Redis: redisHandle,
+	}
 	httpConfig := appConfig.HTTP
-	localizationConfig := appConfig.Localization
+	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	manager := appProvider.Resources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
 	trustProxy := environmentConfig.TrustProxy
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	errorCookie := &webapp.ErrorCookie{
 		Cookie:        errorCookieDef,
 		CookieFactory: cookieFactory,
 	}
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
-	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	factory := appProvider.LoggerFactory
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	serviceLogger := webapp.NewServiceLogger(factory)
-	appID := appConfig.ID
-	redisHandle := appProvider.Redis
-	redisStore := &webapp.RedisStore{
-		AppID: appID,
-		Redis: redisHandle,
-	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -5688,6 +5711,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
+	manager := appProvider.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		Config:    loginIDConfig,
 		Resources: manager,
@@ -5849,6 +5873,23 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	localizationConfig := appConfig.Localization
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -5888,6 +5929,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
 		AppID: appID,
 		Redis: redisHandle,
@@ -6039,89 +6081,79 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	uaTokenCookieDef := webapp.NewUATokenCookieDef(httpConfig)
-	webappService := &webapp.Service{
+	webappService2 := &webapp.Service2{
 		Logger:        serviceLogger,
 		Request:       request,
-		Store:         redisStore,
-		Graph:         interactionService,
-		CookieFactory: cookieFactory,
-		UATokenCookie: uaTokenCookieDef,
+		Sessions:      sessionStoreRedis,
+		SessionCookie: sessionCookieDef,
 		ErrorCookie:   errorCookie,
+		CookieFactory: cookieFactory,
+		Graph:         interactionService,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:   handle,
+		Page:       webappService2,
+		Renderer:   responseRenderer,
+		TrustProxy: trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
+	}
+	uiConfig := appConfig.UI
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+		ErrorCookie:    errorCookie,
 	}
 	setupOOBOTPHandler := &webapp2.SetupOOBOTPHandler{
-		Database:      handle,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		WebApp:        webappService,
+		ControllerFactory: controllerFactory,
+		BaseViewModel:     baseViewModeler,
+		Renderer:          responseRenderer,
 	}
 	return setupOOBOTPHandler
 }
 
 func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	config := appProvider.Config
 	appConfig := config.AppConfig
-	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	appID := appConfig.ID
+	redisHandle := appProvider.Redis
+	sessionStoreRedis := &webapp.SessionStoreRedis{
+		AppID: appID,
+		Redis: redisHandle,
+	}
 	httpConfig := appConfig.HTTP
-	localizationConfig := appConfig.Localization
+	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	manager := appProvider.Resources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
 	trustProxy := environmentConfig.TrustProxy
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	errorCookie := &webapp.ErrorCookie{
 		Cookie:        errorCookieDef,
 		CookieFactory: cookieFactory,
 	}
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
-	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	factory := appProvider.LoggerFactory
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	serviceLogger := webapp.NewServiceLogger(factory)
-	appID := appConfig.ID
-	redisHandle := appProvider.Redis
-	redisStore := &webapp.RedisStore{
-		AppID: appID,
-		Redis: redisHandle,
-	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -6135,6 +6167,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
+	manager := appProvider.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		Config:    loginIDConfig,
 		Resources: manager,
@@ -6296,6 +6329,23 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	localizationConfig := appConfig.Localization
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -6335,6 +6385,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
 		AppID: appID,
 		Redis: redisHandle,
@@ -6486,89 +6537,79 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	uaTokenCookieDef := webapp.NewUATokenCookieDef(httpConfig)
-	webappService := &webapp.Service{
+	webappService2 := &webapp.Service2{
 		Logger:        serviceLogger,
 		Request:       request,
-		Store:         redisStore,
-		Graph:         interactionService,
-		CookieFactory: cookieFactory,
-		UATokenCookie: uaTokenCookieDef,
+		Sessions:      sessionStoreRedis,
+		SessionCookie: sessionCookieDef,
 		ErrorCookie:   errorCookie,
+		CookieFactory: cookieFactory,
+		Graph:         interactionService,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:   handle,
+		Page:       webappService2,
+		Renderer:   responseRenderer,
+		TrustProxy: trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
+	}
+	uiConfig := appConfig.UI
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+		ErrorCookie:    errorCookie,
 	}
 	enterOOBOTPHandler := &webapp2.EnterOOBOTPHandler{
-		Database:      handle,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		WebApp:        webappService,
+		ControllerFactory: controllerFactory,
+		BaseViewModel:     baseViewModeler,
+		Renderer:          responseRenderer,
 	}
 	return enterOOBOTPHandler
 }
 
 func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	config := appProvider.Config
 	appConfig := config.AppConfig
-	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	appID := appConfig.ID
+	redisHandle := appProvider.Redis
+	sessionStoreRedis := &webapp.SessionStoreRedis{
+		AppID: appID,
+		Redis: redisHandle,
+	}
 	httpConfig := appConfig.HTTP
-	localizationConfig := appConfig.Localization
+	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	manager := appProvider.Resources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
 	trustProxy := environmentConfig.TrustProxy
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	errorCookie := &webapp.ErrorCookie{
 		Cookie:        errorCookieDef,
 		CookieFactory: cookieFactory,
 	}
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
-	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	factory := appProvider.LoggerFactory
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	serviceLogger := webapp.NewServiceLogger(factory)
-	appID := appConfig.ID
-	redisHandle := appProvider.Redis
-	redisStore := &webapp.RedisStore{
-		AppID: appID,
-		Redis: redisHandle,
-	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -6582,6 +6623,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
+	manager := appProvider.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		Config:    loginIDConfig,
 		Resources: manager,
@@ -6743,6 +6785,23 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	localizationConfig := appConfig.Localization
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -6782,6 +6841,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
 		AppID: appID,
 		Redis: redisHandle,
@@ -6933,89 +6993,79 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	uaTokenCookieDef := webapp.NewUATokenCookieDef(httpConfig)
-	webappService := &webapp.Service{
+	webappService2 := &webapp.Service2{
 		Logger:        serviceLogger,
 		Request:       request,
-		Store:         redisStore,
-		Graph:         interactionService,
-		CookieFactory: cookieFactory,
-		UATokenCookie: uaTokenCookieDef,
+		Sessions:      sessionStoreRedis,
+		SessionCookie: sessionCookieDef,
 		ErrorCookie:   errorCookie,
+		CookieFactory: cookieFactory,
+		Graph:         interactionService,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:   handle,
+		Page:       webappService2,
+		Renderer:   responseRenderer,
+		TrustProxy: trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
+	}
+	uiConfig := appConfig.UI
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+		ErrorCookie:    errorCookie,
 	}
 	enterRecoveryCodeHandler := &webapp2.EnterRecoveryCodeHandler{
-		Database:      handle,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		WebApp:        webappService,
+		ControllerFactory: controllerFactory,
+		BaseViewModel:     baseViewModeler,
+		Renderer:          responseRenderer,
 	}
 	return enterRecoveryCodeHandler
 }
 
 func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	config := appProvider.Config
 	appConfig := config.AppConfig
-	uiConfig := appConfig.UI
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	appID := appConfig.ID
+	redisHandle := appProvider.Redis
+	sessionStoreRedis := &webapp.SessionStoreRedis{
+		AppID: appID,
+		Redis: redisHandle,
+	}
 	httpConfig := appConfig.HTTP
-	localizationConfig := appConfig.Localization
+	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	manager := appProvider.Resources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	authenticationConfig := appConfig.Authentication
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
 	trustProxy := environmentConfig.TrustProxy
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	errorCookie := &webapp.ErrorCookie{
 		Cookie:        errorCookieDef,
 		CookieFactory: cookieFactory,
 	}
-	baseViewModeler := &viewmodels.BaseViewModeler{
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
-	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	factory := appProvider.LoggerFactory
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	serviceLogger := webapp.NewServiceLogger(factory)
-	appID := appConfig.ID
-	redisHandle := appProvider.Redis
-	redisStore := &webapp.RedisStore{
-		AppID: appID,
-		Redis: redisHandle,
-	}
 	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
 	sqlExecutor := db.SQLExecutor{
 		Context:  context,
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
+	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -7029,6 +7079,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
+	manager := appProvider.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		Config:    loginIDConfig,
 		Resources: manager,
@@ -7190,6 +7241,23 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	localizationConfig := appConfig.Localization
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
 	translationService := &translation.Service{
 		Context:           context,
 		EnvironmentConfig: environmentConfig,
@@ -7229,6 +7297,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
 		AppID: appID,
 		Redis: redisHandle,
@@ -7380,21 +7449,42 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	uaTokenCookieDef := webapp.NewUATokenCookieDef(httpConfig)
-	webappService := &webapp.Service{
+	webappService2 := &webapp.Service2{
 		Logger:        serviceLogger,
 		Request:       request,
-		Store:         redisStore,
-		Graph:         interactionService,
-		CookieFactory: cookieFactory,
-		UATokenCookie: uaTokenCookieDef,
+		Sessions:      sessionStoreRedis,
+		SessionCookie: sessionCookieDef,
 		ErrorCookie:   errorCookie,
+		CookieFactory: cookieFactory,
+		Graph:         interactionService,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:   handle,
+		Page:       webappService2,
+		Renderer:   responseRenderer,
+		TrustProxy: trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
+	}
+	uiConfig := appConfig.UI
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+		ErrorCookie:    errorCookie,
 	}
 	setupRecoveryCodeHandler := &webapp2.SetupRecoveryCodeHandler{
-		Database:      handle,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		WebApp:        webappService,
+		ControllerFactory: controllerFactory,
+		BaseViewModel:     baseViewModeler,
+		Renderer:          responseRenderer,
 	}
 	return setupRecoveryCodeHandler
 }
@@ -13569,17 +13659,28 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 
 func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	handle := appProvider.Database
 	factory := appProvider.LoggerFactory
+	handle := appProvider.Database
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
-	redisStore := &webapp.RedisStore{
+	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
+	}
+	httpConfig := appConfig.HTTP
+	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	errorCookie := &webapp.ErrorCookie{
+		Cookie:        errorCookieDef,
+		CookieFactory: cookieFactory,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -13588,9 +13689,6 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
@@ -13775,7 +13873,6 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	httpConfig := appConfig.HTTP
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
@@ -13913,7 +14010,6 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -13977,24 +14073,32 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	uaTokenCookieDef := webapp.NewUATokenCookieDef(httpConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
-	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
-	}
-	webappService := &webapp.Service{
+	webappService2 := &webapp.Service2{
 		Logger:        serviceLogger,
 		Request:       request,
-		Store:         redisStore,
-		Graph:         interactionService,
-		CookieFactory: cookieFactory,
-		UATokenCookie: uaTokenCookieDef,
+		Sessions:      sessionStoreRedis,
+		SessionCookie: sessionCookieDef,
 		ErrorCookie:   errorCookie,
+		CookieFactory: cookieFactory,
+		Graph:         interactionService,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:   handle,
+		Page:       webappService2,
+		Renderer:   responseRenderer,
+		TrustProxy: trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	authenticationBeginHandler := &webapp2.AuthenticationBeginHandler{
-		Database:             handle,
-		WebApp:               webappService,
+		ControllerFactory:    controllerFactory,
 		MFADeviceTokenCookie: mfaCookieDef,
 	}
 	return authenticationBeginHandler
@@ -14002,17 +14106,28 @@ func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
 
 func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	handle := appProvider.Database
 	factory := appProvider.LoggerFactory
+	handle := appProvider.Database
 	serviceLogger := webapp.NewServiceLogger(factory)
 	request := p.Request
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	redisHandle := appProvider.Redis
-	redisStore := &webapp.RedisStore{
+	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
+	}
+	httpConfig := appConfig.HTTP
+	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	errorCookie := &webapp.ErrorCookie{
+		Cookie:        errorCookieDef,
+		CookieFactory: cookieFactory,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -14021,9 +14136,6 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
@@ -14208,7 +14320,6 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	httpConfig := appConfig.HTTP
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
@@ -14346,7 +14457,6 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		Commands: commands,
 		Queries:  queries,
 	}
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  redisHandle,
@@ -14410,24 +14520,32 @@ func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Hand
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	uaTokenCookieDef := webapp.NewUATokenCookieDef(httpConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
-	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
-	}
-	webappService := &webapp.Service{
+	webappService2 := &webapp.Service2{
 		Logger:        serviceLogger,
 		Request:       request,
-		Store:         redisStore,
-		Graph:         interactionService,
-		CookieFactory: cookieFactory,
-		UATokenCookie: uaTokenCookieDef,
+		Sessions:      sessionStoreRedis,
+		SessionCookie: sessionCookieDef,
 		ErrorCookie:   errorCookie,
+		CookieFactory: cookieFactory,
+		Graph:         interactionService,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:   handle,
+		Page:       webappService2,
+		Renderer:   responseRenderer,
+		TrustProxy: trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	createAuthenticatorBeginHandler := &webapp2.CreateAuthenticatorBeginHandler{
-		Database: handle,
-		WebApp:   webappService,
+		ControllerFactory: controllerFactory,
 	}
 	return createAuthenticatorBeginHandler
 }
