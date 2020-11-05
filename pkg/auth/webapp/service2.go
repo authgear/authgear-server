@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
@@ -20,23 +20,28 @@ type SessionStore interface {
 }
 
 type Service2 struct {
-	Logger        ServiceLogger
-	Request       *http.Request
-	Sessions      SessionStore
-	SessionCookie SessionCookieDef
-	ErrorCookie   *ErrorCookie
-	CookieFactory CookieFactory
+	Logger               ServiceLogger
+	Request              *http.Request
+	Sessions             SessionStore
+	SessionCookie        SessionCookieDef
+	MFADeviceTokenCookie mfa.CookieDef
+	ErrorCookie          *ErrorCookie
+	CookieFactory        CookieFactory
 
 	Graph GraphService
+}
+
+func (s *Service2) UpdateSession(session *Session) error {
+	return s.Sessions.Update(session)
 }
 
 func (s *Service2) rewindSessionHistory(session *Session, path string) *SessionStep {
 	stepGraphID := s.Request.Form.Get("x_step")
 	var curStep *SessionStep
-	for _, step := range session.Steps {
+	for i := len(session.Steps) - 1; i >= 0; i-- {
+		step := session.Steps[i]
 		if step.GraphID == stepGraphID {
-			s := step
-			curStep = &s
+			curStep = &step
 			break
 		}
 	}
@@ -45,7 +50,7 @@ func (s *Service2) rewindSessionHistory(session *Session, path string) *SessionS
 		s := session.CurrentStep()
 		curStep = &s
 	}
-	if curStep == nil || !isStepPathMatch(*curStep, path) {
+	if curStep == nil || !curStep.Kind.MatchPath(path) {
 		return nil
 	}
 	return curStep
@@ -99,39 +104,9 @@ func (s *Service2) PostWithIntent(
 	intent interaction.Intent,
 	inputFn func() (interface{}, error),
 ) (result *Result, err error) {
-	var graph *interaction.Graph
-	var edges []interaction.Edge
-	var clearCookie *interaction.ErrClearCookie
-	err = s.Graph.DryRun(session.ID, func(ctx *interaction.Context) (newGraph *interaction.Graph, err error) {
-		graph, err = s.Graph.NewGraph(ctx, intent)
-		if err != nil {
-			return
-		}
-
-		input, err := inputFn()
-		if err != nil {
-			return
-		}
-
-		newGraph, edges, err = s.Graph.Accept(ctx, graph, input)
-
-		errors.As(err, &clearCookie)
-
-		var inputRequired *interaction.ErrInputRequired
-		if errors.As(err, &inputRequired) {
-			err = nil
-			graph = newGraph
-			return
-		}
-		if err != nil {
-			return
-		}
-
-		graph = newGraph
-		return
+	return s.doPost(session, inputFn, true, func(ctx *interaction.Context) (*interaction.Graph, error) {
+		return s.Graph.NewGraph(ctx, intent)
 	})
-
-	return s.afterPost(session, graph, edges, err, clearCookie, true)
 }
 
 func (s *Service2) PostWithInput(
@@ -144,14 +119,137 @@ func (s *Service2) PostWithInput(
 		return nil, ErrSessionStepMismatch
 	}
 
-	var edges []interaction.Edge
-	graph, err := s.Graph.Get(step.GraphID)
+	return s.doPost(session, inputFn, false, func(ctx *interaction.Context) (*interaction.Graph, error) {
+		return s.Graph.Get(step.GraphID)
+	})
+}
+
+func (s *Service2) doPost(
+	session *Session,
+	inputFn func() (interface{}, error),
+	isNewGraph bool,
+	graphFn func(ctx *interaction.Context) (*interaction.Graph, error),
+) (*Result, error) {
+	result := &Result{}
+	deviceTokenAttempted := false
+
+	var graph *interaction.Graph
+	var isFinished bool
+	var err error
+	for {
+		var edges []interaction.Edge
+		graph, edges, err = s.runGraph(result, inputFn, graphFn)
+		isFinished = len(edges) == 0 && err == nil
+		if err != nil || isFinished {
+			break
+		}
+
+		kind := deriveSessionStepKind(graph)
+		session.Steps = append(session.Steps, SessionStep{
+			Kind:    deriveSessionStepKind(graph),
+			GraphID: graph.InstanceID,
+		})
+
+		inputFn = nil
+		// Select default for steps with choice
+		switch kind {
+		case SessionStepAuthenticate:
+			authDeviceToken := ""
+			if deviceTokenCookie, err := s.Request.Cookie(s.MFADeviceTokenCookie.Def.Name); err == nil {
+				for _, edge := range edges {
+					if _, ok := edge.(*nodes.EdgeUseDeviceToken); ok {
+						authDeviceToken = deviceTokenCookie.Value
+						break
+					}
+				}
+			}
+			if len(authDeviceToken) > 0 && !deviceTokenAttempted {
+				inputFn = func() (interface{}, error) {
+					return &inputAuthDeviceToken{
+						DeviceToken: authDeviceToken,
+					}, nil
+				}
+				deviceTokenAttempted = true
+				break
+			}
+
+			switch defaultEdge := edges[0].(type) {
+			case *nodes.EdgeConsumeRecoveryCode:
+				session.Steps = append(session.Steps, SessionStep{
+					Kind:    SessionStepEnterRecoveryCode,
+					GraphID: graph.InstanceID,
+				})
+			case *nodes.EdgeAuthenticationPassword:
+				session.Steps = append(session.Steps, SessionStep{
+					Kind:    SessionStepEnterPassword,
+					GraphID: graph.InstanceID,
+				})
+			case *nodes.EdgeAuthenticationTOTP:
+				session.Steps = append(session.Steps, SessionStep{
+					Kind:    SessionStepEnterTOTP,
+					GraphID: graph.InstanceID,
+				})
+			case *nodes.EdgeAuthenticationOOBTrigger:
+				inputFn = func() (input interface{}, err error) {
+					input = &inputTriggerOOB{AuthenticatorIndex: 0}
+					return
+				}
+			default:
+				panic(fmt.Errorf("webapp: unexpected edge: %T", defaultEdge))
+			}
+
+		case SessionStepCreateAuthenticator:
+			switch defaultEdge := edges[0].(type) {
+			case *nodes.EdgeCreateAuthenticatorPassword:
+				session.Steps = append(session.Steps, SessionStep{
+					Kind:    SessionStepCreatePassword,
+					GraphID: graph.InstanceID,
+				})
+			case *nodes.EdgeCreateAuthenticatorOOBSetup:
+				session.Steps = append(session.Steps, SessionStep{
+					Kind:    SessionStepSetupOOBOTP,
+					GraphID: graph.InstanceID,
+				})
+			case *nodes.EdgeCreateAuthenticatorTOTPSetup:
+				inputFn = func() (interface{}, error) {
+					return &inputSelectTOTP{}, nil
+				}
+			default:
+				panic(fmt.Errorf("webapp: unexpected edge: %T", defaultEdge))
+			}
+		}
+
+		if inputFn == nil {
+			break
+		}
+
+		// Continue to feed new input.
+		graphFn = func(ctx *interaction.Context) (*interaction.Graph, error) {
+			return graph, nil
+		}
+	}
+
+	err = s.afterPost(result, session, graph, err, isFinished, isNewGraph)
 	if err != nil {
 		return nil, err
 	}
+	return result, nil
+}
 
-	var clearCookie *interaction.ErrClearCookie
-	err = s.Graph.DryRun(session.ID, func(ctx *interaction.Context) (*interaction.Graph, error) {
+func (s *Service2) runGraph(
+	result *Result,
+	inputFn func() (interface{}, error),
+	graphFn func(ctx *interaction.Context) (*interaction.Graph, error),
+) (*interaction.Graph, []interaction.Edge, error) {
+	var graph *interaction.Graph
+	var edges []interaction.Edge
+	interactionErr := s.Graph.DryRun("", func(ctx *interaction.Context) (*interaction.Graph, error) {
+		var err error
+		graph, err = graphFn(ctx)
+		if err != nil {
+			return nil, err
+		}
+
 		input, err := inputFn()
 		if err != nil {
 			return nil, err
@@ -165,10 +263,13 @@ func (s *Service2) PostWithInput(
 		var newGraph *interaction.Graph
 		newGraph, edges, err = s.Graph.Accept(ctx, graph, input)
 
-		errors.As(err, &clearCookie)
-
+		var clearCookie *interaction.ErrClearCookie
 		var inputRequired *interaction.ErrInputRequired
-		if errors.As(err, &inputRequired) {
+		if errors.As(err, &clearCookie) {
+			result.cookies = append(result.cookies, clearCookie.Cookies...)
+			graph = newGraph
+			return newGraph, nil
+		} else if errors.As(err, &inputRequired) {
 			graph = newGraph
 			return newGraph, nil
 		} else if err != nil {
@@ -179,188 +280,131 @@ func (s *Service2) PostWithInput(
 		return newGraph, nil
 	})
 
-	return s.afterPost(session, graph, edges, err, clearCookie, false)
+	return graph, edges, interactionErr
 }
 
 func (s *Service2) afterPost(
+	result *Result,
 	session *Session,
 	graph *interaction.Graph,
-	edges []interaction.Edge,
 	interactionErr error,
-	clearCookie *interaction.ErrClearCookie,
-	isNewIntent bool,
-) (*Result, error) {
-	finished := len(edges) == 0 && interactionErr == nil
-	// The graph finished. Apply its effect permanently
-	if finished {
-		s.Logger.Debugf("afterPost run graph")
+	isFinished bool,
+	isNewGraph bool,
+) error {
+	if isFinished {
+		// The graph finished. Apply its effect permanently.
+		s.Logger.Debugf("interaction: commit graph")
 		interactionErr = s.Graph.Run(session.ID, graph)
 	}
 
 	// Populate cookies.
-	var cookies []*http.Cookie
-	if clearCookie != nil {
-		cookies = append(cookies, clearCookie.Cookies...)
-	}
 	if interactionErr != nil {
 		if !apierrors.IsAPIError(interactionErr) {
-			s.Logger.Errorf("afterPost error: %v", interactionErr)
+			s.Logger.Errorf("interaction error: %v", interactionErr)
 		}
 		errCookie, err := s.ErrorCookie.SetError(apierrors.AsAPIError(interactionErr))
 		if err != nil {
-			return nil, err
+			return err
 		}
-		cookies = append(cookies, errCookie)
-	}
-	if finished {
+		result.cookies = append(result.cookies, errCookie)
+	} else if isFinished {
 		// Loop from start to end to collect cookies.
 		// This iteration order allows newer node to overwrite cookies.
 		for _, node := range graph.Nodes {
 			if a, ok := node.(CookiesGetter); ok {
-				cookies = append(cookies, a.GetCookies()...)
+				result.cookies = append(result.cookies, a.GetCookies()...)
 			}
 		}
 	}
 
-	// Transition to redirect URI.
-	var redirectURI string
-	if finished {
-		redirectURI = session.RedirectURI
+	// Transition to redirect URI
+	if isFinished {
+		result.redirectURI = session.RedirectURI
 	} else if interactionErr == nil {
-		redirectURI = deriveRedirectPath(graph)
-
-		// Push next step into history
-		session.Steps = append(session.Steps, SessionStep{
-			GraphID: graph.InstanceID,
-			Path:    redirectURI,
-		})
-		redirectURI = session.CurrentStep().URL().String()
-	} else {
-		u := url.URL{
-			Path:     s.Request.URL.Path,
-			RawQuery: s.Request.URL.RawQuery,
-		}
-		redirectURI = u.String()
-	}
-
-	node := graph.CurrentNode()
-	if interactionErr == nil {
-		if a, ok := node.(interface{ GetRedirectURI() string }); ok {
-			redirectURI = a.GetRedirectURI()
+		if a, ok := graph.CurrentNode().(interface{ GetRedirectURI() string }); ok {
+			result.redirectURI = a.GetRedirectURI()
+		} else {
+			result.redirectURI = session.CurrentStep().URL().String()
 		}
 	} else {
-		if a, ok := node.(interface{ GetErrorRedirectURI() string }); ok {
-			redirectURI = a.GetErrorRedirectURI()
+		if a, ok := graph.CurrentNode().(interface{ GetErrorRedirectURI() string }); ok {
+			result.redirectURI = a.GetErrorRedirectURI()
+		} else {
+			u := url.URL{
+				Path:     s.Request.URL.Path,
+				RawQuery: s.Request.URL.RawQuery,
+			}
+			result.redirectURI = u.String()
 		}
 	}
+	s.Logger.Debugf("interaction: redirect to" + result.redirectURI)
 
 	// Persist/discard session
-	if finished && !session.KeepAfterFinish {
+	if isFinished && !session.KeepAfterFinish {
 		err := s.Sessions.Delete(session.ID)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		cookies = append(cookies, s.CookieFactory.ClearCookie(s.SessionCookie.Def))
-	} else if isNewIntent {
+		result.cookies = append(result.cookies, s.CookieFactory.ClearCookie(s.SessionCookie.Def))
+	} else if isNewGraph {
 		err := s.Sessions.Create(session)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		cookies = append(cookies, s.CookieFactory.ValueCookie(s.SessionCookie.Def, session.ID))
-	} else {
+		result.cookies = append(result.cookies, s.CookieFactory.ValueCookie(s.SessionCookie.Def, session.ID))
+	} else if interactionErr == nil {
 		err := s.Sessions.Update(session)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return &Result{
-		redirectURI: redirectURI,
-		cookies:     cookies,
-	}, nil
-}
-
-func isStepPathMatch(step SessionStep, path string) bool {
-	switch step.Path {
-	case "/authentication_begin":
-		switch path {
-		case "/enter_recovery_code", "/enter_password", "/enter_totp":
-			return true
-		}
-	case "/create_authenticator_begin":
-		switch path {
-		case "/create_password", "/setup_oob_otp":
-			return true
-		}
-	case "/sso/oauth2/callback":
-		return strings.HasPrefix(path, "/sso/oauth2/callback/")
-	}
-	return step.Path == path
+	return nil
 }
 
 // nolint:gocyclo
-func deriveRedirectPath(graph *interaction.Graph) string {
-	var path string
+func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 	switch graph.CurrentNode().(type) {
-	case *nodes.NodeSelectIdentityBegin:
-		switch intent := graph.Intent.(type) {
-		case *intents.IntentAuthenticate:
-			switch intent.Kind {
-			case intents.IntentAuthenticateKindLogin:
-				path = "/login"
-			case intents.IntentAuthenticateKindSignup:
-				path = "/signup"
-			default:
-				panic(fmt.Errorf("webapp: unexpected authenticate intent: %T", intent.Kind))
-			}
-		default:
-			panic(fmt.Errorf("webapp: unexpected intent: %T", graph.Intent))
-		}
 	case *nodes.NodeUseIdentityOAuthProvider:
-		// A pseudo-path to indicate a OAuth redirect step.
-		path = "/sso/oauth2/callback"
+		return SessionStepOAuthRedirect
 	case *nodes.NodeDoUseUser:
 		switch graph.Intent.(type) {
 		case *intents.IntentRemoveIdentity:
-			path = "/enter_login_id"
+			return SessionStepEnterLoginID
 		default:
 			panic(fmt.Errorf("webapp: unexpected intent: %T", graph.Intent))
 		}
 	case *nodes.NodeUpdateIdentityBegin:
-		path = "/enter_login_id"
+		return SessionStepEnterLoginID
 	case *nodes.NodeCreateIdentityBegin:
 		switch intent := graph.Intent.(type) {
 		case *intents.IntentAuthenticate:
 			switch intent.Kind {
 			case intents.IntentAuthenticateKindPromote:
-				path = "/promote_user"
+				return SessionStepPromoteUser
 			default:
 				panic(fmt.Errorf("webapp: unexpected authenticate intent: %T", intent.Kind))
 			}
 		case *intents.IntentAddIdentity:
-			path = "/enter_login_id"
+			return SessionStepEnterLoginID
 		default:
 			panic(fmt.Errorf("webapp: unexpected intent: %T", graph.Intent))
 		}
 	case *nodes.NodeAuthenticationBegin:
-		// Ideally we should use 307 but if we use 307
-		// the CSRF middleware will complain about invalid CSRF token.
-		path = "/authentication_begin"
+		return SessionStepAuthenticate
 	case *nodes.NodeCreateAuthenticatorBegin:
-		path = "/create_authenticator_begin"
+		return SessionStepCreateAuthenticator
 	case *nodes.NodeAuthenticationOOBTrigger:
-		path = "/enter_oob_otp"
+		return SessionStepEnterOOBOTP
 	case *nodes.NodeCreateAuthenticatorOOBSetup:
-		path = "/enter_oob_otp"
+		return SessionStepEnterOOBOTP
 	case *nodes.NodeCreateAuthenticatorTOTPSetup:
-		path = "/setup_totp"
+		return SessionStepSetupTOTP
 	case *nodes.NodeGenerateRecoveryCodeBegin:
-		path = "/setup_recovery_code"
+		return SessionStepSetupRecoveryCode
 	case *nodes.NodeVerifyIdentity:
-		path = "/verify_identity"
+		return SessionStepVerifyIdentity
 	default:
 		panic(fmt.Errorf("webapp: unexpected node: %T", graph.CurrentNode()))
 	}
-
-	return path
 }

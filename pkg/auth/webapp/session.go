@@ -2,7 +2,6 @@ package webapp
 
 import (
 	"context"
-	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/util/base32"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
@@ -33,18 +32,6 @@ func NewSessionOptionsFromSession(s *Session) SessionOptions {
 		UILocales:       s.UILocales,
 		Extra:           nil, // Omit extra by default
 	}
-}
-
-type SessionStep struct {
-	GraphID string `json:"graph_id"`
-	Path    string `json:"path"`
-}
-
-func (s SessionStep) URL() *url.URL {
-	query := url.Values{}
-	query.Set("x_step", s.GraphID)
-	u := url.URL{Path: s.Path, RawQuery: query.Encode()}
-	return &u
 }
 
 type Session struct {

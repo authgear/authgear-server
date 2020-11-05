@@ -12,6 +12,7 @@ import (
 )
 
 type PageService interface {
+	UpdateSession(session *webapp.Session) error
 	Get(path string, session *webapp.Session) (*interaction.Graph, error)
 	GetWithIntent(session *webapp.Session, intent interaction.Intent) (*interaction.Graph, error)
 	PostWithIntent(

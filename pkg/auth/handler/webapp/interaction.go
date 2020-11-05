@@ -142,14 +142,6 @@ var _ nodes.InputConsumeRecoveryCode = &InputAuthRecoveryCode{}
 
 func (i *InputAuthRecoveryCode) GetRecoveryCode() string { return i.Code }
 
-type InputAuthDeviceToken struct {
-	DeviceToken string
-}
-
-var _ nodes.InputUseDeviceToken = &InputAuthDeviceToken{}
-
-func (i *InputAuthDeviceToken) GetDeviceToken() string { return i.DeviceToken }
-
 type InputSetupOOB struct {
 	InputType string
 	Target    string

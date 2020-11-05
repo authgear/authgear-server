@@ -37,7 +37,7 @@ func ConfigureEnterPasswordRoute(route httproute.Route) httproute.Route {
 
 type EnterPasswordViewModel struct {
 	IdentityDisplayID string
-	Alternatives      []AuthenticationAlternative
+	AlternativeSteps  []viewmodels.AlternativeStep
 }
 
 type EnterPasswordHandler struct {
@@ -52,19 +52,15 @@ func (h *EnterPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	identityInfo := graph.MustGetUserLastIdentity()
 
-	alternatives, err := DeriveAuthenticationAlternatives(
-		session,
-		graph,
-		AuthenticationTypePassword,
-		"",
-	)
+	alternatives := &viewmodels.AlternativeStepsViewModel{}
+	err := alternatives.AddAuthenticationAlternatives(session, graph)
 	if err != nil {
 		return nil, err
 	}
 
 	enterPasswordViewModel := EnterPasswordViewModel{
 		IdentityDisplayID: identityInfo.DisplayID(),
-		Alternatives:      alternatives,
+		AlternativeSteps:  alternatives.AlternativeSteps,
 	}
 
 	viewmodels.Embed(data, baseViewModel)
@@ -123,4 +119,6 @@ func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		result.WriteResponse(w, r)
 		return nil
 	})
+
+	handleAlternativeSteps(ctrl)
 }

@@ -36,7 +36,7 @@ func ConfigureEnterTOTPRoute(route httproute.Route) httproute.Route {
 }
 
 type EnterTOTPViewModel struct {
-	Alternatives []AuthenticationAlternative
+	AlternativeSteps []viewmodels.AlternativeStep
 }
 
 type EnterTOTPHandler struct {
@@ -49,18 +49,15 @@ func (h *EnterTOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, sess
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	alternatives, err := DeriveAuthenticationAlternatives(
-		session,
-		graph,
-		AuthenticationTypeTOTP,
-		"",
-	)
+
+	alternatives := &viewmodels.AlternativeStepsViewModel{}
+	err := alternatives.AddAuthenticationAlternatives(session, graph)
 	if err != nil {
 		return nil, err
 	}
 
 	viewModel := EnterTOTPViewModel{
-		Alternatives: alternatives,
+		AlternativeSteps: alternatives.AlternativeSteps,
 	}
 
 	viewmodels.Embed(data, baseViewModel)
@@ -119,4 +116,6 @@ func (h *EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		result.WriteResponse(w, r)
 		return nil
 	})
+
+	handleAlternativeSteps(ctrl)
 }

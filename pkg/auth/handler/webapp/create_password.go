@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -41,7 +40,7 @@ func ConfigureCreatePasswordRoute(route httproute.Route) httproute.Route {
 
 type CreatePasswordViewModel struct {
 	IdentityDisplayID string
-	Alternatives      []CreateAuthenticatorAlternative
+	AlternativeSteps  []viewmodels.AlternativeStep
 }
 
 type PasswordPolicy interface {
@@ -60,7 +59,7 @@ func (h *CreatePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter,
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 
 	displayID := ""
-	var node CreateAuthenticatorBeginNode
+	var node viewmodels.CreateAuthenticatorBeginNode
 	if !graph.FindLastNode(&node) {
 		panic("create_authenticator_begin: expected graph has node implementing CreateAuthenticatorBeginNode")
 	}
@@ -80,18 +79,15 @@ func (h *CreatePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter,
 		},
 	)
 
-	alternatives, err := DeriveCreateAuthenticatorAlternatives(
-		session,
-		graph,
-		authn.AuthenticatorTypePassword,
-	)
+	alternatives := &viewmodels.AlternativeStepsViewModel{}
+	err := alternatives.AddCreateAuthenticatorAlternatives(session, graph)
 	if err != nil {
 		return nil, err
 	}
 
 	createPasswordViewModel := CreatePasswordViewModel{
 		IdentityDisplayID: displayID,
-		Alternatives:      alternatives,
+		AlternativeSteps:  alternatives.AlternativeSteps,
 	}
 
 	viewmodels.EmbedForm(data, r.Form)
@@ -155,4 +151,6 @@ func (h *CreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		result.WriteResponse(w, r)
 		return nil
 	})
+
+	handleAlternativeSteps(ctrl)
 }

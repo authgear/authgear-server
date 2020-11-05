@@ -9,7 +9,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -45,9 +44,9 @@ func ConfigureSetupTOTPRoute(route httproute.Route) httproute.Route {
 }
 
 type SetupTOTPViewModel struct {
-	ImageURI     htmltemplate.URL
-	Secret       string
-	Alternatives []CreateAuthenticatorAlternative
+	ImageURI         htmltemplate.URL
+	Secret           string
+	AlternativeSteps []viewmodels.AlternativeStep
 }
 
 type SetupTOTPNode interface {
@@ -100,11 +99,8 @@ func (h *SetupTOTPHandler) MakeViewModel(session *webapp.Session, graph *interac
 		return nil, err
 	}
 
-	alternatives, err := DeriveCreateAuthenticatorAlternatives(
-		session,
-		graph,
-		authn.AuthenticatorTypeTOTP,
-	)
+	alternatives := &viewmodels.AlternativeStepsViewModel{}
+	err = alternatives.AddCreateAuthenticatorAlternatives(session, graph)
 	if err != nil {
 		return nil, err
 	}
@@ -114,8 +110,8 @@ func (h *SetupTOTPHandler) MakeViewModel(session *webapp.Session, graph *interac
 		// dataURI is generated here and not user generated,
 		// so it is safe to use htmltemplate.URL with it.
 		// nolint:gosec
-		ImageURI:     htmltemplate.URL(dataURI),
-		Alternatives: alternatives,
+		ImageURI:         htmltemplate.URL(dataURI),
+		AlternativeSteps: alternatives.AlternativeSteps,
 	}, nil
 }
 
@@ -184,4 +180,6 @@ func (h *SetupTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		result.WriteResponse(w, r)
 		return nil
 	})
+
+	handleAlternativeSteps(ctrl)
 }

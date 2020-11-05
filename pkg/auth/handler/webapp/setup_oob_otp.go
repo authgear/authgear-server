@@ -70,8 +70,8 @@ type SetupOOBOTPNode interface {
 
 type SetupOOBOTPViewModel struct {
 	// InputType is either phone or email.
-	InputType    string
-	Alternatives []CreateAuthenticatorAlternative
+	InputType        string
+	AlternativeSteps []viewmodels.AlternativeStep
 }
 
 func NewSetupOOBOTPViewModel(session *webapp.Session, graph *interaction.Graph, inputType string) (*SetupOOBOTPViewModel, error) {
@@ -118,18 +118,15 @@ func NewSetupOOBOTPViewModel(session *webapp.Session, graph *interaction.Graph, 
 		}
 	}
 
-	alternatives, err := DeriveCreateAuthenticatorAlternatives(
-		session,
-		graph,
-		authn.AuthenticatorTypeOOB,
-	)
+	alternatives := &viewmodels.AlternativeStepsViewModel{}
+	err = alternatives.AddCreateAuthenticatorAlternatives(session, graph)
 	if err != nil {
 		return nil, err
 	}
 
 	return &SetupOOBOTPViewModel{
-		InputType:    inputType,
-		Alternatives: alternatives,
+		InputType:        inputType,
+		AlternativeSteps: alternatives.AlternativeSteps,
 	}, nil
 }
 
@@ -206,6 +203,8 @@ func (h *SetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		result.WriteResponse(w, r)
 		return nil
 	})
+
+	handleAlternativeSteps(ctrl)
 }
 
 func FormToOOBTarget(form url.Values) (target string, inputType string, err error) {

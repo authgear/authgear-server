@@ -264,20 +264,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
-func newWebAppAuthenticationBeginHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthenticationBeginHandler)),
-	))
-}
-
-func newWebAppCreateAuthenticatorBeginHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.CreateAuthenticatorBeginHandler)),
-	))
-}
-
 func newWebAppStaticAssetsHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

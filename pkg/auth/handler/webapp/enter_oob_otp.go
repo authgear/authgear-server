@@ -41,12 +41,11 @@ func ConfigureEnterOOBOTPRoute(route httproute.Route) httproute.Route {
 }
 
 type EnterOOBOTPViewModel struct {
-	OOBOTPTarget                    string
-	OOBOTPCodeSendCooldown          int
-	OOBOTPCodeLength                int
-	OOBOTPChannel                   string
-	AuthenticationAlternatives      []AuthenticationAlternative
-	CreateAuthenticatorAlternatives []CreateAuthenticatorAlternative
+	AlternativeSteps       []viewmodels.AlternativeStep
+	OOBOTPTarget           string
+	OOBOTPCodeSendCooldown int
+	OOBOTPCodeLength       int
+	OOBOTPChannel          string
 }
 
 type EnterOOBOTPHandler struct {
@@ -82,31 +81,22 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 	}
 
 	currentNode := graph.CurrentNode()
+	alternatives := &viewmodels.AlternativeStepsViewModel{}
 	switch currentNode.(type) {
 	case *nodes.NodeAuthenticationOOBTrigger:
-		var err error
-		viewModel.AuthenticationAlternatives, err = DeriveAuthenticationAlternatives(
-			session,
-			graph,
-			AuthenticationTypeOOB,
-			n.GetOOBOTPTarget(),
-		)
+		err := alternatives.AddAuthenticationAlternatives(session, graph)
 		if err != nil {
 			return nil, err
 		}
 	case *nodes.NodeCreateAuthenticatorOOBSetup:
-		alternatives, err := DeriveCreateAuthenticatorAlternatives(
-			session,
-			graph,
-			authn.AuthenticatorTypeOOB,
-		)
+		err := alternatives.AddCreateAuthenticatorAlternatives(session, graph)
 		if err != nil {
 			return nil, err
 		}
-		viewModel.CreateAuthenticatorAlternatives = alternatives
 	default:
 		panic(fmt.Errorf("enter_oob_otp: unexpected node: %T", currentNode))
 	}
+	viewModel.AlternativeSteps = alternatives.AlternativeSteps
 
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, viewModel)
@@ -177,4 +167,6 @@ func (h *EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		result.WriteResponse(w, r)
 		return nil
 	})
+
+	handleAlternativeSteps(ctrl)
 }

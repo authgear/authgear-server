@@ -43,6 +43,4 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(ChangePasswordHandler), "*"),
 	wire.Struct(new(ChangeSecondaryPasswordHandler), "*"),
 	wire.Struct(new(LogoutHandler), "*"),
-	wire.Struct(new(AuthenticationBeginHandler), "*"),
-	wire.Struct(new(CreateAuthenticatorBeginHandler), "*"),
 )

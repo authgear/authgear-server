@@ -62,32 +62,22 @@
 {{ end }}
 
 {{ if eq $.InputType "email" }}
-<a class="link align-self-flex-start" href="{{ call $.MakeCurrentStepURL "x_input_type" "phone" }}">
+<a class="align-self-flex-start" href="{{ call $.MakeCurrentStepURL "x_input_type" "phone" }}">
 	{{ template "setup-oob-otp-use-phone-description" }}
 </a>
 {{ end }}
 
 {{ if eq $.InputType "phone" }}
-<a class="link align-self-flex-start" href="{{ call $.MakeCurrentStepURL "x_input_type" "email" }}">
+<a class="align-self-flex-start" href="{{ call $.MakeCurrentStepURL "x_input_type" "email" }}">
 	{{ template "setup-oob-otp-use-email-description" }}
 </a>
-{{ end }}
-
-{{ range $.Alternatives }}
-{{ if eq .Type "totp" }}
-<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "setup-totp-instead" }}</a>
-{{ end }}
-{{ if eq .Type "oob_otp" }}
-<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "setup-oob-otp-instead" }}</a>
-{{ end }}
-{{ if eq .Type "password" }}
-<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "setup-password-instead" }}</a>
-{{ end }}
 {{ end }}
 
 <button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
 
 </form>
+
+{{ template "__alternatives.html" . }}
 
 </div>
 
