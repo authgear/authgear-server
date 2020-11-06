@@ -51,7 +51,7 @@ func (h *EnterRecoveryCodeHandler) GetData(r *http.Request, rw http.ResponseWrit
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 
 	alternatives := &viewmodels.AlternativeStepsViewModel{}
-	err := alternatives.AddAuthenticationAlternatives(session, graph)
+	err := alternatives.AddAuthenticationAlternatives(graph, webapp.SessionStepEnterRecoveryCode)
 	if err != nil {
 		return nil, err
 	}

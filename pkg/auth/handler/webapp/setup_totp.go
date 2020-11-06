@@ -100,7 +100,7 @@ func (h *SetupTOTPHandler) MakeViewModel(session *webapp.Session, graph *interac
 	}
 
 	alternatives := &viewmodels.AlternativeStepsViewModel{}
-	err = alternatives.AddCreateAuthenticatorAlternatives(session, graph)
+	err = alternatives.AddCreateAuthenticatorAlternatives(graph, webapp.SessionStepSetupTOTP)
 	if err != nil {
 		return nil, err
 	}

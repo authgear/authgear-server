@@ -84,12 +84,12 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 	alternatives := &viewmodels.AlternativeStepsViewModel{}
 	switch currentNode.(type) {
 	case *nodes.NodeAuthenticationOOBTrigger:
-		err := alternatives.AddAuthenticationAlternatives(session, graph)
+		err := alternatives.AddAuthenticationAlternatives(graph, webapp.SessionStepEnterOOBOTPAuthn)
 		if err != nil {
 			return nil, err
 		}
 	case *nodes.NodeCreateAuthenticatorOOBSetup:
-		err := alternatives.AddCreateAuthenticatorAlternatives(session, graph)
+		err := alternatives.AddCreateAuthenticatorAlternatives(graph, webapp.SessionStepEnterOOBOTPSetup)
 		if err != nil {
 			return nil, err
 		}

@@ -119,7 +119,7 @@ func NewSetupOOBOTPViewModel(session *webapp.Session, graph *interaction.Graph, 
 	}
 
 	alternatives := &viewmodels.AlternativeStepsViewModel{}
-	err = alternatives.AddCreateAuthenticatorAlternatives(session, graph)
+	err = alternatives.AddCreateAuthenticatorAlternatives(graph, webapp.SessionStepSetupOOBOTP)
 	if err != nil {
 		return nil, err
 	}

@@ -8,7 +8,7 @@ import (
 )
 
 func handleAlternativeSteps(ctrl *Controller) {
-	ctrl.PostAction("choose_step", func() error {
+	ctrl.PostAction("choose_step", func() (err error) {
 		session, err := ctrl.InteractionSession()
 		if err != nil {
 			return err
@@ -33,14 +33,18 @@ func handleAlternativeSteps(ctrl *Controller) {
 
 		case webapp.SessionStepSetupTOTP:
 			// Generate TOTP secret.
-			choiceStep = webapp.SessionStepAuthenticate
+			choiceStep = webapp.SessionStepCreateAuthenticator
 			inputFn = func() (interface{}, error) {
 				return &InputSelectTOTP{}, nil
 			}
 
-		case webapp.SessionStepEnterOOBOTP:
+		case webapp.SessionStepEnterOOBOTPAuthn, webapp.SessionStepEnterOOBOTPSetup:
 			// Trigger OOB-OTP code sending.
-			choiceStep = webapp.SessionStepAuthenticate
+			if stepKind == webapp.SessionStepEnterOOBOTPAuthn {
+				choiceStep = webapp.SessionStepAuthenticate
+			} else {
+				choiceStep = webapp.SessionStepCreateAuthenticator
+			}
 			index, err := strconv.Atoi(ctrl.request.Form.Get("x_authenticator_index"))
 			if err != nil {
 				index = 0
@@ -51,6 +55,7 @@ func handleAlternativeSteps(ctrl *Controller) {
 		}
 
 		// Rewind session back to the choosing step.
+		originalSteps := session.Steps
 		rewound := false
 		for i := len(session.Steps) - 1; i >= 0; i-- {
 			if session.Steps[i].Kind == choiceStep {
@@ -62,6 +67,16 @@ func handleAlternativeSteps(ctrl *Controller) {
 		if !rewound {
 			return webapp.ErrSessionStepMismatch
 		}
+
+		defer func() {
+			// Rollback the rewound steps if processing failed.
+			if e := recover(); e != nil {
+				session.Steps = originalSteps
+				panic(e)
+			} else if err != nil {
+				session.Steps = originalSteps
+			}
+		}()
 
 		if inputFn == nil {
 			session.Steps = append(session.Steps, webapp.SessionStep{

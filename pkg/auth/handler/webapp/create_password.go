@@ -80,7 +80,7 @@ func (h *CreatePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter,
 	)
 
 	alternatives := &viewmodels.AlternativeStepsViewModel{}
-	err := alternatives.AddCreateAuthenticatorAlternatives(session, graph)
+	err := alternatives.AddCreateAuthenticatorAlternatives(graph, webapp.SessionStepCreatePassword)
 	if err != nil {
 		return nil, err
 	}

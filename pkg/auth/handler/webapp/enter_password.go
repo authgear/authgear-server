@@ -53,7 +53,7 @@ func (h *EnterPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, 
 	identityInfo := graph.MustGetUserLastIdentity()
 
 	alternatives := &viewmodels.AlternativeStepsViewModel{}
-	err := alternatives.AddAuthenticationAlternatives(session, graph)
+	err := alternatives.AddAuthenticationAlternatives(graph, webapp.SessionStepEnterPassword)
 	if err != nil {
 		return nil, err
 	}

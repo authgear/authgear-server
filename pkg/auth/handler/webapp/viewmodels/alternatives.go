@@ -36,13 +36,11 @@ type AlternativeStepsViewModel struct {
 	AlternativeSteps []AlternativeStep
 }
 
-func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(session *webapp.Session, graph *interaction.Graph) error {
+func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interaction.Graph, currentStepKind webapp.SessionStepKind) error {
 	var node AuthenticationBeginNode
 	if !graph.FindLastNode(&node) {
 		panic("authentication_begin: expected graph has node implementing AuthenticationBeginNode")
 	}
-
-	currentStepKind := session.CurrentStep().Kind
 
 	edges, err := node.GetAuthenticationEdges()
 	if err != nil {
@@ -72,7 +70,7 @@ func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(session *webap
 				})
 			}
 		case *nodes.EdgeAuthenticationOOBTrigger:
-			if currentStepKind != webapp.SessionStepEnterOOBOTP {
+			if currentStepKind != webapp.SessionStepEnterOOBOTPAuthn {
 				currentTarget := ""
 				var node OOBOTPTriggerNode
 				if graph.FindLastNode(&node) {
@@ -102,7 +100,7 @@ func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(session *webap
 					}
 
 					m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{
-						Step: webapp.SessionStepEnterOOBOTP,
+						Step: webapp.SessionStepEnterOOBOTPAuthn,
 						Input: map[string]string{
 							"x_authenticator_index": strconv.Itoa(i),
 						},
@@ -119,13 +117,11 @@ func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(session *webap
 	return nil
 }
 
-func (m *AlternativeStepsViewModel) AddCreateAuthenticatorAlternatives(session *webapp.Session, graph *interaction.Graph) error {
+func (m *AlternativeStepsViewModel) AddCreateAuthenticatorAlternatives(graph *interaction.Graph, currentStepKind webapp.SessionStepKind) error {
 	var node CreateAuthenticatorBeginNode
 	if !graph.FindLastNode(&node) {
 		panic("create_authenticator_begin: expected graph has node implementing CreateAuthenticatorBeginNode")
 	}
-
-	currentStepKind := session.CurrentStep().Kind
 
 	edges, err := node.GetCreateAuthenticatorEdges()
 	if err != nil {
