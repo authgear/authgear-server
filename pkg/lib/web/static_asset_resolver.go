@@ -17,11 +17,11 @@ const ResourceArgDefaultLanguageTag = "default_language_tag"
 const ResourceArgRequestedPath = "requested_path"
 
 var StaticAssetResources = map[string]resource.Descriptor{
-	"web-js":     WebJS,
-	"web-css":    WebCSS,
-	"app-logo":   AppLogo,
-	"app-banner": AppBanner,
-	"zxcvbn-js":  ZxcvbnJS,
+	"web-js":             WebJS,
+	"password-policy-js": PasswordPolicyJS,
+	"web-css":            WebCSS,
+	"app-logo":           AppLogo,
+	"app-banner":         AppBanner,
 }
 
 type ResourceManager interface {

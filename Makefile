@@ -86,11 +86,8 @@ html-email:
 
 .PHONY: static
 static:
-	rm -rf ./dist/*
-	# Start by copying src
-	cp -R ./resources/authgear/static/. ./dist
-	# Process CSS
-	./scripts/npm/node_modules/.bin/postcss './resources/authgear/static/**/*.css' --base './resources/authgear/static/' --dir './dist' --config ./scripts/npm/postcss.config.js
+	# Build Auth UI
+	npm run --silent --prefix ./authui build
 
 .PHONY: export-schemas
 export-schemas:

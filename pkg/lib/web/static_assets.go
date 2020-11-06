@@ -9,9 +9,9 @@ import (
 const StaticAssetResourcePrefix = "static/"
 
 const (
-	webJSName    = "authgear.js"
-	webCSSName   = "authgear.css"
-	zxcvbnJSName = "zxcvbn.js"
+	webJSName        = "authgear.js"
+	passwordPolicyJS = "password-policy.js"
+	webCSSName       = "authgear.css"
 )
 
 const (
@@ -24,25 +24,30 @@ type StaticAsset struct {
 	Data []byte
 }
 
-var WebJS = resource.RegisterResource(resource.SimpleFile{
-	Name: StaticAssetResourcePrefix + webJSName,
-	MergeFn: func(layers []resource.LayerFile) ([]byte, error) {
-		// Concat JS by wrapping each one in an IIFE
-		output := bytes.Buffer{}
-		for _, layer := range layers {
-			output.WriteString("(function(){\n")
-			output.Write(layer.Data)
-			output.WriteString("\n})();\n")
-		}
-		return output.Bytes(), nil
-	},
-	ParseFn: func(data []byte) (interface{}, error) {
-		return &StaticAsset{
-			Path: StaticAssetResourcePrefix + webJSName,
-			Data: data,
-		}, nil
-	},
-})
+func makeJSResource(name string) resource.Descriptor {
+	return resource.SimpleFile{
+		Name: StaticAssetResourcePrefix + name,
+		MergeFn: func(layers []resource.LayerFile) ([]byte, error) {
+			// Concat JS by wrapping each one in an IIFE
+			output := bytes.Buffer{}
+			for _, layer := range layers {
+				output.WriteString("(function(){\n")
+				output.Write(layer.Data)
+				output.WriteString("\n})();\n")
+			}
+			return output.Bytes(), nil
+		},
+		ParseFn: func(data []byte) (interface{}, error) {
+			return &StaticAsset{
+				Path: StaticAssetResourcePrefix + name,
+				Data: data,
+			}, nil
+		},
+	}
+}
+
+var WebJS = resource.RegisterResource(makeJSResource(webJSName))
+var PasswordPolicyJS = resource.RegisterResource(makeJSResource(passwordPolicyJS))
 
 var WebCSS = resource.RegisterResource(resource.SimpleFile{
 	Name: StaticAssetResourcePrefix + webCSSName,
@@ -65,15 +70,3 @@ var WebCSS = resource.RegisterResource(resource.SimpleFile{
 
 var AppLogo = resource.RegisterResource(imageAsset{Name: appLogoNamePrefix})
 var AppBanner = resource.RegisterResource(imageAsset{Name: appBannerNamePrefix})
-
-// zxcvbn version commit hash: 67c4ece9efc40c9d0a1d7d995b2b22a91be500c2
-
-var ZxcvbnJS = resource.RegisterResource(resource.SimpleFile{
-	Name: StaticAssetResourcePrefix + zxcvbnJSName,
-	ParseFn: func(data []byte) (interface{}, error) {
-		return &StaticAsset{
-			Path: StaticAssetResourcePrefix + zxcvbnJSName,
-			Data: data,
-		}, nil
-	},
-})

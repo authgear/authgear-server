@@ -1,3 +1,5 @@
+@import "normalize.css";
+
 /* NOTE(1) */
 /* The font-size of focusable elements must be >= 16px otherwise */
 /* Safari iOS will zoom the page. */

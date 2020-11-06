@@ -3,9 +3,5 @@ var normalize = require("postcss-normalize");
 var cssnano = require("cssnano");
 
 module.exports = {
-  plugins: [
-    presetEnv(),
-    normalize(),
-    cssnano(),
-  ],
+  plugins: [presetEnv(), normalize(), cssnano()]
 };
