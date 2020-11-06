@@ -87,6 +87,7 @@ html-email:
 .PHONY: static
 static:
 	# Build Auth UI
+	npm run --silent --prefix ./authui typecheck
 	npm run --silent --prefix ./authui build
 
 .PHONY: export-schemas

@@ -6,8 +6,8 @@ module.exports = {
   mode: "production",
   target: "browserslist",
   entry: {
-    authgear: path.resolve(__dirname, "src/authgear.js"),
-    "password-policy": path.resolve(__dirname, "src/password-policy.js"),
+    authgear: path.resolve(__dirname, "src/authgear.ts"),
+    "password-policy": path.resolve(__dirname, "src/password-policy.ts"),
   },
   output: {
     path: path.resolve(__dirname, "../resources/authgear/static"),
@@ -22,7 +22,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.js$/,
+        test: /\.(js|ts)$/,
         loader: "babel-loader"
       },
       {
@@ -30,5 +30,8 @@ module.exports = {
         use: [MiniCssExtractPlugin.loader, "css-loader", "postcss-loader"]
       }
     ]
+  },
+  resolve: {
+    extensions: [".js", ".ts"]
   }
 };
