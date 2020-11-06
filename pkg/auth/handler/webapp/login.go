@@ -88,6 +88,8 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	defer ctrl.Serve()
+
 	h.FormPrefiller.Prefill(r.Form)
 
 	opts := webapp.SessionOptions{

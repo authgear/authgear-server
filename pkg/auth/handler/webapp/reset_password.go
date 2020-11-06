@@ -64,6 +64,7 @@ func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	defer ctrl.Serve()
 
 	opts := webapp.SessionOptions{
 		KeepAfterFinish: true,

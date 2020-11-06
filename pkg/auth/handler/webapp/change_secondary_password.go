@@ -64,6 +64,7 @@ func (h *ChangeSecondaryPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	defer ctrl.Serve()
 
 	userID := ctrl.RequireUserID()
 	opts := webapp.SessionOptions{

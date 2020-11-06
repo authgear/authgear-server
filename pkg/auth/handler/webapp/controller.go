@@ -46,9 +46,10 @@ func (f *ControllerFactory) New(r *http.Request, rw http.ResponseWriter) (*Contr
 		Log:            f.LoggerFactory.New(path),
 		ControllerDeps: f.ControllerDeps,
 
-		path:     path,
-		request:  r,
-		response: rw,
+		path:         path,
+		request:      r,
+		response:     rw,
+		postHandlers: make(map[string]func() error),
 	}
 
 	if err := r.ParseForm(); err != nil {
@@ -66,6 +67,9 @@ type Controller struct {
 	path     string
 	request  *http.Request
 	response http.ResponseWriter
+
+	getHandler   func() error
+	postHandlers map[string]func() error
 }
 
 func (c *Controller) RequireUserID() string {
@@ -83,26 +87,30 @@ func (c *Controller) RedirectURI() string {
 }
 
 func (c *Controller) Get(fn func() error) {
-	if c.request.Method != "GET" {
-		return
-	}
-
-	err := c.Database.WithTx(func() error {
-		return fn()
-	})
-	if err != nil {
-		panic(err)
-	}
+	c.getHandler = fn
 }
 
 func (c *Controller) PostAction(action string, fn func() error) {
-	if c.request.Method != "POST" || c.request.Form.Get("x_action") != action {
-		return
+	c.postHandlers[action] = fn
+}
+
+func (c *Controller) Serve() {
+	var err error
+	switch c.request.Method {
+	case http.MethodGet:
+		err = c.Database.WithTx(c.getHandler)
+	case http.MethodPost:
+		handler, ok := c.postHandlers[c.request.Form.Get("x_action")]
+		if !ok {
+			http.Error(c.response, "Unknown action", http.StatusBadRequest)
+			break
+		}
+
+		err = c.Database.WithTx(handler)
+	default:
+		http.Error(c.response, "Invalid request method", http.StatusMethodNotAllowed)
 	}
 
-	err := c.Database.WithTx(func() error {
-		return fn()
-	})
 	if err != nil {
 		panic(err)
 	}

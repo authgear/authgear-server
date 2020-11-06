@@ -155,6 +155,7 @@ func (h *SetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	defer ctrl.Serve()
 
 	// Populate default values.
 	if _, ok := r.Form["x_input_type"]; !ok {

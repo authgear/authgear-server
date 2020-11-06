@@ -70,6 +70,7 @@ func (h *SettingsRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	defer ctrl.Serve()
 
 	redirectURI := httputil.HostRelative(r.URL).String()
 	userID := ctrl.RequireUserID()

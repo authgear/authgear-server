@@ -64,6 +64,7 @@ func (h *SettingsOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	defer ctrl.Serve()
 
 	redirectURI := httputil.HostRelative(r.URL).String()
 	authenticatorID := r.Form.Get("x_authenticator_id")

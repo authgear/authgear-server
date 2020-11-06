@@ -72,6 +72,7 @@ func (h *EnterRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	defer ctrl.Serve()
 
 	ctrl.Get(func() error {
 		session, err := ctrl.InteractionSession()
