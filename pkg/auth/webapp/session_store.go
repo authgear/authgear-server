@@ -91,6 +91,10 @@ func (s *SessionStoreRedis) Delete(id string) error {
 	return err
 }
 
+func toMilliseconds(d time.Duration) int64 {
+	return int64(d / time.Millisecond)
+}
+
 func sessionKey(appID string, id string) string {
 	return fmt.Sprintf("app:%s:webapp-session:%s", appID, id)
 }

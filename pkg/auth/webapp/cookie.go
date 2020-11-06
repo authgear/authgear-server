@@ -10,24 +10,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-type UATokenCookieDef struct {
-	Def *httputil.CookieDef
-}
-
-func NewUATokenCookieDef(httpCfg *config.HTTPConfig) UATokenCookieDef {
-	def := &httputil.CookieDef{
-		Name:              httpCfg.CookiePrefix + "ua_token",
-		Path:              "/",
-		AllowScriptAccess: false,
-		SameSite:          http.SameSiteNoneMode, // Ensure resume-able after redirecting from external site
-		MaxAge:            nil,                   // Use HTTP session cookie; expires when browser closes
-	}
-
-	if httpCfg.CookieDomain != nil {
-		def.Domain = *httpCfg.CookieDomain
-	}
-
-	return UATokenCookieDef{Def: def}
+type CookieFactory interface {
+	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
+	ClearCookie(def *httputil.CookieDef) *http.Cookie
 }
 
 type SessionCookieDef struct {

@@ -11,12 +11,31 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
+	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 type SessionStore interface {
 	Create(session *Session) (err error)
 	Update(session *Session) (err error)
 	Delete(id string) (err error)
+}
+
+type GraphService interface {
+	NewGraph(ctx *interaction.Context, intent interaction.Intent) (*interaction.Graph, error)
+	Get(instanceID string) (*interaction.Graph, error)
+	DryRun(webStateID string, fn func(*interaction.Context) (*interaction.Graph, error)) error
+	Run(webStateID string, graph *interaction.Graph) error
+	Accept(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (*interaction.Graph, []interaction.Edge, error)
+}
+
+type CookiesGetter interface {
+	GetCookies() []*http.Cookie
+}
+
+type ServiceLogger struct{ *log.Logger }
+
+func NewServiceLogger(lf *log.Factory) ServiceLogger {
+	return ServiceLogger{lf.New("webapp-service")}
 }
 
 type Service2 struct {
