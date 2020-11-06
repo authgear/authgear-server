@@ -15,10 +15,9 @@ stringData:
     id: accounts
     http:
       public_origin: 'http://accounts.portal.localhost:3000'
+      cookie_domain: .portal.localhost
       allowed_origins:
         - '*'
-    session:
-      cookie_domain: .portal.localhost
     oauth:
       clients:
         - name: Portal
