@@ -52,7 +52,8 @@ func (k SessionStepKind) Path() string {
 	case SessionStepOAuthRedirect,
 		SessionStepAuthenticate,
 		SessionStepCreateAuthenticator:
-		panic("webapp: no path for step " + string(k))
+		// No path for step.
+		return ""
 	default:
 		panic("webapp: unknown step " + string(k))
 	}

@@ -29,6 +29,7 @@ type BaseViewModel struct {
 	MakeCurrentStepURL    func(pairs ...string) string
 	RawError              *apierrors.APIError
 	Error                 interface{}
+	SessionStepURLs       []string
 	ForgotPasswordEnabled bool
 	PublicSignupDisabled  bool
 }
@@ -107,6 +108,15 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 	if apiError, ok := m.ErrorCookie.GetError(r); ok {
 		model.SetError(apiError)
 		httputil.UpdateCookie(rw, m.ErrorCookie.ResetError())
+	}
+
+	if s := webapp.GetSession(r.Context()); s != nil {
+		for _, step := range s.Steps {
+			if path := step.Kind.Path(); path == "" {
+				continue
+			}
+			model.SessionStepURLs = append(model.SessionStepURLs, step.URL().String())
+		}
 	}
 
 	return model

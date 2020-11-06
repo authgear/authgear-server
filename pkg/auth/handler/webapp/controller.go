@@ -3,6 +3,8 @@ package webapp
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -27,9 +29,10 @@ type PageService interface {
 }
 
 type ControllerDeps struct {
-	Database *db.Handle
-	Page     PageService
-	Renderer Renderer
+	Database      *db.Handle
+	Page          PageService
+	BaseViewModel *viewmodels.BaseViewModeler
+	Renderer      Renderer
 
 	TrustProxy config.TrustProxy
 }
@@ -112,9 +115,19 @@ func (c *Controller) Serve() {
 		http.Error(c.response, "Invalid request method", http.StatusMethodNotAllowed)
 	}
 
-	if err != nil {
+	if apierrors.IsAPIError(err) {
+		c.renderError(err)
+	} else {
 		panic(err)
 	}
+}
+
+func (c *Controller) renderError(err error) {
+	data := make(map[string]interface{})
+	baseViewModel := c.BaseViewModel.ViewModel(c.request, c.response)
+	baseViewModel.SetError(err)
+	viewmodels.Embed(data, baseViewModel)
+	c.Renderer.RenderHTML(c.response, c.request, TemplateWebFatalErrorHTML, data)
 }
 
 func (c *Controller) EntryPointSession(opts webapp.SessionOptions) *webapp.Session {

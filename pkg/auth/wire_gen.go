@@ -1989,21 +1989,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
-	}
-	controllerFactory := webapp2.ControllerFactory{
-		LoggerFactory:  factory,
-		ControllerDeps: controllerDeps,
-	}
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -2011,6 +1996,22 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword: forgotPasswordConfig,
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	formPrefiller := &webapp2.FormPrefiller{
 		LoginID: loginIDConfig,
@@ -2453,21 +2454,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
-	}
-	controllerFactory := webapp2.ControllerFactory{
-		LoggerFactory:  factory,
-		ControllerDeps: controllerDeps,
-	}
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -2475,6 +2461,22 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword: forgotPasswordConfig,
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	formPrefiller := &webapp2.FormPrefiller{
 		LoginID: loginIDConfig,
@@ -2917,21 +2919,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
-	}
-	controllerFactory := webapp2.ControllerFactory{
-		LoggerFactory:  factory,
-		ControllerDeps: controllerDeps,
-	}
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -2939,6 +2926,22 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword: forgotPasswordConfig,
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	formPrefiller := &webapp2.FormPrefiller{
 		LoginID: loginIDConfig,
@@ -3381,16 +3384,25 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	uiConfig := appConfig.UI
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+		ErrorCookie:    errorCookie,
+	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
 	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
 		LoggerFactory:  factory,
@@ -3830,21 +3842,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
-	}
-	controllerFactory := webapp2.ControllerFactory{
-		LoggerFactory:  factory,
-		ControllerDeps: controllerDeps,
-	}
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -3852,6 +3849,22 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword: forgotPasswordConfig,
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	enterLoginIDHandler := &webapp2.EnterLoginIDHandler{
 		ControllerFactory: controllerFactory,
@@ -4288,21 +4301,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
-	}
-	controllerFactory := webapp2.ControllerFactory{
-		LoggerFactory:  factory,
-		ControllerDeps: controllerDeps,
-	}
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -4310,6 +4308,22 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword: forgotPasswordConfig,
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	enterPasswordHandler := &webapp2.EnterPasswordHandler{
 		ControllerFactory: controllerFactory,
@@ -4745,21 +4759,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
-	}
-	controllerFactory := webapp2.ControllerFactory{
-		LoggerFactory:  factory,
-		ControllerDeps: controllerDeps,
-	}
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -4767,6 +4766,22 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword: forgotPasswordConfig,
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	createPasswordHandler := &webapp2.CreatePasswordHandler{
 		ControllerFactory: controllerFactory,
@@ -5203,21 +5218,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
-	}
-	controllerFactory := webapp2.ControllerFactory{
-		LoggerFactory:  factory,
-		ControllerDeps: controllerDeps,
-	}
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -5225,6 +5225,22 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword: forgotPasswordConfig,
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	setupTOTPHandler := &webapp2.SetupTOTPHandler{
 		ControllerFactory: controllerFactory,
@@ -5662,21 +5678,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
-	}
-	controllerFactory := webapp2.ControllerFactory{
-		LoggerFactory:  factory,
-		ControllerDeps: controllerDeps,
-	}
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -5684,6 +5685,22 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword: forgotPasswordConfig,
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	enterTOTPHandler := &webapp2.EnterTOTPHandler{
 		ControllerFactory: controllerFactory,
@@ -6119,21 +6136,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
-	}
-	controllerFactory := webapp2.ControllerFactory{
-		LoggerFactory:  factory,
-		ControllerDeps: controllerDeps,
-	}
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -6141,6 +6143,22 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword: forgotPasswordConfig,
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	setupOOBOTPHandler := &webapp2.SetupOOBOTPHandler{
 		ControllerFactory: controllerFactory,
@@ -6576,21 +6594,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
-	}
-	controllerFactory := webapp2.ControllerFactory{
-		LoggerFactory:  factory,
-		ControllerDeps: controllerDeps,
-	}
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -6598,6 +6601,22 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword: forgotPasswordConfig,
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	enterOOBOTPHandler := &webapp2.EnterOOBOTPHandler{
 		ControllerFactory: controllerFactory,
@@ -7033,21 +7052,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
-	}
-	controllerFactory := webapp2.ControllerFactory{
-		LoggerFactory:  factory,
-		ControllerDeps: controllerDeps,
-	}
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -7055,6 +7059,22 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword: forgotPasswordConfig,
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	enterRecoveryCodeHandler := &webapp2.EnterRecoveryCodeHandler{
 		ControllerFactory: controllerFactory,
@@ -7490,21 +7510,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
-	}
-	controllerFactory := webapp2.ControllerFactory{
-		LoggerFactory:  factory,
-		ControllerDeps: controllerDeps,
-	}
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -7512,6 +7517,22 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword: forgotPasswordConfig,
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	setupRecoveryCodeHandler := &webapp2.SetupRecoveryCodeHandler{
 		ControllerFactory: controllerFactory,
@@ -7947,21 +7968,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
-	}
-	controllerFactory := webapp2.ControllerFactory{
-		LoggerFactory:  factory,
-		ControllerDeps: controllerDeps,
-	}
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -7969,6 +7975,22 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword: forgotPasswordConfig,
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	verifyIdentityHandler := &webapp2.VerifyIdentityHandler{
 		ControllerFactory: controllerFactory,
@@ -8404,21 +8426,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
-	}
-	controllerFactory := webapp2.ControllerFactory{
-		LoggerFactory:  factory,
-		ControllerDeps: controllerDeps,
-	}
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -8426,6 +8433,22 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		ForgotPassword: forgotPasswordConfig,
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	verifyIdentitySuccessHandler := &webapp2.VerifyIdentitySuccessHandler{
 		ControllerFactory: controllerFactory,
@@ -8861,21 +8884,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
-	}
-	controllerFactory := webapp2.ControllerFactory{
-		LoggerFactory:  factory,
-		ControllerDeps: controllerDeps,
-	}
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -8883,6 +8891,22 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword: forgotPasswordConfig,
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	formPrefiller := &webapp2.FormPrefiller{
 		LoginID: loginIDConfig,
@@ -9323,21 +9347,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
-	}
-	controllerFactory := webapp2.ControllerFactory{
-		LoggerFactory:  factory,
-		ControllerDeps: controllerDeps,
-	}
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -9345,6 +9354,22 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		ForgotPassword: forgotPasswordConfig,
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	forgotPasswordSuccessHandler := &webapp2.ForgotPasswordSuccessHandler{
 		ControllerFactory: controllerFactory,
@@ -9780,21 +9805,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
-	}
-	controllerFactory := webapp2.ControllerFactory{
-		LoggerFactory:  factory,
-		ControllerDeps: controllerDeps,
-	}
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -9802,6 +9812,22 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword: forgotPasswordConfig,
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	resetPasswordHandler := &webapp2.ResetPasswordHandler{
 		ControllerFactory: controllerFactory,
@@ -10238,21 +10264,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
-	}
-	controllerFactory := webapp2.ControllerFactory{
-		LoggerFactory:  factory,
-		ControllerDeps: controllerDeps,
-	}
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -10260,6 +10271,22 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		ForgotPassword: forgotPasswordConfig,
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	resetPasswordSuccessHandler := &webapp2.ResetPasswordSuccessHandler{
 		ControllerFactory: controllerFactory,
@@ -10695,21 +10722,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
-	}
-	controllerFactory := webapp2.ControllerFactory{
-		LoggerFactory:  factory,
-		ControllerDeps: controllerDeps,
-	}
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -10717,6 +10729,22 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword: forgotPasswordConfig,
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	settingsHandler := &webapp2.SettingsHandler{
 		ControllerFactory: controllerFactory,
@@ -11155,21 +11183,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
-	}
-	controllerFactory := webapp2.ControllerFactory{
-		LoggerFactory:  factory,
-		ControllerDeps: controllerDeps,
-	}
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -11177,6 +11190,22 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword: forgotPasswordConfig,
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	settingsIdentityHandler := &webapp2.SettingsIdentityHandler{
@@ -11616,21 +11645,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
-	}
-	controllerFactory := webapp2.ControllerFactory{
-		LoggerFactory:  factory,
-		ControllerDeps: controllerDeps,
-	}
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -11638,6 +11652,22 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword: forgotPasswordConfig,
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	settingsTOTPHandler := &webapp2.SettingsTOTPHandler{
@@ -12076,21 +12106,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
-	}
-	controllerFactory := webapp2.ControllerFactory{
-		LoggerFactory:  factory,
-		ControllerDeps: controllerDeps,
-	}
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -12098,6 +12113,22 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword: forgotPasswordConfig,
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	settingsOOBOTPHandler := &webapp2.SettingsOOBOTPHandler{
@@ -12536,21 +12567,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
-	}
-	controllerFactory := webapp2.ControllerFactory{
-		LoggerFactory:  factory,
-		ControllerDeps: controllerDeps,
-	}
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -12558,6 +12574,22 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		ForgotPassword: forgotPasswordConfig,
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	settingsRecoveryCodeHandler := &webapp2.SettingsRecoveryCodeHandler{
@@ -12997,21 +13029,6 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
-	}
-	controllerFactory := webapp2.ControllerFactory{
-		LoggerFactory:  factory,
-		ControllerDeps: controllerDeps,
-	}
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -13019,6 +13036,22 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword: forgotPasswordConfig,
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	changePasswordHandler := &webapp2.ChangePasswordHandler{
 		ControllerFactory: controllerFactory,
@@ -13455,21 +13488,6 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
-	responseRenderer := &webapp2.ResponseRenderer{
-		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
-	}
-	controllerDeps := webapp2.ControllerDeps{
-		Database:   handle,
-		Page:       webappService2,
-		Renderer:   responseRenderer,
-		TrustProxy: trustProxy,
-	}
-	controllerFactory := webapp2.ControllerFactory{
-		LoggerFactory:  factory,
-		ControllerDeps: controllerDeps,
-	}
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
@@ -13477,6 +13495,22 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		ForgotPassword: forgotPasswordConfig,
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
 	}
 	changeSecondaryPasswordHandler := &webapp2.ChangeSecondaryPasswordHandler{
 		ControllerFactory: controllerFactory,

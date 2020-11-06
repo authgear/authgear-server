@@ -66,8 +66,8 @@
                 {{ else }}
                     <li class="error-txt">{{ . }}</li>
                 {{ end }}
-            {{ else if eq .Error.reason "WebUIInvalidState" }}
-                <li class="error-txt">{{ template "error-web-ui-invalid-state" }}</li>
+            {{ else if eq .Error.reason "WebUIInvalidSession" }}
+                <!-- This error is handled as fatal error -->
             {{ else if eq .Error.reason "RateLimited" }}
                 <li class="error-txt">{{ template "error-rate-limited" }}</li>
             {{ else }}
