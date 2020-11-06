@@ -18,6 +18,12 @@
 	{{ end }}
 </h1>
 
+{{ if $.IdentityID }}
+<p class="description secondary-txt">
+	{{ template "enter-login-id-page-description--change" (dict "key" $.LoginIDKey "displayID" $.DisplayID) }}
+</p>
+{{ end }}
+
 {{ template "__error.html" . }}
 
 <form id="main-form" class="vertical-form form-fields-container" method="post" novalidate>

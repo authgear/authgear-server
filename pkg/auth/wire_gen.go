@@ -3763,6 +3763,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		WebApp:        webappService,
+		Identities:    serviceService,
 	}
 	return enterLoginIDHandler
 }

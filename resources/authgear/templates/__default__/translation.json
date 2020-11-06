@@ -187,6 +187,7 @@
 
   "enter-login-id-page-title--change": "Change your {key}",
   "enter-login-id-page-title--add": "Enter your {key}",
+  "enter-login-id-page-description--change": "Your current {key} is <b>{displayID}</b>. Please enter your new {key}.",
 
   "setup-totp-instead": "Setup authenticator app / device instead",
   "setup-oob-otp-instead": "Setup SMS / email 2-step verification instead",
