@@ -65,34 +65,8 @@ func (s *Service2) UpdateSession(session *Session) error {
 	return s.Sessions.Update(session)
 }
 
-func (s *Service2) rewindSessionHistory(session *Session, path string) *SessionStep {
-	stepGraphID := s.Request.Form.Get("x_step")
-	var curStep *SessionStep
-	for i := len(session.Steps) - 1; i >= 0; i-- {
-		step := session.Steps[i]
-		if step.GraphID == stepGraphID {
-			curStep = &step
-			break
-		}
-	}
-
-	if curStep == nil && len(session.Steps) > 0 {
-		s := session.CurrentStep()
-		curStep = &s
-	}
-	if curStep == nil || !curStep.Kind.MatchPath(path) {
-		return nil
-	}
-	return curStep
-}
-
-func (s *Service2) Get(path string, session *Session) (*interaction.Graph, error) {
-	step := s.rewindSessionHistory(session, path)
-	if step == nil {
-		return nil, ErrSessionStepMismatch
-	}
-
-	graph, err := s.Graph.Get(step.GraphID)
+func (s *Service2) Get(session *Session) (*interaction.Graph, error) {
+	graph, err := s.Graph.Get(session.CurrentStep().GraphID)
 	if err != nil {
 		return nil, ErrInvalidSession
 	}
@@ -140,17 +114,11 @@ func (s *Service2) PostWithIntent(
 }
 
 func (s *Service2) PostWithInput(
-	path string,
 	session *Session,
 	inputFn func() (interface{}, error),
 ) (result *Result, err error) {
-	step := s.rewindSessionHistory(session, path)
-	if step == nil {
-		return nil, ErrSessionStepMismatch
-	}
-
 	return s.doPost(session, inputFn, false, func(ctx *interaction.Context) (*interaction.Graph, error) {
-		return s.Graph.Get(step.GraphID)
+		return s.Graph.Get(session.CurrentStep().GraphID)
 	})
 }
 

@@ -13,7 +13,7 @@ import (
 
 type PageService interface {
 	UpdateSession(session *webapp.Session) error
-	Get(path string, session *webapp.Session) (*interaction.Graph, error)
+	Get(session *webapp.Session) (*interaction.Graph, error)
 	GetWithIntent(session *webapp.Session, intent interaction.Intent) (*interaction.Graph, error)
 	PostWithIntent(
 		session *webapp.Session,
@@ -21,7 +21,6 @@ type PageService interface {
 		inputFn func() (interface{}, error),
 	) (result *webapp.Result, err error)
 	PostWithInput(
-		path string,
 		session *webapp.Session,
 		inputFn func() (interface{}, error),
 	) (result *webapp.Result, err error)
@@ -70,6 +69,8 @@ type Controller struct {
 
 	getHandler   func() error
 	postHandlers map[string]func() error
+
+	skipRewind bool
 }
 
 func (c *Controller) RequireUserID() string {
@@ -146,6 +147,33 @@ func (c *Controller) EntryPointPost(
 	return c.Page.PostWithIntent(c.EntryPointSession(opts), intent, inputFn)
 }
 
+func (c *Controller) rewindSessionHistory(session *webapp.Session) error {
+	if c.skipRewind {
+		// Session has been rewound by caller (alternative step handler),
+		// skip rewinding.
+		return nil
+	}
+
+	stepGraphID := c.request.Form.Get("x_step")
+	var curStep *webapp.SessionStep
+	for i := len(session.Steps) - 1; i >= 0; i-- {
+		step := session.Steps[i]
+		if step.GraphID == stepGraphID {
+			curStep = &step
+			break
+		}
+	}
+
+	if curStep == nil && len(session.Steps) > 0 {
+		s := session.CurrentStep()
+		curStep = &s
+	}
+	if curStep == nil || !curStep.Kind.MatchPath(c.path) {
+		return webapp.ErrSessionStepMismatch
+	}
+	return nil
+}
+
 func (c *Controller) InteractionSession() (*webapp.Session, error) {
 	s := webapp.GetSession(c.request.Context())
 	if s == nil {
@@ -160,7 +188,11 @@ func (c *Controller) InteractionGet() (*interaction.Graph, error) {
 		return nil, err
 	}
 
-	return c.Page.Get(c.path, s)
+	if err := c.rewindSessionHistory(s); err != nil {
+		return nil, err
+	}
+
+	return c.Page.Get(s)
 }
 
 func (c *Controller) InteractionPost(inputFn func() (interface{}, error)) (*webapp.Result, error) {
@@ -169,5 +201,9 @@ func (c *Controller) InteractionPost(inputFn func() (interface{}, error)) (*weba
 		return nil, err
 	}
 
-	return c.Page.PostWithInput(c.path, s, inputFn)
+	if err := c.rewindSessionHistory(s); err != nil {
+		return nil, err
+	}
+
+	return c.Page.PostWithInput(s, inputFn)
 }

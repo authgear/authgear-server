@@ -67,6 +67,7 @@ func handleAlternativeSteps(ctrl *Controller) {
 		if !rewound {
 			return webapp.ErrSessionStepMismatch
 		}
+		ctrl.skipRewind = true
 
 		defer func() {
 			// Rollback the rewound steps if processing failed.
