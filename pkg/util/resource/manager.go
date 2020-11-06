@@ -23,25 +23,32 @@ func (m *Manager) Overlay(fs Fs) *Manager {
 	return NewManager(m.Registry, newFs)
 }
 
-func (m *Manager) Read(desc Descriptor, args map[string]interface{}) (*MergedFile, error) {
-	var layers []LayerFile
+func (m *Manager) Read(desc Descriptor, view View) (interface{}, error) {
+	var locations []Location
 	for _, fs := range m.Fs {
-		files, err := desc.ReadResource(fs)
+		ls, err := desc.FindResources(fs)
 		if err != nil {
 			return nil, err
 		}
-		layers = append(layers, files...)
+		locations = append(locations, ls...)
 	}
-	if len(layers) == 0 {
+	if len(locations) == 0 {
 		return nil, ErrResourceNotFound
 	}
 
-	merged, err := desc.Merge(layers, args)
-	if err != nil {
-		return nil, err
+	files := make([]ResourceFile, len(locations))
+	for idx, location := range locations {
+		data, err := ReadLocation(location)
+		if err != nil {
+			return nil, err
+		}
+		files[idx] = ResourceFile{
+			Location: location,
+			Data:     data,
+		}
 	}
 
-	return merged, nil
+	return desc.ViewResources(files, view)
 }
 
 func (m *Manager) Resolve(path string) (Descriptor, bool) {

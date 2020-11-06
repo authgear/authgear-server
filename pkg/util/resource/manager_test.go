@@ -19,9 +19,9 @@ func TestResourceManager(t *testing.T) {
 			resource.AferoFs{Fs: fsB},
 		})
 
-		resourceA := r.Register(resource.SimpleFile{Name: "resourceA.txt"})
-		resourceB := r.Register(resource.SimpleFile{Name: "resources/B.txt"})
-		resourceC := r.Register(resource.SimpleFile{Name: "resources/C.txt"})
+		resourceA := r.Register(resource.SimpleDescriptor{Path: "resourceA.txt"})
+		resourceB := r.Register(resource.SimpleDescriptor{Path: "resources/B.txt"})
+		resourceC := r.Register(resource.SimpleDescriptor{Path: "resources/C.txt"})
 
 		Convey("it should reject when no FS contains the specified resource", func() {
 			_, err := manager.Read(resourceA, nil)
@@ -36,21 +36,15 @@ func TestResourceManager(t *testing.T) {
 
 			data, err := manager.Read(resourceA, nil)
 			So(err, ShouldBeNil)
-			So(data, ShouldResemble, &resource.MergedFile{
-				Data: []byte("resource A in fs B"),
-			})
+			So(data, ShouldResemble, []byte("resource A in fs B"))
 
 			data, err = manager.Read(resourceB, nil)
 			So(err, ShouldBeNil)
-			So(data, ShouldResemble, &resource.MergedFile{
-				Data: []byte("resource B in fs A"),
-			})
+			So(data, ShouldResemble, []byte("resource B in fs A"))
 
 			data, err = manager.Read(resourceC, nil)
 			So(err, ShouldBeNil)
-			So(data, ShouldResemble, &resource.MergedFile{
-				Data: []byte("resource C in fs B"),
-			})
+			So(data, ShouldResemble, []byte("resource C in fs B"))
 		})
 
 		Convey("it should resolve resource descriptor from path", func() {
