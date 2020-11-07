@@ -24,6 +24,7 @@ type View interface {
 type AppFileView interface {
 	View
 	AppFilePath() string
+	SecretKeyAllowlist() []string
 }
 
 // EffectiveFileView is an view on the resources at specific path in all FSs.
@@ -43,7 +44,8 @@ type EffectiveResourceView interface {
 }
 
 type AppFile struct {
-	Path string
+	Path              string
+	AllowedSecretKeys []string
 }
 
 var _ AppFileView = AppFile{}
@@ -51,6 +53,9 @@ var _ AppFileView = AppFile{}
 func (v AppFile) view() {}
 func (v AppFile) AppFilePath() string {
 	return v.Path
+}
+func (v AppFile) SecretKeyAllowlist() []string {
+	return v.AllowedSecretKeys
 }
 
 type EffectiveFile struct {

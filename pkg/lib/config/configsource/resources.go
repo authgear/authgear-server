@@ -15,58 +15,214 @@ const (
 	AuthgearSecretYAML = "authgear.secrets.yaml"
 )
 
-var AppConfig = resource.RegisterResource(resource.SimpleFile{
-	Name: AuthgearYAML,
-	ParseFn: func(data []byte) (interface{}, error) {
-		appConfig, err := config.Parse(data)
-		if err != nil {
-			return nil, fmt.Errorf("cannot parse app config: %w", err)
-		}
-		return appConfig, nil
-	},
-})
+type AuthgearYAMLDescriptor struct{}
 
-var SecretConfig = resource.RegisterResource(SecretConfigResourceType{})
+var _ resource.Descriptor = AuthgearYAMLDescriptor{}
 
-type SecretConfigResourceType struct{}
+func (d AuthgearYAMLDescriptor) MatchResource(path string) bool {
+	return path == AuthgearYAML
+}
 
-func (f SecretConfigResourceType) ReadResource(fs resource.Fs) ([]resource.LayerFile, error) {
-	data, err := resource.ReadFile(fs, AuthgearSecretYAML)
+func (d AuthgearYAMLDescriptor) FindResources(fs resource.Fs) ([]resource.Location, error) {
+	location := resource.Location{
+		Fs:   fs,
+		Path: AuthgearYAML,
+	}
+	_, err := resource.ReadLocation(location)
 	if os.IsNotExist(err) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
 	}
-	return []resource.LayerFile{{Path: AuthgearSecretYAML, Data: data}}, nil
+	return []resource.Location{location}, nil
 }
 
-func (f SecretConfigResourceType) MatchResource(path string) bool {
+func (d AuthgearYAMLDescriptor) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
+	last := resources[len(resources)-1]
+
+	switch rawView.(type) {
+	case resource.AppFileView:
+		return last.Data, nil
+	case resource.EffectiveResourceView:
+		appConfig, err := config.Parse(last.Data)
+		if err != nil {
+			return nil, fmt.Errorf("cannot parse app config: %w", err)
+		}
+		return appConfig, nil
+	default:
+		return nil, fmt.Errorf("unsupported view: %T", rawView)
+	}
+}
+
+func (d AuthgearYAMLDescriptor) UpdateResource(resrc *resource.ResourceFile, data []byte, _ resource.View) (*resource.ResourceFile, error) {
+	if data == nil {
+		return nil, fmt.Errorf("cannot delete '%v'", AuthgearYAML)
+	}
+	return &resource.ResourceFile{
+		Location: resrc.Location,
+		Data:     data,
+	}, nil
+}
+
+var AppConfig = resource.RegisterResource(AuthgearYAMLDescriptor{})
+
+type AuthgearSecretYAMLDescriptor struct{}
+
+var _ resource.Descriptor = AuthgearSecretYAMLDescriptor{}
+
+func (d AuthgearSecretYAMLDescriptor) MatchResource(path string) bool {
 	return path == AuthgearSecretYAML
 }
 
-func (f SecretConfigResourceType) Merge(layers []resource.LayerFile, args map[string]interface{}) (*resource.MergedFile, error) {
-	var layerConfigs []*config.SecretConfig
-	for _, layer := range layers {
-		var layerConfig config.SecretConfig
-		if err := yaml.Unmarshal(layer.Data, &layerConfig); err != nil {
-			return nil, fmt.Errorf("malformed secret config: %w", err)
-		}
-		layerConfigs = append(layerConfigs, &layerConfig)
+func (d AuthgearSecretYAMLDescriptor) FindResources(fs resource.Fs) ([]resource.Location, error) {
+	location := resource.Location{
+		Fs:   fs,
+		Path: AuthgearSecretYAML,
+	}
+	_, err := resource.ReadLocation(location)
+	if os.IsNotExist(err) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+	return []resource.Location{location}, nil
+}
+
+func (d AuthgearSecretYAMLDescriptor) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
+	switch view := rawView.(type) {
+	case resource.AppFileView:
+		return d.viewAppFile(resources, view)
+	case resource.EffectiveResourceView:
+		return d.viewEffectiveResource(resources, view)
+	default:
+		return nil, fmt.Errorf("unsupported view: %T", rawView)
+	}
+}
+
+func (d AuthgearSecretYAMLDescriptor) viewAppFile(resources []resource.ResourceFile, view resource.AppFileView) (interface{}, error) {
+	allowlist := view.SecretKeyAllowlist()
+
+	last := resources[len(resources)-1]
+
+	var cfg config.SecretConfig
+	if err := yaml.Unmarshal(last.Data, &cfg); err != nil {
+		return nil, fmt.Errorf("malformed secret config: %w", err)
 	}
 
-	mergedConfig := (&config.SecretConfig{}).Overlay(layerConfigs...)
+	if len(allowlist) > 0 {
+		allowmap := make(map[config.SecretKey]struct{})
+		for _, key := range allowlist {
+			allowmap[config.SecretKey(key)] = struct{}{}
+		}
+
+		var secrets []config.SecretItem
+		for _, secretItem := range cfg.Secrets {
+			_, allowed := allowmap[secretItem.Key]
+			if allowed {
+				secrets = append(secrets, secretItem)
+			}
+		}
+		cfg.Secrets = secrets
+	}
+
+	bytes, err := yaml.Marshal(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal secret config: %w", err)
+	}
+
+	return bytes, nil
+}
+
+func (d AuthgearSecretYAMLDescriptor) viewEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (interface{}, error) {
+	var cfgs []*config.SecretConfig
+	for _, layer := range resources {
+		var cfg config.SecretConfig
+		if err := yaml.Unmarshal(layer.Data, &cfg); err != nil {
+			return nil, fmt.Errorf("malformed secret config: %w", err)
+		}
+		cfgs = append(cfgs, &cfg)
+	}
+
+	mergedConfig := (&config.SecretConfig{}).Overlay(cfgs...)
 	mergedYAML, err := yaml.Marshal(mergedConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	return &resource.MergedFile{Data: mergedYAML}, nil
-}
-
-func (f SecretConfigResourceType) Parse(merged *resource.MergedFile) (interface{}, error) {
-	secretConfig, err := config.ParseSecret(merged.Data)
+	secretConfig, err := config.ParseSecret(mergedYAML)
 	if err != nil {
 		return nil, fmt.Errorf("cannot parse secret config: %w", err)
 	}
 	return secretConfig, nil
 }
+
+func (d AuthgearSecretYAMLDescriptor) UpdateResource(resrc *resource.ResourceFile, data []byte, rawView resource.View) (*resource.ResourceFile, error) {
+	if data == nil {
+		return nil, fmt.Errorf("cannot delete '%v'", AuthgearSecretYAML)
+	}
+
+	switch view := rawView.(type) {
+	case resource.AppFileView:
+		var original config.SecretConfig
+		err := yaml.Unmarshal(resrc.Data, &original)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse original secret config: %w", err)
+		}
+
+		var incoming config.SecretConfig
+		err = yaml.Unmarshal(data, &incoming)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse incoming secret config: %w", err)
+		}
+
+		allowlist := view.SecretKeyAllowlist()
+
+		// When allowlist is non-empty:
+		// For example, suppose original has "a", "b", "c" and the allowlist is "a".
+		// Then original should keep "b" and "c" only.
+		//
+		// When allowlist is empty:
+		// Then original should be ignored.
+		var mergedConfig *config.SecretConfig
+		if len(allowlist) > 0 {
+			allowmap := make(map[config.SecretKey]struct{})
+			for _, key := range allowlist {
+				allowmap[config.SecretKey(key)] = struct{}{}
+			}
+
+			for _, secretItem := range incoming.Secrets {
+				_, allowed := allowmap[secretItem.Key]
+				if !allowed {
+					return nil, fmt.Errorf("'%s' in secret config is not allowed", secretItem.Key)
+				}
+			}
+
+			var originalSecrets []config.SecretItem
+			for _, secretItem := range original.Secrets {
+				_, allowed := allowmap[secretItem.Key]
+				if !allowed {
+					originalSecrets = append(originalSecrets, secretItem)
+				}
+			}
+
+			mergedConfig = (&config.SecretConfig{}).Overlay(&config.SecretConfig{
+				Secrets: originalSecrets,
+			}, &incoming)
+		} else {
+			mergedConfig = &incoming
+		}
+
+		mergedYAML, err := yaml.Marshal(&mergedConfig)
+		if err != nil {
+			return nil, err
+		}
+
+		newResrc := *resrc
+		newResrc.Data = mergedYAML
+		return &newResrc, nil
+	default:
+		return nil, fmt.Errorf("unsupported view: %T", rawView)
+	}
+}
+
+var SecretConfig = resource.RegisterResource(AuthgearSecretYAMLDescriptor{})

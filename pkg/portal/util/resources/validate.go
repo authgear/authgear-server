@@ -3,12 +3,11 @@ package resources
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path"
 
 	"github.com/spf13/afero"
-	"sigs.k8s.io/yaml"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
@@ -20,7 +19,7 @@ type Update struct {
 
 const ConfigFileMaxSize = 100 * 1024
 
-func Validate(appID string, appFs resource.Fs, resources *resource.Manager, updates []Update) error {
+func Validate(appID string, appFs resource.Fs, manager *resource.Manager, secretKeyAllowlist []string, updates []Update) error {
 	// Validate file size.
 	for _, f := range updates {
 		if len(f.Data) > ConfigFileMaxSize {
@@ -28,107 +27,121 @@ func Validate(appID string, appFs resource.Fs, resources *resource.Manager, upda
 		}
 	}
 
-	// Validate valid resource path.
-	for _, u := range updates {
-		valid := false
-		for _, desc := range resources.Registry.Descriptors {
-			if !desc.MatchResource(u.Path) {
-				continue
-			}
-			valid = true
-			break
-		}
-		if !valid {
-			return fmt.Errorf("invalid resource '%s': unknown resource path", u.Path)
-		}
-	}
-
 	// Construct new resource manager.
-	newResources, newAppFs, err := constructResources(resources, appFs, updates)
+	newManager, err := applyUpdates(manager, appFs, secretKeyAllowlist, updates)
 	if err != nil {
 		return err
 	}
 
-	// Validate resource FS.
-	paths, err := List(newResources)
-	if err != nil {
-		return err
-	}
-	resFiles, err := Load(newResources, paths...)
-	if err != nil {
-		return err
-	}
-	for _, res := range resFiles {
-		var layers []resource.LayerFile
-		for _, f := range res.Files {
-			layers = append(layers, resource.LayerFile{
-				Path: res.Path,
-				Data: f.Data,
-			})
-		}
-
-		merged, err := res.Descriptor.Merge(layers, nil)
+	// Validate resource FS by viewing EffectiveResource.
+	for _, desc := range newManager.Registry.Descriptors {
+		_, err := newManager.Read(desc, resource.EffectiveResource{
+			// The values using in here does not really matter.
+			PreferredTags: []string{"en"},
+			DefaultTag:    "en",
+		})
 		if err != nil {
-			return fmt.Errorf("invalid resource '%s': %w", res.Path, err)
-		}
-		_, err = res.Descriptor.Parse(merged)
-		if err != nil {
-			return fmt.Errorf("invalid resource '%s': %w", res.Path, err)
+			return fmt.Errorf("invalid resource: %w", err)
 		}
 	}
 
 	// Validate configuration.
-	cfg, err := configsource.LoadConfig(newResources)
+	cfg, err := configsource.LoadConfig(newManager)
 	if err != nil {
 		return err
 	}
+
 	if string(cfg.AppConfig.ID) != appID {
 		return fmt.Errorf("invalid resource '%s': incorrect app ID", configsource.AuthgearYAML)
-	}
-
-	// Disable overriding base secrets
-	baseSecrets := map[config.SecretKey]struct{}{}
-	appSecrets := map[config.SecretKey]struct{}{}
-	for _, fs := range newResources.Fs {
-		layers, err := configsource.SecretConfig.ReadResource(fs)
-		if err != nil {
-			return err
-		}
-
-		var secrets map[config.SecretKey]struct{}
-		if fs == newAppFs {
-			secrets = appSecrets
-		} else {
-			secrets = baseSecrets
-		}
-		for _, layer := range layers {
-			var secretCfg *config.SecretConfig
-			if err := yaml.Unmarshal(layer.Data, &secretCfg); err != nil {
-				return err
-			}
-			for _, item := range secretCfg.Secrets {
-				secrets[item.Key] = struct{}{}
-			}
-		}
-	}
-	for key := range appSecrets {
-		if _, ok := baseSecrets[key]; ok {
-			return fmt.Errorf("invalid resource '%s': cannot override secret '%s' defined in base config", configsource.AuthgearSecretYAML, key)
-		}
 	}
 
 	return nil
 }
 
-func constructResources(resources *resource.Manager, appFs resource.Fs, updates []Update) (*resource.Manager, resource.Fs, error) {
-	newFs := afero.NewMemMapFs()
-	paths, err := resource.ListFiles(appFs)
+func applyUpdates(manager *resource.Manager, appFs resource.Fs, secretKeyAllowlist []string, updates []Update) (*resource.Manager, error) {
+	newFs, err := cloneFS(appFs)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	for _, p := range paths {
+
+	for _, u := range updates {
+		// Retrieve the original file.
+		resrc, err := func() (*resource.ResourceFile, error) {
+			f, err := newFs.Open(u.Path)
+			if os.IsNotExist(err) {
+				return &resource.ResourceFile{
+					Location: resource.Location{
+						Fs:   resource.AferoFs{Fs: newFs},
+						Path: u.Path,
+					},
+					Data: nil,
+				}, nil
+			} else if err != nil {
+				return nil, err
+			}
+			defer f.Close()
+
+			data, err := ioutil.ReadAll(f)
+			if err != nil {
+				return nil, err
+			}
+
+			return &resource.ResourceFile{
+				Location: resource.Location{
+					Fs:   resource.AferoFs{Fs: newFs},
+					Path: u.Path,
+				},
+				Data: data,
+			}, nil
+		}()
+		if err != nil {
+			return nil, err
+		}
+
+		desc, ok := manager.Resolve(u.Path)
+		if !ok {
+			err = fmt.Errorf("invalid resource '%s': unknown resource path", resrc.Location.Path)
+			return nil, err
+		}
+
+		resrc, err = desc.UpdateResource(resrc, u.Data, resource.AppFile{
+			Path:              u.Path,
+			AllowedSecretKeys: secretKeyAllowlist,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		if resrc.Data == nil {
+			_ = newFs.Remove(resrc.Location.Path)
+		} else {
+			_ = newFs.MkdirAll(path.Dir(resrc.Location.Path), 0666)
+			_ = afero.WriteFile(newFs, resrc.Location.Path, resrc.Data, 0666)
+		}
+	}
+
+	newAppFs := resource.AferoFs{Fs: newFs}
+	var newResFs []resource.Fs
+	for _, fs := range manager.Fs {
+		if fs == appFs {
+			newResFs = append(newResFs, newAppFs)
+		} else {
+			newResFs = append(newResFs, fs)
+		}
+	}
+	return resource.NewManager(manager.Registry, newResFs), nil
+}
+
+func cloneFS(fs resource.Fs) (afero.Fs, error) {
+	memory := afero.NewMemMapFs()
+	locations, err := resource.EnumerateAllLocations(fs)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, location := range locations {
 		err := func() error {
-			f, err := appFs.Open(p)
+			f, err := fs.Open(location.Path)
 			if err != nil {
 				return err
 			}
@@ -139,31 +152,14 @@ func constructResources(resources *resource.Manager, appFs resource.Fs, updates 
 				return err
 			}
 
-			_ = newFs.MkdirAll(path.Dir(p), 0666)
-			_ = afero.WriteFile(newFs, p, data, 0666)
+			_ = memory.MkdirAll(path.Dir(location.Path), 0666)
+			_ = afero.WriteFile(memory, location.Path, data, 0666)
 			return nil
 		}()
 		if err != nil {
-			return nil, nil, err
-		}
-	}
-	for _, u := range updates {
-		if u.Data == nil {
-			_ = newFs.Remove(u.Path)
-		} else {
-			_ = newFs.MkdirAll(path.Dir(u.Path), 0666)
-			_ = afero.WriteFile(newFs, u.Path, u.Data, 0666)
+			return nil, err
 		}
 	}
 
-	newAppFs := resource.Fs(&resource.AferoFs{Fs: newFs})
-	var newResFs []resource.Fs
-	for _, fs := range resources.Fs {
-		if fs == appFs {
-			newResFs = append(newResFs, newAppFs)
-		} else {
-			newResFs = append(newResFs, fs)
-		}
-	}
-	return resource.NewManager(resources.Registry, newResFs), newAppFs, nil
+	return memory, nil
 }

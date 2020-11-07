@@ -20,10 +20,10 @@ func TestList(t *testing.T) {
 			&resource.AferoFs{Fs: fsB},
 		})
 
-		reg.Register(resource.SimpleFile{Name: "test/a/x.txt"})
-		reg.Register(resource.SimpleFile{Name: "test/b/z.txt"})
-		reg.Register(resource.SimpleFile{Name: "test/x.txt"})
-		reg.Register(resource.SimpleFile{Name: "w.txt"})
+		reg.Register(resource.SimpleDescriptor{Path: "test/a/x.txt"})
+		reg.Register(resource.SimpleDescriptor{Path: "test/b/z.txt"})
+		reg.Register(resource.SimpleDescriptor{Path: "test/x.txt"})
+		reg.Register(resource.SimpleDescriptor{Path: "w.txt"})
 
 		_ = fsA.MkdirAll("test/a", 0666)
 		_ = fsA.MkdirAll("test/b", 0666)
