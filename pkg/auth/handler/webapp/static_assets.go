@@ -8,6 +8,7 @@ import (
 
 	aferomem "github.com/spf13/afero/mem"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/resource"
@@ -20,12 +21,13 @@ func ConfigureStaticAssetsRoute(route httproute.Route) httproute.Route {
 }
 
 type ResourceManager interface {
-	Read(desc resource.Descriptor, args map[string]interface{}) (*resource.MergedFile, error)
+	Read(desc resource.Descriptor, view resource.View) (interface{}, error)
 	Resolve(path string) (resource.Descriptor, bool)
 }
 
 type StaticAssetsHandler struct {
-	Resources ResourceManager
+	Resources    ResourceManager
+	Localization *config.LocalizationConfig
 }
 
 func (h *StaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -41,8 +43,11 @@ func (h *StaticAssetsHandler) Open(name string) (http.File, error) {
 		return nil, os.ErrNotExist
 	}
 
-	merged, err := h.Resources.Read(desc, map[string]interface{}{
-		web.ResourceArgRequestedPath: p,
+	// We use EffectiveFile here because we want to return an exact match.
+	// The static asset URLs in the templates are computed by the resolver using EffectiveResource, which has handled localization.
+	result, err := h.Resources.Read(desc, resource.EffectiveFile{
+		Path:       p,
+		DefaultTag: h.Localization.FallbackLanguage,
 	})
 	if errors.Is(err, resource.ErrResourceNotFound) {
 		return nil, os.ErrNotExist
@@ -50,18 +55,13 @@ func (h *StaticAssetsHandler) Open(name string) (http.File, error) {
 		return nil, err
 	}
 
-	asset, err := desc.Parse(merged)
-	if err != nil {
-		return nil, err
-	}
-
-	sAsset := asset.(*web.StaticAsset)
-	if sAsset.Path != p {
+	asset := result.(*web.StaticAsset)
+	if asset.Path != p {
 		return nil, os.ErrNotExist
 	}
 
-	data := aferomem.CreateFile(sAsset.Path)
+	data := aferomem.CreateFile(asset.Path)
 	file := aferomem.NewFileHandle(data)
-	_, _ = file.Write(sAsset.Data)
+	_, _ = file.Write(asset.Data)
 	return aferomem.NewReadOnlyFileHandle(data), nil
 }

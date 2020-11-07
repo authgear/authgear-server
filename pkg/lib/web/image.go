@@ -90,6 +90,8 @@ func (a ImageDescriptor) ViewResources(resources []resource.ResourceFile, rawVie
 	switch view := rawView.(type) {
 	case resource.EffectiveResourceView:
 		return a.viewEffectiveResource(resources, view)
+	case resource.EffectiveFileView:
+		return a.viewEffectiveFile(resources, view)
 	default:
 		return nil, fmt.Errorf("unsupported view: %T", rawView)
 	}
@@ -146,5 +148,41 @@ func (a ImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile
 	return &StaticAsset{
 		Path: path,
 		Data: tagger.data,
+	}, nil
+}
+
+func (a ImageDescriptor) viewEffectiveFile(resources []resource.ResourceFile, view resource.EffectiveFileView) (interface{}, error) {
+	path := view.EffectiveFilePath()
+
+	matches := imageRegex.FindStringSubmatch(path)
+	if len(matches) < 2 {
+		return nil, resource.ErrResourceNotFound
+	}
+	requestedLangTag := matches[1]
+
+	var found bool
+	var bytes []byte
+	for _, resrc := range resources {
+		langTag := imageRegex.FindStringSubmatch(resrc.Location.Path)[1]
+		if langTag == requestedLangTag {
+			found = true
+			bytes = resrc.Data
+		}
+	}
+
+	if !found {
+		return nil, resource.ErrResourceNotFound
+	}
+
+	mimeType := http.DetectContentType(bytes)
+	ext, ok := imageExtensions[mimeType]
+	if !ok {
+		return nil, fmt.Errorf("invalid image format: %s", mimeType)
+	}
+
+	p := fmt.Sprintf("%s%s/%s%s", StaticAssetResourcePrefix, requestedLangTag, a.Name, ext)
+	return &StaticAsset{
+		Path: p,
+		Data: bytes,
 	}, nil
 }
