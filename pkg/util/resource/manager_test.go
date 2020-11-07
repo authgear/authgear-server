@@ -19,7 +19,12 @@ func TestResourceManager(t *testing.T) {
 			resource.AferoFs{Fs: fsB},
 		})
 
-		resourceA := r.Register(resource.SimpleDescriptor{Path: "resourceA.txt"})
+		resourceA := r.Register(resource.NewlineJoinedDescriptor{
+			Path: "resourceA.txt",
+			Parse: func(data []byte) (interface{}, error) {
+				return data, nil
+			},
+		})
 		resourceB := r.Register(resource.SimpleDescriptor{Path: "resources/B.txt"})
 		resourceC := r.Register(resource.SimpleDescriptor{Path: "resources/C.txt"})
 
@@ -36,7 +41,7 @@ func TestResourceManager(t *testing.T) {
 
 			data, err := manager.Read(resourceA, nil)
 			So(err, ShouldBeNil)
-			So(data, ShouldResemble, []byte("resource A in fs B"))
+			So(data, ShouldResemble, []byte("resource A in fs A\nresource A in fs B\n"))
 
 			data, err = manager.Read(resourceB, nil)
 			So(err, ShouldBeNil)
@@ -50,7 +55,7 @@ func TestResourceManager(t *testing.T) {
 		Convey("it should resolve resource descriptor from path", func() {
 			desc, ok := manager.Resolve("resourceA.txt")
 			So(ok, ShouldBeTrue)
-			So(desc, ShouldResemble, resourceA)
+			So(desc, ShouldHaveSameTypeAs, resource.NewlineJoinedDescriptor{})
 
 			desc, ok = manager.Resolve("resources/B.txt")
 			So(ok, ShouldBeTrue)
