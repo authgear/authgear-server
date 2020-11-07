@@ -12,8 +12,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
-const ResourceArgPreferredLanguageTag = "preferred_language_tag"
-const ResourceArgDefaultLanguageTag = "default_language_tag"
 const LanguageTagDefault = "__default__"
 
 type Resource interface {
@@ -30,26 +28,23 @@ type HTML struct {
 
 func (t *HTML) templateResource() {}
 
-func (t *HTML) ReadResource(fs resource.Fs) ([]resource.LayerFile, error) {
-	return readTemplates(fs, t.Name)
-}
-
 func (t *HTML) MatchResource(path string) bool {
 	return matchTemplatePath(path, t.Name)
 }
 
-func (t *HTML) Merge(layers []resource.LayerFile, args map[string]interface{}) (*resource.MergedFile, error) {
-	return mergeTemplates(layers, args)
+func (t *HTML) FindResources(fs resource.Fs) ([]resource.Location, error) {
+	return readTemplates(fs, t.Name)
 }
 
-func (t *HTML) Parse(merged *resource.MergedFile) (interface{}, error) {
-	tpl := htmltemplate.New(t.Name)
-	tpl.Funcs(templateFuncMap)
-	_, err := tpl.Parse(string(merged.Data))
-	if err != nil {
-		return nil, fmt.Errorf("invalid HTML template: %w", err)
-	}
-	return tpl, nil
+func (t *HTML) ViewResources(resources []resource.ResourceFile, view resource.View) (interface{}, error) {
+	return viewHTMLTemplates(t.Name, resources, view)
+}
+
+func (t *HTML) UpdateResource(resrc *resource.ResourceFile, data []byte, view resource.View) (*resource.ResourceFile, error) {
+	return &resource.ResourceFile{
+		Location: resrc.Location,
+		Data:     data,
+	}, nil
 }
 
 // PlainText defines a plain text template
@@ -62,26 +57,23 @@ type PlainText struct {
 
 func (t *PlainText) templateResource() {}
 
-func (t *PlainText) ReadResource(fs resource.Fs) ([]resource.LayerFile, error) {
-	return readTemplates(fs, t.Name)
-}
-
 func (t *PlainText) MatchResource(path string) bool {
 	return matchTemplatePath(path, t.Name)
 }
 
-func (t *PlainText) Merge(layers []resource.LayerFile, args map[string]interface{}) (*resource.MergedFile, error) {
-	return mergeTemplates(layers, args)
+func (t *PlainText) FindResources(fs resource.Fs) ([]resource.Location, error) {
+	return readTemplates(fs, t.Name)
 }
 
-func (t *PlainText) Parse(merged *resource.MergedFile) (interface{}, error) {
-	tpl := texttemplate.New(t.Name)
-	tpl.Funcs(templateFuncMap)
-	_, err := tpl.Parse(string(merged.Data))
-	if err != nil {
-		return nil, fmt.Errorf("invalid text template: %w", err)
-	}
-	return tpl, nil
+func (t *PlainText) ViewResources(resources []resource.ResourceFile, view resource.View) (interface{}, error) {
+	return viewTextTemplates(t.Name, resources, view)
+}
+
+func (t *PlainText) UpdateResource(resrc *resource.ResourceFile, data []byte, view resource.View) (*resource.ResourceFile, error) {
+	return &resource.ResourceFile{
+		Location: resrc.Location,
+		Data:     data,
+	}, nil
 }
 
 func RegisterHTML(name string, dependencies ...*HTML) *HTML {
@@ -101,7 +93,7 @@ func matchTemplatePath(path string, templateName string) bool {
 	return regexp.MustCompile(r).MatchString(path)
 }
 
-func readTemplates(fs resource.Fs, templateName string) ([]resource.LayerFile, error) {
+func readTemplates(fs resource.Fs, templateName string) ([]resource.Location, error) {
 	templatesDir, err := fs.Open("templates")
 	if os.IsNotExist(err) {
 		return nil, nil
@@ -115,22 +107,23 @@ func readTemplates(fs resource.Fs, templateName string) ([]resource.LayerFile, e
 		return nil, err
 	}
 
-	var files []resource.LayerFile
+	var locations []resource.Location
 	for _, langTag := range langTagDirs {
 		p := path.Join("templates", langTag, templateName)
-		data, err := resource.ReadFile(fs, p)
+		location := resource.Location{
+			Fs:   fs,
+			Path: p,
+		}
+		_, err := resource.ReadLocation(location)
 		if os.IsNotExist(err) {
 			continue
 		} else if err != nil {
 			return nil, err
 		}
-		files = append(files, resource.LayerFile{
-			Path: p,
-			Data: data,
-		})
+		locations = append(locations, location)
 	}
 
-	return files, nil
+	return locations, nil
 }
 
 type languageTemplate struct {
@@ -144,16 +137,66 @@ func (t languageTemplate) GetLanguageTag() string {
 
 var templateLanguageTagRegex = regexp.MustCompile("^templates/([a-zA-Z0-9-_]+)/")
 
-func mergeTemplates(layers []resource.LayerFile, args map[string]interface{}) (*resource.MergedFile, error) {
-	preferredLanguageTags, _ := args[ResourceArgPreferredLanguageTag].([]string)
-	defaultLanguageTag, _ := args[ResourceArgDefaultLanguageTag].(string)
+func viewTemplates(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
+	switch view := rawView.(type) {
+	case resource.EffectiveResourceView:
+		return viewTemplatesEffectiveResource(resources, view)
+	case resource.EffectiveFileView:
+		return viewTemplatesEffectiveFile(resources, view)
+	default:
+		return nil, fmt.Errorf("unsupported view: %T", rawView)
+	}
+}
+
+func viewTemplatesEffectiveFile(resources []resource.ResourceFile, view resource.EffectiveFileView) (interface{}, error) {
+	// When template is viewed as EffectiveFile,
+	// __default__ is treated as default language tag.
+	// And the most specific template is returned.
+
+	defaultLanguageTag := view.DefaultLanguageTag()
+	path := view.EffectiveFilePath()
+
+	// Compute requestedLangTag
+	matches := templateLanguageTagRegex.FindStringSubmatch(path)
+	if len(matches) < 2 {
+		return nil, resource.ErrResourceNotFound
+	}
+	requestedLangTag := matches[1]
+	if requestedLangTag == LanguageTagDefault {
+		requestedLangTag = defaultLanguageTag
+	}
+
+	var found bool
+	var bytes []byte
+	for _, resrc := range resources {
+		langTag := templateLanguageTagRegex.FindStringSubmatch(resrc.Location.Path)[1]
+		if langTag == LanguageTagDefault {
+			langTag = defaultLanguageTag
+		}
+
+		if langTag == requestedLangTag {
+			found = true
+			bytes = resrc.Data
+		}
+	}
+
+	if !found {
+		return nil, resource.ErrResourceNotFound
+	}
+
+	return bytes, nil
+}
+
+func viewTemplatesEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (interface{}, error) {
+	preferredLanguageTags := view.PreferredLanguageTags()
+	defaultLanguageTag := view.DefaultLanguageTag()
 
 	languageTemplates := make(map[string]languageTemplate)
-	for _, file := range layers {
-		langTag := templateLanguageTagRegex.FindStringSubmatch(file.Path)[1]
+	for _, resrc := range resources {
+		langTag := templateLanguageTagRegex.FindStringSubmatch(resrc.Location.Path)[1]
 		t := languageTemplate{
 			languageTag: langTag,
-			data:        file.Data,
+			data:        resrc.Data,
 		}
 		if t.languageTag == LanguageTagDefault {
 			t.languageTag = defaultLanguageTag
@@ -185,5 +228,51 @@ func mergeTemplates(layers []resource.LayerFile, args map[string]interface{}) (*
 	}
 
 	tagger := matched.(languageTemplate)
-	return &resource.MergedFile{Data: tagger.data}, nil
+	return tagger.data, nil
+}
+
+func viewHTMLTemplates(name string, resources []resource.ResourceFile, view resource.View) (interface{}, error) {
+	bytes, err := viewTemplates(resources, view)
+	if err != nil {
+		return nil, err
+	}
+
+	switch view.(type) {
+	case resource.EffectiveResourceView:
+		tpl := htmltemplate.New(name)
+		tpl.Funcs(templateFuncMap)
+		_, err = tpl.Parse(string(bytes.([]byte)))
+		if err != nil {
+			return nil, fmt.Errorf("invalid HTML template: %w", err)
+		}
+		return tpl, nil
+	case resource.EffectiveFileView:
+		return bytes, nil
+	default:
+		return nil, fmt.Errorf("unsupported view: %T", view)
+	}
+
+}
+
+func viewTextTemplates(name string, resources []resource.ResourceFile, view resource.View) (interface{}, error) {
+	bytes, err := viewTemplates(resources, view)
+	if err != nil {
+		return nil, err
+	}
+
+	switch view.(type) {
+	case resource.EffectiveResourceView:
+		tpl := texttemplate.New(name)
+		tpl.Funcs(templateFuncMap)
+		_, err = tpl.Parse(string(bytes.([]byte)))
+		if err != nil {
+			return nil, fmt.Errorf("invalid text template: %w", err)
+		}
+		return tpl, nil
+	case resource.EffectiveFileView:
+		return bytes, nil
+	default:
+		return nil, fmt.Errorf("unsupported view: %T", view)
+	}
+
 }

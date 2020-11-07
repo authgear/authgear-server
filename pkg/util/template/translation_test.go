@@ -13,19 +13,20 @@ import (
 )
 
 func TestTranslationResource(t *testing.T) {
-	Convey("TranslationJSON", t, func() {
+	Convey("TranslationJSON EffectiveResource", t, func() {
 		fsA := afero.NewMemMapFs()
 		fsB := afero.NewMemMapFs()
+
 		r := &resource.Registry{}
+		r.Register(template.TranslationJSON)
+
 		manager := resource.NewManager(r, []resource.Fs{
 			resource.AferoFs{Fs: fsA},
 			resource.AferoFs{Fs: fsB},
 		})
 
-		r.Register(template.TranslationJSON)
-
-		args := map[string]interface{}{
-			template.ResourceArgDefaultLanguageTag: "en",
+		view := resource.EffectiveResource{
+			DefaultTag: "en",
 		}
 
 		writeFile := func(fs afero.Fs, lang string, data string) {
@@ -33,12 +34,20 @@ func TestTranslationResource(t *testing.T) {
 			_ = afero.WriteFile(fs, "templates/"+lang+"/translation.json", []byte(data), 0666)
 		}
 
-		read := func() (string, error) {
-			merged, err := manager.Read(template.TranslationJSON, args)
+		read := func() (str string, err error) {
+			result, err := manager.Read(template.TranslationJSON, view)
 			if err != nil {
-				return "", err
+				return
 			}
-			return string(merged.Data), nil
+
+			translations := result.(map[string]template.Translation)
+
+			bytes, err := json.Marshal(translations)
+			if err != nil {
+				return
+			}
+
+			return string(bytes), nil
 		}
 
 		compact := func(s string) string {
@@ -85,7 +94,7 @@ func TestTranslationResource(t *testing.T) {
 				"c": { "LanguageTag": "en", "Value": "default c in fs A" }
 			}`))
 
-			args[template.ResourceArgPreferredLanguageTag] = []string{"en"}
+			view.PreferredTags = []string{"en"}
 			data, err = read()
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, compact(`{
@@ -94,7 +103,7 @@ func TestTranslationResource(t *testing.T) {
 				"c": { "LanguageTag": "en", "Value": "default c in fs A" }
 			}`))
 
-			args[template.ResourceArgPreferredLanguageTag] = []string{"zh"}
+			view.PreferredTags = []string{"zh"}
 			data, err = read()
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, compact(`{
@@ -129,7 +138,7 @@ func TestTranslationResource(t *testing.T) {
 				"c": { "LanguageTag": "en", "Value": "en c in fs B" }
 			}`))
 
-			args[template.ResourceArgPreferredLanguageTag] = []string{"en"}
+			view.PreferredTags = []string{"en"}
 			data, err = read()
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, compact(`{
@@ -138,13 +147,136 @@ func TestTranslationResource(t *testing.T) {
 				"c": { "LanguageTag": "en", "Value": "en c in fs B" }
 			}`))
 
-			args[template.ResourceArgPreferredLanguageTag] = []string{"zh"}
+			view.PreferredTags = []string{"zh"}
 			data, err = read()
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, compact(`{
 				"a": { "LanguageTag": "en", "Value": "default a in fs A" },
 				"b": { "LanguageTag": "zh", "Value": "zh b in fs B" },
 				"c": { "LanguageTag": "zh", "Value": "zh c in fs B" }
+			}`))
+		})
+	})
+
+	Convey("TranslationJSON EffectiveFile", t, func() {
+		fsA := afero.NewMemMapFs()
+		fsB := afero.NewMemMapFs()
+
+		r := &resource.Registry{}
+		r.Register(template.TranslationJSON)
+
+		manager := resource.NewManager(r, []resource.Fs{
+			resource.AferoFs{Fs: fsA},
+			resource.AferoFs{Fs: fsB},
+		})
+
+		writeFile := func(fs afero.Fs, lang string, data string) {
+			_ = fs.MkdirAll("templates/"+lang, 0777)
+			_ = afero.WriteFile(fs, "templates/"+lang+"/translation.json", []byte(data), 0666)
+		}
+
+		read := func(lang string) (str string, err error) {
+			view := resource.EffectiveFile{
+				Path:       "templates/" + lang + "/translation.json",
+				DefaultTag: "en",
+			}
+			result, err := manager.Read(template.TranslationJSON, view)
+			if err != nil {
+				return
+			}
+
+			translations := result.(map[string]string)
+
+			bytes, err := json.Marshal(translations)
+			if err != nil {
+				return
+			}
+
+			return string(bytes), nil
+		}
+
+		compact := func(s string) string {
+			buf := &bytes.Buffer{}
+			_ = json.Compact(buf, []byte(s))
+			return buf.String()
+		}
+
+		Convey("it should return single resource", func() {
+			writeFile(fsA, "__default__", `{
+				"a": "default a in fs A",
+				"b": "default b in fs A",
+				"c": "default c in fs A"
+			}`)
+
+			data, err := read("__default__")
+			So(err, ShouldBeNil)
+			So(data, ShouldEqual, compact(`{
+				"a": "default a in fs A",
+				"b": "default b in fs A",
+				"c": "default c in fs A"
+			}`))
+		})
+
+		Convey("it should return resource with specific language", func() {
+			writeFile(fsA, "__default__", `{
+				"a": "default a in fs A",
+				"b": "default b in fs A",
+				"c": "default c in fs A"
+			}`)
+			writeFile(fsA, "en", `{
+				"b": "en b in fs A"
+			}`)
+			writeFile(fsA, "zh", `{
+				"b": "zh b in fs A",
+				"c": "zh c in fs A"
+			}`)
+
+			data, err := read("en")
+			So(err, ShouldBeNil)
+			So(data, ShouldEqual, compact(`{
+				"a": "default a in fs A",
+				"b": "en b in fs A",
+				"c": "default c in fs A"
+			}`))
+
+			data, err = read("zh")
+			So(err, ShouldBeNil)
+			So(data, ShouldEqual, compact(`{
+				"b": "zh b in fs A",
+				"c": "zh c in fs A"
+			}`))
+		})
+
+		Convey("it should combine resources in different FS", func() {
+			writeFile(fsA, "__default__", `{
+				"a": "default a in fs A",
+				"b": "default b in fs A",
+				"c": "default c in fs A"
+			}`)
+			writeFile(fsA, "en", `{
+				"b": "en b in fs A"
+			}`)
+			writeFile(fsB, "en", `{
+				"c": "en c in fs B"
+			}`)
+			writeFile(fsB, "zh", `{
+				"b": "zh b in fs B",
+				"c": "zh c in fs B"
+			}`)
+
+			data, err := read("en")
+			So(err, ShouldBeNil)
+			So(data, ShouldEqual, compact(`{
+				"a": "default a in fs A",
+				"b": "en b in fs A",
+				"c": "en c in fs B"
+			}`))
+
+			data, err = read("zh")
+			So(err, ShouldBeNil)
+			So(data, ShouldEqual, compact(`{
+				"b": "zh b in fs B",
+				"c": "zh c in fs B"
 			}`))
 		})
 	})
