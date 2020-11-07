@@ -24,8 +24,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
-	"github.com/authgear/authgear-server/pkg/portal/util/resources"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
 var LabelDomainID = "authgear.com/domain-id"
@@ -94,17 +94,17 @@ func (s *ConfigService) Create(opts *CreateAppOptions) error {
 	return nil
 }
 
-func (s *ConfigService) UpdateResources(appID string, updates []resources.Update) error {
+func (s *ConfigService) UpdateResources(appID string, files []*resource.ResourceFile) error {
 	switch src := s.Controller.Handle.(type) {
 	case *configsource.Kubernetes:
-		err := s.updateKubernetes(src, appID, updates)
+		err := s.updateKubernetes(src, appID, files)
 		if err != nil {
 			return err
 		}
 		s.Controller.ReloadApp(appID)
 
 	case *configsource.LocalFS:
-		err := s.updateLocalFS(src, appID, updates)
+		err := s.updateLocalFS(src, appID, files)
 		if err != nil {
 			return err
 		}
@@ -150,7 +150,7 @@ func (s *ConfigService) DeleteDomain(domain *model.Domain) error {
 	return nil
 }
 
-func (s *ConfigService) updateKubernetes(k *configsource.Kubernetes, appID string, updates []resources.Update) error {
+func (s *ConfigService) updateKubernetes(k *configsource.Kubernetes, appID string, updates []*resource.ResourceFile) error {
 	labelSelector, err := k.AppSelector(appID)
 	if err != nil {
 		return err
@@ -174,7 +174,7 @@ func (s *ConfigService) updateKubernetes(k *configsource.Kubernetes, appID strin
 
 	updated := false
 	for _, u := range updates {
-		key := configsource.EscapePath(u.Path)
+		key := configsource.EscapePath(u.Location.Path)
 		if u.Data == nil {
 			if _, ok := secret.Data[key]; ok {
 				delete(secret.Data, key)
@@ -198,21 +198,21 @@ func (s *ConfigService) updateKubernetes(k *configsource.Kubernetes, appID strin
 	return nil
 }
 
-func (s *ConfigService) updateLocalFS(l *configsource.LocalFS, appID string, updates []resources.Update) error {
+func (s *ConfigService) updateLocalFS(l *configsource.LocalFS, appID string, updates []*resource.ResourceFile) error {
 	fs := l.Fs
 	for _, file := range updates {
 		if file.Data == nil {
-			err := fs.Remove(file.Path)
+			err := fs.Remove(file.Location.Path)
 			// Ignore file not found errors
 			if err != nil && !os.IsNotExist(err) {
 				return err
 			}
 		} else {
-			err := fs.MkdirAll(filepath.Dir(file.Path), 0777)
+			err := fs.MkdirAll(filepath.Dir(file.Location.Path), 0777)
 			if err != nil {
 				return err
 			}
-			err = afero.WriteFile(fs, file.Path, file.Data, 0666)
+			err = afero.WriteFile(fs, file.Location.Path, file.Data, 0666)
 			if err != nil {
 				return err
 			}

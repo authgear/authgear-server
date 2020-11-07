@@ -31,7 +31,7 @@ var ErrAppIDReserved = apierrors.Forbidden.WithReason("AppIDReserved").
 
 type AppConfigService interface {
 	ResolveContext(appID string) (*config.AppContext, error)
-	UpdateResources(appID string, updates []resources.Update) error
+	UpdateResources(appID string, updates []*resource.ResourceFile) error
 	Create(opts *CreateAppOptions) error
 	CreateDomain(appID string, domainID string, domain string, isCustom bool) error
 }
@@ -60,13 +60,14 @@ type AppService struct {
 	SQLBuilder  *db.SQLBuilder
 	SQLExecutor *db.SQLExecutor
 
-	AppConfig        *portalconfig.AppConfig
-	AppConfigs       AppConfigService
-	AppAuthz         AppAuthzService
-	AppAdminAPI      AppAdminAPIService
-	AppDomains       AppDomainService
-	Resources        ResourceManager
-	AppBaseResources deps.AppBaseResources
+	AppConfig          *portalconfig.AppConfig
+	SecretKeyAllowlist portalconfig.SecretKeyAllowlist
+	AppConfigs         AppConfigService
+	AppAuthz           AppAuthzService
+	AppAdminAPI        AppAdminAPIService
+	AppDomains         AppDomainService
+	Resources          ResourceManager
+	AppBaseResources   deps.AppBaseResources
 }
 
 func (s *AppService) Get(id string) (*model.App, error) {
@@ -119,6 +120,40 @@ func (s *AppService) GetMaxOwnedApps(userID string) (int, error) {
 	}
 
 	return quota, nil
+}
+
+func (s *AppService) LoadRawAppConfig(app *model.App) (*config.AppConfig, error) {
+	result, err := app.Context.Resources.Read(configsource.AppConfig, resource.AppFile{
+		Path:              configsource.AuthgearYAML,
+		AllowedSecretKeys: s.SecretKeyAllowlist,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	bytes := result.([]byte)
+	var cfg *config.AppConfig
+	if err := yaml.Unmarshal(bytes, &cfg); err != nil {
+		return nil, err
+	}
+	return cfg, nil
+}
+
+func (s *AppService) LoadRawSecretConfig(app *model.App) (*config.SecretConfig, error) {
+	result, err := app.Context.Resources.Read(configsource.SecretConfig, resource.AppFile{
+		Path:              configsource.AuthgearSecretYAML,
+		AllowedSecretKeys: s.SecretKeyAllowlist,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	bytes := result.([]byte)
+	var cfg *config.SecretConfig
+	if err := yaml.Unmarshal(bytes, &cfg); err != nil {
+		return nil, err
+	}
+	return cfg, nil
 }
 
 func (s *AppService) Create(userID string, id string) error {
@@ -188,12 +223,12 @@ func (s *AppService) Create(userID string, id string) error {
 }
 
 func (s *AppService) UpdateResources(app *model.App, updates []resources.Update) error {
-	err := resources.Validate(app.ID, app.Context.AppFs, app.Context.Resources, updates)
+	files, err := resources.ApplyUpdates(app.ID, app.Context.AppFs, app.Context.Resources, s.SecretKeyAllowlist, updates)
 	if err != nil {
 		return err
 	}
 
-	err = s.AppConfigs.UpdateResources(app.ID, updates)
+	err = s.AppConfigs.UpdateResources(app.ID, files)
 	return err
 }
 
@@ -255,7 +290,7 @@ func (s *AppService) generateConfig(appHost string, appID string) (opts *CreateA
 
 	appFs := resource.AferoFs{Fs: fs}
 	resMgr := (*resource.Manager)(s.AppBaseResources).Overlay(appFs)
-	err = resources.Validate(appID, appFs, resMgr, nil)
+	_, err = resources.ApplyUpdates(appID, appFs, resMgr, s.SecretKeyAllowlist, nil)
 	if err != nil {
 		return
 	}
@@ -269,20 +304,18 @@ func (s *AppService) generateConfig(appHost string, appID string) (opts *CreateA
 }
 
 func (s *AppService) validateAppID(appID string) error {
-	rawData, err := s.Resources.Read(portalresource.ReservedAppIDTXT, nil)
+	var list *blocklist.Blocklist
+	result, err := s.Resources.Read(portalresource.ReservedAppIDTXT, nil)
 	if errors.Is(err, resource.ErrResourceNotFound) {
 		// No reserved usernames
-		rawData = &resource.MergedFile{Data: nil}
+		list = &blocklist.Blocklist{}
 	} else if err != nil {
 		return err
+	} else {
+		list = result.(*blocklist.Blocklist)
 	}
 
-	list, err := portalresource.ReservedAppIDTXT.Parse(rawData)
-	if err != nil {
-		return err
-	}
-
-	if list.(*blocklist.Blocklist).IsBlocked(appID) {
+	if list.IsBlocked(appID) {
 		return ErrAppIDReserved
 	}
 

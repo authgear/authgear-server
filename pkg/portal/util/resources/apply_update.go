@@ -19,18 +19,18 @@ type Update struct {
 
 const ConfigFileMaxSize = 100 * 1024
 
-func Validate(appID string, appFs resource.Fs, manager *resource.Manager, secretKeyAllowlist []string, updates []Update) error {
+func ApplyUpdates(appID string, appFs resource.Fs, manager *resource.Manager, secretKeyAllowlist []string, updates []Update) ([]*resource.ResourceFile, error) {
 	// Validate file size.
 	for _, f := range updates {
 		if len(f.Data) > ConfigFileMaxSize {
-			return fmt.Errorf("invalid resource '%s': too large (%v > %v)", f.Path, len(f.Data), ConfigFileMaxSize)
+			return nil, fmt.Errorf("invalid resource '%s': too large (%v > %v)", f.Path, len(f.Data), ConfigFileMaxSize)
 		}
 	}
 
 	// Construct new resource manager.
-	newManager, err := applyUpdates(manager, appFs, secretKeyAllowlist, updates)
+	newManager, files, err := applyUpdates(manager, appFs, secretKeyAllowlist, updates)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Validate resource FS by viewing EffectiveResource.
@@ -41,29 +41,30 @@ func Validate(appID string, appFs resource.Fs, manager *resource.Manager, secret
 			DefaultTag:    "en",
 		})
 		if err != nil {
-			return fmt.Errorf("invalid resource: %w", err)
+			return nil, fmt.Errorf("invalid resource: %w", err)
 		}
 	}
 
 	// Validate configuration.
 	cfg, err := configsource.LoadConfig(newManager)
 	if err != nil {
-		return err
-	}
-
-	if string(cfg.AppConfig.ID) != appID {
-		return fmt.Errorf("invalid resource '%s': incorrect app ID", configsource.AuthgearYAML)
-	}
-
-	return nil
-}
-
-func applyUpdates(manager *resource.Manager, appFs resource.Fs, secretKeyAllowlist []string, updates []Update) (*resource.Manager, error) {
-	newFs, err := cloneFS(appFs)
-	if err != nil {
 		return nil, err
 	}
 
+	if string(cfg.AppConfig.ID) != appID {
+		return nil, fmt.Errorf("invalid resource '%s': incorrect app ID", configsource.AuthgearYAML)
+	}
+
+	return files, nil
+}
+
+func applyUpdates(manager *resource.Manager, appFs resource.Fs, secretKeyAllowlist []string, updates []Update) (*resource.Manager, []*resource.ResourceFile, error) {
+	newFs, err := cloneFS(appFs)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var files []*resource.ResourceFile
 	for _, u := range updates {
 		// Retrieve the original file.
 		resrc, err := func() (*resource.ResourceFile, error) {
@@ -95,13 +96,13 @@ func applyUpdates(manager *resource.Manager, appFs resource.Fs, secretKeyAllowli
 			}, nil
 		}()
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		desc, ok := manager.Resolve(u.Path)
 		if !ok {
 			err = fmt.Errorf("invalid resource '%s': unknown resource path", resrc.Location.Path)
-			return nil, err
+			return nil, nil, err
 		}
 
 		resrc, err = desc.UpdateResource(resrc, u.Data, resource.AppFile{
@@ -109,7 +110,7 @@ func applyUpdates(manager *resource.Manager, appFs resource.Fs, secretKeyAllowli
 			AllowedSecretKeys: secretKeyAllowlist,
 		})
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		if resrc.Data == nil {
@@ -118,6 +119,8 @@ func applyUpdates(manager *resource.Manager, appFs resource.Fs, secretKeyAllowli
 			_ = newFs.MkdirAll(path.Dir(resrc.Location.Path), 0666)
 			_ = afero.WriteFile(newFs, resrc.Location.Path, resrc.Data, 0666)
 		}
+
+		files = append(files, resrc)
 	}
 
 	newAppFs := resource.AferoFs{Fs: newFs}
@@ -129,7 +132,7 @@ func applyUpdates(manager *resource.Manager, appFs resource.Fs, secretKeyAllowli
 			newResFs = append(newResFs, fs)
 		}
 	}
-	return resource.NewManager(manager.Registry, newResFs), nil
+	return resource.NewManager(manager.Registry, newResFs), files, nil
 }
 
 func cloneFS(fs resource.Fs) (afero.Fs, error) {

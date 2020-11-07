@@ -3,6 +3,8 @@ package graphql
 import (
 	"context"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/util/resources"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -35,6 +37,8 @@ type AppService interface {
 	Create(userID string, id string) error
 	UpdateResources(app *model.App, updates []resources.Update) error
 	GetMaxOwnedApps(userID string) (int, error)
+	LoadRawAppConfig(app *model.App) (*config.AppConfig, error)
+	LoadRawSecretConfig(app *model.App) (*config.SecretConfig, error)
 }
 
 type DomainService interface {
@@ -79,6 +83,8 @@ type Context struct {
 	AppService          AppService
 	DomainService       DomainService
 	CollaboratorService CollaboratorService
+
+	SecretKeyAllowlist portalconfig.SecretKeyAllowlist
 }
 
 func (c *Context) Logger() *log.Logger {

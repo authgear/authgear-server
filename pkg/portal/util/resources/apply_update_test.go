@@ -13,8 +13,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
-func TestValidate(t *testing.T) {
-	Convey("Validate", t, func() {
+func TestApplyUpdates(t *testing.T) {
+	Convey("ApplyUpdates", t, func() {
 		appID := "app-id"
 		cfg := &config.Config{
 			AppConfig:    configtest.FixtureAppConfig("app-id"),
@@ -35,8 +35,9 @@ func TestValidate(t *testing.T) {
 			"webhook",
 			"sso.oauth.client",
 		}
-		validate := func(updates []resources.Update) error {
-			return resources.Validate(appID, appResourceFs, resMgr, allowlist, updates)
+		applyUpdates := func(updates []resources.Update) error {
+			_, err := resources.ApplyUpdates(appID, appResourceFs, resMgr, allowlist, updates)
+			return err
 		}
 
 		func() {
@@ -48,12 +49,12 @@ func TestValidate(t *testing.T) {
 
 		Convey("validate new config without crash", func() {
 			// We do not use updates to create new config.
-			err := validate(nil)
+			err := applyUpdates(nil)
 			So(err, ShouldBeNil)
 		})
 
 		Convey("validate file size", func() {
-			err := validate([]resources.Update{{
+			err := applyUpdates([]resources.Update{{
 				Path: "authgear.yaml",
 				Data: []byte("id: " + string(make([]byte, 1024*1024))),
 			}})
@@ -61,7 +62,7 @@ func TestValidate(t *testing.T) {
 		})
 
 		Convey("validate configuration YAML", func() {
-			err := validate([]resources.Update{{
+			err := applyUpdates([]resources.Update{{
 				Path: "authgear.yaml",
 				Data: []byte("{}"),
 			}})
@@ -69,7 +70,7 @@ func TestValidate(t *testing.T) {
 <root>: required
   map[actual:<nil> expected:[http id] missing:[http id]]`)
 
-			err = validate([]resources.Update{{
+			err = applyUpdates([]resources.Update{{
 				Path: "authgear.yaml",
 				Data: []byte("id: test\nhttp:\n  public_origin: \"http://test\""),
 			}})
@@ -78,7 +79,7 @@ func TestValidate(t *testing.T) {
 		})
 
 		Convey("forbid deleting required items in secrets", func() {
-			err := validate([]resources.Update{{
+			err := applyUpdates([]resources.Update{{
 				Path: "authgear.secrets.yaml",
 				Data: []byte("{}"),
 			}})
@@ -92,7 +93,7 @@ func TestValidate(t *testing.T) {
 			bytes, err := yaml.Marshal(newSecretConfig)
 			So(err, ShouldBeNil)
 
-			err = validate([]resources.Update{{
+			err = applyUpdates([]resources.Update{{
 				Path: "authgear.secrets.yaml",
 				Data: bytes,
 			}})
@@ -119,7 +120,7 @@ func TestValidate(t *testing.T) {
 			bytes, err := yaml.Marshal(newSecretConfig)
 			So(err, ShouldBeNil)
 
-			err = validate([]resources.Update{{
+			err = applyUpdates([]resources.Update{{
 				Path: "authgear.secrets.yaml",
 				Data: bytes,
 			}})
@@ -127,13 +128,13 @@ func TestValidate(t *testing.T) {
 		})
 
 		Convey("forbid deleting configuration YAML", func() {
-			err := validate([]resources.Update{{
+			err := applyUpdates([]resources.Update{{
 				Path: "authgear.yaml",
 				Data: nil,
 			}})
 			So(err, ShouldBeError, "cannot delete 'authgear.yaml'")
 
-			err = validate([]resources.Update{{
+			err = applyUpdates([]resources.Update{{
 				Path: "authgear.secrets.yaml",
 				Data: nil,
 			}})
@@ -141,7 +142,7 @@ func TestValidate(t *testing.T) {
 		})
 
 		Convey("forbid unknown resource files", func() {
-			err := validate([]resources.Update{{
+			err := applyUpdates([]resources.Update{{
 				Path: "unknown.txt",
 				Data: nil,
 			}})
