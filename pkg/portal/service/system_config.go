@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/portal/config"
@@ -10,7 +11,7 @@ import (
 )
 
 type ResourceManager interface {
-	Read(desc resource.Descriptor, args map[string]interface{}) (*resource.MergedFile, error)
+	Read(desc resource.Descriptor, view resource.View) (interface{}, error)
 }
 
 type SystemConfigProvider struct {
@@ -40,7 +41,7 @@ func (p *SystemConfigProvider) SystemConfig() (*model.SystemConfig, error) {
 }
 
 func (p *SystemConfigProvider) loadJSON(desc resource.Descriptor) (interface{}, error) {
-	json, err := p.Resources.Read(desc, nil)
+	result, err := p.Resources.Read(desc, nil)
 	if errors.Is(err, resource.ErrResourceNotFound) {
 		// Omit the JSON if resource not configured.
 		return nil, nil
@@ -48,7 +49,11 @@ func (p *SystemConfigProvider) loadJSON(desc resource.Descriptor) (interface{}, 
 		return nil, err
 	}
 
-	data, err := desc.Parse(json)
+	bytes := result.([]byte)
+
+	var data interface{}
+
+	err = json.Unmarshal(bytes, &data)
 	if err != nil {
 		return nil, err
 	}
