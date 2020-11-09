@@ -43,7 +43,12 @@ type APIError struct {
 	Info    map[string]interface{} `json:"info,omitempty"`
 }
 
-func (e *APIError) Error() string { return e.Message }
+func (e *APIError) Error() string {
+	if e == nil {
+		return ""
+	}
+	return e.Message
+}
 
 func (e *APIError) HasCause(kind string) bool {
 	if c, ok := e.Info["cause"].(Cause); ok {

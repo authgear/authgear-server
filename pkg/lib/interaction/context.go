@@ -131,7 +131,7 @@ type VerificationService interface {
 }
 
 type VerificationCodeSender interface {
-	SendCode(code *verification.Code, webStateID string) (*otp.CodeSendResult, error)
+	SendCode(code *verification.Code) (*otp.CodeSendResult, error)
 }
 
 type CookieFactory interface {

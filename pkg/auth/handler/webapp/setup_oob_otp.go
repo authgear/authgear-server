@@ -8,9 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -72,11 +70,11 @@ type SetupOOBOTPNode interface {
 
 type SetupOOBOTPViewModel struct {
 	// InputType is either phone or email.
-	InputType    string
-	Alternatives []CreateAuthenticatorAlternative
+	InputType        string
+	AlternativeSteps []viewmodels.AlternativeStep
 }
 
-func NewSetupOOBOTPViewModel(stateID string, graph *interaction.Graph, inputType string) (*SetupOOBOTPViewModel, error) {
+func NewSetupOOBOTPViewModel(session *webapp.Session, graph *interaction.Graph, inputType string) (*SetupOOBOTPViewModel, error) {
 	var node SetupOOBOTPNode
 	if !graph.FindLastNode(&node) {
 		panic("setup_oob_otp: expected graph has node implementing SetupOOBOTPNode")
@@ -120,61 +118,28 @@ func NewSetupOOBOTPViewModel(stateID string, graph *interaction.Graph, inputType
 		}
 	}
 
-	alternatives, err := DeriveCreateAuthenticatorAlternatives(
-		stateID,
-		graph,
-		authn.AuthenticatorTypeOOB,
-	)
+	alternatives := &viewmodels.AlternativeStepsViewModel{}
+	err = alternatives.AddCreateAuthenticatorAlternatives(graph, webapp.SessionStepSetupOOBOTP)
 	if err != nil {
 		return nil, err
 	}
 
 	return &SetupOOBOTPViewModel{
-		InputType:    inputType,
-		Alternatives: alternatives,
+		InputType:        inputType,
+		AlternativeSteps: alternatives.AlternativeSteps,
 	}, nil
 }
 
-type SetupOOBOTPInput struct {
-	InputType string
-	Target    string
-}
-
-var _ nodes.InputCreateAuthenticatorOOBSetup = &SetupOOBOTPInput{}
-
-func (i *SetupOOBOTPInput) GetOOBChannel() authn.AuthenticatorOOBChannel {
-	switch i.InputType {
-	case "email":
-		return authn.AuthenticatorOOBChannelEmail
-	case "phone":
-		return authn.AuthenticatorOOBChannelSMS
-	default:
-		panic("webapp: unknown input type: " + i.InputType)
-	}
-}
-
-func (i *SetupOOBOTPInput) GetOOBTarget() string {
-	return i.Target
-}
-
 type SetupOOBOTPHandler struct {
-	Database      *db.Handle
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      Renderer
-	WebApp        WebAppService
+	ControllerFactory ControllerFactory
+	BaseViewModel     *viewmodels.BaseViewModeler
+	Renderer          Renderer
 }
 
-func (h *SetupOOBOTPHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *SetupOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
-
-	var anyError interface{}
-	if state != nil {
-		anyError = state.Error
-	}
-
-	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
-	// Use current state ID because the current node should be NodeCreateAuthenticatorBegin.
-	viewModel, err := NewSetupOOBOTPViewModel(state.ID, graph, r.Form.Get("x_input_type"))
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
+	viewModel, err := NewSetupOOBOTPViewModel(session, graph, r.Form.Get("x_input_type"))
 	if err != nil {
 		return nil, err
 	}
@@ -185,62 +150,62 @@ func (h *SetupOOBOTPHandler) GetData(r *http.Request, state *webapp.State, graph
 }
 
 func (h *SetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	ctrl, err := h.ControllerFactory.New(r, w)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	defer ctrl.Serve()
 
 	// Populate default values.
 	if _, ok := r.Form["x_input_type"]; !ok {
 		r.Form.Set("x_input_type", "email")
 	}
 
-	if r.Method == "GET" {
-		err := h.Database.WithTx(func() error {
-			state, graph, err := h.WebApp.Get(StateID(r))
-			if err != nil {
-				return err
-			}
-
-			data, err := h.GetData(r, state, graph)
-			if err != nil {
-				return err
-			}
-
-			h.Renderer.RenderHTML(w, r, TemplateWebSetupOOBOTPHTML, data)
-			return nil
-		})
+	ctrl.Get(func() error {
+		session, err := ctrl.InteractionSession()
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
 
-	if r.Method == "POST" {
-		err := h.Database.WithTx(func() error {
-			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
-				err = SetupOOBOTPSchema.PartValidator(SetupOOBOTPRequestSchema).ValidateValue(FormToJSON(r.Form))
-				if err != nil {
-					return
-				}
+		graph, err := ctrl.InteractionGet()
+		if err != nil {
+			return err
+		}
 
-				target, inputType, err := FormToOOBTarget(r.Form)
+		data, err := h.GetData(r, w, session, graph)
+		if err != nil {
+			return err
+		}
 
-				input = &SetupOOBOTPInput{
-					InputType: inputType,
-					Target:    target,
-				}
+		h.Renderer.RenderHTML(w, r, TemplateWebSetupOOBOTPHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("", func() error {
+		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+			err = SetupOOBOTPSchema.PartValidator(SetupOOBOTPRequestSchema).ValidateValue(FormToJSON(r.Form))
+			if err != nil {
 				return
-			})
-			if err != nil {
-				return err
 			}
-			result.WriteResponse(w, r)
-			return nil
+
+			target, inputType, err := FormToOOBTarget(r.Form)
+
+			input = &InputSetupOOB{
+				InputType: inputType,
+				Target:    target,
+			}
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
+
+	handleAlternativeSteps(ctrl)
 }
 
 func FormToOOBTarget(form url.Values) (target string, inputType string, err error) {

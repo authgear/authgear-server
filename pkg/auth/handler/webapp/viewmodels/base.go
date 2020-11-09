@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 // BaseViewModel contains data that are common to all pages.
@@ -25,14 +26,39 @@ type BaseViewModel struct {
 	CountryCallingCodes   []string
 	SliceContains         func([]interface{}, interface{}) bool
 	MakeURL               func(path string, pairs ...string) string
-	MakeURLState          func(path string, pairs ...string) string
+	MakeCurrentStepURL    func(pairs ...string) string
+	RawError              *apierrors.APIError
 	Error                 interface{}
+	SessionStepURLs       []string
 	ForgotPasswordEnabled bool
 	PublicSignupDisabled  bool
 }
 
+func (m *BaseViewModel) SetError(err error) {
+	if apiError := asAPIError(err); apiError != nil {
+		b, err := json.Marshal(struct {
+			Error *apierrors.APIError `json:"error"`
+		}{apiError})
+		if err != nil {
+			panic(err)
+		}
+		var eJSON map[string]interface{}
+		err = json.Unmarshal(b, &eJSON)
+		if err != nil {
+			panic(err)
+		}
+		m.Error = eJSON["error"]
+		m.RawError = apiError
+	}
+}
+
 type StaticAssetResolver interface {
 	StaticAssetURL(id string) (url string, err error)
+}
+
+type ErrorCookie interface {
+	GetError(r *http.Request) (*apierrors.APIError, bool)
+	ResetError() *http.Cookie
 }
 
 type BaseViewModeler struct {
@@ -40,9 +66,10 @@ type BaseViewModeler struct {
 	StaticAssets   StaticAssetResolver
 	ForgotPassword *config.ForgotPasswordConfig
 	Authentication *config.AuthenticationConfig
+	ErrorCookie    ErrorCookie
 }
 
-func (m *BaseViewModeler) ViewModel(r *http.Request, anyError interface{}) BaseViewModel {
+func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) BaseViewModel {
 	requestURI := &url.URL{
 		Path:     r.URL.Path,
 		RawQuery: r.URL.RawQuery,
@@ -62,35 +89,34 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, anyError interface{}) BaseV
 			}
 			return webapp.MakeURL(u, path, inQuery).String()
 		},
-		MakeURLState: func(path string, pairs ...string) string {
+		MakeCurrentStepURL: func(pairs ...string) string {
 			u := r.URL
 			inQuery := url.Values{}
 			for i := 0; i < len(pairs); i += 2 {
 				inQuery.Set(pairs[i], pairs[i+1])
 			}
-			sid := r.Form.Get("x_sid")
-			if sid != "" {
-				inQuery.Set("x_sid", sid)
+			step := r.Form.Get("x_step")
+			if step != "" {
+				inQuery.Set("x_step", step)
 			}
-			return webapp.MakeURL(u, path, inQuery).String()
+			return webapp.MakeURL(u, u.Path, inQuery).String()
 		},
 		ForgotPasswordEnabled: *m.ForgotPassword.Enabled,
 		PublicSignupDisabled:  m.Authentication.PublicSignupDisabled,
 	}
 
-	if apiError := asAPIError(anyError); apiError != nil {
-		b, err := json.Marshal(struct {
-			Error *apierrors.APIError `json:"error"`
-		}{apiError})
-		if err != nil {
-			panic(err)
+	if apiError, ok := m.ErrorCookie.GetError(r); ok {
+		model.SetError(apiError)
+		httputil.UpdateCookie(rw, m.ErrorCookie.ResetError())
+	}
+
+	if s := webapp.GetSession(r.Context()); s != nil {
+		for _, step := range s.Steps {
+			if path := step.Kind.Path(); path == "" {
+				continue
+			}
+			model.SessionStepURLs = append(model.SessionStepURLs, step.URL().String())
 		}
-		var eJSON map[string]interface{}
-		err = json.Unmarshal(b, &eJSON)
-		if err != nil {
-			panic(err)
-		}
-		model.Error = eJSON["error"]
 	}
 
 	return model

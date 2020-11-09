@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
@@ -40,31 +39,18 @@ func ConfigureResetPasswordRoute(route httproute.Route) httproute.Route {
 }
 
 type ResetPasswordHandler struct {
-	Database       *db.Handle
-	BaseViewModel  *viewmodels.BaseViewModeler
-	Renderer       Renderer
-	WebApp         WebAppService
-	PasswordPolicy PasswordPolicy
+	ControllerFactory ControllerFactory
+	BaseViewModel     *viewmodels.BaseViewModeler
+	Renderer          Renderer
+	PasswordPolicy    PasswordPolicy
 }
 
-func (h *ResetPasswordHandler) MakeIntent(r *http.Request) *webapp.Intent {
-	return &webapp.Intent{
-		RedirectURI: "/reset_password/success",
-		KeepState:   true,
-		Intent:      intents.NewIntentResetPassword(),
-	}
-}
-
-func (h *ResetPasswordHandler) GetData(r *http.Request, state *webapp.State) (map[string]interface{}, error) {
+func (h *ResetPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
-	var anyError interface{}
-	if state != nil {
-		anyError = state.Error
-	}
-	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModel(
 		h.PasswordPolicy.PasswordPolicy(),
-		anyError,
+		baseViewModel.RawError,
 		viewmodels.GetDefaultPasswordPolicyViewModelOptions(),
 	)
 	viewmodels.Embed(data, baseViewModel)
@@ -72,79 +58,55 @@ func (h *ResetPasswordHandler) GetData(r *http.Request, state *webapp.State) (ma
 	return data, nil
 }
 
-type ResetPasswordInput struct {
-	Code     string
-	Password string
-}
-
-// GetCode implements InputResetPassword.
-func (i *ResetPasswordInput) GetCode() string {
-	return i.Code
-}
-
-// GetNewPassword implements InputResetPassword.
-func (i *ResetPasswordInput) GetNewPassword() string {
-	return i.Password
-}
-
 func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	ctrl, err := h.ControllerFactory.New(r, w)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	defer ctrl.Serve()
 
-	intent := h.MakeIntent(r)
-
-	if r.Method == "GET" {
-		err := h.Database.WithTx(func() error {
-			state, err := h.WebApp.GetState(StateID(r))
-			if err != nil {
-				return err
-			}
-
-			data, err := h.GetData(r, state)
-			if err != nil {
-				return err
-			}
-
-			h.Renderer.RenderHTML(w, r, TemplateWebResetPasswordHTML, data)
-			return nil
-		})
-		if err != nil {
-			panic(err)
-		}
+	opts := webapp.SessionOptions{
+		KeepAfterFinish: true,
 	}
+	intent := intents.NewIntentResetPassword()
 
-	if r.Method == "POST" {
-		err := h.Database.WithTx(func() error {
-			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				err = ResetPasswordSchema.PartValidator(ResetPasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
-				if err != nil {
-					return
-				}
+	ctrl.Get(func() error {
+		data, err := h.GetData(r, w)
+		if err != nil {
+			return err
+		}
 
-				code := r.Form.Get("code")
-				newPassword := r.Form.Get("x_password")
-				confirmPassword := r.Form.Get("x_confirm_password")
-				err = pwd.ConfirmPassword(newPassword, confirmPassword)
-				if err != nil {
-					return
-				}
+		h.Renderer.RenderHTML(w, r, TemplateWebResetPasswordHTML, data)
+		return nil
+	})
 
-				input = &ResetPasswordInput{
-					Code:     code,
-					Password: newPassword,
-				}
+	ctrl.PostAction("", func() error {
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			err = ResetPasswordSchema.PartValidator(ResetPasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
+			if err != nil {
 				return
-			})
-			if err != nil {
-				return err
 			}
-			result.WriteResponse(w, r)
-			return nil
+
+			code := r.Form.Get("code")
+			newPassword := r.Form.Get("x_password")
+			confirmPassword := r.Form.Get("x_confirm_password")
+			err = pwd.ConfirmPassword(newPassword, confirmPassword)
+			if err != nil {
+				return
+			}
+
+			input = &InputResetPassword{
+				Code:     code,
+				Password: newPassword,
+			}
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
 }

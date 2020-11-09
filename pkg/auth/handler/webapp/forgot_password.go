@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -63,30 +62,15 @@ func ConfigureForgotPasswordRoute(route httproute.Route) httproute.Route {
 }
 
 type ForgotPasswordHandler struct {
-	Database      *db.Handle
-	BaseViewModel *viewmodels.BaseViewModeler
-	FormPrefiller *FormPrefiller
-	Renderer      Renderer
-	WebApp        WebAppService
+	ControllerFactory ControllerFactory
+	BaseViewModel     *viewmodels.BaseViewModeler
+	FormPrefiller     *FormPrefiller
+	Renderer          Renderer
 }
 
-func (h *ForgotPasswordHandler) MakeIntent(r *http.Request) *webapp.Intent {
-	redirectURI := r.URL.Query().Get("redirect_uri")
-	return &webapp.Intent{
-		RedirectURI: "/forgot_password/success",
-		OldStateID:  StateID(r),
-		KeepState:   true,
-		Intent:      intents.NewIntentForgotPassword(redirectURI),
-	}
-}
-
-func (h *ForgotPasswordHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *ForgotPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
-	var anyError interface{}
-	if state != nil {
-		anyError = state.Error
-	}
-	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithGraph(graph)
 	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
@@ -94,71 +78,58 @@ func (h *ForgotPasswordHandler) GetData(r *http.Request, state *webapp.State, gr
 	return data, nil
 }
 
-type ForgotPasswordLoginID struct {
-	LoginID string
-}
-
-// GetLoginID implements InputForgotPasswordSelectLoginID.
-func (i *ForgotPasswordLoginID) GetLoginID() string {
-	return i.LoginID
-}
-
 func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	ctrl, err := h.ControllerFactory.New(r, w)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	defer ctrl.Serve()
 
-	intent := h.MakeIntent(r)
+	opts := webapp.SessionOptions{
+		KeepAfterFinish: true,
+	}
+	intent := intents.NewIntentForgotPassword()
 
 	h.FormPrefiller.Prefill(r.Form)
 
-	if r.Method == "GET" {
-		err := h.Database.WithTx(func() error {
-			state, graph, err := h.WebApp.GetIntent(intent)
-			if err != nil {
-				return err
-			}
-
-			data, err := h.GetData(r, state, graph)
-			if err != nil {
-				return err
-			}
-
-			h.Renderer.RenderHTML(w, r, TemplateWebForgotPasswordHTML, data)
-			return nil
-		})
+	ctrl.Get(func() error {
+		graph, err := ctrl.EntryPointGet(opts, intent)
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
 
-	if r.Method == "POST" {
-		err := h.Database.WithTx(func() error {
-			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				err = ForgotPasswordSchema.PartValidator(ForgotPasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
-				if err != nil {
-					return
-				}
+		data, err := h.GetData(r, w, graph)
+		if err != nil {
+			return err
+		}
 
-				loginID, err := FormToLoginID(r.Form)
-				if err != nil {
-					return
-				}
+		h.Renderer.RenderHTML(w, r, TemplateWebForgotPasswordHTML, data)
+		return nil
+	})
 
-				input = &ForgotPasswordLoginID{
-					LoginID: loginID,
-				}
+	ctrl.PostAction("", func() error {
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			err = ForgotPasswordSchema.PartValidator(ForgotPasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
+			if err != nil {
 				return
-			})
-			if err != nil {
-				return err
 			}
-			result.WriteResponse(w, r)
-			return nil
+
+			loginID, err := FormToLoginID(r.Form)
+			if err != nil {
+				return
+			}
+
+			input = &InputForgotPassword{
+				LoginID: loginID,
+			}
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
 }

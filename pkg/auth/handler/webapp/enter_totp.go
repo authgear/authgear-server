@@ -5,9 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -38,33 +36,28 @@ func ConfigureEnterTOTPRoute(route httproute.Route) httproute.Route {
 }
 
 type EnterTOTPViewModel struct {
-	Alternatives []AuthenticationAlternative
+	AlternativeSteps []viewmodels.AlternativeStep
 }
 
 type EnterTOTPHandler struct {
-	Database      *db.Handle
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      Renderer
-	WebApp        WebAppService
+	ControllerFactory ControllerFactory
+	BaseViewModel     *viewmodels.BaseViewModeler
+	Renderer          Renderer
 }
 
-func (h *EnterTOTPHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *EnterTOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
-	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
-	alternatives, err := DeriveAuthenticationAlternatives(
-		// Use current state ID because the current node should be NodeAuthenticationBegin.
-		state.ID,
-		graph,
-		AuthenticationTypeTOTP,
-		"",
-	)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
+
+	alternatives := &viewmodels.AlternativeStepsViewModel{}
+	err := alternatives.AddAuthenticationAlternatives(graph, webapp.SessionStepEnterTOTP)
 	if err != nil {
 		return nil, err
 	}
 
 	viewModel := EnterTOTPViewModel{
-		Alternatives: alternatives,
+		AlternativeSteps: alternatives.AlternativeSteps,
 	}
 
 	viewmodels.Embed(data, baseViewModel)
@@ -73,75 +66,57 @@ func (h *EnterTOTPHandler) GetData(r *http.Request, state *webapp.State, graph *
 	return data, nil
 }
 
-type EnterTOTPInput struct {
-	Code        string
-	DeviceToken bool
-}
-
-var _ nodes.InputAuthenticationTOTP = &EnterTOTPInput{}
-var _ nodes.InputCreateDeviceToken = &EnterTOTPInput{}
-
-// GetTOTP implements InputAuthenticationTOTP.
-func (i *EnterTOTPInput) GetTOTP() string {
-	return i.Code
-}
-
-// CreateDeviceToken implements InputCreateDeviceToken.
-func (i *EnterTOTPInput) CreateDeviceToken() bool {
-	return i.DeviceToken
-}
-
 func (h *EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	ctrl, err := h.ControllerFactory.New(r, w)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	defer ctrl.Serve()
 
-	if r.Method == "GET" {
-		err := h.Database.WithTx(func() error {
-			state, graph, err := h.WebApp.Get(StateID(r))
-			if err != nil {
-				return err
-			}
-
-			data, err := h.GetData(r, state, graph)
-			if err != nil {
-				return err
-			}
-
-			h.Renderer.RenderHTML(w, r, TemplateWebEnterTOTPHTML, data)
-			return nil
-		})
+	ctrl.Get(func() error {
+		session, err := ctrl.InteractionSession()
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
 
-	if r.Method == "POST" {
-		err := h.Database.WithTx(func() error {
-			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
-				err = EnterTOTPSchema.PartValidator(EnterTOTPRequestSchema).ValidateValue(FormToJSON(r.Form))
-				if err != nil {
-					return
-				}
+		graph, err := ctrl.InteractionGet()
+		if err != nil {
+			return err
+		}
 
-				code := r.Form.Get("x_code")
-				deviceToken := r.Form.Get("x_device_token") == "true"
+		data, err := h.GetData(r, w, session, graph)
+		if err != nil {
+			return err
+		}
 
-				input = &EnterTOTPInput{
-					Code:        code,
-					DeviceToken: deviceToken,
-				}
+		h.Renderer.RenderHTML(w, r, TemplateWebEnterTOTPHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("", func() error {
+		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+			err = EnterTOTPSchema.PartValidator(EnterTOTPRequestSchema).ValidateValue(FormToJSON(r.Form))
+			if err != nil {
 				return
-			})
-			if err != nil {
-				return err
 			}
-			result.WriteResponse(w, r)
-			return nil
+
+			code := r.Form.Get("x_code")
+			deviceToken := r.Form.Get("x_device_token") == "true"
+
+			input = &InputAuthTOTP{
+				Code:        code,
+				DeviceToken: deviceToken,
+			}
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
+
+	handleAlternativeSteps(ctrl)
 }

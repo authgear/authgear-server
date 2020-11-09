@@ -18,7 +18,8 @@
 				{{ if eq .type "oauth" }}
 				<form class="authorize-idp-form" method="post" novalidate>
 				{{ $.CSRFField }}
-				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_provider_alias" value="{{ .provider_alias }}" data-form-xhr="false">
+				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_action" value="oauth" data-form-xhr="false">
+					<input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
 					<span class="sso-btn-content">
 					{{- if eq .provider_type "apple" -}}
 					<i class="fab fa-apple" aria-hidden="true"></i>
@@ -111,7 +112,7 @@
 				{{ range .IdentityCandidates }}
 				{{ if eq .type "login_id" }}{{ if not (eq .login_id_key $.x_login_id_key) }}
 					<a class="link align-self-flex-start"
-						href="{{ call $.MakeURLState "" "x_login_id_key" .login_id_key "x_login_id_input_type" .login_id_input_type}}">
+						href="{{ call $.MakeURL "" "x_login_id_key" .login_id_key "x_login_id_input_type" .login_id_input_type}}">
 						{{ template "use-login-id-key" (dict "key" .login_id_key) }}
 					</a>
 				{{ end }}{{ end }}
@@ -119,14 +120,14 @@
 
 				<div class="link align-self-flex-start">
 					<span class="primary-text">{{ template "login-button-hint" }}</span>
-					<a href="{{ call $.MakeURLState "/login" }}">{{ template "login-button-label" }}</a>
+					<a href="{{ call $.MakeURL "/login" }}">{{ template "login-button-label" }}</a>
 				</div>
 
 				{{ if .ForgotPasswordEnabled }}
-				<a class="link align-self-flex-start" href="{{ call $.MakeURL "/forgot_password" "redirect_uri" $.RequestURI }}">{{ template "forgot-password-button-label" }}</a>
+				<a class="link align-self-flex-start" href="{{ call $.MakeURL "/forgot_password" }}">{{ template "forgot-password-button-label" }}</a>
 				{{ end }}
 
-				<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">
+				<button class="btn primary-btn align-self-flex-end" type="submit" name="x_action" value="login_id">
 					{{ template "next-button-label" }}
 				</button>
 			</form>

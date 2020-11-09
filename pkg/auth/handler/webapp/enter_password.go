@@ -5,9 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -39,36 +37,30 @@ func ConfigureEnterPasswordRoute(route httproute.Route) httproute.Route {
 
 type EnterPasswordViewModel struct {
 	IdentityDisplayID string
-	Alternatives      []AuthenticationAlternative
+	AlternativeSteps  []viewmodels.AlternativeStep
 }
 
 type EnterPasswordHandler struct {
-	Database      *db.Handle
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      Renderer
-	WebApp        WebAppService
+	ControllerFactory ControllerFactory
+	BaseViewModel     *viewmodels.BaseViewModeler
+	Renderer          Renderer
 }
 
-func (h *EnterPasswordHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *EnterPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
-	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	identityInfo := graph.MustGetUserLastIdentity()
 
-	alternatives, err := DeriveAuthenticationAlternatives(
-		// Use current state ID because the current node should be NodeAuthenticationBegin.
-		state.ID,
-		graph,
-		AuthenticationTypePassword,
-		"",
-	)
+	alternatives := &viewmodels.AlternativeStepsViewModel{}
+	err := alternatives.AddAuthenticationAlternatives(graph, webapp.SessionStepEnterPassword)
 	if err != nil {
 		return nil, err
 	}
 
 	enterPasswordViewModel := EnterPasswordViewModel{
 		IdentityDisplayID: identityInfo.DisplayID(),
-		Alternatives:      alternatives,
+		AlternativeSteps:  alternatives.AlternativeSteps,
 	}
 
 	viewmodels.Embed(data, baseViewModel)
@@ -77,75 +69,57 @@ func (h *EnterPasswordHandler) GetData(r *http.Request, state *webapp.State, gra
 	return data, nil
 }
 
-type EnterPasswordInput struct {
-	Password    string
-	DeviceToken bool
-}
-
-var _ nodes.InputAuthenticationPassword = &EnterPasswordInput{}
-var _ nodes.InputCreateDeviceToken = &EnterPasswordInput{}
-
-// GetPassword implements InputAuthenticationPassword
-func (i *EnterPasswordInput) GetPassword() string {
-	return i.Password
-}
-
-// CreateDeviceToken implements InputCreateDeviceToken.
-func (i *EnterPasswordInput) CreateDeviceToken() bool {
-	return i.DeviceToken
-}
-
 func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	ctrl, err := h.ControllerFactory.New(r, w)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	defer ctrl.Serve()
 
-	if r.Method == "GET" {
-		err := h.Database.WithTx(func() error {
-			state, graph, err := h.WebApp.Get(StateID(r))
-			if err != nil {
-				return err
-			}
-
-			data, err := h.GetData(r, state, graph)
-			if err != nil {
-				return err
-			}
-
-			h.Renderer.RenderHTML(w, r, TemplateWebEnterPasswordHTML, data)
-			return nil
-		})
+	ctrl.Get(func() error {
+		session, err := ctrl.InteractionSession()
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
 
-	if r.Method == "POST" {
-		err := h.Database.WithTx(func() error {
-			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
-				err = EnterPasswordSchema.PartValidator(EnterPasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
-				if err != nil {
-					return
-				}
+		graph, err := ctrl.InteractionGet()
+		if err != nil {
+			return err
+		}
 
-				plainPassword := r.Form.Get("x_password")
-				deviceToken := r.Form.Get("x_device_token") == "true"
+		data, err := h.GetData(r, w, session, graph)
+		if err != nil {
+			return err
+		}
 
-				input = &EnterPasswordInput{
-					Password:    plainPassword,
-					DeviceToken: deviceToken,
-				}
+		h.Renderer.RenderHTML(w, r, TemplateWebEnterPasswordHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("", func() error {
+		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+			err = EnterPasswordSchema.PartValidator(EnterPasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
+			if err != nil {
 				return
-			})
-			if err != nil {
-				return err
 			}
-			result.WriteResponse(w, r)
-			return nil
+
+			plainPassword := r.Form.Get("x_password")
+			deviceToken := r.Form.Get("x_device_token") == "true"
+
+			input = &InputAuthPassword{
+				Password:    plainPassword,
+				DeviceToken: deviceToken,
+			}
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
+
+	handleAlternativeSteps(ctrl)
 }

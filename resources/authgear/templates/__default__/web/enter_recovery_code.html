@@ -28,26 +28,11 @@
 	placeholder="{{ template "enter-recovery-code-placeholder" }}"
 >
 
-<!-- device token checkbox is intentionally not supported here -->
-
-{{ range $.Alternatives }}
-{{ if eq .Type "totp" }}
-<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "enter-totp-instead" }}</a>
-{{ end }}
-{{ if eq .Type "password" }}
-<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "enter-password-instead" }}</a>
-{{ end }}
-{{ if eq .Type "oob_otp" }}
-<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "enter-oob-otp-instead" (dict "target" .MaskedTarget) }}</a>
-{{ end }}
-{{ if eq .Type "recovery_code" }}
-<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "enter-recovery-code-instead" }}</a>
-{{ end }}
-{{ end }}
-
 <button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
 
 </form>
+
+{{ template "__alternatives.html" . }}
 
 </div>
 

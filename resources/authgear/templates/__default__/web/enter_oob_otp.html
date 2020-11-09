@@ -48,42 +48,17 @@
 {{ end }}
 {{ end }}
 
-<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
-
-{{ range $.AuthenticationAlternatives }}
-{{ if eq .Type "totp" }}
-<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "enter-totp-instead" }}</a>
-{{ end }}
-{{ if eq .Type "password" }}
-<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "enter-password-instead" }}</a>
-{{ end }}
-{{ if eq .Type "oob_otp" }}
-<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "enter-oob-otp-instead" (dict "target" .MaskedTarget) }}</a>
-{{ end }}
-{{ if eq .Type "recovery_code" }}
-<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "enter-recovery-code-instead" }}</a>
-{{ end }}
-{{ end }}
-
-{{ range $.CreateAuthenticatorAlternatives }}
-{{ if eq .Type "totp" }}
-<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "setup-totp-instead" }}</a>
-{{ end }}
-{{ if eq .Type "oob_otp" }}
-<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "setup-oob-otp-instead" }}</a>
-{{ end }}
-{{ if eq .Type "password" }}
-<a class="link align-self-flex-start" href="{{ .URL }}">{{ template "setup-password-instead" }}</a>
-{{ end }}
-{{ end }}
+<button class="btn primary-btn align-self-flex-end" type="submit" name="x_action" value="submit">{{ template "next-button-label" }}</button>
 
 </form>
+
+{{ template "__alternatives.html" . }}
 
 <form class="link oob-otp-trigger-form" method="post" novalidate>
 {{ $.CSRFField }}
 
 <span class="primary-txt">{{ template "oob-otp-resend-button-hint" }}</span>
-<button id="resend-button" class="anchor" type="submit" name="trigger" value="true"
+<button id="resend-button" class="anchor" type="submit" name="x_action" value="resend"
 	data-cooldown="{{ $.OOBOTPCodeSendCooldown }}"
 	data-label="{{ template "oob-otp-resend-button-label" }}"
 	data-label-unit="{{ template "oob-otp-resend-button-label--unit" }}">{{ template "oob-otp-resend-button-label" }}</button>

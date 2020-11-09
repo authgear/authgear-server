@@ -1,17 +1,16 @@
 package webapp
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -51,10 +50,9 @@ type VerifyIdentityViewModel struct {
 }
 
 type VerifyIdentityHandler struct {
-	Database      *db.Handle
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      Renderer
-	WebApp        WebAppService
+	ControllerFactory ControllerFactory
+	BaseViewModel     *viewmodels.BaseViewModeler
+	Renderer          Renderer
 }
 
 type VerifyIdentityNode interface {
@@ -64,18 +62,10 @@ type VerifyIdentityNode interface {
 	GetVerificationCodeLength() int
 }
 
-func (h *VerifyIdentityHandler) MakeIntent(r *http.Request) *webapp.Intent {
-	return &webapp.Intent{
-		RedirectURI: "/verify_identity/success",
-		KeepState:   true,
-		Intent:      intents.NewIntentVerifyIdentityResume(r.Form.Get("state")),
-	}
-}
-
-func (h *VerifyIdentityHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *VerifyIdentityHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
-	baseViewModel := h.BaseViewModel.ViewModel(r, state.Error)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewModel := VerifyIdentityViewModel{
 		VerificationCode: r.Form.Get("code"),
 	}
@@ -101,10 +91,11 @@ func (h *VerifyIdentityHandler) GetData(r *http.Request, state *webapp.State, gr
 	return data, nil
 }
 
-func (h *VerifyIdentityHandler) GetErrorData(r *http.Request, err error) (map[string]interface{}, error) {
+func (h *VerifyIdentityHandler) GetErrorData(r *http.Request, rw http.ResponseWriter, err error) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
-	baseViewModel := h.BaseViewModel.ViewModel(r, err)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
+	baseViewModel.SetError(err)
 	viewModel := VerifyIdentityViewModel{}
 
 	viewmodels.Embed(data, baseViewModel)
@@ -113,135 +104,99 @@ func (h *VerifyIdentityHandler) GetErrorData(r *http.Request, err error) (map[st
 	return data, nil
 }
 
-type VerificationCodeResend struct{}
-
-func (i *VerificationCodeResend) DoResend() {}
-
-type VerificationCodeInput struct {
-	Code string
-}
-
-// GetVerificationCode implements InputVerifyIdentityCheckCode.
-func (i *VerificationCodeInput) GetVerificationCode() string {
-	return i.Code
-}
-
 func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	ctrl, err := h.ControllerFactory.New(r, w)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	defer ctrl.Serve()
 
-	inInteraction := true
-	id := StateID(r)
-	if id == "" {
-		// Navigated from the link in verification message
-		id = r.Form.Get("state")
+	opts := webapp.SessionOptions{
+		RedirectURI:     "/verify_identity/success",
+		KeepAfterFinish: true,
+	}
+	intent := intents.NewIntentVerifyIdentityResume(r.Form.Get("id"))
 
-		_, err := h.WebApp.GetState(id)
-		if errorutil.Is(err, webapp.ErrInvalidState) {
-			inInteraction = false
-		} else if err != nil {
-			panic(err)
+	ctrl.Get(func() error {
+		session, err := ctrl.InteractionSession()
+		if errors.Is(err, webapp.ErrSessionNotFound) ||
+			errors.Is(err, webapp.ErrInvalidSession) {
+			session = nil
+		}
+
+		if session != nil {
+			graph, err := ctrl.InteractionGet()
+			if err != nil {
+				return err
+			}
+
+			data, err := h.GetData(r, w, graph)
+			if err != nil {
+				return err
+			}
+
+			h.Renderer.RenderHTML(w, r, TemplateWebVerifyIdentityHTML, data)
 		} else {
-			// State still valid, resume the interaction
-			inInteraction = true
-		}
-	}
-
-	if r.Method == "GET" && inInteraction {
-		err := h.Database.WithTx(func() error {
-			state, graph, err := h.WebApp.Get(id)
+			graph, err := ctrl.EntryPointGet(opts, intent)
 			if err != nil {
 				return err
 			}
 
-			data, err := h.GetData(r, state, graph)
+			data, err := h.GetData(r, w, graph)
 			if err != nil {
 				return err
 			}
 
 			h.Renderer.RenderHTML(w, r, TemplateWebVerifyIdentityHTML, data)
-			return nil
+		}
+		return nil
+	})
+
+	ctrl.PostAction("resend", func() error {
+		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+			input = &InputResendCode{}
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
 
-	if r.Method == "GET" && !inInteraction {
-		err := h.Database.WithTx(func() error {
-			state, graph, err := h.WebApp.GetIntent(h.MakeIntent(r))
-			var data map[string]interface{}
+		result.WriteResponse(w, r)
+		return nil
+	})
+
+	ctrl.PostAction("submit", func() error {
+		inputFn := func() (input interface{}, err error) {
+			err = VerifyIdentitySchema.PartValidator(VerifyIdentityRequestSchema).ValidateValue(FormToJSON(r.Form))
 			if err != nil {
-				data, err = h.GetErrorData(r, err)
-			} else {
-				data, err = h.GetData(r, state, graph)
-			}
-
-			if err != nil {
-				return err
-			}
-
-			h.Renderer.RenderHTML(w, r, TemplateWebVerifyIdentityHTML, data)
-			return nil
-		})
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	trigger := r.Form.Get("trigger") == "true"
-
-	if r.Method == "POST" && trigger {
-		err := h.Database.WithTx(func() error {
-			result, err := h.WebApp.PostInput(id, func() (input interface{}, err error) {
-				input = &VerificationCodeResend{}
-				return
-			})
-			if err != nil {
-				return err
-			}
-			result.WriteResponse(w, r)
-			return nil
-		})
-		if err != nil {
-			panic(err)
-		}
-		return
-	}
-
-	if r.Method == "POST" {
-		err := h.Database.WithTx(func() error {
-			inputer := func() (input interface{}, err error) {
-				err = VerifyIdentitySchema.PartValidator(VerifyIdentityRequestSchema).ValidateValue(FormToJSON(r.Form))
-				if err != nil {
-					return
-				}
-
-				code := r.Form.Get("x_password")
-
-				input = &VerificationCodeInput{
-					Code: code,
-				}
 				return
 			}
 
-			var result *webapp.Result
-			var err error
-			if inInteraction {
-				result, err = h.WebApp.PostInput(id, inputer)
-			} else {
-				result, err = h.WebApp.PostIntent(h.MakeIntent(r), inputer)
+			code := r.Form.Get("x_password")
+
+			input = &InputVerificationCode{
+				Code: code,
 			}
-			if err != nil {
-				return err
-			}
-			result.WriteResponse(w, r)
-			return nil
-		})
-		if err != nil {
-			panic(err)
+			return
 		}
-	}
+
+		session, err := ctrl.InteractionSession()
+		if errors.Is(err, webapp.ErrSessionNotFound) {
+			session = nil
+		}
+
+		var result *webapp.Result
+		if session != nil {
+			result, err = ctrl.InteractionPost(inputFn)
+		} else {
+			result, err = ctrl.EntryPointPost(opts, intent, inputFn)
+		}
+		if err != nil {
+			return err
+		}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
 }

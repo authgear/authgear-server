@@ -6,11 +6,8 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
-	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/phone"
@@ -68,22 +65,16 @@ func ConfigureLoginRoute(route httproute.Route) httproute.Route {
 }
 
 type LoginHandler struct {
-	TrustProxy    config.TrustProxy
-	Database      *db.Handle
-	BaseViewModel *viewmodels.BaseViewModeler
-	FormPrefiller *FormPrefiller
-	Renderer      Renderer
-	WebApp        WebAppService
-	CSRFCookie    webapp.CSRFCookieDef
+	ControllerFactory ControllerFactory
+	BaseViewModel     *viewmodels.BaseViewModeler
+	FormPrefiller     *FormPrefiller
+	Renderer          Renderer
+	CSRFCookie        webapp.CSRFCookieDef
 }
 
-func (h *LoginHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *LoginHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
-	var anyError interface{}
-	if state != nil {
-		anyError = state.Error
-	}
-	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
 	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithGraph(graph)
@@ -91,134 +82,79 @@ func (h *LoginHandler) GetData(r *http.Request, state *webapp.State, graph *inte
 	return data, nil
 }
 
-type LoginOAuth struct {
-	ProviderAlias    string
-	NonceSource      *http.Cookie
-	ErrorRedirectURI string
-}
-
-var _ nodes.InputUseIdentityOAuthProvider = &LoginOAuth{}
-
-func (i *LoginOAuth) GetProviderAlias() string {
-	return i.ProviderAlias
-}
-
-func (i *LoginOAuth) GetNonceSource() *http.Cookie {
-	return i.NonceSource
-}
-
-func (i *LoginOAuth) GetErrorRedirectURI() string {
-	return i.ErrorRedirectURI
-}
-
-type LoginLoginID struct {
-	LoginIDKey string
-	LoginID    string
-}
-
-var _ nodes.InputUseIdentityLoginID = &LoginLoginID{}
-
-// GetLoginIDKey implements InputSelectIdentityLoginID.
-func (i *LoginLoginID) GetLoginIDKey() string {
-	return i.LoginIDKey
-}
-
-// GetLoginID implements InputSelectIdentityLoginID.
-func (i *LoginLoginID) GetLoginID() string {
-	return i.LoginID
-}
-
-func (h *LoginHandler) MakeIntent(r *http.Request) *webapp.Intent {
-	return &webapp.Intent{
-		OldStateID:  StateID(r),
-		RedirectURI: webapp.GetRedirectURI(r, bool(h.TrustProxy)),
-		Intent:      intents.NewIntentLogin(),
-	}
-}
-
 func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	ctrl, err := h.ControllerFactory.New(r, w)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	intent := h.MakeIntent(r)
+	defer ctrl.Serve()
 
 	h.FormPrefiller.Prefill(r.Form)
 
-	if r.Method == "GET" {
-		err := h.Database.WithTx(func() error {
-			state, graph, err := h.WebApp.GetIntent(intent)
-			if err != nil {
-				return err
-			}
+	opts := webapp.SessionOptions{
+		RedirectURI: ctrl.RedirectURI(),
+	}
+	intent := intents.NewIntentLogin()
 
-			data, err := h.GetData(r, state, graph)
-			if err != nil {
-				return err
-			}
+	ctrl.Get(func() error {
+		graph, err := ctrl.EntryPointGet(opts, intent)
+		if err != nil {
+			return err
+		}
 
-			h.Renderer.RenderHTML(w, r, TemplateWebLoginHTML, data)
-			return nil
+		data, err := h.GetData(r, w, graph)
+		if err != nil {
+			return err
+		}
+
+		h.Renderer.RenderHTML(w, r, TemplateWebLoginHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("oauth", func() error {
+		providerAlias := r.Form.Get("x_provider_alias")
+		nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			input = &InputUseOAuth{
+				ProviderAlias:    providerAlias,
+				NonceSource:      nonceSource,
+				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
+			}
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
 
-	providerAlias := r.Form.Get("x_provider_alias")
+		result.WriteResponse(w, r)
+		return nil
+	})
 
-	if r.Method == "POST" && providerAlias != "" {
-		err := h.Database.WithTx(func() error {
-			nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
-			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				input = &LoginOAuth{
-					ProviderAlias:    providerAlias,
-					NonceSource:      nonceSource,
-					ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
-				}
+	ctrl.PostAction("login_id", func() error {
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			err = LoginSchema.PartValidator(LoginWithLoginIDRequestSchema).ValidateValue(FormToJSON(r.Form))
+			if err != nil {
 				return
-			})
-			if err != nil {
-				return err
 			}
-			result.WriteResponse(w, r)
-			return nil
-		})
-		if err != nil {
-			panic(err)
-		}
-		return
-	}
 
-	if r.Method == "POST" {
-		err := h.Database.WithTx(func() error {
-			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				err = LoginSchema.PartValidator(LoginWithLoginIDRequestSchema).ValidateValue(FormToJSON(r.Form))
-				if err != nil {
-					return
-				}
-
-				loginID, err := FormToLoginID(r.Form)
-				if err != nil {
-					return
-				}
-
-				input = &LoginLoginID{
-					LoginID: loginID,
-				}
+			loginID, err := FormToLoginID(r.Form)
+			if err != nil {
 				return
-			})
-			if err != nil {
-				return err
 			}
-			result.WriteResponse(w, r)
-			return nil
+
+			input = &InputUseLoginID{
+				LoginID: loginID,
+			}
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
 }
 
 // FormToLoginID returns the raw login ID or the parsed phone number.

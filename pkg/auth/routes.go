@@ -39,11 +39,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 		p.Middleware(newPanicAPIMiddleware),
 	)
 
-	webappSSOCallbackChain := httproute.Chain(
-		rootChain,
-		p.Middleware(newPanicWriteEmptyResponseMiddleware),
-		httproute.MiddlewareFunc(httputil.NoCache),
-	)
 	scopedChain := httproute.Chain(
 		rootChain,
 		p.Middleware(newPanicWriteEmptyResponseMiddleware),
@@ -53,15 +48,18 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 
 	webappChain := httproute.Chain(
 		rootChain,
+		httproute.MiddlewareFunc(httputil.NoCache),
 		httproute.MiddlewareFunc(webapp.IntlMiddleware),
 		p.Middleware(newCSPMiddleware),
-		p.Middleware(newCSRFMiddleware),
-		httproute.MiddlewareFunc(httputil.NoCache),
+		p.Middleware(newPanicWebAppMiddleware),
+		p.Middleware(newWebAppSessionMiddleware),
+	)
+	webappSSOCallbackChain := httproute.Chain(
+		webappChain,
 	)
 	webappPageChain := httproute.Chain(
 		webappChain,
-		p.Middleware(newPanicWebAppMiddleware),
-		p.Middleware(newWebAppStateMiddleware),
+		p.Middleware(newCSRFMiddleware),
 	)
 	webappAuthEntrypointChain := httproute.Chain(
 		webappPageChain,
@@ -87,7 +85,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 
 	router.Add(webapphandler.ConfigurePromoteRoute(webappPageRoute), p.Handler(newWebAppPromoteHandler))
 	router.Add(webapphandler.ConfigureEnterPasswordRoute(webappPageRoute), p.Handler(newWebAppEnterPasswordHandler))
-	router.Add(webapphandler.ConfigureEnterLoginIDRoute(webappPageRoute), p.Handler(newWebAppEnterLoginIDHandler))
 	router.Add(webapphandler.ConfigureSetupTOTPRoute(webappPageRoute), p.Handler(newWebAppSetupTOTPHandler))
 	router.Add(webapphandler.ConfigureEnterTOTPRoute(webappPageRoute), p.Handler(newWebAppEnterTOTPHandler))
 	router.Add(webapphandler.ConfigureSetupOOBOTPRoute(webappPageRoute), p.Handler(newWebAppSetupOOBOTPHandler))
@@ -102,10 +99,8 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 	router.Add(webapphandler.ConfigureResetPasswordRoute(webappPageRoute), p.Handler(newWebAppResetPasswordHandler))
 	router.Add(webapphandler.ConfigureResetPasswordSuccessRoute(webappPageRoute), p.Handler(newWebAppResetPasswordSuccessHandler))
 
-	router.Add(webapphandler.ConfigureAuthenticationBeginRoute(webappPageRoute), p.Handler(newWebAppAuthenticationBeginHandler))
-	router.Add(webapphandler.ConfigureCreateAuthenticatorBeginRoute(webappPageRoute), p.Handler(newWebAppCreateAuthenticatorBeginHandler))
-
 	router.Add(webapphandler.ConfigureLogoutRoute(webappAuthenticatedRoute), p.Handler(newWebAppLogoutHandler))
+	router.Add(webapphandler.ConfigureEnterLoginIDRoute(webappAuthenticatedRoute), p.Handler(newWebAppEnterLoginIDHandler))
 	router.Add(webapphandler.ConfigureSettingsIdentityRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsIdentityHandler))
 	router.Add(webapphandler.ConfigureSettingsTOTPRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsTOTPHandler))
 	router.Add(webapphandler.ConfigureSettingsOOBOTPRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsOOBOTPHandler))

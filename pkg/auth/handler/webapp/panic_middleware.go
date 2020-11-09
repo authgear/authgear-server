@@ -22,7 +22,10 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 		defer func() {
 			if err := recover(); err != nil {
 				data := make(map[string]interface{})
-				baseViewModel := m.BaseViewModel.ViewModel(r, err)
+				baseViewModel := m.BaseViewModel.ViewModel(r, w)
+				if err, ok := err.(error); ok {
+					baseViewModel.SetError(err)
+				}
 				viewmodels.Embed(data, baseViewModel)
 				m.Renderer.RenderHTML(w, r, TemplateWebFatalErrorHTML, data)
 

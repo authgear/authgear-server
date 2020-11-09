@@ -98,9 +98,9 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	))
 }
 
-func newWebAppStateMiddleware(p *deps.RequestProvider) httproute.Middleware {
+func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(httproute.Middleware), new(*webapp.StateMiddleware)),
+		wire.Bind(new(httproute.Middleware), new(*webapp.SessionMiddleware)),
 	))
 }

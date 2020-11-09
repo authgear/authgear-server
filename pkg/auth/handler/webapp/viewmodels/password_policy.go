@@ -1,6 +1,7 @@
 package viewmodels
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 )
 
@@ -19,8 +20,8 @@ func GetDefaultPasswordPolicyViewModelOptions() *PasswordPolicyViewModelOptions 
 	}
 }
 
-func NewPasswordPolicyViewModel(policies []password.Policy, anyError interface{}, opt *PasswordPolicyViewModelOptions) PasswordPolicyViewModel {
-	if apiError := asAPIError(anyError); apiError != nil {
+func NewPasswordPolicyViewModel(policies []password.Policy, apiError *apierrors.APIError, opt *PasswordPolicyViewModelOptions) PasswordPolicyViewModel {
+	if apiError != nil {
 		if apiError.Reason == "PasswordPolicyViolated" {
 			for i, policy := range policies {
 				if policy.Info == nil {

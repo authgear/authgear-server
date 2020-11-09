@@ -34,7 +34,9 @@
   "error-remove-last-primary-authenticator": "Cannot remove. You need to keep at least 1 primary authenticator for an identity.",
   "error-remove-last-secondary-authenticator": "Cannot remove. Multi-factor authentication is required.",
   "error-new-password-typo": "Typo in your re-typed password",
-  "error-web-ui-invalid-state": "The state associated with this URL is invalid. Maybe you have idled too long or switched your browser?",
+  "error-web-ui-invalid-session-retry": "<p>This page has expired/invalid, maybe you have idled too long or switched your browser?</p><p>Please return and retry your request.</p>",
+  "error-web-ui-invalid-session-return": "<p>This page is no longer active. Please return to the current page.</p>",
+  "error-web-ui-invalid-session-action": "Return",
   "error-rate-limited": "Please wait for a moment before retrying.",
 
   "public-signup-disabled-notice": "Please contact the system administrator for creating new accounts.",

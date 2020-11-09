@@ -9,12 +9,9 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	coreimage "github.com/authgear/authgear-server/pkg/util/image"
@@ -47,30 +44,13 @@ func ConfigureSetupTOTPRoute(route httproute.Route) httproute.Route {
 }
 
 type SetupTOTPViewModel struct {
-	ImageURI     htmltemplate.URL
-	Secret       string
-	Alternatives []CreateAuthenticatorAlternative
+	ImageURI         htmltemplate.URL
+	Secret           string
+	AlternativeSteps []viewmodels.AlternativeStep
 }
 
 type SetupTOTPNode interface {
 	GetTOTPAuthenticator() *authenticator.Info
-}
-
-type SetupTOTPInput struct {
-	Code        string
-	DisplayName string
-}
-
-var _ nodes.InputCreateAuthenticatorTOTP = &SetupTOTPInput{}
-
-// GetTOTP implements InputCreateAuthenticatorTOTP.
-func (i *SetupTOTPInput) GetTOTP() string {
-	return i.Code
-}
-
-// GetTOTPDisplayName implements InputCreateAuthenticatorTOTP.
-func (i *SetupTOTPInput) GetTOTPDisplayName() string {
-	return i.DisplayName
 }
 
 type SetupTOTPEndpointsProvider interface {
@@ -78,15 +58,14 @@ type SetupTOTPEndpointsProvider interface {
 }
 
 type SetupTOTPHandler struct {
-	Database      *db.Handle
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      Renderer
-	WebApp        WebAppService
-	Clock         clock.Clock
-	Endpoints     SetupTOTPEndpointsProvider
+	ControllerFactory ControllerFactory
+	BaseViewModel     *viewmodels.BaseViewModeler
+	Renderer          Renderer
+	Clock             clock.Clock
+	Endpoints         SetupTOTPEndpointsProvider
 }
 
-func (h *SetupTOTPHandler) MakeViewModel(stateID string, graph *interaction.Graph) (*SetupTOTPViewModel, error) {
+func (h *SetupTOTPHandler) MakeViewModel(session *webapp.Session, graph *interaction.Graph) (*SetupTOTPViewModel, error) {
 	var node SetupTOTPNode
 	if !graph.FindLastNode(&node) {
 		panic(fmt.Errorf("setup_totp: expected graph has node implementing SetupTOTPNode"))
@@ -120,11 +99,8 @@ func (h *SetupTOTPHandler) MakeViewModel(stateID string, graph *interaction.Grap
 		return nil, err
 	}
 
-	alternatives, err := DeriveCreateAuthenticatorAlternatives(
-		stateID,
-		graph,
-		authn.AuthenticatorTypeTOTP,
-	)
+	alternatives := &viewmodels.AlternativeStepsViewModel{}
+	err = alternatives.AddCreateAuthenticatorAlternatives(graph, webapp.SessionStepSetupTOTP)
 	if err != nil {
 		return nil, err
 	}
@@ -134,22 +110,15 @@ func (h *SetupTOTPHandler) MakeViewModel(stateID string, graph *interaction.Grap
 		// dataURI is generated here and not user generated,
 		// so it is safe to use htmltemplate.URL with it.
 		// nolint:gosec
-		ImageURI:     htmltemplate.URL(dataURI),
-		Alternatives: alternatives,
+		ImageURI:         htmltemplate.URL(dataURI),
+		AlternativeSteps: alternatives.AlternativeSteps,
 	}, nil
 }
 
-func (h *SetupTOTPHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *SetupTOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
-
-	var anyError interface{}
-	if state != nil {
-		anyError = state.Error
-	}
-
-	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
-	// Use previous state ID because the current node should be NodeCreateAuthenticatorTOTPSetup.
-	viewModel, err := h.MakeViewModel(state.PrevID, graph)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
+	viewModel, err := h.MakeViewModel(session, graph)
 	if err != nil {
 		return nil, err
 	}
@@ -160,58 +129,58 @@ func (h *SetupTOTPHandler) GetData(r *http.Request, state *webapp.State, graph *
 }
 
 func (h *SetupTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	ctrl, err := h.ControllerFactory.New(r, w)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	defer ctrl.Serve()
 
-	if r.Method == "GET" {
-		err := h.Database.WithTx(func() error {
-			state, graph, err := h.WebApp.Get(StateID(r))
-			if err != nil {
-				return err
-			}
-
-			data, err := h.GetData(r, state, graph)
-			if err != nil {
-				return err
-			}
-
-			h.Renderer.RenderHTML(w, r, TemplateWebSetupTOTPHTML, data)
-			return nil
-		})
+	ctrl.Get(func() error {
+		session, err := ctrl.InteractionSession()
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
 
-	if r.Method == "POST" {
-		err := h.Database.WithTx(func() error {
-			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
-				err = SetupTOTPSchema.PartValidator(SetupTOTPRequestSchema).ValidateValue(FormToJSON(r.Form))
-				if err != nil {
-					return
-				}
+		graph, err := ctrl.InteractionGet()
+		if err != nil {
+			return err
+		}
 
-				now := h.Clock.NowUTC()
+		data, err := h.GetData(r, w, session, graph)
+		if err != nil {
+			return err
+		}
 
-				// FIXME(mfa): decide a proper display name.
-				displayName := fmt.Sprintf("TOTP @ %s", now.Format(time.RFC3339))
+		h.Renderer.RenderHTML(w, r, TemplateWebSetupTOTPHTML, data)
+		return nil
+	})
 
-				input = &SetupTOTPInput{
-					Code:        r.Form.Get("x_code"),
-					DisplayName: displayName,
-				}
+	ctrl.PostAction("", func() error {
+		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+			err = SetupTOTPSchema.PartValidator(SetupTOTPRequestSchema).ValidateValue(FormToJSON(r.Form))
+			if err != nil {
 				return
-			})
-			if err != nil {
-				return err
 			}
-			result.WriteResponse(w, r)
-			return nil
+
+			now := h.Clock.NowUTC()
+
+			// FIXME(mfa): decide a proper display name.
+			displayName := fmt.Sprintf("TOTP @ %s", now.Format(time.RFC3339))
+
+			input = &InputSetupTOTP{
+				Code:        r.Form.Get("x_code"),
+				DisplayName: displayName,
+			}
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
+
+	handleAlternativeSteps(ctrl)
 }

@@ -1,0 +1,34 @@
+{{ define "__alternatives.html" }}
+    {{ range .AlternativeSteps }}
+        <form method="post" novalidate>
+            {{ $.CSRFField }}
+            <input type="hidden" name="x_step" value="{{ .Step }}">
+            {{ range $name, $value := .Input }}
+                <input type="hidden" name="{{ $name }}" value="{{ $value }}">
+            {{ end }}
+            <button class="btn secondary-btn align-self-flex-end" type="submit" name="x_action" value="choose_step">
+                {{ if eq .Step "setup-totp" }}
+                    {{ template "setup-totp-instead" .Data }}
+                {{ end }}
+                {{ if eq .Step "setup-oob-otp" }}
+                    {{ template "setup-oob-otp-instead" .Data }}
+                {{ end }}
+                {{ if eq .Step "create-password" }}
+                    {{ template "setup-password-instead" .Data }}
+                {{ end }}
+                {{ if eq .Step "enter-totp" }}
+                    {{ template "enter-totp-instead" .Data }}
+                {{ end }}
+                {{ if eq .Step "enter-password" }}
+                    {{ template "enter-password-instead" .Data }}
+                {{ end }}
+                {{ if eq .Step "enter-oob-otp" }}
+                    {{ template "enter-oob-otp-instead" .Data }}
+                {{ end }}
+                {{ if eq .Step "enter-recovery-code" }}
+                    {{ template "enter-recovery-code-instead" .Data }}
+                {{ end }}
+            </button>
+        </form>
+    {{ end }}
+{{ end }}

@@ -4,8 +4,6 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -16,57 +14,21 @@ func ConfigureSSOCallbackRoute(route httproute.Route) httproute.Route {
 }
 
 type SSOCallbackHandler struct {
-	Database   *db.Handle
-	WebApp     WebAppService
-	CSRFCookie webapp.CSRFCookieDef
+	ControllerFactory ControllerFactory
+	CSRFCookie        webapp.CSRFCookieDef
 }
-
-type SSOCallbackInput struct {
-	ProviderAlias string
-	NonceSource   *http.Cookie
-
-	Code             string
-	Scope            string
-	Error            string
-	ErrorDescription string
-}
-
-func (i *SSOCallbackInput) GetProviderAlias() string {
-	return i.ProviderAlias
-}
-
-func (i *SSOCallbackInput) GetNonceSource() *http.Cookie {
-	return i.NonceSource
-}
-
-func (i *SSOCallbackInput) GetCode() string {
-	return i.Code
-}
-
-func (i *SSOCallbackInput) GetScope() string {
-	return i.Scope
-}
-
-func (i *SSOCallbackInput) GetError() string {
-	return i.Error
-}
-
-func (i *SSOCallbackInput) GetErrorDescription() string {
-	return i.ErrorDescription
-}
-
-var _ nodes.InputUseIdentityOAuthUserInfo = &SSOCallbackInput{}
 
 func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	ctrl, err := h.ControllerFactory.New(r, w)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	defer ctrl.Serve()
 
 	nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
 
-	stateID := r.Form.Get("state")
-	data := SSOCallbackInput{
+	data := InputOAuthCallback{
 		ProviderAlias: httproute.GetParam(r, "alias"),
 		NonceSource:   nonceSource,
 
@@ -76,8 +38,8 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ErrorDescription: r.Form.Get("error_description"),
 	}
 
-	err := h.Database.WithTx(func() error {
-		result, err := h.WebApp.PostInput(stateID, func() (input interface{}, err error) {
+	handler := func() error {
+		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
 			input = &data
 			return
 		})
@@ -86,8 +48,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		result.WriteResponse(w, r)
 		return nil
-	})
-	if err != nil {
-		panic(err)
 	}
+	ctrl.Get(handler)
+	ctrl.PostAction("", handler)
 }

@@ -6,9 +6,23 @@
 
 {{ template "__header.html" . }}
 
-{{ template "__nav_bar.html" }}
+{{ template "__nav_bar.html" true }}
 
+{{ if eq .Error.reason "WebUIInvalidSession" }}
+    {{ if len .SessionStepURLs }}
+        {{ template "error-web-ui-invalid-session-return" }}
+        <a class="btn primary-btn" href="{{ last .SessionStepURLs }}">
+            {{ template "error-web-ui-invalid-session-action" }}
+        </a>
+    {{ else }}
+        {{ template "error-web-ui-invalid-session-retry" }}
+        <a class="btn primary-btn" href="/">
+            {{ template "error-web-ui-invalid-session-action" }}
+        </a>
+    {{ end }}
+{{ else }}
 {{ template "__error.html" . }}
+{{ end }}
 </main>
 </body>
 </html>

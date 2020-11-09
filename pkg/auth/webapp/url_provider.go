@@ -9,12 +9,14 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
 
 type EndpointsProvider interface {
+	AuthenticateEndpointURL() *url.URL
 	LogoutEndpointURL() *url.URL
 	SettingsEndpointURL() *url.URL
 	ResetPasswordEndpointURL() *url.URL
@@ -44,10 +46,10 @@ func (p *URLProvider) ResetPasswordURL(code string) *url.URL {
 	)
 }
 
-func (p *URLProvider) VerifyIdentityURL(code string, webStateID string) *url.URL {
+func (p *URLProvider) VerifyIdentityURL(code string, id string) *url.URL {
 	return urlutil.WithQueryParamsAdded(
 		p.Endpoints.VerifyIdentityEndpointURL(),
-		map[string]string{"code": code, "state": webStateID},
+		map[string]string{"code": code, "id": id},
 	)
 }
 
@@ -70,7 +72,8 @@ type AuthenticateURLOptions struct {
 }
 
 type PageService interface {
-	PostIntent(intent *Intent, inputer func() (interface{}, error)) (result *Result, err error)
+	CreateSession(session *Session, redirectURI string) (*Result, error)
+	PostWithIntent(session *Session, intent interaction.Intent, inputFn func() (interface{}, error)) (*Result, error)
 }
 
 type anonymousTokenInput struct{ JWT string }
@@ -84,37 +87,35 @@ type AuthenticateURLProvider struct {
 }
 
 func (p *AuthenticateURLProvider) AuthenticateURL(options AuthenticateURLOptions) (httputil.Result, error) {
-	intent := &Intent{
+	session := NewSession(SessionOptions{
 		RedirectURI: options.RedirectURI,
-		KeepState:   false,
+		Prompt:      options.Prompt,
 		UILocales:   options.UILocales,
-		Intent:      interactionintents.NewIntentLogin(),
-	}
-	inputer := func() (interface{}, error) {
-		return nil, nil
-	}
-
+	})
 	if options.LoginHint != "" {
-		err := p.processLoginHint(options, intent, &inputer)
+		result, err := p.handleLoginHint(options, session)
 		if err != nil {
 			return nil, err
 		}
+		if result != nil {
+			return result, nil
+		}
 	}
-	return p.Pages.PostIntent(intent, inputer)
+
+	return p.Pages.CreateSession(session, p.Endpoints.AuthenticateEndpointURL().String())
 }
 
-func (p *AuthenticateURLProvider) processLoginHint(
+func (p *AuthenticateURLProvider) handleLoginHint(
 	options AuthenticateURLOptions,
-	intent *Intent,
-	inputer *func() (interface{}, error),
-) error {
+	session *Session,
+) (httputil.Result, error) {
 	if !strings.HasPrefix(options.LoginHint, "https://authgear.com/login_hint?") {
-		return nil
+		return nil, nil
 	}
 
 	url, err := url.Parse(options.LoginHint)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	query := url.Query()
 
@@ -123,26 +124,26 @@ func (p *AuthenticateURLProvider) processLoginHint(
 		jwt := query.Get("jwt")
 		request, err := p.Anonymous.ParseRequestUnverified(query.Get("jwt"))
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		switch request.Action {
 		case anonymous.RequestActionPromote:
-			intent.Intent = interactionintents.NewIntentPromote()
-			*inputer = func() (interface{}, error) {
+			intent := interactionintents.NewIntentPromote()
+			inputer := func() (interface{}, error) {
 				return &anonymousTokenInput{JWT: jwt}, nil
 			}
-			return nil
+			return p.Pages.PostWithIntent(session, intent, inputer)
 
 		case anonymous.RequestActionAuth:
 			// TODO(webapp): support anonymous auth
 			panic("webapp: anonymous auth through web app is not supported")
 
 		default:
-			return errors.New("unknown anonymous request action")
+			return nil, errors.New("unknown anonymous request action")
 		}
 
 	default:
-		return fmt.Errorf("unsupported login hint type: %s", query.Get("type"))
+		return nil, fmt.Errorf("unsupported login hint type: %s", query.Get("type"))
 	}
 }

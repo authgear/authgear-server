@@ -40,7 +40,6 @@ var DependencySet = wire.NewSet(
 
 	wire.Bind(new(webapp.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 	wire.Bind(new(webapp.GraphService), new(*interaction.Service)),
-	wire.Bind(new(webapp.StateMiddlewareGraphs), new(*interaction.Service)),
 	wire.Bind(new(webapp.CookieFactory), new(*httputil.CookieFactory)),
 
 	wire.NewSet(
@@ -78,6 +77,7 @@ var DependencySet = wire.NewSet(
 
 	viewmodelswebapp.DependencySet,
 	wire.Bind(new(viewmodelswebapp.StaticAssetResolver), new(*web.StaticAssetResolver)),
+	wire.Bind(new(viewmodelswebapp.ErrorCookie), new(*webapp.ErrorCookie)),
 
 	handlerwebapp.DependencySet,
 	wire.Bind(new(handlerwebapp.SettingsAuthenticatorService), new(*authenticatorservice.Service)),
@@ -87,6 +87,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.EnterLoginIDService), new(*identityservice.Service)),
 	wire.Bind(new(handlerwebapp.PasswordPolicy), new(*password.Checker)),
 	wire.Bind(new(handlerwebapp.LogoutSessionManager), new(*session.Manager)),
-	wire.Bind(new(handlerwebapp.WebAppService), new(*webapp.Service)),
+	wire.Bind(new(handlerwebapp.PageService), new(*webapp.Service2)),
 	wire.Bind(new(handlerwebapp.ResourceManager), new(*resource.Manager)),
 )

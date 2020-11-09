@@ -7,11 +7,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
-	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
-	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -107,28 +104,20 @@ func ConfigureEnterLoginIDRoute(route httproute.Route) httproute.Route {
 }
 
 type EnterLoginIDHandler struct {
-	Database      *db.Handle
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      Renderer
-	WebApp        WebAppService
-	Identities    EnterLoginIDService
+	ControllerFactory ControllerFactory
+	BaseViewModel     *viewmodels.BaseViewModeler
+	Renderer          Renderer
+	Identities        EnterLoginIDService
 }
 
-func (h *EnterLoginIDHandler) GetData(r *http.Request, state *webapp.State) (map[string]interface{}, error) {
+func (h *EnterLoginIDHandler) GetData(userID string, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
-
-	var anyError interface{}
-	if state != nil {
-		anyError = state.Error
-	}
-
-	userID := session.GetUserID(r.Context())
 	identityID := r.Form.Get("x_identity_id")
 
-	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	var enterLoginIDViewModel EnterLoginIDViewModel
 	if identityID != "" {
-		idnInfo, err := h.Identities.Get(*userID, authn.IdentityTypeLoginID, identityID)
+		idnInfo, err := h.Identities.Get(userID, authn.IdentityTypeLoginID, identityID)
 		if err != nil {
 			return nil, err
 		}
@@ -142,149 +131,83 @@ func (h *EnterLoginIDHandler) GetData(r *http.Request, state *webapp.State) (map
 	return data, nil
 }
 
-type EnterLoginIDRemoveLoginID struct {
-	IdentityID string
-}
-
-func (i *EnterLoginIDRemoveLoginID) GetIdentityType() authn.IdentityType {
-	return authn.IdentityTypeLoginID
-}
-
-func (i *EnterLoginIDRemoveLoginID) GetIdentityID() string {
-	return i.IdentityID
-}
-
-type EnterLoginIDLoginID struct {
-	LoginIDType string
-	LoginIDKey  string
-	LoginID     string
-}
-
-var _ nodes.InputUseIdentityLoginID = &EnterLoginIDLoginID{}
-var _ nodes.InputCreateAuthenticatorOOBSetup = &EnterLoginIDLoginID{}
-
-// GetLoginIDKey implements InputUseIdentityLoginID.
-func (i *EnterLoginIDLoginID) GetLoginIDKey() string {
-	return i.LoginIDKey
-}
-
-// GetLoginIDKey implements InputUseIdentityLoginID.
-func (i *EnterLoginIDLoginID) GetLoginID() string {
-	return i.LoginID
-}
-
-func (i *EnterLoginIDLoginID) GetOOBChannel() authn.AuthenticatorOOBChannel {
-	switch i.LoginIDType {
-	case string(config.LoginIDKeyTypeEmail):
-		return authn.AuthenticatorOOBChannelEmail
-	case string(config.LoginIDKeyTypePhone):
-		return authn.AuthenticatorOOBChannelSMS
-	default:
-		return ""
-	}
-}
-
-// GetOOBTarget implements InputCreateAuthenticatorOOBSetup.
-func (i *EnterLoginIDLoginID) GetOOBTarget() string {
-	return i.LoginID
-}
-
 func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	ctrl, err := h.ControllerFactory.New(r, w)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	defer ctrl.Serve()
 
-	userID := session.GetUserID(r.Context())
+	userID := ctrl.RequireUserID()
 
-	if r.Method == "GET" {
-		err := h.Database.WithTx(func() error {
-			state, err := h.WebApp.GetState(StateID(r))
-			if err != nil {
-				return err
+	ctrl.Get(func() error {
+		data, err := h.GetData(userID, r, w)
+		if err != nil {
+			return err
+		}
+
+		h.Renderer.RenderHTML(w, r, TemplateWebEnterLoginIDHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("remove", func() error {
+		opts := webapp.SessionOptions{
+			RedirectURI: "/settings/identity",
+		}
+		identityID := r.Form.Get("x_identity_id")
+		intent := intents.NewIntentRemoveIdentity(userID)
+
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			input = &InputRemoveIdentity{
+				Type: authn.IdentityTypeLoginID,
+				ID:   identityID,
 			}
-
-			data, err := h.GetData(r, state)
-			if err != nil {
-				return err
-			}
-
-			h.Renderer.RenderHTML(w, r, TemplateWebEnterLoginIDHTML, data)
-			return nil
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
+		result.WriteResponse(w, r)
+		return nil
+	})
 
-	if r.Method == "POST" && r.Form.Get("x_action") == "remove" {
-		err := h.Database.WithTx(func() error {
-			identityID := r.Form.Get("x_identity_id")
+	ctrl.PostAction("add_or_update", func() error {
+		opts := webapp.SessionOptions{
+			RedirectURI: "/settings/identity",
+		}
+		loginIDKey := r.Form.Get("x_login_id_key")
+		loginIDType := r.Form.Get("x_login_id_type")
+		identityID := r.Form.Get("x_identity_id")
+		var intent interaction.Intent
+		if identityID != "" {
+			intent = intents.NewIntentUpdateIdentity(userID, identityID)
+		} else {
+			intent = intents.NewIntentAddIdentity(userID)
+		}
 
-			intent := &webapp.Intent{
-				RedirectURI: "/settings/identity",
-				Intent:      intents.NewIntentRemoveIdentity(*userID),
-			}
-
-			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				input = &EnterLoginIDRemoveLoginID{
-					IdentityID: identityID,
-				}
-				return
-			})
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			err = EnterLoginIDSchema.PartValidator(AddOrUpdateLoginIDRequest).ValidateValue(FormToJSON(r.Form))
 			if err != nil {
-				return err
+				return nil, err
 			}
-			result.WriteResponse(w, r)
-			return nil
+			newLoginID, err := FormToLoginID(r.Form)
+			if err != nil {
+				return nil, err
+			}
+
+			input = &InputNewLoginID{
+				LoginIDType:  loginIDType,
+				LoginIDKey:   loginIDKey,
+				LoginIDValue: newLoginID,
+			}
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
 
-	if r.Method == "POST" && r.Form.Get("x_action") == "add_or_update" {
-		err := h.Database.WithTx(func() error {
-			loginIDKey := r.Form.Get("x_login_id_key")
-			loginIDType := r.Form.Get("x_login_id_type")
-			identityID := r.Form.Get("x_identity_id")
-
-			intent := &webapp.Intent{
-				RedirectURI: "/settings/identity",
-			}
-
-			if identityID != "" {
-				intent.Intent = intents.NewIntentUpdateIdentity(*userID, identityID)
-			} else {
-				intent.Intent = intents.NewIntentAddIdentity(*userID)
-			}
-
-			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				err = EnterLoginIDSchema.PartValidator(AddOrUpdateLoginIDRequest).ValidateValue(FormToJSON(r.Form))
-				if err != nil {
-					return nil, err
-				}
-
-				newLoginID, err := FormToLoginID(r.Form)
-				if err != nil {
-					return nil, err
-				}
-
-				input = &EnterLoginIDLoginID{
-					LoginIDType: loginIDType,
-					LoginIDKey:  loginIDKey,
-					LoginID:     newLoginID,
-				}
-				return
-			})
-			if err != nil {
-				return err
-			}
-			result.WriteResponse(w, r)
-			return nil
-		})
-		if err != nil {
-			panic(err)
-		}
-	}
+		result.WriteResponse(w, r)
+		return nil
+	})
 }

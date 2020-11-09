@@ -8,6 +8,9 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(FormPrefiller), "*"),
 	wire.Bind(new(Renderer), new(*ResponseRenderer)),
 
+	wire.Struct(new(ControllerDeps), "*"),
+	wire.Struct(new(ControllerFactory), "*"),
+
 	wire.Struct(new(PanicMiddleware), "*"),
 
 	wire.Struct(new(StaticAssetsHandler), "*"),
@@ -40,6 +43,4 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(ChangePasswordHandler), "*"),
 	wire.Struct(new(ChangeSecondaryPasswordHandler), "*"),
 	wire.Struct(new(LogoutHandler), "*"),
-	wire.Struct(new(AuthenticationBeginHandler), "*"),
-	wire.Struct(new(CreateAuthenticatorBeginHandler), "*"),
 )

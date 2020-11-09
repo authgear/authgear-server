@@ -7,7 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -32,22 +31,16 @@ type SettingsOOBOTPViewModel struct {
 }
 
 type SettingsOOBOTPHandler struct {
-	Database       *db.Handle
-	BaseViewModel  *viewmodels.BaseViewModeler
-	Renderer       Renderer
-	WebApp         WebAppService
-	Authenticators SettingsAuthenticatorService
-	CSRFCookie     webapp.CSRFCookieDef
+	ControllerFactory ControllerFactory
+	BaseViewModel     *viewmodels.BaseViewModeler
+	Renderer          Renderer
+	Authenticators    SettingsAuthenticatorService
+	CSRFCookie        webapp.CSRFCookieDef
 }
 
-func (h *SettingsOOBOTPHandler) GetData(r *http.Request, state *webapp.State) (map[string]interface{}, error) {
+func (h *SettingsOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
-	var anyError interface{}
-	if state != nil {
-		anyError = state.Error
-	}
-
-	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	userID := session.GetUserID(r.Context())
 	viewModel := SettingsOOBOTPViewModel{}
 	authenticators, err := h.Authenticators.List(*userID,
@@ -66,99 +59,67 @@ func (h *SettingsOOBOTPHandler) GetData(r *http.Request, state *webapp.State) (m
 }
 
 func (h *SettingsOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	ctrl, err := h.ControllerFactory.New(r, w)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	defer ctrl.Serve()
 
 	redirectURI := httputil.HostRelative(r.URL).String()
 	authenticatorID := r.Form.Get("x_authenticator_id")
-	userID := session.GetUserID(r.Context())
+	userID := ctrl.RequireUserID()
 
-	if r.Method == "GET" {
-		err := h.Database.WithTx(func() error {
-			state, err := h.WebApp.GetState(StateID(r))
-			if err != nil {
-				return err
+	ctrl.Get(func() error {
+		data, err := h.GetData(r, w)
+		if err != nil {
+			return err
+		}
+
+		h.Renderer.RenderHTML(w, r, TemplateWebSettingsOOBOTPHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("remove", func() error {
+		opts := webapp.SessionOptions{
+			RedirectURI: redirectURI,
+		}
+		intent := intents.NewIntentRemoveAuthenticator(userID)
+
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			input = &InputRemoveAuthenticator{
+				Type: authn.AuthenticatorTypeOOB,
+				ID:   authenticatorID,
 			}
-
-			data, err := h.GetData(r, state)
-			if err != nil {
-				return err
-			}
-
-			h.Renderer.RenderHTML(w, r, TemplateWebSettingsOOBOTPHTML, data)
-			return nil
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
 
-	if r.Method == "POST" && r.Form.Get("x_action") == "remove" {
-		err := h.Database.WithTx(func() error {
-			intent := &webapp.Intent{
-				RedirectURI: redirectURI,
-				Intent:      intents.NewIntentRemoveAuthenticator(*userID),
-			}
-			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				input = &SettingsOOBOTPRemove{
-					AuthenticatorID: authenticatorID,
-				}
-				return
-			})
-			if err != nil {
-				return err
-			}
-			result.WriteResponse(w, r)
-			return nil
+		result.WriteResponse(w, r)
+		return nil
+	})
+
+	ctrl.PostAction("add", func() error {
+		opts := webapp.SessionOptions{
+			RedirectURI: redirectURI,
+		}
+		intent := intents.NewIntentAddAuthenticator(
+			userID,
+			interaction.AuthenticationStageSecondary,
+			authn.AuthenticatorTypeOOB,
+		)
+
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			input = &InputCreateAuthenticator{}
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
 
-	if r.Method == "POST" && r.Form.Get("x_action") == "add" {
-		err := h.Database.WithTx(func() error {
-			intent := &webapp.Intent{
-				RedirectURI: redirectURI,
-				Intent: intents.NewIntentAddAuthenticator(
-					*userID,
-					interaction.AuthenticationStageSecondary,
-					authn.AuthenticatorTypeOOB,
-				),
-			}
-			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				input = &SettingsOOBOTPAdd{}
-				return
-			})
-			if err != nil {
-				return err
-			}
-			result.WriteResponse(w, r)
-			return nil
-		})
-		if err != nil {
-			panic(err)
-		}
-	}
-}
-
-type SettingsOOBOTPRemove struct {
-	AuthenticatorID string
-}
-
-func (i *SettingsOOBOTPRemove) GetAuthenticatorType() authn.AuthenticatorType {
-	return authn.AuthenticatorTypeOOB
-}
-
-func (i *SettingsOOBOTPRemove) GetAuthenticatorID() string {
-	return i.AuthenticatorID
-}
-
-type SettingsOOBOTPAdd struct {
-}
-
-func (i *SettingsOOBOTPAdd) RequestedByUser() bool {
-	return true
+		result.WriteResponse(w, r)
+		return nil
+	})
 }

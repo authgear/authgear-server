@@ -1,0 +1,233 @@
+package webapp
+
+import (
+	"net/http"
+
+	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
+)
+
+type InputUseOAuth struct {
+	ProviderAlias    string
+	NonceSource      *http.Cookie
+	ErrorRedirectURI string
+}
+
+var _ nodes.InputUseIdentityOAuthProvider = &InputUseOAuth{}
+
+func (i *InputUseOAuth) GetProviderAlias() string     { return i.ProviderAlias }
+func (i *InputUseOAuth) GetNonceSource() *http.Cookie { return i.NonceSource }
+func (i *InputUseOAuth) GetErrorRedirectURI() string  { return i.ErrorRedirectURI }
+
+type InputUseLoginID struct {
+	LoginIDKey string
+	LoginID    string
+}
+
+var _ nodes.InputUseIdentityLoginID = &InputUseLoginID{}
+
+func (i *InputUseLoginID) GetLoginIDKey() string { return i.LoginIDKey }
+func (i *InputUseLoginID) GetLoginID() string    { return i.LoginID }
+
+type InputNewLoginID struct {
+	LoginIDType  string
+	LoginIDKey   string
+	LoginIDValue string
+}
+
+var _ nodes.InputUseIdentityLoginID = &InputNewLoginID{}
+var _ nodes.InputCreateAuthenticatorOOBSetup = &InputNewLoginID{}
+
+func (i *InputNewLoginID) GetLoginIDKey() string { return i.LoginIDKey }
+func (i *InputNewLoginID) GetLoginID() string    { return i.LoginIDValue }
+func (i *InputNewLoginID) GetOOBChannel() authn.AuthenticatorOOBChannel {
+	switch i.LoginIDType {
+	case string(config.LoginIDKeyTypeEmail):
+		return authn.AuthenticatorOOBChannelEmail
+	case string(config.LoginIDKeyTypePhone):
+		return authn.AuthenticatorOOBChannelSMS
+	default:
+		return ""
+	}
+}
+func (i *InputNewLoginID) GetOOBTarget() string { return i.LoginIDValue }
+
+type InputCreateAuthenticator struct{}
+
+func (i *InputCreateAuthenticator) RequestedByUser() bool { return true }
+
+type InputRemoveAuthenticator struct {
+	Type authn.AuthenticatorType
+	ID   string
+}
+
+var _ nodes.InputRemoveAuthenticator = &InputRemoveAuthenticator{}
+
+func (i *InputRemoveAuthenticator) GetAuthenticatorType() authn.AuthenticatorType { return i.Type }
+func (i *InputRemoveAuthenticator) GetAuthenticatorID() string                    { return i.ID }
+
+type InputRemoveIdentity struct {
+	Type authn.IdentityType
+	ID   string
+}
+
+var _ nodes.InputRemoveIdentity = &InputRemoveIdentity{}
+
+func (i *InputRemoveIdentity) GetIdentityType() authn.IdentityType { return i.Type }
+func (i *InputRemoveIdentity) GetIdentityID() string               { return i.ID }
+
+type InputTriggerOOB struct{ AuthenticatorIndex int }
+
+var _ nodes.InputAuthenticationOOBTrigger = &InputTriggerOOB{}
+
+func (i *InputTriggerOOB) GetOOBAuthenticatorIndex() int { return i.AuthenticatorIndex }
+
+type InputSelectTOTP struct{}
+
+var _ nodes.InputCreateAuthenticatorTOTPSetup = &InputSelectTOTP{}
+
+func (i *InputSelectTOTP) SetupTOTP() {}
+
+type InputSetupPassword struct {
+	Password string
+}
+
+var _ nodes.InputCreateAuthenticatorPassword = &InputSetupPassword{}
+
+func (i *InputSetupPassword) GetPassword() string { return i.Password }
+
+type InputResendCode struct{}
+
+func (i *InputResendCode) DoResend() {}
+
+type InputAuthOOB struct {
+	Code        string
+	DeviceToken bool
+}
+
+var _ nodes.InputAuthenticationOOB = &InputAuthOOB{}
+var _ nodes.InputCreateDeviceToken = &InputAuthOOB{}
+
+func (i *InputAuthOOB) GetOOBOTP() string       { return i.Code }
+func (i *InputAuthOOB) CreateDeviceToken() bool { return i.DeviceToken }
+
+type InputAuthTOTP struct {
+	Code        string
+	DeviceToken bool
+}
+
+var _ nodes.InputAuthenticationTOTP = &InputAuthTOTP{}
+var _ nodes.InputCreateDeviceToken = &InputAuthTOTP{}
+
+func (i *InputAuthTOTP) GetTOTP() string         { return i.Code }
+func (i *InputAuthTOTP) CreateDeviceToken() bool { return i.DeviceToken }
+
+type InputAuthPassword struct {
+	Password    string
+	DeviceToken bool
+}
+
+var _ nodes.InputAuthenticationPassword = &InputAuthPassword{}
+var _ nodes.InputCreateDeviceToken = &InputAuthPassword{}
+
+func (i *InputAuthPassword) GetPassword() string     { return i.Password }
+func (i *InputAuthPassword) CreateDeviceToken() bool { return i.DeviceToken }
+
+type InputAuthRecoveryCode struct {
+	Code string
+}
+
+var _ nodes.InputConsumeRecoveryCode = &InputAuthRecoveryCode{}
+
+func (i *InputAuthRecoveryCode) GetRecoveryCode() string { return i.Code }
+
+type InputSetupOOB struct {
+	InputType string
+	Target    string
+}
+
+var _ nodes.InputCreateAuthenticatorOOBSetup = &InputSetupOOB{}
+
+func (i *InputSetupOOB) GetOOBChannel() authn.AuthenticatorOOBChannel {
+	switch i.InputType {
+	case "email":
+		return authn.AuthenticatorOOBChannelEmail
+	case "phone":
+		return authn.AuthenticatorOOBChannelSMS
+	default:
+		panic("webapp: unknown input type: " + i.InputType)
+	}
+}
+func (i *InputSetupOOB) GetOOBTarget() string { return i.Target }
+
+type InputSetupRecoveryCode struct{}
+
+var _ nodes.InputGenerateRecoveryCodeEnd = &InputSetupRecoveryCode{}
+
+func (i *InputSetupRecoveryCode) ViewedRecoveryCodes() {}
+
+type InputSetupTOTP struct {
+	Code        string
+	DisplayName string
+}
+
+var _ nodes.InputCreateAuthenticatorTOTP = &InputSetupTOTP{}
+
+func (i *InputSetupTOTP) GetTOTP() string            { return i.Code }
+func (i *InputSetupTOTP) GetTOTPDisplayName() string { return i.DisplayName }
+
+type InputOAuthCallback struct {
+	ProviderAlias string
+	NonceSource   *http.Cookie
+
+	Code             string
+	Scope            string
+	Error            string
+	ErrorDescription string
+}
+
+var _ nodes.InputUseIdentityOAuthUserInfo = &InputOAuthCallback{}
+
+func (i *InputOAuthCallback) GetProviderAlias() string     { return i.ProviderAlias }
+func (i *InputOAuthCallback) GetNonceSource() *http.Cookie { return i.NonceSource }
+func (i *InputOAuthCallback) GetCode() string              { return i.Code }
+func (i *InputOAuthCallback) GetScope() string             { return i.Scope }
+func (i *InputOAuthCallback) GetError() string             { return i.Error }
+func (i *InputOAuthCallback) GetErrorDescription() string  { return i.ErrorDescription }
+
+type InputVerificationCode struct {
+	Code string
+}
+
+var _ nodes.InputVerifyIdentityCheckCode = &InputVerificationCode{}
+
+func (i *InputVerificationCode) GetVerificationCode() string { return i.Code }
+
+type InputChangePassword struct {
+	OldPassword string
+	NewPassword string
+}
+
+var _ nodes.InputChangePassword = &InputChangePassword{}
+
+func (i *InputChangePassword) GetOldPassword() string { return i.OldPassword }
+func (i *InputChangePassword) GetNewPassword() string { return i.NewPassword }
+
+type InputForgotPassword struct {
+	LoginID string
+}
+
+var _ nodes.InputForgotPasswordSelectLoginID = &InputForgotPassword{}
+
+func (i *InputForgotPassword) GetLoginID() string { return i.LoginID }
+
+type InputResetPassword struct {
+	Code     string
+	Password string
+}
+
+var _ nodes.InputResetPasswordByCode = &InputResetPassword{}
+
+func (i *InputResetPassword) GetCode() string        { return i.Code }
+func (i *InputResetPassword) GetNewPassword() string { return i.Password }

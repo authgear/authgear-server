@@ -36,6 +36,9 @@ func (e *EdgeAuthenticationOOBTrigger) Instantiate(ctx *interaction.Context, gra
 	}
 
 	idx := input.GetOOBAuthenticatorIndex()
+	if idx < 0 || idx >= len(e.Authenticators) {
+		return nil, authenticator.ErrAuthenticatorNotFound
+	}
 	targetInfo := e.Authenticators[idx]
 
 	secret, err := otp.GenerateTOTPSecret()

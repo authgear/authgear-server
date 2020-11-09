@@ -6,11 +6,8 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
-	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -38,18 +35,10 @@ type SetupRecoveryCodeNode interface {
 	GetRecoveryCodes() []string
 }
 
-type SetupRecoveryCodeInput struct{}
-
-var _ nodes.InputGenerateRecoveryCodeEnd = &SetupRecoveryCodeInput{}
-
-// ViewedSetupRecoveryCodes implements InputGenerateRecoveryCodeEnd.
-func (i *SetupRecoveryCodeInput) ViewedRecoveryCodes() {}
-
 type SetupRecoveryCodeHandler struct {
-	Database      *db.Handle
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      Renderer
-	WebApp        WebAppService
+	ControllerFactory ControllerFactory
+	BaseViewModel     *viewmodels.BaseViewModeler
+	Renderer          Renderer
 }
 
 func (h *SetupRecoveryCodeHandler) MakeViewModel(graph *interaction.Graph) SetupRecoveryCodeViewModel {
@@ -66,15 +55,9 @@ func (h *SetupRecoveryCodeHandler) MakeViewModel(graph *interaction.Graph) Setup
 	}
 }
 
-func (h *SetupRecoveryCodeHandler) GetData(r *http.Request, state *webapp.State, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *SetupRecoveryCodeHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
-
-	var anyError interface{}
-	if state != nil {
-		anyError = state.Error
-	}
-
-	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewModel := h.MakeViewModel(graph)
 
 	viewmodels.Embed(data, baseViewModel)
@@ -83,68 +66,55 @@ func (h *SetupRecoveryCodeHandler) GetData(r *http.Request, state *webapp.State,
 }
 
 func (h *SetupRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	ctrl, err := h.ControllerFactory.New(r, w)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	defer ctrl.Serve()
 
-	if r.Method == "GET" {
-		download := r.Form.Get("download") == "true"
-		if download {
-			err := h.Database.WithTx(func() error {
-				state, graph, err := h.WebApp.Get(StateID(r))
-				if err != nil {
-					return err
-				}
-
-				data, err := h.GetData(r, state, graph)
-				if err != nil {
-					return err
-				}
-
-				h.Renderer.Render(w, r, TemplateWebDownloadRecoveryCodeTXT, data, setRecoveryCodeAttachmentHeaders)
-				return nil
-			})
-			if err != nil {
-				panic(err)
-			}
-		} else {
-			err := h.Database.WithTx(func() error {
-				state, graph, err := h.WebApp.Get(StateID(r))
-				if err != nil {
-					return err
-				}
-
-				data, err := h.GetData(r, state, graph)
-				if err != nil {
-					return err
-				}
-
-				h.Renderer.RenderHTML(w, r, TemplateWebSetupRecoveryCodeHTML, data)
-				return nil
-			})
-			if err != nil {
-				panic(err)
-			}
+	ctrl.Get(func() error {
+		graph, err := ctrl.InteractionGet()
+		if err != nil {
+			return err
 		}
-	}
 
-	if r.Method == "POST" {
-		err := h.Database.WithTx(func() error {
-			result, err := h.WebApp.PostInput(StateID(r), func() (input interface{}, err error) {
-				input = &SetupRecoveryCodeInput{}
-				return
-			})
-			if err != nil {
-				return err
-			}
-			result.WriteResponse(w, r)
-			return nil
+		data, err := h.GetData(r, w, graph)
+		if err != nil {
+			return err
+		}
+
+		h.Renderer.RenderHTML(w, r, TemplateWebSetupRecoveryCodeHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("download", func() error {
+		graph, err := ctrl.InteractionGet()
+		if err != nil {
+			return err
+		}
+
+		data, err := h.GetData(r, w, graph)
+		if err != nil {
+			return err
+		}
+
+		h.Renderer.Render(w, r, TemplateWebDownloadRecoveryCodeTXT, data, setRecoveryCodeAttachmentHeaders)
+		return nil
+	})
+
+	ctrl.PostAction("proceed", func() error {
+		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+			input = &InputSetupRecoveryCode{}
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
 }
 
 func formatRecoveryCodes(recoveryCodes []string) []string {

@@ -6,7 +6,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -31,23 +30,17 @@ type SettingsRecoveryCodeViewModel struct {
 }
 
 type SettingsRecoveryCodeHandler struct {
-	Database       *db.Handle
-	BaseViewModel  *viewmodels.BaseViewModeler
-	Renderer       Renderer
-	WebApp         WebAppService
-	Authentication *config.AuthenticationConfig
-	MFA            SettingsMFAService
-	CSRFCookie     webapp.CSRFCookieDef
+	ControllerFactory ControllerFactory
+	BaseViewModel     *viewmodels.BaseViewModeler
+	Renderer          Renderer
+	Authentication    *config.AuthenticationConfig
+	MFA               SettingsMFAService
+	CSRFCookie        webapp.CSRFCookieDef
 }
 
-func (h *SettingsRecoveryCodeHandler) GetData(r *http.Request, state *webapp.State) (map[string]interface{}, error) {
+func (h *SettingsRecoveryCodeHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
-	var anyError interface{}
-	if state != nil {
-		anyError = state.Error
-	}
-
-	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	userID := *session.GetUserID(r.Context())
 
 	viewModel := SettingsRecoveryCodeViewModel{}
@@ -72,76 +65,54 @@ func (h *SettingsRecoveryCodeHandler) GetData(r *http.Request, state *webapp.Sta
 }
 
 func (h *SettingsRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	ctrl, err := h.ControllerFactory.New(r, w)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	defer ctrl.Serve()
 
 	redirectURI := httputil.HostRelative(r.URL).String()
-	userID := *session.GetUserID(r.Context())
+	userID := ctrl.RequireUserID()
 
-	if r.Method == "GET" {
-		err := h.Database.WithTx(func() error {
-			state, err := h.WebApp.GetState(StateID(r))
-			if err != nil {
-				return err
-			}
-
-			data, err := h.GetData(r, state)
-			if err != nil {
-				return err
-			}
-
-			h.Renderer.RenderHTML(w, r, TemplateWebSettingsRecoveryCodeHTML, data)
-			return nil
-		})
+	ctrl.Get(func() error {
+		data, err := h.GetData(r, w)
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
 
-	if r.Method == "POST" && r.Form.Get("x_action") == "download" {
+		h.Renderer.RenderHTML(w, r, TemplateWebSettingsRecoveryCodeHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("download", func() error {
 		if !h.Authentication.RecoveryCode.ListEnabled {
 			http.Error(w, "listing recovery code is disabled", http.StatusForbidden)
-			return
+			return nil
 		}
 
-		err := h.Database.WithTx(func() error {
-			state, err := h.WebApp.GetState(StateID(r))
-			if err != nil {
-				return err
-			}
+		data, err := h.GetData(r, w)
+		if err != nil {
+			return err
+		}
 
-			data, err := h.GetData(r, state)
-			if err != nil {
-				return err
-			}
+		h.Renderer.Render(w, r, TemplateWebDownloadRecoveryCodeTXT, data, setRecoveryCodeAttachmentHeaders)
+		return nil
+	})
 
-			h.Renderer.Render(w, r, TemplateWebDownloadRecoveryCodeTXT, data, setRecoveryCodeAttachmentHeaders)
-			return nil
+	ctrl.PostAction("regenerate", func() error {
+		opts := webapp.SessionOptions{
+			RedirectURI: redirectURI,
+		}
+		intent := intents.NewIntentRegenerateRecoveryCode(userID)
+
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			return nil, nil
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
-
-	if r.Method == "POST" && r.Form.Get("x_action") == "regenerate" {
-		err := h.Database.WithTx(func() error {
-			intent := &webapp.Intent{
-				RedirectURI: redirectURI,
-				Intent:      intents.NewIntentRegenerateRecoveryCode(userID),
-			}
-			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				return nil, nil
-			})
-			if err != nil {
-				return err
-			}
-			result.WriteResponse(w, r)
-			return nil
-		})
-		if err != nil {
-			panic(err)
-		}
-	}
+		result.WriteResponse(w, r)
+		return nil
+	})
 }

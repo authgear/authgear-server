@@ -8,9 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
-	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -42,55 +40,17 @@ type SettingsVerificationService interface {
 }
 
 type SettingsIdentityHandler struct {
-	Database      *db.Handle
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      Renderer
-	WebApp        WebAppService
-	Identities    SettingsIdentityService
-	Verification  SettingsVerificationService
-	CSRFCookie    webapp.CSRFCookieDef
+	ControllerFactory ControllerFactory
+	BaseViewModel     *viewmodels.BaseViewModeler
+	Renderer          Renderer
+	Identities        SettingsIdentityService
+	Verification      SettingsVerificationService
+	CSRFCookie        webapp.CSRFCookieDef
 }
 
-type SettingsIdentityLinkOAuth struct {
-	ProviderAlias    string
-	NonceSource      *http.Cookie
-	ErrorRedirectURI string
-}
-
-var _ nodes.InputUseIdentityOAuthProvider = &SettingsIdentityLinkOAuth{}
-
-func (i *SettingsIdentityLinkOAuth) GetProviderAlias() string {
-	return i.ProviderAlias
-}
-
-func (i *SettingsIdentityLinkOAuth) GetNonceSource() *http.Cookie {
-	return i.NonceSource
-}
-
-func (i *SettingsIdentityLinkOAuth) GetErrorRedirectURI() string {
-	return i.ErrorRedirectURI
-}
-
-type SettingsIdentityUnlinkOAuth struct {
-	IdentityID string
-}
-
-func (i *SettingsIdentityUnlinkOAuth) GetIdentityType() authn.IdentityType {
-	return authn.IdentityTypeOAuth
-}
-
-func (i *SettingsIdentityUnlinkOAuth) GetIdentityID() string {
-	return i.IdentityID
-}
-
-func (h *SettingsIdentityHandler) GetData(r *http.Request, state *webapp.State) (map[string]interface{}, error) {
+func (h *SettingsIdentityHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
-	var anyError interface{}
-	if state != nil {
-		anyError = state.Error
-	}
-
-	baseViewModel := h.BaseViewModel.ViewModel(r, anyError)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	userID := session.GetUserID(r.Context())
 	candidates, err := h.Identities.ListCandidates(*userID)
 	if err != nil {
@@ -116,104 +76,86 @@ func (h *SettingsIdentityHandler) GetData(r *http.Request, state *webapp.State) 
 }
 
 func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	ctrl, err := h.ControllerFactory.New(r, w)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	defer ctrl.Serve()
 
 	redirectURI := httputil.HostRelative(r.URL).String()
 	providerAlias := r.Form.Get("x_provider_alias")
 	identityID := r.Form.Get("x_identity_id")
-	userID := session.GetUserID(r.Context())
+	userID := ctrl.RequireUserID()
 	nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
 
-	if r.Method == "GET" {
-		err := h.Database.WithTx(func() error {
-			state, err := h.WebApp.GetState(StateID(r))
-			if err != nil {
-				return err
-			}
+	ctrl.Get(func() error {
+		data, err := h.GetData(r, w)
+		if err != nil {
+			return err
+		}
 
-			data, err := h.GetData(r, state)
-			if err != nil {
-				return err
-			}
+		h.Renderer.RenderHTML(w, r, TemplateWebSettingsIdentityHTML, data)
+		return nil
+	})
 
-			h.Renderer.RenderHTML(w, r, TemplateWebSettingsIdentityHTML, data)
-			return nil
+	ctrl.PostAction("link_oauth", func() error {
+		opts := webapp.SessionOptions{
+			RedirectURI: redirectURI,
+		}
+		intent := intents.NewIntentAddIdentity(userID)
+
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			input = &InputUseOAuth{
+				ProviderAlias:    providerAlias,
+				NonceSource:      nonceSource,
+				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
+			}
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
 
-	if r.Method == "POST" && r.Form.Get("x_action") == "link_oauth" {
-		err := h.Database.WithTx(func() error {
-			intent := &webapp.Intent{
-				RedirectURI: redirectURI,
-				Intent:      intents.NewIntentAddIdentity(*userID),
+		result.WriteResponse(w, r)
+		return nil
+	})
+
+	ctrl.PostAction("unlink_oauth", func() error {
+		opts := webapp.SessionOptions{
+			RedirectURI: redirectURI,
+		}
+		intent := intents.NewIntentRemoveIdentity(userID)
+
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			input = &InputRemoveIdentity{
+				Type: authn.IdentityTypeOAuth,
+				ID:   identityID,
 			}
-			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				input = &SettingsIdentityLinkOAuth{
-					ProviderAlias:    providerAlias,
-					NonceSource:      nonceSource,
-					ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
-				}
-				return
-			})
-			if err != nil {
-				return err
-			}
-			result.WriteResponse(w, r)
-			return nil
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
+		result.WriteResponse(w, r)
+		return nil
+	})
 
-	if r.Method == "POST" && r.Form.Get("x_action") == "unlink_oauth" {
-		err := h.Database.WithTx(func() error {
-			intent := &webapp.Intent{
-				RedirectURI: redirectURI,
-				Intent:      intents.NewIntentRemoveIdentity(*userID),
-			}
-			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				input = &SettingsIdentityUnlinkOAuth{
-					IdentityID: identityID,
-				}
-				return
-			})
-			if err != nil {
-				return err
-			}
-			result.WriteResponse(w, r)
-			return nil
+	ctrl.PostAction("verify_login_id", func() error {
+		opts := webapp.SessionOptions{
+			RedirectURI:     redirectURI,
+			KeepAfterFinish: true,
+		}
+		intent := intents.NewIntentVerifyIdentity(userID, authn.IdentityTypeLoginID, identityID)
+
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			input = nil
+			return
 		})
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
-
-	if r.Method == "POST" && r.Form.Get("x_action") == "verify_login_id" {
-		err := h.Database.WithTx(func() error {
-			intent := &webapp.Intent{
-				RedirectURI: redirectURI,
-				KeepState:   true,
-				Intent:      intents.NewIntentVerifyIdentity(*userID, authn.IdentityTypeLoginID, identityID),
-			}
-			result, err := h.WebApp.PostIntent(intent, func() (input interface{}, err error) {
-				input = nil
-				return
-			})
-			if err != nil {
-				return err
-			}
-			result.WriteResponse(w, r)
-			return nil
-		})
-		if err != nil {
-			panic(err)
-		}
-	}
+		result.WriteResponse(w, r)
+		return nil
+	})
 }

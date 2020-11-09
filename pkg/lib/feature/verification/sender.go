@@ -21,10 +21,10 @@ type CodeSender struct {
 	WebAppURLs       WebAppURLProvider
 }
 
-func (s *CodeSender) SendCode(code *Code, webStateID string) (*otp.CodeSendResult, error) {
+func (s *CodeSender) SendCode(code *Code) (*otp.CodeSendResult, error) {
 	opts := otp.SendOptions{
 		OTP:         code.Code,
-		URL:         s.WebAppURLs.VerifyIdentityURL(code.Code, webStateID).String(),
+		URL:         s.WebAppURLs.VerifyIdentityURL(code.Code, code.ID).String(),
 		MessageType: otp.MessageTypeVerification,
 	}
 

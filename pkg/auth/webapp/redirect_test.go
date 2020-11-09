@@ -12,7 +12,7 @@ func TestGetRedirectURI(t *testing.T) {
 	Convey("GetRedirectURI", t, func() {
 		Convey("redirect to default if redirect_uri is absent", func() {
 			r, _ := http.NewRequest("GET", "http://example.com", nil)
-			So(GetRedirectURI(r, true), ShouldEqual, DefaultRedirectURI)
+			So(GetRedirectURI(r, true, "/settings"), ShouldEqual, "/settings")
 		})
 
 		Convey("redirect to redirect_uri", func() {
@@ -25,7 +25,7 @@ func TestGetRedirectURI(t *testing.T) {
 				}.Encode(),
 			}).String(), nil)
 
-			So(GetRedirectURI(r, true), ShouldEqual, "http://example.com/oauth/authorize?client_id=client_id")
+			So(GetRedirectURI(r, true, "/settings"), ShouldEqual, "http://example.com/oauth/authorize?client_id=client_id")
 		})
 
 		Convey("redirect to redirect_uri when request URI does not have scheme nor host", func() {
@@ -36,7 +36,7 @@ func TestGetRedirectURI(t *testing.T) {
 				}.Encode(),
 			}).String(), nil)
 
-			So(GetRedirectURI(r, true), ShouldEqual, "/oauth/authorize?client_id=client_id")
+			So(GetRedirectURI(r, true, "/settings"), ShouldEqual, "/oauth/authorize?client_id=client_id")
 		})
 
 		Convey("redirect to redirect_uri with percent encoding", func() {
@@ -49,7 +49,7 @@ func TestGetRedirectURI(t *testing.T) {
 				}.Encode(),
 			}).String(), nil)
 
-			So(GetRedirectURI(r, true), ShouldEqual, "http://example.com/oauth/authorize?client_id=client_id&scope=openid+offline_access&ui_locales=en%20zh")
+			So(GetRedirectURI(r, true, "/settings"), ShouldEqual, "http://example.com/oauth/authorize?client_id=client_id&scope=openid+offline_access&ui_locales=en%20zh")
 		})
 
 		Convey("redirect to relative URI without .", func() {
@@ -62,7 +62,7 @@ func TestGetRedirectURI(t *testing.T) {
 				}.Encode(),
 			}).String(), nil)
 
-			So(GetRedirectURI(r, true), ShouldEqual, "http://example.com/relative")
+			So(GetRedirectURI(r, true, "/settings"), ShouldEqual, "http://example.com/relative")
 		})
 
 		Convey("redirect to relative URI with .", func() {
@@ -75,7 +75,7 @@ func TestGetRedirectURI(t *testing.T) {
 				}.Encode(),
 			}).String(), nil)
 
-			So(GetRedirectURI(r, true), ShouldEqual, "http://example.com/relative")
+			So(GetRedirectURI(r, true, "/settings"), ShouldEqual, "http://example.com/relative")
 		})
 
 		Convey("redirect to explicit same-origin URI", func() {
@@ -88,7 +88,7 @@ func TestGetRedirectURI(t *testing.T) {
 				}.Encode(),
 			}).String(), nil)
 
-			So(GetRedirectURI(r, true), ShouldEqual, "http://example.com/a")
+			So(GetRedirectURI(r, true, "/settings"), ShouldEqual, "http://example.com/a")
 		})
 
 		Convey("do not redirect to other origin", func() {
@@ -101,7 +101,7 @@ func TestGetRedirectURI(t *testing.T) {
 				}.Encode(),
 			}).String(), nil)
 
-			So(GetRedirectURI(r, true), ShouldEqual, DefaultRedirectURI)
+			So(GetRedirectURI(r, true, "/settings"), ShouldEqual, "/settings")
 		})
 
 		Convey("prevent recursion if redirect_uri is given externally", func() {
@@ -114,7 +114,7 @@ func TestGetRedirectURI(t *testing.T) {
 				}.Encode(),
 			}).String(), nil)
 
-			So(GetRedirectURI(r, true), ShouldEqual, DefaultRedirectURI)
+			So(GetRedirectURI(r, true, "/settings"), ShouldEqual, "/settings")
 		})
 
 		Convey("allow recursion if redirect_uri is given internally", func() {
@@ -127,7 +127,7 @@ func TestGetRedirectURI(t *testing.T) {
 				"redirect_uri": []string{"/"},
 			}
 
-			So(GetRedirectURI(r, true), ShouldEqual, "http://example.com/")
+			So(GetRedirectURI(r, true, "/settings"), ShouldEqual, "http://example.com/")
 		})
 	})
 }
