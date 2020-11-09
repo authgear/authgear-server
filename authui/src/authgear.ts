@@ -8,6 +8,15 @@ window.api.onLoad(() => {
   document.body.classList.add("js");
 });
 
+// Handle history tracking.
+
+let inHistorySettings = false;
+window.api.onLoad(() => {
+  if (window.location.pathname === "/settings") {
+    inHistorySettings = true;
+  }
+});
+
 // Handle form submission
 
 function setNetworkError() {
@@ -117,6 +126,12 @@ window.api.onLoad(() => {
 function back(e: Event) {
   e.preventDefault();
   e.stopPropagation();
+  if (window.location.pathname.startsWith("/settings/")) {
+    if (!inHistorySettings) {
+      Turbolinks.visit("/settings", { action: "replace" });
+      return;
+    }
+  }
   window.history.back();
 }
 
