@@ -23,9 +23,6 @@ func (m AuthEntryPointMiddleware) Handle(next http.Handler) http.Handler {
 
 		if userID != nil && !hasPrompt {
 			defaultRedirectURI := "/settings"
-			if webSession != nil {
-				defaultRedirectURI = webSession.RedirectURI
-			}
 			redirectURI := GetRedirectURI(r, bool(m.TrustProxy), defaultRedirectURI)
 
 			http.Redirect(w, r, redirectURI, http.StatusFound)
