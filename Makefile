@@ -15,6 +15,7 @@ vendor:
 	go install github.com/golang/mock/mockgen
 	go install github.com/google/wire/cmd/wire
 	(cd scripts/npm && npm ci)
+	(cd authui && npm ci)
 
 .PHONY: generate
 generate:
