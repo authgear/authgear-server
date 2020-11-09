@@ -81,27 +81,22 @@ window.api.onLoad(() => {
           setServerError();
           return;
         }
-        return resp
-          .json()
-          .then(({ redirect_uri, action }) => {
-            isSubmitting = false;
+        return resp.json().then(({ redirect_uri, action }) => {
+          isSubmitting = false;
 
-            Turbolinks.clearCache();
-            switch (action) {
-              case "redirect":
-                // Perform full redirect.
-                window.location = redirect_uri;
-                break;
-              case "replace":
-              case "advance":
-                Turbolinks.visit(redirect_uri, { action });
-                break;
-            }
-          })
-          .catch(() => {
-            isSubmitting = false;
-            setNetworkError();
-          });
+          Turbolinks.clearCache();
+          switch (action) {
+            case "redirect":
+              // Perform full redirect.
+              window.location = redirect_uri;
+              break;
+
+            case "replace":
+            case "advance":
+              Turbolinks.visit(redirect_uri, { action });
+              break;
+          }
+        });
       })
       .catch(() => {
         isSubmitting = false;
