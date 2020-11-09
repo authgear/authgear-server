@@ -111,7 +111,7 @@
 
 				{{ range .IdentityCandidates }}
 				{{ if eq .type "login_id" }}{{ if not (eq .login_id_key $.x_login_id_key) }}
-					<a class="link align-self-flex-start"
+					<a class="link align-self-flex-start" data-turbolinks-action="replace"
 						href="{{ call $.MakeURL "" "x_login_id_key" .login_id_key "x_login_id_input_type" .login_id_input_type}}">
 						{{ template "use-login-id-key" (dict "key" .login_id_key) }}
 					</a>
@@ -120,7 +120,7 @@
 
 				<div class="link align-self-flex-start">
 					<span class="primary-text">{{ template "login-button-hint" }}</span>
-					<a href="{{ call $.MakeURL "/login" }}">{{ template "login-button-label" }}</a>
+					<a href="{{ call $.MakeURL "/login" }}" data-turbolinks-action="replace">{{ template "login-button-label" }}</a>
 				</div>
 
 				{{ if .ForgotPasswordEnabled }}

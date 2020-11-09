@@ -103,17 +103,17 @@
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if (not (eq $.LoginPageTextLoginIDVariant "none")) }}
-				<a class="link align-self-flex-start" href="{{ call $.MakeURL "" "x_login_id_input_type" $.LoginPageTextLoginIDInputType }}">{{ template "use-text-login-id-description" (dict "variant" $.LoginPageTextLoginIDVariant) }}</a>
+				<a class="link align-self-flex-start" href="{{ call $.MakeURL "" "x_login_id_input_type" $.LoginPageTextLoginIDInputType }}" data-turbolinks-action="replace">{{ template "use-text-login-id-description" (dict "variant" $.LoginPageTextLoginIDVariant) }}</a>
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if $.x_login_id_input_type }}{{ if not (eq $.x_login_id_input_type "phone") }}{{ if $.LoginPageLoginIDHasPhone }}
-				<a class="link align-self-flex-start" href="{{ call $.MakeURL "" "x_login_id_input_type" "phone" }}">{{ template "use-phone-login-id-description" }}</a>
+				<a class="link align-self-flex-start" href="{{ call $.MakeURL "" "x_login_id_input_type" "phone" }}" data-turbolinks-action="replace">{{ template "use-phone-login-id-description" }}</a>
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if not $.PublicSignupDisabled }}
 				<div class="link">
 					<span class="primary-text">{{ template "signup-button-hint" }}</span>
-					<a href="{{ call $.MakeURL "/signup" }}">{{ template "signup-button-label" }}</a>
+					<a href="{{ call $.MakeURL "/signup" }}" data-turbolinks-action="replace">{{ template "signup-button-label" }}</a>
 				</div>
 				{{ end }}
 

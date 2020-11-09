@@ -1,78 +1,78 @@
 {{ define "__error.html" }}
-    {{ if .Error }}
-        <ul class="errors">
+    <ul class="errors error-txt" data-network-error="{{ template "error-network" }}" data-server-error="{{ template "error-server" }}">
+        {{ if .Error }}
             {{ if eq .Error.reason "ValidationFailed" }}
                 {{ range .Error.info.causes }}
                     {{ if (eq .kind "required") }}
                         {{ if (and (call $.SliceContains .details.missing "x_login_id" ) ($.LoginPageTextLoginIDVariant)) }}
-                            <li class="error-txt">{{ template "error-login-id-required" (dict "variant" $.LoginPageTextLoginIDVariant) }}</li>
+                            <li>{{ template "error-login-id-required" (dict "variant" $.LoginPageTextLoginIDVariant) }}</li>
                         {{ else if (and (call $.SliceContains .details.missing "x_login_id" ) ($.LoginIDType)) }}
-                            <li class="error-txt">{{ template "error-login-id-required" (dict "variant" $.LoginIDType) }}</li>
+                            <li>{{ template "error-login-id-required" (dict "variant" $.LoginIDType) }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_password" ) }}
-                            <li class="error-txt">{{ template "error-password-or-code-required" }}</li>
+                            <li>{{ template "error-password-or-code-required" }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_old_password" ) }}
-                            <li class="error-txt">{{ template "error-old-password-required" }}</li>
+                            <li>{{ template "error-old-password-required" }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_new_password" ) }}
-                            <li class="error-txt">{{ template "error-new-password-required" }}</li>
+                            <li>{{ template "error-new-password-required" }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_confirm_password" ) }}
-                            <li class="error-txt">{{ template "error-confirm-password-required" }}</li>
+                            <li>{{ template "error-confirm-password-required" }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_email" ) }}
-                            <li class="error-txt">{{ template "error-email-required" }}</li>
+                            <li>{{ template "error-email-required" }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_calling_code" ) }}
-                            <li class="error-txt">{{ template "error-calling-code-required" }}</li>
+                            <li>{{ template "error-calling-code-required" }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_national_number" ) }}
-                            <li class="error-txt">{{ template "error-phone-number-required" }}</li>
+                            <li>{{ template "error-phone-number-required" }}</li>
                         {{ else }}
-                            <li class="error-txt">{{ . }}</li>
+                            <li>{{ . }}</li>
                         {{ end }}
                     {{ else if (eq .kind "format") }}
                         {{ if (eq .details.format "phone") }}
-                            <li class="error-txt">{{ template "error-phone-number-format" }}</li>
+                            <li>{{ template "error-phone-number-format" }}</li>
                         {{ else if (eq .details.format "email") }}
-                            <li class="error-txt">{{ template "error-invalid-email" }}</li>
+                            <li>{{ template "error-invalid-email" }}</li>
                         {{ else if (eq .details.format "username") }}
-                            <li class="error-txt">{{ template "error-invalid-username" }}</li>
+                            <li>{{ template "error-invalid-username" }}</li>
                         {{ else }}
-                            <li class="error-txt">{{ . }}</li>
+                            <li>{{ . }}</li>
                         {{ end }}
                     {{ else if (eq .kind "maxLength") }}
-                        <li class="error-txt">{{ template "error-max-length" (dict "expected" .details.expected) }}</li>
+                        <li>{{ template "error-max-length" (dict "expected" .details.expected) }}</li>
                     {{ else if (eq .kind "general") }}
-                        <li class="error-txt">{{ .details.msg }}</li>
+                        <li>{{ .details.msg }}</li>
                     {{ else }}
-                        <li class="error-txt">{{ . }}</li>
+                        <li>{{ . }}</li>
                     {{ end }}
                 {{ end }}
             {{ else if eq .Error.reason "InvalidCredentials" }}
-                <li class="error-txt">{{ template "error-invalid-credentials" }}</li>
+                <li>{{ template "error-invalid-credentials" }}</li>
             {{ else if eq .Error.reason "PasswordPolicyViolated" }}
                 <!-- This error is handled differently -->
             {{ else if eq .Error.reason "PasswordResetFailed" }}
-                <li class="error-txt">{{ template "error-password-reset-failed" }}</li>
+                <li>{{ template "error-password-reset-failed" }}</li>
             {{ else if eq .Error.reason "NewPasswordTypo" }}
-                <li class="error-txt">{{ template "error-new-password-typo" }}</li>
+                <li>{{ template "error-new-password-typo" }}</li>
             {{ else if eq .Error.reason "InvariantViolated" }}
                 {{ $cause := .Error.info.cause }}
                 {{ if (eq $cause.kind "RemoveLastIdentity") }}
-                    <li class="error-txt">{{ template "error-remove-last-identity" }}</li>
+                    <li>{{ template "error-remove-last-identity" }}</li>
                 {{ else if (eq $cause.kind "RemoveLastPrimaryAuthenticator") }}
-                    <li class="error-txt">{{ template "error-remove-last-primary-authenticator" }}</li>
+                    <li>{{ template "error-remove-last-primary-authenticator" }}</li>
                 {{ else if (eq $cause.kind "RemoveLastSecondaryAuthenticator") }}
-                    <li class="error-txt">{{ template "error-remove-last-secondary-authenticator" }}</li>
+                    <li>{{ template "error-remove-last-secondary-authenticator" }}</li>
                 {{ else if (eq $cause.kind "DuplicatedIdentity") }}
-                    <li class="error-txt">{{ template "error-duplicated-identity" }}</li>
+                    <li>{{ template "error-duplicated-identity" }}</li>
                 {{ else if (eq $cause.kind "DuplicatedAuthenticator") }}
-                    <li class="error-txt">{{ template "error-duplicated-authenticator" }}</li>
+                    <li>{{ template "error-duplicated-authenticator" }}</li>
                 {{ else }}
-                    <li class="error-txt">{{ . }}</li>
+                    <li>{{ . }}</li>
                 {{ end }}
             {{ else if eq .Error.reason "WebUIInvalidSession" }}
                 <!-- This error is handled as fatal error -->
             {{ else if eq .Error.reason "RateLimited" }}
-                <li class="error-txt">{{ template "error-rate-limited" }}</li>
+                <li>{{ template "error-rate-limited" }}</li>
             {{ else }}
-                <li class="error-txt">{{ .Error.message }}</li>
+                <li>{{ .Error.message }}</li>
             {{ end }}
-        </ul>
-    {{ end }}
+        {{ end }}
+    </ul>
 {{ end }}

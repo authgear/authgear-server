@@ -1,3 +1,4 @@
+import Turbolinks from "turbolinks";
 import { init } from "./core";
 import "./authgear.css";
 
@@ -5,6 +6,110 @@ init();
 
 window.api.onLoad(() => {
   document.body.classList.add("js");
+});
+
+// Handle form submission
+
+function setNetworkError() {
+  const field = document.querySelector(".errors");
+  if (field) {
+    field.textContent = field.getAttribute("data-network-error");
+  }
+}
+
+function setServerError() {
+  const field = document.querySelector(".errors");
+  if (field) {
+    field.textContent = field.getAttribute("data-server-error");
+  }
+}
+
+window.api.onLoad(() => {
+  let isSubmitting = false;
+  function submitForm(e: Event) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isSubmitting) {
+      return;
+    }
+    isSubmitting = true;
+
+    const form = e.currentTarget as HTMLFormElement;
+    const formData = new FormData(form);
+
+    const params = new URLSearchParams();
+    formData.forEach((value, name) => {
+      params.set(name, value as string);
+    });
+    // FormData does not include any submit button's data:
+    // include them manually, since we have at most one submit button per form.
+    const submitButtons = form.querySelectorAll('button[type="submit"]');
+    for (let i = 0; i < submitButtons.length; i++) {
+      const button = submitButtons[i] as HTMLButtonElement;
+      params.set(button.name, button.value);
+    }
+    if (form.id) {
+      const el = document.querySelector(
+        `button[type="submit"][form="${form.id}"]`
+      );
+      if (el) {
+        const button = el as HTMLButtonElement;
+        params.set(button.name, button.value);
+      }
+    }
+
+    fetch(form.action, {
+      method: form.method,
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        "X-Authgear-XHR": "true"
+      },
+      body: params
+    })
+      .then(resp => {
+        if (resp.status < 200 || resp.status >= 300) {
+          isSubmitting = false;
+          setServerError();
+          return;
+        }
+        return resp
+          .json()
+          .then(({ redirect_uri, replace }) => {
+            isSubmitting = false;
+
+            Turbolinks.clearCache();
+            Turbolinks.visit(redirect_uri, {
+              action: replace ? "replace" : "advance"
+            });
+          })
+          .catch(() => {
+            isSubmitting = false;
+            setNetworkError();
+          });
+      })
+      .catch(() => {
+        isSubmitting = false;
+        setNetworkError();
+      });
+  }
+
+  const elems = document.querySelectorAll("form");
+  const forms: HTMLFormElement[] = [];
+  for (let i = 0; i < elems.length; i++) {
+    if (elems[i].querySelector('[data-form-xhr="false"]')) {
+      continue;
+    }
+    forms.push(elems[i] as HTMLFormElement);
+  }
+  for (const form of forms) {
+    form.addEventListener("submit", submitForm);
+  }
+
+  return () => {
+    for (const form of forms) {
+      form.removeEventListener("submit", submitForm);
+    }
+  };
 });
 
 // Handle back button.
