@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -118,7 +119,9 @@ func (h *EnterLoginIDHandler) GetData(userID string, r *http.Request, rw http.Re
 	var enterLoginIDViewModel EnterLoginIDViewModel
 	if identityID != "" {
 		idnInfo, err := h.Identities.Get(userID, authn.IdentityTypeLoginID, identityID)
-		if err != nil {
+		if errors.Is(err, identity.ErrIdentityNotFound) {
+			return nil, webapp.ErrInvalidSession
+		} else if err != nil {
 			return nil, err
 		}
 		enterLoginIDViewModel = NewEnterLoginIDViewModel(r, idnInfo.DisplayID())
