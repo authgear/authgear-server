@@ -318,6 +318,7 @@ func (s *Service2) afterPost(
 	// Transition to redirect URI
 	if isFinished {
 		result.RedirectURI = deriveFinishRedirectURI(session, graph)
+		result.NavigationAction = "redirect"
 	} else if interactionErr == nil {
 		if a, ok := graph.CurrentNode().(interface{ GetRedirectURI() string }); ok {
 			result.RedirectURI = a.GetRedirectURI()

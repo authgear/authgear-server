@@ -88,15 +88,15 @@ func handleAlternativeSteps(ctrl *Controller) {
 				return err
 			}
 			result = &webapp.Result{
-				RedirectURI:    session.CurrentStep().URL().String(),
-				ReplaceCurrent: true,
+				RedirectURI:      session.CurrentStep().URL().String(),
+				NavigationAction: "replace",
 			}
 		} else {
 			result, err = ctrl.InteractionPost(inputFn)
 			if err != nil {
 				return err
 			}
-			result.ReplaceCurrent = true
+			result.NavigationAction = "replace"
 		}
 
 		result.WriteResponse(ctrl.response, ctrl.request)

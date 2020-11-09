@@ -83,13 +83,20 @@ window.api.onLoad(() => {
         }
         return resp
           .json()
-          .then(({ redirect_uri, replace }) => {
+          .then(({ redirect_uri, action }) => {
             isSubmitting = false;
 
             Turbolinks.clearCache();
-            Turbolinks.visit(redirect_uri, {
-              action: replace ? "replace" : "advance"
-            });
+            switch (action) {
+              case "redirect":
+                // Perform full redirect.
+                window.location = redirect_uri;
+                break;
+              case "replace":
+              case "advance":
+                Turbolinks.visit(redirect_uri, { action });
+                break;
+            }
           })
           .catch(() => {
             isSubmitting = false;

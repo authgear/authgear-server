@@ -8,9 +8,9 @@ import (
 )
 
 type Result struct {
-	RedirectURI    string
-	ReplaceCurrent bool
-	Cookies        []*http.Cookie
+	RedirectURI      string
+	NavigationAction string
+	Cookies          []*http.Cookie
 }
 
 func (r *Result) WriteResponse(w http.ResponseWriter, req *http.Request) {
@@ -21,12 +21,16 @@ func (r *Result) WriteResponse(w http.ResponseWriter, req *http.Request) {
 	if req.Header.Get("X-Authgear-XHR") == "true" {
 		type xhrResponse struct {
 			RedirectURI string `json:"redirect_uri"`
-			Replace     bool   `json:"replace"`
+			Action      string `json:"action"`
 		}
 
+		action := r.NavigationAction
+		if action == "" {
+			action = "advance"
+		}
 		data, err := json.Marshal(xhrResponse{
 			RedirectURI: r.RedirectURI,
-			Replace:     r.ReplaceCurrent,
+			Action:      action,
 		})
 		if err != nil {
 			http.Error(w, err.Error(), 500)
