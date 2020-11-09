@@ -283,8 +283,12 @@ a.btn {
   flex-direction: row;
 }
 
-.back-btn[disabled] {
+.back-btn {
   visibility: hidden;
+}
+
+.js .back-btn {
+  visibility: visible;
 }
 
 .public-signup-disabled-notice {

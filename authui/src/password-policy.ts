@@ -72,37 +72,36 @@ function checkPasswordStrength(value: string) {
   desc.textContent = desc.getAttribute("data-desc-" + score);
 }
 
+function checkPasswordPolicy(e: Event) {
+  const el = e.currentTarget as HTMLInputElement;
+  const value = el.value;
+  const els = document.querySelectorAll(".password-policy");
+  for (let i = 0; i < els.length; ++i) {
+    els[i].classList.remove("error-txt", "good-txt");
+  }
+  checkPasswordLength(value, document.querySelector(".password-policy.length"));
+  checkPasswordUppercase(
+    value,
+    document.querySelector(".password-policy.uppercase")
+  );
+  checkPasswordLowercase(
+    value,
+    document.querySelector(".password-policy.lowercase")
+  );
+  checkPasswordDigit(value, document.querySelector(".password-policy.digit"));
+  checkPasswordSymbol(value, document.querySelector(".password-policy.symbol"));
+  checkPasswordStrength(value);
+}
+
 window.api.onLoad(() => {
   const elems = document.querySelectorAll("[data-password-policy-password]");
   for (let i = 0; i < elems.length; i++) {
-    elems[i].addEventListener("input", e => {
-      const el = e.currentTarget as HTMLInputElement;
-      const value = el.value;
-      const els = document.querySelectorAll(".password-policy");
-      for (let i = 0; i < els.length; ++i) {
-        els[i].classList.remove("error-txt", "good-txt");
-      }
-      checkPasswordLength(
-        value,
-        document.querySelector(".password-policy.length")
-      );
-      checkPasswordUppercase(
-        value,
-        document.querySelector(".password-policy.uppercase")
-      );
-      checkPasswordLowercase(
-        value,
-        document.querySelector(".password-policy.lowercase")
-      );
-      checkPasswordDigit(
-        value,
-        document.querySelector(".password-policy.digit")
-      );
-      checkPasswordSymbol(
-        value,
-        document.querySelector(".password-policy.symbol")
-      );
-      checkPasswordStrength(value);
-    });
+    elems[i].addEventListener("input", checkPasswordPolicy);
   }
+
+  return () => {
+    for (let i = 0; i < elems.length; i++) {
+      elems[i].removeEventListener("input", checkPasswordPolicy);
+    }
+  };
 });
