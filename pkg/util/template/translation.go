@@ -127,28 +127,17 @@ func (t *translationJSON) viewAppFile(resources []resource.ResourceFile, view re
 	// AppFileView on translation.json returns the translation.json in the app FS if exists.
 	path := view.AppFilePath()
 
-	translationObj := make(map[string]string)
+	found := false
+	var bytes []byte
 	for _, resrc := range resources {
 		if resrc.Location.Fs.AppFs() && path == resrc.Location.Path {
-			var jsonObj map[string]interface{}
-			err := json.Unmarshal(resrc.Data, &jsonObj)
-			if err != nil {
-				return nil, fmt.Errorf("translation file must be JSON: %w", err)
-			}
-
-			for key, val := range jsonObj {
-				value, ok := val.(string)
-				if !ok {
-					return nil, fmt.Errorf("translation value must be string: %s %T", key, val)
-				}
-				translationObj[key] = value
-			}
+			found = true
+			bytes = resrc.Data
 		}
 	}
 
-	bytes, err := json.Marshal(translationObj)
-	if err != nil {
-		return nil, err
+	if !found {
+		return nil, resource.ErrResourceNotFound
 	}
 
 	return bytes, nil

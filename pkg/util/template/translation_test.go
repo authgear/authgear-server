@@ -29,9 +29,15 @@ func TestTranslationResource(t *testing.T) {
 			DefaultTag: "en",
 		}
 
+		compact := func(s string) string {
+			buf := &bytes.Buffer{}
+			_ = json.Compact(buf, []byte(s))
+			return buf.String()
+		}
+
 		writeFile := func(fs afero.Fs, lang string, data string) {
 			_ = fs.MkdirAll("templates/"+lang, 0777)
-			_ = afero.WriteFile(fs, "templates/"+lang+"/translation.json", []byte(data), 0666)
+			_ = afero.WriteFile(fs, "templates/"+lang+"/translation.json", []byte(compact(data)), 0666)
 		}
 
 		read := func() (str string, err error) {
@@ -48,12 +54,6 @@ func TestTranslationResource(t *testing.T) {
 			}
 
 			return string(bytes), nil
-		}
-
-		compact := func(s string) string {
-			buf := &bytes.Buffer{}
-			_ = json.Compact(buf, []byte(s))
-			return buf.String()
 		}
 
 		Convey("it should return single resource", func() {
@@ -170,9 +170,15 @@ func TestTranslationResource(t *testing.T) {
 			resource.AferoFs{Fs: fsB},
 		})
 
+		compact := func(s string) string {
+			buf := &bytes.Buffer{}
+			_ = json.Compact(buf, []byte(s))
+			return buf.String()
+		}
+
 		writeFile := func(fs afero.Fs, lang string, data string) {
 			_ = fs.MkdirAll("templates/"+lang, 0777)
-			_ = afero.WriteFile(fs, "templates/"+lang+"/translation.json", []byte(data), 0666)
+			_ = afero.WriteFile(fs, "templates/"+lang+"/translation.json", []byte(compact(data)), 0666)
 		}
 
 		read := func(lang string) (str string, err error) {
@@ -187,12 +193,6 @@ func TestTranslationResource(t *testing.T) {
 
 			bytes := result.([]byte)
 			return string(bytes), nil
-		}
-
-		compact := func(s string) string {
-			buf := &bytes.Buffer{}
-			_ = json.Compact(buf, []byte(s))
-			return buf.String()
 		}
 
 		Convey("it should return single resource", func() {
@@ -287,9 +287,15 @@ func TestTranslationResource(t *testing.T) {
 			resource.AferoFs{Fs: fsB, IsAppFs: true},
 		})
 
+		compact := func(s string) string {
+			buf := &bytes.Buffer{}
+			_ = json.Compact(buf, []byte(s))
+			return buf.String()
+		}
+
 		writeFile := func(fs afero.Fs, lang string, data string) {
 			_ = fs.MkdirAll("templates/"+lang, 0777)
-			_ = afero.WriteFile(fs, "templates/"+lang+"/translation.json", []byte(data), 0666)
+			_ = afero.WriteFile(fs, "templates/"+lang+"/translation.json", []byte(compact(data)), 0666)
 		}
 
 		read := func(lang string) (str string, err error) {
@@ -303,12 +309,6 @@ func TestTranslationResource(t *testing.T) {
 
 			bytes := result.([]byte)
 			return string(bytes), nil
-		}
-
-		compact := func(s string) string {
-			buf := &bytes.Buffer{}
-			_ = json.Compact(buf, []byte(s))
-			return buf.String()
 		}
 
 		Convey("not found", func() {
