@@ -64,18 +64,22 @@ func applyUpdates(manager *resource.Manager, appFs resource.Fs, secretKeyAllowli
 		return nil, nil, err
 	}
 
+	newAppFs := resource.AferoFs{Fs: newFs, IsAppFs: true}
+
 	var files []*resource.ResourceFile
 	for _, u := range updates {
+		location := resource.Location{
+			Fs:   newAppFs,
+			Path: u.Path,
+		}
+
 		// Retrieve the original file.
 		resrc, err := func() (*resource.ResourceFile, error) {
 			f, err := newFs.Open(u.Path)
 			if os.IsNotExist(err) {
 				return &resource.ResourceFile{
-					Location: resource.Location{
-						Fs:   resource.AferoFs{Fs: newFs},
-						Path: u.Path,
-					},
-					Data: nil,
+					Location: location,
+					Data:     nil,
 				}, nil
 			} else if err != nil {
 				return nil, err
@@ -88,11 +92,8 @@ func applyUpdates(manager *resource.Manager, appFs resource.Fs, secretKeyAllowli
 			}
 
 			return &resource.ResourceFile{
-				Location: resource.Location{
-					Fs:   resource.AferoFs{Fs: newFs},
-					Path: u.Path,
-				},
-				Data: data,
+				Location: location,
+				Data:     data,
 			}, nil
 		}()
 		if err != nil {
@@ -123,7 +124,6 @@ func applyUpdates(manager *resource.Manager, appFs resource.Fs, secretKeyAllowli
 		files = append(files, resrc)
 	}
 
-	newAppFs := resource.AferoFs{Fs: newFs}
 	var newResFs []resource.Fs
 	for _, fs := range manager.Fs {
 		if fs == appFs {

@@ -25,10 +25,12 @@ type File interface {
 type Fs interface {
 	Open(name string) (File, error)
 	Stat(name string) (os.FileInfo, error)
+	AppFs() bool
 }
 
 type AferoFs struct {
-	Fs afero.Fs
+	Fs      afero.Fs
+	IsAppFs bool
 }
 
 func (f AferoFs) Open(name string) (File, error) {
@@ -37,6 +39,9 @@ func (f AferoFs) Open(name string) (File, error) {
 
 func (f AferoFs) Stat(name string) (os.FileInfo, error) {
 	return f.Fs.Stat(name)
+}
+func (f AferoFs) AppFs() bool {
+	return f.IsAppFs
 }
 
 func ReadLocation(location Location) ([]byte, error) {
