@@ -109,13 +109,40 @@ func (d NewlineJoinedDescriptor) FindResources(fs Fs) ([]Location, error) {
 	return []Location{location}, nil
 }
 
-func (d NewlineJoinedDescriptor) ViewResources(resources []ResourceFile, _ View) (interface{}, error) {
+func (d NewlineJoinedDescriptor) ViewResources(resources []ResourceFile, rawView View) (interface{}, error) {
+	switch rawView.(type) {
+	case AppFileView:
+		var appResources []ResourceFile
+		for _, resrc := range resources {
+			if resrc.Location.Fs.AppFs() {
+				s := resrc
+				appResources = append(appResources, s)
+			}
+		}
+		return d.viewResources(appResources)
+	case EffectiveFileView:
+		return d.viewResources(resources)
+	case EffectiveResourceView:
+		bytes, err := d.viewResources(resources)
+		if err != nil {
+			return nil, err
+		}
+		if d.Parse == nil {
+			return bytes, nil
+		}
+		return d.Parse(bytes)
+	default:
+		return nil, fmt.Errorf("unsupported view: %T", rawView)
+	}
+}
+
+func (d NewlineJoinedDescriptor) viewResources(resources []ResourceFile) ([]byte, error) {
 	output := bytes.Buffer{}
 	for _, resrc := range resources {
 		output.Write(resrc.Data)
 		output.WriteString("\n")
 	}
-	return d.Parse(output.Bytes())
+	return output.Bytes(), nil
 }
 
 func (d NewlineJoinedDescriptor) UpdateResource(resource *ResourceFile, data []byte, _ View) (*ResourceFile, error) {
