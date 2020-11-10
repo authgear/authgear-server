@@ -185,13 +185,7 @@ func TestTranslationResource(t *testing.T) {
 				return
 			}
 
-			translations := result.(map[string]string)
-
-			bytes, err := json.Marshal(translations)
-			if err != nil {
-				return
-			}
-
+			bytes := result.([]byte)
 			return string(bytes), nil
 		}
 
@@ -277,6 +271,85 @@ func TestTranslationResource(t *testing.T) {
 			So(data, ShouldEqual, compact(`{
 				"b": "zh b in fs B",
 				"c": "zh c in fs B"
+			}`))
+		})
+	})
+
+	Convey("TranslationJSON AppFile", t, func() {
+		fsA := afero.NewMemMapFs()
+		fsB := afero.NewMemMapFs()
+
+		r := &resource.Registry{}
+		r.Register(template.TranslationJSON)
+
+		manager := resource.NewManager(r, []resource.Fs{
+			resource.AferoFs{Fs: fsA},
+			resource.AferoFs{Fs: fsB, IsAppFs: true},
+		})
+
+		writeFile := func(fs afero.Fs, lang string, data string) {
+			_ = fs.MkdirAll("templates/"+lang, 0777)
+			_ = afero.WriteFile(fs, "templates/"+lang+"/translation.json", []byte(data), 0666)
+		}
+
+		read := func(lang string) (str string, err error) {
+			view := resource.AppFile{
+				Path: "templates/" + lang + "/translation.json",
+			}
+			result, err := manager.Read(template.TranslationJSON, view)
+			if err != nil {
+				return
+			}
+
+			bytes := result.([]byte)
+			return string(bytes), nil
+		}
+
+		compact := func(s string) string {
+			buf := &bytes.Buffer{}
+			_ = json.Compact(buf, []byte(s))
+			return buf.String()
+		}
+
+		Convey("not found", func() {
+			_, err := read("__default__")
+			So(err, ShouldBeError, "specified resource is not configured")
+		})
+
+		Convey("found", func() {
+			writeFile(fsB, "__default__", `{
+				"a": "default a in fs A",
+				"b": "default b in fs A",
+				"c": "default c in fs A"
+			}`)
+
+			data, err := read("__default__")
+			So(err, ShouldBeNil)
+			So(data, ShouldEqual, compact(`{
+				"a": "default a in fs A",
+				"b": "default b in fs A",
+				"c": "default c in fs A"
+			}`))
+		})
+
+		Convey("it should return resource in app FS", func() {
+			writeFile(fsA, "__default__", `{
+				"a": "default a in fs A",
+				"b": "default b in fs A",
+				"c": "default c in fs A"
+			}`)
+			writeFile(fsB, "__default__", `{
+				"a": "default a in fs B",
+				"b": "default b in fs B",
+				"c": "default c in fs B"
+			}`)
+
+			data, err := read("__default__")
+			So(err, ShouldBeNil)
+			So(data, ShouldEqual, compact(`{
+				"a": "default a in fs B",
+				"b": "default b in fs B",
+				"c": "default c in fs B"
 			}`))
 		})
 	})

@@ -21,6 +21,8 @@ const TranslationJSONName = "translation.json"
 
 type translationJSON struct{}
 
+var _ resource.Descriptor = &translationJSON{}
+
 var TranslationJSON = resource.RegisterResource(&translationJSON{})
 
 func (t *translationJSON) MatchResource(path string) bool {
@@ -33,10 +35,12 @@ func (t *translationJSON) FindResources(fs resource.Fs) ([]resource.Location, er
 
 func (t *translationJSON) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
 	switch view := rawView.(type) {
-	case resource.EffectiveResourceView:
-		return t.viewEffectiveResource(resources, view)
+	case resource.AppFileView:
+		return t.viewAppFile(resources, view)
 	case resource.EffectiveFileView:
 		return t.viewEffectiveFile(resources, view)
+	case resource.EffectiveResourceView:
+		return t.viewEffectiveResource(resources, view)
 	default:
 		return nil, fmt.Errorf("unsupported view: %T", rawView)
 	}
@@ -119,6 +123,37 @@ func (t *translationJSON) viewEffectiveResource(resources []resource.ResourceFil
 	return translationData, nil
 }
 
+func (t *translationJSON) viewAppFile(resources []resource.ResourceFile, view resource.AppFileView) (interface{}, error) {
+	// AppFileView on translation.json returns the translation.json in the app FS if exists.
+	path := view.AppFilePath()
+
+	translationObj := make(map[string]string)
+	for _, resrc := range resources {
+		if resrc.Location.Fs.AppFs() && path == resrc.Location.Path {
+			var jsonObj map[string]interface{}
+			err := json.Unmarshal(resrc.Data, &jsonObj)
+			if err != nil {
+				return nil, fmt.Errorf("translation file must be JSON: %w", err)
+			}
+
+			for key, val := range jsonObj {
+				value, ok := val.(string)
+				if !ok {
+					return nil, fmt.Errorf("translation value must be string: %s %T", key, val)
+				}
+				translationObj[key] = value
+			}
+		}
+	}
+
+	bytes, err := json.Marshal(translationObj)
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes, nil
+}
+
 func (t *translationJSON) viewEffectiveFile(resources []resource.ResourceFile, view resource.EffectiveFileView) (interface{}, error) {
 	// EffectiveFileView on translation.json is a simple merge
 	// on the same file across different FSs.
@@ -160,5 +195,10 @@ func (t *translationJSON) viewEffectiveFile(resources []resource.ResourceFile, v
 		}
 	}
 
-	return translationObj, nil
+	bytes, err := json.Marshal(translationObj)
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes, nil
 }
