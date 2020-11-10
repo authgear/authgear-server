@@ -6,6 +6,7 @@ import (
 
 	"sigs.k8s.io/yaml"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
@@ -14,6 +15,8 @@ const (
 	AuthgearYAML       = "authgear.yaml"
 	AuthgearSecretYAML = "authgear.secrets.yaml"
 )
+
+var ErrEffectiveSecretConfig = apierrors.NewForbidden("cannot view effective secret config")
 
 type AuthgearYAMLDescriptor struct{}
 
@@ -116,8 +119,10 @@ func (d AuthgearSecretYAMLDescriptor) ViewResources(resources []resource.Resourc
 	switch view := rawView.(type) {
 	case resource.AppFileView:
 		return d.viewAppFile(resources, view)
+	case resource.EffectiveFileView:
+		return nil, ErrEffectiveSecretConfig
 	case resource.EffectiveResourceView:
-		return d.viewEffectiveResource(resources, view)
+		return d.viewEffectiveResource(resources)
 	default:
 		return nil, fmt.Errorf("unsupported view: %T", rawView)
 	}
@@ -126,10 +131,20 @@ func (d AuthgearSecretYAMLDescriptor) ViewResources(resources []resource.Resourc
 func (d AuthgearSecretYAMLDescriptor) viewAppFile(resources []resource.ResourceFile, view resource.AppFileView) (interface{}, error) {
 	allowlist := view.SecretKeyAllowlist()
 
-	last := resources[len(resources)-1]
+	var target *resource.ResourceFile
+	for _, resrc := range resources {
+		if resrc.Location.Fs.AppFs() {
+			s := resrc
+			target = &s
+		}
+	}
+
+	if target == nil {
+		return nil, resource.ErrResourceNotFound
+	}
 
 	var cfg config.SecretConfig
-	if err := yaml.Unmarshal(last.Data, &cfg); err != nil {
+	if err := yaml.Unmarshal(target.Data, &cfg); err != nil {
 		return nil, fmt.Errorf("malformed secret config: %w", err)
 	}
 
@@ -157,7 +172,7 @@ func (d AuthgearSecretYAMLDescriptor) viewAppFile(resources []resource.ResourceF
 	return bytes, nil
 }
 
-func (d AuthgearSecretYAMLDescriptor) viewEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (interface{}, error) {
+func (d AuthgearSecretYAMLDescriptor) viewEffectiveResource(resources []resource.ResourceFile) (interface{}, error) {
 	var cfgs []*config.SecretConfig
 	for _, layer := range resources {
 		var cfg config.SecretConfig
