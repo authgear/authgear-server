@@ -10,10 +10,19 @@ window.api.onLoad(() => {
 
 // Handle history tracking.
 
-let inHistorySettings = false;
+let rootArea: "settings" | null;
+let historyRootSet = false;
 window.api.onLoad(() => {
-  if (window.location.pathname === "/settings") {
-    inHistorySettings = true;
+  if (!historyRootSet) {
+    const meta = document.createElement("meta");
+    meta.name = "authgear-history-root"
+    document.head.appendChild(meta);
+    historyRootSet = true;
+  }
+  if (window.location.pathname.startsWith("/settings")) {
+    rootArea = "settings";
+  } else {
+    rootArea = null;
   }
 });
 
@@ -128,9 +137,14 @@ window.api.onLoad(() => {
 function back(e: Event) {
   e.preventDefault();
   e.stopPropagation();
-  if (window.location.pathname.startsWith("/settings/")) {
-    if (!inHistorySettings) {
+  const rootMeta = document.querySelector('meta[name="authgear-history-root"]');
+  if (rootMeta) {
+    if (rootArea === "settings" && window.location.pathname !== "/settings") {
+      // Replace the history root with settings top-page.
+      // FIXME: forward history is not cleared.
+      rootMeta.remove();
       Turbolinks.visit("/settings", { action: "replace" });
+      historyRootSet = false;
       return;
     }
   }
