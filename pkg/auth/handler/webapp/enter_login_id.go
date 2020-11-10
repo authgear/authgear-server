@@ -101,7 +101,7 @@ var EnterLoginIDSchema = validation.NewMultipartSchema("").
 func ConfigureEnterLoginIDRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/enter_login_id")
+		WithPathPattern("/settings/enter_login_id")
 }
 
 type EnterLoginIDHandler struct {

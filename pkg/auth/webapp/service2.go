@@ -369,15 +369,6 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 	switch graph.CurrentNode().(type) {
 	case *nodes.NodeUseIdentityOAuthProvider:
 		return SessionStepOAuthRedirect
-	case *nodes.NodeDoUseUser:
-		switch graph.Intent.(type) {
-		case *intents.IntentRemoveIdentity:
-			return SessionStepEnterLoginID
-		default:
-			panic(fmt.Errorf("webapp: unexpected intent: %T", graph.Intent))
-		}
-	case *nodes.NodeUpdateIdentityBegin:
-		return SessionStepEnterLoginID
 	case *nodes.NodeCreateIdentityBegin:
 		switch intent := graph.Intent.(type) {
 		case *intents.IntentAuthenticate:
@@ -387,8 +378,6 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 			default:
 				panic(fmt.Errorf("webapp: unexpected authenticate intent: %T", intent.Kind))
 			}
-		case *intents.IntentAddIdentity:
-			return SessionStepEnterLoginID
 		default:
 			panic(fmt.Errorf("webapp: unexpected intent: %T", graph.Intent))
 		}
