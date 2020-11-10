@@ -170,7 +170,7 @@ window.api.onLoad(() => {
       input.type = "password";
     }
 
-    const togglePasswordPolicy = (e: Event) => {
+    const togglePasswordVisibility = (e: Event) => {
       e.preventDefault();
       e.stopPropagation();
       wrapper.classList.toggle("show-password");
@@ -181,11 +181,11 @@ window.api.onLoad(() => {
       }
     };
 
-    showPasswordButton.addEventListener("click", togglePasswordPolicy);
-    hidePasswordButton.addEventListener("click", togglePasswordPolicy);
+    showPasswordButton.addEventListener("click", togglePasswordVisibility);
+    hidePasswordButton.addEventListener("click", togglePasswordVisibility);
     disposers.push(() => {
-      showPasswordButton.removeEventListener("click", togglePasswordPolicy);
-      hidePasswordButton.removeEventListener("click", togglePasswordPolicy);
+      showPasswordButton.removeEventListener("click", togglePasswordVisibility);
+      hidePasswordButton.removeEventListener("click", togglePasswordVisibility);
     });
   }
 
