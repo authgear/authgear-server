@@ -172,4 +172,59 @@ func TestTemplateResource(t *testing.T) {
 			So(data, ShouldEqual, "zh in fs B")
 		})
 	})
+
+	Convey("HTML AppFile", t, func() {
+		fsA := afero.NewMemMapFs()
+		fsB := afero.NewMemMapFs()
+		r := &resource.Registry{}
+		manager := resource.NewManager(r, []resource.Fs{
+			resource.AferoFs{Fs: fsA},
+			resource.AferoFs{Fs: fsB, IsAppFs: true},
+		})
+
+		txt := &template.HTML{Name: "resource.txt"}
+		r.Register(txt)
+
+		writeFile := func(fs afero.Fs, lang string, data string) {
+			_ = fs.MkdirAll("templates/"+lang, 0777)
+			_ = afero.WriteFile(fs, "templates/"+lang+"/resource.txt", []byte(data), 0666)
+		}
+
+		read := func(lang string) (str string, err error) {
+			view := resource.AppFile{
+				Path: "templates/" + lang + "/resource.txt",
+			}
+			result, err := manager.Read(txt, view)
+			if err != nil {
+				return
+			}
+
+			str = string(result.([]byte))
+			return
+		}
+
+		Convey("not found", func() {
+			writeFile(fsA, "__default__", "default in fs A")
+
+			_, err := read("__default__")
+			So(err, ShouldBeError, "specified resource is not configured")
+		})
+
+		Convey("found", func() {
+			writeFile(fsB, "__default__", "default in fs B")
+
+			data, err := read("__default__")
+			So(err, ShouldBeNil)
+			So(data, ShouldEqual, "default in fs B")
+		})
+
+		Convey("it should return resource in app FS", func() {
+			writeFile(fsA, "__default__", "default in fs A")
+			writeFile(fsB, "__default__", "default in fs B")
+
+			data, err := read("__default__")
+			So(err, ShouldBeNil)
+			So(data, ShouldEqual, "default in fs B")
+		})
+	})
 }

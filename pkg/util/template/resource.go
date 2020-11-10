@@ -26,6 +26,8 @@ type HTML struct {
 	ComponentDependencies []*HTML
 }
 
+var _ resource.Descriptor = &HTML{}
+
 func (t *HTML) templateResource() {}
 
 func (t *HTML) MatchResource(path string) bool {
@@ -54,6 +56,8 @@ type PlainText struct {
 	// ComponentDependencies is the plain text component templates this template depends on.
 	ComponentDependencies []*PlainText
 }
+
+var _ resource.Descriptor = &PlainText{}
 
 func (t *PlainText) templateResource() {}
 
@@ -139,13 +143,36 @@ var templateLanguageTagRegex = regexp.MustCompile("^templates/([a-zA-Z0-9-_]+)/"
 
 func viewTemplates(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
 	switch view := rawView.(type) {
-	case resource.EffectiveResourceView:
-		return viewTemplatesEffectiveResource(resources, view)
+	case resource.AppFileView:
+		return viewTemplatesAppFile(resources, view)
 	case resource.EffectiveFileView:
 		return viewTemplatesEffectiveFile(resources, view)
+	case resource.EffectiveResourceView:
+		return viewTemplatesEffectiveResource(resources, view)
 	default:
 		return nil, fmt.Errorf("unsupported view: %T", rawView)
 	}
+}
+
+func viewTemplatesAppFile(resources []resource.ResourceFile, view resource.AppFileView) (interface{}, error) {
+	// When template is viewed as AppFile,
+	// the exact file is returned.
+	path := view.AppFilePath()
+
+	var found bool
+	var bytes []byte
+	for _, resrc := range resources {
+		if resrc.Location.Fs.AppFs() && resrc.Location.Path == path {
+			found = true
+			bytes = resrc.Data
+		}
+	}
+
+	if !found {
+		return nil, resource.ErrResourceNotFound
+	}
+
+	return bytes, nil
 }
 
 func viewTemplatesEffectiveFile(resources []resource.ResourceFile, view resource.EffectiveFileView) (interface{}, error) {
@@ -238,6 +265,10 @@ func viewHTMLTemplates(name string, resources []resource.ResourceFile, view reso
 	}
 
 	switch view.(type) {
+	case resource.AppFileView:
+		return bytes, nil
+	case resource.EffectiveFileView:
+		return bytes, nil
 	case resource.EffectiveResourceView:
 		tpl := htmltemplate.New(name)
 		tpl.Funcs(templateFuncMap)
@@ -246,8 +277,6 @@ func viewHTMLTemplates(name string, resources []resource.ResourceFile, view reso
 			return nil, fmt.Errorf("invalid HTML template: %w", err)
 		}
 		return tpl, nil
-	case resource.EffectiveFileView:
-		return bytes, nil
 	default:
 		return nil, fmt.Errorf("unsupported view: %T", view)
 	}
@@ -261,6 +290,10 @@ func viewTextTemplates(name string, resources []resource.ResourceFile, view reso
 	}
 
 	switch view.(type) {
+	case resource.AppFileView:
+		return bytes, nil
+	case resource.EffectiveFileView:
+		return bytes, nil
 	case resource.EffectiveResourceView:
 		tpl := texttemplate.New(name)
 		tpl.Funcs(templateFuncMap)
@@ -269,8 +302,6 @@ func viewTextTemplates(name string, resources []resource.ResourceFile, view reso
 			return nil, fmt.Errorf("invalid text template: %w", err)
 		}
 		return tpl, nil
-	case resource.EffectiveFileView:
-		return bytes, nil
 	default:
 		return nil, fmt.Errorf("unsupported view: %T", view)
 	}
