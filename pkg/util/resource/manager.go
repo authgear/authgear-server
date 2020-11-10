@@ -1,6 +1,8 @@
 package resource
 
 import (
+	"github.com/spf13/afero"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
@@ -14,6 +16,22 @@ type Manager struct {
 
 func NewManager(registry *Registry, fs []Fs) *Manager {
 	return &Manager{Registry: registry, Fs: fs}
+}
+
+func NewManagerWithDir(registry *Registry, builtinResourceDir string, customResourceDir string) *Manager {
+	var fs []Fs
+	fs = append(fs,
+		AferoFs{Fs: afero.NewBasePathFs(afero.OsFs{}, builtinResourceDir)},
+	)
+	if customResourceDir != "" {
+		fs = append(fs,
+			AferoFs{Fs: afero.NewBasePathFs(afero.OsFs{}, customResourceDir)},
+		)
+	}
+	return &Manager{
+		Registry: registry.Clone(),
+		Fs:       fs,
+	}
 }
 
 func (m *Manager) Overlay(fs Fs) *Manager {
