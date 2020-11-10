@@ -2,6 +2,7 @@ package resource
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 )
 
@@ -48,7 +49,30 @@ func (d SimpleDescriptor) FindResources(fs Fs) ([]Location, error) {
 	return []Location{location}, nil
 }
 
-func (d SimpleDescriptor) ViewResources(resources []ResourceFile, _ View) (interface{}, error) {
+func (d SimpleDescriptor) ViewResources(resources []ResourceFile, rawView View) (interface{}, error) {
+	switch rawView.(type) {
+	case AppFileView:
+		var appResources []ResourceFile
+		for _, resrc := range resources {
+			if resrc.Location.Fs.AppFs() {
+				s := resrc
+				appResources = append(appResources, s)
+			}
+		}
+		return d.viewResources(appResources)
+	case EffectiveFileView:
+		return d.viewResources(resources)
+	case EffectiveResourceView:
+		return d.viewResources(resources)
+	default:
+		return nil, fmt.Errorf("unsupported view: %T", rawView)
+	}
+}
+
+func (d SimpleDescriptor) viewResources(resources []ResourceFile) (interface{}, error) {
+	if len(resources) == 0 {
+		return nil, ErrResourceNotFound
+	}
 	last := resources[len(resources)-1]
 	return last.Data, nil
 }

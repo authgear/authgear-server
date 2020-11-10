@@ -29,7 +29,7 @@ func TestResourceManager(t *testing.T) {
 		resourceC := r.Register(resource.SimpleDescriptor{Path: "resources/C.txt"})
 
 		Convey("it should reject when no FS contains the specified resource", func() {
-			_, err := manager.Read(resourceA, nil)
+			_, err := manager.Read(resourceA, resource.EffectiveFile{})
 			So(err, ShouldBeError, "specified resource is not configured")
 		})
 
@@ -39,15 +39,15 @@ func TestResourceManager(t *testing.T) {
 			_ = afero.WriteFile(fsA, "resources/B.txt", []byte("resource B in fs A"), 0666)
 			_ = afero.WriteFile(fsB, "resources/C.txt", []byte("resource C in fs B"), 0666)
 
-			data, err := manager.Read(resourceA, nil)
+			data, err := manager.Read(resourceA, resource.EffectiveFile{})
 			So(err, ShouldBeNil)
 			So(data, ShouldResemble, []byte("resource A in fs A\nresource A in fs B\n"))
 
-			data, err = manager.Read(resourceB, nil)
+			data, err = manager.Read(resourceB, resource.EffectiveFile{})
 			So(err, ShouldBeNil)
 			So(data, ShouldResemble, []byte("resource B in fs A"))
 
-			data, err = manager.Read(resourceC, nil)
+			data, err = manager.Read(resourceC, resource.EffectiveFile{})
 			So(err, ShouldBeNil)
 			So(data, ShouldResemble, []byte("resource C in fs B"))
 		})
