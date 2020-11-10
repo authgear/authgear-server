@@ -7,7 +7,7 @@ package resource
 // Therefore, when a new descriptor is being introduced,
 // the author has to think about what views the descriptor supports.
 //
-// Most descriptors only a subset of all defined views.
+// Most descriptors only support a subset of all defined views.
 //
 // Some resources has language tag in their path.
 //
