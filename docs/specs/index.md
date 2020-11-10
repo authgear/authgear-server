@@ -13,6 +13,7 @@
   * Features
     * [Verification](./verification.md)
     * [Disable User](./disable-user.md)
+    * [Delete User](./delete-user.md)
   * APIs
     * [Session Resolver](./api-resolver.md)
     * [Admin](./api-admin.md)
