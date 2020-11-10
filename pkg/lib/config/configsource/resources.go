@@ -38,17 +38,41 @@ func (d AuthgearYAMLDescriptor) FindResources(fs resource.Fs) ([]resource.Locati
 }
 
 func (d AuthgearYAMLDescriptor) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
-	last := resources[len(resources)-1]
+	app := func() (interface{}, error) {
+		var target *resource.ResourceFile
+		for _, resrc := range resources {
+			if resrc.Location.Fs.AppFs() {
+				s := resrc
+				target = &s
+			}
+		}
+		if target == nil {
+			return nil, resource.ErrResourceNotFound
+		}
 
-	switch rawView.(type) {
-	case resource.AppFileView:
-		return last.Data, nil
-	case resource.EffectiveResourceView:
-		appConfig, err := config.Parse(last.Data)
+		return target.Data, nil
+	}
+
+	effective := func() (interface{}, error) {
+		bytes, err := app()
+		if err != nil {
+			return nil, err
+		}
+
+		appConfig, err := config.Parse(bytes.([]byte))
 		if err != nil {
 			return nil, fmt.Errorf("cannot parse app config: %w", err)
 		}
 		return appConfig, nil
+	}
+
+	switch rawView.(type) {
+	case resource.AppFileView:
+		return app()
+	case resource.EffectiveFileView:
+		return app()
+	case resource.EffectiveResourceView:
+		return effective()
 	default:
 		return nil, fmt.Errorf("unsupported view: %T", rawView)
 	}
