@@ -88,6 +88,8 @@ func (a ImageDescriptor) FindResources(fs resource.Fs) ([]resource.Location, err
 
 func (a ImageDescriptor) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
 	switch view := rawView.(type) {
+	case resource.AppFileView:
+		return a.viewAppFile(resources, view)
 	case resource.EffectiveResourceView:
 		return a.viewEffectiveResource(resources, view)
 	case resource.EffectiveFileView:
@@ -151,9 +153,31 @@ func (a ImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile
 	}, nil
 }
 
+func (a ImageDescriptor) viewAppFile(resources []resource.ResourceFile, view resource.AppFileView) (interface{}, error) {
+	path := view.AppFilePath()
+	var appResources []resource.ResourceFile
+	for _, resrc := range resources {
+		if resrc.Location.Fs.AppFs() {
+			appResources = append(appResources, resrc)
+		}
+	}
+	asset, err := a.viewByPath(appResources, path)
+	if err != nil {
+		return nil, err
+	}
+	return asset.Data, nil
+}
+
 func (a ImageDescriptor) viewEffectiveFile(resources []resource.ResourceFile, view resource.EffectiveFileView) (interface{}, error) {
 	path := view.EffectiveFilePath()
+	asset, err := a.viewByPath(resources, path)
+	if err != nil {
+		return nil, err
+	}
+	return asset.Data, nil
+}
 
+func (a ImageDescriptor) viewByPath(resources []resource.ResourceFile, path string) (*StaticAsset, error) {
 	matches := imageRegex.FindStringSubmatch(path)
 	if len(matches) < 2 {
 		return nil, resource.ErrResourceNotFound

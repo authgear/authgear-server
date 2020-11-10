@@ -55,13 +55,9 @@ func (h *StaticAssetsHandler) Open(name string) (http.File, error) {
 		return nil, err
 	}
 
-	asset := result.(*web.StaticAsset)
-	if asset.Path != p {
-		return nil, os.ErrNotExist
-	}
-
-	data := aferomem.CreateFile(asset.Path)
+	bytes := result.([]byte)
+	data := aferomem.CreateFile(p)
 	file := aferomem.NewFileHandle(data)
-	_, _ = file.Write(asset.Data)
+	_, _ = file.Write(bytes)
 	return aferomem.NewReadOnlyFileHandle(data), nil
 }
