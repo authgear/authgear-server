@@ -35,7 +35,7 @@
       <!-- FIXME(ui): Use user preferred timezone -->
       {{ template "settings-page-primary-password-description" (dict "time" .UpdatedAt) }}
     </p>
-    <a class="action" href="/change_password">
+    <a class="action" href="/settings/change_password">
       {{ template "change-password-button-label" }}
     </a>
   </section>
@@ -157,7 +157,7 @@
       <!-- FIXME(ui): Use user preferred timezone -->
       {{ template "settings-page-secondary-password-description" (dict "time" $secondary_password.UpdatedAt) }}
     </p>
-    <a class="action secondary-btn" href="/change_secondary_password">
+    <a class="action secondary-btn" href="/settings/change_secondary_password">
       {{ template "change-password-button-label" }}
     </a>
     <form class="action-2" method="post" novalidate>
