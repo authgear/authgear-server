@@ -10,6 +10,8 @@
   * [UI](./ui.md)
   * [Webhook](./webhook.md)
   * [Configuration](./config.md)
+  * Features
+    * [Verification](./verification.md)
   * APIs
     * [Session Resolver](./api-resolver.md)
     * [Admin](./api-admin.md)
