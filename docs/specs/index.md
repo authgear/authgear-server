@@ -12,6 +12,7 @@
   * [Configuration](./config.md)
   * Features
     * [Verification](./verification.md)
+    * [Disable User](./disable-user.md)
   * APIs
     * [Session Resolver](./api-resolver.md)
     * [Admin](./api-admin.md)
