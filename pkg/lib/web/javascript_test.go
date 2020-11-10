@@ -1,6 +1,7 @@
 package web_test
 
 import (
+	"fmt"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -17,7 +18,7 @@ func TestJavaScriptDescriptor(t *testing.T) {
 		r := &resource.Registry{}
 		manager := resource.NewManager(r, []resource.Fs{
 			resource.AferoFs{Fs: fsA},
-			resource.AferoFs{Fs: fsB},
+			resource.AferoFs{Fs: fsB, IsAppFs: true},
 		})
 
 		myJS := web.JavaScriptDescriptor{
@@ -30,20 +31,41 @@ func TestJavaScriptDescriptor(t *testing.T) {
 			_ = afero.WriteFile(fs, "static/main.js", []byte(data), 0666)
 		}
 
-		read := func() (str string, err error) {
-			result, err := manager.Read(myJS, nil)
+		read := func(view resource.View) (str string, err error) {
+			result, err := manager.Read(myJS, view)
 			if err != nil {
 				return
 			}
-			asset := result.(*web.StaticAsset)
-			str = string(asset.Data)
+			switch v := result.(type) {
+			case *web.StaticAsset:
+				str = string(v.Data)
+			case []byte:
+				str = string(v)
+			default:
+				panic(fmt.Errorf("unexpected type %T", result))
+			}
 			return
 		}
+
+		Convey("AppFileView: not found", func() {
+			writeFile(fsA, "var a = 1;")
+
+			_, err := read(resource.AppFile{})
+			So(err, ShouldBeError, "specified resource is not configured")
+		})
+
+		Convey("AppFileView: found", func() {
+			writeFile(fsB, "var a = 1;")
+
+			data, err := read(resource.AppFile{})
+			So(err, ShouldBeNil)
+			So(data, ShouldEqual, "var a = 1;")
+		})
 
 		Convey("it should return single resource", func() {
 			writeFile(fsA, "var a = 1;")
 
-			data, err := read()
+			data, err := read(resource.EffectiveFile{})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, "(function(){var a = 1;})();")
 		})
@@ -52,7 +74,7 @@ func TestJavaScriptDescriptor(t *testing.T) {
 			writeFile(fsA, "var a = 1;")
 			writeFile(fsB, "var b = 2;")
 
-			data, err := read()
+			data, err := read(resource.EffectiveFile{})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, "(function(){var a = 1;})();(function(){var b = 2;})();")
 		})
