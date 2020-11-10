@@ -16,6 +16,7 @@ vendor:
 	go install github.com/google/wire/cmd/wire
 	(cd scripts/npm && npm ci)
 	(cd authui && npm ci)
+	$(MAKE) authui
 
 .PHONY: generate
 generate:
@@ -85,8 +86,8 @@ html-email:
 		./scripts/npm/node_modules/.bin/mjml -l strict "$$t" > "$${t%.mjml}.html"; \
 	done
 
-.PHONY: static
-static:
+.PHONY: authui
+authui:
 	# Build Auth UI
 	npm run --silent --prefix ./authui typecheck
 	npm run --silent --prefix ./authui build

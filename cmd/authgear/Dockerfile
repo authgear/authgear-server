@@ -27,7 +27,7 @@ RUN cd ./scripts/npm && npm ci
 COPY ./authui/package.json ./authui/package-lock.json ./authui/
 RUN cd ./authui && npm ci
 COPY . .
-RUN make static GIT_HASH=$GIT_HASH
+RUN make authui GIT_HASH=$GIT_HASH
 
 # Stage 3: Prepare the actual fs we use to run the program
 FROM debian:buster-slim

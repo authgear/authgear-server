@@ -78,8 +78,6 @@ jobs:
       if: ${{ !cancelled() }}
     - run: make check-tidy
       if: ${{ !cancelled() }}
-    - run: make static
-      if: ${{ !cancelled() }}
 
   authgear-image:
     runs-on: ubuntu-18.04
