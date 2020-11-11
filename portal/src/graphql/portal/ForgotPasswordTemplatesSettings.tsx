@@ -1,16 +1,22 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import cn from "classnames";
 import deepEqual from "deep-equal";
 import { Label } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "@oursky/react-messageformat";
 
 import CodeEditor from "../../CodeEditor";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import { ModifiedIndicatorPortal } from "../../ModifiedIndicatorPortal";
-import { AppTemplatesUpdater } from "./mutations/updateAppTemplatesMutation";
 import {
-  ForgotPasswordMessageTemplates,
+  AppTemplatesUpdater,
+  UpdateAppTemplatesData,
+} from "./mutations/updateAppTemplatesMutation";
+import {
+  getLocalizedTemplatePath,
+  setUpdateTemplatesData,
+  TemplateLocale,
+  TemplateMap,
   TEMPLATE_FORGOT_PASSWORD_EMAIL_HTML,
   TEMPLATE_FORGOT_PASSWORD_EMAIL_TEXT,
   TEMPLATE_FORGOT_PASSWORD_SMS_TEXT,
@@ -20,8 +26,9 @@ import styles from "./ForgotPasswordTemplatesSettings.module.scss";
 
 interface ForgotPasswordTemplatesSettingsProps {
   className?: string;
-  templates: Record<ForgotPasswordMessageTemplateKeys, string>;
-  updateTemplates: AppTemplatesUpdater<ForgotPasswordMessageTemplateKeys>;
+  templates: Record<string, string>;
+  templateLocale: TemplateLocale;
+  updateTemplates: AppTemplatesUpdater;
   updatingTemplates: boolean;
   resetForm: () => void;
 }
@@ -32,44 +39,67 @@ interface ForgotPasswordTemplatesSettingsState {
   smsTemplate: string;
 }
 
-type ForgotPasswordMessageTemplateKeys = typeof ForgotPasswordMessageTemplates[number];
-
 function constructStateFromTemplates(
-  templates: Record<ForgotPasswordMessageTemplateKeys, string>
+  templates: TemplateMap,
+  templateLocale: TemplateLocale
 ): ForgotPasswordTemplatesSettingsState {
   return {
-    emailHtmlTemplate: templates[TEMPLATE_FORGOT_PASSWORD_EMAIL_HTML],
-    emailPlainTextTemplate: templates[TEMPLATE_FORGOT_PASSWORD_EMAIL_TEXT],
-    smsTemplate: templates[TEMPLATE_FORGOT_PASSWORD_SMS_TEXT],
+    emailHtmlTemplate:
+      templates[
+        getLocalizedTemplatePath(
+          templateLocale,
+          TEMPLATE_FORGOT_PASSWORD_EMAIL_HTML
+        )
+      ],
+    emailPlainTextTemplate:
+      templates[
+        getLocalizedTemplatePath(
+          templateLocale,
+          TEMPLATE_FORGOT_PASSWORD_EMAIL_TEXT
+        )
+      ],
+    smsTemplate:
+      templates[
+        getLocalizedTemplatePath(
+          templateLocale,
+          TEMPLATE_FORGOT_PASSWORD_SMS_TEXT
+        )
+      ],
   };
 }
 
 function constructUpdateTemplatesDataFromState(
+  templateLocale: TemplateLocale,
   initialScreenState: ForgotPasswordTemplatesSettingsState,
   screenState: ForgotPasswordTemplatesSettingsState
-): Partial<Record<ForgotPasswordMessageTemplateKeys, string | null>> {
-  const updateTemplatesData: Partial<Record<
-    ForgotPasswordMessageTemplateKeys,
-    string | null
-  >> = {};
+): UpdateAppTemplatesData {
+  const updateTemplatesData: UpdateAppTemplatesData = {};
   if (screenState.emailHtmlTemplate !== initialScreenState.emailHtmlTemplate) {
-    updateTemplatesData[TEMPLATE_FORGOT_PASSWORD_EMAIL_HTML] =
-      screenState.emailHtmlTemplate !== ""
-        ? screenState.emailHtmlTemplate
-        : null;
+    setUpdateTemplatesData(
+      updateTemplatesData,
+      TEMPLATE_FORGOT_PASSWORD_EMAIL_HTML,
+      templateLocale,
+      screenState.emailHtmlTemplate
+    );
   }
   if (
     screenState.emailPlainTextTemplate !==
     initialScreenState.emailPlainTextTemplate
   ) {
-    updateTemplatesData[TEMPLATE_FORGOT_PASSWORD_EMAIL_TEXT] =
-      screenState.emailPlainTextTemplate !== ""
-        ? screenState.emailPlainTextTemplate
-        : null;
+    setUpdateTemplatesData(
+      updateTemplatesData,
+      TEMPLATE_FORGOT_PASSWORD_EMAIL_TEXT,
+      templateLocale,
+      screenState.emailPlainTextTemplate
+    );
   }
   if (screenState.smsTemplate !== initialScreenState.smsTemplate) {
-    updateTemplatesData[TEMPLATE_FORGOT_PASSWORD_SMS_TEXT] =
-      screenState.smsTemplate !== "" ? screenState.smsTemplate : null;
+    setUpdateTemplatesData(
+      updateTemplatesData,
+      TEMPLATE_FORGOT_PASSWORD_SMS_TEXT,
+      templateLocale,
+      screenState.smsTemplate
+    );
   }
 
   return updateTemplatesData;
@@ -81,16 +111,15 @@ const ForgotPasswordTemplatesSettings: React.FC<ForgotPasswordTemplatesSettingsP
   const {
     className,
     templates,
+    templateLocale,
     updateTemplates,
     updatingTemplates,
     resetForm,
   } = props;
 
-  const { renderToString } = useContext(Context);
-
   const initialState = useMemo(() => {
-    return constructStateFromTemplates(templates);
-  }, [templates]);
+    return constructStateFromTemplates(templates, templateLocale);
+  }, [templates, templateLocale]);
 
   const [state, setState] = useState(initialState);
 
@@ -140,13 +169,14 @@ const ForgotPasswordTemplatesSettings: React.FC<ForgotPasswordTemplatesSettingsP
       ev.stopPropagation();
 
       const updateTemplatesData = constructUpdateTemplatesDataFromState(
+        templateLocale,
         initialState,
         state
       );
 
       updateTemplates(updateTemplatesData).catch(() => {});
     },
-    [initialState, state, updateTemplates]
+    [templateLocale, initialState, state, updateTemplates]
   );
 
   return (

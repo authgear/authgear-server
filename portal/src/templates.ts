@@ -1,39 +1,86 @@
-// TODO(localizaton): allow localizing templates
+import { UpdateAppTemplatesData } from "./graphql/portal/mutations/updateAppTemplatesMutation";
+
+export const TEMPLATE_LOCALES = ["en"] as const;
+export type TemplateLocale = typeof TEMPLATE_LOCALES[number];
+export const DEFAULT_TEMPLATE_LOCALE: TemplateLocale = "en";
+export type TemplateMap = Record<string, string>;
 
 export const TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_HTML =
-  "templates/en/messages/setup_primary_oob_email.html";
+  "templates/{{locale}}/messages/setup_primary_oob_email.html";
 export const TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_TEXT =
-  "templates/en/messages/setup_primary_oob_email.txt";
+  "templates/{{locale}}/messages/setup_primary_oob_email.txt";
 export const TEMPLATE_SETUP_PRIMARY_OOB_SMS_TEXT =
-  "templates/en/messages/setup_primary_oob_sms.txt";
-export const SetupPrimaryOOBMessageTemplates = [
+  "templates/{{locale}}/messages/setup_primary_oob_sms.txt";
+export const SetupPrimaryOOBMessageTemplatePaths = [
   TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_HTML,
   TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_TEXT,
   TEMPLATE_SETUP_PRIMARY_OOB_SMS_TEXT,
 ] as const;
+export type SetupPrimaryOOBMessageTemplateKeys = typeof SetupPrimaryOOBMessageTemplatePaths[number];
 
 export const TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML =
-  "templates/en/messages/authenticate_primary_oob_email.html";
+  "templates/{{locale}}/messages/authenticate_primary_oob_email.html";
 export const TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TEXT =
-  "templates/en/messages/authenticate_primary_oob_email.txt";
+  "templates/{{locale}}/messages/authenticate_primary_oob_email.txt";
 export const TEMPLATE_AUTHENTICATE_PRIMARY_OOB_SMS_TEXT =
-  "templates/en/messages/authenticate_primary_oob_sms.txt";
-export const AuthenticatePrimaryOOBMessageTemplates = [
+  "templates/{{locale}}/messages/authenticate_primary_oob_sms.txt";
+export const AuthenticatePrimaryOOBMessageTemplatePaths = [
   TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML,
   TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TEXT,
   TEMPLATE_AUTHENTICATE_PRIMARY_OOB_SMS_TEXT,
 ] as const;
+export type AuthenticatePrimaryOOBMessageTemplateKeys = typeof AuthenticatePrimaryOOBMessageTemplatePaths[number];
 
 export const TEMPLATE_FORGOT_PASSWORD_EMAIL_HTML =
-  "templates/en/messages/forgot_password_email.html";
+  "templates/{{locale}}/messages/forgot_password_email.html";
 export const TEMPLATE_FORGOT_PASSWORD_EMAIL_TEXT =
-  "templates/en/messages/forgot_password_email.txt";
+  "templates/{{locale}}/messages/forgot_password_email.txt";
 export const TEMPLATE_FORGOT_PASSWORD_SMS_TEXT =
-  "templates/en/messages/forgot_password_sms.txt";
-export const ForgotPasswordMessageTemplates = [
+  "templates/{{locale}}/messages/forgot_password_sms.txt";
+export const ForgotPasswordMessageTemplatePaths = [
   TEMPLATE_FORGOT_PASSWORD_EMAIL_HTML,
   TEMPLATE_FORGOT_PASSWORD_EMAIL_TEXT,
   TEMPLATE_FORGOT_PASSWORD_SMS_TEXT,
 ] as const;
+export type ForgotPasswordMessageTemplateKeys = typeof ForgotPasswordMessageTemplatePaths[number];
+
+export type PathTemplate =
+  | SetupPrimaryOOBMessageTemplateKeys
+  | AuthenticatePrimaryOOBMessageTemplateKeys
+  | ForgotPasswordMessageTemplateKeys;
+
+function applyArgumentOnTemplateString(
+  argument: string,
+  template: string,
+  value: string
+): string {
+  return template.replace(new RegExp(`{{[ ]*${argument}[ ]*}}`, "g"), value);
+}
+
+export function renderTemplateString(
+  values: Record<string, string>,
+  template: string
+): string {
+  return Object.entries(values).reduce((result, [key, value]) => {
+    return applyArgumentOnTemplateString(key, result, value);
+  }, template);
+}
+
+export function getLocalizedTemplatePath(
+  locale: TemplateLocale,
+  pathTemplate: PathTemplate
+): string {
+  return renderTemplateString({ locale }, pathTemplate);
+}
+
+export function setUpdateTemplatesData(
+  templateUpdates: UpdateAppTemplatesData,
+  pathTemplate: PathTemplate,
+  templateLocale: TemplateLocale,
+  templateValue: string
+): void {
+  templateUpdates[getLocalizedTemplatePath(templateLocale, pathTemplate)] =
+    templateValue !== "" ? templateValue : null;
+}
 
 export const STATIC_AUTHGEAR_CSS = "static/authgear.css";

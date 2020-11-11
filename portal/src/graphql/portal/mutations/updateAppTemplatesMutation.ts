@@ -1,4 +1,4 @@
-import React from "react";
+import { useCallback } from "react";
 import { gql } from "@apollo/client";
 
 import { useGraphqlMutation } from "../../../hook/graphql";
@@ -9,6 +9,11 @@ import {
   UpdateAppTemplatesMutationVariables,
 } from "./__generated__/UpdateAppTemplatesMutation";
 import { PortalAPIApp } from "../../../types";
+import {
+  getLocalizedTemplatePath,
+  PathTemplate,
+  TemplateLocale,
+} from "../../../templates";
 
 const updateAppTemplatesMutation = gql`
   mutation UpdateAppTemplatesMutation(
@@ -28,19 +33,18 @@ const updateAppTemplatesMutation = gql`
   }
 `;
 
-export type UpdateAppTemplatesData<TemplatePath extends string> = {
-  [path in TemplatePath]?: string | null;
-};
+export type UpdateAppTemplatesData = Partial<Record<string, string | null>>;
 
-export type AppTemplatesUpdater<TemplatePath extends string> = (
-  updateTemplates: UpdateAppTemplatesData<TemplatePath>
+export type AppTemplatesUpdater = (
+  updateTemplates: UpdateAppTemplatesData
 ) => Promise<PortalAPIApp | null>;
 
-export function useUpdateAppTemplatesMutation<TemplatePath extends string>(
+export function useUpdateAppTemplatesMutation(
   appID: string,
-  ...paths: TemplatePath[]
+  locale: TemplateLocale,
+  ...pathTemplates: PathTemplate[]
 ): {
-  updateAppTemplates: AppTemplatesUpdater<TemplatePath>;
+  updateAppTemplates: AppTemplatesUpdater;
   loading: boolean;
   error: unknown;
   resetError: () => void;
@@ -49,15 +53,22 @@ export function useUpdateAppTemplatesMutation<TemplatePath extends string>(
     UpdateAppTemplatesMutation,
     UpdateAppTemplatesMutationVariables
   >(updateAppTemplatesMutation, { client });
-  const updateAppTemplates = React.useCallback(
-    async (updateTemplates: { [path in TemplatePath]?: string | null }) => {
+  const updateAppTemplates = useCallback(
+    async (updateTemplates: UpdateAppTemplatesData) => {
       const updates: AppResourceUpdate[] = [];
       for (const [path, data] of Object.entries(updateTemplates)) {
         if (data === undefined) {
           continue;
         }
-        updates.push({ path, data: data as string | null });
+        updates.push({
+          path,
+          data,
+        });
       }
+
+      const paths = pathTemplates.map((pathTemplate) =>
+        getLocalizedTemplatePath(locale, pathTemplate)
+      );
 
       const result = await mutationFunction({
         variables: {
@@ -68,7 +79,7 @@ export function useUpdateAppTemplatesMutation<TemplatePath extends string>(
       });
       return result.data?.updateAppResources.app ?? null;
     },
-    [appID, mutationFunction, paths]
+    [appID, mutationFunction, locale, pathTemplates]
   );
   return { updateAppTemplates, error, loading, resetError };
 }

@@ -3,14 +3,19 @@ import { FormattedMessage } from "@oursky/react-messageformat";
 import { Label } from "@fluentui/react";
 import deepEqual from "deep-equal";
 
-import { AppTemplatesUpdater } from "./mutations/updateAppTemplatesMutation";
+import {
+  AppTemplatesUpdater,
+  UpdateAppTemplatesData,
+} from "./mutations/updateAppTemplatesMutation";
 import CodeEditor from "../../CodeEditor";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import { ModifiedIndicatorPortal } from "../../ModifiedIndicatorPortal";
 import {
-  SetupPrimaryOOBMessageTemplates,
-  AuthenticatePrimaryOOBMessageTemplates,
+  TemplateLocale,
+  TemplateMap,
+  getLocalizedTemplatePath,
+  setUpdateTemplatesData,
   TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML,
   TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TEXT,
   TEMPLATE_AUTHENTICATE_PRIMARY_OOB_SMS_TEXT,
@@ -20,10 +25,6 @@ import {
 } from "../../templates";
 
 import styles from "./PasswordlessAuthenticatorTemplatesSettings.module.scss";
-
-type PrimaryOOBMessageTemplateKeys =
-  | typeof SetupPrimaryOOBMessageTemplates[number]
-  | typeof AuthenticatePrimaryOOBMessageTemplates[number];
 
 interface PasswordlessAuthenticatorTemplatesState {
   setupEmailHtmlTemplate: string;
@@ -35,31 +36,144 @@ interface PasswordlessAuthenticatorTemplatesState {
 }
 
 interface PasswordlessAuthenticatorTemplatesSettingsProps {
-  templates: Record<PrimaryOOBMessageTemplateKeys, string>;
-  updateTemplates: AppTemplatesUpdater<PrimaryOOBMessageTemplateKeys>;
+  templates: TemplateMap;
+  templateLocale: TemplateLocale;
+  updateTemplates: AppTemplatesUpdater;
   updatingTemplates: boolean;
   resetForm: () => void;
+}
+
+function constructStateFromTemplates(
+  templates: TemplateMap,
+  templateLocale: TemplateLocale
+): PasswordlessAuthenticatorTemplatesState {
+  return {
+    setupEmailHtmlTemplate:
+      templates[
+        getLocalizedTemplatePath(
+          templateLocale,
+          TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_HTML
+        )
+      ],
+    setupEmailPlainTextTemplate:
+      templates[
+        getLocalizedTemplatePath(
+          templateLocale,
+          TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_TEXT
+        )
+      ],
+    setupSmsTemplate:
+      templates[
+        getLocalizedTemplatePath(
+          templateLocale,
+          TEMPLATE_SETUP_PRIMARY_OOB_SMS_TEXT
+        )
+      ],
+    authenticateEmailHtmlTemplate:
+      templates[
+        getLocalizedTemplatePath(
+          templateLocale,
+          TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML
+        )
+      ],
+    authenticateEmailPlainTextTemplate:
+      templates[
+        getLocalizedTemplatePath(
+          templateLocale,
+          TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TEXT
+        )
+      ],
+    authenticateSmsTemplate:
+      templates[
+        getLocalizedTemplatePath(
+          templateLocale,
+          TEMPLATE_AUTHENTICATE_PRIMARY_OOB_SMS_TEXT
+        )
+      ],
+  };
+}
+
+function constructUpdateTemplatesDataFromState(
+  templateLocale: TemplateLocale,
+  initialState: PasswordlessAuthenticatorTemplatesState,
+  state: PasswordlessAuthenticatorTemplatesState
+): UpdateAppTemplatesData {
+  const templateUpdates: Partial<Record<string, string | null>> = {};
+  if (state.setupEmailHtmlTemplate !== initialState.setupEmailHtmlTemplate) {
+    setUpdateTemplatesData(
+      templateUpdates,
+      TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_HTML,
+      templateLocale,
+      state.setupEmailHtmlTemplate
+    );
+  }
+  if (
+    state.setupEmailPlainTextTemplate !==
+    initialState.setupEmailPlainTextTemplate
+  ) {
+    setUpdateTemplatesData(
+      templateUpdates,
+      TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_TEXT,
+      templateLocale,
+      state.setupEmailPlainTextTemplate
+    );
+  }
+  if (state.setupSmsTemplate !== initialState.setupSmsTemplate) {
+    setUpdateTemplatesData(
+      templateUpdates,
+      TEMPLATE_SETUP_PRIMARY_OOB_SMS_TEXT,
+      templateLocale,
+      state.setupSmsTemplate
+    );
+  }
+  if (
+    state.authenticateEmailHtmlTemplate !==
+    initialState.authenticateEmailHtmlTemplate
+  ) {
+    setUpdateTemplatesData(
+      templateUpdates,
+      TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML,
+      templateLocale,
+      state.authenticateEmailHtmlTemplate
+    );
+  }
+  if (
+    state.authenticateEmailPlainTextTemplate !==
+    initialState.authenticateEmailPlainTextTemplate
+  ) {
+    setUpdateTemplatesData(
+      templateUpdates,
+      TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TEXT,
+      templateLocale,
+      state.authenticateEmailPlainTextTemplate
+    );
+  }
+  if (state.authenticateSmsTemplate !== initialState.authenticateSmsTemplate) {
+    setUpdateTemplatesData(
+      templateUpdates,
+      TEMPLATE_AUTHENTICATE_PRIMARY_OOB_SMS_TEXT,
+      templateLocale,
+      state.authenticateSmsTemplate
+    );
+  }
+
+  return templateUpdates;
 }
 
 const PasswordlessAuthenticatorTemplatesSettings: React.FC<PasswordlessAuthenticatorTemplatesSettingsProps> = function PasswordlessAuthenticatorTemplatesSettings(
   props: PasswordlessAuthenticatorTemplatesSettingsProps
 ) {
-  const { templates, updateTemplates, updatingTemplates, resetForm } = props;
+  const {
+    templates,
+    templateLocale,
+    updateTemplates,
+    updatingTemplates,
+    resetForm,
+  } = props;
 
   const initialState: PasswordlessAuthenticatorTemplatesState = useMemo(() => {
-    return {
-      setupEmailHtmlTemplate: templates[TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_HTML],
-      setupEmailPlainTextTemplate:
-        templates[TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_TEXT],
-      setupSmsTemplate: templates[TEMPLATE_SETUP_PRIMARY_OOB_SMS_TEXT],
-      authenticateEmailHtmlTemplate:
-        templates[TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML],
-      authenticateEmailPlainTextTemplate:
-        templates[TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TEXT],
-      authenticateSmsTemplate:
-        templates[TEMPLATE_AUTHENTICATE_PRIMARY_OOB_SMS_TEXT],
-    };
-  }, [templates]);
+    return constructStateFromTemplates(templates, templateLocale);
+  }, [templates, templateLocale]);
 
   const [state, setState] = useState<PasswordlessAuthenticatorTemplatesState>(
     initialState
@@ -144,63 +258,23 @@ const PasswordlessAuthenticatorTemplatesSettings: React.FC<PasswordlessAuthentic
     []
   );
 
-  // eslint-disable-next-line complexity
-  const onSaveButtonClicked = useCallback(() => {
-    const updates: Partial<Record<
-      PrimaryOOBMessageTemplateKeys,
-      string | null
-    >> = {};
-    if (state.setupEmailHtmlTemplate !== initialState.setupEmailHtmlTemplate) {
-      updates[TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_HTML] =
-        state.setupEmailHtmlTemplate !== ""
-          ? state.setupEmailHtmlTemplate
-          : null;
-    }
-    if (
-      state.setupEmailPlainTextTemplate !==
-      initialState.setupEmailPlainTextTemplate
-    ) {
-      updates[TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_TEXT] =
-        state.setupEmailPlainTextTemplate !== ""
-          ? state.setupEmailPlainTextTemplate
-          : null;
-    }
-    if (state.setupSmsTemplate !== initialState.setupSmsTemplate) {
-      updates[TEMPLATE_SETUP_PRIMARY_OOB_SMS_TEXT] =
-        state.setupSmsTemplate !== "" ? state.setupSmsTemplate : null;
-    }
-    if (
-      state.authenticateEmailHtmlTemplate !==
-      initialState.authenticateEmailHtmlTemplate
-    ) {
-      updates[TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML] =
-        state.authenticateEmailHtmlTemplate !== ""
-          ? state.authenticateEmailHtmlTemplate
-          : null;
-    }
-    if (
-      state.authenticateEmailPlainTextTemplate !==
-      initialState.authenticateEmailPlainTextTemplate
-    ) {
-      updates[TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TEXT] =
-        state.authenticateEmailPlainTextTemplate !== ""
-          ? state.authenticateEmailPlainTextTemplate
-          : null;
-    }
-    if (
-      state.authenticateSmsTemplate !== initialState.authenticateSmsTemplate
-    ) {
-      updates[TEMPLATE_AUTHENTICATE_PRIMARY_OOB_SMS_TEXT] =
-        state.authenticateSmsTemplate !== ""
-          ? state.authenticateSmsTemplate
-          : null;
-    }
-
-    updateTemplates(updates).catch(() => {});
-  }, [state, initialState, updateTemplates]);
+  const onFormSubmit = useCallback(() => {
+    const templateUpdates = constructUpdateTemplatesDataFromState(
+      templateLocale,
+      initialState,
+      state
+    );
+    updateTemplates(templateUpdates).catch(() => {});
+  }, [templateLocale, state, initialState, updateTemplates]);
 
   return (
-    <div className={styles.form}>
+    <form className={styles.form} onSubmit={onFormSubmit}>
+      <NavigationBlockerDialog blockNavigation={isFormModified} />
+      <ModifiedIndicatorPortal
+        resetForm={resetForm}
+        isModified={isFormModified}
+      />
+
       <Label className={styles.boldLabel}>
         <FormattedMessage id="PasswordlessAuthenticatorTemplatesSettings.first-time-setup.label" />
       </Label>
@@ -272,19 +346,12 @@ const PasswordlessAuthenticatorTemplatesSettings: React.FC<PasswordlessAuthentic
       <div className={styles.saveButtonContainer}>
         <ButtonWithLoading
           disabled={!isFormModified}
-          onClick={onSaveButtonClicked}
           loading={updatingTemplates}
           labelId="save"
           loadingLabelId="saving"
         />
       </div>
-
-      <NavigationBlockerDialog blockNavigation={isFormModified} />
-      <ModifiedIndicatorPortal
-        resetForm={resetForm}
-        isModified={isFormModified}
-      />
-    </div>
+    </form>
   );
 };
 
