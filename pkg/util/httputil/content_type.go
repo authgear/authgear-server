@@ -20,7 +20,8 @@ func CheckContentType(raws []string) httproute.MiddlewareFunc {
 
 	return httproute.MiddlewareFunc(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.Body == nil {
+			// For some reason, body is not nil when the request is GET or HEAD.
+			if r.Method == "GET" || r.Method == "HEAD" || r.Body == nil {
 				// Content-Type is irrelevant without body.
 				next.ServeHTTP(w, r)
 				return

@@ -10,7 +10,7 @@ import (
 type DefaultTemplateLanguage string
 
 type ResourceManager interface {
-	Read(desc resource.Descriptor, args map[string]interface{}) (*resource.MergedFile, error)
+	Read(desc resource.Descriptor, view resource.View) (interface{}, error)
 }
 
 type Resolver struct {
@@ -19,52 +19,37 @@ type Resolver struct {
 }
 
 func (r *Resolver) ResolveHTML(desc *HTML, preferredLanguages []string) (*htmltemplate.Template, error) {
-	file, err := r.Resources.Read(desc, map[string]interface{}{
-		ResourceArgPreferredLanguageTag: preferredLanguages,
-		ResourceArgDefaultLanguageTag:   string(r.DefaultLanguageTag),
+	resrc, err := r.Resources.Read(desc, resource.EffectiveResource{
+		PreferredTags: preferredLanguages,
+		DefaultTag:    string(r.DefaultLanguageTag),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	tpl, err := desc.Parse(file)
-	if err != nil {
-		return nil, err
-	}
-
-	return tpl.(*htmltemplate.Template), nil
+	return resrc.(*htmltemplate.Template), nil
 }
 
 func (r *Resolver) ResolvePlainText(desc *PlainText, preferredLanguages []string) (*texttemplate.Template, error) {
-	file, err := r.Resources.Read(desc, map[string]interface{}{
-		ResourceArgPreferredLanguageTag: preferredLanguages,
-		ResourceArgDefaultLanguageTag:   string(r.DefaultLanguageTag),
+	resrc, err := r.Resources.Read(desc, resource.EffectiveResource{
+		PreferredTags: preferredLanguages,
+		DefaultTag:    string(r.DefaultLanguageTag),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	tpl, err := desc.Parse(file)
-	if err != nil {
-		return nil, err
-	}
-
-	return tpl.(*texttemplate.Template), nil
+	return resrc.(*texttemplate.Template), nil
 }
 
 func (r *Resolver) ResolveTranslations(preferredLanguages []string) (map[string]Translation, error) {
-	file, err := r.Resources.Read(TranslationJSON, map[string]interface{}{
-		ResourceArgPreferredLanguageTag: preferredLanguages,
-		ResourceArgDefaultLanguageTag:   string(r.DefaultLanguageTag),
+	resrc, err := r.Resources.Read(TranslationJSON, resource.EffectiveResource{
+		PreferredTags: preferredLanguages,
+		DefaultTag:    string(r.DefaultLanguageTag),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	ts, err := TranslationJSON.Parse(file)
-	if err != nil {
-		return nil, err
-	}
-
-	return ts.(map[string]Translation), nil
+	return resrc.(map[string]Translation), nil
 }

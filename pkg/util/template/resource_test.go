@@ -1,6 +1,8 @@
 package template_test
 
 import (
+	htmltemplate "html/template"
+	"strings"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -11,7 +13,7 @@ import (
 )
 
 func TestTemplateResource(t *testing.T) {
-	Convey("PlainText", t, func() {
+	Convey("HTML EffectiveResource", t, func() {
 		fsA := afero.NewMemMapFs()
 		fsB := afero.NewMemMapFs()
 		r := &resource.Registry{}
@@ -23,8 +25,8 @@ func TestTemplateResource(t *testing.T) {
 		txt := &template.HTML{Name: "resource.txt"}
 		r.Register(txt)
 
-		args := map[string]interface{}{
-			template.ResourceArgDefaultLanguageTag: "en",
+		view := resource.EffectiveResource{
+			DefaultTag: "en",
 		}
 
 		writeFile := func(fs afero.Fs, lang string, data string) {
@@ -32,12 +34,21 @@ func TestTemplateResource(t *testing.T) {
 			_ = afero.WriteFile(fs, "templates/"+lang+"/resource.txt", []byte(data), 0666)
 		}
 
-		read := func() (string, error) {
-			merged, err := manager.Read(txt, args)
+		read := func() (str string, err error) {
+			result, err := manager.Read(txt, view)
 			if err != nil {
-				return "", err
+				return
 			}
-			return string(merged.Data), nil
+
+			tpl := result.(*htmltemplate.Template)
+			var out strings.Builder
+			err = tpl.Execute(&out, nil)
+			if err != nil {
+				return
+			}
+
+			str = out.String()
+			return
 		}
 
 		Convey("it should return single resource", func() {
@@ -57,12 +68,12 @@ func TestTemplateResource(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, "en in fs A")
 
-			args[template.ResourceArgPreferredLanguageTag] = []string{"en"}
+			view.PreferredTags = []string{"en"}
 			data, err = read()
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, "en in fs A")
 
-			args[template.ResourceArgPreferredLanguageTag] = []string{"zh"}
+			view.PreferredTags = []string{"zh"}
 			data, err = read()
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, "zh in fs A")
@@ -76,15 +87,144 @@ func TestTemplateResource(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, "default in fs A")
 
-			args[template.ResourceArgPreferredLanguageTag] = []string{"en"}
+			view.PreferredTags = []string{"en"}
 			data, err = read()
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, "default in fs A")
 
-			args[template.ResourceArgPreferredLanguageTag] = []string{"zh"}
+			view.PreferredTags = []string{"zh"}
 			data, err = read()
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, "zh in fs B")
+		})
+	})
+
+	Convey("HTML EffectiveFile", t, func() {
+		fsA := afero.NewMemMapFs()
+		fsB := afero.NewMemMapFs()
+		r := &resource.Registry{}
+		manager := resource.NewManager(r, []resource.Fs{
+			resource.AferoFs{Fs: fsA},
+			resource.AferoFs{Fs: fsB},
+		})
+
+		txt := &template.HTML{Name: "resource.txt"}
+		r.Register(txt)
+
+		writeFile := func(fs afero.Fs, lang string, data string) {
+			_ = fs.MkdirAll("templates/"+lang, 0777)
+			_ = afero.WriteFile(fs, "templates/"+lang+"/resource.txt", []byte(data), 0666)
+		}
+
+		read := func(lang string) (str string, err error) {
+			view := resource.EffectiveFile{
+				Path:       "templates/" + lang + "/resource.txt",
+				DefaultTag: "en",
+			}
+			result, err := manager.Read(txt, view)
+			if err != nil {
+				return
+			}
+
+			str = string(result.([]byte))
+			return
+		}
+
+		Convey("it should return single resource", func() {
+			writeFile(fsA, "__default__", "default in fs A")
+
+			data, err := read("__default__")
+			So(err, ShouldBeNil)
+			So(data, ShouldEqual, "default in fs A")
+
+			data, err = read("en")
+			So(err, ShouldBeNil)
+			So(data, ShouldEqual, "default in fs A")
+
+			_, err = read("zh")
+			So(err, ShouldBeError, "specified resource is not configured")
+		})
+
+		Convey("it should return resource with preferred language", func() {
+			writeFile(fsA, "en", "en in fs A")
+			writeFile(fsA, "zh", "zh in fs A")
+			writeFile(fsA, "__default__", "default in fs A")
+
+			data, err := read("en")
+			So(err, ShouldBeNil)
+			So(data, ShouldEqual, "en in fs A")
+
+			data, err = read("zh")
+			So(err, ShouldBeNil)
+			So(data, ShouldEqual, "zh in fs A")
+		})
+
+		Convey("it should combine resources in different FS", func() {
+			writeFile(fsB, "zh", "zh in fs B")
+			writeFile(fsA, "__default__", "default in fs A")
+
+			data, err := read("en")
+			So(err, ShouldBeNil)
+			So(data, ShouldEqual, "default in fs A")
+
+			data, err = read("zh")
+			So(err, ShouldBeNil)
+			So(data, ShouldEqual, "zh in fs B")
+		})
+	})
+
+	Convey("HTML AppFile", t, func() {
+		fsA := afero.NewMemMapFs()
+		fsB := afero.NewMemMapFs()
+		r := &resource.Registry{}
+		manager := resource.NewManager(r, []resource.Fs{
+			resource.AferoFs{Fs: fsA},
+			resource.AferoFs{Fs: fsB, IsAppFs: true},
+		})
+
+		txt := &template.HTML{Name: "resource.txt"}
+		r.Register(txt)
+
+		writeFile := func(fs afero.Fs, lang string, data string) {
+			_ = fs.MkdirAll("templates/"+lang, 0777)
+			_ = afero.WriteFile(fs, "templates/"+lang+"/resource.txt", []byte(data), 0666)
+		}
+
+		read := func(lang string) (str string, err error) {
+			view := resource.AppFile{
+				Path: "templates/" + lang + "/resource.txt",
+			}
+			result, err := manager.Read(txt, view)
+			if err != nil {
+				return
+			}
+
+			str = string(result.([]byte))
+			return
+		}
+
+		Convey("not found", func() {
+			writeFile(fsA, "__default__", "default in fs A")
+
+			_, err := read("__default__")
+			So(err, ShouldBeError, "specified resource is not configured")
+		})
+
+		Convey("found", func() {
+			writeFile(fsB, "__default__", "default in fs B")
+
+			data, err := read("__default__")
+			So(err, ShouldBeNil)
+			So(data, ShouldEqual, "default in fs B")
+		})
+
+		Convey("it should return resource in app FS", func() {
+			writeFile(fsA, "__default__", "default in fs A")
+			writeFile(fsB, "__default__", "default in fs B")
+
+			data, err := read("__default__")
+			So(err, ShouldBeNil)
+			So(data, ShouldEqual, "default in fs B")
 		})
 	})
 }

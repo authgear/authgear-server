@@ -39,22 +39,19 @@ func (f *TypeCheckerFactory) NewChecker(loginIDKeyType config.LoginIDKeyType) Ty
 			Config: f.Config.Types.Username,
 		}
 
-		rawData, err := f.Resources.Read(ReservedNameTXT, nil)
+		var list *blocklist.Blocklist
+		result, err := f.Resources.Read(ReservedNameTXT, resource.EffectiveResource{})
 		if errors.Is(err, resource.ErrResourceNotFound) {
 			// No reserved usernames
-			rawData = &resource.MergedFile{Data: nil}
+			list = &blocklist.Blocklist{}
 		} else if err != nil {
 			checker.Error = err
 			return checker
+		} else {
+			list = result.(*blocklist.Blocklist)
 		}
 
-		list, err := ReservedNameTXT.Parse(rawData)
-		if err != nil {
-			checker.Error = err
-			return checker
-		}
-
-		checker.ReservedNames = list.(*blocklist.Blocklist)
+		checker.ReservedNames = list
 		return checker
 	case config.LoginIDKeyTypePhone:
 		return &PhoneChecker{}

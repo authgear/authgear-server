@@ -9,31 +9,25 @@ import (
 )
 
 func LoadConfig(res *resource.Manager) (*config.Config, error) {
-	appConfigFile, err := res.Read(AppConfig, nil)
+	result, err := res.Read(AppConfig, resource.EffectiveResource{})
 	if errors.Is(err, resource.ErrResourceNotFound) {
 		return nil, fmt.Errorf("missing '%s': %w", AuthgearYAML, err)
 	} else if err != nil {
 		return nil, err
 	}
-	appConfig, err := AppConfig.Parse(appConfigFile)
-	if err != nil {
-		return nil, err
-	}
+	appConfig := result.(*config.AppConfig)
 
-	secretConfigFile, err := res.Read(SecretConfig, nil)
+	result, err = res.Read(SecretConfig, resource.EffectiveResource{})
 	if errors.Is(err, resource.ErrResourceNotFound) {
 		return nil, fmt.Errorf("missing '%s': %w", AuthgearSecretYAML, err)
 	} else if err != nil {
 		return nil, err
 	}
-	secretConfig, err := SecretConfig.Parse(secretConfigFile)
-	if err != nil {
-		return nil, err
-	}
+	secretConfig := result.(*config.SecretConfig)
 
 	cfg := &config.Config{
-		AppConfig:    appConfig.(*config.AppConfig),
-		SecretConfig: secretConfig.(*config.SecretConfig),
+		AppConfig:    appConfig,
+		SecretConfig: secretConfig,
 	}
 	if err = cfg.SecretConfig.Validate(cfg.AppConfig); err != nil {
 		return nil, fmt.Errorf("invalid secret config: %w", err)

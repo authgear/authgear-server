@@ -33,6 +33,7 @@ func (c *Controller) Start() {
 		&cfg.Database,
 		&cfg.SMTP,
 		&cfg.Mail,
+		cfg.App.SecretKeyAllowlist,
 	)
 	if err != nil {
 		golog.Fatalf("failed to setup server: %s", err)

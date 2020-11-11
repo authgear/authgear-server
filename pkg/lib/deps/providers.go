@@ -64,7 +64,11 @@ func NewRootProvider(
 		DatabasePool:       dbPool,
 		RedisPool:          redisPool,
 		TaskQueueFactory:   taskQueueFactory,
-		BaseResources:      NewResourceManager(builtinResourceDirectory, customResourceDirectory),
+		BaseResources: resource.NewManagerWithDir(
+			resource.DefaultRegistry,
+			builtinResourceDirectory,
+			customResourceDirectory,
+		),
 	}
 	return &p, nil
 }

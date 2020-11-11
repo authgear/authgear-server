@@ -6,13 +6,12 @@ import (
 )
 
 type ResourceManager interface {
-	Read(desc resource.Descriptor, args map[string]interface{}) (*resource.MergedFile, error)
+	Read(desc resource.Descriptor, view resource.View) (interface{}, error)
 }
 
-var ReservedNameTXT = resource.RegisterResource(resource.JoinedFile{
-	Name:      "reserved_name.txt",
-	Separator: []byte("\n"),
-	ParseFn: func(data []byte) (interface{}, error) {
+var ReservedNameTXT = resource.RegisterResource(resource.NewlineJoinedDescriptor{
+	Path: "reserved_name.txt",
+	Parse: func(data []byte) (interface{}, error) {
 		return blocklist.New(string(data))
 	},
 })

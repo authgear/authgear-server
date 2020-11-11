@@ -38,7 +38,7 @@ func (s *LocalFS) Open() error {
 	}
 
 	s.Fs = afero.NewBasePathFs(afero.NewOsFs(), dir)
-	appFs := &resource.AferoFs{Fs: s.Fs}
+	appFs := &resource.AferoFs{Fs: s.Fs, IsAppFs: true}
 
 	resources := s.BaseResources.Overlay(appFs)
 	cfg, err := LoadConfig(resources)

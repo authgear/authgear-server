@@ -47,16 +47,16 @@ var nodeApp = node(
 							return nil, err
 						}
 					}
-					resources, err := resources.Load(app.Context.Resources, paths...)
+					descriptedPaths, err := resources.AssociateDescriptor(app.Context.Resources, paths...)
 					if err != nil {
 						return nil, err
 					}
 
 					var appRes []*model.AppResource
-					for _, r := range resources {
+					for _, p := range descriptedPaths {
 						appRes = append(appRes, &model.AppResource{
-							Context:  app.Context,
-							Resource: r,
+							Context:        app.Context,
+							DescriptedPath: p,
 						})
 					}
 					return appRes, nil
@@ -65,15 +65,17 @@ var nodeApp = node(
 			"rawAppConfig": &graphql.Field{
 				Type: graphql.NewNonNull(AppConfig),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					ctx := GQLContext(p.Context)
 					app := p.Source.(*model.App)
-					return app.LoadRawAppConfig()
+					return ctx.AppService.LoadRawAppConfig(app)
 				},
 			},
 			"rawSecretConfig": &graphql.Field{
 				Type: graphql.NewNonNull(SecretConfig),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					ctx := GQLContext(p.Context)
 					app := p.Source.(*model.App)
-					return app.LoadRawSecretConfig()
+					return ctx.AppService.LoadRawSecretConfig(app)
 				},
 			},
 			"effectiveAppConfig": &graphql.Field{

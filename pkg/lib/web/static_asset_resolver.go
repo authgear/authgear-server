@@ -12,10 +12,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
-const ResourceArgPreferredLanguageTag = "preferred_language_tag"
-const ResourceArgDefaultLanguageTag = "default_language_tag"
-const ResourceArgRequestedPath = "requested_path"
-
 var StaticAssetResources = map[string]resource.Descriptor{
 	"web-js":             WebJS,
 	"password-policy-js": PasswordPolicyJS,
@@ -25,7 +21,7 @@ var StaticAssetResources = map[string]resource.Descriptor{
 }
 
 type ResourceManager interface {
-	Read(desc resource.Descriptor, args map[string]interface{}) (*resource.MergedFile, error)
+	Read(desc resource.Descriptor, view resource.View) (interface{}, error)
 }
 
 type StaticAssetResolver struct {
@@ -43,29 +39,18 @@ func (r *StaticAssetResolver) StaticAssetURL(id string) (string, error) {
 	}
 
 	preferredLanguageTags := intl.GetPreferredLanguageTags(r.Context)
-	merged, err := r.Resources.Read(desc, map[string]interface{}{
-		ResourceArgPreferredLanguageTag: preferredLanguageTags,
-		ResourceArgDefaultLanguageTag:   r.Localization.FallbackLanguage,
+	result, err := r.Resources.Read(desc, resource.EffectiveResource{
+		PreferredTags: preferredLanguageTags,
+		DefaultTag:    r.Localization.FallbackLanguage,
 	})
 	if err != nil {
 		return "", err
 	}
-	asset, err := desc.Parse(merged)
-	if err != nil {
-		return "", err
-	}
 
-	assetPath := strings.TrimPrefix(asset.(*StaticAsset).Path, StaticAssetResourcePrefix)
-	origin, err := url.Parse(r.Config.PublicOrigin)
-	if err != nil {
-		return "", err
-	}
-	u, err := origin.Parse(string(r.StaticAssetsPrefix))
-	if err != nil {
-		return "", err
-	}
-	u.Path = path.Join(u.Path, assetPath)
-	return u.String(), nil
+	asset := result.(*StaticAsset)
+	assetPath := strings.TrimPrefix(asset.Path, StaticAssetResourcePrefix)
+
+	return staticAssetURL(r.Config.PublicOrigin, string(r.StaticAssetsPrefix), assetPath)
 }
 
 func staticAssetURL(origin string, prefix string, assetPath string) (string, error) {

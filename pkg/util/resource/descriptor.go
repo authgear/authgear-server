@@ -2,102 +2,152 @@ package resource
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 )
 
-const (
-	// ArgMergeRaw indicates the merged data should be in same format of raw data
-	ArgMergeRaw = "merge_raw"
-)
-
-type LayerFile struct {
+type Location struct {
+	Fs   Fs
 	Path string
-	Data []byte
 }
 
-type MergedFile struct {
-	Args map[string]interface{}
-	Data []byte
+// nolint: golint
+type ResourceFile struct {
+	Location Location
+	Data     []byte
 }
 
 type Descriptor interface {
-	ReadResource(fs Fs) ([]LayerFile, error)
 	MatchResource(path string) bool
-	Merge(layers []LayerFile, args map[string]interface{}) (*MergedFile, error)
-	Parse(merged *MergedFile) (interface{}, error)
+	FindResources(fs Fs) ([]Location, error)
+	ViewResources(resources []ResourceFile, view View) (interface{}, error)
+	UpdateResource(resource *ResourceFile, data []byte, view View) (*ResourceFile, error)
 }
 
-type SimpleFile struct {
-	Name    string
-	MergeFn func(layers []LayerFile) ([]byte, error)
-	ParseFn func(data []byte) (interface{}, error)
+// SimpleDescriptor does not support view.
+type SimpleDescriptor struct {
+	Path string
 }
 
-func (f SimpleFile) ReadResource(fs Fs) ([]LayerFile, error) {
-	data, err := ReadFile(fs, f.Name)
+var _ Descriptor = SimpleDescriptor{}
+
+func (d SimpleDescriptor) MatchResource(path string) bool {
+	return d.Path == path
+}
+
+func (d SimpleDescriptor) FindResources(fs Fs) ([]Location, error) {
+	location := Location{
+		Fs:   fs,
+		Path: d.Path,
+	}
+	_, err := ReadLocation(location)
 	if os.IsNotExist(err) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
 	}
-	return []LayerFile{{Path: f.Name, Data: data}}, nil
+	return []Location{location}, nil
 }
 
-func (f SimpleFile) MatchResource(path string) bool {
-	return path == f.Name
+func (d SimpleDescriptor) ViewResources(resources []ResourceFile, rawView View) (interface{}, error) {
+	switch rawView.(type) {
+	case AppFileView:
+		var appResources []ResourceFile
+		for _, resrc := range resources {
+			if resrc.Location.Fs.AppFs() {
+				s := resrc
+				appResources = append(appResources, s)
+			}
+		}
+		return d.viewResources(appResources)
+	case EffectiveFileView:
+		return d.viewResources(resources)
+	case EffectiveResourceView:
+		return d.viewResources(resources)
+	default:
+		return nil, fmt.Errorf("unsupported view: %T", rawView)
+	}
 }
 
-func (f SimpleFile) Merge(layers []LayerFile, args map[string]interface{}) (*MergedFile, error) {
-	if f.MergeFn != nil {
-		data, err := f.MergeFn(layers)
+func (d SimpleDescriptor) viewResources(resources []ResourceFile) (interface{}, error) {
+	if len(resources) == 0 {
+		return nil, ErrResourceNotFound
+	}
+	last := resources[len(resources)-1]
+	return last.Data, nil
+}
+
+func (d SimpleDescriptor) UpdateResource(resource *ResourceFile, data []byte, _ View) (*ResourceFile, error) {
+	return &ResourceFile{
+		Location: resource.Location,
+		Data:     data,
+	}, nil
+}
+
+type NewlineJoinedDescriptor struct {
+	Path  string
+	Parse func([]byte) (interface{}, error)
+}
+
+var _ Descriptor = NewlineJoinedDescriptor{}
+
+func (d NewlineJoinedDescriptor) MatchResource(path string) bool {
+	return d.Path == path
+}
+
+func (d NewlineJoinedDescriptor) FindResources(fs Fs) ([]Location, error) {
+	location := Location{
+		Fs:   fs,
+		Path: d.Path,
+	}
+	_, err := ReadLocation(location)
+	if os.IsNotExist(err) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+	return []Location{location}, nil
+}
+
+func (d NewlineJoinedDescriptor) ViewResources(resources []ResourceFile, rawView View) (interface{}, error) {
+	switch rawView.(type) {
+	case AppFileView:
+		var appResources []ResourceFile
+		for _, resrc := range resources {
+			if resrc.Location.Fs.AppFs() {
+				s := resrc
+				appResources = append(appResources, s)
+			}
+		}
+		return d.viewResources(appResources)
+	case EffectiveFileView:
+		return d.viewResources(resources)
+	case EffectiveResourceView:
+		bytes, err := d.viewResources(resources)
 		if err != nil {
 			return nil, err
 		}
-		return &MergedFile{Data: data}, nil
+		if d.Parse == nil {
+			return bytes, nil
+		}
+		return d.Parse(bytes)
+	default:
+		return nil, fmt.Errorf("unsupported view: %T", rawView)
 	}
-	file := layers[len(layers)-1]
-	return &MergedFile{Data: file.Data}, nil
 }
 
-func (f SimpleFile) Parse(merged *MergedFile) (interface{}, error) {
-	if f.ParseFn == nil {
-		return merged.Data, nil
+func (d NewlineJoinedDescriptor) viewResources(resources []ResourceFile) ([]byte, error) {
+	output := bytes.Buffer{}
+	for _, resrc := range resources {
+		output.Write(resrc.Data)
+		output.WriteString("\n")
 	}
-	return f.ParseFn(merged.Data)
+	return output.Bytes(), nil
 }
 
-type JoinedFile struct {
-	Name      string
-	Separator []byte
-	ParseFn   func(data []byte) (interface{}, error)
-}
-
-func (f JoinedFile) ReadResource(fs Fs) ([]LayerFile, error) {
-	data, err := ReadFile(fs, f.Name)
-	if os.IsNotExist(err) {
-		return nil, nil
-	} else if err != nil {
-		return nil, err
-	}
-	return []LayerFile{{Path: f.Name, Data: data}}, nil
-}
-
-func (f JoinedFile) MatchResource(path string) bool {
-	return path == f.Name
-}
-
-func (f JoinedFile) Merge(layers []LayerFile, args map[string]interface{}) (*MergedFile, error) {
-	var data [][]byte
-	for _, layer := range layers {
-		data = append(data, layer.Data)
-	}
-	mergedData := bytes.Join(data, f.Separator)
-	return &MergedFile{Data: mergedData}, nil
-}
-
-func (f JoinedFile) Parse(merged *MergedFile) (interface{}, error) {
-	if f.ParseFn == nil {
-		return merged.Data, nil
-	}
-	return f.ParseFn(merged.Data)
+func (d NewlineJoinedDescriptor) UpdateResource(resource *ResourceFile, data []byte, _ View) (*ResourceFile, error) {
+	return &ResourceFile{
+		Location: resource.Location,
+		Data:     data,
+	}, nil
 }

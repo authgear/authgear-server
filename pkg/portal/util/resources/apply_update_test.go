@@ -13,8 +13,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
-func TestValidate(t *testing.T) {
-	Convey("Validate", t, func() {
+func TestApplyUpdates(t *testing.T) {
+	Convey("ApplyUpdates", t, func() {
 		appID := "app-id"
 		cfg := &config.Config{
 			AppConfig:    configtest.FixtureAppConfig("app-id"),
@@ -30,8 +30,14 @@ func TestValidate(t *testing.T) {
 			baseResourceFs,
 			appResourceFs,
 		})
-		validate := func(updates []resources.Update) error {
-			return resources.Validate(appID, appResourceFs, resMgr, updates)
+		allowlist := []string{
+			"admin-api.auth",
+			"webhook",
+			"sso.oauth.client",
+		}
+		applyUpdates := func(updates []resources.Update) error {
+			_, err := resources.ApplyUpdates(appID, appResourceFs, resMgr, allowlist, updates)
+			return err
 		}
 
 		func() {
@@ -42,25 +48,13 @@ func TestValidate(t *testing.T) {
 		}()
 
 		Convey("validate new config without crash", func() {
-			appConfigYAML, err := yaml.Marshal(cfg.AppConfig)
-			So(err, ShouldBeNil)
-			secretConfigYAML, err := yaml.Marshal(cfg.SecretConfig)
-			So(err, ShouldBeNil)
-
-			err = validate([]resources.Update{
-				{Path: "authgear.yaml", Data: appConfigYAML},
-				{Path: "authgear.secrets.yaml", Data: secretConfigYAML},
-			})
-			So(err, ShouldBeNil)
-		})
-
-		Convey("accept empty updates", func() {
-			err := validate(nil)
+			// We do not use updates to create new config.
+			err := applyUpdates(nil)
 			So(err, ShouldBeNil)
 		})
 
 		Convey("validate file size", func() {
-			err := validate([]resources.Update{{
+			err := applyUpdates([]resources.Update{{
 				Path: "authgear.yaml",
 				Data: []byte("id: " + string(make([]byte, 1024*1024))),
 			}})
@@ -68,60 +62,91 @@ func TestValidate(t *testing.T) {
 		})
 
 		Convey("validate configuration YAML", func() {
-			err := validate([]resources.Update{{
+			err := applyUpdates([]resources.Update{{
 				Path: "authgear.yaml",
 				Data: []byte("{}"),
 			}})
-			So(err, ShouldBeError, `invalid resource 'authgear.yaml': cannot parse app config: invalid configuration:
+			So(err, ShouldBeError, `invalid resource: cannot parse app config: invalid configuration:
 <root>: required
   map[actual:<nil> expected:[http id] missing:[http id]]`)
 
-			err = validate([]resources.Update{{
+			err = applyUpdates([]resources.Update{{
 				Path: "authgear.yaml",
 				Data: []byte("id: test\nhttp:\n  public_origin: \"http://test\""),
 			}})
 			So(err, ShouldBeError, `invalid resource 'authgear.yaml': incorrect app ID`)
 
-			err = validate([]resources.Update{{
+		})
+
+		Convey("forbid deleting required items in secrets", func() {
+			err := applyUpdates([]resources.Update{{
 				Path: "authgear.secrets.yaml",
 				Data: []byte("{}"),
 			}})
-			So(err, ShouldBeError, `invalid resource 'authgear.secrets.yaml': cannot parse secret config: invalid secrets:
-<root>: required
-  map[actual:<nil> expected:[secrets] missing:[secrets]]`)
+			So(err, ShouldBeError, `invalid secret config: invalid secrets:
+<root>: admin API auth key materials (secret 'admin-api.auth') is required`)
+
+		})
+
+		Convey("forbid updating secrets no in the allowlist", func() {
+			newSecretConfig := configtest.FixtureSecretConfig(1)
+			bytes, err := yaml.Marshal(newSecretConfig)
+			So(err, ShouldBeNil)
+
+			err = applyUpdates([]resources.Update{{
+				Path: "authgear.secrets.yaml",
+				Data: bytes,
+			}})
+			So(err, ShouldBeError, "'db' in secret config is not allowed")
+		})
+
+		Convey("allow updating secrets", func() {
+			newSecretConfig := configtest.FixtureSecretConfig(1)
+
+			// Remove keys that are not in the allowlist
+			allowmap := make(map[string]struct{})
+			for _, key := range allowlist {
+				allowmap[key] = struct{}{}
+			}
+			var secrets []config.SecretItem
+			for _, secretItem := range newSecretConfig.Secrets {
+				_, allowed := allowmap[string(secretItem.Key)]
+				if allowed {
+					secrets = append(secrets, secretItem)
+				}
+			}
+			newSecretConfig.Secrets = secrets
+
+			bytes, err := yaml.Marshal(newSecretConfig)
+			So(err, ShouldBeNil)
+
+			err = applyUpdates([]resources.Update{{
+				Path: "authgear.secrets.yaml",
+				Data: bytes,
+			}})
+			So(err, ShouldBeNil)
 		})
 
 		Convey("forbid deleting configuration YAML", func() {
-			err := validate([]resources.Update{{
+			err := applyUpdates([]resources.Update{{
 				Path: "authgear.yaml",
 				Data: nil,
 			}})
-			So(err, ShouldBeError, "missing 'authgear.yaml': specified resource is not configured")
+			So(err, ShouldBeError, "cannot delete 'authgear.yaml'")
 
-			err = validate([]resources.Update{{
+			err = applyUpdates([]resources.Update{{
 				Path: "authgear.secrets.yaml",
 				Data: nil,
 			}})
-			So(err, ShouldBeError, "missing 'authgear.secrets.yaml': specified resource is not configured")
+			So(err, ShouldBeError, "cannot delete 'authgear.secrets.yaml'")
 		})
 
 		Convey("forbid unknown resource files", func() {
-			err := validate([]resources.Update{{
+			err := applyUpdates([]resources.Update{{
 				Path: "unknown.txt",
 				Data: nil,
 			}})
 			So(err, ShouldBeError, `invalid resource 'unknown.txt': unknown resource path`)
-		})
-
-		Convey("forbid overriding base secrets", func() {
-			secretConfigYAML, _ := yaml.Marshal(cfg.SecretConfig)
-			_ = afero.WriteFile(baseFs, "authgear.secrets.yaml", secretConfigYAML, 0666)
-
-			err := validate([]resources.Update{{
-				Path: "authgear.secrets.yaml",
-				Data: []byte("secrets: [{data: {redis_url: redis://localhost}, key: redis}]"),
-			}})
-			So(err, ShouldBeError, `invalid resource 'authgear.secrets.yaml': cannot override secret 'redis' defined in base config`)
 		})
 	})
 }

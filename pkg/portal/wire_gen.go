@@ -117,6 +117,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	appConfig := rootProvider.AppConfig
+	secretKeyAllowlist := rootProvider.SecretKeyAllowlist
 	configServiceLogger := service.NewConfigServiceLogger(factory)
 	configService := &service.ConfigService{
 		Context:      context,
@@ -187,16 +188,17 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	appBaseResources := deps.ProvideAppBaseResources(rootProvider)
 	appService := &service.AppService{
-		Logger:           appServiceLogger,
-		SQLBuilder:       sqlBuilder,
-		SQLExecutor:      sqlExecutor,
-		AppConfig:        appConfig,
-		AppConfigs:       configService,
-		AppAuthz:         authzService,
-		AppAdminAPI:      adminAPIService,
-		AppDomains:       domainService,
-		Resources:        manager,
-		AppBaseResources: appBaseResources,
+		Logger:             appServiceLogger,
+		SQLBuilder:         sqlBuilder,
+		SQLExecutor:        sqlExecutor,
+		AppConfig:          appConfig,
+		SecretKeyAllowlist: secretKeyAllowlist,
+		AppConfigs:         configService,
+		AppAuthz:           authzService,
+		AppAdminAPI:        adminAPIService,
+		AppDomains:         domainService,
+		Resources:          manager,
+		AppBaseResources:   appBaseResources,
 	}
 	appLoader := loader.NewAppLoader(appService, authzService)
 	domainLoader := loader.NewDomainLoader(domainService, authzService)
@@ -213,6 +215,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppService:              appService,
 		DomainService:           domainService,
 		CollaboratorService:     collaboratorService,
+		SecretKeyAllowlist:      secretKeyAllowlist,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		DevMode:        devMode,

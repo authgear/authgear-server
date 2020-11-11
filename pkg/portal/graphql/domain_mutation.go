@@ -169,7 +169,7 @@ var _ = registerMutationField(
 )
 
 func deleteDomainUpdatePublicOrigin(ctx *Context, app *model.App, deletedDomain string, defaultDomain string) error {
-	rawAppConf, err := app.LoadRawAppConfig()
+	rawAppConf, err := ctx.AppService.LoadRawAppConfig(app)
 	if err != nil {
 		return err
 	}

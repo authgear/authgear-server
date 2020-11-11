@@ -25,10 +25,12 @@ type File interface {
 type Fs interface {
 	Open(name string) (File, error)
 	Stat(name string) (os.FileInfo, error)
+	AppFs() bool
 }
 
 type AferoFs struct {
-	Fs afero.Fs
+	Fs      afero.Fs
+	IsAppFs bool
 }
 
 func (f AferoFs) Open(name string) (File, error) {
@@ -38,18 +40,20 @@ func (f AferoFs) Open(name string) (File, error) {
 func (f AferoFs) Stat(name string) (os.FileInfo, error) {
 	return f.Fs.Stat(name)
 }
+func (f AferoFs) AppFs() bool {
+	return f.IsAppFs
+}
 
-func ReadFile(fs Fs, path string) ([]byte, error) {
-	file, err := fs.Open(path)
+func ReadLocation(location Location) ([]byte, error) {
+	file, err := location.Fs.Open(location.Path)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
-
 	return ioutil.ReadAll(file)
 }
 
-func ReadDirNames(fs Fs, dir string) ([]string, error) {
+func readDirNames(fs Fs, dir string) ([]string, error) {
 	f, err := fs.Open(dir)
 	if err != nil {
 		return nil, err
@@ -59,12 +63,11 @@ func ReadDirNames(fs Fs, dir string) ([]string, error) {
 	return f.Readdirnames(0)
 }
 
-func ListFiles(fs Fs) ([]string, error) {
-	var paths []string
-
+func EnumerateAllLocations(fs Fs) ([]Location, error) {
+	var locations []Location
 	var list func(dir string) error
 	list = func(dir string) error {
-		files, err := ReadDirNames(fs, dir)
+		files, err := readDirNames(fs, dir)
 		if err != nil {
 			return err
 		}
@@ -82,7 +85,10 @@ func ListFiles(fs Fs) ([]string, error) {
 				}
 				continue
 			}
-			paths = append(paths, p)
+			locations = append(locations, Location{
+				Fs:   fs,
+				Path: p,
+			})
 		}
 		return nil
 	}
@@ -91,5 +97,5 @@ func ListFiles(fs Fs) ([]string, error) {
 		return nil, err
 	}
 
-	return paths, nil
+	return locations, nil
 }

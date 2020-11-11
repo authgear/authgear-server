@@ -8,18 +8,19 @@ import (
 )
 
 func List(r *resource.Manager) ([]string, error) {
+	// Find the union all known paths in all FSs.
 	filePaths := make(map[string]struct{})
 	for _, fs := range r.Fs {
-		paths, err := resource.ListFiles(fs)
+		locations, err := resource.EnumerateAllLocations(fs)
 		if err != nil {
 			return nil, err
 		}
-		for _, p := range paths {
-			filePaths[p] = struct{}{}
+		for _, location := range locations {
+			filePaths[location.Path] = struct{}{}
 		}
 	}
 
-	// Filter out non-resource file paths in case of local FS
+	// Omit paths that are not resources.
 	for p := range filePaths {
 		found := false
 		for _, desc := range r.Registry.Descriptors {
@@ -29,7 +30,6 @@ func List(r *resource.Manager) ([]string, error) {
 			found = true
 			break
 		}
-
 		if !found {
 			delete(filePaths, p)
 		}
@@ -44,32 +44,20 @@ func List(r *resource.Manager) ([]string, error) {
 	return paths, nil
 }
 
-type Resource struct {
+type DescriptedPath struct {
 	Descriptor resource.Descriptor
 	Path       string
-	Files      []File
 }
 
-type File struct {
-	Fs   resource.Fs
-	Data []byte
-}
-
-func Load(r *resource.Manager, paths ...string) ([]Resource, error) {
-	type matchedResource struct {
-		Path       string
-		Descriptor resource.Descriptor
-	}
-
-	// Match input path with corresponding resource descriptors
-	var matches []matchedResource
+func AssociateDescriptor(r *resource.Manager, paths ...string) ([]DescriptedPath, error) {
+	var matches []DescriptedPath
 	for _, p := range paths {
 		found := false
 		for _, desc := range r.Registry.Descriptors {
 			if !desc.MatchResource(p) {
 				continue
 			}
-			matches = append(matches, matchedResource{
+			matches = append(matches, DescriptedPath{
 				Path:       p,
 				Descriptor: desc,
 			})
@@ -80,31 +68,5 @@ func Load(r *resource.Manager, paths ...string) ([]Resource, error) {
 			return nil, apierrors.NewInvalid("unknown resource: " + p)
 		}
 	}
-
-	// Load resource file layers for each match
-	var resources []Resource
-	for _, match := range matches {
-		var files []File
-		for _, fs := range r.Fs {
-			layers, err := match.Descriptor.ReadResource(fs)
-			if err != nil {
-				return nil, err
-			}
-
-			for _, l := range layers {
-				if l.Path != match.Path {
-					continue
-				}
-				files = append(files, File{Fs: fs, Data: l.Data})
-			}
-		}
-
-		resources = append(resources, Resource{
-			Descriptor: match.Descriptor,
-			Path:       match.Path,
-			Files:      files,
-		})
-	}
-
-	return resources, nil
+	return matches, nil
 }

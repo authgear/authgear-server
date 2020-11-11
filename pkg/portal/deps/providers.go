@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/db"
+	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/resource"
@@ -31,6 +32,8 @@ type RootProvider struct {
 	ConfigSourceController *configsource.Controller
 	Resources              *resource.Manager
 	AppBaseResources       *resource.Manager
+
+	SecretKeyAllowlist portalconfig.SecretKeyAllowlist
 }
 
 func NewRootProvider(
@@ -46,6 +49,7 @@ func NewRootProvider(
 	dbConfig *portalconfig.DatabaseConfig,
 	smtpConfig *portalconfig.SMTPConfig,
 	mailConfig *portalconfig.MailConfig,
+	secretKeyAllowlist portalconfig.SecretKeyAllowlist,
 ) (*RootProvider, error) {
 	logLevel, err := log.ParseLevel(cfg.LogLevel)
 	if err != nil {
@@ -75,8 +79,17 @@ func NewRootProvider(
 		LoggerFactory:      loggerFactory,
 		SentryHub:          sentryHub,
 		Database:           db.NewPool(dbConfig),
-		Resources:          NewResourceManager(builtinResourceDirectory, customResourceDirectory),
-		AppBaseResources:   NewResourceManager(appBuiltinResourceDirectory, appCustomResourceDirectory),
+		Resources: resource.NewManagerWithDir(
+			portalresource.PortalRegistry,
+			builtinResourceDirectory,
+			customResourceDirectory,
+		),
+		AppBaseResources: resource.NewManagerWithDir(
+			resource.DefaultRegistry,
+			appBuiltinResourceDirectory,
+			appCustomResourceDirectory,
+		),
+		SecretKeyAllowlist: secretKeyAllowlist,
 	}, nil
 }
 
