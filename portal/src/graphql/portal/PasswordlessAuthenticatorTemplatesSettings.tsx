@@ -1,27 +1,13 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { FormattedMessage } from "@oursky/react-messageformat";
-import { Label, Text } from "@fluentui/react";
-import { useParams } from "react-router-dom";
-import cn from "classnames";
+import { Label } from "@fluentui/react";
 import deepEqual from "deep-equal";
 
-import {
-  AppTemplatesUpdater,
-  UpdateAppTemplatesData,
-  useUpdateAppTemplatesMutation,
-} from "./mutations/updateAppTemplatesMutation";
-import { useAppTemplatesQuery } from "./query/appTemplatesQuery";
-import ShowError from "../../ShowError";
-import ShowLoading from "../../ShowLoading";
+import { AppTemplatesUpdater } from "./mutations/updateAppTemplatesMutation";
 import CodeEditor from "../../CodeEditor";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
-import {
-  ModifiedIndicatorPortal,
-  ModifiedIndicatorWrapper,
-} from "../../ModifiedIndicatorPortal";
-
-import styles from "./PasswordlessAuthenticatorScreen.module.scss";
+import { ModifiedIndicatorPortal } from "../../ModifiedIndicatorPortal";
 import {
   SetupPrimaryOOBMessageTemplates,
   AuthenticatePrimaryOOBMessageTemplates,
@@ -33,11 +19,13 @@ import {
   TEMPLATE_SETUP_PRIMARY_OOB_SMS_TEXT,
 } from "../../templates";
 
-type PrimaryOOBMessageTemplates =
+import styles from "./PasswordlessAuthenticatorTemplatesSettings.module.scss";
+
+type PrimaryOOBMessageTemplateKeys =
   | typeof SetupPrimaryOOBMessageTemplates[number]
   | typeof AuthenticatePrimaryOOBMessageTemplates[number];
 
-interface PasswordlessAuthenticatorScreenState {
+interface PasswordlessAuthenticatorTemplatesState {
   setupEmailHtmlTemplate: string;
   setupEmailPlainTextTemplate: string;
   setupSmsTemplate: string;
@@ -46,19 +34,19 @@ interface PasswordlessAuthenticatorScreenState {
   authenticateSmsTemplate: string;
 }
 
-interface PasswordlessAuthenticatorProps {
-  templates: Record<PrimaryOOBMessageTemplates, string>;
-  updateTemplates: AppTemplatesUpdater<PrimaryOOBMessageTemplates>;
-  isUpdatingTemplates: boolean;
+interface PasswordlessAuthenticatorTemplatesSettingsProps {
+  templates: Record<PrimaryOOBMessageTemplateKeys, string>;
+  updateTemplates: AppTemplatesUpdater<PrimaryOOBMessageTemplateKeys>;
+  updatingTemplates: boolean;
   resetForm: () => void;
 }
 
-const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = function PasswordlessAuthenticator(
-  props: PasswordlessAuthenticatorProps
+const PasswordlessAuthenticatorTemplatesSettings: React.FC<PasswordlessAuthenticatorTemplatesSettingsProps> = function PasswordlessAuthenticatorTemplatesSettings(
+  props: PasswordlessAuthenticatorTemplatesSettingsProps
 ) {
-  const { templates, updateTemplates, isUpdatingTemplates, resetForm } = props;
+  const { templates, updateTemplates, updatingTemplates, resetForm } = props;
 
-  const initialState: PasswordlessAuthenticatorScreenState = useMemo(() => {
+  const initialState: PasswordlessAuthenticatorTemplatesState = useMemo(() => {
     return {
       setupEmailHtmlTemplate: templates[TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_HTML],
       setupEmailPlainTextTemplate:
@@ -73,7 +61,7 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
     };
   }, [templates]);
 
-  const [state, setState] = useState<PasswordlessAuthenticatorScreenState>(
+  const [state, setState] = useState<PasswordlessAuthenticatorTemplatesState>(
     initialState
   );
 
@@ -159,7 +147,7 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
   // eslint-disable-next-line complexity
   const onSaveButtonClicked = useCallback(() => {
     const updates: Partial<Record<
-      PrimaryOOBMessageTemplates,
+      PrimaryOOBMessageTemplateKeys,
       string | null
     >> = {};
     if (state.setupEmailHtmlTemplate !== initialState.setupEmailHtmlTemplate) {
@@ -214,11 +202,11 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
   return (
     <div className={styles.form}>
       <Label className={styles.boldLabel}>
-        <FormattedMessage id="PasswordlessAuthenticatorScreen.first-time-setup.label" />
+        <FormattedMessage id="PasswordlessAuthenticatorTemplatesSettings.first-time-setup.label" />
       </Label>
 
       <Label className={styles.label}>
-        <FormattedMessage id="PasswordlessAuthenticatorScreen.first-time-setup.html-email.label" />
+        <FormattedMessage id="PasswordlessAuthenticatorTemplatesSettings.first-time-setup.html-email.label" />
       </Label>
       <CodeEditor
         className={styles.htmlCodeEditor}
@@ -228,7 +216,7 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
       />
 
       <Label className={styles.label}>
-        <FormattedMessage id="PasswordlessAuthenticatorScreen.first-time-setup.plaintext-email.label" />
+        <FormattedMessage id="PasswordlessAuthenticatorTemplatesSettings.first-time-setup.plaintext-email.label" />
       </Label>
       <CodeEditor
         className={styles.plainTextCodeEditor}
@@ -238,7 +226,7 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
       />
 
       <Label className={styles.label}>
-        <FormattedMessage id="PasswordlessAuthenticatorScreen.first-time-setup.sms-body.label" />
+        <FormattedMessage id="PasswordlessAuthenticatorTemplatesSettings.first-time-setup.sms-body.label" />
       </Label>
       <CodeEditor
         className={styles.plainTextCodeEditor}
@@ -248,11 +236,11 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
       />
 
       <Label className={styles.boldLabel}>
-        <FormattedMessage id="PasswordlessAuthenticatorScreen.subsequent-logins.label" />
+        <FormattedMessage id="PasswordlessAuthenticatorTemplatesSettings.subsequent-logins.label" />
       </Label>
 
       <Label className={styles.label}>
-        <FormattedMessage id="PasswordlessAuthenticatorScreen.subsequent-logins.html-email.label" />
+        <FormattedMessage id="PasswordlessAuthenticatorTemplatesSettings.subsequent-logins.html-email.label" />
       </Label>
       <CodeEditor
         className={styles.htmlCodeEditor}
@@ -262,7 +250,7 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
       />
 
       <Label className={styles.label}>
-        <FormattedMessage id="PasswordlessAuthenticatorScreen.subsequent-logins.plaintext-email.label" />
+        <FormattedMessage id="PasswordlessAuthenticatorTemplatesSettings.subsequent-logins.plaintext-email.label" />
       </Label>
       <CodeEditor
         className={styles.plainTextCodeEditor}
@@ -272,7 +260,7 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
       />
 
       <Label className={styles.label}>
-        <FormattedMessage id="PasswordlessAuthenticatorScreen.subsequent-logins.sms-body.label" />
+        <FormattedMessage id="PasswordlessAuthenticatorTemplatesSettings.subsequent-logins.sms-body.label" />
       </Label>
       <CodeEditor
         className={styles.plainTextCodeEditor}
@@ -285,7 +273,7 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
         <ButtonWithLoading
           disabled={!isFormModified}
           onClick={onSaveButtonClicked}
-          loading={isUpdatingTemplates}
+          loading={updatingTemplates}
           labelId="save"
           loadingLabelId="saving"
         />
@@ -300,78 +288,4 @@ const PasswordlessAuthenticator: React.FC<PasswordlessAuthenticatorProps> = func
   );
 };
 
-const PasswordlessAuthenticatorScreen: React.FC = function PasswordlessAuthenticatorScreen() {
-  const { appID } = useParams();
-
-  const [remountIdentifier, setRemountIdentifier] = useState(0);
-
-  const {
-    updateAppTemplates,
-    loading: isUpdatingTemplates,
-    error: updateTemplatesError,
-    resetError: resetUpdateTemplateError,
-  } = useUpdateAppTemplatesMutation<PrimaryOOBMessageTemplates>(
-    appID,
-    ...SetupPrimaryOOBMessageTemplates,
-    ...AuthenticatePrimaryOOBMessageTemplates
-  );
-
-  const {
-    templates,
-    loading: isLoadingTemplates,
-    error: loadTemplatesError,
-    refetch: refetchTemplates,
-  } = useAppTemplatesQuery<PrimaryOOBMessageTemplates>(
-    appID,
-    ...SetupPrimaryOOBMessageTemplates,
-    ...AuthenticatePrimaryOOBMessageTemplates
-  );
-
-  const updateAppTemplatesAndRemountChildren = useCallback(
-    async (
-      updateTemplatesData: UpdateAppTemplatesData<PrimaryOOBMessageTemplates>
-    ) => {
-      const app = await updateAppTemplates(updateTemplatesData);
-      setRemountIdentifier((prev) => prev + 1);
-      return app;
-    },
-    [updateAppTemplates]
-  );
-
-  const resetForm = useCallback(() => {
-    setRemountIdentifier((prev) => prev + 1);
-    resetUpdateTemplateError();
-  }, [resetUpdateTemplateError]);
-
-  if (isLoadingTemplates) {
-    return <ShowLoading />;
-  }
-
-  if (loadTemplatesError) {
-    return <ShowError error={loadTemplatesError} onRetry={refetchTemplates} />;
-  }
-
-  return (
-    <main
-      className={cn(styles.root, {
-        [styles.loading]: isUpdatingTemplates,
-      })}
-    >
-      {updateTemplatesError && <ShowError error={updateTemplatesError} />}
-      <ModifiedIndicatorWrapper className={styles.content}>
-        <Text as="h1" className={styles.title}>
-          <FormattedMessage id="PasswordlessAuthenticatorScreen.title" />
-        </Text>
-        <PasswordlessAuthenticator
-          key={remountIdentifier}
-          templates={templates}
-          updateTemplates={updateAppTemplatesAndRemountChildren}
-          isUpdatingTemplates={isUpdatingTemplates}
-          resetForm={resetForm}
-        />
-      </ModifiedIndicatorWrapper>
-    </main>
-  );
-};
-
-export default PasswordlessAuthenticatorScreen;
+export default PasswordlessAuthenticatorTemplatesSettings;

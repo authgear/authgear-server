@@ -68,12 +68,6 @@ const ScreenNav: React.FC = function ScreenNav() {
             icon: "PasswordField",
           },
           {
-            key: "passwordlessAuthenticator",
-            name: renderToString("ScreenNav.passwordless-authenticator"),
-            url: "configuration/passwordless-authenticator",
-            icon: "PassiveAuthentication",
-          },
-          {
             key: "UserInterface",
             name: renderToString("ScreenNav.user-interface"),
             url: "configuration/user-interface",
