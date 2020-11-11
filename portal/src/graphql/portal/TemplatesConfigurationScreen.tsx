@@ -16,20 +16,13 @@ import {
 } from "./mutations/updateAppTemplatesMutation";
 import { usePivotNavigation } from "../../hook/usePivot";
 import {
-  AuthenticatePrimaryOOBMessageTemplates,
-  ForgotPasswordMessageTemplates,
-  SetupPrimaryOOBMessageTemplates,
+  AuthenticatePrimaryOOBMessageTemplatePaths,
+  DEFAULT_TEMPLATE_LOCALE,
+  ForgotPasswordMessageTemplatePaths,
+  SetupPrimaryOOBMessageTemplatePaths,
 } from "../../templates";
 
 import styles from "./TemplatesConfigurationScreen.module.scss";
-
-type ForgotPasswordMessageTemplateKeys = typeof ForgotPasswordMessageTemplates[number];
-type PrimaryOOBMessageTemplateKeys =
-  | typeof SetupPrimaryOOBMessageTemplates[number]
-  | typeof AuthenticatePrimaryOOBMessageTemplates[number];
-type TemplateKeys =
-  | ForgotPasswordMessageTemplateKeys
-  | PrimaryOOBMessageTemplateKeys;
 
 const FORGOT_PASSWORD_PIVOT_KEY = "forgot_password";
 const PASSWORDLESS_AUTHENTICATOR_PIVOT_KEY = "passwordless_authenticator";
@@ -39,17 +32,19 @@ const TemplatesConfigurationScreen: React.FC = function TemplatesConfigurationSc
   const { appID } = useParams();
 
   const [remountIdentifier, setRemountIdentifier] = useState(0);
+  const [templateLocale] = useState(DEFAULT_TEMPLATE_LOCALE);
 
   const {
     templates,
     loading: loadingTemplates,
     error: loadTemplatesError,
     refetch: refetchTemplates,
-  } = useAppTemplatesQuery<TemplateKeys>(
+  } = useAppTemplatesQuery(
     appID,
-    ...ForgotPasswordMessageTemplates,
-    ...SetupPrimaryOOBMessageTemplates,
-    ...AuthenticatePrimaryOOBMessageTemplates
+    templateLocale,
+    ...ForgotPasswordMessageTemplatePaths,
+    ...SetupPrimaryOOBMessageTemplatePaths,
+    ...AuthenticatePrimaryOOBMessageTemplatePaths
   );
 
   const {
@@ -57,11 +52,12 @@ const TemplatesConfigurationScreen: React.FC = function TemplatesConfigurationSc
     loading: updatingTemplates,
     error: updateTemplatesError,
     resetError: resetUpdateTemplatesError,
-  } = useUpdateAppTemplatesMutation<TemplateKeys>(
+  } = useUpdateAppTemplatesMutation(
     appID,
-    ...ForgotPasswordMessageTemplates,
-    ...SetupPrimaryOOBMessageTemplates,
-    ...AuthenticatePrimaryOOBMessageTemplates
+    templateLocale,
+    ...ForgotPasswordMessageTemplatePaths,
+    ...SetupPrimaryOOBMessageTemplatePaths,
+    ...AuthenticatePrimaryOOBMessageTemplatePaths
   );
 
   const resetError = useCallback(() => {
@@ -79,7 +75,7 @@ const TemplatesConfigurationScreen: React.FC = function TemplatesConfigurationSc
   );
 
   const updateTemplatesAndRemountChildren = useCallback(
-    async (updateTemplatesData: UpdateAppTemplatesData<TemplateKeys>) => {
+    async (updateTemplatesData: UpdateAppTemplatesData) => {
       const app = await updateAppTemplates(updateTemplatesData);
       setRemountIdentifier((prev) => prev + 1);
       return app;
@@ -116,6 +112,7 @@ const TemplatesConfigurationScreen: React.FC = function TemplatesConfigurationSc
             <ForgotPasswordTemplatesSettings
               key={remountIdentifier}
               templates={templates}
+              templateLocale={templateLocale}
               updateTemplates={updateTemplatesAndRemountChildren}
               updatingTemplates={updatingTemplates}
               resetForm={resetForm}
@@ -130,6 +127,7 @@ const TemplatesConfigurationScreen: React.FC = function TemplatesConfigurationSc
             <PasswordlessAuthenticatorTemplatesSettings
               key={remountIdentifier}
               templates={templates}
+              templateLocale={templateLocale}
               updateTemplates={updateTemplatesAndRemountChildren}
               updatingTemplates={updatingTemplates}
               resetForm={resetForm}
