@@ -40,7 +40,7 @@ func (f *TypeCheckerFactory) NewChecker(loginIDKeyType config.LoginIDKeyType) Ty
 		}
 
 		var list *blocklist.Blocklist
-		result, err := f.Resources.Read(ReservedNameTXT, nil)
+		result, err := f.Resources.Read(ReservedNameTXT, resource.EffectiveResource{})
 		if errors.Is(err, resource.ErrResourceNotFound) {
 			// No reserved usernames
 			list = &blocklist.Blocklist{}

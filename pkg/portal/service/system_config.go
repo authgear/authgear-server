@@ -41,7 +41,7 @@ func (p *SystemConfigProvider) SystemConfig() (*model.SystemConfig, error) {
 }
 
 func (p *SystemConfigProvider) loadJSON(desc resource.Descriptor) (interface{}, error) {
-	result, err := p.Resources.Read(desc, nil)
+	result, err := p.Resources.Read(desc, resource.EffectiveResource{})
 	if errors.Is(err, resource.ErrResourceNotFound) {
 		// Omit the JSON if resource not configured.
 		return nil, nil

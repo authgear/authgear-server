@@ -305,7 +305,7 @@ func (s *AppService) generateConfig(appHost string, appID string) (opts *CreateA
 
 func (s *AppService) validateAppID(appID string) error {
 	var list *blocklist.Blocklist
-	result, err := s.Resources.Read(portalresource.ReservedAppIDTXT, nil)
+	result, err := s.Resources.Read(portalresource.ReservedAppIDTXT, resource.EffectiveResource{})
 	if errors.Is(err, resource.ErrResourceNotFound) {
 		// No reserved usernames
 		list = &blocklist.Blocklist{}
