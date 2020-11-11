@@ -92,6 +92,12 @@ const ScreenNav: React.FC = function ScreenNav() {
             icon: "ServerProcesses",
           },
           {
+            key: "templates",
+            name: renderToString("ScreenNav.templates"),
+            url: "configuration/templates",
+            icon: "WebTemplate",
+          },
+          {
             key: "Settings",
             name: renderToString("ScreenNav.settings"),
             url: "configuration/settings",
