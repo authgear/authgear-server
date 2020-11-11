@@ -35,7 +35,7 @@ var ChangePasswordSchema = validation.NewMultipartSchema("").
 func ConfigureChangePasswordRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/change_password")
+		WithPathPattern("/settings/change_password")
 }
 
 type ChangePasswordHandler struct {

@@ -172,6 +172,7 @@ func (c *Controller) rewindSessionHistory(session *webapp.Session) error {
 	for i := len(session.Steps) - 1; i >= 0; i-- {
 		step := session.Steps[i]
 		if step.GraphID == stepGraphID {
+			session.Steps = session.Steps[:i+1]
 			curStep = &step
 			break
 		}

@@ -1,3 +1,5 @@
+@import "normalize.css";
+
 /* NOTE(1) */
 /* The font-size of focusable elements must be >= 16px otherwise */
 /* Safari iOS will zoom the page. */
@@ -281,8 +283,12 @@ a.btn {
   flex-direction: row;
 }
 
-.back-btn[disabled] {
+.back-btn {
   visibility: hidden;
+}
+
+.js .back-btn {
+  visibility: visible;
 }
 
 .public-signup-disabled-notice {

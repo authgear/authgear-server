@@ -1,7 +1,6 @@
 package webapp
 
 import (
-	"net/http"
 	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -79,23 +78,25 @@ func handleAlternativeSteps(ctrl *Controller) {
 			}
 		}()
 
+		var result *webapp.Result
 		if inputFn == nil {
 			session.Steps = append(session.Steps, webapp.SessionStep{
 				Kind:    stepKind,
 				GraphID: session.CurrentStep().GraphID,
 			})
-			http.Redirect(
-				ctrl.response,
-				ctrl.request,
-				session.CurrentStep().URL().String(),
-				http.StatusFound,
-			)
-			return ctrl.Page.UpdateSession(session)
-		}
-
-		result, err := ctrl.InteractionPost(inputFn)
-		if err != nil {
-			return err
+			if err = ctrl.Page.UpdateSession(session); err != nil {
+				return err
+			}
+			result = &webapp.Result{
+				RedirectURI:      session.CurrentStep().URL().String(),
+				NavigationAction: "replace",
+			}
+		} else {
+			result, err = ctrl.InteractionPost(inputFn)
+			if err != nil {
+				return err
+			}
+			result.NavigationAction = "replace"
 		}
 
 		result.WriteResponse(ctrl.response, ctrl.request)

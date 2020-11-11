@@ -38,6 +38,8 @@
   "error-web-ui-invalid-session-return": "<p>This page is no longer active. Please return to the current page.</p>",
   "error-web-ui-invalid-session-action": "Return",
   "error-rate-limited": "Please wait for a moment before retrying.",
+  "error-network": "There is a problem with the network.",
+  "error-server": "Server encountered an internal error.",
 
   "public-signup-disabled-notice": "Please contact the system administrator for creating new accounts.",
 

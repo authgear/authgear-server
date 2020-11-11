@@ -9,7 +9,6 @@ type SessionStepKind string
 
 const (
 	SessionStepOAuthRedirect       SessionStepKind = "oauth-redirect"
-	SessionStepEnterLoginID        SessionStepKind = "enter-login-id"
 	SessionStepPromoteUser         SessionStepKind = "promote-user"
 	SessionStepAuthenticate        SessionStepKind = "authenticate"
 	SessionStepCreateAuthenticator SessionStepKind = "create-authenticator"
@@ -27,8 +26,6 @@ const (
 
 func (k SessionStepKind) Path() string {
 	switch k {
-	case SessionStepEnterLoginID:
-		return "/enter_login_id"
 	case SessionStepPromoteUser:
 		return "/promote_user"
 	case SessionStepEnterPassword:

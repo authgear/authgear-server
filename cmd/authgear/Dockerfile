@@ -24,8 +24,10 @@ ARG GIT_HASH
 WORKDIR /usr/src/app
 COPY ./scripts/npm/package.json ./scripts/npm/package-lock.json ./scripts/npm/
 RUN cd ./scripts/npm && npm ci
+COPY ./authui/package.json ./authui/package-lock.json ./authui/
+RUN cd ./authui && npm ci
 COPY . .
-RUN make static GIT_HASH=$GIT_HASH
+RUN make authui GIT_HASH=$GIT_HASH
 
 # Stage 3: Prepare the actual fs we use to run the program
 FROM debian:buster-slim
@@ -44,7 +46,7 @@ RUN update-ca-certificates
 COPY ./migrations ./migrations
 COPY --from=stage1 /src/authgear /usr/local/bin/
 COPY ./resources/authgear/ ./resources/authgear/
-COPY --from=stage2 /usr/src/app/dist/ ./resources/authgear/static/
+COPY --from=stage2 /usr/src/app/resources/authgear/static/ ./resources/authgear/static/
 USER nobody
 EXPOSE 3000
 ENV STATIC_ASSET_URL_PREFIX /static

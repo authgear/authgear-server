@@ -1,13 +1,14 @@
 {{ define "__nav_bar.html" }}
 <div class="nav-bar">
+	{{ if not . }}
 	<button
 		class="btn back-btn secondary-btn"
 		type="button"
 		title="{{ template "back-button-title" }}"
-		{{ if . }} disabled {{ end }}
 	>
 		<i class="fas fa-chevron-left" aria-hidden="true"></i>
 		{{ template "back-button-title" }}
 	</button>
+	{{ end }}
 </div>
 {{ end }}

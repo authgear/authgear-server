@@ -55,8 +55,8 @@ func (s *Service2) CreateSession(session *Session, redirectURI string) (*Result,
 		return nil, err
 	}
 	result := &Result{
-		redirectURI: redirectURI,
-		cookies:     []*http.Cookie{s.CookieFactory.ValueCookie(s.SessionCookie.Def, session.ID)},
+		RedirectURI: redirectURI,
+		Cookies:     []*http.Cookie{s.CookieFactory.ValueCookie(s.SessionCookie.Def, session.ID)},
 	}
 	return result, nil
 }
@@ -264,7 +264,7 @@ func (s *Service2) runGraph(
 		var clearCookie *interaction.ErrClearCookie
 		var inputRequired *interaction.ErrInputRequired
 		if errors.As(err, &clearCookie) {
-			result.cookies = append(result.cookies, clearCookie.Cookies...)
+			result.Cookies = append(result.Cookies, clearCookie.Cookies...)
 			graph = newGraph
 			return newGraph, nil
 		} else if errors.As(err, &inputRequired) {
@@ -304,38 +304,39 @@ func (s *Service2) afterPost(
 		if err != nil {
 			return err
 		}
-		result.cookies = append(result.cookies, errCookie)
+		result.Cookies = append(result.Cookies, errCookie)
 	} else if isFinished {
 		// Loop from start to end to collect cookies.
 		// This iteration order allows newer node to overwrite cookies.
 		for _, node := range graph.Nodes {
 			if a, ok := node.(CookiesGetter); ok {
-				result.cookies = append(result.cookies, a.GetCookies()...)
+				result.Cookies = append(result.Cookies, a.GetCookies()...)
 			}
 		}
 	}
 
 	// Transition to redirect URI
 	if isFinished {
-		result.redirectURI = deriveFinishRedirectURI(session, graph)
+		result.RedirectURI = deriveFinishRedirectURI(session, graph)
+		result.NavigationAction = "redirect"
 	} else if interactionErr == nil {
 		if a, ok := graph.CurrentNode().(interface{ GetRedirectURI() string }); ok {
-			result.redirectURI = a.GetRedirectURI()
+			result.RedirectURI = a.GetRedirectURI()
 		} else {
-			result.redirectURI = session.CurrentStep().URL().String()
+			result.RedirectURI = session.CurrentStep().URL().String()
 		}
 	} else {
 		if a, ok := graph.CurrentNode().(interface{ GetErrorRedirectURI() string }); ok {
-			result.redirectURI = a.GetErrorRedirectURI()
+			result.RedirectURI = a.GetErrorRedirectURI()
 		} else {
 			u := url.URL{
 				Path:     s.Request.URL.Path,
 				RawQuery: s.Request.URL.RawQuery,
 			}
-			result.redirectURI = u.String()
+			result.RedirectURI = u.String()
 		}
 	}
-	s.Logger.Debugf("interaction: redirect to" + result.redirectURI)
+	s.Logger.Debugf("interaction: redirect to" + result.RedirectURI)
 
 	// Collect extras
 	session.Extra = collectExtras(graph.CurrentNode())
@@ -346,13 +347,13 @@ func (s *Service2) afterPost(
 		if err != nil {
 			return err
 		}
-		result.cookies = append(result.cookies, s.CookieFactory.ClearCookie(s.SessionCookie.Def))
+		result.Cookies = append(result.Cookies, s.CookieFactory.ClearCookie(s.SessionCookie.Def))
 	} else if isNewGraph {
 		err := s.Sessions.Create(session)
 		if err != nil {
 			return err
 		}
-		result.cookies = append(result.cookies, s.CookieFactory.ValueCookie(s.SessionCookie.Def, session.ID))
+		result.Cookies = append(result.Cookies, s.CookieFactory.ValueCookie(s.SessionCookie.Def, session.ID))
 	} else if interactionErr == nil {
 		err := s.Sessions.Update(session)
 		if err != nil {
@@ -368,15 +369,6 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 	switch graph.CurrentNode().(type) {
 	case *nodes.NodeUseIdentityOAuthProvider:
 		return SessionStepOAuthRedirect
-	case *nodes.NodeDoUseUser:
-		switch graph.Intent.(type) {
-		case *intents.IntentRemoveIdentity:
-			return SessionStepEnterLoginID
-		default:
-			panic(fmt.Errorf("webapp: unexpected intent: %T", graph.Intent))
-		}
-	case *nodes.NodeUpdateIdentityBegin:
-		return SessionStepEnterLoginID
 	case *nodes.NodeCreateIdentityBegin:
 		switch intent := graph.Intent.(type) {
 		case *intents.IntentAuthenticate:
@@ -386,8 +378,6 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 			default:
 				panic(fmt.Errorf("webapp: unexpected authenticate intent: %T", intent.Kind))
 			}
-		case *intents.IntentAddIdentity:
-			return SessionStepEnterLoginID
 		default:
 			panic(fmt.Errorf("webapp: unexpected intent: %T", graph.Intent))
 		}

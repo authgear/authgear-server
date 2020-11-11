@@ -11,12 +11,12 @@
 {{ if eq .Error.reason "WebUIInvalidSession" }}
     {{ if len .SessionStepURLs }}
         {{ template "error-web-ui-invalid-session-return" }}
-        <a class="btn primary-btn" href="{{ last .SessionStepURLs }}">
+        <a class="btn primary-btn" href="{{ last .SessionStepURLs }}" data-turbolinks="false">
             {{ template "error-web-ui-invalid-session-action" }}
         </a>
     {{ else }}
         {{ template "error-web-ui-invalid-session-retry" }}
-        <a class="btn primary-btn" href="/">
+        <a class="btn primary-btn" href="/" data-turbolinks="false">
             {{ template "error-web-ui-invalid-session-action" }}
         </a>
     {{ end }}

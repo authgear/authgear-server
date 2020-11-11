@@ -50,14 +50,8 @@ func checkPasswordLength(password string, minLength int) bool {
 	if minLength <= 0 {
 		return true
 	}
-	// There exist many ways to define the length of a string
-	// For example:
-	// 1. The number of bytes of a given encoding
-	// 2. The number of code points
-	// 3. The number of extended grapheme cluster
-	// Here we use the simpliest one:
-	// the number of bytes of the given string in UTF-8 encoding
-	return len(password) >= minLength
+	// Count number of code points.
+	return len([]rune(password)) >= minLength
 }
 
 func checkPasswordUppercase(password string) bool {
