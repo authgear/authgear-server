@@ -90,11 +90,6 @@ func (t *translationJSON) viewEffectiveResource(resources []resource.ResourceFil
 
 	translationData := make(map[string]Translation)
 	for key, translations := range translationMap {
-		if _, ok := translations[LanguageTag(defaultLanguageTag)]; !ok {
-			translations[LanguageTag(defaultLanguageTag)] = translations[LanguageTagDefault]
-		}
-		delete(translations, LanguageTagDefault)
-
 		var items []LanguageItem
 		for languageTag, value := range translations {
 			items = append(items, Translation{
@@ -147,7 +142,6 @@ func (t *translationJSON) viewEffectiveFile(resources []resource.ResourceFile, v
 	// EffectiveFileView on translation.json is a simple merge
 	// on the same file across different FSs.
 
-	defaultLanguageTag := view.DefaultLanguageTag()
 	path := view.EffectiveFilePath()
 
 	// Compute requestedLangTag
@@ -156,16 +150,10 @@ func (t *translationJSON) viewEffectiveFile(resources []resource.ResourceFile, v
 		return nil, resource.ErrResourceNotFound
 	}
 	requestedLangTag := matches[1]
-	if requestedLangTag == LanguageTagDefault {
-		requestedLangTag = defaultLanguageTag
-	}
 
 	translationObj := make(map[string]string)
 	for _, resrc := range resources {
 		langTag := templateLanguageTagRegex.FindStringSubmatch(resrc.Location.Path)[1]
-		if langTag == LanguageTagDefault {
-			langTag = defaultLanguageTag
-		}
 
 		if langTag == requestedLangTag {
 			var jsonObj map[string]interface{}
