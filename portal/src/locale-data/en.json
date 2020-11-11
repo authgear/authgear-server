@@ -71,6 +71,7 @@
   "ScreenNav.client-applications": "Client Applications",
   "ScreenNav.user-interface": "User Interface",
   "ScreenNav.dns": "DNS",
+  "ScreenNav.templates": "Templates",
   "ScreenNav.settings": "Settings",
 
   "NavBreadcrumb.label": "Nested navigation",
