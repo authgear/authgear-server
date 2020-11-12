@@ -46,6 +46,8 @@ func (s *Store) Create(u *User) error {
 			"created_at",
 			"updated_at",
 			"last_login_at",
+			"is_disabled",
+			"disable_reason",
 		).
 		Values(
 			u.ID,
@@ -53,6 +55,8 @@ func (s *Store) Create(u *User) error {
 			u.CreatedAt,
 			u.UpdatedAt,
 			u.LastLoginAt,
+			u.IsDisabled,
+			u.DisableReason,
 		)
 
 	_, err = s.SQLExecutor.ExecWith(builder)
@@ -71,6 +75,8 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"created_at",
 			"updated_at",
 			"last_login_at",
+			"is_disabled",
+			"disable_reason",
 		).
 		From(s.SQLBuilder.FullTableName("user"))
 }
@@ -86,6 +92,8 @@ func (s *Store) scan(scn db.Scanner) (*User, error) {
 		&u.CreatedAt,
 		&u.UpdatedAt,
 		&u.LastLoginAt,
+		&u.IsDisabled,
+		&u.DisableReason,
 	); err != nil {
 		return nil, err
 	}
