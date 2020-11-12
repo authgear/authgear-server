@@ -13,6 +13,10 @@ error message would be shown when login is attempted.
 Admin may optionally provide a reason when disabling user. This reason would be
 shown when user attempted to login.
 
+When a disabled user attempts to log in, the user would be informed of disabled
+status only after performing all authentication process, including MFA if
+required.
+
 ## Disabled user session
 
 When a user is disabled, the user can no longer create new sessions. However,
