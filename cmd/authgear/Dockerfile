@@ -49,5 +49,4 @@ COPY ./resources/authgear/ ./resources/authgear/
 COPY --from=stage2 /usr/src/app/resources/authgear/static/ ./resources/authgear/static/
 USER nobody
 EXPOSE 3000
-ENV STATIC_ASSET_URL_PREFIX /static
 CMD ["authgear", "start"]
