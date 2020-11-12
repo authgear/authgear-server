@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -14,6 +15,7 @@ import (
 	certmanagermetav1 "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
 	certmanagerclientset "github.com/jetstack/cert-manager/pkg/client/clientset/versioned"
 	"github.com/spf13/afero"
+	goyaml "gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1beta1 "k8s.io/api/networking/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -35,7 +37,7 @@ var ErrDuplicatedAppID = apierrors.AlreadyExists.WithReason("DuplicatedAppID").
 
 var ErrGetStaticAppIDsNotSupported = errors.New("only local FS config source can get static app ID")
 
-type ingressDef struct {
+type IngressTemplateData struct {
 	AppID         string
 	DomainID      string
 	IsCustom      bool
@@ -267,20 +269,16 @@ func (s *ConfigService) createKubernetesIngress(
 		tlsCertConfig = s.AppConfig.Kubernetes.DefaultDomainTLSCert
 	}
 
-	def := &ingressDef{
+	def := &IngressTemplateData{
 		AppID:    appID,
 		DomainID: domainID,
 		IsCustom: isCustom,
 		Host:     domain,
 	}
+
 	setupCert, err := s.setupTLSCert(k, def, tlsCertConfig)
 	if err != nil {
 		return fmt.Errorf("cannot setup TLS certificate: %w", err)
-	}
-
-	ingress := &networkingv1beta1.Ingress{}
-	if err := s.generateIngress(def, ingress); err != nil {
-		return fmt.Errorf("cannot generate ingress resource: %w", err)
 	}
 
 	selector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
@@ -298,18 +296,25 @@ func (s *ConfigService) createKubernetesIngress(
 		return fmt.Errorf("cannot get existing app (Secrets: %d)", len(appList.Items))
 	}
 
-	ingress.OwnerReferences = append(ingress.OwnerReferences,
-		*metav1.NewControllerRef(&appList.Items[0], corev1.SchemeGroupVersion.WithKind("Secret")),
-	)
-
-	ingress, err = k.Client.NetworkingV1beta1().Ingresses(k.Namespace).Create(s.Context, ingress, metav1.CreateOptions{})
+	ingresses, err := s.generateIngresses(def)
 	if err != nil {
-		return err
+		return fmt.Errorf("cannot generate ingress resource: %w", err)
 	}
 
-	err = setupCert(ingress)
-	if err != nil {
-		return err
+	for _, ingress := range ingresses {
+		ingress.OwnerReferences = append(ingress.OwnerReferences,
+			*metav1.NewControllerRef(&appList.Items[0], corev1.SchemeGroupVersion.WithKind("Secret")),
+		)
+
+		ingress, err = k.Client.NetworkingV1beta1().Ingresses(k.Namespace).Create(s.Context, ingress, metav1.CreateOptions{})
+		if err != nil {
+			return err
+		}
+
+		err = setupCert(ingress)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -339,34 +344,61 @@ func (s *ConfigService) deleteKubernetesIngress(k *configsource.Kubernetes, doma
 	return nil
 }
 
-func (s *ConfigService) generateIngress(def *ingressDef, ingress *networkingv1beta1.Ingress) error {
-	tpl, err := ioutil.ReadFile(s.AppConfig.Kubernetes.IngressTemplateFile)
+func (s *ConfigService) generateIngresses(def *IngressTemplateData) ([]*networkingv1beta1.Ingress, error) {
+	b, err := ioutil.ReadFile(s.AppConfig.Kubernetes.IngressTemplateFile)
 	if err != nil {
-		return err
+		return nil, err
+	}
+	return GenerateIngresses(def, b)
+}
+
+func GenerateIngresses(def *IngressTemplateData, templateBytes []byte) ([]*networkingv1beta1.Ingress, error) {
+	tpl, err := texttemplate.New("ingress").Parse(string(templateBytes))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse ingress template: %w", err)
 	}
 
-	template, err := texttemplate.New("ingress").Parse(string(tpl))
+	var buf bytes.Buffer
+	err = tpl.Execute(&buf, def)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("failed to execute ingress template: %w", err)
 	}
 
-	ingressYAML := bytes.Buffer{}
-	err = template.Execute(&ingressYAML, def)
-	if err != nil {
-		return err
-	}
+	var output []*networkingv1beta1.Ingress
+	decoder := goyaml.NewDecoder(bytes.NewReader(buf.Bytes()))
+	for {
+		var document interface{}
+		err := decoder.Decode(&document)
+		if errors.Is(err, io.EOF) {
+			break
+		} else if err != nil {
+			return nil, fmt.Errorf("failed to decode yaml: %w", err)
+		}
 
-	err = yaml.Unmarshal(ingressYAML.Bytes(), &ingress)
-	if err != nil {
-		return err
-	}
+		// Handle empty document.
+		if document == nil {
+			continue
+		}
 
-	return nil
+		documentBytes, err := goyaml.Marshal(document)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal yaml: %w", err)
+		}
+
+		var ingress *networkingv1beta1.Ingress
+		err = yaml.Unmarshal(documentBytes, &ingress)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal into Ingress: %w", err)
+		}
+
+		output = append(output, ingress)
+	}
+	return output, nil
 }
 
 func (s *ConfigService) setupTLSCert(
 	k *configsource.Kubernetes,
-	def *ingressDef,
+	def *IngressTemplateData,
 	source portalconfig.TLSCertConfig,
 ) (func(*networkingv1beta1.Ingress) error, error) {
 	switch source.Type {
