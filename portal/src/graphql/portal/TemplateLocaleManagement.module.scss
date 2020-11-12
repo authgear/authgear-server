@@ -1,0 +1,57 @@
+.templateLocaleManagement {
+  margin: 15px 10px;
+}
+
+.inputContainer {
+  margin-bottom: 15px;
+}
+
+.dropdown {
+  width: 200px;
+}
+
+.dialogDesc {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+.dialogContent {
+  display: flex;
+  border: 1px solid #b0b0b0;
+  min-height: 400px;
+}
+
+.dialogDivider {
+  width: 1px;
+  color: #b0b0b0;
+  height: auto;
+}
+
+.dialogColumn {
+  flex: 1;
+}
+
+.dialogColumnHeader {
+  display: block;
+  width: 100%;
+  border-bottom: 1px solid #b0b0b0;
+  padding: 12px 16px;
+  font-weight: 600;
+}
+
+.dialogLocaleListItem {
+  display: flex;
+  margin: 16px;
+}
+
+.dialogLocaleListItemText {
+  display: block;
+  padding-left: 5px;
+}
+
+.dialogSelectedItem {
+  display: flex;
+  align-items: center;
+  margin: 5px 16px;
+}

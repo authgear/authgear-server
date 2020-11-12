@@ -31,6 +31,8 @@
   "unverify": "Unverify",
   "create": "Create",
   "search": "Search",
+  "apply": "Apply",
+  "applying": "Applying",
 
   "apple": "Apple",
   "google": "Google",
@@ -329,8 +331,20 @@
   "VerifyDomainScreen.error.verification-error": "Failed to verify domain",
 
   "TemplatesConfigurationScreen.title": "Templates",
+  "TemplatesConfigurationScreen.template-locale-dropdown": "Template Translation",
+  "TemplatesConfigurationScreen.default-template-locale-dropdown": "Default Template Translation",
+  "TemplatesConfigurationScreen.manage-template-locale": "Manage Template Translation",
+  "TemplatesConfigurationScreen.default-template-locale": "Default - {locale}",
+  "TemplatesConfigurationScreen.pending-template-locale": "Pending - {locale}",
   "TemplatesConfigurationScreen.passwordless-authenticator.title": "Passwordless Authenticator",
   "TemplatesConfigurationScreen.forgot-password.title": "Forgot Password",
+
+  "TemplateLocaleManagementDialog.title": "Add or remove languages",
+  "TemplateLocaleManagementDialog.desc": "For any languages you don’t provide translations for, your messages will be delivered in your default language (English)",
+  "TemplateLocaleManagementDialog.possible-template-locales-header": "All Template Languages",
+  "TemplateLocaleManagementDialog.selected-template-locales-header": "Active Template Languages",
+  "TemplateLocaleManagementDialog.cannot-remove-last-language-error": "Cannot remove last template language",
+  "TemplateLocaleManagementDialog.apply-error": "Failed to remove template language",
 
   "ForgotPasswordTemplatesSettings.email.label": "Email",
   "ForgotPasswordTemplatesSettings.email.html-email.label": "HTML Email",
