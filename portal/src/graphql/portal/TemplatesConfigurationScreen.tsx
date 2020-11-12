@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 import cn from "classnames";
 import { useParams } from "react-router-dom";
 import { Pivot, PivotItem, Text } from "@fluentui/react";
@@ -7,32 +13,60 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { ModifiedIndicatorWrapper } from "../../ModifiedIndicatorPortal";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
+import TemplateLocaleManagement from "./TemplateLocaleManagement";
 import ForgotPasswordTemplatesSettings from "./ForgotPasswordTemplatesSettings";
 import PasswordlessAuthenticatorTemplatesSettings from "./PasswordlessAuthenticatorTemplatesSettings";
+import { useAppConfigQuery } from "./query/appConfigQuery";
 import { useAppTemplatesQuery } from "./query/appTemplatesQuery";
 import {
   UpdateAppTemplatesData,
   useUpdateAppTemplatesMutation,
 } from "./mutations/updateAppTemplatesMutation";
+import { PortalAPIAppConfig } from "../../types";
 import { usePivotNavigation } from "../../hook/usePivot";
 import {
   AuthenticatePrimaryOOBMessageTemplatePaths,
   DEFAULT_TEMPLATE_LOCALE,
   ForgotPasswordMessageTemplatePaths,
   SetupPrimaryOOBMessageTemplatePaths,
+  TemplateLocale,
 } from "../../templates";
 
 import styles from "./TemplatesConfigurationScreen.module.scss";
 
+interface AppConfigContextValue {
+  effectiveAppConfig: PortalAPIAppConfig | null;
+  rawAppConfig: PortalAPIAppConfig | null;
+}
+
 const FORGOT_PASSWORD_PIVOT_KEY = "forgot_password";
 const PASSWORDLESS_AUTHENTICATOR_PIVOT_KEY = "passwordless_authenticator";
 
-const TemplatesConfigurationScreen: React.FC = function TemplatesConfigurationScreen() {
+const AppConfigContext = createContext<AppConfigContextValue>({
+  effectiveAppConfig: null,
+  rawAppConfig: null,
+});
+
+const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
   const { renderToString } = useContext(Context);
   const { appID } = useParams();
 
+  const { effectiveAppConfig } = useContext(AppConfigContext);
+
+  const initialDefaultTemplateLocale = useMemo(() => {
+    return (
+      effectiveAppConfig?.localization?.fallback_language ??
+      DEFAULT_TEMPLATE_LOCALE
+    );
+  }, [effectiveAppConfig]);
+
   const [remountIdentifier, setRemountIdentifier] = useState(0);
-  const [templateLocale] = useState(DEFAULT_TEMPLATE_LOCALE);
+  const [defaultTemplateLocale, setDefaultTemplateLocale] = useState<
+    TemplateLocale
+  >(initialDefaultTemplateLocale);
+  const [templateLocale, setTemplateLocale] = useState<TemplateLocale>(
+    defaultTemplateLocale
+  );
 
   const {
     templates,
@@ -102,6 +136,14 @@ const TemplatesConfigurationScreen: React.FC = function TemplatesConfigurationSc
         <Text className={styles.screenHeaderText} as="h1">
           <FormattedMessage id="TemplatesConfigurationScreen.title" />
         </Text>
+        <TemplateLocaleManagement
+          // TODO: get supported template locales from registered path
+          supportedTemplateLocales={["en"]}
+          templateLocale={templateLocale}
+          defaultTemplateLocale={defaultTemplateLocale}
+          onTemplateLocaleSelected={setTemplateLocale}
+          onDefaultTemplateLocaleSelected={setDefaultTemplateLocale}
+        />
         <Pivot onLinkClick={onLinkClick} selectedKey={selectedKey}>
           <PivotItem
             headerText={renderToString(
@@ -136,6 +178,38 @@ const TemplatesConfigurationScreen: React.FC = function TemplatesConfigurationSc
         </Pivot>
       </ModifiedIndicatorWrapper>
     </main>
+  );
+};
+
+const TemplatesConfigurationScreen: React.FC = function TemplatesConfigurationScreen() {
+  const { appID } = useParams();
+  const {
+    effectiveAppConfig,
+    rawAppConfig,
+    loading,
+    error,
+    refetch,
+  } = useAppConfigQuery(appID);
+
+  const appConfigContextValue = useMemo(() => {
+    return {
+      effectiveAppConfig,
+      rawAppConfig,
+    };
+  }, [effectiveAppConfig, rawAppConfig]);
+
+  if (loading) {
+    return <ShowLoading />;
+  }
+
+  if (error) {
+    return <ShowError error={error} onRetry={refetch} />;
+  }
+
+  return (
+    <AppConfigContext.Provider value={appConfigContextValue}>
+      <TemplatesConfiguration />
+    </AppConfigContext.Provider>
   );
 };
 

@@ -1,7 +1,6 @@
 import { UpdateAppTemplatesData } from "./graphql/portal/mutations/updateAppTemplatesMutation";
 
-export const TEMPLATE_LOCALES = ["en"] as const;
-export type TemplateLocale = typeof TEMPLATE_LOCALES[number];
+export type TemplateLocale = string;
 export const DEFAULT_TEMPLATE_LOCALE: TemplateLocale = "en";
 export type TemplateMap = Record<string, string>;
 
