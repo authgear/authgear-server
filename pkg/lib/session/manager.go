@@ -138,9 +138,9 @@ func (m *Manager) List(userID string) ([]Session, error) {
 	copy(sessions[0:], idpSessions)
 	copy(sessions[len(idpSessions):], accessGrantSessions)
 
-	// Sort by creation time in descending order.
+	// Sort by creation time in ascending order.
 	sort.Slice(sessions, func(i, j int) bool {
-		return sessions[i].GetCreatedAt().After(sessions[j].GetCreatedAt())
+		return sessions[i].GetCreatedAt().Before(sessions[j].GetCreatedAt())
 	})
 
 	return sessions, nil

@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -48,6 +49,11 @@ type VerificationFacade interface {
 	SetVerified(userID string, claimName string, claimValue string, isVerified bool) error
 }
 
+type SessionFacade interface {
+	List(userID string) ([]session.Session, error)
+	Get(id string) (session.Session, error)
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("admin-graphql")} }
@@ -63,6 +69,7 @@ type Context struct {
 	IdentityFacade      IdentityFacade
 	AuthenticatorFacade AuthenticatorFacade
 	VerificationFacade  VerificationFacade
+	SessionFacade       SessionFacade
 }
 
 func (c *Context) Logger() *log.Logger {

@@ -35,7 +35,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
@@ -527,6 +530,35 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	verificationFacade := &facade2.VerificationFacade{
 		Verification: verificationService,
 	}
+	idpsessionManager := &idpsession.Manager{
+		Store:         idpsessionStoreRedis,
+		Clock:         clockClock,
+		Config:        sessionConfig,
+		CookieFactory: cookieFactory,
+		CookieDef:     cookieDef,
+	}
+	redisLogger := redis.NewLogger(factory)
+	grantStore := &redis.GrantStore{
+		Redis:       redisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	sessionManager := &oauth2.SessionManager{
+		Store: grantStore,
+		Clock: clockClock,
+	}
+	manager2 := &session.Manager{
+		Users:               queries,
+		Hooks:               hookProvider,
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+	}
+	sessionFacade := &facade2.SessionFacade{
+		Sessions: manager2,
+	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:           logger,
 		Users:               userLoader,
@@ -536,6 +568,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		IdentityFacade:      facadeIdentityFacade,
 		AuthenticatorFacade: facadeAuthenticatorFacade,
 		VerificationFacade:  verificationFacade,
+		SessionFacade:       sessionFacade,
 	}
 	devMode := environmentConfig.DevMode
 	graphQLHandler := &transport.GraphQLHandler{

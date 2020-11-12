@@ -19,6 +19,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 )
 
 var DependencySet = wire.NewSet(
@@ -38,6 +39,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(facade.AuthenticatorService), new(*authenticatorservice.Service)),
 	wire.Bind(new(facade.InteractionService), new(*service.InteractionService)),
 	wire.Bind(new(facade.VerificationService), new(*verification.Service)),
+	wire.Bind(new(facade.SessionManager), new(*session.Manager)),
 
 	graphql.DependencySet,
 	wire.Bind(new(graphql.UserLoader), new(*loader.UserLoader)),
@@ -47,6 +49,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.IdentityFacade), new(*facade.IdentityFacade)),
 	wire.Bind(new(graphql.AuthenticatorFacade), new(*facade.AuthenticatorFacade)),
 	wire.Bind(new(graphql.VerificationFacade), new(*facade.VerificationFacade)),
+	wire.Bind(new(graphql.SessionFacade), new(*facade.SessionFacade)),
 
 	service.DependencySet,
 	wire.Bind(new(service.InteractionGraphService), new(*interaction.Service)),

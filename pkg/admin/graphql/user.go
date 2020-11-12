@@ -81,6 +81,25 @@ var nodeUser = entity(
 					return claims, nil
 				},
 			},
+			"sessions": &graphql.Field{
+				Type: connSession.ConnectionType,
+				Args: relay.ConnectionArgs,
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					source := p.Source.(*user.User)
+					gqlCtx := GQLContext(p.Context)
+					ss, err := gqlCtx.SessionFacade.List(source.ID)
+					if err != nil {
+						return nil, err
+					}
+
+					var sessions []interface{}
+					for _, i := range ss {
+						sessions = append(sessions, i.ToAPIModel())
+					}
+					args := relay.NewConnectionArguments(p.Args)
+					return graphqlutil.NewConnectionFromArray(sessions, args), nil
+				},
+			},
 		},
 	}),
 	&user.User{},
