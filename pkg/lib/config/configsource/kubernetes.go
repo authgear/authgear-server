@@ -57,9 +57,11 @@ type Kubernetes struct {
 	KubeConfig *rest.Config          `wire:"-"`
 	Client     *kubernetes.Clientset `wire:"-"`
 	done       chan<- struct{}       `wire:"-"`
-	hostMap    *sync.Map             `wire:"-"`
-	ingressMap *sync.Map             `wire:"-"`
-	appMap     *sync.Map             `wire:"-"`
+	// TODO(ingress): Now that we could have more than 1 ingress for 1 app,
+	// Should we handle the case that some of the ingresses being deleted while some are kept?
+	hostMap    *sync.Map `wire:"-"`
+	ingressMap *sync.Map `wire:"-"`
+	appMap     *sync.Map `wire:"-"`
 }
 
 func (k *Kubernetes) Open() error {
