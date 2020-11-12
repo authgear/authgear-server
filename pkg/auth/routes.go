@@ -99,6 +99,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 	router.Add(webapphandler.ConfigureForgotPasswordSuccessRoute(webappPageRoute), p.Handler(newWebAppForgotPasswordSuccessHandler))
 	router.Add(webapphandler.ConfigureResetPasswordRoute(webappPageRoute), p.Handler(newWebAppResetPasswordHandler))
 	router.Add(webapphandler.ConfigureResetPasswordSuccessRoute(webappPageRoute), p.Handler(newWebAppResetPasswordSuccessHandler))
+	router.Add(webapphandler.ConfigureUserBlockedRoute(webappPageRoute), p.Handler(newWebAppUserBlockedHandler))
 
 	router.Add(webapphandler.ConfigureLogoutRoute(webappAuthenticatedRoute), p.Handler(newWebAppLogoutHandler))
 	router.Add(webapphandler.ConfigureEnterLoginIDRoute(webappAuthenticatedRoute), p.Handler(newWebAppEnterLoginIDHandler))

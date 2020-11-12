@@ -22,6 +22,7 @@ const (
 	SessionStepEnterRecoveryCode   SessionStepKind = "enter-recovery-code"
 	SessionStepSetupRecoveryCode   SessionStepKind = "setup-recovery-code"
 	SessionStepVerifyIdentity      SessionStepKind = "verify-identity"
+	SessionStepUserBlocked         SessionStepKind = "user-blocked"
 )
 
 func (k SessionStepKind) Path() string {
@@ -46,6 +47,8 @@ func (k SessionStepKind) Path() string {
 		return "/setup_recovery_code"
 	case SessionStepVerifyIdentity:
 		return "/verify_identity"
+	case SessionStepUserBlocked:
+		return "/user_blocked"
 	case SessionStepOAuthRedirect,
 		SessionStepAuthenticate,
 		SessionStepCreateAuthenticator:
