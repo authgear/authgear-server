@@ -25,16 +25,12 @@ func TestTemplateResource(t *testing.T) {
 		txt := &template.HTML{Name: "resource.txt"}
 		r.Register(txt)
 
-		view := resource.EffectiveResource{
-			DefaultTag: "en",
-		}
-
 		writeFile := func(fs afero.Fs, lang string, data string) {
 			_ = fs.MkdirAll("templates/"+lang, 0777)
 			_ = afero.WriteFile(fs, "templates/"+lang+"/resource.txt", []byte(data), 0666)
 		}
 
-		read := func() (str string, err error) {
+		read := func(view resource.View) (str string, err error) {
 			result, err := manager.Read(txt, view)
 			if err != nil {
 				return
@@ -52,48 +48,74 @@ func TestTemplateResource(t *testing.T) {
 		}
 
 		Convey("it should return single resource", func() {
-			writeFile(fsA, "__default__", "default in fs A")
+			writeFile(fsA, "en", "en in fs A")
 
-			data, err := read()
+			data, err := read(resource.EffectiveResource{
+				DefaultTag: "en",
+			})
 			So(err, ShouldBeNil)
-			So(data, ShouldEqual, "default in fs A")
+			So(data, ShouldEqual, "en in fs A")
 		})
 
 		Convey("it should return resource with preferred language", func() {
 			writeFile(fsA, "en", "en in fs A")
 			writeFile(fsA, "zh", "zh in fs A")
-			writeFile(fsA, "__default__", "default in fs A")
 
-			data, err := read()
+			data, err := read(resource.EffectiveResource{
+				DefaultTag: "en",
+			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, "en in fs A")
 
-			view.PreferredTags = []string{"en"}
-			data, err = read()
+			data, err = read(resource.EffectiveResource{
+				DefaultTag:    "en",
+				PreferredTags: []string{"en"},
+			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, "en in fs A")
 
-			view.PreferredTags = []string{"zh"}
-			data, err = read()
+			data, err = read(resource.EffectiveResource{
+				DefaultTag:    "en",
+				PreferredTags: []string{"zh"},
+			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, "zh in fs A")
+
+		})
+
+		Convey("it should return something if default language is not found", func() {
+			writeFile(fsA, "en", "en in fs A")
+			writeFile(fsA, "zh", "zh in fs A")
+
+			data, err := read(resource.EffectiveResource{
+				DefaultTag:    "en",
+				PreferredTags: []string{"ja"},
+			})
+			So(err, ShouldBeNil)
+			So(data, ShouldEqual, "en in fs A")
 		})
 
 		Convey("it should combine resources in different FS", func() {
 			writeFile(fsB, "zh", "zh in fs B")
-			writeFile(fsA, "__default__", "default in fs A")
+			writeFile(fsA, "en", "en in fs A")
 
-			data, err := read()
+			data, err := read(resource.EffectiveResource{
+				DefaultTag: "en",
+			})
 			So(err, ShouldBeNil)
-			So(data, ShouldEqual, "default in fs A")
+			So(data, ShouldEqual, "en in fs A")
 
-			view.PreferredTags = []string{"en"}
-			data, err = read()
+			data, err = read(resource.EffectiveResource{
+				DefaultTag:    "en",
+				PreferredTags: []string{"en"},
+			})
 			So(err, ShouldBeNil)
-			So(data, ShouldEqual, "default in fs A")
+			So(data, ShouldEqual, "en in fs A")
 
-			view.PreferredTags = []string{"zh"}
-			data, err = read()
+			data, err = read(resource.EffectiveResource{
+				DefaultTag:    "en",
+				PreferredTags: []string{"zh"},
+			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, "zh in fs B")
 		})
@@ -131,15 +153,11 @@ func TestTemplateResource(t *testing.T) {
 		}
 
 		Convey("it should return single resource", func() {
-			writeFile(fsA, "__default__", "default in fs A")
+			writeFile(fsA, "en", "en in fs A")
 
-			data, err := read("__default__")
+			data, err := read("en")
 			So(err, ShouldBeNil)
-			So(data, ShouldEqual, "default in fs A")
-
-			data, err = read("en")
-			So(err, ShouldBeNil)
-			So(data, ShouldEqual, "default in fs A")
+			So(data, ShouldEqual, "en in fs A")
 
 			_, err = read("zh")
 			So(err, ShouldBeError, "specified resource is not configured")
@@ -148,7 +166,6 @@ func TestTemplateResource(t *testing.T) {
 		Convey("it should return resource with preferred language", func() {
 			writeFile(fsA, "en", "en in fs A")
 			writeFile(fsA, "zh", "zh in fs A")
-			writeFile(fsA, "__default__", "default in fs A")
 
 			data, err := read("en")
 			So(err, ShouldBeNil)
@@ -161,11 +178,11 @@ func TestTemplateResource(t *testing.T) {
 
 		Convey("it should combine resources in different FS", func() {
 			writeFile(fsB, "zh", "zh in fs B")
-			writeFile(fsA, "__default__", "default in fs A")
+			writeFile(fsA, "en", "en in fs A")
 
 			data, err := read("en")
 			So(err, ShouldBeNil)
-			So(data, ShouldEqual, "default in fs A")
+			So(data, ShouldEqual, "en in fs A")
 
 			data, err = read("zh")
 			So(err, ShouldBeNil)
@@ -204,27 +221,27 @@ func TestTemplateResource(t *testing.T) {
 		}
 
 		Convey("not found", func() {
-			writeFile(fsA, "__default__", "default in fs A")
+			writeFile(fsA, "en", "en in fs A")
 
-			_, err := read("__default__")
+			_, err := read("en")
 			So(err, ShouldBeError, "specified resource is not configured")
 		})
 
 		Convey("found", func() {
-			writeFile(fsB, "__default__", "default in fs B")
+			writeFile(fsB, "en", "en in fs B")
 
-			data, err := read("__default__")
+			data, err := read("en")
 			So(err, ShouldBeNil)
-			So(data, ShouldEqual, "default in fs B")
+			So(data, ShouldEqual, "en in fs B")
 		})
 
 		Convey("it should return resource in app FS", func() {
-			writeFile(fsA, "__default__", "default in fs A")
-			writeFile(fsB, "__default__", "default in fs B")
+			writeFile(fsA, "en", "en in fs A")
+			writeFile(fsB, "en", "en in fs B")
 
-			data, err := read("__default__")
+			data, err := read("en")
 			So(err, ShouldBeNil)
-			So(data, ShouldEqual, "default in fs B")
+			So(data, ShouldEqual, "en in fs B")
 		})
 	})
 }

@@ -32,27 +32,24 @@ func TestEngine(t *testing.T) {
 			_ = afero.WriteFile(fs, "templates/"+lang+"/"+name, []byte(data), 0666)
 		}
 
-		writeFile("__default__", "header.html", `default header`)
+		writeFile("en", "header.html", `en header`)
 		writeFile("zh", "header.html", `zh header`)
 
-		writeFile("__default__", "footer.html", `{{ template "footer-name" }}`)
+		writeFile("en", "footer.html", `{{ template "footer-name" }}`)
 
-		writeFile("__default__", "pageA.html",
+		writeFile("en", "pageA.html",
 			`{{ template "header.html" }};{{ template "a-title" }};{{ template "footer.html" }}`,
 		)
-		writeFile("__default__", "pageB.html",
+		writeFile("en", "pageB.html",
 			`{{ template "header.html" }};{{ template "b-title" }};{{ template "footer.html" }}`,
 		)
 		writeFile("en", "index.html", `{{ template "pageA.html" }}`)
 		writeFile("zh", "index.html", `{{ template "pageB.html" }}`)
 
-		writeFile("__default__", "translation.json", `{
-			"footer-name": "default footer",
-			"a-title": "default a title",
-			"b-title": "default b title"
-		}`)
 		writeFile("en", "translation.json", `{
-			"a-title": "en a title"
+			"footer-name": "en footer",
+			"a-title": "en a title",
+			"b-title": "en b title"
 		}`)
 		writeFile("zh", "translation.json", `{
 			"footer-name": "zh footer",
@@ -62,11 +59,11 @@ func TestEngine(t *testing.T) {
 		Convey("it should render correct localized template", func() {
 			data, err := engine.Render(index, []string{}, nil)
 			So(err, ShouldBeNil)
-			So(data, ShouldEqual, "default header;en a title;default footer")
+			So(data, ShouldEqual, "en header;en a title;en footer")
 
 			data, err = engine.Render(index, []string{"en"}, nil)
 			So(err, ShouldBeNil)
-			So(data, ShouldEqual, "default header;en a title;default footer")
+			So(data, ShouldEqual, "en header;en a title;en footer")
 
 			data, err = engine.Render(index, []string{"zh"}, nil)
 			So(err, ShouldBeNil)
@@ -78,13 +75,13 @@ func TestEngine(t *testing.T) {
 			So(err, ShouldBeNil)
 			footer, err := m.RenderText("footer-name", nil)
 			So(err, ShouldBeNil)
-			So(footer, ShouldEqual, "default footer")
+			So(footer, ShouldEqual, "en footer")
 			a, err := m.RenderText("a-title", nil)
 			So(err, ShouldBeNil)
 			So(a, ShouldEqual, "en a title")
 			b, err := m.RenderText("b-title", nil)
 			So(err, ShouldBeNil)
-			So(b, ShouldEqual, "default b title")
+			So(b, ShouldEqual, "en b title")
 
 			m, err = engine.Translation([]string{"zh"})
 			So(err, ShouldBeNil)

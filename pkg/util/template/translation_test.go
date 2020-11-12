@@ -25,10 +25,6 @@ func TestTranslationResource(t *testing.T) {
 			resource.AferoFs{Fs: fsB},
 		})
 
-		view := resource.EffectiveResource{
-			DefaultTag: "en",
-		}
-
 		compact := func(s string) string {
 			buf := &bytes.Buffer{}
 			_ = json.Compact(buf, []byte(s))
@@ -40,7 +36,7 @@ func TestTranslationResource(t *testing.T) {
 			_ = afero.WriteFile(fs, "templates/"+lang+"/translation.json", []byte(compact(data)), 0666)
 		}
 
-		read := func() (str string, err error) {
+		read := func(view resource.View) (str string, err error) {
 			result, err := manager.Read(template.TranslationJSON, view)
 			if err != nil {
 				return
@@ -57,70 +53,72 @@ func TestTranslationResource(t *testing.T) {
 		}
 
 		Convey("it should return single resource", func() {
-			writeFile(fsA, "__default__", `{
-				"a": "default a in fs A",
-				"b": "default b in fs A",
-				"c": "default c in fs A"
+			writeFile(fsA, "en", `{
+				"a": "en a in fs A",
+				"b": "en b in fs A",
+				"c": "en c in fs A"
 			}`)
 
-			data, err := read()
+			data, err := read(resource.EffectiveResource{
+				DefaultTag: "en",
+			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, compact(`{
-				"a": { "LanguageTag": "en", "Value": "default a in fs A" },
-				"b": { "LanguageTag": "en", "Value": "default b in fs A" },
-				"c": { "LanguageTag": "en", "Value": "default c in fs A" }
+				"a": { "LanguageTag": "en", "Value": "en a in fs A" },
+				"b": { "LanguageTag": "en", "Value": "en b in fs A" },
+				"c": { "LanguageTag": "en", "Value": "en c in fs A" }
 			}`))
 		})
 
 		Convey("it should return resource with preferred language", func() {
-			writeFile(fsA, "__default__", `{
-				"a": "default a in fs A",
-				"b": "default b in fs A",
-				"c": "default c in fs A"
-			}`)
 			writeFile(fsA, "en", `{
-				"b": "en b in fs A"
+				"a": "en a in fs A",
+				"b": "en b in fs A",
+				"c": "en c in fs A"
 			}`)
 			writeFile(fsA, "zh", `{
 				"b": "zh b in fs A",
 				"c": "zh c in fs A"
 			}`)
 
-			data, err := read()
+			data, err := read(resource.EffectiveResource{
+				DefaultTag: "en",
+			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, compact(`{
-				"a": { "LanguageTag": "en", "Value": "default a in fs A" },
+				"a": { "LanguageTag": "en", "Value": "en a in fs A" },
 				"b": { "LanguageTag": "en", "Value": "en b in fs A" },
-				"c": { "LanguageTag": "en", "Value": "default c in fs A" }
+				"c": { "LanguageTag": "en", "Value": "en c in fs A" }
 			}`))
 
-			view.PreferredTags = []string{"en"}
-			data, err = read()
+			data, err = read(resource.EffectiveResource{
+				DefaultTag:    "en",
+				PreferredTags: []string{"en"},
+			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, compact(`{
-				"a": { "LanguageTag": "en", "Value": "default a in fs A" },
+				"a": { "LanguageTag": "en", "Value": "en a in fs A" },
 				"b": { "LanguageTag": "en", "Value": "en b in fs A" },
-				"c": { "LanguageTag": "en", "Value": "default c in fs A" }
+				"c": { "LanguageTag": "en", "Value": "en c in fs A" }
 			}`))
 
-			view.PreferredTags = []string{"zh"}
-			data, err = read()
+			data, err = read(resource.EffectiveResource{
+				DefaultTag:    "en",
+				PreferredTags: []string{"zh"},
+			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, compact(`{
-				"a": { "LanguageTag": "en", "Value": "default a in fs A" },
+				"a": { "LanguageTag": "en", "Value": "en a in fs A" },
 				"b": { "LanguageTag": "zh", "Value": "zh b in fs A" },
 				"c": { "LanguageTag": "zh", "Value": "zh c in fs A" }
 			}`))
 		})
 
 		Convey("it should combine resources in different FS", func() {
-			writeFile(fsA, "__default__", `{
-				"a": "default a in fs A",
-				"b": "default b in fs A",
-				"c": "default c in fs A"
-			}`)
 			writeFile(fsA, "en", `{
-				"b": "en b in fs A"
+				"a": "en a in fs A",
+				"b": "en b in fs A",
+				"c": "en c in fs A"
 			}`)
 			writeFile(fsB, "en", `{
 				"c": "en c in fs B"
@@ -130,28 +128,34 @@ func TestTranslationResource(t *testing.T) {
 				"c": "zh c in fs B"
 			}`)
 
-			data, err := read()
+			data, err := read(resource.EffectiveResource{
+				DefaultTag: "en",
+			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, compact(`{
-				"a": { "LanguageTag": "en", "Value": "default a in fs A" },
+				"a": { "LanguageTag": "en", "Value": "en a in fs A" },
 				"b": { "LanguageTag": "en", "Value": "en b in fs A" },
 				"c": { "LanguageTag": "en", "Value": "en c in fs B" }
 			}`))
 
-			view.PreferredTags = []string{"en"}
-			data, err = read()
+			data, err = read(resource.EffectiveResource{
+				DefaultTag:    "en",
+				PreferredTags: []string{"en"},
+			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, compact(`{
-				"a": { "LanguageTag": "en", "Value": "default a in fs A" },
+				"a": { "LanguageTag": "en", "Value": "en a in fs A" },
 				"b": { "LanguageTag": "en", "Value": "en b in fs A" },
 				"c": { "LanguageTag": "en", "Value": "en c in fs B" }
 			}`))
 
-			view.PreferredTags = []string{"zh"}
-			data, err = read()
+			data, err = read(resource.EffectiveResource{
+				DefaultTag:    "en",
+				PreferredTags: []string{"zh"},
+			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, compact(`{
-				"a": { "LanguageTag": "en", "Value": "default a in fs A" },
+				"a": { "LanguageTag": "en", "Value": "en a in fs A" },
 				"b": { "LanguageTag": "zh", "Value": "zh b in fs B" },
 				"c": { "LanguageTag": "zh", "Value": "zh c in fs B" }
 			}`))
@@ -196,29 +200,26 @@ func TestTranslationResource(t *testing.T) {
 		}
 
 		Convey("it should return single resource", func() {
-			writeFile(fsA, "__default__", `{
-				"a": "default a in fs A",
-				"b": "default b in fs A",
-				"c": "default c in fs A"
+			writeFile(fsA, "en", `{
+				"a": "en a in fs A",
+				"b": "en b in fs A",
+				"c": "en c in fs A"
 			}`)
 
-			data, err := read("__default__")
+			data, err := read("en")
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, compact(`{
-				"a": "default a in fs A",
-				"b": "default b in fs A",
-				"c": "default c in fs A"
+				"a": "en a in fs A",
+				"b": "en b in fs A",
+				"c": "en c in fs A"
 			}`))
 		})
 
 		Convey("it should return resource with specific language", func() {
-			writeFile(fsA, "__default__", `{
-				"a": "default a in fs A",
-				"b": "default b in fs A",
-				"c": "default c in fs A"
-			}`)
 			writeFile(fsA, "en", `{
-				"b": "en b in fs A"
+				"a": "en a in fs A",
+				"b": "en b in fs A",
+				"c": "en c in fs A"
 			}`)
 			writeFile(fsA, "zh", `{
 				"b": "zh b in fs A",
@@ -228,9 +229,9 @@ func TestTranslationResource(t *testing.T) {
 			data, err := read("en")
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, compact(`{
-				"a": "default a in fs A",
+				"a": "en a in fs A",
 				"b": "en b in fs A",
-				"c": "default c in fs A"
+				"c": "en c in fs A"
 			}`))
 
 			data, err = read("zh")
@@ -242,13 +243,10 @@ func TestTranslationResource(t *testing.T) {
 		})
 
 		Convey("it should combine resources in different FS", func() {
-			writeFile(fsA, "__default__", `{
-				"a": "default a in fs A",
-				"b": "default b in fs A",
-				"c": "default c in fs A"
-			}`)
 			writeFile(fsA, "en", `{
-				"b": "en b in fs A"
+				"a": "en a in fs A",
+				"b": "en b in fs A",
+				"c": "en c in fs A"
 			}`)
 			writeFile(fsB, "en", `{
 				"c": "en c in fs B"
@@ -261,7 +259,7 @@ func TestTranslationResource(t *testing.T) {
 			data, err := read("en")
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, compact(`{
-				"a": "default a in fs A",
+				"a": "en a in fs A",
 				"b": "en b in fs A",
 				"c": "en c in fs B"
 			}`))
@@ -312,44 +310,44 @@ func TestTranslationResource(t *testing.T) {
 		}
 
 		Convey("not found", func() {
-			_, err := read("__default__")
+			_, err := read("en")
 			So(err, ShouldBeError, "specified resource is not configured")
 		})
 
 		Convey("found", func() {
-			writeFile(fsB, "__default__", `{
-				"a": "default a in fs A",
-				"b": "default b in fs A",
-				"c": "default c in fs A"
+			writeFile(fsB, "en", `{
+				"a": "en a in fs A",
+				"b": "en b in fs A",
+				"c": "en c in fs A"
 			}`)
 
-			data, err := read("__default__")
+			data, err := read("en")
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, compact(`{
-				"a": "default a in fs A",
-				"b": "default b in fs A",
-				"c": "default c in fs A"
+				"a": "en a in fs A",
+				"b": "en b in fs A",
+				"c": "en c in fs A"
 			}`))
 		})
 
 		Convey("it should return resource in app FS", func() {
-			writeFile(fsA, "__default__", `{
-				"a": "default a in fs A",
-				"b": "default b in fs A",
-				"c": "default c in fs A"
+			writeFile(fsA, "en", `{
+				"a": "en a in fs A",
+				"b": "en b in fs A",
+				"c": "en c in fs A"
 			}`)
-			writeFile(fsB, "__default__", `{
-				"a": "default a in fs B",
-				"b": "default b in fs B",
-				"c": "default c in fs B"
+			writeFile(fsB, "en", `{
+				"a": "en a in fs B",
+				"b": "en b in fs B",
+				"c": "en c in fs B"
 			}`)
 
-			data, err := read("__default__")
+			data, err := read("en")
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, compact(`{
-				"a": "default a in fs B",
-				"b": "default b in fs B",
-				"c": "default c in fs B"
+				"a": "en a in fs B",
+				"b": "en b in fs B",
+				"c": "en c in fs B"
 			}`))
 		})
 	})

@@ -12,8 +12,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
-const LanguageTagDefault = "__default__"
-
 type Resource interface {
 	templateResource()
 }
@@ -93,7 +91,7 @@ func RegisterPlainText(name string, dependencies ...*PlainText) *PlainText {
 }
 
 func matchTemplatePath(path string, templateName string) bool {
-	r := fmt.Sprintf("^templates/([a-zA-Z0-9-]+|%s)/%s$", LanguageTagDefault, regexp.QuoteMeta(templateName))
+	r := fmt.Sprintf("^templates/[a-zA-Z0-9-]+/%s$", regexp.QuoteMeta(templateName))
 	return regexp.MustCompile(r).MatchString(path)
 }
 
@@ -176,11 +174,7 @@ func viewTemplatesAppFile(resources []resource.ResourceFile, view resource.AppFi
 }
 
 func viewTemplatesEffectiveFile(resources []resource.ResourceFile, view resource.EffectiveFileView) (interface{}, error) {
-	// When template is viewed as EffectiveFile,
-	// __default__ is treated as default language tag.
-	// And the most specific template is returned.
-
-	defaultLanguageTag := view.DefaultLanguageTag()
+	// When template is viewed as EffectiveFile, the most specific template is returned.
 	path := view.EffectiveFilePath()
 
 	// Compute requestedLangTag
@@ -189,18 +183,11 @@ func viewTemplatesEffectiveFile(resources []resource.ResourceFile, view resource
 		return nil, resource.ErrResourceNotFound
 	}
 	requestedLangTag := matches[1]
-	if requestedLangTag == LanguageTagDefault {
-		requestedLangTag = defaultLanguageTag
-	}
 
 	var found bool
 	var bytes []byte
 	for _, resrc := range resources {
 		langTag := templateLanguageTagRegex.FindStringSubmatch(resrc.Location.Path)[1]
-		if langTag == LanguageTagDefault {
-			langTag = defaultLanguageTag
-		}
-
 		if langTag == requestedLangTag {
 			found = true
 			bytes = resrc.Data
@@ -225,16 +212,8 @@ func viewTemplatesEffectiveResource(resources []resource.ResourceFile, view reso
 			languageTag: langTag,
 			data:        resrc.Data,
 		}
-		if t.languageTag == LanguageTagDefault {
-			t.languageTag = defaultLanguageTag
-		}
 		languageTemplates[langTag] = t
 	}
-
-	if _, ok := languageTemplates[defaultLanguageTag]; !ok {
-		languageTemplates[defaultLanguageTag] = languageTemplates[LanguageTagDefault]
-	}
-	delete(languageTemplates, LanguageTagDefault)
 
 	var items []LanguageItem
 	for _, i := range languageTemplates {
