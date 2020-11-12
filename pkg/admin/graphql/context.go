@@ -52,6 +52,8 @@ type VerificationFacade interface {
 type SessionFacade interface {
 	List(userID string) ([]session.Session, error)
 	Get(id string) (session.Session, error)
+	Revoke(id string) error
+	RevokeAll(userID string) error
 }
 
 type Logger struct{ *log.Logger }
