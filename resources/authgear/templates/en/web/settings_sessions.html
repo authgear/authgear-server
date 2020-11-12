@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+{{ template "__html_head.html" . }}
+<body class="page">
+<main class="content">
+
+{{ template "__header.html" . }}
+
+{{ template "__nav_bar.html" }}
+
+{{ template "__error.html" . }}
+
+<section class="pane">
+  <section class="settings-sessions-row settings-sessions-title-section">
+    <h1 class="title primary-txt">
+      {{ template "settings-sessions-title" }}
+    </h1>
+    <p class="description secondary-txt">
+      {{ template "settings-sessions-description" }}
+    </p>
+  </section>
+
+  {{ range $.Sessions }}
+    <form method="post" novalidate class="settings-sessions-row settings-sessions-item-section">
+      <p class="title primary-txt">
+        {{ .UserAgent.Name }} {{ .UserAgent.Version }}
+      </p>
+      <p class="desc secondary-txt">
+        <!-- FIXME(ui): Use user preferred timezone -->
+        {{ template "settings-sessions-item-description" (dict "time" .LastAccessedAt) }}
+      </p>
+      {{ if not (eq .ID $.CurrentSessionID) }}
+      {{ $.CSRFField }}
+      <input type="hidden" name="x_session_id" value="{{ .ID }}">
+      <button class="action btn destructive-btn" type="submit" name="x_action" value="revoke">
+        {{ template "settings-sessions-revoke-label" }}
+      </button>
+      {{ end }}
+    </form>
+  {{ end }}
+  <section class="settings-sessions-row settings-sessions-revoke-all-section">
+    <form class="primary-action" method="post" novalidate>
+      {{ $.CSRFField }}
+      <button class="action btn destructive-btn" type="submit" name="x_action" value="revoke_all">
+        {{ template "settings-sessions-revoke-all-label" }}
+      </button>
+    </form>
+  </section>
+</section>
+
+</main>
+</body>
+</html>

@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -41,6 +42,12 @@ type SettingsAuthenticatorService interface {
 type SettingsMFAService interface {
 	ListRecoveryCodes(userID string) ([]*mfa.RecoveryCode, error)
 	InvalidateAllDeviceTokens(userID string) error
+}
+
+type SettingsSessionManager interface {
+	List(userID string) ([]session.Session, error)
+	Get(id string) (session.Session, error)
+	Revoke(s session.Session) error
 }
 
 type SettingsHandler struct {
