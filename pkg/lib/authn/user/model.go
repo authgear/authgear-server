@@ -45,8 +45,10 @@ func newUserModel(
 			CreatedAt: user.CreatedAt,
 			UpdatedAt: user.UpdatedAt,
 		},
-		LastLoginAt: user.LastLoginAt,
-		IsAnonymous: isAnonymous,
-		IsVerified:  isVerified,
+		LastLoginAt:   user.LastLoginAt,
+		IsAnonymous:   isAnonymous,
+		IsVerified:    isVerified,
+		IsDisabled:    user.IsDisabled,
+		DisableReason: user.DisableReason,
 	}
 }
