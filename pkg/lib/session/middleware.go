@@ -22,7 +22,7 @@ type Middleware struct {
 	IDPSessionResolver         IDPSessionResolver
 	AccessTokenSessionResolver AccessTokenSessionResolver
 	AccessEvents               *access.EventProvider
-	Users                      UserProvider
+	Users                      UserQuery
 	Database                   *db.Handle
 }
 
@@ -53,13 +53,19 @@ func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (s Session
 		if s == nil {
 			return
 		}
-		_, err = m.Users.Get(s.SessionAttrs().UserID)
+
+		u, err := m.Users.GetRaw(s.SessionAttrs().UserID)
 		if err != nil {
 			if errors.Is(err, user.ErrUserNotFound) {
 				err = ErrInvalidSession
 			}
 			return
 		}
+		if err = u.CheckStatus(); err != nil {
+			err = ErrInvalidSession
+			return
+		}
+
 		event := s.GetAccessInfo().LastAccess
 		err = m.AccessEvents.RecordAccess(s.SessionID(), &event)
 		if err != nil {

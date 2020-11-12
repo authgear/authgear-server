@@ -26,6 +26,13 @@ func (u *User) GetMeta() model.Meta {
 	}
 }
 
+func (u *User) CheckStatus() error {
+	if u.IsDisabled {
+		return NewErrDisabledUser(u.DisableReason)
+	}
+	return nil
+}
+
 func newUserModel(
 	user *User,
 	identities []*identity.Info,
