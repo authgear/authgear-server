@@ -18,8 +18,19 @@ RUN make build BIN_NAME=authgear-portal TARGET=portal GIT_HASH=$GIT_HASH
 # But we have a transitive dependency on icu4c so this is no longer the case.
 # RUN readelf -d ./authgear | grep 'There is no dynamic section in this file'
 
-# Stage 2: Build the portal static files
+# Stage 2: Build the static files
 FROM node:12.18.3-buster as stage2
+ARG GIT_HASH
+WORKDIR /usr/src/app
+COPY ./scripts/npm/package.json ./scripts/npm/package-lock.json ./scripts/npm/
+RUN cd ./scripts/npm && npm ci
+COPY ./authui/package.json ./authui/package-lock.json ./authui/
+RUN cd ./authui && npm ci
+COPY . .
+RUN make authui GIT_HASH=$GIT_HASH
+
+# Stage 3: Build the portal static files
+FROM node:12.18.3-buster as stage3
 ARG GIT_HASH
 # If the working directory is /src, Parcel will have some problem with it.
 WORKDIR /usr/src/app
@@ -28,7 +39,7 @@ RUN npm ci
 COPY ./portal .
 RUN npm run build
 
-# Stage 3: Prepare the actual fs we use to run the program
+# Stage 4: Prepare the actual fs we use to run the program
 FROM debian:buster-slim
 ARG GIT_HASH
 WORKDIR /app
@@ -42,9 +53,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tzdata \
     && rm -rf /var/lib/apt/lists/*
 RUN update-ca-certificates
+COPY ./migrations ./migrations
 COPY --from=stage1 /src/authgear-portal /usr/local/bin/
 COPY ./resources/ ./resources/
-COPY --from=stage2 /usr/src/app/dist/ ./resources/portal/static/
+COPY --from=stage2 /usr/src/app/resources/authgear/static/ ./resources/authgear/static/
+COPY --from=stage3 /usr/src/app/dist/ ./resources/portal/static/
 ENV STATIC_ASSET_SERVING_ENABLED true
 USER nobody
 EXPOSE 3003
