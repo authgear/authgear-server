@@ -84,6 +84,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.SettingsMFAService), new(*mfa.Service)),
 	wire.Bind(new(handlerwebapp.SettingsIdentityService), new(*identityservice.Service)),
 	wire.Bind(new(handlerwebapp.SettingsVerificationService), new(*verification.Service)),
+	wire.Bind(new(handlerwebapp.SettingsSessionManager), new(*session.Manager)),
 	wire.Bind(new(handlerwebapp.EnterLoginIDService), new(*identityservice.Service)),
 	wire.Bind(new(handlerwebapp.PasswordPolicy), new(*password.Checker)),
 	wire.Bind(new(handlerwebapp.LogoutSessionManager), new(*session.Manager)),

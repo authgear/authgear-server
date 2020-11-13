@@ -942,7 +942,58 @@ a.btn {
   justify-self: end;
 }
 
-.settings-oob-otp-add-section .action {
+.settings-sessions-row {
+  margin: 10px 14px 0px 14px;
+  padding: 0 0 10px 0;
+}
+
+.settings-sessions-row:not(:last-child) {
+  border-bottom: 1px solid #E5E5E5;
+}
+
+.settings-sessions-title-section .title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.settings-sessions-item-section {
+  display: grid;
+  grid: "name  action" auto
+        "desc  action" auto
+      /  1fr   auto    auto;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.settings-sessions-item-section > * {
+  margin: 0;
+}
+
+.settings-sessions-item-section .name {
+  grid-area: name;
+  align-self: center;
+  /* We must keep using the default value justify-self: stretch */
+  /* So that this element takes exact 1fr width */
+  /* Otherwise it could overflow */
+  font-size: inherit;
+}
+
+.settings-sessions-item-section .desc {
+  grid-area: desc;
+  align-self: center;
+  /* We must keep using the default value justify-self: stretch */
+  /* So that this element takes exact 1fr width */
+  /* Otherwise it could overflow */
+  font-size: inherit;
+}
+
+.settings-sessions-item-section .action {
+  grid-area: action;
+  align-self: start;
+  justify-self: end;
+}
+
+.settings-sessions-revoke-all-section .action {
   margin: 0;
   font-size: 1rem;
 }

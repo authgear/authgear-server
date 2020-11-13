@@ -40,6 +40,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(SettingsTOTPHandler), "*"),
 	wire.Struct(new(SettingsOOBOTPHandler), "*"),
 	wire.Struct(new(SettingsRecoveryCodeHandler), "*"),
+	wire.Struct(new(SettingsSessionsHandler), "*"),
 	wire.Struct(new(ChangePasswordHandler), "*"),
 	wire.Struct(new(ChangeSecondaryPasswordHandler), "*"),
 	wire.Struct(new(LogoutHandler), "*"),

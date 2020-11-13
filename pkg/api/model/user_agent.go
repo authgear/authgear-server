@@ -20,23 +20,6 @@ type UserAgent struct {
 	DeviceModel string `json:"device_model"`
 }
 
-// @JSONSchema
-const UserAgentSchema = `
-{
-	"$id": "#UserAgent",
-	"type": "object",
-	"properties": {
-		"raw": { "type": "string" },
-		"name": { "type": "string" },
-		"version": { "type": "string" },
-		"os": { "type": "string" },
-		"os_version": { "type": "string" },
-		"device_name": { "type": "string" },
-		"device_model": { "type": "string" }
-	}
-}
-`
-
 func ParseUserAgent(ua string) (mUA UserAgent) {
 	mUA.Raw = ua
 

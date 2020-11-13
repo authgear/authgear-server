@@ -245,6 +245,12 @@ type Mutation {
   """Reset password of user"""
   resetPassword(input: ResetPasswordInput!): ResetPasswordPayload!
 
+  """Revoke all sessions of user"""
+  revokeAllSessions(input: RevokeAllSessionsInput!): RevokeAllSessionsPayload!
+
+  """Revoke session of user"""
+  revokeSession(input: RevokeSessionInput!): RevokeSessionPayload!
+
   """Set verified status of a claim of user"""
   setVerifiedStatus(input: SetVerifiedStatusInput!): SetVerifiedStatusPayload!
 }
@@ -304,6 +310,81 @@ type ResetPasswordPayload {
 }
 
 """"""
+input RevokeAllSessionsInput {
+  """Target user ID."""
+  userID: ID!
+}
+
+""""""
+type RevokeAllSessionsPayload {
+  """"""
+  user: User!
+}
+
+""""""
+input RevokeSessionInput {
+  """Target session ID."""
+  sessionID: ID!
+}
+
+""""""
+type RevokeSessionPayload {
+  """"""
+  user: User!
+}
+
+""""""
+type Session implements Entity & Node {
+  """"""
+  acr: String!
+
+  """"""
+  amr: [String!]!
+
+  """The creation time of entity"""
+  createdAt: DateTime!
+
+  """"""
+  createdByIP: String!
+
+  """The ID of an object"""
+  id: ID!
+
+  """"""
+  lastAccessedAt: DateTime!
+
+  """"""
+  lastAccessedByIP: String!
+
+  """The update time of entity"""
+  updatedAt: DateTime!
+
+  """"""
+  userAgent: UserAgent!
+}
+
+"""A connection to a list of items."""
+type SessionConnection {
+  """Information to aid in pagination."""
+  edges: [SessionEdge]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Total number of nodes in the connection."""
+  totalCount: Int
+}
+
+"""An edge in a connection"""
+type SessionEdge {
+  """ cursor for use in pagination"""
+  cursor: String!
+
+  """The item at the end of the edge"""
+  node: Session
+}
+
+""""""
 input SetVerifiedStatusInput {
   """Name of the claim to set verified status."""
   claimName: String!
@@ -341,11 +422,35 @@ type User implements Entity & Node {
   """The last login time of user"""
   lastLoginAt: DateTime
 
+  """"""
+  sessions(after: String, before: String, first: Int, last: Int): SessionConnection
+
   """The update time of entity"""
   updatedAt: DateTime!
 
   """"""
   verifiedClaims: [Claim!]!
+}
+
+""""""
+type UserAgent {
+  """"""
+  deviceModel: String!
+
+  """"""
+  name: String!
+
+  """"""
+  os: String!
+
+  """"""
+  osVersion: String!
+
+  """"""
+  raw: String!
+
+  """"""
+  version: String!
 }
 
 """A connection to a list of items."""

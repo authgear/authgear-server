@@ -10,7 +10,7 @@ import { AuthenticatorType, AuthenticatorKind, IdentityType } from "./../../__ge
 // ====================================================
 
 export interface UserQuery_node_Authenticator {
-  __typename: "Authenticator" | "Identity";
+  __typename: "Authenticator" | "Identity" | "Session";
 }
 
 export interface UserQuery_node_User_authenticators_edges_node {
