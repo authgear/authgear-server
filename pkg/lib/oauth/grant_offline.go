@@ -49,6 +49,7 @@ func (g *OfflineGrant) ToAPIModel() *model.Session {
 			// TODO(session): Session Updated At should be the time user actively updates it.
 			UpdatedAt: g.AccessInfo.LastAccess.Timestamp,
 		},
+		Type: model.SessionTypeOfflineGrant,
 
 		AMR: amr,
 		ACR: acr,
