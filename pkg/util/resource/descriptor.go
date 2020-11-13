@@ -137,6 +137,10 @@ func (d NewlineJoinedDescriptor) ViewResources(resources []ResourceFile, rawView
 }
 
 func (d NewlineJoinedDescriptor) viewResources(resources []ResourceFile) ([]byte, error) {
+	if len(resources) == 0 {
+		return nil, ErrResourceNotFound
+	}
+
 	output := bytes.Buffer{}
 	for _, resrc := range resources {
 		output.Write(resrc.Data)

@@ -99,11 +99,10 @@ func TestNewlineJoinedDescriptor(t *testing.T) {
 		}
 
 		Convey("AppFileView: not found", func() {
-			writeFile(fsA, "line in non-app FS")
+			writeFile(fsA, "file in non-app FS")
 
-			data, err := read(resource.AppFile{})
-			So(err, ShouldBeNil)
-			So(data, ShouldEqual, "")
+			_, err := read(resource.AppFile{})
+			So(err, ShouldBeError, "specified resource is not configured")
 		})
 
 		Convey("AppFileView: found", func() {

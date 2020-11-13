@@ -1,6 +1,8 @@
 package graphql
 
 import (
+	"errors"
+
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/portal/model"
@@ -27,7 +29,9 @@ var appResource = graphql.NewObject(graphql.ObjectConfig{
 					Path:              r.DescriptedPath.Path,
 					AllowedSecretKeys: ctx.SecretKeyAllowlist,
 				})
-				if err != nil {
+				if errors.Is(err, resource.ErrResourceNotFound) {
+					return nil, nil
+				} else if err != nil {
 					return nil, err
 				}
 				return string(result.([]byte)), nil
@@ -41,7 +45,9 @@ var appResource = graphql.NewObject(graphql.ObjectConfig{
 					Path:       r.DescriptedPath.Path,
 					DefaultTag: r.Context.Config.AppConfig.Localization.FallbackLanguage,
 				})
-				if err != nil {
+				if errors.Is(err, resource.ErrResourceNotFound) {
+					return nil, nil
+				} else if err != nil {
 					return nil, err
 				}
 				return string(result.([]byte)), nil
