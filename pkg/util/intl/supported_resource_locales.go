@@ -1,6 +1,7 @@
 package intl
 
 var SupportedResourceLocales = []string{
+	"en",
 	"af",
 	"am",
 	"ar",
