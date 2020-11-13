@@ -1,8 +1,10 @@
-import React, { useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import {
   ActionButton,
   DefaultButton,
   DetailsList,
+  Dialog,
+  DialogFooter,
   IColumn,
   SelectionMode,
   Text,
@@ -13,6 +15,70 @@ import { formatDatetime } from "../../util/formatDatetime";
 
 import styles from "./UserDetailsSession.module.scss";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import ButtonWithLoading from "../../ButtonWithLoading";
+
+interface RevokeConfirmationDialogProps {
+  isHidden: boolean;
+  isLoading: boolean;
+  titleKey: string;
+  messageKey: string;
+  onConfirm: () => void;
+  onDismiss: () => void;
+}
+
+const RevokeConfirmationDialog: React.FC<RevokeConfirmationDialogProps> = function RevokeConfirmationDialog(
+  props
+) {
+  const {
+    isHidden,
+    isLoading,
+    titleKey,
+    messageKey,
+    onConfirm,
+    onDismiss,
+  } = props;
+
+  const { renderToString } = useContext(Context);
+
+  const onDialogConfirm = useCallback(() => {
+    if (!isHidden && !isLoading) {
+      onConfirm();
+    }
+  }, [isHidden, isLoading, onConfirm]);
+
+  const onDialogDismiss = useCallback(() => {
+    if (!isHidden && !isLoading) {
+      onDismiss();
+    }
+  }, [isHidden, isLoading, onDismiss]);
+
+  const dialogContentProps = useMemo(() => {
+    return {
+      title: <FormattedMessage id={titleKey} />,
+      subText: renderToString(messageKey),
+    };
+  }, [titleKey, messageKey, renderToString]);
+
+  return (
+    <Dialog
+      hidden={isHidden}
+      dialogContentProps={dialogContentProps}
+      modalProps={{ isBlocking: isLoading }}
+      onDismiss={onDialogDismiss}
+    >
+      <DialogFooter>
+        <ButtonWithLoading
+          onClick={onDialogConfirm}
+          labelId="confirm"
+          loading={isLoading}
+        />
+        <DefaultButton disabled={isLoading} onClick={onDialogDismiss}>
+          <FormattedMessage id="cancel" />
+        </DefaultButton>
+      </DialogFooter>
+    </Dialog>
+  );
+};
 
 type SessionType = "IDP" | "OFFLINE_GRANT";
 
@@ -63,6 +129,22 @@ const UserDetailsSession: React.FC<Props> = function UserDetailsSession(props) {
   const { locale, renderToString } = useContext(Context);
   const { themes } = useSystemConfig();
   const { sessions } = props;
+
+  interface ConfirmDialogProps {
+    titleKey: string;
+    messageKey: string;
+    onConfirm: () => void;
+  }
+  const [
+    confirmDialogProps,
+    setConfirmDialogProps,
+  ] = useState<ConfirmDialogProps | null>(null);
+  const [isConfirmDialogHidden, setIsConfirmDialogHidden] = useState(true);
+  const isLoading = false;
+
+  const onConfirmDialogDismiss = useCallback(() => {
+    setIsConfirmDialogHidden(true);
+  }, []);
 
   const sessionColumns: IColumn[] = useMemo(
     () => [
@@ -125,11 +207,27 @@ const UserDetailsSession: React.FC<Props> = function UserDetailsSession(props) {
           kind: renderToString(sessionTypeDisplayKey(session.type)),
           ipAddress: session.lastAccessedByIP,
           lastActivity: formatDatetime(locale, session.lastAccessedAt) ?? "",
-          revoke: () => {},
+          revoke: () => {
+            setConfirmDialogProps({
+              titleKey: "UserDetails.session.confirm-dialog.revoke.title",
+              messageKey: "UserDetails.session.confirm-dialog.revoke.message",
+              onConfirm: () => {},
+            });
+            setIsConfirmDialogHidden(false);
+          },
         })
       ),
     [sessions, locale, renderToString]
   );
+
+  const onRevokeAllClick = useCallback(() => {
+    setConfirmDialogProps({
+      titleKey: "UserDetails.session.confirm-dialog.revoke-all.title",
+      messageKey: "UserDetails.session.confirm-dialog.revoke-all.message",
+      onConfirm: () => {},
+    });
+    setIsConfirmDialogHidden(false);
+  }, []);
 
   return (
     <div className={styles.root}>
@@ -149,9 +247,18 @@ const UserDetailsSession: React.FC<Props> = function UserDetailsSession(props) {
           menuIcon: { paddingLeft: "3px" },
           icon: { paddingRight: "3px" },
         }}
+        onClick={onRevokeAllClick}
       >
         <FormattedMessage id="UserDetails.session.revoke-all" />
       </DefaultButton>
+      {confirmDialogProps && (
+        <RevokeConfirmationDialog
+          {...confirmDialogProps}
+          isHidden={isConfirmDialogHidden}
+          isLoading={isLoading}
+          onDismiss={onConfirmDialogDismiss}
+        />
+      )}
     </div>
   );
 };
