@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import cn from "classnames";
 import { useParams } from "react-router-dom";
+import produce from "immer";
 import { Pivot, PivotItem, Text } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
@@ -23,13 +24,13 @@ import {
   UpdateAppTemplatesData,
   useUpdateAppTemplatesMutation,
 } from "./mutations/updateAppTemplatesMutation";
+import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
 import { PortalAPIAppConfig } from "../../types";
 import { usePivotNavigation } from "../../hook/usePivot";
 import {
   AuthenticatePrimaryOOBMessageTemplatePaths,
   DEFAULT_TEMPLATE_LOCALE,
   ForgotPasswordMessageTemplatePaths,
-  getConfiguredLocales,
   SetupPrimaryOOBMessageTemplatePaths,
   TemplateLocale,
 } from "../../templates";
@@ -54,7 +55,7 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
   const { renderToString } = useContext(Context);
   const { appID } = useParams();
 
-  const { effectiveAppConfig } = useContext(AppConfigContext);
+  const { effectiveAppConfig, rawAppConfig } = useContext(AppConfigContext);
 
   const initialDefaultTemplateLocale = useMemo(() => {
     return (
@@ -101,34 +102,36 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
     ...AuthenticatePrimaryOOBMessageTemplatePaths
   );
 
-  const configuredTemplateLocales = useMemo(() => {
-    return getConfiguredLocales(resourcePaths);
-  }, [resourcePaths]);
+  const {
+    updateAppConfig,
+    loading: updatingAppConfig,
+    error: updateAppConfigError,
+    resetError: resetUpdateAppConfigError,
+  } = useUpdateAppConfigMutation(appID);
 
-  // Check if default is deleted
-  useEffect(() => {
-    if (!configuredTemplateLocales.includes(defaultTemplateLocale)) {
-      setDefaultTemplateLocale(
-        configuredTemplateLocales[0] ?? DEFAULT_TEMPLATE_LOCALE
-      );
-    }
-  }, [configuredTemplateLocales, templateLocale, defaultTemplateLocale]);
+  const saveDefaultTemplateLocale = useCallback(
+    (defaultTemplateLocale: TemplateLocale) => {
+      if (rawAppConfig == null) {
+        return;
+      }
+      const newAppConfig = produce(rawAppConfig, (draftConfig) => {
+        draftConfig.localization = draftConfig.localization ?? {};
+        draftConfig.localization.fallback_language = defaultTemplateLocale;
+      });
 
-  // Check if selected is deleted
-  useEffect(() => {
-    const localeList = configuredTemplateLocales.concat(pendingTemplateLocales);
-    if (!localeList.includes(templateLocale)) {
-      setTemplateLocale(localeList[0] ?? DEFAULT_TEMPLATE_LOCALE);
-    }
-  }, [configuredTemplateLocales, pendingTemplateLocales, templateLocale]);
-
-  const resetError = useCallback(() => {
-    resetUpdateTemplatesError();
-  }, [resetUpdateTemplatesError]);
+      updateAppConfig(newAppConfig).catch(() => {});
+    },
+    [rawAppConfig, updateAppConfig]
+  );
 
   const refresh = useCallback(() => {
     setRemountIdentifier((prev) => prev + 1);
   }, []);
+
+  const resetError = useCallback(() => {
+    resetUpdateTemplatesError();
+    resetUpdateAppConfigError();
+  }, [resetUpdateTemplatesError, resetUpdateAppConfigError]);
 
   const resetForm = useCallback(() => {
     refresh();
@@ -136,10 +139,14 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
   }, [resetError, refresh]);
 
   useEffect(() => {
+    refresh();
+  }, [templateLocale, refresh]);
+
+  useEffect(() => {
     if (!loadingTemplates) {
       refresh();
     }
-  }, [loadingTemplates, templateLocale, refresh]);
+  }, [loadingTemplates, refresh]);
 
   const { selectedKey, onLinkClick } = usePivotNavigation(
     [FORGOT_PASSWORD_PIVOT_KEY, PASSWORDLESS_AUTHENTICATOR_PIVOT_KEY],
@@ -179,6 +186,7 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
       })}
     >
       {updateTemplatesError && <ShowError error={updateTemplatesError} />}
+      {updateAppConfigError && <ShowError error={updateAppConfigError} />}
       {unrecognizedLoadTemplateError && (
         <ShowError error={loadTemplatesError} onRetry={refetchTemplates} />
       )}
@@ -190,11 +198,14 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
           key={remountIdentifier}
           resourcePaths={resourcePaths}
           templateLocale={templateLocale}
+          initialDefaultTemplateLocale={initialDefaultTemplateLocale}
           defaultTemplateLocale={defaultTemplateLocale}
           onTemplateLocaleSelected={setTemplateLocale}
           onDefaultTemplateLocaleSelected={setDefaultTemplateLocale}
           pendingTemplateLocales={pendingTemplateLocales}
           onPendingTemplateLocalesChange={setPendingTemplateLocales}
+          saveDefaultTemplateLocale={saveDefaultTemplateLocale}
+          updatingAppConfig={updatingAppConfig}
         />
         {loadingTemplates && <ShowLoading />}
         <Pivot

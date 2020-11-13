@@ -31,11 +31,14 @@ type TemplateLocaleUpdater = (locale: TemplateLocale) => void;
 interface TemplateLocaleManagementProps {
   resourcePaths: string[];
   templateLocale: TemplateLocale;
+  initialDefaultTemplateLocale: TemplateLocale;
   defaultTemplateLocale: TemplateLocale;
   onTemplateLocaleSelected: TemplateLocaleUpdater;
   onDefaultTemplateLocaleSelected: TemplateLocaleUpdater;
   pendingTemplateLocales: TemplateLocale[];
   onPendingTemplateLocalesChange: (locales: TemplateLocale[]) => void;
+  saveDefaultTemplateLocale: (defaultTemplateLocale: TemplateLocale) => void;
+  updatingAppConfig: boolean;
 }
 
 interface TemplateLocaleManagementDialogProps {
@@ -45,6 +48,10 @@ interface TemplateLocaleManagementDialogProps {
   configuredTemplateLocales: TemplateLocale[];
   pendingTemplateLocales: TemplateLocale[];
   onPendingTemplateLocalesChange: (locales: TemplateLocale[]) => void;
+  onTemplateLocaleDeleted: (
+    configuredLocales: TemplateLocale[],
+    pendingLocales: TemplateLocale[]
+  ) => void;
 }
 
 interface TemplateLocaleListItemProps {
@@ -122,6 +129,7 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
     configuredTemplateLocales,
     pendingTemplateLocales,
     onPendingTemplateLocalesChange,
+    onTemplateLocaleDeleted,
   } = props;
 
   const { supportedResourceLocales } = useSystemConfig();
@@ -224,6 +232,10 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
     const removedLocales = configuredTemplateLocales.filter(
       (locale) => !selectedLocaleSet.has(locale)
     );
+    const updatedConfiguredTemplateLocales = configuredTemplateLocales.filter(
+      (locale) => selectedLocaleSet.has(locale)
+    );
+
     // NOTE: cannot remove all configured locales
     if (removedLocales.length === configuredTemplateLocales.length) {
       setLocalErrorMessage(
@@ -242,6 +254,10 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
       removeTemplateLocales(resourcePaths, removedLocales)
         .then(() => {
           onPendingTemplateLocalesChange(updatedPendingTemplateLocales);
+          onTemplateLocaleDeleted(
+            updatedConfiguredTemplateLocales,
+            updatedPendingTemplateLocales
+          );
           onDismiss();
         })
         .catch(() => {});
@@ -257,6 +273,7 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
     onPendingTemplateLocalesChange,
     removeTemplateLocales,
     onDismiss,
+    onTemplateLocaleDeleted,
   ]);
 
   const modalProps = useMemo<IDialogProps["modalProps"]>(() => {
@@ -335,11 +352,14 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
   const {
     resourcePaths,
     templateLocale,
+    initialDefaultTemplateLocale,
     defaultTemplateLocale,
     onTemplateLocaleSelected,
     onDefaultTemplateLocaleSelected,
     pendingTemplateLocales,
     onPendingTemplateLocalesChange,
+    saveDefaultTemplateLocale,
+    updatingAppConfig,
   } = props;
 
   const { themes } = useSystemConfig();
@@ -348,6 +368,10 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
   const configuredTemplateLocales = useMemo(() => {
     return getConfiguredLocales(resourcePaths);
   }, [resourcePaths]);
+
+  const isDefaultTemplateLocaleModified = useMemo(() => {
+    return initialDefaultTemplateLocale !== defaultTemplateLocale;
+  }, [initialDefaultTemplateLocale, defaultTemplateLocale]);
 
   const [isDialogPresented, setIsDialogPresented] = useState(false);
 
@@ -365,7 +389,7 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
   const displayTemplateLocaleOption = useCallback(
     (locale: TemplateLocale) => {
       const localeDisplayText = displayTemplateLocale(locale);
-      if (locale === defaultTemplateLocale) {
+      if (locale === initialDefaultTemplateLocale) {
         return renderToString(
           "TemplatesConfigurationScreen.default-template-locale",
           { locale: localeDisplayText }
@@ -379,7 +403,7 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
       return localeDisplayText;
     },
     [
-      defaultTemplateLocale,
+      initialDefaultTemplateLocale,
       pendingTemplateLocales,
       displayTemplateLocale,
       renderToString,
@@ -414,6 +438,32 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
     setIsDialogPresented(false);
   }, []);
 
+  const onSaveDefaultLocaleClick = useCallback(() => {
+    saveDefaultTemplateLocale(defaultTemplateLocale);
+  }, [defaultTemplateLocale, saveDefaultTemplateLocale]);
+
+  const onTemplateLocaleDeleted = useCallback(
+    (configuredLocales: TemplateLocale[], pendingLocales: TemplateLocale[]) => {
+      // Check if default is deleted
+      if (!configuredLocales.includes(defaultTemplateLocale)) {
+        onDefaultTemplateLocaleSelected(configuredLocales[0]);
+        saveDefaultTemplateLocale(configuredLocales[0]);
+      }
+      // Check if selected is deleted
+      const localeList = configuredLocales.concat(pendingLocales);
+      if (!localeList.includes(templateLocale)) {
+        onTemplateLocaleSelected(localeList[0]);
+      }
+    },
+    [
+      saveDefaultTemplateLocale,
+      defaultTemplateLocale,
+      onDefaultTemplateLocaleSelected,
+      onTemplateLocaleSelected,
+      templateLocale,
+    ]
+  );
+
   return (
     <section className={styles.templateLocaleManagement}>
       <TemplateLocaleManagementDialog
@@ -423,6 +473,7 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
         pendingTemplateLocales={pendingTemplateLocales}
         onPendingTemplateLocalesChange={onPendingTemplateLocalesChange}
         onDismiss={dismissDialog}
+        onTemplateLocaleDeleted={onTemplateLocaleDeleted}
       />
       <Stack
         className={styles.inputContainer}
@@ -451,9 +502,10 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
         </ActionButton>
       </Stack>
       <ButtonWithLoading
-        loading={false}
-        labelId="save"
-        loadingLabelId="saving"
+        disabled={!isDefaultTemplateLocaleModified}
+        onClick={onSaveDefaultLocaleClick}
+        loading={updatingAppConfig}
+        labelId="TemplatesConfigurationScreen.save-default-locale"
       />
     </section>
   );
