@@ -2,6 +2,7 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -28,6 +29,7 @@ import {
   AuthenticatePrimaryOOBMessageTemplatePaths,
   DEFAULT_TEMPLATE_LOCALE,
   ForgotPasswordMessageTemplatePaths,
+  getConfiguredLocales,
   SetupPrimaryOOBMessageTemplatePaths,
   TemplateLocale,
 } from "../../templates";
@@ -70,6 +72,7 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
 
   const {
     templates,
+    resourcePaths,
     loading: loadingTemplates,
     error: loadTemplatesError,
     refetch: refetchTemplates,
@@ -93,6 +96,19 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
     ...SetupPrimaryOOBMessageTemplatePaths,
     ...AuthenticatePrimaryOOBMessageTemplatePaths
   );
+
+  const configuredTemplateLocales = useMemo(() => {
+    return getConfiguredLocales(resourcePaths);
+  }, [resourcePaths]);
+
+  // Check if default is deleted
+  useEffect(() => {
+    if (!configuredTemplateLocales.includes(defaultTemplateLocale)) {
+      setDefaultTemplateLocale(
+        configuredTemplateLocales[0] ?? DEFAULT_TEMPLATE_LOCALE
+      );
+    }
+  }, [configuredTemplateLocales, defaultTemplateLocale]);
 
   const resetError = useCallback(() => {
     resetUpdateTemplatesError();
@@ -137,8 +153,7 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
           <FormattedMessage id="TemplatesConfigurationScreen.title" />
         </Text>
         <TemplateLocaleManagement
-          // TODO: get configured template locales from registered path
-          configuredTemplateLocales={["en"]}
+          resourcePaths={resourcePaths}
           templateLocale={templateLocale}
           defaultTemplateLocale={defaultTemplateLocale}
           onTemplateLocaleSelected={setTemplateLocale}

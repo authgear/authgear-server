@@ -19,7 +19,7 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useCheckbox, useDropdown } from "../../hook/useInput";
-import { TemplateLocale } from "../../templates";
+import { getConfiguredLocales, TemplateLocale } from "../../templates";
 
 import styles from "./TemplateLocaleManagement.module.scss";
 import ErrorDialog from "../../error/ErrorDialog";
@@ -27,7 +27,7 @@ import ErrorDialog from "../../error/ErrorDialog";
 type TemplateLocaleUpdater = (locale: TemplateLocale) => void;
 
 interface TemplateLocaleManagementProps {
-  configuredTemplateLocales: TemplateLocale[];
+  resourcePaths: string[];
   templateLocale: TemplateLocale;
   defaultTemplateLocale: TemplateLocale;
   onTemplateLocaleSelected: TemplateLocaleUpdater;
@@ -307,7 +307,7 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
   props: TemplateLocaleManagementProps
 ) {
   const {
-    configuredTemplateLocales,
+    resourcePaths,
     templateLocale,
     defaultTemplateLocale,
     onTemplateLocaleSelected,
@@ -321,6 +321,10 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
     TemplateLocale[]
   >([]);
   const [isDialogPresented, setIsDialogPresented] = useState(false);
+
+  const configuredTemplateLocales = useMemo(() => {
+    return getConfiguredLocales(resourcePaths);
+  }, [resourcePaths]);
 
   const displayTemplateLocale = useCallback(
     (locale: TemplateLocale) => {

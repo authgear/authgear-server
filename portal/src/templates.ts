@@ -1,9 +1,15 @@
 import { UpdateAppTemplatesData } from "./graphql/portal/mutations/updateAppTemplatesMutation";
-import { renderTemplateString } from "./util/stringTemplate";
+import {
+  parseTemplateString,
+  renderTemplateString,
+} from "./util/stringTemplate";
 
 export type TemplateLocale = string;
 export const DEFAULT_TEMPLATE_LOCALE: TemplateLocale = "en";
 export type TemplateMap = Record<string, string>;
+
+export const TEMPLATE_MESSAGE_TEMPLATE =
+  "templates/{{locale}}/messages/{{fileName}}";
 
 export const TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_HTML =
   "templates/{{locale}}/messages/setup_primary_oob_email.html";
@@ -64,6 +70,19 @@ export function setUpdateTemplatesData(
 ): void {
   templateUpdates[getLocalizedTemplatePath(templateLocale, pathTemplate)] =
     templateValue !== "" ? templateValue : null;
+}
+
+export function getConfiguredLocales(
+  configuredPaths: string[]
+): TemplateLocale[] {
+  const templateLocaleSet = new Set<TemplateLocale>();
+  for (const path of configuredPaths) {
+    const { locale } = parseTemplateString(path, TEMPLATE_MESSAGE_TEMPLATE);
+    if (locale != null) {
+      templateLocaleSet.add(locale);
+    }
+  }
+  return Array.from(templateLocaleSet);
 }
 
 export const STATIC_AUTHGEAR_CSS = "static/authgear.css";
