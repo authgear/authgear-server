@@ -1,4 +1,5 @@
 import { UpdateAppTemplatesData } from "./graphql/portal/mutations/updateAppTemplatesMutation";
+import { renderTemplateString } from "./util/stringTemplate";
 
 export type TemplateLocale = string;
 export const DEFAULT_TEMPLATE_LOCALE: TemplateLocale = "en";
@@ -47,23 +48,6 @@ export type PathTemplate =
   | SetupPrimaryOOBMessageTemplateKeys
   | AuthenticatePrimaryOOBMessageTemplateKeys
   | ForgotPasswordMessageTemplateKeys;
-
-function applyArgumentOnTemplateString(
-  argument: string,
-  template: string,
-  value: string
-): string {
-  return template.replace(new RegExp(`{{[ ]*${argument}[ ]*}}`, "g"), value);
-}
-
-export function renderTemplateString(
-  values: Record<string, string>,
-  template: string
-): string {
-  return Object.entries(values).reduce((result, [key, value]) => {
-    return applyArgumentOnTemplateString(key, result, value);
-  }, template);
-}
 
 export function getLocalizedTemplatePath(
   locale: TemplateLocale,
