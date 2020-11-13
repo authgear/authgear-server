@@ -1,4 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
 import {
   ActionButton,
   Checkbox,
@@ -16,13 +17,14 @@ import {
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
+import { useRemoveTemplateLocalesMutation } from "./mutations/updateAppTemplatesMutation";
 import ButtonWithLoading from "../../ButtonWithLoading";
+import ErrorDialog from "../../error/ErrorDialog";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useCheckbox, useDropdown } from "../../hook/useInput";
 import { getConfiguredLocales, TemplateLocale } from "../../templates";
 
 import styles from "./TemplateLocaleManagement.module.scss";
-import ErrorDialog from "../../error/ErrorDialog";
 
 type TemplateLocaleUpdater = (locale: TemplateLocale) => void;
 
@@ -32,9 +34,12 @@ interface TemplateLocaleManagementProps {
   defaultTemplateLocale: TemplateLocale;
   onTemplateLocaleSelected: TemplateLocaleUpdater;
   onDefaultTemplateLocaleSelected: TemplateLocaleUpdater;
+  pendingTemplateLocales: TemplateLocale[];
+  onPendingTemplateLocalesChange: (locales: TemplateLocale[]) => void;
 }
 
 interface TemplateLocaleManagementDialogProps {
+  resourcePaths: string[];
   presented: boolean;
   onDismiss: () => void;
   configuredTemplateLocales: TemplateLocale[];
@@ -111,6 +116,7 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
   props: TemplateLocaleManagementDialogProps
 ) {
   const {
+    resourcePaths,
     presented,
     onDismiss,
     configuredTemplateLocales,
@@ -119,7 +125,14 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
   } = props;
 
   const { supportedResourceLocales } = useSystemConfig();
+  const { appID } = useParams();
   const { renderToString } = useContext(Context);
+
+  const {
+    removeTemplateLocales,
+    loading: removingTemplateLoacles,
+    error: removeTemplateLocalesError,
+  } = useRemoveTemplateLocalesMutation(appID);
 
   const [localErrorMessage, setLocalErrorMessage] = useState<
     string | undefined
@@ -211,8 +224,6 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
     const removedLocales = configuredTemplateLocales.filter(
       (locale) => !selectedLocaleSet.has(locale)
     );
-    // TODO: implement get all configured template path
-    // and remove all template in one locale
     // NOTE: cannot remove all configured locales
     if (removedLocales.length === configuredTemplateLocales.length) {
       setLocalErrorMessage(
@@ -222,15 +233,30 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
       );
       return;
     }
+
     const updatedPendingTemplateLocales = selectedLocales.filter(
       (locale) => !configuredLocaleSet.has(locale)
     );
-    onPendingTemplateLocalesChange(updatedPendingTemplateLocales);
+
+    if (removedLocales.length > 0) {
+      removeTemplateLocales(resourcePaths, removedLocales)
+        .then(() => {
+          onPendingTemplateLocalesChange(updatedPendingTemplateLocales);
+          onDismiss();
+        })
+        .catch(() => {});
+    } else {
+      onPendingTemplateLocalesChange(updatedPendingTemplateLocales);
+      onDismiss();
+    }
   }, [
     renderToString,
+    resourcePaths,
     selectedLocales,
     configuredTemplateLocales,
     onPendingTemplateLocalesChange,
+    removeTemplateLocales,
+    onDismiss,
   ]);
 
   const modalProps = useMemo<IDialogProps["modalProps"]>(() => {
@@ -243,7 +269,7 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
   return (
     <>
       <ErrorDialog
-        error={null}
+        error={removeTemplateLocalesError}
         rules={[]}
         errorMessage={localErrorMessage}
         fallbackErrorMessageID="TemplateLocaleManagementDialog.apply-error"
@@ -292,7 +318,7 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
             <FormattedMessage id="cancel" />
           </DefaultButton>
           <ButtonWithLoading
-            loading={false}
+            loading={removingTemplateLoacles}
             onClick={onApplyClick}
             labelId="apply"
             loadingLabelId="applying"
@@ -312,19 +338,18 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
     defaultTemplateLocale,
     onTemplateLocaleSelected,
     onDefaultTemplateLocaleSelected,
+    pendingTemplateLocales,
+    onPendingTemplateLocalesChange,
   } = props;
 
   const { themes } = useSystemConfig();
   const { renderToString } = useContext(Context);
 
-  const [pendingTemplateLocales, setPendingTemplateLocales] = useState<
-    TemplateLocale[]
-  >([]);
-  const [isDialogPresented, setIsDialogPresented] = useState(false);
-
   const configuredTemplateLocales = useMemo(() => {
     return getConfiguredLocales(resourcePaths);
   }, [resourcePaths]);
+
+  const [isDialogPresented, setIsDialogPresented] = useState(false);
 
   const displayTemplateLocale = useCallback(
     (locale: TemplateLocale) => {
@@ -375,7 +400,7 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
     options: defaultTemplateLocaleOptions,
     onChange: onDefaultTemplateLocaleChange,
   } = useDropdown(
-    templateLocaleList,
+    configuredTemplateLocales,
     onDefaultTemplateLocaleSelected,
     defaultTemplateLocale,
     displayTemplateLocale
@@ -392,10 +417,11 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
   return (
     <section className={styles.templateLocaleManagement}>
       <TemplateLocaleManagementDialog
+        resourcePaths={resourcePaths}
         presented={isDialogPresented}
         configuredTemplateLocales={configuredTemplateLocales}
         pendingTemplateLocales={pendingTemplateLocales}
-        onPendingTemplateLocalesChange={setPendingTemplateLocales}
+        onPendingTemplateLocalesChange={onPendingTemplateLocalesChange}
         onDismiss={dismissDialog}
       />
       <Stack

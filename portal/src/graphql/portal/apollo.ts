@@ -4,6 +4,7 @@ import { authenticatedQuery } from "./query/authenticatedQuery";
 
 interface AppResource {
   path: string;
+  effectiveData?: string | null;
 }
 
 const cache = new InMemoryCache({
@@ -13,11 +14,20 @@ const cache = new InMemoryCache({
         resources: {
           merge(existing: AppResource[] | undefined, incoming: AppResource[]) {
             const map = new Map<string, AppResource>();
+            // null for delete
+            // undefined for query with path only
             for (const r of existing ?? []) {
-              map.set(r.path, r);
+              if (r.effectiveData !== undefined) {
+                // merge only for data query
+                map.set(r.path, r);
+              }
             }
             for (const r of incoming) {
-              map.set(r.path, r);
+              if (r.effectiveData !== null) {
+                map.set(r.path, r);
+              } else {
+                map.delete(r.path);
+              }
             }
             return Array.from(map.values());
           },

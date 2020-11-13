@@ -345,6 +345,7 @@ const PasswordlessAuthenticatorTemplatesSettings: React.FC<PasswordlessAuthentic
 
       <div className={styles.saveButtonContainer}>
         <ButtonWithLoading
+          type="submit"
           disabled={!isFormModified}
           loading={updatingTemplates}
           labelId="save"

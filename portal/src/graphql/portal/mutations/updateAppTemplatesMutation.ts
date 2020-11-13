@@ -10,6 +10,7 @@ import {
 } from "./__generated__/UpdateAppTemplatesMutation";
 import { PortalAPIApp } from "../../../types";
 import {
+  getMessageTemplatePathByLocale,
   getLocalizedTemplatePath,
   PathTemplate,
   TemplateLocale,
@@ -28,6 +29,9 @@ const updateAppTemplatesMutation = gql`
           path
           effectiveData
         }
+        resourcePaths: resources {
+          path
+        }
       }
     }
   }
@@ -37,6 +41,11 @@ export type UpdateAppTemplatesData = Partial<Record<string, string | null>>;
 
 export type AppTemplatesUpdater = (
   updateTemplates: UpdateAppTemplatesData
+) => Promise<PortalAPIApp | null>;
+
+export type TemplateLocaleRemover = (
+  resourcePaths: string[],
+  locales: TemplateLocale[]
 ) => Promise<PortalAPIApp | null>;
 
 export function useUpdateAppTemplatesMutation(
@@ -82,4 +91,41 @@ export function useUpdateAppTemplatesMutation(
     [appID, mutationFunction, locale, pathTemplates]
   );
   return { updateAppTemplates, error, loading, resetError };
+}
+
+export function useRemoveTemplateLocalesMutation(
+  appID: string
+): {
+  removeTemplateLocales: TemplateLocaleRemover;
+  loading: boolean;
+  error: unknown;
+  resetError: () => void;
+} {
+  const [mutationFunction, { error, loading }, resetError] = useGraphqlMutation<
+    UpdateAppTemplatesMutation,
+    UpdateAppTemplatesMutationVariables
+  >(updateAppTemplatesMutation, { client });
+  const removeTemplateLocales = useCallback<TemplateLocaleRemover>(
+    async (resourcePaths: string[], locales: TemplateLocale[]) => {
+      // all message template path
+      const paths = getMessageTemplatePathByLocale(resourcePaths, locales);
+      const updates: AppResourceUpdate[] = [];
+      for (const path of paths) {
+        updates.push({
+          path,
+          data: null,
+        });
+      }
+      const result = await mutationFunction({
+        variables: {
+          appID,
+          paths,
+          updates,
+        },
+      });
+      return result.data?.updateAppResources.app ?? null;
+    },
+    [appID, mutationFunction]
+  );
+  return { removeTemplateLocales, error, loading, resetError };
 }

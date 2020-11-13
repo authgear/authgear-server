@@ -33,6 +33,7 @@ import {
   SetupPrimaryOOBMessageTemplatePaths,
   TemplateLocale,
 } from "../../templates";
+import { useGenericError } from "../../error/useGenericError";
 
 import styles from "./TemplatesConfigurationScreen.module.scss";
 
@@ -69,6 +70,9 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
   const [templateLocale, setTemplateLocale] = useState<TemplateLocale>(
     defaultTemplateLocale
   );
+  const [pendingTemplateLocales, setPendingTemplateLocales] = useState<
+    TemplateLocale[]
+  >([]);
 
   const {
     templates,
@@ -108,16 +112,34 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
         configuredTemplateLocales[0] ?? DEFAULT_TEMPLATE_LOCALE
       );
     }
-  }, [configuredTemplateLocales, defaultTemplateLocale]);
+  }, [configuredTemplateLocales, templateLocale, defaultTemplateLocale]);
+
+  // Check if selected is deleted
+  useEffect(() => {
+    const localeList = configuredTemplateLocales.concat(pendingTemplateLocales);
+    if (!localeList.includes(templateLocale)) {
+      setTemplateLocale(localeList[0] ?? DEFAULT_TEMPLATE_LOCALE);
+    }
+  }, [configuredTemplateLocales, pendingTemplateLocales, templateLocale]);
 
   const resetError = useCallback(() => {
     resetUpdateTemplatesError();
   }, [resetUpdateTemplatesError]);
 
-  const resetForm = useCallback(() => {
+  const refresh = useCallback(() => {
     setRemountIdentifier((prev) => prev + 1);
+  }, []);
+
+  const resetForm = useCallback(() => {
+    refresh();
     resetError();
-  }, [resetError]);
+  }, [resetError, refresh]);
+
+  useEffect(() => {
+    if (!loadingTemplates) {
+      refresh();
+    }
+  }, [loadingTemplates, templateLocale, refresh]);
 
   const { selectedKey, onLinkClick } = usePivotNavigation(
     [FORGOT_PASSWORD_PIVOT_KEY, PASSWORDLESS_AUTHENTICATOR_PIVOT_KEY],
@@ -127,19 +149,28 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
   const updateTemplatesAndRemountChildren = useCallback(
     async (updateTemplatesData: UpdateAppTemplatesData) => {
       const app = await updateAppTemplates(updateTemplatesData);
-      setRemountIdentifier((prev) => prev + 1);
+      if (pendingTemplateLocales.includes(templateLocale)) {
+        setPendingTemplateLocales((prev) =>
+          prev.filter((locale) => locale !== templateLocale)
+        );
+      }
+      refresh();
       return app;
     },
-    [updateAppTemplates]
+    [updateAppTemplates, pendingTemplateLocales, templateLocale, refresh]
   );
 
-  if (loadingTemplates) {
-    return <ShowLoading />;
-  }
-
-  if (loadTemplatesError != null) {
-    return <ShowError error={loadTemplatesError} onRetry={refetchTemplates} />;
-  }
+  const { unrecognizedError: unrecognizedLoadTemplateError } = useGenericError(
+    loadTemplatesError,
+    [],
+    [
+      {
+        reason: "ResourceNotFound",
+        // NOTE: error message unused
+        errorMessageID: "generic-error.unknown-error",
+      },
+    ]
+  );
 
   return (
     <main
@@ -148,18 +179,29 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
       })}
     >
       {updateTemplatesError && <ShowError error={updateTemplatesError} />}
+      {unrecognizedLoadTemplateError && (
+        <ShowError error={loadTemplatesError} onRetry={refetchTemplates} />
+      )}
       <ModifiedIndicatorWrapper className={styles.screen}>
         <Text className={styles.screenHeaderText} as="h1">
           <FormattedMessage id="TemplatesConfigurationScreen.title" />
         </Text>
         <TemplateLocaleManagement
+          key={remountIdentifier}
           resourcePaths={resourcePaths}
           templateLocale={templateLocale}
           defaultTemplateLocale={defaultTemplateLocale}
           onTemplateLocaleSelected={setTemplateLocale}
           onDefaultTemplateLocaleSelected={setDefaultTemplateLocale}
+          pendingTemplateLocales={pendingTemplateLocales}
+          onPendingTemplateLocalesChange={setPendingTemplateLocales}
         />
-        <Pivot onLinkClick={onLinkClick} selectedKey={selectedKey}>
+        {loadingTemplates && <ShowLoading />}
+        <Pivot
+          hidden={loadingTemplates || unrecognizedLoadTemplateError != null}
+          onLinkClick={onLinkClick}
+          selectedKey={selectedKey}
+        >
           <PivotItem
             headerText={renderToString(
               "TemplatesConfigurationScreen.forgot-password.title"

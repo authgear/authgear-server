@@ -15,6 +15,11 @@ export interface UpdateAppTemplatesMutation_updateAppResources_app_resources {
   effectiveData: string | null;
 }
 
+export interface UpdateAppTemplatesMutation_updateAppResources_app_resourcePaths {
+  __typename: "AppResource";
+  path: string;
+}
+
 export interface UpdateAppTemplatesMutation_updateAppResources_app {
   __typename: "App";
   /**
@@ -22,6 +27,7 @@ export interface UpdateAppTemplatesMutation_updateAppResources_app {
    */
   id: string;
   resources: UpdateAppTemplatesMutation_updateAppResources_app_resources[];
+  resourcePaths: UpdateAppTemplatesMutation_updateAppResources_app_resourcePaths[];
 }
 
 export interface UpdateAppTemplatesMutation_updateAppResources {

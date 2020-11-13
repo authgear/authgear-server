@@ -85,4 +85,21 @@ export function getConfiguredLocales(
   return Array.from(templateLocaleSet);
 }
 
+export function getMessageTemplatePathByLocale(
+  configuredPaths: string[],
+  locales: TemplateLocale[]
+): string[] {
+  const outPaths: string[] = [];
+  for (const path of configuredPaths) {
+    const { locale: templateLocale } = parseTemplateString(
+      path,
+      TEMPLATE_MESSAGE_TEMPLATE
+    );
+    if (templateLocale != null && locales.includes(templateLocale)) {
+      outPaths.push(path);
+    }
+  }
+  return outPaths;
+}
+
 export const STATIC_AUTHGEAR_CSS = "static/authgear.css";
