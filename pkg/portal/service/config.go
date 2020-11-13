@@ -269,16 +269,40 @@ func (s *ConfigService) createKubernetesIngress(
 		tlsCertConfig = s.AppConfig.Kubernetes.DefaultDomainTLSCert
 	}
 
+	var cert *certmanagerv1.Certificate
+	// Prepare template data.
 	def := &IngressTemplateData{
 		AppID:    appID,
 		DomainID: domainID,
 		IsCustom: isCustom,
 		Host:     domain,
 	}
-
-	setupCert, err := s.setupTLSCert(k, def, tlsCertConfig)
-	if err != nil {
-		return fmt.Errorf("cannot setup TLS certificate: %w", err)
+	switch tlsCertConfig.Type {
+	case portalconfig.TLSCertNone:
+		break
+	case portalconfig.TLSCertStatic:
+		def.TLSSecretName = tlsCertConfig.SecretName
+	case portalconfig.TLSCertCertManager:
+		def.TLSSecretName = "tls-" + def.Host
+		cert = &certmanagerv1.Certificate{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: k.Namespace,
+				Name:      "cert-" + def.Host,
+				Labels: map[string]string{
+					configsource.LabelAppID: def.AppID,
+				},
+			},
+			Spec: certmanagerv1.CertificateSpec{
+				SecretName: def.TLSSecretName,
+				IssuerRef: certmanagermetav1.ObjectReference{
+					Kind: tlsCertConfig.IssuerKind,
+					Name: tlsCertConfig.IssuerName,
+				},
+				CommonName: def.Host,
+			},
+		}
+	default:
+		panic("config_service: unknown certificate type")
 	}
 
 	selector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
@@ -306,12 +330,24 @@ func (s *ConfigService) createKubernetesIngress(
 			*metav1.NewControllerRef(&appList.Items[0], corev1.SchemeGroupVersion.WithKind("Secret")),
 		)
 
-		ingress, err = k.Client.NetworkingV1beta1().Ingresses(k.Namespace).Create(s.Context, ingress, metav1.CreateOptions{})
+		_, err = k.Client.NetworkingV1beta1().Ingresses(k.Namespace).Create(s.Context, ingress, metav1.CreateOptions{})
+		if err != nil {
+			return err
+		}
+	}
+
+	if cert != nil {
+		cert.ObjectMeta.OwnerReferences = append(
+			cert.ObjectMeta.OwnerReferences,
+			*metav1.NewControllerRef(&appList.Items[0], corev1.SchemeGroupVersion.WithKind("Secret")),
+		)
+		client, err := certmanagerclientset.NewForConfig(k.KubeConfig)
 		if err != nil {
 			return err
 		}
 
-		err = setupCert(ingress)
+		_, err = client.CertmanagerV1().Certificates(k.Namespace).
+			Create(context.Background(), cert, metav1.CreateOptions{})
 		if err != nil {
 			return err
 		}
@@ -394,60 +430,4 @@ func GenerateIngresses(def *IngressTemplateData, templateBytes []byte) ([]*netwo
 		output = append(output, ingress)
 	}
 	return output, nil
-}
-
-func (s *ConfigService) setupTLSCert(
-	k *configsource.Kubernetes,
-	def *IngressTemplateData,
-	source portalconfig.TLSCertConfig,
-) (func(*networkingv1beta1.Ingress) error, error) {
-	switch source.Type {
-	case portalconfig.TLSCertNone:
-		return func(*networkingv1beta1.Ingress) error { return nil }, nil
-
-	case portalconfig.TLSCertStatic:
-		def.TLSSecretName = source.SecretName
-		return func(*networkingv1beta1.Ingress) error { return nil }, nil
-
-	case portalconfig.TLSCertCertManager:
-		def.TLSSecretName = "tls-" + def.Host
-		return func(ingress *networkingv1beta1.Ingress) error {
-			cert := &certmanagerv1.Certificate{
-				ObjectMeta: metav1.ObjectMeta{
-					Namespace: k.Namespace,
-					Name:      "cert-" + def.Host,
-					Labels: map[string]string{
-						configsource.LabelAppID: def.AppID,
-					},
-					OwnerReferences: []metav1.OwnerReference{
-						*metav1.NewControllerRef(ingress, networkingv1beta1.SchemeGroupVersion.WithKind("Ingress")),
-					},
-				},
-				Spec: certmanagerv1.CertificateSpec{
-					SecretName: def.TLSSecretName,
-					IssuerRef: certmanagermetav1.ObjectReference{
-						Kind: source.IssuerKind,
-						Name: source.IssuerName,
-					},
-					CommonName: def.Host,
-				},
-			}
-
-			client, err := certmanagerclientset.NewForConfig(k.KubeConfig)
-			if err != nil {
-				return err
-			}
-
-			_, err = client.CertmanagerV1().Certificates(k.Namespace).
-				Create(context.Background(), cert, metav1.CreateOptions{})
-			if err != nil {
-				return err
-			}
-
-			return nil
-		}, nil
-
-	default:
-		panic("config_service: unknown certificate type")
-	}
 }
