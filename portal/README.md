@@ -113,8 +113,15 @@ To setup multi-tenant mode:
     ```
     cd hack/kube-apiserver
     docker-compose up -d
+
+
     ```
-2. Bootstrap Kubernetes resources:
+2. Install cert manager CRDs:
+    ```
+    kubectl --kubeconfig=hack/kube-apiserver/.kubeconfig apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.0.4/cert-manager.crds.yaml
+    ```
+
+3. Bootstrap Kubernetes resources:
    ```
    kubectl --kubeconfig=hack/kube-apiserver/.kubeconfig apply -f hack/k8s-manifest.yaml
    ```
@@ -122,10 +129,10 @@ To setup multi-tenant mode:
    This step creates an app with id `accounts`.
    If you want to have access to it, you have to add a row to `_portal_app_collaborator` manually.
 
-3. Setup default resources:
+4. Setup default resources:
    Update hack/k8s-resources/authgear.secrets.yaml to match your configuration.
 
-4. Enable multi-tenant mode in Authgear & portal server:
+5. Enable multi-tenant mode in Authgear & portal server:
    refer to `.env.example.k8s` for example environment variables to set
 
 In this setup, the servers are hosted under different endpoint:
