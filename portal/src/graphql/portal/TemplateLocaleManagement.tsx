@@ -140,7 +140,9 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
           return [...prev, locale];
         }
         if (!checked && modifiedIndex >= 0) {
-          return [...prev.splice(modifiedIndex, 1)];
+          const updated = [...prev];
+          updated.splice(modifiedIndex, 1);
+          return updated;
         }
         return prev;
       });
