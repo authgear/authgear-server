@@ -137,8 +137,8 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
           <FormattedMessage id="TemplatesConfigurationScreen.title" />
         </Text>
         <TemplateLocaleManagement
-          // TODO: get supported template locales from registered path
-          supportedTemplateLocales={["en"]}
+          // TODO: get configured template locales from registered path
+          configuredTemplateLocales={["en"]}
           templateLocale={templateLocale}
           defaultTemplateLocale={defaultTemplateLocale}
           onTemplateLocaleSelected={setTemplateLocale}

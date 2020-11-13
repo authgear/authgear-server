@@ -352,7 +352,7 @@
 
   "TemplateLocaleManagementDialog.title": "Add or remove languages",
   "TemplateLocaleManagementDialog.desc": "For any languages you don’t provide translations for, your messages will be delivered in your default language (English)",
-  "TemplateLocaleManagementDialog.possible-template-locales-header": "All Template Languages",
+  "TemplateLocaleManagementDialog.supported-resource-locales-header": "All Template Languages",
   "TemplateLocaleManagementDialog.selected-template-locales-header": "Active Template Languages",
   "TemplateLocaleManagementDialog.cannot-remove-last-language-error": "Cannot remove last template language",
   "TemplateLocaleManagementDialog.apply-error": "Failed to remove template language",

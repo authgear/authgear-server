@@ -33,12 +33,12 @@ func (p *SystemConfigProvider) SystemConfig() (*model.SystemConfig, error) {
 	}
 
 	return &model.SystemConfig{
-		AuthgearClientID:        p.AuthgearConfig.ClientID,
-		AuthgearEndpoint:        p.AuthgearConfig.Endpoint,
-		AppHostSuffix:           p.AppConfig.HostSuffix,
-		PossibleTemplateLocales: intl.PossibleTemplateLocales,
-		Themes:                  themes,
-		Translations:            translations,
+		AuthgearClientID:         p.AuthgearConfig.ClientID,
+		AuthgearEndpoint:         p.AuthgearConfig.Endpoint,
+		AppHostSuffix:            p.AppConfig.HostSuffix,
+		SupportedResourceLocales: intl.SupportedResourceLocales,
+		Themes:                   themes,
+		Translations:             translations,
 	}, nil
 }
 
