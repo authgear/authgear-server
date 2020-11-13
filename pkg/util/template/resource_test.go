@@ -244,4 +244,47 @@ func TestTemplateResource(t *testing.T) {
 			So(data, ShouldEqual, "en in fs B")
 		})
 	})
+
+	Convey("matchTemplatePath", t, func() {
+		// expected path "templates/{{ localeKey }}/.../{{ templateName }}"
+		mockRes := &template.HTML{
+			Name: "messages/dummy.html",
+		}
+
+		Convey("path with less than 3 segments", func() {
+			_, result := mockRes.MatchResource(
+				"templates/dummy.html",
+			)
+			So(result, ShouldBeFalse)
+		})
+
+		Convey("first segment mismatch", func() {
+			_, result := mockRes.MatchResource(
+				"wrong/en/messages/dummy.html",
+			)
+			So(result, ShouldBeFalse)
+		})
+
+		Convey("invalid locale key", func() {
+			_, result := mockRes.MatchResource(
+				"templates/abc/messages/dummy.html",
+			)
+			So(result, ShouldBeFalse)
+		})
+
+		Convey("template name mismatch", func() {
+			_, result := mockRes.MatchResource(
+				"templates/en/messages/wrong_name.html",
+			)
+			So(result, ShouldBeFalse)
+		})
+
+		Convey("valid path", func() {
+			match, result := mockRes.MatchResource(
+				"templates/en/messages/dummy.html",
+			)
+			So(result, ShouldBeTrue)
+			So(match.LanguageTag, ShouldEqual, "en")
+		})
+	})
 }

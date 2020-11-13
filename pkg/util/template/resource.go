@@ -9,6 +9,7 @@ import (
 	"regexp"
 	texttemplate "text/template"
 
+	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -98,6 +99,18 @@ func matchTemplatePath(path string, templateName string) (*resource.Match, bool)
 	}
 
 	languageTag := matches[1]
+
+	isLanguageTagValid := false
+	for _, localeKey := range intl.SupportedResourceLocales {
+		if languageTag == localeKey {
+			isLanguageTagValid = true
+			break
+		}
+	}
+	if !isLanguageTagValid {
+		return nil, false
+	}
+
 	return &resource.Match{LanguageTag: languageTag}, true
 }
 
