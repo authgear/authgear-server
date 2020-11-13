@@ -26,7 +26,7 @@ import ErrorDialog from "../../error/ErrorDialog";
 type TemplateLocaleUpdater = (locale: TemplateLocale) => void;
 
 interface TemplateLocaleManagementProps {
-  supportedTemplateLocales: TemplateLocale[];
+  configuredTemplateLocales: TemplateLocale[];
   templateLocale: TemplateLocale;
   defaultTemplateLocale: TemplateLocale;
   onTemplateLocaleSelected: TemplateLocaleUpdater;
@@ -36,7 +36,7 @@ interface TemplateLocaleManagementProps {
 interface TemplateLocaleManagementDialogProps {
   presented: boolean;
   onDismiss: () => void;
-  supportedTemplateLocales: TemplateLocale[];
+  configuredTemplateLocales: TemplateLocale[];
   pendingTemplateLocales: TemplateLocale[];
   onPendingTemplateLocalesChange: (locales: TemplateLocale[]) => void;
 }
@@ -112,12 +112,12 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
   const {
     presented,
     onDismiss,
-    supportedTemplateLocales,
+    configuredTemplateLocales,
     pendingTemplateLocales,
     onPendingTemplateLocalesChange,
   } = props;
 
-  const { possibleTemplateLocales } = useSystemConfig();
+  const { supportedResourceLocales } = useSystemConfig();
   const { renderToString } = useContext(Context);
 
   const [localErrorMessage, setLocalErrorMessage] = useState<
@@ -125,8 +125,8 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
   >();
 
   const initialSelectedLocales = useMemo(() => {
-    return supportedTemplateLocales.concat(pendingTemplateLocales);
-  }, [supportedTemplateLocales, pendingTemplateLocales]);
+    return configuredTemplateLocales.concat(pendingTemplateLocales);
+  }, [configuredTemplateLocales, pendingTemplateLocales]);
   const [selectedLocales, setSelectedLocales] = useState<TemplateLocale[]>(
     initialSelectedLocales
   );
@@ -204,14 +204,14 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
       return;
     }
     const selectedLocaleSet = new Set(selectedLocales);
-    const supportedLocaleSet = new Set(supportedTemplateLocales);
-    const removedLocales = supportedTemplateLocales.filter(
+    const configuredLocaleSet = new Set(configuredTemplateLocales);
+    const removedLocales = configuredTemplateLocales.filter(
       (locale) => !selectedLocaleSet.has(locale)
     );
     // TODO: implement get all configured template path
     // and remove all template in one locale
-    // NOTE: cannot remove all supported locales
-    if (removedLocales.length === supportedTemplateLocales.length) {
+    // NOTE: cannot remove all configured locales
+    if (removedLocales.length === configuredTemplateLocales.length) {
       setLocalErrorMessage(
         renderToString(
           "TemplateLocaleManagementDialog.cannot-remove-last-language-error"
@@ -220,13 +220,13 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
       return;
     }
     const updatedPendingTemplateLocales = selectedLocales.filter(
-      (locale) => !supportedLocaleSet.has(locale)
+      (locale) => !configuredLocaleSet.has(locale)
     );
     onPendingTemplateLocalesChange(updatedPendingTemplateLocales);
   }, [
     renderToString,
     selectedLocales,
-    supportedTemplateLocales,
+    configuredTemplateLocales,
     onPendingTemplateLocalesChange,
   ]);
 
@@ -258,10 +258,10 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
         <div className={styles.dialogContent}>
           <section className={styles.dialogColumn}>
             <Text className={styles.dialogColumnHeader}>
-              <FormattedMessage id="TemplateLocaleManagementDialog.possible-template-locales-header" />
+              <FormattedMessage id="TemplateLocaleManagementDialog.supported-resource-locales-header" />
             </Text>
             <List
-              items={possibleTemplateLocales}
+              items={supportedResourceLocales}
               onRenderCell={renderLocaleListItemCell}
             />
           </section>
@@ -296,7 +296,7 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
   props: TemplateLocaleManagementProps
 ) {
   const {
-    supportedTemplateLocales,
+    configuredTemplateLocales,
     templateLocale,
     defaultTemplateLocale,
     onTemplateLocaleSelected,
@@ -319,8 +319,8 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
   );
 
   const templateLocaleList = useMemo(() => {
-    return supportedTemplateLocales.concat(pendingTemplateLocales);
-  }, [supportedTemplateLocales, pendingTemplateLocales]);
+    return configuredTemplateLocales.concat(pendingTemplateLocales);
+  }, [configuredTemplateLocales, pendingTemplateLocales]);
 
   const displayTemplateLocaleOption = useCallback(
     (locale: TemplateLocale) => {
@@ -378,7 +378,7 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
     <section className={styles.templateLocaleManagement}>
       <TemplateLocaleManagementDialog
         presented={isDialogPresented}
-        supportedTemplateLocales={supportedTemplateLocales}
+        configuredTemplateLocales={configuredTemplateLocales}
         pendingTemplateLocales={pendingTemplateLocales}
         onPendingTemplateLocalesChange={setPendingTemplateLocales}
         onDismiss={dismissDialog}

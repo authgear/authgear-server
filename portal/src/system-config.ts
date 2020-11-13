@@ -6,7 +6,7 @@ export interface SystemConfig {
   authgearClientID: string;
   authgearEndpoint: string;
   appHostSuffix: string;
-  possibleTemplateLocales: string[];
+  supportedResourceLocales: string[];
   themes: SystemConfigThemes;
   translations: SystemConfigTranslations;
 }
@@ -238,7 +238,7 @@ export function instantiateSystemConfig(
     authgearClientID: config.authgearClientID ?? "",
     authgearEndpoint: config.authgearEndpoint ?? "",
     appHostSuffix: config.appHostSuffix ?? "",
-    possibleTemplateLocales: config.possibleTemplateLocales ?? [
+    supportedResourceLocales: config.supportedResourceLocales ?? [
       DEFAULT_TEMPLATE_LOCALE,
     ],
     themes: {

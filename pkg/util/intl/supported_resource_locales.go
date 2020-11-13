@@ -1,6 +1,6 @@
 package intl
 
-var PossibleTemplateLocales = []string{
+var SupportedResourceLocales = []string{
 	"af",
 	"am",
 	"ar",
