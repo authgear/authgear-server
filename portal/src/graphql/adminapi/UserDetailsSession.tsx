@@ -16,6 +16,10 @@ import { formatDatetime } from "../../util/formatDatetime";
 import styles from "./UserDetailsSession.module.scss";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import ButtonWithLoading from "../../ButtonWithLoading";
+import { useRevokeSessionMutation } from "./mutations/revokeSessionMutation";
+import { useRevokeAllSessionsMutation } from "./mutations/revokeAllSessionsMutation";
+import { useParams } from "react-router-dom";
+import ErrorDialog from "../../error/ErrorDialog";
 
 interface RevokeConfirmationDialogProps {
   isHidden: boolean;
@@ -128,7 +132,21 @@ interface Props {
 const UserDetailsSession: React.FC<Props> = function UserDetailsSession(props) {
   const { locale, renderToString } = useContext(Context);
   const { themes } = useSystemConfig();
+  const { userID } = useParams();
   const { sessions } = props;
+
+  const {
+    revokeSession,
+    error: revokeError,
+    loading: isRevokeLoading,
+  } = useRevokeSessionMutation();
+  const {
+    revokeAllSessions,
+    error: revokeAllError,
+    loading: isRevokeAllLoading,
+  } = useRevokeAllSessionsMutation();
+  const isLoading = isRevokeLoading || isRevokeAllLoading;
+  const error = revokeError || revokeAllError;
 
   interface ConfirmDialogProps {
     titleKey: string;
@@ -140,7 +158,6 @@ const UserDetailsSession: React.FC<Props> = function UserDetailsSession(props) {
     setConfirmDialogProps,
   ] = useState<ConfirmDialogProps | null>(null);
   const [isConfirmDialogHidden, setIsConfirmDialogHidden] = useState(true);
-  const isLoading = false;
 
   const onConfirmDialogDismiss = useCallback(() => {
     setIsConfirmDialogHidden(true);
@@ -211,23 +228,29 @@ const UserDetailsSession: React.FC<Props> = function UserDetailsSession(props) {
             setConfirmDialogProps({
               titleKey: "UserDetails.session.confirm-dialog.revoke.title",
               messageKey: "UserDetails.session.confirm-dialog.revoke.message",
-              onConfirm: () => {},
+              onConfirm: () => {
+                revokeSession(session.id).finally(() =>
+                  setIsConfirmDialogHidden(true)
+                );
+              },
             });
             setIsConfirmDialogHidden(false);
           },
         })
       ),
-    [sessions, locale, renderToString]
+    [sessions, locale, renderToString, revokeSession]
   );
 
   const onRevokeAllClick = useCallback(() => {
     setConfirmDialogProps({
       titleKey: "UserDetails.session.confirm-dialog.revoke-all.title",
       messageKey: "UserDetails.session.confirm-dialog.revoke-all.message",
-      onConfirm: () => {},
+      onConfirm: () => {
+        revokeAllSessions(userID).finally(() => setIsConfirmDialogHidden(true));
+      },
     });
     setIsConfirmDialogHidden(false);
-  }, []);
+  }, [revokeAllSessions, userID]);
 
   return (
     <div className={styles.root}>
@@ -247,6 +270,7 @@ const UserDetailsSession: React.FC<Props> = function UserDetailsSession(props) {
           menuIcon: { paddingLeft: "3px" },
           icon: { paddingRight: "3px" },
         }}
+        disabled={sessions.length === 0}
         onClick={onRevokeAllClick}
       >
         <FormattedMessage id="UserDetails.session.revoke-all" />
@@ -259,6 +283,11 @@ const UserDetailsSession: React.FC<Props> = function UserDetailsSession(props) {
           onDismiss={onConfirmDialogDismiss}
         />
       )}
+      <ErrorDialog
+        error={error}
+        rules={[]}
+        fallbackErrorMessageID="UserDetails.session.revoke-error.generic"
+      />
     </div>
   );
 };

@@ -182,6 +182,7 @@
   "UserDetails.session.confirm-dialog.revoke.message": "Are you sure to remove this session of user?",
   "UserDetails.session.confirm-dialog.revoke-all.title": "Revoke all sessions",
   "UserDetails.session.confirm-dialog.revoke-all.message": "Are you sure to remove all sessions of the user?",
+  "UserDetails.session.revoke-error.generic": "Failed to revoke session.",
 
   "AuthenticationScreen.title": "Authentication",
   "AuthenticationScreen.login-id.title": "Login ID",
