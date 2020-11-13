@@ -20,6 +20,7 @@ type store interface {
 	Count() (uint64, error)
 	QueryPage(after, before model.PageCursor, first, last *uint64) ([]*User, uint64, error)
 	UpdateLoginTime(userID string, loginAt time.Time) error
+	UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error
 }
 
 var queryPage = db.QueryPage(db.QueryPageConfig{
@@ -200,6 +201,21 @@ func (s *Store) UpdateLoginTime(userID string, loginAt time.Time) error {
 		Update(s.SQLBuilder.FullTableName("user")).
 		Set("last_login_at", squirrel.Expr("login_at")).
 		Set("login_at", loginAt).
+		Where("id = ?", userID)
+
+	_, err := s.SQLExecutor.ExecWith(builder)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Store) UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error {
+	builder := s.SQLBuilder.Tenant().
+		Update(s.SQLBuilder.FullTableName("user")).
+		Set("is_disabled", isDisabled).
+		Set("disable_reason", reason).
 		Where("id = ?", userID)
 
 	_, err := s.SQLExecutor.ExecWith(builder)

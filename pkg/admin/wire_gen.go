@@ -316,10 +316,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	userLoader := loader.NewUserLoader(queries)
 	identityLoader := loader.NewIdentityLoader(serviceService)
 	authenticatorLoader := loader.NewAuthenticatorLoader(service4)
-	interactionLogger := interaction.NewLogger(factory)
-	authenticatorFacade := facade.AuthenticatorFacade{
-		Coordinator: coordinator,
-	}
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(configConfig)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -344,8 +340,63 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
-	webEndpoints := &WebEndpoints{}
+	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
+	welcomemessageProvider := &welcomemessage.Provider{
+		Translation:          translationService,
+		RateLimiter:          limiter,
+		WelcomeMessageConfig: welcomeMessageConfig,
+		TaskQueue:            queue,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  store,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+		Queries:                queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	hookStore := &hook.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	hookProvider := &hook.Provider{
+		Context:   context,
+		Logger:    hookLogger,
+		Database:  handle,
+		Clock:     clockClock,
+		Users:     rawProvider,
+		Store:     hookStore,
+		Deliverer: deliverer,
+	}
+	commands := &user.Commands{
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: verificationService,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
+	interactionLogger := interaction.NewLogger(factory)
+	authenticatorFacade := facade.AuthenticatorFacade{
+		Coordinator: coordinator,
+	}
+	webEndpoints := &WebEndpoints{}
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   webEndpoints,
@@ -396,57 +447,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  store,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-		Queries:                queries,
-	}
-	hookLogger := hook.NewLogger(factory)
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	hookStore := &hook.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
-	}
-	commands := &user.Commands{
-		Raw:          rawCommands,
-		Hooks:        hookProvider,
-		Verification: verificationService,
-	}
-	userProvider := &user.Provider{
-		Commands: commands,
-		Queries:  queries,
 	}
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -516,7 +516,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Graph: interactionService,
 	}
 	userFacade := &facade2.UserFacade{
-		Users:       queries,
+		Users:       userProvider,
 		Interaction: serviceInteractionService,
 	}
 	facadeIdentityFacade := &facade2.IdentityFacade{

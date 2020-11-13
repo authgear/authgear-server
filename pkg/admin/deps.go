@@ -34,7 +34,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(loader.AuthenticatorLoaderAuthenticatorService), new(*authenticatorservice.Service)),
 
 	facade.DependencySet,
-	wire.Bind(new(facade.UserService), new(*user.Queries)),
+	wire.Bind(new(facade.UserService), new(*user.Provider)),
 	wire.Bind(new(facade.IdentityService), new(*identityservice.Service)),
 	wire.Bind(new(facade.AuthenticatorService), new(*authenticatorservice.Service)),
 	wire.Bind(new(facade.InteractionService), new(*service.InteractionService)),

@@ -52,6 +52,10 @@ func (c *Commands) AfterCreate(
 	return nil
 }
 
-func (c *Commands) UpdateLoginTime(user *model.User, loginAt gotime.Time) error {
-	return c.Raw.UpdateLoginTime(user, loginAt)
+func (c *Commands) UpdateLoginTime(userID string, loginAt gotime.Time) error {
+	return c.Raw.UpdateLoginTime(userID, loginAt)
+}
+
+func (c *Commands) UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error {
+	return c.Raw.UpdateDisabledStatus(userID, isDisabled, reason)
 }

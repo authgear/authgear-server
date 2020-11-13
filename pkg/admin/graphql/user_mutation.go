@@ -194,3 +194,70 @@ var _ = registerMutationField(
 		},
 	},
 )
+
+var setDisabledStatusInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SetDisabledStatusInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"userID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target user ID.",
+		},
+		"isDisabled": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.Boolean),
+			Description: "Indicate whether the target user is disabled.",
+		},
+		"reason": &graphql.InputObjectFieldConfig{
+			Type:        graphql.String,
+			Description: "Indicate disable reason; only meaningful if user is disabled.",
+		},
+	},
+})
+
+var setDisabledStatusPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "SetDisabledStatusPayload",
+	Fields: graphql.Fields{
+		"user": &graphql.Field{
+			Type: graphql.NewNonNull(nodeUser),
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"setDisabledStatus",
+	&graphql.Field{
+		Description: "Set disabled status of user",
+		Type:        graphql.NewNonNull(setDisabledStatusPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(setDisabledStatusInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			input := p.Args["input"].(map[string]interface{})
+
+			userNodeID := input["userID"].(string)
+			resolvedNodeID := relay.FromGlobalID(userNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeUser {
+				return nil, apierrors.NewInvalid("invalid user ID")
+			}
+			userID := resolvedNodeID.ID
+
+			isDisabled := input["isDisabled"].(bool)
+			var reason *string
+			if r, ok := input["reason"].(string); ok && isDisabled {
+				reason = &r
+			}
+
+			gqlCtx := GQLContext(p.Context)
+
+			err := gqlCtx.UserFacade.SetDisabled(userID, isDisabled, reason)
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"user": gqlCtx.Users.Load(userID),
+			}).Value, nil
+		},
+	},
+)

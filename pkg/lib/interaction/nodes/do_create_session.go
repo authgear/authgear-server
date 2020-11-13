@@ -101,12 +101,12 @@ func (n *NodeDoCreateSession) GetEffects() ([]interaction.Effect, error) {
 			return nil
 		}),
 		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			user, err := ctx.Users.Get(n.Session.Attrs.UserID)
+			err := ctx.Users.UpdateLoginTime(n.Session.Attrs.UserID, n.Session.CreatedAt)
 			if err != nil {
 				return err
 			}
 
-			err = ctx.Users.UpdateLoginTime(user, n.Session.CreatedAt)
+			user, err := ctx.Users.Get(n.Session.Attrs.UserID)
 			if err != nil {
 				return err
 			}

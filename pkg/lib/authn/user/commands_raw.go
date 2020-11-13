@@ -53,17 +53,10 @@ func (c *RawCommands) AfterCreate(userModel *model.User, identities []*identity.
 	return nil
 }
 
-func (c *RawCommands) UpdateLoginTime(user *model.User, loginAt time.Time) error {
-	err := c.Store.UpdateLoginTime(user.ID, loginAt)
-	if err != nil {
-		return err
-	}
+func (c *RawCommands) UpdateLoginTime(userID string, loginAt time.Time) error {
+	return c.Store.UpdateLoginTime(userID, loginAt)
+}
 
-	u, err := c.Queries.Get(user.ID)
-	if err != nil {
-		return err
-	}
-
-	*user = *u
-	return nil
+func (c *RawCommands) UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error {
+	return c.Store.UpdateDisabledStatus(userID, isDisabled, reason)
 }
