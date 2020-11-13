@@ -17,6 +17,11 @@ export interface AppTemplatesQuery_node_App_resources {
   effectiveData: string | null;
 }
 
+export interface AppTemplatesQuery_node_App_resourcePaths {
+  __typename: "AppResource";
+  path: string;
+}
+
 export interface AppTemplatesQuery_node_App {
   __typename: "App";
   /**
@@ -24,6 +29,7 @@ export interface AppTemplatesQuery_node_App {
    */
   id: string;
   resources: AppTemplatesQuery_node_App_resources[];
+  resourcePaths: AppTemplatesQuery_node_App_resourcePaths[];
 }
 
 export type AppTemplatesQuery_node = AppTemplatesQuery_node_User | AppTemplatesQuery_node_App;

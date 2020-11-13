@@ -23,6 +23,9 @@ export const appTemplatesQuery = gql`
           path
           effectiveData
         }
+        resourcePaths: resources {
+          path
+        }
       }
     }
   }
@@ -34,6 +37,7 @@ export interface AppTemplatesQueryResult
     "loading" | "error" | "refetch"
   > {
   templates: Record<string, string>;
+  resourcePaths: string[];
 }
 
 export function useAppTemplatesQuery(
@@ -71,7 +75,11 @@ export function useAppTemplatesQuery(
         templates[path] = "";
       }
     }
-    return { templates };
+
+    const resourcePaths =
+      appNode?.resourcePaths.map((pathData) => pathData.path) ?? [];
+
+    return { templates, resourcePaths };
   }, [data, paths]);
 
   return { ...queryData, loading, error, refetch };
