@@ -1,6 +1,6 @@
 .root {
   margin-top: 25px;
-  width: 640px;
+  width: 680px;
 }
 
 .header {
@@ -8,4 +8,20 @@
   font-weight: 600;
   padding-left: 10px;
   margin: 0;
+}
+
+.actionButton {
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  display: contents;
+}
+
+.cell {
+  line-height: 18px;
+}
+
+.revokeAllButton {
+  border: 1px solid #d8d8d8;
+  margin-top: 20px;
 }

@@ -40,6 +40,20 @@ const userQuery = gql`
           name
           value
         }
+        sessions {
+          edges {
+            node {
+              id
+              type
+              lastAccessedAt
+              lastAccessedByIP
+              userAgent {
+                name
+                version
+              }
+            }
+          }
+        }
         lastLoginAt
         createdAt
         updatedAt

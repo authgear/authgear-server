@@ -3,7 +3,7 @@
 // @generated
 // This file was automatically generated and should not be edited.
 
-import { AuthenticatorType, AuthenticatorKind, IdentityType } from "./../../__generated__/globalTypes";
+import { AuthenticatorType, AuthenticatorKind, IdentityType, SessionType } from "./../../__generated__/globalTypes";
 
 // ====================================================
 // GraphQL query operation: UserQuery
@@ -89,6 +89,40 @@ export interface UserQuery_node_User_verifiedClaims {
   value: string;
 }
 
+export interface UserQuery_node_User_sessions_edges_node_userAgent {
+  __typename: "UserAgent";
+  name: string;
+  version: string;
+}
+
+export interface UserQuery_node_User_sessions_edges_node {
+  __typename: "Session";
+  /**
+   * The ID of an object
+   */
+  id: string;
+  type: SessionType;
+  lastAccessedAt: GQL_DateTime;
+  lastAccessedByIP: string;
+  userAgent: UserQuery_node_User_sessions_edges_node_userAgent;
+}
+
+export interface UserQuery_node_User_sessions_edges {
+  __typename: "SessionEdge";
+  /**
+   * The item at the end of the edge
+   */
+  node: UserQuery_node_User_sessions_edges_node | null;
+}
+
+export interface UserQuery_node_User_sessions {
+  __typename: "SessionConnection";
+  /**
+   * Information to aid in pagination.
+   */
+  edges: (UserQuery_node_User_sessions_edges | null)[] | null;
+}
+
 export interface UserQuery_node_User {
   __typename: "User";
   /**
@@ -98,6 +132,7 @@ export interface UserQuery_node_User {
   authenticators: UserQuery_node_User_authenticators | null;
   identities: UserQuery_node_User_identities | null;
   verifiedClaims: UserQuery_node_User_verifiedClaims[];
+  sessions: UserQuery_node_User_sessions | null;
   /**
    * The last login time of user
    */

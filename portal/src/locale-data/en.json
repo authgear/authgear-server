@@ -168,10 +168,16 @@
   "AddUsernameScreen.password.label": "Password",
   "AddUsernameScreen.error.duplicated-username": "Username already exist",
 
-  "UserDetails.session.header": "Session",
+  "UserDetails.session.header": "Sessions",
   "UserDetails.session.devices": "Devices",
+  "UserDetails.session.kind": "Kind",
+  "UserDetails.session.kind.idp": "Login",
+  "UserDetails.session.kind.offline-grant": "Authorized App",
   "UserDetails.session.last-activity": "Last Activity",
   "UserDetails.session.ip-address": "IP Address",
+  "UserDetails.session.action": "Action",
+  "UserDetails.session.action.revoke": "Revoke",
+  "UserDetails.session.revoke-all": "Revoke all sessions",
 
   "AuthenticationScreen.title": "Authentication",
   "AuthenticationScreen.login-id.title": "Login ID",

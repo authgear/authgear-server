@@ -1,69 +1,134 @@
 import React, { useContext, useMemo } from "react";
-import { DetailsList, IColumn, SelectionMode, Text } from "@fluentui/react";
+import {
+  ActionButton,
+  DefaultButton,
+  DetailsList,
+  IColumn,
+  SelectionMode,
+  Text,
+} from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import { formatDatetime } from "../../util/formatDatetime";
 
 import styles from "./UserDetailsSession.module.scss";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
-interface Data {
-  deviceName: string | null;
-  lastActivity: string | null;
-  ipAddress: string | null;
+type SessionType = "IDP" | "OFFLINE_GRANT";
+
+interface SessionUserAgent {
+  name: string;
+  version: string;
 }
 
-// TODO: replace with actual data
-const mockSessionData: Data[] = [
-  {
-    deviceName: "iPhone 11 Pro",
-    lastActivity: "2021-12-15T15:55:20.309775Z",
-    ipAddress: "10.2.4.2",
-  },
-  {
-    deviceName: "Chrome 83.0.4.000.84 (DESKTOP-L)",
-    lastActivity: "2021-12-15T15:55:20.309775Z",
-    ipAddress: "10.2.4.2",
-  },
-  {
-    deviceName: "Pixel XL",
-    lastActivity: "2021-12-15T15:55:20.309775Z",
-    ipAddress: "10.2.4.2",
-  },
-];
+interface Session {
+  id: string;
+  type: SessionType;
+  lastAccessedAt: string;
+  lastAccessedByIP: string;
+  userAgent: SessionUserAgent;
+}
 
-const UserDetailsSession: React.FC = function UserDetailsSession() {
+function userAgentDisplayName(ua: SessionUserAgent): string {
+  let name = ua.name;
+  if (name !== "" && ua.version !== "") {
+    name += " " + ua.version;
+  }
+  return name;
+}
+
+function sessionTypeDisplayKey(type: SessionType): string {
+  switch (type) {
+    case "IDP":
+      return "UserDetails.session.kind.idp";
+    case "OFFLINE_GRANT":
+      return "UserDetails.session.kind.offline-grant";
+  }
+  return "";
+}
+
+interface SessionItemViewModel {
+  deviceName: string;
+  kind: string;
+  ipAddress: string;
+  lastActivity: string;
+  revoke: () => void;
+}
+
+interface Props {
+  sessions: Session[];
+}
+
+const UserDetailsSession: React.FC<Props> = function UserDetailsSession(props) {
   const { locale, renderToString } = useContext(Context);
-  const sessionColumns: IColumn[] = [
-    {
-      key: "deviceName",
-      fieldName: "deviceName",
-      name: renderToString("UserDetails.session.devices"),
-      minWidth: 300,
-      maxWidth: 300,
-    },
-    {
-      key: "lastActivity",
-      fieldName: "lastActivity",
-      name: renderToString("UserDetails.session.last-activity"),
-      minWidth: 150,
-      maxWidth: 150,
-    },
-    {
-      key: "ipAddress",
-      fieldName: "ipAddress",
-      name: renderToString("UserDetails.session.ip-address"),
-      minWidth: 75,
-      maxWidth: 75,
-    },
-  ];
+  const { themes } = useSystemConfig();
+  const { sessions } = props;
+
+  const sessionColumns: IColumn[] = useMemo(
+    () => [
+      {
+        key: "deviceName",
+        fieldName: "deviceName",
+        name: renderToString("UserDetails.session.devices"),
+        className: styles.cell,
+        minWidth: 200,
+        maxWidth: 200,
+      },
+      {
+        key: "kind",
+        fieldName: "kind",
+        name: renderToString("UserDetails.session.kind"),
+        className: styles.cell,
+        minWidth: 100,
+        maxWidth: 100,
+      },
+      {
+        key: "ipAddress",
+        fieldName: "ipAddress",
+        name: renderToString("UserDetails.session.ip-address"),
+        className: styles.cell,
+        minWidth: 80,
+        maxWidth: 80,
+      },
+      {
+        key: "lastActivity",
+        fieldName: "lastActivity",
+        name: renderToString("UserDetails.session.last-activity"),
+        className: styles.cell,
+        minWidth: 140,
+        maxWidth: 140,
+      },
+      {
+        key: "action",
+        name: renderToString("UserDetails.session.action"),
+        minWidth: 60,
+        maxWidth: 60,
+        onRender: (item: SessionItemViewModel) => (
+          <ActionButton
+            className={styles.actionButton}
+            theme={themes.destructive}
+            onClick={item.revoke}
+          >
+            <FormattedMessage id="UserDetails.session.action.revoke" />
+          </ActionButton>
+        ),
+      },
+    ],
+    [themes.destructive, renderToString]
+  );
 
   const sessionListItems = useMemo(
     () =>
-      mockSessionData.map((session) => {
-        const lastActivityText = formatDatetime(locale, session.lastActivity);
-        return { ...session, lastActivity: lastActivityText };
-      }),
-    [locale]
+      sessions.map(
+        (session): SessionItemViewModel => ({
+          deviceName: userAgentDisplayName(session.userAgent),
+          kind: renderToString(sessionTypeDisplayKey(session.type)),
+          ipAddress: session.lastAccessedByIP,
+          lastActivity: formatDatetime(locale, session.lastAccessedAt) ?? "",
+          revoke: () => {},
+        })
+      ),
+    [sessions, locale, renderToString]
   );
 
   return (
@@ -76,6 +141,17 @@ const UserDetailsSession: React.FC = function UserDetailsSession() {
         columns={sessionColumns}
         selectionMode={SelectionMode.none}
       />
+      <DefaultButton
+        className={styles.revokeAllButton}
+        theme={themes.destructive}
+        iconProps={{ iconName: "ErrorBadge" }}
+        styles={{
+          menuIcon: { paddingLeft: "3px" },
+          icon: { paddingRight: "3px" },
+        }}
+      >
+        <FormattedMessage id="UserDetails.session.revoke-all" />
+      </DefaultButton>
     </div>
   );
 };

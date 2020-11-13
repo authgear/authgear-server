@@ -24,6 +24,11 @@ export enum IdentityType {
   OAUTH = "OAUTH",
 }
 
+export enum SessionType {
+  IDP = "IDP",
+  OFFLINE_GRANT = "OFFLINE_GRANT",
+}
+
 /**
  * Definition of an identity. This is a union object, exactly one of the available fields must be present.
  */

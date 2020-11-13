@@ -12,7 +12,7 @@ import { ModifiedIndicatorWrapper } from "../../ModifiedIndicatorPortal";
 import UserDetailSummary from "./UserDetailSummary";
 import UserDetailsAccountSecurity from "./UserDetailsAccountSecurity";
 import UserDetailsConnectedIdentities from "./UserDetailsConnectedIdentities";
-// import UserDetailsSession from "./UserDetailsSession";
+import UserDetailsSession from "./UserDetailsSession";
 
 import { useUserQuery } from "./query/userQuery";
 import { UserQuery_node_User } from "./query/__generated__/UserQuery";
@@ -31,7 +31,7 @@ interface UserDetailsProps {
 
 const ACCOUNT_SECURITY_PIVOT_KEY = "account-security";
 const CONNECTED_IDENTITIES_PIVOT_KEY = "connected-identities";
-// const SESSION_PIVOT_KEY = "session"
+const SESSION_PIVOT_KEY = "session";
 
 const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
@@ -41,7 +41,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   const { selectedKey, onLinkClick } = usePivotNavigation([
     ACCOUNT_SECURITY_PIVOT_KEY,
     CONNECTED_IDENTITIES_PIVOT_KEY,
-    // SESSION_PIVOT_KEY
+    SESSION_PIVOT_KEY,
   ]);
 
   const availableLoginIdIdentities = useMemo(() => {
@@ -73,6 +73,9 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
       ?.map((edge) => edge?.node)
       .filter(nonNullable) ?? [];
 
+  const sessions =
+    data?.sessions?.edges?.map((edge) => edge?.node).filter(nonNullable) ?? [];
+
   return (
     <div className={styles.userDetails}>
       <UserDetailSummary
@@ -100,14 +103,12 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
               availableLoginIdIdentities={availableLoginIdIdentities}
             />
           </PivotItem>
-          {/* TODO: implement session section
           <PivotItem
             itemKey={SESSION_PIVOT_KEY}
             headerText={renderToString("UserDetails.session.header")}
           >
-            <UserDetailsSession />
+            <UserDetailsSession sessions={sessions} />
           </PivotItem>
-          */}
         </Pivot>
       </div>
     </div>
