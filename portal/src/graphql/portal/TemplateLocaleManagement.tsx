@@ -9,6 +9,7 @@ import {
   IDialogProps,
   IListProps,
   List,
+  ScrollablePane,
   Stack,
   Text,
   VerticalDivider,
@@ -260,20 +261,28 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
             <Text className={styles.dialogColumnHeader}>
               <FormattedMessage id="TemplateLocaleManagementDialog.supported-resource-locales-header" />
             </Text>
-            <List
-              items={supportedResourceLocales}
-              onRenderCell={renderLocaleListItemCell}
-            />
+            <section className={styles.dialogListWrapper}>
+              <ScrollablePane>
+                <List
+                  items={supportedResourceLocales}
+                  onRenderCell={renderLocaleListItemCell}
+                />
+              </ScrollablePane>
+            </section>
           </section>
           <VerticalDivider className={styles.dialogDivider} />
           <section className={styles.dialogColumn}>
             <Text className={styles.dialogColumnHeader}>
               <FormattedMessage id="TemplateLocaleManagementDialog.selected-template-locales-header" />
             </Text>
-            <List
-              items={selectedLocales}
-              onRenderCell={renderSelectedLocaleItemCell}
-            />
+            <section className={styles.dialogListWrapper}>
+              <ScrollablePane>
+                <List
+                  items={selectedLocales}
+                  onRenderCell={renderSelectedLocaleItemCell}
+                />
+              </ScrollablePane>
+            </section>
           </section>
         </div>
         <DialogFooter>

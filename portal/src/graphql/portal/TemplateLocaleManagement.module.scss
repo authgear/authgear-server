@@ -19,7 +19,6 @@
 .dialogContent {
   display: flex;
   border: 1px solid #b0b0b0;
-  min-height: 400px;
 }
 
 .dialogDivider {
@@ -40,6 +39,10 @@
   font-weight: 600;
 }
 
+.dialogListWrapper {
+  position: relative;
+  height: 50vh;
+}
 .dialogLocaleListItem {
   display: flex;
   margin: 16px;
