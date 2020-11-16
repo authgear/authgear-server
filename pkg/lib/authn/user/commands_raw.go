@@ -60,3 +60,7 @@ func (c *RawCommands) UpdateLoginTime(userID string, loginAt time.Time) error {
 func (c *RawCommands) UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error {
 	return c.Store.UpdateDisabledStatus(userID, isDisabled, reason)
 }
+
+func (c *RawCommands) Delete(userID string) error {
+	return c.Store.Delete(userID)
+}
