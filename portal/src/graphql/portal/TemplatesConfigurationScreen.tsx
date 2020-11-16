@@ -28,11 +28,9 @@ import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation"
 import { PortalAPIAppConfig } from "../../types";
 import { usePivotNavigation } from "../../hook/usePivot";
 import {
-  AuthenticatePrimaryOOBMessageTemplatePaths,
   DEFAULT_TEMPLATE_LOCALE,
-  ForgotPasswordMessageTemplatePaths,
-  SetupPrimaryOOBMessageTemplatePaths,
   TemplateLocale,
+  templatePaths,
 } from "../../templates";
 import { useGenericError } from "../../error/useGenericError";
 
@@ -81,26 +79,14 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
     loading: loadingTemplates,
     error: loadTemplatesError,
     refetch: refetchTemplates,
-  } = useAppTemplatesQuery(
-    appID,
-    templateLocale,
-    ...ForgotPasswordMessageTemplatePaths,
-    ...SetupPrimaryOOBMessageTemplatePaths,
-    ...AuthenticatePrimaryOOBMessageTemplatePaths
-  );
+  } = useAppTemplatesQuery(appID, templateLocale, ...templatePaths);
 
   const {
     updateAppTemplates,
     loading: updatingTemplates,
     error: updateTemplatesError,
     resetError: resetUpdateTemplatesError,
-  } = useUpdateAppTemplatesMutation(
-    appID,
-    templateLocale,
-    ...ForgotPasswordMessageTemplatePaths,
-    ...SetupPrimaryOOBMessageTemplatePaths,
-    ...AuthenticatePrimaryOOBMessageTemplatePaths
-  );
+  } = useUpdateAppTemplatesMutation(appID, templateLocale, ...templatePaths);
 
   const {
     updateAppConfig,

@@ -8,10 +8,10 @@ import {
 } from "./__generated__/AppTemplatesQuery";
 import {
   getLocalizedTemplatePath,
-  PathTemplate,
   TemplateLocale,
   TemplateMap,
 } from "../../../templates";
+import { ResourcePath } from "../../../util/stringTemplate";
 
 export const appTemplatesQuery = gql`
   query AppTemplatesQuery($id: ID!, $paths: [String!]!) {
@@ -43,7 +43,7 @@ export interface AppTemplatesQueryResult
 export function useAppTemplatesQuery(
   appID: string,
   locale: TemplateLocale,
-  ...pathTemplates: PathTemplate[]
+  ...pathTemplates: ResourcePath<"locale">[]
 ): AppTemplatesQueryResult {
   const paths = useMemo(
     () =>

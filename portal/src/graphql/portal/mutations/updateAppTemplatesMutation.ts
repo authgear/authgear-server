@@ -12,9 +12,9 @@ import { PortalAPIApp } from "../../../types";
 import {
   getMessageTemplatePathByLocale,
   getLocalizedTemplatePath,
-  PathTemplate,
   TemplateLocale,
 } from "../../../templates";
+import { ResourcePath } from "../../../util/stringTemplate";
 
 const updateAppTemplatesMutation = gql`
   mutation UpdateAppTemplatesMutation(
@@ -51,7 +51,7 @@ export type TemplateLocaleRemover = (
 export function useUpdateAppTemplatesMutation(
   appID: string,
   locale: TemplateLocale,
-  ...pathTemplates: PathTemplate[]
+  ...pathTemplates: ResourcePath<"locale">[]
 ): {
   updateAppTemplates: AppTemplatesUpdater;
   loading: boolean;

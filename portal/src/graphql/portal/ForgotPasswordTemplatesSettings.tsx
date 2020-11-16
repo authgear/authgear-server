@@ -13,13 +13,13 @@ import {
   UpdateAppTemplatesData,
 } from "./mutations/updateAppTemplatesMutation";
 import {
+  forgotPasswordEmailHtmlPath,
+  forgotPasswordEmailTextPath,
+  forgotPasswordSmsTextPath,
   getLocalizedTemplatePath,
   setUpdateTemplatesData,
   TemplateLocale,
   TemplateMap,
-  TEMPLATE_FORGOT_PASSWORD_EMAIL_HTML,
-  TEMPLATE_FORGOT_PASSWORD_EMAIL_TEXT,
-  TEMPLATE_FORGOT_PASSWORD_SMS_TEXT,
 } from "../../templates";
 
 import styles from "./ForgotPasswordTemplatesSettings.module.scss";
@@ -46,24 +46,15 @@ function constructStateFromTemplates(
   return {
     emailHtmlTemplate:
       templates[
-        getLocalizedTemplatePath(
-          templateLocale,
-          TEMPLATE_FORGOT_PASSWORD_EMAIL_HTML
-        )
+        getLocalizedTemplatePath(templateLocale, forgotPasswordEmailHtmlPath)
       ],
     emailPlainTextTemplate:
       templates[
-        getLocalizedTemplatePath(
-          templateLocale,
-          TEMPLATE_FORGOT_PASSWORD_EMAIL_TEXT
-        )
+        getLocalizedTemplatePath(templateLocale, forgotPasswordEmailTextPath)
       ],
     smsTemplate:
       templates[
-        getLocalizedTemplatePath(
-          templateLocale,
-          TEMPLATE_FORGOT_PASSWORD_SMS_TEXT
-        )
+        getLocalizedTemplatePath(templateLocale, forgotPasswordSmsTextPath)
       ],
   };
 }
@@ -77,7 +68,7 @@ function constructUpdateTemplatesDataFromState(
   if (screenState.emailHtmlTemplate !== initialScreenState.emailHtmlTemplate) {
     setUpdateTemplatesData(
       updateTemplatesData,
-      TEMPLATE_FORGOT_PASSWORD_EMAIL_HTML,
+      forgotPasswordEmailHtmlPath,
       templateLocale,
       screenState.emailHtmlTemplate
     );
@@ -88,7 +79,7 @@ function constructUpdateTemplatesDataFromState(
   ) {
     setUpdateTemplatesData(
       updateTemplatesData,
-      TEMPLATE_FORGOT_PASSWORD_EMAIL_TEXT,
+      forgotPasswordEmailTextPath,
       templateLocale,
       screenState.emailPlainTextTemplate
     );
@@ -96,7 +87,7 @@ function constructUpdateTemplatesDataFromState(
   if (screenState.smsTemplate !== initialScreenState.smsTemplate) {
     setUpdateTemplatesData(
       updateTemplatesData,
-      TEMPLATE_FORGOT_PASSWORD_SMS_TEXT,
+      forgotPasswordSmsTextPath,
       templateLocale,
       screenState.smsTemplate
     );

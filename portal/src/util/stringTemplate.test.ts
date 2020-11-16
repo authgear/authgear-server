@@ -1,21 +1,18 @@
 /* global describe, it, expect */
-import { renderTemplateString, parseTemplateString } from "./stringTemplate";
+import { resourcePath } from "./stringTemplate";
 
 describe("render and parse template string", () => {
   it("round trip", () => {
-    const template = "templates/{{ locale }}/{{ type }}/dummy.html";
+    const template = resourcePath`templates/${"locale"}/${"type"}/dummy.html`;
     const input = "templates/en/messages/dummy.html";
     const expectedResult = {
       locale: "en",
       type: "messages",
     };
-    const parsed = parseTemplateString(input, template);
+    const parsed = template.parse(input);
     expect(parsed).toEqual(expectedResult);
 
-    const rendered = renderTemplateString(
-      parsed as Record<string, string>,
-      template
-    );
+    const rendered = template.render(parsed!);
     expect(rendered).toEqual(input);
   });
 });

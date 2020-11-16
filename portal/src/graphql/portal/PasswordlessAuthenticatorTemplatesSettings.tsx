@@ -16,12 +16,12 @@ import {
   TemplateMap,
   getLocalizedTemplatePath,
   setUpdateTemplatesData,
-  TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML,
-  TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TEXT,
-  TEMPLATE_AUTHENTICATE_PRIMARY_OOB_SMS_TEXT,
-  TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_HTML,
-  TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_TEXT,
-  TEMPLATE_SETUP_PRIMARY_OOB_SMS_TEXT,
+  setupPrimaryOobEmailHtmlPath,
+  setupPrimaryOobEmailTextPath,
+  setupPrimaryOobSmsTextPath,
+  authenticatePrimaryOobEmailHtmlPath,
+  authenticatePrimaryOobEmailTextPath,
+  authenticatePrimaryOobSmsTextPath,
 } from "../../templates";
 
 import styles from "./PasswordlessAuthenticatorTemplatesSettings.module.scss";
@@ -50,44 +50,35 @@ function constructStateFromTemplates(
   return {
     setupEmailHtmlTemplate:
       templates[
-        getLocalizedTemplatePath(
-          templateLocale,
-          TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_HTML
-        )
+        getLocalizedTemplatePath(templateLocale, setupPrimaryOobEmailHtmlPath)
       ],
     setupEmailPlainTextTemplate:
       templates[
-        getLocalizedTemplatePath(
-          templateLocale,
-          TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_TEXT
-        )
+        getLocalizedTemplatePath(templateLocale, setupPrimaryOobEmailTextPath)
       ],
     setupSmsTemplate:
       templates[
-        getLocalizedTemplatePath(
-          templateLocale,
-          TEMPLATE_SETUP_PRIMARY_OOB_SMS_TEXT
-        )
+        getLocalizedTemplatePath(templateLocale, setupPrimaryOobSmsTextPath)
       ],
     authenticateEmailHtmlTemplate:
       templates[
         getLocalizedTemplatePath(
           templateLocale,
-          TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML
+          authenticatePrimaryOobEmailHtmlPath
         )
       ],
     authenticateEmailPlainTextTemplate:
       templates[
         getLocalizedTemplatePath(
           templateLocale,
-          TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TEXT
+          authenticatePrimaryOobEmailTextPath
         )
       ],
     authenticateSmsTemplate:
       templates[
         getLocalizedTemplatePath(
           templateLocale,
-          TEMPLATE_AUTHENTICATE_PRIMARY_OOB_SMS_TEXT
+          authenticatePrimaryOobSmsTextPath
         )
       ],
   };
@@ -102,7 +93,7 @@ function constructUpdateTemplatesDataFromState(
   if (state.setupEmailHtmlTemplate !== initialState.setupEmailHtmlTemplate) {
     setUpdateTemplatesData(
       templateUpdates,
-      TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_HTML,
+      setupPrimaryOobEmailHtmlPath,
       templateLocale,
       state.setupEmailHtmlTemplate
     );
@@ -113,7 +104,7 @@ function constructUpdateTemplatesDataFromState(
   ) {
     setUpdateTemplatesData(
       templateUpdates,
-      TEMPLATE_SETUP_PRIMARY_OOB_EMAIL_TEXT,
+      setupPrimaryOobEmailTextPath,
       templateLocale,
       state.setupEmailPlainTextTemplate
     );
@@ -121,7 +112,7 @@ function constructUpdateTemplatesDataFromState(
   if (state.setupSmsTemplate !== initialState.setupSmsTemplate) {
     setUpdateTemplatesData(
       templateUpdates,
-      TEMPLATE_SETUP_PRIMARY_OOB_SMS_TEXT,
+      setupPrimaryOobSmsTextPath,
       templateLocale,
       state.setupSmsTemplate
     );
@@ -132,7 +123,7 @@ function constructUpdateTemplatesDataFromState(
   ) {
     setUpdateTemplatesData(
       templateUpdates,
-      TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML,
+      authenticatePrimaryOobEmailHtmlPath,
       templateLocale,
       state.authenticateEmailHtmlTemplate
     );
@@ -143,7 +134,7 @@ function constructUpdateTemplatesDataFromState(
   ) {
     setUpdateTemplatesData(
       templateUpdates,
-      TEMPLATE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TEXT,
+      authenticatePrimaryOobEmailTextPath,
       templateLocale,
       state.authenticateEmailPlainTextTemplate
     );
@@ -151,7 +142,7 @@ function constructUpdateTemplatesDataFromState(
   if (state.authenticateSmsTemplate !== initialState.authenticateSmsTemplate) {
     setUpdateTemplatesData(
       templateUpdates,
-      TEMPLATE_AUTHENTICATE_PRIMARY_OOB_SMS_TEXT,
+      authenticatePrimaryOobSmsTextPath,
       templateLocale,
       state.authenticateSmsTemplate
     );
