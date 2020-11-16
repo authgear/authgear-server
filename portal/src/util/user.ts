@@ -30,3 +30,18 @@ export function extractUserInfoFromIdentities(
 
   return { email, username, phone };
 }
+
+export type SessionType = "IDP" | "OFFLINE_GRANT";
+
+export interface SessionUserAgent {
+  name: string;
+  version: string;
+}
+
+export interface Session {
+  id: string;
+  type: SessionType;
+  lastAccessedAt: string;
+  lastAccessedByIP: string;
+  userAgent: SessionUserAgent;
+}

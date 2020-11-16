@@ -20,6 +20,7 @@ import { useRevokeSessionMutation } from "./mutations/revokeSessionMutation";
 import { useRevokeAllSessionsMutation } from "./mutations/revokeAllSessionsMutation";
 import { useParams } from "react-router-dom";
 import ErrorDialog from "../../error/ErrorDialog";
+import { Session, SessionType, SessionUserAgent } from "../../util/user";
 
 interface RevokeConfirmationDialogProps {
   isHidden: boolean;
@@ -83,21 +84,6 @@ const RevokeConfirmationDialog: React.FC<RevokeConfirmationDialogProps> = functi
     </Dialog>
   );
 };
-
-type SessionType = "IDP" | "OFFLINE_GRANT";
-
-interface SessionUserAgent {
-  name: string;
-  version: string;
-}
-
-interface Session {
-  id: string;
-  type: SessionType;
-  lastAccessedAt: string;
-  lastAccessedByIP: string;
-  userAgent: SessionUserAgent;
-}
 
 function userAgentDisplayName(ua: SessionUserAgent): string {
   let name = ua.name;
