@@ -46,6 +46,7 @@ export interface UsersListQuery_users_edges_node {
    * The last login time of user
    */
   lastLoginAt: GQL_DateTime | null;
+  isDisabled: boolean;
   identities: UsersListQuery_users_edges_node_identities | null;
 }
 

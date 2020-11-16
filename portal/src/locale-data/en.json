@@ -106,9 +106,12 @@
   "UsersList.column.last-login-at": "Last Login",
 
   "UsersList.disable-user": "Disable User",
+  "UsersList.enable-user": "Enable User",
 
-  "DisableUserDialog.title": "Disable User",
-  "DisableUserDialog.text": "Do you really want to disable user {username}",
+  "SetUserDisabledDialog.disableUser.title": "Disable User",
+  "SetUserDisabledDialog.disableUser.text": "Do you really want to disable user {username}?",
+  "SetUserDisabledDialog.enableUser.title": "Enable User",
+  "SetUserDisabledDialog.enableUser.text": "Do you really want to enable user {username}?",
 
   "UserDetails.signed-up": "Signed Up: {datetime}",
   "UserDetails.last-login-at": "Last Login: {datetime}",

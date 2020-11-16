@@ -27,7 +27,7 @@ import {
 
 import ShowError from "../../ShowError";
 import PaginationWidget from "../../PaginationWidget";
-import DisableUserDialog from "./DisableUserDialog";
+import SetUserDisabledDialog from "./SetUserDisabledDialog";
 
 import { encodeOffsetToCursor } from "../../util/pagination";
 import { formatDatetime } from "../../util/formatDatetime";
@@ -49,6 +49,7 @@ interface PlainUsersListProps {
 
 interface UserListItem {
   id: string;
+  isDisabled: boolean;
   createdAt: string | null;
   username: string | null;
   phone: string | null;
@@ -57,6 +58,7 @@ interface UserListItem {
 }
 
 interface DisableUserDialogData {
+  isDisablingUser: boolean;
   userID: string;
   username: string | null;
 }
@@ -156,6 +158,7 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
           const userInfo = extractUserInfoFromIdentities(identities);
           items.push({
             id: node.id,
+            isDisabled: node.isDisabled,
             createdAt: formatDatetime(locale, node.createdAt),
             lastLoginAt: formatDatetime(locale, node.lastLoginAt),
             username: userInfo.username,
@@ -185,13 +188,14 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
   const onDisableUserClicked = useCallback(
     (
       event: React.MouseEvent<unknown>,
+      isDisablingUser: boolean,
       userID: string,
       username: string | null
     ) => {
       // prevent triggering the link to user detail page
       event.preventDefault();
       event.stopPropagation();
-      setDisableUserDialogData({ userID, username });
+      setDisableUserDialogData({ isDisablingUser, userID, username });
       setIsDisableUserDialogHidden(false);
     },
     []
@@ -209,12 +213,17 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
               onClick={(event) =>
                 onDisableUserClicked(
                   event,
+                  !item.isDisabled,
                   item.id,
                   item.username ?? item.email ?? item.phone
                 )
               }
             >
-              <FormattedMessage id="UsersList.disable-user" />
+              {item.isDisabled ? (
+                <FormattedMessage id="UsersList.enable-user" />
+              ) : (
+                <FormattedMessage id="UsersList.disable-user" />
+              )}
             </ActionButton>
           );
         default:
@@ -253,9 +262,10 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
         />
       </div>
       {disableUserDialogData != null && (
-        <DisableUserDialog
+        <SetUserDisabledDialog
           isHidden={isDisableUserDialogHidden}
           onDismiss={dismissDisableUserDialog}
+          isDisablingUser={disableUserDialogData.isDisablingUser}
           userID={disableUserDialogData.userID}
           username={disableUserDialogData.username}
         />
@@ -272,6 +282,7 @@ const query = gql`
           id
           createdAt
           lastLoginAt
+          isDisabled
           identities {
             edges {
               node {

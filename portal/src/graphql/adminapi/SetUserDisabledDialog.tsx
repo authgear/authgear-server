@@ -8,22 +8,23 @@ import {
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
-interface DisableUserDialogProps {
+interface SetUserDisabledDialogProps {
   isHidden: boolean;
   onDismiss: () => void;
+  isDisablingUser: boolean;
   userID: string;
   username: string | null;
 }
 
 const dialogStyles = { main: { minHeight: 0 } };
 
-const DisableUserDialog: React.FC<DisableUserDialogProps> = function DisableUserDialog(
-  props: DisableUserDialogProps
+const SetUserDisabledDialog: React.FC<SetUserDisabledDialogProps> = function SetUserDisabledDialog(
+  props: SetUserDisabledDialogProps
 ) {
-  const { isHidden, onDismiss, userID, username } = props;
+  const { isHidden, onDismiss, isDisablingUser, userID, username } = props;
   const { renderToString } = useContext(Context);
 
-  const disableUser = useCallback(
+  const setUserDisabled = useCallback(
     (userID?: string) => {
       if (userID == null) {
         onDismiss();
@@ -36,13 +37,20 @@ const DisableUserDialog: React.FC<DisableUserDialogProps> = function DisableUser
   );
 
   const dialogContentProps: IDialogContentProps = useMemo(() => {
-    return {
-      title: renderToString("DisableUserDialog.title"),
-      subText: renderToString("DisableUserDialog.text", {
-        username: username ?? userID,
-      }),
-    };
-  }, [renderToString, username, userID]);
+    return isDisablingUser
+      ? {
+          title: renderToString("SetUserDisabledDialog.disableUser.title"),
+          subText: renderToString("SetUserDisabledDialog.disableUser.text", {
+            username: username ?? userID,
+          }),
+        }
+      : {
+          title: renderToString("SetUserDisabledDialog.enableUser.title"),
+          subText: renderToString("SetUserDisabledDialog.enableUser.text", {
+            username: username ?? userID,
+          }),
+        };
+  }, [renderToString, isDisablingUser, username, userID]);
 
   return (
     <Dialog
@@ -52,7 +60,7 @@ const DisableUserDialog: React.FC<DisableUserDialogProps> = function DisableUser
       styles={dialogStyles}
     >
       <DialogFooter>
-        <PrimaryButton onClick={() => disableUser(userID)}>
+        <PrimaryButton onClick={() => setUserDisabled(userID)}>
           <FormattedMessage id="confirm" />
         </PrimaryButton>
 
@@ -64,4 +72,4 @@ const DisableUserDialog: React.FC<DisableUserDialogProps> = function DisableUser
   );
 };
 
-export default DisableUserDialog;
+export default SetUserDisabledDialog;
