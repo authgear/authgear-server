@@ -30,6 +30,7 @@ type ClaimStore interface {
 	Get(userID string, claimName string, claimValue string) (*Claim, error)
 	Create(claim *Claim) error
 	Delete(id string) error
+	DeleteAll(userID string) error
 }
 
 type RateLimiter interface {
@@ -285,6 +286,10 @@ func (s *Service) MarkClaimVerified(claim *Claim) error {
 
 func (s *Service) DeleteClaim(claimID string) error {
 	return s.ClaimStore.Delete(claimID)
+}
+
+func (s *Service) ResetVerificationStatus(userID string) error {
+	return s.ClaimStore.DeleteAll(userID)
 }
 
 func (s *Service) RemoveOrphanedClaims(identities []*identity.Info, authenticators []*authenticator.Info) error {

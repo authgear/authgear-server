@@ -172,6 +172,20 @@ func (mr *MockClaimStoreMockRecorder) Delete(id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockClaimStore)(nil).Delete), id)
 }
 
+// DeleteAll mocks base method
+func (m *MockClaimStore) DeleteAll(userID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteAll", userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteAll indicates an expected call of DeleteAll
+func (mr *MockClaimStoreMockRecorder) DeleteAll(userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAll", reflect.TypeOf((*MockClaimStore)(nil).DeleteAll), userID)
+}
+
 // MockRateLimiter is a mock of RateLimiter interface
 type MockRateLimiter struct {
 	ctrl     *gomock.Controller

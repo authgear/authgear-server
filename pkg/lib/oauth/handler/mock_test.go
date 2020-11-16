@@ -59,6 +59,18 @@ func (m *mockAuthzStore) Delete(authz *oauth.Authorization) error {
 	return nil
 }
 
+func (m *mockAuthzStore) ResetAll(userID string) error {
+	n := 0
+	for _, a := range m.authzs {
+		if a.UserID != userID {
+			m.authzs[n] = a
+			n++
+		}
+	}
+	m.authzs = m.authzs[:n]
+	return nil
+}
+
 func (m *mockAuthzStore) UpdateScopes(authz *oauth.Authorization) error {
 	for i, a := range m.authzs {
 		if a.ID == authz.ID {

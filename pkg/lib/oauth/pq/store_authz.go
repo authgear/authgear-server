@@ -142,6 +142,19 @@ func (s *AuthorizationStore) Delete(authz *oauth.Authorization) error {
 	return nil
 }
 
+func (s *AuthorizationStore) ResetAll(userID string) error {
+	builder := s.SQLBuilder.Tenant().
+		Delete(s.SQLBuilder.FullTableName("oauth_authorization")).
+		Where("user_id = ?", userID)
+
+	_, err := s.SQLExecutor.ExecWith(builder)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *AuthorizationStore) UpdateScopes(authz *oauth.Authorization) error {
 	scopeBytes, err := json.Marshal(authz.Scopes)
 	if err != nil {

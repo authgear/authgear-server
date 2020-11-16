@@ -87,6 +87,15 @@ func (p *HistoryStore) RemovePasswordHistory(userID string, historySize int, his
 	return err
 }
 
+func (p *HistoryStore) ResetPasswordHistory(userID string) error {
+	builder := p.SQLBuilder.Tenant().
+		Delete(p.SQLBuilder.FullTableName("password_history")).
+		Where("user_id = ?", userID)
+
+	_, err := p.SQLExecutor.ExecWith(builder)
+	return err
+}
+
 func (p *HistoryStore) basePasswordHistoryBuilder(userID string) db.SelectBuilder {
 	return p.SQLBuilder.Tenant().
 		Select("id", "user_id", "password", "created_at").

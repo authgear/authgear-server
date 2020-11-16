@@ -16,7 +16,6 @@ type RawCommands struct {
 	Store                  store
 	Clock                  clock.Clock
 	WelcomeMessageProvider WelcomeMessageProvider
-	Queries                *Queries
 }
 
 func (c *RawCommands) New(userID string) *User {

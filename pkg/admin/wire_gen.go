@@ -36,6 +36,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -298,24 +299,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	coordinator := &facade.Coordinator{
-		Identities:     serviceService,
-		Authenticators: service4,
-		Verification:   verificationService,
-		MFA:            mfaService,
-		IdentityConfig: identityConfig,
-	}
-	identityFacade := facade.IdentityFacade{
-		Coordinator: coordinator,
-	}
-	queries := &user.Queries{
-		Store:        store,
-		Identities:   identityFacade,
-		Verification: verificationService,
-	}
-	userLoader := loader.NewUserLoader(queries)
-	identityLoader := loader.NewIdentityLoader(serviceService)
-	authenticatorLoader := loader.NewAuthenticatorLoader(service4)
 	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(configConfig)
 	resolver := &template.Resolver{
 		Resources:          manager,
@@ -352,8 +335,64 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Store:                  store,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
-		Queries:                queries,
 	}
+	authorizationStore := &pq.AuthorizationStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
+	idpsessionStoreRedis := &idpsession.StoreRedis{
+		Redis:  redisHandle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: storeRedisLogger,
+	}
+	sessionConfig := appConfig.Session
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	idpsessionManager := &idpsession.Manager{
+		Store:         idpsessionStoreRedis,
+		Clock:         clockClock,
+		Config:        sessionConfig,
+		CookieFactory: cookieFactory,
+		CookieDef:     cookieDef,
+	}
+	redisLogger := redis.NewLogger(factory)
+	grantStore := &redis.GrantStore{
+		Redis:       redisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	sessionManager := &oauth2.SessionManager{
+		Store: grantStore,
+		Clock: clockClock,
+	}
+	coordinator := &facade.Coordinator{
+		Identities:      serviceService,
+		Authenticators:  service4,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		Users:           rawCommands,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
+	}
+	identityFacade := facade.IdentityFacade{
+		Coordinator: coordinator,
+	}
+	queries := &user.Queries{
+		Store:        store,
+		Identities:   identityFacade,
+		Verification: verificationService,
+	}
+	userLoader := loader.NewUserLoader(queries)
+	identityLoader := loader.NewIdentityLoader(serviceService)
+	authenticatorLoader := loader.NewAuthenticatorLoader(service4)
 	hookLogger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -391,6 +430,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	userProvider := &user.Provider{
 		Commands: commands,
 		Queries:  queries,
+	}
+	userFacade := &facade.UserFacade{
+		UserProvider: userProvider,
+		Coordinator:  coordinator,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	authenticatorFacade := facade.AuthenticatorFacade{
@@ -448,14 +491,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
-	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
-	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
-		AppID:  appID,
-		Clock:  clockClock,
-		Logger: storeRedisLogger,
-	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: redisHandle,
 		AppID: appID,
@@ -463,7 +498,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	sessionConfig := appConfig.Session
 	rand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
 		Request:      request,
@@ -474,7 +508,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       rand,
 	}
-	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
 		Request:                  request,
@@ -515,8 +548,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	serviceInteractionService := &service3.InteractionService{
 		Graph: interactionService,
 	}
-	userFacade := &facade2.UserFacade{
-		Users:       userProvider,
+	facadeUserFacade := &facade2.UserFacade{
+		Users:       userFacade,
 		Interaction: serviceInteractionService,
 	}
 	facadeIdentityFacade := &facade2.IdentityFacade{
@@ -529,26 +562,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationFacade := &facade2.VerificationFacade{
 		Verification: verificationService,
-	}
-	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef,
-	}
-	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
-		Redis:       redisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
-		Clock: clockClock,
 	}
 	manager2 := &session.Manager{
 		Users:               queries,
@@ -564,7 +577,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Users:               userLoader,
 		Identities:          identityLoader,
 		Authenticators:      authenticatorLoader,
-		UserFacade:          userFacade,
+		UserFacade:          facadeUserFacade,
 		IdentityFacade:      facadeIdentityFacade,
 		AuthenticatorFacade: facadeAuthenticatorFacade,
 		VerificationFacade:  verificationFacade,
