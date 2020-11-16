@@ -9,6 +9,18 @@ import (
 
 const typeSession = "Session"
 
+var sessionType = graphql.NewEnum(graphql.EnumConfig{
+	Name: "SessionType",
+	Values: graphql.EnumValueConfigMap{
+		"IDP": &graphql.EnumValueConfig{
+			Value: model.SessionTypeIDP,
+		},
+		"OFFLINE_GRANT": &graphql.EnumValueConfig{
+			Value: model.SessionTypeOfflineGrant,
+		},
+	},
+})
+
 var nodeSession = entity(
 	graphql.NewObject(graphql.ObjectConfig{
 		Name: typeSession,
@@ -20,6 +32,9 @@ var nodeSession = entity(
 			"id":        entityIDField(typeSession, nil),
 			"createdAt": entityCreatedAtField(nil),
 			"updatedAt": entityUpdatedAtField(nil),
+			"type": &graphql.Field{
+				Type: graphql.NewNonNull(sessionType),
+			},
 			"acr": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.String),
 			},

@@ -356,6 +356,9 @@ type Session implements Entity & Node {
   """"""
   lastAccessedByIP: String!
 
+  """"""
+  type: SessionType!
+
   """The update time of entity"""
   updatedAt: DateTime!
 
@@ -382,6 +385,15 @@ type SessionEdge {
 
   """The item at the end of the edge"""
   node: Session
+}
+
+""""""
+enum SessionType {
+  """"""
+  IDP
+
+  """"""
+  OFFLINE_GRANT
 }
 
 """"""

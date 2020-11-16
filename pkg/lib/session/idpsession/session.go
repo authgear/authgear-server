@@ -40,6 +40,7 @@ func (s *IDPSession) ToAPIModel() *model.Session {
 			// TODO(session): Session Updated At should be the time user actively updates it.
 			UpdatedAt: s.AccessInfo.LastAccess.Timestamp,
 		},
+		Type: model.SessionTypeIDP,
 
 		ACR: acr,
 		AMR: amr,

@@ -4,8 +4,17 @@ import (
 	"time"
 )
 
+type SessionType string
+
+const (
+	SessionTypeIDP          SessionType = "idp"
+	SessionTypeOfflineGrant SessionType = "offline_grant"
+)
+
 type Session struct {
 	Meta
+
+	Type SessionType `json:"type"`
 
 	ACR string   `json:"acr,omitempty"`
 	AMR []string `json:"amr,omitempty"`
