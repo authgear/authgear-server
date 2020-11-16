@@ -82,6 +82,7 @@ window.api.onLoad(() => {
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         "X-Authgear-XHR": "true"
       },
+      credentials: "same-origin",
       body: params
     })
       .then(resp => {
