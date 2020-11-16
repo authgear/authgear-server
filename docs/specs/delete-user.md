@@ -21,3 +21,5 @@ until its natural expiry.
 - Web-hooks
 - Reserve deleted login ID
 - Self-service deletion
+- Soft-delete
+- Delayed deletion (i.e. soft-delete for N days, then hard-delete)
