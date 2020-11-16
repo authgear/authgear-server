@@ -25,7 +25,7 @@ var _ resource.Descriptor = &translationJSON{}
 
 var TranslationJSON = resource.RegisterResource(&translationJSON{})
 
-func (t *translationJSON) MatchResource(path string) bool {
+func (t *translationJSON) MatchResource(path string) (*resource.Match, bool) {
 	return matchTemplatePath(path, TranslationJSONName)
 }
 

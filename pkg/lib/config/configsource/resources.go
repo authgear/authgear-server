@@ -22,8 +22,11 @@ type AuthgearYAMLDescriptor struct{}
 
 var _ resource.Descriptor = AuthgearYAMLDescriptor{}
 
-func (d AuthgearYAMLDescriptor) MatchResource(path string) bool {
-	return path == AuthgearYAML
+func (d AuthgearYAMLDescriptor) MatchResource(path string) (*resource.Match, bool) {
+	if path == AuthgearYAML {
+		return &resource.Match{}, true
+	}
+	return nil, false
 }
 
 func (d AuthgearYAMLDescriptor) FindResources(fs resource.Fs) ([]resource.Location, error) {
@@ -97,8 +100,11 @@ type AuthgearSecretYAMLDescriptor struct{}
 
 var _ resource.Descriptor = AuthgearSecretYAMLDescriptor{}
 
-func (d AuthgearSecretYAMLDescriptor) MatchResource(path string) bool {
-	return path == AuthgearSecretYAML
+func (d AuthgearSecretYAMLDescriptor) MatchResource(path string) (*resource.Match, bool) {
+	if path == AuthgearSecretYAML {
+		return &resource.Match{}, true
+	}
+	return nil, false
 }
 
 func (d AuthgearSecretYAMLDescriptor) FindResources(fs resource.Fs) ([]resource.Location, error) {

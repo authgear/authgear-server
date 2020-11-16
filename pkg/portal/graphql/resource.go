@@ -20,6 +20,17 @@ var appResource = graphql.NewObject(graphql.ObjectConfig{
 				return r.DescriptedPath.Path, nil
 			},
 		},
+		"languageTag": &graphql.Field{
+			Type: graphql.String,
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				r := p.Source.(*model.AppResource)
+				match, ok := r.DescriptedPath.Descriptor.MatchResource(r.DescriptedPath.Path)
+				if !ok || match.LanguageTag == "" {
+					return nil, nil
+				}
+				return match.LanguageTag, nil
+			},
+		},
 		"data": &graphql.Field{
 			Type: graphql.String,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {

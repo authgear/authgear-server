@@ -14,8 +14,11 @@ type CSSDescriptor struct {
 
 var _ resource.Descriptor = CSSDescriptor{}
 
-func (d CSSDescriptor) MatchResource(path string) bool {
-	return d.Path == path
+func (d CSSDescriptor) MatchResource(path string) (*resource.Match, bool) {
+	if path == d.Path {
+		return &resource.Match{}, true
+	}
+	return nil, false
 }
 
 func (d CSSDescriptor) FindResources(fs resource.Fs) ([]resource.Location, error) {

@@ -70,6 +70,9 @@ type AppResource {
   effectiveData: String
 
   """"""
+  languageTag: String
+
+  """"""
   path: String!
 }
 

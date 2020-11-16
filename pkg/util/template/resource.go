@@ -28,7 +28,7 @@ var _ resource.Descriptor = &HTML{}
 
 func (t *HTML) templateResource() {}
 
-func (t *HTML) MatchResource(path string) bool {
+func (t *HTML) MatchResource(path string) (*resource.Match, bool) {
 	return matchTemplatePath(path, t.Name)
 }
 
@@ -59,7 +59,7 @@ var _ resource.Descriptor = &PlainText{}
 
 func (t *PlainText) templateResource() {}
 
-func (t *PlainText) MatchResource(path string) bool {
+func (t *PlainText) MatchResource(path string) (*resource.Match, bool) {
 	return matchTemplatePath(path, t.Name)
 }
 
@@ -90,9 +90,15 @@ func RegisterPlainText(name string, dependencies ...*PlainText) *PlainText {
 	return desc
 }
 
-func matchTemplatePath(path string, templateName string) bool {
-	r := fmt.Sprintf("^templates/[a-zA-Z0-9-]+/%s$", regexp.QuoteMeta(templateName))
-	return regexp.MustCompile(r).MatchString(path)
+func matchTemplatePath(path string, templateName string) (*resource.Match, bool) {
+	r := fmt.Sprintf("^templates/([a-zA-Z0-9-]+)/%s$", regexp.QuoteMeta(templateName))
+	matches := regexp.MustCompile(r).FindStringSubmatch(path)
+	if len(matches) != 2 {
+		return nil, false
+	}
+
+	languageTag := matches[1]
+	return &resource.Match{LanguageTag: languageTag}, true
 }
 
 func readTemplates(fs resource.Fs, templateName string) ([]resource.Location, error) {

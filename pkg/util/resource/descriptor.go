@@ -17,8 +17,12 @@ type ResourceFile struct {
 	Data     []byte
 }
 
+type Match struct {
+	LanguageTag string
+}
+
 type Descriptor interface {
-	MatchResource(path string) bool
+	MatchResource(path string) (*Match, bool)
 	FindResources(fs Fs) ([]Location, error)
 	ViewResources(resources []ResourceFile, view View) (interface{}, error)
 	UpdateResource(resource *ResourceFile, data []byte, view View) (*ResourceFile, error)
@@ -31,8 +35,11 @@ type SimpleDescriptor struct {
 
 var _ Descriptor = SimpleDescriptor{}
 
-func (d SimpleDescriptor) MatchResource(path string) bool {
-	return d.Path == path
+func (d SimpleDescriptor) MatchResource(path string) (*Match, bool) {
+	if path == d.Path {
+		return &Match{}, true
+	}
+	return nil, false
 }
 
 func (d SimpleDescriptor) FindResources(fs Fs) ([]Location, error) {
@@ -91,8 +98,11 @@ type NewlineJoinedDescriptor struct {
 
 var _ Descriptor = NewlineJoinedDescriptor{}
 
-func (d NewlineJoinedDescriptor) MatchResource(path string) bool {
-	return d.Path == path
+func (d NewlineJoinedDescriptor) MatchResource(path string) (*Match, bool) {
+	if path == d.Path {
+		return &Match{}, true
+	}
+	return nil, false
 }
 
 func (d NewlineJoinedDescriptor) FindResources(fs Fs) ([]Location, error) {

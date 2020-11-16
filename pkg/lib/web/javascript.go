@@ -14,8 +14,11 @@ type JavaScriptDescriptor struct {
 
 var _ resource.Descriptor = JavaScriptDescriptor{}
 
-func (d JavaScriptDescriptor) MatchResource(path string) bool {
-	return d.Path == path
+func (d JavaScriptDescriptor) MatchResource(path string) (*resource.Match, bool) {
+	if path == d.Path {
+		return &resource.Match{}, true
+	}
+	return nil, false
 }
 
 func (d JavaScriptDescriptor) FindResources(fs resource.Fs) ([]resource.Location, error) {
