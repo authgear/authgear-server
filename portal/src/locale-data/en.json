@@ -112,6 +112,7 @@
   "SetUserDisabledDialog.disableUser.text": "Do you really want to disable user {username}?",
   "SetUserDisabledDialog.enableUser.title": "Enable User",
   "SetUserDisabledDialog.enableUser.text": "Do you really want to enable user {username}?",
+  "SetUserDisabledDialog.generic-error": "Failed to set user disabled status.",
 
   "UserDetails.signed-up": "Signed Up: {datetime}",
   "UserDetails.last-login-at": "Last Login: {datetime}",

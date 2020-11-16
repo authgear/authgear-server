@@ -137,7 +137,7 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
   ];
 
   const [isDisableUserDialogHidden, setIsDisableUserDialogHidden] = useState(
-    false
+    true
   );
   const [
     disableUserDialogData,
