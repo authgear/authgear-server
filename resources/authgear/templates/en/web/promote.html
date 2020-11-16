@@ -113,7 +113,7 @@
 				{{ range $.IdentityCandidates }}
 				{{ if eq .type "login_id" }}{{ if not (eq .login_id_key $.x_login_id_key) }}
 					<a class="link align-self-flex-start" data-turbolinks-action="replace"
-						href="{{ call $.MakeCurrentStepURL "" "x_login_id_key" .login_id_key "x_login_id_input_type" .login_id_input_type}}">
+						href="{{ call $.MakeCurrentStepURL "x_login_id_key" .login_id_key "x_login_id_input_type" .login_id_input_type}}">
 						{{ template "use-login-id-key" (dict "key" .login_id_key) }}
 					</a>
 				{{ end }}{{ end }}
