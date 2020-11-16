@@ -54,6 +54,7 @@ const userQuery = gql`
             }
           }
         }
+        isDisabled
         lastLoginAt
         createdAt
         updatedAt

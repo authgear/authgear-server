@@ -7,7 +7,7 @@ import { useAppConfigQuery } from "../portal/query/appConfigQuery";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-// import UserDetailCommandBar from "./UserDetailCommandBar";
+import UserDetailCommandBar from "./UserDetailCommandBar";
 import { ModifiedIndicatorWrapper } from "../../ModifiedIndicatorPortal";
 import UserDetailSummary from "./UserDetailSummary";
 import UserDetailsAccountSecurity from "./UserDetailsAccountSecurity";
@@ -140,11 +140,13 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
     return <ShowError error={appConfigError} onRetry={refetchAppConfig} />;
   }
 
+  const identities =
+    user?.identities?.edges?.map((edge) => edge?.node).filter(nonNullable) ??
+    [];
+
   return (
     <main className={styles.root}>
-      {/* TODO: implement actions in command bar
-        <UserDetailCommandBar />
-      */}
+      <UserDetailCommandBar user={user} identities={identities} />
       <ModifiedIndicatorWrapper className={styles.screenContent}>
         <NavBreadcrumb items={navBreadcrumbItems} />
         <UserDetails
