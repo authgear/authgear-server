@@ -9,6 +9,7 @@ import {
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 interface DisableUserDialogProps {
+  isHidden: boolean;
   onDismiss: () => void;
   userID: string;
   username: string | null;
@@ -19,7 +20,7 @@ const dialogStyles = { main: { minHeight: 0 } };
 const DisableUserDialog: React.FC<DisableUserDialogProps> = function DisableUserDialog(
   props: DisableUserDialogProps
 ) {
-  const { onDismiss, userID, username } = props;
+  const { isHidden, onDismiss, userID, username } = props;
   const { renderToString } = useContext(Context);
 
   const disableUser = useCallback(
@@ -45,7 +46,7 @@ const DisableUserDialog: React.FC<DisableUserDialogProps> = function DisableUser
 
   return (
     <Dialog
-      hidden={false}
+      hidden={isHidden}
       onDismiss={onDismiss}
       dialogContentProps={dialogContentProps}
       styles={dialogStyles}

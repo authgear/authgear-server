@@ -134,6 +134,9 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
     },
   ];
 
+  const [isDisableUserDialogHidden, setIsDisableUserDialogHidden] = useState(
+    false
+  );
   const [
     disableUserDialogData,
     setDisableUserDialogData,
@@ -189,6 +192,7 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
       event.preventDefault();
       event.stopPropagation();
       setDisableUserDialogData({ userID, username });
+      setIsDisableUserDialogHidden(false);
     },
     []
   );
@@ -203,7 +207,11 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
               styles={{ flexContainer: { alignItems: "normal" } }}
               theme={themes.actionButton}
               onClick={(event) =>
-                onDisableUserClicked(event, item.id, item.username)
+                onDisableUserClicked(
+                  event,
+                  item.id,
+                  item.username ?? item.email ?? item.phone
+                )
               }
             >
               <FormattedMessage id="UsersList.disable-user" />
@@ -221,35 +229,38 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
   );
 
   const dismissDisableUserDialog = useCallback(() => {
-    setDisableUserDialogData(null);
+    setIsDisableUserDialogHidden(true);
   }, []);
 
   return (
-    <div className={cn(styles.root, className)}>
-      <ShimmeredDetailsList
-        enableShimmer={loading}
-        onRenderRow={onRenderUserRow}
-        onRenderItemColumn={onRenderUserItemColumn}
-        selectionMode={SelectionMode.none}
-        layoutMode={DetailsListLayoutMode.justified}
-        columns={columns}
-        items={items}
-      />
-      <PaginationWidget
-        className={styles.pagination}
-        offset={offset}
-        pageSize={pageSize}
-        totalCount={totalCount}
-        onChangeOffset={onChangeOffset}
-      />
+    <>
+      <div className={cn(styles.root, className)}>
+        <ShimmeredDetailsList
+          enableShimmer={loading}
+          onRenderRow={onRenderUserRow}
+          onRenderItemColumn={onRenderUserItemColumn}
+          selectionMode={SelectionMode.none}
+          layoutMode={DetailsListLayoutMode.justified}
+          columns={columns}
+          items={items}
+        />
+        <PaginationWidget
+          className={styles.pagination}
+          offset={offset}
+          pageSize={pageSize}
+          totalCount={totalCount}
+          onChangeOffset={onChangeOffset}
+        />
+      </div>
       {disableUserDialogData != null && (
         <DisableUserDialog
+          isHidden={isDisableUserDialogHidden}
           onDismiss={dismissDisableUserDialog}
           userID={disableUserDialogData.userID}
           username={disableUserDialogData.username}
         />
       )}
-    </div>
+    </>
   );
 };
 
