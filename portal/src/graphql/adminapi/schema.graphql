@@ -144,6 +144,18 @@ type DeleteIdentityPayload {
 }
 
 """"""
+input DeleteUserInput {
+  """Target user ID."""
+  userID: ID!
+}
+
+""""""
+type DeleteUserPayload {
+  """"""
+  deletedUserID: ID!
+}
+
+""""""
 interface Entity {
   """The creation time of entity"""
   createdAt: DateTime!
@@ -241,6 +253,9 @@ type Mutation {
 
   """Delete identity of user"""
   deleteIdentity(input: DeleteIdentityInput!): DeleteIdentityPayload!
+
+  """Delete specified user"""
+  deleteUser(input: DeleteUserInput!): DeleteUserPayload!
 
   """Reset password of user"""
   resetPassword(input: ResetPasswordInput!): ResetPasswordPayload!

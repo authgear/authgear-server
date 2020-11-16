@@ -18,6 +18,7 @@ type UserService interface {
 	Count() (uint64, error)
 	QueryPage(after, before apimodel.PageCursor, first, last *uint64) ([]apimodel.PageItem, error)
 	UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error
+	Delete(userID string) error
 }
 
 type UserFacade struct {
@@ -84,4 +85,8 @@ func (f *UserFacade) ResetPassword(id string, password string) error {
 
 func (f *UserFacade) SetDisabled(id string, isDisabled bool, reason *string) error {
 	return f.Users.UpdateDisabledStatus(id, isDisabled, reason)
+}
+
+func (f *UserFacade) Delete(id string) error {
+	return f.Users.Delete(id)
 }
