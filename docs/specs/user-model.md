@@ -270,7 +270,11 @@ Out-of-band One-time-password authenticator can be primary or secondary.
 
 OOB-OTP authenticator is bound to a recipient address. The recipient can be an email address or phone number that can receive SMS messages.
 
-An OOB-OTP authenticator may be associated with a login ID identity. The normalized email address/phone number is used to match login ID identities.
+An primary OOB-OTP authenticator is associated with a login ID identity.
+When the user no longer owns an email address or phone number, the primary OOB-OTP authentictor with the same email address or phone number is said to be orphaned.
+Orphaned authenticators are deleted along with the last identity owning an email address or phone number.
+
+Secondary OOB-OTP authenticators are not associated with identities.
 
 ### Device Token
 
