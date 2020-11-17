@@ -104,7 +104,10 @@ An identity is used to look up a user.
 
 ### Identity Claims
 
-Currently, only `email` is recognized.
+- OAuth identity has `email` claim.
+- Email Login ID identity has `email` claim.
+- Phone Login ID identity has `phone_number` claim.
+- Username Login ID identity has `preferred_username` claim.
 
 > TODO: In the future, we want to allow the developer to customize the scope when we perform OAuth flow with external OAuth provider.
 > Then we can support more Standard Claims, such as `picture`.
