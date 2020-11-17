@@ -9,10 +9,11 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import ErrorDialog from "../../error/ErrorDialog";
+import { useDeleteUserMutation } from "./mutations/deleteUserMutation";
 
 interface DeleteUserDialogProps {
   isHidden: boolean;
-  onDismiss: () => void;
+  onDismiss: (deletedUser: boolean) => void;
   userID: string;
   username: string | null;
 }
@@ -22,15 +23,23 @@ const DeleteUserDialog: React.FC<DeleteUserDialogProps> = React.memo(
     const { isHidden, onDismiss, userID, username } = props;
     const { renderToString } = useContext(Context);
     const { themes } = useSystemConfig();
+    const { deleteUser, loading, error } = useDeleteUserMutation();
 
     const onDialogDismiss = useCallback(() => {
-      if (isHidden) {
+      if (loading || isHidden) {
         return;
       }
-      onDismiss();
-    }, [isHidden, onDismiss]);
+      onDismiss(false);
+    }, [loading, isHidden, onDismiss]);
 
-    const onConfirm = useCallback(() => {}, []);
+    const onConfirm = useCallback(() => {
+      if (loading || isHidden) {
+        return;
+      }
+      deleteUser(userID)
+        .then(() => onDismiss(true))
+        .catch(() => onDismiss(false));
+    }, [loading, isHidden, deleteUser, userID, onDismiss]);
 
     const dialogContentProps: IDialogContentProps = useMemo(
       () => ({
@@ -64,7 +73,7 @@ const DeleteUserDialog: React.FC<DeleteUserDialogProps> = React.memo(
         </Dialog>
         <ErrorDialog
           rules={[]}
-          error={null}
+          error={error}
           fallbackErrorMessageID="DeleteUserDialog.generic-error"
         />
       </>

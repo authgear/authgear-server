@@ -13,6 +13,7 @@ import styles from "./UserDetailCommandBar.module.scss";
 import SetUserDisabledDialog from "./SetUserDisabledDialog";
 import { extractUserInfoFromIdentities, Identity } from "../../util/user";
 import DeleteUserDialog from "./DeleteUserDialog";
+import { useNavigate } from "react-router-dom";
 
 interface CommandBarUser {
   id: string;
@@ -31,6 +32,7 @@ const UserDetailCommandBar: React.FC<UserDetailCommandBarProps> = function UserD
   const { className, user, identities } = props;
   const { renderToString } = useContext(Context);
   const { themes } = useSystemConfig();
+  const navigate = useNavigate();
 
   interface DisableUserDialogData {
     isDisablingUser: boolean;
@@ -59,9 +61,15 @@ const UserDetailCommandBar: React.FC<UserDetailCommandBarProps> = function UserD
   const [isDeleteUserDialogHidden, setIsDeleteUserDialogHidden] = useState(
     true
   );
-  const dismissDeleteUserDialog = useCallback(() => {
-    setIsDeleteUserDialogHidden(true);
-  }, []);
+  const dismissDeleteUserDialog = useCallback(
+    (deletedUser: boolean) => {
+      setIsDeleteUserDialogHidden(true);
+      if (deletedUser) {
+        setTimeout(() => navigate("../.."), 0);
+      }
+    },
+    [navigate]
+  );
 
   const commandBarItems: ICommandBarItemProps[] = useMemo(() => {
     if (!user) {
