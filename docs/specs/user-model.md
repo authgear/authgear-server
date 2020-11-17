@@ -26,17 +26,17 @@ Custom Attributes can be any valid JSON Object. There is no limitation on the ne
 
 The developer can save whatever they want in Custom Attributes.
 
+The user cannot read or write Custom Attributes directly.
+
 > NOTE: The initial implementation is very likely to be a single textarea for editing the whole custom attributes object.
 > Much more fancier features like generated form fields requires us to interpret the JSON schema and generate form fields.
 > That could be a very useful standalone product.
-
-> TODO: The user cannot read or write Custom Attributes now. This may be changed in the future.
 
 ### Custom Attributes validation
 
 The validation on custom attributes can be done with the JSON schema provided by the developer in the configuration.
 
-The JSON schema must be written against the version 2019-09.
+The JSON schema must be written against [the version 2019-09](https://json-schema.org/specification-links.html#2019-09-formerly-known-as-draft-8).
 
 For example,
 
