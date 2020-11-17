@@ -355,7 +355,7 @@
   "TemplateLocaleManagementDialog.desc": "For any languages you don’t provide translations for, your messages will be delivered in your default language (English)",
   "TemplateLocaleManagementDialog.supported-resource-locales-header": "All Template Languages",
   "TemplateLocaleManagementDialog.selected-template-locales-header": "Active Template Languages",
-  "TemplateLocaleManagementDialog.cannot-remove-last-language-error": "Cannot remove last template language",
+  "TemplateLocaleManagementDialog.cannot-remove-default-language-error": "Cannot remove default template language",
   "TemplateLocaleManagementDialog.apply-error": "Failed to remove template language",
 
   "ForgotPasswordTemplatesSettings.email.label": "Email",

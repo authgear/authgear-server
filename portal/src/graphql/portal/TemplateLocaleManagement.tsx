@@ -6,13 +6,16 @@ import {
   DefaultButton,
   Dialog,
   DialogFooter,
+  DirectionalHint,
   Dropdown,
   IDialogProps,
   IListProps,
+  ITooltipProps,
   List,
   ScrollablePane,
   Stack,
   Text,
+  TooltipHost,
   VerticalDivider,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -43,6 +46,7 @@ interface TemplateLocaleManagementProps {
 
 interface TemplateLocaleManagementDialogProps {
   resourcePaths: string[];
+  defaultTemplateLocale: TemplateLocale;
   presented: boolean;
   onDismiss: () => void;
   configuredTemplateLocales: TemplateLocale[];
@@ -62,6 +66,7 @@ interface TemplateLocaleListItemProps {
 interface SelectedTemplateLocaleItemProps {
   locale: TemplateLocale;
   onItemRemoved: (locale: TemplateLocale) => void;
+  isDefaultLocale: boolean;
 }
 
 const DIALOG_STYLES = {
@@ -98,8 +103,20 @@ const TemplateLocaleListItem: React.FC<TemplateLocaleListItemProps> = function T
 const SelectedTemplateLocaleItem: React.FC<SelectedTemplateLocaleItemProps> = function SelectedTemplateLocaleItem(
   props: SelectedTemplateLocaleItemProps
 ) {
-  const { locale, onItemRemoved } = props;
+  const { locale, onItemRemoved, isDefaultLocale } = props;
   const { themes } = useSystemConfig();
+
+  const tooltipProps: ITooltipProps = useMemo(() => {
+    return {
+      onRenderContent: () => (
+        <div className={styles.tooltip}>
+          <Text className={styles.tooltipMessage}>
+            <FormattedMessage id="TemplateLocaleManagementDialog.cannot-remove-default-language-error" />
+          </Text>
+        </div>
+      ),
+    };
+  }, []);
 
   const onDeleteClicked = useCallback(() => {
     onItemRemoved(locale);
@@ -110,11 +127,18 @@ const SelectedTemplateLocaleItem: React.FC<SelectedTemplateLocaleItemProps> = fu
       <Text>
         <FormattedMessage id={getLanguageLocaleKey(locale)} />
       </Text>
-      <ActionButton
-        iconProps={{ iconName: "Delete" }}
-        theme={themes.destructive}
-        onClick={onDeleteClicked}
-      />
+      <TooltipHost
+        hidden={!isDefaultLocale}
+        tooltipProps={tooltipProps}
+        directionalHint={DirectionalHint.bottomCenter}
+      >
+        <ActionButton
+          iconProps={{ iconName: "Delete" }}
+          theme={themes.destructive}
+          onClick={onDeleteClicked}
+          disabled={isDefaultLocale}
+        />
+      </TooltipHost>
     </div>
   );
 };
@@ -130,11 +154,11 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
     pendingTemplateLocales,
     onPendingTemplateLocalesChange,
     onTemplateLocaleDeleted,
+    defaultTemplateLocale,
   } = props;
 
   const { supportedResourceLocales } = useSystemConfig();
   const { appID } = useParams();
-  const { renderToString } = useContext(Context);
 
   const {
     removeTemplateLocales,
@@ -207,10 +231,11 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
         <SelectedTemplateLocaleItem
           locale={locale}
           onItemRemoved={onSelctedTemplateLocaleRemoved}
+          isDefaultLocale={locale === defaultTemplateLocale}
         />
       );
     },
-    [onSelctedTemplateLocaleRemoved]
+    [onSelctedTemplateLocaleRemoved, defaultTemplateLocale]
   );
 
   const onCancel = useCallback(() => {
@@ -219,32 +244,20 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
   }, [onDismiss, initialSelectedLocales]);
 
   const onApplyClick = useCallback(() => {
-    if (selectedLocales.length === 0) {
-      setLocalErrorMessage(
-        renderToString(
-          "TemplateLocaleManagementDialog.cannot-remove-last-language-error"
-        )
-      );
-      return;
-    }
     const selectedLocaleSet = new Set(selectedLocales);
     const configuredLocaleSet = new Set(configuredTemplateLocales);
     const removedLocales = configuredTemplateLocales.filter(
       (locale) => !selectedLocaleSet.has(locale)
     );
-    const updatedConfiguredTemplateLocales = configuredTemplateLocales.filter(
-      (locale) => selectedLocaleSet.has(locale)
-    );
-
-    // NOTE: cannot remove all configured locales
-    if (removedLocales.length === configuredTemplateLocales.length) {
+    if (removedLocales.includes(defaultTemplateLocale)) {
       setLocalErrorMessage(
-        renderToString(
-          "TemplateLocaleManagementDialog.cannot-remove-last-language-error"
-        )
+        "TemplateLocaleManagementDialog.cannot-remove-default-language-error"
       );
       return;
     }
+    const updatedConfiguredTemplateLocales = configuredTemplateLocales.filter(
+      (locale) => selectedLocaleSet.has(locale)
+    );
 
     const updatedPendingTemplateLocales = selectedLocales.filter(
       (locale) => !configuredLocaleSet.has(locale)
@@ -266,8 +279,8 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
       onDismiss();
     }
   }, [
-    renderToString,
     resourcePaths,
+    defaultTemplateLocale,
     selectedLocales,
     configuredTemplateLocales,
     onPendingTemplateLocalesChange,
@@ -444,24 +457,13 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
 
   const onTemplateLocaleDeleted = useCallback(
     (configuredLocales: TemplateLocale[], pendingLocales: TemplateLocale[]) => {
-      // Check if default is deleted
-      if (!configuredLocales.includes(defaultTemplateLocale)) {
-        onDefaultTemplateLocaleSelected(configuredLocales[0]);
-        saveDefaultTemplateLocale(configuredLocales[0]);
-      }
       // Check if selected is deleted
       const localeList = configuredLocales.concat(pendingLocales);
       if (!localeList.includes(templateLocale)) {
         onTemplateLocaleSelected(localeList[0]);
       }
     },
-    [
-      saveDefaultTemplateLocale,
-      defaultTemplateLocale,
-      onDefaultTemplateLocaleSelected,
-      onTemplateLocaleSelected,
-      templateLocale,
-    ]
+    [onTemplateLocaleSelected, templateLocale]
   );
 
   return (
@@ -474,6 +476,7 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
         onPendingTemplateLocalesChange={onPendingTemplateLocalesChange}
         onDismiss={dismissDialog}
         onTemplateLocaleDeleted={onTemplateLocaleDeleted}
+        defaultTemplateLocale={defaultTemplateLocale}
       />
       <Stack
         className={styles.inputContainer}
