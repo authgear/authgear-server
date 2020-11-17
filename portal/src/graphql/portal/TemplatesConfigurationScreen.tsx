@@ -7,7 +7,7 @@ import React, {
   useState,
 } from "react";
 import cn from "classnames";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import produce from "immer";
 import { Pivot, PivotItem, Text } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -49,7 +49,8 @@ const AppConfigContext = createContext<AppConfigContextValue>({
 const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
   const { renderToString } = useContext(Context);
   const { appID } = useParams();
-
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { effectiveAppConfig, rawAppConfig } = useContext(AppConfigContext);
 
   const initialDefaultTemplateLocale = useMemo(() => {
@@ -63,12 +64,19 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
   const [defaultTemplateLocale, setDefaultTemplateLocale] = useState<
     TemplateLocale
   >(initialDefaultTemplateLocale);
-  const [templateLocale, setTemplateLocale] = useState<TemplateLocale>(
-    defaultTemplateLocale
-  );
+
   const [pendingTemplateLocales, setPendingTemplateLocales] = useState<
     TemplateLocale[]
   >([]);
+
+  const templateLocale = useMemo(() => {
+    const paramLocale = searchParams.get("locale");
+    if (paramLocale != null && paramLocale.trim() !== "") {
+      return paramLocale;
+    }
+    return defaultTemplateLocale;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const {
     templates,
@@ -120,6 +128,30 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
     refresh();
     resetError();
   }, [resetError, refresh]);
+
+  const onTemplateLocaleSelected = useCallback(
+    (locale: TemplateLocale) => {
+      navigate(`?locale=${locale}${window.location.hash}`);
+    },
+    [navigate]
+  );
+
+  // NOTE: handle invalid locale key in query string
+  useEffect(() => {
+    const localeList = configuredLocales.concat(pendingTemplateLocales);
+    if (
+      !localeList.includes(templateLocale) &&
+      localeList.includes(defaultTemplateLocale)
+    ) {
+      onTemplateLocaleSelected(defaultTemplateLocale);
+    }
+  }, [
+    onTemplateLocaleSelected,
+    configuredLocales,
+    pendingTemplateLocales,
+    defaultTemplateLocale,
+    templateLocale,
+  ]);
 
   useEffect(() => {
     refresh();
@@ -180,7 +212,7 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
           templateLocale={templateLocale}
           initialDefaultTemplateLocale={initialDefaultTemplateLocale}
           defaultTemplateLocale={defaultTemplateLocale}
-          onTemplateLocaleSelected={setTemplateLocale}
+          onTemplateLocaleSelected={onTemplateLocaleSelected}
           onDefaultTemplateLocaleSelected={setDefaultTemplateLocale}
           pendingTemplateLocales={pendingTemplateLocales}
           onPendingTemplateLocalesChange={setPendingTemplateLocales}

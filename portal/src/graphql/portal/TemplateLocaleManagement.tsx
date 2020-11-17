@@ -500,6 +500,7 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
           )}
           options={templateLocaleOptions}
           onChange={onTemplateLocaleChange}
+          selectedKey={templateLocale}
         />
         <Dropdown
           className={styles.dropdown}
@@ -508,6 +509,7 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
           )}
           options={defaultTemplateLocaleOptions}
           onChange={onDefaultTemplateLocaleChange}
+          selectedKey={defaultTemplateLocale}
         />
         <ActionButton theme={themes.actionButton} onClick={presentDialog}>
           <FormattedMessage id="TemplatesConfigurationScreen.manage-template-locale" />
