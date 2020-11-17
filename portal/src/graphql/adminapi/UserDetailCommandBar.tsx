@@ -7,6 +7,7 @@ import {
 } from "@fluentui/react";
 
 import { Context } from "@oursky/react-messageformat";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
 import styles from "./UserDetailCommandBar.module.scss";
 import SetUserDisabledDialog from "./SetUserDisabledDialog";
@@ -28,6 +29,7 @@ const UserDetailCommandBar: React.FC<UserDetailCommandBarProps> = function UserD
 ) {
   const { className, user, identities } = props;
   const { renderToString } = useContext(Context);
+  const { themes } = useSystemConfig();
 
   interface DisableUserDialogData {
     isDisablingUser: boolean;
@@ -54,19 +56,15 @@ const UserDetailCommandBar: React.FC<UserDetailCommandBarProps> = function UserD
       identities
     );
     return [
-      /* TODO: to be implemented
       {
         key: "remove",
         text: renderToString("remove"),
         iconProps: { iconName: "Delete" },
         onRender: (props) => {
-          return (
-            <TodoButtonWrapper>
-              <CommandButton disabled={true} {...props} />
-            </TodoButtonWrapper>
-          );
+          return <CommandButton {...props} theme={themes.destructive} />;
         },
       },
+      /* TODO: to be implemented
       {
         key: "loginAsUser",
         text: renderToString("UserDetails.command-bar.login-as-user"),
@@ -96,7 +94,7 @@ const UserDetailCommandBar: React.FC<UserDetailCommandBarProps> = function UserD
         },
       },
     ];
-  }, [user, identities, renderToString]);
+  }, [user, identities, renderToString, themes.destructive]);
 
   return (
     <>
