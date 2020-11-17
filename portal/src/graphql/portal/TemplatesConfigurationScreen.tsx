@@ -72,7 +72,7 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
 
   const {
     templates,
-    resourcePaths,
+    templateLocales: configuredLocales,
     loading: loadingTemplates,
     error: loadTemplatesError,
     refetch: refetchTemplates,
@@ -126,6 +126,17 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
   }, [templateLocale, refresh]);
 
   useEffect(() => {
+    for (const configuredLocale of configuredLocales) {
+      if (pendingTemplateLocales.includes(configuredLocale)) {
+        setPendingTemplateLocales((prev) =>
+          prev.filter((locale) => locale !== configuredLocale)
+        );
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [configuredLocales]);
+
+  useEffect(() => {
     if (!loadingTemplates) {
       refresh();
     }
@@ -134,20 +145,6 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
   const { selectedKey, onLinkClick } = usePivotNavigation(
     [FORGOT_PASSWORD_PIVOT_KEY, PASSWORDLESS_AUTHENTICATOR_PIVOT_KEY],
     resetError
-  );
-
-  const updateTemplatesAndRemountChildren = useCallback(
-    async (updateTemplatesData: UpdateAppTemplatesData) => {
-      const app = await updateAppTemplates(updateTemplatesData);
-      if (pendingTemplateLocales.includes(templateLocale)) {
-        setPendingTemplateLocales((prev) =>
-          prev.filter((locale) => locale !== templateLocale)
-        );
-      }
-      refresh();
-      return app;
-    },
-    [updateAppTemplates, pendingTemplateLocales, templateLocale, refresh]
   );
 
   const { unrecognizedError: unrecognizedLoadTemplateError } = useGenericError(
@@ -179,7 +176,7 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
         </Text>
         <TemplateLocaleManagement
           key={remountIdentifier}
-          resourcePaths={resourcePaths}
+          configuredTemplateLocales={configuredLocales}
           templateLocale={templateLocale}
           initialDefaultTemplateLocale={initialDefaultTemplateLocale}
           defaultTemplateLocale={defaultTemplateLocale}
@@ -206,7 +203,7 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
               key={remountIdentifier}
               templates={templates}
               templateLocale={templateLocale}
-              updateTemplates={updateTemplatesAndRemountChildren}
+              updateTemplates={updateAppTemplates}
               updatingTemplates={updatingTemplates}
               resetForm={resetForm}
             />
@@ -221,7 +218,7 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
               key={remountIdentifier}
               templates={templates}
               templateLocale={templateLocale}
-              updateTemplates={updateTemplatesAndRemountChildren}
+              updateTemplates={updateAppTemplates}
               updatingTemplates={updatingTemplates}
               resetForm={resetForm}
             />

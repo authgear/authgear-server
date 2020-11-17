@@ -9,7 +9,7 @@ import {
   UpdateAppTemplatesMutationVariables,
 } from "./__generated__/UpdateAppTemplatesMutation";
 import { PortalAPIApp } from "../../../types";
-import { TemplateLocale } from "../../../templates";
+import { TemplateLocale, templatePaths } from "../../../templates";
 
 const updateAppTemplatesMutation = gql`
   mutation UpdateAppTemplatesMutation(
@@ -39,7 +39,6 @@ export type AppTemplatesUpdater = (
 ) => Promise<PortalAPIApp | null>;
 
 export type TemplateLocaleRemover = (
-  resourcePaths: string[],
   locales: TemplateLocale[]
 ) => Promise<PortalAPIApp | null>;
 
@@ -97,15 +96,19 @@ export function useRemoveTemplateLocalesMutation(
     UpdateAppTemplatesMutationVariables
   >(updateAppTemplatesMutation, { client });
   const removeTemplateLocales = useCallback<TemplateLocaleRemover>(
-    async (resourcePaths: string[], locales: TemplateLocale[]) => {
+    async (locales: TemplateLocale[]) => {
       // all message template path
-      const paths = getMessageTemplatePathByLocale(resourcePaths, locales);
       const updates: AppResourceUpdate[] = [];
-      for (const path of paths) {
-        updates.push({
-          path,
-          data: null,
-        });
+      const paths: string[] = [];
+      for (const templatePath of templatePaths) {
+        for (const locale of locales) {
+          const path = templatePath.render({ locale });
+          updates.push({
+            path,
+            data: null,
+          });
+          paths.push(path);
+        }
       }
       const result = await mutationFunction({
         variables: {

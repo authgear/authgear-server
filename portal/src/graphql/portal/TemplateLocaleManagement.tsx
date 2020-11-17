@@ -25,14 +25,14 @@ import ButtonWithLoading from "../../ButtonWithLoading";
 import ErrorDialog from "../../error/ErrorDialog";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useCheckbox, useDropdown } from "../../hook/useInput";
-import { getConfiguredLocales, TemplateLocale } from "../../templates";
+import { TemplateLocale } from "../../templates";
 
 import styles from "./TemplateLocaleManagement.module.scss";
 
 type TemplateLocaleUpdater = (locale: TemplateLocale) => void;
 
 interface TemplateLocaleManagementProps {
-  resourcePaths: string[];
+  configuredTemplateLocales: TemplateLocale[];
   templateLocale: TemplateLocale;
   initialDefaultTemplateLocale: TemplateLocale;
   defaultTemplateLocale: TemplateLocale;
@@ -45,7 +45,6 @@ interface TemplateLocaleManagementProps {
 }
 
 interface TemplateLocaleManagementDialogProps {
-  resourcePaths: string[];
   defaultTemplateLocale: TemplateLocale;
   presented: boolean;
   onDismiss: () => void;
@@ -147,7 +146,6 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
   props: TemplateLocaleManagementDialogProps
 ) {
   const {
-    resourcePaths,
     presented,
     onDismiss,
     configuredTemplateLocales,
@@ -264,7 +262,7 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
     );
 
     if (removedLocales.length > 0) {
-      removeTemplateLocales(resourcePaths, removedLocales)
+      removeTemplateLocales(removedLocales)
         .then(() => {
           onPendingTemplateLocalesChange(updatedPendingTemplateLocales);
           onTemplateLocaleDeleted(
@@ -279,7 +277,6 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
       onDismiss();
     }
   }, [
-    resourcePaths,
     defaultTemplateLocale,
     selectedLocales,
     configuredTemplateLocales,
@@ -363,7 +360,7 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
   props: TemplateLocaleManagementProps
 ) {
   const {
-    resourcePaths,
+    configuredTemplateLocales,
     templateLocale,
     initialDefaultTemplateLocale,
     defaultTemplateLocale,
@@ -377,10 +374,6 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
 
   const { themes } = useSystemConfig();
   const { renderToString } = useContext(Context);
-
-  const configuredTemplateLocales = useMemo(() => {
-    return getConfiguredLocales(resourcePaths);
-  }, [resourcePaths]);
 
   const isDefaultTemplateLocaleModified = useMemo(() => {
     return initialDefaultTemplateLocale !== defaultTemplateLocale;
@@ -469,7 +462,6 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
   return (
     <section className={styles.templateLocaleManagement}>
       <TemplateLocaleManagementDialog
-        resourcePaths={resourcePaths}
         presented={isDialogPresented}
         configuredTemplateLocales={configuredTemplateLocales}
         pendingTemplateLocales={pendingTemplateLocales}

@@ -49,31 +49,4 @@ export function setUpdateTemplatesData(
   ] = templateValue !== "" ? templateValue : null;
 }
 
-export function getConfiguredLocales(
-  configuredPaths: string[]
-): TemplateLocale[] {
-  const templateLocaleSet = new Set<TemplateLocale>();
-  for (const path of configuredPaths) {
-    const parsed = messageTemplatePath.parse(path);
-    if (parsed != null) {
-      templateLocaleSet.add(parsed.locale);
-    }
-  }
-  return Array.from(templateLocaleSet);
-}
-
-export function getMessageTemplatePathByLocale(
-  configuredPaths: string[],
-  locales: TemplateLocale[]
-): string[] {
-  const outPaths: string[] = [];
-  for (const path of configuredPaths) {
-    const parsed = messageTemplatePath.parse(path);
-    if (parsed != null && locales.includes(parsed.locale)) {
-      outPaths.push(path);
-    }
-  }
-  return outPaths;
-}
-
 export const STATIC_AUTHGEAR_CSS = "static/authgear.css";

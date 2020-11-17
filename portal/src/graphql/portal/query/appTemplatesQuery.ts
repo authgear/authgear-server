@@ -23,8 +23,9 @@ export const appTemplatesQuery = gql`
           path
           effectiveData
         }
-        resourcePaths: resources {
+        resourceLocales: resources {
           path
+          languageTag
         }
       }
     }
@@ -37,7 +38,7 @@ export interface AppTemplatesQueryResult
     "loading" | "error" | "refetch"
   > {
   templates: Record<string, string>;
-  resourcePaths: string[];
+  templateLocales: TemplateLocale[];
 }
 
 export function useAppTemplatesQuery(
@@ -76,10 +77,16 @@ export function useAppTemplatesQuery(
       }
     }
 
-    const resourcePaths =
-      appNode?.resourcePaths.map((pathData) => pathData.path) ?? [];
-
-    return { templates, resourcePaths };
+    const templateLocaleSets = new Set<TemplateLocale>();
+    const templateResourceData =
+      appNode?.resourceLocales.filter((resourceData) => {
+        return resourceData.path.split("/")[0] === "templates";
+      }) ?? [];
+    for (const resourceData of templateResourceData) {
+      const locale = resourceData.languageTag;
+      if (locale != null) templateLocaleSets.add(locale);
+    }
+    return { templates, templateLocales: Array.from(templateLocaleSets) };
   }, [data, paths]);
 
   return { ...queryData, loading, error, refetch };

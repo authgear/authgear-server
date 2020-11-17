@@ -17,9 +17,10 @@ export interface AppTemplatesQuery_node_App_resources {
   effectiveData: string | null;
 }
 
-export interface AppTemplatesQuery_node_App_resourcePaths {
+export interface AppTemplatesQuery_node_App_resourceLocales {
   __typename: "AppResource";
   path: string;
+  languageTag: string | null;
 }
 
 export interface AppTemplatesQuery_node_App {
@@ -29,7 +30,7 @@ export interface AppTemplatesQuery_node_App {
    */
   id: string;
   resources: AppTemplatesQuery_node_App_resources[];
-  resourcePaths: AppTemplatesQuery_node_App_resourcePaths[];
+  resourceLocales: AppTemplatesQuery_node_App_resourceLocales[];
 }
 
 export type AppTemplatesQuery_node = AppTemplatesQuery_node_User | AppTemplatesQuery_node_App;
