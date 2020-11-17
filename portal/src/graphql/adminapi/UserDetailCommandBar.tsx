@@ -12,6 +12,7 @@ import { useSystemConfig } from "../../context/SystemConfigContext";
 import styles from "./UserDetailCommandBar.module.scss";
 import SetUserDisabledDialog from "./SetUserDisabledDialog";
 import { extractUserInfoFromIdentities, Identity } from "../../util/user";
+import DeleteUserDialog from "./DeleteUserDialog";
 
 interface CommandBarUser {
   id: string;
@@ -47,6 +48,21 @@ const UserDetailCommandBar: React.FC<UserDetailCommandBarProps> = function UserD
     setIsDisableUserDialogHidden(true);
   }, []);
 
+  interface DeleteUserDialogData {
+    userID: string;
+    username: string | null;
+  }
+  const [
+    deleteUserDialogData,
+    setDeleteUserDialogData,
+  ] = useState<DeleteUserDialogData | null>(null);
+  const [isDeleteUserDialogHidden, setIsDeleteUserDialogHidden] = useState(
+    true
+  );
+  const dismissDeleteUserDialog = useCallback(() => {
+    setIsDeleteUserDialogHidden(true);
+  }, []);
+
   const commandBarItems: ICommandBarItemProps[] = useMemo(() => {
     if (!user) {
       return [];
@@ -61,7 +77,19 @@ const UserDetailCommandBar: React.FC<UserDetailCommandBarProps> = function UserD
         text: renderToString("remove"),
         iconProps: { iconName: "Delete" },
         onRender: (props) => {
-          return <CommandButton {...props} theme={themes.destructive} />;
+          return (
+            <CommandButton
+              {...props}
+              theme={themes.destructive}
+              onClick={() => {
+                setDeleteUserDialogData({
+                  userID: id,
+                  username: username ?? email ?? phone,
+                });
+                setIsDeleteUserDialogHidden(false);
+              }}
+            />
+          );
         },
       },
       /* TODO: to be implemented
@@ -108,6 +136,13 @@ const UserDetailCommandBar: React.FC<UserDetailCommandBarProps> = function UserD
           isHidden={isDisableUserDialogHidden}
           onDismiss={dismissDisableUserDialog}
           {...disableUserDialogData}
+        />
+      )}
+      {deleteUserDialogData != null && (
+        <DeleteUserDialog
+          isHidden={isDeleteUserDialogHidden}
+          onDismiss={dismissDeleteUserDialog}
+          {...deleteUserDialogData}
         />
       )}
     </>
