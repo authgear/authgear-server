@@ -71,7 +71,7 @@ func (m *Manager) Read(desc Descriptor, view View) (interface{}, error) {
 
 func (m *Manager) Resolve(path string) (Descriptor, bool) {
 	for _, desc := range m.Registry.Descriptors {
-		if ok := desc.MatchResource(path); ok {
+		if _, ok := desc.MatchResource(path); ok {
 			return desc, true
 		}
 	}

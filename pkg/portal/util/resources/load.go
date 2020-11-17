@@ -24,7 +24,7 @@ func List(r *resource.Manager) ([]string, error) {
 	for p := range filePaths {
 		found := false
 		for _, desc := range r.Registry.Descriptors {
-			if !desc.MatchResource(p) {
+			if _, ok := desc.MatchResource(p); !ok {
 				continue
 			}
 			found = true
@@ -54,7 +54,7 @@ func AssociateDescriptor(r *resource.Manager, paths ...string) ([]DescriptedPath
 	for _, p := range paths {
 		found := false
 		for _, desc := range r.Registry.Descriptors {
-			if !desc.MatchResource(p) {
+			if _, ok := desc.MatchResource(p); !ok {
 				continue
 			}
 			matches = append(matches, DescriptedPath{

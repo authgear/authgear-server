@@ -35,12 +35,18 @@ type ImageDescriptor struct {
 
 var _ resource.Descriptor = ImageDescriptor{}
 
-func (a ImageDescriptor) MatchResource(path string) bool {
+func (a ImageDescriptor) MatchResource(path string) (*resource.Match, bool) {
 	matches := imageRegex.FindStringSubmatch(path)
 	if len(matches) != 4 {
-		return false
+		return nil, false
 	}
-	return matches[2] == a.Name
+	languageTag := matches[1]
+	name := matches[2]
+
+	if name != a.Name {
+		return nil, false
+	}
+	return &resource.Match{LanguageTag: languageTag}, true
 }
 
 func (a ImageDescriptor) FindResources(fs resource.Fs) ([]resource.Location, error) {
