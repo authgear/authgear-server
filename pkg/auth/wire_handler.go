@@ -264,10 +264,10 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	))
 }
 
-func newWebAppUserBlockedHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.UserBlockedHandler)),
+		wire.Bind(new(http.Handler), new(*handlerwebapp.UserDisabledHandler)),
 	))
 }
 

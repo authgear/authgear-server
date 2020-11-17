@@ -396,7 +396,7 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 	case *nodes.NodeVerifyIdentity:
 		return SessionStepVerifyIdentity
 	case *nodes.NodeValidateUser:
-		return SessionStepUserBlocked
+		return SessionStepUserDisabled
 	default:
 		panic(fmt.Errorf("webapp: unexpected node: %T", graph.CurrentNode()))
 	}

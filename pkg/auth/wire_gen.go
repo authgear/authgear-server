@@ -14006,7 +14006,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	return changeSecondaryPasswordHandler
 }
 
-func newWebAppUserBlockedHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
@@ -14456,12 +14456,12 @@ func newWebAppUserBlockedHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	userBlockedHandler := &webapp2.UserBlockedHandler{
+	userDisabledHandler := &webapp2.UserDisabledHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
 	}
-	return userBlockedHandler
+	return userDisabledHandler
 }
 
 func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {

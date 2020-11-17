@@ -10,24 +10,24 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-var TemplateWebUserBlockedHTML = template.RegisterHTML(
-	"web/user_blocked.html",
+var TemplateWebUserDisabledHTML = template.RegisterHTML(
+	"web/user_disabled.html",
 	components...,
 )
 
-func ConfigureUserBlockedRoute(route httproute.Route) httproute.Route {
+func ConfigureUserDisabledRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET").
-		WithPathPattern("/user_blocked")
+		WithPathPattern("/user_disabled")
 }
 
-type UserBlockedHandler struct {
+type UserDisabledHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
 }
 
-func (h *UserBlockedHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *UserDisabledHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	if node, ok := graph.CurrentNode().(*nodes.NodeValidateUser); ok {
@@ -37,7 +37,7 @@ func (h *UserBlockedHandler) GetData(r *http.Request, rw http.ResponseWriter, gr
 	return data, nil
 }
 
-func (h *UserBlockedHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *UserDisabledHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctrl, err := h.ControllerFactory.New(r, w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -56,7 +56,7 @@ func (h *UserBlockedHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
-		h.Renderer.RenderHTML(w, r, TemplateWebUserBlockedHTML, data)
+		h.Renderer.RenderHTML(w, r, TemplateWebUserDisabledHTML, data)
 		return nil
 	})
 }

@@ -43,7 +43,3 @@ func (n *NodeValidateUser) GetEffects() ([]interaction.Effect, error) {
 func (n *NodeValidateUser) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
 	return graph.Intent.DeriveEdgesForNode(graph, n)
 }
-
-func (n *NodeValidateUser) GetErrorRedirectURI() string {
-	return "/user_blocked"
-}
