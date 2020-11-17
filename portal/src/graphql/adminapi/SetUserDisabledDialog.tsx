@@ -6,6 +6,7 @@ import {
   IDialogContentProps,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useSetDisabledStatusMutation } from "./mutations/setDisabledStatusMutation";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import ErrorDialog from "../../error/ErrorDialog";
@@ -24,6 +25,7 @@ const SetUserDisabledDialog: React.FC<SetUserDisabledDialogProps> = React.memo(
   function SetUserDisabledDialog(props: SetUserDisabledDialogProps) {
     const { isHidden, onDismiss, isDisablingUser, userID, username } = props;
     const { renderToString } = useContext(Context);
+    const { themes } = useSystemConfig();
     const { setDisabledStatus, loading, error } = useSetDisabledStatusMutation(
       userID
     );
@@ -68,6 +70,7 @@ const SetUserDisabledDialog: React.FC<SetUserDisabledDialogProps> = React.memo(
         >
           <DialogFooter>
             <ButtonWithLoading
+              theme={themes.destructive}
               onClick={onConfirm}
               labelId="confirm"
               loading={loading}
