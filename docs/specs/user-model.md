@@ -338,27 +338,110 @@ Base32 alphabet.
 
 ## Claims
 
-Claims are computed information about the user. The computation is controlled by [claims mapping](#claims-mapping).
+Claims are computed information about the user.
+The computed claims is controlled by [claims mapping](#claims-mapping).
 
 ## Claims Mapping
 
-A user has their own claims mapping. The claims mapping of a user can be updated via Admin API.
+The claims mapping is a list in the app configuration.
+The mapping affects the claims of all users of the app.
+The mapping in the app configuration can override [builtin claims mapping](#builtin-claims-mapping) with the same `name_pointer`.
 
-> TODO: We may allow the user change some claims mapping, for example, we may allow the user to change which identity to map `email`.
-> However, it is unlikely that the developer would expect the user to change `custom_attributes` mapping.
+### Builtin claims mapping
+
+Builtin claims mapping is a list of mapping entries with `kind: "system"` and supported standard claims name.
+
+The full list is:
+
+```
+- kind: "system"
+  name_pointer: "#/email"
+- kind: "system"
+  name_pointer: "#/email_verified"
+- kind: "system"
+  name_pointer: "#/phone_number"
+- kind: "system"
+  name_pointer: "#/phone_number_verified"
+- kind: "system"
+  name_pointer: "#/preferred_username"
+```
+
+That is, the claims `email`, `email_verified`, `phone_number`, `phone_number_verified` and `preferred_username` are supported natively without any configuration.
+
+#### Builtin claims mapping - email
+
+```
+- kind: "system"
+  name_pointer: "#/email"
+```
+
+When this mapping is present, the `email` claim of the user is the `email` standard attribute.
+
+#### Builtin claims mapping - email\_verified
+
+```
+- kind: "system"
+  name_pointer: "#/email_verified"
+```
+
+When this mapping is present, the `email_verified` claim of the user is computed using the information of [user verification](./verification.md)
+
+#### Builtin claims mapping - phone\_number
+
+```
+- kind: "system"
+  name_pointer: "#/phone_number"
+```
+
+When this mapping is present, the `phone_number` claim of the user is the `phone_number` standard attribute.
+
+#### Builtin claims mapping - phone\_number\_verified
+
+```
+- kind: "system"
+  name_pointer: "#/phone_number_verified"
+```
+
+When this mapping is present, the `phone_number_verified` claim of the user is computed using the information of [user verification](./verification.md)
+
+#### Builtin claims mapping - preferred\_username
+
+```
+- kind: "system"
+  name_pointer: "#/preferred_username"
+```
+
+When this mapping is present, the `preferred_username` claim of the user is the `preferred_username` standard attribute.
+
+### Custom attributes claims mapping
+
+```
+- kind: "custom_attributes"
+  name_pointer: "#/zoneinfo"
+  value_pointer: "#/profile/preferred_timezone"
+```
+
+Custom attributes claims mapping project the value pointed by `value_pointer` in the custom attributes into the location pointed by `name_pointer` in the claims.
 
 ### Claims Mapping Example
 
 The following example illustrates the full capability of claims mapping.
 
-Given the following claims mapping
+Given the following effective claims mapping
 
 ```yaml
 mapping:
-- kind: "identity"
-  identity_id: "identity-a"
+- kind: "system"
   name_pointer: "#/email"
-  value_pointer: "#/email"
+- kind: "system"
+  name_pointer: "#/email_verified"
+- kind: "system"
+  name_pointer: "#/phone_number"
+- kind: "system"
+  name_pointer: "#/phone_number_verified"
+- kind: "system"
+  name_pointer: "#/preferred_username"
+
 - kind: "custom_attributes"
   name_pointer: "#/zoneinfo"
   value_pointer: "#/profile/preferred_timezone"
@@ -370,7 +453,7 @@ mapping:
   value_pointer: "#/rbac"
 ```
 
-And the claims of `identity-a`
+and the user has the following standard attributes
 
 ```json
 {
@@ -378,7 +461,7 @@ And the claims of `identity-a`
 }
 ```
 
-And the custom attributes
+and the user has the following custom attributes
 
 ```json
 {
@@ -399,6 +482,7 @@ The computed claims of the user is
 ```json
 {
   "email": "user@example.com",
+  "email_verified": true,
   "zoneinfo": "Asia/Hong_Kong",
   "picture": "https://cdn.example.com/u/user-a.jpg",
   "app:rbac": [
@@ -408,53 +492,6 @@ The computed claims of the user is
   ]
 }
 ```
-
-### Automatic addition of claims mapping
-
-When a new identity is being added, for each Standard Claims of the identity, if that claim is not mapped, then a new mapping is created from the claim.
-
-For example, if a new user signs up with Google, they will have the following claim mappings
-
-```
-mapping:
-- kind: "identity"
-  identity_id: "google"
-  name_pointer: "#/email"
-  value_pointer: "#/email"
-```
-
-So the user will have the claim `email` immediately available in their claims.
-
-### Dangling reference in claims mapping
-
-If a deletion of identity will result in dangling reference in the claims mapping, the deletion is disallowed.
-
-If a change in the custom attributes will result in dangling reference, the deletion is allowed, the mapping does not produce error and is no-op.
-
-### Claims mapping template
-
-The developer can define a claims mapping template to be copied to new user in the configuration.
-
-For example, in the configuration
-
-```yaml
-claims:
-  mapping:
-    template:
-    - kind: "custom_attributes"
-      name_pointer: "#/email"
-      value_pointer: "#/profile/email"
-    - kind: "custom_attributes"
-      name_pointer: "#/zoneinfo"
-      value_pointer: "#/profile/preferred_timezone"
-    - kind: "custom_attributes"
-      name_pointer: "#/picture"
-      value_pointer: "#/profile/profile_image_url"
-```
-
-The template is copied to the claims mapping of new user.
-
-Note that only kind `custom_attributes` can appear in the template.
 
 ### Claims mapping JSON schema
 
@@ -468,12 +505,19 @@ This is the JSON schema defining claims mapping
       {
         "type": "object",
         "properties": {
-          "kind": { "const": "identity" },
-          "identity_id": { "type": "string" },
-          "name_pointer": { "type": "string" },
-          "value_pointer": { "type": "string" }
+          "kind": { "const": "system" },
+          "name_pointer": {
+            "type": "string",
+            "enum": [
+              "#/email",
+              "#/email_verified",
+              "#/phone_number",
+              "#/phone_number_verified",
+              "#/preferred_username"
+            ]
+          },
         },
-        "required": ["kind", "identity_id", "name_pointer", "value_pointer"]
+        "required": ["kind", "name_pointer"]
       },
       {
         "type": "object",
@@ -492,7 +536,6 @@ This is the JSON schema defining claims mapping
 - `kind`: The kind of the mapping, either `identity` or `custom_attributes`.
 - `name_pointer`: The JSON pointer to indicate which part of the claims is mapped to.
 - `value_pointer`: The JSON pointer to indicate which part of the source claims is mapped from.
-- `identity_id`: The identity claims to use as the source claims.
 
 > NOTE: In the initial design, we also have the kind `specified`, which simply means a provided value.
 > This was dropped because the similar effect can be achieved by storing a custom attribute and then use the kind `custom_attributes`.
