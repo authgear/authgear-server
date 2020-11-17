@@ -20,10 +20,7 @@ import ForgotPasswordTemplatesSettings from "./ForgotPasswordTemplatesSettings";
 import PasswordlessAuthenticatorTemplatesSettings from "./PasswordlessAuthenticatorTemplatesSettings";
 import { useAppConfigQuery } from "./query/appConfigQuery";
 import { useAppTemplatesQuery } from "./query/appTemplatesQuery";
-import {
-  UpdateAppTemplatesData,
-  useUpdateAppTemplatesMutation,
-} from "./mutations/updateAppTemplatesMutation";
+import { useUpdateAppTemplatesMutation } from "./mutations/updateAppTemplatesMutation";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
 import { PortalAPIAppConfig } from "../../types";
 import { usePivotNavigation } from "../../hook/usePivot";
@@ -86,7 +83,7 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
     loading: updatingTemplates,
     error: updateTemplatesError,
     resetError: resetUpdateTemplatesError,
-  } = useUpdateAppTemplatesMutation(appID, templateLocale, ...templatePaths);
+  } = useUpdateAppTemplatesMutation(appID);
 
   const {
     updateAppConfig,

@@ -9,12 +9,7 @@ import {
   UpdateAppTemplatesMutationVariables,
 } from "./__generated__/UpdateAppTemplatesMutation";
 import { PortalAPIApp } from "../../../types";
-import {
-  getMessageTemplatePathByLocale,
-  getLocalizedTemplatePath,
-  TemplateLocale,
-} from "../../../templates";
-import { ResourcePath } from "../../../util/stringTemplate";
+import { TemplateLocale } from "../../../templates";
 
 const updateAppTemplatesMutation = gql`
   mutation UpdateAppTemplatesMutation(
@@ -49,9 +44,7 @@ export type TemplateLocaleRemover = (
 ) => Promise<PortalAPIApp | null>;
 
 export function useUpdateAppTemplatesMutation(
-  appID: string,
-  locale: TemplateLocale,
-  ...pathTemplates: ResourcePath<"locale">[]
+  appID: string
 ): {
   updateAppTemplates: AppTemplatesUpdater;
   loading: boolean;
@@ -65,6 +58,7 @@ export function useUpdateAppTemplatesMutation(
   const updateAppTemplates = useCallback(
     async (updateTemplates: UpdateAppTemplatesData) => {
       const updates: AppResourceUpdate[] = [];
+      const paths: string[] = [];
       for (const [path, data] of Object.entries(updateTemplates)) {
         if (data === undefined) {
           continue;
@@ -73,11 +67,8 @@ export function useUpdateAppTemplatesMutation(
           path,
           data,
         });
+        paths.push(path);
       }
-
-      const paths = pathTemplates.map((pathTemplate) =>
-        getLocalizedTemplatePath(locale, pathTemplate)
-      );
 
       const result = await mutationFunction({
         variables: {
@@ -88,7 +79,7 @@ export function useUpdateAppTemplatesMutation(
       });
       return result.data?.updateAppResources.app ?? null;
     },
-    [appID, mutationFunction, locale, pathTemplates]
+    [appID, mutationFunction]
   );
   return { updateAppTemplates, error, loading, resetError };
 }
