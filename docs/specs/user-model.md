@@ -2,21 +2,58 @@
 
 ## User
 
+A user has a set of standard attributes.
+The standard attributes can contribute to the computation of the claims of the user.
+
 A user has a set of custom attributes.
 The custom attributes can contribute to the computation of the claims of the user.
 
 A user has many identities.
 Identity has [Standard Claims](https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims).
-The claims of an identity can contribute to the computation of the claims of the user.
+The claims of an identity can affect the standard attributes of the user.
 
 A user has many authenticators.
 The claims of an authenticators do **NOT** contribute to the computation of the claims of the user.
 
 A user has a set of claims, which
 
-- Are computed from the custom attributes and the claims of the identities.
+- Are computed from the standard attributes and the custom attributes.
 - Are the information returned in the UserInfo endpoint.
 - Are included in the ID Token.
+
+## Standard attributes
+
+A user has the following standard attributes.
+
+- `email`
+- `phone_number`
+- `preferred_username`
+
+All of them are nullable.
+
+The user can select their `email`, `phone_number` and `preferred_username` from the identity claims in the settings page.
+
+The admin can do the same thing in the portal.
+
+### Standard attributes - email
+
+When the `email` standard attribute is null, adding or updating identity will copy the `email` claim to the `email` standard attribute.
+
+When the user loses the last ownership of an `email` identity claim, the `email` standard attribute is set to the `email` claim of the oldest identity if present, or null if absent.
+
+### Standard attributes - phone\_number
+
+When the `phone_number` standard attribute is null, adding or updating identity will copy the `phone_number` claim to the `phone_number` standard attribute.
+
+When the user loses the last ownership of an `phone_number` identity claim, the `phone_number` standard attribute is set to the `phone_number` claim of the oldest identity if present, or null if absent.
+
+### Standard attributes - preferred\_username
+
+When the `preferred_username` standard attribute is null, adding or updating identity will copy the `preferred_username` claim to the `preferred_username` standard attribute.
+
+When the user loses the last ownership of an `preferred_username` identity claim, the `preferred_username` standard attribute is set to the `preferred_username` claim of the oldest identity if present, or null if absent.
+
+> TODO: Should we promote the `email` identity claim into `preferred_username` standard attribute?
 
 ## Custom Attributes
 
