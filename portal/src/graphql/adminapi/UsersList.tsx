@@ -209,7 +209,7 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
             <ActionButton
               className={styles.actionButton}
               styles={{ flexContainer: { alignItems: "normal" } }}
-              theme={themes.destructive}
+              theme={item.isDisabled ? themes.actionButton : themes.destructive}
               onClick={(event) =>
                 onDisableUserClicked(
                   event,
@@ -234,7 +234,7 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
           );
       }
     },
-    [onDisableUserClicked, themes.destructive]
+    [onDisableUserClicked, themes.actionButton, themes.destructive]
   );
 
   const dismissDisableUserDialog = useCallback(() => {

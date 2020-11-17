@@ -110,9 +110,11 @@
   "UsersList.enable-user": "Enable User",
 
   "SetUserDisabledDialog.disableUser.title": "Disable User",
-  "SetUserDisabledDialog.disableUser.text": "Do you really want to disable user {username}?",
+  "SetUserDisabledDialog.disableUser.text": "Do you really want to disable user {username}? Disabling the user {username} will forbid them from logging in. Their existing sessions will also become invalid.",
+  "SetUserDisabledDialog.disableUser.action": "Disable",
   "SetUserDisabledDialog.enableUser.title": "Enable User",
-  "SetUserDisabledDialog.enableUser.text": "Do you really want to enable user {username}?",
+  "SetUserDisabledDialog.enableUser.text": "Do you really want to enable user {username}? Enable the user {username} so that they can login again. Their existing sessions can resume.",
+  "SetUserDisabledDialog.enableUser.action": "Enable",
   "SetUserDisabledDialog.generic-error": "Failed to set user disabled status.",
 
   "UserDetails.signed-up": "Signed Up: {datetime}",

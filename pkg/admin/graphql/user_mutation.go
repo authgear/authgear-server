@@ -208,7 +208,7 @@ var setDisabledStatusInput = graphql.NewInputObject(graphql.InputObjectConfig{
 		},
 		"reason": &graphql.InputObjectFieldConfig{
 			Type:        graphql.String,
-			Description: "Indicate disable reason; only meaningful if user is disabled.",
+			Description: "Indicate the disable reason; If not provided, the user will be disabled with no reason.",
 		},
 	},
 })

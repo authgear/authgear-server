@@ -404,7 +404,9 @@ input SetDisabledStatusInput {
   """Indicate whether the target user is disabled."""
   isDisabled: Boolean!
 
-  """Indicate disable reason; only meaningful if user is disabled."""
+  """
+  Indicate the disable reason; If not provided, the user will be disabled with no reason.
+  """
   reason: String
 
   """Target user ID."""

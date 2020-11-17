@@ -70,9 +70,13 @@ const SetUserDisabledDialog: React.FC<SetUserDisabledDialogProps> = React.memo(
         >
           <DialogFooter>
             <ButtonWithLoading
-              theme={themes.destructive}
+              theme={isDisablingUser ? themes.destructive : themes.main}
               onClick={onConfirm}
-              labelId="confirm"
+              labelId={
+                isDisablingUser
+                  ? "SetUserDisabledDialog.disableUser.action"
+                  : "SetUserDisabledDialog.enableUser.action"
+              }
               loading={loading}
             />
 
