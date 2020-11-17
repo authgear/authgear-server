@@ -451,12 +451,29 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
   const onTemplateLocaleDeleted = useCallback(
     (configuredLocales: TemplateLocale[], pendingLocales: TemplateLocale[]) => {
       // Check if selected is deleted
+      const oldLocaleList = [...templateLocaleList];
       const localeList = configuredLocales.concat(pendingLocales);
       if (!localeList.includes(templateLocale)) {
-        onTemplateLocaleSelected(localeList[0]);
+        const prevOptionIndex = oldLocaleList.findIndex(
+          (locale) => locale === templateLocale
+        );
+        if (prevOptionIndex !== -1) {
+          // find element from old locale list which exists from
+          // updated list from previous selected item
+          for (let i = 0; i < oldLocaleList.length; i++) {
+            const currIndex = (prevOptionIndex + i) % oldLocaleList.length;
+            const currElem = oldLocaleList[currIndex];
+            if (localeList.includes(currElem)) {
+              onTemplateLocaleSelected(currElem);
+              break;
+            }
+          }
+        } else {
+          onTemplateLocaleSelected(localeList[0]);
+        }
       }
     },
-    [onTemplateLocaleSelected, templateLocale]
+    [onTemplateLocaleSelected, templateLocale, templateLocaleList]
   );
 
   return (
