@@ -7,10 +7,13 @@ import {
 } from "@fluentui/react";
 
 import { Context } from "@oursky/react-messageformat";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
 import styles from "./UserDetailCommandBar.module.scss";
 import SetUserDisabledDialog from "./SetUserDisabledDialog";
 import { extractUserInfoFromIdentities, Identity } from "../../util/user";
+import DeleteUserDialog from "./DeleteUserDialog";
+import { useNavigate } from "react-router-dom";
 
 interface CommandBarUser {
   id: string;
@@ -28,6 +31,8 @@ const UserDetailCommandBar: React.FC<UserDetailCommandBarProps> = function UserD
 ) {
   const { className, user, identities } = props;
   const { renderToString } = useContext(Context);
+  const { themes } = useSystemConfig();
+  const navigate = useNavigate();
 
   interface DisableUserDialogData {
     isDisablingUser: boolean;
@@ -45,6 +50,27 @@ const UserDetailCommandBar: React.FC<UserDetailCommandBarProps> = function UserD
     setIsDisableUserDialogHidden(true);
   }, []);
 
+  interface DeleteUserDialogData {
+    userID: string;
+    username: string | null;
+  }
+  const [
+    deleteUserDialogData,
+    setDeleteUserDialogData,
+  ] = useState<DeleteUserDialogData | null>(null);
+  const [isDeleteUserDialogHidden, setIsDeleteUserDialogHidden] = useState(
+    true
+  );
+  const dismissDeleteUserDialog = useCallback(
+    (deletedUser: boolean) => {
+      setIsDeleteUserDialogHidden(true);
+      if (deletedUser) {
+        setTimeout(() => navigate("../.."), 0);
+      }
+    },
+    [navigate]
+  );
+
   const commandBarItems: ICommandBarItemProps[] = useMemo(() => {
     if (!user) {
       return [];
@@ -54,19 +80,27 @@ const UserDetailCommandBar: React.FC<UserDetailCommandBarProps> = function UserD
       identities
     );
     return [
-      /* TODO: to be implemented
       {
         key: "remove",
         text: renderToString("remove"),
         iconProps: { iconName: "Delete" },
         onRender: (props) => {
           return (
-            <TodoButtonWrapper>
-              <CommandButton disabled={true} {...props} />
-            </TodoButtonWrapper>
+            <CommandButton
+              {...props}
+              theme={themes.destructive}
+              onClick={() => {
+                setDeleteUserDialogData({
+                  userID: id,
+                  username: username ?? email ?? phone,
+                });
+                setIsDeleteUserDialogHidden(false);
+              }}
+            />
           );
         },
       },
+      /* TODO: to be implemented
       {
         key: "loginAsUser",
         text: renderToString("UserDetails.command-bar.login-as-user"),
@@ -96,7 +130,7 @@ const UserDetailCommandBar: React.FC<UserDetailCommandBarProps> = function UserD
         },
       },
     ];
-  }, [user, identities, renderToString]);
+  }, [user, identities, renderToString, themes.destructive]);
 
   return (
     <>
@@ -110,6 +144,13 @@ const UserDetailCommandBar: React.FC<UserDetailCommandBarProps> = function UserD
           isHidden={isDisableUserDialogHidden}
           onDismiss={dismissDisableUserDialog}
           {...disableUserDialogData}
+        />
+      )}
+      {deleteUserDialogData != null && (
+        <DeleteUserDialog
+          isHidden={isDeleteUserDialogHidden}
+          onDismiss={dismissDeleteUserDialog}
+          {...deleteUserDialogData}
         />
       )}
     </>

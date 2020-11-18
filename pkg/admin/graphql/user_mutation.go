@@ -261,3 +261,56 @@ var _ = registerMutationField(
 		},
 	},
 )
+
+var deleteUserInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "DeleteUserInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"userID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target user ID.",
+		},
+	},
+})
+
+var deleteUserPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "DeleteUserPayload",
+	Fields: graphql.Fields{
+		"deletedUserID": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.ID),
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"deleteUser",
+	&graphql.Field{
+		Description: "Delete specified user",
+		Type:        graphql.NewNonNull(deleteUserPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(deleteUserInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			input := p.Args["input"].(map[string]interface{})
+
+			userNodeID := input["userID"].(string)
+			resolvedNodeID := relay.FromGlobalID(userNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeUser {
+				return nil, apierrors.NewInvalid("invalid user ID")
+			}
+			userID := resolvedNodeID.ID
+
+			gqlCtx := GQLContext(p.Context)
+
+			err := gqlCtx.UserFacade.Delete(userID)
+			if err != nil {
+				return nil, err
+			}
+
+			return map[string]interface{}{
+				"deletedUserID": userNodeID,
+			}, nil
+		},
+	},
+)

@@ -5,5 +5,6 @@ type AuthorizationStore interface {
 	GetByID(id string) (*Authorization, error)
 	Create(*Authorization) error
 	Delete(*Authorization) error
+	ResetAll(userID string) error
 	UpdateScopes(*Authorization) error
 }

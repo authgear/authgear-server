@@ -119,6 +119,11 @@
   "SetUserDisabledDialog.enableUser.action": "Enable",
   "SetUserDisabledDialog.generic-error": "Failed to set user disabled status.",
 
+  "DeleteUserDialog.title": "Remove User",
+  "DeleteUserDialog.text": "Are you really want to remove user {username}? This action cannot be undone.",
+  "DeleteUserDialog.action": "Remove",
+  "DeleteUserDialog.generic-error": "Failed to remove user.",
+
   "UserDetails.signed-up": "Signed Up: {datetime}",
   "UserDetails.last-login-at": "Last Login: {datetime}",
 

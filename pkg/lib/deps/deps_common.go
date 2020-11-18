@@ -65,6 +65,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oauth.ResolverSessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(oauthhandler.SessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(interaction.SessionProvider), new(*idpsession.Provider)),
+		wire.Bind(new(facade.IDPSessionManager), new(*idpsession.Manager)),
 	),
 
 	wire.NewSet(
@@ -75,6 +76,7 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		authenticatorpassword.DependencySet,
+		wire.Bind(new(facade.PasswordHistoryStore), new(*authenticatorpassword.HistoryStore)),
 		authenticatoroob.DependencySet,
 		wire.Bind(new(interaction.OOBAuthenticatorProvider), new(*authenticatoroob.Provider)),
 		wire.Bind(new(interaction.OOBCodeSender), new(*authenticatoroob.CodeSender)),
@@ -127,6 +129,8 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(interaction.UserService), new(*user.Provider)),
 		wire.Bind(new(oidc.UserProvider), new(*user.Queries)),
 		wire.Bind(new(hook.UserProvider), new(*user.RawProvider)),
+		wire.Bind(new(facade.UserCommands), new(*user.RawCommands)),
+		wire.Bind(new(facade.UserProvider), new(*user.Provider)),
 	),
 
 	wire.NewSet(
@@ -148,6 +152,7 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		oauthpq.DependencySet,
 		wire.Bind(new(oauth.AuthorizationStore), new(*oauthpq.AuthorizationStore)),
+		wire.Bind(new(facade.OAuthService), new(*oauthpq.AuthorizationStore)),
 
 		oauthredis.DependencySet,
 		wire.Bind(new(oauth.AccessGrantStore), new(*oauthredis.GrantStore)),
@@ -157,6 +162,7 @@ var CommonDependencySet = wire.NewSet(
 		oauth.DependencySet,
 		wire.Bind(new(session.AccessTokenSessionResolver), new(*oauth.Resolver)),
 		wire.Bind(new(session.AccessTokenSessionManager), new(*oauth.SessionManager)),
+		wire.Bind(new(facade.OAuthSessionManager), new(*oauth.SessionManager)),
 		wire.Bind(new(oauthhandler.OAuthURLProvider), new(*oauth.URLProvider)),
 		wire.Value(oauthhandler.TokenGenerator(oauth.GenerateToken)),
 

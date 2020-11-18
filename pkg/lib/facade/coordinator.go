@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 )
 
 type IdentityService interface {
@@ -38,11 +39,32 @@ type VerificationService interface {
 	NewVerifiedClaim(userID string, claimName string, claimValue string) *verification.Claim
 	MarkClaimVerified(claim *verification.Claim) error
 	RemoveOrphanedClaims(identities []*identity.Info, authenticators []*authenticator.Info) error
+	ResetVerificationStatus(userID string) error
 }
 
 type MFAService interface {
 	InvalidateAllRecoveryCode(userID string) error
 }
+
+type UserCommands interface {
+	Delete(userID string) error
+}
+
+type PasswordHistoryStore interface {
+	ResetPasswordHistory(userID string) error
+}
+
+type OAuthService interface {
+	ResetAll(userID string) error
+}
+
+type SessionManager interface {
+	Delete(session session.Session) error
+	List(userID string) ([]session.Session, error)
+}
+
+type IDPSessionManager SessionManager
+type OAuthSessionManager SessionManager
 
 // Coordinator represents interaction between identities, authenticators, and
 // other high-level features (such as verification).
@@ -53,11 +75,16 @@ type MFAService interface {
 // FIXME(mfa): remove all MFA recovery code when last secondary authenticator is
 //             removed, so that recovery codes are re-generated when setup again.
 type Coordinator struct {
-	Identities     IdentityService
-	Authenticators AuthenticatorService
-	Verification   VerificationService
-	MFA            MFAService
-	IdentityConfig *config.IdentityConfig
+	Identities      IdentityService
+	Authenticators  AuthenticatorService
+	Verification    VerificationService
+	MFA             MFAService
+	Users           UserCommands
+	PasswordHistory PasswordHistoryStore
+	OAuth           OAuthService
+	IDPSessions     IDPSessionManager
+	OAuthSessions   OAuthSessionManager
+	IdentityConfig  *config.IdentityConfig
 }
 
 func (c *Coordinator) IdentityGet(userID string, typ authn.IdentityType, id string) (*identity.Info, error) {
@@ -201,6 +228,76 @@ func (c *Coordinator) AuthenticatorDelete(authenticatorInfo *authenticator.Info)
 
 func (c *Coordinator) AuthenticatorVerifySecret(info *authenticator.Info, state map[string]string, secret string) error {
 	return c.Authenticators.VerifySecret(info, state, secret)
+}
+
+func (c *Coordinator) UserDelete(userID string) error {
+	// Delete dependents of user entity.
+
+	// Identities:
+	identities, err := c.Identities.ListByUser(userID)
+	if err != nil {
+		return err
+	}
+	for _, i := range identities {
+		if err = c.Identities.Delete(i); err != nil {
+			return err
+		}
+	}
+
+	// Authenticators:
+	authenticators, err := c.Authenticators.List(userID)
+	if err != nil {
+		return err
+	}
+	for _, a := range authenticators {
+		if err = c.Authenticators.Delete(a); err != nil {
+			return err
+		}
+	}
+
+	// MFA recovery codes:
+	if err = c.MFA.InvalidateAllRecoveryCode(userID); err != nil {
+		return err
+	}
+
+	// OAuth authorizations:
+	if err = c.OAuth.ResetAll(userID); err != nil {
+		return err
+	}
+
+	// Verified claims:
+	if err = c.Verification.ResetVerificationStatus(userID); err != nil {
+		return err
+	}
+
+	// Password history:
+	if err = c.PasswordHistory.ResetPasswordHistory(userID); err != nil {
+		return err
+	}
+
+	// Sessions:
+	idpSessions, err := c.IDPSessions.List(userID)
+	if err != nil {
+		return err
+	}
+	for _, s := range idpSessions {
+		if err = c.IDPSessions.Delete(s); err != nil {
+			return err
+		}
+	}
+
+	oauthSessions, err := c.OAuthSessions.List(userID)
+	if err != nil {
+		return err
+	}
+	for _, s := range oauthSessions {
+		if err = c.OAuthSessions.Delete(s); err != nil {
+			return err
+		}
+	}
+
+	// Finally, delete the user.
+	return c.Users.Delete(userID)
 }
 
 func (c *Coordinator) removeOrphans(userID string) error {

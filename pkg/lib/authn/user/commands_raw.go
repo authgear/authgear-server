@@ -16,7 +16,6 @@ type RawCommands struct {
 	Store                  store
 	Clock                  clock.Clock
 	WelcomeMessageProvider WelcomeMessageProvider
-	Queries                *Queries
 }
 
 func (c *RawCommands) New(userID string) *User {
@@ -59,4 +58,8 @@ func (c *RawCommands) UpdateLoginTime(userID string, loginAt time.Time) error {
 
 func (c *RawCommands) UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error {
 	return c.Store.UpdateDisabledStatus(userID, isDisabled, reason)
+}
+
+func (c *RawCommands) Delete(userID string) error {
+	return c.Store.Delete(userID)
 }

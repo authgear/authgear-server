@@ -59,3 +59,7 @@ func (c *Commands) UpdateLoginTime(userID string, loginAt gotime.Time) error {
 func (c *Commands) UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error {
 	return c.Raw.UpdateDisabledStatus(userID, isDisabled, reason)
 }
+
+func (c *Commands) Delete(userID string) error {
+	return c.Raw.Delete(userID)
+}

@@ -131,3 +131,15 @@ func (s *StorePQ) Delete(id string) error {
 
 	return nil
 }
+
+func (s *StorePQ) DeleteAll(userID string) error {
+	q := s.SQLBuilder.Tenant().
+		Delete(s.SQLBuilder.FullTableName("verified_claim")).
+		Where("user_id = ?", userID)
+	_, err := s.SQLExecutor.ExecWith(q)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

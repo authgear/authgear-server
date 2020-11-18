@@ -21,6 +21,7 @@ type store interface {
 	QueryPage(after, before model.PageCursor, first, last *uint64) ([]*User, uint64, error)
 	UpdateLoginTime(userID string, loginAt time.Time) error
 	UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error
+	Delete(userID string) error
 }
 
 var queryPage = db.QueryPage(db.QueryPageConfig{
@@ -216,6 +217,19 @@ func (s *Store) UpdateDisabledStatus(userID string, isDisabled bool, reason *str
 		Update(s.SQLBuilder.FullTableName("user")).
 		Set("is_disabled", isDisabled).
 		Set("disable_reason", reason).
+		Where("id = ?", userID)
+
+	_, err := s.SQLExecutor.ExecWith(builder)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Store) Delete(userID string) error {
+	builder := s.SQLBuilder.Tenant().
+		Delete(s.SQLBuilder.FullTableName("user")).
 		Where("id = ?", userID)
 
 	_, err := s.SQLExecutor.ExecWith(builder)
