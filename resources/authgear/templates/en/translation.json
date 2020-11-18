@@ -195,8 +195,8 @@
   "settings-sessions-title": "Signed in Sessions",
   "settings-sessions-description": "You’re currently signed in to your account on these devices",
   "settings-sessions-item-description": "Last activity: {time, datetime, long}",
-  "settings-sessions-revoke-label": "Revoke",
-  "settings-sessions-revoke-all-label": "Revoke all sessions",
+  "settings-sessions-revoke-label": "Terminate",
+  "settings-sessions-revoke-all-label": "Terminate all other sessions",
 
   "settings-oob-otp-title": "Channels for receiving verification code via SMS / Email",
   "settings-oob-otp-item-description": "Added at {time, datetime, long}",
