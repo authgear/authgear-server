@@ -1,8 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"io/ioutil"
+	"errors"
 	"log"
 	"os"
 	"strconv"
@@ -11,10 +10,10 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/authgear/authgear-server/cmd/authgear/migrate"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-var SecretConfigPath string
+var DatabaseURL string
+var DatabaseSchema string
 
 func init() {
 	cmdMigrate.AddCommand(cmdMigrateNew)
@@ -22,13 +21,24 @@ func init() {
 	cmdMigrate.AddCommand(cmdMigrateDown)
 	cmdMigrate.AddCommand(cmdMigrateStatus)
 
-	for _, cmd := range []*cobra.Command{cmdMigrateUp, cmdMigrateDown} {
-		cmd.Flags().StringVarP(&SecretConfigPath, "secret-config", "f", "authgear.secrets.yaml", "App secrets YAML path")
+	for _, cmd := range []*cobra.Command{cmdMigrateUp, cmdMigrateDown, cmdMigrateStatus} {
+		cmd.Flags().StringVar(
+			&DatabaseURL,
+			"database-url",
+			"",
+			"Database URL",
+		)
+		cmd.Flags().StringVar(
+			&DatabaseSchema,
+			"database-schema",
+			"",
+			"Database schema name",
+		)
 	}
 }
 
 var cmdMigrate = &cobra.Command{
-	Use:   "migrate [up|down]",
+	Use:   "migrate [new|status|up|down]",
 	Short: "Migrate database schema",
 }
 
@@ -45,14 +55,14 @@ var cmdMigrateUp = &cobra.Command{
 	Use:   "up",
 	Short: "Migrate database schema to latest version",
 	Run: func(cmd *cobra.Command, args []string) {
-		credentials, err := loadDBCredentials()
+		dbURL, dbSchema, err := loadDBCredentials()
 		if err != nil {
 			log.Fatalf("cannot load secret config: %s", err)
 		}
 
 		migrate.Up(migrate.Options{
-			DatabaseURL:    credentials.DatabaseURL,
-			DatabaseSchema: credentials.DatabaseSchema,
+			DatabaseURL:    dbURL,
+			DatabaseSchema: dbSchema,
 		})
 	},
 }
@@ -61,7 +71,7 @@ var cmdMigrateDown = &cobra.Command{
 	Use:    "down",
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		credentials, err := loadDBCredentials()
+		dbURL, dbSchema, err := loadDBCredentials()
 		if err != nil {
 			log.Fatalf("cannot load secret config: %s", err)
 		}
@@ -83,8 +93,8 @@ var cmdMigrateDown = &cobra.Command{
 		}
 
 		migrate.Down(numMigrations, migrate.Options{
-			DatabaseURL:    credentials.DatabaseURL,
-			DatabaseSchema: credentials.DatabaseSchema,
+			DatabaseURL:    dbURL,
+			DatabaseSchema: dbSchema,
 		})
 	},
 }
@@ -93,14 +103,14 @@ var cmdMigrateStatus = &cobra.Command{
 	Use:   "status",
 	Short: "Get database schema migration status",
 	Run: func(cmd *cobra.Command, args []string) {
-		credentials, err := loadDBCredentials()
+		dbURL, dbSchema, err := loadDBCredentials()
 		if err != nil {
 			log.Fatalf("cannot load secret config: %s", err)
 		}
 
 		latest := migrate.Status(migrate.Options{
-			DatabaseURL:    credentials.DatabaseURL,
-			DatabaseSchema: credentials.DatabaseSchema,
+			DatabaseURL:    dbURL,
+			DatabaseSchema: dbSchema,
 		})
 		if !latest {
 			os.Exit(1)
@@ -108,17 +118,19 @@ var cmdMigrateStatus = &cobra.Command{
 	},
 }
 
-func loadDBCredentials() (*config.DatabaseCredentials, error) {
-	yaml, err := ioutil.ReadFile(SecretConfigPath)
-	if err != nil {
-		return nil, fmt.Errorf("cannot read secret config file: %w", err)
+func loadDBCredentials() (dbURL string, dbSchema string, err error) {
+	if DatabaseURL == "" {
+		DatabaseURL = os.Getenv("DATABASE_URL")
+	}
+	if DatabaseSchema == "" {
+		DatabaseSchema = os.Getenv("DATABASE_SCHEMA")
 	}
 
-	cfg, err := config.ParseSecret(yaml)
-	if err != nil {
-		return nil, fmt.Errorf("cannot parse secret config: %w", err)
+	if DatabaseURL == "" {
+		return "", "", errors.New("missing database URL")
 	}
-
-	credentials := cfg.LookupData(config.DatabaseCredentialsKey).(*config.DatabaseCredentials)
-	return credentials, nil
+	if DatabaseSchema == "" {
+		return "", "", errors.New("missing database schema")
+	}
+	return DatabaseURL, DatabaseSchema, nil
 }

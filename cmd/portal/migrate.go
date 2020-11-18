@@ -21,7 +21,7 @@ func init() {
 	cmdMigrate.AddCommand(cmdMigrateDown)
 	cmdMigrate.AddCommand(cmdMigrateStatus)
 
-	for _, cmd := range []*cobra.Command{cmdMigrateUp, cmdMigrateDown} {
+	for _, cmd := range []*cobra.Command{cmdMigrateUp, cmdMigrateDown, cmdMigrateStatus} {
 		cmd.Flags().StringVar(
 			&DatabaseURL,
 			"database-url",
@@ -38,7 +38,7 @@ func init() {
 }
 
 var cmdMigrate = &cobra.Command{
-	Use:   "migrate [up|down]",
+	Use:   "migrate [new|status|up|down]",
 	Short: "Migrate database schema",
 }
 
@@ -130,7 +130,7 @@ func loadDBCredentials() (dbURL string, dbSchema string, err error) {
 		return "", "", errors.New("missing database URL")
 	}
 	if DatabaseSchema == "" {
-		DatabaseSchema = "public"
+		return "", "", errors.New("missing database schema")
 	}
 	return DatabaseURL, DatabaseSchema, nil
 }
