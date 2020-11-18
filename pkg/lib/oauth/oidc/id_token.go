@@ -35,7 +35,7 @@ func (ti *IDTokenIssuer) GetPublicKeySet() (*jwk.Set, error) {
 	return jwkutil.PublicKeySet(&ti.Secrets.Set)
 }
 
-func (ti *IDTokenIssuer) IssueIDToken(client config.OAuthClientConfig, s session.Session, nonce string) (string, error) {
+func (ti *IDTokenIssuer) IssueIDToken(client *config.OAuthClientConfig, s session.Session, nonce string) (string, error) {
 	claims, err := ti.LoadUserClaims(s)
 	if err != nil {
 		return "", err
@@ -43,7 +43,7 @@ func (ti *IDTokenIssuer) IssueIDToken(client config.OAuthClientConfig, s session
 
 	now := ti.Clock.NowUTC()
 
-	_ = claims.Set(jwt.AudienceKey, client.ClientID())
+	_ = claims.Set(jwt.AudienceKey, client.ClientID)
 	_ = claims.Set(jwt.IssuedAtKey, now.Unix())
 	_ = claims.Set(jwt.ExpirationKey, now.Add(IDTokenValidDuration).Unix())
 	for key, value := range s.SessionAttrs().Claims {

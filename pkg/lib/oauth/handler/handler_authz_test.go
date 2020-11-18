@@ -33,7 +33,7 @@ func TestAuthorizationHandler(t *testing.T) {
 			CodeGrants:     codeGrantStore,
 			OAuthURLs:      mockURLsProvider{},
 			WebAppURLs:     mockURLsProvider{},
-			ValidateScopes: func(config.OAuthClientConfig, []string) error { return nil },
+			ValidateScopes: func(*config.OAuthClientConfig, []string) error { return nil },
 			CodeGenerator:  func() string { return "authz-code" },
 			Clock:          clock,
 		}
@@ -47,8 +47,8 @@ func TestAuthorizationHandler(t *testing.T) {
 
 		Convey("general request validation", func() {
 			h.Config.Clients = []config.OAuthClientConfig{{
-				"client_id": "client-id",
-				"redirect_uris": []interface{}{
+				ClientID: "client-id",
+				RedirectURIs: []string{
 					"https://example.com/",
 					"https://example.com/settings",
 				},
@@ -76,8 +76,8 @@ func TestAuthorizationHandler(t *testing.T) {
 
 		Convey("should preserve query parameters in redirect URI", func() {
 			h.Config.Clients = []config.OAuthClientConfig{{
-				"client_id":     "client-id",
-				"redirect_uris": []interface{}{"https://example.com/cb?from=sso"},
+				ClientID:     "client-id",
+				RedirectURIs: []string{"https://example.com/cb?from=sso"},
 			}}
 			resp := handle(protocol.AuthorizationRequest{
 				"client_id":     "client-id",
@@ -88,8 +88,8 @@ func TestAuthorizationHandler(t *testing.T) {
 
 		Convey("authorization code flow", func() {
 			h.Config.Clients = []config.OAuthClientConfig{{
-				"client_id":     "client-id",
-				"redirect_uris": []interface{}{"https://example.com/"},
+				ClientID:     "client-id",
+				RedirectURIs: []string{"https://example.com/"},
 			}}
 			Convey("request validation", func() {
 				Convey("missing scope", func() {
@@ -120,7 +120,7 @@ func TestAuthorizationHandler(t *testing.T) {
 			})
 			Convey("scope validation", func() {
 				validated := false
-				h.ValidateScopes = func(client config.OAuthClientConfig, scopes []string) error {
+				h.ValidateScopes = func(client *config.OAuthClientConfig, scopes []string) error {
 					validated = true
 					if strings.Join(scopes, " ") != "openid" {
 						return protocol.NewError("invalid_scope", "must request 'openid' scope")
@@ -241,13 +241,13 @@ func TestAuthorizationHandler(t *testing.T) {
 		})
 		Convey("none response type", func() {
 			h.Config.Clients = []config.OAuthClientConfig{{
-				"client_id":      "client-id",
-				"redirect_uris":  []interface{}{"https://example.com/"},
-				"response_types": []interface{}{"none"},
+				ClientID:      "client-id",
+				RedirectURIs:  []string{"https://example.com/"},
+				ResponseTypes: []string{"none"},
 			}}
 			Convey("request validation", func() {
 				Convey("not allowed response types", func() {
-					h.Config.Clients[0]["response_types"] = nil
+					h.Config.Clients[0].ResponseTypes = nil
 					resp := handle(protocol.AuthorizationRequest{
 						"client_id":     "client-id",
 						"response_type": "none",
@@ -257,7 +257,7 @@ func TestAuthorizationHandler(t *testing.T) {
 			})
 			Convey("scope validation", func() {
 				validated := false
-				h.ValidateScopes = func(client config.OAuthClientConfig, scopes []string) error {
+				h.ValidateScopes = func(client *config.OAuthClientConfig, scopes []string) error {
 					validated = true
 					if strings.Join(scopes, " ") != "openid" {
 						return protocol.NewError("invalid_scope", "must request 'openid' scope")

@@ -38,8 +38,8 @@ func (h *EndSessionHandler) Handle(s session.Session, req protocol.EndSessionReq
 	valid, client := h.validateRedirectURI(redirectURI)
 	if !valid {
 		// Invalid/empty redirect URI, redirect to home page/settings
-		if client != nil && client.ClientURI() != "" {
-			redirectURI = client.ClientURI()
+		if client != nil && client.ClientURI != "" {
+			redirectURI = client.ClientURI
 		} else {
 			redirectURI = h.URLs.SettingsURL().String()
 		}
@@ -59,11 +59,11 @@ func (h *EndSessionHandler) Handle(s session.Session, req protocol.EndSessionReq
 	return nil
 }
 
-func (h *EndSessionHandler) validateRedirectURI(redirectURI string) (valid bool, client config.OAuthClientConfig) {
+func (h *EndSessionHandler) validateRedirectURI(redirectURI string) (valid bool, client *config.OAuthClientConfig) {
 	for _, client := range h.Config.Clients {
-		for _, uri := range client.PostLogoutRedirectURIs() {
+		for _, uri := range client.PostLogoutRedirectURIs {
 			if uri == redirectURI {
-				return true, client
+				return true, &client
 			}
 		}
 	}
