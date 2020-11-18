@@ -21,6 +21,7 @@ import {
   APICollaboratorInvitationInvalidEmailError,
 } from "./collaborator";
 import { APIDuplicatedAppIDError } from "./apps";
+import { APIResourceNotFoundError } from "./resources";
 
 export type APIError =
   | APIValidationError
@@ -38,7 +39,8 @@ export type APIError =
   | APICollaboratorInvitationInvalidCodeError
   | APICollaboratorInvitationInvalidEmailError
   | APICollaboratorDuplicateError
-  | APIDuplicatedAppIDError;
+  | APIDuplicatedAppIDError
+  | APIResourceNotFoundError;
 
 export function isAPIError(value?: { [key: string]: any }): value is APIError {
   if (value == null) {

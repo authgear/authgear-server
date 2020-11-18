@@ -8,24 +8,16 @@ import PasswordPolicySettings from "./PasswordPolicySettings";
 import ForgotPasswordSettings from "./ForgotPasswordSettings";
 import { ModifiedIndicatorWrapper } from "../../ModifiedIndicatorPortal";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
-import {
-  UpdateAppTemplatesData,
-  useUpdateAppTemplatesMutation,
-} from "./mutations/updateAppTemplatesMutation";
 import { useAppConfigQuery } from "./query/appConfigQuery";
-import { useAppTemplatesQuery } from "./query/appTemplatesQuery";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import { usePivotNavigation } from "../../hook/usePivot";
-import { ForgotPasswordMessageTemplates } from "../../templates";
 import { PortalAPIAppConfig } from "../../types";
 
 import styles from "./PasswordsScreen.module.scss";
 
-type ForgotPasswordMessageTemplateKeys = typeof ForgotPasswordMessageTemplates[number];
-
 const PASSWORD_POLICY_PIVOT_KEY = "password_policy";
-const FORGOT_PASSWORD_POLICY_KEY = "forgot_password";
+const FORGOT_PASSWORD_PIVOT_KEY = "forgot_password";
 
 const PasswordsScreen: React.FC = function PasswordsScreen() {
   const { renderToString } = useContext(Context);
@@ -40,20 +32,9 @@ const PasswordsScreen: React.FC = function PasswordsScreen() {
     resetError: resetUpdateAppConfigError,
   } = useUpdateAppConfigMutation(appID);
 
-  const {
-    updateAppTemplates,
-    loading: updatingTemplates,
-    error: updateTemplatesError,
-    resetError: resetUpdateTemplatesError,
-  } = useUpdateAppTemplatesMutation<ForgotPasswordMessageTemplateKeys>(
-    appID,
-    ...ForgotPasswordMessageTemplates
-  );
-
   const resetError = useCallback(() => {
     resetUpdateAppConfigError();
-    resetUpdateTemplatesError();
-  }, [resetUpdateAppConfigError, resetUpdateTemplatesError]);
+  }, [resetUpdateAppConfigError]);
 
   const resetForm = useCallback(() => {
     setRemountIdentifier((prev) => prev + 1);
@@ -61,7 +42,7 @@ const PasswordsScreen: React.FC = function PasswordsScreen() {
   }, [resetError]);
 
   const { selectedKey, onLinkClick } = usePivotNavigation(
-    [PASSWORD_POLICY_PIVOT_KEY, FORGOT_PASSWORD_POLICY_KEY],
+    [PASSWORD_POLICY_PIVOT_KEY, FORGOT_PASSWORD_PIVOT_KEY],
     resetError
   );
 
@@ -72,15 +53,6 @@ const PasswordsScreen: React.FC = function PasswordsScreen() {
     rawAppConfig,
     refetch,
   } = useAppConfigQuery(appID);
-  const {
-    templates,
-    loading: loadingTemplates,
-    error: loadTemplatesError,
-    refetch: refetchTemplates,
-  } = useAppTemplatesQuery<ForgotPasswordMessageTemplateKeys>(
-    appID,
-    ...ForgotPasswordMessageTemplates
-  );
 
   const updateAppConfigAndRemountChildren = useCallback(
     async (appConfig: PortalAPIAppConfig) => {
@@ -91,40 +63,21 @@ const PasswordsScreen: React.FC = function PasswordsScreen() {
     [updateAppConfig]
   );
 
-  const updateAppConfigAndTemplatesAndRemountChildren = useCallback(
-    async (
-      appConfig: PortalAPIAppConfig,
-      updateTemplatesData: UpdateAppTemplatesData<
-        ForgotPasswordMessageTemplateKeys
-      >
-    ) => {
-      await updateAppConfig(appConfig);
-      const app = await updateAppTemplates(updateTemplatesData);
-      setRemountIdentifier((prev) => prev + 1);
-      return app;
-    },
-    [updateAppConfig, updateAppTemplates]
-  );
-
-  if (loadingAppConfig || loadingTemplates) {
+  if (loadingAppConfig) {
     return <ShowLoading />;
   }
 
   if (loadAppConfigError != null) {
     return <ShowError error={loadAppConfigError} onRetry={refetch} />;
   }
-  if (loadTemplatesError != null) {
-    return <ShowError error={loadTemplatesError} onRetry={refetchTemplates} />;
-  }
 
   return (
     <main
       className={cn(styles.root, {
-        [styles.loading]: updatingAppConfig || updatingTemplates,
+        [styles.loading]: updatingAppConfig,
       })}
     >
       {updateAppConfigError && <ShowError error={updateAppConfigError} />}
-      {updateTemplatesError && <ShowError error={updateTemplatesError} />}
       <ModifiedIndicatorWrapper className={styles.content}>
         <Text as="h1" className={styles.title}>
           <FormattedMessage id="PasswordsScreen.title" />
@@ -150,19 +103,14 @@ const PasswordsScreen: React.FC = function PasswordsScreen() {
               headerText={renderToString(
                 "PasswordsScreen.forgot-password.title"
               )}
-              itemKey={FORGOT_PASSWORD_POLICY_KEY}
+              itemKey={FORGOT_PASSWORD_PIVOT_KEY}
             >
               <ForgotPasswordSettings
                 key={remountIdentifier}
                 effectiveAppConfig={effectiveAppConfig}
                 rawAppConfig={rawAppConfig}
-                templates={templates}
-                updateAppConfigAndTemplates={
-                  updateAppConfigAndTemplatesAndRemountChildren
-                }
-                updatingAppConfigAndTemplates={
-                  updatingAppConfig || updatingTemplates
-                }
+                updateAppConfig={updateAppConfigAndRemountChildren}
+                updatingAppConfig={updatingAppConfig}
                 resetForm={resetForm}
               />
             </PivotItem>

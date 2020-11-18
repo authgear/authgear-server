@@ -1,10 +1,12 @@
 import { IPartialTheme, ITheme, createTheme } from "@fluentui/react";
 import MESSAGES from "./locale-data/en.json";
+import { DEFAULT_TEMPLATE_LOCALE } from "./templates";
 
 export interface SystemConfig {
   authgearClientID: string;
   authgearEndpoint: string;
   appHostSuffix: string;
+  supportedResourceLocales: string[];
   themes: SystemConfigThemes;
   translations: SystemConfigTranslations;
 }
@@ -236,6 +238,9 @@ export function instantiateSystemConfig(
     authgearClientID: config.authgearClientID ?? "",
     authgearEndpoint: config.authgearEndpoint ?? "",
     appHostSuffix: config.appHostSuffix ?? "",
+    supportedResourceLocales: config.supportedResourceLocales ?? [
+      DEFAULT_TEMPLATE_LOCALE,
+    ],
     themes: {
       main: createTheme(config.themes?.main ?? {}),
       inverted: createTheme(config.themes?.inverted ?? {}),

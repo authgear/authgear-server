@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { IPivotItemProps } from "@fluentui/react";
 
 function isHashValid(validItemKeys: string[], hash: string): boolean {
@@ -18,15 +18,29 @@ export function usePivotNavigation(
   }
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const hash = location.hash.slice(1);
   const initialSelectedKey = validItemKeys[0];
+
+  const changeHashKeepSearchParam = useCallback(
+    (hash: string, options?: { replace?: boolean }) => {
+      const queryStr = searchParams.toString();
+      if (queryStr !== "") {
+        navigate(`?${queryStr}#${hash}`, options);
+      } else {
+        navigate(`#${hash}`, options);
+      }
+    },
+    [navigate, searchParams]
+  );
 
   useEffect(() => {
     if (!isHashValid(validItemKeys, hash)) {
       // NOTE: avoid adding extra entry to history stack
-      navigate(`#${initialSelectedKey}`, { replace: true });
+      // NOTE: avoid changing query string
+      changeHashKeepSearchParam(initialSelectedKey, { replace: true });
     }
-  }, [validItemKeys, hash, initialSelectedKey, navigate]);
+  }, [validItemKeys, hash, initialSelectedKey, changeHashKeepSearchParam]);
 
   const onLinkClick = useCallback(
     (item?: { props: IPivotItemProps }) => {
@@ -34,11 +48,12 @@ export function usePivotNavigation(
       if (typeof itemKey === "string") {
         if (itemKey !== hash) {
           onSwitchTab?.();
-          navigate(`#${itemKey}`);
+          // NOTE: avoid changing query string
+          changeHashKeepSearchParam(itemKey);
         }
       }
     },
-    [navigate, hash, onSwitchTab]
+    [hash, onSwitchTab, changeHashKeepSearchParam]
   );
 
   const selectedKey = isHashValid(validItemKeys, hash)

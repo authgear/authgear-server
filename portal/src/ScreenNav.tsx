@@ -68,12 +68,6 @@ const ScreenNav: React.FC = function ScreenNav() {
             icon: "PasswordField",
           },
           {
-            key: "passwordlessAuthenticator",
-            name: renderToString("ScreenNav.passwordless-authenticator"),
-            url: "configuration/passwordless-authenticator",
-            icon: "PassiveAuthentication",
-          },
-          {
             key: "UserInterface",
             name: renderToString("ScreenNav.user-interface"),
             url: "configuration/user-interface",
@@ -90,6 +84,12 @@ const ScreenNav: React.FC = function ScreenNav() {
             name: renderToString("ScreenNav.dns"),
             url: "configuration/dns",
             icon: "ServerProcesses",
+          },
+          {
+            key: "templates",
+            name: renderToString("ScreenNav.templates"),
+            url: "configuration/templates",
+            icon: "WebTemplate",
           },
           {
             key: "Settings",

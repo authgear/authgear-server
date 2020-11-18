@@ -206,6 +206,11 @@ interface UIConfig {
   country_calling_code?: UICountryCallingCodeConfig;
 }
 
+// LocalizationConfig
+interface LocalizationConfig {
+  fallback_language?: string;
+}
+
 // ForgotPasswordConfig
 interface ForgotPasswordConfig {
   enabled?: boolean;
@@ -246,6 +251,7 @@ export interface PortalAPIAppConfig {
   authentication?: AuthenticationConfig;
   verification?: VerificationConfig;
   ui?: UIConfig;
+  localization?: LocalizationConfig;
   forgot_password?: ForgotPasswordConfig;
   oauth?: OAuthConfig;
   session?: SessionConfig;

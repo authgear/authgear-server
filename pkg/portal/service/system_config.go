@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
+	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -32,11 +33,12 @@ func (p *SystemConfigProvider) SystemConfig() (*model.SystemConfig, error) {
 	}
 
 	return &model.SystemConfig{
-		AuthgearClientID: p.AuthgearConfig.ClientID,
-		AuthgearEndpoint: p.AuthgearConfig.Endpoint,
-		AppHostSuffix:    p.AppConfig.HostSuffix,
-		Themes:           themes,
-		Translations:     translations,
+		AuthgearClientID:         p.AuthgearConfig.ClientID,
+		AuthgearEndpoint:         p.AuthgearConfig.Endpoint,
+		AppHostSuffix:            p.AppConfig.HostSuffix,
+		SupportedResourceLocales: intl.SupportedResourceLocales,
+		Themes:                   themes,
+		Translations:             translations,
 	}, nil
 }
 

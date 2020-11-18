@@ -6,6 +6,12 @@ import {
   AppTemplatesQuery,
   AppTemplatesQueryVariables,
 } from "./__generated__/AppTemplatesQuery";
+import {
+  getLocalizedTemplatePath,
+  TemplateLocale,
+  TemplateMap,
+} from "../../../templates";
+import { ResourcePath } from "../../../util/stringTemplate";
 
 export const appTemplatesQuery = gql`
   query AppTemplatesQuery($id: ID!, $paths: [String!]!) {
@@ -17,23 +23,37 @@ export const appTemplatesQuery = gql`
           path
           effectiveData
         }
+        resourceLocales: resources {
+          path
+          languageTag
+        }
       }
     }
   }
 `;
 
-export interface AppTemplatesQueryResult<TemplatePath extends string>
+export interface AppTemplatesQueryResult
   extends Pick<
     QueryResult<AppTemplatesQuery, AppTemplatesQueryVariables>,
     "loading" | "error" | "refetch"
   > {
-  templates: Record<TemplatePath, string>;
+  templates: Record<string, string>;
+  templateLocales: TemplateLocale[];
 }
 
-export const useAppTemplatesQuery = <TemplatePath extends string>(
+export function useAppTemplatesQuery(
   appID: string,
-  ...paths: TemplatePath[]
-): AppTemplatesQueryResult<TemplatePath> => {
+  locale: TemplateLocale,
+  ...pathTemplates: ResourcePath<"locale">[]
+): AppTemplatesQueryResult {
+  const paths = useMemo(
+    () =>
+      pathTemplates.map((pathTemplate) =>
+        getLocalizedTemplatePath(locale, pathTemplate)
+      ),
+    [locale, pathTemplates]
+  );
+
   const { data, loading, error, refetch } = useQuery<
     AppTemplatesQuery,
     AppTemplatesQueryVariables
@@ -47,17 +67,27 @@ export const useAppTemplatesQuery = <TemplatePath extends string>(
 
   const queryData = useMemo(() => {
     const appNode = data?.node?.__typename === "App" ? data.node : null;
-    const templates = {} as Record<TemplatePath, string>;
+    const templates: TemplateMap = {};
     for (const { path, effectiveData } of appNode?.resources ?? []) {
-      templates[path as TemplatePath] = effectiveData ?? "";
+      templates[path] = effectiveData ?? "";
     }
     for (const path of paths) {
       if (!(path in templates)) {
         templates[path] = "";
       }
     }
-    return { templates };
+
+    const templateLocaleSets = new Set<TemplateLocale>();
+    const templateResourceData =
+      appNode?.resourceLocales.filter((resourceData) => {
+        return resourceData.path.split("/")[0] === "templates";
+      }) ?? [];
+    for (const resourceData of templateResourceData) {
+      const locale = resourceData.languageTag;
+      if (locale != null) templateLocaleSets.add(locale);
+    }
+    return { templates, templateLocales: Array.from(templateLocaleSets) };
   }, [data, paths]);
 
   return { ...queryData, loading, error, refetch };
-};
+}
