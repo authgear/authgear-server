@@ -537,7 +537,7 @@ This is the JSON schema defining claims mapping
 ```
 
 - `kind`: The kind of the mapping, either `system` or `custom_attributes`.
-- `name_pointer`: The JSON pointer to indicate which part of the claims is mapped to.
+- `name_pointer`: The JSON pointer to indicate which part of the claims is mapped to. It is forbidden to have a pointer being an intermediate pointer of another pointer. For example, if `#/a/b` is mapped, then `#/` and `#/a` cannot be mapped.
 - `value_pointer`: The JSON pointer to indicate which part of the source claims is mapped from.
 
 > NOTE: In the initial design, we also have the kind `specified`, which simply means a provided value.
