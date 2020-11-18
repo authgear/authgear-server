@@ -10,3 +10,13 @@ func getIdentityConflictNode(graph *interaction.Graph) (*NodeCheckIdentityConfli
 	}
 	return nil, false
 }
+
+// EdgeTerminal is used to indicate a terminal state of interaction; the
+// interaction cannot further, and must be rewound to a previous step to
+// continue.
+type EdgeTerminal struct{}
+
+func (e *EdgeTerminal) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+	// Use ErrIncompatibleInput to 'stuck' the interaction at the current node.
+	return nil, interaction.ErrIncompatibleInput
+}

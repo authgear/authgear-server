@@ -29,6 +29,7 @@ type UserFacade interface {
 	QueryPage(args graphqlutil.PageArgs) (*graphqlutil.PageResult, error)
 	Create(identityDef model.IdentityDef, password string) (string, error)
 	ResetPassword(id string, password string) error
+	SetDisabled(id string, isDisabled bool, reason *string) error
 }
 
 type IdentityFacade interface {

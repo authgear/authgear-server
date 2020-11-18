@@ -133,6 +133,7 @@ export interface UserQuery_node_User {
   identities: UserQuery_node_User_identities | null;
   verifiedClaims: UserQuery_node_User_verifiedClaims[];
   sessions: UserQuery_node_User_sessions | null;
+  isDisabled: boolean;
   /**
    * The last login time of user
    */

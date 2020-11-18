@@ -27,7 +27,7 @@ import {
 
 import ShowError from "../../ShowError";
 import PaginationWidget from "../../PaginationWidget";
-import DisableUserDialog from "./DisableUserDialog";
+import SetUserDisabledDialog from "./SetUserDisabledDialog";
 
 import { encodeOffsetToCursor } from "../../util/pagination";
 import { formatDatetime } from "../../util/formatDatetime";
@@ -49,6 +49,7 @@ interface PlainUsersListProps {
 
 interface UserListItem {
   id: string;
+  isDisabled: boolean;
   createdAt: string | null;
   username: string | null;
   phone: string | null;
@@ -57,6 +58,7 @@ interface UserListItem {
 }
 
 interface DisableUserDialogData {
+  isDisablingUser: boolean;
   userID: string;
   username: string | null;
 }
@@ -134,6 +136,9 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
     },
   ];
 
+  const [isDisableUserDialogHidden, setIsDisableUserDialogHidden] = useState(
+    true
+  );
   const [
     disableUserDialogData,
     setDisableUserDialogData,
@@ -153,6 +158,7 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
           const userInfo = extractUserInfoFromIdentities(identities);
           items.push({
             id: node.id,
+            isDisabled: node.isDisabled,
             createdAt: formatDatetime(locale, node.createdAt),
             lastLoginAt: formatDatetime(locale, node.lastLoginAt),
             username: userInfo.username,
@@ -182,13 +188,15 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
   const onDisableUserClicked = useCallback(
     (
       event: React.MouseEvent<unknown>,
+      isDisablingUser: boolean,
       userID: string,
       username: string | null
     ) => {
       // prevent triggering the link to user detail page
       event.preventDefault();
       event.stopPropagation();
-      setDisableUserDialogData({ userID, username });
+      setDisableUserDialogData({ isDisablingUser, userID, username });
+      setIsDisableUserDialogHidden(false);
     },
     []
   );
@@ -201,12 +209,21 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
             <ActionButton
               className={styles.actionButton}
               styles={{ flexContainer: { alignItems: "normal" } }}
-              theme={themes.actionButton}
+              theme={item.isDisabled ? themes.actionButton : themes.destructive}
               onClick={(event) =>
-                onDisableUserClicked(event, item.id, item.username)
+                onDisableUserClicked(
+                  event,
+                  !item.isDisabled,
+                  item.id,
+                  item.username ?? item.email ?? item.phone
+                )
               }
             >
-              <FormattedMessage id="UsersList.disable-user" />
+              {item.isDisabled ? (
+                <FormattedMessage id="UsersList.enable-user" />
+              ) : (
+                <FormattedMessage id="UsersList.disable-user" />
+              )}
             </ActionButton>
           );
         default:
@@ -217,39 +234,43 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
           );
       }
     },
-    [onDisableUserClicked, themes.actionButton]
+    [onDisableUserClicked, themes.actionButton, themes.destructive]
   );
 
   const dismissDisableUserDialog = useCallback(() => {
-    setDisableUserDialogData(null);
+    setIsDisableUserDialogHidden(true);
   }, []);
 
   return (
-    <div className={cn(styles.root, className)}>
-      <ShimmeredDetailsList
-        enableShimmer={loading}
-        onRenderRow={onRenderUserRow}
-        onRenderItemColumn={onRenderUserItemColumn}
-        selectionMode={SelectionMode.none}
-        layoutMode={DetailsListLayoutMode.justified}
-        columns={columns}
-        items={items}
-      />
-      <PaginationWidget
-        className={styles.pagination}
-        offset={offset}
-        pageSize={pageSize}
-        totalCount={totalCount}
-        onChangeOffset={onChangeOffset}
-      />
+    <>
+      <div className={cn(styles.root, className)}>
+        <ShimmeredDetailsList
+          enableShimmer={loading}
+          onRenderRow={onRenderUserRow}
+          onRenderItemColumn={onRenderUserItemColumn}
+          selectionMode={SelectionMode.none}
+          layoutMode={DetailsListLayoutMode.justified}
+          columns={columns}
+          items={items}
+        />
+        <PaginationWidget
+          className={styles.pagination}
+          offset={offset}
+          pageSize={pageSize}
+          totalCount={totalCount}
+          onChangeOffset={onChangeOffset}
+        />
+      </div>
       {disableUserDialogData != null && (
-        <DisableUserDialog
+        <SetUserDisabledDialog
+          isHidden={isDisableUserDialogHidden}
           onDismiss={dismissDisableUserDialog}
+          isDisablingUser={disableUserDialogData.isDisablingUser}
           userID={disableUserDialogData.userID}
           username={disableUserDialogData.username}
         />
       )}
-    </div>
+    </>
   );
 };
 
@@ -261,6 +282,7 @@ const query = gql`
           id
           createdAt
           lastLoginAt
+          isDisabled
           identities {
             edges {
               node {

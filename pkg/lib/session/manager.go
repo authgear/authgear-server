@@ -7,6 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
@@ -16,8 +17,9 @@ type HookProvider interface {
 
 var ErrSessionNotFound = errors.New("session not found")
 
-type UserProvider interface {
+type UserQuery interface {
 	Get(id string) (*model.User, error)
+	GetRaw(id string) (*user.User, error)
 }
 
 type ManagementService interface {
@@ -32,7 +34,7 @@ type IDPSessionManager ManagementService
 type AccessTokenSessionManager ManagementService
 
 type Manager struct {
-	Users               UserProvider
+	Users               UserQuery
 	Hooks               HookProvider
 	IDPSessions         IDPSessionManager
 	AccessTokenSessions AccessTokenSessionManager

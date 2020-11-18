@@ -123,7 +123,7 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		user.DependencySet,
-		wire.Bind(new(session.UserProvider), new(*user.Queries)),
+		wire.Bind(new(session.UserQuery), new(*user.Queries)),
 		wire.Bind(new(interaction.UserService), new(*user.Provider)),
 		wire.Bind(new(oidc.UserProvider), new(*user.Queries)),
 		wire.Bind(new(hook.UserProvider), new(*user.RawProvider)),

@@ -10,7 +10,7 @@ export interface IdentityClaims {
   phone_number?: string;
 }
 
-interface Identity {
+export interface Identity {
   id: string;
   claims: IdentityClaims;
 }

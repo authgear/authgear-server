@@ -90,7 +90,7 @@ type UserService interface {
 	GetRaw(id string) (*user.User, error)
 	Create(userID string) (*user.User, error)
 	AfterCreate(user *user.User, identities []*identity.Info) error
-	UpdateLoginTime(user *model.User, lastLoginAt time.Time) error
+	UpdateLoginTime(userID string, lastLoginAt time.Time) error
 }
 
 type HookProvider interface {

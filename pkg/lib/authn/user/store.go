@@ -20,6 +20,7 @@ type store interface {
 	Count() (uint64, error)
 	QueryPage(after, before model.PageCursor, first, last *uint64) ([]*User, uint64, error)
 	UpdateLoginTime(userID string, loginAt time.Time) error
+	UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error
 }
 
 var queryPage = db.QueryPage(db.QueryPageConfig{
@@ -46,6 +47,8 @@ func (s *Store) Create(u *User) error {
 			"created_at",
 			"updated_at",
 			"last_login_at",
+			"is_disabled",
+			"disable_reason",
 		).
 		Values(
 			u.ID,
@@ -53,6 +56,8 @@ func (s *Store) Create(u *User) error {
 			u.CreatedAt,
 			u.UpdatedAt,
 			u.LastLoginAt,
+			u.IsDisabled,
+			u.DisableReason,
 		)
 
 	_, err = s.SQLExecutor.ExecWith(builder)
@@ -71,6 +76,8 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"created_at",
 			"updated_at",
 			"last_login_at",
+			"is_disabled",
+			"disable_reason",
 		).
 		From(s.SQLBuilder.FullTableName("user"))
 }
@@ -86,6 +93,8 @@ func (s *Store) scan(scn db.Scanner) (*User, error) {
 		&u.CreatedAt,
 		&u.UpdatedAt,
 		&u.LastLoginAt,
+		&u.IsDisabled,
+		&u.DisableReason,
 	); err != nil {
 		return nil, err
 	}
@@ -192,6 +201,21 @@ func (s *Store) UpdateLoginTime(userID string, loginAt time.Time) error {
 		Update(s.SQLBuilder.FullTableName("user")).
 		Set("last_login_at", squirrel.Expr("login_at")).
 		Set("login_at", loginAt).
+		Where("id = ?", userID)
+
+	_, err := s.SQLExecutor.ExecWith(builder)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Store) UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error {
+	builder := s.SQLBuilder.Tenant().
+		Update(s.SQLBuilder.FullTableName("user")).
+		Set("is_disabled", isDisabled).
+		Set("disable_reason", reason).
 		Where("id = ?", userID)
 
 	_, err := s.SQLExecutor.ExecWith(builder)

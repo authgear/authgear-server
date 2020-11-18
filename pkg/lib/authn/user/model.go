@@ -9,11 +9,13 @@ import (
 )
 
 type User struct {
-	ID          string
-	Labels      map[string]interface{}
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	LastLoginAt *time.Time
+	ID            string
+	Labels        map[string]interface{}
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	LastLoginAt   *time.Time
+	IsDisabled    bool
+	DisableReason *string
 }
 
 func (u *User) GetMeta() model.Meta {
@@ -22,6 +24,13 @@ func (u *User) GetMeta() model.Meta {
 		CreatedAt: u.CreatedAt,
 		UpdatedAt: u.UpdatedAt,
 	}
+}
+
+func (u *User) CheckStatus() error {
+	if u.IsDisabled {
+		return NewErrDisabledUser(u.DisableReason)
+	}
+	return nil
 }
 
 func newUserModel(
@@ -43,8 +52,10 @@ func newUserModel(
 			CreatedAt: user.CreatedAt,
 			UpdatedAt: user.UpdatedAt,
 		},
-		LastLoginAt: user.LastLoginAt,
-		IsAnonymous: isAnonymous,
-		IsVerified:  isVerified,
+		LastLoginAt:   user.LastLoginAt,
+		IsAnonymous:   isAnonymous,
+		IsVerified:    isVerified,
+		IsDisabled:    user.IsDisabled,
+		DisableReason: user.DisableReason,
 	}
 }

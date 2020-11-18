@@ -38,6 +38,10 @@
   "error-web-ui-invalid-session-return": "<p>This page is no longer active. Please return to the current page.</p>",
   "error-web-ui-invalid-session-action": "Return",
   "error-rate-limited": "Please wait for a moment before retrying.",
+  "error-disabled-user": "Administrator has disabled your account.",
+  "error-disabled-user-reason": "Reason: {reason}",
+  "error-disabled-user-no-reason": "Please contact administrator for details.",
+  "error-blocked-user": "Your account is blocked from login.",
   "error-network": "There is a problem with the network.",
   "error-server": "Server encountered an internal error.",
 

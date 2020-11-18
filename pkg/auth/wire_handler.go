@@ -264,6 +264,13 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	))
 }
 
+func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.UserDisabledHandler)),
+	))
+}
+
 func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

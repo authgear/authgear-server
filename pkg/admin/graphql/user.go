@@ -100,6 +100,12 @@ var nodeUser = entity(
 					return graphqlutil.NewConnectionFromArray(sessions, args), nil
 				},
 			},
+			"isDisabled": &graphql.Field{
+				Type: graphql.NewNonNull(graphql.Boolean),
+			},
+			"disableReason": &graphql.Field{
+				Type: graphql.String,
+			},
 		},
 	}),
 	&user.User{},

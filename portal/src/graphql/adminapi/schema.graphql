@@ -251,6 +251,9 @@ type Mutation {
   """Revoke session of user"""
   revokeSession(input: RevokeSessionInput!): RevokeSessionPayload!
 
+  """Set disabled status of user"""
+  setDisabledStatus(input: SetDisabledStatusInput!): SetDisabledStatusPayload!
+
   """Set verified status of a claim of user"""
   setVerifiedStatus(input: SetVerifiedStatusInput!): SetVerifiedStatusPayload!
 }
@@ -397,6 +400,26 @@ enum SessionType {
 }
 
 """"""
+input SetDisabledStatusInput {
+  """Indicate whether the target user is disabled."""
+  isDisabled: Boolean!
+
+  """
+  Indicate the disable reason; If not provided, the user will be disabled with no reason.
+  """
+  reason: String
+
+  """Target user ID."""
+  userID: ID!
+}
+
+""""""
+type SetDisabledStatusPayload {
+  """"""
+  user: User!
+}
+
+""""""
 input SetVerifiedStatusInput {
   """Name of the claim to set verified status."""
   claimName: String!
@@ -425,11 +448,17 @@ type User implements Entity & Node {
   """The creation time of entity"""
   createdAt: DateTime!
 
+  """"""
+  disableReason: String
+
   """The ID of an object"""
   id: ID!
 
   """"""
   identities(after: String, before: String, first: Int, last: Int): IdentityConnection
+
+  """"""
+  isDisabled: Boolean!
 
   """The last login time of user"""
   lastLoginAt: DateTime

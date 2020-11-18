@@ -189,9 +189,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 		if isNewUser {
 			// No authentication needed for new users
 			return []interaction.Edge{
-				&nodes.EdgeCreateAuthenticatorBegin{
-					Stage: interaction.AuthenticationStagePrimary,
-				},
+				&nodes.EdgeValidateUser{},
 			}, nil
 		}
 		return []interaction.Edge{
@@ -206,11 +204,9 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 		}
 
 		// After removing anonymous identity:
-		// continue to create authenticators
+		// continue to create authenticators (after validating user).
 		return []interaction.Edge{
-			&nodes.EdgeCreateAuthenticatorBegin{
-				Stage: interaction.AuthenticationStagePrimary,
-			},
+			&nodes.EdgeValidateUser{},
 		}, nil
 
 	case *nodes.NodeAuthenticationEnd:
@@ -243,12 +239,24 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 
 		case interaction.AuthenticationStageSecondary:
 			return []interaction.Edge{
-				&nodes.EdgeCreateAuthenticatorBegin{Stage: interaction.AuthenticationStagePrimary},
+				&nodes.EdgeValidateUser{},
 			}, nil
 
 		default:
 			panic(fmt.Errorf("interaction: unexpected authentication stage: %v", node.Stage))
 		}
+
+	case *nodes.NodeValidateUser:
+		if node.Error != nil {
+			// Stop interaction if user is invalid.
+			return []interaction.Edge{
+				&nodes.EdgeTerminal{},
+			}, nil
+		}
+
+		return []interaction.Edge{
+			&nodes.EdgeCreateAuthenticatorBegin{Stage: interaction.AuthenticationStagePrimary},
+		}, nil
 
 	case *nodes.NodeCreateAuthenticatorEnd:
 		return []interaction.Edge{
