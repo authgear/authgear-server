@@ -118,7 +118,7 @@ The claim `email` is used to detect duplicate identity. For example, an Email Lo
 
 OAuth identity is external identity from supported OAuth 2 IdPs. Only authorization code flow is supported. If the provider supports OIDC, OIDC is preferred over provider-specific OAuth 2 protocol.
 
-OAuth identity is updated every time authentication is performed.
+OAuth identity is updated every time authentication is performed. However, if the update would result in conflict between another user, then the update is skipped.
 
 > TODO: In the future, we may want to support frozen oauth identity, that is, the identity is never updated.
 
