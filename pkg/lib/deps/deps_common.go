@@ -168,12 +168,12 @@ var CommonDependencySet = wire.NewSet(
 		wire.Value(oauthhandler.TokenGenerator(oauth.GenerateToken)),
 
 		oauthhandler.DependencySet,
-	),
 
-	wire.NewSet(
 		oidc.DependencySet,
 		wire.Value(oauthhandler.ScopesValidator(oidc.ValidateScopes)),
 		wire.Bind(new(oauthhandler.IDTokenIssuer), new(*oidc.IDTokenIssuer)),
+		wire.Bind(new(oauthhandler.AccessTokenIssuer), new(*oauth.AccessTokenEncoding)),
+		wire.Bind(new(oauth.UserClaimsProvider), new(*oidc.IDTokenIssuer)),
 
 		oidchandler.DependencySet,
 	),

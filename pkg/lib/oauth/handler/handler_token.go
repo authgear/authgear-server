@@ -35,6 +35,10 @@ type IDTokenIssuer interface {
 	IssueIDToken(client *config.OAuthClientConfig, session session.Session, nonce string) (token string, err error)
 }
 
+type AccessTokenIssuer interface {
+	EncodeAccessToken(client *config.OAuthClientConfig, grant *oauth.AccessGrant, userID string, token string) (string, error)
+}
+
 type SessionProvider interface {
 	Get(id string) (*idpsession.IDPSession, error)
 }
@@ -56,17 +60,18 @@ type TokenHandler struct {
 	TrustProxy config.TrustProxy
 	Logger     TokenHandlerLogger
 
-	Authorizations oauth.AuthorizationStore
-	CodeGrants     oauth.CodeGrantStore
-	OfflineGrants  oauth.OfflineGrantStore
-	AccessGrants   oauth.AccessGrantStore
-	AccessEvents   *access.EventProvider
-	Sessions       SessionProvider
-	Graphs         GraphService
-	IDTokenIssuer  IDTokenIssuer
-	GenerateToken  TokenGenerator
-	Clock          clock.Clock
-	Users          TokenHandlerUserFacade
+	Authorizations    oauth.AuthorizationStore
+	CodeGrants        oauth.CodeGrantStore
+	OfflineGrants     oauth.OfflineGrantStore
+	AccessGrants      oauth.AccessGrantStore
+	AccessEvents      *access.EventProvider
+	Sessions          SessionProvider
+	Graphs            GraphService
+	IDTokenIssuer     IDTokenIssuer
+	AccessTokenIssuer AccessTokenIssuer
+	GenerateToken     TokenGenerator
+	Clock             clock.Clock
+	Users             TokenHandlerUserFacade
 }
 
 func (h *TokenHandler) Handle(r protocol.TokenRequest) httputil.Result {
@@ -347,7 +352,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 		return nil, err
 	}
 
-	err = h.issueAccessGrant(client, scopes, authz.ID,
+	err = h.issueAccessGrant(client, scopes, authz.ID, authz.UserID,
 		offlineGrant.ID, oauth.GrantSessionKindOffline, resp)
 	if err != nil {
 		return nil, err
@@ -407,7 +412,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 	}
 
 	err := h.issueAccessGrant(client, code.Scopes,
-		authz.ID, sessionID, sessionKind, resp)
+		authz.ID, authz.UserID, sessionID, sessionKind, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -453,7 +458,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 	}
 
 	err := h.issueAccessGrant(client, offlineGrant.Scopes,
-		authz.ID, offlineGrant.ID, oauth.GrantSessionKindOffline, resp)
+		authz.ID, authz.UserID, offlineGrant.ID, oauth.GrantSessionKindOffline, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -507,6 +512,7 @@ func (h *TokenHandler) issueAccessGrant(
 	client *config.OAuthClientConfig,
 	scopes []string,
 	authzID string,
+	userID string,
 	sessionID string,
 	sessionKind oauth.GrantSessionKind,
 	resp protocol.TokenResponse,
@@ -529,8 +535,13 @@ func (h *TokenHandler) issueAccessGrant(
 		return err
 	}
 
+	at, err := h.AccessTokenIssuer.EncodeAccessToken(client, accessGrant, userID, token)
+	if err != nil {
+		return err
+	}
+
 	resp.TokenType("Bearer")
-	resp.AccessToken(oauth.EncodeAccessToken(client, accessGrant, token))
+	resp.AccessToken(at)
 	resp.ExpiresIn(int(client.AccessTokenLifetime))
 	return nil
 }

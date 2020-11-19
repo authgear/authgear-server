@@ -1,6 +1,7 @@
 package oidc
 
 import (
+	"net/url"
 	"time"
 
 	"github.com/lestrrat-go/jwx/jwa"
@@ -20,11 +21,15 @@ type UserProvider interface {
 	Get(id string) (*model.User, error)
 }
 
+type BaseURLProvider interface {
+	BaseURL() *url.URL
+}
+
 type IDTokenIssuer struct {
-	Secrets   *config.OAuthKeyMaterials
-	Endpoints EndpointsProvider
-	Users     UserProvider
-	Clock     clock.Clock
+	Secrets *config.OAuthKeyMaterials
+	BaseURL BaseURLProvider
+	Users   UserProvider
+	Clock   clock.Clock
 }
 
 // IDTokenValidDuration is the valid period of ID token.
@@ -36,7 +41,7 @@ func (ti *IDTokenIssuer) GetPublicKeySet() (*jwk.Set, error) {
 }
 
 func (ti *IDTokenIssuer) IssueIDToken(client *config.OAuthClientConfig, s session.Session, nonce string) (string, error) {
-	claims, err := ti.LoadUserClaims(s)
+	claims, err := ti.LoadUserClaims(s.SessionAttrs().UserID)
 	if err != nil {
 		return "", err
 	}
@@ -63,15 +68,15 @@ func (ti *IDTokenIssuer) IssueIDToken(client *config.OAuthClientConfig, s sessio
 	return string(signed), nil
 }
 
-func (ti *IDTokenIssuer) LoadUserClaims(s session.Session) (jwt.Token, error) {
-	user, err := ti.Users.Get(s.SessionAttrs().UserID)
+func (ti *IDTokenIssuer) LoadUserClaims(userID string) (jwt.Token, error) {
+	user, err := ti.Users.Get(userID)
 	if err != nil {
 		return nil, err
 	}
 
 	claims := jwt.New()
-	_ = claims.Set(jwt.IssuerKey, ti.Endpoints.BaseURL().String())
-	_ = claims.Set(jwt.SubjectKey, s.SessionAttrs().UserID)
+	_ = claims.Set(jwt.IssuerKey, ti.BaseURL.BaseURL().String())
+	_ = claims.Set(jwt.SubjectKey, userID)
 	_ = claims.Set(string(authn.ClaimUserIsAnonymous), user.IsAnonymous)
 	_ = claims.Set(string(authn.ClaimUserIsVerified), user.IsVerified)
 

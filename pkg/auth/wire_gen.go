@@ -988,29 +988,36 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:   oAuthKeyMaterials,
-		Endpoints: endpointsProvider,
-		Users:     queries,
-		Clock:     clockClock,
+		Secrets: oAuthKeyMaterials,
+		BaseURL: endpointsProvider,
+		Users:   queries,
+		Clock:   clockClock,
+	}
+	accessTokenEncoding := &oauth2.AccessTokenEncoding{
+		Secrets:    oAuthKeyMaterials,
+		Clock:      clockClock,
+		UserClaims: idTokenIssuer,
+		BaseURL:    endpointsProvider,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
 	tokenHandler := &handler.TokenHandler{
-		Request:        request,
-		AppID:          appID,
-		Config:         oAuthConfig,
-		TrustProxy:     trustProxy,
-		Logger:         handlerTokenHandlerLogger,
-		Authorizations: authorizationStore,
-		CodeGrants:     grantStore,
-		OfflineGrants:  grantStore,
-		AccessGrants:   grantStore,
-		AccessEvents:   eventProvider,
-		Sessions:       provider,
-		Graphs:         interactionService,
-		IDTokenIssuer:  idTokenIssuer,
-		GenerateToken:  tokenGenerator,
-		Clock:          clockClock,
-		Users:          queries,
+		Request:           request,
+		AppID:             appID,
+		Config:            oAuthConfig,
+		TrustProxy:        trustProxy,
+		Logger:            handlerTokenHandlerLogger,
+		Authorizations:    authorizationStore,
+		CodeGrants:        grantStore,
+		OfflineGrants:     grantStore,
+		AccessGrants:      grantStore,
+		AccessEvents:      eventProvider,
+		Sessions:          provider,
+		Graphs:            interactionService,
+		IDTokenIssuer:     idTokenIssuer,
+		AccessTokenIssuer: accessTokenEncoding,
+		GenerateToken:     tokenGenerator,
+		Clock:             clockClock,
+		Users:             queries,
 	}
 	oauthTokenHandler := &oauth.TokenHandler{
 		Logger:       tokenHandlerLogger,
@@ -1372,10 +1379,10 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Verification: verificationService,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:   oAuthKeyMaterials,
-		Endpoints: endpointsProvider,
-		Users:     queries,
-		Clock:     clockClock,
+		Secrets: oAuthKeyMaterials,
+		BaseURL: endpointsProvider,
+		Users:   queries,
+		Clock:   clockClock,
 	}
 	jwksHandler := &oauth.JWKSHandler{
 		Logger: jwksHandlerLogger,
@@ -1670,10 +1677,10 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Verification: verificationService,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:   oAuthKeyMaterials,
-		Endpoints: endpointsProvider,
-		Users:     queries,
-		Clock:     clockClock,
+		Secrets: oAuthKeyMaterials,
+		BaseURL: endpointsProvider,
+		Users:   queries,
+		Clock:   clockClock,
 	}
 	userInfoHandler := &oauth.UserInfoHandler{
 		Logger:           userInfoHandlerLogger,
@@ -16020,13 +16027,13 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	oauthResolver := &oauth2.Resolver{
-		TrustProxy:     trustProxy,
-		Authorizations: authorizationStore,
-		AccessGrants:   grantStore,
-		OfflineGrants:  grantStore,
-		Sessions:       provider,
-		Clock:          clockClock,
+	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
+	mainOriginProvider := &MainOriginProvider{
+		Request:    request,
+		TrustProxy: trustProxy,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
 	}
 	store := &user.Store{
 		SQLBuilder:  sqlBuilder,
@@ -16258,6 +16265,27 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Store:        store,
 		Identities:   identityFacade,
 		Verification: verificationService,
+	}
+	idTokenIssuer := &oidc.IDTokenIssuer{
+		Secrets: oAuthKeyMaterials,
+		BaseURL: endpointsProvider,
+		Users:   queries,
+		Clock:   clockClock,
+	}
+	accessTokenEncoding := &oauth2.AccessTokenEncoding{
+		Secrets:    oAuthKeyMaterials,
+		Clock:      clockClock,
+		UserClaims: idTokenIssuer,
+		BaseURL:    endpointsProvider,
+	}
+	oauthResolver := &oauth2.Resolver{
+		TrustProxy:         trustProxy,
+		Authorizations:     authorizationStore,
+		AccessGrants:       grantStore,
+		OfflineGrants:      grantStore,
+		AccessTokenDecoder: accessTokenEncoding,
+		Sessions:           provider,
+		Clock:              clockClock,
 	}
 	sessionMiddleware := &session.Middleware{
 		IDPSessionResolver:         resolver,

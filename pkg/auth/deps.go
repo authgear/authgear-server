@@ -49,9 +49,11 @@ var DependencySet = wire.NewSet(
 		wire.Struct(new(EndpointsProvider), "*"),
 
 		wire.Bind(new(oauth.EndpointsProvider), new(*EndpointsProvider)),
+		wire.Bind(new(oauth.BaseURLProvider), new(*EndpointsProvider)),
 		wire.Bind(new(webapp.EndpointsProvider), new(*EndpointsProvider)),
 		wire.Bind(new(handlerwebapp.SetupTOTPEndpointsProvider), new(*EndpointsProvider)),
 		wire.Bind(new(oidc.EndpointsProvider), new(*EndpointsProvider)),
+		wire.Bind(new(oidc.BaseURLProvider), new(*EndpointsProvider)),
 		wire.Bind(new(sso.EndpointsProvider), new(*EndpointsProvider)),
 		wire.Bind(new(otp.EndpointsProvider), new(*EndpointsProvider)),
 	),

@@ -12,7 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
-	oauth2 "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -22,7 +22,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
-	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
@@ -146,13 +147,9 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: sqlExecutor,
 		Clock:       clock,
 	}
-	oauthResolver := &oauth.Resolver{
-		TrustProxy:     trustProxy,
-		Authorizations: authorizationStore,
-		AccessGrants:   grantStore,
-		OfflineGrants:  grantStore,
-		Sessions:       provider,
-		Clock:          clock,
+	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
+	endpointsProvider := &EndpointsProvider{
+		HTTP: httpConfig,
 	}
 	store := &user.Store{
 		SQLBuilder:  sqlBuilder,
@@ -188,11 +185,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		NormalizerFactory: normalizerFactory,
 		Clock:             clock,
 	}
-	oauthStore := &oauth2.Store{
+	oauthStore := &oauth.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	oauthProvider := &oauth2.Provider{
+	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clock,
 	}
@@ -361,7 +358,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		CookieFactory: cookieFactory,
 		CookieDef:     cookieDef,
 	}
-	sessionManager := &oauth.SessionManager{
+	sessionManager := &oauth2.SessionManager{
 		Store: grantStore,
 		Clock: clock,
 	}
@@ -384,6 +381,27 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Store:        store,
 		Identities:   identityFacade,
 		Verification: verificationService,
+	}
+	idTokenIssuer := &oidc.IDTokenIssuer{
+		Secrets: oAuthKeyMaterials,
+		BaseURL: endpointsProvider,
+		Users:   queries,
+		Clock:   clock,
+	}
+	accessTokenEncoding := &oauth2.AccessTokenEncoding{
+		Secrets:    oAuthKeyMaterials,
+		Clock:      clock,
+		UserClaims: idTokenIssuer,
+		BaseURL:    endpointsProvider,
+	}
+	oauthResolver := &oauth2.Resolver{
+		TrustProxy:         trustProxy,
+		Authorizations:     authorizationStore,
+		AccessGrants:       grantStore,
+		OfflineGrants:      grantStore,
+		AccessTokenDecoder: accessTokenEncoding,
+		Sessions:           provider,
+		Clock:              clock,
 	}
 	sessionMiddleware := &session.Middleware{
 		IDPSessionResolver:         resolver,
@@ -446,11 +464,11 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		NormalizerFactory: normalizerFactory,
 		Clock:             clockClock,
 	}
-	oauthStore := &oauth2.Store{
+	oauthStore := &oauth.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	oauthProvider := &oauth2.Provider{
+	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
 		Clock: clockClock,
 	}

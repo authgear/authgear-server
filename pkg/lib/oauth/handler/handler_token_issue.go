@@ -32,7 +32,7 @@ func (h *TokenHandler) IssueTokens(
 		return nil, nil, err
 	}
 
-	err = h.issueAccessGrant(client, scopes, authz.ID,
+	err = h.issueAccessGrant(client, scopes, authz.ID, authz.UserID,
 		offlineGrant.ID, oauth.GrantSessionKindOffline, resp)
 	if err != nil {
 		return nil, nil, err
