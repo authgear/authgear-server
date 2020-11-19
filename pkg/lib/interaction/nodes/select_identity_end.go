@@ -17,14 +17,22 @@ type EdgeSelectIdentityEnd struct {
 }
 
 func (e *EdgeSelectIdentityEnd) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
-	ip := httputil.GetIP(ctx.Request, bool(ctx.TrustProxy))
-	err := ctx.RateLimiter.TakeToken(interaction.AuthIPRateLimitBucket(ip))
-	if err != nil {
-		return nil, err
+	bypassRateLimit := false
+	var bypassInput interface{ BypassInteractionIPRateLimit() bool }
+	if interaction.Input(input, &bypassInput) {
+		bypassRateLimit = bypassInput.BypassInteractionIPRateLimit()
+	}
+
+	if !bypassRateLimit {
+		ip := httputil.GetIP(ctx.Request, bool(ctx.TrustProxy))
+		err := ctx.RateLimiter.TakeToken(interaction.AuthIPRateLimitBucket(ip))
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	var info *identity.Info
-	info, err = ctx.Identities.GetBySpec(e.IdentitySpec)
+	info, err := ctx.Identities.GetBySpec(e.IdentitySpec)
 	if errors.Is(err, identity.ErrIdentityNotFound) {
 		// nolint: ineffassign
 		err = nil
