@@ -8,6 +8,8 @@ import {
   DialogFooter,
   DirectionalHint,
   Dropdown,
+  IContextualMenuItem,
+  IContextualMenuProps,
   IDialogProps,
   IListProps,
   ITooltipProps,
@@ -368,7 +370,6 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
     onPendingTemplateLocalesChange,
   } = props;
 
-  const { themes } = useSystemConfig();
   const { renderToString } = useContext(Context);
 
   const [isDialogPresented, setIsDialogPresented] = useState(false);
@@ -418,16 +419,6 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
     displayTemplateLocaleOption
   );
 
-  const {
-    options: defaultTemplateLocaleOptions,
-    onChange: onDefaultTemplateLocaleChange,
-  } = useDropdown(
-    configuredTemplateLocales,
-    onDefaultTemplateLocaleSelected,
-    defaultTemplateLocale,
-    displayTemplateLocale
-  );
-
   const presentDialog = useCallback(() => {
     setIsDialogPresented(true);
   }, []);
@@ -435,6 +426,58 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
   const dismissDialog = useCallback(() => {
     setIsDialogPresented(false);
   }, []);
+
+  const subMenuPropsItems: IContextualMenuItem[] = [];
+  for (const lang of templateLocaleList) {
+    subMenuPropsItems.push({
+      key: lang,
+      text: displayTemplateLocale(lang),
+      iconProps:
+        lang === defaultTemplateLocale
+          ? {
+              iconName: "CheckMark",
+            }
+          : undefined,
+      onClick: (
+        e?: React.SyntheticEvent<HTMLElement>,
+        item?: IContextualMenuItem
+      ) => {
+        // Do not prevent default so that the menu is dismissed.
+        // e?.preventDefault();
+        e?.stopPropagation();
+        if (item != null) {
+          onDefaultTemplateLocaleSelected(item.key);
+        }
+      },
+    });
+  }
+
+  const menuItems: IContextualMenuItem[] = [
+    {
+      key: "change-default-language",
+      text: renderToString(
+        "TemplatesConfigurationScreen.change-default-language"
+      ),
+      subMenuProps: {
+        items: subMenuPropsItems,
+      },
+    },
+    {
+      key: "add-or-remove-langauges",
+      text: renderToString(
+        "TemplatesConfigurationScreen.add-or-remove-languages"
+      ),
+      onClick: (e?: React.SyntheticEvent<HTMLElement>) => {
+        e?.preventDefault();
+        e?.stopPropagation();
+        presentDialog();
+      },
+    },
+  ];
+
+  const menuProps: IContextualMenuProps = {
+    items: menuItems,
+  };
 
   const onTemplateLocaleDeleted = useCallback(
     (configuredLocales: TemplateLocale[], pendingLocales: TemplateLocale[]) => {
@@ -484,24 +527,15 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
         <Dropdown
           className={styles.dropdown}
           label={renderToString(
-            "TemplatesConfigurationScreen.template-locale-dropdown"
+            "TemplatesConfigurationScreen.template-language-dropdown-title"
           )}
           options={templateLocaleOptions}
           onChange={onTemplateLocaleChange}
           selectedKey={templateLocale}
         />
-        <Dropdown
-          className={styles.dropdown}
-          label={renderToString(
-            "TemplatesConfigurationScreen.default-template-locale-dropdown"
-          )}
-          options={defaultTemplateLocaleOptions}
-          onChange={onDefaultTemplateLocaleChange}
-          selectedKey={defaultTemplateLocale}
-        />
-        <ActionButton theme={themes.actionButton} onClick={presentDialog}>
-          <FormattedMessage id="TemplatesConfigurationScreen.manage-template-locale" />
-        </ActionButton>
+        <DefaultButton menuProps={menuProps}>
+          <FormattedMessage id="TemplatesConfigurationScreen.manage-template-languages" />
+        </DefaultButton>
       </Stack>
     </section>
   );
