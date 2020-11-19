@@ -9,8 +9,9 @@ import { ModifiedIndicatorWrapper } from "../../ModifiedIndicatorPortal";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import TemplateLocaleManagement from "./TemplateLocaleManagement";
-import ForgotPasswordTemplatesSettings from "./ForgotPasswordTemplatesSettings";
-import PasswordlessAuthenticatorTemplatesSettings from "./PasswordlessAuthenticatorTemplatesSettings";
+import EditTemplatesWidget, {
+  EditTemplatesWidgetSection,
+} from "./EditTemplatesWidget";
 import { useAppConfigQuery } from "./query/appConfigQuery";
 import { useAppTemplatesQuery } from "./query/appTemplatesQuery";
 import { useTemplateLocaleQuery } from "./query/templateLocaleQuery";
@@ -22,15 +23,29 @@ import {
   DEFAULT_TEMPLATE_LOCALE,
   TemplateLocale,
   ALL_TEMPLATE_PATHS,
+  forgotPasswordEmailHtmlPath,
+  forgotPasswordEmailTextPath,
+  forgotPasswordSmsTextPath,
+  setupPrimaryOobEmailHtmlPath,
+  setupPrimaryOobEmailTextPath,
+  setupPrimaryOobSmsTextPath,
+  authenticatePrimaryOobEmailHtmlPath,
+  authenticatePrimaryOobEmailTextPath,
+  authenticatePrimaryOobSmsTextPath,
+  getLocalizedTemplatePath,
 } from "../../templates";
+import { ResourcePath } from "../../util/stringTemplate";
 
 import styles from "./TemplatesConfigurationScreen.module.scss";
 
 interface TemplatesConfigurationProps {
-  effectiveAppConfig: PortalAPIAppConfig;
   rawAppConfig: PortalAPIAppConfig;
+  initialTemplates: Record<string, string>;
   initialTemplateLocales: TemplateLocale[];
-  onResetForm: () => void;
+  defaultTemplateLocale: TemplateLocale;
+  templateLocale: TemplateLocale;
+  setDefaultTemplateLocale: (locale: TemplateLocale) => void;
+  setTemplateLocale: (locale: TemplateLocale) => void;
 }
 
 const FORGOT_PASSWORD_PIVOT_KEY = "forgot_password";
@@ -41,33 +56,18 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
 ) {
   const { renderToString } = useContext(Context);
   const { appID } = useParams();
-  const { effectiveAppConfig, initialTemplateLocales, onResetForm } = props;
-
-  const initialDefaultTemplateLocale = useMemo(() => {
-    return (
-      effectiveAppConfig.localization?.fallback_language ??
-      DEFAULT_TEMPLATE_LOCALE
-    );
-  }, [effectiveAppConfig]);
-
-  const [defaultTemplateLocale, setDefaultTemplateLocale] = useState<
-    TemplateLocale
-  >(initialDefaultTemplateLocale);
-
-  const [templateLocale, setTemplateLocale] = useState<TemplateLocale>(
-    defaultTemplateLocale
-  );
+  const {
+    initialTemplates,
+    initialTemplateLocales,
+    defaultTemplateLocale,
+    setDefaultTemplateLocale,
+    templateLocale,
+    setTemplateLocale,
+  } = props;
 
   const [templateLocales, setTemplateLocales] = useState<TemplateLocale[]>(
     initialTemplateLocales
   );
-
-  const {
-    templates,
-    loading: loadingTemplates,
-    error: loadTemplatesError,
-    refetch: refetchTemplates,
-  } = useAppTemplatesQuery(appID, templateLocale, ...ALL_TEMPLATE_PATHS);
 
   const onChangeTemplateLocales = useCallback(
     (locales: TemplateLocale[]) => {
@@ -79,11 +79,13 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
 
       setTemplateLocales(locales);
     },
-    [templateLocale, defaultTemplateLocale]
+    [templateLocale, defaultTemplateLocale, setTemplateLocale]
   );
 
+  const [templates, setTemplates] = useState(initialTemplates);
+
   const {
-    updateAppTemplates,
+    // updateAppTemplates,
     loading: updatingTemplates,
     error: updateTemplatesError,
     resetError: resetUpdateTemplatesError,
@@ -117,14 +119,137 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
     resetUpdateAppConfigError();
   }, [resetUpdateTemplatesError, resetUpdateAppConfigError]);
 
-  const resetForm = useCallback(() => {
-    onResetForm();
-  }, [onResetForm]);
+  // FIXME: Reset form.
+  // const resetForm = useCallback(() => {
+  //   onResetForm();
+  // }, [onResetForm]);
 
   const { selectedKey, onLinkClick } = usePivotNavigation(
     [FORGOT_PASSWORD_PIVOT_KEY, PASSWORDLESS_AUTHENTICATOR_PIVOT_KEY],
     resetError
   );
+
+  const getValue = useCallback(
+    (resourcePath: ResourcePath<"locale">) => {
+      return (
+        templates[getLocalizedTemplatePath(templateLocale, resourcePath)] || ""
+      );
+    },
+    [templates, templateLocale]
+  );
+
+  const getOnChange = useCallback(
+    (resourcePath: ResourcePath<"locale">) => {
+      return (_e: unknown, value?: string) => {
+        if (value != null) {
+          setTemplates((prev) => {
+            return {
+              ...prev,
+              [getLocalizedTemplatePath(templateLocale, resourcePath)]: value,
+            };
+          });
+        }
+      };
+    },
+    [templateLocale]
+  );
+
+  const sectionsForgotPassword: EditTemplatesWidgetSection[] = [
+    {
+      key: "email",
+      title: <FormattedMessage id="EditTemplatesWidget.email" />,
+      items: [
+        {
+          key: "html-email",
+          title: <FormattedMessage id="EditTemplatesWidget.html-email" />,
+          language: "html",
+          value: getValue(forgotPasswordEmailHtmlPath),
+          onChange: getOnChange(forgotPasswordEmailHtmlPath),
+        },
+        {
+          key: "plaintext-email",
+          title: <FormattedMessage id="EditTemplatesWidget.plaintext-email" />,
+          language: "plaintext",
+          value: getValue(forgotPasswordEmailTextPath),
+          onChange: getOnChange(forgotPasswordEmailTextPath),
+        },
+      ],
+    },
+    {
+      key: "sms",
+      title: <FormattedMessage id="EditTemplatesWidget.sms" />,
+      items: [
+        {
+          key: "sms",
+          title: <FormattedMessage id="EditTemplatesWidget.sms-body" />,
+          language: "plaintext",
+          value: getValue(forgotPasswordSmsTextPath),
+          onChange: getOnChange(forgotPasswordSmsTextPath),
+        },
+      ],
+    },
+  ];
+
+  const sectionsPasswordless: EditTemplatesWidgetSection[] = [
+    {
+      key: "setup",
+      title: (
+        <FormattedMessage id="EditTemplatesWidget.passwordless.setup.title" />
+      ),
+      items: [
+        {
+          key: "html-email",
+          title: <FormattedMessage id="EditTemplatesWidget.html-email" />,
+          language: "html",
+          value: getValue(setupPrimaryOobEmailHtmlPath),
+          onChange: getOnChange(setupPrimaryOobEmailHtmlPath),
+        },
+        {
+          key: "plaintext-email",
+          title: <FormattedMessage id="EditTemplatesWidget.plaintext-email" />,
+          language: "plaintext",
+          value: getValue(setupPrimaryOobEmailTextPath),
+          onChange: getOnChange(setupPrimaryOobEmailTextPath),
+        },
+        {
+          key: "sms",
+          title: <FormattedMessage id="EditTemplatesWidget.sms-body" />,
+          language: "plaintext",
+          value: getValue(setupPrimaryOobSmsTextPath),
+          onChange: getOnChange(setupPrimaryOobSmsTextPath),
+        },
+      ],
+    },
+    {
+      key: "login",
+      title: (
+        <FormattedMessage id="EditTemplatesWidget.passwordless.login.title" />
+      ),
+      items: [
+        {
+          key: "html-email",
+          title: <FormattedMessage id="EditTemplatesWidget.html-email" />,
+          language: "html",
+          value: getValue(authenticatePrimaryOobEmailHtmlPath),
+          onChange: getOnChange(authenticatePrimaryOobEmailHtmlPath),
+        },
+        {
+          key: "plaintext-email",
+          title: <FormattedMessage id="EditTemplatesWidget.plaintext-email" />,
+          language: "plaintext",
+          value: getValue(authenticatePrimaryOobEmailTextPath),
+          onChange: getOnChange(authenticatePrimaryOobEmailTextPath),
+        },
+        {
+          key: "sms",
+          title: <FormattedMessage id="EditTemplatesWidget.sms-body" />,
+          language: "plaintext",
+          value: getValue(authenticatePrimaryOobSmsTextPath),
+          onChange: getOnChange(authenticatePrimaryOobSmsTextPath),
+        },
+      ],
+    },
+  ];
 
   return (
     <main
@@ -132,9 +257,6 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
         [styles.loading]: updatingTemplates,
       })}
     >
-      {loadTemplatesError && (
-        <ShowError error={loadTemplatesError} onRetry={refetchTemplates} />
-      )}
       {updateTemplatesError && <ShowError error={updateTemplatesError} />}
       {updateAppConfigError && <ShowError error={updateAppConfigError} />}
       <ModifiedIndicatorWrapper className={styles.screen}>
@@ -149,7 +271,6 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
           onSelectTemplateLocale={setTemplateLocale}
           onSelectDefaultTemplateLocale={setDefaultTemplateLocale}
         />
-        {loadingTemplates && <ShowLoading />}
         <Pivot onLinkClick={onLinkClick} selectedKey={selectedKey}>
           <PivotItem
             headerText={renderToString(
@@ -157,13 +278,7 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
             )}
             itemKey={FORGOT_PASSWORD_PIVOT_KEY}
           >
-            <ForgotPasswordTemplatesSettings
-              templates={templates}
-              templateLocale={templateLocale}
-              updateTemplates={updateAppTemplates}
-              updatingTemplates={updatingTemplates}
-              resetForm={resetForm}
-            />
+            <EditTemplatesWidget sections={sectionsForgotPassword} />
           </PivotItem>
           <PivotItem
             headerText={renderToString(
@@ -171,13 +286,7 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
             )}
             itemKey={PASSWORDLESS_AUTHENTICATOR_PIVOT_KEY}
           >
-            <PasswordlessAuthenticatorTemplatesSettings
-              templates={templates}
-              templateLocale={templateLocale}
-              updateTemplates={updateAppTemplates}
-              updatingTemplates={updatingTemplates}
-              resetForm={resetForm}
-            />
+            <EditTemplatesWidget sections={sectionsPasswordless} />
           </PivotItem>
         </Pivot>
       </ModifiedIndicatorWrapper>
@@ -197,18 +306,34 @@ const TemplatesConfigurationScreen: React.FC = function TemplatesConfigurationSc
 
   const {
     templateLocales: initialTemplateLocales,
-    loading: loadingTemplates,
+    loading: loadingTemplateLocales,
     error: loadTemplateLocalesError,
     refetch: refetchTemplateLocales,
   } = useTemplateLocaleQuery(appID);
 
-  const [remountIdentifier, setRemountIdentifier] = useState(0);
+  const initialDefaultTemplateLocale = useMemo(() => {
+    return (
+      effectiveAppConfig?.localization?.fallback_language ??
+      DEFAULT_TEMPLATE_LOCALE
+    );
+  }, [effectiveAppConfig]);
 
-  const onResetForm = useCallback(() => {
-    setRemountIdentifier((prev) => prev + 1);
-  }, []);
+  const [defaultTemplateLocale, setDefaultTemplateLocale] = useState<
+    TemplateLocale
+  >(initialDefaultTemplateLocale);
 
-  if (loadingAppConfig || loadingTemplates) {
+  const [templateLocale, setTemplateLocale] = useState<TemplateLocale>(
+    defaultTemplateLocale
+  );
+
+  const {
+    templates: initialTemplates,
+    loading: loadingTemplates,
+    error: loadTemplatesError,
+    refetch: refetchTemplates,
+  } = useAppTemplatesQuery(appID, templateLocale, ...ALL_TEMPLATE_PATHS);
+
+  if (loadingAppConfig || loadingTemplateLocales || loadingTemplates) {
     return <ShowLoading />;
   }
 
@@ -225,13 +350,19 @@ const TemplatesConfigurationScreen: React.FC = function TemplatesConfigurationSc
     );
   }
 
+  if (loadTemplatesError) {
+    return <ShowError error={loadTemplatesError} onRetry={refetchTemplates} />;
+  }
+
   return (
     <TemplatesConfiguration
-      key={remountIdentifier}
-      effectiveAppConfig={effectiveAppConfig!}
       rawAppConfig={rawAppConfig!}
+      initialTemplates={initialTemplates}
       initialTemplateLocales={initialTemplateLocales}
-      onResetForm={onResetForm}
+      defaultTemplateLocale={defaultTemplateLocale}
+      templateLocale={templateLocale}
+      setDefaultTemplateLocale={setDefaultTemplateLocale}
+      setTemplateLocale={setTemplateLocale}
     />
   );
 };
