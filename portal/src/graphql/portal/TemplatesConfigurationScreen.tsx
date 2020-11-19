@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import cn from "classnames";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import produce from "immer";
+// import produce from "immer";
 import { Pivot, PivotItem, Text } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
@@ -51,7 +51,9 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
   const { appID } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { effectiveAppConfig, rawAppConfig } = useContext(AppConfigContext);
+  const { effectiveAppConfig /* , rawAppConfig */ } = useContext(
+    AppConfigContext
+  );
 
   const initialDefaultTemplateLocale = useMemo(() => {
     return (
@@ -94,26 +96,27 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
   } = useUpdateAppTemplatesMutation(appID);
 
   const {
-    updateAppConfig,
-    loading: updatingAppConfig,
+    // updateAppConfig,
+    // loading: updatingAppConfig,
     error: updateAppConfigError,
     resetError: resetUpdateAppConfigError,
   } = useUpdateAppConfigMutation(appID);
 
-  const saveDefaultTemplateLocale = useCallback(
-    (defaultTemplateLocale: TemplateLocale) => {
-      if (rawAppConfig == null) {
-        return;
-      }
-      const newAppConfig = produce(rawAppConfig, (draftConfig) => {
-        draftConfig.localization = draftConfig.localization ?? {};
-        draftConfig.localization.fallback_language = defaultTemplateLocale;
-      });
+  // FIXME: Unify save.
+  // const saveDefaultTemplateLocale = useCallback(
+  //   (defaultTemplateLocale: TemplateLocale) => {
+  //     if (rawAppConfig == null) {
+  //       return;
+  //     }
+  //     const newAppConfig = produce(rawAppConfig, (draftConfig) => {
+  //       draftConfig.localization = draftConfig.localization ?? {};
+  //       draftConfig.localization.fallback_language = defaultTemplateLocale;
+  //     });
 
-      updateAppConfig(newAppConfig).catch(() => {});
-    },
-    [rawAppConfig, updateAppConfig]
-  );
+  //     updateAppConfig(newAppConfig).catch(() => {});
+  //   },
+  //   [rawAppConfig, updateAppConfig]
+  // );
 
   const refresh = useCallback(() => {
     setRemountIdentifier((prev) => prev + 1);
@@ -216,8 +219,6 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
           onDefaultTemplateLocaleSelected={setDefaultTemplateLocale}
           pendingTemplateLocales={pendingTemplateLocales}
           onPendingTemplateLocalesChange={setPendingTemplateLocales}
-          saveDefaultTemplateLocale={saveDefaultTemplateLocale}
-          updatingAppConfig={updatingAppConfig}
         />
         {loadingTemplates && <ShowLoading />}
         <Pivot
