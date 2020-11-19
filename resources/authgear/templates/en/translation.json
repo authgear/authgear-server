@@ -240,5 +240,7 @@
   "recovery-code-list-disabled": "Listing recovery code is disabled by administrator",
 
   "show-password-label": "Show password",
-  "hide-password-label": "Hide password"
+  "hide-password-label": "Hide password",
+
+  "toc-pp-footer": "<p class=\"toc-pp-footer\">By registering, you agree to our <a target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a> and <a target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>.</p>"
 }

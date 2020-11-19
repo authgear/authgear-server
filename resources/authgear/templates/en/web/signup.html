@@ -131,6 +131,9 @@
 					{{ template "next-button-label" }}
 				</button>
 			</form>
+			{{ if and ($.Translations.HasKey "terms-of-service-link") ($.Translations.HasKey "privacy-policy-link") }}
+				{{ template "toc-pp-footer" (dict "termsOfService" (.Translations.RenderText "terms-of-service-link" nil) "privacyPolicy" (.Translations.RenderText "privacy-policy-link" nil)) }}
+			{{ end }}
 		</div>
 		{{ end }}
 	</div>

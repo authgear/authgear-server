@@ -171,3 +171,19 @@ func (s *Service) SMSMessageData(msg *MessageSpec, args interface{}) (*SMSMessag
 		Body:   body,
 	}, nil
 }
+
+func (s *Service) HasKey(key string) (bool, error) {
+	t, err := s.translationMap()
+	if err != nil {
+		return false, err
+	}
+	return t.HasKey(key), nil
+}
+
+func (s *Service) RenderText(key string, args interface{}) (string, error) {
+	t, err := s.translationMap()
+	if err != nil {
+		return "", err
+	}
+	return t.RenderText(key, args)
+}

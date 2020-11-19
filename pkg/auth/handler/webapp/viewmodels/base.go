@@ -14,6 +14,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
+type TranslationService interface {
+	HasKey(key string) (bool, error)
+	RenderText(key string, args interface{}) (string, error)
+}
+
 // BaseViewModel contains data that are common to all pages.
 type BaseViewModel struct {
 	// RequestURL is the absolute request URL.
@@ -22,6 +27,7 @@ type BaseViewModel struct {
 	// That is, it is the path plus the optional query.
 	RequestURI            string
 	CSRFField             htmltemplate.HTML
+	Translations          TranslationService
 	StaticAssetURL        func(id string) (url string, err error)
 	CountryCallingCodes   []string
 	SliceContains         func([]interface{}, interface{}) bool
@@ -67,6 +73,7 @@ type BaseViewModeler struct {
 	ForgotPassword *config.ForgotPasswordConfig
 	Authentication *config.AuthenticationConfig
 	ErrorCookie    ErrorCookie
+	Translations   TranslationService
 }
 
 func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) BaseViewModel {
@@ -78,6 +85,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		RequestURL:          r.URL.String(),
 		RequestURI:          requestURI.String(),
 		CSRFField:           csrf.TemplateField(r),
+		Translations:        m.Translations,
 		StaticAssetURL:      m.StaticAssets.StaticAssetURL,
 		CountryCallingCodes: m.AuthUI.CountryCallingCode.GetActiveCountryCodes(),
 		SliceContains:       sliceContains,

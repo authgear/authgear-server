@@ -13,6 +13,11 @@ type TranslationMap struct {
 	items     map[string]*parse.Tree
 }
 
+func (t *TranslationMap) HasKey(key string) bool {
+	_, ok := t.items[key]
+	return ok
+}
+
 func (t *TranslationMap) RenderText(key string, args interface{}) (string, error) {
 	tree, ok := t.items[key]
 	if !ok {
