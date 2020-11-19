@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/lestrrat-go/jwx/jwa"
+	"github.com/lestrrat-go/jwx/jws"
 	"github.com/lestrrat-go/jwx/jwt"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -53,7 +54,10 @@ func (e *AccessTokenEncoding) EncodeAccessToken(client *config.OAuthClientConfig
 
 	jwk := e.Secrets.Set.Keys[0]
 
-	signed, err := jwtutil.Sign(claims, jwa.RS256, jwk)
+	hdr := jws.NewHeaders()
+	_ = hdr.Set("typ", "at+jwt")
+
+	signed, err := jwtutil.SignWithHeader(claims, hdr, jwa.RS256, jwk)
 	if err != nil {
 		return "", err
 	}

@@ -12,36 +12,44 @@ import (
 )
 
 func Sign(t jwt.Token, alg jwa.SignatureAlgorithm, key interface{}) (token []byte, err error) {
+	return SignWithHeader(t, jws.NewHeaders(), alg, key)
+}
+
+func SignWithHeader(t jwt.Token, hdr jws.Headers, alg jwa.SignatureAlgorithm, key interface{}) (token []byte, err error) {
 	buf, err := json.Marshal(t)
 	if err != nil {
 		return
 	}
 
-	hdr := jws.NewHeaders()
-
-	err = hdr.Set("alg", alg.String())
-	if err != nil {
-		return
+	if _, ok := hdr.Get("alg"); !ok {
+		err = hdr.Set("alg", alg.String())
+		if err != nil {
+			return
+		}
 	}
 
-	err = hdr.Set("typ", "JWT")
-	if err != nil {
-		return
+	if _, ok := hdr.Get("typ"); !ok {
+		err = hdr.Set("typ", "JWT")
+		if err != nil {
+			return
+		}
 	}
 
 	// Assume key is the actual key.
 	realKey := key
-	if jwk, ok := key.(jwk.Key); ok {
-		err = jwk.Raw(&realKey)
-		if err != nil {
-			return
-		}
-
-		kid := jwk.KeyID()
-		if kid != "" {
-			err = hdr.Set("kid", jwk.KeyID())
+	if _, ok := hdr.Get("kid"); !ok {
+		if jwk, ok := key.(jwk.Key); ok {
+			err = jwk.Raw(&realKey)
 			if err != nil {
 				return
+			}
+
+			kid := jwk.KeyID()
+			if kid != "" {
+				err = hdr.Set("kid", jwk.KeyID())
+				if err != nil {
+					return
+				}
 			}
 		}
 	}
