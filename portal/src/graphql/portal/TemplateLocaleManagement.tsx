@@ -1,9 +1,9 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
 import {
   ActionButton,
   Checkbox,
   DefaultButton,
+  PrimaryButton,
   Dialog,
   DialogFooter,
   DirectionalHint,
@@ -22,9 +22,6 @@ import {
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
-import { useRemoveTemplateLocalesMutation } from "./mutations/updateAppTemplatesMutation";
-import ButtonWithLoading from "../../ButtonWithLoading";
-import ErrorDialog from "../../error/ErrorDialog";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useCheckbox, useDropdown } from "../../hook/useInput";
 import { TemplateLocale } from "../../templates";
@@ -34,37 +31,36 @@ import styles from "./TemplateLocaleManagement.module.scss";
 type TemplateLocaleUpdater = (locale: TemplateLocale) => void;
 
 interface TemplateLocaleManagementProps {
-  configuredTemplateLocales: TemplateLocale[];
+  // The list of languages.
+  templateLocales: TemplateLocale[];
+  onChangeTemplateLocales: (locales: TemplateLocale[]) => void;
+
+  // The selected language.
   templateLocale: TemplateLocale;
-  initialDefaultTemplateLocale: TemplateLocale;
+  onSelectTemplateLocale: TemplateLocaleUpdater;
+
+  // The default language.
   defaultTemplateLocale: TemplateLocale;
-  onTemplateLocaleSelected: TemplateLocaleUpdater;
-  onDefaultTemplateLocaleSelected: TemplateLocaleUpdater;
-  pendingTemplateLocales: TemplateLocale[];
-  onPendingTemplateLocalesChange: (locales: TemplateLocale[]) => void;
+  onSelectDefaultTemplateLocale: TemplateLocaleUpdater;
 }
 
 interface TemplateLocaleManagementDialogProps {
-  defaultTemplateLocale: TemplateLocale;
   presented: boolean;
   onDismiss: () => void;
-  configuredTemplateLocales: TemplateLocale[];
-  pendingTemplateLocales: TemplateLocale[];
-  onPendingTemplateLocalesChange: (locales: TemplateLocale[]) => void;
-  onTemplateLocaleDeleted: (
-    configuredLocales: TemplateLocale[],
-    pendingLocales: TemplateLocale[]
-  ) => void;
+  defaultTemplateLocale: TemplateLocale;
+  templateLocales: TemplateLocale[];
+  onChangeTemplateLocales: (locales: TemplateLocale[]) => void;
 }
 
 interface TemplateLocaleListItemProps {
   locale: TemplateLocale;
-  onItemSelected: (locale: TemplateLocale, checked: boolean) => void;
+  checked: boolean;
+  onSelectItem: (locale: TemplateLocale) => void;
 }
 
 interface SelectedTemplateLocaleItemProps {
   locale: TemplateLocale;
-  onItemRemoved: (locale: TemplateLocale) => void;
+  onRemove: (locale: TemplateLocale) => void;
   isDefaultLocale: boolean;
 }
 
@@ -83,15 +79,15 @@ function getLanguageLocaleKey(locale: TemplateLocale) {
 const TemplateLocaleListItem: React.FC<TemplateLocaleListItemProps> = function TemplateLocaleListItem(
   props: TemplateLocaleListItemProps
 ) {
-  const { locale, onItemSelected } = props;
+  const { locale, checked, onSelectItem } = props;
 
-  const { onChange } = useCheckbox((checked) => {
-    onItemSelected(locale, checked);
+  const { onChange } = useCheckbox(() => {
+    onSelectItem(locale);
   });
 
   return (
     <div className={styles.dialogLocaleListItem}>
-      <Checkbox onChange={onChange} />
+      <Checkbox checked={checked} disabled={checked} onChange={onChange} />
       <Text className={styles.dialogLocaleListItemText}>
         <FormattedMessage id={getLanguageLocaleKey(locale)} />
       </Text>
@@ -102,7 +98,7 @@ const TemplateLocaleListItem: React.FC<TemplateLocaleListItemProps> = function T
 const SelectedTemplateLocaleItem: React.FC<SelectedTemplateLocaleItemProps> = function SelectedTemplateLocaleItem(
   props: SelectedTemplateLocaleItemProps
 ) {
-  const { locale, onItemRemoved, isDefaultLocale } = props;
+  const { locale, onRemove, isDefaultLocale } = props;
   const { themes } = useSystemConfig();
 
   const tooltipProps: ITooltipProps = useMemo(() => {
@@ -118,8 +114,8 @@ const SelectedTemplateLocaleItem: React.FC<SelectedTemplateLocaleItemProps> = fu
   }, []);
 
   const onDeleteClicked = useCallback(() => {
-    onItemRemoved(locale);
-  }, [locale, onItemRemoved]);
+    onRemove(locale);
+  }, [locale, onRemove]);
 
   return (
     <div className={styles.dialogSelectedItem}>
@@ -142,81 +138,79 @@ const SelectedTemplateLocaleItem: React.FC<SelectedTemplateLocaleItemProps> = fu
   );
 };
 
+interface TemplateLocaleListItemProps {
+  locale: TemplateLocale;
+  checked: boolean;
+  onSelectItem: (locale: TemplateLocale) => void;
+}
+
 const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogProps> = function TemplateLocaleManagementDialog(
   props: TemplateLocaleManagementDialogProps
 ) {
   const {
     presented,
     onDismiss,
-    configuredTemplateLocales,
-    pendingTemplateLocales,
-    onPendingTemplateLocalesChange,
-    onTemplateLocaleDeleted,
     defaultTemplateLocale,
+    templateLocales,
+    onChangeTemplateLocales,
   } = props;
 
   const { supportedResourceLocales } = useSystemConfig();
-  const { appID } = useParams();
 
-  const {
-    removeTemplateLocales,
-    loading: removingTemplateLoacles,
-    error: removeTemplateLocalesError,
-  } = useRemoveTemplateLocalesMutation(appID);
-
-  const [localErrorMessage, setLocalErrorMessage] = useState<
-    string | undefined
-  >();
-
-  const initialSelectedLocales = useMemo(() => {
-    return configuredTemplateLocales.concat(pendingTemplateLocales);
-  }, [configuredTemplateLocales, pendingTemplateLocales]);
-  const [selectedLocales, setSelectedLocales] = useState<TemplateLocale[]>(
-    initialSelectedLocales
+  const [newLocales, setNewLocales] = useState<TemplateLocale[]>(
+    templateLocales
   );
 
-  const onTemplateLocaleListItemSelected = useCallback(
-    (locale: TemplateLocale, checked: boolean) => {
-      setSelectedLocales((prev) => {
-        const modifiedIndex = prev.findIndex((item) => item === locale);
-        if (checked && modifiedIndex < 0) {
-          return [...prev, locale];
-        }
-        if (!checked && modifiedIndex >= 0) {
-          const updated = [...prev];
-          updated.splice(modifiedIndex, 1);
-          return updated;
-        }
+  const onAddTemplateLocale = useCallback((locale: TemplateLocale) => {
+    setNewLocales((prev) => {
+      const idx = prev.findIndex((item) => item === locale);
+      // Already present
+      if (idx >= 0) {
         return prev;
+      }
+      return [...prev, locale];
+    });
+  }, []);
+
+  const listItems = useMemo(() => {
+    const items: TemplateLocaleListItemProps[] = [];
+    for (const locale of supportedResourceLocales) {
+      items.push({
+        locale,
+        checked:
+          templateLocales.includes(locale) || newLocales.includes(locale),
+        onSelectItem: onAddTemplateLocale,
       });
-    },
-    []
-  );
-  const onSelctedTemplateLocaleRemoved = useCallback(
-    (locale: TemplateLocale) => {
-      setSelectedLocales((prev) => {
-        return prev.filter((item) => item !== locale);
-      });
-    },
-    []
-  );
+    }
+    return items;
+  }, [
+    onAddTemplateLocale,
+    supportedResourceLocales,
+    templateLocales,
+    newLocales,
+  ]);
+
+  const onRemoveTemplateLocale = useCallback((locale: TemplateLocale) => {
+    setNewLocales((prev) => {
+      return prev.filter((item) => item !== locale);
+    });
+  }, []);
 
   const renderLocaleListItemCell = useCallback<
-    Required<IListProps<TemplateLocale>>["onRenderCell"]
-  >(
-    (locale) => {
-      if (locale == null) {
-        return null;
-      }
-      return (
-        <TemplateLocaleListItem
-          locale={locale}
-          onItemSelected={onTemplateLocaleListItemSelected}
-        />
-      );
-    },
-    [onTemplateLocaleListItemSelected]
-  );
+    Required<IListProps<TemplateLocaleListItemProps>>["onRenderCell"]
+  >((item?: TemplateLocaleListItemProps) => {
+    if (item == null) {
+      return null;
+    }
+    const { locale, checked, onSelectItem } = item;
+    return (
+      <TemplateLocaleListItem
+        locale={locale}
+        checked={checked}
+        onSelectItem={onSelectItem}
+      />
+    );
+  }, []);
 
   const renderSelectedLocaleItemCell = useCallback<
     Required<IListProps<TemplateLocale>>["onRenderCell"]
@@ -228,63 +222,23 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
       return (
         <SelectedTemplateLocaleItem
           locale={locale}
-          onItemRemoved={onSelctedTemplateLocaleRemoved}
+          onRemove={onRemoveTemplateLocale}
           isDefaultLocale={locale === defaultTemplateLocale}
         />
       );
     },
-    [onSelctedTemplateLocaleRemoved, defaultTemplateLocale]
+    [onRemoveTemplateLocale, defaultTemplateLocale]
   );
 
   const onCancel = useCallback(() => {
-    setSelectedLocales(initialSelectedLocales);
+    setNewLocales(templateLocales);
     onDismiss();
-  }, [onDismiss, initialSelectedLocales]);
+  }, [onDismiss, templateLocales]);
 
   const onApplyClick = useCallback(() => {
-    const selectedLocaleSet = new Set(selectedLocales);
-    const configuredLocaleSet = new Set(configuredTemplateLocales);
-    const removedLocales = configuredTemplateLocales.filter(
-      (locale) => !selectedLocaleSet.has(locale)
-    );
-    if (removedLocales.includes(defaultTemplateLocale)) {
-      setLocalErrorMessage(
-        "TemplateLocaleManagementDialog.cannot-remove-default-language-error"
-      );
-      return;
-    }
-    const updatedConfiguredTemplateLocales = configuredTemplateLocales.filter(
-      (locale) => selectedLocaleSet.has(locale)
-    );
-
-    const updatedPendingTemplateLocales = selectedLocales.filter(
-      (locale) => !configuredLocaleSet.has(locale)
-    );
-
-    if (removedLocales.length > 0) {
-      removeTemplateLocales(removedLocales)
-        .then(() => {
-          onPendingTemplateLocalesChange(updatedPendingTemplateLocales);
-          onTemplateLocaleDeleted(
-            updatedConfiguredTemplateLocales,
-            updatedPendingTemplateLocales
-          );
-          onDismiss();
-        })
-        .catch(() => {});
-    } else {
-      onPendingTemplateLocalesChange(updatedPendingTemplateLocales);
-      onDismiss();
-    }
-  }, [
-    defaultTemplateLocale,
-    selectedLocales,
-    configuredTemplateLocales,
-    onPendingTemplateLocalesChange,
-    removeTemplateLocales,
-    onDismiss,
-    onTemplateLocaleDeleted,
-  ]);
+    onChangeTemplateLocales(newLocales);
+    onDismiss();
+  }, [onChangeTemplateLocales, newLocales, onDismiss]);
 
   const modalProps = useMemo<IDialogProps["modalProps"]>(() => {
     return {
@@ -294,65 +248,51 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
   }, []);
 
   return (
-    <>
-      <ErrorDialog
-        error={removeTemplateLocalesError}
-        rules={[]}
-        errorMessage={localErrorMessage}
-        fallbackErrorMessageID="TemplateLocaleManagementDialog.apply-error"
-      />
-      <Dialog
-        hidden={!presented}
-        onDismiss={onDismiss}
-        title={<FormattedMessage id="TemplateLocaleManagementDialog.title" />}
-        modalProps={modalProps}
-        styles={DIALOG_STYLES}
-      >
-        <Text className={styles.dialogDesc}>
-          <FormattedMessage id="TemplateLocaleManagementDialog.desc" />
-        </Text>
-        <div className={styles.dialogContent}>
-          <section className={styles.dialogColumn}>
-            <Text className={styles.dialogColumnHeader}>
-              <FormattedMessage id="TemplateLocaleManagementDialog.supported-resource-locales-header" />
-            </Text>
-            <section className={styles.dialogListWrapper}>
-              <ScrollablePane>
-                <List
-                  items={supportedResourceLocales}
-                  onRenderCell={renderLocaleListItemCell}
-                />
-              </ScrollablePane>
-            </section>
+    <Dialog
+      hidden={!presented}
+      onDismiss={onCancel}
+      title={<FormattedMessage id="TemplateLocaleManagementDialog.title" />}
+      modalProps={modalProps}
+      styles={DIALOG_STYLES}
+    >
+      <Text className={styles.dialogDesc}>
+        <FormattedMessage id="TemplateLocaleManagementDialog.desc" />
+      </Text>
+      <div className={styles.dialogContent}>
+        <section className={styles.dialogColumn}>
+          <Text className={styles.dialogColumnHeader}>
+            <FormattedMessage id="TemplateLocaleManagementDialog.supported-resource-locales-header" />
+          </Text>
+          <section className={styles.dialogListWrapper}>
+            <ScrollablePane>
+              <List items={listItems} onRenderCell={renderLocaleListItemCell} />
+            </ScrollablePane>
           </section>
-          <VerticalDivider className={styles.dialogDivider} />
-          <section className={styles.dialogColumn}>
-            <Text className={styles.dialogColumnHeader}>
-              <FormattedMessage id="TemplateLocaleManagementDialog.selected-template-locales-header" />
-            </Text>
-            <section className={styles.dialogListWrapper}>
-              <ScrollablePane>
-                <List
-                  items={selectedLocales}
-                  onRenderCell={renderSelectedLocaleItemCell}
-                />
-              </ScrollablePane>
-            </section>
+        </section>
+        <VerticalDivider className={styles.dialogDivider} />
+        <section className={styles.dialogColumn}>
+          <Text className={styles.dialogColumnHeader}>
+            <FormattedMessage id="TemplateLocaleManagementDialog.selected-template-locales-header" />
+          </Text>
+          <section className={styles.dialogListWrapper}>
+            <ScrollablePane>
+              <List
+                items={newLocales}
+                onRenderCell={renderSelectedLocaleItemCell}
+              />
+            </ScrollablePane>
           </section>
-        </div>
-        <DialogFooter>
-          <DefaultButton onClick={onCancel}>
-            <FormattedMessage id="cancel" />
-          </DefaultButton>
-          <ButtonWithLoading
-            loading={removingTemplateLoacles}
-            onClick={onApplyClick}
-            labelId="apply"
-            loadingLabelId="applying"
-          />
-        </DialogFooter>
-      </Dialog>
-    </>
+        </section>
+      </div>
+      <DialogFooter>
+        <DefaultButton onClick={onCancel}>
+          <FormattedMessage id="cancel" />
+        </DefaultButton>
+        <PrimaryButton onClick={onApplyClick}>
+          <FormattedMessage id="apply" />
+        </PrimaryButton>
+      </DialogFooter>
+    </Dialog>
   );
 };
 
@@ -360,14 +300,12 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
   props: TemplateLocaleManagementProps
 ) {
   const {
-    configuredTemplateLocales,
+    templateLocales,
+    onChangeTemplateLocales,
     templateLocale,
-    initialDefaultTemplateLocale,
+    onSelectTemplateLocale,
     defaultTemplateLocale,
-    onTemplateLocaleSelected,
-    onDefaultTemplateLocaleSelected,
-    pendingTemplateLocales,
-    onPendingTemplateLocalesChange,
+    onSelectDefaultTemplateLocale,
   } = props;
 
   const { renderToString } = useContext(Context);
@@ -381,40 +319,19 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
     [renderToString]
   );
 
-  const templateLocaleList = useMemo(() => {
-    return configuredTemplateLocales.concat(pendingTemplateLocales);
-  }, [configuredTemplateLocales, pendingTemplateLocales]);
-
   const displayTemplateLocaleOption = useCallback(
     (locale: TemplateLocale) => {
-      const localeDisplayText = displayTemplateLocale(locale);
-      if (locale === initialDefaultTemplateLocale) {
-        return renderToString(
-          "TemplatesConfigurationScreen.default-template-locale",
-          { locale: localeDisplayText }
-        );
-      } else if (pendingTemplateLocales.includes(locale)) {
-        return renderToString(
-          "TemplatesConfigurationScreen.pending-template-locale",
-          { locale: localeDisplayText }
-        );
-      }
-      return localeDisplayText;
+      return displayTemplateLocale(locale);
     },
-    [
-      initialDefaultTemplateLocale,
-      pendingTemplateLocales,
-      displayTemplateLocale,
-      renderToString,
-    ]
+    [displayTemplateLocale]
   );
 
   const {
     options: templateLocaleOptions,
     onChange: onTemplateLocaleChange,
   } = useDropdown(
-    templateLocaleList,
-    onTemplateLocaleSelected,
+    templateLocales,
+    onSelectTemplateLocale,
     templateLocale,
     displayTemplateLocaleOption
   );
@@ -428,7 +345,7 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
   }, []);
 
   const subMenuPropsItems: IContextualMenuItem[] = [];
-  for (const lang of templateLocaleList) {
+  for (const lang of templateLocales) {
     subMenuPropsItems.push({
       key: lang,
       text: displayTemplateLocale(lang),
@@ -446,7 +363,7 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
         // e?.preventDefault();
         e?.stopPropagation();
         if (item != null) {
-          onDefaultTemplateLocaleSelected(item.key);
+          onSelectDefaultTemplateLocale(item.key);
         }
       },
     });
@@ -479,44 +396,14 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
     items: menuItems,
   };
 
-  const onTemplateLocaleDeleted = useCallback(
-    (configuredLocales: TemplateLocale[], pendingLocales: TemplateLocale[]) => {
-      // Check if selected is deleted
-      const oldLocaleList = [...templateLocaleList];
-      const localeList = configuredLocales.concat(pendingLocales);
-      if (!localeList.includes(templateLocale)) {
-        const prevOptionIndex = oldLocaleList.findIndex(
-          (locale) => locale === templateLocale
-        );
-        if (prevOptionIndex !== -1) {
-          // find element from old locale list which exists from
-          // updated list from previous selected item
-          for (let i = 0; i < oldLocaleList.length; i++) {
-            const currIndex = (prevOptionIndex + i) % oldLocaleList.length;
-            const currElem = oldLocaleList[currIndex];
-            if (localeList.includes(currElem)) {
-              onTemplateLocaleSelected(currElem);
-              break;
-            }
-          }
-        } else {
-          onTemplateLocaleSelected(localeList[0]);
-        }
-      }
-    },
-    [onTemplateLocaleSelected, templateLocale, templateLocaleList]
-  );
-
   return (
     <section className={styles.templateLocaleManagement}>
       <TemplateLocaleManagementDialog
         presented={isDialogPresented}
-        configuredTemplateLocales={configuredTemplateLocales}
-        pendingTemplateLocales={pendingTemplateLocales}
-        onPendingTemplateLocalesChange={onPendingTemplateLocalesChange}
         onDismiss={dismissDialog}
-        onTemplateLocaleDeleted={onTemplateLocaleDeleted}
+        templateLocales={templateLocales}
         defaultTemplateLocale={defaultTemplateLocale}
+        onChangeTemplateLocales={onChangeTemplateLocales}
       />
       <Stack
         className={styles.inputContainer}

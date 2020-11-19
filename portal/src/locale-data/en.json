@@ -358,8 +358,6 @@
   "TemplatesConfigurationScreen.manage-template-languages": "Manage Template Languages",
   "TemplatesConfigurationScreen.change-default-language": "Change Default Language",
   "TemplatesConfigurationScreen.add-or-remove-languages": "Add or Remove Languages",
-  "TemplatesConfigurationScreen.default-template-locale": "Default - {locale}",
-  "TemplatesConfigurationScreen.pending-template-locale": "Pending - {locale}",
   "TemplatesConfigurationScreen.passwordless-authenticator.title": "Passwordless Authenticator",
   "TemplatesConfigurationScreen.forgot-password.title": "Forgot Password",
 

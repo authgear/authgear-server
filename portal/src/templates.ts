@@ -19,7 +19,7 @@ export const forgotPasswordEmailHtmlPath = resourcePath`templates/${"locale"}/me
 export const forgotPasswordEmailTextPath = resourcePath`templates/${"locale"}/messages/forgot_password_email.txt`;
 export const forgotPasswordSmsTextPath = resourcePath`templates/${"locale"}/messages/forgot_password_sms.txt`;
 
-export const templatePaths = [
+export const ALL_TEMPLATE_PATHS = [
   setupPrimaryOobEmailHtmlPath,
   setupPrimaryOobEmailTextPath,
   setupPrimaryOobSmsTextPath,

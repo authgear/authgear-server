@@ -1,13 +1,6 @@
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 // import produce from "immer";
 import { Pivot, PivotItem, Text } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -20,6 +13,7 @@ import ForgotPasswordTemplatesSettings from "./ForgotPasswordTemplatesSettings";
 import PasswordlessAuthenticatorTemplatesSettings from "./PasswordlessAuthenticatorTemplatesSettings";
 import { useAppConfigQuery } from "./query/appConfigQuery";
 import { useAppTemplatesQuery } from "./query/appTemplatesQuery";
+import { useTemplateLocaleQuery } from "./query/templateLocaleQuery";
 import { useUpdateAppTemplatesMutation } from "./mutations/updateAppTemplatesMutation";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
 import { PortalAPIAppConfig } from "../../types";
@@ -27,66 +21,66 @@ import { usePivotNavigation } from "../../hook/usePivot";
 import {
   DEFAULT_TEMPLATE_LOCALE,
   TemplateLocale,
-  templatePaths,
+  ALL_TEMPLATE_PATHS,
 } from "../../templates";
-import { useGenericError } from "../../error/useGenericError";
 
 import styles from "./TemplatesConfigurationScreen.module.scss";
 
-interface AppConfigContextValue {
-  effectiveAppConfig: PortalAPIAppConfig | null;
-  rawAppConfig: PortalAPIAppConfig | null;
+interface TemplatesConfigurationProps {
+  effectiveAppConfig: PortalAPIAppConfig;
+  rawAppConfig: PortalAPIAppConfig;
+  initialTemplateLocales: TemplateLocale[];
+  onResetForm: () => void;
 }
 
 const FORGOT_PASSWORD_PIVOT_KEY = "forgot_password";
 const PASSWORDLESS_AUTHENTICATOR_PIVOT_KEY = "passwordless_authenticator";
 
-const AppConfigContext = createContext<AppConfigContextValue>({
-  effectiveAppConfig: null,
-  rawAppConfig: null,
-});
-
-const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
+const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function TemplatesConfiguration(
+  props: TemplatesConfigurationProps
+) {
   const { renderToString } = useContext(Context);
   const { appID } = useParams();
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const { effectiveAppConfig /* , rawAppConfig */ } = useContext(
-    AppConfigContext
-  );
+  const { effectiveAppConfig, initialTemplateLocales, onResetForm } = props;
 
   const initialDefaultTemplateLocale = useMemo(() => {
     return (
-      effectiveAppConfig?.localization?.fallback_language ??
+      effectiveAppConfig.localization?.fallback_language ??
       DEFAULT_TEMPLATE_LOCALE
     );
   }, [effectiveAppConfig]);
 
-  const [remountIdentifier, setRemountIdentifier] = useState(0);
   const [defaultTemplateLocale, setDefaultTemplateLocale] = useState<
     TemplateLocale
   >(initialDefaultTemplateLocale);
 
-  const [pendingTemplateLocales, setPendingTemplateLocales] = useState<
-    TemplateLocale[]
-  >([]);
+  const [templateLocale, setTemplateLocale] = useState<TemplateLocale>(
+    defaultTemplateLocale
+  );
 
-  const templateLocale = useMemo(() => {
-    const paramLocale = searchParams.get("locale");
-    if (paramLocale != null && paramLocale.trim() !== "") {
-      return paramLocale;
-    }
-    return defaultTemplateLocale;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  const [templateLocales, setTemplateLocales] = useState<TemplateLocale[]>(
+    initialTemplateLocales
+  );
 
   const {
     templates,
-    templateLocales: configuredLocales,
     loading: loadingTemplates,
     error: loadTemplatesError,
     refetch: refetchTemplates,
-  } = useAppTemplatesQuery(appID, templateLocale, ...templatePaths);
+  } = useAppTemplatesQuery(appID, templateLocale, ...ALL_TEMPLATE_PATHS);
+
+  const onChangeTemplateLocales = useCallback(
+    (locales: TemplateLocale[]) => {
+      // Reset templateLocale to default if the selected one was removed.
+      const idx = locales.findIndex((item) => item === templateLocale);
+      if (idx < 0) {
+        setTemplateLocale(defaultTemplateLocale);
+      }
+
+      setTemplateLocales(locales);
+    },
+    [templateLocale, defaultTemplateLocale]
+  );
 
   const {
     updateAppTemplates,
@@ -118,80 +112,18 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
   //   [rawAppConfig, updateAppConfig]
   // );
 
-  const refresh = useCallback(() => {
-    setRemountIdentifier((prev) => prev + 1);
-  }, []);
-
   const resetError = useCallback(() => {
     resetUpdateTemplatesError();
     resetUpdateAppConfigError();
   }, [resetUpdateTemplatesError, resetUpdateAppConfigError]);
 
   const resetForm = useCallback(() => {
-    refresh();
-    resetError();
-  }, [resetError, refresh]);
-
-  const onTemplateLocaleSelected = useCallback(
-    (locale: TemplateLocale) => {
-      navigate(`?locale=${locale}${window.location.hash}`);
-    },
-    [navigate]
-  );
-
-  // NOTE: handle invalid locale key in query string
-  useEffect(() => {
-    const localeList = configuredLocales.concat(pendingTemplateLocales);
-    if (
-      !localeList.includes(templateLocale) &&
-      localeList.includes(defaultTemplateLocale)
-    ) {
-      onTemplateLocaleSelected(defaultTemplateLocale);
-    }
-  }, [
-    onTemplateLocaleSelected,
-    configuredLocales,
-    pendingTemplateLocales,
-    defaultTemplateLocale,
-    templateLocale,
-  ]);
-
-  useEffect(() => {
-    refresh();
-  }, [templateLocale, refresh]);
-
-  useEffect(() => {
-    for (const configuredLocale of configuredLocales) {
-      if (pendingTemplateLocales.includes(configuredLocale)) {
-        setPendingTemplateLocales((prev) =>
-          prev.filter((locale) => locale !== configuredLocale)
-        );
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [configuredLocales]);
-
-  useEffect(() => {
-    if (!loadingTemplates) {
-      refresh();
-    }
-  }, [loadingTemplates, refresh]);
+    onResetForm();
+  }, [onResetForm]);
 
   const { selectedKey, onLinkClick } = usePivotNavigation(
     [FORGOT_PASSWORD_PIVOT_KEY, PASSWORDLESS_AUTHENTICATOR_PIVOT_KEY],
     resetError
-  );
-
-  const { unrecognizedError: unrecognizedLoadTemplateError } = useGenericError(
-    loadTemplatesError,
-    [],
-    [
-      {
-        reason: "ResourceNotFound",
-        // NOTE: error message unused
-        errorMessageID: "generic-error.unknown-error",
-      },
-    ]
   );
 
   return (
@@ -200,32 +132,25 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
         [styles.loading]: updatingTemplates,
       })}
     >
-      {updateTemplatesError && <ShowError error={updateTemplatesError} />}
-      {updateAppConfigError && <ShowError error={updateAppConfigError} />}
-      {unrecognizedLoadTemplateError && (
+      {loadTemplatesError && (
         <ShowError error={loadTemplatesError} onRetry={refetchTemplates} />
       )}
+      {updateTemplatesError && <ShowError error={updateTemplatesError} />}
+      {updateAppConfigError && <ShowError error={updateAppConfigError} />}
       <ModifiedIndicatorWrapper className={styles.screen}>
         <Text className={styles.screenHeaderText} as="h1">
           <FormattedMessage id="TemplatesConfigurationScreen.title" />
         </Text>
         <TemplateLocaleManagement
-          key={remountIdentifier}
-          configuredTemplateLocales={configuredLocales}
+          templateLocales={templateLocales}
+          onChangeTemplateLocales={onChangeTemplateLocales}
           templateLocale={templateLocale}
-          initialDefaultTemplateLocale={initialDefaultTemplateLocale}
           defaultTemplateLocale={defaultTemplateLocale}
-          onTemplateLocaleSelected={onTemplateLocaleSelected}
-          onDefaultTemplateLocaleSelected={setDefaultTemplateLocale}
-          pendingTemplateLocales={pendingTemplateLocales}
-          onPendingTemplateLocalesChange={setPendingTemplateLocales}
+          onSelectTemplateLocale={setTemplateLocale}
+          onSelectDefaultTemplateLocale={setDefaultTemplateLocale}
         />
         {loadingTemplates && <ShowLoading />}
-        <Pivot
-          hidden={loadingTemplates || unrecognizedLoadTemplateError != null}
-          onLinkClick={onLinkClick}
-          selectedKey={selectedKey}
-        >
+        <Pivot onLinkClick={onLinkClick} selectedKey={selectedKey}>
           <PivotItem
             headerText={renderToString(
               "TemplatesConfigurationScreen.forgot-password.title"
@@ -233,7 +158,6 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
             itemKey={FORGOT_PASSWORD_PIVOT_KEY}
           >
             <ForgotPasswordTemplatesSettings
-              key={remountIdentifier}
               templates={templates}
               templateLocale={templateLocale}
               updateTemplates={updateAppTemplates}
@@ -248,7 +172,6 @@ const TemplatesConfiguration: React.FC = function TemplatesConfiguration() {
             itemKey={PASSWORDLESS_AUTHENTICATOR_PIVOT_KEY}
           >
             <PasswordlessAuthenticatorTemplatesSettings
-              key={remountIdentifier}
               templates={templates}
               templateLocale={templateLocale}
               updateTemplates={updateAppTemplates}
@@ -267,30 +190,49 @@ const TemplatesConfigurationScreen: React.FC = function TemplatesConfigurationSc
   const {
     effectiveAppConfig,
     rawAppConfig,
-    loading,
-    error,
-    refetch,
+    loading: loadingAppConfig,
+    error: loadAppConfigError,
+    refetch: refetchAppConfig,
   } = useAppConfigQuery(appID);
 
-  const appConfigContextValue = useMemo(() => {
-    return {
-      effectiveAppConfig,
-      rawAppConfig,
-    };
-  }, [effectiveAppConfig, rawAppConfig]);
+  const {
+    templateLocales: initialTemplateLocales,
+    loading: loadingTemplates,
+    error: loadTemplateLocalesError,
+    refetch: refetchTemplateLocales,
+  } = useTemplateLocaleQuery(appID);
 
-  if (loading) {
+  const [remountIdentifier, setRemountIdentifier] = useState(0);
+
+  const onResetForm = useCallback(() => {
+    setRemountIdentifier((prev) => prev + 1);
+  }, []);
+
+  if (loadingAppConfig || loadingTemplates) {
     return <ShowLoading />;
   }
 
-  if (error) {
-    return <ShowError error={error} onRetry={refetch} />;
+  if (loadAppConfigError) {
+    return <ShowError error={loadAppConfigError} onRetry={refetchAppConfig} />;
+  }
+
+  if (loadTemplateLocalesError) {
+    return (
+      <ShowError
+        error={loadTemplateLocalesError}
+        onRetry={refetchTemplateLocales}
+      />
+    );
   }
 
   return (
-    <AppConfigContext.Provider value={appConfigContextValue}>
-      <TemplatesConfiguration />
-    </AppConfigContext.Provider>
+    <TemplatesConfiguration
+      key={remountIdentifier}
+      effectiveAppConfig={effectiveAppConfig!}
+      rawAppConfig={rawAppConfig!}
+      initialTemplateLocales={initialTemplateLocales}
+      onResetForm={onResetForm}
+    />
   );
 };
 

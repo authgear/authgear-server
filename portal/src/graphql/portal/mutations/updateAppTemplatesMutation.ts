@@ -9,7 +9,7 @@ import {
   UpdateAppTemplatesMutationVariables,
 } from "./__generated__/UpdateAppTemplatesMutation";
 import { PortalAPIApp } from "../../../types";
-import { TemplateLocale, templatePaths } from "../../../templates";
+import { TemplateLocale, ALL_TEMPLATE_PATHS } from "../../../templates";
 
 const updateAppTemplatesMutation = gql`
   mutation UpdateAppTemplatesMutation(
@@ -100,7 +100,7 @@ export function useRemoveTemplateLocalesMutation(
       // all message template path
       const updates: AppResourceUpdate[] = [];
       const paths: string[] = [];
-      for (const templatePath of templatePaths) {
+      for (const templatePath of ALL_TEMPLATE_PATHS) {
         for (const locale of locales) {
           const path = templatePath.render({ locale });
           updates.push({
