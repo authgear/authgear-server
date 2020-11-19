@@ -24,8 +24,9 @@ const updateAppTemplatesMutation = gql`
           path
           effectiveData
         }
-        resourcePaths: resources {
+        resourceLocales: resources {
           path
+          languageTag
         }
       }
     }
