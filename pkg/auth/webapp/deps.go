@@ -13,7 +13,6 @@ var DependencySet = wire.NewSet(
 	NewErrorCookieDef,
 	wire.Struct(new(ErrorCookie), "*"),
 
-	wire.Struct(new(CSPMiddleware), "*"),
 	wire.Struct(new(CSRFMiddleware), "*"),
 	wire.Struct(new(AuthEntryPointMiddleware), "*"),
 	wire.Struct(new(SessionMiddleware), "*"),

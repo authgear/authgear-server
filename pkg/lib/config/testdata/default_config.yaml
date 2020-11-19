@@ -1,6 +1,13 @@
 id: test
 http:
   public_origin: "http://test"
+  csp_directives:
+  - default-src 'self'
+  - font-src 'self' cdnjs.cloudflare.com static2.sharepointonline.com
+  - style-src 'self' 'unsafe-inline' cdnjs.cloudflare.com
+  - object-src 'none'
+  - base-uri 'none'
+  - block-all-mixed-content
 database:
   max_open_connection: 2
   max_idle_connection: 2

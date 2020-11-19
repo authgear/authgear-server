@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -26,6 +27,10 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 		p.RootMiddleware(newPanicWriteEmptyResponseMiddleware),
 		p.RootMiddleware(newBodyLimitMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
+		&web.SecHeadersMiddleware{
+			CSPDirectives: web.DefaultStrictCSPDirectives,
+		},
+		httproute.MiddlewareFunc(httputil.NoCache),
 		&deps.RequestMiddleware{
 			RootProvider: p,
 			ConfigSource: configSource,

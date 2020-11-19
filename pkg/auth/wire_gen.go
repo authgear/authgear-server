@@ -23,6 +23,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
@@ -15910,15 +15911,13 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	return corsMiddleware
 }
 
-func newCSPMiddleware(p *deps.RequestProvider) httproute.Middleware {
+func newSecHeadersMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	config := appProvider.Config
 	appConfig := config.AppConfig
-	oAuthConfig := appConfig.OAuth
-	cspMiddleware := &webapp.CSPMiddleware{
-		Config: oAuthConfig,
-	}
-	return cspMiddleware
+	httpConfig := appConfig.HTTP
+	secHeadersMiddleware := provideSecHeadersMiddleware(httpConfig)
+	return secHeadersMiddleware
 }
 
 func newCSRFMiddleware(p *deps.RequestProvider) httproute.Middleware {
@@ -16292,4 +16291,10 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		CookieFactory: cookieFactory,
 	}
 	return sessionMiddleware
+}
+
+// wire_middleware.go:
+
+func provideSecHeadersMiddleware(http2 *config.HTTPConfig) *web.SecHeadersMiddleware {
+	return &web.SecHeadersMiddleware{CSPDirectives: http2.CSPDirectives}
 }
