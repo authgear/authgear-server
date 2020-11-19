@@ -51,7 +51,7 @@ var secretDeps = wire.NewSet(
 	ProvideSMTPServerCredentials,
 	ProvideTwilioCredentials,
 	ProvideNexmoCredentials,
-	ProvideOIDCKeyMaterials,
+	ProvideOAuthKeyMaterials,
 	ProvideCSRFKeyMaterials,
 	ProvideWebhookKeyMaterials,
 )
@@ -91,8 +91,8 @@ func ProvideNexmoCredentials(c *config.SecretConfig) *config.NexmoCredentials {
 	return s
 }
 
-func ProvideOIDCKeyMaterials(c *config.SecretConfig) *config.OIDCKeyMaterials {
-	s, _ := c.LookupData(config.OIDCKeyMaterialsKey).(*config.OIDCKeyMaterials)
+func ProvideOAuthKeyMaterials(c *config.SecretConfig) *config.OAuthKeyMaterials {
+	s, _ := c.LookupData(config.OAuthKeyMaterialsKey).(*config.OAuthKeyMaterials)
 	return s
 }
 

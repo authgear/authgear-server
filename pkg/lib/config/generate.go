@@ -56,8 +56,8 @@ func GenerateSecretConfigFromOptions(opts *GenerateSecretConfigOptions, rand io.
 	}
 
 	items = append(items, SecretItem{
-		Key:  OIDCKeyMaterialsKey,
-		Data: &OIDCKeyMaterials{Set: generateRSAKey(rand)},
+		Key:  OAuthKeyMaterialsKey,
+		Data: &OAuthKeyMaterials{Set: generateRSAKey(rand)},
 	})
 
 	items = append(items, SecretItem{

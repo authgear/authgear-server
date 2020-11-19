@@ -21,7 +21,7 @@ type UserProvider interface {
 }
 
 type IDTokenIssuer struct {
-	Secrets   *config.OIDCKeyMaterials
+	Secrets   *config.OAuthKeyMaterials
 	Endpoints EndpointsProvider
 	Users     UserProvider
 	Clock     clock.Clock

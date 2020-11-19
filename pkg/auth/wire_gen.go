@@ -986,9 +986,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
-	oidcKeyMaterials := deps.ProvideOIDCKeyMaterials(secretConfig)
+	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:   oidcKeyMaterials,
+		Secrets:   oAuthKeyMaterials,
 		Endpoints: endpointsProvider,
 		Users:     queries,
 		Clock:     clockClock,
@@ -1092,7 +1092,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	jwksHandlerLogger := oauth.NewJWKSHandlerLogger(factory)
 	config := appProvider.Config
 	secretConfig := config.SecretConfig
-	oidcKeyMaterials := deps.ProvideOIDCKeyMaterials(secretConfig)
+	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -1372,7 +1372,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Verification: verificationService,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:   oidcKeyMaterials,
+		Secrets:   oAuthKeyMaterials,
 		Endpoints: endpointsProvider,
 		Users:     queries,
 		Clock:     clockClock,
@@ -1391,7 +1391,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	handle := appProvider.Database
 	config := appProvider.Config
 	secretConfig := config.SecretConfig
-	oidcKeyMaterials := deps.ProvideOIDCKeyMaterials(secretConfig)
+	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -1670,7 +1670,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Verification: verificationService,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:   oidcKeyMaterials,
+		Secrets:   oAuthKeyMaterials,
 		Endpoints: endpointsProvider,
 		Users:     queries,
 		Clock:     clockClock,

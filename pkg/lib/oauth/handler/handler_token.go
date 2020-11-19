@@ -530,7 +530,7 @@ func (h *TokenHandler) issueAccessGrant(
 	}
 
 	resp.TokenType("Bearer")
-	resp.AccessToken(oauth.EncodeAccessToken(token))
+	resp.AccessToken(oauth.EncodeAccessToken(client, accessGrant, token))
 	resp.ExpiresIn(int(client.AccessTokenLifetime))
 	return nil
 }

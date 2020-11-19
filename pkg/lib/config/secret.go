@@ -155,7 +155,7 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 		}
 	}
 
-	require(OIDCKeyMaterialsKey, "OIDC key materials")
+	require(OAuthKeyMaterialsKey, "OAuth key materials")
 	require(CSRFKeyMaterialsKey, "CSRF key materials")
 	if len(appConfig.Hook.Handlers) > 0 {
 		require(WebhookKeyMaterialsKey, "web-hook signing key materials")
@@ -174,7 +174,7 @@ const (
 	SMTPServerCredentialsKey  SecretKey = "mail.smtp"
 	TwilioCredentialsKey      SecretKey = "sms.twilio"
 	NexmoCredentialsKey       SecretKey = "sms.nexmo"
-	OIDCKeyMaterialsKey       SecretKey = "oidc"
+	OAuthKeyMaterialsKey      SecretKey = "oauth"
 	CSRFKeyMaterialsKey       SecretKey = "csrf"
 	WebhookKeyMaterialsKey    SecretKey = "webhook"
 )
@@ -196,7 +196,7 @@ var secretItemKeys = map[SecretKey]secretKeyDef{
 	SMTPServerCredentialsKey:  {"SMTPServerCredentials", func() SecretItemData { return &SMTPServerCredentials{} }},
 	TwilioCredentialsKey:      {"TwilioCredentials", func() SecretItemData { return &TwilioCredentials{} }},
 	NexmoCredentialsKey:       {"NexmoCredentials", func() SecretItemData { return &NexmoCredentials{} }},
-	OIDCKeyMaterialsKey:       {"OIDCKeyMaterials", func() SecretItemData { return &OIDCKeyMaterials{} }},
+	OAuthKeyMaterialsKey:      {"OAuthKeyMaterials", func() SecretItemData { return &OAuthKeyMaterials{} }},
 	CSRFKeyMaterialsKey:       {"CSRFKeyMaterials", func() SecretItemData { return &CSRFKeyMaterials{} }},
 	WebhookKeyMaterialsKey:    {"WebhookKeyMaterials", func() SecretItemData { return &WebhookKeyMaterials{} }},
 }
