@@ -3,7 +3,6 @@ import {
   ActionButton,
   Checkbox,
   DefaultButton,
-  PrimaryButton,
   Dialog,
   DialogFooter,
   DirectionalHint,
@@ -11,19 +10,22 @@ import {
   IContextualMenuItem,
   IContextualMenuProps,
   IDialogProps,
+  IDropdownOption,
   IListProps,
   ITooltipProps,
   List,
+  PrimaryButton,
   ScrollablePane,
   Stack,
   Text,
   TooltipHost,
   VerticalDivider,
+  IRenderFunction,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import { useSystemConfig } from "../../context/SystemConfigContext";
-import { useCheckbox, useDropdown } from "../../hook/useInput";
+import { useCheckbox } from "../../hook/useInput";
 import { TemplateLocale } from "../../templates";
 
 import styles from "./TemplateLocaleManagement.module.scss";
@@ -42,6 +44,8 @@ interface TemplateLocaleManagementProps {
   // The default language.
   defaultTemplateLocale: TemplateLocale;
   onSelectDefaultTemplateLocale: TemplateLocaleUpdater;
+
+  invalidTemplateLocales: TemplateLocale[];
 }
 
 interface TemplateLocaleManagementDialogProps {
@@ -306,7 +310,10 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
     onSelectTemplateLocale,
     defaultTemplateLocale,
     onSelectDefaultTemplateLocale,
+    invalidTemplateLocales,
   } = props;
+
+  const { themes } = useSystemConfig();
 
   const { renderToString } = useContext(Context);
 
@@ -317,23 +324,6 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
       return renderToString(getLanguageLocaleKey(locale));
     },
     [renderToString]
-  );
-
-  const displayTemplateLocaleOption = useCallback(
-    (locale: TemplateLocale) => {
-      return displayTemplateLocale(locale);
-    },
-    [displayTemplateLocale]
-  );
-
-  const {
-    options: templateLocaleOptions,
-    onChange: onTemplateLocaleChange,
-  } = useDropdown(
-    templateLocales,
-    onSelectTemplateLocale,
-    templateLocale,
-    displayTemplateLocaleOption
   );
 
   const presentDialog = useCallback(() => {
@@ -396,6 +386,74 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
     items: menuItems,
   };
 
+  const templateLocaleOptions = useMemo(() => {
+    const options = [];
+    for (const locale of templateLocales) {
+      options.push({
+        key: locale,
+        text: displayTemplateLocale(locale),
+        data: {
+          invalid: invalidTemplateLocales.includes(locale),
+        },
+      });
+    }
+    return options;
+  }, [templateLocales, displayTemplateLocale, invalidTemplateLocales]);
+
+  const onChangeTemplateLocale = useCallback(
+    (_e: unknown, option?: IDropdownOption) => {
+      if (option != null) {
+        onSelectTemplateLocale(option.key.toString());
+      }
+    },
+    [onSelectTemplateLocale]
+  );
+
+  const onRenderOption: IRenderFunction<IDropdownOption> = useCallback(
+    (option?: IDropdownOption) => {
+      const invalid = option?.data?.invalid === true;
+      return (
+        <Text
+          styles={
+            invalid
+              ? {
+                  root: {
+                    color: themes.main.semanticColors.errorText,
+                  },
+                }
+              : undefined
+          }
+        >
+          {option?.text ?? ""}
+        </Text>
+      );
+    },
+    [themes]
+  );
+
+  const onRenderTitle: IRenderFunction<IDropdownOption[]> = useCallback(
+    (options?: IDropdownOption[]) => {
+      const option = options?.[0];
+      const invalid = option?.data?.invalid === true;
+      return (
+        <Text
+          styles={
+            invalid
+              ? {
+                  root: {
+                    color: themes.main.semanticColors.errorText,
+                  },
+                }
+              : undefined
+          }
+        >
+          {option?.text ?? ""}
+        </Text>
+      );
+    },
+    [themes]
+  );
+
   return (
     <section className={styles.templateLocaleManagement}>
       <TemplateLocaleManagementDialog
@@ -407,7 +465,7 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
       />
       <Stack
         className={styles.inputContainer}
-        verticalAlign="end"
+        verticalAlign="start"
         horizontal={true}
         tokens={{ childrenGap: 10 }}
       >
@@ -417,10 +475,19 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
             "TemplatesConfigurationScreen.template-language-dropdown-title"
           )}
           options={templateLocaleOptions}
-          onChange={onTemplateLocaleChange}
+          onChange={onChangeTemplateLocale}
           selectedKey={templateLocale}
+          onRenderTitle={onRenderTitle}
+          onRenderOption={onRenderOption}
+          errorMessage={
+            invalidTemplateLocales.length > 0
+              ? renderToString(
+                  "TemplatesConfigurationScreen.invalid-language-message"
+                )
+              : undefined
+          }
         />
-        <DefaultButton menuProps={menuProps}>
+        <DefaultButton className={styles.contextualMenu} menuProps={menuProps}>
           <FormattedMessage id="TemplatesConfigurationScreen.manage-template-languages" />
         </DefaultButton>
       </Stack>

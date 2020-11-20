@@ -360,6 +360,7 @@
   "TemplatesConfigurationScreen.add-or-remove-languages": "Add or Remove Languages",
   "TemplatesConfigurationScreen.passwordless-authenticator.title": "Passwordless Authenticator",
   "TemplatesConfigurationScreen.forgot-password.title": "Forgot Password",
+  "TemplatesConfigurationScreen.invalid-language-message": "Some of the languages are invalid. A language must have at least 1 template to become valid",
 
   "TemplateLocaleManagementDialog.title": "Add or Remove Languages",
   "TemplateLocaleManagementDialog.desc": "For any languages you don’t provide translations for, your messages will be delivered in your default language (English)",

@@ -99,6 +99,12 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
     );
   }, [initialTemplateLocales, initialTemplates, templateLocales, templates]);
 
+  const { invalidAdditionLocales, invalidEditionLocales } = updates;
+
+  const invalidTemplateLocales = useMemo(() => {
+    return invalidAdditionLocales.concat(invalidEditionLocales);
+  }, [invalidAdditionLocales, invalidEditionLocales]);
+
   const {
     // updateAppTemplates,
     loading: updatingTemplates,
@@ -309,6 +315,7 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
           defaultTemplateLocale={defaultTemplateLocale}
           onSelectTemplateLocale={setTemplateLocale}
           onSelectDefaultTemplateLocale={setDefaultTemplateLocale}
+          invalidTemplateLocales={invalidTemplateLocales}
         />
         <Pivot
           key={
