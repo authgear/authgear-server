@@ -1,11 +1,12 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import { useParams } from "react-router-dom";
-// import produce from "immer";
 import { Pivot, PivotItem, Text } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-
-import { ModifiedIndicatorWrapper } from "../../ModifiedIndicatorPortal";
+import {
+  ModifiedIndicatorWrapper,
+  ModifiedIndicatorPortal,
+} from "../../ModifiedIndicatorPortal";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import TemplateLocaleManagement from "./TemplateLocaleManagement";
@@ -13,7 +14,7 @@ import EditTemplatesWidget, {
   EditTemplatesWidgetSection,
 } from "./EditTemplatesWidget";
 import { useAppConfigQuery } from "./query/appConfigQuery";
-import { useAppTemplatesQuery } from "./query/appTemplatesQuery";
+import { useAppTemplatesQuery, Template } from "./query/appTemplatesQuery";
 import { useTemplateLocaleQuery } from "./query/templateLocaleQuery";
 import { useUpdateAppTemplatesMutation } from "./mutations/updateAppTemplatesMutation";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
@@ -35,17 +36,20 @@ import {
   getLocalizedTemplatePath,
 } from "../../templates";
 import { ResourcePath } from "../../util/stringTemplate";
+import { generateUpdates } from "./templates";
 
 import styles from "./TemplatesConfigurationScreen.module.scss";
 
 interface TemplatesConfigurationProps {
   rawAppConfig: PortalAPIAppConfig;
-  initialTemplates: Record<string, string>;
+  initialTemplates: Record<string, Template | undefined>;
   initialTemplateLocales: TemplateLocale[];
+  initialDefaultTemplateLocale: TemplateLocale;
   defaultTemplateLocale: TemplateLocale;
   templateLocale: TemplateLocale;
   setDefaultTemplateLocale: (locale: TemplateLocale) => void;
   setTemplateLocale: (locale: TemplateLocale) => void;
+  onResetForm: () => void;
 }
 
 const FORGOT_PASSWORD_PIVOT_KEY = "forgot_password";
@@ -59,10 +63,12 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
   const {
     initialTemplates,
     initialTemplateLocales,
+    initialDefaultTemplateLocale,
     defaultTemplateLocale,
     setDefaultTemplateLocale,
     templateLocale,
     setTemplateLocale,
+    onResetForm,
   } = props;
 
   const [templateLocales, setTemplateLocales] = useState<TemplateLocale[]>(
@@ -84,6 +90,15 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
 
   const [templates, setTemplates] = useState(initialTemplates);
 
+  const updates = useMemo(() => {
+    return generateUpdates(
+      initialTemplateLocales,
+      initialTemplates,
+      templateLocales,
+      templates
+    );
+  }, [initialTemplateLocales, initialTemplates, templateLocales, templates]);
+
   const {
     // updateAppTemplates,
     loading: updatingTemplates,
@@ -97,6 +112,10 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
     error: updateAppConfigError,
     resetError: resetUpdateAppConfigError,
   } = useUpdateAppConfigMutation(appID);
+
+  const isModified =
+    initialDefaultTemplateLocale !== defaultTemplateLocale ||
+    updates.isModified;
 
   // FIXME: Unify save.
   // const saveDefaultTemplateLocale = useCallback(
@@ -119,10 +138,9 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
     resetUpdateAppConfigError();
   }, [resetUpdateTemplatesError, resetUpdateAppConfigError]);
 
-  // FIXME: Reset form.
-  // const resetForm = useCallback(() => {
-  //   onResetForm();
-  // }, [onResetForm]);
+  const resetForm = useCallback(() => {
+    onResetForm();
+  }, [onResetForm]);
 
   const { selectedKey, onLinkClick } = usePivotNavigation(
     [FORGOT_PASSWORD_PIVOT_KEY, PASSWORDLESS_AUTHENTICATOR_PIVOT_KEY],
@@ -131,9 +149,9 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
 
   const getValue = useCallback(
     (resourcePath: ResourcePath<"locale">) => {
-      return (
-        templates[getLocalizedTemplatePath(templateLocale, resourcePath)] || ""
-      );
+      const path = getLocalizedTemplatePath(templateLocale, resourcePath);
+      const template = templates[path];
+      return template?.value ?? "";
     },
     [templates, templateLocale]
   );
@@ -142,10 +160,27 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
     (resourcePath: ResourcePath<"locale">) => {
       return (_e: unknown, value?: string) => {
         if (value != null) {
+          const path = getLocalizedTemplatePath(templateLocale, resourcePath);
           setTemplates((prev) => {
+            let template = prev[path];
+
+            if (template == null) {
+              template = {
+                resourcePath,
+                path: path,
+                locale: templateLocale,
+                value,
+              };
+            } else {
+              template = {
+                ...template,
+                value,
+              };
+            }
+
             return {
               ...prev,
-              [getLocalizedTemplatePath(templateLocale, resourcePath)]: value,
+              [path]: template,
             };
           });
         }
@@ -260,6 +295,10 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
       {updateTemplatesError && <ShowError error={updateTemplatesError} />}
       {updateAppConfigError && <ShowError error={updateAppConfigError} />}
       <ModifiedIndicatorWrapper className={styles.screen}>
+        <ModifiedIndicatorPortal
+          resetForm={resetForm}
+          isModified={isModified}
+        />
         <Text className={styles.screenHeaderText} as="h1">
           <FormattedMessage id="TemplatesConfigurationScreen.title" />
         </Text>
@@ -271,7 +310,14 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
           onSelectTemplateLocale={setTemplateLocale}
           onSelectDefaultTemplateLocale={setDefaultTemplateLocale}
         />
-        <Pivot onLinkClick={onLinkClick} selectedKey={selectedKey}>
+        <Pivot
+          key={
+            /* If we do not remount the pivot, we will have stale onChange callback being fired */
+            templateLocale
+          }
+          onLinkClick={onLinkClick}
+          selectedKey={selectedKey}
+        >
           <PivotItem
             headerText={renderToString(
               "TemplatesConfigurationScreen.forgot-password.title"
@@ -311,12 +357,18 @@ const TemplatesConfigurationScreen: React.FC = function TemplatesConfigurationSc
     refetch: refetchTemplateLocales,
   } = useTemplateLocaleQuery(appID);
 
-  const initialDefaultTemplateLocale = useMemo(() => {
+  const initialDefaultTemplateLocale = useMemo<TemplateLocale>(() => {
     return (
       effectiveAppConfig?.localization?.fallback_language ??
       DEFAULT_TEMPLATE_LOCALE
     );
   }, [effectiveAppConfig]);
+
+  const [remountIdentifier, setRemountIdentifier] = useState(0);
+
+  const onResetForm = useCallback(() => {
+    setRemountIdentifier((prev) => prev + 1);
+  }, []);
 
   const [defaultTemplateLocale, setDefaultTemplateLocale] = useState<
     TemplateLocale
@@ -331,7 +383,11 @@ const TemplatesConfigurationScreen: React.FC = function TemplatesConfigurationSc
     loading: loadingTemplates,
     error: loadTemplatesError,
     refetch: refetchTemplates,
-  } = useAppTemplatesQuery(appID, templateLocale, ...ALL_TEMPLATE_PATHS);
+  } = useAppTemplatesQuery(
+    appID,
+    initialTemplateLocales,
+    ...ALL_TEMPLATE_PATHS
+  );
 
   if (loadingAppConfig || loadingTemplateLocales || loadingTemplates) {
     return <ShowLoading />;
@@ -356,13 +412,16 @@ const TemplatesConfigurationScreen: React.FC = function TemplatesConfigurationSc
 
   return (
     <TemplatesConfiguration
+      key={remountIdentifier}
       rawAppConfig={rawAppConfig!}
       initialTemplates={initialTemplates}
       initialTemplateLocales={initialTemplateLocales}
+      initialDefaultTemplateLocale={initialDefaultTemplateLocale}
       defaultTemplateLocale={defaultTemplateLocale}
       templateLocale={templateLocale}
       setDefaultTemplateLocale={setDefaultTemplateLocale}
       setTemplateLocale={setTemplateLocale}
+      onResetForm={onResetForm}
     />
   );
 };
