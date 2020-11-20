@@ -3,12 +3,14 @@ import cn from "classnames";
 import { useParams } from "react-router-dom";
 import { Pivot, PivotItem, Text } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { produce } from "immer";
 import {
   ModifiedIndicatorWrapper,
   ModifiedIndicatorPortal,
 } from "../../ModifiedIndicatorPortal";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
+import ButtonWithLoading from "../../ButtonWithLoading";
 import TemplateLocaleManagement from "./TemplateLocaleManagement";
 import EditTemplatesWidget, {
   EditTemplatesWidgetSection,
@@ -61,6 +63,7 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
   const { renderToString } = useContext(Context);
   const { appID } = useParams();
   const {
+    rawAppConfig,
     initialTemplates,
     initialTemplateLocales,
     initialDefaultTemplateLocale,
@@ -99,22 +102,28 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
     );
   }, [initialTemplateLocales, initialTemplates, templateLocales, templates]);
 
-  const { invalidAdditionLocales, invalidEditionLocales } = updates;
+  const {
+    invalidAdditionLocales,
+    invalidEditionLocales,
+    additions,
+    editions,
+    deletions,
+  } = updates;
 
   const invalidTemplateLocales = useMemo(() => {
     return invalidAdditionLocales.concat(invalidEditionLocales);
   }, [invalidAdditionLocales, invalidEditionLocales]);
 
   const {
-    // updateAppTemplates,
+    updateAppTemplates,
     loading: updatingTemplates,
     error: updateTemplatesError,
     resetError: resetUpdateTemplatesError,
   } = useUpdateAppTemplatesMutation(appID);
 
   const {
-    // updateAppConfig,
-    // loading: updatingAppConfig,
+    updateAppConfig,
+    loading: updatingAppConfig,
     error: updateAppConfigError,
     resetError: resetUpdateAppConfigError,
   } = useUpdateAppConfigMutation(appID);
@@ -123,30 +132,49 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
     initialDefaultTemplateLocale !== defaultTemplateLocale ||
     updates.isModified;
 
-  // FIXME: Unify save.
-  // const saveDefaultTemplateLocale = useCallback(
-  //   (defaultTemplateLocale: TemplateLocale) => {
-  //     if (rawAppConfig == null) {
-  //       return;
-  //     }
-  //     const newAppConfig = produce(rawAppConfig, (draftConfig) => {
-  //       draftConfig.localization = draftConfig.localization ?? {};
-  //       draftConfig.localization.fallback_language = defaultTemplateLocale;
-  //     });
+  const onSubmit = useCallback(
+    (e: React.FormEvent<HTMLElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-  //     updateAppConfig(newAppConfig).catch(() => {});
-  //   },
-  //   [rawAppConfig, updateAppConfig]
-  // );
+      // Save default language
+      if (initialDefaultTemplateLocale !== defaultTemplateLocale) {
+        const newAppConfig = produce(rawAppConfig, (draftConfig) => {
+          draftConfig.localization = draftConfig.localization ?? {};
+          draftConfig.localization.fallback_language = defaultTemplateLocale;
+        });
+        updateAppConfig(newAppConfig).catch(() => {});
+      }
+
+      // Save templates
+      const updates = [...additions, ...editions, ...deletions];
+      if (updates.length > 0) {
+        const paths = [];
+        for (const resourcePath of ALL_TEMPLATE_PATHS) {
+          for (const locale of templateLocales) {
+            paths.push(getLocalizedTemplatePath(locale, resourcePath));
+          }
+        }
+        updateAppTemplates(paths, updates).catch(() => {});
+      }
+    },
+    [
+      initialDefaultTemplateLocale,
+      defaultTemplateLocale,
+      templateLocales,
+      rawAppConfig,
+      updateAppConfig,
+      updateAppTemplates,
+      additions,
+      editions,
+      deletions,
+    ]
+  );
 
   const resetError = useCallback(() => {
     resetUpdateTemplatesError();
     resetUpdateAppConfigError();
   }, [resetUpdateTemplatesError, resetUpdateAppConfigError]);
-
-  const resetForm = useCallback(() => {
-    onResetForm();
-  }, [onResetForm]);
 
   const { selectedKey, onLinkClick } = usePivotNavigation(
     [FORGOT_PASSWORD_PIVOT_KEY, PASSWORDLESS_AUTHENTICATOR_PIVOT_KEY],
@@ -293,16 +321,18 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
   ];
 
   return (
-    <main
+    <form
+      role="main"
       className={cn(styles.root, {
         [styles.loading]: updatingTemplates,
       })}
+      onSubmit={onSubmit}
     >
       {updateTemplatesError && <ShowError error={updateTemplatesError} />}
       {updateAppConfigError && <ShowError error={updateAppConfigError} />}
       <ModifiedIndicatorWrapper className={styles.screen}>
         <ModifiedIndicatorPortal
-          resetForm={resetForm}
+          resetForm={onResetForm}
           isModified={isModified}
         />
         <Text className={styles.screenHeaderText} as="h1">
@@ -342,8 +372,20 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
             <EditTemplatesWidget sections={sectionsPasswordless} />
           </PivotItem>
         </Pivot>
+        <ButtonWithLoading
+          className={styles.saveButton}
+          type="submit"
+          disabled={
+            !isModified ||
+            invalidAdditionLocales.length > 0 ||
+            invalidEditionLocales.length > 0
+          }
+          loading={updatingAppConfig || updatingTemplates}
+          labelId="save"
+          loadingLabelId="saving"
+        />
       </ModifiedIndicatorWrapper>
-    </main>
+    </form>
   );
 };
 
