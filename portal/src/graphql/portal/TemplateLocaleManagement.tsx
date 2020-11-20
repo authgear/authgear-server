@@ -397,8 +397,24 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
         },
       });
     }
+
+    // Handle the case that selected locale is not in templateLocales.
+    // This happens when the default locale does not have templates.
+    if (!templateLocales.includes(templateLocale)) {
+      options.push({
+        key: templateLocale,
+        text: displayTemplateLocale(templateLocale),
+        hidden: true,
+      });
+    }
+
     return options;
-  }, [templateLocales, displayTemplateLocale, invalidTemplateLocales]);
+  }, [
+    templateLocales,
+    templateLocale,
+    displayTemplateLocale,
+    invalidTemplateLocales,
+  ]);
 
   const onChangeTemplateLocale = useCallback(
     (_e: unknown, option?: IDropdownOption) => {
