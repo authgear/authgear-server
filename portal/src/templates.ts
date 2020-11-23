@@ -1,9 +1,7 @@
-import { UpdateAppTemplatesData } from "./graphql/portal/mutations/updateAppTemplatesMutation";
 import { ResourcePath, resourcePath } from "./util/stringTemplate";
 
 export type TemplateLocale = string;
 export const DEFAULT_TEMPLATE_LOCALE: TemplateLocale = "en";
-export type TemplateMap = Record<string, string>;
 
 export const messageTemplatePath = resourcePath`templates/${"locale"}/messages/${"fileName"}`;
 
@@ -19,7 +17,7 @@ export const forgotPasswordEmailHtmlPath = resourcePath`templates/${"locale"}/me
 export const forgotPasswordEmailTextPath = resourcePath`templates/${"locale"}/messages/forgot_password_email.txt`;
 export const forgotPasswordSmsTextPath = resourcePath`templates/${"locale"}/messages/forgot_password_sms.txt`;
 
-export const templatePaths = [
+export const ALL_TEMPLATE_PATHS = [
   setupPrimaryOobEmailHtmlPath,
   setupPrimaryOobEmailTextPath,
   setupPrimaryOobSmsTextPath,
@@ -36,17 +34,6 @@ export function getLocalizedTemplatePath(
   pathTemplate: ResourcePath<"locale">
 ): string {
   return pathTemplate.render({ locale });
-}
-
-export function setUpdateTemplatesData(
-  templateUpdates: UpdateAppTemplatesData,
-  resourcePathTemplate: ResourcePath<"locale">,
-  templateLocale: TemplateLocale,
-  templateValue: string
-): void {
-  templateUpdates[
-    getLocalizedTemplatePath(templateLocale, resourcePathTemplate)
-  ] = templateValue !== "" ? templateValue : null;
 }
 
 export const STATIC_AUTHGEAR_CSS = "static/authgear.css";
