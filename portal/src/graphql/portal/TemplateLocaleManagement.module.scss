@@ -42,6 +42,7 @@
 .dialogListWrapper {
   position: relative;
   height: 50vh;
+  overflow-y: scroll;
 }
 .dialogLocaleListItem {
   display: flex;

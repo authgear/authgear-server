@@ -15,7 +15,6 @@ import {
   ITooltipProps,
   List,
   PrimaryButton,
-  ScrollablePane,
   Stack,
   Text,
   TooltipHost,
@@ -268,9 +267,7 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
             <FormattedMessage id="TemplateLocaleManagementDialog.supported-resource-locales-header" />
           </Text>
           <section className={styles.dialogListWrapper}>
-            <ScrollablePane>
-              <List items={listItems} onRenderCell={renderLocaleListItemCell} />
-            </ScrollablePane>
+            <List items={listItems} onRenderCell={renderLocaleListItemCell} />
           </section>
         </section>
         <VerticalDivider className={styles.dialogDivider} />
@@ -279,12 +276,10 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
             <FormattedMessage id="TemplateLocaleManagementDialog.selected-template-locales-header" />
           </Text>
           <section className={styles.dialogListWrapper}>
-            <ScrollablePane>
-              <List
-                items={newLocales}
-                onRenderCell={renderSelectedLocaleItemCell}
-              />
-            </ScrollablePane>
+            <List
+              items={newLocales}
+              onRenderCell={renderSelectedLocaleItemCell}
+            />
           </section>
         </section>
       </div>
