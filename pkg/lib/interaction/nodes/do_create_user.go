@@ -30,10 +30,18 @@ func (e *EdgeDoCreateUser) Instantiate(ctx *interaction.Context, graph *interact
 		return nil, ErrNoPublicSignup
 	}
 
-	ip := httputil.GetIP(ctx.Request, bool(ctx.TrustProxy))
-	err := ctx.RateLimiter.TakeToken(interaction.SignupRateLimitBucket(ip))
-	if err != nil {
-		return nil, err
+	bypassRateLimit := false
+	var bypassInput interface{ BypassInteractionIPRateLimit() bool }
+	if interaction.Input(rawInput, &bypassInput) {
+		bypassRateLimit = bypassInput.BypassInteractionIPRateLimit()
+	}
+
+	if !bypassRateLimit {
+		ip := httputil.GetIP(ctx.Request, bool(ctx.TrustProxy))
+		err := ctx.RateLimiter.TakeToken(interaction.SignupRateLimitBucket(ip))
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &NodeDoCreateUser{
