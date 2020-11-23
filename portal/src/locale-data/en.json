@@ -358,8 +358,11 @@
   "TemplatesConfigurationScreen.manage-template-languages": "Manage Template Languages",
   "TemplatesConfigurationScreen.change-default-language": "Change Default Language",
   "TemplatesConfigurationScreen.add-or-remove-languages": "Add or Remove Languages",
+
+  "TemplatesConfigurationScreen.translationjson.title": "Translations",
   "TemplatesConfigurationScreen.passwordless-authenticator.title": "Passwordless Authenticator",
   "TemplatesConfigurationScreen.forgot-password.title": "Forgot Password",
+
   "TemplatesConfigurationScreen.invalid-language-message": "Some of the languages are invalid. A language must have at least 1 template to become valid",
 
   "TemplateLocaleManagementDialog.title": "Add or Remove Languages",
@@ -374,6 +377,9 @@
   "EditTemplatesWidget.plaintext-email": "Plaintext Email",
   "EditTemplatesWidget.sms": "SMS",
   "EditTemplatesWidget.sms-body": "SMS Body",
+
+  "EditTemplatesWidget.translationjson.title": "translation.json",
+  "EditTemplatesWidget.translationjson.subtitle": "Translations for the web UI as well as app brandings like app name",
 
   "EditTemplatesWidget.passwordless.setup.title": "First Time Setup",
   "EditTemplatesWidget.passwordless.login.title": "Subsequent Logins",

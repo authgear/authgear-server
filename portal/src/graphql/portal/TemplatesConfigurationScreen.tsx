@@ -27,6 +27,7 @@ import {
   DEFAULT_TEMPLATE_LOCALE,
   TemplateLocale,
   ALL_TEMPLATE_PATHS,
+  translationJSONPath,
   forgotPasswordEmailHtmlPath,
   forgotPasswordEmailTextPath,
   forgotPasswordSmsTextPath,
@@ -55,8 +56,9 @@ interface TemplatesConfigurationProps {
   onResetForm: () => void;
 }
 
-const FORGOT_PASSWORD_PIVOT_KEY = "forgot_password";
-const PASSWORDLESS_AUTHENTICATOR_PIVOT_KEY = "passwordless_authenticator";
+const PIVOT_KEY_FORGOT_PASSWORD = "forgot_password";
+const PIVOT_KEY_PASSWORDLESS = "passwordless";
+const PIVOT_KEY_TRANSLATION_JSON = "translation.json";
 
 const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function TemplatesConfiguration(
   props: TemplatesConfigurationProps
@@ -178,7 +180,11 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
   }, [resetUpdateTemplatesError, resetUpdateAppConfigError]);
 
   const { selectedKey, onLinkClick } = usePivotNavigation(
-    [FORGOT_PASSWORD_PIVOT_KEY, PASSWORDLESS_AUTHENTICATOR_PIVOT_KEY],
+    [
+      PIVOT_KEY_TRANSLATION_JSON,
+      PIVOT_KEY_FORGOT_PASSWORD,
+      PIVOT_KEY_PASSWORDLESS,
+    ],
     resetError
   );
 
@@ -223,6 +229,26 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
     },
     [templateLocale]
   );
+
+  const sectionsTranslationJSON: EditTemplatesWidgetSection[] = [
+    {
+      key: "translation.json",
+      title: (
+        <FormattedMessage id="EditTemplatesWidget.translationjson.title" />
+      ),
+      items: [
+        {
+          key: "translation.json",
+          title: (
+            <FormattedMessage id="EditTemplatesWidget.translationjson.subtitle" />
+          ),
+          language: "json",
+          value: getValue(translationJSONPath),
+          onChange: getOnChange(translationJSONPath),
+        },
+      ],
+    },
+  ];
 
   const sectionsForgotPassword: EditTemplatesWidgetSection[] = [
     {
@@ -359,9 +385,17 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
         >
           <PivotItem
             headerText={renderToString(
+              "TemplatesConfigurationScreen.translationjson.title"
+            )}
+            itemKey={PIVOT_KEY_TRANSLATION_JSON}
+          >
+            <EditTemplatesWidget sections={sectionsTranslationJSON} />
+          </PivotItem>
+          <PivotItem
+            headerText={renderToString(
               "TemplatesConfigurationScreen.forgot-password.title"
             )}
-            itemKey={FORGOT_PASSWORD_PIVOT_KEY}
+            itemKey={PIVOT_KEY_FORGOT_PASSWORD}
           >
             <EditTemplatesWidget sections={sectionsForgotPassword} />
           </PivotItem>
@@ -369,7 +403,7 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
             headerText={renderToString(
               "TemplatesConfigurationScreen.passwordless-authenticator.title"
             )}
-            itemKey={PASSWORDLESS_AUTHENTICATOR_PIVOT_KEY}
+            itemKey={PIVOT_KEY_PASSWORDLESS}
           >
             <EditTemplatesWidget sections={sectionsPasswordless} />
           </PivotItem>
