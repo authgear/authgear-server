@@ -370,7 +370,7 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
       },
     },
     {
-      key: "add-or-remove-langauges",
+      key: "add-or-remove-languages",
       text: renderToString(
         "TemplatesConfigurationScreen.add-or-remove-languages"
       ),
