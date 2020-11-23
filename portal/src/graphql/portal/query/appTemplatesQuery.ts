@@ -18,6 +18,7 @@ export const appTemplatesQuery = gql`
         resources(paths: $paths) {
           path
           languageTag
+          data
           effectiveData
         }
       }
@@ -91,7 +92,10 @@ export function useAppTemplatesQuery(
         if (inputPath.path === resource.path) {
           found = true;
           let value = "";
-          if (resource.effectiveData != null) {
+          // If the raw data is available, prefer it.
+          if (resource.data != null) {
+            value = atob(resource.data);
+          } else if (resource.effectiveData != null) {
             value = atob(resource.effectiveData);
           }
           templates[inputPath.path] = {
