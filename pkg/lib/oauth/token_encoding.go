@@ -33,7 +33,7 @@ type AccessTokenEncoding struct {
 }
 
 func (e *AccessTokenEncoding) EncodeAccessToken(client *config.OAuthClientConfig, grant *AccessGrant, userID string, token string) (string, error) {
-	if !client.UseJWTAccessToken {
+	if !client.IssueJWTAccessToken {
 		return token, nil
 	}
 

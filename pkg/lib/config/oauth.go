@@ -41,7 +41,7 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"post_logout_redirect_uris": { "type": "array", "items": { "type": "string", "format": "uri" } },
 		"access_token_lifetime_seconds": { "$ref": "#/$defs/DurationSeconds", "minimum": 300 },
 		"refresh_token_lifetime_seconds": { "$ref": "#/$defs/DurationSeconds" },
-		"use_jwt_access_token": { "type": "boolean" }
+		"issue_jwt_access_token": { "type": "boolean" }
 	},
 	"required": ["name", "client_id", "redirect_uris"]
 }
@@ -57,7 +57,7 @@ type OAuthClientConfig struct {
 	PostLogoutRedirectURIs []string        `json:"post_logout_redirect_uris"`
 	AccessTokenLifetime    DurationSeconds `json:"access_token_lifetime_seconds"`
 	RefreshTokenLifetime   DurationSeconds `json:"refresh_token_lifetime_seconds"`
-	UseJWTAccessToken      bool            `json:"use_jwt_access_token"`
+	IssueJWTAccessToken    bool            `json:"issue_jwt_access_token"`
 }
 
 func (c *OAuthClientConfig) SetDefaults() {
