@@ -22,11 +22,11 @@ import { useTemplateLocaleQuery } from "./query/templateLocaleQuery";
 import { useUpdateAppTemplatesMutation } from "./mutations/updateAppTemplatesMutation";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
 import { PortalAPIAppConfig } from "../../types";
-import { usePivotNavigation } from "../../hook/usePivot";
 import {
   DEFAULT_TEMPLATE_LOCALE,
   TemplateLocale,
   ALL_TEMPLATE_PATHS,
+  translationJSONPath,
   forgotPasswordEmailHtmlPath,
   forgotPasswordEmailTextPath,
   forgotPasswordSmsTextPath,
@@ -55,8 +55,15 @@ interface TemplatesConfigurationProps {
   onResetForm: () => void;
 }
 
-const FORGOT_PASSWORD_PIVOT_KEY = "forgot_password";
-const PASSWORDLESS_AUTHENTICATOR_PIVOT_KEY = "passwordless_authenticator";
+const PIVOT_KEY_FORGOT_PASSWORD = "forgot_password";
+const PIVOT_KEY_PASSWORDLESS = "passwordless";
+const PIVOT_KEY_TRANSLATION_JSON = "translation.json";
+
+const ALL_PIVOT_KEYS = [
+  PIVOT_KEY_TRANSLATION_JSON,
+  PIVOT_KEY_FORGOT_PASSWORD,
+  PIVOT_KEY_PASSWORDLESS,
+];
 
 const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function TemplatesConfiguration(
   props: TemplatesConfigurationProps
@@ -79,6 +86,8 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
     initialTemplateLocales
   );
 
+  const [templates, setTemplates] = useState(initialTemplates);
+
   const onChangeTemplateLocales = useCallback(
     (locales: TemplateLocale[]) => {
       // Reset templateLocale to default if the selected one was removed.
@@ -87,12 +96,52 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
         setTemplateLocale(defaultTemplateLocale);
       }
 
+      // Find out new locales.
+      const newLocales = [];
+      for (const newLocale of locales) {
+        const idx = templateLocales.findIndex((item) => item === newLocale);
+        if (idx < 0) {
+          newLocales.push(newLocale);
+        }
+      }
+
+      // Populate initial values for new locales from default locale.
+      const partial: Record<string, Template> = {};
+      for (const locale of newLocales) {
+        for (const resourcePath of ALL_TEMPLATE_PATHS) {
+          const path = getLocalizedTemplatePath(locale, resourcePath);
+          const defaultPath = getLocalizedTemplatePath(
+            defaultTemplateLocale,
+            resourcePath
+          );
+          const value = templates[defaultPath]?.value ?? "";
+          const template: Template = {
+            locale,
+            resourcePath,
+            path,
+            value,
+          };
+          partial[path] = template;
+        }
+      }
+      setTemplates((prev) => {
+        return {
+          ...prev,
+          ...partial,
+        };
+      });
+
+      // Finally update the list of locales.
       setTemplateLocales(locales);
     },
-    [templateLocale, defaultTemplateLocale, setTemplateLocale]
+    [
+      templates,
+      templateLocales,
+      templateLocale,
+      defaultTemplateLocale,
+      setTemplateLocale,
+    ]
   );
-
-  const [templates, setTemplates] = useState(initialTemplates);
 
   const updates = useMemo(() => {
     return generateUpdates(
@@ -119,14 +168,12 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
     updateAppTemplates,
     loading: updatingTemplates,
     error: updateTemplatesError,
-    resetError: resetUpdateTemplatesError,
   } = useUpdateAppTemplatesMutation(appID);
 
   const {
     updateAppConfig,
     loading: updatingAppConfig,
     error: updateAppConfigError,
-    resetError: resetUpdateAppConfigError,
   } = useUpdateAppConfigMutation(appID);
 
   const isModified =
@@ -172,15 +219,21 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
     ]
   );
 
-  const resetError = useCallback(() => {
-    resetUpdateTemplatesError();
-    resetUpdateAppConfigError();
-  }, [resetUpdateTemplatesError, resetUpdateAppConfigError]);
-
-  const { selectedKey, onLinkClick } = usePivotNavigation(
-    [FORGOT_PASSWORD_PIVOT_KEY, PASSWORDLESS_AUTHENTICATOR_PIVOT_KEY],
-    resetError
+  // We used to use fragment to control the pivot key.
+  // Now that the save button applies all changes, not just the changes in the curren pivot item.
+  // Therefore, we do not need to use fragment to control the pivot key anymore.
+  const [selectedKey, setSelectedKey] = useState<string>(
+    PIVOT_KEY_TRANSLATION_JSON
   );
+  const onLinkClick = useCallback((item?: PivotItem) => {
+    const itemKey = item?.props.itemKey;
+    if (itemKey != null) {
+      const idx = ALL_PIVOT_KEYS.indexOf(itemKey);
+      if (idx >= 0) {
+        setSelectedKey(itemKey);
+      }
+    }
+  }, []);
 
   const getValue = useCallback(
     (resourcePath: ResourcePath<"locale">) => {
@@ -223,6 +276,26 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
     },
     [templateLocale]
   );
+
+  const sectionsTranslationJSON: EditTemplatesWidgetSection[] = [
+    {
+      key: "translation.json",
+      title: (
+        <FormattedMessage id="EditTemplatesWidget.translationjson.title" />
+      ),
+      items: [
+        {
+          key: "translation.json",
+          title: (
+            <FormattedMessage id="EditTemplatesWidget.translationjson.subtitle" />
+          ),
+          language: "json",
+          value: getValue(translationJSONPath),
+          onChange: getOnChange(translationJSONPath),
+        },
+      ],
+    },
+  ];
 
   const sectionsForgotPassword: EditTemplatesWidgetSection[] = [
     {
@@ -359,9 +432,17 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
         >
           <PivotItem
             headerText={renderToString(
+              "TemplatesConfigurationScreen.translationjson.title"
+            )}
+            itemKey={PIVOT_KEY_TRANSLATION_JSON}
+          >
+            <EditTemplatesWidget sections={sectionsTranslationJSON} />
+          </PivotItem>
+          <PivotItem
+            headerText={renderToString(
               "TemplatesConfigurationScreen.forgot-password.title"
             )}
-            itemKey={FORGOT_PASSWORD_PIVOT_KEY}
+            itemKey={PIVOT_KEY_FORGOT_PASSWORD}
           >
             <EditTemplatesWidget sections={sectionsForgotPassword} />
           </PivotItem>
@@ -369,7 +450,7 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
             headerText={renderToString(
               "TemplatesConfigurationScreen.passwordless-authenticator.title"
             )}
-            itemKey={PASSWORDLESS_AUTHENTICATOR_PIVOT_KEY}
+            itemKey={PIVOT_KEY_PASSWORDLESS}
           >
             <EditTemplatesWidget sections={sectionsPasswordless} />
           </PivotItem>

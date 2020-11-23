@@ -1,6 +1,8 @@
 package graphql
 
 import (
+	"encoding/base64"
+
 	"github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
@@ -87,7 +89,10 @@ var _ = registerMutationField(
 				path := f["path"].(string)
 				var data []byte
 				if stringData, ok := f["data"].(string); ok {
-					data = []byte(stringData)
+					data, err = base64.StdEncoding.DecodeString(stringData)
+					if err != nil {
+						return nil, err
+					}
 				}
 
 				resourceUpdates = append(resourceUpdates, resources.Update{

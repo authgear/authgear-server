@@ -15,6 +15,7 @@ export interface AppTemplatesQuery_node_App_resources {
   __typename: "AppResource";
   path: string;
   languageTag: string | null;
+  data: string | null;
   effectiveData: string | null;
 }
 

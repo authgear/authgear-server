@@ -1,6 +1,7 @@
 package graphql
 
 import (
+	"encoding/base64"
 	"errors"
 
 	"github.com/graphql-go/graphql"
@@ -45,7 +46,8 @@ var appResource = graphql.NewObject(graphql.ObjectConfig{
 				} else if err != nil {
 					return nil, err
 				}
-				return string(result.([]byte)), nil
+
+				return base64.StdEncoding.EncodeToString(result.([]byte)), nil
 			},
 		},
 		"effectiveData": &graphql.Field{
@@ -61,7 +63,7 @@ var appResource = graphql.NewObject(graphql.ObjectConfig{
 				} else if err != nil {
 					return nil, err
 				}
-				return string(result.([]byte)), nil
+				return base64.StdEncoding.EncodeToString(result.([]byte)), nil
 			},
 		},
 	},

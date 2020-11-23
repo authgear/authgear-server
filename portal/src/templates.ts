@@ -3,7 +3,7 @@ import { ResourcePath, resourcePath } from "./util/stringTemplate";
 export type TemplateLocale = string;
 export const DEFAULT_TEMPLATE_LOCALE: TemplateLocale = "en";
 
-export const messageTemplatePath = resourcePath`templates/${"locale"}/messages/${"fileName"}`;
+export const translationJSONPath = resourcePath`templates/${"locale"}/translation.json`;
 
 export const setupPrimaryOobEmailHtmlPath = resourcePath`templates/${"locale"}/messages/setup_primary_oob_email.html`;
 export const setupPrimaryOobEmailTextPath = resourcePath`templates/${"locale"}/messages/setup_primary_oob_email.txt`;
@@ -18,6 +18,7 @@ export const forgotPasswordEmailTextPath = resourcePath`templates/${"locale"}/me
 export const forgotPasswordSmsTextPath = resourcePath`templates/${"locale"}/messages/forgot_password_sms.txt`;
 
 export const ALL_TEMPLATE_PATHS = [
+  translationJSONPath,
   setupPrimaryOobEmailHtmlPath,
   setupPrimaryOobEmailTextPath,
   setupPrimaryOobSmsTextPath,
