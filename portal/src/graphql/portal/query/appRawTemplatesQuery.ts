@@ -49,7 +49,11 @@ export const useAppRawTemplatesQuery = <TemplatePath extends string>(
     const appNode = data?.node?.__typename === "App" ? data.node : null;
     const templates = {} as Record<TemplatePath, string | null>;
     for (const { path, data } of appNode?.resources ?? []) {
-      templates[path as TemplatePath] = data;
+      let value = "";
+      if (data != null) {
+        value = atob(data);
+      }
+      templates[path as TemplatePath] = value;
     }
     for (const path of paths) {
       if (!(path in templates)) {

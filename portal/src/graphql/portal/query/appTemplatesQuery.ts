@@ -90,9 +90,13 @@ export function useAppTemplatesQuery(
       for (const resource of appNode?.resources ?? []) {
         if (inputPath.path === resource.path) {
           found = true;
+          let value = "";
+          if (resource.effectiveData != null) {
+            value = atob(resource.effectiveData);
+          }
           templates[inputPath.path] = {
             ...inputPath,
-            value: resource.effectiveData ?? "",
+            value,
           };
           break;
         }
