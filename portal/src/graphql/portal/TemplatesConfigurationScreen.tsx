@@ -81,6 +81,8 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
     initialTemplateLocales
   );
 
+  const [templates, setTemplates] = useState(initialTemplates);
+
   const onChangeTemplateLocales = useCallback(
     (locales: TemplateLocale[]) => {
       // Reset templateLocale to default if the selected one was removed.
@@ -89,12 +91,52 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
         setTemplateLocale(defaultTemplateLocale);
       }
 
+      // Find out new locales.
+      const newLocales = [];
+      for (const newLocale of locales) {
+        const idx = templateLocales.findIndex((item) => item === newLocale);
+        if (idx < 0) {
+          newLocales.push(newLocale);
+        }
+      }
+
+      // Populate initial values for new locales from default locale.
+      const partial: Record<string, Template> = {};
+      for (const locale of newLocales) {
+        for (const resourcePath of ALL_TEMPLATE_PATHS) {
+          const path = getLocalizedTemplatePath(locale, resourcePath);
+          const defaultPath = getLocalizedTemplatePath(
+            defaultTemplateLocale,
+            resourcePath
+          );
+          const value = templates[defaultPath]?.value ?? "";
+          const template: Template = {
+            locale,
+            resourcePath,
+            path,
+            value,
+          };
+          partial[path] = template;
+        }
+      }
+      setTemplates((prev) => {
+        return {
+          ...prev,
+          ...partial,
+        };
+      });
+
+      // Finally update the list of locales.
       setTemplateLocales(locales);
     },
-    [templateLocale, defaultTemplateLocale, setTemplateLocale]
+    [
+      templates,
+      templateLocales,
+      templateLocale,
+      defaultTemplateLocale,
+      setTemplateLocale,
+    ]
   );
-
-  const [templates, setTemplates] = useState(initialTemplates);
 
   const updates = useMemo(() => {
     return generateUpdates(
