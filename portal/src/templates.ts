@@ -3,8 +3,6 @@ import { ResourcePath, resourcePath } from "./util/stringTemplate";
 export type TemplateLocale = string;
 export const DEFAULT_TEMPLATE_LOCALE: TemplateLocale = "en";
 
-export const messageTemplatePath = resourcePath`templates/${"locale"}/messages/${"fileName"}`;
-
 export const setupPrimaryOobEmailHtmlPath = resourcePath`templates/${"locale"}/messages/setup_primary_oob_email.html`;
 export const setupPrimaryOobEmailTextPath = resourcePath`templates/${"locale"}/messages/setup_primary_oob_email.txt`;
 export const setupPrimaryOobSmsTextPath = resourcePath`templates/${"locale"}/messages/setup_primary_oob_sms.txt`;
