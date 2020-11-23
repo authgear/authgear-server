@@ -8,6 +8,7 @@ import {
   ModifiedIndicatorWrapper,
   ModifiedIndicatorPortal,
 } from "../../ModifiedIndicatorPortal";
+import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ButtonWithLoading from "../../ButtonWithLoading";
@@ -335,6 +336,7 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
           resetForm={onResetForm}
           isModified={isModified}
         />
+        <NavigationBlockerDialog blockNavigation={isModified} />
         <Text className={styles.screenHeaderText} as="h1">
           <FormattedMessage id="TemplatesConfigurationScreen.title" />
         </Text>
