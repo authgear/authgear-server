@@ -7,9 +7,11 @@ import (
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -70,10 +72,15 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	))
 }
 
-func newCSPMiddleware(p *deps.RequestProvider) httproute.Middleware {
+func provideSecHeadersMiddleware(http *config.HTTPConfig) *web.SecHeadersMiddleware {
+	return &web.SecHeadersMiddleware{CSPDirectives: http.CSPDirectives}
+}
+
+func newSecHeadersMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(httproute.Middleware), new(*webapp.CSPMiddleware)),
+		provideSecHeadersMiddleware,
+		wire.Bind(new(httproute.Middleware), new(*web.SecHeadersMiddleware)),
 	))
 }
 

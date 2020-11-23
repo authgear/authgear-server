@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -21,11 +22,21 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 		PathPattern: "/healthz",
 	}, http.HandlerFunc(httputil.HealthCheckHandler))
 
+	secMiddleware := &web.SecHeadersMiddleware{
+		CSPDirectives: web.DefaultStrictCSPDirectives,
+	}
+	if p.EnvironmentConfig.DevMode {
+		// Disable strict CSP directives in dev mode for GraphiQL.
+		secMiddleware.CSPDirectives = nil
+	}
+
 	chain := httproute.Chain(
 		p.RootMiddleware(newPanicEndMiddleware),
 		p.RootMiddleware(newPanicWriteEmptyResponseMiddleware),
 		p.RootMiddleware(newBodyLimitMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
+		secMiddleware,
+		httproute.MiddlewareFunc(httputil.NoCache),
 		&deps.RequestMiddleware{
 			RootProvider: p,
 			ConfigSource: configSource,

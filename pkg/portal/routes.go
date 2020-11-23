@@ -5,6 +5,7 @@ import (
 
 	graphqlhandler "github.com/graphql-go/handler"
 
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/transport"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -18,6 +19,19 @@ func NewRouter(p *deps.RootProvider, staticAsset StaticAssetConfig) *httproute.R
 		PathPattern: "/healthz",
 	}, http.HandlerFunc(httputil.HealthCheckHandler))
 
+	secMiddleware := &web.SecHeadersMiddleware{
+		CSPDirectives: []string{
+			"script-src 'self'",
+			"object-src 'none'",
+			"base-uri 'none'",
+			"block-all-mixed-content",
+		},
+	}
+	if p.EnvironmentConfig.DevMode {
+		// Disable strict CSP directives in dev mode for GraphiQL.
+		secMiddleware.CSPDirectives = nil
+	}
+
 	rootChain := httproute.Chain(
 		p.Middleware(newPanicEndMiddleware),
 		p.Middleware(newPanicWriteEmptyResponseMiddleware),
@@ -25,6 +39,8 @@ func NewRouter(p *deps.RootProvider, staticAsset StaticAssetConfig) *httproute.R
 		p.Middleware(newBodyLimitMiddleware),
 		p.Middleware(newSentryMiddleware),
 		p.Middleware(newSessionInfoMiddleware),
+		secMiddleware,
+		httproute.MiddlewareFunc(httputil.NoCache),
 	)
 
 	graphqlChain := httproute.Chain(
@@ -55,7 +71,7 @@ func NewRouter(p *deps.RootProvider, staticAsset StaticAssetConfig) *httproute.R
 	router.Add(transport.ConfigureAdminAPIRoute(adminAPIRoute), p.Handler(newAdminAPIHandler))
 
 	if staticAsset.ServingEnabled {
-		router.NotFound(p.Handler(newStaticAssetsHandler))
+		router.NotFound(secMiddleware.Handle(p.Handler(newStaticAssetsHandler)))
 	}
 
 	return router

@@ -31,26 +31,32 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 		},
 		p.Middleware(newPanicLogMiddleware),
 		p.Middleware(newSessionMiddleware),
+		p.Middleware(newSecHeadersMiddleware),
+		httproute.MiddlewareFunc(httputil.NoCache),
+	)
+
+	oauthAPIChain := httproute.Chain(
+		rootChain,
 		p.Middleware(newCORSMiddleware),
 	)
 
 	apiChain := httproute.Chain(
 		rootChain,
 		p.Middleware(newPanicAPIMiddleware),
+		p.Middleware(newCORSMiddleware),
 	)
 
 	scopedChain := httproute.Chain(
 		rootChain,
 		p.Middleware(newPanicWriteEmptyResponseMiddleware),
+		p.Middleware(newCORSMiddleware),
 		// Current we only require valid session and do not require any scope.
 		httproute.MiddlewareFunc(oauth.RequireScope()),
 	)
 
 	webappChain := httproute.Chain(
 		rootChain,
-		httproute.MiddlewareFunc(httputil.NoCache),
 		httproute.MiddlewareFunc(webapp.IntlMiddleware),
-		p.Middleware(newCSPMiddleware),
 		p.Middleware(newPanicWebAppMiddleware),
 		p.Middleware(newWebAppSessionMiddleware),
 	)
@@ -71,7 +77,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 		webapp.RequireAuthenticatedMiddleware{},
 	)
 
-	rootRoute := httproute.Route{Middleware: rootChain}
+	oauthAPIRoute := httproute.Route{Middleware: oauthAPIChain}
 	apiRoute := httproute.Route{Middleware: apiChain}
 	scopedRoute := httproute.Route{Middleware: scopedChain}
 	webappRoute := httproute.Route{Middleware: webappChain}
@@ -114,13 +120,13 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 
 	router.Add(webapphandler.ConfigureSSOCallbackRoute(webappSSOCallbackRoute), p.Handler(newWebAppSSOCallbackHandler))
 
-	router.Add(oauthhandler.ConfigureOIDCMetadataRoute(rootRoute), p.Handler(newOAuthMetadataHandler))
-	router.Add(oauthhandler.ConfigureOAuthMetadataRoute(rootRoute), p.Handler(newOAuthMetadataHandler))
-	router.Add(oauthhandler.ConfigureJWKSRoute(rootRoute), p.Handler(newOAuthJWKSHandler))
-	router.Add(oauthhandler.ConfigureAuthorizeRoute(rootRoute), p.Handler(newOAuthAuthorizeHandler))
-	router.Add(oauthhandler.ConfigureTokenRoute(rootRoute), p.Handler(newOAuthTokenHandler))
-	router.Add(oauthhandler.ConfigureRevokeRoute(rootRoute), p.Handler(newOAuthRevokeHandler))
-	router.Add(oauthhandler.ConfigureEndSessionRoute(rootRoute), p.Handler(newOAuthEndSessionHandler))
+	router.Add(oauthhandler.ConfigureOIDCMetadataRoute(oauthAPIRoute), p.Handler(newOAuthMetadataHandler))
+	router.Add(oauthhandler.ConfigureOAuthMetadataRoute(oauthAPIRoute), p.Handler(newOAuthMetadataHandler))
+	router.Add(oauthhandler.ConfigureJWKSRoute(oauthAPIRoute), p.Handler(newOAuthJWKSHandler))
+	router.Add(oauthhandler.ConfigureAuthorizeRoute(oauthAPIRoute), p.Handler(newOAuthAuthorizeHandler))
+	router.Add(oauthhandler.ConfigureTokenRoute(oauthAPIRoute), p.Handler(newOAuthTokenHandler))
+	router.Add(oauthhandler.ConfigureRevokeRoute(oauthAPIRoute), p.Handler(newOAuthRevokeHandler))
+	router.Add(oauthhandler.ConfigureEndSessionRoute(oauthAPIRoute), p.Handler(newOAuthEndSessionHandler))
 	router.Add(oauthhandler.ConfigureChallengeRoute(apiRoute), p.Handler(newOAuthChallengeHandler))
 
 	router.Add(oauthhandler.ConfigureUserInfoRoute(scopedRoute), p.Handler(newOAuthUserInfoHandler))
