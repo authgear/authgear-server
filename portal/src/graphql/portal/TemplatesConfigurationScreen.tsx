@@ -415,10 +415,6 @@ const TemplatesConfigurationScreen: React.FC = function TemplatesConfigurationSc
 
   const [remountIdentifier, setRemountIdentifier] = useState(0);
 
-  const onResetForm = useCallback(() => {
-    setRemountIdentifier((prev) => prev + 1);
-  }, []);
-
   const [defaultTemplateLocale, setDefaultTemplateLocale] = useState<
     TemplateLocale
   >(initialDefaultTemplateLocale);
@@ -426,6 +422,12 @@ const TemplatesConfigurationScreen: React.FC = function TemplatesConfigurationSc
   const [templateLocale, setTemplateLocale] = useState<TemplateLocale>(
     defaultTemplateLocale
   );
+
+  const onResetForm = useCallback(() => {
+    setRemountIdentifier((prev) => prev + 1);
+    setDefaultTemplateLocale(initialDefaultTemplateLocale);
+    setTemplateLocale(initialDefaultTemplateLocale);
+  }, [initialDefaultTemplateLocale]);
 
   const {
     templates: initialTemplates,
