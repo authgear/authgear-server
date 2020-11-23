@@ -19,17 +19,14 @@ func NewRouter(p *deps.RootProvider, staticAsset StaticAssetConfig) *httproute.R
 		PathPattern: "/healthz",
 	}, http.HandlerFunc(httputil.HealthCheckHandler))
 
+	// TODO(csp): improve security
 	secMiddleware := &web.SecHeadersMiddleware{
 		CSPDirectives: []string{
-			"script-src 'self'",
+			"script-src 'self' 'unsafe-inline' cdn.jsdelivr.net",
 			"object-src 'none'",
 			"base-uri 'none'",
 			"block-all-mixed-content",
 		},
-	}
-	if p.EnvironmentConfig.DevMode {
-		// Disable strict CSP directives in dev mode for GraphiQL.
-		secMiddleware.CSPDirectives = nil
 	}
 
 	rootChain := httproute.Chain(
