@@ -19,13 +19,17 @@ func NewRouter(p *deps.RootProvider, staticAsset StaticAssetConfig) *httproute.R
 		PathPattern: "/healthz",
 	}, http.HandlerFunc(httputil.HealthCheckHandler))
 
-	cspMiddleware := &web.SecHeadersMiddleware{
+	secMiddleware := &web.SecHeadersMiddleware{
 		CSPDirectives: []string{
 			"script-src 'self'",
 			"object-src 'none'",
 			"base-uri 'none'",
 			"block-all-mixed-content",
 		},
+	}
+	if p.EnvironmentConfig.DevMode {
+		// Disable strict CSP directives in dev mode for GraphiQL.
+		secMiddleware.CSPDirectives = nil
 	}
 
 	rootChain := httproute.Chain(
@@ -35,7 +39,7 @@ func NewRouter(p *deps.RootProvider, staticAsset StaticAssetConfig) *httproute.R
 		p.Middleware(newBodyLimitMiddleware),
 		p.Middleware(newSentryMiddleware),
 		p.Middleware(newSessionInfoMiddleware),
-		cspMiddleware,
+		secMiddleware,
 		httproute.MiddlewareFunc(httputil.NoCache),
 	)
 
@@ -67,7 +71,7 @@ func NewRouter(p *deps.RootProvider, staticAsset StaticAssetConfig) *httproute.R
 	router.Add(transport.ConfigureAdminAPIRoute(adminAPIRoute), p.Handler(newAdminAPIHandler))
 
 	if staticAsset.ServingEnabled {
-		router.NotFound(cspMiddleware.Handle(p.Handler(newStaticAssetsHandler)))
+		router.NotFound(secMiddleware.Handle(p.Handler(newStaticAssetsHandler)))
 	}
 
 	return router
