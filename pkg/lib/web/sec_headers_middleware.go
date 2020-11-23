@@ -14,6 +14,8 @@ var DefaultStrictCSPDirectives = []string{
 }
 
 // SecHeadersMiddleware sends default security headers according to configuration.
+// TODO(oauth): to support silent token refresh, drive appropriate frame
+//              ancestors from OAuth clients.
 type SecHeadersMiddleware struct {
 	FrameAncestors []string
 	CSPDirectives  []string
