@@ -22,12 +22,14 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 		PathPattern: "/healthz",
 	}, http.HandlerFunc(httputil.HealthCheckHandler))
 
+	// TODO(csp): improve security
 	secMiddleware := &web.SecHeadersMiddleware{
-		CSPDirectives: web.DefaultStrictCSPDirectives,
-	}
-	if p.EnvironmentConfig.DevMode {
-		// Disable strict CSP directives in dev mode for GraphiQL.
-		secMiddleware.CSPDirectives = nil
+		CSPDirectives: []string{
+			"script-src 'self' 'unsafe-inline' cdn.jsdelivr.net",
+			"object-src 'none'",
+			"base-uri 'none'",
+			"block-all-mixed-content",
+		},
 	}
 
 	chain := httproute.Chain(

@@ -6,13 +6,6 @@ import (
 	"strings"
 )
 
-var DefaultStrictCSPDirectives = []string{
-	"default-src 'self'",
-	"object-src 'none'",
-	"base-uri 'none'",
-	"block-all-mixed-content",
-}
-
 // SecHeadersMiddleware sends default security headers according to configuration.
 // TODO(oauth): to support silent token refresh, drive appropriate frame
 //              ancestors from OAuth clients.
