@@ -208,7 +208,7 @@ func TestTranslationResource(t *testing.T) {
 
 			data, err := read("en")
 			So(err, ShouldBeNil)
-			So(data, ShouldEqual, compact(`{
+			So(compact(data), ShouldEqual, compact(`{
 				"a": "en a in fs A",
 				"b": "en b in fs A",
 				"c": "en c in fs A"
@@ -228,7 +228,7 @@ func TestTranslationResource(t *testing.T) {
 
 			data, err := read("en")
 			So(err, ShouldBeNil)
-			So(data, ShouldEqual, compact(`{
+			So(compact(data), ShouldEqual, compact(`{
 				"a": "en a in fs A",
 				"b": "en b in fs A",
 				"c": "en c in fs A"
@@ -236,7 +236,7 @@ func TestTranslationResource(t *testing.T) {
 
 			data, err = read("zh")
 			So(err, ShouldBeNil)
-			So(data, ShouldEqual, compact(`{
+			So(compact(data), ShouldEqual, compact(`{
 				"b": "zh b in fs A",
 				"c": "zh c in fs A"
 			}`))
@@ -258,7 +258,7 @@ func TestTranslationResource(t *testing.T) {
 
 			data, err := read("en")
 			So(err, ShouldBeNil)
-			So(data, ShouldEqual, compact(`{
+			So(compact(data), ShouldEqual, compact(`{
 				"a": "en a in fs A",
 				"b": "en b in fs A",
 				"c": "en c in fs B"
@@ -266,7 +266,7 @@ func TestTranslationResource(t *testing.T) {
 
 			data, err = read("zh")
 			So(err, ShouldBeNil)
-			So(data, ShouldEqual, compact(`{
+			So(compact(data), ShouldEqual, compact(`{
 				"b": "zh b in fs B",
 				"c": "zh c in fs B"
 			}`))

@@ -1,6 +1,7 @@
 package template
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -172,10 +173,16 @@ func (t *translationJSON) viewEffectiveFile(resources []resource.ResourceFile, v
 		}
 	}
 
-	bytes, err := json.Marshal(translationObj)
+	// The effective file view is intended to be displayed to human for editing.
+	// Therefore, we should disable HTML escape and add indentation.
+	var buf bytes.Buffer
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	encoder.SetIndent("", "  ")
+	err := encoder.Encode(translationObj)
 	if err != nil {
 		return nil, err
 	}
 
-	return bytes, nil
+	return buf.Bytes(), nil
 }
