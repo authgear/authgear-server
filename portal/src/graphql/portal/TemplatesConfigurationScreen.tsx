@@ -22,7 +22,6 @@ import { useTemplateLocaleQuery } from "./query/templateLocaleQuery";
 import { useUpdateAppTemplatesMutation } from "./mutations/updateAppTemplatesMutation";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
 import { PortalAPIAppConfig } from "../../types";
-import { usePivotNavigation } from "../../hook/usePivot";
 import {
   DEFAULT_TEMPLATE_LOCALE,
   TemplateLocale,
@@ -59,6 +58,12 @@ interface TemplatesConfigurationProps {
 const PIVOT_KEY_FORGOT_PASSWORD = "forgot_password";
 const PIVOT_KEY_PASSWORDLESS = "passwordless";
 const PIVOT_KEY_TRANSLATION_JSON = "translation.json";
+
+const ALL_PIVOT_KEYS = [
+  PIVOT_KEY_TRANSLATION_JSON,
+  PIVOT_KEY_FORGOT_PASSWORD,
+  PIVOT_KEY_PASSWORDLESS,
+];
 
 const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function TemplatesConfiguration(
   props: TemplatesConfigurationProps
@@ -163,14 +168,12 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
     updateAppTemplates,
     loading: updatingTemplates,
     error: updateTemplatesError,
-    resetError: resetUpdateTemplatesError,
   } = useUpdateAppTemplatesMutation(appID);
 
   const {
     updateAppConfig,
     loading: updatingAppConfig,
     error: updateAppConfigError,
-    resetError: resetUpdateAppConfigError,
   } = useUpdateAppConfigMutation(appID);
 
   const isModified =
@@ -216,19 +219,21 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
     ]
   );
 
-  const resetError = useCallback(() => {
-    resetUpdateTemplatesError();
-    resetUpdateAppConfigError();
-  }, [resetUpdateTemplatesError, resetUpdateAppConfigError]);
-
-  const { selectedKey, onLinkClick } = usePivotNavigation(
-    [
-      PIVOT_KEY_TRANSLATION_JSON,
-      PIVOT_KEY_FORGOT_PASSWORD,
-      PIVOT_KEY_PASSWORDLESS,
-    ],
-    resetError
+  // We used to use fragment to control the pivot key.
+  // Now that the save button applies all changes, not just the changes in the curren pivot item.
+  // Therefore, we do not need to use fragment to control the pivot key anymore.
+  const [selectedKey, setSelectedKey] = useState<string>(
+    PIVOT_KEY_TRANSLATION_JSON
   );
+  const onLinkClick = useCallback((item?: PivotItem) => {
+    const itemKey = item?.props.itemKey;
+    if (itemKey != null) {
+      const idx = ALL_PIVOT_KEYS.indexOf(itemKey);
+      if (idx >= 0) {
+        setSelectedKey(itemKey);
+      }
+    }
+  }, []);
 
   const getValue = useCallback(
     (resourcePath: ResourcePath<"locale">) => {
