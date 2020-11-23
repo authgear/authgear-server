@@ -58,8 +58,8 @@ export function useUpdateAppAndSecretConfigMutation(
         variables: {
           appID,
           updates: [
-            { path: APP_CONFIG_PATH, data: appConfigYaml },
-            { path: SECRET_CONFIG_PATH, data: secretConfigYaml },
+            { path: APP_CONFIG_PATH, data: btoa(appConfigYaml) },
+            { path: SECRET_CONFIG_PATH, data: btoa(secretConfigYaml) },
           ],
         },
       });

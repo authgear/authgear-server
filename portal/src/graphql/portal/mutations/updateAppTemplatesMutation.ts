@@ -59,7 +59,12 @@ export function useUpdateAppTemplatesMutation(
         variables: {
           appID,
           paths,
-          updates,
+          updates: updates.map((update) => {
+            return {
+              ...update,
+              data: update.data == null ? null : btoa(update.data),
+            };
+          }),
         },
       });
       return result.data?.updateAppResources.app ?? null;

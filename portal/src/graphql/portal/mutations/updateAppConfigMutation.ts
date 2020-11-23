@@ -48,7 +48,7 @@ export function useUpdateAppConfigMutation(
       const result = await mutationFunction({
         variables: {
           appID,
-          updates: [{ path: APP_CONFIG_PATH, data: appConfigYaml }],
+          updates: [{ path: APP_CONFIG_PATH, data: btoa(appConfigYaml) }],
         },
       });
       return result.data?.updateAppResources.app ?? null;
