@@ -482,6 +482,9 @@
   "ShowUnhandledValidationErrorCause.location": "Location: {location}",
   "ShowUnhandledValidationErrorCause.details": "Details: {details}",
 
+  "ImageFilePicker.select-image": "Select Image",
+  "ImageFilePicker.remove-image": "Remove Image",
+
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
   "Locales.ar": "Arabic",
