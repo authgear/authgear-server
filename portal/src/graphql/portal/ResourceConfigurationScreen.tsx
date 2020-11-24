@@ -12,7 +12,7 @@ import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ButtonWithLoading from "../../ButtonWithLoading";
-import TemplateLocaleManagement from "./TemplateLocaleManagement";
+import ManageLanguageWidget from "./ManageLanguageWidget";
 import EditTemplatesWidget, {
   EditTemplatesWidgetSection,
 } from "./EditTemplatesWidget";
@@ -41,9 +41,9 @@ import {
 import { ResourcePath } from "../../util/stringTemplate";
 import { generateUpdates } from "./templates";
 
-import styles from "./TemplatesConfigurationScreen.module.scss";
+import styles from "./ResourceConfigurationScreen.module.scss";
 
-interface TemplatesConfigurationProps {
+interface ResourceConfigurationSectionProps {
   rawAppConfig: PortalAPIAppConfig;
   initialTemplates: Record<string, Template | undefined>;
   initialTemplateLocales: TemplateLocale[];
@@ -65,8 +65,8 @@ const ALL_PIVOT_KEYS = [
   PIVOT_KEY_PASSWORDLESS,
 ];
 
-const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function TemplatesConfiguration(
-  props: TemplatesConfigurationProps
+const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> = function ResourceConfigurationSection(
+  props: ResourceConfigurationSectionProps
 ) {
   const { renderToString } = useContext(Context);
   const { appID } = useParams();
@@ -411,9 +411,9 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
         />
         <NavigationBlockerDialog blockNavigation={isModified} />
         <Text className={styles.screenHeaderText} as="h1">
-          <FormattedMessage id="TemplatesConfigurationScreen.title" />
+          <FormattedMessage id="ResourceConfigurationScreen.title" />
         </Text>
-        <TemplateLocaleManagement
+        <ManageLanguageWidget
           templateLocales={templateLocales}
           onChangeTemplateLocales={onChangeTemplateLocales}
           templateLocale={templateLocale}
@@ -432,7 +432,7 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
         >
           <PivotItem
             headerText={renderToString(
-              "TemplatesConfigurationScreen.translationjson.title"
+              "ResourceConfigurationScreen.translationjson.title"
             )}
             itemKey={PIVOT_KEY_TRANSLATION_JSON}
           >
@@ -440,7 +440,7 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
           </PivotItem>
           <PivotItem
             headerText={renderToString(
-              "TemplatesConfigurationScreen.forgot-password.title"
+              "ResourceConfigurationScreen.forgot-password.title"
             )}
             itemKey={PIVOT_KEY_FORGOT_PASSWORD}
           >
@@ -448,7 +448,7 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
           </PivotItem>
           <PivotItem
             headerText={renderToString(
-              "TemplatesConfigurationScreen.passwordless-authenticator.title"
+              "ResourceConfigurationScreen.passwordless-authenticator.title"
             )}
             itemKey={PIVOT_KEY_PASSWORDLESS}
           >
@@ -472,7 +472,7 @@ const TemplatesConfiguration: React.FC<TemplatesConfigurationProps> = function T
   );
 };
 
-const TemplatesConfigurationScreen: React.FC = function TemplatesConfigurationScreen() {
+const ResourceConfigurationScreen: React.FC = function ResourceConfigurationScreen() {
   const { appID } = useParams();
   const {
     effectiveAppConfig,
@@ -545,7 +545,7 @@ const TemplatesConfigurationScreen: React.FC = function TemplatesConfigurationSc
   }
 
   return (
-    <TemplatesConfiguration
+    <ResourceConfigurationSection
       key={remountIdentifier}
       rawAppConfig={rawAppConfig!}
       initialTemplates={initialTemplates}
@@ -560,4 +560,4 @@ const TemplatesConfigurationScreen: React.FC = function TemplatesConfigurationSc
   );
 };
 
-export default TemplatesConfigurationScreen;
+export default ResourceConfigurationScreen;

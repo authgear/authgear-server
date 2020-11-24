@@ -87,8 +87,8 @@ const ScreenNav: React.FC = function ScreenNav() {
           },
           {
             key: "templates",
-            name: renderToString("ScreenNav.templates"),
-            url: "configuration/templates",
+            name: renderToString("ScreenNav.localization-appearance"),
+            url: "configuration/localization-appearance",
             icon: "WebTemplate",
           },
           {
