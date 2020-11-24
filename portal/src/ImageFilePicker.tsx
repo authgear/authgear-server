@@ -12,11 +12,30 @@ import { useSystemConfig } from "./context/SystemConfigContext";
 
 import styles from "./ImageFilePicker.module.scss";
 
+export type ImageFileExtension = ".jpeg" | ".png" | ".gif";
+
 export interface ImageFilePickerProps {
   title: string;
   className?: string;
   base64EncodedData?: string;
-  onChange?: (base64EncodedData?: string) => void;
+  extension?: ImageFileExtension;
+  onChange?: (
+    base64EncodedData: string | undefined,
+    extension: ImageFileExtension | undefined
+  ) => void;
+}
+
+function mediaTypeToExtension(mime: string): ImageFileExtension {
+  switch (mime) {
+    case "image/png":
+      return ".png";
+    case "image/jpeg":
+      return ".jpeg";
+    case "image/gif":
+      return ".gif";
+    default:
+      throw new Error(`unsupported media type: ${mime}`);
+  }
 }
 
 function base64EncodedDataToDataURI(base64EncodedData: string): string {
@@ -59,7 +78,7 @@ const ImageFilePicker: React.FC<ImageFilePickerProps> = function ImageFilePicker
       if (inputRef.current != null) {
         inputRef.current.value = "";
       }
-      onChange?.(undefined);
+      onChange?.(undefined, undefined);
     },
     [onChange]
   );
@@ -77,11 +96,12 @@ const ImageFilePicker: React.FC<ImageFilePickerProps> = function ImageFilePicker
       if (target instanceof HTMLInputElement) {
         const file = target.files?.[0];
         if (file != null) {
+          const extension = mediaTypeToExtension(file.type);
           const reader = new FileReader();
           reader.addEventListener("load", function () {
             const result = reader.result;
             if (typeof result === "string") {
-              onChange?.(dataURIToBase64EncodedData(result));
+              onChange?.(dataURIToBase64EncodedData(result), extension);
             }
           });
           reader.readAsDataURL(file);
