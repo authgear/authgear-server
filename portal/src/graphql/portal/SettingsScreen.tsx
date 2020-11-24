@@ -13,6 +13,7 @@ import styles from "./SettingsScreen.module.scss";
 const GENERAL_PIVOT_KEY = "general";
 const PORTAL_ADMINS_PIVOT_KEY = "portal_admins";
 const SESSION_PIVOT_KEY = "session";
+const HOOK_PIVOT_KEY = "hooks";
 
 const SettingsScreen: React.FC = function SettingsScreen() {
   const { renderToString } = useContext(Context);
@@ -20,6 +21,7 @@ const SettingsScreen: React.FC = function SettingsScreen() {
     GENERAL_PIVOT_KEY,
     PORTAL_ADMINS_PIVOT_KEY,
     SESSION_PIVOT_KEY,
+    HOOK_PIVOT_KEY,
   ]);
 
   return (
@@ -47,6 +49,12 @@ const SettingsScreen: React.FC = function SettingsScreen() {
               itemKey={SESSION_PIVOT_KEY}
             >
               <SessionSettings />
+            </PivotItem>
+            <PivotItem
+              headerText={renderToString("SettingsScreen.hooks.title")}
+              itemKey={HOOK_PIVOT_KEY}
+            >
+              <div />
             </PivotItem>
           </Pivot>
         </div>
