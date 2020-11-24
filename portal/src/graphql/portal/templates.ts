@@ -1,27 +1,20 @@
-import { AppResourceUpdate } from "./__generated__/globalTypes";
-import { LanguageTag } from "../../util/resource";
-
-export interface Template {
-  locale: LanguageTag;
-  path: string;
-  value: string;
-}
+import { LanguageTag, ResourceUpdate, Resource } from "../../util/resource";
 
 export interface GenerateUpdatesResult {
   isModified: boolean;
-  additions: AppResourceUpdate[];
+  additions: ResourceUpdate[];
   invalidAdditionLocales: LanguageTag[];
-  editions: AppResourceUpdate[];
+  editions: ResourceUpdate[];
   invalidEditionLocales: LanguageTag[];
-  deletions: AppResourceUpdate[];
+  deletions: ResourceUpdate[];
 }
 
 // eslint-disable-next-line complexity
 export function generateUpdates(
   initialTemplateLocales: LanguageTag[],
-  initialTemplates: Record<string, Template | undefined>,
+  initialTemplates: Record<string, Resource | undefined>,
   templateLocales: LanguageTag[],
-  templates: Record<string, Template | undefined>
+  templates: Record<string, Resource | undefined>
 ): GenerateUpdatesResult {
   // We have 3 kinds of updates
   // 1. Addition
@@ -38,7 +31,7 @@ export function generateUpdates(
   }
   // It is valid iff there is at least 1 template with non-empty value.
   const invalidAdditionLocales: LanguageTag[] = [];
-  const additions: AppResourceUpdate[] = [];
+  const additions: ResourceUpdate[] = [];
   for (const locale of additionLocales) {
     let valid = false;
     for (const template of Object.values(templates)) {
@@ -48,8 +41,7 @@ export function generateUpdates(
       if (template.locale === locale && template.value !== "") {
         valid = true;
         additions.push({
-          path: template.path,
-          data: template.value,
+          ...template,
         });
       }
     }
@@ -68,7 +60,7 @@ export function generateUpdates(
   }
   // It is valid iff there is at least 1 template with non-empty value.
   const invalidEditionLocales: LanguageTag[] = [];
-  const editions: AppResourceUpdate[] = [];
+  const editions: ResourceUpdate[] = [];
   for (const locale of editionLocales) {
     let valid = false;
 
@@ -91,8 +83,8 @@ export function generateUpdates(
           ) {
             if (oldTemplate.value !== template.value) {
               editions.push({
-                path: template.path,
-                data: template.value === "" ? null : template.value,
+                ...template,
+                value: template.value === "" ? null : template.value,
               });
             }
           }
@@ -112,7 +104,7 @@ export function generateUpdates(
       deletionLocales.push(locale);
     }
   }
-  const deletions: AppResourceUpdate[] = [];
+  const deletions: ResourceUpdate[] = [];
   for (const locale of deletionLocales) {
     for (const template of Object.values(initialTemplates)) {
       if (template == null) {
@@ -120,8 +112,8 @@ export function generateUpdates(
       }
       if (template.locale === locale) {
         deletions.push({
-          path: template.path,
-          data: null,
+          ...template,
+          value: null,
         });
       }
     }

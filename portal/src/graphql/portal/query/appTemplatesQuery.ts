@@ -12,6 +12,8 @@ import {
   ResourceDefinition,
   ResourceSpecifier,
   LanguageTag,
+  decodeForText,
+  binary,
 } from "../../../util/resource";
 
 export const appTemplatesQuery = gql`
@@ -73,6 +75,7 @@ export function useAppTemplatesQuery(
     },
   });
 
+  // eslint-disable-next-line complexity
   const resources = useMemo(() => {
     const appNode = data?.node?.__typename === "App" ? data.node : null;
     const resources: Record<string, Resource> = {};
@@ -84,11 +87,24 @@ export function useAppTemplatesQuery(
         if (specifier.path === resource.path) {
           found = true;
           let value = "";
+          let transform: (a: string) => string;
+          switch (specifier.def.type) {
+            case "text":
+              transform = decodeForText;
+              break;
+            case "binary":
+              transform = binary;
+              break;
+            default:
+              throw new Error(
+                "unexpected resource type: " + String(specifier.def.type)
+              );
+          }
           // If the raw data is available, prefer it.
           if (resource.data != null) {
-            value = atob(resource.data);
+            value = transform(resource.data);
           } else if (resource.effectiveData != null) {
-            value = atob(resource.effectiveData);
+            value = transform(resource.effectiveData);
           }
           resources[specifier.path] = {
             ...specifier,

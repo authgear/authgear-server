@@ -1,5 +1,16 @@
 /* global describe, it, expect */
 import { generateUpdates } from "./templates";
+import { ResourceDefinition, resourcePath } from "../../util/resource";
+
+const ResourceA: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/a.html`,
+  type: "text",
+};
+
+const ResourceB: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/b.html`,
+  type: "text",
+};
 
 describe("generateUpdates", () => {
   it("handles invalid addition", () => {
@@ -7,6 +18,7 @@ describe("generateUpdates", () => {
       ["en"],
       {
         "templates/en/a.html": {
+          def: ResourceA,
           path: "templates/en/a.html",
           locale: "en",
           value: "a",
@@ -15,6 +27,7 @@ describe("generateUpdates", () => {
       ["en", "zh"],
       {
         "templates/en/a.html": {
+          def: ResourceA,
           path: "templates/en/a.html",
           locale: "en",
           value: "a",
@@ -37,6 +50,7 @@ describe("generateUpdates", () => {
       ["en"],
       {
         "templates/en/a.html": {
+          def: ResourceA,
           path: "templates/en/a.html",
           locale: "en",
           value: "a",
@@ -45,11 +59,13 @@ describe("generateUpdates", () => {
       ["en", "zh"],
       {
         "templates/en/a.html": {
+          def: ResourceA,
           path: "templates/en/a.html",
           locale: "en",
           value: "a",
         },
         "templates/zh/a.html": {
+          def: ResourceA,
           path: "templates/zh/a.html",
           locale: "zh",
           value: "zh a",
@@ -61,8 +77,10 @@ describe("generateUpdates", () => {
       isModified: true,
       additions: [
         {
+          def: ResourceA,
           path: "templates/zh/a.html",
-          data: "zh a",
+          locale: "zh",
+          value: "zh a",
         },
       ],
       invalidAdditionLocales: [],
@@ -77,6 +95,7 @@ describe("generateUpdates", () => {
       ["en"],
       {
         "templates/en/a.html": {
+          def: ResourceA,
           path: "templates/en/a.html",
           locale: "en",
           value: "a",
@@ -85,6 +104,7 @@ describe("generateUpdates", () => {
       ["en"],
       {
         "templates/en/a.html": {
+          def: ResourceA,
           path: "templates/en/a.html",
           locale: "en",
           value: "",
@@ -98,8 +118,10 @@ describe("generateUpdates", () => {
       invalidAdditionLocales: [],
       editions: [
         {
+          def: ResourceA,
+          locale: "en",
           path: "templates/en/a.html",
-          data: null,
+          value: null,
         },
       ],
       invalidEditionLocales: ["en"],
@@ -112,11 +134,13 @@ describe("generateUpdates", () => {
       ["en"],
       {
         "templates/en/a.html": {
+          def: ResourceA,
           path: "templates/en/a.html",
           locale: "en",
           value: "a",
         },
         "templates/en/b.html": {
+          def: ResourceB,
           path: "templates/en/b.html",
           locale: "en",
           value: "b",
@@ -125,11 +149,13 @@ describe("generateUpdates", () => {
       ["en"],
       {
         "templates/en/a.html": {
+          def: ResourceA,
           path: "templates/en/a.html",
           locale: "en",
           value: "edited a",
         },
         "templates/en/b.html": {
+          def: ResourceB,
           path: "templates/en/b.html",
           locale: "en",
           value: "b",
@@ -143,8 +169,10 @@ describe("generateUpdates", () => {
       invalidAdditionLocales: [],
       editions: [
         {
+          def: ResourceA,
+          locale: "en",
           path: "templates/en/a.html",
-          data: "edited a",
+          value: "edited a",
         },
       ],
       invalidEditionLocales: [],
@@ -157,11 +185,13 @@ describe("generateUpdates", () => {
       ["en", "zh"],
       {
         "templates/en/a.html": {
+          def: ResourceA,
           path: "templates/en/a.html",
           locale: "en",
           value: "a",
         },
         "templates/zh/a.html": {
+          def: ResourceA,
           path: "templates/zh/a.html",
           locale: "zh",
           value: "a",
@@ -170,11 +200,13 @@ describe("generateUpdates", () => {
       ["en"],
       {
         "templates/en/a.html": {
+          def: ResourceA,
           path: "templates/en/a.html",
           locale: "en",
           value: "a",
         },
         "templates/zh/a.html": {
+          def: ResourceA,
           path: "templates/zh/a.html",
           locale: "zh",
           value: "a",
@@ -190,8 +222,10 @@ describe("generateUpdates", () => {
       invalidEditionLocales: [],
       deletions: [
         {
+          def: ResourceA,
+          locale: "zh",
           path: "templates/zh/a.html",
-          data: null,
+          value: null,
         },
       ],
     });

@@ -8,6 +8,7 @@ import {
   UpdateAppTemplatesMutationVariables,
 } from "./__generated__/UpdateAppTemplatesMutation";
 import { PortalAPIApp } from "../../../types";
+import { ResourceUpdate, binary, encodeForText } from "../../../util/resource";
 
 const updateAppTemplatesMutation = gql`
   mutation UpdateAppTemplatesMutation(
@@ -33,7 +34,7 @@ const updateAppTemplatesMutation = gql`
 
 export type AppTemplatesUpdater = (
   paths: string[],
-  updates: AppResourceUpdate[]
+  updates: ResourceUpdate[]
 ) => Promise<PortalAPIApp | null>;
 
 export function useUpdateAppTemplatesMutation(
@@ -49,17 +50,32 @@ export function useUpdateAppTemplatesMutation(
     UpdateAppTemplatesMutationVariables
   >(updateAppTemplatesMutation, { client });
   const updateAppTemplates = useCallback(
-    async (paths: string[], updates: AppResourceUpdate[]) => {
+    async (paths: string[], updates: ResourceUpdate[]) => {
+      const updatePayload: AppResourceUpdate[] = updates.map((update) => {
+        let transform: (a: string) => string;
+        switch (update.def.type) {
+          case "text":
+            transform = encodeForText;
+            break;
+          case "binary":
+            transform = binary;
+            break;
+          default:
+            throw new Error(
+              "unexpected resource type: " + String(update.def.type)
+            );
+        }
+        return {
+          path: update.path,
+          data: update.value == null ? null : transform(update.value),
+        };
+      });
+
       const result = await mutationFunction({
         variables: {
           appID,
           paths,
-          updates: updates.map((update) => {
-            return {
-              ...update,
-              data: update.data == null ? null : btoa(update.data),
-            };
-          }),
+          updates: updatePayload,
         },
       });
       return result.data?.updateAppResources.app ?? null;

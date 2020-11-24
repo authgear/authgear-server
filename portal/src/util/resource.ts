@@ -7,6 +7,13 @@ export interface Resource {
   value: string;
 }
 
+export interface ResourceUpdate {
+  locale: LanguageTag;
+  def: ResourceDefinition;
+  path: string;
+  value?: string | null;
+}
+
 export interface ResourceSpecifier {
   locale: LanguageTag;
   def: ResourceDefinition;
@@ -67,4 +74,16 @@ export function resourcePath<Arg extends string>(
     parse,
     render,
   };
+}
+
+export function binary(a: string): string {
+  return a;
+}
+
+export function decodeForText(a: string): string {
+  return atob(a);
+}
+
+export function encodeForText(a: string): string {
+  return btoa(a);
 }
