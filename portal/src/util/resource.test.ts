@@ -1,5 +1,5 @@
 /* global describe, it, expect */
-import { resourcePath } from "./stringTemplate";
+import { resourcePath } from "./resource";
 
 describe("render and parse template string", () => {
   it("round trip", () => {

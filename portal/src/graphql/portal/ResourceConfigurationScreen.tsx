@@ -38,7 +38,7 @@ import {
   authenticatePrimaryOobSmsTextPath,
   getLocalizedTemplatePath,
 } from "../../templates";
-import { ResourcePath } from "../../util/stringTemplate";
+import { ResourcePath } from "../../util/resource";
 import { generateUpdates } from "./templates";
 
 import styles from "./ResourceConfigurationScreen.module.scss";

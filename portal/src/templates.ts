@@ -1,4 +1,4 @@
-import { ResourcePath, resourcePath } from "./util/stringTemplate";
+import { ResourcePath, resourcePath } from "./util/resource";
 
 export type TemplateLocale = string;
 export const DEFAULT_TEMPLATE_LOCALE: TemplateLocale = "en";

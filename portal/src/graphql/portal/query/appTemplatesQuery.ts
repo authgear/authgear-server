@@ -7,7 +7,7 @@ import {
   AppTemplatesQueryVariables,
 } from "./__generated__/AppTemplatesQuery";
 import { getLocalizedTemplatePath, TemplateLocale } from "../../../templates";
-import { ResourcePath } from "../../../util/stringTemplate";
+import { ResourcePath } from "../../../util/resource";
 
 export const appTemplatesQuery = gql`
   query AppTemplatesQuery($id: ID!, $paths: [String!]!) {
