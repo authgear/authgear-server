@@ -35,7 +35,7 @@ import {
   RESOURCE_FORGOT_PASSWORD_EMAIL_HTML,
   RESOURCE_FORGOT_PASSWORD_EMAIL_TXT,
   RESOURCE_FORGOT_PASSWORD_SMS_TXT,
-  getPath,
+  renderPath,
 } from "../../templates";
 import { LanguageTag, Resource, ResourceDefinition } from "../../util/resource";
 import { generateUpdates } from "./templates";
@@ -108,11 +108,10 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
       const partial: Record<string, Resource> = {};
       for (const locale of newLocales) {
         for (const resource of ALL_RESOURCES) {
-          const path = getPath(locale, resource.resourcePath);
-          const defaultPath = getPath(
-            defaultTemplateLocale,
-            resource.resourcePath
-          );
+          const path = renderPath(resource.resourcePath, { locale });
+          const defaultPath = renderPath(resource.resourcePath, {
+            locale: defaultTemplateLocale,
+          });
           const value = templates[defaultPath]?.value ?? "";
           const template: Resource = {
             locale,
@@ -199,7 +198,7 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
         const paths = [];
         for (const resource of ALL_RESOURCES) {
           for (const locale of templateLocales) {
-            paths.push(getPath(locale, resource.resourcePath));
+            paths.push(renderPath(resource.resourcePath, { locale }));
           }
         }
         updateAppTemplates(paths, updates).catch(() => {});
@@ -236,7 +235,9 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
 
   const getValue = useCallback(
     (resourceDef: ResourceDefinition) => {
-      const path = getPath(templateLocale, resourceDef.resourcePath);
+      const path = renderPath(resourceDef.resourcePath, {
+        locale: templateLocale,
+      });
       const template = templates[path];
       return template?.value ?? "";
     },
@@ -247,7 +248,9 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
     (resourceDef: ResourceDefinition) => {
       return (_e: unknown, value?: string) => {
         if (value != null) {
-          const path = getPath(templateLocale, resourceDef.resourcePath);
+          const path = renderPath(resourceDef.resourcePath, {
+            locale: templateLocale,
+          });
           setTemplates((prev) => {
             let template = prev[path];
 

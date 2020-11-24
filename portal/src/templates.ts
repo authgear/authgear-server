@@ -67,11 +67,21 @@ export const ALL_RESOURCES = [
   RESOURCE_FORGOT_PASSWORD_SMS_TXT,
 ];
 
-export function getPath(
-  locale: LanguageTag,
-  pathTemplate: ResourcePath
+export interface RenderPathArguments {
+  locale: LanguageTag;
+  extension?: string;
+}
+
+export function renderPath(
+  resourcePath: ResourcePath,
+  args: RenderPathArguments
 ): string {
-  return pathTemplate.render({ locale });
+  const renderArgs: Record<string, string> = {};
+  renderArgs["locale"] = args.locale;
+  if (args.extension != null) {
+    renderArgs["extension"] = args.extension;
+  }
+  return resourcePath.render(renderArgs);
 }
 
 export const STATIC_AUTHGEAR_CSS = "static/authgear.css";

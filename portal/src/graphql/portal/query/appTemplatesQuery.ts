@@ -6,7 +6,7 @@ import {
   AppTemplatesQuery,
   AppTemplatesQueryVariables,
 } from "./__generated__/AppTemplatesQuery";
-import { getPath } from "../../../templates";
+import { renderPath } from "../../../templates";
 import {
   Resource,
   ResourceDefinition,
@@ -53,7 +53,7 @@ export function useAppTemplatesQuery(
         output.push({
           locale,
           def: resourceDef,
-          path: getPath(locale, resourceDef.resourcePath),
+          path: renderPath(resourceDef.resourcePath, { locale }),
         });
       }
     }
