@@ -8,7 +8,6 @@ import {
   UpdateAppTemplatesMutationVariables,
 } from "./__generated__/UpdateAppTemplatesMutation";
 import { PortalAPIApp } from "../../../types";
-import { TemplateLocale } from "../../../templates";
 
 const updateAppTemplatesMutation = gql`
   mutation UpdateAppTemplatesMutation(
@@ -35,10 +34,6 @@ const updateAppTemplatesMutation = gql`
 export type AppTemplatesUpdater = (
   paths: string[],
   updates: AppResourceUpdate[]
-) => Promise<PortalAPIApp | null>;
-
-export type TemplateLocaleRemover = (
-  locales: TemplateLocale[]
 ) => Promise<PortalAPIApp | null>;
 
 export function useUpdateAppTemplatesMutation(

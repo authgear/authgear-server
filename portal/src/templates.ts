@@ -1,37 +1,74 @@
-import { ResourcePath, resourcePath } from "./util/resource";
+import {
+  ResourcePath,
+  resourcePath,
+  ResourceDefinition,
+  LanguageTag,
+} from "./util/resource";
 
-export type TemplateLocale = string;
-export const DEFAULT_TEMPLATE_LOCALE: TemplateLocale = "en";
+export const DEFAULT_TEMPLATE_LOCALE: LanguageTag = "en";
 
-export const translationJSONPath = resourcePath`templates/${"locale"}/translation.json`;
+export const RESOURCE_TRANSLATION_JSON: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/translation.json`,
+  type: "text",
+};
 
-export const setupPrimaryOobEmailHtmlPath = resourcePath`templates/${"locale"}/messages/setup_primary_oob_email.html`;
-export const setupPrimaryOobEmailTextPath = resourcePath`templates/${"locale"}/messages/setup_primary_oob_email.txt`;
-export const setupPrimaryOobSmsTextPath = resourcePath`templates/${"locale"}/messages/setup_primary_oob_sms.txt`;
+export const RESOURCE_SETUP_PRIMARY_OOB_EMAIL_HTML: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/messages/setup_primary_oob_email.html`,
+  type: "text",
+};
+export const RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/messages/setup_primary_oob_email.txt`,
+  type: "text",
+};
+export const RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/messages/setup_primary_oob_sms.txt`,
+  type: "text",
+};
 
-export const authenticatePrimaryOobEmailHtmlPath = resourcePath`templates/${"locale"}/messages/authenticate_primary_oob_email.html`;
-export const authenticatePrimaryOobEmailTextPath = resourcePath`templates/${"locale"}/messages/authenticate_primary_oob_email.txt`;
-export const authenticatePrimaryOobSmsTextPath = resourcePath`templates/${"locale"}/messages/authenticate_primary_oob_sms.txt`;
+export const RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/messages/authenticate_primary_oob_email.html`,
+  type: "text",
+};
+export const RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/messages/authenticate_primary_oob_email.txt`,
+  type: "text",
+};
+export const RESOURCE_AUTHENTICATE_PRIMARY_OOB_SMS_TXT: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/messages/authenticate_primary_oob_sms.txt`,
+  type: "text",
+};
 
-export const forgotPasswordEmailHtmlPath = resourcePath`templates/${"locale"}/messages/forgot_password_email.html`;
-export const forgotPasswordEmailTextPath = resourcePath`templates/${"locale"}/messages/forgot_password_email.txt`;
-export const forgotPasswordSmsTextPath = resourcePath`templates/${"locale"}/messages/forgot_password_sms.txt`;
+export const RESOURCE_FORGOT_PASSWORD_EMAIL_HTML: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/messages/forgot_password_email.html`,
+  type: "text",
+};
+export const RESOURCE_FORGOT_PASSWORD_EMAIL_TXT: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/messages/forgot_password_email.txt`,
+  type: "text",
+};
+export const RESOURCE_FORGOT_PASSWORD_SMS_TXT: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/messages/forgot_password_sms.txt`,
+  type: "text",
+};
 
-export const ALL_TEMPLATE_PATHS = [
-  translationJSONPath,
-  setupPrimaryOobEmailHtmlPath,
-  setupPrimaryOobEmailTextPath,
-  setupPrimaryOobSmsTextPath,
-  authenticatePrimaryOobEmailHtmlPath,
-  authenticatePrimaryOobEmailTextPath,
-  authenticatePrimaryOobSmsTextPath,
-  forgotPasswordEmailHtmlPath,
-  forgotPasswordEmailTextPath,
-  forgotPasswordSmsTextPath,
+export const ALL_RESOURCES = [
+  RESOURCE_TRANSLATION_JSON,
+
+  RESOURCE_SETUP_PRIMARY_OOB_EMAIL_HTML,
+  RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT,
+  RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT,
+
+  RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML,
+  RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT,
+  RESOURCE_AUTHENTICATE_PRIMARY_OOB_SMS_TXT,
+
+  RESOURCE_FORGOT_PASSWORD_EMAIL_HTML,
+  RESOURCE_FORGOT_PASSWORD_EMAIL_TXT,
+  RESOURCE_FORGOT_PASSWORD_SMS_TXT,
 ];
 
-export function getLocalizedTemplatePath(
-  locale: TemplateLocale,
+export function getPath(
+  locale: LanguageTag,
   pathTemplate: ResourcePath<"locale">
 ): string {
   return pathTemplate.render({ locale });

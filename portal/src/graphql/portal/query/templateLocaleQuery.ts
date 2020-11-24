@@ -6,7 +6,7 @@ import {
   TemplateLocaleQuery,
   TemplateLocaleQueryVariables,
 } from "./__generated__/TemplateLocaleQuery";
-import { TemplateLocale } from "../../../templates";
+import { LanguageTag } from "../../../util/resource";
 
 export const templateLocaleQuery = gql`
   query TemplateLocaleQuery($id: ID!) {
@@ -28,7 +28,7 @@ export interface TemplateLocaleQueryResult
     QueryResult<TemplateLocaleQuery, TemplateLocaleQueryVariables>,
     "loading" | "error" | "refetch"
   > {
-  templateLocales: TemplateLocale[];
+  templateLocales: LanguageTag[];
 }
 
 export function useTemplateLocaleQuery(
@@ -46,7 +46,7 @@ export function useTemplateLocaleQuery(
 
   const queryData = useMemo(() => {
     const appNode = data?.node?.__typename === "App" ? data.node : null;
-    const templateLocaleSets = new Set<TemplateLocale>();
+    const templateLocaleSets = new Set<LanguageTag>();
     const templateResourceData =
       appNode?.resourceLocales.filter((resourceData) => {
         return resourceData.path.split("/")[0] === "templates";

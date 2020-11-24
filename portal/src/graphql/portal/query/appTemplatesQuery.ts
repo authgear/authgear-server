@@ -6,8 +6,13 @@ import {
   AppTemplatesQuery,
   AppTemplatesQueryVariables,
 } from "./__generated__/AppTemplatesQuery";
-import { getLocalizedTemplatePath, TemplateLocale } from "../../../templates";
-import { ResourcePath } from "../../../util/resource";
+import { getPath } from "../../../templates";
+import {
+  Resource,
+  ResourceDefinition,
+  ResourceSpecifier,
+  LanguageTag,
+} from "../../../util/resource";
 
 export const appTemplatesQuery = gql`
   query AppTemplatesQuery($id: ID!, $paths: [String!]!) {
@@ -26,48 +31,35 @@ export const appTemplatesQuery = gql`
   }
 `;
 
-export interface Template {
-  locale: TemplateLocale;
-  resourcePath: ResourcePath<"locale">;
-  path: string;
-  value: string;
-}
-
 export interface AppTemplatesQueryResult
   extends Pick<
     QueryResult<AppTemplatesQuery, AppTemplatesQueryVariables>,
     "loading" | "error" | "refetch"
   > {
-  templates: Record<string, Template>;
-}
-
-export interface InputPath {
-  locale: TemplateLocale;
-  resourcePath: ResourcePath<"locale">;
-  path: string;
+  resources: Record<string, Resource>;
 }
 
 export function useAppTemplatesQuery(
   appID: string,
-  locales: TemplateLocale[],
-  ...resourcePaths: ResourcePath<"locale">[]
+  locales: LanguageTag[],
+  ...resourceDefs: ResourceDefinition[]
 ): AppTemplatesQueryResult {
-  const inputPaths = useMemo<InputPath[]>(() => {
-    const output: InputPath[] = [];
+  const specifiers = useMemo<ResourceSpecifier[]>(() => {
+    const output: ResourceSpecifier[] = [];
     for (const locale of locales) {
-      for (const resourcePath of resourcePaths) {
+      for (const resourceDef of resourceDefs) {
         output.push({
           locale,
-          resourcePath,
-          path: getLocalizedTemplatePath(locale, resourcePath),
+          def: resourceDef,
+          path: getPath(locale, resourceDef.resourcePath),
         });
       }
     }
     return output;
-  }, [locales, resourcePaths]);
+  }, [locales, resourceDefs]);
 
-  const paths = useMemo(() => inputPaths.map((inputPath) => inputPath.path), [
-    inputPaths,
+  const paths = useMemo(() => specifiers.map((specifier) => specifier.path), [
+    specifiers,
   ]);
 
   const { data, loading, error, refetch } = useQuery<
@@ -81,15 +73,15 @@ export function useAppTemplatesQuery(
     },
   });
 
-  const templates = useMemo(() => {
+  const resources = useMemo(() => {
     const appNode = data?.node?.__typename === "App" ? data.node : null;
-    const templates: Record<string, Template> = {};
+    const resources: Record<string, Resource> = {};
 
-    for (const inputPath of inputPaths) {
+    for (const specifier of specifiers) {
       let found = false;
 
       for (const resource of appNode?.resources ?? []) {
-        if (inputPath.path === resource.path) {
+        if (specifier.path === resource.path) {
           found = true;
           let value = "";
           // If the raw data is available, prefer it.
@@ -98,8 +90,8 @@ export function useAppTemplatesQuery(
           } else if (resource.effectiveData != null) {
             value = atob(resource.effectiveData);
           }
-          templates[inputPath.path] = {
-            ...inputPath,
+          resources[specifier.path] = {
+            ...specifier,
             value,
           };
           break;
@@ -107,15 +99,15 @@ export function useAppTemplatesQuery(
       }
 
       if (!found) {
-        templates[inputPath.path] = {
-          ...inputPath,
+        resources[specifier.path] = {
+          ...specifier,
           value: "",
         };
       }
     }
 
-    return templates;
-  }, [data, inputPaths]);
+    return resources;
+  }, [data, specifiers]);
 
-  return { templates, loading, error, refetch };
+  return { resources, loading, error, refetch };
 }

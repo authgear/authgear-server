@@ -1,8 +1,8 @@
 import { AppResourceUpdate } from "./__generated__/globalTypes";
-import { TemplateLocale } from "../../templates";
+import { LanguageTag } from "../../util/resource";
 
 export interface Template {
-  locale: TemplateLocale;
+  locale: LanguageTag;
   path: string;
   value: string;
 }
@@ -10,17 +10,17 @@ export interface Template {
 export interface GenerateUpdatesResult {
   isModified: boolean;
   additions: AppResourceUpdate[];
-  invalidAdditionLocales: TemplateLocale[];
+  invalidAdditionLocales: LanguageTag[];
   editions: AppResourceUpdate[];
-  invalidEditionLocales: TemplateLocale[];
+  invalidEditionLocales: LanguageTag[];
   deletions: AppResourceUpdate[];
 }
 
 // eslint-disable-next-line complexity
 export function generateUpdates(
-  initialTemplateLocales: TemplateLocale[],
+  initialTemplateLocales: LanguageTag[],
   initialTemplates: Record<string, Template | undefined>,
-  templateLocales: TemplateLocale[],
+  templateLocales: LanguageTag[],
   templates: Record<string, Template | undefined>
 ): GenerateUpdatesResult {
   // We have 3 kinds of updates
@@ -29,7 +29,7 @@ export function generateUpdates(
   // 3. Deletion
 
   // Addition: present in templateLocales but absent in initialTemplateLocales
-  const additionLocales: TemplateLocale[] = [];
+  const additionLocales: LanguageTag[] = [];
   for (const locale of templateLocales) {
     const idx = initialTemplateLocales.indexOf(locale);
     if (idx < 0) {
@@ -37,7 +37,7 @@ export function generateUpdates(
     }
   }
   // It is valid iff there is at least 1 template with non-empty value.
-  const invalidAdditionLocales: TemplateLocale[] = [];
+  const invalidAdditionLocales: LanguageTag[] = [];
   const additions: AppResourceUpdate[] = [];
   for (const locale of additionLocales) {
     let valid = false;
@@ -59,7 +59,7 @@ export function generateUpdates(
   }
 
   // Edition: present in both templateLocales and initialTemplateLocales
-  const editionLocales: TemplateLocale[] = [];
+  const editionLocales: LanguageTag[] = [];
   for (const locale of templateLocales) {
     const idx = initialTemplateLocales.indexOf(locale);
     if (idx >= 0) {
@@ -67,7 +67,7 @@ export function generateUpdates(
     }
   }
   // It is valid iff there is at least 1 template with non-empty value.
-  const invalidEditionLocales: TemplateLocale[] = [];
+  const invalidEditionLocales: LanguageTag[] = [];
   const editions: AppResourceUpdate[] = [];
   for (const locale of editionLocales) {
     let valid = false;
@@ -105,7 +105,7 @@ export function generateUpdates(
   }
 
   // Deletion: present in initialTemplateLocales but absent in templateLocales
-  const deletionLocales: TemplateLocale[] = [];
+  const deletionLocales: LanguageTag[] = [];
   for (const locale of initialTemplateLocales) {
     const idx = templateLocales.indexOf(locale);
     if (idx < 0) {

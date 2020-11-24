@@ -1,3 +1,23 @@
+export type LanguageTag = string;
+
+export interface Resource {
+  locale: LanguageTag;
+  def: ResourceDefinition;
+  path: string;
+  value: string;
+}
+
+export interface ResourceSpecifier {
+  locale: LanguageTag;
+  def: ResourceDefinition;
+  path: string;
+}
+
+export interface ResourceDefinition {
+  type: "text" | "binary";
+  resourcePath: ResourcePath<"locale">;
+}
+
 export interface ResourcePath<Arg extends string> {
   parse(path: string): Record<Arg, string> | null;
   render(args: Record<Arg, string>): string;

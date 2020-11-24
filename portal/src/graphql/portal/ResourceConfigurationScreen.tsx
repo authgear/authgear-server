@@ -17,41 +17,40 @@ import EditTemplatesWidget, {
   EditTemplatesWidgetSection,
 } from "./EditTemplatesWidget";
 import { useAppConfigQuery } from "./query/appConfigQuery";
-import { useAppTemplatesQuery, Template } from "./query/appTemplatesQuery";
+import { useAppTemplatesQuery } from "./query/appTemplatesQuery";
 import { useTemplateLocaleQuery } from "./query/templateLocaleQuery";
 import { useUpdateAppTemplatesMutation } from "./mutations/updateAppTemplatesMutation";
 import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
 import { PortalAPIAppConfig } from "../../types";
 import {
   DEFAULT_TEMPLATE_LOCALE,
-  TemplateLocale,
-  ALL_TEMPLATE_PATHS,
-  translationJSONPath,
-  forgotPasswordEmailHtmlPath,
-  forgotPasswordEmailTextPath,
-  forgotPasswordSmsTextPath,
-  setupPrimaryOobEmailHtmlPath,
-  setupPrimaryOobEmailTextPath,
-  setupPrimaryOobSmsTextPath,
-  authenticatePrimaryOobEmailHtmlPath,
-  authenticatePrimaryOobEmailTextPath,
-  authenticatePrimaryOobSmsTextPath,
-  getLocalizedTemplatePath,
+  ALL_RESOURCES,
+  RESOURCE_TRANSLATION_JSON,
+  RESOURCE_SETUP_PRIMARY_OOB_EMAIL_HTML,
+  RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT,
+  RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT,
+  RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML,
+  RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT,
+  RESOURCE_AUTHENTICATE_PRIMARY_OOB_SMS_TXT,
+  RESOURCE_FORGOT_PASSWORD_EMAIL_HTML,
+  RESOURCE_FORGOT_PASSWORD_EMAIL_TXT,
+  RESOURCE_FORGOT_PASSWORD_SMS_TXT,
+  getPath,
 } from "../../templates";
-import { ResourcePath } from "../../util/resource";
+import { LanguageTag, Resource, ResourceDefinition } from "../../util/resource";
 import { generateUpdates } from "./templates";
 
 import styles from "./ResourceConfigurationScreen.module.scss";
 
 interface ResourceConfigurationSectionProps {
   rawAppConfig: PortalAPIAppConfig;
-  initialTemplates: Record<string, Template | undefined>;
-  initialTemplateLocales: TemplateLocale[];
-  initialDefaultTemplateLocale: TemplateLocale;
-  defaultTemplateLocale: TemplateLocale;
-  templateLocale: TemplateLocale;
-  setDefaultTemplateLocale: (locale: TemplateLocale) => void;
-  setTemplateLocale: (locale: TemplateLocale) => void;
+  initialTemplates: Record<string, Resource | undefined>;
+  initialTemplateLocales: LanguageTag[];
+  initialDefaultTemplateLocale: LanguageTag;
+  defaultTemplateLocale: LanguageTag;
+  templateLocale: LanguageTag;
+  setDefaultTemplateLocale: (locale: LanguageTag) => void;
+  setTemplateLocale: (locale: LanguageTag) => void;
   onResetForm: () => void;
 }
 
@@ -82,14 +81,14 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
     onResetForm,
   } = props;
 
-  const [templateLocales, setTemplateLocales] = useState<TemplateLocale[]>(
+  const [templateLocales, setTemplateLocales] = useState<LanguageTag[]>(
     initialTemplateLocales
   );
 
   const [templates, setTemplates] = useState(initialTemplates);
 
   const onChangeTemplateLocales = useCallback(
-    (locales: TemplateLocale[]) => {
+    (locales: LanguageTag[]) => {
       // Reset templateLocale to default if the selected one was removed.
       const idx = locales.findIndex((item) => item === templateLocale);
       if (idx < 0) {
@@ -106,18 +105,18 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
       }
 
       // Populate initial values for new locales from default locale.
-      const partial: Record<string, Template> = {};
+      const partial: Record<string, Resource> = {};
       for (const locale of newLocales) {
-        for (const resourcePath of ALL_TEMPLATE_PATHS) {
-          const path = getLocalizedTemplatePath(locale, resourcePath);
-          const defaultPath = getLocalizedTemplatePath(
+        for (const resource of ALL_RESOURCES) {
+          const path = getPath(locale, resource.resourcePath);
+          const defaultPath = getPath(
             defaultTemplateLocale,
-            resourcePath
+            resource.resourcePath
           );
           const value = templates[defaultPath]?.value ?? "";
-          const template: Template = {
+          const template: Resource = {
             locale,
-            resourcePath,
+            def: resource,
             path,
             value,
           };
@@ -198,9 +197,9 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
       const updates = [...additions, ...editions, ...deletions];
       if (updates.length > 0) {
         const paths = [];
-        for (const resourcePath of ALL_TEMPLATE_PATHS) {
+        for (const resource of ALL_RESOURCES) {
           for (const locale of templateLocales) {
-            paths.push(getLocalizedTemplatePath(locale, resourcePath));
+            paths.push(getPath(locale, resource.resourcePath));
           }
         }
         updateAppTemplates(paths, updates).catch(() => {});
@@ -236,8 +235,8 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
   }, []);
 
   const getValue = useCallback(
-    (resourcePath: ResourcePath<"locale">) => {
-      const path = getLocalizedTemplatePath(templateLocale, resourcePath);
+    (resourceDef: ResourceDefinition) => {
+      const path = getPath(templateLocale, resourceDef.resourcePath);
       const template = templates[path];
       return template?.value ?? "";
     },
@@ -245,16 +244,16 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
   );
 
   const getOnChange = useCallback(
-    (resourcePath: ResourcePath<"locale">) => {
+    (resourceDef: ResourceDefinition) => {
       return (_e: unknown, value?: string) => {
         if (value != null) {
-          const path = getLocalizedTemplatePath(templateLocale, resourcePath);
+          const path = getPath(templateLocale, resourceDef.resourcePath);
           setTemplates((prev) => {
             let template = prev[path];
 
             if (template == null) {
               template = {
-                resourcePath,
+                def: resourceDef,
                 path: path,
                 locale: templateLocale,
                 value,
@@ -290,8 +289,8 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
             <FormattedMessage id="EditTemplatesWidget.translationjson.subtitle" />
           ),
           language: "json",
-          value: getValue(translationJSONPath),
-          onChange: getOnChange(translationJSONPath),
+          value: getValue(RESOURCE_TRANSLATION_JSON),
+          onChange: getOnChange(RESOURCE_TRANSLATION_JSON),
         },
       ],
     },
@@ -306,15 +305,15 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
           key: "html-email",
           title: <FormattedMessage id="EditTemplatesWidget.html-email" />,
           language: "html",
-          value: getValue(forgotPasswordEmailHtmlPath),
-          onChange: getOnChange(forgotPasswordEmailHtmlPath),
+          value: getValue(RESOURCE_FORGOT_PASSWORD_EMAIL_HTML),
+          onChange: getOnChange(RESOURCE_FORGOT_PASSWORD_EMAIL_HTML),
         },
         {
           key: "plaintext-email",
           title: <FormattedMessage id="EditTemplatesWidget.plaintext-email" />,
           language: "plaintext",
-          value: getValue(forgotPasswordEmailTextPath),
-          onChange: getOnChange(forgotPasswordEmailTextPath),
+          value: getValue(RESOURCE_FORGOT_PASSWORD_EMAIL_TXT),
+          onChange: getOnChange(RESOURCE_FORGOT_PASSWORD_EMAIL_TXT),
         },
       ],
     },
@@ -326,8 +325,8 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
           key: "sms",
           title: <FormattedMessage id="EditTemplatesWidget.sms-body" />,
           language: "plaintext",
-          value: getValue(forgotPasswordSmsTextPath),
-          onChange: getOnChange(forgotPasswordSmsTextPath),
+          value: getValue(RESOURCE_FORGOT_PASSWORD_SMS_TXT),
+          onChange: getOnChange(RESOURCE_FORGOT_PASSWORD_SMS_TXT),
         },
       ],
     },
@@ -344,22 +343,22 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
           key: "html-email",
           title: <FormattedMessage id="EditTemplatesWidget.html-email" />,
           language: "html",
-          value: getValue(setupPrimaryOobEmailHtmlPath),
-          onChange: getOnChange(setupPrimaryOobEmailHtmlPath),
+          value: getValue(RESOURCE_SETUP_PRIMARY_OOB_EMAIL_HTML),
+          onChange: getOnChange(RESOURCE_SETUP_PRIMARY_OOB_EMAIL_HTML),
         },
         {
           key: "plaintext-email",
           title: <FormattedMessage id="EditTemplatesWidget.plaintext-email" />,
           language: "plaintext",
-          value: getValue(setupPrimaryOobEmailTextPath),
-          onChange: getOnChange(setupPrimaryOobEmailTextPath),
+          value: getValue(RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT),
+          onChange: getOnChange(RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT),
         },
         {
           key: "sms",
           title: <FormattedMessage id="EditTemplatesWidget.sms-body" />,
           language: "plaintext",
-          value: getValue(setupPrimaryOobSmsTextPath),
-          onChange: getOnChange(setupPrimaryOobSmsTextPath),
+          value: getValue(RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT),
+          onChange: getOnChange(RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT),
         },
       ],
     },
@@ -373,22 +372,22 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
           key: "html-email",
           title: <FormattedMessage id="EditTemplatesWidget.html-email" />,
           language: "html",
-          value: getValue(authenticatePrimaryOobEmailHtmlPath),
-          onChange: getOnChange(authenticatePrimaryOobEmailHtmlPath),
+          value: getValue(RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML),
+          onChange: getOnChange(RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML),
         },
         {
           key: "plaintext-email",
           title: <FormattedMessage id="EditTemplatesWidget.plaintext-email" />,
           language: "plaintext",
-          value: getValue(authenticatePrimaryOobEmailTextPath),
-          onChange: getOnChange(authenticatePrimaryOobEmailTextPath),
+          value: getValue(RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT),
+          onChange: getOnChange(RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT),
         },
         {
           key: "sms",
           title: <FormattedMessage id="EditTemplatesWidget.sms-body" />,
           language: "plaintext",
-          value: getValue(authenticatePrimaryOobSmsTextPath),
-          onChange: getOnChange(authenticatePrimaryOobSmsTextPath),
+          value: getValue(RESOURCE_AUTHENTICATE_PRIMARY_OOB_SMS_TXT),
+          onChange: getOnChange(RESOURCE_AUTHENTICATE_PRIMARY_OOB_SMS_TXT),
         },
       ],
     },
@@ -489,7 +488,7 @@ const ResourceConfigurationScreen: React.FC = function ResourceConfigurationScre
     refetch: refetchTemplateLocales,
   } = useTemplateLocaleQuery(appID);
 
-  const initialDefaultTemplateLocale = useMemo<TemplateLocale>(() => {
+  const initialDefaultTemplateLocale = useMemo<LanguageTag>(() => {
     return (
       effectiveAppConfig?.localization?.fallback_language ??
       DEFAULT_TEMPLATE_LOCALE
@@ -499,10 +498,10 @@ const ResourceConfigurationScreen: React.FC = function ResourceConfigurationScre
   const [remountIdentifier, setRemountIdentifier] = useState(0);
 
   const [defaultTemplateLocale, setDefaultTemplateLocale] = useState<
-    TemplateLocale
+    LanguageTag
   >(initialDefaultTemplateLocale);
 
-  const [templateLocale, setTemplateLocale] = useState<TemplateLocale>(
+  const [templateLocale, setTemplateLocale] = useState<LanguageTag>(
     defaultTemplateLocale
   );
 
@@ -513,15 +512,11 @@ const ResourceConfigurationScreen: React.FC = function ResourceConfigurationScre
   }, [initialDefaultTemplateLocale]);
 
   const {
-    templates: initialTemplates,
+    resources: initialTemplates,
     loading: loadingTemplates,
     error: loadTemplatesError,
     refetch: refetchTemplates,
-  } = useAppTemplatesQuery(
-    appID,
-    initialTemplateLocales,
-    ...ALL_TEMPLATE_PATHS
-  );
+  } = useAppTemplatesQuery(appID, initialTemplateLocales, ...ALL_RESOURCES);
 
   if (loadingAppConfig || loadingTemplateLocales || loadingTemplates) {
     return <ShowLoading />;

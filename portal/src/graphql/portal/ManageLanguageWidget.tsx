@@ -25,45 +25,45 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useCheckbox } from "../../hook/useInput";
-import { TemplateLocale } from "../../templates";
+import { LanguageTag } from "../../util/resource";
 
 import styles from "./ManageLanguageWidget.module.scss";
 
-type TemplateLocaleUpdater = (locale: TemplateLocale) => void;
+type TemplateLocaleUpdater = (locale: LanguageTag) => void;
 
 interface ManageLanguageWidgetProps {
   // The list of languages.
-  templateLocales: TemplateLocale[];
-  onChangeTemplateLocales: (locales: TemplateLocale[]) => void;
+  templateLocales: LanguageTag[];
+  onChangeTemplateLocales: (locales: LanguageTag[]) => void;
 
   // The selected language.
-  templateLocale: TemplateLocale;
+  templateLocale: LanguageTag;
   onSelectTemplateLocale: TemplateLocaleUpdater;
 
   // The default language.
-  defaultTemplateLocale: TemplateLocale;
+  defaultTemplateLocale: LanguageTag;
   onSelectDefaultTemplateLocale: TemplateLocaleUpdater;
 
-  invalidTemplateLocales: TemplateLocale[];
+  invalidTemplateLocales: LanguageTag[];
 }
 
 interface ManageLanguageWidgetDialogProps {
   presented: boolean;
   onDismiss: () => void;
-  defaultTemplateLocale: TemplateLocale;
-  templateLocales: TemplateLocale[];
-  onChangeTemplateLocales: (locales: TemplateLocale[]) => void;
+  defaultTemplateLocale: LanguageTag;
+  templateLocales: LanguageTag[];
+  onChangeTemplateLocales: (locales: LanguageTag[]) => void;
 }
 
 interface TemplateLocaleListItemProps {
-  locale: TemplateLocale;
+  locale: LanguageTag;
   checked: boolean;
-  onSelectItem: (locale: TemplateLocale) => void;
+  onSelectItem: (locale: LanguageTag) => void;
 }
 
 interface SelectedTemplateLocaleItemProps {
-  locale: TemplateLocale;
-  onRemove: (locale: TemplateLocale) => void;
+  locale: LanguageTag;
+  onRemove: (locale: LanguageTag) => void;
   isDefaultLocale: boolean;
 }
 
@@ -75,7 +75,7 @@ const DIALOG_STYLES = {
   },
 };
 
-function getLanguageLocaleKey(locale: TemplateLocale) {
+function getLanguageLocaleKey(locale: LanguageTag) {
   return `Locales.${locale}`;
 }
 
@@ -142,9 +142,9 @@ const SelectedTemplateLocaleItem: React.FC<SelectedTemplateLocaleItemProps> = fu
 };
 
 interface TemplateLocaleListItemProps {
-  locale: TemplateLocale;
+  locale: LanguageTag;
   checked: boolean;
-  onSelectItem: (locale: TemplateLocale) => void;
+  onSelectItem: (locale: LanguageTag) => void;
 }
 
 const ManageLanguageWidgetDialog: React.FC<ManageLanguageWidgetDialogProps> = function ManageLanguageWidgetDialog(
@@ -160,11 +160,9 @@ const ManageLanguageWidgetDialog: React.FC<ManageLanguageWidgetDialogProps> = fu
 
   const { supportedResourceLocales } = useSystemConfig();
 
-  const [newLocales, setNewLocales] = useState<TemplateLocale[]>(
-    templateLocales
-  );
+  const [newLocales, setNewLocales] = useState<LanguageTag[]>(templateLocales);
 
-  const onAddTemplateLocale = useCallback((locale: TemplateLocale) => {
+  const onAddTemplateLocale = useCallback((locale: LanguageTag) => {
     setNewLocales((prev) => {
       const idx = prev.findIndex((item) => item === locale);
       // Already present
@@ -193,7 +191,7 @@ const ManageLanguageWidgetDialog: React.FC<ManageLanguageWidgetDialogProps> = fu
     newLocales,
   ]);
 
-  const onRemoveTemplateLocale = useCallback((locale: TemplateLocale) => {
+  const onRemoveTemplateLocale = useCallback((locale: LanguageTag) => {
     setNewLocales((prev) => {
       return prev.filter((item) => item !== locale);
     });
@@ -216,7 +214,7 @@ const ManageLanguageWidgetDialog: React.FC<ManageLanguageWidgetDialogProps> = fu
   }, []);
 
   const renderSelectedLocaleItemCell = useCallback<
-    Required<IListProps<TemplateLocale>>["onRenderCell"]
+    Required<IListProps<LanguageTag>>["onRenderCell"]
   >(
     (locale) => {
       if (locale == null) {
@@ -317,7 +315,7 @@ const ManageLanguageWidget: React.FC<ManageLanguageWidgetProps> = function Manag
   const [isDialogPresented, setIsDialogPresented] = useState(false);
 
   const displayTemplateLocale = useCallback(
-    (locale: TemplateLocale) => {
+    (locale: LanguageTag) => {
       return renderToString(getLanguageLocaleKey(locale));
     },
     [renderToString]
