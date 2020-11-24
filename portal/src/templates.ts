@@ -69,7 +69,7 @@ export const ALL_RESOURCES = [
 
 export function getPath(
   locale: LanguageTag,
-  pathTemplate: ResourcePath<"locale">
+  pathTemplate: ResourcePath
 ): string {
   return pathTemplate.render({ locale });
 }

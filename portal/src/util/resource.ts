@@ -22,20 +22,20 @@ export interface ResourceSpecifier {
 
 export interface ResourceDefinition {
   type: "text" | "binary";
-  resourcePath: ResourcePath<"locale">;
+  resourcePath: ResourcePath;
 }
 
-export interface ResourcePath<Arg extends string> {
-  parse(path: string): Record<Arg, string> | null;
-  render(args: Record<Arg, string>): string;
+export interface ResourcePath {
+  parse(path: string): Record<string, string> | null;
+  render(args: Record<string, string>): string;
 }
 
-export function resourcePath<Arg extends string>(
+export function resourcePath(
   parts: readonly string[],
-  ...args: readonly Arg[]
-): ResourcePath<Arg> {
-  const parse = (path: string): Record<Arg, string> | null => {
-    const output: Partial<Record<Arg, string>> = {};
+  ...args: readonly string[]
+): ResourcePath {
+  const parse = (path: string): Record<string, string> | null => {
+    const output: Partial<Record<string, string>> = {};
     const valueRegexpString = parts.join("(.*)");
     const valueRegexp = new RegExp(`^${valueRegexpString}$`);
     const valueMatches = valueRegexp.exec(path);
@@ -57,10 +57,10 @@ export function resourcePath<Arg extends string>(
       output[param] = valueMatches[currentValueMatchesIndex];
       currentValueMatchesIndex += 1;
     }
-    return output as Record<Arg, string>;
+    return output as Record<string, string>;
   };
 
-  const render = (values: Record<Arg, string>): string => {
+  const render = (values: Record<string, string>): string => {
     return parts.reduce((accu, part, index) => {
       accu += part;
       if (index < args.length) {
