@@ -1010,6 +1010,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenIssuer:  idTokenIssuer,
 		GenerateToken:  tokenGenerator,
 		Clock:          clockClock,
+		Users:          queries,
 	}
 	oauthTokenHandler := &oauth.TokenHandler{
 		Logger:       tokenHandlerLogger,

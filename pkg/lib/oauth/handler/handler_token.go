@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
@@ -39,6 +40,10 @@ type SessionProvider interface {
 	Get(id string) (*idpsession.IDPSession, error)
 }
 
+type TokenHandlerUserFacade interface {
+	GetRaw(id string) (*user.User, error)
+}
+
 type TokenHandlerLogger struct{ *log.Logger }
 
 func NewTokenHandlerLogger(lf *log.Factory) TokenHandlerLogger {
@@ -62,6 +67,7 @@ type TokenHandler struct {
 	IDTokenIssuer  IDTokenIssuer
 	GenerateToken  TokenGenerator
 	Clock          clock.Clock
+	Users          TokenHandlerUserFacade
 }
 
 func (h *TokenHandler) Handle(r protocol.TokenRequest) httputil.Result {
@@ -240,6 +246,16 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, errInvalidRefreshToken
 	} else if err != nil {
 		return nil, err
+	}
+
+	// Check if the user has been disabled.
+	u, err := h.Users.GetRaw(offlineGrant.Attrs.UserID)
+	if err != nil {
+		return nil, err
+	}
+	err = u.CheckStatus()
+	if err != nil {
+		return nil, errInvalidRefreshToken
 	}
 
 	resp, err := h.issueTokensForRefreshToken(client, offlineGrant, authz)
