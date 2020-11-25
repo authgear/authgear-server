@@ -50,13 +50,13 @@ type OAuthClientConfig map[string]interface{}
 
 func (c OAuthClientConfig) SetDefaults() {
 	if c.AccessTokenLifetime() == 0 {
-		c.SetAccessTokenLifetime(1800)
+		c.SetAccessTokenLifetime(DefaultAccessTokenLifetime)
 	}
 	if c.RefreshTokenLifetime() == 0 {
-		if c.AccessTokenLifetime() > 86400 {
+		if c.AccessTokenLifetime() > DefaultSessionLifetime {
 			c.SetRefreshTokenLifetime(c.AccessTokenLifetime())
 		} else {
-			c.SetRefreshTokenLifetime(86400)
+			c.SetRefreshTokenLifetime(DefaultSessionLifetime)
 		}
 	}
 }
