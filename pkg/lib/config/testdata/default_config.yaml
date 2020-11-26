@@ -254,11 +254,11 @@ authentication:
   recovery_code:
     count: 16
 session:
-  lifetime_seconds: 86400
+  lifetime_seconds: 604800
   idle_timeout_seconds: 300
 oauth:
   access_token_lifetime_seconds: 1800
-  refresh_token_lifetime_seconds: 86400
+  refresh_token_lifetime_seconds: 604800
 identity:
   login_id:
     types:
