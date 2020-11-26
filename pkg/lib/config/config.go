@@ -69,7 +69,7 @@ type AppConfig struct {
 
 func (c *AppConfig) Validate(ctx *validation.Context) {
 	for i, client := range c.OAuth.Clients {
-		if client.RefreshTokenLifetime() < client.AccessTokenLifetime() {
+		if client.RefreshTokenLifetime < client.AccessTokenLifetime {
 			ctx.Child("oauth", "clients", strconv.Itoa(i), "refresh_token_lifetime_seconds").EmitErrorMessage(
 				"refresh token lifetime must be greater than or equal to access token lifetime",
 			)

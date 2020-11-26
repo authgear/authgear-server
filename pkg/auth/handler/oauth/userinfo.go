@@ -19,7 +19,7 @@ func ConfigureUserInfoRoute(route httproute.Route) httproute.Route {
 }
 
 type ProtocolUserInfoProvider interface {
-	LoadUserClaims(session.Session) (jwt.Token, error)
+	LoadUserClaims(userID string) (jwt.Token, error)
 }
 
 type UserInfoHandlerLogger struct{ *log.Logger }
@@ -38,7 +38,7 @@ func (h *UserInfoHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	s := session.GetSession(r.Context())
 	var claims jwt.Token
 	err := h.Database.WithTx(func() (err error) {
-		claims, err = h.UserInfoProvider.LoadUserClaims(s)
+		claims, err = h.UserInfoProvider.LoadUserClaims(s.SessionAttrs().UserID)
 		return
 	})
 

@@ -93,7 +93,7 @@ func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.
 
 func (h *AuthorizationHandler) doHandle(
 	redirectURI *url.URL,
-	client config.OAuthClientConfig,
+	client *config.OAuthClientConfig,
 	r protocol.AuthorizationRequest,
 ) (httputil.Result, error) {
 	if err := h.validateRequest(client, r); err != nil {
@@ -181,10 +181,10 @@ func (h *AuthorizationHandler) doHandle(
 }
 
 func (h *AuthorizationHandler) validateRequest(
-	client config.OAuthClientConfig,
+	client *config.OAuthClientConfig,
 	r protocol.AuthorizationRequest,
 ) error {
-	allowedResponseTypes := client.ResponseTypes()
+	allowedResponseTypes := client.ResponseTypes
 	if len(allowedResponseTypes) == 0 {
 		allowedResponseTypes = []string{"code"}
 	}

@@ -239,13 +239,13 @@ var _ = SecretConfigSchema.Add("JWS", `
 }
 `)
 
-var _ = SecretConfigSchema.Add("OIDCKeyMaterials", `{ "$ref": "#/$defs/JWS" }`)
+var _ = SecretConfigSchema.Add("OAuthKeyMaterials", `{ "$ref": "#/$defs/JWS" }`)
 
-type OIDCKeyMaterials struct {
+type OAuthKeyMaterials struct {
 	jwk.Set `json:",inline"`
 }
 
-func (c *OIDCKeyMaterials) SensitiveStrings() []string {
+func (c *OAuthKeyMaterials) SensitiveStrings() []string {
 	return nil
 }
 

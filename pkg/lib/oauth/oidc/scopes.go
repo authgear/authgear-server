@@ -6,9 +6,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 )
 
-func ValidateScopes(client config.OAuthClientConfig, scopes []string) error {
+func ValidateScopes(client *config.OAuthClientConfig, scopes []string) error {
 	allowOfflineAccess := false
-	for _, grantType := range client.GrantTypes() {
+	for _, grantType := range client.GrantTypes {
 		if grantType == "refresh_token" {
 			allowOfflineAccess = true
 			break

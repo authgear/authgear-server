@@ -14,10 +14,10 @@ type OAuthConfig struct {
 	Clients []OAuthClientConfig `json:"clients,omitempty"`
 }
 
-func (c *OAuthConfig) GetClient(clientID string) (OAuthClientConfig, bool) {
+func (c *OAuthConfig) GetClient(clientID string) (*OAuthClientConfig, bool) {
 	for _, c := range c.Clients {
-		if c.ClientID() == clientID {
-			return c, true
+		if c.ClientID == clientID {
+			return &c, true
 		}
 	}
 	return nil, false
@@ -40,102 +40,35 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"response_types": { "type": "array", "items": { "type": "string" } },
 		"post_logout_redirect_uris": { "type": "array", "items": { "type": "string", "format": "uri" } },
 		"access_token_lifetime_seconds": { "$ref": "#/$defs/DurationSeconds", "minimum": 300 },
-		"refresh_token_lifetime_seconds": { "$ref": "#/$defs/DurationSeconds" }
+		"refresh_token_lifetime_seconds": { "$ref": "#/$defs/DurationSeconds" },
+		"issue_jwt_access_token": { "type": "boolean" }
 	},
 	"required": ["name", "client_id", "redirect_uris"]
 }
 `)
 
-type OAuthClientConfig map[string]interface{}
+type OAuthClientConfig struct {
+	ClientID               string          `json:"client_id"`
+	ClientURI              string          `json:"client_uri"`
+	Name                   string          `json:"name"`
+	RedirectURIs           []string        `json:"redirect_uris"`
+	GrantTypes             []string        `json:"grant_types"`
+	ResponseTypes          []string        `json:"response_types"`
+	PostLogoutRedirectURIs []string        `json:"post_logout_redirect_uris"`
+	AccessTokenLifetime    DurationSeconds `json:"access_token_lifetime_seconds"`
+	RefreshTokenLifetime   DurationSeconds `json:"refresh_token_lifetime_seconds"`
+	IssueJWTAccessToken    bool            `json:"issue_jwt_access_token"`
+}
 
-func (c OAuthClientConfig) SetDefaults() {
-	if c.AccessTokenLifetime() == 0 {
-		c.SetAccessTokenLifetime(DefaultAccessTokenLifetime)
+func (c *OAuthClientConfig) SetDefaults() {
+	if c.AccessTokenLifetime == 0 {
+		c.AccessTokenLifetime = DefaultAccessTokenLifetime
 	}
-	if c.RefreshTokenLifetime() == 0 {
-		if c.AccessTokenLifetime() > DefaultSessionLifetime {
-			c.SetRefreshTokenLifetime(c.AccessTokenLifetime())
+	if c.RefreshTokenLifetime == 0 {
+		if c.AccessTokenLifetime > DefaultSessionLifetime {
+			c.RefreshTokenLifetime = c.AccessTokenLifetime
 		} else {
-			c.SetRefreshTokenLifetime(DefaultSessionLifetime)
+			c.RefreshTokenLifetime = DefaultSessionLifetime
 		}
 	}
-}
-
-func (c OAuthClientConfig) ClientID() string {
-	if s, ok := c["client_id"].(string); ok {
-		return s
-	}
-	return ""
-}
-
-func (c OAuthClientConfig) ClientURI() string {
-	if s, ok := c["client_uri"].(string); ok {
-		return s
-	}
-	return ""
-}
-
-func (c OAuthClientConfig) RedirectURIs() (out []string) {
-	if arr, ok := c["redirect_uris"].([]interface{}); ok {
-		for _, item := range arr {
-			if s, ok := item.(string); ok {
-				out = append(out, s)
-			}
-		}
-	}
-	return
-}
-
-func (c OAuthClientConfig) GrantTypes() (out []string) {
-	if arr, ok := c["grant_types"].([]interface{}); ok {
-		for _, item := range arr {
-			if s, ok := item.(string); ok {
-				out = append(out, s)
-			}
-		}
-	}
-	return out
-}
-
-func (c OAuthClientConfig) ResponseTypes() (out []string) {
-	if arr, ok := c["response_types"].([]interface{}); ok {
-		for _, item := range arr {
-			if s, ok := item.(string); ok {
-				out = append(out, s)
-			}
-		}
-	}
-	return out
-}
-
-func (c OAuthClientConfig) PostLogoutRedirectURIs() (out []string) {
-	if arr, ok := c["post_logout_redirect_uris"].([]interface{}); ok {
-		for _, item := range arr {
-			if s, ok := item.(string); ok {
-				out = append(out, s)
-			}
-		}
-	}
-	return out
-}
-func (c OAuthClientConfig) AccessTokenLifetime() DurationSeconds {
-	if f64, ok := c["access_token_lifetime_seconds"].(float64); ok {
-		return DurationSeconds(f64)
-	}
-	return 0
-}
-
-func (c OAuthClientConfig) SetAccessTokenLifetime(t DurationSeconds) {
-	c["access_token_lifetime_seconds"] = float64(t)
-}
-
-func (c OAuthClientConfig) RefreshTokenLifetime() DurationSeconds {
-	if f64, ok := c["refresh_token_lifetime_seconds"].(float64); ok {
-		return DurationSeconds(f64)
-	}
-	return 0
-}
-
-func (c OAuthClientConfig) SetRefreshTokenLifetime(t DurationSeconds) {
-	c["refresh_token_lifetime_seconds"] = float64(t)
 }

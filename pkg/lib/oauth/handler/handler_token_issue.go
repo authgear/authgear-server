@@ -8,7 +8,7 @@ import (
 )
 
 func (h *TokenHandler) IssueTokens(
-	client config.OAuthClientConfig,
+	client *config.OAuthClientConfig,
 	attrs *session.Attrs,
 ) (session.Session, protocol.TokenResponse, error) {
 	scopes := []string{"openid", oauth.FullAccessScope}
@@ -17,7 +17,7 @@ func (h *TokenHandler) IssueTokens(
 		h.Authorizations,
 		h.Clock.NowUTC(),
 		h.AppID,
-		client.ClientID(),
+		client.ClientID,
 		attrs.UserID,
 		scopes,
 	)
@@ -32,7 +32,7 @@ func (h *TokenHandler) IssueTokens(
 		return nil, nil, err
 	}
 
-	err = h.issueAccessGrant(client, scopes, authz.ID,
+	err = h.issueAccessGrant(client, scopes, authz.ID, authz.UserID,
 		offlineGrant.ID, oauth.GrantSessionKindOffline, resp)
 	if err != nil {
 		return nil, nil, err

@@ -12,15 +12,15 @@ type oauthRequest interface {
 	RedirectURI() string
 }
 
-func resolveClient(config *config.OAuthConfig, r oauthRequest) config.OAuthClientConfig {
+func resolveClient(config *config.OAuthConfig, r oauthRequest) *config.OAuthClientConfig {
 	if client, ok := config.GetClient(r.ClientID()); ok {
 		return client
 	}
 	return nil
 }
 
-func parseRedirectURI(client config.OAuthClientConfig, r oauthRequest) (*url.URL, protocol.ErrorResponse) {
-	allowedURIs := client.RedirectURIs()
+func parseRedirectURI(client *config.OAuthClientConfig, r oauthRequest) (*url.URL, protocol.ErrorResponse) {
+	allowedURIs := client.RedirectURIs
 	redirectURIString := r.RedirectURI()
 	if len(allowedURIs) == 1 && redirectURIString == "" {
 		// Redirect URI is default to the only allowed URI if possible.

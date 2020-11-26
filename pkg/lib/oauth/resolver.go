@@ -17,13 +17,18 @@ type ResolverSessionProvider interface {
 	Update(*idpsession.IDPSession) error
 }
 
+type AccessTokenDecoder interface {
+	DecodeAccessToken(encodedToken string) (tok string, isHash bool, err error)
+}
+
 type Resolver struct {
-	TrustProxy     config.TrustProxy
-	Authorizations AuthorizationStore
-	AccessGrants   AccessGrantStore
-	OfflineGrants  OfflineGrantStore
-	Sessions       ResolverSessionProvider
-	Clock          clock.Clock
+	TrustProxy         config.TrustProxy
+	Authorizations     AuthorizationStore
+	AccessGrants       AccessGrantStore
+	OfflineGrants      OfflineGrantStore
+	AccessTokenDecoder AccessTokenDecoder
+	Sessions           ResolverSessionProvider
+	Clock              clock.Clock
 }
 
 func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Session, error) {
@@ -33,12 +38,18 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Se
 		return nil, nil
 	}
 
-	token, err := DecodeAccessToken(token)
+	tok, isHash, err := re.AccessTokenDecoder.DecodeAccessToken(token)
 	if err != nil {
 		return nil, session.ErrInvalidSession
 	}
 
-	tokenHash := HashToken(token)
+	var tokenHash string
+	if isHash {
+		tokenHash = tok
+	} else {
+		tokenHash = HashToken(token)
+	}
+
 	grant, err := re.AccessGrants.GetAccessGrant(tokenHash)
 	if errors.Is(err, ErrGrantNotFound) {
 		return nil, session.ErrInvalidSession
