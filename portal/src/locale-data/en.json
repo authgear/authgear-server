@@ -466,6 +466,10 @@
 
   "HooksSettings.total-timeout.label": "Timeout (seconds)",
   "HooksSettings.timeout.label": "Per-handler timeout (seconds)",
+  "HooksSettings.handlers.label": "Handlers",
+  "HooksSettings.events.label": "Handler event type",
+  "HooksSettings.event-type.before_user_create": "Before user creation",
+  "HooksSettings.event-type.after_user_create": "After user creation",
 
   "PasswordStrengthMeter.password-strength": "Password Strength",
 

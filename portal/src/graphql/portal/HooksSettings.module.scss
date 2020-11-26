@@ -7,6 +7,24 @@
   margin: 0 8px 15px;
 }
 
+.handlerList {
+  width: 600px;
+  margin: 0 8px 15px;
+}
+
+.handlerEdit {
+  flex-grow: 1;
+  display: flex;
+
+  .handlerEventField {
+    width: 200px;
+    margin-right: 8px;
+  }
+  .handlerURLField {
+    flex: 1 0 0;
+  }
+}
+
 .saveButtonContainer {
   width: 100%;
   margin: 20px 8px 15px;

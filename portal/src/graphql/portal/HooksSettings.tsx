@@ -1,7 +1,13 @@
-import { Context } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { TextField } from "@fluentui/react";
+import {
+  Dropdown,
+  IDropdownOption,
+  ISelectableOption,
+  Label,
+  TextField,
+} from "@fluentui/react";
 import produce from "immer";
 import deepEqual from "deep-equal";
 
@@ -15,6 +21,11 @@ import { ModifiedIndicatorPortal } from "../../ModifiedIndicatorPortal";
 import { PortalAPIAppConfig } from "../../types";
 
 import styles from "./HooksSettings.module.scss";
+import { useFormField } from "../../error/FormFieldContext";
+import FieldList from "../../FieldList";
+import { useValidationError } from "../../error/useValidationError";
+import { FormContext } from "../../error/FormContext";
+import ShowUnhandledValidationErrorCause from "../../error/ShowUnhandledValidationErrorCauses";
 
 interface HookEventHandler {
   event: string;
@@ -57,6 +68,85 @@ function constructConfig(
     config.hook.handlers = currentState.handlers;
   });
 }
+
+const hookEventTypes: IDropdownOption[] = [
+  "before_user_create",
+  "after_user_create",
+].map((type): IDropdownOption => ({ key: type, text: type }));
+
+interface HookHandlerItemEditProps {
+  index: number;
+  value: HookEventHandler;
+  onChange: (newValue: HookEventHandler) => void;
+}
+const HookHandlerItemEdit: React.FC<HookHandlerItemEditProps> = function HookHandlerItemEdit(
+  props
+) {
+  const { index, value, onChange } = props;
+
+  const parentJSONPointer = "/hook/handlers";
+  const jsonPointer = `/hook/handlers/${index}`;
+
+  const { errorMessage: eventErrorMessage } = useFormField(
+    jsonPointer + "/event",
+    parentJSONPointer,
+    "event"
+  );
+  const { errorMessage: urlErrorMessage } = useFormField(
+    jsonPointer + "/url",
+    parentJSONPointer,
+    "url"
+  );
+
+  const onEventChange = useCallback(
+    (_, event?: IDropdownOption) => {
+      onChange({ ...value, event: String(event?.key ?? "") });
+    },
+    [onChange, value]
+  );
+  const onURLChange = useCallback(
+    (_, url?: string) => {
+      onChange({ ...value, url: url ?? "" });
+    },
+    [onChange, value]
+  );
+
+  const renderEventDropdownItem = useCallback((item?: ISelectableOption) => {
+    return (
+      <span>
+        <FormattedMessage id={`HooksSettings.event-type.${item?.key}`} />
+      </span>
+    );
+  }, []);
+  const renderEventDropdownTitle = useCallback((items?: IDropdownOption[]) => {
+    return (
+      <span>
+        <FormattedMessage id={`HooksSettings.event-type.${items?.[0].key}`} />
+      </span>
+    );
+  }, []);
+
+  return (
+    <div className={styles.handlerEdit}>
+      <Dropdown
+        className={styles.handlerEventField}
+        options={hookEventTypes}
+        selectedKey={value.event}
+        onChange={onEventChange}
+        onRenderOption={renderEventDropdownItem}
+        onRenderTitle={renderEventDropdownTitle}
+        ariaLabel={"HooksSettings.events.label"}
+        errorMessage={eventErrorMessage}
+      />
+      <TextField
+        className={styles.handlerURLField}
+        value={value.url}
+        onChange={onURLChange}
+        errorMessage={urlErrorMessage}
+      />
+    </div>
+  );
+};
 
 interface HooksSettingsContentProps {
   form: FormState;
@@ -104,6 +194,27 @@ const HooksSettingsContent: React.FC<HooksSettingsContentProps> = function Hooks
     [update]
   );
 
+  const makeDefaultHandler = useCallback(
+    (): HookEventHandler => ({ event: String(hookEventTypes[0].key), url: "" }),
+    []
+  );
+  const renderHandlerItem = useCallback(
+    (
+      index: number,
+      value: HookEventHandler,
+      onChange: (newValue: HookEventHandler) => void
+    ) => (
+      <HookHandlerItemEdit index={index} value={value} onChange={onChange} />
+    ),
+    []
+  );
+  const onHandlersChange = useCallback(
+    (value: HookEventHandler[]) => {
+      update((state) => ({ ...state, handlers: value }));
+    },
+    [update]
+  );
+
   return (
     <form onSubmit={onFormSubmit}>
       <ModifiedIndicatorPortal resetForm={reset} isModified={isDirty} />
@@ -124,6 +235,23 @@ const HooksSettingsContent: React.FC<HooksSettingsContentProps> = function Hooks
         label={renderToString("HooksSettings.timeout.label")}
         value={String(form.timeout)}
         onChange={onTimeoutChange}
+      />
+
+      <FieldList
+        className={styles.handlerList}
+        label={
+          <Label>
+            <FormattedMessage id="HooksSettings.handlers.label" />
+          </Label>
+        }
+        jsonPointer="/hook/handlers"
+        parentJSONPointer="/hook"
+        fieldName="handlers"
+        list={form.handlers}
+        onListChange={onHandlersChange}
+        makeDefaultItem={makeDefaultHandler}
+        renderListItem={renderHandlerItem}
+        addButtonLabelMessageID="add"
       />
 
       <div className={styles.saveButtonContainer}>
@@ -213,6 +341,12 @@ const HooksSettings: React.FC = function HooksSettings() {
     [form]
   );
 
+  const {
+    otherError,
+    unhandledCauses,
+    value: formContextValue,
+  } = useValidationError(updateAppConfigError);
+
   if (loading) {
     return <ShowLoading />;
   }
@@ -222,17 +356,22 @@ const HooksSettings: React.FC = function HooksSettings() {
   }
 
   return (
-    <main className={styles.root}>
-      {updateAppConfigError && <ShowError error={updateAppConfigError} />}
-      <HooksSettingsContent
-        form={form}
-        isDirty={isDirty}
-        isSaving={updatingAppConfig}
-        update={update}
-        reset={reset}
-        save={save}
-      />
-    </main>
+    <FormContext.Provider value={formContextValue}>
+      <main className={styles.root}>
+        <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
+        {(unhandledCauses ?? []).length === 0 && otherError && (
+          <ShowError error={otherError} />
+        )}
+        <HooksSettingsContent
+          form={form}
+          isDirty={isDirty}
+          isSaving={updatingAppConfig}
+          update={update}
+          reset={reset}
+          save={save}
+        />
+      </main>
+    </FormContext.Provider>
   );
 };
 
