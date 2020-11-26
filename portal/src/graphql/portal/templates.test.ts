@@ -6,35 +6,41 @@ const ResourceA: ResourceDefinition = {
   resourcePath: resourcePath`templates/${"locale"}/a.html`,
   type: "text",
   usesEffectiveDataAsFallbackValue: true,
+  extensions: [],
 };
 
 const ResourceB: ResourceDefinition = {
   resourcePath: resourcePath`templates/${"locale"}/b.html`,
   type: "text",
   usesEffectiveDataAsFallbackValue: true,
+  extensions: [],
 };
 
 describe("generateUpdates", () => {
   it("handles invalid addition", () => {
     const actual = generateUpdates(
       ["en"],
-      {
-        "templates/en/a.html": {
-          def: ResourceA,
+      [
+        {
+          specifier: {
+            def: ResourceA,
+            locale: "en",
+          },
           path: "templates/en/a.html",
-          locale: "en",
           value: "a",
         },
-      },
+      ],
       ["en", "zh"],
-      {
-        "templates/en/a.html": {
-          def: ResourceA,
+      [
+        {
+          specifier: {
+            def: ResourceA,
+            locale: "en",
+          },
           path: "templates/en/a.html",
-          locale: "en",
           value: "a",
         },
-      }
+      ]
     );
 
     expect(actual).toEqual({
@@ -50,38 +56,46 @@ describe("generateUpdates", () => {
   it("handles valid addition", () => {
     const actual = generateUpdates(
       ["en"],
-      {
-        "templates/en/a.html": {
-          def: ResourceA,
+      [
+        {
+          specifier: {
+            def: ResourceA,
+            locale: "en",
+          },
           path: "templates/en/a.html",
-          locale: "en",
           value: "a",
         },
-      },
+      ],
       ["en", "zh"],
-      {
-        "templates/en/a.html": {
-          def: ResourceA,
+      [
+        {
+          specifier: {
+            def: ResourceA,
+            locale: "en",
+          },
           path: "templates/en/a.html",
-          locale: "en",
           value: "a",
         },
-        "templates/zh/a.html": {
-          def: ResourceA,
+        {
+          specifier: {
+            def: ResourceA,
+            locale: "zh",
+          },
           path: "templates/zh/a.html",
-          locale: "zh",
           value: "zh a",
         },
-      }
+      ]
     );
 
     expect(actual).toEqual({
       isModified: true,
       additions: [
         {
-          def: ResourceA,
+          specifier: {
+            def: ResourceA,
+            locale: "zh",
+          },
           path: "templates/zh/a.html",
-          locale: "zh",
           value: "zh a",
         },
       ],
@@ -95,23 +109,27 @@ describe("generateUpdates", () => {
   it("does not allow implicit deletion of locale", () => {
     const actual = generateUpdates(
       ["en"],
-      {
-        "templates/en/a.html": {
-          def: ResourceA,
+      [
+        {
+          specifier: {
+            def: ResourceA,
+            locale: "en",
+          },
           path: "templates/en/a.html",
-          locale: "en",
           value: "a",
         },
-      },
+      ],
       ["en"],
-      {
-        "templates/en/a.html": {
-          def: ResourceA,
+      [
+        {
+          specifier: {
+            def: ResourceA,
+            locale: "en",
+          },
           path: "templates/en/a.html",
-          locale: "en",
           value: "",
         },
-      }
+      ]
     );
 
     expect(actual).toEqual({
@@ -120,8 +138,10 @@ describe("generateUpdates", () => {
       invalidAdditionLocales: [],
       editions: [
         {
-          def: ResourceA,
-          locale: "en",
+          specifier: {
+            def: ResourceA,
+            locale: "en",
+          },
           path: "templates/en/a.html",
           value: null,
         },
@@ -134,35 +154,43 @@ describe("generateUpdates", () => {
   it("does not generate unnecessary editions", () => {
     const actual = generateUpdates(
       ["en"],
-      {
-        "templates/en/a.html": {
-          def: ResourceA,
+      [
+        {
+          specifier: {
+            def: ResourceA,
+            locale: "en",
+          },
           path: "templates/en/a.html",
-          locale: "en",
           value: "a",
         },
-        "templates/en/b.html": {
-          def: ResourceB,
+        {
+          specifier: {
+            def: ResourceB,
+            locale: "en",
+          },
           path: "templates/en/b.html",
-          locale: "en",
           value: "b",
         },
-      },
+      ],
       ["en"],
-      {
-        "templates/en/a.html": {
-          def: ResourceA,
+      [
+        {
+          specifier: {
+            def: ResourceA,
+            locale: "en",
+          },
           path: "templates/en/a.html",
-          locale: "en",
           value: "edited a",
         },
-        "templates/en/b.html": {
-          def: ResourceB,
+        {
+          specifier: {
+            def: ResourceB,
+            locale: "en",
+          },
           path: "templates/en/b.html",
-          locale: "en",
           value: "b",
         },
-      }
+      ]
     );
 
     expect(actual).toEqual({
@@ -171,8 +199,10 @@ describe("generateUpdates", () => {
       invalidAdditionLocales: [],
       editions: [
         {
-          def: ResourceA,
-          locale: "en",
+          specifier: {
+            def: ResourceA,
+            locale: "en",
+          },
           path: "templates/en/a.html",
           value: "edited a",
         },
@@ -185,35 +215,43 @@ describe("generateUpdates", () => {
   it("handles deletion", () => {
     const actual = generateUpdates(
       ["en", "zh"],
-      {
-        "templates/en/a.html": {
-          def: ResourceA,
+      [
+        {
+          specifier: {
+            def: ResourceA,
+            locale: "en",
+          },
           path: "templates/en/a.html",
-          locale: "en",
           value: "a",
         },
-        "templates/zh/a.html": {
-          def: ResourceA,
+        {
+          specifier: {
+            def: ResourceA,
+            locale: "zh",
+          },
           path: "templates/zh/a.html",
-          locale: "zh",
           value: "a",
         },
-      },
+      ],
       ["en"],
-      {
-        "templates/en/a.html": {
-          def: ResourceA,
+      [
+        {
+          specifier: {
+            def: ResourceA,
+            locale: "en",
+          },
           path: "templates/en/a.html",
-          locale: "en",
           value: "a",
         },
-        "templates/zh/a.html": {
-          def: ResourceA,
+        {
+          specifier: {
+            def: ResourceA,
+            locale: "zh",
+          },
           path: "templates/zh/a.html",
-          locale: "zh",
           value: "a",
         },
-      }
+      ]
     );
 
     expect(actual).toEqual({
@@ -224,8 +262,10 @@ describe("generateUpdates", () => {
       invalidEditionLocales: [],
       deletions: [
         {
-          def: ResourceA,
-          locale: "zh",
+          specifier: {
+            def: ResourceA,
+            locale: "zh",
+          },
           path: "templates/zh/a.html",
           value: null,
         },

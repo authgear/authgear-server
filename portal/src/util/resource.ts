@@ -1,28 +1,26 @@
 export type LanguageTag = string;
 
-export interface Resource {
-  locale: LanguageTag;
-  def: ResourceDefinition;
-  path: string;
-  value: string;
-}
-
 export interface ResourceUpdate {
-  locale: LanguageTag;
-  def: ResourceDefinition;
   path: string;
   value?: string | null;
+  specifier: ResourceSpecifier;
+}
+
+export interface Resource {
+  path: string;
+  value: string;
+  specifier: ResourceSpecifier;
 }
 
 export interface ResourceSpecifier {
-  locale: LanguageTag;
   def: ResourceDefinition;
-  path: string;
+  locale: LanguageTag;
 }
 
 export interface ResourceDefinition {
   type: "text" | "binary";
   resourcePath: ResourcePath;
+  extensions: string[];
   // If this is true, then the effectiveData is used as value when the raw data is unavailable.
   // This is useful for templates.
   usesEffectiveDataAsFallbackValue: boolean;

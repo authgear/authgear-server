@@ -21,6 +21,8 @@ const updateAppTemplatesMutation = gql`
         id
         resources(paths: $paths) {
           path
+          languageTag
+          data
           effectiveData
         }
         resourceLocales: resources {
@@ -48,12 +50,17 @@ export function useUpdateAppTemplatesMutation(
   const [mutationFunction, { error, loading }, resetError] = useGraphqlMutation<
     UpdateAppTemplatesMutation,
     UpdateAppTemplatesMutationVariables
-  >(updateAppTemplatesMutation, { client });
+  >(updateAppTemplatesMutation, {
+    client,
+    // FIXME: I cannot figure out the rendered query does not rerender :(
+    refetchQueries: ["AppTemplatesQuery", "TemplateLocaleQuery"],
+    awaitRefetchQueries: true,
+  });
   const updateAppTemplates = useCallback(
     async (paths: string[], updates: ResourceUpdate[]) => {
       const updatePayload: AppResourceUpdate[] = updates.map((update) => {
         let transform: (a: string) => string;
-        switch (update.def.type) {
+        switch (update.specifier.def.type) {
           case "text":
             transform = encodeForText;
             break;
@@ -62,7 +69,7 @@ export function useUpdateAppTemplatesMutation(
             break;
           default:
             throw new Error(
-              "unexpected resource type: " + String(update.def.type)
+              "unexpected resource type: " + String(update.specifier.def.type)
             );
         }
         return {

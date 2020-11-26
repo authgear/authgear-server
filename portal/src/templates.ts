@@ -10,54 +10,64 @@ export const DEFAULT_TEMPLATE_LOCALE: LanguageTag = "en";
 export const RESOURCE_TRANSLATION_JSON: ResourceDefinition = {
   resourcePath: resourcePath`templates/${"locale"}/translation.json`,
   type: "text",
+  extensions: [],
   usesEffectiveDataAsFallbackValue: true,
 };
 
 export const RESOURCE_SETUP_PRIMARY_OOB_EMAIL_HTML: ResourceDefinition = {
   resourcePath: resourcePath`templates/${"locale"}/messages/setup_primary_oob_email.html`,
   type: "text",
+  extensions: [],
   usesEffectiveDataAsFallbackValue: true,
 };
 export const RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT: ResourceDefinition = {
   resourcePath: resourcePath`templates/${"locale"}/messages/setup_primary_oob_email.txt`,
   type: "text",
+  extensions: [],
   usesEffectiveDataAsFallbackValue: true,
 };
 export const RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT: ResourceDefinition = {
   resourcePath: resourcePath`templates/${"locale"}/messages/setup_primary_oob_sms.txt`,
   type: "text",
+  extensions: [],
   usesEffectiveDataAsFallbackValue: true,
 };
 
 export const RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML: ResourceDefinition = {
   resourcePath: resourcePath`templates/${"locale"}/messages/authenticate_primary_oob_email.html`,
   type: "text",
+  extensions: [],
   usesEffectiveDataAsFallbackValue: true,
 };
 export const RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT: ResourceDefinition = {
   resourcePath: resourcePath`templates/${"locale"}/messages/authenticate_primary_oob_email.txt`,
   type: "text",
+  extensions: [],
   usesEffectiveDataAsFallbackValue: true,
 };
 export const RESOURCE_AUTHENTICATE_PRIMARY_OOB_SMS_TXT: ResourceDefinition = {
   resourcePath: resourcePath`templates/${"locale"}/messages/authenticate_primary_oob_sms.txt`,
   type: "text",
+  extensions: [],
   usesEffectiveDataAsFallbackValue: true,
 };
 
 export const RESOURCE_FORGOT_PASSWORD_EMAIL_HTML: ResourceDefinition = {
   resourcePath: resourcePath`templates/${"locale"}/messages/forgot_password_email.html`,
   type: "text",
+  extensions: [],
   usesEffectiveDataAsFallbackValue: true,
 };
 export const RESOURCE_FORGOT_PASSWORD_EMAIL_TXT: ResourceDefinition = {
   resourcePath: resourcePath`templates/${"locale"}/messages/forgot_password_email.txt`,
   type: "text",
+  extensions: [],
   usesEffectiveDataAsFallbackValue: true,
 };
 export const RESOURCE_FORGOT_PASSWORD_SMS_TXT: ResourceDefinition = {
   resourcePath: resourcePath`templates/${"locale"}/messages/forgot_password_sms.txt`,
   type: "text",
+  extensions: [],
   usesEffectiveDataAsFallbackValue: true,
 };
 

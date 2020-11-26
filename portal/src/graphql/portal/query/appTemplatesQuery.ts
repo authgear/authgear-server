@@ -9,9 +9,7 @@ import {
 import { renderPath } from "../../../templates";
 import {
   Resource,
-  ResourceDefinition,
   ResourceSpecifier,
-  LanguageTag,
   decodeForText,
   binary,
 } from "../../../util/resource";
@@ -38,31 +36,42 @@ export interface AppTemplatesQueryResult
     QueryResult<AppTemplatesQuery, AppTemplatesQueryVariables>,
     "loading" | "error" | "refetch"
   > {
-  resources: Record<string, Resource>;
+  resources: Resource[];
+}
+
+interface SpecifierPathPair {
+  specifier: ResourceSpecifier;
+  path: string;
 }
 
 export function useAppTemplatesQuery(
   appID: string,
-  locales: LanguageTag[],
-  ...resourceDefs: ResourceDefinition[]
+  specifiers: ResourceSpecifier[]
 ): AppTemplatesQueryResult {
-  const specifiers = useMemo<ResourceSpecifier[]>(() => {
-    const output: ResourceSpecifier[] = [];
-    for (const locale of locales) {
-      for (const resourceDef of resourceDefs) {
-        output.push({
-          locale,
-          def: resourceDef,
-          path: renderPath(resourceDef.resourcePath, { locale }),
+  const pairs: SpecifierPathPair[] = useMemo(() => {
+    const pairs = [];
+    for (const specifier of specifiers) {
+      if (specifier.def.extensions.length === 0) {
+        pairs.push({
+          specifier,
+          path: renderPath(specifier.def.resourcePath, {
+            locale: specifier.locale,
+          }),
         });
+      } else {
+        for (const extension of specifier.def.extensions) {
+          pairs.push({
+            specifier,
+            path: renderPath(specifier.def.resourcePath, {
+              extension,
+              locale: specifier.locale,
+            }),
+          });
+        }
       }
     }
-    return output;
-  }, [locales, resourceDefs]);
-
-  const paths = useMemo(() => specifiers.map((specifier) => specifier.path), [
-    specifiers,
-  ]);
+    return pairs;
+  }, [specifiers]);
 
   const { data, loading, error, refetch } = useQuery<
     AppTemplatesQuery,
@@ -71,24 +80,24 @@ export function useAppTemplatesQuery(
     client,
     variables: {
       id: appID,
-      paths,
+      paths: pairs.map((pair) => pair.path),
     },
   });
 
   // eslint-disable-next-line complexity
   const resources = useMemo(() => {
     const appNode = data?.node?.__typename === "App" ? data.node : null;
-    const resources: Record<string, Resource> = {};
+    const resources: Resource[] = [];
 
-    for (const specifier of specifiers) {
+    for (const pair of pairs) {
       let found = false;
 
       for (const resource of appNode?.resources ?? []) {
-        if (specifier.path === resource.path) {
+        if (pair.path === resource.path) {
           found = true;
           let value = "";
           let transform: (a: string) => string;
-          switch (specifier.def.type) {
+          switch (pair.specifier.def.type) {
             case "text":
               transform = decodeForText;
               break;
@@ -97,7 +106,7 @@ export function useAppTemplatesQuery(
               break;
             default:
               throw new Error(
-                "unexpected resource type: " + String(specifier.def.type)
+                "unexpected resource type: " + String(pair.specifier.def.type)
               );
           }
 
@@ -105,28 +114,30 @@ export function useAppTemplatesQuery(
             value = transform(resource.data);
           } else if (
             resource.effectiveData != null &&
-            specifier.def.usesEffectiveDataAsFallbackValue
+            pair.specifier.def.usesEffectiveDataAsFallbackValue
           ) {
             value = transform(resource.effectiveData);
           }
-          resources[specifier.path] = {
-            ...specifier,
+          resources.push({
+            specifier: pair.specifier,
+            path: pair.path,
             value,
-          };
+          });
           break;
         }
       }
 
       if (!found) {
-        resources[specifier.path] = {
-          ...specifier,
+        resources.push({
+          specifier: pair.specifier,
+          path: pair.path,
           value: "",
-        };
+        });
       }
     }
 
     return resources;
-  }, [data, specifiers]);
+  }, [data, pairs]);
 
   return { resources, loading, error, refetch };
 }

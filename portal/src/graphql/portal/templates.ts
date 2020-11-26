@@ -12,9 +12,9 @@ export interface GenerateUpdatesResult {
 // eslint-disable-next-line complexity
 export function generateUpdates(
   initialTemplateLocales: LanguageTag[],
-  initialTemplates: Record<string, Resource | undefined>,
+  initialTemplates: Resource[],
   templateLocales: LanguageTag[],
-  templates: Record<string, Resource | undefined>
+  templates: Resource[]
 ): GenerateUpdatesResult {
   // We have 3 kinds of updates
   // 1. Addition
@@ -34,11 +34,8 @@ export function generateUpdates(
   const additions: ResourceUpdate[] = [];
   for (const locale of additionLocales) {
     let valid = false;
-    for (const template of Object.values(templates)) {
-      if (template == null) {
-        continue;
-      }
-      if (template.locale === locale && template.value !== "") {
+    for (const template of templates) {
+      if (template.specifier.locale === locale && template.value !== "") {
         valid = true;
         additions.push({
           ...template,
@@ -64,21 +61,15 @@ export function generateUpdates(
   for (const locale of editionLocales) {
     let valid = false;
 
-    for (const template of Object.values(templates)) {
-      if (template == null) {
-        continue;
-      }
-      if (template.locale === locale) {
+    for (const template of templates) {
+      if (template.specifier.locale === locale) {
         if (template.value !== "") {
           valid = true;
         }
 
-        for (const oldTemplate of Object.values(initialTemplates)) {
-          if (oldTemplate == null) {
-            continue;
-          }
+        for (const oldTemplate of initialTemplates) {
           if (
-            oldTemplate.locale === template.locale &&
+            oldTemplate.specifier.locale === template.specifier.locale &&
             oldTemplate.path === template.path
           ) {
             if (oldTemplate.value !== template.value) {
@@ -106,11 +97,8 @@ export function generateUpdates(
   }
   const deletions: ResourceUpdate[] = [];
   for (const locale of deletionLocales) {
-    for (const template of Object.values(initialTemplates)) {
-      if (template == null) {
-        continue;
-      }
-      if (template.locale === locale) {
+    for (const template of initialTemplates) {
+      if (template.specifier.locale === locale) {
         deletions.push({
           ...template,
           value: null,

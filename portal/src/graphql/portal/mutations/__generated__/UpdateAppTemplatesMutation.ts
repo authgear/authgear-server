@@ -12,6 +12,8 @@ import { AppResourceUpdate } from "./../../__generated__/globalTypes";
 export interface UpdateAppTemplatesMutation_updateAppResources_app_resources {
   __typename: "AppResource";
   path: string;
+  languageTag: string | null;
+  data: string | null;
   effectiveData: string | null;
 }
 

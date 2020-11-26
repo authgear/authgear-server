@@ -37,14 +37,19 @@ import {
   RESOURCE_FORGOT_PASSWORD_SMS_TXT,
   renderPath,
 } from "../../templates";
-import { LanguageTag, Resource, ResourceDefinition } from "../../util/resource";
+import {
+  LanguageTag,
+  Resource,
+  ResourceDefinition,
+  ResourceSpecifier,
+} from "../../util/resource";
 import { generateUpdates } from "./templates";
 
 import styles from "./ResourceConfigurationScreen.module.scss";
 
 interface ResourceConfigurationSectionProps {
   rawAppConfig: PortalAPIAppConfig;
-  initialTemplates: Record<string, Resource | undefined>;
+  initialTemplates: Resource[];
   initialTemplateLocales: LanguageTag[];
   initialDefaultTemplateLocale: LanguageTag;
   defaultTemplateLocale: LanguageTag;
@@ -85,7 +90,7 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
     initialTemplateLocales
   );
 
-  const [templates, setTemplates] = useState(initialTemplates);
+  const [templates, setTemplates] = useState<Resource[]>(initialTemplates);
 
   const onChangeTemplateLocales = useCallback(
     (locales: LanguageTag[]) => {
@@ -96,7 +101,7 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
       }
 
       // Find out new locales.
-      const newLocales = [];
+      const newLocales: LanguageTag[] = [];
       for (const newLocale of locales) {
         const idx = templateLocales.findIndex((item) => item === newLocale);
         if (idx < 0) {
@@ -105,28 +110,35 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
       }
 
       // Populate initial values for new locales from default locale.
-      const partial: Record<string, Resource> = {};
+      const newResources: Resource[] = [];
       for (const locale of newLocales) {
         for (const resource of ALL_RESOURCES) {
           const path = renderPath(resource.resourcePath, { locale });
           const defaultPath = renderPath(resource.resourcePath, {
             locale: defaultTemplateLocale,
           });
-          const value = templates[defaultPath]?.value ?? "";
+          const defaultResource = templates.find(
+            (resource) => resource.path === defaultPath
+          );
+          const value = defaultResource?.value ?? "";
           const template: Resource = {
-            locale,
-            def: resource,
+            specifier: {
+              def: resource,
+              locale,
+            },
             path,
             value,
           };
-          partial[path] = template;
+          newResources.push(template);
         }
       }
       setTemplates((prev) => {
-        return {
-          ...prev,
-          ...partial,
-        };
+        // Discard any resources that are new locales.
+        const withoutNewLocales = prev.filter((resource) => {
+          const isNewLocale = newLocales.includes(resource.specifier.locale);
+          return !isNewLocale;
+        });
+        return [...withoutNewLocales, ...newResources];
       });
 
       // Finally update the list of locales.
@@ -235,11 +247,12 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
 
   const getValue = useCallback(
     (resourceDef: ResourceDefinition) => {
-      const path = renderPath(resourceDef.resourcePath, {
-        locale: templateLocale,
-      });
-      const template = templates[path];
-      return template?.value ?? "";
+      const resource = templates.find(
+        (resource) =>
+          resource.specifier.def === resourceDef &&
+          resource.specifier.locale === templateLocale
+      );
+      return resource?.value ?? "";
     },
     [templates, templateLocale]
   );
@@ -252,26 +265,37 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
             locale: templateLocale,
           });
           setTemplates((prev) => {
-            let template = prev[path];
+            const idx = prev.findIndex(
+              (resource) =>
+                resource.specifier.def === resourceDef &&
+                resource.specifier.locale === templateLocale
+            );
 
-            if (template == null) {
+            let template: Resource;
+            if (idx < 0) {
               template = {
-                def: resourceDef,
+                specifier: {
+                  def: resourceDef,
+                  locale: templateLocale,
+                },
                 path: path,
-                locale: templateLocale,
                 value,
               };
             } else {
               template = {
-                ...template,
+                ...prev[idx],
                 value,
               };
             }
 
-            return {
-              ...prev,
-              [path]: template,
-            };
+            const newTemplates = [...prev];
+            if (idx < 0) {
+              newTemplates.push(template);
+            } else {
+              newTemplates[idx] = template;
+            }
+
+            return newTemplates;
           });
         }
       };
@@ -514,12 +538,25 @@ const ResourceConfigurationScreen: React.FC = function ResourceConfigurationScre
     setTemplateLocale(initialDefaultTemplateLocale);
   }, [initialDefaultTemplateLocale]);
 
+  const specifiers = useMemo<ResourceSpecifier[]>(() => {
+    const specifiers = [];
+    for (const locale of initialTemplateLocales) {
+      for (const def of ALL_RESOURCES) {
+        specifiers.push({
+          def,
+          locale,
+        });
+      }
+    }
+    return specifiers;
+  }, [initialTemplateLocales]);
+
   const {
     resources: initialTemplates,
     loading: loadingTemplates,
     error: loadTemplatesError,
     refetch: refetchTemplates,
-  } = useAppTemplatesQuery(appID, initialTemplateLocales, ...ALL_RESOURCES);
+  } = useAppTemplatesQuery(appID, specifiers);
 
   if (loadingAppConfig || loadingTemplateLocales || loadingTemplates) {
     return <ShowLoading />;
