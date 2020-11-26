@@ -464,6 +464,9 @@
   "SessionSettings.invalidate-session-after-idling.label": "Invalidate session after idling",
   "SessionSettings.idle-timeout.label": "Idle Timeout (seconds)",
 
+  "HooksSettings.total-timeout.label": "Timeout (seconds)",
+  "HooksSettings.timeout.label": "Per-handler timeout (seconds)",
+
   "PasswordStrengthMeter.password-strength": "Password Strength",
 
   "ModifiedIndicator.message": "You have made unsaved changes",

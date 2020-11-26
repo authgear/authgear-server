@@ -9,6 +9,7 @@ import SessionSettings from "./SessionSettings";
 import { ModifiedIndicatorWrapper } from "../../ModifiedIndicatorPortal";
 
 import styles from "./SettingsScreen.module.scss";
+import HooksSettings from "./HooksSettings";
 
 const GENERAL_PIVOT_KEY = "general";
 const PORTAL_ADMINS_PIVOT_KEY = "portal_admins";
@@ -54,7 +55,7 @@ const SettingsScreen: React.FC = function SettingsScreen() {
               headerText={renderToString("SettingsScreen.hooks.title")}
               itemKey={HOOK_PIVOT_KEY}
             >
-              <div />
+              <HooksSettings />
             </PivotItem>
           </Pivot>
         </div>
