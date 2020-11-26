@@ -100,10 +100,13 @@ export function useAppTemplatesQuery(
                 "unexpected resource type: " + String(specifier.def.type)
               );
           }
-          // If the raw data is available, prefer it.
+
           if (resource.data != null) {
             value = transform(resource.data);
-          } else if (resource.effectiveData != null) {
+          } else if (
+            resource.effectiveData != null &&
+            specifier.def.usesEffectiveDataAsFallbackValue
+          ) {
             value = transform(resource.effectiveData);
           }
           resources[specifier.path] = {

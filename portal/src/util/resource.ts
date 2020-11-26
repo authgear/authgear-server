@@ -23,6 +23,9 @@ export interface ResourceSpecifier {
 export interface ResourceDefinition {
   type: "text" | "binary";
   resourcePath: ResourcePath;
+  // If this is true, then the effectiveData is used as value when the raw data is unavailable.
+  // This is useful for templates.
+  usesEffectiveDataAsFallbackValue: boolean;
 }
 
 export interface ResourcePath {
