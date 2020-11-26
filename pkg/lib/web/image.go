@@ -3,6 +3,7 @@ package web
 import (
 	"errors"
 	"fmt"
+	"mime"
 	"net/http"
 	"os"
 	"path"
@@ -21,13 +22,13 @@ func (i languageImage) GetLanguageTag() string {
 	return i.languageTag
 }
 
-var imageExtensions = map[string]string{
+var preferredExtensions = map[string]string{
 	"image/png":  ".png",
 	"image/jpeg": ".jpeg",
 	"image/gif":  ".gif",
 }
 
-var imageRegex = regexp.MustCompile(`^static/([a-zA-Z0-9-]+)/(.+)\.(png|jpeg|gif)$`)
+var imageRegex = regexp.MustCompile(`^static/([a-zA-Z0-9-]+)/(.+)\.(png|jpe|jpeg|jpg|gif)$`)
 
 type ImageDescriptor struct {
 	Name string
@@ -73,19 +74,22 @@ func (a ImageDescriptor) FindResources(fs resource.Fs) ([]resource.Location, err
 			continue
 		}
 
-		for _, ext := range imageExtensions {
-			p := path.Join("static", langTag, a.Name+ext)
-			location := resource.Location{
-				Fs:   fs,
-				Path: p,
+		for mediaType := range preferredExtensions {
+			exts, _ := mime.ExtensionsByType(mediaType)
+			for _, ext := range exts {
+				p := path.Join("static", langTag, a.Name+ext)
+				location := resource.Location{
+					Fs:   fs,
+					Path: p,
+				}
+				_, err := resource.ReadLocation(location)
+				if os.IsNotExist(err) {
+					continue
+				} else if err != nil {
+					return nil, err
+				}
+				locations = append(locations, location)
 			}
-			_, err := resource.ReadLocation(location)
-			if os.IsNotExist(err) {
-				continue
-			} else if err != nil {
-				return nil, err
-			}
-			locations = append(locations, location)
 		}
 	}
 
@@ -147,7 +151,7 @@ func (a ImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile
 	resolvedLanguageTag := tagger.languageTag
 
 	mimeType := http.DetectContentType(tagger.data)
-	ext, ok := imageExtensions[mimeType]
+	ext, ok := preferredExtensions[mimeType]
 	if !ok {
 		return nil, fmt.Errorf("invalid image format: %s", mimeType)
 	}
@@ -205,7 +209,7 @@ func (a ImageDescriptor) viewByPath(resources []resource.ResourceFile, path stri
 	}
 
 	mimeType := http.DetectContentType(bytes)
-	ext, ok := imageExtensions[mimeType]
+	ext, ok := preferredExtensions[mimeType]
 	if !ok {
 		return nil, fmt.Errorf("invalid image format: %s", mimeType)
 	}
