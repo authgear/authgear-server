@@ -243,6 +243,17 @@ export interface SessionConfig {
   lifetime_seconds?: DurationSeconds;
 }
 
+export interface HookConfig {
+  sync_hook_timeout_seconds?: number;
+  sync_hook_total_timeout_seconds?: number;
+  handlers?: HookHandlerConfig[];
+}
+
+export interface HookHandlerConfig {
+  event: string;
+  url: string;
+}
+
 // PortalAPIAppConfig
 export interface PortalAPIAppConfig {
   http?: HTTPConfig;
@@ -255,6 +266,7 @@ export interface PortalAPIAppConfig {
   forgot_password?: ForgotPasswordConfig;
   oauth?: OAuthConfig;
   session?: SessionConfig;
+  hook?: HookConfig;
 }
 
 // secret config
