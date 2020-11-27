@@ -362,9 +362,13 @@
   "ManageLanguageWidget.error.invalid-language": "Some of the languages are invalid. A language must have at least 1 template to become valid",
 
   "ResourceConfigurationScreen.title": "Localization & Appearance",
+  "ResourceConfigurationScreen.appearance.title": "Appearance",
   "ResourceConfigurationScreen.translationjson.title": "Translations",
   "ResourceConfigurationScreen.passwordless-authenticator.title": "Passwordless Authenticator",
   "ResourceConfigurationScreen.forgot-password.title": "Forgot Password",
+
+  "ResourceConfigurationScreen.app-banner": "App Banner",
+  "ResourceConfigurationScreen.app-logo": "App Logo",
 
   "EditTemplatesWidget.email": "Email",
   "EditTemplatesWidget.html-email": "HTML Email",

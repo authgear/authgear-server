@@ -13,6 +13,7 @@ import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import ManageLanguageWidget from "./ManageLanguageWidget";
+import ImageFilePicker from "../../ImageFilePicker";
 import EditTemplatesWidget, {
   EditTemplatesWidgetSection,
 } from "./EditTemplatesWidget";
@@ -35,6 +36,8 @@ import {
   RESOURCE_FORGOT_PASSWORD_EMAIL_HTML,
   RESOURCE_FORGOT_PASSWORD_EMAIL_TXT,
   RESOURCE_FORGOT_PASSWORD_SMS_TXT,
+  RESOURCE_APP_BANNER,
+  RESOURCE_APP_LOGO,
   renderPath,
 } from "../../resources";
 import {
@@ -59,12 +62,14 @@ interface ResourceConfigurationSectionProps {
   onResetForm: () => void;
 }
 
+const PIVOT_KEY_APPEARANCE = "appearance";
 const PIVOT_KEY_FORGOT_PASSWORD = "forgot_password";
 const PIVOT_KEY_PASSWORDLESS = "passwordless";
 const PIVOT_KEY_TRANSLATION_JSON = "translation.json";
 
 const ALL_PIVOT_KEYS = [
   PIVOT_KEY_TRANSLATION_JSON,
+  PIVOT_KEY_APPEARANCE,
   PIVOT_KEY_FORGOT_PASSWORD,
   PIVOT_KEY_PASSWORDLESS,
 ];
@@ -248,6 +253,21 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
     }
   }, []);
 
+  const getValueIgnoreEmptyString = useCallback(
+    (resourceDef: ResourceDefinition) => {
+      const resource = templates.find(
+        (resource) =>
+          resource.specifier.def === resourceDef &&
+          resource.specifier.locale === templateLocale
+      );
+      if (resource == null || resource.value === "") {
+        return undefined;
+      }
+      return resource.value;
+    },
+    [templates, templateLocale]
+  );
+
   const getValue = useCallback(
     (resourceDef: ResourceDefinition) => {
       const resource = templates.find(
@@ -301,6 +321,39 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
             return newTemplates;
           });
         }
+      };
+    },
+    [templateLocale]
+  );
+
+  const getOnChangeImage = useCallback(
+    (resourceDef: ResourceDefinition) => {
+      return (base64EncodedData?: string, extension?: string) => {
+        setTemplates((prev) => {
+          // First we have to remove the current one.
+          const next = prev.filter((resource) => {
+            const ok =
+              resource.specifier.def === resourceDef &&
+              resource.specifier.locale === templateLocale;
+            return !ok;
+          });
+          // Add if it is not a deletion.
+          if (base64EncodedData != null && extension != null) {
+            const path = renderPath(resourceDef.resourcePath, {
+              locale: templateLocale,
+              extension,
+            });
+            next.push({
+              specifier: {
+                def: resourceDef,
+                locale: templateLocale,
+              },
+              path,
+              value: base64EncodedData,
+            });
+          }
+          return next;
+        });
       };
     },
     [templateLocale]
@@ -466,6 +519,27 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
             itemKey={PIVOT_KEY_TRANSLATION_JSON}
           >
             <EditTemplatesWidget sections={sectionsTranslationJSON} />
+          </PivotItem>
+          <PivotItem
+            headerText={renderToString(
+              "ResourceConfigurationScreen.appearance.title"
+            )}
+            itemKey={PIVOT_KEY_APPEARANCE}
+          >
+            <div className={styles.pivotItemAppearance}>
+              <ImageFilePicker
+                title={renderToString("ResourceConfigurationScreen.app-banner")}
+                base64EncodedData={getValueIgnoreEmptyString(
+                  RESOURCE_APP_BANNER
+                )}
+                onChange={getOnChangeImage(RESOURCE_APP_BANNER)}
+              />
+              <ImageFilePicker
+                title={renderToString("ResourceConfigurationScreen.app-logo")}
+                base64EncodedData={getValueIgnoreEmptyString(RESOURCE_APP_LOGO)}
+                onChange={getOnChangeImage(RESOURCE_APP_LOGO)}
+              />
+            </div>
           </PivotItem>
           <PivotItem
             headerText={renderToString(
