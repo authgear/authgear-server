@@ -119,6 +119,17 @@ func TestTemplateResource(t *testing.T) {
 			So(asset.Path, ShouldEqual, "static/en/myimage.png")
 			So(asset.Data, ShouldResemble, pngB)
 		})
+
+		Convey("it should disallow duplicate resource", func() {
+			writeFile(fsA, "en", ".png", pngA)
+			writeFile(fsB, "en", ".png", pngB)
+			writeFile(fsB, "en", ".jpg", pngB)
+
+			_, err := read(resource.EffectiveResource{
+				DefaultTag: "en",
+			})
+			So(err, ShouldBeError, "duplicate resource: [static/en/myimage.jpg static/en/myimage.png]")
+		})
 	})
 
 	Convey("ImageDescriptor EffectiveFile", t, func() {

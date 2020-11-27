@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"sort"
 
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -126,6 +127,29 @@ func (a ImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile
 		images[languageTag] = languageImage{
 			languageTag: languageTag,
 			data:        resrc.Data,
+		}
+	}
+
+	// Ensure there is at most one resource
+	// For each Fs and for each locale, remember how many paths we have seen.
+	seen := make(map[resource.Fs]map[string][]string)
+	for _, resrc := range resources {
+		languageTag := imageRegex.FindStringSubmatch(resrc.Location.Path)[1]
+		m, ok := seen[resrc.Location.Fs]
+		if !ok {
+			m = make(map[string][]string)
+			seen[resrc.Location.Fs] = m
+		}
+		paths := m[languageTag]
+		paths = append(paths, resrc.Location.Path)
+		m[languageTag] = paths
+	}
+	for _, m := range seen {
+		for _, paths := range m {
+			if len(paths) > 1 {
+				sort.Strings(paths)
+				return nil, fmt.Errorf("duplicate resource: %v", paths)
+			}
 		}
 	}
 
