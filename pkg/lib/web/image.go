@@ -213,16 +213,19 @@ func (a ImageDescriptor) viewEffectiveFile(resources []resource.ResourceFile, vi
 
 func (a ImageDescriptor) viewByPath(resources []resource.ResourceFile, path string) (*StaticAsset, error) {
 	matches := imageRegex.FindStringSubmatch(path)
-	if len(matches) < 2 {
+	if len(matches) < 4 {
 		return nil, resource.ErrResourceNotFound
 	}
 	requestedLangTag := matches[1]
+	requestedExtension := matches[3]
 
 	var found bool
 	var bytes []byte
 	for _, resrc := range resources {
-		langTag := imageRegex.FindStringSubmatch(resrc.Location.Path)[1]
-		if langTag == requestedLangTag {
+		m := imageRegex.FindStringSubmatch(resrc.Location.Path)
+		langTag := m[1]
+		extension := m[3]
+		if langTag == requestedLangTag && extension == requestedExtension {
 			found = true
 			bytes = resrc.Data
 		}
