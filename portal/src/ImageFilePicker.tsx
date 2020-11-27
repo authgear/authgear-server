@@ -18,7 +18,6 @@ export interface ImageFilePickerProps {
   title: string;
   className?: string;
   base64EncodedData?: string;
-  extension?: ImageFileExtension;
   onChange?: (
     base64EncodedData: string | undefined,
     extension: ImageFileExtension | undefined
