@@ -61,6 +61,7 @@ export function generateUpdates(
   for (const locale of editionLocales) {
     let valid = false;
 
+    // Handle resource being modified.
     for (const template of templates) {
       if (template.specifier.locale === locale) {
         if (template.value !== "") {
@@ -82,6 +83,49 @@ export function generateUpdates(
         }
       }
     }
+
+    // Handle resource being added.
+    for (const template of templates) {
+      if (template.specifier.locale === locale) {
+        let found = false;
+        for (const oldTemplate of initialTemplates) {
+          if (
+            template.specifier.locale === oldTemplate.specifier.locale &&
+            template.specifier.def === oldTemplate.specifier.def
+          ) {
+            found = true;
+          }
+        }
+        if (!found) {
+          editions.push({
+            ...template,
+            value: template.value === "" ? null : template.value,
+          });
+        }
+      }
+    }
+
+    // Handle resource being removed.
+    for (const oldTemplate of initialTemplates) {
+      if (oldTemplate.specifier.locale === locale) {
+        let found = false;
+        for (const template of templates) {
+          if (
+            oldTemplate.specifier.locale === template.specifier.locale &&
+            oldTemplate.specifier.def === template.specifier.def
+          ) {
+            found = true;
+          }
+        }
+        if (!found) {
+          editions.push({
+            ...oldTemplate,
+            value: null,
+          });
+        }
+      }
+    }
+
     if (!valid) {
       invalidEditionLocales.push(locale);
     }

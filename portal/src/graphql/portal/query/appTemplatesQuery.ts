@@ -90,11 +90,8 @@ export function useAppTemplatesQuery(
     const resources: Resource[] = [];
 
     for (const pair of pairs) {
-      let found = false;
-
       for (const resource of appNode?.resources ?? []) {
         if (pair.path === resource.path) {
-          found = true;
           let value = "";
           let transform: (a: string) => string;
           switch (pair.specifier.def.type) {
@@ -118,6 +115,10 @@ export function useAppTemplatesQuery(
           ) {
             value = transform(resource.effectiveData);
           }
+          if (value === "") {
+            continue;
+          }
+
           resources.push({
             specifier: pair.specifier,
             path: pair.path,
@@ -125,14 +126,6 @@ export function useAppTemplatesQuery(
           });
           break;
         }
-      }
-
-      if (!found) {
-        resources.push({
-          specifier: pair.specifier,
-          path: pair.path,
-          value: "",
-        });
       }
     }
 
