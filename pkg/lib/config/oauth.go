@@ -48,16 +48,16 @@ var _ = Schema.Add("OAuthClientConfig", `
 `)
 
 type OAuthClientConfig struct {
-	ClientID               string          `json:"client_id"`
-	ClientURI              string          `json:"client_uri"`
-	Name                   string          `json:"name"`
-	RedirectURIs           []string        `json:"redirect_uris"`
-	GrantTypes             []string        `json:"grant_types"`
-	ResponseTypes          []string        `json:"response_types"`
-	PostLogoutRedirectURIs []string        `json:"post_logout_redirect_uris"`
-	AccessTokenLifetime    DurationSeconds `json:"access_token_lifetime_seconds"`
-	RefreshTokenLifetime   DurationSeconds `json:"refresh_token_lifetime_seconds"`
-	IssueJWTAccessToken    bool            `json:"issue_jwt_access_token"`
+	ClientID               string          `json:"client_id,omitempty"`
+	ClientURI              string          `json:"client_uri,omitempty"`
+	Name                   string          `json:"name,omitempty"`
+	RedirectURIs           []string        `json:"redirect_uris,omitempty"`
+	GrantTypes             []string        `json:"grant_types,omitempty"`
+	ResponseTypes          []string        `json:"response_types,omitempty"`
+	PostLogoutRedirectURIs []string        `json:"post_logout_redirect_uris,omitempty"`
+	AccessTokenLifetime    DurationSeconds `json:"access_token_lifetime_seconds,omitempty"`
+	RefreshTokenLifetime   DurationSeconds `json:"refresh_token_lifetime_seconds,omitempty"`
+	IssueJWTAccessToken    bool            `json:"issue_jwt_access_token,omitempty"`
 }
 
 func (c *OAuthClientConfig) SetDefaults() {
