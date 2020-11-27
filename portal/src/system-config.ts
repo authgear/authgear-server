@@ -1,6 +1,6 @@
 import { IPartialTheme, ITheme, createTheme } from "@fluentui/react";
 import MESSAGES from "./locale-data/en.json";
-import { DEFAULT_TEMPLATE_LOCALE } from "./templates";
+import { DEFAULT_TEMPLATE_LOCALE } from "./resources";
 
 export interface SystemConfig {
   authgearClientID: string;

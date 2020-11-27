@@ -36,7 +36,7 @@ import {
   RESOURCE_FORGOT_PASSWORD_EMAIL_TXT,
   RESOURCE_FORGOT_PASSWORD_SMS_TXT,
   renderPath,
-} from "../../templates";
+} from "../../resources";
 import {
   LanguageTag,
   Resource,

@@ -6,7 +6,7 @@ import {
   AppTemplatesQuery,
   AppTemplatesQueryVariables,
 } from "./__generated__/AppTemplatesQuery";
-import { renderPath } from "../../../templates";
+import { renderPath } from "../../../resources";
 import {
   Resource,
   ResourceSpecifier,
