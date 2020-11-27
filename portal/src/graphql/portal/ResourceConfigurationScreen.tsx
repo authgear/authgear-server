@@ -207,13 +207,16 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
       // Save templates
       const updates = [...additions, ...editions, ...deletions];
       if (updates.length > 0) {
-        const paths = [];
+        const specifiers = [];
         for (const resource of ALL_RESOURCES) {
           for (const locale of templateLocales) {
-            paths.push(renderPath(resource.resourcePath, { locale }));
+            specifiers.push({
+              def: resource,
+              locale,
+            });
           }
         }
-        updateAppTemplates(paths, updates).catch(() => {});
+        updateAppTemplates(specifiers, updates).catch(() => {});
       }
     },
     [

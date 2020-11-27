@@ -7,8 +7,14 @@ import {
   UpdateAppTemplatesMutation,
   UpdateAppTemplatesMutationVariables,
 } from "./__generated__/UpdateAppTemplatesMutation";
+import { renderPath } from "../../../resources";
 import { PortalAPIApp } from "../../../types";
-import { ResourceUpdate, binary, encodeForText } from "../../../util/resource";
+import {
+  ResourceUpdate,
+  ResourceSpecifier,
+  binary,
+  encodeForText,
+} from "../../../util/resource";
 
 const updateAppTemplatesMutation = gql`
   mutation UpdateAppTemplatesMutation(
@@ -35,7 +41,7 @@ const updateAppTemplatesMutation = gql`
 `;
 
 export type AppTemplatesUpdater = (
-  paths: string[],
+  specifiers: ResourceSpecifier[],
   updates: ResourceUpdate[]
 ) => Promise<PortalAPIApp | null>;
 
@@ -57,7 +63,27 @@ export function useUpdateAppTemplatesMutation(
     awaitRefetchQueries: true,
   });
   const updateAppTemplates = useCallback(
-    async (paths: string[], updates: ResourceUpdate[]) => {
+    async (specifiers: ResourceSpecifier[], updates: ResourceUpdate[]) => {
+      const paths = [];
+      for (const specifier of specifiers) {
+        if (specifier.def.extensions.length === 0) {
+          paths.push(
+            renderPath(specifier.def.resourcePath, {
+              locale: specifier.locale,
+            })
+          );
+        } else {
+          for (const extension of specifier.def.extensions) {
+            paths.push(
+              renderPath(specifier.def.resourcePath, {
+                locale: specifier.locale,
+                extension,
+              })
+            );
+          }
+        }
+      }
+
       const updatePayload: AppResourceUpdate[] = updates.map((update) => {
         let transform: (a: string) => string;
         switch (update.specifier.def.type) {
