@@ -70,7 +70,7 @@ export function generateUpdates(
         for (const oldTemplate of initialTemplates) {
           if (
             oldTemplate.specifier.locale === template.specifier.locale &&
-            oldTemplate.path === template.path
+            oldTemplate.specifier.def === template.specifier.def
           ) {
             if (oldTemplate.value !== template.value) {
               editions.push({
