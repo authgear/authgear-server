@@ -1,5 +1,5 @@
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, { useCallback, useContext } from "react";
 import { useParams } from "react-router-dom";
 import {
   Dropdown,
@@ -9,23 +9,21 @@ import {
   TextField,
 } from "@fluentui/react";
 import produce from "immer";
-import deepEqual from "deep-equal";
 
-import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
-import { useAppConfigQuery } from "./query/appConfigQuery";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import { ModifiedIndicatorPortal } from "../../ModifiedIndicatorPortal";
 import { PortalAPIAppConfig } from "../../types";
-
-import styles from "./HooksSettings.module.scss";
+import {
+  AppConfigFormModel,
+  useAppConfigForm,
+} from "../../hook/useAppConfigForm";
 import { useFormField } from "../../error/FormFieldContext";
 import FieldList from "../../FieldList";
-import { useValidationError } from "../../error/useValidationError";
-import { FormContext } from "../../error/FormContext";
-import ShowUnhandledValidationErrorCause from "../../error/ShowUnhandledValidationErrorCauses";
+import FormContainer from "../../FormContainer";
+import styles from "./HooksSettings.module.scss";
 
 interface HookEventHandler {
   event: string;
@@ -149,18 +147,13 @@ const HookHandlerItemEdit: React.FC<HookHandlerItemEditProps> = function HookHan
 };
 
 interface HooksSettingsContentProps {
-  form: FormState;
-  isDirty: boolean;
-  isSaving: boolean;
-  update: (fn: (state: FormState) => FormState) => void;
-  reset: () => void;
-  save: () => void;
+  form: AppConfigFormModel<FormState>;
 }
 
 const HooksSettingsContent: React.FC<HooksSettingsContentProps> = function HooksSettingsContent(
   props
 ) {
-  const { form, isDirty, isSaving, update, reset, save } = props;
+  const { save, state, setState, reset, isDirty, isUpdating } = props.form;
 
   const { renderToString } = useContext(Context);
 
@@ -176,22 +169,22 @@ const HooksSettingsContent: React.FC<HooksSettingsContentProps> = function Hooks
 
   const onTimeoutChange = useCallback(
     (_, value?: string) => {
-      update((state) => ({
+      setState((state) => ({
         ...state,
         timeout: Number(value),
       }));
     },
-    [update]
+    [setState]
   );
 
   const onTotalTimeoutChange = useCallback(
     (_, value?: string) => {
-      update((state) => ({
+      setState((state) => ({
         ...state,
         totalTimeout: Number(value),
       }));
     },
-    [update]
+    [setState]
   );
 
   const makeDefaultHandler = useCallback(
@@ -210,9 +203,9 @@ const HooksSettingsContent: React.FC<HooksSettingsContentProps> = function Hooks
   );
   const onHandlersChange = useCallback(
     (value: HookEventHandler[]) => {
-      update((state) => ({ ...state, handlers: value }));
+      setState((state) => ({ ...state, handlers: value }));
     },
-    [update]
+    [setState]
   );
 
   return (
@@ -224,7 +217,7 @@ const HooksSettingsContent: React.FC<HooksSettingsContentProps> = function Hooks
         min="1"
         step="1"
         label={renderToString("HooksSettings.total-timeout.label")}
-        value={String(form.totalTimeout)}
+        value={String(state.totalTimeout)}
         onChange={onTotalTimeoutChange}
       />
       <TextField
@@ -233,7 +226,7 @@ const HooksSettingsContent: React.FC<HooksSettingsContentProps> = function Hooks
         min="1"
         step="1"
         label={renderToString("HooksSettings.timeout.label")}
-        value={String(form.timeout)}
+        value={String(state.timeout)}
         onChange={onTimeoutChange}
       />
 
@@ -247,7 +240,7 @@ const HooksSettingsContent: React.FC<HooksSettingsContentProps> = function Hooks
         jsonPointer="/hook/handlers"
         parentJSONPointer="/hook"
         fieldName="handlers"
-        list={form.handlers}
+        list={state.handlers}
         onListChange={onHandlersChange}
         makeDefaultItem={makeDefaultHandler}
         renderListItem={renderHandlerItem}
@@ -258,7 +251,7 @@ const HooksSettingsContent: React.FC<HooksSettingsContentProps> = function Hooks
         <ButtonWithLoading
           type="submit"
           disabled={!isDirty}
-          loading={isSaving}
+          loading={isUpdating}
           labelId="save"
           loadingLabelId="saving"
         />
@@ -270,108 +263,27 @@ const HooksSettingsContent: React.FC<HooksSettingsContentProps> = function Hooks
 
 const HooksSettings: React.FC = function HooksSettings() {
   const { appID } = useParams();
-
-  // TODO: extract app config form logic as hook
-  const {
-    loading,
-    error,
-    effectiveAppConfig,
-    rawAppConfig,
-    refetch,
-  } = useAppConfigQuery(appID);
-  const {
-    loading: updatingAppConfig,
-    error: updateAppConfigError,
-    updateAppConfig,
-    resetError: resetUpdateAppConfigError,
-  } = useUpdateAppConfigMutation(appID);
-
-  const initialFormState = useMemo(
-    () => effectiveAppConfig && constructFormState(effectiveAppConfig),
-    [effectiveAppConfig]
-  );
-  const [currentFormState, setCurrentFormState] = useState<FormState | null>(
-    null
+  const form = useAppConfigForm(
+    appID,
+    emptyFormState,
+    constructFormState,
+    constructConfig
   );
 
-  const isDirty = useMemo(
-    () =>
-      Boolean(
-        rawAppConfig &&
-          initialFormState &&
-          currentFormState &&
-          !deepEqual(
-            constructConfig(rawAppConfig, initialFormState, initialFormState),
-            constructConfig(rawAppConfig, initialFormState, currentFormState),
-            { strict: true }
-          )
-      ),
-    [rawAppConfig, initialFormState, currentFormState]
-  );
-
-  const reset = useCallback(() => {
-    resetUpdateAppConfigError();
-    setCurrentFormState(initialFormState);
-  }, [resetUpdateAppConfigError, initialFormState]);
-
-  const save = useCallback(() => {
-    if (!rawAppConfig || !initialFormState || !currentFormState) {
-      return;
-    }
-
-    const newConfig = constructConfig(
-      rawAppConfig,
-      initialFormState,
-      currentFormState
-    );
-    updateAppConfig(newConfig)
-      .then(
-        (app) =>
-          app?.effectiveAppConfig &&
-          setCurrentFormState(constructFormState(app.effectiveAppConfig))
-      )
-      .catch(() => {});
-  }, [rawAppConfig, initialFormState, currentFormState, updateAppConfig]);
-
-  const form = currentFormState ?? initialFormState ?? emptyFormState;
-  const update = useCallback(
-    (fn: (state: FormState) => FormState) => {
-      setCurrentFormState(fn(form));
-    },
-    [form]
-  );
-
-  const {
-    otherError,
-    unhandledCauses,
-    value: formContextValue,
-  } = useValidationError(updateAppConfigError);
-
-  if (loading) {
+  if (form.isLoading) {
     return <ShowLoading />;
   }
 
-  if (error != null) {
-    return <ShowError error={error} onRetry={refetch} />;
+  if (form.loadError) {
+    return <ShowError error={form.loadError} onRetry={form.reload} />;
   }
 
   return (
-    <FormContext.Provider value={formContextValue}>
+    <FormContainer error={form.updateError}>
       <main className={styles.root}>
-        <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
-        {(unhandledCauses ?? []).length === 0 && otherError && (
-          <ShowError error={otherError} />
-        )}
-        <HooksSettingsContent
-          form={form}
-          isDirty={isDirty}
-          isSaving={updatingAppConfig}
-          update={update}
-          reset={reset}
-          save={save}
-        />
+        <HooksSettingsContent form={form} />
       </main>
-    </FormContext.Provider>
+    </FormContainer>
   );
 };
 
