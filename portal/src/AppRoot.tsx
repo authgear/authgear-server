@@ -132,16 +132,16 @@ const AppRoot: React.FC = function AppRoot() {
             element={<PortalAdminsSettings />}
           />
           <Route
+            path="/configuration/settings/portal-admins/invite"
+            element={<InviteAdminScreen />}
+          />
+          <Route
             path="/configuration/settings/sessions"
             element={<SessionSettings />}
           />
           <Route
             path="/configuration/settings/web-hooks"
             element={<HooksSettings />}
-          />
-          <Route
-            path="/configuration/settings/invite-admin"
-            element={<InviteAdminScreen />}
           />
         </Routes>
       </ScreenLayout>

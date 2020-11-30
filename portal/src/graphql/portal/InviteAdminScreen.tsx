@@ -1,156 +1,112 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useContext, useEffect, useMemo } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useNavigate, useParams } from "react-router-dom";
-
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
-import ButtonWithLoading from "../../ButtonWithLoading";
-import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import FormTextField from "../../FormTextField";
-import {
-  ModifiedIndicatorPortal,
-  ModifiedIndicatorWrapper,
-} from "../../ModifiedIndicatorPortal";
-import ShowUnhandledValidationErrorCause from "../../error/ShowUnhandledValidationErrorCauses";
-import { useValidationError } from "../../error/useValidationError";
-import { useGenericError } from "../../error/useGenericError";
-import { FormContext } from "../../error/FormContext";
+import { GenericErrorHandlingRule } from "../../error/useGenericError";
 import { useCreateCollaboratorInvitationMutation } from "./mutations/createCollaboratorInvitationMutation";
 
 import styles from "./InviteAdminScreen.module.scss";
+import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
+import FormContainer from "../../FormContainer";
+import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
+
+interface FormState {
+  email: string;
+}
+
+const defaultFormState: FormState = {
+  email: "",
+};
 
 interface InviteAdminContentProps {
-  resetForm: () => void;
+  form: SimpleFormModel<FormState>;
 }
 
 const InviteAdminContent: React.FC<InviteAdminContentProps> = function InviteAdminContent(
   props: InviteAdminContentProps
 ) {
-  const { resetForm } = props;
+  const { state, setState } = props.form;
   const { renderToString } = useContext(Context);
-  const { appID } = useParams();
-  const navigate = useNavigate();
 
-  const {
-    createCollaboratorInvitation,
-    loading: creatingCollaboratorInvitation,
-    error: createCollaboratorInvitationError,
-  } = useCreateCollaboratorInvitationMutation(appID);
-
-  const {
-    unhandledCauses: rawUnhandledCauses,
-    otherError,
-    value: formContextValue,
-  } = useValidationError(createCollaboratorInvitationError);
-
-  const { errorMessage: otherErrorMessage, unhandledCauses } = useGenericError(
-    otherError,
-    rawUnhandledCauses,
-    [
-      {
-        reason: "CollaboratorInvitationDuplicate",
-        errorMessageID: "InviteAdminScreen.duplicated-error",
-      },
-    ]
-  );
-
-  const [email, setEmail] = useState("");
-  const [submittedForm, setSubmittedForm] = useState(false);
-
-  const isFormModified = useMemo(() => {
-    return email !== "";
-  }, [email]);
-
-  const onEmailChange = useCallback((_event, value?: string) => {
-    if (value === undefined) {
-      return;
-    }
-    setEmail(value);
-  }, []);
-
-  const onFormSubmit = useCallback(
-    (ev: React.SyntheticEvent<HTMLElement>) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-
-      createCollaboratorInvitation(email)
-        .then((invitationID) => {
-          if (invitationID !== null) {
-            setSubmittedForm(true);
-          }
-        })
-        .catch(() => {});
-    },
-    [createCollaboratorInvitation, email]
-  );
-
-  useEffect(() => {
-    if (submittedForm) {
-      navigate("../");
-    }
-  }, [submittedForm, navigate]);
-
-  return (
-    <FormContext.Provider value={formContextValue}>
-      <form className={styles.content} onSubmit={onFormSubmit}>
-        <ModifiedIndicatorPortal
-          resetForm={resetForm}
-          isModified={isFormModified}
-        />
-        <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
-        <FormTextField
-          jsonPointer="/inviteeEmail"
-          parentJSONPointer=""
-          fieldName="inviteeEmail"
-          className={styles.emailField}
-          type="text"
-          label={renderToString("InviteAdminScreen.email.label")}
-          errorMessage={otherErrorMessage}
-          value={email}
-          onChange={onEmailChange}
-        />
-        <ButtonWithLoading
-          type="submit"
-          disabled={!isFormModified}
-          labelId="InviteAdminScreen.add-user.label"
-          loading={creatingCollaboratorInvitation}
-        />
-        <NavigationBlockerDialog
-          blockNavigation={!submittedForm && isFormModified}
-        />
-      </form>
-    </FormContext.Provider>
-  );
-};
-
-const InviteAdminScreen: React.FC = function InviteAdminScreen() {
   const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     return [
-      { to: "../", label: <FormattedMessage id="SettingsScreen.title" /> },
+      { to: "..", label: <FormattedMessage id="PortalAdminSettings.title" /> },
       { to: ".", label: <FormattedMessage id="InviteAdminScreen.title" /> },
     ];
   }, []);
 
-  const [remountIdentifier, setRemountIdentifier] = useState(0);
-  const resetForm = useCallback(() => {
-    setRemountIdentifier((prev) => prev + 1);
-  }, []);
+  const onEmailChange = useCallback(
+    (_, value?: string) => {
+      setState((s) => ({ ...s, email: value ?? "" }));
+    },
+    [setState]
+  );
 
   return (
-    <main className={styles.root}>
-      <ModifiedIndicatorWrapper className={styles.wrapper}>
-        <NavBreadcrumb
-          className={styles.breadcrumb}
-          items={navBreadcrumbItems}
-        />
-        <InviteAdminContent key={remountIdentifier} resetForm={resetForm} />
-      </ModifiedIndicatorWrapper>
-    </main>
+    <div className={styles.root}>
+      <NavBreadcrumb className={styles.breadcrumb} items={navBreadcrumbItems} />
+      <FormTextField
+        jsonPointer="/inviteeEmail"
+        parentJSONPointer=""
+        fieldName="inviteeEmail"
+        className={styles.emailField}
+        type="text"
+        label={renderToString("InviteAdminScreen.email.label")}
+        value={state.email}
+        onChange={onEmailChange}
+      />
+    </div>
+  );
+};
+
+const InviteAdminScreen: React.FC = function InviteAdminScreen() {
+  const { appID } = useParams();
+  const navigate = useNavigate();
+  const {
+    createCollaboratorInvitation,
+  } = useCreateCollaboratorInvitationMutation(appID);
+
+  const submit = useCallback(
+    async (state: FormState) => {
+      await createCollaboratorInvitation(state.email);
+    },
+    [createCollaboratorInvitation]
+  );
+
+  const form = useSimpleForm(defaultFormState, submit);
+
+  useEffect(() => {
+    if (form.isSubmitted) {
+      navigate("..");
+    }
+  }, [form.isSubmitted, navigate]);
+
+  const errorRules: GenericErrorHandlingRule[] = useMemo(
+    () => [
+      {
+        reason: "CollaboratorInvitationDuplicate",
+        errorMessageID: "InviteAdminScreen.duplicated-error",
+      },
+    ],
+    []
+  );
+
+  const saveButtonProps = useMemo(
+    () => ({
+      labelId: "InviteAdminScreen.add-user.label",
+      iconName: "Add",
+    }),
+    []
+  );
+
+  return (
+    <FormContainer
+      form={form}
+      saveButtonProps={saveButtonProps}
+      errorParseRules={errorRules}
+    >
+      <InviteAdminContent form={form} />
+    </FormContainer>
   );
 };
 

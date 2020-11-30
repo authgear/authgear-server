@@ -25,7 +25,7 @@ export interface CommandBarContainerProps {
   isLoading?: boolean;
   items?: ICommandBarItemProps[];
   farItems?: ICommandBarItemProps[];
-  messageBar?: React.ReactElement;
+  messageBar?: React.ReactNode;
 }
 
 const CommandBarContainer: React.FC<CommandBarContainerProps> = function CommandBarContainer(

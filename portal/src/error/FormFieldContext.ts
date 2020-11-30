@@ -48,6 +48,12 @@ function constructErrorMessageFromValidationErrorCause(
       });
     }
   }
+
+  // Display general error message directly
+  if (cause.kind === "general") {
+    return cause.details.msg;
+  }
+
   // other than required violation, matching json pointer => matching field
   // unrecognized error kind (violation type) => throw error in get message value
   try {

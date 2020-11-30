@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { ICommandBarItemProps, Text } from "@fluentui/react";
+import { ICommandBarItemProps } from "@fluentui/react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { useCollaboratorsAndInvitationsQuery } from "./query/collaboratorsAndInvitationsQuery";
@@ -19,6 +19,7 @@ import ErrorDialog from "../../error/ErrorDialog";
 
 import styles from "./PortalAdminsSettings.module.scss";
 import CommandBarContainer from "../../CommandBarContainer";
+import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
 const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
   const { renderToString } = useContext(Context);
@@ -68,7 +69,7 @@ const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
         text: renderToString("PortalAdminsSettings.invite"),
         iconProps: { iconName: "CirclePlus" },
         onClick: () => {
-          navigate("./invite-admin");
+          navigate("./invite");
         },
       },
     ];
@@ -142,6 +143,12 @@ const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
     [deleteCollaboratorInvitation]
   );
 
+  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
+    return [
+      { to: ".", label: <FormattedMessage id="PortalAdminSettings.title" /> },
+    ];
+  }, []);
+
   if (loadingCollaboratorsAndInvitations) {
     return <ShowLoading />;
   }
@@ -158,9 +165,10 @@ const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
   return (
     <CommandBarContainer isLoading={false} farItems={commandBarItems}>
       <div className={styles.content}>
-        <Text className={styles.title} as="h1" variant="xLarge" block={true}>
-          <FormattedMessage id="PortalAdminSettings.title" />
-        </Text>
+        <NavBreadcrumb
+          className={styles.breadcrumb}
+          items={navBreadcrumbItems}
+        />
         <PortalAdminList
           className={styles.list}
           loading={false}
