@@ -1,0 +1,23 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  width: 150px;
+}
+
+.label {
+  align-self: flex-start;
+}
+
+.input {
+  display: none;
+}
+
+.image {
+  height: 150px;
+  margin: 5px 0;
+}
+
+.button {
+  align-self: stretch;
+  margin: 5px 0;
+}

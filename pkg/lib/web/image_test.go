@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"mime"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -13,6 +14,22 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
+
+func TestExtensionsByType(t *testing.T) {
+	Convey("mime.ExtensionsByType", t, func() {
+		exts, err := mime.ExtensionsByType("image/png")
+		So(err, ShouldBeNil)
+		So(exts, ShouldResemble, []string{".png"})
+
+		exts, err = mime.ExtensionsByType("image/jpeg")
+		So(err, ShouldBeNil)
+		So(exts, ShouldResemble, []string{".jpe", ".jpeg", ".jpg"})
+
+		exts, err = mime.ExtensionsByType("image/gif")
+		So(err, ShouldBeNil)
+		So(exts, ShouldResemble, []string{".gif"})
+	})
+}
 
 func TestTemplateResource(t *testing.T) {
 	Convey("ImageDescriptor EffectiveResource", t, func() {
@@ -101,6 +118,17 @@ func TestTemplateResource(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(asset.Path, ShouldEqual, "static/en/myimage.png")
 			So(asset.Data, ShouldResemble, pngB)
+		})
+
+		Convey("it should disallow duplicate resource", func() {
+			writeFile(fsA, "en", ".png", pngA)
+			writeFile(fsB, "en", ".png", pngB)
+			writeFile(fsB, "en", ".jpg", pngB)
+
+			_, err := read(resource.EffectiveResource{
+				DefaultTag: "en",
+			})
+			So(err, ShouldBeError, "duplicate resource: [static/en/myimage.jpg static/en/myimage.png]")
 		})
 	})
 

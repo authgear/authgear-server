@@ -6,8 +6,13 @@ import {
   AppTemplatesQuery,
   AppTemplatesQueryVariables,
 } from "./__generated__/AppTemplatesQuery";
-import { getLocalizedTemplatePath, TemplateLocale } from "../../../templates";
-import { ResourcePath } from "../../../util/stringTemplate";
+import { renderPath } from "../../../resources";
+import {
+  Resource,
+  ResourceSpecifier,
+  decodeForText,
+  binary,
+} from "../../../util/resource";
 
 export const appTemplatesQuery = gql`
   query AppTemplatesQuery($id: ID!, $paths: [String!]!) {
@@ -26,49 +31,47 @@ export const appTemplatesQuery = gql`
   }
 `;
 
-export interface Template {
-  locale: TemplateLocale;
-  resourcePath: ResourcePath<"locale">;
-  path: string;
-  value: string;
-}
-
 export interface AppTemplatesQueryResult
   extends Pick<
     QueryResult<AppTemplatesQuery, AppTemplatesQueryVariables>,
     "loading" | "error" | "refetch"
   > {
-  templates: Record<string, Template>;
+  resources: Resource[];
 }
 
-export interface InputPath {
-  locale: TemplateLocale;
-  resourcePath: ResourcePath<"locale">;
+interface SpecifierPathPair {
+  specifier: ResourceSpecifier;
   path: string;
 }
 
 export function useAppTemplatesQuery(
   appID: string,
-  locales: TemplateLocale[],
-  ...resourcePaths: ResourcePath<"locale">[]
+  specifiers: ResourceSpecifier[]
 ): AppTemplatesQueryResult {
-  const inputPaths = useMemo<InputPath[]>(() => {
-    const output: InputPath[] = [];
-    for (const locale of locales) {
-      for (const resourcePath of resourcePaths) {
-        output.push({
-          locale,
-          resourcePath,
-          path: getLocalizedTemplatePath(locale, resourcePath),
+  const pairs: SpecifierPathPair[] = useMemo(() => {
+    const pairs = [];
+    for (const specifier of specifiers) {
+      if (specifier.def.extensions.length === 0) {
+        pairs.push({
+          specifier,
+          path: renderPath(specifier.def.resourcePath, {
+            locale: specifier.locale,
+          }),
         });
+      } else {
+        for (const extension of specifier.def.extensions) {
+          pairs.push({
+            specifier,
+            path: renderPath(specifier.def.resourcePath, {
+              extension,
+              locale: specifier.locale,
+            }),
+          });
+        }
       }
     }
-    return output;
-  }, [locales, resourcePaths]);
-
-  const paths = useMemo(() => inputPaths.map((inputPath) => inputPath.path), [
-    inputPaths,
-  ]);
+    return pairs;
+  }, [specifiers]);
 
   const { data, loading, error, refetch } = useQuery<
     AppTemplatesQuery,
@@ -77,45 +80,57 @@ export function useAppTemplatesQuery(
     client,
     variables: {
       id: appID,
-      paths,
+      paths: pairs.map((pair) => pair.path),
     },
   });
 
-  const templates = useMemo(() => {
+  // eslint-disable-next-line complexity
+  const resources = useMemo(() => {
     const appNode = data?.node?.__typename === "App" ? data.node : null;
-    const templates: Record<string, Template> = {};
+    const resources: Resource[] = [];
 
-    for (const inputPath of inputPaths) {
-      let found = false;
-
+    for (const pair of pairs) {
       for (const resource of appNode?.resources ?? []) {
-        if (inputPath.path === resource.path) {
-          found = true;
+        if (pair.path === resource.path) {
           let value = "";
-          // If the raw data is available, prefer it.
-          if (resource.data != null) {
-            value = atob(resource.data);
-          } else if (resource.effectiveData != null) {
-            value = atob(resource.effectiveData);
+          let transform: (a: string) => string;
+          switch (pair.specifier.def.type) {
+            case "text":
+              transform = decodeForText;
+              break;
+            case "binary":
+              transform = binary;
+              break;
+            default:
+              throw new Error(
+                "unexpected resource type: " + String(pair.specifier.def.type)
+              );
           }
-          templates[inputPath.path] = {
-            ...inputPath,
+
+          if (resource.data != null) {
+            value = transform(resource.data);
+          } else if (
+            resource.effectiveData != null &&
+            pair.specifier.def.usesEffectiveDataAsFallbackValue
+          ) {
+            value = transform(resource.effectiveData);
+          }
+          if (value === "") {
+            continue;
+          }
+
+          resources.push({
+            specifier: pair.specifier,
+            path: pair.path,
             value,
-          };
+          });
           break;
         }
       }
-
-      if (!found) {
-        templates[inputPath.path] = {
-          ...inputPath,
-          value: "",
-        };
-      }
     }
 
-    return templates;
-  }, [data, inputPaths]);
+    return resources;
+  }, [data, pairs]);
 
-  return { templates, loading, error, refetch };
+  return { resources, loading, error, refetch };
 }

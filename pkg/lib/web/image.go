@@ -3,10 +3,12 @@ package web
 import (
 	"errors"
 	"fmt"
+	"mime"
 	"net/http"
 	"os"
 	"path"
 	"regexp"
+	"sort"
 
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -21,13 +23,13 @@ func (i languageImage) GetLanguageTag() string {
 	return i.languageTag
 }
 
-var imageExtensions = map[string]string{
+var preferredExtensions = map[string]string{
 	"image/png":  ".png",
 	"image/jpeg": ".jpeg",
 	"image/gif":  ".gif",
 }
 
-var imageRegex = regexp.MustCompile(`^static/([a-zA-Z0-9-]+)/(.+)\.(png|jpeg|gif)$`)
+var imageRegex = regexp.MustCompile(`^static/([a-zA-Z0-9-]+)/(.+)\.(png|jpe|jpeg|jpg|gif)$`)
 
 type ImageDescriptor struct {
 	Name string
@@ -73,19 +75,22 @@ func (a ImageDescriptor) FindResources(fs resource.Fs) ([]resource.Location, err
 			continue
 		}
 
-		for _, ext := range imageExtensions {
-			p := path.Join("static", langTag, a.Name+ext)
-			location := resource.Location{
-				Fs:   fs,
-				Path: p,
+		for mediaType := range preferredExtensions {
+			exts, _ := mime.ExtensionsByType(mediaType)
+			for _, ext := range exts {
+				p := path.Join("static", langTag, a.Name+ext)
+				location := resource.Location{
+					Fs:   fs,
+					Path: p,
+				}
+				_, err := resource.ReadLocation(location)
+				if os.IsNotExist(err) {
+					continue
+				} else if err != nil {
+					return nil, err
+				}
+				locations = append(locations, location)
 			}
-			_, err := resource.ReadLocation(location)
-			if os.IsNotExist(err) {
-				continue
-			} else if err != nil {
-				return nil, err
-			}
-			locations = append(locations, location)
 		}
 	}
 
@@ -125,6 +130,29 @@ func (a ImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile
 		}
 	}
 
+	// Ensure there is at most one resource
+	// For each Fs and for each locale, remember how many paths we have seen.
+	seen := make(map[resource.Fs]map[string][]string)
+	for _, resrc := range resources {
+		languageTag := imageRegex.FindStringSubmatch(resrc.Location.Path)[1]
+		m, ok := seen[resrc.Location.Fs]
+		if !ok {
+			m = make(map[string][]string)
+			seen[resrc.Location.Fs] = m
+		}
+		paths := m[languageTag]
+		paths = append(paths, resrc.Location.Path)
+		m[languageTag] = paths
+	}
+	for _, m := range seen {
+		for _, paths := range m {
+			if len(paths) > 1 {
+				sort.Strings(paths)
+				return nil, fmt.Errorf("duplicate resource: %v", paths)
+			}
+		}
+	}
+
 	var items []template.LanguageItem
 	for _, i := range images {
 		items = append(items, i)
@@ -147,7 +175,7 @@ func (a ImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile
 	resolvedLanguageTag := tagger.languageTag
 
 	mimeType := http.DetectContentType(tagger.data)
-	ext, ok := imageExtensions[mimeType]
+	ext, ok := preferredExtensions[mimeType]
 	if !ok {
 		return nil, fmt.Errorf("invalid image format: %s", mimeType)
 	}
@@ -185,16 +213,19 @@ func (a ImageDescriptor) viewEffectiveFile(resources []resource.ResourceFile, vi
 
 func (a ImageDescriptor) viewByPath(resources []resource.ResourceFile, path string) (*StaticAsset, error) {
 	matches := imageRegex.FindStringSubmatch(path)
-	if len(matches) < 2 {
+	if len(matches) < 4 {
 		return nil, resource.ErrResourceNotFound
 	}
 	requestedLangTag := matches[1]
+	requestedExtension := matches[3]
 
 	var found bool
 	var bytes []byte
 	for _, resrc := range resources {
-		langTag := imageRegex.FindStringSubmatch(resrc.Location.Path)[1]
-		if langTag == requestedLangTag {
+		m := imageRegex.FindStringSubmatch(resrc.Location.Path)
+		langTag := m[1]
+		extension := m[3]
+		if langTag == requestedLangTag && extension == requestedExtension {
 			found = true
 			bytes = resrc.Data
 		}
@@ -205,7 +236,7 @@ func (a ImageDescriptor) viewByPath(resources []resource.ResourceFile, path stri
 	}
 
 	mimeType := http.DetectContentType(bytes)
-	ext, ok := imageExtensions[mimeType]
+	ext, ok := preferredExtensions[mimeType]
 	if !ok {
 		return nil, fmt.Errorf("invalid image format: %s", mimeType)
 	}

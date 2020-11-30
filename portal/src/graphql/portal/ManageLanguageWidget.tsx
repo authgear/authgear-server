@@ -25,45 +25,45 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useCheckbox } from "../../hook/useInput";
-import { TemplateLocale } from "../../templates";
+import { LanguageTag } from "../../util/resource";
 
-import styles from "./TemplateLocaleManagement.module.scss";
+import styles from "./ManageLanguageWidget.module.scss";
 
-type TemplateLocaleUpdater = (locale: TemplateLocale) => void;
+type TemplateLocaleUpdater = (locale: LanguageTag) => void;
 
-interface TemplateLocaleManagementProps {
+interface ManageLanguageWidgetProps {
   // The list of languages.
-  templateLocales: TemplateLocale[];
-  onChangeTemplateLocales: (locales: TemplateLocale[]) => void;
+  templateLocales: LanguageTag[];
+  onChangeTemplateLocales: (locales: LanguageTag[]) => void;
 
   // The selected language.
-  templateLocale: TemplateLocale;
+  templateLocale: LanguageTag;
   onSelectTemplateLocale: TemplateLocaleUpdater;
 
   // The default language.
-  defaultTemplateLocale: TemplateLocale;
+  defaultTemplateLocale: LanguageTag;
   onSelectDefaultTemplateLocale: TemplateLocaleUpdater;
 
-  invalidTemplateLocales: TemplateLocale[];
+  invalidTemplateLocales: LanguageTag[];
 }
 
-interface TemplateLocaleManagementDialogProps {
+interface ManageLanguageWidgetDialogProps {
   presented: boolean;
   onDismiss: () => void;
-  defaultTemplateLocale: TemplateLocale;
-  templateLocales: TemplateLocale[];
-  onChangeTemplateLocales: (locales: TemplateLocale[]) => void;
+  defaultTemplateLocale: LanguageTag;
+  templateLocales: LanguageTag[];
+  onChangeTemplateLocales: (locales: LanguageTag[]) => void;
 }
 
 interface TemplateLocaleListItemProps {
-  locale: TemplateLocale;
+  locale: LanguageTag;
   checked: boolean;
-  onSelectItem: (locale: TemplateLocale) => void;
+  onSelectItem: (locale: LanguageTag) => void;
 }
 
 interface SelectedTemplateLocaleItemProps {
-  locale: TemplateLocale;
-  onRemove: (locale: TemplateLocale) => void;
+  locale: LanguageTag;
+  onRemove: (locale: LanguageTag) => void;
   isDefaultLocale: boolean;
 }
 
@@ -75,7 +75,7 @@ const DIALOG_STYLES = {
   },
 };
 
-function getLanguageLocaleKey(locale: TemplateLocale) {
+function getLanguageLocaleKey(locale: LanguageTag) {
   return `Locales.${locale}`;
 }
 
@@ -109,7 +109,7 @@ const SelectedTemplateLocaleItem: React.FC<SelectedTemplateLocaleItemProps> = fu
       onRenderContent: () => (
         <div className={styles.tooltip}>
           <Text className={styles.tooltipMessage}>
-            <FormattedMessage id="TemplateLocaleManagementDialog.cannot-remove-default-language-error" />
+            <FormattedMessage id="ManageLanguageWidget.warning.remove-default-language" />
           </Text>
         </div>
       ),
@@ -142,13 +142,13 @@ const SelectedTemplateLocaleItem: React.FC<SelectedTemplateLocaleItemProps> = fu
 };
 
 interface TemplateLocaleListItemProps {
-  locale: TemplateLocale;
+  locale: LanguageTag;
   checked: boolean;
-  onSelectItem: (locale: TemplateLocale) => void;
+  onSelectItem: (locale: LanguageTag) => void;
 }
 
-const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogProps> = function TemplateLocaleManagementDialog(
-  props: TemplateLocaleManagementDialogProps
+const ManageLanguageWidgetDialog: React.FC<ManageLanguageWidgetDialogProps> = function ManageLanguageWidgetDialog(
+  props: ManageLanguageWidgetDialogProps
 ) {
   const {
     presented,
@@ -160,11 +160,9 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
 
   const { supportedResourceLocales } = useSystemConfig();
 
-  const [newLocales, setNewLocales] = useState<TemplateLocale[]>(
-    templateLocales
-  );
+  const [newLocales, setNewLocales] = useState<LanguageTag[]>(templateLocales);
 
-  const onAddTemplateLocale = useCallback((locale: TemplateLocale) => {
+  const onAddTemplateLocale = useCallback((locale: LanguageTag) => {
     setNewLocales((prev) => {
       const idx = prev.findIndex((item) => item === locale);
       // Already present
@@ -193,7 +191,7 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
     newLocales,
   ]);
 
-  const onRemoveTemplateLocale = useCallback((locale: TemplateLocale) => {
+  const onRemoveTemplateLocale = useCallback((locale: LanguageTag) => {
     setNewLocales((prev) => {
       return prev.filter((item) => item !== locale);
     });
@@ -216,7 +214,7 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
   }, []);
 
   const renderSelectedLocaleItemCell = useCallback<
-    Required<IListProps<TemplateLocale>>["onRenderCell"]
+    Required<IListProps<LanguageTag>>["onRenderCell"]
   >(
     (locale) => {
       if (locale == null) {
@@ -254,17 +252,19 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
     <Dialog
       hidden={!presented}
       onDismiss={onCancel}
-      title={<FormattedMessage id="TemplateLocaleManagementDialog.title" />}
+      title={
+        <FormattedMessage id="ManageLanguageWidget.add-or-remove-languages" />
+      }
       modalProps={modalProps}
       styles={DIALOG_STYLES}
     >
       <Text className={styles.dialogDesc}>
-        <FormattedMessage id="TemplateLocaleManagementDialog.desc" />
+        <FormattedMessage id="ManageLanguageWidget.default-language-description" />
       </Text>
       <div className={styles.dialogContent}>
         <section className={styles.dialogColumn}>
           <Text className={styles.dialogColumnHeader}>
-            <FormattedMessage id="TemplateLocaleManagementDialog.supported-resource-locales-header" />
+            <FormattedMessage id="ManageLanguageWidget.all-languages" />
           </Text>
           <section className={styles.dialogListWrapper}>
             <List items={listItems} onRenderCell={renderLocaleListItemCell} />
@@ -273,7 +273,7 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
         <VerticalDivider className={styles.dialogDivider} />
         <section className={styles.dialogColumn}>
           <Text className={styles.dialogColumnHeader}>
-            <FormattedMessage id="TemplateLocaleManagementDialog.selected-template-locales-header" />
+            <FormattedMessage id="ManageLanguageWidget.app-languages" />
           </Text>
           <section className={styles.dialogListWrapper}>
             <List
@@ -295,8 +295,8 @@ const TemplateLocaleManagementDialog: React.FC<TemplateLocaleManagementDialogPro
   );
 };
 
-const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = function TemplateLocaleManagement(
-  props: TemplateLocaleManagementProps
+const ManageLanguageWidget: React.FC<ManageLanguageWidgetProps> = function ManageLanguageWidget(
+  props: ManageLanguageWidgetProps
 ) {
   const {
     templateLocales,
@@ -315,7 +315,7 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
   const [isDialogPresented, setIsDialogPresented] = useState(false);
 
   const displayTemplateLocale = useCallback(
-    (locale: TemplateLocale) => {
+    (locale: LanguageTag) => {
       return renderToString(getLanguageLocaleKey(locale));
     },
     [renderToString]
@@ -357,18 +357,14 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
   const menuItems: IContextualMenuItem[] = [
     {
       key: "change-default-language",
-      text: renderToString(
-        "TemplatesConfigurationScreen.change-default-language"
-      ),
+      text: renderToString("ManageLanguageWidget.change-default-language"),
       subMenuProps: {
         items: subMenuPropsItems,
       },
     },
     {
       key: "add-or-remove-languages",
-      text: renderToString(
-        "TemplatesConfigurationScreen.add-or-remove-languages"
-      ),
+      text: renderToString("ManageLanguageWidget.add-or-remove-languages"),
       onClick: (e?: React.SyntheticEvent<HTMLElement>) => {
         e?.preventDefault();
         e?.stopPropagation();
@@ -467,7 +463,7 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
 
   return (
     <section className={styles.templateLocaleManagement}>
-      <TemplateLocaleManagementDialog
+      <ManageLanguageWidgetDialog
         presented={isDialogPresented}
         onDismiss={dismissDialog}
         templateLocales={templateLocales}
@@ -482,9 +478,7 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
       >
         <Dropdown
           className={styles.dropdown}
-          label={renderToString(
-            "TemplatesConfigurationScreen.template-language-dropdown-title"
-          )}
+          label={renderToString("ManageLanguageWidget.title")}
           options={templateLocaleOptions}
           onChange={onChangeTemplateLocale}
           selectedKey={templateLocale}
@@ -492,18 +486,16 @@ const TemplateLocaleManagement: React.FC<TemplateLocaleManagementProps> = functi
           onRenderOption={onRenderOption}
           errorMessage={
             invalidTemplateLocales.length > 0
-              ? renderToString(
-                  "TemplatesConfigurationScreen.invalid-language-message"
-                )
+              ? renderToString("ManageLanguageWidget.error.invalid-language")
               : undefined
           }
         />
         <DefaultButton className={styles.contextualMenu} menuProps={menuProps}>
-          <FormattedMessage id="TemplatesConfigurationScreen.manage-template-languages" />
+          <FormattedMessage id="ManageLanguageWidget.manage-languages" />
         </DefaultButton>
       </Stack>
     </section>
   );
 };
 
-export default TemplateLocaleManagement;
+export default ManageLanguageWidget;

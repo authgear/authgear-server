@@ -47,8 +47,6 @@
 
   "header.sign-out": "Sign out",
 
-  "nav.users": "Users",
-
   "show-error.retry": "Retry",
 
   "generic-error.unknown-error": "Unknown error",
@@ -73,7 +71,7 @@
   "ScreenNav.client-applications": "Client Applications",
   "ScreenNav.user-interface": "User Interface",
   "ScreenNav.dns": "DNS",
-  "ScreenNav.templates": "Templates",
+  "ScreenNav.localization-appearance": "Localization & Appearance",
   "ScreenNav.settings": "Settings",
 
   "NavBreadcrumb.label": "Nested navigation",
@@ -353,24 +351,24 @@
   "VerifyDomainScreen.error.not-custom-error": "Requested domain is not a custom domain",
   "VerifyDomainScreen.error.verification-error": "Failed to verify domain",
 
-  "TemplatesConfigurationScreen.title": "Templates",
-  "TemplatesConfigurationScreen.template-language-dropdown-title": "Template Language",
-  "TemplatesConfigurationScreen.manage-template-languages": "Manage Template Languages",
-  "TemplatesConfigurationScreen.change-default-language": "Change Default Language",
-  "TemplatesConfigurationScreen.add-or-remove-languages": "Add or Remove Languages",
+  "ManageLanguageWidget.title": "Selected Language",
+  "ManageLanguageWidget.manage-languages": "Manage Languages",
+  "ManageLanguageWidget.change-default-language": "Change Default Language",
+  "ManageLanguageWidget.add-or-remove-languages": "Add or Remove Languages",
+  "ManageLanguageWidget.default-language-description": "For any languages you don’t provide localization, your default language will be used.",
+  "ManageLanguageWidget.all-languages": "All Languages",
+  "ManageLanguageWidget.app-languages": "App Languages",
+  "ManageLanguageWidget.warning.remove-default-language": "Default language cannot be removed.",
+  "ManageLanguageWidget.error.invalid-language": "Some of the languages are invalid. A language must have at least 1 localization to become valid",
 
-  "TemplatesConfigurationScreen.translationjson.title": "Translations",
-  "TemplatesConfigurationScreen.passwordless-authenticator.title": "Passwordless Authenticator",
-  "TemplatesConfigurationScreen.forgot-password.title": "Forgot Password",
+  "ResourceConfigurationScreen.title": "Localization & Appearance",
+  "ResourceConfigurationScreen.appearance.title": "Appearance",
+  "ResourceConfigurationScreen.translationjson.title": "Translations",
+  "ResourceConfigurationScreen.passwordless-authenticator.title": "Passwordless Authenticator",
+  "ResourceConfigurationScreen.forgot-password.title": "Forgot Password",
 
-  "TemplatesConfigurationScreen.invalid-language-message": "Some of the languages are invalid. A language must have at least 1 template to become valid",
-
-  "TemplateLocaleManagementDialog.title": "Add or Remove Languages",
-  "TemplateLocaleManagementDialog.desc": "For any languages you don’t provide translations for, your messages will be delivered in your default language (English)",
-  "TemplateLocaleManagementDialog.supported-resource-locales-header": "All Template Languages",
-  "TemplateLocaleManagementDialog.selected-template-locales-header": "Active Template Languages",
-  "TemplateLocaleManagementDialog.cannot-remove-default-language-error": "Cannot remove default template language",
-  "TemplateLocaleManagementDialog.apply-error": "Failed to remove template language",
+  "ResourceConfigurationScreen.app-banner": "App Banner",
+  "ResourceConfigurationScreen.app-logo": "App Logo",
 
   "EditTemplatesWidget.email": "Email",
   "EditTemplatesWidget.html-email": "HTML Email",
@@ -487,6 +485,9 @@
   "ShowUnhandledValidationErrorCause.kind": "Kind: {kind}",
   "ShowUnhandledValidationErrorCause.location": "Location: {location}",
   "ShowUnhandledValidationErrorCause.details": "Details: {details}",
+
+  "ImageFilePicker.select-image": "Select Image",
+  "ImageFilePicker.remove-image": "Remove Image",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",

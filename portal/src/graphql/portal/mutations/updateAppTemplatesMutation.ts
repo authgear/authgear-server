@@ -7,8 +7,14 @@ import {
   UpdateAppTemplatesMutation,
   UpdateAppTemplatesMutationVariables,
 } from "./__generated__/UpdateAppTemplatesMutation";
+import { renderPath } from "../../../resources";
 import { PortalAPIApp } from "../../../types";
-import { TemplateLocale } from "../../../templates";
+import {
+  ResourceUpdate,
+  ResourceSpecifier,
+  binary,
+  encodeForText,
+} from "../../../util/resource";
 
 const updateAppTemplatesMutation = gql`
   mutation UpdateAppTemplatesMutation(
@@ -21,6 +27,8 @@ const updateAppTemplatesMutation = gql`
         id
         resources(paths: $paths) {
           path
+          languageTag
+          data
           effectiveData
         }
         resourceLocales: resources {
@@ -33,12 +41,8 @@ const updateAppTemplatesMutation = gql`
 `;
 
 export type AppTemplatesUpdater = (
-  paths: string[],
-  updates: AppResourceUpdate[]
-) => Promise<PortalAPIApp | null>;
-
-export type TemplateLocaleRemover = (
-  locales: TemplateLocale[]
+  specifiers: ResourceSpecifier[],
+  updates: ResourceUpdate[]
 ) => Promise<PortalAPIApp | null>;
 
 export function useUpdateAppTemplatesMutation(
@@ -52,19 +56,59 @@ export function useUpdateAppTemplatesMutation(
   const [mutationFunction, { error, loading }, resetError] = useGraphqlMutation<
     UpdateAppTemplatesMutation,
     UpdateAppTemplatesMutationVariables
-  >(updateAppTemplatesMutation, { client });
+  >(updateAppTemplatesMutation, {
+    client,
+    // FIXME: I cannot figure out the rendered query does not rerender :(
+    refetchQueries: ["AppTemplatesQuery", "TemplateLocaleQuery"],
+    awaitRefetchQueries: true,
+  });
   const updateAppTemplates = useCallback(
-    async (paths: string[], updates: AppResourceUpdate[]) => {
+    async (specifiers: ResourceSpecifier[], updates: ResourceUpdate[]) => {
+      const paths = [];
+      for (const specifier of specifiers) {
+        if (specifier.def.extensions.length === 0) {
+          paths.push(
+            renderPath(specifier.def.resourcePath, {
+              locale: specifier.locale,
+            })
+          );
+        } else {
+          for (const extension of specifier.def.extensions) {
+            paths.push(
+              renderPath(specifier.def.resourcePath, {
+                locale: specifier.locale,
+                extension,
+              })
+            );
+          }
+        }
+      }
+
+      const updatePayload: AppResourceUpdate[] = updates.map((update) => {
+        let transform: (a: string) => string;
+        switch (update.specifier.def.type) {
+          case "text":
+            transform = encodeForText;
+            break;
+          case "binary":
+            transform = binary;
+            break;
+          default:
+            throw new Error(
+              "unexpected resource type: " + String(update.specifier.def.type)
+            );
+        }
+        return {
+          path: update.path,
+          data: update.value == null ? null : transform(update.value),
+        };
+      });
+
       const result = await mutationFunction({
         variables: {
           appID,
           paths,
-          updates: updates.map((update) => {
-            return {
-              ...update,
-              data: update.data == null ? null : btoa(update.data),
-            };
-          }),
+          updates: updatePayload,
         },
       });
       return result.data?.updateAppResources.app ?? null;

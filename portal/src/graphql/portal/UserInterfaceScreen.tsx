@@ -16,7 +16,7 @@ import {
   AppRawTemplatesUpdater,
   useUpdateAppRawTemplatesMutation,
 } from "./mutations/updateAppRawTemplatesMutation";
-import { STATIC_AUTHGEAR_CSS } from "../../templates";
+import { STATIC_AUTHGEAR_CSS } from "../../resources";
 import { useAppRawTemplatesQuery } from "./query/appRawTemplatesQuery";
 
 interface UserInterfaceScreenState {

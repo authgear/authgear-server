@@ -1,27 +1,20 @@
-import { AppResourceUpdate } from "./__generated__/globalTypes";
-import { TemplateLocale } from "../../templates";
-
-export interface Template {
-  locale: TemplateLocale;
-  path: string;
-  value: string;
-}
+import { LanguageTag, ResourceUpdate, Resource } from "../../util/resource";
 
 export interface GenerateUpdatesResult {
   isModified: boolean;
-  additions: AppResourceUpdate[];
-  invalidAdditionLocales: TemplateLocale[];
-  editions: AppResourceUpdate[];
-  invalidEditionLocales: TemplateLocale[];
-  deletions: AppResourceUpdate[];
+  additions: ResourceUpdate[];
+  invalidAdditionLocales: LanguageTag[];
+  editions: ResourceUpdate[];
+  invalidEditionLocales: LanguageTag[];
+  deletions: ResourceUpdate[];
 }
 
 // eslint-disable-next-line complexity
 export function generateUpdates(
-  initialTemplateLocales: TemplateLocale[],
-  initialTemplates: Record<string, Template | undefined>,
-  templateLocales: TemplateLocale[],
-  templates: Record<string, Template | undefined>
+  initialTemplateLocales: LanguageTag[],
+  initialTemplates: Resource[],
+  templateLocales: LanguageTag[],
+  templates: Resource[]
 ): GenerateUpdatesResult {
   // We have 3 kinds of updates
   // 1. Addition
@@ -29,7 +22,7 @@ export function generateUpdates(
   // 3. Deletion
 
   // Addition: present in templateLocales but absent in initialTemplateLocales
-  const additionLocales: TemplateLocale[] = [];
+  const additionLocales: LanguageTag[] = [];
   for (const locale of templateLocales) {
     const idx = initialTemplateLocales.indexOf(locale);
     if (idx < 0) {
@@ -37,19 +30,15 @@ export function generateUpdates(
     }
   }
   // It is valid iff there is at least 1 template with non-empty value.
-  const invalidAdditionLocales: TemplateLocale[] = [];
-  const additions: AppResourceUpdate[] = [];
+  const invalidAdditionLocales: LanguageTag[] = [];
+  const additions: ResourceUpdate[] = [];
   for (const locale of additionLocales) {
     let valid = false;
-    for (const template of Object.values(templates)) {
-      if (template == null) {
-        continue;
-      }
-      if (template.locale === locale && template.value !== "") {
+    for (const template of templates) {
+      if (template.specifier.locale === locale && template.value !== "") {
         valid = true;
         additions.push({
-          path: template.path,
-          data: template.value,
+          ...template,
         });
       }
     }
@@ -59,7 +48,7 @@ export function generateUpdates(
   }
 
   // Edition: present in both templateLocales and initialTemplateLocales
-  const editionLocales: TemplateLocale[] = [];
+  const editionLocales: LanguageTag[] = [];
   for (const locale of templateLocales) {
     const idx = initialTemplateLocales.indexOf(locale);
     if (idx >= 0) {
@@ -67,61 +56,96 @@ export function generateUpdates(
     }
   }
   // It is valid iff there is at least 1 template with non-empty value.
-  const invalidEditionLocales: TemplateLocale[] = [];
-  const editions: AppResourceUpdate[] = [];
+  const invalidEditionLocales: LanguageTag[] = [];
+  const editions: ResourceUpdate[] = [];
   for (const locale of editionLocales) {
     let valid = false;
 
-    for (const template of Object.values(templates)) {
-      if (template == null) {
-        continue;
-      }
-      if (template.locale === locale) {
+    // Handle resource being modified.
+    for (const template of templates) {
+      if (template.specifier.locale === locale) {
         if (template.value !== "") {
           valid = true;
         }
 
-        for (const oldTemplate of Object.values(initialTemplates)) {
-          if (oldTemplate == null) {
-            continue;
-          }
+        for (const oldTemplate of initialTemplates) {
           if (
-            oldTemplate.locale === template.locale &&
-            oldTemplate.path === template.path
+            oldTemplate.specifier.locale === template.specifier.locale &&
+            oldTemplate.specifier.def === template.specifier.def
           ) {
             if (oldTemplate.value !== template.value) {
               editions.push({
-                path: template.path,
-                data: template.value === "" ? null : template.value,
+                ...template,
+                value: template.value === "" ? null : template.value,
               });
             }
           }
         }
       }
     }
+
+    // Handle resource being added.
+    for (const template of templates) {
+      if (template.specifier.locale === locale) {
+        let found = false;
+        for (const oldTemplate of initialTemplates) {
+          if (
+            template.specifier.locale === oldTemplate.specifier.locale &&
+            template.specifier.def === oldTemplate.specifier.def
+          ) {
+            found = true;
+          }
+        }
+        if (!found) {
+          editions.push({
+            ...template,
+            value: template.value === "" ? null : template.value,
+          });
+        }
+      }
+    }
+
+    // Handle resource being removed.
+    for (const oldTemplate of initialTemplates) {
+      if (oldTemplate.specifier.locale === locale) {
+        let found = false;
+        for (const template of templates) {
+          if (
+            oldTemplate.specifier.locale === template.specifier.locale &&
+            oldTemplate.specifier.def === template.specifier.def
+          ) {
+            found = true;
+          }
+        }
+        if (!found) {
+          editions.push({
+            ...oldTemplate,
+            value: null,
+          });
+        }
+      }
+    }
+
     if (!valid) {
       invalidEditionLocales.push(locale);
     }
   }
 
   // Deletion: present in initialTemplateLocales but absent in templateLocales
-  const deletionLocales: TemplateLocale[] = [];
+  const deletionLocales: LanguageTag[] = [];
   for (const locale of initialTemplateLocales) {
     const idx = templateLocales.indexOf(locale);
     if (idx < 0) {
       deletionLocales.push(locale);
     }
   }
-  const deletions: AppResourceUpdate[] = [];
+  const deletions: ResourceUpdate[] = [];
   for (const locale of deletionLocales) {
-    for (const template of Object.values(initialTemplates)) {
-      if (template == null) {
-        continue;
-      }
-      if (template.locale === locale) {
+    for (const template of initialTemplates) {
+      if (template.specifier.locale === locale) {
         deletions.push({
-          path: template.path,
-          data: null,
+          ...template,
+          value: null,
         });
       }
     }
