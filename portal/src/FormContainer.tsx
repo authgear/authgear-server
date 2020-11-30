@@ -65,24 +65,26 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
     setIsResetDialogVisible(false);
   }, [reset]);
 
+  const disabled = isUpdating || !isDirty;
   const commandBarItems: ICommandBarItemProps[] = useMemo(
     () => [
       {
         key: "save",
         text: renderToString("save"),
         iconProps: { iconName: "Save" },
-        disabled: isUpdating || !isDirty,
+        disabled,
         onClick: () => save(),
       },
       {
         key: "reset",
         text: renderToString("reset"),
         iconProps: { iconName: "Delete" },
-        disabled: isUpdating || !isDirty,
+        disabled,
+        theme: disabled ? themes.main : themes.destructive,
         onClick: () => setIsResetDialogVisible(true),
       },
     ],
-    [isDirty, isUpdating, save, renderToString]
+    [disabled, save, renderToString, themes]
   );
 
   const resetDialogContentProps = useMemo(() => {
