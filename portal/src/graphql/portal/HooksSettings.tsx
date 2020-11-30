@@ -6,15 +6,13 @@ import {
   IDropdownOption,
   ISelectableOption,
   Label,
+  Text,
   TextField,
 } from "@fluentui/react";
 import produce from "immer";
 
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
-import ButtonWithLoading from "../../ButtonWithLoading";
-import NavigationBlockerDialog from "../../NavigationBlockerDialog";
-import { ModifiedIndicatorPortal } from "../../ModifiedIndicatorPortal";
 import { PortalAPIAppConfig } from "../../types";
 import {
   AppConfigFormModel,
@@ -153,19 +151,9 @@ interface HooksSettingsContentProps {
 const HooksSettingsContent: React.FC<HooksSettingsContentProps> = function HooksSettingsContent(
   props
 ) {
-  const { save, state, setState, reset, isDirty, isUpdating } = props.form;
+  const { state, setState } = props.form;
 
   const { renderToString } = useContext(Context);
-
-  const onFormSubmit = useCallback(
-    (ev: React.SyntheticEvent<HTMLElement>) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-
-      save();
-    },
-    [save]
-  );
 
   const onTimeoutChange = useCallback(
     (_, value?: string) => {
@@ -209,8 +197,10 @@ const HooksSettingsContent: React.FC<HooksSettingsContentProps> = function Hooks
   );
 
   return (
-    <form onSubmit={onFormSubmit}>
-      <ModifiedIndicatorPortal resetForm={reset} isModified={isDirty} />
+    <div className={styles.root}>
+      <Text as="h1" variant="xLarge" block={true}>
+        <FormattedMessage id="HooksSettings.title" />
+      </Text>
       <TextField
         className={styles.textField}
         type="number"
@@ -246,18 +236,7 @@ const HooksSettingsContent: React.FC<HooksSettingsContentProps> = function Hooks
         renderListItem={renderHandlerItem}
         addButtonLabelMessageID="add"
       />
-
-      <div className={styles.saveButtonContainer}>
-        <ButtonWithLoading
-          type="submit"
-          disabled={!isDirty}
-          loading={isUpdating}
-          labelId="save"
-          loadingLabelId="saving"
-        />
-      </div>
-      <NavigationBlockerDialog blockNavigation={isDirty} />
-    </form>
+    </div>
   );
 };
 
@@ -279,10 +258,8 @@ const HooksSettings: React.FC = function HooksSettings() {
   }
 
   return (
-    <FormContainer error={form.updateError}>
-      <main className={styles.root}>
-        <HooksSettingsContent form={form} />
-      </main>
+    <FormContainer form={form}>
+      <HooksSettingsContent form={form} />
     </FormContainer>
   );
 };
