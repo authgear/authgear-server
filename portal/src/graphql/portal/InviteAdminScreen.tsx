@@ -44,7 +44,7 @@ const InviteAdminContent: React.FC<InviteAdminContentProps> = function InviteAdm
 
   return (
     <div className={styles.root}>
-      <NavBreadcrumb className={styles.breadcrumb} items={navBreadcrumbItems} />
+      <NavBreadcrumb items={navBreadcrumbItems} />
       <FormTextField
         jsonPointer="/inviteeEmail"
         parentJSONPointer=""

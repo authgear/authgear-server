@@ -1,7 +1,7 @@
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import React, { useCallback, useContext } from "react";
+import React, { useCallback, useContext, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import { Text, TextField, Toggle } from "@fluentui/react";
+import { TextField, Toggle } from "@fluentui/react";
 import cn from "classnames";
 import produce from "immer";
 import ShowError from "../../ShowError";
@@ -15,6 +15,7 @@ import {
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
+import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
 interface FormState {
   persistentCookie: boolean;
@@ -79,6 +80,12 @@ const SessionSettingsContent: React.FC<HooksSettingsContentProps> = function Ses
 
   const { renderToString } = useContext(Context);
 
+  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
+    return [
+      { to: ".", label: <FormattedMessage id="SessionSettings.title" /> },
+    ];
+  }, []);
+
   const onPersistentCookieChange = useCallback(
     (_, value?: boolean) => {
       setState((state) => ({
@@ -121,9 +128,7 @@ const SessionSettingsContent: React.FC<HooksSettingsContentProps> = function Ses
 
   return (
     <div className={styles.root}>
-      <Text as="h1" variant="xLarge" block={true}>
-        <FormattedMessage id="SessionSettings.title" />
-      </Text>
+      <NavBreadcrumb items={navBreadcrumbItems} />
       <section className={styles.section}>
         <Toggle
           inlineLabel={true}

@@ -1,12 +1,11 @@
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import React, { useCallback, useContext } from "react";
+import React, { useCallback, useContext, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import {
   Dropdown,
   IDropdownOption,
   ISelectableOption,
   Label,
-  Text,
   TextField,
 } from "@fluentui/react";
 import produce from "immer";
@@ -23,6 +22,7 @@ import FieldList from "../../FieldList";
 import FormContainer from "../../FormContainer";
 import styles from "./HooksSettings.module.scss";
 import { clearEmptyObject } from "../../util/misc";
+import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
 interface HookEventHandler {
   event: string;
@@ -157,6 +157,10 @@ const HooksSettingsContent: React.FC<HooksSettingsContentProps> = function Hooks
 
   const { renderToString } = useContext(Context);
 
+  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
+    return [{ to: ".", label: <FormattedMessage id="HooksSettings.title" /> }];
+  }, []);
+
   const onTimeoutChange = useCallback(
     (_, value?: string) => {
       setState((state) => ({
@@ -200,9 +204,7 @@ const HooksSettingsContent: React.FC<HooksSettingsContentProps> = function Hooks
 
   return (
     <div className={styles.root}>
-      <Text as="h1" variant="xLarge" block={true}>
-        <FormattedMessage id="HooksSettings.title" />
-      </Text>
+      <NavBreadcrumb items={navBreadcrumbItems} />
       <TextField
         className={styles.textField}
         type="number"
