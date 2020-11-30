@@ -428,6 +428,7 @@
   "SettingsScreen.session.title": "Session",
   "SettingsScreen.hooks.title": "Web-hooks",
 
+  "PortalAdminSettings.title": "Portal Admins",
   "PortalAdminsSettings.invite": "Invite",
   "PortalAdminsSettings.delete-collaborator-dialog.generic-error": "Failed to delete admin",
   "PortalAdminsSettings.delete-collaborator-invitation-dialog.generic-error": "Failed to delete admin invitation",

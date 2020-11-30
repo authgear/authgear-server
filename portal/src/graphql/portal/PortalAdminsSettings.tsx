@@ -1,6 +1,6 @@
 import React, { useMemo, useContext, useCallback, useState } from "react";
-import { Context } from "@oursky/react-messageformat";
-import { CommandBar, ICommandBarItemProps } from "@fluentui/react";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { CommandBar, ICommandBarItemProps, Text } from "@fluentui/react";
 import { useNavigate, useParams } from "react-router-dom";
 import cn from "classnames";
 
@@ -170,6 +170,9 @@ const PortalAdminsSettings: React.FC<PortalAdminsSettingsProps> = function Porta
         items={[]}
         farItems={commandBarItems}
       />
+      <Text as="h1" variant="xLarge" block={true}>
+        <FormattedMessage id="PortalAdminSettings.title" />
+      </Text>
       <PortalAdminList
         loading={false}
         collaborators={collaborators ?? []}

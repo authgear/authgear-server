@@ -1,0 +1,8 @@
+.icon {
+  margin-left: 32px;
+}
+
+// FIXME: https://github.com/microsoft/fluentui/issues/8830
+:global .ms-Nav-chevronButton {
+  background-color: transparent;
+}
