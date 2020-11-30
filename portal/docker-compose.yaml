@@ -4,5 +4,7 @@ services:
     image: nginx:1.18
     volumes:
     - ./nginx.conf:/etc/nginx/nginx.conf
+    - ./dist:/usr/share/nginx/html
     ports:
     - "8000:8000"
+    - "8010:8010"

@@ -1,4 +1,5 @@
 node_modules/
-dist/
+dist/*
+!dist/.gitkeep
 .parcel-cache/
 parcel-bundle-reports/

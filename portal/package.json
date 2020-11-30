@@ -5,7 +5,7 @@
     "test": "jest",
     "start": "parcel serve --port 1234 --no-cache ./src/index.html",
     "build": "PARCEL_BUNDLE_ANALYZER=1 parcel build --no-cache ./src/index.html",
-    "clean": "rm -rf ./dist/ ./parcel-bundle-reports/",
+    "clean": "rm -rf ./dist/ ./parcel-bundle-reports/ && mkdir ./dist/ && touch ./dist/.gitkeep",
     "typecheck": "tsc",
     "fmt": "prettier --list-different --write './src/**/*.{js,ts,jsx,tsx,css,scss,html}'",
     "eslint": "eslint './src/**/*.{js,ts,jsx,tsx}'",
