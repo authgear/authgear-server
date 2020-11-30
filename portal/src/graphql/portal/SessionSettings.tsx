@@ -49,7 +49,7 @@ function constructStateFromAppConfig(
 ): SessionState {
   return {
     cookiePersistent: !(appConfig?.session?.cookie_non_persistent ?? false),
-    idleTimeoutEnabled: appConfig?.session?.idle_timeout_enabled ?? false,
+    idleTimeoutEnabled: appConfig?.session?.idle_timeout_enabled ?? true,
     idleTimeoutSeconds:
       appConfig?.session?.idle_timeout_seconds?.toString() ?? "",
     lifetimeSeconds: appConfig?.session?.lifetime_seconds?.toString() ?? "",

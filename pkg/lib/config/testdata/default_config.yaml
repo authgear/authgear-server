@@ -254,8 +254,9 @@ authentication:
   recovery_code:
     count: 16
 session:
-  lifetime_seconds: 604800
-  idle_timeout_seconds: 300
+  lifetime_seconds: 31449600
+  idle_timeout_enabled: true
+  idle_timeout_seconds: 2592000
 oauth:
   access_token_lifetime_seconds: 1800
   refresh_token_lifetime_seconds: 604800

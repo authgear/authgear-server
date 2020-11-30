@@ -13,20 +13,23 @@ var _ = Schema.Add("SessionConfig", `
 }
 `)
 
-// DefaultSessionLifetime is 7 days.
-// This duration is the same as the maximum lifetime of script-writable cookie imposed by Safari.
-// https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/
-const DefaultSessionLifetime DurationSeconds = 7 * 86400
+const (
+	// DefaultSessionLifetime is 52 weeks (364 days).
+	DefaultSessionLifetime DurationSeconds = 52 * 7 * 86400
+	// DefaultSessionIdleTimeout is 30 days.
+	DefaultSessionIdleTimeout DurationSeconds = 30 * 86400
+	// DefaultSessionIdleTimeoutEnabled is true.
+	DefaultSessionIdleTimeoutEnabled bool = true
+	// These default configuration offers a relatively long session lifetime, and disallow prolonged inactivity.
+	// For reference, the cookie max age on facebook.com and google.com are 1 year and 2 years respectively.
 
-// DefaultAccessTokenLifetime is 30 minutes.
-const DefaultAccessTokenLifetime DurationSeconds = 1800
-
-// DefaultSessionIdleTimeout is 5 minutes.
-const DefaultSessionIdleTimeout DurationSeconds = 300
+	// DefaultAccessTokenLifetime is 30 minutes.
+	DefaultAccessTokenLifetime DurationSeconds = 30 * 60
+)
 
 type SessionConfig struct {
 	Lifetime            DurationSeconds `json:"lifetime_seconds,omitempty"`
-	IdleTimeoutEnabled  bool            `json:"idle_timeout_enabled,omitempty"`
+	IdleTimeoutEnabled  *bool           `json:"idle_timeout_enabled,omitempty"`
 	IdleTimeout         DurationSeconds `json:"idle_timeout_seconds,omitempty"`
 	CookieNonPersistent bool            `json:"cookie_non_persistent,omitempty"`
 }
@@ -34,6 +37,10 @@ type SessionConfig struct {
 func (c *SessionConfig) SetDefaults() {
 	if c.Lifetime == 0 {
 		c.Lifetime = DefaultSessionLifetime
+	}
+	if c.IdleTimeoutEnabled == nil {
+		b := DefaultSessionIdleTimeoutEnabled
+		c.IdleTimeoutEnabled = &b
 	}
 	if c.IdleTimeout == 0 {
 		c.IdleTimeout = DefaultSessionIdleTimeout

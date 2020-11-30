@@ -39,14 +39,17 @@ func TestProvider(t *testing.T) {
 			UserAgent: "SDK",
 		}
 
+		disabled := false
 		provider := &Provider{
 			Request:      req,
 			Store:        store,
 			AccessEvents: &mockAccessEventProvider{},
 			TrustProxy:   true,
-			Config:       &config.SessionConfig{},
-			Clock:        clock,
-			Random:       rand.New(rand.NewSource(0)),
+			Config: &config.SessionConfig{
+				IdleTimeoutEnabled: &disabled,
+			},
+			Clock:  clock,
+			Random: rand.New(rand.NewSource(0)),
 		}
 
 		Convey("creating session", func() {

@@ -11,6 +11,9 @@ import (
 )
 
 func TestComputeSessionExpiry(t *testing.T) {
+	enabled := true
+	disabled := false
+
 	Convey("computeSessionExpiry", t, func() {
 		session := &IDPSession{
 			ID:        "session-id",
@@ -25,7 +28,7 @@ func TestComputeSessionExpiry(t *testing.T) {
 		Convey("idle timeout is disabled", func() {
 			expiry := computeSessionStorageExpiry(session, &config.SessionConfig{
 				Lifetime:           120,
-				IdleTimeoutEnabled: false,
+				IdleTimeoutEnabled: &disabled,
 				IdleTimeout:        30,
 			})
 			So(expiry, ShouldResemble, time.Date(2020, 1, 1, 0, 2, 0, 0, time.UTC))
@@ -34,14 +37,18 @@ func TestComputeSessionExpiry(t *testing.T) {
 		Convey("idle timeout is enabled", func() {
 			expiry := computeSessionStorageExpiry(session, &config.SessionConfig{
 				Lifetime:           120,
-				IdleTimeoutEnabled: true,
+				IdleTimeoutEnabled: &enabled,
 				IdleTimeout:        30,
 			})
 			So(expiry, ShouldResemble, time.Date(2020, 1, 1, 0, 0, 55, 0, time.UTC))
 		})
 	})
 }
+
 func TestCheckSessionExpired(t *testing.T) {
+	enabled := true
+	disabled := false
+
 	Convey("checkSessionExpired", t, func() {
 		session := &IDPSession{
 			ID:        "session-id",
@@ -60,7 +67,7 @@ func TestCheckSessionExpired(t *testing.T) {
 		Convey("check session lifetime", func() {
 			cfg = &config.SessionConfig{
 				Lifetime:           120,
-				IdleTimeoutEnabled: false,
+				IdleTimeoutEnabled: &disabled,
 				IdleTimeout:        30,
 			}
 
@@ -73,7 +80,7 @@ func TestCheckSessionExpired(t *testing.T) {
 		Convey("check idle timeout", func() {
 			cfg = &config.SessionConfig{
 				Lifetime:           120,
-				IdleTimeoutEnabled: true,
+				IdleTimeoutEnabled: &enabled,
 				IdleTimeout:        30,
 			}
 
