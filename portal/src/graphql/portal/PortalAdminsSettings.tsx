@@ -1,8 +1,7 @@
-import React, { useMemo, useContext, useCallback, useState } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { CommandBar, ICommandBarItemProps, Text } from "@fluentui/react";
+import { ICommandBarItemProps, Text } from "@fluentui/react";
 import { useNavigate, useParams } from "react-router-dom";
-import cn from "classnames";
 
 import { useCollaboratorsAndInvitationsQuery } from "./query/collaboratorsAndInvitationsQuery";
 import { useDeleteCollaboratorInvitationMutation } from "./mutations/deleteCollaboratorInvitationMutation";
@@ -19,16 +18,9 @@ import ShowError from "../../ShowError";
 import ErrorDialog from "../../error/ErrorDialog";
 
 import styles from "./PortalAdminsSettings.module.scss";
+import CommandBarContainer from "../../CommandBarContainer";
 
-interface PortalAdminsSettingsProps {
-  className?: string;
-}
-
-const PortalAdminsSettings: React.FC<PortalAdminsSettingsProps> = function PortalAdminsSettings(
-  props
-) {
-  const { className } = props;
-
+const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
   const { renderToString } = useContext(Context);
   const { appID } = useParams();
   const navigate = useNavigate();
@@ -164,24 +156,22 @@ const PortalAdminsSettings: React.FC<PortalAdminsSettingsProps> = function Porta
   }
 
   return (
-    <div className={cn(styles.root, className)}>
-      <CommandBar
-        className={styles.commandBar}
-        items={[]}
-        farItems={commandBarItems}
-      />
-      <Text as="h1" variant="xLarge" block={true}>
-        <FormattedMessage id="PortalAdminSettings.title" />
-      </Text>
-      <PortalAdminList
-        loading={false}
-        collaborators={collaborators ?? []}
-        collaboratorInvitations={collaboratorInvitations ?? []}
-        onRemoveCollaboratorClicked={onRemoveCollaboratorClicked}
-        onRemoveCollaboratorInvitationClicked={
-          onRemoveCollaboratorInvitationClicked
-        }
-      />
+    <CommandBarContainer isLoading={false} farItems={commandBarItems}>
+      <div className={styles.content}>
+        <Text className={styles.title} as="h1" variant="xLarge" block={true}>
+          <FormattedMessage id="PortalAdminSettings.title" />
+        </Text>
+        <PortalAdminList
+          className={styles.list}
+          loading={false}
+          collaborators={collaborators ?? []}
+          collaboratorInvitations={collaboratorInvitations ?? []}
+          onRemoveCollaboratorClicked={onRemoveCollaboratorClicked}
+          onRemoveCollaboratorInvitationClicked={
+            onRemoveCollaboratorInvitationClicked
+          }
+        />
+      </div>
       <RemovePortalAdminConfirmationDialog
         visible={isRemovePortalAdminConfirmationDialogVisible}
         data={removePortalAdminConfirmationDialogData ?? undefined}
@@ -211,7 +201,7 @@ const PortalAdminsSettings: React.FC<PortalAdminsSettingsProps> = function Porta
         rules={[]}
         fallbackErrorMessageID="PortalAdminsSettings.delete-collaborator-invitation-dialog.generic-error"
       />
-    </div>
+    </CommandBarContainer>
   );
 };
 

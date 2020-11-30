@@ -1,12 +1,10 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import {
-  CommandBar,
   DefaultButton,
   Dialog,
   DialogFooter,
   ICommandBarItemProps,
   PrimaryButton,
-  ProgressIndicator,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useValidationError } from "./error/useValidationError";
@@ -14,14 +12,8 @@ import { FormContext } from "./error/FormContext";
 import ShowUnhandledValidationErrorCause from "./error/ShowUnhandledValidationErrorCauses";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import ShowError from "./ShowError";
-import styles from "./FormContainer.module.scss";
 import NavigationBlockerDialog from "./NavigationBlockerDialog";
-
-const progressIndicatorStyles = {
-  itemProgress: {
-    padding: 0,
-  },
-};
+import CommandBarContainer from "./CommandBarContainer";
 
 export interface FormModel {
   updateError: unknown;
@@ -94,24 +86,24 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
     };
   }, [renderToString]);
 
+  const messageBar = (
+    <>
+      <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
+      {(unhandledCauses ?? []).length === 0 && otherError && (
+        <ShowError error={otherError} />
+      )}
+    </>
+  );
+
   return (
     <FormContext.Provider value={formContextValue}>
-      <form onSubmit={onFormSubmit}>
-        <div className={styles.header}>
-          <CommandBar className={styles.commandBar} items={commandBarItems} />
-          {isUpdating && (
-            <ProgressIndicator
-              className={styles.progressBar}
-              styles={progressIndicatorStyles}
-            />
-          )}
-          <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
-          {(unhandledCauses ?? []).length === 0 && otherError && (
-            <ShowError error={otherError} />
-          )}
-        </div>
-        {props.children}
-      </form>
+      <CommandBarContainer
+        isLoading={isUpdating}
+        items={commandBarItems}
+        messageBar={messageBar}
+      >
+        <form onSubmit={onFormSubmit}>{props.children}</form>
+      </CommandBarContainer>
       <Dialog
         hidden={!isResetDialogVisible}
         dialogContentProps={resetDialogContentProps}
