@@ -457,6 +457,7 @@
 
   "GeneralSettings.app-id.label": "App ID",
 
+  "SessionSettings.title": "Sessions",
   "SessionSettings.persistent-cookie.label": "Persistent Cookie",
   "SessionSettings.session-lifetime.label": "Session Lifetime (seconds)",
   "SessionSettings.invalidate-session-after-idling.label": "Invalidate session after idling",

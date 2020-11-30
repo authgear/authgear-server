@@ -22,6 +22,7 @@ import { useFormField } from "../../error/FormFieldContext";
 import FieldList from "../../FieldList";
 import FormContainer from "../../FormContainer";
 import styles from "./HooksSettings.module.scss";
+import { clearEmptyObject } from "../../util/misc";
 
 interface HookEventHandler {
   event: string;
@@ -62,6 +63,7 @@ function constructConfig(
       config.hook.sync_hook_total_timeout_seconds = currentState.totalTimeout;
     }
     config.hook.handlers = currentState.handlers;
+    clearEmptyObject(config);
   });
 }
 

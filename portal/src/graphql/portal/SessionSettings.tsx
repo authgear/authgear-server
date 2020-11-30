@@ -1,293 +1,193 @@
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, { useCallback, useContext } from "react";
 import { useParams } from "react-router-dom";
-import { Label, TextField, Toggle } from "@fluentui/react";
+import { Text, TextField, Toggle } from "@fluentui/react";
 import cn from "classnames";
 import produce from "immer";
-import deepEqual from "deep-equal";
-
-import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
-import { useAppConfigQuery } from "./query/appConfigQuery";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
-import ButtonWithLoading from "../../ButtonWithLoading";
-import NavigationBlockerDialog from "../../NavigationBlockerDialog";
-import ToggleWithContent from "../../ToggleWithContent";
-import { ModifiedIndicatorPortal } from "../../ModifiedIndicatorPortal";
-import { PortalAPIAppConfig, PortalAPIApp } from "../../types";
-import {
-  clearEmptyObject,
-  setFieldIfChanged,
-  setNumericFieldIfChanged,
-} from "../../util/misc";
+import { PortalAPIAppConfig } from "../../types";
+import { clearEmptyObject } from "../../util/misc";
 
 import styles from "./SessionSettings.module.scss";
+import {
+  AppConfigFormModel,
+  useAppConfigForm,
+} from "../../hook/useAppConfigForm";
+import FormContainer from "../../FormContainer";
 
-interface SessionSettingsProps {
-  className?: string;
-}
-
-interface SessionProps {
-  effectiveAppConfig: PortalAPIAppConfig | null;
-  rawAppConfig: PortalAPIAppConfig | null;
-  updateAppConfig: (
-    appConfig: PortalAPIAppConfig
-  ) => Promise<PortalAPIApp | null>;
-  updatingAppConfig: boolean;
-  resetForm: () => void;
-}
-
-interface SessionState {
-  cookiePersistent: boolean;
+interface FormState {
+  persistentCookie: boolean;
+  sessionLifetimeSeconds: number;
   idleTimeoutEnabled: boolean;
-  idleTimeoutSeconds: string;
-  lifetimeSeconds: string;
+  idleTimeoutSeconds: number;
 }
 
-function constructStateFromAppConfig(
-  appConfig: PortalAPIAppConfig | null
-): SessionState {
+const emptyFormState: FormState = {
+  persistentCookie: false,
+  sessionLifetimeSeconds: 0,
+  idleTimeoutEnabled: false,
+  idleTimeoutSeconds: 0,
+};
+
+function constructFormState(config: PortalAPIAppConfig): FormState {
   return {
-    cookiePersistent: !(appConfig?.session?.cookie_non_persistent ?? false),
-    idleTimeoutEnabled: appConfig?.session?.idle_timeout_enabled ?? true,
-    idleTimeoutSeconds:
-      appConfig?.session?.idle_timeout_seconds?.toString() ?? "",
-    lifetimeSeconds: appConfig?.session?.lifetime_seconds?.toString() ?? "",
+    persistentCookie: !(config.session?.cookie_non_persistent ?? true),
+    sessionLifetimeSeconds: config.session?.lifetime_seconds ?? 0,
+    idleTimeoutEnabled: config.session?.idle_timeout_enabled ?? false,
+    idleTimeoutSeconds: config.session?.idle_timeout_seconds ?? 0,
   };
 }
 
-function constructAppConfigFromState(
-  state: SessionState,
-  initialState: SessionState,
-  appConfig: PortalAPIAppConfig
-) {
-  return produce(appConfig, (draftConfig) => {
-    draftConfig.session = draftConfig.session ?? {};
-
-    setFieldIfChanged(
-      draftConfig.session,
-      "cookie_non_persistent",
-      !initialState.cookiePersistent,
-      !state.cookiePersistent
-    );
-
-    setFieldIfChanged(
-      draftConfig.session,
-      "idle_timeout_enabled",
-      initialState.idleTimeoutEnabled,
-      state.idleTimeoutEnabled
-    );
-
-    setNumericFieldIfChanged(
-      draftConfig.session,
-      "idle_timeout_seconds",
-      initialState.idleTimeoutSeconds,
-      state.idleTimeoutSeconds
-    );
-
-    setNumericFieldIfChanged(
-      draftConfig.session,
-      "lifetime_seconds",
-      initialState.lifetimeSeconds,
-      state.lifetimeSeconds
-    );
-
-    clearEmptyObject(draftConfig);
+function constructConfig(
+  config: PortalAPIAppConfig,
+  initialState: FormState,
+  currentState: FormState
+): PortalAPIAppConfig {
+  return produce(config, (config) => {
+    config.session = config.session ?? {};
+    if (initialState.persistentCookie !== currentState.persistentCookie) {
+      config.session.cookie_non_persistent = !currentState.persistentCookie;
+    }
+    if (
+      initialState.sessionLifetimeSeconds !==
+      currentState.sessionLifetimeSeconds
+    ) {
+      config.session.lifetime_seconds = currentState.sessionLifetimeSeconds;
+    }
+    if (initialState.idleTimeoutEnabled !== currentState.idleTimeoutEnabled) {
+      config.session.idle_timeout_enabled = currentState.idleTimeoutEnabled;
+      if (
+        currentState.idleTimeoutEnabled &&
+        initialState.idleTimeoutSeconds !== currentState.idleTimeoutSeconds
+      ) {
+        config.session.idle_timeout_seconds = currentState.idleTimeoutSeconds;
+      }
+    }
+    clearEmptyObject(config);
   });
 }
 
-const SessionForm: React.FC<SessionProps> = function SessionForm(props) {
-  const {
-    effectiveAppConfig,
-    rawAppConfig,
-    updateAppConfig,
-    updatingAppConfig,
-    resetForm,
-  } = props;
+interface HooksSettingsContentProps {
+  form: AppConfigFormModel<FormState>;
+}
+
+const SessionSettingsContent: React.FC<HooksSettingsContentProps> = function SessionSettingsContent(
+  props
+) {
+  const { state, setState } = props.form;
 
   const { renderToString } = useContext(Context);
 
-  const initialState = useMemo(() => {
-    return constructStateFromAppConfig(effectiveAppConfig);
-  }, [effectiveAppConfig]);
-
-  const [state, setState] = useState(initialState);
-
-  const isFormModified = useMemo(() => {
-    return !deepEqual(initialState, state, { strict: true });
-  }, [initialState, state]);
-
-  const onCookiePersistentChange = useCallback((_event, checked?: boolean) => {
-    if (checked === undefined) {
-      return;
-    }
-    setState((state) => ({
-      ...state,
-      cookiePersistent: checked,
-    }));
-  }, []);
-
-  const onLifetimeSecondsChange = useCallback((_event, value?: string) => {
-    if (value === undefined) {
-      return;
-    }
-    setState((state) => ({
-      ...state,
-      lifetimeSeconds: value,
-    }));
-  }, []);
-
-  const onIdleTimeoutEnabledChange = useCallback(
-    (_event, checked?: boolean) => {
-      if (checked === undefined) {
-        return;
-      }
+  const onPersistentCookieChange = useCallback(
+    (_, value?: boolean) => {
       setState((state) => ({
         ...state,
-        idleTimeoutEnabled: checked,
+        persistentCookie: value ?? false,
       }));
     },
-    []
+    [setState]
   );
 
-  const onIdleTimeoutSecondsChange = useCallback((_event, value?: string) => {
-    if (value === undefined) {
-      return;
-    }
-    setState((state) => ({
-      ...state,
-      idleTimeoutSeconds: value,
-    }));
-  }, []);
-
-  const onFormSubmit = useCallback(
-    (ev: React.SyntheticEvent<HTMLElement>) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-
-      if (rawAppConfig == null) {
-        return;
-      }
-
-      const newAppConfig = constructAppConfigFromState(
-        state,
-        initialState,
-        rawAppConfig
-      );
-
-      updateAppConfig(newAppConfig).catch(() => {});
+  const onSessionLifetimeSecondsChange = useCallback(
+    (_, value?: string) => {
+      setState((state) => ({
+        ...state,
+        sessionLifetimeSeconds: Number(value),
+      }));
     },
-    [state, rawAppConfig, updateAppConfig, initialState]
+    [setState]
+  );
+
+  const onIdleTimeoutEnabledChange = useCallback(
+    (_, value?: boolean) => {
+      setState((state) => ({
+        ...state,
+        idleTimeoutEnabled: value ?? false,
+      }));
+    },
+    [setState]
+  );
+
+  const onIdleTimeoutSecondsChange = useCallback(
+    (_, value?: string) => {
+      setState((state) => ({
+        ...state,
+        idleTimeoutSeconds: Number(value),
+      }));
+    },
+    [setState]
   );
 
   return (
-    <form onSubmit={onFormSubmit}>
-      <ModifiedIndicatorPortal
-        resetForm={resetForm}
-        isModified={isFormModified}
-      />
-      <Toggle
-        className={styles.toggle}
-        inlineLabel={true}
-        label={renderToString("SessionSettings.persistent-cookie.label")}
-        checked={state.cookiePersistent}
-        onChange={onCookiePersistentChange}
-      />
-      <TextField
-        className={styles.textField}
-        type="number"
-        min="1"
-        step="1"
-        label={renderToString("SessionSettings.session-lifetime.label")}
-        value={state.lifetimeSeconds}
-        onChange={onLifetimeSecondsChange}
-      />
-      <ToggleWithContent
-        className={styles.toggleWithContent}
-        inlineLabel={true}
-        checked={state.idleTimeoutEnabled}
-        onChange={onIdleTimeoutEnabledChange}
-      >
-        <Label className={styles.toggleLabel}>
-          <FormattedMessage id="SessionSettings.invalidate-session-after-idling.label" />
-        </Label>
+    <div className={styles.root}>
+      <Text as="h1" variant="xLarge" block={true}>
+        <FormattedMessage id="SessionSettings.title" />
+      </Text>
+      <section className={styles.section}>
+        <Toggle
+          inlineLabel={true}
+          label={renderToString("SessionSettings.persistent-cookie.label")}
+          checked={state.persistentCookie}
+          onChange={onPersistentCookieChange}
+        />
+      </section>
+      <section className={styles.section}>
         <TextField
           className={styles.textField}
           type="number"
           min="1"
           step="1"
+          label={renderToString("SessionSettings.session-lifetime.label")}
+          value={String(state.sessionLifetimeSeconds)}
+          onChange={onSessionLifetimeSecondsChange}
+        />
+      </section>
+      <section className={styles.section}>
+        <Toggle
+          inlineLabel={true}
+          label={renderToString(
+            "SessionSettings.invalidate-session-after-idling.label"
+          )}
+          checked={state.idleTimeoutEnabled}
+          onChange={onIdleTimeoutEnabledChange}
+        />
+        <TextField
+          className={cn(styles.textField, styles.toggleContent)}
+          type="number"
+          min="1"
+          step="1"
           disabled={!state.idleTimeoutEnabled}
           label={renderToString("SessionSettings.idle-timeout.label")}
-          value={state.idleTimeoutSeconds}
+          value={String(state.idleTimeoutSeconds)}
           onChange={onIdleTimeoutSecondsChange}
         />
-      </ToggleWithContent>
-
-      <div className={styles.saveButtonContainer}>
-        <ButtonWithLoading
-          type="submit"
-          disabled={!isFormModified}
-          loading={updatingAppConfig}
-          labelId="save"
-          loadingLabelId="saving"
-        />
-      </div>
-      <NavigationBlockerDialog blockNavigation={isFormModified} />
-    </form>
+      </section>
+    </div>
   );
 };
 
-const SessionSettings: React.FC<SessionSettingsProps> = function SessionSettings(
-  props
-) {
-  const { className } = props;
-
+const SessionSettings: React.FC = function SessionSettings() {
   const { appID } = useParams();
+  const form = useAppConfigForm(
+    appID,
+    emptyFormState,
+    constructFormState,
+    constructConfig
+  );
 
-  const {
-    loading,
-    error,
-    effectiveAppConfig,
-    rawAppConfig,
-    refetch,
-  } = useAppConfigQuery(appID);
-  const {
-    loading: updatingAppConfig,
-    error: updateAppConfigError,
-    updateAppConfig,
-    resetError: resetUpdateAppConfigError,
-  } = useUpdateAppConfigMutation(appID);
-
-  const [remountIdentifier, setRemountIdentifier] = useState(0);
-  const resetForm = useCallback(() => {
-    setRemountIdentifier((prev) => prev + 1);
-    resetUpdateAppConfigError();
-  }, [resetUpdateAppConfigError]);
-
-  if (loading) {
+  if (form.isLoading) {
     return <ShowLoading />;
   }
 
-  if (error != null) {
-    return <ShowError error={error} onRetry={refetch} />;
+  if (form.loadError) {
+    return <ShowError error={form.loadError} onRetry={form.reload} />;
   }
 
   return (
-    <main
-      className={cn(styles.root, className, {
-        [styles.loading]: updatingAppConfig,
-      })}
-    >
-      {updateAppConfigError && <ShowError error={updateAppConfigError} />}
-      <SessionForm
-        key={remountIdentifier}
-        effectiveAppConfig={effectiveAppConfig}
-        rawAppConfig={rawAppConfig}
-        updateAppConfig={updateAppConfig}
-        updatingAppConfig={updatingAppConfig}
-        resetForm={resetForm}
-      />
-    </main>
+    <FormContainer form={form}>
+      <SessionSettingsContent form={form} />
+    </FormContainer>
   );
 };
 
