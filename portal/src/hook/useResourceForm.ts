@@ -85,8 +85,8 @@ export function useResourceForm<State>(
       return;
     }
     resetError();
-    setCurrentState(initialState);
-  }, [isUpdating, resetError, initialState]);
+    setCurrentState(null);
+  }, [isUpdating, resetError]);
 
   const save = useCallback(() => {
     if (!currentState) {
