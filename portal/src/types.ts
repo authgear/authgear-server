@@ -256,6 +256,7 @@ export interface HookHandlerConfig {
 
 // PortalAPIAppConfig
 export interface PortalAPIAppConfig {
+  id: string;
   http?: HTTPConfig;
   identity?: IdentityConfig;
   authenticator?: AuthenticatorConfig;
