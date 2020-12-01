@@ -30,8 +30,7 @@ const ScreenHeaderAppSection: React.FC<ScreenHeaderAppSectionProps> = function S
     <>
       <Icon className={styles.headerArrow} iconName="ChevronRight" />
       <Text className={styles.headerAppID}>
-        {/* TODO: update app name */}
-        {effectiveAppConfig?.http?.public_origin ?? appID}
+        {effectiveAppConfig?.id ?? appID}
       </Text>
     </>
   );

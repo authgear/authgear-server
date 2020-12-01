@@ -47,10 +47,9 @@ const AppList: React.FC<AppListProps> = function AppList(props: AppListProps) {
 
   const appCardsData: AppCardData[] = useMemo(() => {
     return (apps ?? []).map((app) => {
-      const appID = String(app.id);
+      const appID = app.effectiveAppConfig.id;
       const appOrigin = app.effectiveAppConfig.http?.public_origin;
-      const relPath = "/app/" + encodeURIComponent(appID);
-      // TODO: update app name
+      const relPath = "/app/" + encodeURIComponent(String(app.id));
       return {
         appID,
         appName: appOrigin ?? appID,
