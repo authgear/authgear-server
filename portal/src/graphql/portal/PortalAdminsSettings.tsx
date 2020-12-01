@@ -1,8 +1,7 @@
-import React, { useMemo, useContext, useCallback, useState } from "react";
-import { Context } from "@oursky/react-messageformat";
-import { CommandBar, ICommandBarItemProps } from "@fluentui/react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { ICommandBarItemProps } from "@fluentui/react";
 import { useNavigate, useParams } from "react-router-dom";
-import cn from "classnames";
 
 import { useCollaboratorsAndInvitationsQuery } from "./query/collaboratorsAndInvitationsQuery";
 import { useDeleteCollaboratorInvitationMutation } from "./mutations/deleteCollaboratorInvitationMutation";
@@ -19,16 +18,10 @@ import ShowError from "../../ShowError";
 import ErrorDialog from "../../error/ErrorDialog";
 
 import styles from "./PortalAdminsSettings.module.scss";
+import CommandBarContainer from "../../CommandBarContainer";
+import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
-interface PortalAdminsSettingsProps {
-  className?: string;
-}
-
-const PortalAdminsSettings: React.FC<PortalAdminsSettingsProps> = function PortalAdminsSettings(
-  props
-) {
-  const { className } = props;
-
+const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
   const { renderToString } = useContext(Context);
   const { appID } = useParams();
   const navigate = useNavigate();
@@ -76,7 +69,7 @@ const PortalAdminsSettings: React.FC<PortalAdminsSettingsProps> = function Porta
         text: renderToString("PortalAdminsSettings.invite"),
         iconProps: { iconName: "CirclePlus" },
         onClick: () => {
-          navigate("./invite-admin");
+          navigate("./invite");
         },
       },
     ];
@@ -150,6 +143,12 @@ const PortalAdminsSettings: React.FC<PortalAdminsSettingsProps> = function Porta
     [deleteCollaboratorInvitation]
   );
 
+  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
+    return [
+      { to: ".", label: <FormattedMessage id="PortalAdminSettings.title" /> },
+    ];
+  }, []);
+
   if (loadingCollaboratorsAndInvitations) {
     return <ShowLoading />;
   }
@@ -164,21 +163,23 @@ const PortalAdminsSettings: React.FC<PortalAdminsSettingsProps> = function Porta
   }
 
   return (
-    <div className={cn(styles.root, className)}>
-      <CommandBar
-        className={styles.commandBar}
-        items={[]}
-        farItems={commandBarItems}
-      />
-      <PortalAdminList
-        loading={false}
-        collaborators={collaborators ?? []}
-        collaboratorInvitations={collaboratorInvitations ?? []}
-        onRemoveCollaboratorClicked={onRemoveCollaboratorClicked}
-        onRemoveCollaboratorInvitationClicked={
-          onRemoveCollaboratorInvitationClicked
-        }
-      />
+    <CommandBarContainer isLoading={false} farItems={commandBarItems}>
+      <div className={styles.content}>
+        <NavBreadcrumb
+          className={styles.breadcrumb}
+          items={navBreadcrumbItems}
+        />
+        <PortalAdminList
+          className={styles.list}
+          loading={false}
+          collaborators={collaborators ?? []}
+          collaboratorInvitations={collaboratorInvitations ?? []}
+          onRemoveCollaboratorClicked={onRemoveCollaboratorClicked}
+          onRemoveCollaboratorInvitationClicked={
+            onRemoveCollaboratorInvitationClicked
+          }
+        />
+      </div>
       <RemovePortalAdminConfirmationDialog
         visible={isRemovePortalAdminConfirmationDialogVisible}
         data={removePortalAdminConfirmationDialogData ?? undefined}
@@ -208,7 +209,7 @@ const PortalAdminsSettings: React.FC<PortalAdminsSettingsProps> = function Porta
         rules={[]}
         fallbackErrorMessageID="PortalAdminsSettings.delete-collaborator-invitation-dialog.generic-error"
       />
-    </div>
+    </CommandBarContainer>
   );
 };
 

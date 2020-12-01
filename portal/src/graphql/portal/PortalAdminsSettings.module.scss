@@ -1,7 +1,12 @@
-.root {
-  margin: 10px 0 0;
+.content {
+  display: flex;
+  flex-direction: column;
 }
 
-.commandBar {
-  border-bottom: 1px solid #edebe9;
+.breadcrumb {
+  margin: 0 32px;
+}
+
+.list {
+  flex: 1 1 0;
 }

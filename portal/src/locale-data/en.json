@@ -428,6 +428,7 @@
   "SettingsScreen.session.title": "Session",
   "SettingsScreen.hooks.title": "Web-hooks",
 
+  "PortalAdminSettings.title": "Portal Admins",
   "PortalAdminsSettings.invite": "Invite",
   "PortalAdminsSettings.delete-collaborator-dialog.generic-error": "Failed to delete admin",
   "PortalAdminsSettings.delete-collaborator-invitation-dialog.generic-error": "Failed to delete admin invitation",
@@ -457,11 +458,13 @@
 
   "GeneralSettings.app-id.label": "App ID",
 
+  "SessionSettings.title": "Sessions",
   "SessionSettings.persistent-cookie.label": "Persistent Cookie",
   "SessionSettings.session-lifetime.label": "Session Lifetime (seconds)",
   "SessionSettings.invalidate-session-after-idling.label": "Invalidate session after idling",
   "SessionSettings.idle-timeout.label": "Idle Timeout (seconds)",
 
+  "HooksSettings.title": "Web-hooks",
   "HooksSettings.total-timeout.label": "Timeout (seconds)",
   "HooksSettings.timeout.label": "Per-handler timeout (seconds)",
   "HooksSettings.handlers.label": "Handlers",
@@ -474,6 +477,9 @@
   "ModifiedIndicator.message": "You have made unsaved changes",
   "ModifiedIndicator.confirm-dialog.title": "Reset Form State",
   "ModifiedIndicator.confirm-dialog.message": "Are you sure you want to reset form to initial state?",
+
+  "FormContainer.reset-dialog.title": "Reset unsaved changes",
+  "FormContainer.reset-dialog.message": "Are you sure you want to reset unsaved changes?",
 
   "AuthenticatorType.primary.password": "Password",
   "AuthenticatorType.primary.oob-otp": "Passwordless via SMS / Email",

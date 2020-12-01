@@ -26,8 +26,10 @@ import UserInterfaceScreen from "./graphql/portal/UserInterfaceScreen";
 import DNSConfigurationScreen from "./graphql/portal/DNSConfigurationScreen";
 import VerifyDomainScreen from "./graphql/portal/VerifyDomainScreen";
 import ResourceConfigurationScreen from "./graphql/portal/ResourceConfigurationScreen";
-import SettingsScreen from "./graphql/portal/SettingsScreen";
 import InviteAdminScreen from "./graphql/portal/InviteAdminScreen";
+import PortalAdminsSettings from "./graphql/portal/PortalAdminsSettings";
+import SessionSettings from "./graphql/portal/SessionSettings";
+import HooksSettings from "./graphql/portal/HooksSettings";
 
 const AppRoot: React.FC = function AppRoot() {
   const { appID } = useParams();
@@ -125,10 +127,21 @@ const AppRoot: React.FC = function AppRoot() {
             path="/configuration/localization-appearance"
             element={<ResourceConfigurationScreen />}
           />
-          <Route path="/configuration/settings" element={<SettingsScreen />} />
           <Route
-            path="/configuration/settings/invite-admin"
+            path="/configuration/settings/portal-admins"
+            element={<PortalAdminsSettings />}
+          />
+          <Route
+            path="/configuration/settings/portal-admins/invite"
             element={<InviteAdminScreen />}
+          />
+          <Route
+            path="/configuration/settings/sessions"
+            element={<SessionSettings />}
+          />
+          <Route
+            path="/configuration/settings/web-hooks"
+            element={<HooksSettings />}
           />
         </Routes>
       </ScreenLayout>

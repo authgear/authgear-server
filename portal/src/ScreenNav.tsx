@@ -1,8 +1,15 @@
-import React, { useMemo, useCallback, useContext } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Context } from "@oursky/react-messageformat";
-import { Nav, INavLink, INavLinkGroup, INavProps } from "@fluentui/react";
+import { INavLink, INavLinkGroup, Nav } from "@fluentui/react";
 import { Location } from "history";
+import styles from "./ScreenNav.module.scss";
 
 function getAppRouterPath(location: Location) {
   // app router -> /app/:appID/*
@@ -26,108 +33,181 @@ function isPathSame(url1: string, url2: string) {
   return path1 === path2;
 }
 
+interface NavLinkProps {
+  textKey: string;
+  url: string;
+  iconName?: string;
+  children?: Array<{
+    textKey: string;
+    url: string;
+    iconName?: string;
+  }>;
+}
+
+const links: NavLinkProps[] = [
+  { textKey: "ScreenNav.users", url: "users", iconName: "People" },
+  {
+    textKey: "ScreenNav.authentication",
+    url: "configuration/authentication",
+    iconName: "Shield",
+  },
+  {
+    textKey: "ScreenNav.anonymous-users",
+    url: "configuration/anonymous-users",
+    iconName: "Color",
+  },
+  {
+    textKey: "ScreenNav.single-sign-on",
+    url: "configuration/single-sign-on",
+    iconName: "PlugConnected",
+  },
+  {
+    textKey: "ScreenNav.passwords",
+    url: "configuration/passwords",
+    iconName: "PasswordField",
+  },
+  {
+    textKey: "ScreenNav.user-interface",
+    url: "configuration/user-interface",
+    iconName: "PreviewLink",
+  },
+  {
+    textKey: "ScreenNav.client-applications",
+    url: "configuration/oauth-clients",
+    iconName: "Devices3",
+  },
+  {
+    textKey: "ScreenNav.dns",
+    url: "configuration/dns",
+    iconName: "ServerProcesses",
+  },
+  {
+    textKey: "ScreenNav.localization-appearance",
+    url: "configuration/localization-appearance",
+    iconName: "WebTemplate",
+  },
+  {
+    textKey: "ScreenNav.settings",
+    url: "configuration/settings",
+    iconName: "Settings",
+    children: [
+      {
+        textKey: "PortalAdminSettings.title",
+        url: "configuration/settings/portal-admins",
+      },
+      {
+        textKey: "SessionSettings.title",
+        url: "configuration/settings/sessions",
+      },
+      {
+        textKey: "HooksSettings.title",
+        url: "configuration/settings/web-hooks",
+      },
+    ],
+  },
+];
+
 const ScreenNav: React.FC = function ScreenNav() {
   const navigate = useNavigate();
   const { renderToString } = useContext(Context);
   const location = useLocation();
+  const path = getAppRouterPath(location);
 
   const label = renderToString("ScreenNav.label");
+  const [expandState, setExpandState] = useState<Record<string, boolean>>({});
 
-  const navGroups: INavLinkGroup[] = useMemo(() => {
-    return [
+  const [selectedKeys, selectedKey] = useMemo(() => {
+    const matchedKeys: string[] = [];
+    let matchLength = 0;
+    let matchedKey: string | undefined;
+    for (const link of links) {
+      const urls = [link.url, ...(link.children ?? []).map((l) => l.url)];
+      for (const url of urls) {
+        if (!path.startsWith(url)) {
+          continue;
+        }
+        matchedKeys.push(url);
+        if (url.length > matchLength) {
+          matchedKey = url;
+          matchLength = url.length;
+        }
+      }
+    }
+    return [matchedKeys, matchedKey];
+  }, [path]);
+
+  useEffect(() => {
+    for (const key of selectedKeys) {
+      if (!expandState[key]) {
+        setExpandState((s) => ({ ...s, [key]: true }));
+      }
+    }
+  }, [selectedKeys, expandState]);
+
+  const navItem = useCallback(
+    (props: NavLinkProps): INavLink => {
+      const children = props.children ?? [];
+      let isExpanded = false;
+      if (children.length > 0) {
+        isExpanded = expandState[props.url] || selectedKeys.includes(props.url);
+      }
+      return {
+        key: props.url,
+        name: renderToString(props.textKey),
+        url: children.length > 0 ? "" : props.url,
+        iconProps: props.iconName
+          ? {
+              className: styles.icon,
+              iconName: props.iconName,
+            }
+          : undefined,
+        isExpanded,
+        links: children.map((p) => navItem(p)),
+      };
+    },
+    [expandState, selectedKeys, renderToString]
+  );
+
+  const navGroups: INavLinkGroup[] = useMemo(
+    () => [
       {
-        links: [
-          {
-            key: "users",
-            name: renderToString("ScreenNav.users"),
-            url: "users",
-            icon: "People",
-          },
-          {
-            key: "authentication",
-            name: renderToString("ScreenNav.authentication"),
-            url: "configuration/authentication",
-            icon: "Shield",
-          },
-          {
-            key: "anonymousUsers",
-            name: renderToString("ScreenNav.anonymous-users"),
-            url: "configuration/anonymous-users",
-            icon: "Color",
-          },
-          {
-            key: "singleSignOn",
-            name: renderToString("ScreenNav.single-sign-on"),
-            url: "configuration/single-sign-on",
-            icon: "PlugConnected",
-          },
-          {
-            key: "passwords",
-            name: renderToString("ScreenNav.passwords"),
-            url: "configuration/passwords",
-            icon: "PasswordField",
-          },
-          {
-            key: "UserInterface",
-            name: renderToString("ScreenNav.user-interface"),
-            url: "configuration/user-interface",
-            icon: "PreviewLink",
-          },
-          {
-            key: "clientApplications",
-            name: renderToString("ScreenNav.client-applications"),
-            url: "configuration/oauth-clients",
-            icon: "Devices3",
-          },
-          {
-            key: "dns",
-            name: renderToString("ScreenNav.dns"),
-            url: "configuration/dns",
-            icon: "ServerProcesses",
-          },
-          {
-            key: "templates",
-            name: renderToString("ScreenNav.localization-appearance"),
-            url: "configuration/localization-appearance",
-            icon: "WebTemplate",
-          },
-          {
-            key: "Settings",
-            name: renderToString("ScreenNav.settings"),
-            url: "configuration/settings",
-            icon: "Settings",
-          },
-        ],
+        links: links.map(navItem),
       },
-    ];
-  }, [renderToString]);
+    ],
+    [navItem]
+  );
 
-  const onLinkClick: INavProps["onLinkClick"] = useCallback(
-    (ev?: React.MouseEvent<HTMLElement>, item?: INavLink) => {
-      ev?.stopPropagation();
-      ev?.preventDefault();
+  const onLinkClick = useCallback(
+    (e?: React.MouseEvent, item?: INavLink) => {
+      e?.stopPropagation();
+      e?.preventDefault();
 
-      const appRouterPath = getAppRouterPath(location);
-      if (item != null && !isPathSame(item.url, appRouterPath)) {
+      const path = getAppRouterPath(location);
+      if (item?.url && !isPathSame(item.url, path)) {
         navigate(item.url);
       }
     },
     [navigate, location]
   );
-
-  const selectedKey = useMemo(() => {
-    const linkFound = navGroups[0].links.find((link) => {
-      const appRouterPath = getAppRouterPath(location);
-      return appRouterPath.startsWith(link.url);
-    });
-    return linkFound?.key;
-  }, [location, navGroups]);
+  const onLinkExpandClick = useCallback(
+    (e?: React.MouseEvent, item?: INavLink) => {
+      e?.stopPropagation();
+      e?.preventDefault();
+      const key = item?.key ?? "";
+      if (selectedKeys.includes(key)) {
+        return;
+      }
+      setExpandState((s) => ({ ...s, [key]: !Boolean(s[key]) }));
+    },
+    [selectedKeys]
+  );
 
   return (
     <Nav
       ariaLabel={label}
       groups={navGroups}
       onLinkClick={onLinkClick}
+      onLinkExpandClick={onLinkExpandClick}
       selectedKey={selectedKey}
     />
   );

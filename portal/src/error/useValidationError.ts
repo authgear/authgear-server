@@ -105,7 +105,12 @@ export function useValidationError(
   if (!isApolloError(error)) {
     return { otherError: error, value: { registerField, causes: {} } };
   }
-  const { graphQLErrors } = error;
+
+  const { graphQLErrors, networkError } = error;
+  if (networkError != null) {
+    return { otherError: networkError, value: { registerField, causes: {} } };
+  }
+
   for (const graphQLError of graphQLErrors) {
     const apiError = extractAPIError(graphQLError);
     if (apiError == null || apiError.reason !== "ValidationFailed") {

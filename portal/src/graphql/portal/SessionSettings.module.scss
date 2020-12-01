@@ -1,28 +1,16 @@
 .root {
-  margin: 25px 0 0;
+  margin: 0 32px;
 }
 
-.toggle {
-  margin: 0 8px 15px;
+.section {
+  margin-top: 16px;
 }
 
 .textField {
   width: 320px;
-  margin: 0 8px 15px;
 }
 
-.toggleWithContent {
-  margin: 0 8px 15px;
-}
-
-.toggleLabel {
-  font-size: 14px;
-  margin: 0 8px 15px;
-}
-
-.saveButtonContainer {
-  width: 100%;
-  margin: 20px 8px 15px;
-  display: flex;
-  justify-content: flex-start;
+.toggleContent {
+  margin-left: 56px;
+  width: 264px;
 }

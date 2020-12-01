@@ -1,18 +1,7 @@
 .root {
   display: flex;
-  min-height: 100%;
-}
-
-.wrapper {
-  padding: 25px 30px;
-}
-
-.breadcrumb {
-  margin: 0;
-}
-
-.content {
-  margin: 0 10px;
+  flex-direction: column;
+  margin: 0 32px;
 }
 
 .emailField {

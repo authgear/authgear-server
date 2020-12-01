@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { GraphQLError } from "graphql";
-import { Context, Values } from "@oursky/react-messageformat";
+import { Context } from "@oursky/react-messageformat";
 
 import { APIError, isAPIError, isApolloError } from "./error";
 import { isLocationMatchWithJSONPointer } from "./useValidationError";
@@ -117,11 +117,10 @@ function matchAPIErrorWithRule(
 }
 
 function constructErrorMessageFromGenericGraphQLError(
-  renderToString: (messageID: string, values?: Values) => string,
   error: GraphQLError,
   rules: GenericErrorHandlingRule[]
 ): {
-  errorMessage: string;
+  errorMessageId: string;
   violatedRule: GenericErrorHandlingRule;
   cause?: ValidationFailedErrorInfoCause;
 } | null {
@@ -134,7 +133,7 @@ function constructErrorMessageFromGenericGraphQLError(
     const { isMatch, cause } = matchAPIErrorWithRule(extensions, rule);
     if (isMatch) {
       return {
-        errorMessage: renderToString(rule.errorMessageID),
+        errorMessageId: rule.errorMessageID,
         violatedRule: rule,
         cause,
       };
@@ -143,6 +142,79 @@ function constructErrorMessageFromGenericGraphQLError(
 
   // no matching rules
   return null;
+}
+
+interface ErrorParseResult {
+  standaloneErrorMessageIds: string[];
+  fieldErrorMessageIds: Record<string, string[]>;
+  unrecognizedError?: unknown;
+  unhandledCauses: ValidationFailedErrorInfoCause[];
+}
+
+export function parseError(
+  error: unknown,
+  unhandledCauses: ValidationFailedErrorInfoCause[] | undefined,
+  rules: GenericErrorHandlingRule[]
+): ErrorParseResult {
+  if (!isApolloError(error)) {
+    console.warn("[Handle generic error]: Unhandled error\n", error);
+    return {
+      standaloneErrorMessageIds: [],
+      fieldErrorMessageIds: {},
+      unrecognizedError: error,
+      unhandledCauses: [],
+    };
+  }
+
+  const standaloneErrorMessageIds: string[] = [];
+  const fieldErrorMessageIds: Partial<Record<string, string[]>> = {};
+  const matchedCauses: ValidationFailedErrorInfoCause[] = [];
+  let containUnrecognizedError = false;
+  for (const graphQLError of error.graphQLErrors) {
+    const violation = constructErrorMessageFromGenericGraphQLError(
+      graphQLError,
+      rules
+    );
+    if (violation != null) {
+      const { errorMessageId, violatedRule, cause } = violation;
+      if (violatedRule.field != null) {
+        fieldErrorMessageIds[violatedRule.field] = [
+          ...(fieldErrorMessageIds[violatedRule.field] ?? []),
+          errorMessageId,
+        ];
+      } else {
+        standaloneErrorMessageIds.push(errorMessageId);
+      }
+      if (cause != null) {
+        matchedCauses.push(cause);
+      }
+    } else {
+      console.warn(
+        "[Handle generic error]: Contains unrecognized graphQL error \n",
+        graphQLError
+      );
+      containUnrecognizedError = true;
+    }
+  }
+
+  const filteredUnhandledCauses = unhandledCauses?.filter((cause) => {
+    for (const matchedCause of matchedCauses) {
+      if (
+        matchedCause.kind === cause.kind &&
+        matchedCause.location === cause.location
+      ) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  return {
+    standaloneErrorMessageIds,
+    fieldErrorMessageIds: fieldErrorMessageIds as Record<string, string[]>,
+    unrecognizedError: containUnrecognizedError ? error : undefined,
+    unhandledCauses: filteredUnhandledCauses ?? [],
+  };
 }
 
 export function useGenericError(
@@ -162,66 +234,26 @@ export function useGenericError(
     return { errorMessage: undefined, errorMessageMap: {} };
   }
 
-  const fallbackErrorMessage = renderToString(fallbackErrorMessageID);
-  if (!isApolloError(error)) {
-    console.warn("[Handle generic error]: Unhandled error\n", error);
-    return {
-      errorMessage: fallbackErrorMessage,
-      errorMessageMap: {},
-      unrecognizedError: error,
-    };
-  }
+  const result = parseError(error, unhandledCauses, rules);
 
-  const errorMessageList: string[] = [];
-  const errorMessageMap: Partial<Record<string, string>> = {};
-  const matchedCauses: ValidationFailedErrorInfoCause[] = [];
-  let containUnrecognizedError = false;
-  for (const graphQLError of error.graphQLErrors) {
-    const violation = constructErrorMessageFromGenericGraphQLError(
-      renderToString,
-      graphQLError,
-      rules
-    );
-    if (violation != null) {
-      const { errorMessage, violatedRule, cause } = violation;
-      errorMessageList.push(errorMessage);
-      if (violatedRule.field != null) {
-        errorMessageMap[violatedRule.field] =
-          errorMessageMap[violatedRule.field] == null
-            ? errorMessage
-            : `${errorMessageMap[violatedRule.field]}\n${errorMessage}`;
-      }
-      if (cause != null) {
-        matchedCauses.push(cause);
-      }
-    } else {
-      console.warn(
-        "[Handle generic error]: Contains unrecognized graphQL error \n",
-        graphQLError
-      );
-      containUnrecognizedError = true;
-    }
+  const errorMessageIds = result.standaloneErrorMessageIds.slice();
+  const errorMessageMap: Record<string, string> = {};
+  for (const [field, messageIds] of Object.entries(
+    result.fieldErrorMessageIds
+  )) {
+    errorMessageMap[field] = messageIds
+      .map((id) => renderToString(id))
+      .join("\n");
+    errorMessageIds.push(...messageIds);
   }
-  if (containUnrecognizedError) {
-    errorMessageList.push(fallbackErrorMessage);
+  if (result.unrecognizedError) {
+    errorMessageIds.push(fallbackErrorMessageID);
   }
-
-  const filteredUnhandledCauses = unhandledCauses?.filter((cause) => {
-    for (const matchedCause of matchedCauses) {
-      if (
-        matchedCause.kind === cause.kind &&
-        matchedCause.location === cause.location
-      ) {
-        return false;
-      }
-    }
-    return true;
-  });
 
   return {
-    errorMessage: errorMessageList.join("\n"),
+    errorMessage: errorMessageIds.map((id) => renderToString(id)).join("\n"),
     errorMessageMap,
-    unrecognizedError: containUnrecognizedError ? error : undefined,
-    unhandledCauses: filteredUnhandledCauses,
+    unrecognizedError: result.unrecognizedError,
+    unhandledCauses: result.unhandledCauses,
   };
 }
