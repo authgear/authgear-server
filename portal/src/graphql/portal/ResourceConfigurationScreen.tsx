@@ -26,6 +26,7 @@ import { PortalAPIAppConfig } from "../../types";
 import {
   DEFAULT_TEMPLATE_LOCALE,
   ALL_RESOURCES,
+  ALL_TEMPLATES,
   RESOURCE_TRANSLATION_JSON,
   RESOURCE_SETUP_PRIMARY_OOB_EMAIL_HTML,
   RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT,
@@ -117,7 +118,7 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
       // Populate initial values for new locales from default locale.
       const newResources: Resource[] = [];
       for (const locale of newLocales) {
-        for (const resource of ALL_RESOURCES) {
+        for (const resource of ALL_TEMPLATES) {
           const path = renderPath(resource.resourcePath, { locale });
           const defaultPath = renderPath(resource.resourcePath, {
             locale: defaultTemplateLocale,
