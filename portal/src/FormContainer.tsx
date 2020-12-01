@@ -65,7 +65,9 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
   }, []);
   const doReset = useCallback(() => {
     reset();
-    setIsResetDialogVisible(false);
+    // If the form contains a CodeEditor, dialog dismiss animation does not play.
+    // Defer the dismissal to ensure dismiss animation.
+    setTimeout(() => setIsResetDialogVisible(false), 0);
   }, [reset]);
 
   const disabled = isUpdating || !isDirty;
