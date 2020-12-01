@@ -45,6 +45,9 @@ The user on web UI can read and write Standard Attributes on the settings page, 
 
 The user on web UI has no access to Custom Attributes yet.
 In the future we could let the developer to declare which custom attributes are readable / writable by the user on web UI.
+However, this access control is more like a visibility configuration.
+It is because it could happen that the custom attribute is not readable by the user on the web UI,
+but the attribute is mapped to claims. So the attribute is indirectly readable.
 
 > This could be implemented by letting the developer to declare access control in the [Custom Attributes JSON schema](./user-model.md#custom-attributes-validation).
 
