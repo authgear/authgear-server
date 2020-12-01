@@ -9,6 +9,9 @@ const cache = new InMemoryCache({
         resources: {
           merge: false,
         },
+        resourceLocales: {
+          merge: false,
+        },
         domains: {
           // Take incoming data
           merge: false,
@@ -22,6 +25,10 @@ const cache = new InMemoryCache({
           merge: false,
         },
       },
+    },
+    // AppResource does not have id, so we must teach Apollo what is the key of AppResource.
+    AppResource: {
+      keyFields: ["path"],
     },
   },
 });

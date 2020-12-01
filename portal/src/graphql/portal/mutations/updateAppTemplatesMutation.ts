@@ -58,9 +58,6 @@ export function useUpdateAppTemplatesMutation(
     UpdateAppTemplatesMutationVariables
   >(updateAppTemplatesMutation, {
     client,
-    // FIXME: I cannot figure out the rendered query does not rerender :(
-    refetchQueries: ["AppTemplatesQuery", "TemplateLocaleQuery"],
-    awaitRefetchQueries: true,
   });
   const updateAppTemplates = useCallback(
     async (specifiers: ResourceSpecifier[], updates: ResourceUpdate[]) => {
