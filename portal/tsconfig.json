@@ -3,8 +3,9 @@
 // So here we only include options that are related to typechecking.
 {
   "compilerOptions": {
-    "target": "es5",
-    "lib": ["DOM", "ES5", "ES2015.Promise"],
+    "target": "ES2015",
+    "lib": ["DOM", "ES2015"],
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "noEmit": true,
     "skipLibCheck": true,

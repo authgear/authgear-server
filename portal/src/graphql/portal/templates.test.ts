@@ -136,7 +136,9 @@ describe("generateUpdates", () => {
       isModified: true,
       additions: [],
       invalidAdditionLocales: [],
-      editions: [
+      editions: [],
+      invalidEditionLocales: ["en"],
+      deletions: [
         {
           specifier: {
             def: ResourceA,
@@ -146,8 +148,6 @@ describe("generateUpdates", () => {
           value: null,
         },
       ],
-      invalidEditionLocales: ["en"],
-      deletions: [],
     });
   });
 
