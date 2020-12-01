@@ -245,6 +245,7 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
     <>
       <div className={cn(styles.root, className)}>
         <ShimmeredDetailsList
+          className={styles.list}
           enableShimmer={loading}
           onRenderRow={onRenderUserRow}
           onRenderItemColumn={onRenderUserItemColumn}

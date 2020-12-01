@@ -25,7 +25,7 @@ import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation"
 import { PortalAPIAppConfig } from "../../types";
 import {
   DEFAULT_TEMPLATE_LOCALE,
-  ALL_RESOURCES,
+  ALL_LOCALIZABLE_RESOURCES,
   ALL_TEMPLATES,
   RESOURCE_TRANSLATION_JSON,
   RESOURCE_SETUP_PRIMARY_OOB_EMAIL_HTML,
@@ -141,7 +141,9 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
       setTemplates((prev) => {
         // Discard any resources that are new locales.
         const withoutNewLocales = prev.filter((resource) => {
-          const isNewLocale = newLocales.includes(resource.specifier.locale);
+          const isNewLocale =
+            resource.specifier.locale &&
+            newLocales.includes(resource.specifier.locale);
           return !isNewLocale;
         });
         return [...withoutNewLocales, ...newResources];
@@ -214,7 +216,7 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
       const updates = [...additions, ...editions, ...deletions];
       if (updates.length > 0) {
         const specifiers = [];
-        for (const resource of ALL_RESOURCES) {
+        for (const resource of ALL_LOCALIZABLE_RESOURCES) {
           for (const locale of templateLocales) {
             specifiers.push({
               def: resource,
@@ -619,7 +621,7 @@ const ResourceConfigurationScreen: React.FC = function ResourceConfigurationScre
   const specifiers = useMemo<ResourceSpecifier[]>(() => {
     const specifiers = [];
     for (const locale of initialTemplateLocales) {
-      for (const def of ALL_RESOURCES) {
+      for (const def of ALL_LOCALIZABLE_RESOURCES) {
         specifiers.push({
           def,
           locale,

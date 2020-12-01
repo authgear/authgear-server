@@ -12,37 +12,38 @@ import ButtonWithLoading from "../../ButtonWithLoading";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 
 import styles from "./UserInterfaceScreen.module.scss";
+import { RESOURCE_AUTHGEAR_CSS, PATH_AUTHGEAR_CSS } from "../../resources";
 import {
-  AppRawTemplatesUpdater,
-  useUpdateAppRawTemplatesMutation,
-} from "./mutations/updateAppRawTemplatesMutation";
-import { STATIC_AUTHGEAR_CSS } from "../../resources";
-import { useAppRawTemplatesQuery } from "./query/appRawTemplatesQuery";
+  AppTemplatesUpdater,
+  useUpdateAppTemplatesMutation,
+} from "./mutations/updateAppTemplatesMutation";
+import { useAppTemplatesQuery } from "./query/appTemplatesQuery";
+import { Resource } from "../../util/resource";
 
 interface UserInterfaceScreenState {
   customCss: string;
 }
 
 interface UserInterfaceProps {
-  templates: Record<typeof STATIC_AUTHGEAR_CSS, string | null>;
-  updateTemplates: AppRawTemplatesUpdater<typeof STATIC_AUTHGEAR_CSS>;
+  resources: Resource[];
+  updateTemplates: AppTemplatesUpdater;
   isUpdatingTemplates: boolean;
 }
 
-function constructState(
-  templates: UserInterfaceProps["templates"]
-): UserInterfaceScreenState {
+function constructState(resources: Resource[]): UserInterfaceScreenState {
   return {
-    customCss: templates[STATIC_AUTHGEAR_CSS] ?? "",
+    customCss:
+      resources.find((r) => r.specifier.def === RESOURCE_AUTHGEAR_CSS)?.value ??
+      "",
   };
 }
 
 const UserInterface: React.FC<UserInterfaceProps> = function UserInterface(
   props: UserInterfaceProps
 ) {
-  const { templates, updateTemplates, isUpdatingTemplates } = props;
+  const { resources, updateTemplates, isUpdatingTemplates } = props;
 
-  const initialState = useMemo(() => constructState(templates), [templates]);
+  const initialState = useMemo(() => constructState(resources), [resources]);
 
   const [state, setState] = useState<UserInterfaceScreenState>(initialState);
 
@@ -64,10 +65,17 @@ const UserInterface: React.FC<UserInterfaceProps> = function UserInterface(
   );
 
   const onSaveButtonClicked = useCallback(() => {
-    const updates: Partial<Record<typeof STATIC_AUTHGEAR_CSS, string>> = {
-      [STATIC_AUTHGEAR_CSS]: state.customCss,
-    };
-    updateTemplates(updates).catch(() => {});
+    const specifier = { def: RESOURCE_AUTHGEAR_CSS };
+    updateTemplates(
+      [specifier],
+      [
+        {
+          specifier,
+          path: PATH_AUTHGEAR_CSS,
+          value: state.customCss.length === 0 ? null : state.customCss,
+        },
+      ]
+    ).catch(() => {});
   }, [state, updateTemplates]);
 
   return (
@@ -101,17 +109,17 @@ const UserInterfaceScreen: React.FC = function UserInterfaceScreen() {
   const { appID } = useParams();
 
   const {
-    updateAppRawTemplates,
+    updateAppTemplates,
     loading: isUpdatingTemplates,
     error: updateTemplatesError,
-  } = useUpdateAppRawTemplatesMutation<typeof STATIC_AUTHGEAR_CSS>(appID);
+  } = useUpdateAppTemplatesMutation(appID);
 
   const {
-    templates,
+    resources,
     loading: isLoadingTemplates,
     error: loadTemplatesError,
     refetch: refetchTemplates,
-  } = useAppRawTemplatesQuery(appID, STATIC_AUTHGEAR_CSS);
+  } = useAppTemplatesQuery(appID, [{ def: RESOURCE_AUTHGEAR_CSS }]);
 
   if (isLoadingTemplates) {
     return <ShowLoading />;
@@ -133,8 +141,8 @@ const UserInterfaceScreen: React.FC = function UserInterfaceScreen() {
           <FormattedMessage id="UserInterfaceScreen.title" />
         </Text>
         <UserInterface
-          templates={templates}
-          updateTemplates={updateAppRawTemplates}
+          resources={resources}
+          updateTemplates={updateAppTemplates}
           isUpdatingTemplates={isUpdatingTemplates}
         />
       </div>

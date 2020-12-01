@@ -1,7 +1,13 @@
 .root {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  > :global(.ms-Viewport) {
+    display: contents;
+  }
+}
+
+.list {
+  flex: 1 0 0;
 }
 
 .pagination {

@@ -14,7 +14,7 @@ export interface Resource {
 
 export interface ResourceSpecifier {
   def: ResourceDefinition;
-  locale: LanguageTag;
+  locale?: LanguageTag;
 }
 
 export interface ResourceDefinition {
