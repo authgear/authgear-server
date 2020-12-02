@@ -28,6 +28,8 @@ import (
 
 var ErrAppIDReserved = apierrors.Forbidden.WithReason("AppIDReserved").
 	New("requested app ID is reserved")
+var ErrAppIDInvalid = apierrors.Invalid.WithReason("InvalidAppID").
+	New("invalid app ID")
 
 type AppConfigService interface {
 	ResolveContext(appID string) (*config.AppContext, error)
@@ -273,7 +275,7 @@ func (s *AppService) generateConfig(appHost string, appID string) (opts *CreateA
 		return
 	}
 	if !appIDRegex.MatchString(appID) {
-		err = apierrors.NewInvalid("invalid app ID")
+		err = ErrAppIDInvalid
 		return
 	}
 

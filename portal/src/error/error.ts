@@ -20,7 +20,11 @@ import {
   APICollaboratorInvitationInvalidCodeError,
   APICollaboratorInvitationInvalidEmailError,
 } from "./collaborator";
-import { APIDuplicatedAppIDError } from "./apps";
+import {
+  APIDuplicatedAppIDError,
+  APIInvalidAppIDError,
+  APIReservedAppIDError,
+} from "./apps";
 import { APIResourceNotFoundError } from "./resources";
 
 export type APIError =
@@ -40,6 +44,8 @@ export type APIError =
   | APICollaboratorInvitationInvalidEmailError
   | APICollaboratorDuplicateError
   | APIDuplicatedAppIDError
+  | APIInvalidAppIDError
+  | APIReservedAppIDError
   | APIResourceNotFoundError;
 
 export function isAPIError(value?: { [key: string]: any }): value is APIError {

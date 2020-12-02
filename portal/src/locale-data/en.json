@@ -83,6 +83,8 @@
   "CreateAppScreen.app-id.label": "App ID",
   "CreateAppScreen.app-id.desc": "It will appear in the endpoint of your app:",
   "CreateAppScreen.error.duplicated-app-id": "App ID already exist",
+  "CreateAppScreen.error.reserved-app-id": "App ID is reserved",
+  "CreateAppScreen.error.invalid-app-id": "Invalid App ID. App ID should start and end with lowercase alphanumeric characters or numbers, and it should contain only lowercase alphanumeric characters, numbers or '-'",
   "CreateAppScreen.error.generic": "Failed to create app",
 
   "UsersScreen.title": "Users",
