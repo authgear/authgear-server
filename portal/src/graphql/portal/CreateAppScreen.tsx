@@ -94,6 +94,14 @@ const CreateAppScreen: React.FC = function CreateAppScreen() {
         reason: "DuplicatedAppID",
         errorMessageID: "CreateAppScreen.error.duplicated-app-id",
       },
+      {
+        reason: "AppIDReserved",
+        errorMessageID: "CreateAppScreen.error.reserved-app-id",
+      },
+      {
+        reason: "Invalid",
+        errorMessageID: "CreateAppScreen.error.invalid-app-id",
+      },
     ],
 
     "CreateAppScreen.error.generic"
