@@ -22,7 +22,7 @@
   "error-email-required": "Email is required",
   "error-calling-code-required": "Calling code is required",
   "error-phone-number-required": "Phone is required",
-  "error-phone-number-format": "Phone must contains digits only",
+  "error-phone-number-format": "Invalid phone number",
   "error-invalid-email": "Invalid email address",
   "error-invalid-username": "Invalid username",
   "error-invalid-credentials": "Invalid credentials",
