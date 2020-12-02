@@ -78,6 +78,7 @@ export const RESOURCE_APP_LOGO: ResourceDefinition = {
   type: "binary",
   extensions: IMAGE_EXTENSIONS,
   usesEffectiveDataAsFallbackValue: false,
+  optional: true,
 };
 
 export const RESOURCE_APP_BANNER: ResourceDefinition = {
@@ -85,6 +86,7 @@ export const RESOURCE_APP_BANNER: ResourceDefinition = {
   type: "binary",
   extensions: IMAGE_EXTENSIONS,
   usesEffectiveDataAsFallbackValue: false,
+  optional: true,
 };
 
 export const ALL_TEMPLATES = [
@@ -115,6 +117,7 @@ export const RESOURCE_AUTHGEAR_CSS: ResourceDefinition = {
   type: "text",
   extensions: [],
   usesEffectiveDataAsFallbackValue: false,
+  optional: true,
 };
 
 export interface RenderPathArguments {

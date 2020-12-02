@@ -39,7 +39,11 @@ function mergeResources(
     initialResources.map((r) => [specifierId(r.specifier), r])
   );
   for (const r of newResources) {
-    resources.set(specifierId(r.specifier), r);
+    const id = specifierId(r.specifier);
+    if (r.value === "" && !resources.has(id)) {
+      continue;
+    }
+    resources.set(id, r);
   }
   return Array.from(resources.values()).sort(cmp);
 }

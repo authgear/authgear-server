@@ -24,6 +24,9 @@ export interface ResourceDefinition {
   // If this is true, then the effectiveData is used as value when the raw data is unavailable.
   // This is useful for templates.
   usesEffectiveDataAsFallbackValue: boolean;
+  // Indicates whether the resource is optional.
+  // The default locale must have all non-optional resources configured.
+  optional?: boolean;
 }
 
 export interface ResourcePath {
@@ -96,49 +99,58 @@ export function specifierId(specifier: ResourceSpecifier): string {
   });
 }
 
+export type LocaleInvalidReason =
+  | "required-default-resource"
+  | "locale-without-resources";
+
 export interface LocaleValidationResult {
-  isValid: boolean;
-  invalidNewLocales: LanguageTag[];
-  invalidDeletedLocales: LanguageTag[];
+  invalidReason: LocaleInvalidReason | null;
+  invalidLocales: LanguageTag[];
 }
 
-// FIXME: no need for initialLocales
 export function validateLocales(
-  initialLocales: LanguageTag[],
-  currentLocales: LanguageTag[],
+  defaultLocale: LanguageTag,
+  locales: LanguageTag[],
   resources: Resource[]
 ): LocaleValidationResult {
-  const newLocales = currentLocales.filter((l) => !initialLocales.includes(l));
-  const deletedLocales = initialLocales.filter(
-    (l) => !currentLocales.includes(l)
-  );
+  // For convenience, report only one invalid reason.
+  let invalidReason: LocaleInvalidReason | null = null;
+  const invalidLocales = new Set<LanguageTag>();
 
-  // New locale is valid iff there is at least 1 resource with that locale.
-  // By default assume all new locales are invalid, until such a resource is found.
-  const invalidNewLocales = new Set<LanguageTag>(newLocales);
-  // Deleted locale if valid iff there is no resource with that locale.
-  // By default assume all deleted locales are valid, until such a resource is found.
-  const invalidDeletedLocales = new Set<LanguageTag>();
-
+  // Locale is valid iff there is at least 1 resource with that locale.
+  const orphanedLocales = new Set<LanguageTag>(locales);
   for (const r of resources) {
     const locale = r.specifier.locale;
     if (!locale) {
       continue;
     }
 
-    invalidNewLocales.delete(locale);
-    if (deletedLocales.includes(locale)) {
-      invalidDeletedLocales.add(locale);
-    } else if (r.value === "" && currentLocales.includes(locale)) {
-      // Resource has no value yet locale is not deleted: invalid deleted locale.
-      invalidDeletedLocales.add(locale);
+    if (r.value !== "") {
+      orphanedLocales.delete(locale);
+    }
+    if (
+      r.value === "" &&
+      locale === defaultLocale &&
+      !r.specifier.def.optional
+    ) {
+      // An non-optional resource for default locale without value:
+      invalidLocales.add(locale);
+      invalidReason = "required-default-resource";
+    }
+  }
+
+  if (orphanedLocales.size > 0) {
+    for (const l of orphanedLocales) {
+      invalidLocales.add(l);
+    }
+    if (!invalidReason) {
+      invalidReason = "locale-without-resources";
     }
   }
 
   return {
-    isValid: invalidNewLocales.size === 0 && invalidDeletedLocales.size === 0,
-    invalidNewLocales: Array.from(invalidNewLocales),
-    invalidDeletedLocales: Array.from(invalidDeletedLocales),
+    invalidReason,
+    invalidLocales: Array.from(invalidLocales),
   };
 }
 

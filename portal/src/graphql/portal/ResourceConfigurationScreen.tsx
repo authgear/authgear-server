@@ -31,6 +31,7 @@ import {
 } from "../../resources";
 import {
   LanguageTag,
+  LocaleInvalidReason,
   Resource,
   ResourceDefinition,
   ResourceSpecifier,
@@ -106,6 +107,9 @@ interface FormModel {
 
 interface ResourcesConfigurationContentProps {
   form: FormModel;
+  locales: LanguageTag[];
+  invalidLocaleReason: LocaleInvalidReason | null;
+  invalidLocales: LanguageTag[];
 }
 
 const PIVOT_KEY_APPEARANCE = "appearance";
@@ -124,6 +128,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
   props
 ) {
   const { state, setState } = props.form;
+  const { locales, invalidLocaleReason, invalidLocales } = props;
   const { renderToString } = useContext(Context);
 
   const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
@@ -148,17 +153,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     },
     [setState]
   );
-
-  const locales = useMemo<LanguageTag[]>(() => {
-    const locales = new Set<LanguageTag>();
-    for (const r of Object.values(state.resources)) {
-      if (r?.specifier.locale && r.value.length !== 0) {
-        locales.add(r.specifier.locale);
-      }
-    }
-    // eslint-disable-next-line @typescript-eslint/require-array-sort-compare
-    return Array.from(locales).sort();
-  }, [state.resources]);
 
   const onChangeLocales = useCallback(
     (newLocales: LanguageTag[]) => {
@@ -205,15 +199,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     },
     [locales, setState, state]
   );
-
-  const invalidLocales = useMemo(() => {
-    const result = validateLocales(
-      [],
-      locales,
-      Object.values(state.resources).filter(Boolean) as Resource[]
-    );
-    return [...result.invalidNewLocales, ...result.invalidDeletedLocales];
-  }, [locales, state.resources]);
 
   const [selectedKey, setSelectedKey] = useState<string>(
     PIVOT_KEY_TRANSLATION_JSON
@@ -431,6 +416,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         defaultTemplateLocale={state.defaultLocale}
         onSelectTemplateLocale={setSelectedLocale}
         onSelectDefaultTemplateLocale={setDefaultLocale}
+        invalidLocaleReason={invalidLocaleReason}
         invalidTemplateLocales={invalidLocales}
       />
       <Pivot onLinkClick={onLinkClick} selectedKey={selectedKey}>
@@ -559,6 +545,31 @@ const ResourceConfigurationScreen: React.FC = function ResourceConfigurationScre
     },
   };
 
+  const locales = useMemo<LanguageTag[]>(() => {
+    const locales = new Set<LanguageTag>();
+    for (const r of Object.values(resources.state.resources)) {
+      if (r?.specifier.locale && r.value.length !== 0) {
+        locales.add(r.specifier.locale);
+      }
+    }
+    if (selectedLocale) {
+      locales.add(selectedLocale);
+    }
+    locales.add(config.state.defaultLocale);
+    // eslint-disable-next-line @typescript-eslint/require-array-sort-compare
+    return Array.from(locales).sort();
+  }, [selectedLocale, resources.state, config.state]);
+
+  const { invalidReason: invalidLocaleReason, invalidLocales } = useMemo(
+    () =>
+      validateLocales(
+        config.state.defaultLocale,
+        locales,
+        Object.values(resources.state.resources).filter(Boolean) as Resource[]
+      ),
+    [locales, config.state, resources.state]
+  );
+
   if (form.isLoading) {
     return <ShowLoading />;
   }
@@ -568,8 +579,13 @@ const ResourceConfigurationScreen: React.FC = function ResourceConfigurationScre
   }
 
   return (
-    <FormContainer form={form}>
-      <ResourcesConfigurationContent form={form} />
+    <FormContainer form={form} canSave={invalidLocaleReason == null}>
+      <ResourcesConfigurationContent
+        form={form}
+        locales={locales}
+        invalidLocaleReason={invalidLocaleReason}
+        invalidLocales={invalidLocales}
+      />
     </FormContainer>
   );
 };
