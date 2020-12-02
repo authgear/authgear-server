@@ -10,5 +10,5 @@ export interface APIReservedAppIDError {
 
 export interface APIInvalidAppIDError {
   errorName: "Invalid";
-  reason: "Invalid";
+  reason: "InvalidAppID";
 }

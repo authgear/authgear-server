@@ -99,7 +99,7 @@ const CreateAppScreen: React.FC = function CreateAppScreen() {
         errorMessageID: "CreateAppScreen.error.reserved-app-id",
       },
       {
-        reason: "Invalid",
+        reason: "InvalidAppID",
         errorMessageID: "CreateAppScreen.error.invalid-app-id",
       },
     ],
