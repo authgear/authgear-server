@@ -35,12 +35,6 @@ interface FormState {
   handlers: HookEventHandler[];
 }
 
-const emptyFormState: FormState = {
-  timeout: 0,
-  totalTimeout: 0,
-  handlers: [],
-};
-
 function constructFormState(config: PortalAPIAppConfig): FormState {
   return {
     timeout: config.hook?.sync_hook_timeout_seconds ?? 0,
@@ -246,12 +240,7 @@ const HooksSettingsContent: React.FC<HooksSettingsContentProps> = function Hooks
 
 const HooksSettings: React.FC = function HooksSettings() {
   const { appID } = useParams();
-  const form = useAppConfigForm(
-    appID,
-    emptyFormState,
-    constructFormState,
-    constructConfig
-  );
+  const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
   if (form.isLoading) {
     return <ShowLoading />;

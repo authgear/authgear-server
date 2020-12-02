@@ -21,19 +21,19 @@ export type StateConstructor<State> = (config: PortalAPIAppConfig) => State;
 export type ConfigConstructor<State> = (
   config: PortalAPIAppConfig,
   initialState: State,
-  currentState: State
+  currentState: State,
+  effectiveConfig: PortalAPIAppConfig
 ) => PortalAPIAppConfig;
 
 export function useAppConfigForm<State>(
   appID: string,
-  defaultState: State,
   constructState: StateConstructor<State>,
   constructConfig: ConfigConstructor<State>
 ): AppConfigFormModel<State> {
   const {
     loading: isLoading,
     error: loadError,
-    effectiveAppConfig: effectiveConfig,
+    effectiveAppConfig,
     rawAppConfig: rawConfig,
     refetch: reload,
   } = useAppConfigQuery(appID);
@@ -44,10 +44,15 @@ export function useAppConfigForm<State>(
     resetError,
   } = useUpdateAppConfigMutation(appID);
 
-  const initialState = useMemo(
-    () => effectiveConfig && constructState(effectiveConfig),
-    [effectiveConfig, constructState]
-  );
+  const effectiveConfig = useMemo(() => effectiveAppConfig ?? { id: appID }, [
+    effectiveAppConfig,
+    appID,
+  ]);
+
+  const initialState = useMemo(() => constructState(effectiveConfig), [
+    effectiveConfig,
+    constructState,
+  ]);
   const [currentState, setCurrentState] = useState<State | null>(null);
 
   const isDirty = useMemo(() => {
@@ -55,11 +60,11 @@ export function useAppConfigForm<State>(
       return false;
     }
     return !deepEqual(
-      constructConfig(rawConfig, initialState, initialState),
-      constructConfig(rawConfig, initialState, currentState),
+      constructConfig(rawConfig, initialState, initialState, effectiveConfig),
+      constructConfig(rawConfig, initialState, currentState, effectiveConfig),
       { strict: true }
     );
-  }, [constructConfig, rawConfig, initialState, currentState]);
+  }, [constructConfig, rawConfig, initialState, currentState, effectiveConfig]);
 
   const reset = useCallback(() => {
     if (isUpdating) {
@@ -76,7 +81,12 @@ export function useAppConfigForm<State>(
       return;
     }
 
-    const newConfig = constructConfig(rawConfig, initialState, currentState);
+    const newConfig = constructConfig(
+      rawConfig,
+      initialState,
+      currentState,
+      effectiveConfig
+    );
     updateConfig(newConfig)
       .then(() => setCurrentState(null))
       .catch(() => {});
@@ -85,12 +95,13 @@ export function useAppConfigForm<State>(
     isUpdating,
     constructConfig,
     rawConfig,
+    effectiveConfig,
     initialState,
     currentState,
     updateConfig,
   ]);
 
-  const state = currentState ?? initialState ?? defaultState;
+  const state = currentState ?? initialState;
   const setState = useCallback(
     (fn: (state: State) => State) => {
       setCurrentState(fn(state));
