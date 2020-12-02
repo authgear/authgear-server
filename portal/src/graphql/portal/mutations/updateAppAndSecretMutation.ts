@@ -1,5 +1,5 @@
 import React from "react";
-import { useMutation, gql } from "@apollo/client";
+import { gql } from "@apollo/client";
 import yaml from "js-yaml";
 
 import { client } from "../../portal/apollo";
@@ -12,6 +12,7 @@ import {
   UpdateAppAndSecretConfigMutation,
   UpdateAppAndSecretConfigMutationVariables,
 } from "./__generated__/UpdateAppAndSecretConfigMutation";
+import { useGraphqlMutation } from "../../../hook/graphql";
 
 const APP_CONFIG_PATH = "authgear.yaml";
 const SECRET_CONFIG_PATH = "authgear.secrets.yaml";
@@ -41,8 +42,9 @@ export function useUpdateAppAndSecretConfigMutation(
   ) => Promise<PortalAPIApp | null>;
   loading: boolean;
   error: unknown;
+  resetError: () => void;
 } {
-  const [mutationFunction, { error, loading }] = useMutation<
+  const [mutationFunction, { error, loading }, resetError] = useGraphqlMutation<
     UpdateAppAndSecretConfigMutation,
     UpdateAppAndSecretConfigMutationVariables
   >(updateAppAndSecretConfigMutation, { client });
@@ -67,5 +69,5 @@ export function useUpdateAppAndSecretConfigMutation(
     },
     [appID, mutationFunction]
   );
-  return { updateAppAndSecretConfig, error, loading };
+  return { updateAppAndSecretConfig, error, loading, resetError };
 }

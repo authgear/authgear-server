@@ -1,30 +1,13 @@
-import React, {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useContext, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import { createDraft, produce } from "immer";
-import deepEqual from "deep-equal";
-import { Link, Text } from "@fluentui/react";
+import { produce } from "immer";
+import { Link } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import SingleSignOnConfigurationWidget from "./SingleSignOnConfigurationWidget";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-import ButtonWithLoading from "../../ButtonWithLoading";
-import NavigationBlockerDialog from "../../NavigationBlockerDialog";
-import {
-  ModifiedIndicatorPortal,
-  ModifiedIndicatorWrapper,
-} from "../../ModifiedIndicatorPortal";
-import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
-import { useUpdateAppAndSecretConfigMutation } from "./mutations/updateAppAndSecretMutation";
 import { clearEmptyObject } from "../../util/misc";
-import { nonNullable } from "../../util/types";
 import {
   OAuthClientCredentialItem,
   OAuthSecretItem,
@@ -34,616 +17,244 @@ import {
   PortalAPIAppConfig,
   PortalAPISecretConfig,
 } from "../../types";
-import { FormContext } from "../../error/FormContext";
-import { useValidationError } from "../../error/useValidationError";
-import ShowUnhandledValidationErrorCause from "../../error/ShowUnhandledValidationErrorCauses";
 
 import styles from "./SingleSignOnConfigurationScreen.module.scss";
+import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
+import FormContainer from "../../FormContainer";
+import {
+  AppSecretConfigFormModel,
+  useAppSecretConfigForm,
+} from "../../hook/useAppSecretConfigForm";
 
-interface SingleSignOnConfigurationProps {
-  rawAppConfig: PortalAPIAppConfig | null;
-  secretConfig: PortalAPISecretConfig | null;
-  resetForm: () => void;
+interface SSOProviderFormState {
+  config: OAuthSSOProviderConfig;
+  secret: OAuthClientCredentialItem;
 }
 
-export interface OAuthSSOProviderExtraState {
-  enabled: boolean;
+interface FormState {
+  providers: SSOProviderFormState[];
+  isEnabled: Record<OAuthSSOProviderType, boolean>;
 }
 
-type SingleSignOnScreenExtraState = Record<
-  OAuthSSOProviderType,
-  OAuthSSOProviderExtraState
->;
-
-export interface SingleSignOnScreenState {
-  extraState: SingleSignOnScreenExtraState;
-  appConfig: PortalAPIAppConfig | null;
-  secretConfig: PortalAPISecretConfig | null;
-}
-
-interface WidgetWrapperProps {
-  className?: string;
-  screenState: SingleSignOnScreenState;
-  setScreenState: Dispatch<SetStateAction<SingleSignOnScreenState>>;
-  providerType: OAuthSSOProviderType;
-}
-
-function getScreenExtraState(
-  appConfig: PortalAPIAppConfig | null
-): SingleSignOnScreenExtraState {
-  const extraState: Partial<SingleSignOnScreenExtraState> = {};
-  const providers = appConfig?.identity?.oauth?.providers ?? [];
-  for (const providerType of oauthSSOProviderTypes) {
-    const enabled =
-      providers.find((provider) => provider.type === providerType) != null;
-    extraState[providerType] = { enabled };
-  }
-  return extraState as SingleSignOnScreenExtraState;
-}
-
-function providerTypeToAlias(
-  appConfigState: PortalAPIAppConfig,
-  providerType: OAuthSSOProviderType
-) {
-  const providers = appConfigState.identity?.oauth?.providers;
-  if (providers == null) {
-    return undefined;
-  }
-  const provider = providers.find((provider) => provider.type === providerType);
-  return provider == null ? undefined : provider.alias;
-}
-
-// TODO: update UI, require alias on create new widget instead of toggle
-function createNewProvider(
+function constructFormState(
   appConfig: PortalAPIAppConfig,
-  providerType: OAuthSSOProviderType,
-  alias: string
-) {
-  const providers = appConfig.identity?.oauth?.providers;
-  if (providers == null) {
-    return;
+  secretConfig: PortalAPISecretConfig
+): FormState {
+  const providerList = appConfig.identity?.oauth?.providers ?? [];
+  const secretMap = new Map<string, OAuthClientCredentialItem>();
+  for (const item of secretConfig.secrets) {
+    if (item.key === "sso.oauth.client") {
+      for (const clientSecret of item.data.items) {
+        secretMap.set(clientSecret.alias, clientSecret);
+      }
+      break;
+    }
   }
-  providers.push({
-    alias,
-    type: providerType,
+
+  const providers: SSOProviderFormState[] = [];
+  for (const config of providerList) {
+    providers.push({
+      config,
+      secret: secretMap.get(config.alias) ?? {
+        alias: config.alias,
+        client_secret: "",
+      },
+    });
+  }
+
+  const isEnabled = {} as Record<OAuthSSOProviderType, boolean>;
+  for (const type of oauthSSOProviderTypes) {
+    isEnabled[type] = providers.some((p) => p.config.type === type);
+  }
+
+  return { providers, isEnabled };
+}
+
+function constructConfig(
+  config: PortalAPIAppConfig,
+  secrets: PortalAPISecretConfig,
+  _initialState: FormState,
+  currentState: FormState
+): [PortalAPIAppConfig, PortalAPISecretConfig] {
+  return produce([config, secrets], ([config, { secrets }]) => {
+    const providers = currentState.providers.filter(
+      (p) => currentState.isEnabled[p.config.type]
+    );
+
+    const configs: OAuthSSOProviderConfig[] = [];
+    const clientSecrets: OAuthClientCredentialItem[] = [];
+    for (const p of providers) {
+      configs.push(p.config);
+      clientSecrets.push(p.secret);
+    }
+
+    config.identity ??= {};
+    config.identity.oauth ??= {};
+    config.identity.oauth.providers = configs;
+
+    const secretItem: OAuthSecretItem = {
+      key: "sso.oauth.client",
+      data: { items: clientSecrets },
+    };
+
+    const secretIndex = secrets.findIndex((s) => s.key === "sso.oauth.client");
+    if (clientSecrets.length === 0) {
+      if (secretIndex >= 0) {
+        secrets.splice(secretIndex, 1);
+      }
+    } else if (secretIndex >= 0) {
+      secrets[secretIndex] = secretItem;
+    } else {
+      secrets.push(secretItem);
+    }
+
+    clearEmptyObject(config);
   });
 }
 
-function getOrCreateSecret(secretConfigState: PortalAPISecretConfig) {
-  let [secret] = extractSecretFromConfig(secretConfigState);
-  if (secret == null) {
-    secret = {
-      key: "sso.oauth.client",
-      data: { items: [] },
-    };
-    secretConfigState.secrets.push(secret);
-  }
-  return secret;
+interface OAuthClientItemProps {
+  providerType: OAuthSSOProviderType;
+  form: AppSecretConfigFormModel<FormState>;
 }
 
-function getProviderIndex(appConfig: PortalAPIAppConfig, alias: string) {
-  const index = appConfig.identity?.oauth?.providers?.findIndex(
-    (provider) => provider.alias === alias
-  );
-  return index == null || index < 0 ? undefined : index;
-}
-
-function getSecretItemFromSecret(
-  secret?: OAuthSecretItem,
-  alias?: string
-): [OAuthClientCredentialItem | undefined, number] {
-  const index = secret?.data.items.findIndex((item) => item.alias === alias);
-  if (index === undefined) {
-    return [undefined, -1];
-  }
-  return [secret!.data.items[index], index];
-}
-
-function getWidgetData(state: SingleSignOnScreenState, alias?: string) {
-  const appConfigState = state.appConfig!;
-  const providers = appConfigState.identity?.oauth?.providers;
-  const providerIndex = alias
-    ? providers?.findIndex((provider) => provider.alias === alias)
-    : undefined;
-  const provider =
-    providerIndex != null && providerIndex !== -1
-      ? providers![providerIndex]
-      : undefined;
-
-  const secretConfigState = state.secretConfig!;
-  const [secret, secretIndex] = extractSecretFromConfig(secretConfigState);
-  const [secretItem, secretItemIndex] = getSecretItemFromSecret(secret, alias);
-
-  return {
-    providerIndex,
-    secretIndex,
-    secretItemIndex,
-    clientID: provider?.client_id,
-    clientSecret: secretItem?.client_secret ?? "",
-    tenant: provider?.tenant,
-    keyID: provider?.key_id,
-    teamID: provider?.team_id,
-  };
-}
-
-function removeProvider(appConfig: PortalAPIAppConfig, alias: string) {
-  const providers = appConfig.identity?.oauth?.providers;
-  if (providers == null) {
-    return;
-  }
-  const index = getProviderIndex(appConfig, alias);
-  if (index != null) {
-    providers.splice(index, 1);
-  }
-}
-
-function onProviderToggled(
-  screenState: SingleSignOnScreenState,
-  providerType: OAuthSSOProviderType,
-  enabled: boolean
+const OAuthClientItem: React.FC<OAuthClientItemProps> = function OAuthClientItem(
+  props
 ) {
-  const appConfigState = screenState.appConfig!;
-  const secretConfigState = screenState.secretConfig!;
-  const secret = getOrCreateSecret(secretConfigState);
-  let alias = providerTypeToAlias(appConfigState, providerType);
-  if (enabled) {
-    if (alias == null) {
-      alias = providerType;
-      createNewProvider(appConfigState, providerType, alias);
-    }
-    const [secretItem] = getSecretItemFromSecret(secret, alias);
-    if (secretItem == null) {
-      secret.data.items.push({
-        alias,
-        client_secret: "",
-      });
-    }
-  } else {
-    if (alias != null) {
-      removeProvider(appConfigState, alias);
-    }
-    const index = secret.data.items.findIndex((item) => item.alias === alias);
-    if (index >= 0) {
-      secret.data.items.splice(index, 1);
-    }
-  }
-
-  screenState.extraState[providerType].enabled = enabled;
-}
-
-function updateAppConfigField(
-  appConfigState: PortalAPIAppConfig,
-  alias: string,
-  field: keyof OAuthSSOProviderConfig,
-  newValue: string
-) {
-  const provider = appConfigState.identity?.oauth?.providers?.find(
-    (provider) => provider.alias === alias
-  );
-  if (provider == null) {
-    return;
-  }
-  if (field !== "type") {
-    if (newValue !== "") {
-      provider[field] = newValue;
-    } else {
-      provider[field] = undefined;
-    }
-  }
-}
-
-function extractSecretFromConfig(
-  secretConfigState: PortalAPISecretConfig
-): [OAuthSecretItem | undefined, number | undefined] {
-  for (let index = 0; index < secretConfigState.secrets.length; index++) {
-    const secret = secretConfigState.secrets[index];
-    if (secret.key === "sso.oauth.client") {
-      return [secret, index];
-    }
-  }
-  return [undefined, undefined];
-}
-
-function updateClientSecretField(
-  secretConfigState: PortalAPISecretConfig,
-  alias: string,
-  newValue: string
-) {
-  const [secret] = extractSecretFromConfig(secretConfigState);
-  if (secret == null) {
-    return;
-  }
-
-  let [secretItem] = getSecretItemFromSecret(secret, alias);
-
-  // create item if not exist, clean up on save
-  if (secretItem == null) {
-    secretItem = { alias, client_secret: "" };
-    secret.data.items.push(secretItem);
-  }
-  secretItem.client_secret = newValue;
-}
-
-function updateAlias(
-  state: SingleSignOnScreenState,
-  oldAlias: string,
-  newAlias: string
-) {
-  if (newAlias === "") {
-    return;
-  }
-  if (state.appConfig != null) {
-    updateAppConfigField(state.appConfig, oldAlias, "alias", newAlias);
-  }
-  if (state.secretConfig != null) {
-    const [secret] = extractSecretFromConfig(state.secretConfig);
-    const [secretItem] = getSecretItemFromSecret(secret, oldAlias);
-    if (secretItem != null) {
-      secretItem.alias = newAlias;
-    } else {
-      if (secret != null) {
-        secret.data.items.push({ alias: newAlias, client_secret: "" });
-      }
-    }
-  }
-}
-
-function textFieldOnChangeWrapper(updater: (value: string) => void) {
-  return (_event: any, value?: string) => {
-    if (value == null) {
-      return;
-    }
-    updater(value);
-  };
-}
-
-function makeAppConfigUpdater(
-  alias: string,
-  field: keyof OAuthSSOProviderConfig,
-  setState: Dispatch<SetStateAction<SingleSignOnScreenState>>
-) {
-  return (value: string) => {
-    setState((prev) => {
-      return produce(prev, (draftState) => {
-        const appConfigState = draftState.appConfig!;
-        updateAppConfigField(appConfigState, alias, field, value);
-      });
-    });
-  };
-}
-
-function makeAliasUpdater(
-  alias: string,
-  setState: Dispatch<SetStateAction<SingleSignOnScreenState>>
-) {
-  return (value: string) => {
-    setState((prev) => {
-      return produce(prev, (draftState) => {
-        updateAlias(draftState, alias, value);
-      });
-    });
-  };
-}
-
-function makeClientSecretUpdater(
-  alias: string,
-  setState: Dispatch<SetStateAction<SingleSignOnScreenState>>
-) {
-  return (value: string) => {
-    setState((prev) => {
-      return produce(prev, (draftState) => {
-        const secretConfigState = draftState.secretConfig!;
-        updateClientSecretField(secretConfigState, alias, value);
-      });
-    });
-  };
-}
-
-function makeWidgetStateUpdaters(
-  alias: string,
-  providerType: OAuthSSOProviderType,
-  setState: Dispatch<SetStateAction<SingleSignOnScreenState>>
-) {
-  const setEnabled = (_event: any, checked?: boolean) => {
-    setState((prev) => {
-      return produce(prev, (draftState) => {
-        onProviderToggled(draftState, providerType, !!checked);
-      });
-    });
-  };
-  const onAliasChange = textFieldOnChangeWrapper(
-    makeAliasUpdater(alias, setState)
-  );
-  const onClientIDChange = textFieldOnChangeWrapper(
-    makeAppConfigUpdater(alias, "client_id", setState)
-  );
-  const onClientSecretChange = textFieldOnChangeWrapper(
-    makeClientSecretUpdater(alias, setState)
-  );
-  const onTenantChange = textFieldOnChangeWrapper(
-    makeAppConfigUpdater(alias, "tenant", setState)
-  );
-  const onKeyIDChange = textFieldOnChangeWrapper(
-    makeAppConfigUpdater(alias, "key_id", setState)
-  );
-  const onTeamIDChange = textFieldOnChangeWrapper(
-    makeAppConfigUpdater(alias, "team_id", setState)
-  );
-  return {
-    setEnabled,
-    onAliasChange,
-    onClientIDChange,
-    onClientSecretChange,
-    onTenantChange,
-    onKeyIDChange,
-    onTeamIDChange,
-  };
-}
-
-function constructProviders(
-  extraState: SingleSignOnScreenExtraState,
-  providers: OAuthSSOProviderConfig[]
-) {
-  return providers.filter((provider) => extraState[provider.type].enabled);
-}
-
-const SingleSignOnConfigurationWidgetWrapper: React.FC<WidgetWrapperProps> = function SingleSignOnConfigurationWidgetWrapper(
-  props: WidgetWrapperProps
-) {
-  const { className, providerType, screenState, setScreenState } = props;
-  const { appConfig, extraState } = screenState;
-
-  const alias = useMemo(() => providerTypeToAlias(appConfig!, providerType), [
-    appConfig,
-    providerType,
-  ]);
-
+  const { providerType, form } = props;
   const {
-    providerIndex,
-    secretIndex,
-    secretItemIndex,
-    clientID,
-    clientSecret,
-    tenant,
-    keyID,
-    teamID,
-  } = useMemo(() => getWidgetData(screenState, alias), [alias, screenState]);
+    state: { providers, isEnabled },
+    setState,
+  } = form;
 
-  const {
-    setEnabled,
-    onAliasChange,
-    onClientIDChange,
-    onClientSecretChange,
-    onTenantChange,
-    onKeyIDChange,
-    onTeamIDChange,
-  } = useMemo(
+  const provider = useMemo(
     () =>
-      makeWidgetStateUpdaters(
-        alias ?? providerType,
-        providerType,
-        setScreenState
-      ),
-    [alias, providerType, setScreenState]
+      providers.find((p) => p.config.type === providerType) ?? {
+        config: {
+          type: providerType,
+          alias: providerType,
+        },
+        secret: { alias: providerType, client_secret: "" },
+      },
+    [providers, providerType]
   );
 
-  const jsonPointer = useMemo(() => {
-    return providerIndex != null
-      ? `/identity/oauth/providers/${providerIndex}`
-      : "";
-  }, [providerIndex]);
+  const enabledProviders = providers.filter((p) => isEnabled[p.config.type]);
+  const index = enabledProviders.findIndex(
+    (p) => p.config.type === providerType
+  );
+  const jsonPointer = index >= 0 ? `/identity/oauth/providers/${index}` : "";
+  const clientSecretParentJsonPointer =
+    index >= 0 ? RegExp(`^/secrets/[0-9]+/data/items/${index}$`) : "";
 
-  const clientSecretParentJsonPointer = useMemo(() => {
-    return secretIndex !== -1 && secretItemIndex !== -1
-      ? RegExp(`^/secrets/[0-9]+/data/items/${secretItemIndex}$`)
-      : "";
-  }, [secretIndex, secretItemIndex]);
+  const onIsEnabledChange = useCallback(
+    (isEnabled: boolean) => {
+      setState((state) =>
+        produce(state, (state) => {
+          state.isEnabled[providerType] = isEnabled;
+          const hasProvider = state.providers.some(
+            (p) => p.config.type === providerType
+          );
+          if (isEnabled && !hasProvider) {
+            state.providers.push(provider);
+          }
+        })
+      );
+    },
+    [setState, providerType, provider]
+  );
+
+  const onChange = useCallback(
+    (config: OAuthSSOProviderConfig, secret: OAuthClientCredentialItem) =>
+      setState((state) =>
+        produce(state, (state) => {
+          const index = state.providers.findIndex(
+            (p) => p.config.type === providerType
+          );
+          if (index === -1) {
+            state.providers.push({ config, secret });
+          } else if (index >= 0) {
+            state.providers[index] = { config, secret };
+          }
+        })
+      ),
+    [setState, providerType]
+  );
 
   return (
     <SingleSignOnConfigurationWidget
-      className={className}
+      className={styles.widget}
       jsonPointer={jsonPointer}
       clientSecretParentJsonPointer={clientSecretParentJsonPointer}
-      alias={alias ?? providerType}
-      enabled={extraState[providerType].enabled}
-      serviceProviderType={providerType}
-      clientID={clientID ?? ""}
-      clientSecret={clientSecret}
-      tenant={tenant}
-      keyID={keyID}
-      teamID={teamID}
-      setEnabled={setEnabled}
-      onAliasChange={onAliasChange}
-      onClientIDChange={onClientIDChange}
-      onClientSecretChange={onClientSecretChange}
-      onTenantChange={onTenantChange}
-      onKeyIDChange={onKeyIDChange}
-      onTeamIDChange={onTeamIDChange}
+      isEnabled={isEnabled[providerType]}
+      onIsEnabledChange={onIsEnabledChange}
+      config={provider.config}
+      secret={provider.secret}
+      onChange={onChange}
     />
   );
 };
 
-const SingleSignOnConfiguration: React.FC<SingleSignOnConfigurationProps> = function SingleSignOnConfiguration(
-  props: SingleSignOnConfigurationProps
+interface SingleSignOnConfigurationContentProps {
+  form: AppSecretConfigFormModel<FormState>;
+}
+
+const SingleSignOnConfigurationContent: React.FC<SingleSignOnConfigurationContentProps> = function SingleSignOnConfigurationContent(
+  props
 ) {
-  const { rawAppConfig, secretConfig, resetForm } = props;
+  const { renderToString } = useContext(Context);
 
-  const { appID } = useParams();
-  const {
-    updateAppAndSecretConfig: updateAppConfig,
-    loading: updatingAppConfig,
-    error: updateAppConfigError,
-  } = useUpdateAppAndSecretConfigMutation(appID);
-
-  const initialState: SingleSignOnScreenState = useMemo(() => {
-    const initialAppConfigState =
-      rawAppConfig != null
-        ? produce(rawAppConfig, (draftConfig) => {
-            draftConfig.identity = draftConfig.identity ?? {};
-            draftConfig.identity.oauth = draftConfig.identity.oauth ?? {};
-            draftConfig.identity.oauth.providers =
-              draftConfig.identity.oauth.providers ?? [];
-          })
-        : null;
-
-    const initialSecretConfigState =
-      secretConfig != null
-        ? produce(secretConfig, (draftConfig) => {
-            getOrCreateSecret(draftConfig);
-          })
-        : null;
-
-    return {
-      appConfig: initialAppConfigState,
-      secretConfig: initialSecretConfigState,
-      extraState: getScreenExtraState(rawAppConfig),
-    };
-  }, [rawAppConfig, secretConfig]);
-
-  const [state, setState] = useState(initialState);
-
-  const isFormModified = useMemo(() => {
-    return !deepEqual(initialState, state);
-  }, [state, initialState]);
-
-  const onFormSubmit = useCallback(
-    (ev: React.SyntheticEvent<HTMLElement>) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-
-      if (rawAppConfig == null || state.secretConfig == null) {
-        return;
-      }
-
-      const providers = constructProviders(
-        state.extraState,
-        state.appConfig?.identity?.oauth?.providers ?? []
-      );
-
-      const newAppConfig = produce(rawAppConfig, (draftConfig) => {
-        if (providers.length > 0) {
-          draftConfig.identity = draftConfig.identity ?? {};
-          draftConfig.identity.oauth = draftConfig.identity.oauth ?? {};
-          draftConfig.identity.oauth.providers = createDraft(providers);
-        } else {
-          delete draftConfig.identity?.oauth?.providers;
-        }
-
-        clearEmptyObject(draftConfig);
-      });
-
-      const newSecretConfig = produce(state.secretConfig, (draftConfig) => {
-        const enabledAlias = providers
-          .map((provider) => provider.alias)
-          .filter(nonNullable);
-        const [secret] = extractSecretFromConfig(draftConfig);
-        if (secret != null) {
-          const newSecretItems = secret.data.items.filter((item) =>
-            enabledAlias.includes(item.alias)
-          );
-          secret.data.items = newSecretItems;
-        }
-      });
-
-      updateAppConfig(newAppConfig, newSecretConfig).catch(() => {});
-    },
-    [rawAppConfig, state, updateAppConfig]
-  );
-
-  const {
-    unhandledCauses,
-    otherError,
-    value: formContextValue,
-  } = useValidationError(updateAppConfigError);
+  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
+    return [
+      {
+        to: ".",
+        label: <FormattedMessage id="SingleSignOnConfigurationScreen.title" />,
+      },
+    ];
+  }, []);
 
   return (
-    <FormContext.Provider value={formContextValue}>
-      <form className={styles.screenContent} onSubmit={onFormSubmit}>
-        <NavigationBlockerDialog blockNavigation={isFormModified} />
-        <ModifiedIndicatorPortal
-          resetForm={resetForm}
-          isModified={isFormModified}
+    <div className={styles.root}>
+      <NavBreadcrumb items={navBreadcrumbItems} />
+      <Link
+        href={renderToString("SingleSignOnConfigurationScreen.help-link-href")}
+        target="_blank"
+        className={styles.helpLink}
+      >
+        <FormattedMessage id="SingleSignOnConfigurationScreen.help-link-label" />
+      </Link>
+
+      {oauthSSOProviderTypes.map((providerType) => (
+        <OAuthClientItem
+          key={providerType}
+          providerType={providerType}
+          form={props.form}
         />
-        {(unhandledCauses ?? []).length === 0 && otherError && (
-          <div className={styles.error}>
-            <ShowError error={otherError} />
-          </div>
-        )}
-        <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
-        {oauthSSOProviderTypes.map((providerType) => {
-          if (state.appConfig == null || state.secretConfig == null) {
-            return null;
-          }
-          return (
-            <SingleSignOnConfigurationWidgetWrapper
-              key={providerType}
-              providerType={providerType}
-              className={styles.widget}
-              screenState={state}
-              setScreenState={setState}
-            />
-          );
-        })}
-        <ButtonWithLoading
-          type="submit"
-          className={styles.saveButton}
-          disabled={!isFormModified}
-          loading={updatingAppConfig}
-          labelId="save"
-          loadingLabelId="saving"
-        />
-      </form>
-    </FormContext.Provider>
+      ))}
+    </div>
   );
 };
 
 const SingleSignOnConfigurationScreen: React.FC = function SingleSignOnConfigurationScreen() {
   const { appID } = useParams();
-  const {
-    rawAppConfig,
-    secretConfig,
-    loading,
-    error,
-    refetch,
-  } = useAppAndSecretConfigQuery(appID);
-  const { renderToString } = useContext(Context);
 
-  const [remountIdentifier, setRemountIdentifier] = useState(0);
-  const resetForm = useCallback(() => {
-    setRemountIdentifier((prev) => prev + 1);
-  }, []);
+  const form = useAppSecretConfigForm(
+    appID,
+    constructFormState,
+    constructConfig
+  );
 
-  if (loading) {
+  if (form.isLoading) {
     return <ShowLoading />;
   }
 
-  if (error != null) {
-    return <ShowError error={error} onRetry={refetch} />;
+  if (form.loadError) {
+    return <ShowError error={form.loadError} onRetry={form.reload} />;
   }
 
   return (
-    <main className={styles.root} role="main">
-      <ModifiedIndicatorWrapper className={styles.wrapper}>
-        <Text as="h1" className={styles.header}>
-          <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
-        </Text>
-        <Link
-          href={renderToString(
-            "SingleSignOnConfigurationScreen.help-link-href"
-          )}
-          target="_blank"
-          className={styles.helpLink}
-        >
-          <FormattedMessage id="SingleSignOnConfigurationScreen.help-link-label" />
-        </Link>
-        <SingleSignOnConfiguration
-          key={remountIdentifier}
-          rawAppConfig={rawAppConfig}
-          secretConfig={secretConfig}
-          resetForm={resetForm}
-        />
-      </ModifiedIndicatorWrapper>
-    </main>
+    <FormContainer form={form}>
+      <SingleSignOnConfigurationContent form={form} />
+    </FormContainer>
   );
 };
 

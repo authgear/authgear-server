@@ -1,11 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import cn from "classnames";
-import { Toggle, Label, ITextFieldProps, IToggleProps } from "@fluentui/react";
+import { Label, Toggle } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 
 import ExtendableWidget from "../../ExtendableWidget";
 import FormTextField from "../../FormTextField";
-import { OAuthSSOProviderConfig, OAuthSSOProviderType } from "../../types";
+import {
+  OAuthClientCredentialItem,
+  OAuthSSOProviderConfig,
+  OAuthSSOProviderType,
+} from "../../types";
 
 import styles from "./SingleSignOnConfigurationWidget.module.scss";
 
@@ -15,8 +19,8 @@ interface WidgetHeaderLabelProps {
 }
 
 interface WidgetHeaderProps extends WidgetHeaderLabelProps {
-  enabled: boolean;
-  setEnabled: IToggleProps["onChange"];
+  isEnabled: boolean;
+  setIsEnabled: (value: boolean) => void;
 }
 
 interface SingleSignOnConfigurationWidgetProps {
@@ -25,22 +29,15 @@ interface SingleSignOnConfigurationWidgetProps {
   jsonPointer: string;
   clientSecretParentJsonPointer: string | RegExp;
 
-  enabled: boolean;
-  alias: string;
-  serviceProviderType: OAuthSSOProviderType;
-  clientID: string;
-  clientSecret: string;
-  tenant?: string;
-  keyID?: string;
-  teamID?: string;
+  isEnabled: boolean;
+  onIsEnabledChange: (value: boolean) => void;
 
-  setEnabled: IToggleProps["onChange"];
-  onAliasChange: ITextFieldProps["onChange"];
-  onClientIDChange: ITextFieldProps["onChange"];
-  onClientSecretChange: ITextFieldProps["onChange"];
-  onTenantChange: ITextFieldProps["onChange"];
-  onKeyIDChange: ITextFieldProps["onChange"];
-  onTeamIDChange: ITextFieldProps["onChange"];
+  config: OAuthSSOProviderConfig;
+  secret: OAuthClientCredentialItem;
+  onChange: (
+    config: OAuthSSOProviderConfig,
+    secret: OAuthClientCredentialItem
+  ) => void;
 }
 
 type WidgetTextFieldKey =
@@ -139,17 +136,26 @@ const WidgetHeaderLabel: React.FC<WidgetHeaderLabelProps> = function WidgetHeade
 const WidgetHeader: React.FC<WidgetHeaderProps> = function WidgetHeader(
   props: WidgetHeaderProps
 ) {
-  const { icon, messageID, enabled, setEnabled } = props;
+  const { icon, messageID, isEnabled, setIsEnabled } = props;
+
+  const onChange = useCallback(
+    (_, value?: boolean) => {
+      setIsEnabled(value ?? false);
+    },
+    [setIsEnabled]
+  );
+
   return (
     <Toggle
-      checked={enabled}
-      onChange={setEnabled}
+      checked={isEnabled}
+      onChange={onChange}
       inlineLabel={true}
       label={<WidgetHeaderLabel icon={icon} messageID={messageID} />}
     ></Toggle>
   );
 };
 
+// eslint-disable-next-line complexity
 const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetProps> = function SingleSignOnConfigurationWidget(
   props: SingleSignOnConfigurationWidgetProps
 ) {
@@ -157,21 +163,11 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
     className,
     jsonPointer,
     clientSecretParentJsonPointer,
-    enabled,
-    alias,
-    clientID,
-    clientSecret,
-    tenant,
-    keyID,
-    teamID,
-    setEnabled,
-    onAliasChange,
-    onClientIDChange,
-    onClientSecretChange,
-    onTenantChange,
-    onKeyIDChange,
-    onTeamIDChange,
-    serviceProviderType,
+    isEnabled,
+    onIsEnabledChange,
+    config,
+    secret,
+    onChange,
   } = props;
 
   const {
@@ -179,11 +175,11 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
     isSecretFieldTextArea,
     iconNode,
     fields: visibleFields,
-  } = oauthProviders[serviceProviderType];
+  } = oauthProviders[config.type];
 
   const messageID = "OAuthBranding." + providerType;
 
-  const [extended, setExtended] = useState(enabled);
+  const [extended, setExtended] = useState(isEnabled);
 
   const clientSecretJSONPointer = useMemo(() => {
     if (typeof clientSecretParentJsonPointer === "string") {
@@ -200,26 +196,62 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
   // Collapse on disabled
   // make sure text field mounted for showing error
   useEffect(() => {
-    setExtended(enabled);
-  }, [enabled]);
+    if (isEnabled) {
+      setExtended(true);
+    }
+  }, [isEnabled]);
 
   const onExtendClicked = useCallback(() => {
     setExtended(!extended);
   }, [extended]);
 
+  const onAliasChange = useCallback(
+    (_, value?: string) =>
+      onChange(
+        { ...config, alias: value ?? "" },
+        { ...secret, alias: value ?? "" }
+      ),
+    [onChange, config, secret]
+  );
+
+  const onClientIDChange = useCallback(
+    (_, value?: string) =>
+      onChange({ ...config, client_id: value ?? "" }, secret),
+    [onChange, config, secret]
+  );
+  const onTenantChange = useCallback(
+    (_, value?: string) => onChange({ ...config, tenant: value ?? "" }, secret),
+    [onChange, config, secret]
+  );
+  const onKeyIDChange = useCallback(
+    (_, value?: string) => onChange({ ...config, key_id: value ?? "" }, secret),
+    [onChange, config, secret]
+  );
+  const onTeamIDChange = useCallback(
+    (_, value?: string) =>
+      onChange({ ...config, team_id: value ?? "" }, secret),
+    [onChange, config, secret]
+  );
+
+  const onClientSecretChange = useCallback(
+    (_, value?: string) =>
+      onChange(config, { ...secret, client_secret: value ?? "" }),
+    [onChange, config, secret]
+  );
+
   return (
     <ExtendableWidget
       className={className}
       extendButtonAriaLabelId={messageID}
-      extendButtonDisabled={enabled}
+      extendButtonDisabled={isEnabled}
       extended={extended}
       onExtendClicked={onExtendClicked}
-      readOnly={!enabled}
+      readOnly={!isEnabled}
       HeaderComponent={
         <WidgetHeader
           icon={iconNode}
-          enabled={enabled}
-          setEnabled={setEnabled}
+          isEnabled={isEnabled}
+          setIsEnabled={onIsEnabledChange}
           messageID={messageID}
         />
       }
@@ -232,7 +264,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
           fieldNameMessageID="SingleSignOnConfigurationScreen.widget.alias"
           className={styles.textField}
           styles={TEXT_FIELD_STYLE}
-          value={alias}
+          value={config.alias}
           onChange={onAliasChange}
         />
       )}
@@ -244,7 +276,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
           fieldNameMessageID="SingleSignOnConfigurationScreen.widget.client-id"
           className={styles.textField}
           styles={TEXT_FIELD_STYLE}
-          value={clientID}
+          value={config.client_id ?? ""}
           onChange={onClientIDChange}
         />
       )}
@@ -261,7 +293,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
               : TEXT_FIELD_STYLE
           }
           multiline={isSecretFieldTextArea}
-          value={clientSecret}
+          value={secret.client_secret}
           onChange={onClientSecretChange}
         />
       )}
@@ -273,7 +305,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
           fieldNameMessageID="SingleSignOnConfigurationScreen.widget.tenant"
           className={styles.textField}
           styles={TEXT_FIELD_STYLE}
-          value={tenant}
+          value={config.tenant ?? ""}
           onChange={onTenantChange}
         />
       )}
@@ -285,7 +317,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
           fieldNameMessageID="SingleSignOnConfigurationScreen.widget.key-id"
           className={styles.textField}
           styles={TEXT_FIELD_STYLE}
-          value={keyID}
+          value={config.key_id ?? ""}
           onChange={onKeyIDChange}
         />
       )}
@@ -297,7 +329,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
           fieldNameMessageID="SingleSignOnConfigurationScreen.widget.team-id"
           className={styles.textField}
           styles={TEXT_FIELD_STYLE}
-          value={teamID}
+          value={config.team_id ?? ""}
           onChange={onTeamIDChange}
         />
       )}
