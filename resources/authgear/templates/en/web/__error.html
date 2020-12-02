@@ -9,7 +9,9 @@
                         {{ else if (and (call $.SliceContains .details.missing "x_login_id" ) ($.LoginIDType)) }}
                             <li>{{ template "error-login-id-required" (dict "variant" $.LoginIDType) }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_password" ) }}
-                            <li>{{ template "error-password-or-code-required" }}</li>
+                            <li>{{ template "error-password-required" }}</li>
+                        {{ else if (call $.SliceContains .details.missing "x_code" ) }}
+                            <li>{{ template "error-code-required" }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_old_password" ) }}
                             <li>{{ template "error-old-password-required" }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_new_password" ) }}
