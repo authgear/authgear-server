@@ -105,7 +105,7 @@ export function useResourceForm<State>(
       return;
     }
 
-    updateResources(specifiers, [
+    updateResources([
       ...diff.newResources,
       ...diff.editedResources,
       ...diff.deletedResources,
@@ -115,7 +115,6 @@ export function useResourceForm<State>(
   }, [
     isUpdating,
     constructResources,
-    specifiers,
     resources,
     currentState,
     updateResources,
