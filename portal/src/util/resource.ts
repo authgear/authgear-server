@@ -102,6 +102,7 @@ export interface LocaleValidationResult {
   invalidDeletedLocales: LanguageTag[];
 }
 
+// FIXME: no need for initialLocales
 export function validateLocales(
   initialLocales: LanguageTag[],
   currentLocales: LanguageTag[],

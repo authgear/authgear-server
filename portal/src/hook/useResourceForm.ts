@@ -100,6 +100,11 @@ export function useResourceForm<State>(
       constructResources(currentState)
     );
     const diff = diffResourceUpdates(resources, newResources);
+    if (!diff.needUpdate) {
+      setCurrentState(null);
+      return;
+    }
+
     updateResources(specifiers, [
       ...diff.newResources,
       ...diff.editedResources,

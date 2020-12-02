@@ -1,66 +1,111 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import cn from "classnames";
 import { useParams } from "react-router-dom";
-import { Pivot, PivotItem, Text } from "@fluentui/react";
+import { Pivot, PivotItem } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { produce } from "immer";
-import {
-  ModifiedIndicatorWrapper,
-  ModifiedIndicatorPortal,
-} from "../../ModifiedIndicatorPortal";
-import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-import ButtonWithLoading from "../../ButtonWithLoading";
 import ManageLanguageWidget from "./ManageLanguageWidget";
 import ImageFilePicker from "../../ImageFilePicker";
 import EditTemplatesWidget, {
   EditTemplatesWidgetSection,
 } from "./EditTemplatesWidget";
-import { useAppConfigQuery } from "./query/appConfigQuery";
-import { useAppTemplatesQuery } from "./query/appTemplatesQuery";
 import { useTemplateLocaleQuery } from "./query/templateLocaleQuery";
-import { useUpdateAppTemplatesMutation } from "./mutations/updateAppTemplatesMutation";
-import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
 import { PortalAPIAppConfig } from "../../types";
 import {
-  DEFAULT_TEMPLATE_LOCALE,
   ALL_LOCALIZABLE_RESOURCES,
   ALL_TEMPLATES,
-  RESOURCE_TRANSLATION_JSON,
-  RESOURCE_SETUP_PRIMARY_OOB_EMAIL_HTML,
-  RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT,
-  RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT,
+  renderPath,
+  RESOURCE_APP_BANNER,
+  RESOURCE_APP_LOGO,
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML,
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT,
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_SMS_TXT,
   RESOURCE_FORGOT_PASSWORD_EMAIL_HTML,
   RESOURCE_FORGOT_PASSWORD_EMAIL_TXT,
   RESOURCE_FORGOT_PASSWORD_SMS_TXT,
-  RESOURCE_APP_BANNER,
-  RESOURCE_APP_LOGO,
-  renderPath,
+  RESOURCE_SETUP_PRIMARY_OOB_EMAIL_HTML,
+  RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT,
+  RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT,
+  RESOURCE_TRANSLATION_JSON,
 } from "../../resources";
 import {
   LanguageTag,
   Resource,
   ResourceDefinition,
   ResourceSpecifier,
+  specifierId,
+  validateLocales,
 } from "../../util/resource";
-import { generateUpdates } from "./templates";
 
 import styles from "./ResourceConfigurationScreen.module.scss";
+import { useAppConfigForm } from "../../hook/useAppConfigForm";
+import { clearEmptyObject } from "../../util/misc";
+import { useResourceForm } from "../../hook/useResourceForm";
+import FormContainer from "../../FormContainer";
+import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
-interface ResourceConfigurationSectionProps {
-  rawAppConfig: PortalAPIAppConfig;
-  initialTemplates: Resource[];
-  initialTemplateLocales: LanguageTag[];
-  initialDefaultTemplateLocale: LanguageTag;
-  defaultTemplateLocale: LanguageTag;
-  templateLocale: LanguageTag;
-  setDefaultTemplateLocale: (locale: LanguageTag) => void;
-  setTemplateLocale: (locale: LanguageTag) => void;
-  onResetForm: () => void;
+interface ConfigFormState {
+  defaultLocale: string;
+}
+
+const defaultConfigFormState: ConfigFormState = { defaultLocale: "en" };
+
+function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
+  return { defaultLocale: config.localization?.fallback_language ?? "en" };
+}
+
+function constructConfig(
+  config: PortalAPIAppConfig,
+  initialState: ConfigFormState,
+  currentState: ConfigFormState
+): PortalAPIAppConfig {
+  return produce(config, (config) => {
+    config.localization = config.localization ?? {};
+    if (initialState.defaultLocale !== currentState.defaultLocale) {
+      config.localization.fallback_language = currentState.defaultLocale;
+    }
+    clearEmptyObject(config);
+  });
+}
+
+interface ResourcesFormState {
+  resources: Partial<Record<string, Resource>>;
+}
+
+function constructResourcesFormState(
+  resources: Resource[]
+): ResourcesFormState {
+  const resourceMap: Record<string, Resource> = {};
+  for (const r of resources) {
+    resourceMap[specifierId(r.specifier)] = r;
+  }
+  return { resources: resourceMap };
+}
+
+function constructResources(state: ResourcesFormState): Resource[] {
+  return Object.values(state.resources).filter(Boolean) as Resource[];
+}
+
+interface FormState extends ConfigFormState, ResourcesFormState {
+  selectedLocale: string;
+}
+
+interface FormModel {
+  isLoading: boolean;
+  isUpdating: boolean;
+  isDirty: boolean;
+  loadError: unknown;
+  updateError: unknown;
+  state: FormState;
+  setState: (fn: (state: FormState) => FormState) => void;
+  reload: () => void;
+  reset: () => void;
+  save: () => void;
+}
+
+interface ResourcesConfigurationContentProps {
+  form: FormModel;
 }
 
 const PIVOT_KEY_APPEARANCE = "appearance";
@@ -75,174 +120,101 @@ const ALL_PIVOT_KEYS = [
   PIVOT_KEY_PASSWORDLESS,
 ];
 
-const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> = function ResourceConfigurationSection(
-  props: ResourceConfigurationSectionProps
+const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps> = function ResourcesConfigurationContent(
+  props
 ) {
+  const { state, setState } = props.form;
   const { renderToString } = useContext(Context);
-  const { appID } = useParams();
-  const {
-    rawAppConfig,
-    initialTemplates,
-    initialTemplateLocales,
-    initialDefaultTemplateLocale,
-    defaultTemplateLocale,
-    setDefaultTemplateLocale,
-    templateLocale,
-    setTemplateLocale,
-    onResetForm,
-  } = props;
 
-  const [templateLocales, setTemplateLocales] = useState<LanguageTag[]>(
-    initialTemplateLocales
-  );
+  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
+    return [
+      {
+        to: ".",
+        label: <FormattedMessage id="ResourceConfigurationScreen.title" />,
+      },
+    ];
+  }, []);
 
-  const [templates, setTemplates] = useState<Resource[]>(initialTemplates);
-
-  const onChangeTemplateLocales = useCallback(
-    (locales: LanguageTag[]) => {
-      // Reset templateLocale to default if the selected one was removed.
-      const idx = locales.findIndex((item) => item === templateLocale);
-      if (idx < 0) {
-        setTemplateLocale(defaultTemplateLocale);
-      }
-
-      // Find out new locales.
-      const newLocales: LanguageTag[] = [];
-      for (const newLocale of locales) {
-        const idx = templateLocales.findIndex((item) => item === newLocale);
-        if (idx < 0) {
-          newLocales.push(newLocale);
-        }
-      }
-
-      // Populate initial values for new locales from default locale.
-      const newResources: Resource[] = [];
-      for (const locale of newLocales) {
-        for (const resource of ALL_TEMPLATES) {
-          const path = renderPath(resource.resourcePath, { locale });
-          const defaultPath = renderPath(resource.resourcePath, {
-            locale: defaultTemplateLocale,
-          });
-          const defaultResource = templates.find(
-            (resource) => resource.path === defaultPath
-          );
-          const value = defaultResource?.value ?? "";
-          const template: Resource = {
-            specifier: {
-              def: resource,
-              locale,
-            },
-            path,
-            value,
-          };
-          newResources.push(template);
-        }
-      }
-      setTemplates((prev) => {
-        // Discard any resources that are new locales.
-        const withoutNewLocales = prev.filter((resource) => {
-          const isNewLocale =
-            resource.specifier.locale &&
-            newLocales.includes(resource.specifier.locale);
-          return !isNewLocale;
-        });
-        return [...withoutNewLocales, ...newResources];
-      });
-
-      // Finally update the list of locales.
-      setTemplateLocales(locales);
+  const setDefaultLocale = useCallback(
+    (defaultLocale: LanguageTag) => {
+      setState((s) => ({ ...s, defaultLocale }));
     },
-    [
-      templates,
-      templateLocales,
-      templateLocale,
-      defaultTemplateLocale,
-      setTemplateLocale,
-    ]
+    [setState]
   );
 
-  const updates = useMemo(() => {
-    return generateUpdates(
-      initialTemplateLocales,
-      initialTemplates,
-      templateLocales,
-      templates
-    );
-  }, [initialTemplateLocales, initialTemplates, templateLocales, templates]);
+  const setSelectedLocale = useCallback(
+    (selectedLocale: LanguageTag) => {
+      setState((s) => ({ ...s, selectedLocale }));
+    },
+    [setState]
+  );
 
-  const {
-    invalidAdditionLocales,
-    invalidEditionLocales,
-    additions,
-    editions,
-    deletions,
-  } = updates;
-
-  const invalidTemplateLocales = useMemo(() => {
-    return invalidAdditionLocales.concat(invalidEditionLocales);
-  }, [invalidAdditionLocales, invalidEditionLocales]);
-
-  const {
-    updateAppTemplates,
-    loading: updatingTemplates,
-    error: updateTemplatesError,
-  } = useUpdateAppTemplatesMutation(appID);
-
-  const {
-    updateAppConfig,
-    loading: updatingAppConfig,
-    error: updateAppConfigError,
-  } = useUpdateAppConfigMutation(appID);
-
-  const isModified =
-    initialDefaultTemplateLocale !== defaultTemplateLocale ||
-    updates.isModified;
-
-  const onSubmit = useCallback(
-    (e: React.FormEvent<HTMLElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      // Save default language
-      if (initialDefaultTemplateLocale !== defaultTemplateLocale) {
-        const newAppConfig = produce(rawAppConfig, (draftConfig) => {
-          draftConfig.localization = draftConfig.localization ?? {};
-          draftConfig.localization.fallback_language = defaultTemplateLocale;
-        });
-        updateAppConfig(newAppConfig).catch(() => {});
+  const locales = useMemo<LanguageTag[]>(() => {
+    const locales = new Set<LanguageTag>();
+    for (const r of Object.values(state.resources)) {
+      if (r?.specifier.locale && r.value.length !== 0) {
+        locales.add(r.specifier.locale);
       }
+    }
+    // eslint-disable-next-line @typescript-eslint/require-array-sort-compare
+    return Array.from(locales).sort();
+  }, [state.resources]);
 
-      // Save templates
-      const updates = [...additions, ...editions, ...deletions];
-      if (updates.length > 0) {
-        const specifiers = [];
-        for (const resource of ALL_LOCALIZABLE_RESOURCES) {
-          for (const locale of templateLocales) {
-            specifiers.push({
-              def: resource,
-              locale,
-            });
+  const onChangeLocales = useCallback(
+    (newLocales: LanguageTag[]) => {
+      setState((prev) => {
+        let { selectedLocale, resources } = prev;
+        resources = { ...resources };
+
+        // Reset selected locale to default if it's removed.
+        if (!newLocales.includes(state.selectedLocale)) {
+          selectedLocale = state.defaultLocale;
+        }
+
+        // Populate initial resources for added locales from default locale.
+        const addedLocales = newLocales.filter((l) => !locales.includes(l));
+        for (const locale of addedLocales) {
+          for (const resource of ALL_TEMPLATES) {
+            const defaultResource =
+              state.resources[
+                specifierId({ def: resource, locale: prev.defaultLocale })
+              ];
+            const newResource: Resource = {
+              specifier: {
+                def: resource,
+                locale,
+              },
+              path: renderPath(resource.resourcePath, { locale }),
+              value: defaultResource?.value ?? "",
+            };
+            resources[specifierId(newResource.specifier)] = newResource;
           }
         }
-        updateAppTemplates(specifiers, updates).catch(() => {});
-      }
+
+        // Remove resources of removed locales.
+        const removedLocales = locales.filter((l) => !newLocales.includes(l));
+        for (const [id, resource] of Object.entries(resources)) {
+          const locale = resource?.specifier.locale;
+          if (resource && locale && removedLocales.includes(locale)) {
+            resources[id] = { ...resource, value: "" };
+          }
+        }
+
+        return { ...prev, selectedLocale, resources };
+      });
     },
-    [
-      initialDefaultTemplateLocale,
-      defaultTemplateLocale,
-      templateLocales,
-      rawAppConfig,
-      updateAppConfig,
-      updateAppTemplates,
-      additions,
-      editions,
-      deletions,
-    ]
+    [locales, setState, state]
   );
 
-  // We used to use fragment to control the pivot key.
-  // Now that the save button applies all changes, not just the changes in the curren pivot item.
-  // Therefore, we do not need to use fragment to control the pivot key anymore.
+  const invalidLocales = useMemo(() => {
+    const result = validateLocales(
+      [],
+      locales,
+      Object.values(state.resources).filter(Boolean) as Resource[]
+    );
+    return [...result.invalidNewLocales, ...result.invalidDeletedLocales];
+  }, [locales, state.resources]);
+
   const [selectedKey, setSelectedKey] = useState<string>(
     PIVOT_KEY_TRANSLATION_JSON
   );
@@ -257,109 +229,79 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
   }, []);
 
   const getValueIgnoreEmptyString = useCallback(
-    (resourceDef: ResourceDefinition) => {
-      const resource = templates.find(
-        (resource) =>
-          resource.specifier.def === resourceDef &&
-          resource.specifier.locale === templateLocale
-      );
+    (def: ResourceDefinition) => {
+      const specifier: ResourceSpecifier = {
+        def,
+        locale: state.selectedLocale,
+      };
+      const resource = state.resources[specifierId(specifier)];
       if (resource == null || resource.value === "") {
         return undefined;
       }
       return resource.value;
     },
-    [templates, templateLocale]
+    [state.resources, state.selectedLocale]
   );
 
   const getValue = useCallback(
-    (resourceDef: ResourceDefinition) => {
-      const resource = templates.find(
-        (resource) =>
-          resource.specifier.def === resourceDef &&
-          resource.specifier.locale === templateLocale
-      );
+    (def: ResourceDefinition) => {
+      const specifier: ResourceSpecifier = {
+        def,
+        locale: state.selectedLocale,
+      };
+      const resource = state.resources[specifierId(specifier)];
       return resource?.value ?? "";
     },
-    [templates, templateLocale]
+    [state.resources, state.selectedLocale]
   );
 
   const getOnChange = useCallback(
-    (resourceDef: ResourceDefinition) => {
-      return (_e: unknown, value?: string) => {
-        if (value != null) {
-          const path = renderPath(resourceDef.resourcePath, {
-            locale: templateLocale,
-          });
-          setTemplates((prev) => {
-            const idx = prev.findIndex(
-              (resource) =>
-                resource.specifier.def === resourceDef &&
-                resource.specifier.locale === templateLocale
-            );
-
-            let template: Resource;
-            if (idx < 0) {
-              template = {
-                specifier: {
-                  def: resourceDef,
-                  locale: templateLocale,
-                },
-                path: path,
-                value,
-              };
-            } else {
-              template = {
-                ...prev[idx],
-                value,
-              };
-            }
-
-            const newTemplates = [...prev];
-            if (idx < 0) {
-              newTemplates.push(template);
-            } else {
-              newTemplates[idx] = template;
-            }
-
-            return newTemplates;
-          });
-        }
+    (def: ResourceDefinition) => {
+      const specifier: ResourceSpecifier = {
+        def,
+        locale: state.selectedLocale,
       };
-    },
-    [templateLocale]
-  );
-
-  const getOnChangeImage = useCallback(
-    (resourceDef: ResourceDefinition) => {
-      return (base64EncodedData?: string, extension?: string) => {
-        setTemplates((prev) => {
-          // First we have to remove the current one.
-          const next = prev.filter((resource) => {
-            const ok =
-              resource.specifier.def === resourceDef &&
-              resource.specifier.locale === templateLocale;
-            return !ok;
-          });
-          // Add if it is not a deletion.
-          if (base64EncodedData != null && extension != null) {
-            const path = renderPath(resourceDef.resourcePath, {
-              locale: templateLocale,
-              extension,
-            });
-            next.push({
-              specifier: {
-                def: resourceDef,
-                locale: templateLocale,
-              },
-              path,
-              value: base64EncodedData,
-            });
-          }
-          return next;
+      return (_e: unknown, value?: string) => {
+        setState((prev) => {
+          const updatedResources = { ...prev.resources };
+          const resource: Resource = {
+            specifier,
+            path: renderPath(specifier.def.resourcePath, {
+              locale: specifier.locale,
+            }),
+            value: value ?? "",
+          };
+          updatedResources[specifierId(resource.specifier)] = resource;
+          return { ...prev, resources: updatedResources };
         });
       };
     },
-    [templateLocale]
+    [state.selectedLocale, setState]
+  );
+
+  const getOnChangeImage = useCallback(
+    (def: ResourceDefinition) => {
+      const specifier: ResourceSpecifier = {
+        def,
+        locale: state.selectedLocale,
+      };
+      return (base64EncodedData?: string, extension?: string) => {
+        setState((prev) => {
+          const updatedResources = { ...prev.resources };
+          const resource: Resource = {
+            specifier,
+            path: renderPath(specifier.def.resourcePath, {
+              locale: specifier.locale,
+              extension,
+            }),
+            value: base64EncodedData ?? "",
+          };
+          updatedResources[specifierId(resource.specifier)] = resource;
+          return { ...prev, resources: updatedResources };
+        });
+      };
+    },
+    [state.selectedLocale, setState]
   );
 
   const sectionsTranslationJSON: EditTemplatesWidgetSection[] = [
@@ -480,147 +422,79 @@ const ResourceConfigurationSection: React.FC<ResourceConfigurationSectionProps> 
   ];
 
   return (
-    <form
-      role="main"
-      className={cn(styles.root, {
-        [styles.loading]: updatingTemplates,
-      })}
-      onSubmit={onSubmit}
-    >
-      {updateTemplatesError && <ShowError error={updateTemplatesError} />}
-      {updateAppConfigError && <ShowError error={updateAppConfigError} />}
-      <ModifiedIndicatorWrapper className={styles.screen}>
-        <ModifiedIndicatorPortal
-          resetForm={onResetForm}
-          isModified={isModified}
-        />
-        <NavigationBlockerDialog blockNavigation={isModified} />
-        <Text className={styles.screenHeaderText} as="h1">
-          <FormattedMessage id="ResourceConfigurationScreen.title" />
-        </Text>
-        <ManageLanguageWidget
-          templateLocales={templateLocales}
-          onChangeTemplateLocales={onChangeTemplateLocales}
-          templateLocale={templateLocale}
-          defaultTemplateLocale={defaultTemplateLocale}
-          onSelectTemplateLocale={setTemplateLocale}
-          onSelectDefaultTemplateLocale={setDefaultTemplateLocale}
-          invalidTemplateLocales={invalidTemplateLocales}
-        />
-        <Pivot
-          key={
-            /* If we do not remount the pivot, we will have stale onChange callback being fired */
-            templateLocale
-          }
-          onLinkClick={onLinkClick}
-          selectedKey={selectedKey}
+    <div className={styles.root}>
+      <NavBreadcrumb items={navBreadcrumbItems} />
+      <ManageLanguageWidget
+        templateLocales={locales}
+        onChangeTemplateLocales={onChangeLocales}
+        templateLocale={state.selectedLocale}
+        defaultTemplateLocale={state.defaultLocale}
+        onSelectTemplateLocale={setSelectedLocale}
+        onSelectDefaultTemplateLocale={setDefaultLocale}
+        invalidTemplateLocales={invalidLocales}
+      />
+      <Pivot onLinkClick={onLinkClick} selectedKey={selectedKey}>
+        <PivotItem
+          headerText={renderToString(
+            "ResourceConfigurationScreen.translationjson.title"
+          )}
+          itemKey={PIVOT_KEY_TRANSLATION_JSON}
         >
-          <PivotItem
-            headerText={renderToString(
-              "ResourceConfigurationScreen.translationjson.title"
-            )}
-            itemKey={PIVOT_KEY_TRANSLATION_JSON}
-          >
-            <EditTemplatesWidget sections={sectionsTranslationJSON} />
-          </PivotItem>
-          <PivotItem
-            headerText={renderToString(
-              "ResourceConfigurationScreen.appearance.title"
-            )}
-            itemKey={PIVOT_KEY_APPEARANCE}
-          >
-            <div className={styles.pivotItemAppearance}>
-              <ImageFilePicker
-                title={renderToString("ResourceConfigurationScreen.app-banner")}
-                base64EncodedData={getValueIgnoreEmptyString(
-                  RESOURCE_APP_BANNER
-                )}
-                onChange={getOnChangeImage(RESOURCE_APP_BANNER)}
-              />
-              <ImageFilePicker
-                title={renderToString("ResourceConfigurationScreen.app-logo")}
-                base64EncodedData={getValueIgnoreEmptyString(RESOURCE_APP_LOGO)}
-                onChange={getOnChangeImage(RESOURCE_APP_LOGO)}
-              />
-            </div>
-          </PivotItem>
-          <PivotItem
-            headerText={renderToString(
-              "ResourceConfigurationScreen.forgot-password.title"
-            )}
-            itemKey={PIVOT_KEY_FORGOT_PASSWORD}
-          >
-            <EditTemplatesWidget sections={sectionsForgotPassword} />
-          </PivotItem>
-          <PivotItem
-            headerText={renderToString(
-              "ResourceConfigurationScreen.passwordless-authenticator.title"
-            )}
-            itemKey={PIVOT_KEY_PASSWORDLESS}
-          >
-            <EditTemplatesWidget sections={sectionsPasswordless} />
-          </PivotItem>
-        </Pivot>
-        <ButtonWithLoading
-          className={styles.saveButton}
-          type="submit"
-          disabled={
-            !isModified ||
-            invalidAdditionLocales.length > 0 ||
-            invalidEditionLocales.length > 0
-          }
-          loading={updatingAppConfig || updatingTemplates}
-          labelId="save"
-          loadingLabelId="saving"
-        />
-      </ModifiedIndicatorWrapper>
-    </form>
+          <EditTemplatesWidget sections={sectionsTranslationJSON} />
+        </PivotItem>
+        <PivotItem
+          headerText={renderToString(
+            "ResourceConfigurationScreen.appearance.title"
+          )}
+          itemKey={PIVOT_KEY_APPEARANCE}
+        >
+          <div className={styles.pivotItemAppearance}>
+            <ImageFilePicker
+              title={renderToString("ResourceConfigurationScreen.app-banner")}
+              base64EncodedData={getValueIgnoreEmptyString(RESOURCE_APP_BANNER)}
+              onChange={getOnChangeImage(RESOURCE_APP_BANNER)}
+            />
+            <ImageFilePicker
+              title={renderToString("ResourceConfigurationScreen.app-logo")}
+              base64EncodedData={getValueIgnoreEmptyString(RESOURCE_APP_LOGO)}
+              onChange={getOnChangeImage(RESOURCE_APP_LOGO)}
+            />
+          </div>
+        </PivotItem>
+        <PivotItem
+          headerText={renderToString(
+            "ResourceConfigurationScreen.forgot-password.title"
+          )}
+          itemKey={PIVOT_KEY_FORGOT_PASSWORD}
+        >
+          <EditTemplatesWidget sections={sectionsForgotPassword} />
+        </PivotItem>
+        <PivotItem
+          headerText={renderToString(
+            "ResourceConfigurationScreen.passwordless-authenticator.title"
+          )}
+          itemKey={PIVOT_KEY_PASSWORDLESS}
+        >
+          <EditTemplatesWidget sections={sectionsPasswordless} />
+        </PivotItem>
+      </Pivot>
+    </div>
   );
 };
 
 const ResourceConfigurationScreen: React.FC = function ResourceConfigurationScreen() {
   const { appID } = useParams();
-  const {
-    effectiveAppConfig,
-    rawAppConfig,
-    loading: loadingAppConfig,
-    error: loadAppConfigError,
-    refetch: refetchAppConfig,
-  } = useAppConfigQuery(appID);
 
   const {
-    templateLocales: initialTemplateLocales,
-    loading: loadingTemplateLocales,
-    error: loadTemplateLocalesError,
-    refetch: refetchTemplateLocales,
+    templateLocales: resourceLocales,
+    loading: isLoadingLocales,
+    error: loadLocalesError,
+    refetch: reloadLocales,
   } = useTemplateLocaleQuery(appID);
-
-  const initialDefaultTemplateLocale = useMemo<LanguageTag>(() => {
-    return (
-      effectiveAppConfig?.localization?.fallback_language ??
-      DEFAULT_TEMPLATE_LOCALE
-    );
-  }, [effectiveAppConfig]);
-
-  const [remountIdentifier, setRemountIdentifier] = useState(0);
-
-  const [defaultTemplateLocale, setDefaultTemplateLocale] = useState<
-    LanguageTag
-  >(initialDefaultTemplateLocale);
-
-  const [templateLocale, setTemplateLocale] = useState<LanguageTag>(
-    defaultTemplateLocale
-  );
-
-  const onResetForm = useCallback(() => {
-    setRemountIdentifier((prev) => prev + 1);
-    setDefaultTemplateLocale(initialDefaultTemplateLocale);
-    setTemplateLocale(initialDefaultTemplateLocale);
-  }, [initialDefaultTemplateLocale]);
 
   const specifiers = useMemo<ResourceSpecifier[]>(() => {
     const specifiers = [];
-    for (const locale of initialTemplateLocales) {
+    for (const locale of resourceLocales) {
       for (const def of ALL_LOCALIZABLE_RESOURCES) {
         specifiers.push({
           def,
@@ -629,49 +503,74 @@ const ResourceConfigurationScreen: React.FC = function ResourceConfigurationScre
       }
     }
     return specifiers;
-  }, [initialTemplateLocales]);
+  }, [resourceLocales]);
 
-  const {
-    resources: initialTemplates,
-    loading: loadingTemplates,
-    error: loadTemplatesError,
-    refetch: refetchTemplates,
-  } = useAppTemplatesQuery(appID, specifiers);
+  const [selectedLocale, setSelectedLocale] = useState<LanguageTag | null>(
+    null
+  );
 
-  if (loadingAppConfig || loadingTemplateLocales || loadingTemplates) {
+  const config = useAppConfigForm(
+    appID,
+    defaultConfigFormState,
+    constructConfigFormState,
+    constructConfig
+  );
+  const resources = useResourceForm(
+    appID,
+    specifiers,
+    constructResourcesFormState,
+    constructResources
+  );
+  const state = useMemo<FormState>(
+    () => ({
+      defaultLocale: config.state.defaultLocale,
+      resources: resources.state.resources,
+      selectedLocale: selectedLocale ?? config.state.defaultLocale,
+    }),
+    [config.state.defaultLocale, resources.state.resources, selectedLocale]
+  );
+
+  const form: FormModel = {
+    isLoading: isLoadingLocales || config.isLoading || resources.isLoading,
+    isUpdating: config.isUpdating || resources.isUpdating,
+    isDirty: config.isDirty || resources.isDirty,
+    loadError: loadLocalesError ?? config.loadError ?? resources.loadError,
+    updateError: config.updateError ?? resources.updateError,
+    state,
+    setState: (fn) => {
+      const newState = fn(state);
+      config.setState(() => ({ defaultLocale: newState.defaultLocale }));
+      resources.setState(() => ({ resources: newState.resources }));
+      setSelectedLocale(newState.selectedLocale);
+    },
+    reload: () => {
+      reloadLocales().catch(() => {});
+      config.reload();
+      resources.reload();
+    },
+    reset: () => {
+      config.reset();
+      resources.reset();
+      setSelectedLocale(config.state.defaultLocale);
+    },
+    save: () => {
+      config.save();
+      resources.save();
+    },
+  };
+
+  if (form.isLoading) {
     return <ShowLoading />;
   }
 
-  if (loadAppConfigError) {
-    return <ShowError error={loadAppConfigError} onRetry={refetchAppConfig} />;
-  }
-
-  if (loadTemplateLocalesError) {
-    return (
-      <ShowError
-        error={loadTemplateLocalesError}
-        onRetry={refetchTemplateLocales}
-      />
-    );
-  }
-
-  if (loadTemplatesError) {
-    return <ShowError error={loadTemplatesError} onRetry={refetchTemplates} />;
+  if (form.loadError) {
+    return <ShowError error={form.loadError} onRetry={form.reload} />;
   }
 
   return (
-    <ResourceConfigurationSection
-      key={remountIdentifier}
-      rawAppConfig={rawAppConfig!}
-      initialTemplates={initialTemplates}
-      initialTemplateLocales={initialTemplateLocales}
-      initialDefaultTemplateLocale={initialDefaultTemplateLocale}
-      defaultTemplateLocale={defaultTemplateLocale}
-      templateLocale={templateLocale}
-      setDefaultTemplateLocale={setDefaultTemplateLocale}
-      setTemplateLocale={setTemplateLocale}
-      onResetForm={onResetForm}
-    />
+    <FormContainer form={form}>
+      <ResourcesConfigurationContent form={form} />
+    </FormContainer>
   );
 };
 

@@ -66,28 +66,24 @@ export function useAppConfigForm<State>(
       return;
     }
     resetError();
-    setCurrentState(initialState);
-  }, [isUpdating, resetError, initialState]);
+    setCurrentState(null);
+  }, [isUpdating, resetError]);
 
   const save = useCallback(() => {
     if (!rawConfig || !initialState || !currentState) {
       return;
-    } else if (isUpdating) {
+    } else if (!isDirty || isUpdating) {
       return;
     }
 
     const newConfig = constructConfig(rawConfig, initialState, currentState);
     updateConfig(newConfig)
-      .then((app) => {
-        if (app?.effectiveAppConfig) {
-          setCurrentState(constructState(app.effectiveAppConfig));
-        }
-      })
+      .then(() => setCurrentState(null))
       .catch(() => {});
   }, [
+    isDirty,
     isUpdating,
     constructConfig,
-    constructState,
     rawConfig,
     initialState,
     currentState,

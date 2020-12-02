@@ -1,27 +1,6 @@
 .root {
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
+  margin: 0 32px;
   min-width: 750px;
-}
-
-.screen {
-  padding: 30px 40px;
-}
-
-.screenHeaderText {
-  display: block;
-  font-weight: 600;
-  font-size: 18px;
-  margin: 10px;
-}
-
-.templateLocaleDropdown {
-  width: 150px;
-}
-
-.saveButton {
-  margin: 10px;
 }
 
 .pivotItemAppearance {
