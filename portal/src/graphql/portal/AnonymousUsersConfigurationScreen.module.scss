@@ -1,19 +1,5 @@
 .root {
-  display: flex;
-  min-height: 100%;
-}
-
-.wrapper {
-  padding: 40px 30px;
-}
-
-.title {
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.screenContent {
-  width: 600px;
+  margin: 0 32px;
 }
 
 .enableToggle {
@@ -25,8 +11,4 @@
     width: 300px;
     margin-top: 5px;
   }
-}
-
-.saveButton {
-  margin-top: 20px;
 }
