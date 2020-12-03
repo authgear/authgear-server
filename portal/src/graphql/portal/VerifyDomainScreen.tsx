@@ -58,7 +58,7 @@ function makeDNSRecordListColumns(
       key: "host",
       fieldName: "host",
       name: renderToString("VerifyDomainScreen.list.header.host"),
-      minWidth: 200,
+      minWidth: 100,
       maxWidth: 400,
       className: styles.dnsRecordListColumn,
     },
@@ -66,7 +66,7 @@ function makeDNSRecordListColumns(
       key: "value",
       fieldName: "value",
       name: renderToString("VerifyDomainScreen.list.header.value"),
-      minWidth: 300,
+      minWidth: 400,
       className: styles.dnsRecordListColumn,
     },
   ];
@@ -119,6 +119,16 @@ const VerifyDomain: React.FC<VerifyDomainProps> = function VerifyDomain(
   const { appID } = useParams();
 
   const { renderToString } = useContext(Context);
+
+  const navBreadcrumbItems = useMemo(() => {
+    return [
+      {
+        to: "../..",
+        label: <FormattedMessage id="CustomDomainListScreen.title" />,
+      },
+      { to: ".", label: <FormattedMessage id="VerifyDomainScreen.title" /> },
+    ];
+  }, []);
 
   const {
     verifyDomain,
@@ -190,12 +200,12 @@ const VerifyDomain: React.FC<VerifyDomainProps> = function VerifyDomain(
 
   return (
     <section className={styles.content}>
-      <ErrorDialog error={verifyDomainError} rules={errorRules} />
-      <Text className={styles.desc}>
+      <NavBreadcrumb className={styles.header} items={navBreadcrumbItems} />
+      <Text className={styles.description}>
         <span>
           <FormattedMessage id="VerifyDomainScreen.desc-main" />
         </span>
-        <span className={styles.descDomain}>{domain.domain}</span>
+        <span className={styles.domainName}>{domain.domain}</span>
       </Text>
       <DetailsList
         columns={dnsRecordListColumns}
@@ -217,6 +227,8 @@ const VerifyDomain: React.FC<VerifyDomainProps> = function VerifyDomain(
           <FormattedMessage id="cancel" />
         </DefaultButton>
       </Stack>
+
+      <ErrorDialog error={verifyDomainError} rules={errorRules} />
     </section>
   );
 };
@@ -225,16 +237,6 @@ const VerifyDomainScreen: React.FC = function VerifyDomainScreen() {
   const { appID, domainID } = useParams();
   const { domains, loading, error, refetch } = useDomainsQuery(appID);
   const { renderToString } = useContext(Context);
-
-  const navBreadcrumbItems = useMemo(() => {
-    return [
-      {
-        to: "../..",
-        label: <FormattedMessage id="DNSConfigurationScreen.title" />,
-      },
-      { to: ".", label: <FormattedMessage id="VerifyDomainScreen.title" /> },
-    ];
-  }, []);
 
   const domain = useMemo(() => {
     return (domains ?? []).find((domain) => domain.id === domainID);
@@ -287,7 +289,6 @@ const VerifyDomainScreen: React.FC = function VerifyDomainScreen() {
 
   return (
     <main className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
       <VerifyDomain
         domain={domain}
         nonCustomVerifiedDomain={nonCustomVerifiedDomain}

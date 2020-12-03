@@ -80,6 +80,12 @@ const links: NavLinkProps[] = [
     textKey: "ScreenNav.dns",
     url: "configuration/dns",
     iconName: "ServerProcesses",
+    children: [
+      {
+        textKey: "CustomDomainListScreen.title",
+        url: "configuration/dns/custom-domains",
+      },
+    ],
   },
   {
     textKey: "ScreenNav.localization-appearance",
