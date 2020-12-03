@@ -28,9 +28,9 @@ var EnterOOBOTPSchema = validation.NewMultipartSchema("").
 		{
 			"type": "object",
 			"properties": {
-				"x_password": { "type": "string" }
+				"x_code": { "type": "string" }
 			},
-			"required": ["x_password"]
+			"required": ["x_code"]
 		}
 	`).Instantiate()
 
@@ -152,7 +152,7 @@ func (h *EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			code := r.Form.Get("x_password")
+			code := r.Form.Get("x_code")
 			deviceToken := r.Form.Get("x_device_token") == "true"
 
 			input = &InputAuthOOB{
