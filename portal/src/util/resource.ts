@@ -1,5 +1,7 @@
 export type LanguageTag = string;
 
+export const BUILTIN_LOCALE: LanguageTag = "en";
+
 export interface ResourceUpdate {
   path: string;
   value?: string | null;
@@ -108,6 +110,7 @@ export interface LocaleValidationResult {
   invalidLocales: LanguageTag[];
 }
 
+// eslint-disable-next-line complexity
 export function validateLocales(
   defaultLocale: LanguageTag,
   locales: LanguageTag[],
@@ -131,6 +134,8 @@ export function validateLocales(
     if (
       r.value === "" &&
       locale === defaultLocale &&
+      // Built-in locale has built-in fallback values for required resources
+      locale !== BUILTIN_LOCALE &&
       !r.specifier.def.optional
     ) {
       // An non-optional resource for default locale without value:
@@ -139,6 +144,8 @@ export function validateLocales(
     }
   }
 
+  // Built-in locale always has built-in value as fallback, so not considered orphaned.
+  orphanedLocales.delete(BUILTIN_LOCALE);
   if (orphanedLocales.size > 0) {
     for (const l of orphanedLocales) {
       invalidLocales.add(l);

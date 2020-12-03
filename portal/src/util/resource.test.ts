@@ -131,7 +131,7 @@ describe("validate locales", () => {
       invalidLocales: [],
     });
   });
-  it("should forbid removing required resources for default locale", () => {
+  it("should allow removing required resources for default built-in locale", () => {
     const result = validateLocales(
       "en",
       ["en"],
@@ -144,8 +144,25 @@ describe("validate locales", () => {
       ]
     );
     expect(result).toEqual({
+      invalidReason: null,
+      invalidLocales: [],
+    });
+  });
+  it("should forbid removing required resources for default non-built-in locale", () => {
+    const result = validateLocales(
+      "zh",
+      ["zh"],
+      [
+        {
+          specifier: { def: ResourceA, locale: "zh" },
+          path: "templates/zh/a.html",
+          value: "",
+        },
+      ]
+    );
+    expect(result).toEqual({
       invalidReason: "required-default-resource",
-      invalidLocales: ["en"],
+      invalidLocales: ["zh"],
     });
   });
 });
