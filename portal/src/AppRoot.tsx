@@ -31,6 +31,7 @@ import InviteAdminScreen from "./graphql/portal/InviteAdminScreen";
 import PortalAdminsSettings from "./graphql/portal/PortalAdminsSettings";
 import SessionSettings from "./graphql/portal/SessionSettings";
 import HooksSettings from "./graphql/portal/HooksSettings";
+import CORSConfigurationScreen from "./graphql/portal/CORSConfigurationScreen";
 
 const AppRoot: React.FC = function AppRoot() {
   const { appID } = useParams();
@@ -101,7 +102,11 @@ const AppRoot: React.FC = function AppRoot() {
             element={<PasswordsScreen />}
           />
           <Route
-            path="/configuration/oauth-clients"
+            path="/configuration/clients/cors"
+            element={<CORSConfigurationScreen />}
+          />
+          <Route
+            path="/configuration/clients/oauth"
             element={<OAuthClientConfigurationScreen />}
           />
           <Route

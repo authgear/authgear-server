@@ -73,8 +73,18 @@ const links: NavLinkProps[] = [
   },
   {
     textKey: "ScreenNav.client-applications",
-    url: "configuration/oauth-clients",
+    url: "configuration/clients",
     iconName: "Devices3",
+    children: [
+      {
+        textKey: "CORSConfigurationScreen.title",
+        url: "configuration/clients/cors",
+      },
+      {
+        textKey: "OAuthClientConfigurationScreen.title",
+        url: "configuration/clients/oauth",
+      },
+    ],
   },
   {
     textKey: "ScreenNav.dns",
