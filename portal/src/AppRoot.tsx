@@ -23,7 +23,7 @@ import OAuthClientConfigurationScreen from "./graphql/portal/OAuthClientConfigur
 import CreateOAuthClientScreen from "./graphql/portal/CreateOAuthClientScreen";
 import EditOAuthClientScreen from "./graphql/portal/EditOAuthClientScreen";
 import UserInterfaceScreen from "./graphql/portal/UserInterfaceScreen";
-import DNSConfigurationScreen from "./graphql/portal/DNSConfigurationScreen";
+import PublicOriginConfigurationScreen from "./graphql/portal/PublicOriginConfigurationScreen";
 import CustomDomainListScreen from "./graphql/portal/CustomDomainListScreen";
 import VerifyDomainScreen from "./graphql/portal/VerifyDomainScreen";
 import ResourceConfigurationScreen from "./graphql/portal/ResourceConfigurationScreen";
@@ -117,8 +117,8 @@ const AppRoot: React.FC = function AppRoot() {
             element={<UserInterfaceScreen />}
           />
           <Route
-            path="/configuration/dns"
-            element={<DNSConfigurationScreen />}
+            path="/configuration/dns/public-origin"
+            element={<PublicOriginConfigurationScreen />}
           />
           <Route
             path="/configuration/dns/custom-domains"

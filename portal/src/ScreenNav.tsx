@@ -82,6 +82,10 @@ const links: NavLinkProps[] = [
     iconName: "ServerProcesses",
     children: [
       {
+        textKey: "PublicOriginConfigurationScreen.title",
+        url: "configuration/dns/public-origin",
+      },
+      {
         textKey: "CustomDomainListScreen.title",
         url: "configuration/dns/custom-domains",
       },
