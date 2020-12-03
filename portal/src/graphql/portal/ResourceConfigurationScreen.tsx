@@ -77,9 +77,14 @@ interface ResourcesFormState {
 function constructResourcesFormState(
   resources: Resource[]
 ): ResourcesFormState {
-  const resourceMap: Record<string, Resource> = {};
+  const resourceMap: Partial<Record<string, Resource>> = {};
   for (const r of resources) {
-    resourceMap[specifierId(r.specifier)] = r;
+    const id = specifierId(r.specifier);
+    // Multiple resources may use same specifier ID (images),
+    // use the first resource with non-empty values.
+    if ((resourceMap[id]?.value ?? "") === "") {
+      resourceMap[specifierId(r.specifier)] = r;
+    }
   }
   return { resources: resourceMap };
 }
