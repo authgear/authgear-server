@@ -31,6 +31,8 @@ func (c *HTTPConfig) SetDefaults() {
 			"default-src 'self'",
 			"font-src 'self' cdnjs.cloudflare.com static2.sharepointonline.com",
 			"style-src 'self' 'unsafe-inline' cdnjs.cloudflare.com",
+			// We use data URI to show QR image.
+			"img-src 'self' data:",
 			"object-src 'none'",
 			"base-uri 'none'",
 			"block-all-mixed-content",
