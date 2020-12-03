@@ -11,7 +11,6 @@ import {
 } from "@fluentui/react";
 import { useNavigate, useParams } from "react-router-dom";
 import produce, { createDraft } from "immer";
-import deepEqual from "deep-equal";
 import { FormattedMessage } from "@oursky/react-messageformat";
 
 import ShowError from "../../ShowError";
@@ -19,28 +18,63 @@ import ShowLoading from "../../ShowLoading";
 import ModifyOAuthClientForm, {
   getReducedClientConfig,
 } from "./ModifyOAuthClientForm";
-import ButtonWithLoading from "../../ButtonWithLoading";
-import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
-import {
-  ModifiedIndicatorPortal,
-  ModifiedIndicatorWrapper,
-} from "../../ModifiedIndicatorPortal";
-import ShowUnhandledValidationErrorCause from "../../error/ShowUnhandledValidationErrorCauses";
-import { useAppConfigQuery } from "./query/appConfigQuery";
-import { useUpdateAppConfigMutation } from "./mutations/updateAppConfigMutation";
 import { OAuthClientConfig, PortalAPIAppConfig } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import { genRandomHexadecimalString } from "../../util/random";
 import { copyToClipboard } from "../../util/clipboard";
-import { FormContext } from "../../error/FormContext";
-import { useValidationError } from "../../error/useValidationError";
+import {
+  AppConfigFormModel,
+  useAppConfigForm,
+} from "../../hook/useAppConfigForm";
+import FormContainer from "../../FormContainer";
 
 import styles from "./CreateOAuthClientScreen.module.scss";
+import deepEqual from "deep-equal";
 
-interface CreateOAuthClientFormProps {
-  rawAppConfig: PortalAPIAppConfig;
-  resetForm: () => void;
+interface FormState {
+  clients: OAuthClientConfig[];
+  newClient: OAuthClientConfig;
+}
+
+function constructFormState(config: PortalAPIAppConfig): FormState {
+  return {
+    clients: config.oauth?.clients ?? [],
+    newClient: {
+      name: undefined,
+      client_id: genRandomHexadecimalString(),
+      redirect_uris: [],
+      grant_types: [
+        "authorization_code",
+        "refresh_token",
+        "urn:authgear:params:oauth:grant-type:anonymous-request",
+      ],
+      response_types: ["code", "none"],
+      access_token_lifetime_seconds: undefined,
+      refresh_token_lifetime_seconds: undefined,
+      post_logout_redirect_uris: undefined,
+    },
+  };
+}
+
+function constructConfig(
+  config: PortalAPIAppConfig,
+  initialState: FormState,
+  currentState: FormState
+): PortalAPIAppConfig {
+  return produce(config, (config) => {
+    config.oauth ??= {};
+    config.oauth.clients = currentState.clients.slice();
+    const isDirty = !deepEqual(
+      getReducedClientConfig(initialState.newClient),
+      getReducedClientConfig(currentState.newClient),
+      { strict: true }
+    );
+    if (isDirty) {
+      config.oauth.clients.push(createDraft(currentState.newClient));
+    }
+    clearEmptyObject(config);
+  });
 }
 
 interface CreateClientSuccessDialogProps {
@@ -124,143 +158,20 @@ const CreateClientSuccessDialog: React.FC<CreateClientSuccessDialogProps> = func
   );
 };
 
-const CreateOAuthClientForm: React.FC<CreateOAuthClientFormProps> = function CreateOAuthClientForm(
-  props: CreateOAuthClientFormProps
+interface CreateOAuthClientContentProps {
+  form: AppConfigFormModel<FormState>;
+}
+
+const CreateOAuthClientContent: React.FC<CreateOAuthClientContentProps> = function CreateOAuthClientContent(
+  props
 ) {
-  const { rawAppConfig, resetForm } = props;
-  const { appID } = useParams();
-  const {
-    updateAppConfig,
-    loading: updatingAppConfig,
-    error: updateAppConfigError,
-  } = useUpdateAppConfigMutation(appID);
-
-  const initialClientConfig = useMemo(() => {
-    return {
-      name: undefined,
-      client_id: genRandomHexadecimalString(),
-      redirect_uris: [],
-      grant_types: [
-        "authorization_code",
-        "refresh_token",
-        "urn:authgear:params:oauth:grant-type:anonymous-request",
-      ],
-      response_types: ["code", "none"],
-      access_token_lifetime_seconds: undefined,
-      refresh_token_lifetime_seconds: undefined,
-      post_logout_redirect_uris: undefined,
-    };
-  }, []);
-
-  const [clientConfig, setClientConfig] = useState<OAuthClientConfig>(
-    initialClientConfig
-  );
-
-  const isFormModified = useMemo(() => {
-    return !deepEqual(
-      getReducedClientConfig(initialClientConfig),
-      getReducedClientConfig(clientConfig)
-    );
-  }, [clientConfig, initialClientConfig]);
-
-  const [submittedForm, setSubmittedForm] = useState(false);
-
-  const [
-    createClientSuccessDialogVisible,
-    setCreateClientSuccessDialogVisible,
-  ] = useState(false);
-
-  const onClientConfigChange = useCallback(
-    (newClientConfig: OAuthClientConfig) => {
-      setClientConfig(newClientConfig);
-    },
-    []
-  );
-
-  const onCreateClientSuccess = useCallback(() => {
-    setSubmittedForm(true);
-    setCreateClientSuccessDialogVisible(true);
-  }, []);
-
-  const onFormSubmit = useCallback(
-    (e: React.SyntheticEvent<HTMLElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      const newAppConfig = produce(rawAppConfig, (draftConfig) => {
-        draftConfig.oauth = draftConfig.oauth ?? {};
-        draftConfig.oauth.clients = draftConfig.oauth.clients ?? [];
-        draftConfig.oauth.clients.push(createDraft(clientConfig));
-
-        clearEmptyObject(draftConfig);
-      });
-
-      updateAppConfig(newAppConfig)
-        .then((result) => {
-          if (result != null) {
-            onCreateClientSuccess();
-          }
-        })
-        .catch(() => {});
-    },
-    [rawAppConfig, clientConfig, onCreateClientSuccess, updateAppConfig]
-  );
-
-  const {
-    otherError,
-    unhandledCauses,
-    value: formContextValue,
-  } = useValidationError(updateAppConfigError);
-
-  return (
-    <FormContext.Provider value={formContextValue}>
-      <form className={styles.form} onSubmit={onFormSubmit} noValidate={true}>
-        <NavigationBlockerDialog
-          blockNavigation={!submittedForm && isFormModified}
-        />
-        <CreateClientSuccessDialog
-          visible={createClientSuccessDialogVisible}
-          clientId={clientConfig.client_id}
-        />
-        <ModifiedIndicatorPortal
-          resetForm={resetForm}
-          isModified={isFormModified}
-        />
-        {(unhandledCauses ?? []).length === 0 && otherError && (
-          <ShowError error={otherError} />
-        )}
-        <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
-        <ModifyOAuthClientForm
-          className={styles.modifyClientForm}
-          clientConfig={clientConfig}
-          onClientConfigChange={onClientConfigChange}
-        />
-        <ButtonWithLoading
-          type="submit"
-          disabled={!isFormModified || submittedForm}
-          labelId="create"
-          loading={updatingAppConfig}
-        />
-      </form>
-    </FormContext.Provider>
-  );
-};
-
-const CreateOAuthClientScreen: React.FC = function CreateOAuthClientScreen() {
-  const { appID } = useParams();
-  const {
-    rawAppConfig,
-    effectiveAppConfig,
-    loading,
-    error,
-    refetch,
-  } = useAppConfigQuery(appID);
+  const { state, setState } = props.form;
 
   const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     return [
       {
         to: "..",
-        label: <FormattedMessage id="OAuthClientConfiguration.title" />,
+        label: <FormattedMessage id="OAuthClientConfigurationScreen.title" />,
       },
       {
         to: ".",
@@ -269,34 +180,52 @@ const CreateOAuthClientScreen: React.FC = function CreateOAuthClientScreen() {
     ];
   }, []);
 
-  const [remountIdentifier, setRemountIdentifier] = useState(0);
-  const resetForm = useCallback(() => {
-    setRemountIdentifier((prev) => prev + 1);
-  }, []);
+  const [clientId] = useState(state.newClient.client_id);
+  const client =
+    state.clients.find((c) => c.client_id === clientId) ?? state.newClient;
 
-  if (loading) {
+  const onClientConfigChange = useCallback(
+    (newClient: OAuthClientConfig) => {
+      setState((state) => ({ ...state, newClient }));
+    },
+    [setState]
+  );
+
+  const isSuccessDialogVisible = state.clients.some(
+    (c) => c.client_id === clientId
+  );
+
+  return (
+    <div className={styles.root}>
+      <NavBreadcrumb items={navBreadcrumbItems} />
+      <ModifyOAuthClientForm
+        clientConfig={client}
+        onClientConfigChange={onClientConfigChange}
+      />
+      <CreateClientSuccessDialog
+        visible={isSuccessDialogVisible}
+        clientId={clientId}
+      />
+    </div>
+  );
+};
+
+const CreateOAuthClientScreen: React.FC = function CreateOAuthClientScreen() {
+  const { appID } = useParams();
+  const form = useAppConfigForm(appID, constructFormState, constructConfig);
+
+  if (form.isLoading) {
     return <ShowLoading />;
   }
 
-  if (error != null) {
-    return <ShowError error={error} onRetry={refetch} />;
-  }
-
-  if (rawAppConfig == null || effectiveAppConfig == null) {
-    return null;
+  if (form.loadError) {
+    return <ShowError error={form.loadError} onRetry={form.reload} />;
   }
 
   return (
-    <main className={styles.root}>
-      <ModifiedIndicatorWrapper className={styles.wrapper}>
-        <NavBreadcrumb items={navBreadcrumbItems} />
-        <CreateOAuthClientForm
-          key={remountIdentifier}
-          rawAppConfig={rawAppConfig}
-          resetForm={resetForm}
-        />
-      </ModifiedIndicatorWrapper>
-    </main>
+    <FormContainer form={form}>
+      <CreateOAuthClientContent form={form} />
+    </FormContainer>
   );
 };
 

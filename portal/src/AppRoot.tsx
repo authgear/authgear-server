@@ -110,11 +110,11 @@ const AppRoot: React.FC = function AppRoot() {
             element={<OAuthClientConfigurationScreen />}
           />
           <Route
-            path="/configuration/oauth-clients/add"
+            path="/configuration/clients/oauth/add"
             element={<CreateOAuthClientScreen />}
           />
           <Route
-            path="/configuration/oauth-clients/:clientID/edit"
+            path="/configuration/clients/oauth/:clientID/edit"
             element={<EditOAuthClientScreen />}
           />
           <Route
