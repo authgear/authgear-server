@@ -89,44 +89,37 @@ export function useAppTemplatesQuery(
     const appNode = data?.node?.__typename === "App" ? data.node : null;
     const resources: Resource[] = [];
 
-    for (const pair of pairs) {
-      for (const resource of appNode?.resources ?? []) {
-        if (pair.path === resource.path) {
-          let value = "";
-          let transform: (a: string) => string;
-          switch (pair.specifier.def.type) {
-            case "text":
-              transform = decodeForText;
-              break;
-            case "binary":
-              transform = binary;
-              break;
-            default:
-              throw new Error(
-                "unexpected resource type: " + String(pair.specifier.def.type)
-              );
-          }
-
-          if (resource.data != null) {
-            value = transform(resource.data);
-          } else if (
-            resource.effectiveData != null &&
-            pair.specifier.def.usesEffectiveDataAsFallbackValue
-          ) {
-            value = transform(resource.effectiveData);
-          }
-          if (value === "") {
-            continue;
-          }
-
-          resources.push({
-            specifier: pair.specifier,
-            path: pair.path,
-            value,
-          });
+    for (const { specifier, path } of pairs) {
+      let transform: (a: string) => string;
+      switch (specifier.def.type) {
+        case "text":
+          transform = decodeForText;
           break;
-        }
+        case "binary":
+          transform = binary;
+          break;
+        default:
+          throw new Error(
+            "unexpected resource type: " + String(specifier.def.type)
+          );
       }
+
+      let value = "";
+      const resource = (appNode?.resources ?? []).find((r) => r.path === path);
+      if (resource?.data != null) {
+        value = transform(resource.data);
+      } else if (
+        resource?.effectiveData != null &&
+        specifier.def.usesEffectiveDataAsFallbackValue
+      ) {
+        value = transform(resource.effectiveData);
+      }
+
+      resources.push({
+        specifier,
+        path,
+        value,
+      });
     }
 
     return resources;
