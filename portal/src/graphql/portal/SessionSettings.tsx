@@ -26,7 +26,7 @@ interface FormState {
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
   return {
-    persistentCookie: !(config.session?.cookie_non_persistent ?? true),
+    persistentCookie: !(config.session?.cookie_non_persistent ?? false),
     sessionLifetimeSeconds: config.session?.lifetime_seconds ?? 0,
     idleTimeoutEnabled: config.session?.idle_timeout_enabled ?? false,
     idleTimeoutSeconds: config.session?.idle_timeout_seconds ?? 0,
