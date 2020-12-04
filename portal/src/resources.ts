@@ -78,6 +78,7 @@ export const RESOURCE_APP_LOGO: ResourceDefinition = {
   type: "binary",
   extensions: IMAGE_EXTENSIONS,
   usesEffectiveDataAsFallbackValue: false,
+  optional: true,
 };
 
 export const RESOURCE_APP_BANNER: ResourceDefinition = {
@@ -85,6 +86,7 @@ export const RESOURCE_APP_BANNER: ResourceDefinition = {
   type: "binary",
   extensions: IMAGE_EXTENSIONS,
   usesEffectiveDataAsFallbackValue: false,
+  optional: true,
 };
 
 export const ALL_TEMPLATES = [
@@ -103,14 +105,23 @@ export const ALL_TEMPLATES = [
   RESOURCE_FORGOT_PASSWORD_SMS_TXT,
 ];
 
-export const ALL_RESOURCES = [
+export const ALL_LOCALIZABLE_RESOURCES = [
   ...ALL_TEMPLATES,
   RESOURCE_APP_LOGO,
   RESOURCE_APP_BANNER,
 ];
 
+export const PATH_AUTHGEAR_CSS = "static/authgear.css";
+export const RESOURCE_AUTHGEAR_CSS: ResourceDefinition = {
+  resourcePath: resourcePath`static/authgear.css`,
+  type: "text",
+  extensions: [],
+  usesEffectiveDataAsFallbackValue: false,
+  optional: true,
+};
+
 export interface RenderPathArguments {
-  locale: LanguageTag;
+  locale?: LanguageTag;
   extension?: string;
 }
 
@@ -119,11 +130,11 @@ export function renderPath(
   args: RenderPathArguments
 ): string {
   const renderArgs: Record<string, string> = {};
-  renderArgs["locale"] = args.locale;
+  if (args.locale != null) {
+    renderArgs["locale"] = args.locale;
+  }
   if (args.extension != null) {
     renderArgs["extension"] = args.extension;
   }
   return resourcePath.render(renderArgs);
 }
-
-export const STATIC_AUTHGEAR_CSS = "static/authgear.css";

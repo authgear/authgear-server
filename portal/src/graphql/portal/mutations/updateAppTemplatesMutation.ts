@@ -9,12 +9,7 @@ import {
 } from "./__generated__/UpdateAppTemplatesMutation";
 import { renderPath } from "../../../resources";
 import { PortalAPIApp } from "../../../types";
-import {
-  ResourceUpdate,
-  ResourceSpecifier,
-  binary,
-  encodeForText,
-} from "../../../util/resource";
+import { ResourceUpdate, binary, encodeForText } from "../../../util/resource";
 
 const updateAppTemplatesMutation = gql`
   mutation UpdateAppTemplatesMutation(
@@ -41,7 +36,6 @@ const updateAppTemplatesMutation = gql`
 `;
 
 export type AppTemplatesUpdater = (
-  specifiers: ResourceSpecifier[],
   updates: ResourceUpdate[]
 ) => Promise<PortalAPIApp | null>;
 
@@ -60,9 +54,9 @@ export function useUpdateAppTemplatesMutation(
     client,
   });
   const updateAppTemplates = useCallback(
-    async (specifiers: ResourceSpecifier[], updates: ResourceUpdate[]) => {
+    async (updates: ResourceUpdate[]) => {
       const paths = [];
-      for (const specifier of specifiers) {
+      for (const specifier of updates.map((u) => u.specifier)) {
         if (specifier.def.extensions.length === 0) {
           paths.push(
             renderPath(specifier.def.resourcePath, {

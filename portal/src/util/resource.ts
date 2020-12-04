@@ -1,5 +1,7 @@
 export type LanguageTag = string;
 
+export const BUILTIN_LOCALE: LanguageTag = "en";
+
 export interface ResourceUpdate {
   path: string;
   value?: string | null;
@@ -14,7 +16,7 @@ export interface Resource {
 
 export interface ResourceSpecifier {
   def: ResourceDefinition;
-  locale: LanguageTag;
+  locale?: LanguageTag;
 }
 
 export interface ResourceDefinition {
@@ -24,6 +26,9 @@ export interface ResourceDefinition {
   // If this is true, then the effectiveData is used as value when the raw data is unavailable.
   // This is useful for templates.
   usesEffectiveDataAsFallbackValue: boolean;
+  // Indicates whether the resource is optional.
+  // The default locale must have all non-optional resources configured.
+  optional?: boolean;
 }
 
 export interface ResourcePath {
@@ -87,4 +92,134 @@ export function decodeForText(a: string): string {
 
 export function encodeForText(a: string): string {
   return btoa(a);
+}
+
+export function specifierId(specifier: ResourceSpecifier): string {
+  return specifier.def.resourcePath.render({
+    locale: specifier.locale ?? "{locale}",
+    extension: "{extension}",
+  });
+}
+
+export type LocaleInvalidReason =
+  | "required-default-resource"
+  | "locale-without-resources";
+
+export interface LocaleValidationResult {
+  invalidReason: LocaleInvalidReason | null;
+  invalidLocales: LanguageTag[];
+}
+
+// eslint-disable-next-line complexity
+export function validateLocales(
+  defaultLocale: LanguageTag,
+  locales: LanguageTag[],
+  resources: Resource[]
+): LocaleValidationResult {
+  // For convenience, report only one invalid reason.
+  let invalidReason: LocaleInvalidReason | null = null;
+  const invalidLocales = new Set<LanguageTag>();
+
+  // Locale is valid iff there is at least 1 resource with that locale.
+  const orphanedLocales = new Set<LanguageTag>(locales);
+  for (const r of resources) {
+    const locale = r.specifier.locale;
+    if (!locale) {
+      continue;
+    }
+
+    if (r.value !== "") {
+      orphanedLocales.delete(locale);
+    }
+    if (
+      r.value === "" &&
+      locale === defaultLocale &&
+      // Built-in locale has built-in fallback values for required resources
+      locale !== BUILTIN_LOCALE &&
+      !r.specifier.def.optional
+    ) {
+      // An non-optional resource for default locale without value:
+      invalidLocales.add(locale);
+      invalidReason = "required-default-resource";
+    }
+  }
+
+  // Built-in locale always has built-in value as fallback, so not considered orphaned.
+  orphanedLocales.delete(BUILTIN_LOCALE);
+  if (orphanedLocales.size > 0) {
+    for (const l of orphanedLocales) {
+      invalidLocales.add(l);
+    }
+    if (!invalidReason) {
+      invalidReason = "locale-without-resources";
+    }
+  }
+
+  return {
+    invalidReason,
+    invalidLocales: Array.from(invalidLocales),
+  };
+}
+
+export interface ResourcesDiffResult {
+  needUpdate: boolean;
+  newResources: ResourceUpdate[];
+  editedResources: ResourceUpdate[];
+  deletedResources: ResourceUpdate[];
+}
+
+export function diffResourceUpdates(
+  initialResources: Resource[],
+  currentResources: Resource[]
+): ResourcesDiffResult {
+  const initialResourceMap = new Map<string, Resource>(
+    initialResources
+      .filter((r) => r.value !== "")
+      .map((r) => [specifierId(r.specifier), r])
+  );
+  const currentResourceMap = new Map<string, Resource>(
+    currentResources
+      .filter((r) => r.value !== "")
+      .map((r) => [specifierId(r.specifier), r])
+  );
+
+  const result: ResourcesDiffResult = {
+    needUpdate: false,
+    newResources: [],
+    editedResources: [],
+    deletedResources: [],
+  };
+
+  for (const [id, r] of currentResourceMap.entries()) {
+    const initialResource = initialResourceMap.get(id);
+    if (!initialResource) {
+      result.newResources.push({
+        specifier: r.specifier,
+        path: r.path,
+        value: r.value,
+      });
+    } else if (initialResource.value !== r.value) {
+      result.editedResources.push({
+        specifier: r.specifier,
+        path: r.path,
+        value: r.value,
+      });
+    }
+  }
+
+  for (const [id, r] of initialResourceMap.entries()) {
+    if (!currentResourceMap.has(id)) {
+      result.deletedResources.push({
+        specifier: r.specifier,
+        path: r.path,
+        value: null,
+      });
+    }
+  }
+
+  result.needUpdate =
+    result.newResources.length > 0 ||
+    result.editedResources.length > 0 ||
+    result.deletedResources.length > 0;
+  return result;
 }

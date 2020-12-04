@@ -361,7 +361,8 @@
   "ManageLanguageWidget.all-languages": "All Languages",
   "ManageLanguageWidget.app-languages": "App Languages",
   "ManageLanguageWidget.warning.remove-default-language": "Default language cannot be removed.",
-  "ManageLanguageWidget.error.invalid-language": "Some of the languages are invalid. A language must have at least 1 localization to become valid",
+  "ManageLanguageWidget.error.locale-without-resources": "Some of the languages are invalid. A language must have at least 1 localization to become valid",
+  "ManageLanguageWidget.error.required-default-resource": "Some of the languages are invalid. Some required resources do not have localizations in default language",
 
   "ResourceConfigurationScreen.title": "Localization & Appearance",
   "ResourceConfigurationScreen.appearance.title": "Appearance",

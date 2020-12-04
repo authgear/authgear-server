@@ -25,7 +25,7 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useCheckbox } from "../../hook/useInput";
-import { LanguageTag } from "../../util/resource";
+import { LanguageTag, LocaleInvalidReason } from "../../util/resource";
 
 import styles from "./ManageLanguageWidget.module.scss";
 
@@ -44,6 +44,7 @@ interface ManageLanguageWidgetProps {
   defaultTemplateLocale: LanguageTag;
   onSelectDefaultTemplateLocale: TemplateLocaleUpdater;
 
+  invalidLocaleReason: LocaleInvalidReason | null;
   invalidTemplateLocales: LanguageTag[];
 }
 
@@ -305,6 +306,7 @@ const ManageLanguageWidget: React.FC<ManageLanguageWidgetProps> = function Manag
     onSelectTemplateLocale,
     defaultTemplateLocale,
     onSelectDefaultTemplateLocale,
+    invalidLocaleReason,
     invalidTemplateLocales,
   } = props;
 
@@ -461,6 +463,23 @@ const ManageLanguageWidget: React.FC<ManageLanguageWidgetProps> = function Manag
     [themes]
   );
 
+  let localeErrorMessage: string | undefined;
+  switch (invalidLocaleReason) {
+    case "locale-without-resources":
+      localeErrorMessage = renderToString(
+        "ManageLanguageWidget.error.locale-without-resources"
+      );
+      break;
+    case "required-default-resource":
+      localeErrorMessage = renderToString(
+        "ManageLanguageWidget.error.required-default-resource"
+      );
+      break;
+    default:
+      localeErrorMessage = undefined;
+      break;
+  }
+
   return (
     <section className={styles.templateLocaleManagement}>
       <ManageLanguageWidgetDialog
@@ -484,11 +503,7 @@ const ManageLanguageWidget: React.FC<ManageLanguageWidgetProps> = function Manag
           selectedKey={templateLocale}
           onRenderTitle={onRenderTitle}
           onRenderOption={onRenderOption}
-          errorMessage={
-            invalidTemplateLocales.length > 0
-              ? renderToString("ManageLanguageWidget.error.invalid-language")
-              : undefined
-          }
+          errorMessage={localeErrorMessage}
         />
         <DefaultButton className={styles.contextualMenu} menuProps={menuProps}>
           <FormattedMessage id="ManageLanguageWidget.manage-languages" />

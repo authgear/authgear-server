@@ -33,6 +33,7 @@ export interface SaveButtonProps {
 
 export interface FormContainerProps {
   form: FormModel;
+  canSave?: boolean;
   saveButtonProps?: SaveButtonProps;
   errorParseRules?: GenericErrorHandlingRule[];
   fallbackErrorMessageId?: string;
@@ -43,6 +44,7 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
 ) {
   const { updateError, isDirty, isUpdating, reset, save } = props.form;
   const {
+    canSave = true,
     saveButtonProps = { labelId: "save", iconName: "Save" },
     errorParseRules = [],
     fallbackErrorMessageId = "generic-error.unknown-error",
@@ -65,7 +67,9 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
   }, []);
   const doReset = useCallback(() => {
     reset();
-    setIsResetDialogVisible(false);
+    // If the form contains a CodeEditor, dialog dismiss animation does not play.
+    // Defer the dismissal to ensure dismiss animation.
+    setTimeout(() => setIsResetDialogVisible(false), 0);
   }, [reset]);
 
   const disabled = isUpdating || !isDirty;
@@ -75,7 +79,7 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
         key: "save",
         text: renderToString(saveButtonProps.labelId),
         iconProps: { iconName: saveButtonProps.iconName },
-        disabled,
+        disabled: disabled || !canSave,
         onClick: () => save(),
       },
       {
@@ -87,7 +91,7 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
         onClick: () => setIsResetDialogVisible(true),
       },
     ],
-    [disabled, save, saveButtonProps, renderToString, themes]
+    [canSave, disabled, save, saveButtonProps, renderToString, themes]
   );
 
   const resetDialogContentProps = useMemo(() => {

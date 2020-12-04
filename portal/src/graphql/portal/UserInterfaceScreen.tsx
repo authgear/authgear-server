@@ -1,144 +1,98 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo } from "react";
 import { FormattedMessage } from "@oursky/react-messageformat";
-import { Label, Text } from "@fluentui/react";
+import { Label } from "@fluentui/react";
 import { useParams } from "react-router-dom";
-import cn from "classnames";
-import deepEqual from "deep-equal";
-
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import CodeEditor from "../../CodeEditor";
-import ButtonWithLoading from "../../ButtonWithLoading";
-import NavigationBlockerDialog from "../../NavigationBlockerDialog";
-
+import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
+import FormContainer from "../../FormContainer";
+import { PATH_AUTHGEAR_CSS, RESOURCE_AUTHGEAR_CSS } from "../../resources";
+import { Resource, ResourceSpecifier } from "../../util/resource";
+import { ResourceFormModel, useResourceForm } from "../../hook/useResourceForm";
 import styles from "./UserInterfaceScreen.module.scss";
-import {
-  AppRawTemplatesUpdater,
-  useUpdateAppRawTemplatesMutation,
-} from "./mutations/updateAppRawTemplatesMutation";
-import { STATIC_AUTHGEAR_CSS } from "../../resources";
-import { useAppRawTemplatesQuery } from "./query/appRawTemplatesQuery";
 
-interface UserInterfaceScreenState {
-  customCss: string;
+const specifier: ResourceSpecifier = { def: RESOURCE_AUTHGEAR_CSS };
+
+interface FormState {
+  customCSS: string;
 }
 
-interface UserInterfaceProps {
-  templates: Record<typeof STATIC_AUTHGEAR_CSS, string | null>;
-  updateTemplates: AppRawTemplatesUpdater<typeof STATIC_AUTHGEAR_CSS>;
-  isUpdatingTemplates: boolean;
-}
-
-function constructState(
-  templates: UserInterfaceProps["templates"]
-): UserInterfaceScreenState {
+function constructFormState(resources: Resource[]): FormState {
   return {
-    customCss: templates[STATIC_AUTHGEAR_CSS] ?? "",
+    customCSS:
+      resources.find((r) => r.specifier.def === RESOURCE_AUTHGEAR_CSS)?.value ??
+      "",
   };
 }
 
-const UserInterface: React.FC<UserInterfaceProps> = function UserInterface(
-  props: UserInterfaceProps
+function constructResources(state: FormState): Resource[] {
+  return [{ specifier, path: PATH_AUTHGEAR_CSS, value: state.customCSS }];
+}
+
+interface UserInterfaceContentProps {
+  form: ResourceFormModel<FormState>;
+}
+
+const UserInterfaceContent: React.FC<UserInterfaceContentProps> = function UserInterfaceContent(
+  props
 ) {
-  const { templates, updateTemplates, isUpdatingTemplates } = props;
+  const { state, setState } = props.form;
 
-  const initialState = useMemo(() => constructState(templates), [templates]);
+  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
+    return [
+      { to: ".", label: <FormattedMessage id="UserInterfaceScreen.title" /> },
+    ];
+  }, []);
 
-  const [state, setState] = useState<UserInterfaceScreenState>(initialState);
-
-  const isFormModified = useMemo(() => {
-    return !deepEqual(initialState, state, { strict: true });
-  }, [initialState, state]);
-
-  const onCustomCssChange = useCallback(
-    (_event: unknown, value: string | undefined) => {
-      if (value === undefined) {
-        return;
-      }
+  const onCustomCSSChange = useCallback(
+    (_, value?: string) => {
       setState((state) => ({
         ...state,
-        customCss: value,
+        customCSS: value ?? "",
       }));
     },
-    []
+    [setState]
   );
 
-  const onSaveButtonClicked = useCallback(() => {
-    const updates: Partial<Record<typeof STATIC_AUTHGEAR_CSS, string>> = {
-      [STATIC_AUTHGEAR_CSS]: state.customCss,
-    };
-    updateTemplates(updates).catch(() => {});
-  }, [state, updateTemplates]);
-
   return (
-    <div className={styles.form}>
-      <Label className={styles.label}>
+    <div className={styles.root}>
+      <NavBreadcrumb items={navBreadcrumbItems} />
+      <Label>
         <FormattedMessage id="UserInterfaceScreen.custom-css.label" />
       </Label>
       <CodeEditor
         className={styles.codeEditor}
         language="css"
-        value={state.customCss}
-        onChange={onCustomCssChange}
+        value={state.customCSS}
+        onChange={onCustomCSSChange}
       />
-
-      <div className={styles.saveButtonContainer}>
-        <ButtonWithLoading
-          disabled={!isFormModified}
-          onClick={onSaveButtonClicked}
-          loading={isUpdatingTemplates}
-          labelId="save"
-          loadingLabelId="saving"
-        />
-      </div>
-
-      <NavigationBlockerDialog blockNavigation={isFormModified} />
     </div>
   );
 };
 
 const UserInterfaceScreen: React.FC = function UserInterfaceScreen() {
   const { appID } = useParams();
+  const specifiers = useMemo(() => [specifier], []);
+  const form = useResourceForm(
+    appID,
+    specifiers,
+    constructFormState,
+    constructResources
+  );
 
-  const {
-    updateAppRawTemplates,
-    loading: isUpdatingTemplates,
-    error: updateTemplatesError,
-  } = useUpdateAppRawTemplatesMutation<typeof STATIC_AUTHGEAR_CSS>(appID);
-
-  const {
-    templates,
-    loading: isLoadingTemplates,
-    error: loadTemplatesError,
-    refetch: refetchTemplates,
-  } = useAppRawTemplatesQuery(appID, STATIC_AUTHGEAR_CSS);
-
-  if (isLoadingTemplates) {
+  if (form.isLoading) {
     return <ShowLoading />;
   }
 
-  if (loadTemplatesError) {
-    return <ShowError error={loadTemplatesError} onRetry={refetchTemplates} />;
+  if (form.loadError) {
+    return <ShowError error={form.loadError} onRetry={form.reload} />;
   }
 
   return (
-    <main
-      className={cn(styles.root, {
-        [styles.loading]: isUpdatingTemplates,
-      })}
-    >
-      {updateTemplatesError && <ShowError error={updateTemplatesError} />}
-      <div className={styles.content}>
-        <Text as="h1" className={styles.title}>
-          <FormattedMessage id="UserInterfaceScreen.title" />
-        </Text>
-        <UserInterface
-          templates={templates}
-          updateTemplates={updateAppRawTemplates}
-          isUpdatingTemplates={isUpdatingTemplates}
-        />
-      </div>
-    </main>
+    <FormContainer form={form}>
+      <UserInterfaceContent form={form} />
+    </FormContainer>
   );
 };
 
