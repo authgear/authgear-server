@@ -55,10 +55,12 @@ function effectiveExcludedKeywords(state: FormState) {
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
+  const isLoginIDEnabled =
+    config.authentication?.identities?.includes("login_id") ?? true;
   const types: LoginIDKeyTypeFormState[] = (
     config.identity?.login_id?.keys ?? []
   ).map((k) => ({
-    isEnabled: true,
+    isEnabled: isLoginIDEnabled,
     type: k.type,
   }));
   for (const type of loginIDKeyTypes) {
@@ -96,7 +98,8 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
 function constructConfig(
   config: PortalAPIAppConfig,
   initialState: FormState,
-  currentState: FormState
+  currentState: FormState,
+  effectiveConfig: PortalAPIAppConfig
 ): PortalAPIAppConfig {
   // eslint-disable-next-line complexity
   return produce(config, (config) => {
@@ -186,6 +189,25 @@ function constructConfig(
       ) {
         phoneConfig.pinned_list = currentState.phone.pinned_list;
       }
+    }
+
+    function hasLoginIDTypes(s: FormState) {
+      return s.types.some((t) => t.isEnabled);
+    }
+    if (hasLoginIDTypes(initialState) !== hasLoginIDTypes(currentState)) {
+      const identities = (
+        effectiveConfig.authentication?.identities ?? []
+      ).slice();
+      const index = identities.indexOf("login_id");
+      const isEnabled = hasLoginIDTypes(currentState);
+
+      if (isEnabled && index === -1) {
+        identities.push("login_id");
+      } else if (!isEnabled && index >= 0) {
+        identities.splice(index, 1);
+      }
+      config.authentication ??= {};
+      config.authentication.identities = identities;
     }
 
     clearEmptyObject(config);

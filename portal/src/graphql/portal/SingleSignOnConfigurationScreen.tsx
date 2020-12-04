@@ -63,8 +63,11 @@ function constructFormState(
   }
 
   const isEnabled = {} as Record<OAuthSSOProviderType, boolean>;
+  const isOAuthEnabled =
+    appConfig.authentication?.identities?.includes("oauth") ?? true;
   for (const type of oauthSSOProviderTypes) {
-    isEnabled[type] = providers.some((p) => p.config.type === type);
+    isEnabled[type] =
+      isOAuthEnabled && providers.some((p) => p.config.type === type);
   }
 
   return { providers, isEnabled };
@@ -73,9 +76,11 @@ function constructFormState(
 function constructConfig(
   config: PortalAPIAppConfig,
   secrets: PortalAPISecretConfig,
-  _initialState: FormState,
-  currentState: FormState
+  initialState: FormState,
+  currentState: FormState,
+  effectiveConfig: PortalAPIAppConfig
 ): [PortalAPIAppConfig, PortalAPISecretConfig] {
+  // eslint-disable-next-line complexity
   return produce([config, secrets], ([config, { secrets }]) => {
     const providers = currentState.providers.filter(
       (p) => currentState.isEnabled[p.config.type]
@@ -106,6 +111,25 @@ function constructConfig(
       secrets[secretIndex] = secretItem;
     } else {
       secrets.push(secretItem);
+    }
+
+    function hasOAuthProviders(s: FormState) {
+      return Object.values(s.isEnabled).some(Boolean);
+    }
+    if (hasOAuthProviders(initialState) !== hasOAuthProviders(currentState)) {
+      const identities = (
+        effectiveConfig.authentication?.identities ?? []
+      ).slice();
+      const index = identities.indexOf("oauth");
+      const isEnabled = hasOAuthProviders(currentState);
+
+      if (isEnabled && index === -1) {
+        identities.push("oauth");
+      } else if (!isEnabled && index >= 0) {
+        identities.splice(index, 1);
+      }
+      config.authentication ??= {};
+      config.authentication.identities = identities;
     }
 
     clearEmptyObject(config);
