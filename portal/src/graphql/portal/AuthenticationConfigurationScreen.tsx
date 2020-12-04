@@ -7,7 +7,6 @@ import { FormattedMessage, Context } from "@oursky/react-messageformat";
 
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-import AuthenticationLoginIDSettings from "./AuthenticationLoginIDSettings";
 import AuthenticationAuthenticatorSettings from "./AuthenticationAuthenticatorSettings";
 import { ModifiedIndicatorWrapper } from "../../ModifiedIndicatorPortal";
 
@@ -71,15 +70,7 @@ const AuthenticationScreen: React.FC = function AuthenticationScreen() {
               itemKey={LOGIN_ID_PIVOT_KEY}
               headerText={renderToString("AuthenticationScreen.login-id.title")}
             >
-              <AuthenticationLoginIDSettings
-                key={remountIdentifier}
-                effectiveAppConfig={effectiveAppConfig}
-                rawAppConfig={rawAppConfig}
-                updateAppConfig={updateAppConfig}
-                updatingAppConfig={updatingAppConfig}
-                updateAppConfigError={updateAppConfigError}
-                resetForm={resetForm}
-              />
+              <div />
             </PivotItem>
             <PivotItem
               itemKey={AUTHENTICATOR_PIVOT_KEY}
