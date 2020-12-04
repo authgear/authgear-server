@@ -23,13 +23,15 @@ import OAuthClientConfigurationScreen from "./graphql/portal/OAuthClientConfigur
 import CreateOAuthClientScreen from "./graphql/portal/CreateOAuthClientScreen";
 import EditOAuthClientScreen from "./graphql/portal/EditOAuthClientScreen";
 import UserInterfaceScreen from "./graphql/portal/UserInterfaceScreen";
-import DNSConfigurationScreen from "./graphql/portal/DNSConfigurationScreen";
+import PublicOriginConfigurationScreen from "./graphql/portal/PublicOriginConfigurationScreen";
+import CustomDomainListScreen from "./graphql/portal/CustomDomainListScreen";
 import VerifyDomainScreen from "./graphql/portal/VerifyDomainScreen";
 import ResourceConfigurationScreen from "./graphql/portal/ResourceConfigurationScreen";
 import InviteAdminScreen from "./graphql/portal/InviteAdminScreen";
 import PortalAdminsSettings from "./graphql/portal/PortalAdminsSettings";
 import SessionSettings from "./graphql/portal/SessionSettings";
 import HooksSettings from "./graphql/portal/HooksSettings";
+import CORSConfigurationScreen from "./graphql/portal/CORSConfigurationScreen";
 
 const AppRoot: React.FC = function AppRoot() {
   const { appID } = useParams();
@@ -100,15 +102,19 @@ const AppRoot: React.FC = function AppRoot() {
             element={<PasswordsScreen />}
           />
           <Route
-            path="/configuration/oauth-clients"
+            path="/configuration/clients/cors"
+            element={<CORSConfigurationScreen />}
+          />
+          <Route
+            path="/configuration/clients/oauth"
             element={<OAuthClientConfigurationScreen />}
           />
           <Route
-            path="/configuration/oauth-clients/add"
+            path="/configuration/clients/oauth/add"
             element={<CreateOAuthClientScreen />}
           />
           <Route
-            path="/configuration/oauth-clients/:clientID/edit"
+            path="/configuration/clients/oauth/:clientID/edit"
             element={<EditOAuthClientScreen />}
           />
           <Route
@@ -116,11 +122,15 @@ const AppRoot: React.FC = function AppRoot() {
             element={<UserInterfaceScreen />}
           />
           <Route
-            path="/configuration/dns"
-            element={<DNSConfigurationScreen />}
+            path="/configuration/dns/public-origin"
+            element={<PublicOriginConfigurationScreen />}
           />
           <Route
-            path="/configuration/dns/:domainID/verify"
+            path="/configuration/dns/custom-domains"
+            element={<CustomDomainListScreen />}
+          />
+          <Route
+            path="/configuration/dns/custom-domains/:domainID/verify"
             element={<VerifyDomainScreen />}
           />
           <Route

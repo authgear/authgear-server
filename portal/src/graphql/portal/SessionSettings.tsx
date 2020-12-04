@@ -24,16 +24,9 @@ interface FormState {
   idleTimeoutSeconds: number;
 }
 
-const emptyFormState: FormState = {
-  persistentCookie: false,
-  sessionLifetimeSeconds: 0,
-  idleTimeoutEnabled: false,
-  idleTimeoutSeconds: 0,
-};
-
 function constructFormState(config: PortalAPIAppConfig): FormState {
   return {
-    persistentCookie: !(config.session?.cookie_non_persistent ?? true),
+    persistentCookie: !(config.session?.cookie_non_persistent ?? false),
     sessionLifetimeSeconds: config.session?.lifetime_seconds ?? 0,
     idleTimeoutEnabled: config.session?.idle_timeout_enabled ?? false,
     idleTimeoutSeconds: config.session?.idle_timeout_seconds ?? 0,
@@ -174,12 +167,7 @@ const SessionSettingsContent: React.FC<HooksSettingsContentProps> = function Ses
 
 const SessionSettings: React.FC = function SessionSettings() {
   const { appID } = useParams();
-  const form = useAppConfigForm(
-    appID,
-    emptyFormState,
-    constructFormState,
-    constructConfig
-  );
+  const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
   if (form.isLoading) {
     return <ShowLoading />;

@@ -37,6 +37,8 @@ export interface FormContainerProps {
   saveButtonProps?: SaveButtonProps;
   errorParseRules?: GenericErrorHandlingRule[];
   fallbackErrorMessageId?: string;
+  farItems?: ICommandBarItemProps[];
+  messageBar?: React.ReactNode;
 }
 
 const FormContainer: React.FC<FormContainerProps> = function FormContainer(
@@ -48,6 +50,8 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
     saveButtonProps = { labelId: "save", iconName: "Save" },
     errorParseRules = [],
     fallbackErrorMessageId = "generic-error.unknown-error",
+    farItems,
+    messageBar: propsMessageBar,
   } = props;
 
   const { themes } = useSystemConfig();
@@ -73,8 +77,8 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
   }, [reset]);
 
   const disabled = isUpdating || !isDirty;
-  const commandBarItems: ICommandBarItemProps[] = useMemo(
-    () => [
+  const commandBarItems: ICommandBarItemProps[] = useMemo(() => {
+    return [
       {
         key: "save",
         text: renderToString(saveButtonProps.labelId),
@@ -90,9 +94,8 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
         theme: disabled ? themes.main : themes.destructive,
         onClick: () => setIsResetDialogVisible(true),
       },
-    ],
-    [canSave, disabled, save, saveButtonProps, renderToString, themes]
-  );
+    ];
+  }, [canSave, disabled, save, saveButtonProps, renderToString, themes]);
 
   const resetDialogContentProps = useMemo(() => {
     return {
@@ -172,7 +175,8 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
       <CommandBarContainer
         isLoading={isUpdating}
         items={commandBarItems}
-        messageBar={messageBar}
+        farItems={farItems}
+        messageBar={messageBar ?? propsMessageBar}
       >
         <form onSubmit={onFormSubmit}>{props.children}</form>
       </CommandBarContainer>

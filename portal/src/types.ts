@@ -59,7 +59,7 @@ export function isOAuthSSOProviderType(
 }
 
 export interface OAuthSSOProviderConfig {
-  alias?: string;
+  alias: string;
   type: OAuthSSOProviderType;
   client_id?: string;
   tenant?: string;

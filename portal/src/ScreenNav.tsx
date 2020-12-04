@@ -73,13 +73,33 @@ const links: NavLinkProps[] = [
   },
   {
     textKey: "ScreenNav.client-applications",
-    url: "configuration/oauth-clients",
+    url: "configuration/clients",
     iconName: "Devices3",
+    children: [
+      {
+        textKey: "CORSConfigurationScreen.title",
+        url: "configuration/clients/cors",
+      },
+      {
+        textKey: "OAuthClientConfigurationScreen.title",
+        url: "configuration/clients/oauth",
+      },
+    ],
   },
   {
     textKey: "ScreenNav.dns",
     url: "configuration/dns",
     iconName: "ServerProcesses",
+    children: [
+      {
+        textKey: "PublicOriginConfigurationScreen.title",
+        url: "configuration/dns/public-origin",
+      },
+      {
+        textKey: "CustomDomainListScreen.title",
+        url: "configuration/dns/custom-domains",
+      },
+    ],
   },
   {
     textKey: "ScreenNav.localization-appearance",

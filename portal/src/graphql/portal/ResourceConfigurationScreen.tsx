@@ -50,8 +50,6 @@ interface ConfigFormState {
   defaultLocale: string;
 }
 
-const defaultConfigFormState: ConfigFormState = { defaultLocale: "en" };
-
 function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
   return { defaultLocale: config.localization?.fallback_language ?? "en" };
 }
@@ -502,7 +500,6 @@ const ResourceConfigurationScreen: React.FC = function ResourceConfigurationScre
 
   const config = useAppConfigForm(
     appID,
-    defaultConfigFormState,
     constructConfigFormState,
     constructConfig
   );

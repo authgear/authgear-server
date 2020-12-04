@@ -1,21 +1,21 @@
 .root {
-  display: flex;
-  flex-direction: column;
-  margin: 5px 15px;
+  padding-top: 40px;
 }
 
-.content {
-  margin: 0 20px 40px;
+.header {
+  margin: 0 32px;
 }
 
-.desc {
+.description {
   display: block;
-  width: 500px;
+  margin: 0 32px 15px;
+  width: 650px;
+  font-size: 13px;
   line-height: 1.3;
-}
 
-.descDomain {
-  font-weight: 800;
+  .domainName {
+    font-weight: 800;
+  }
 }
 
 .dnsRecordListColumn {
@@ -41,5 +41,5 @@
 }
 
 .controlButtons {
-  margin-top: 25px;
+  margin: 25px 32px 0;
 }

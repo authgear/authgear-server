@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
 import deepEqual from "deep-equal";
-import { useAppConfigQuery } from "../graphql/portal/query/appConfigQuery";
-import { useUpdateAppConfigMutation } from "../graphql/portal/mutations/updateAppConfigMutation";
-import { PortalAPIAppConfig } from "../types";
+import { PortalAPIAppConfig, PortalAPISecretConfig } from "../types";
+import { useAppAndSecretConfigQuery } from "../graphql/portal/query/appAndSecretConfigQuery";
+import { useUpdateAppAndSecretConfigMutation } from "../graphql/portal/mutations/updateAppAndSecretMutation";
 
-export interface AppConfigFormModel<State> {
+export interface AppSecretConfigFormModel<State> {
   isLoading: boolean;
   isUpdating: boolean;
   isDirty: boolean;
@@ -17,54 +17,82 @@ export interface AppConfigFormModel<State> {
   save: () => void;
 }
 
-export type StateConstructor<State> = (config: PortalAPIAppConfig) => State;
+export type StateConstructor<State> = (
+  config: PortalAPIAppConfig,
+  secrets: PortalAPISecretConfig
+) => State;
 export type ConfigConstructor<State> = (
   config: PortalAPIAppConfig,
+  secrets: PortalAPISecretConfig,
   initialState: State,
   currentState: State,
   effectiveConfig: PortalAPIAppConfig
-) => PortalAPIAppConfig;
+) => [PortalAPIAppConfig, PortalAPISecretConfig];
 
-export function useAppConfigForm<State>(
+export function useAppSecretConfigForm<State>(
   appID: string,
   constructState: StateConstructor<State>,
   constructConfig: ConfigConstructor<State>
-): AppConfigFormModel<State> {
+): AppSecretConfigFormModel<State> {
   const {
     loading: isLoading,
     error: loadError,
+    rawAppConfig,
     effectiveAppConfig,
-    rawAppConfig: rawConfig,
+    secretConfig,
     refetch: reload,
-  } = useAppConfigQuery(appID);
+  } = useAppAndSecretConfigQuery(appID);
   const {
     loading: isUpdating,
     error: updateError,
-    updateAppConfig: updateConfig,
+    updateAppAndSecretConfig: updateConfig,
     resetError,
-  } = useUpdateAppConfigMutation(appID);
+  } = useUpdateAppAndSecretConfigMutation(appID);
 
   const effectiveConfig = useMemo(() => effectiveAppConfig ?? { id: appID }, [
     effectiveAppConfig,
     appID,
   ]);
+  const secrets = useMemo(() => secretConfig ?? { secrets: [] }, [
+    secretConfig,
+  ]);
 
-  const initialState = useMemo(() => constructState(effectiveConfig), [
+  const initialState = useMemo(() => constructState(effectiveConfig, secrets), [
     effectiveConfig,
+    secrets,
     constructState,
   ]);
   const [currentState, setCurrentState] = useState<State | null>(null);
 
   const isDirty = useMemo(() => {
-    if (!rawConfig || !currentState) {
+    if (!rawAppConfig || !currentState) {
       return false;
     }
     return !deepEqual(
-      constructConfig(rawConfig, initialState, initialState, effectiveConfig),
-      constructConfig(rawConfig, initialState, currentState, effectiveConfig),
+      constructConfig(
+        rawAppConfig,
+        secrets,
+        initialState,
+        initialState,
+        effectiveConfig
+      ),
+      constructConfig(
+        rawAppConfig,
+        secrets,
+        initialState,
+        currentState,
+        effectiveConfig
+      ),
       { strict: true }
     );
-  }, [constructConfig, rawConfig, initialState, currentState, effectiveConfig]);
+  }, [
+    constructConfig,
+    rawAppConfig,
+    secrets,
+    effectiveConfig,
+    initialState,
+    currentState,
+  ]);
 
   const reset = useCallback(() => {
     if (isUpdating) {
@@ -75,26 +103,28 @@ export function useAppConfigForm<State>(
   }, [isUpdating, resetError]);
 
   const save = useCallback(() => {
-    if (!rawConfig || !initialState || !currentState) {
+    if (!rawAppConfig || !currentState) {
       return;
     } else if (!isDirty || isUpdating) {
       return;
     }
 
     const newConfig = constructConfig(
-      rawConfig,
+      rawAppConfig,
+      secrets,
       initialState,
       currentState,
       effectiveConfig
     );
-    updateConfig(newConfig)
+    updateConfig(newConfig[0], newConfig[1])
       .then(() => setCurrentState(null))
       .catch(() => {});
   }, [
     isDirty,
     isUpdating,
     constructConfig,
-    rawConfig,
+    rawAppConfig,
+    secrets,
     effectiveConfig,
     initialState,
     currentState,
