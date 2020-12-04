@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -134,6 +135,15 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 	var skipInput interface{ SkipVerification() bool }
 	if interaction.Input(rawInput, &skipInput) && skipInput.SkipVerification() {
 		// Skip verification of OOB target
+		return &NodeCreateAuthenticatorOOB{Stage: e.Stage, Authenticator: info}, nil
+	}
+
+	aStatus, err := ctx.Verification.GetAuthenticatorVerificationStatus(info)
+	if err != nil {
+		return nil, err
+	}
+
+	if aStatus == verification.AuthenticatorStatusVerified {
 		return &NodeCreateAuthenticatorOOB{Stage: e.Stage, Authenticator: info}, nil
 	}
 
