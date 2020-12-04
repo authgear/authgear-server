@@ -244,16 +244,7 @@ func (s *Service) CreateNewCode(id string, info *identity.Info) (*Code, error) {
 
 	loginIDType := config.LoginIDKeyType(info.Claims[identity.IdentityClaimLoginIDType].(string))
 
-	var code string
-	switch loginIDType {
-	case config.LoginIDKeyTypeEmail:
-		code = otp.FormatComplex.Generate()
-	case config.LoginIDKeyTypePhone:
-		code = otp.FormatNumeric.Generate()
-	default:
-		panic("verification: unsupported login ID type: " + loginIDType)
-	}
-
+	code := otp.FormatNumeric.Generate()
 	codeModel := &Code{
 		ID:           id,
 		UserID:       info.UserID,
