@@ -15,7 +15,6 @@ import AddPhoneScreen from "./graphql/adminapi/AddPhoneScreen";
 import AddUsernameScreen from "./graphql/adminapi/AddUsernameScreen";
 import ResetPasswordScreen from "./graphql/adminapi/ResetPasswordScreen";
 
-import AuthenticationConfigurationScreen from "./graphql/portal/AuthenticationConfigurationScreen";
 import AnonymousUsersConfigurationScreen from "./graphql/portal/AnonymousUsersConfigurationScreen";
 import SingleSignOnConfigurationScreen from "./graphql/portal/SingleSignOnConfigurationScreen";
 import PasswordsScreen from "./graphql/portal/PasswordsScreen";
@@ -33,6 +32,7 @@ import SessionSettings from "./graphql/portal/SessionSettings";
 import HooksSettings from "./graphql/portal/HooksSettings";
 import CORSConfigurationScreen from "./graphql/portal/CORSConfigurationScreen";
 import AuthenticationLoginIDSettingsScreen from "./graphql/portal/AuthenticationLoginIDSettings";
+import AuthenticationAuthenticatorSettingsScreen from "./graphql/portal/AuthenticationAuthenticatorSettings";
 
 const AppRoot: React.FC = function AppRoot() {
   const { appID } = useParams();
@@ -87,12 +87,12 @@ const AppRoot: React.FC = function AppRoot() {
             element={<ResetPasswordScreen />}
           />
           <Route
-            path="/configuration/authentication/"
-            element={<AuthenticationConfigurationScreen />}
-          />
-          <Route
             path="/configuration/authentication/login-id"
             element={<AuthenticationLoginIDSettingsScreen />}
+          />
+          <Route
+            path="/configuration/authentication/authenticators"
+            element={<AuthenticationAuthenticatorSettingsScreen />}
           />
           <Route
             path="/configuration/anonymous-users"
