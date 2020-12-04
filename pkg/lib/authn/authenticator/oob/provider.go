@@ -74,19 +74,6 @@ func (p *Provider) Create(a *Authenticator) error {
 	return p.Store.Create(a)
 }
 
-func (p *Provider) getOTPOpts(channel authn.AuthenticatorOOBChannel) otp.ValidateOpts {
-	var digits int
-	switch channel {
-	case authn.AuthenticatorOOBChannelEmail:
-		digits = p.Config.Email.CodeDigits
-	case authn.AuthenticatorOOBChannelSMS:
-		digits = p.Config.SMS.CodeDigits
-	default:
-		panic("oob: unknown channel type: " + channel)
-	}
-	return otp.ValidateOptsOOBTOTP(digits)
-}
-
 func (p *Provider) GetCode(authenticatorID string) (*Code, error) {
 	return p.CodeStore.Get(authenticatorID)
 }

@@ -274,11 +274,9 @@ configuration.
 authenticator:
   oob_otp:
     sms:
-      code_digits: 4      # OTP digits defaults to 6
       message:
         sender: "+85200000000"
     email:
-      code_digits: 8      # OTP digits defaults to 6
       message:
         sender: "no-reply@example.com"
 ```

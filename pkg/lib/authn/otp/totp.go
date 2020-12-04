@@ -32,15 +32,6 @@ var ValidateOptsTOTP = ValidateOpts{
 	Algorithm: otp.AlgorithmSHA1,
 }
 
-func ValidateOptsOOBTOTP(digits int) ValidateOpts {
-	return ValidateOpts{
-		Period:    5 * 60,
-		Skew:      0,
-		Digits:    otp.Digits(digits),
-		Algorithm: otp.AlgorithmSHA1,
-	}
-}
-
 // GenerateTOTPSecret generates random TOTP secret encoded in Base32 without Padding.
 func GenerateTOTPSecret() (string, error) {
 	// https://tools.ietf.org/html/rfc4226#section-4

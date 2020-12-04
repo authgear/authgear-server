@@ -289,12 +289,10 @@ authenticator:
     sms:
       maximum: 99
       message: {}
-      code_digits: 6
     email:
       maximum: 99
       message:
         subject: Email Verification Instruction
-      code_digits: 6
 forgot_password:
   enabled: true
   email_message:
