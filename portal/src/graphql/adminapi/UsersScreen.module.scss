@@ -4,10 +4,16 @@
   min-height: 100%;
 }
 
-.usersList {
+.content {
   flex: 1 0 0%;
+  display: flex;
+  flex-direction: column;
 }
 
-.commandBar {
-  border-bottom: 1px solid #edebe9;
+.title {
+  margin: 0 32px;
+}
+
+.usersList {
+  flex: 1 0 0%;
 }

@@ -1,33 +1,26 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import cn from "classnames";
-import {
-  CommandBar,
-  CommandButton,
-  ICommandBarItemProps,
-} from "@fluentui/react";
-
+import { CommandButton, ICommandBarItemProps } from "@fluentui/react";
 import { Context } from "@oursky/react-messageformat";
 import { useSystemConfig } from "../../context/SystemConfigContext";
-
-import styles from "./UserDetailCommandBar.module.scss";
 import SetUserDisabledDialog from "./SetUserDisabledDialog";
 import { extractUserInfoFromIdentities, Identity } from "../../util/user";
 import DeleteUserDialog from "./DeleteUserDialog";
 import { useNavigate } from "react-router-dom";
+import CommandBarContainer from "../../CommandBarContainer";
 
 interface CommandBarUser {
   id: string;
   isDisabled: boolean;
 }
 
-interface UserDetailCommandBarProps {
+interface UserDetailCommandBarContainerProps {
   className?: string;
   user: CommandBarUser | null;
   identities: Identity[];
 }
 
-const UserDetailCommandBar: React.FC<UserDetailCommandBarProps> = function UserDetailCommandBar(
-  props: UserDetailCommandBarProps
+const UserDetailCommandBarContainer: React.FC<UserDetailCommandBarContainerProps> = function UserDetailCommandBarContainer(
+  props
 ) {
   const { className, user, identities } = props;
   const { renderToString } = useContext(Context);
@@ -133,12 +126,8 @@ const UserDetailCommandBar: React.FC<UserDetailCommandBarProps> = function UserD
   }, [user, identities, renderToString, themes.destructive]);
 
   return (
-    <>
-      <CommandBar
-        className={cn(styles.commandBar, className)}
-        items={[]}
-        farItems={commandBarItems}
-      />
+    <CommandBarContainer className={className} farItems={commandBarItems}>
+      {props.children}
       {disableUserDialogData != null && (
         <SetUserDisabledDialog
           isHidden={isDisableUserDialogHidden}
@@ -153,8 +142,8 @@ const UserDetailCommandBar: React.FC<UserDetailCommandBarProps> = function UserD
           {...deleteUserDialogData}
         />
       )}
-    </>
+    </CommandBarContainer>
   );
 };
 
-export default UserDetailCommandBar;
+export default UserDetailCommandBarContainer;
