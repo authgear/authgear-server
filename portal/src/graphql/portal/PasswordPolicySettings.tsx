@@ -1,336 +1,261 @@
-import React, { useMemo, useContext, useState, useCallback } from "react";
-import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import React, { useCallback, useContext, useMemo } from "react";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import {
-  TextField,
   Checkbox,
   Dropdown,
   IDropdownOption,
-  TagPicker,
-  Label,
   ITag,
+  Label,
+  TagPicker,
+  TextField,
 } from "@fluentui/react";
-import cn from "classnames";
 import deepEqual from "deep-equal";
 import produce from "immer";
 
 import ToggleWithContent from "../../ToggleWithContent";
-import ButtonWithLoading from "../../ButtonWithLoading";
-import NavigationBlockerDialog from "../../NavigationBlockerDialog";
-import { ModifiedIndicatorPortal } from "../../ModifiedIndicatorPortal";
+import { clearEmptyObject } from "../../util/misc";
 import {
-  setNumericFieldIfChanged,
-  setFieldIfChanged,
-  setFieldIfListNonEmpty,
-  isArrayEqualInOrder,
-  clearEmptyObject,
-} from "../../util/misc";
-import {
-  PortalAPIAppConfig,
-  PortalAPIApp,
-  PasswordPolicyGuessableLevel,
-  passwordPolicyGuessableLevels,
   isPasswordPolicyGuessableLevel,
+  PasswordPolicyConfig,
+  passwordPolicyGuessableLevels,
+  PortalAPIAppConfig,
 } from "../../types";
+import { useParams } from "react-router-dom";
+import {
+  AppConfigFormModel,
+  useAppConfigForm,
+} from "../../hook/useAppConfigForm";
+import ShowLoading from "../../ShowLoading";
+import ShowError from "../../ShowError";
+import FormContainer from "../../FormContainer";
+import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
 import styles from "./PasswordPolicySettings.module.scss";
 
-interface PasswordPolicySettingsProps {
-  className?: string;
-  effectiveAppConfig: PortalAPIAppConfig | null;
-  rawAppConfig: PortalAPIAppConfig | null;
-  updateAppConfig: (
-    appConfig: PortalAPIAppConfig
-  ) => Promise<PortalAPIApp | null>;
-  updatingAppConfig: boolean;
-  resetForm: () => void;
+interface FormState {
+  policy: Required<PasswordPolicyConfig>;
+  isPreventPasswordReuseEnabled: boolean;
 }
 
-interface PasswordPolicySettingsState {
-  minLength: string;
-  isDigitRequired: boolean;
-  isLowercaseRequired: boolean;
-  isUppercaseRequired: boolean;
-  isSymbolRequired: boolean;
-  minGuessableLevel: PasswordPolicyGuessableLevel;
-  preventReuse: boolean;
-  historyDays: string;
-  historySize: string;
-  excludedKeywords: string[];
-}
-
-function constructStateFromAppConfig(
-  appConfig: PortalAPIAppConfig | null
-): PasswordPolicySettingsState {
-  const passwordPolicy = appConfig?.authenticator?.password?.policy;
-  const historyDaysConfig = passwordPolicy?.history_days;
-  const historySizeConfig = passwordPolicy?.history_size;
-
+function constructFormState(config: PortalAPIAppConfig): FormState {
+  const policy: Required<PasswordPolicyConfig> = {
+    min_length: 1,
+    uppercase_required: false,
+    lowercase_required: false,
+    digit_required: false,
+    symbol_required: false,
+    minimum_guessable_level: 0,
+    excluded_keywords: [],
+    history_size: 0,
+    history_days: 0,
+    ...config.authenticator?.password?.policy,
+  };
   return {
-    minLength: passwordPolicy?.min_length?.toString() ?? "",
-    isDigitRequired: !!passwordPolicy?.digit_required,
-    isLowercaseRequired: !!passwordPolicy?.lowercase_required,
-    isUppercaseRequired: !!passwordPolicy?.uppercase_required,
-    isSymbolRequired: !!passwordPolicy?.symbol_required,
-    minGuessableLevel: passwordPolicy?.minimum_guessable_level ?? 0,
-    preventReuse: historyDaysConfig != null || historySizeConfig != null,
-    historyDays: historyDaysConfig?.toString() ?? "",
-    historySize: historySizeConfig?.toString() ?? "",
-    excludedKeywords: passwordPolicy?.excluded_keywords ?? [],
+    policy,
+    isPreventPasswordReuseEnabled:
+      policy.history_days > 0 || policy.history_size > 0,
   };
 }
 
-function constructAppConfigFromState(
-  rawAppConfig: PortalAPIAppConfig,
-  initialScreenState: PasswordPolicySettingsState,
-  screenState: PasswordPolicySettingsState
+function constructConfig(
+  config: PortalAPIAppConfig,
+  initialState: FormState,
+  currentState: FormState
 ): PortalAPIAppConfig {
-  const newAppConfig = produce(rawAppConfig, (draftConfig) => {
-    draftConfig.authenticator = draftConfig.authenticator ?? {};
-    draftConfig.authenticator.password =
-      draftConfig.authenticator.password ?? {};
-    draftConfig.authenticator.password.policy =
-      draftConfig.authenticator.password.policy ?? {};
+  return produce(config, (config) => {
+    config.authenticator ??= {};
+    config.authenticator.password ??= {};
+    config.authenticator.password.policy ??= {};
+    const policy = config.authenticator.password.policy;
+    const initial = initialState.policy;
+    const current = currentState.policy;
 
-    const passwordPolicy = draftConfig.authenticator.password.policy;
-
-    setNumericFieldIfChanged(
-      passwordPolicy,
-      "min_length",
-      initialScreenState.minLength,
-      screenState.minLength
-    );
-
-    setFieldIfChanged(
-      passwordPolicy,
-      "digit_required",
-      initialScreenState.isDigitRequired,
-      screenState.isDigitRequired
-    );
-
-    setFieldIfChanged(
-      passwordPolicy,
-      "lowercase_required",
-      initialScreenState.isLowercaseRequired,
-      screenState.isLowercaseRequired
-    );
-
-    setFieldIfChanged(
-      passwordPolicy,
-      "uppercase_required",
-      initialScreenState.isUppercaseRequired,
-      screenState.isUppercaseRequired
-    );
-
-    setFieldIfChanged(
-      passwordPolicy,
-      "symbol_required",
-      initialScreenState.isSymbolRequired,
-      screenState.isSymbolRequired
-    );
-
-    setFieldIfChanged(
-      passwordPolicy,
-      "minimum_guessable_level",
-      initialScreenState.minGuessableLevel,
-      screenState.minGuessableLevel
-    );
-
-    setNumericFieldIfChanged(
-      passwordPolicy,
-      "history_days",
-      initialScreenState.historyDays,
-      screenState.historyDays
-    );
-
-    setNumericFieldIfChanged(
-      passwordPolicy,
-      "history_size",
-      initialScreenState.historySize,
-      screenState.historySize
-    );
-
+    if (initial.min_length !== current.min_length) {
+      policy.min_length = current.min_length;
+    }
+    if (initial.uppercase_required !== current.uppercase_required) {
+      policy.uppercase_required = current.uppercase_required;
+    }
+    if (initial.lowercase_required !== current.lowercase_required) {
+      policy.lowercase_required = current.lowercase_required;
+    }
+    if (initial.digit_required !== current.digit_required) {
+      policy.digit_required = current.digit_required;
+    }
+    if (initial.symbol_required !== current.symbol_required) {
+      policy.symbol_required = current.symbol_required;
+    }
+    if (initial.minimum_guessable_level !== current.minimum_guessable_level) {
+      policy.minimum_guessable_level = current.minimum_guessable_level;
+    }
     if (
-      !isArrayEqualInOrder(
-        initialScreenState.excludedKeywords,
-        screenState.excludedKeywords
-      )
+      !deepEqual(initial.excluded_keywords, current.excluded_keywords, {
+        strict: true,
+      })
     ) {
-      setFieldIfListNonEmpty(
-        passwordPolicy,
-        "excluded_keywords",
-        screenState.excludedKeywords
-      );
+      policy.excluded_keywords = current.excluded_keywords;
     }
 
-    clearEmptyObject(draftConfig);
-  });
+    function effectiveHistorySize(s: FormState) {
+      return s.isPreventPasswordReuseEnabled ? s.policy.history_size : 0;
+    }
 
-  return newAppConfig;
+    function effectiveHistoryDays(s: FormState) {
+      return s.isPreventPasswordReuseEnabled ? s.policy.history_days : 0;
+    }
+
+    if (
+      effectiveHistorySize(initialState) !== effectiveHistorySize(currentState)
+    ) {
+      policy.history_size = effectiveHistorySize(currentState);
+    }
+    if (
+      effectiveHistoryDays(initialState) !== effectiveHistoryDays(currentState)
+    ) {
+      policy.history_days = effectiveHistoryDays(currentState);
+    }
+
+    clearEmptyObject(config);
+  });
 }
 
-const PasswordPolicySettings: React.FC<PasswordPolicySettingsProps> = function PasswordPolicySettings(
+interface PasswordPolicySettingsContentProps {
+  form: AppConfigFormModel<FormState>;
+}
+
+const PasswordPolicySettingsContent: React.FC<PasswordPolicySettingsContentProps> = function PasswordPolicySettingsContent(
   props
 ) {
-  const {
-    className,
-    effectiveAppConfig,
-    rawAppConfig,
-    updateAppConfig,
-    updatingAppConfig,
-    resetForm,
-  } = props;
+  const { state, setState } = props.form;
 
   const { renderToString } = useContext(Context);
 
-  const initialState = useMemo(() => {
-    return constructStateFromAppConfig(effectiveAppConfig);
-  }, [effectiveAppConfig]);
-
-  const [state, setState] = useState(initialState);
-
-  const isFormModified = useMemo(() => {
-    return !deepEqual(
-      // Exclude preventReuse
-      { ...initialState, preventReuse: undefined },
-      { ...state, preventReuse: undefined },
-      { strict: true }
-    );
-  }, [initialState, state]);
+  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
+    return [
+      {
+        to: ".",
+        label: <FormattedMessage id="PasswordPolicySettingsScreen.title" />,
+      },
+    ];
+  }, []);
 
   const minGuessableLevelOptions: IDropdownOption[] = useMemo(() => {
     return passwordPolicyGuessableLevels.map((level) => ({
       key: level,
       text: renderToString(
-        `PasswordsScreen.password-policy.min-guessable-level.${level}`
+        `PasswordPolicySettingsScreen.min-guessable-level.${level}`
       ),
-      isSelected: level === state.minGuessableLevel,
+      isSelected: level === state.policy.minimum_guessable_level,
     }));
-  }, [state.minGuessableLevel, renderToString]);
+  }, [state.policy.minimum_guessable_level, renderToString]);
 
   const defaultSelectedExcludedKeywordItems: ITag[] = useMemo(() => {
-    return state.excludedKeywords.map((keyword) => ({
+    return state.policy.excluded_keywords.map((keyword) => ({
       key: keyword,
       name: keyword,
     }));
-  }, [state.excludedKeywords]);
+  }, [state.policy.excluded_keywords]);
 
-  const onMinLengthChange = useCallback((_event, value?: string) => {
-    if (value === undefined) {
-      return;
-    }
-    // empty string parse to NaN
-    setState((state) => ({
-      ...state,
-      minLength: value,
-    }));
-  }, []);
-
-  const onIsDigitRequiredChange = useCallback((_event, checked?: boolean) => {
-    setState((state) => ({
-      ...state,
-      isDigitRequired: !!checked,
-    }));
-  }, []);
-
-  const onIsLowercaseRequiredChange = useCallback(
-    (_event, checked?: boolean) => {
+  const setPolicy = useCallback(
+    (policy: PasswordPolicyConfig) =>
       setState((state) => ({
         ...state,
-        isLowercaseRequired: !!checked,
-      }));
-    },
-    []
+        policy: { ...state.policy, ...policy },
+      })),
+    [setState]
   );
 
-  const onIsUppercaseRequiredChange = useCallback(
-    (_event, checked?: boolean) => {
-      setState((state) => ({
-        ...state,
-        isUppercaseRequired: !!checked,
-      }));
-    },
-    []
+  const onMinLengthChange = useCallback(
+    (_, value?: string) =>
+      setPolicy({
+        min_length: Number(value),
+      }),
+    [setPolicy]
   );
 
-  const onIsSymbolRequiredChange = useCallback((_event, checked?: boolean) => {
-    setState((state) => ({
-      ...state,
-      isSymbolRequired: !!checked,
-    }));
-  }, []);
+  const onUppercaseRequiredChange = useCallback(
+    (_, value?: boolean) =>
+      setPolicy({
+        uppercase_required: value ?? false,
+      }),
+    [setPolicy]
+  );
 
-  const onMinGuessableLevelOptionChange = useCallback(
-    (_event, option?: IDropdownOption) => {
-      if (option != null && isPasswordPolicyGuessableLevel(option.key)) {
+  const onLowercaseRequiredChange = useCallback(
+    (_, value?: boolean) =>
+      setPolicy({
+        lowercase_required: value ?? false,
+      }),
+    [setPolicy]
+  );
+
+  const onDigitRequiredChange = useCallback(
+    (_, value?: boolean) =>
+      setPolicy({
+        digit_required: value ?? false,
+      }),
+    [setPolicy]
+  );
+
+  const onSymbolRequiredChange = useCallback(
+    (_, value?: boolean) =>
+      setPolicy({
+        symbol_required: value ?? false,
+      }),
+    [setPolicy]
+  );
+
+  const onMinimumGuessableLevelChange = useCallback(
+    (_, option?: IDropdownOption) => {
+      const key = option?.key;
+      if (!isPasswordPolicyGuessableLevel(key)) {
+        return;
+      }
+      setPolicy({ minimum_guessable_level: key });
+    },
+    [setPolicy]
+  );
+
+  const onPreventReuseChange = useCallback(
+    (_, checked?: boolean) => {
+      if (checked == null) {
+        return;
+      }
+      if (checked) {
         setState((state) => ({
-          ...state,
-          minGuessableLevel: option.key as PasswordPolicyGuessableLevel,
+          isPreventPasswordReuseEnabled: true,
+          policy: {
+            ...state.policy,
+            history_days:
+              state.policy.history_days === 0 ? 90 : state.policy.history_days,
+            history_size:
+              state.policy.history_size === 0 ? 3 : state.policy.history_size,
+          },
+        }));
+      } else {
+        setState((state) => ({
+          isPreventPasswordReuseEnabled: false,
+          policy: state.policy,
         }));
       }
     },
-    []
+    [setState]
   );
 
-  const onPreventReuseChange = useCallback((_event, checked?: boolean) => {
-    if (checked === undefined) {
-      return;
-    }
-    if (checked) {
-      setState((state) => ({
-        ...state,
-        preventReuse: true,
-        historyDays: "90",
-        historySize: "3",
-      }));
-    } else {
-      setState((state) => ({
-        ...state,
-        preventReuse: false,
-        historyDays: "",
-        historySize: "",
-      }));
-    }
-  }, []);
+  const onHistoryDaysChange = useCallback(
+    (_, value?: string) =>
+      setPolicy({
+        history_days: Number(value),
+      }),
+    [setPolicy]
+  );
 
-  const onHistoryDaysChange = useCallback((_event, value?: string) => {
-    if (value === undefined) {
-      return;
-    }
-    setState((state) => ({
-      ...state,
-      historyDays: value,
-    }));
-  }, []);
-
-  const onHistorySizeChange = useCallback((_event, value?: string) => {
-    if (value === undefined) {
-      return;
-    }
-    setState((state) => ({
-      ...state,
-      historySize: value,
-    }));
-  }, []);
-
-  const onFormSubmit = useCallback(
-    (ev: React.SyntheticEvent<HTMLElement>) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-
-      if (rawAppConfig == null) {
-        return;
-      }
-
-      const newAppConfig = constructAppConfigFromState(
-        rawAppConfig,
-        initialState,
-        state
-      );
-
-      // TODO: handle error
-      updateAppConfig(newAppConfig).catch(() => {});
-    },
-    [state, rawAppConfig, updateAppConfig, initialState]
+  const onHistorySizeChange = useCallback(
+    (_, value?: string) =>
+      setPolicy({
+        history_size: Number(value),
+      }),
+    [setPolicy]
   );
 
   const onResolveExcludedKeywordSuggestions = useCallback(
@@ -340,95 +265,92 @@ const PasswordPolicySettings: React.FC<PasswordPolicySettingsProps> = function P
     []
   );
 
-  const onExcludedKeywordsChange = useCallback((items?: ITag[]) => {
-    if (items == null) {
-      return;
-    }
-    setState((state) => ({
-      ...state,
-      excludedKeywords: items.map((item) => item.name),
-    }));
-  }, []);
+  const onExcludedKeywordsChange = useCallback(
+    (items?: ITag[]) => {
+      if (items == null) {
+        return;
+      }
+      setPolicy({
+        excluded_keywords: items.map((item) => item.name),
+      });
+    },
+    [setPolicy]
+  );
 
   return (
-    <form className={cn(styles.root, className)} onSubmit={onFormSubmit}>
-      <ModifiedIndicatorPortal
-        resetForm={resetForm}
-        isModified={isFormModified}
-      />
+    <div className={styles.root}>
+      <NavBreadcrumb items={navBreadcrumbItems} />
       <TextField
         className={styles.textField}
         type="number"
         min="1"
         step="1"
-        label={renderToString(
-          "PasswordsScreen.password-policy.min-length.label"
-        )}
-        value={`${state.minLength}`}
+        label={renderToString("PasswordPolicySettingsScreen.min-length.label")}
+        value={String(state.policy.min_length)}
         onChange={onMinLengthChange}
       />
       <Checkbox
         className={styles.checkbox}
         label={renderToString(
-          "PasswordsScreen.password-policy.require-digit.label"
+          "PasswordPolicySettingsScreen.require-digit.label"
         )}
-        checked={state.isDigitRequired}
-        onChange={onIsDigitRequiredChange}
+        checked={state.policy.digit_required}
+        onChange={onDigitRequiredChange}
       />
       <Checkbox
         className={styles.checkbox}
         label={renderToString(
-          "PasswordsScreen.password-policy.require-lowercase.label"
+          "PasswordPolicySettingsScreen.require-lowercase.label"
         )}
-        checked={state.isLowercaseRequired}
-        onChange={onIsLowercaseRequiredChange}
+        checked={state.policy.lowercase_required}
+        onChange={onLowercaseRequiredChange}
       />
       <Checkbox
         className={styles.checkbox}
         label={renderToString(
-          "PasswordsScreen.password-policy.require-uppercase.label"
+          "PasswordPolicySettingsScreen.require-uppercase.label"
         )}
-        checked={state.isUppercaseRequired}
-        onChange={onIsUppercaseRequiredChange}
+        checked={state.policy.uppercase_required}
+        onChange={onUppercaseRequiredChange}
       />
       <Checkbox
         className={styles.checkbox}
         label={renderToString(
-          "PasswordsScreen.password-policy.require-symbol.label"
+          "PasswordPolicySettingsScreen.require-symbol.label"
         )}
-        checked={state.isSymbolRequired}
-        onChange={onIsSymbolRequiredChange}
+        checked={state.policy.symbol_required}
+        onChange={onSymbolRequiredChange}
       />
 
       <Dropdown
         className={styles.dropdown}
         label={renderToString(
-          "PasswordsScreen.password-policy.min-guessable-level.label"
+          "PasswordPolicySettingsScreen.min-guessable-level.label"
         )}
         options={minGuessableLevelOptions}
-        selectedKey={state.minGuessableLevel}
-        onChange={onMinGuessableLevelOptionChange}
+        selectedKey={state.policy.minimum_guessable_level}
+        onChange={onMinimumGuessableLevelChange}
       />
 
       <ToggleWithContent
         className={styles.toggleWithContent}
-        checked={state.preventReuse}
+        checked={state.isPreventPasswordReuseEnabled}
         inlineLabel={true}
         onChange={onPreventReuseChange}
       >
         <Label className={styles.toggleLabel}>
-          <FormattedMessage id="PasswordsScreen.password-policy.prevent-reuse.label" />
+          <FormattedMessage id="PasswordPolicySettingsScreen.prevent-reuse.label" />
         </Label>
         <TextField
           className={styles.textField}
           type="number"
           min="0"
           step="1"
-          disabled={!state.preventReuse}
+          disabled={!state.isPreventPasswordReuseEnabled}
           label={renderToString(
-            "PasswordsScreen.password-policy.history-days.label"
+            "PasswordPolicySettingsScreen.history-days.label"
           )}
-          value={`${state.historyDays}`}
+          value={String(state.policy.history_days)}
           onChange={onHistoryDaysChange}
         />
         <TextField
@@ -436,42 +358,50 @@ const PasswordPolicySettings: React.FC<PasswordPolicySettingsProps> = function P
           type="number"
           min="0"
           step="1"
-          disabled={!state.preventReuse}
+          disabled={!state.isPreventPasswordReuseEnabled}
           label={renderToString(
-            "PasswordsScreen.password-policy.history-size.label"
+            "PasswordPolicySettingsScreen.history-size.label"
           )}
-          value={`${state.historySize}`}
+          value={String(state.policy.history_size)}
           onChange={onHistorySizeChange}
         />
       </ToggleWithContent>
 
       <Label className={styles.tagPickerLabel}>
-        <FormattedMessage id="PasswordsScreen.password-policy.excluded-keywords.label" />
+        <FormattedMessage id="PasswordPolicySettingsScreen.excluded-keywords.label" />
       </Label>
       <TagPicker
         className={styles.tagPicker}
         inputProps={{
           "aria-label": renderToString(
-            "PasswordsScreen.password-policy.excluded-keywords.label"
+            "PasswordPolicySettingsScreen.excluded-keywords.label"
           ),
         }}
         defaultSelectedItems={defaultSelectedExcludedKeywordItems}
         onResolveSuggestions={onResolveExcludedKeywordSuggestions}
         onChange={onExcludedKeywordsChange}
       />
-
-      <div className={styles.saveButtonContainer}>
-        <ButtonWithLoading
-          type="submit"
-          disabled={!isFormModified}
-          loading={updatingAppConfig}
-          labelId="save"
-          loadingLabelId="saving"
-        />
-      </div>
-      <NavigationBlockerDialog blockNavigation={isFormModified} />
-    </form>
+    </div>
   );
 };
 
-export default PasswordPolicySettings;
+const PasswordPolicySettingsScreen: React.FC = function PasswordPolicySettingsScreen() {
+  const { appID } = useParams();
+  const form = useAppConfigForm(appID, constructFormState, constructConfig);
+
+  if (form.isLoading) {
+    return <ShowLoading />;
+  }
+
+  if (form.loadError) {
+    return <ShowError error={form.loadError} onRetry={form.reload} />;
+  }
+
+  return (
+    <FormContainer form={form}>
+      <PasswordPolicySettingsContent form={form} />
+    </FormContainer>
+  );
+};
+
+export default PasswordPolicySettingsScreen;
