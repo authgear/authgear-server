@@ -2,7 +2,6 @@ package oob
 
 import (
 	"errors"
-	"fmt"
 	"sort"
 	"time"
 
@@ -86,23 +85,6 @@ func (p *Provider) getOTPOpts(channel authn.AuthenticatorOOBChannel) otp.Validat
 		panic("oob: unknown channel type: " + channel)
 	}
 	return otp.ValidateOptsOOBTOTP(digits)
-}
-
-func (p *Provider) Authenticate(secret string, channel authn.AuthenticatorOOBChannel, code string) error {
-	ok := otp.ValidateTOTP(secret, code, p.Clock.NowUTC(), p.getOTPOpts(channel))
-	if !ok {
-		return errors.New("invalid OOB code")
-	}
-	return nil
-}
-
-func (p *Provider) GenerateCode(secret string, channel authn.AuthenticatorOOBChannel) string {
-	code, err := otp.GenerateTOTP(secret, p.Clock.NowUTC(), p.getOTPOpts(channel))
-	if err != nil {
-		panic(fmt.Sprintf("oob: cannot generate code: %s", err))
-	}
-
-	return code
 }
 
 func (p *Provider) GetCode(authenticatorID string) (*Code, error) {

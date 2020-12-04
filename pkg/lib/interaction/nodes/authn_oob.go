@@ -26,9 +26,7 @@ func (e *EdgeAuthenticationOOB) Instantiate(ctx *interaction.Context, graph *int
 	}
 
 	info := e.Authenticator
-	err := ctx.Authenticators.VerifySecret(info, map[string]string{
-		authenticator.AuthenticatorStateOOBOTPSecret: e.Secret,
-	}, input.GetOOBOTP())
+	err := ctx.Authenticators.VerifySecret(info, nil, input.GetOOBOTP())
 	if err != nil {
 		info = nil
 	}

@@ -13,7 +13,6 @@ type EdgeOOBResendCode struct {
 	Stage            interaction.AuthenticationStage
 	IsAuthenticating bool
 	Authenticator    *authenticator.Info
-	Secret           string
 }
 
 func (e *EdgeOOBResendCode) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
@@ -22,7 +21,7 @@ func (e *EdgeOOBResendCode) Instantiate(ctx *interaction.Context, graph *interac
 		return nil, interaction.ErrIncompatibleInput
 	}
 
-	_, err := sendOOBCode(ctx, e.Stage, e.IsAuthenticating, e.Authenticator, e.Secret)
+	_, err := sendOOBCode(ctx, e.Stage, e.IsAuthenticating, e.Authenticator)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,8 @@
 package service
 
 import (
+	"errors"
+
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
@@ -41,7 +43,7 @@ type OOBOTPAuthenticatorProvider interface {
 	New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string, isDefault bool, kind string) *oob.Authenticator
 	Create(*oob.Authenticator) error
 	Delete(*oob.Authenticator) error
-	Authenticate(secret string, channel authn.AuthenticatorOOBChannel, code string) error
+	VerifyCode(authenticatorID string, code string) (*oob.Code, error)
 }
 
 type RateLimiter interface {
@@ -330,9 +332,11 @@ func (s *Service) VerifySecret(info *authenticator.Info, state map[string]string
 
 	case authn.AuthenticatorTypeOOB:
 		a := oobotpFromAuthenticatorInfo(info)
-		otpSecret := state[authenticator.AuthenticatorStateOOBOTPSecret]
-		if s.OOBOTP.Authenticate(otpSecret, a.Channel, secret) != nil {
+		_, err := s.OOBOTP.VerifyCode(a.ID, secret)
+		if errors.Is(err, oob.ErrInvalidCode) {
 			return authenticator.ErrInvalidCredentials
+		} else if err != nil {
+			return err
 		}
 		return nil
 	}

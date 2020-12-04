@@ -4,7 +4,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -147,12 +146,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 		return &NodeCreateAuthenticatorOOB{Stage: e.Stage, Authenticator: info}, nil
 	}
 
-	secret, err := otp.GenerateTOTPSecret()
-	if err != nil {
-		return nil, err
-	}
-
-	result, err := sendOOBCode(ctx, e.Stage, false, info, secret)
+	result, err := sendOOBCode(ctx, e.Stage, false, info)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +155,6 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 		Stage:           e.Stage,
 		AllowedChannels: e.AllowedChannels,
 		Authenticator:   info,
-		Secret:          secret,
 		Target:          target,
 		Channel:         result.Channel,
 		CodeLength:      result.CodeLength,
@@ -173,7 +166,6 @@ type NodeCreateAuthenticatorOOBSetup struct {
 	Stage           interaction.AuthenticationStage `json:"stage"`
 	AllowedChannels []authn.AuthenticatorOOBChannel `json:"allowed_channels"`
 	Authenticator   *authenticator.Info             `json:"authenticator"`
-	Secret          string                          `json:"secret"`
 	Target          string                          `json:"target"`
 	Channel         string                          `json:"channel"`
 	CodeLength      int                             `json:"code_length"`
@@ -214,8 +206,7 @@ func (n *NodeCreateAuthenticatorOOBSetup) DeriveEdges(graph *interaction.Graph) 
 			Stage:            n.Stage,
 			IsAuthenticating: false,
 			Authenticator:    n.Authenticator,
-			Secret:           n.Secret,
 		},
-		&EdgeCreateAuthenticatorOOB{Stage: n.Stage, Authenticator: n.Authenticator, Secret: n.Secret},
+		&EdgeCreateAuthenticatorOOB{Stage: n.Stage, Authenticator: n.Authenticator},
 	}, nil
 }

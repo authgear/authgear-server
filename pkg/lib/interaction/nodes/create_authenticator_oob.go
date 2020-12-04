@@ -18,7 +18,6 @@ type InputCreateAuthenticatorOOB interface {
 type EdgeCreateAuthenticatorOOB struct {
 	Stage         interaction.AuthenticationStage
 	Authenticator *authenticator.Info
-	Secret        string
 }
 
 func (e *EdgeCreateAuthenticatorOOB) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
@@ -27,9 +26,7 @@ func (e *EdgeCreateAuthenticatorOOB) Instantiate(ctx *interaction.Context, graph
 		return nil, interaction.ErrIncompatibleInput
 	}
 
-	err := ctx.Authenticators.VerifySecret(e.Authenticator, map[string]string{
-		authenticator.AuthenticatorStateOOBOTPSecret: e.Secret,
-	}, input.GetOOBOTP())
+	err := ctx.Authenticators.VerifySecret(e.Authenticator, nil, input.GetOOBOTP())
 	if errors.Is(err, authenticator.ErrAuthenticatorNotFound) ||
 		errors.Is(err, authenticator.ErrInvalidCredentials) {
 		return nil, interaction.ErrInvalidCredentials
