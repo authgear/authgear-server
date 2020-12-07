@@ -179,18 +179,12 @@ const ManageLanguageWidgetDialog: React.FC<ManageLanguageWidgetDialogProps> = fu
     for (const locale of supportedResourceLocales) {
       items.push({
         locale,
-        checked:
-          templateLocales.includes(locale) || newLocales.includes(locale),
+        checked: newLocales.includes(locale),
         onSelectItem: onAddTemplateLocale,
       });
     }
     return items;
-  }, [
-    onAddTemplateLocale,
-    supportedResourceLocales,
-    templateLocales,
-    newLocales,
-  ]);
+  }, [onAddTemplateLocale, supportedResourceLocales, newLocales]);
 
   const onRemoveTemplateLocale = useCallback((locale: LanguageTag) => {
     setNewLocales((prev) => {
@@ -233,9 +227,8 @@ const ManageLanguageWidgetDialog: React.FC<ManageLanguageWidgetDialogProps> = fu
   );
 
   const onCancel = useCallback(() => {
-    setNewLocales(templateLocales);
     onDismiss();
-  }, [onDismiss, templateLocales]);
+  }, [onDismiss]);
 
   const onApplyClick = useCallback(() => {
     onChangeTemplateLocales(newLocales);
@@ -246,8 +239,11 @@ const ManageLanguageWidgetDialog: React.FC<ManageLanguageWidgetDialogProps> = fu
     return {
       isBlocking: true,
       topOffsetFixed: true,
+      onDismissed: () => {
+        setNewLocales(templateLocales);
+      },
     };
-  }, []);
+  }, [templateLocales]);
 
   return (
     <Dialog
