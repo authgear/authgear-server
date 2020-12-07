@@ -1,7 +1,7 @@
 import React, { useContext, useMemo } from "react";
 import cn from "classnames";
 import zxcvbn from "zxcvbn";
-import { ITextFieldProps, Text, TextField } from "@fluentui/react";
+import { Text } from "@fluentui/react";
 import { Context, FormattedMessage, Values } from "@oursky/react-messageformat";
 
 import PasswordStrengthMeter from "./PasswordStrengthMeter";
@@ -10,11 +10,12 @@ import { GenericErrorHandlingRule } from "./error/useGenericError";
 import { defaultFormatErrorMessageList } from "./util/validation";
 
 import styles from "./PasswordField.module.scss";
+import FormTextField, { FormTextFieldProps } from "./FormTextField";
 
 export type GuessableLevel = 0 | 1 | 2 | 3 | 4 | 5;
 export type GuessableLevelNames = Record<GuessableLevel, string>;
 
-interface PasswordFieldProps extends ITextFieldProps {
+interface PasswordFieldProps extends FormTextFieldProps {
   className?: string;
   textFieldClassName?: string;
   passwordPolicy: PasswordPolicyConfig;
@@ -270,7 +271,7 @@ const PasswordField: React.FC<PasswordFieldProps> = function PasswordField(
   );
   return (
     <div className={className}>
-      <TextField
+      <FormTextField
         {...rest}
         value={password}
         className={textFieldClassName}

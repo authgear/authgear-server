@@ -4,7 +4,7 @@ import { Context } from "@oursky/react-messageformat";
 
 import { useFormField } from "./error/FormFieldContext";
 
-interface FormTextFieldProps extends ITextFieldProps {
+export interface FormTextFieldProps extends ITextFieldProps {
   jsonPointer: RegExp | string;
   parentJSONPointer: RegExp | string;
   fieldName: string;
