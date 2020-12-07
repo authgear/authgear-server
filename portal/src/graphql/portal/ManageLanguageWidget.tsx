@@ -179,18 +179,12 @@ const ManageLanguageWidgetDialog: React.FC<ManageLanguageWidgetDialogProps> = fu
     for (const locale of supportedResourceLocales) {
       items.push({
         locale,
-        checked:
-          templateLocales.includes(locale) || newLocales.includes(locale),
+        checked: newLocales.includes(locale),
         onSelectItem: onAddTemplateLocale,
       });
     }
     return items;
-  }, [
-    onAddTemplateLocale,
-    supportedResourceLocales,
-    templateLocales,
-    newLocales,
-  ]);
+  }, [onAddTemplateLocale, supportedResourceLocales, newLocales]);
 
   const onRemoveTemplateLocale = useCallback((locale: LanguageTag) => {
     setNewLocales((prev) => {
