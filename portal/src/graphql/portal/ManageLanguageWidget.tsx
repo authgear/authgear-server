@@ -227,9 +227,8 @@ const ManageLanguageWidgetDialog: React.FC<ManageLanguageWidgetDialogProps> = fu
   );
 
   const onCancel = useCallback(() => {
-    setNewLocales(templateLocales);
     onDismiss();
-  }, [onDismiss, templateLocales]);
+  }, [onDismiss]);
 
   const onApplyClick = useCallback(() => {
     onChangeTemplateLocales(newLocales);
@@ -240,8 +239,11 @@ const ManageLanguageWidgetDialog: React.FC<ManageLanguageWidgetDialogProps> = fu
     return {
       isBlocking: true,
       topOffsetFixed: true,
+      onDismissed: () => {
+        setNewLocales(templateLocales);
+      },
     };
-  }, []);
+  }, [templateLocales]);
 
   return (
     <Dialog
