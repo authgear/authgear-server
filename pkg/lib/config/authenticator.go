@@ -113,23 +113,18 @@ var _ = Schema.Add("AuthenticatorOOBSMSConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"maximum": { "type": "integer" },
-		"code_digits": { "type": "integer", "minimum": 6, "maximum": 8 }
+		"maximum": { "type": "integer" }
 	}
 }
 `)
 
 type AuthenticatorOOBSMSConfig struct {
-	Maximum    *int `json:"maximum,omitempty"`
-	CodeDigits int  `json:"code_digits,omitempty"`
+	Maximum *int `json:"maximum,omitempty"`
 }
 
 func (c *AuthenticatorOOBSMSConfig) SetDefaults() {
 	if c.Maximum == nil {
 		c.Maximum = newInt(99)
-	}
-	if c.CodeDigits == 0 {
-		c.CodeDigits = 6
 	}
 }
 
@@ -138,22 +133,17 @@ var _ = Schema.Add("AuthenticatorOOBEmailConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"maximum": { "type": "integer" },
-		"code_digits": { "type": "integer", "minimum": 6, "maximum": 8 }
+		"maximum": { "type": "integer" }
 	}
 }
 `)
 
 type AuthenticatorOOBEmailConfig struct {
-	Maximum    *int `json:"maximum,omitempty"`
-	CodeDigits int  `json:"code_digits,omitempty"`
+	Maximum *int `json:"maximum,omitempty"`
 }
 
 func (c *AuthenticatorOOBEmailConfig) SetDefaults() {
 	if c.Maximum == nil {
 		c.Maximum = newInt(99)
-	}
-	if c.CodeDigits == 0 {
-		c.CodeDigits = 6
 	}
 }

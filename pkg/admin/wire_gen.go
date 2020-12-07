@@ -236,13 +236,21 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	redisHandle := appProvider.Redis
+	storeRedis := &oob.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oobLogger := oob.NewLogger(factory)
 	oobProvider := &oob.Provider{
-		Config: authenticatorOOBConfig,
-		Store:  oobStore,
-		Clock:  clockClock,
+		Config:    authenticatorOOBConfig,
+		Store:     oobStore,
+		CodeStore: storeRedis,
+		Clock:     clockClock,
+		Logger:    oobLogger,
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
-	redisHandle := appProvider.Redis
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -264,7 +272,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	storeRedis := &verification.StoreRedis{
+	verificationStoreRedis := &verification.StoreRedis{
 		Redis: redisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -279,7 +287,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Config:      verificationConfig,
 		TrustProxy:  trustProxy,
 		Clock:       clockClock,
-		CodeStore:   storeRedis,
+		CodeStore:   verificationStoreRedis,
 		ClaimStore:  storePQ,
 		RateLimiter: limiter,
 	}

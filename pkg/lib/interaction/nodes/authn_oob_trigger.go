@@ -3,7 +3,6 @@ package nodes
 import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -41,12 +40,7 @@ func (e *EdgeAuthenticationOOBTrigger) Instantiate(ctx *interaction.Context, gra
 	}
 	targetInfo := e.Authenticators[idx]
 
-	secret, err := otp.GenerateTOTPSecret()
-	if err != nil {
-		return nil, err
-	}
-
-	result, err := sendOOBCode(ctx, e.Stage, true, targetInfo, secret)
+	result, err := sendOOBCode(ctx, e.Stage, true, targetInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +48,6 @@ func (e *EdgeAuthenticationOOBTrigger) Instantiate(ctx *interaction.Context, gra
 	return &NodeAuthenticationOOBTrigger{
 		Stage:         e.Stage,
 		Authenticator: targetInfo,
-		Secret:        secret,
 		Target:        result.Target,
 		Channel:       result.Channel,
 		CodeLength:    result.CodeLength,
@@ -65,7 +58,6 @@ func (e *EdgeAuthenticationOOBTrigger) Instantiate(ctx *interaction.Context, gra
 type NodeAuthenticationOOBTrigger struct {
 	Stage         interaction.AuthenticationStage `json:"stage"`
 	Authenticator *authenticator.Info             `json:"authenticator"`
-	Secret        string                          `json:"secret"`
 	Target        string                          `json:"target"`
 	Channel       string                          `json:"channel"`
 	CodeLength    int                             `json:"code_length"`
@@ -106,8 +98,7 @@ func (n *NodeAuthenticationOOBTrigger) DeriveEdges(graph *interaction.Graph) ([]
 			Stage:            n.Stage,
 			IsAuthenticating: true,
 			Authenticator:    n.Authenticator,
-			Secret:           n.Secret,
 		},
-		&EdgeAuthenticationOOB{Stage: n.Stage, Authenticator: n.Authenticator, Secret: n.Secret},
+		&EdgeAuthenticationOOB{Stage: n.Stage, Authenticator: n.Authenticator},
 	}, nil
 }

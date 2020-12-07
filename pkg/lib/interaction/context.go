@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
@@ -50,7 +51,8 @@ type AuthenticatorService interface {
 }
 
 type OOBAuthenticatorProvider interface {
-	GenerateCode(secret string, channel authn.AuthenticatorOOBChannel) string
+	GetCode(authenticatorID string) (*oob.Code, error)
+	CreateCode(authenticatorID string) (*oob.Code, error)
 }
 
 type OOBCodeSender interface {

@@ -1,8 +1,11 @@
 package nodes
 
 import (
+	"errors"
+
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -37,7 +40,6 @@ func sendOOBCode(
 	stage interaction.AuthenticationStage,
 	isAuthenticating bool,
 	authenticatorInfo *authenticator.Info,
-	secret string,
 ) (*otp.CodeSendResult, error) {
 	// TODO(interaction): handle rate limits
 
@@ -69,8 +71,21 @@ func sendOOBCode(
 		target = authenticatorInfo.Claims[authenticator.AuthenticatorClaimOOBOTPEmail].(string)
 	}
 
-	code := ctx.OOBAuthenticators.GenerateCode(secret, channel)
-	return ctx.OOBCodeSender.SendCode(channel, target, code, messageType)
+	code, err := ctx.OOBAuthenticators.GetCode(authenticatorInfo.ID)
+	if errors.Is(err, oob.ErrCodeNotFound) {
+		code = nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	if code == nil || ctx.Clock.NowUTC().After(code.ExpireAt) {
+		code, err = ctx.OOBAuthenticators.CreateCode(authenticatorInfo.ID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return ctx.OOBCodeSender.SendCode(channel, target, code.Code, messageType)
 }
 
 func stageToAuthenticatorKind(stage interaction.AuthenticationStage) authenticator.Kind {
