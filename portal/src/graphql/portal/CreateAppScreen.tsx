@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FormattedMessage } from "@oursky/react-messageformat";
-import { Label, PrimaryButton, Text, TextField } from "@fluentui/react";
+import { Label, Text, TextField } from "@fluentui/react";
 import ShowError from "../../ShowError";
 import ScreenHeader from "../../ScreenHeader";
 import NavBreadcrumb from "../../NavBreadcrumb";
@@ -11,6 +11,7 @@ import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useGenericError } from "../../error/useGenericError";
 
 import styles from "./CreateAppScreen.module.scss";
+import ButtonWithLoading from "../../ButtonWithLoading";
 
 interface CreateAppProps {
   isCreating: boolean;
@@ -39,39 +40,45 @@ const CreateApp: React.FC<CreateAppProps> = function CreateApp(
     setFormData((prev) => ({ ...prev, appID: value }))
   );
 
-  const onCreateClick = useCallback(() => {
-    createApp(appID)
-      .then((id) => {
-        if (id) {
-          navigate("/app/" + encodeURIComponent(id));
-        }
-      })
-      .catch(() => {});
-  }, [appID, createApp, navigate]);
+  const onFormSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      createApp(appID)
+        .then((id) => {
+          if (id) {
+            navigate("/app/" + encodeURIComponent(id));
+          }
+        })
+        .catch(() => {});
+    },
+    [appID, createApp, navigate]
+  );
 
   return (
     <main className={styles.body}>
-      <Label className={styles.fieldLabel}>
-        <FormattedMessage id="CreateAppScreen.app-id.label" />
-      </Label>
-      <Text className={styles.fieldDesc}>
-        <FormattedMessage id="CreateAppScreen.app-id.desc" />
-      </Text>
-      <TextField
-        className={styles.appIDField}
-        value={appID}
-        disabled={isCreating}
-        onChange={onAppIDChange}
-        prefix={APP_ID_SCHEME}
-        suffix={systemConfig.appHostSuffix}
-        errorMessage={errorMessage}
-      />
-      <PrimaryButton
-        onClick={onCreateClick}
-        disabled={appID.length === 0 || isCreating}
-      >
-        <FormattedMessage id="create" />
-      </PrimaryButton>
+      <form onSubmit={onFormSubmit}>
+        <Label className={styles.fieldLabel}>
+          <FormattedMessage id="CreateAppScreen.app-id.label" />
+        </Label>
+        <Text className={styles.fieldDesc}>
+          <FormattedMessage id="CreateAppScreen.app-id.desc" />
+        </Text>
+        <TextField
+          className={styles.appIDField}
+          value={appID}
+          disabled={isCreating}
+          onChange={onAppIDChange}
+          prefix={APP_ID_SCHEME}
+          suffix={systemConfig.appHostSuffix}
+          errorMessage={errorMessage}
+        />
+        <ButtonWithLoading
+          type="submit"
+          disabled={appID.length === 0 || isCreating}
+          labelId="create"
+          loading={isCreating}
+        />
+      </form>
     </main>
   );
 };
