@@ -1,155 +1,172 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import { ITextFieldProps } from "@fluentui/react";
+import React, { useCallback, useContext, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Context } from "@oursky/react-messageformat";
-
-import { UserQuery_node_User } from "./query/__generated__/UserQuery";
-import NavigationBlockerDialog from "../../NavigationBlockerDialog";
-import PasswordField, { localValidatePassword } from "../../PasswordField";
-import ButtonWithLoading from "../../ButtonWithLoading";
-import { CreateIdentityFunction } from "./mutations/createIdentityMutation";
-import { nonNullable } from "../../util/types";
-import { AuthenticatorType } from "./__generated__/globalTypes";
-import { PortalAPIAppConfig } from "../../types";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import PasswordField from "../../PasswordField";
+import { useCreateLoginIDIdentityMutation } from "./mutations/createIdentityMutation";
+import { LoginIDKeyType, PortalAPIAppConfig } from "../../types";
+import {
+  AuthenticatorKind,
+  AuthenticatorType,
+} from "./__generated__/globalTypes";
 
 import styles from "./AddIdentityForm.module.scss";
+import { useSimpleForm } from "../../hook/useSimpleForm";
+import FormContainer from "../../FormContainer";
+import { GenericErrorHandlingRule } from "../../error/useGenericError";
+import { canCreateLoginIDIdentity } from "../../util/loginID";
+import { Text } from "@fluentui/react";
+import { UserQuery_node_User } from "./query/__generated__/UserQuery";
 
-interface AddIdentityFormProps {
-  className?: string;
-  appConfig: PortalAPIAppConfig | null;
-  user: UserQuery_node_User | null;
-  loginIDKey: "username" | "email" | "phone";
+interface FormState {
   loginID: string;
-  loginIDField: React.ReactNode;
   password: string;
-  onPasswordChange: ITextFieldProps["onChange"];
-  passwordFieldErrorMessage?: string;
-  isFormModified: boolean;
-  createIdentity: CreateIdentityFunction;
-  creatingIdentity: boolean;
 }
 
-function determineIsPasswordRequired(user: UserQuery_node_User | null) {
-  const authenticators =
-    user?.authenticators?.edges
-      ?.map((edge) => edge?.node?.type)
-      .filter(nonNullable) ?? [];
-  const hasPasswordAuthenticator = authenticators.includes(
-    AuthenticatorType.PASSWORD
-  );
-  return !hasPasswordAuthenticator;
+const defaultFormState: FormState = {
+  loginID: "",
+  password: "",
+};
+
+interface User {
+  id: string;
+  primaryAuthenticators: AuthenticatorType[];
+}
+
+function isPasswordRequired(
+  config: PortalAPIAppConfig | null,
+  user: User | null
+) {
+  const needPrimaryPassword =
+    config?.authentication?.primary_authenticators?.includes("password") ??
+    true;
+  const hasPrimaryPassword =
+    user?.primaryAuthenticators.includes(AuthenticatorType.PASSWORD) ?? false;
+  return needPrimaryPassword && !hasPrimaryPassword;
+}
+
+interface LoginIDFieldProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+interface AddIdentityFormProps {
+  appConfig: PortalAPIAppConfig | null;
+  rawUser: UserQuery_node_User | null;
+  loginIDType: LoginIDKeyType;
+  title: React.ReactNode;
+  loginIDField: React.ComponentType<LoginIDFieldProps>;
+  errorRules?: GenericErrorHandlingRule[];
+  onReset?: () => void;
 }
 
 const AddIdentityForm: React.FC<AddIdentityFormProps> = function AddIdentityForm(
   props: AddIdentityFormProps
 ) {
   const {
-    className,
     appConfig,
-    user,
-    loginIDKey,
-    loginID,
-    loginIDField,
-    password,
-    onPasswordChange,
-    passwordFieldErrorMessage,
-    isFormModified,
-    createIdentity,
-    creatingIdentity,
+    rawUser,
+    loginIDType,
+    title,
+    loginIDField: LoginIDField,
+    errorRules,
+    onReset,
   } = props;
 
   const navigate = useNavigate();
   const { renderToString } = useContext(Context);
 
-  const isPasswordRequired = useMemo(() => {
-    return determineIsPasswordRequired(user);
-  }, [user]);
+  const user: User = useMemo(() => {
+    if (!rawUser) {
+      return { id: "", primaryAuthenticators: [] };
+    }
+    const authenticators =
+      rawUser.authenticators?.edges?.map((e) => e?.node) ?? [];
+    return {
+      id: rawUser.id,
+      primaryAuthenticators: authenticators
+        .filter((a) => a?.kind === AuthenticatorKind.PRIMARY)
+        .map((a) => a!.type),
+    };
+  }, [rawUser]);
+
+  const { createIdentity } = useCreateLoginIDIdentityMutation(user.id);
+
+  const requirePassword = useMemo(() => {
+    return isPasswordRequired(appConfig, user);
+  }, [appConfig, user]);
 
   const passwordPolicy = useMemo(() => {
     return appConfig?.authenticator?.password?.policy ?? {};
   }, [appConfig]);
 
-  const [localValidationErrorMessage, setLocalViolationErrorMessage] = useState<
-    string | undefined
-  >(undefined);
-  const [submittedForm, setSubmittedForm] = useState(false);
-
-  const onFormSubmit = useCallback(
-    (ev: React.SyntheticEvent<HTMLElement>) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-
-      if (isPasswordRequired) {
-        const localErrorMessageMap = localValidatePassword(
-          renderToString,
-          passwordPolicy,
-          password
-        );
-        setLocalViolationErrorMessage(localErrorMessageMap?.password);
-
-        if (localErrorMessageMap != null) {
-          return;
-        }
+  const submit = useCallback(
+    async (state: FormState) => {
+      if (requirePassword) {
+        // FIXME: local validation
       }
 
-      const requestPassword = isPasswordRequired ? password : undefined;
-      createIdentity({ key: loginIDKey, value: loginID }, requestPassword)
-        .then((identity) => {
-          if (identity != null) {
-            setSubmittedForm(true);
-          }
-        })
-        .catch(() => {});
+      const password = requirePassword ? state.password : undefined;
+      await createIdentity(
+        { key: loginIDType, value: state.loginID },
+        password
+      );
     },
-    [
-      renderToString,
-      loginIDKey,
-      loginID,
-      createIdentity,
-      isPasswordRequired,
-      password,
-      passwordPolicy,
-    ]
+    [loginIDType, requirePassword, createIdentity]
   );
 
+  const rawForm = useSimpleForm(defaultFormState, submit);
+  const form = useMemo(() => ({
+      ...rawForm,
+    reset:() => {
+        rawForm.reset();
+      onReset?.();
+    }
+  }), [rawForm, onReset]);
+
   useEffect(() => {
-    if (submittedForm) {
+    if (form.isSubmitted) {
       navigate("..#connected-identities");
     }
-  }, [submittedForm, navigate]);
+  }, [form.isSubmitted, navigate]);
+
+  const onLoginIDChange = useCallback(
+    (value: string) => form.setState((state) => ({ ...state, loginID: value })),
+    [form]
+  );
+  const onPasswordChange = useCallback(
+    (_, value?: string) =>
+      form.setState((state) => ({ ...state, password: value ?? "" })),
+    [form]
+  );
+
+  if (!canCreateLoginIDIdentity(appConfig)) {
+    return (
+      <Text className={styles.helpText}>
+        <FormattedMessage id="CreateIdentity.require-login-id" />
+      </Text>
+    );
+  }
 
   return (
-    <form className={className} onSubmit={onFormSubmit}>
-      <NavigationBlockerDialog
-        blockNavigation={!submittedForm && isFormModified}
-      />
-      {loginIDField}
-      {isPasswordRequired && (
-        <PasswordField
-          className={styles.password}
-          textFieldClassName={styles.passwordField}
-          passwordPolicy={passwordPolicy}
-          label={renderToString("AddUsernameScreen.password.label")}
-          value={password}
-          onChange={onPasswordChange}
-          errorMessage={
-            localValidationErrorMessage ?? passwordFieldErrorMessage
-          }
-        />
-      )}
-      <ButtonWithLoading
-        type="submit"
-        disabled={!isFormModified || submittedForm}
-        labelId="add"
-        loading={creatingIdentity}
-      />
-    </form>
+    <FormContainer form={form} errorParseRules={errorRules}>
+      <div className={styles.root}>
+        {title}
+        <LoginIDField value={form.state.loginID} onChange={onLoginIDChange} />
+        {requirePassword && (
+          <PasswordField
+            className={styles.password}
+            textFieldClassName={styles.passwordField}
+            passwordPolicy={passwordPolicy}
+            label={renderToString("AddUsernameScreen.password.label")}
+            value={form.state.password}
+            onChange={onPasswordChange}
+            jsonPointer="password"
+            parentJSONPointer=""
+            fieldName="password"
+          />
+        )}
+      </div>
+    </FormContainer>
   );
 };
 

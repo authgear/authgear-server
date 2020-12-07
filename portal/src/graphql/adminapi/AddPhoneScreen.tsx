@@ -1,95 +1,57 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
-import { Dropdown, Label, Text } from "@fluentui/react";
-import deepEqual from "deep-equal";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import React, {useCallback, useContext, useEffect, useMemo, useState,} from "react";
+import {useParams} from "react-router-dom";
+import {Dropdown, Label} from "@fluentui/react";
+import {Context, FormattedMessage} from "@oursky/react-messageformat";
 
 import NavBreadcrumb from "../../NavBreadcrumb";
-import {
-  ModifiedIndicatorPortal,
-  ModifiedIndicatorWrapper,
-} from "../../ModifiedIndicatorPortal";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import FormTextField from "../../FormTextField";
 import AddIdentityForm from "./AddIdentityForm";
-import {
-  useDropdown,
-  useIntegerTextField,
-  useTextField,
-} from "../../hook/useInput";
-import { useAppConfigQuery } from "../portal/query/appConfigQuery";
-import { useUserQuery } from "./query/userQuery";
-import { UserQuery_node_User } from "./query/__generated__/UserQuery";
-import { useCreateLoginIDIdentityMutation } from "./mutations/createIdentityMutation";
-import { PortalAPIAppConfig } from "../../types";
-import { passwordFieldErrorRules } from "../../PasswordField";
-import { useValidationError } from "../../error/useValidationError";
-import { useGenericError } from "../../error/useGenericError";
-import ShowUnhandledValidationErrorCause from "../../error/ShowUnhandledValidationErrorCauses";
-import { FormContext } from "../../error/FormContext";
-import { getActiveCountryCallingCode } from "../../util/countryCallingCode";
-import { canCreateLoginIDIdentity } from "../../util/loginID";
+import {useDropdown, useIntegerTextField} from "../../hook/useInput";
+import {useAppConfigQuery} from "../portal/query/appConfigQuery";
+import {useUserQuery} from "./query/userQuery";
+import {PortalAPIAppConfig} from "../../types";
+import {passwordFieldErrorRules} from "../../PasswordField";
+import {GenericErrorHandlingRule} from "../../error/useGenericError";
+import {getActiveCountryCallingCode} from "../../util/countryCallingCode";
 
 import styles from "./AddPhoneScreen.module.scss";
 
-interface AddPhoneFormProps {
-  appConfig: PortalAPIAppConfig | null;
-  user: UserQuery_node_User | null;
-  resetForm: () => void;
+function makePhoneNumber(countryCode: string, phone: string) {
+  if (phone.length === 0) {
+    return "";
+  }
+  return `+${countryCode}${phone}`;
 }
 
-interface AddPhoneFormData {
-  phone: string;
-  countryCode: string;
-  password: string;
+interface PhoneFieldProps {
+  config: PortalAPIAppConfig | null;
+  resetToken: unknown;
+
+  value: string;
+  onChange: (value: string) => void;
 }
 
-const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
-  props: AddPhoneFormProps
-) {
-  const { appConfig, user, resetForm } = props;
-  const { userID } = useParams();
-
-  const {
-    createIdentity,
-    loading: creatingIdentity,
-    error: createIdentityError,
-  } = useCreateLoginIDIdentityMutation(userID);
+const PhoneField: React.FC<PhoneFieldProps> = function PhoneField(props) {
+  const { config, resetToken, onChange } = props;
   const { renderToString } = useContext(Context);
 
-  const countryCodeConfig = useMemo(() => {
-    const countryCodeConfig = appConfig?.ui?.country_calling_code;
+  const countryCodes = useMemo(() => {
+    const countryCodeConfig = config?.ui?.country_calling_code;
     const allowList = countryCodeConfig?.allowlist ?? [];
     const pinnedList = countryCodeConfig?.pinned_list ?? [];
-    const values = getActiveCountryCallingCode(pinnedList, allowList);
-    const defaultCallingCode = values[0];
-    return {
-      values,
-      defaultCallingCode,
-    };
-  }, [appConfig]);
+    return getActiveCountryCallingCode(pinnedList, allowList);
+  }, [config]);
+  const defaultCountryCode = countryCodes[0];
 
-  const initialFormData = useMemo(() => {
-    return {
-      phone: "",
-      countryCode: countryCodeConfig.defaultCallingCode,
-      password: "",
-    };
-  }, [countryCodeConfig]);
-
-  const [formData, setFormData] = useState<AddPhoneFormData>(initialFormData);
-  const { phone, countryCode, password } = formData;
-
-  const { onChange: onPhoneChange } = useIntegerTextField((value) => {
-    setFormData((prev) => ({
-      ...prev,
-      phone: value,
-    }));
-  });
-  const { onChange: onPasswordChange } = useTextField((value) => {
-    setFormData((prev) => ({ ...prev, password: value }));
-  });
+  const [countryCode, setCountryCode] = useState(defaultCountryCode);
+  const [phone, setPhone] = useState("");
+  useEffect(() => {
+    // Reset internal state when form is reset.
+    setPhone("");
+    setCountryCode(defaultCountryCode);
+  }, [resetToken, defaultCountryCode]);
 
   const displayCountryCode = useCallback((countryCode: string) => {
     return `+ ${countryCode}`;
@@ -99,102 +61,44 @@ const AddPhoneForm: React.FC<AddPhoneFormProps> = function AddPhoneForm(
     options: countryCodeOptions,
     onChange: onCountryCodeChange,
   } = useDropdown(
-    countryCodeConfig.values,
+    countryCodes,
     (option) => {
-      setFormData((prev) => ({
-        ...prev,
-        countryCode: option,
-      }));
+      setCountryCode(option);
+      onChange(makePhoneNumber(option, phone));
     },
-    countryCodeConfig.defaultCallingCode,
+    defaultCountryCode,
     displayCountryCode
   );
 
-  const isFormModified = useMemo(() => {
-    return !deepEqual(initialFormData, formData);
-  }, [formData, initialFormData]);
-
-  const combinedPhone = useMemo(() => `+${countryCode}${phone}`, [
-    countryCode,
-    phone,
-  ]);
-
-  const {
-    unhandledCauses: rawUnhandledCauses,
-    otherError,
-    value: formContextValue,
-  } = useValidationError(createIdentityError);
-
-  const {
-    errorMessageMap,
-    unrecognizedError,
-    unhandledCauses,
-  } = useGenericError(otherError, rawUnhandledCauses, [
-    {
-      reason: "InvariantViolated",
-      kind: "DuplicatedIdentity",
-      errorMessageID: "AddPhoneScreen.error.duplicated-phone-number",
-      field: "phone",
-    },
-    ...passwordFieldErrorRules,
-  ]);
-
-  if (!canCreateLoginIDIdentity(appConfig)) {
-    return (
-      <Text className={styles.helpText}>
-        <FormattedMessage id="CreateIdentity.require-login-id" />
-      </Text>
-    );
-  }
+  const { onChange: onPhoneChange } = useIntegerTextField((value) => {
+    setPhone(value);
+    onChange(makePhoneNumber(countryCode, value));
+  });
 
   return (
-    <FormContext.Provider value={formContextValue}>
-      {unrecognizedError && <ShowError error={unrecognizedError} />}
-      <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
-      <ModifiedIndicatorPortal
-        resetForm={resetForm}
-        isModified={isFormModified}
+    <section className={styles.phoneNumberFields}>
+      <Label className={styles.phoneNumberLabel}>
+        <FormattedMessage id="AddPhoneScreen.phone.label" />
+      </Label>
+      <Dropdown
+        className={styles.countryCode}
+        options={countryCodeOptions}
+        selectedKey={countryCode}
+        onChange={onCountryCodeChange}
+        ariaLabel={renderToString("AddPhoneScreen.country-code.label")}
       />
-      <AddIdentityForm
-        className={styles.form}
-        appConfig={appConfig}
-        user={user}
-        loginIDKey="phone"
-        loginID={combinedPhone}
-        loginIDField={
-          <section className={styles.phoneNumberFields}>
-            <Label className={styles.phoneNumberLabel}>
-              <FormattedMessage id="AddPhoneScreen.phone.label" />
-            </Label>
-            <Dropdown
-              className={styles.countryCode}
-              options={countryCodeOptions}
-              selectedKey={countryCode}
-              onChange={onCountryCodeChange}
-              ariaLabel={renderToString("AddPhoneScreen.country-code.label")}
-            />
-            <FormTextField
-              jsonPointer=""
-              parentJSONPointer=""
-              fieldName="phone"
-              fieldNameMessageID="AddPhoneScreen.phone.label"
-              hideLabel={true}
-              className={styles.phone}
-              value={phone}
-              onChange={onPhoneChange}
-              ariaLabel={renderToString("AddPhoneScreen.phone.label")}
-              errorMessage={errorMessageMap.phone}
-            />
-          </section>
-        }
-        password={password}
-        onPasswordChange={onPasswordChange}
-        passwordFieldErrorMessage={errorMessageMap.password}
-        isFormModified={isFormModified}
-        createIdentity={createIdentity}
-        creatingIdentity={creatingIdentity}
+      <FormTextField
+        jsonPointer="phone"
+        parentJSONPointer=""
+        fieldName="phone"
+        fieldNameMessageID="AddPhoneScreen.phone.label"
+        hideLabel={true}
+        className={styles.phone}
+        value={phone}
+        onChange={onPhoneChange}
+        ariaLabel={renderToString("AddPhoneScreen.phone.label")}
       />
-    </FormContext.Provider>
+    </section>
   );
 };
 
@@ -216,15 +120,35 @@ const AddPhoneScreen: React.FC = function AddPhoneScreen() {
   const navBreadcrumbItems = useMemo(() => {
     return [
       { to: "../../..", label: <FormattedMessage id="UsersScreen.title" /> },
-      { to: "../", label: <FormattedMessage id="UserDetailsScreen.title" /> },
+      { to: "..", label: <FormattedMessage id="UserDetailsScreen.title" /> },
       { to: ".", label: <FormattedMessage id="AddPhoneScreen.title" /> },
     ];
   }, []);
+  const title = <NavBreadcrumb items={navBreadcrumbItems} />;
 
-  const [remountIdentifier, setRemountIdentifier] = useState(0);
-  const resetForm = useCallback(() => {
-    setRemountIdentifier((prev) => prev + 1);
-  }, []);
+  const rules: GenericErrorHandlingRule[] = useMemo(
+    () => [
+      {
+        reason: "InvariantViolated",
+        kind: "DuplicatedIdentity",
+        errorMessageID: "AddPhoneScreen.error.duplicated-phone-number",
+        field: "phone",
+      },
+      ...passwordFieldErrorRules,
+    ],
+    []
+  );
+
+  const [resetToken, setResetToken] = useState({});
+  const renderPhoneField = useCallback(
+    (props: Pick<PhoneFieldProps, "value"| "onChange">) => {
+      return <PhoneField config={effectiveAppConfig} resetToken={resetToken} {...props} />;
+    },
+    [effectiveAppConfig, resetToken]
+  );
+  const onReset = useCallback(() => {
+    setResetToken({});
+  },[]);
 
   if (loadingUser || loadingAppConfig) {
     return <ShowLoading />;
@@ -239,17 +163,15 @@ const AddPhoneScreen: React.FC = function AddPhoneScreen() {
   }
 
   return (
-    <div className={styles.root}>
-      <ModifiedIndicatorWrapper className={styles.content}>
-        <NavBreadcrumb items={navBreadcrumbItems} />
-        <AddPhoneForm
-          key={remountIdentifier}
-          appConfig={effectiveAppConfig}
-          user={user}
-          resetForm={resetForm}
-        />
-      </ModifiedIndicatorWrapper>
-    </div>
+    <AddIdentityForm
+      appConfig={effectiveAppConfig}
+      rawUser={user}
+      loginIDType="phone"
+      title={title}
+      loginIDField={renderPhoneField}
+      errorRules={rules}
+      onReset={onReset}
+    />
   );
 };
 
