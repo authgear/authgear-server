@@ -88,3 +88,28 @@ export interface MaxLengthErrorCause {
     expected: number;
   };
 }
+
+export interface LocalValidationError {
+  location?: string;
+  message: string;
+}
+export function makeLocalValidationError(
+  errors: LocalValidationError[]
+): APIValidationError | null {
+  if (errors.length === 0) {
+    return null;
+  }
+  return {
+    errorName: "LocalValidationFailed",
+    reason: "ValidationFailed",
+    info: {
+      causes: errors.map(({ location, message }) => ({
+        location: location ?? "",
+        kind: "general",
+        details: {
+          msg: message,
+        },
+      })),
+    },
+  };
+}

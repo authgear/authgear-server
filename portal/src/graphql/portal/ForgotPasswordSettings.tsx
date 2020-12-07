@@ -1,153 +1,112 @@
-import React, { useMemo, useContext, useState, useCallback } from "react";
-import { Context } from "@oursky/react-messageformat";
+import React, { useCallback, useContext, useMemo } from "react";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { TextField } from "@fluentui/react";
-import cn from "classnames";
-import deepEqual from "deep-equal";
 import produce from "immer";
-
-import ButtonWithLoading from "../../ButtonWithLoading";
-import NavigationBlockerDialog from "../../NavigationBlockerDialog";
-import { ModifiedIndicatorPortal } from "../../ModifiedIndicatorPortal";
-import { setFieldIfChanged, clearEmptyObject } from "../../util/misc";
-import { PortalAPIApp, PortalAPIAppConfig } from "../../types";
+import { clearEmptyObject } from "../../util/misc";
+import { PortalAPIAppConfig } from "../../types";
+import {
+  AppConfigFormModel,
+  useAppConfigForm,
+} from "../../hook/useAppConfigForm";
+import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
+import { useParams } from "react-router-dom";
+import ShowLoading from "../../ShowLoading";
+import ShowError from "../../ShowError";
+import FormContainer from "../../FormContainer";
 
 import styles from "./ForgotPasswordSettings.module.scss";
 
-interface ForgotPasswordSettingsProps {
-  className?: string;
-  effectiveAppConfig: PortalAPIAppConfig | null;
-  rawAppConfig: PortalAPIAppConfig | null;
-  updateAppConfig: (
-    appConfig: PortalAPIAppConfig
-  ) => Promise<PortalAPIApp | null>;
-  updatingAppConfig: boolean;
-  resetForm: () => void;
+interface FormState {
+  codeExpirySeconds: number;
 }
 
-interface ForgotPasswordSettingsState {
-  resetCodeExpirySeconds: number;
-}
-
-function constructStateFromAppConfig(
-  appConfig: PortalAPIAppConfig | null
-): ForgotPasswordSettingsState {
-  const forgot_password = appConfig?.forgot_password;
-
+function constructFormState(config: PortalAPIAppConfig): FormState {
   return {
-    resetCodeExpirySeconds: forgot_password?.reset_code_expiry_seconds ?? 0,
+    codeExpirySeconds:
+      config.forgot_password?.reset_code_expiry_seconds ?? 1200,
   };
 }
 
-function constructAppConfigFromState(
-  rawAppConfig: PortalAPIAppConfig,
-  initialScreenState: ForgotPasswordSettingsState,
-  screenState: ForgotPasswordSettingsState
+function constructConfig(
+  config: PortalAPIAppConfig,
+  initialState: FormState,
+  currentState: FormState
 ): PortalAPIAppConfig {
-  const newAppConfig = produce(rawAppConfig, (draftConfig) => {
-    draftConfig.forgot_password = draftConfig.forgot_password ?? {};
-
-    const forgotPassword = draftConfig.forgot_password;
-
-    setFieldIfChanged(
-      forgotPassword,
-      "reset_code_expiry_seconds",
-      initialScreenState.resetCodeExpirySeconds,
-      screenState.resetCodeExpirySeconds
-    );
-
-    clearEmptyObject(draftConfig);
+  return produce(config, (config) => {
+    config.forgot_password = config.forgot_password ?? {};
+    if (initialState.codeExpirySeconds !== currentState.codeExpirySeconds) {
+      config.forgot_password.reset_code_expiry_seconds =
+        currentState.codeExpirySeconds;
+    }
+    clearEmptyObject(config);
   });
-
-  return newAppConfig;
 }
 
-const ForgotPasswordSettings: React.FC<ForgotPasswordSettingsProps> = function ForgotPasswordSettings(
+interface ForgotPasswordSettingsContentProps {
+  form: AppConfigFormModel<FormState>;
+}
+
+const ForgotPasswordSettingsContent: React.FC<ForgotPasswordSettingsContentProps> = function ForgotPasswordSettingsContent(
   props
 ) {
-  const {
-    className,
-    effectiveAppConfig,
-    rawAppConfig,
-    updateAppConfig,
-    updatingAppConfig,
-    resetForm,
-  } = props;
+  const { state, setState } = props.form;
 
   const { renderToString } = useContext(Context);
 
-  const initialState = useMemo(() => {
-    return constructStateFromAppConfig(effectiveAppConfig);
-  }, [effectiveAppConfig]);
+  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
+    return [
+      {
+        to: ".",
+        label: <FormattedMessage id="ForgotPasswordSettingsScreen.title" />,
+      },
+    ];
+  }, []);
 
-  const [state, setState] = useState(initialState);
-
-  const isFormModified = useMemo(() => {
-    return !deepEqual(initialState, state, { strict: true });
-  }, [initialState, state]);
-
-  const onResetCodeExpirySecondsChange = useCallback(
-    (_event, value?: string) => {
-      if (value === undefined) {
-        return;
-      }
+  const onCodeExpirySecondsChange = useCallback(
+    (_, value?: string) => {
       setState((state) => ({
         ...state,
-        resetCodeExpirySeconds: parseInt(value, 10),
+        codeExpirySeconds: Number(value),
       }));
     },
-    []
-  );
-
-  const onFormSubmit = useCallback(
-    (ev: React.SyntheticEvent<HTMLElement>) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-
-      if (rawAppConfig == null) {
-        return;
-      }
-
-      const newAppConfig = constructAppConfigFromState(
-        rawAppConfig,
-        initialState,
-        state
-      );
-
-      updateAppConfig(newAppConfig).catch(() => {});
-    },
-    [rawAppConfig, initialState, state, updateAppConfig]
+    [setState]
   );
 
   return (
-    <form className={cn(styles.root, className)} onSubmit={onFormSubmit}>
-      <ModifiedIndicatorPortal
-        resetForm={resetForm}
-        isModified={isFormModified}
-      />
-      <NavigationBlockerDialog blockNavigation={isFormModified} />
+    <div className={styles.root}>
+      <NavBreadcrumb items={navBreadcrumbItems} />
       <TextField
         className={styles.textField}
         type="number"
         min="0"
         step="1"
         label={renderToString(
-          "PasswordsScreen.forgot-password.time-to-invalid-reset-code.label"
+          "ForgotPasswordSettingsScreen.reset-code-valid-duration.label"
         )}
-        value={`${state.resetCodeExpirySeconds}`}
-        onChange={onResetCodeExpirySecondsChange}
+        value={String(state.codeExpirySeconds)}
+        onChange={onCodeExpirySecondsChange}
       />
-
-      <div className={styles.saveButtonContainer}>
-        <ButtonWithLoading
-          type="submit"
-          disabled={!isFormModified}
-          loading={updatingAppConfig}
-          labelId="save"
-          loadingLabelId="saving"
-        />
-      </div>
-    </form>
+    </div>
   );
 };
 
-export default ForgotPasswordSettings;
+const ForgotPasswordSettingsScreen: React.FC = function ForgotPasswordSettingsScreen() {
+  const { appID } = useParams();
+  const form = useAppConfigForm(appID, constructFormState, constructConfig);
+
+  if (form.isLoading) {
+    return <ShowLoading />;
+  }
+
+  if (form.loadError) {
+    return <ShowError error={form.loadError} onRetry={form.reload} />;
+  }
+
+  return (
+    <FormContainer form={form}>
+      <ForgotPasswordSettingsContent form={form} />
+    </FormContainer>
+  );
+};
+
+export default ForgotPasswordSettingsScreen;

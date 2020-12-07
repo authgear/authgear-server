@@ -17,6 +17,7 @@ import ShowError from "./ShowError";
 import NavigationBlockerDialog from "./NavigationBlockerDialog";
 import CommandBarContainer from "./CommandBarContainer";
 import { GenericErrorHandlingRule, parseError } from "./error/useGenericError";
+import { APIError } from "./error/error";
 
 export interface FormModel {
   updateError: unknown;
@@ -35,6 +36,7 @@ export interface FormContainerProps {
   form: FormModel;
   canSave?: boolean;
   saveButtonProps?: SaveButtonProps;
+  localError?: APIError | null;
   errorParseRules?: GenericErrorHandlingRule[];
   fallbackErrorMessageId?: string;
   farItems?: ICommandBarItemProps[];
@@ -48,6 +50,7 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
   const {
     canSave = true,
     saveButtonProps = { labelId: "save", iconName: "Save" },
+    localError,
     errorParseRules = [],
     fallbackErrorMessageId = "generic-error.unknown-error",
     farItems,
@@ -108,7 +111,7 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
     otherError,
     unhandledCauses: rawUnhandledCauses,
     value: { registerField, causes },
-  } = useValidationError(updateError);
+  } = useValidationError(updateError ?? localError);
 
   const [messageBar, formContext] = useMemo(() => {
     if (!otherError) {

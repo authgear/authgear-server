@@ -50,6 +50,16 @@ const links: NavLinkProps[] = [
     textKey: "ScreenNav.authentication",
     url: "configuration/authentication",
     iconName: "Shield",
+    children: [
+      {
+        textKey: "AuthenticationLoginIDSettingsScreen.title.nav",
+        url: "configuration/authentication/login-id",
+      },
+      {
+        textKey: "AuthenticationAuthenticatorSettingsScreen.title.nav",
+        url: "configuration/authentication/authenticators",
+      },
+    ],
   },
   {
     textKey: "ScreenNav.anonymous-users",
@@ -65,6 +75,16 @@ const links: NavLinkProps[] = [
     textKey: "ScreenNav.passwords",
     url: "configuration/passwords",
     iconName: "PasswordField",
+    children: [
+      {
+        textKey: "PasswordPolicySettingsScreen.title",
+        url: "configuration/passwords/policy",
+      },
+      {
+        textKey: "ForgotPasswordSettingsScreen.title",
+        url: "configuration/passwords/forgot-password",
+      },
+    ],
   },
   {
     textKey: "ScreenNav.user-interface",

@@ -15,10 +15,10 @@ import AddPhoneScreen from "./graphql/adminapi/AddPhoneScreen";
 import AddUsernameScreen from "./graphql/adminapi/AddUsernameScreen";
 import ResetPasswordScreen from "./graphql/adminapi/ResetPasswordScreen";
 
-import AuthenticationConfigurationScreen from "./graphql/portal/AuthenticationConfigurationScreen";
 import AnonymousUsersConfigurationScreen from "./graphql/portal/AnonymousUsersConfigurationScreen";
 import SingleSignOnConfigurationScreen from "./graphql/portal/SingleSignOnConfigurationScreen";
-import PasswordsScreen from "./graphql/portal/PasswordsScreen";
+import PasswordPolicySettingsScreen from "./graphql/portal/PasswordPolicySettings";
+import ForgotPasswordSettingsScreen from "./graphql/portal/ForgotPasswordSettings";
 import OAuthClientConfigurationScreen from "./graphql/portal/OAuthClientConfigurationScreen";
 import CreateOAuthClientScreen from "./graphql/portal/CreateOAuthClientScreen";
 import EditOAuthClientScreen from "./graphql/portal/EditOAuthClientScreen";
@@ -32,6 +32,8 @@ import PortalAdminsSettings from "./graphql/portal/PortalAdminsSettings";
 import SessionSettings from "./graphql/portal/SessionSettings";
 import HooksSettings from "./graphql/portal/HooksSettings";
 import CORSConfigurationScreen from "./graphql/portal/CORSConfigurationScreen";
+import AuthenticationLoginIDSettingsScreen from "./graphql/portal/AuthenticationLoginIDSettings";
+import AuthenticationAuthenticatorSettingsScreen from "./graphql/portal/AuthenticationAuthenticatorSettings";
 
 const AppRoot: React.FC = function AppRoot() {
   const { appID } = useParams();
@@ -86,8 +88,12 @@ const AppRoot: React.FC = function AppRoot() {
             element={<ResetPasswordScreen />}
           />
           <Route
-            path="/configuration/authentication/"
-            element={<AuthenticationConfigurationScreen />}
+            path="/configuration/authentication/login-id"
+            element={<AuthenticationLoginIDSettingsScreen />}
+          />
+          <Route
+            path="/configuration/authentication/authenticators"
+            element={<AuthenticationAuthenticatorSettingsScreen />}
           />
           <Route
             path="/configuration/anonymous-users"
@@ -98,8 +104,12 @@ const AppRoot: React.FC = function AppRoot() {
             element={<SingleSignOnConfigurationScreen />}
           />
           <Route
-            path="/configuration/passwords"
-            element={<PasswordsScreen />}
+            path="/configuration/passwords/policy"
+            element={<PasswordPolicySettingsScreen />}
+          />
+          <Route
+            path="/configuration/passwords/forgot-password"
+            element={<ForgotPasswordSettingsScreen />}
           />
           <Route
             path="/configuration/clients/cors"

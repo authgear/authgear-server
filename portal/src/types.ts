@@ -8,7 +8,8 @@ export interface HTTPConfig {
 
 // LoginIDKeyConfig
 
-export type LoginIDKeyType = "email" | "phone" | "username";
+export const loginIDKeyTypes = ["email", "phone", "username"] as const;
+export type LoginIDKeyType = typeof loginIDKeyTypes[number];
 
 export interface LoginIDKeyConfig {
   key: string;
@@ -197,7 +198,7 @@ interface VerificationConfig {
 }
 
 // UIConfig
-interface UICountryCallingCodeConfig {
+export interface UICountryCallingCodeConfig {
   allowlist?: string[];
   pinned_list?: string[];
 }

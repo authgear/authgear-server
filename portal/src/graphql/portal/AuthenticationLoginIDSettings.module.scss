@@ -1,23 +1,23 @@
 .root {
-  width: 800px;
-  padding-right: 30px;
-  margin: 25px 0 30px;
+  width: 850px;
+  padding: 0 32px;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   border-bottom: 1px solid #edebe9;
-  padding: 10px 35px 10px 20px;
-  margin-top: 25px;
+  padding: 10px 20px;
+  margin: 20px 0;
+
+  .column {
+    width: 80px;
+    text-align: center;
+  }
 }
 
-.widgetContainer {
-  margin-top: 20px;
-}
-
-.widgetHeader {
-  display: flex;
+.section {
+  margin: 20px 0;
 }
 
 .checkboxLabel {
@@ -39,8 +39,4 @@
 .widgetCheckbox {
   margin-bottom: 15px;
   margin-right: 8px;
-}
-
-.saveButton {
-  margin-top: 25px;
 }
