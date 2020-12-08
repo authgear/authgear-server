@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import deepEqual from "deep-equal";
+import { APIError } from "../error/error";
 
 export interface SimpleFormModel<State> {
   updateError: unknown;
@@ -14,7 +15,8 @@ export interface SimpleFormModel<State> {
 
 export function useSimpleForm<State>(
   defaultState: State,
-  submit: (state: State) => Promise<unknown>
+  submit: (state: State) => Promise<unknown>,
+  validate?: (state: State) => APIError | null
 ): SimpleFormModel<State> {
   const [initialState, setInitialState] = useState(defaultState);
   const [currentState, setCurrentState] = useState(initialState);
@@ -40,6 +42,12 @@ export function useSimpleForm<State>(
       return;
     }
 
+    const err = validate?.(currentState);
+    if (err) {
+      setError(err);
+      return;
+    }
+
     setIsLoading(true);
     submit(currentState)
       .then(() => {
@@ -49,7 +57,7 @@ export function useSimpleForm<State>(
       })
       .catch((e) => setError(e))
       .finally(() => setIsLoading(false));
-  }, [isLoading, isDirty, submit, currentState]);
+  }, [isLoading, isDirty, submit, validate, currentState]);
 
   const setState = useCallback(
     (fn: (state: State) => State) => {

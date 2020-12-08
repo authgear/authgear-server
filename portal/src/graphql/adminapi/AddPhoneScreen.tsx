@@ -23,6 +23,20 @@ import { getActiveCountryCallingCode } from "../../util/countryCallingCode";
 
 import styles from "./AddPhoneScreen.module.scss";
 
+const errorRules: ErrorParseRule[] = [
+  {
+    reason: "InvariantViolated",
+    kind: "DuplicatedIdentity",
+    errorMessageID: "AddPhoneScreen.error.duplicated-phone-number",
+  },
+  {
+    reason: "ValidationFailed",
+    location: "",
+    kind: "format",
+    errorMessageID: "errors.validation.format",
+  },
+];
+
 function makePhoneNumber(countryCode: string, phone: string) {
   if (phone.length === 0) {
     return "";
@@ -96,6 +110,7 @@ const PhoneField: React.FC<PhoneFieldProps> = function PhoneField(props) {
         parentJSONPointer="/"
         fieldName="phone"
         fieldNameMessageID="AddPhoneScreen.phone.label"
+        errorRules={errorRules}
         hideLabel={true}
         className={styles.phone}
         value={phone}
@@ -129,18 +144,6 @@ const AddPhoneScreen: React.FC = function AddPhoneScreen() {
     ];
   }, []);
   const title = <NavBreadcrumb items={navBreadcrumbItems} />;
-
-  const rules: ErrorParseRule[] = useMemo(
-    () => [
-      {
-        reason: "InvariantViolated",
-        kind: "DuplicatedIdentity",
-        errorMessageID: "AddPhoneScreen.error.duplicated-phone-number",
-        field: "phone",
-      },
-    ],
-    []
-  );
 
   const [resetToken, setResetToken] = useState({});
   const renderPhoneField = useCallback(
@@ -178,7 +181,6 @@ const AddPhoneScreen: React.FC = function AddPhoneScreen() {
       loginIDType="phone"
       title={title}
       loginIDField={renderPhoneField}
-      errorRules={rules}
       onReset={onReset}
     />
   );

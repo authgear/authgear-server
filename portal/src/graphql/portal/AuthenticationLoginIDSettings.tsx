@@ -214,7 +214,10 @@ function constructConfig(
   });
 }
 
-function validate(state: FormState, renderToString: (id: string) => string) {
+function validateForm(
+  state: FormState,
+  renderToString: (id: string) => string
+) {
   const errors: LocalValidationError[] = [];
   if (state.phone.allowlist.length === 0) {
     errors.push({
@@ -553,8 +556,7 @@ const AuthenticationLoginIDSettingsScreen: React.FC = function AuthenticationLog
   const { renderToString } = useContext(Context);
 
   const form = useAppConfigForm(appID, constructFormState, constructConfig);
-  // FIXME: cannot render error in message bar
-  const localValidationError = validate(form.state, renderToString);
+  const localValidationError = validateForm(form.state, renderToString);
 
   if (form.isLoading) {
     return <ShowLoading />;

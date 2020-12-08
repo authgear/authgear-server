@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useContext, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -19,6 +13,7 @@ import { useTextField } from "../../hook/useInput";
 import {
   LoginIDKeyType,
   loginIDKeyTypes,
+  PasswordPolicyConfig,
   PortalAPIAppConfig,
 } from "../../types";
 import { ErrorParseRule } from "../../error/parse";
@@ -27,6 +22,7 @@ import FormTextField from "../../FormTextField";
 import FormContainer from "../../FormContainer";
 
 import styles from "./AddUserScreen.module.scss";
+import { validatePassword } from "../../error/password";
 
 interface FormState {
   selectedLoginIDType: LoginIDKeyType | null;
@@ -44,18 +40,13 @@ const defaultFormState: FormState = {
   password: "",
 };
 
-interface AddUserContentProps {
-  appConfig: PortalAPIAppConfig | null;
-  form: SimpleFormModel<FormState>;
-}
-
 const loginIdTypeNameIds: Record<LoginIDKeyType, string> = {
   username: "login-id-key.username",
   email: "login-id-key.email",
   phone: "login-id-key.phone",
 };
 
-function determineIsPasswordNeeded(
+function isPasswordNeeded(
   appConfig: PortalAPIAppConfig | null,
   loginIdKeySelected: LoginIDKeyType | null
 ) {
@@ -115,11 +106,35 @@ function getLoginIdTypeOptions(appConfig: PortalAPIAppConfig | null) {
   return Array.from(loginIdKeyOptions);
 }
 
+const errorRules: ErrorParseRule[] = [
+  {
+    reason: "ValidationFailed",
+    location: "",
+    kind: "format",
+    errorMessageID: "AddUserScreen.error.invalid-identity",
+  },
+  {
+    reason: "InvariantViolated",
+    kind: "DuplicatedIdentity",
+    errorMessageID: "AddUserScreen.error.duplicated-identity",
+  },
+];
+
+interface AddUserContentProps {
+  isPasswordNeeded: boolean;
+  passwordPolicy: PasswordPolicyConfig;
+  loginIDTypes: LoginIDKeyType[];
+
+  form: SimpleFormModel<FormState>;
+}
+
 const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
   props: AddUserContentProps
 ) {
   const {
-    appConfig,
+    isPasswordNeeded,
+    passwordPolicy,
+    loginIDTypes,
     form: { state, setState },
   } = props;
   const { renderToString } = useContext(Context);
@@ -164,14 +179,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
         onChange={onUsernameChange}
         parentJSONPointer="/"
         fieldName="username"
-        errorRules={[
-          {
-            reason: "ValidationFailed",
-            location: "",
-            kind: "format",
-            errorMessageID: "AddUserScreen.error.invalid-identity",
-          },
-        ]}
+        errorRules={errorRules}
       />
     );
   }, [username, onUsernameChange]);
@@ -184,14 +192,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
         onChange={onEmailChange}
         parentJSONPointer="/"
         fieldName="email"
-        errorRules={[
-          {
-            reason: "ValidationFailed",
-            location: "",
-            kind: "format",
-            errorMessageID: "AddUserScreen.error.invalid-identity",
-          },
-        ]}
+        errorRules={errorRules}
       />
     );
   }, [email, onEmailChange]);
@@ -204,14 +205,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
         onChange={onPhoneChange}
         parentJSONPointer="/"
         fieldName="phone"
-        errorRules={[
-          {
-            reason: "ValidationFailed",
-            location: "",
-            kind: "format",
-            errorMessageID: "AddUserScreen.error.invalid-identity",
-          },
-        ]}
+        errorRules={errorRules}
       />
     );
   }, [phone, onPhoneChange]);
@@ -228,13 +222,8 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
     [renderUsernameField, renderEmailField, renderPhoneField]
   );
 
-  const passwordRequired = useMemo(() => {
-    return determineIsPasswordNeeded(appConfig, selectedLoginIDType);
-  }, [appConfig, selectedLoginIDType]);
-
   const loginIdTypeOptions: IChoiceGroupOption[] = useMemo(() => {
-    const list = getLoginIdTypeOptions(appConfig);
-    return list.map((loginIdType) => {
+    return loginIDTypes.map((loginIdType) => {
       const messageId = loginIdTypeNameIds[loginIdType];
       const renderTextField =
         selectedLoginIDType === loginIdType
@@ -255,14 +244,10 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
         },
       };
     });
-  }, [appConfig, renderToString, textFieldRenderer, selectedLoginIDType]);
+  }, [loginIDTypes, renderToString, textFieldRenderer, selectedLoginIDType]);
 
   // NOTE: cannot add user identity if none of three field is available
   const canAddUser = loginIdTypeOptions.length > 0;
-
-  const passwordPolicy = useMemo(() => {
-    return appConfig?.authenticator?.password?.policy ?? {};
-  }, [appConfig]);
 
   // TODO: improve empty state
   if (!canAddUser) {
@@ -286,7 +271,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
       />
       <PasswordField
         textFieldClassName={styles.textField}
-        disabled={!passwordRequired}
+        disabled={!isPasswordNeeded}
         label={renderToString("AddUserScreen.password.label")}
         value={password}
         onChange={onPasswordChange}
@@ -305,13 +290,27 @@ const AddUserScreen: React.FC = function AddUserScreen() {
   const { effectiveAppConfig, loading, error, refetch } = useAppConfigQuery(
     appID
   );
+  const loginIDTypes = useMemo(
+    () => getLoginIdTypeOptions(effectiveAppConfig),
+    [effectiveAppConfig]
+  );
+  const passwordPolicy = useMemo(
+    () => effectiveAppConfig?.authenticator?.password?.policy ?? {},
+    [effectiveAppConfig]
+  );
 
   const { createUser } = useCreateUserMutation();
 
-  const [
-    lastSubmittedType,
-    setLastSubmittedType,
-  ] = useState<LoginIDKeyType | null>(null);
+  const validate = useCallback(
+    (state: FormState) => {
+      if (!isPasswordNeeded(effectiveAppConfig, state.selectedLoginIDType)) {
+        return null;
+      }
+      return validatePassword(state.password, passwordPolicy);
+    },
+    [effectiveAppConfig, passwordPolicy]
+  );
+
   const submit = useCallback(
     async (state: FormState) => {
       const loginIDType = state.selectedLoginIDType;
@@ -319,46 +318,28 @@ const AddUserScreen: React.FC = function AddUserScreen() {
         return;
       }
 
-      const isPasswordRequired = determineIsPasswordNeeded(
+      const needPassword = isPasswordNeeded(
         effectiveAppConfig,
-        loginIDType
+        state.selectedLoginIDType
       );
-      // FIXME: local password validation error
-      /*  const passwordValidationResult =  determineIsPasswordNeeded(effectiveAppConfig, loginIDType)
-              ? localValidatePassword(
-                  renderToString,
-                  effectiveAppConfig?.authenticator?.password?.policy ?? {},
-                  state.password,
-              )
-              : null;
-          if (passwordValidationResult != null) {
-            setLocalValidationErrorMessage(passwordValidationResult?.password);
-            return;
-          }*/
-      setLastSubmittedType(loginIDType);
       const identityValue = state[loginIDType];
-      const password = isPasswordRequired ? state.password : undefined;
+      const password = needPassword ? state.password : undefined;
 
       await createUser({ key: loginIDType, value: identityValue }, password);
     },
     [createUser, effectiveAppConfig]
   );
 
-  const form = useSimpleForm(defaultFormState, submit);
+  const form = useSimpleForm(defaultFormState, submit, validate);
 
-  const errorRules: ErrorParseRule[] = useMemo(
-    () => [
-      {
-        reason: "InvariantViolated",
-        kind: "DuplicatedIdentity",
-        errorMessageID: "AddUserScreen.error.duplicated-identity",
-        field: lastSubmittedType ?? "",
-      },
-    ],
-    [lastSubmittedType]
+  const needPassword = useMemo(
+    () => isPasswordNeeded(effectiveAppConfig, form.state.selectedLoginIDType),
+    [effectiveAppConfig, form.state]
   );
 
-  const canSave = form.state.selectedLoginIDType != null;
+  const canSave =
+    form.state.selectedLoginIDType != null &&
+    form.state[form.state.selectedLoginIDType].length > 0;
   const saveButtonProps = useMemo(
     () => ({
       labelId: "AddUserScreen.add-user.label",
@@ -386,9 +367,13 @@ const AddUserScreen: React.FC = function AddUserScreen() {
       form={form}
       canSave={canSave}
       saveButtonProps={saveButtonProps}
-      errorRules={errorRules}
     >
-      <AddUserContent form={form} appConfig={effectiveAppConfig} />
+      <AddUserContent
+        form={form}
+        isPasswordNeeded={needPassword}
+        loginIDTypes={loginIDTypes}
+        passwordPolicy={passwordPolicy}
+      />
     </FormContainer>
   );
 };

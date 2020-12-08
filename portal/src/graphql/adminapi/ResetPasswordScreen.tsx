@@ -16,6 +16,7 @@ import FormContainer from "../../FormContainer";
 import FormTextField from "../../FormTextField";
 
 import styles from "./ResetPasswordScreen.module.scss";
+import { validatePassword } from "../../error/password";
 
 interface FormState {
   newPassword: string;
@@ -89,19 +90,33 @@ const ResetPasswordScreen: React.FC = function ResetPasswordScreen() {
   const { effectiveAppConfig, loading, error, refetch } = useAppConfigQuery(
     appID
   );
+  const passwordPolicy = useMemo(
+    () => effectiveAppConfig?.authenticator?.password?.policy ?? {},
+    [effectiveAppConfig]
+  );
 
   const { userID } = useParams();
   const { resetPassword } = useResetPasswordMutation(userID);
 
+  const validate = useCallback(
+    (state: FormState) => {
+      return validatePassword(
+        state.newPassword,
+        passwordPolicy,
+        state.confirmPassword
+      );
+    },
+    [passwordPolicy]
+  );
+
   const submit = useCallback(
     async (state: FormState) => {
-      // FIXME: local password validation error
       await resetPassword(state.newPassword);
     },
     [resetPassword]
   );
 
-  const form = useSimpleForm(defaultFormState, submit);
+  const form = useSimpleForm(defaultFormState, submit, validate);
 
   const canSave =
     form.state.newPassword.length > 0 && form.state.confirmPassword.length > 0;

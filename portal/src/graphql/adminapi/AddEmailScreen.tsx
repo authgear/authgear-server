@@ -12,6 +12,20 @@ import { ErrorParseRule } from "../../error/parse";
 
 import styles from "./AddEmailScreen.module.scss";
 
+const errorRules: ErrorParseRule[] = [
+  {
+    reason: "InvariantViolated",
+    kind: "DuplicatedIdentity",
+    errorMessageID: "AddEmailScreen.error.duplicated-email",
+  },
+  {
+    reason: "ValidationFailed",
+    location: "",
+    kind: "format",
+    errorMessageID: "errors.validation.format",
+  },
+];
+
 interface EmailFieldProps {
   value: string;
   onChange: (value: string) => void;
@@ -31,6 +45,7 @@ const EmailField: React.FC<EmailFieldProps> = function EmailField(props) {
       className={styles.emailField}
       value={value}
       onChange={onEmailChange}
+      errorRules={errorRules}
     />
   );
 };
@@ -59,18 +74,6 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
   }, []);
   const title = <NavBreadcrumb items={navBreadcrumbItems} />;
 
-  const rules: ErrorParseRule[] = useMemo(
-    () => [
-      {
-        reason: "InvariantViolated",
-        kind: "DuplicatedIdentity",
-        errorMessageID: "AddEmailScreen.error.duplicated-email",
-        field: "email",
-      },
-    ],
-    []
-  );
-
   if (loadingUser || loadingAppConfig) {
     return <ShowLoading />;
   }
@@ -90,7 +93,6 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
       loginIDType="email"
       title={title}
       loginIDField={EmailField}
-      errorRules={rules}
     />
   );
 };

@@ -16,6 +16,7 @@ import { ErrorParseRule } from "../../error/parse";
 import { canCreateLoginIDIdentity } from "../../util/loginID";
 import { Text } from "@fluentui/react";
 import { UserQuery_node_User } from "./query/__generated__/UserQuery";
+import { validatePassword } from "../../error/password";
 
 interface FormState {
   loginID: string;
@@ -34,11 +35,21 @@ interface User {
 
 function isPasswordRequired(
   config: PortalAPIAppConfig | null,
-  user: User | null
+  user: User | null,
+  loginIDType: LoginIDKeyType
 ) {
-  const needPrimaryPassword =
-    config?.authentication?.primary_authenticators?.includes("password") ??
-    true;
+  let needPrimaryPassword: boolean;
+  switch (loginIDType) {
+    case "username":
+      needPrimaryPassword =
+        config?.authentication?.primary_authenticators?.includes("password") ??
+        true;
+      break;
+    case "email":
+    case "phone":
+      needPrimaryPassword = false;
+      break;
+  }
   const hasPrimaryPassword =
     user?.primaryAuthenticators.includes(AuthenticatorType.PASSWORD) ?? false;
   return needPrimaryPassword && !hasPrimaryPassword;
@@ -68,7 +79,6 @@ const AddIdentityForm: React.FC<AddIdentityFormProps> = function AddIdentityForm
     loginIDType,
     title,
     loginIDField: LoginIDField,
-    errorRules,
     onReset,
   } = props;
 
@@ -92,19 +102,25 @@ const AddIdentityForm: React.FC<AddIdentityFormProps> = function AddIdentityForm
   const { createIdentity } = useCreateLoginIDIdentityMutation(user.id);
 
   const requirePassword = useMemo(() => {
-    return isPasswordRequired(appConfig, user);
-  }, [appConfig, user]);
+    return isPasswordRequired(appConfig, user, loginIDType);
+  }, [appConfig, user, loginIDType]);
 
   const passwordPolicy = useMemo(() => {
     return appConfig?.authenticator?.password?.policy ?? {};
   }, [appConfig]);
 
+  const validate = useCallback(
+    (state: FormState) => {
+      if (!requirePassword) {
+        return null;
+      }
+      return validatePassword(state.password, passwordPolicy);
+    },
+    [requirePassword, passwordPolicy]
+  );
+
   const submit = useCallback(
     async (state: FormState) => {
-      if (requirePassword) {
-        // FIXME: local validation
-      }
-
       const password = requirePassword ? state.password : undefined;
       await createIdentity(
         { key: loginIDType, value: state.loginID },
@@ -114,7 +130,7 @@ const AddIdentityForm: React.FC<AddIdentityFormProps> = function AddIdentityForm
     [loginIDType, requirePassword, createIdentity]
   );
 
-  const rawForm = useSimpleForm(defaultFormState, submit);
+  const rawForm = useSimpleForm(defaultFormState, submit, validate);
   const form = useMemo(
     () => ({
       ...rawForm,
@@ -142,6 +158,10 @@ const AddIdentityForm: React.FC<AddIdentityFormProps> = function AddIdentityForm
     [form]
   );
 
+  const canSave =
+    form.state.loginID.length > 0 &&
+    (!requirePassword || form.state.password.length > 0);
+
   if (!canCreateLoginIDIdentity(appConfig)) {
     return (
       <Text className={styles.helpText}>
@@ -151,7 +171,7 @@ const AddIdentityForm: React.FC<AddIdentityFormProps> = function AddIdentityForm
   }
 
   return (
-    <FormContainer form={form} errorRules={errorRules}>
+    <FormContainer form={form} canSave={canSave}>
       <div className={styles.root}>
         {title}
         <LoginIDField value={form.state.loginID} onChange={onLoginIDChange} />

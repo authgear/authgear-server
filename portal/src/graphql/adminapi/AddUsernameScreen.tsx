@@ -13,6 +13,20 @@ import { ErrorParseRule } from "../../error/parse";
 
 import styles from "./AddUsernameScreen.module.scss";
 
+const errorRules: ErrorParseRule[] = [
+  {
+    reason: "InvariantViolated",
+    kind: "DuplicatedIdentity",
+    errorMessageID: "AddUsernameScreen.error.duplicated-username",
+  },
+  {
+    reason: "ValidationFailed",
+    location: "",
+    kind: "format",
+    errorMessageID: "errors.validation.format",
+  },
+];
+
 interface UsernameFieldProps {
   value: string;
   onChange: (value: string) => void;
@@ -34,6 +48,7 @@ const UsernameField: React.FC<UsernameFieldProps> = function UsernameField(
       className={styles.usernameField}
       value={value}
       onChange={onUsernameChange}
+      errorRules={errorRules}
     />
   );
 };
@@ -62,18 +77,6 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
   }, []);
   const title = <NavBreadcrumb items={navBreadcrumbItems} />;
 
-  const rules: ErrorParseRule[] = useMemo(
-    () => [
-      {
-        reason: "InvariantViolated",
-        kind: "DuplicatedIdentity",
-        errorMessageID: "AddUsernameScreen.error.duplicated-username",
-        field: "username",
-      },
-    ],
-    []
-  );
-
   if (loadingUser || loadingAppConfig) {
     return <ShowLoading />;
   }
@@ -93,7 +96,6 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
       loginIDType="username"
       title={title}
       loginIDField={UsernameField}
-      errorRules={rules}
     />
   );
 };
