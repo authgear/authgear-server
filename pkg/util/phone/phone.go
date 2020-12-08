@@ -49,6 +49,27 @@ func ParseCombinedPhoneNumber(phone string) (e164 string, err error) {
 	return
 }
 
+// ParseE164ToCallingCodeAndNumber parse E.164 format phone number to national number and calling code.
+func ParseE164ToCallingCodeAndNumber(e164 string) (nationalNumber string, callingCode string, err error) {
+	err = EnsureE164(e164)
+	if err != nil {
+		return
+	}
+
+	num, err := phonenumbers.Parse(e164, "")
+	if err != nil {
+		return
+	}
+	isPhoneValid := phonenumbers.IsValidNumber(num)
+	if !isPhoneValid {
+		err = ErrPhoneNumberInvalid
+		return
+	}
+	callingCode = strconv.Itoa(int(num.GetCountryCode()))
+	nationalNumber = phonenumbers.GetNationalSignificantNumber(num)
+	return
+}
+
 // Parse to E164 format
 func Parse(nationalNumber string, callingCode string) (e164 string, err error) {
 	rawInput := combineCallingCodeWithNumber(nationalNumber, callingCode)
