@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+{{ template "__html_head.html" . }}
+<body class="page">
+<div class="content">
+
+{{ template "__header.html" . }}
+
+{{ template "__nav_bar.html" true }}
+
+<div class="simple-form vertical-form form-fields-container pane">
+
+<h1 class="title primary-txt">{{ template "return-page-title" }}</h1>
+
+{{ template "__error.html" . }}
+
+<p class="description primary-txt">{{ template "return-page-description" }}</p>
+
+</div>
+</html>
