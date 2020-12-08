@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -38,6 +39,11 @@ func ConfigureEnterPasswordRoute(route httproute.Route) httproute.Route {
 type EnterPasswordViewModel struct {
 	IdentityDisplayID string
 	AlternativeSteps  []viewmodels.AlternativeStep
+	// ForgotPasswordInputType is either phone or email
+	ForgotPasswordInputType   string
+	ForgotPasswordLoginID     string
+	ForgotPasswordCallingCode string
+	ForgotPasswordNational    string
 }
 
 type EnterPasswordHandler struct {
@@ -58,9 +64,34 @@ func (h *EnterPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, 
 		return nil, err
 	}
 
+	identityDisplayID := identityInfo.DisplayID()
+	phoneFormat := validation.FormatPhone{}
+	emailFormat := validation.FormatEmail{AllowName: false}
+
+	forgotPasswordInputType := ""
+	forgotPasswordLoginID := ""
+	forgotPasswordCallingCode := ""
+	forgotPasswordNational := ""
+	// Instead of using the login id type, we parse the login id value for the type
+	// So user cannot use this flow to check the identity type
+	if err := phoneFormat.CheckFormat(identityDisplayID); err == nil {
+		forgotPasswordInputType = "phone"
+		forgotPasswordNational, forgotPasswordCallingCode, err = phone.ParseE164ToCallingCodeAndNumber(identityDisplayID)
+		if err != nil {
+			panic("enter_password: cannot parse number: " + err.Error())
+		}
+	} else if err := emailFormat.CheckFormat(identityDisplayID); err == nil {
+		forgotPasswordInputType = "email"
+		forgotPasswordLoginID = identityDisplayID
+	}
+
 	enterPasswordViewModel := EnterPasswordViewModel{
-		IdentityDisplayID: identityInfo.DisplayID(),
-		AlternativeSteps:  alternatives.AlternativeSteps,
+		IdentityDisplayID:         identityDisplayID,
+		AlternativeSteps:          alternatives.AlternativeSteps,
+		ForgotPasswordInputType:   forgotPasswordInputType,
+		ForgotPasswordLoginID:     forgotPasswordLoginID,
+		ForgotPasswordCallingCode: forgotPasswordCallingCode,
+		ForgotPasswordNational:    forgotPasswordNational,
 	}
 
 	viewmodels.Embed(data, baseViewModel)
