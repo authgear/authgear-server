@@ -1,20 +1,25 @@
-import React, {useCallback, useContext, useEffect, useMemo, useState,} from "react";
-import {useParams} from "react-router-dom";
-import {Dropdown, Label} from "@fluentui/react";
-import {Context, FormattedMessage} from "@oursky/react-messageformat";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { useParams } from "react-router-dom";
+import { Dropdown, Label } from "@fluentui/react";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import NavBreadcrumb from "../../NavBreadcrumb";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import FormTextField from "../../FormTextField";
 import AddIdentityForm from "./AddIdentityForm";
-import {useDropdown, useIntegerTextField} from "../../hook/useInput";
-import {useAppConfigQuery} from "../portal/query/appConfigQuery";
-import {useUserQuery} from "./query/userQuery";
-import {PortalAPIAppConfig} from "../../types";
-import {passwordFieldErrorRules} from "../../PasswordField";
-import {GenericErrorHandlingRule} from "../../error/useGenericError";
-import {getActiveCountryCallingCode} from "../../util/countryCallingCode";
+import { useDropdown, useIntegerTextField } from "../../hook/useInput";
+import { useAppConfigQuery } from "../portal/query/appConfigQuery";
+import { useUserQuery } from "./query/userQuery";
+import { PortalAPIAppConfig } from "../../types";
+import { ErrorParseRule } from "../../error/parse";
+import { getActiveCountryCallingCode } from "../../util/countryCallingCode";
 
 import styles from "./AddPhoneScreen.module.scss";
 
@@ -88,8 +93,7 @@ const PhoneField: React.FC<PhoneFieldProps> = function PhoneField(props) {
         ariaLabel={renderToString("AddPhoneScreen.country-code.label")}
       />
       <FormTextField
-        jsonPointer="phone"
-        parentJSONPointer=""
+        parentJSONPointer="/"
         fieldName="phone"
         fieldNameMessageID="AddPhoneScreen.phone.label"
         hideLabel={true}
@@ -126,7 +130,7 @@ const AddPhoneScreen: React.FC = function AddPhoneScreen() {
   }, []);
   const title = <NavBreadcrumb items={navBreadcrumbItems} />;
 
-  const rules: GenericErrorHandlingRule[] = useMemo(
+  const rules: ErrorParseRule[] = useMemo(
     () => [
       {
         reason: "InvariantViolated",
@@ -134,21 +138,26 @@ const AddPhoneScreen: React.FC = function AddPhoneScreen() {
         errorMessageID: "AddPhoneScreen.error.duplicated-phone-number",
         field: "phone",
       },
-      ...passwordFieldErrorRules,
     ],
     []
   );
 
   const [resetToken, setResetToken] = useState({});
   const renderPhoneField = useCallback(
-    (props: Pick<PhoneFieldProps, "value"| "onChange">) => {
-      return <PhoneField config={effectiveAppConfig} resetToken={resetToken} {...props} />;
+    (props: Pick<PhoneFieldProps, "value" | "onChange">) => {
+      return (
+        <PhoneField
+          config={effectiveAppConfig}
+          resetToken={resetToken}
+          {...props}
+        />
+      );
     },
     [effectiveAppConfig, resetToken]
   );
   const onReset = useCallback(() => {
     setResetToken({});
-  },[]);
+  }, []);
 
   if (loadingUser || loadingAppConfig) {
     return <ShowLoading />;

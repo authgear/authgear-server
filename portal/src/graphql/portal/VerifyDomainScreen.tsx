@@ -20,9 +20,9 @@ import ErrorDialog from "../../error/ErrorDialog";
 import { Domain, useDomainsQuery } from "./query/domainsQuery";
 import { useVerifyDomainMutation } from "./mutations/verifyDomainMutation";
 import { copyToClipboard } from "../../util/clipboard";
-import { GenericErrorHandlingRule } from "../../error/useGenericError";
 
 import styles from "./VerifyDomainScreen.module.scss";
+import { ErrorParseRule } from "../../error/parse";
 
 interface VerifyDomainProps {
   domain: Domain;
@@ -173,7 +173,7 @@ const VerifyDomain: React.FC<VerifyDomainProps> = function VerifyDomain(
     navigate("../..");
   }, [navigate]);
 
-  const errorRules: GenericErrorHandlingRule[] = useMemo(() => {
+  const errorRules: ErrorParseRule[] = useMemo(() => {
     return [
       {
         reason: "DuplicatedDomain",

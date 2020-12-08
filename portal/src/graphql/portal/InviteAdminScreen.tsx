@@ -2,13 +2,13 @@ import React, { useCallback, useContext, useEffect, useMemo } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useNavigate, useParams } from "react-router-dom";
 import FormTextField from "../../FormTextField";
-import { GenericErrorHandlingRule } from "../../error/useGenericError";
+import { ErrorParseRule } from "../../error/parse";
 import { useCreateCollaboratorInvitationMutation } from "./mutations/createCollaboratorInvitationMutation";
-
-import styles from "./InviteAdminScreen.module.scss";
 import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
 import FormContainer from "../../FormContainer";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
+
+import styles from "./InviteAdminScreen.module.scss";
 
 interface FormState {
   email: string;
@@ -46,8 +46,7 @@ const InviteAdminContent: React.FC<InviteAdminContentProps> = function InviteAdm
     <div className={styles.root}>
       <NavBreadcrumb items={navBreadcrumbItems} />
       <FormTextField
-        jsonPointer="/inviteeEmail"
-        parentJSONPointer=""
+        parentJSONPointer="/"
         fieldName="inviteeEmail"
         className={styles.emailField}
         type="text"
@@ -81,7 +80,7 @@ const InviteAdminScreen: React.FC = function InviteAdminScreen() {
     }
   }, [form.isSubmitted, navigate]);
 
-  const errorRules: GenericErrorHandlingRule[] = useMemo(
+  const errorRules: ErrorParseRule[] = useMemo(
     () => [
       {
         reason: "CollaboratorInvitationDuplicate",
@@ -103,7 +102,7 @@ const InviteAdminScreen: React.FC = function InviteAdminScreen() {
     <FormContainer
       form={form}
       saveButtonProps={saveButtonProps}
-      errorParseRules={errorRules}
+      errorRules={errorRules}
     >
       <InviteAdminContent form={form} />
     </FormContainer>

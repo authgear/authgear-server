@@ -14,14 +14,14 @@ import { useCreateUserMutation } from "./mutations/createUserMutation";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-import PasswordField, { passwordFieldErrorRules } from "../../PasswordField";
+import PasswordField from "../../PasswordField";
 import { useTextField } from "../../hook/useInput";
 import {
   LoginIDKeyType,
   loginIDKeyTypes,
   PortalAPIAppConfig,
 } from "../../types";
-import { GenericErrorHandlingRule } from "../../error/useGenericError";
+import { ErrorParseRule } from "../../error/parse";
 import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
 import FormTextField from "../../FormTextField";
 import FormContainer from "../../FormContainer";
@@ -162,9 +162,16 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
         className={styles.textField}
         value={username}
         onChange={onUsernameChange}
-        jsonPointer="username"
-        parentJSONPointer=""
+        parentJSONPointer="/"
         fieldName="username"
+        errorRules={[
+          {
+            reason: "ValidationFailed",
+            location: "",
+            kind: "format",
+            errorMessageID: "AddUserScreen.error.invalid-identity",
+          },
+        ]}
       />
     );
   }, [username, onUsernameChange]);
@@ -175,9 +182,16 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
         className={styles.textField}
         value={email}
         onChange={onEmailChange}
-        jsonPointer="email"
-        parentJSONPointer=""
+        parentJSONPointer="/"
         fieldName="email"
+        errorRules={[
+          {
+            reason: "ValidationFailed",
+            location: "",
+            kind: "format",
+            errorMessageID: "AddUserScreen.error.invalid-identity",
+          },
+        ]}
       />
     );
   }, [email, onEmailChange]);
@@ -188,9 +202,16 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
         className={styles.textField}
         value={phone}
         onChange={onPhoneChange}
-        jsonPointer="phone"
-        parentJSONPointer=""
+        parentJSONPointer="/"
         fieldName="phone"
+        errorRules={[
+          {
+            reason: "ValidationFailed",
+            location: "",
+            kind: "format",
+            errorMessageID: "AddUserScreen.error.invalid-identity",
+          },
+        ]}
       />
     );
   }, [phone, onPhoneChange]);
@@ -270,8 +291,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
         value={password}
         onChange={onPasswordChange}
         passwordPolicy={passwordPolicy}
-        jsonPointer="password"
-        parentJSONPointer=""
+        parentJSONPointer="/"
         fieldName="password"
       />
     </div>
@@ -326,23 +346,12 @@ const AddUserScreen: React.FC = function AddUserScreen() {
 
   const form = useSimpleForm(defaultFormState, submit);
 
-  const errorRules: GenericErrorHandlingRule[] = useMemo(
+  const errorRules: ErrorParseRule[] = useMemo(
     () => [
-      ...passwordFieldErrorRules,
       {
         reason: "InvariantViolated",
         kind: "DuplicatedIdentity",
         errorMessageID: "AddUserScreen.error.duplicated-identity",
-        field: lastSubmittedType ?? "",
-      },
-      // NOTE: workaround, validation error has no location
-      // cannot distinguish which field fails the validation
-      // FIXME: rules snapshot & improve form error abstraction
-      {
-        reason: "ValidationFailed",
-        jsonPointer: "",
-        kind: "format",
-        errorMessageID: "AddUserScreen.error.invalid-identity",
         field: lastSubmittedType ?? "",
       },
     ],
@@ -377,7 +386,7 @@ const AddUserScreen: React.FC = function AddUserScreen() {
       form={form}
       canSave={canSave}
       saveButtonProps={saveButtonProps}
-      errorParseRules={errorRules}
+      errorRules={errorRules}
     >
       <AddUserContent form={form} appConfig={effectiveAppConfig} />
     </FormContainer>

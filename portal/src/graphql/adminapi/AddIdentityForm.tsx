@@ -12,7 +12,7 @@ import {
 import styles from "./AddIdentityForm.module.scss";
 import { useSimpleForm } from "../../hook/useSimpleForm";
 import FormContainer from "../../FormContainer";
-import { GenericErrorHandlingRule } from "../../error/useGenericError";
+import { ErrorParseRule } from "../../error/parse";
 import { canCreateLoginIDIdentity } from "../../util/loginID";
 import { Text } from "@fluentui/react";
 import { UserQuery_node_User } from "./query/__generated__/UserQuery";
@@ -55,7 +55,7 @@ interface AddIdentityFormProps {
   loginIDType: LoginIDKeyType;
   title: React.ReactNode;
   loginIDField: React.ComponentType<LoginIDFieldProps>;
-  errorRules?: GenericErrorHandlingRule[];
+  errorRules?: ErrorParseRule[];
   onReset?: () => void;
 }
 
@@ -115,13 +115,16 @@ const AddIdentityForm: React.FC<AddIdentityFormProps> = function AddIdentityForm
   );
 
   const rawForm = useSimpleForm(defaultFormState, submit);
-  const form = useMemo(() => ({
+  const form = useMemo(
+    () => ({
       ...rawForm,
-    reset:() => {
+      reset: () => {
         rawForm.reset();
-      onReset?.();
-    }
-  }), [rawForm, onReset]);
+        onReset?.();
+      },
+    }),
+    [rawForm, onReset]
+  );
 
   useEffect(() => {
     if (form.isSubmitted) {
@@ -148,7 +151,7 @@ const AddIdentityForm: React.FC<AddIdentityFormProps> = function AddIdentityForm
   }
 
   return (
-    <FormContainer form={form} errorParseRules={errorRules}>
+    <FormContainer form={form} errorRules={errorRules}>
       <div className={styles.root}>
         {title}
         <LoginIDField value={form.state.loginID} onChange={onLoginIDChange} />
@@ -160,8 +163,7 @@ const AddIdentityForm: React.FC<AddIdentityFormProps> = function AddIdentityForm
             label={renderToString("AddUsernameScreen.password.label")}
             value={form.state.password}
             onChange={onPasswordChange}
-            jsonPointer="password"
-            parentJSONPointer=""
+            parentJSONPointer="/"
             fieldName="password"
           />
         )}

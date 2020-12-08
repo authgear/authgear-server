@@ -168,7 +168,7 @@ const OAuthClientItem: React.FC<OAuthClientItemProps> = function OAuthClientItem
   );
   const jsonPointer = index >= 0 ? `/identity/oauth/providers/${index}` : "";
   const clientSecretParentJsonPointer =
-    index >= 0 ? RegExp(`^/secrets/[0-9]+/data/items/${index}$`) : "";
+    index >= 0 ? `/secrets/\\d+/data/items/${index}` : "";
 
   const onIsEnabledChange = useCallback(
     (isEnabled: boolean) => {

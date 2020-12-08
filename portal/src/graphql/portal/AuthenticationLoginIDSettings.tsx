@@ -219,7 +219,7 @@ function validate(state: FormState, renderToString: (id: string) => string) {
   if (state.phone.allowlist.length === 0) {
     errors.push({
       message: renderToString(
-        "AuthenticationScreen.login-id.error.calling-code-min-items"
+        "AuthenticationLoginIDSettingsScreen.error.calling-code-min-items"
       ),
     });
   }

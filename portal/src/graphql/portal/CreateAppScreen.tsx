@@ -2,13 +2,11 @@ import React, { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { Label, Text, TextField } from "@fluentui/react";
-import ShowError from "../../ShowError";
 import ScreenHeader from "../../ScreenHeader";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import { useCreateAppMutation } from "./mutations/createAppMutation";
 import { useTextField } from "../../hook/useInput";
 import { useSystemConfig } from "../../context/SystemConfigContext";
-import { useGenericError } from "../../error/useGenericError";
 
 import styles from "./CreateAppScreen.module.scss";
 import ButtonWithLoading from "../../ButtonWithLoading";
@@ -92,7 +90,8 @@ const CreateAppScreen: React.FC = function CreateAppScreen() {
       { to: ".", label: <FormattedMessage id="CreateAppScreen.title" /> },
     ];
   }, []);
-
+  // FIXME: use refactored form handler
+  /*
   const { errorMessage, unrecognizedError } = useGenericError(
     error,
     [],
@@ -113,17 +112,17 @@ const CreateAppScreen: React.FC = function CreateAppScreen() {
 
     "CreateAppScreen.error.generic"
   );
+ */
 
   return (
     <div className={styles.root}>
       <ScreenHeader />
-      {unrecognizedError && <ShowError error={unrecognizedError} />}
       <section className={styles.content}>
         <NavBreadcrumb items={navBreadcrumbItems} />
         <CreateApp
           isCreating={loading}
           createApp={createApp}
-          errorMessage={errorMessage}
+          errorMessage={String(error)}
         />
       </section>
     </div>

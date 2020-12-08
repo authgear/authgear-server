@@ -1,54 +1,56 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Dialog, DialogFooter, PrimaryButton } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
-import { GenericErrorHandlingRule, useGenericError } from "./useGenericError";
-import { ValidationFailedErrorInfoCause } from "./validation";
+import {
+  ErrorParseRule,
+  parseAPIErrors,
+  parseRawError,
+  renderErrors,
+} from "./parse";
 
 interface ErrorDialogProps {
-  errorMessage?: string;
   error: unknown;
-  rules: GenericErrorHandlingRule[];
-  unhandledCauses?: ValidationFailedErrorInfoCause[];
+  rules?: ErrorParseRule[];
   fallbackErrorMessageID?: string;
 }
 
 const ErrorDialog: React.FC<ErrorDialogProps> = function ErrorDialog(
   props: ErrorDialogProps
 ) {
-  const {
-    errorMessage: errorMessageProps,
-    error,
-    rules,
-    unhandledCauses,
-    fallbackErrorMessageID,
-  } = props;
+  const { error, rules, fallbackErrorMessageID } = props;
+  const { renderToString } = useContext(Context);
 
-  const { errorMessage: genericErrorMessage } = useGenericError(
-    error,
-    unhandledCauses,
-    rules,
-    fallbackErrorMessageID
-  );
+  const { topErrors } = useMemo(() => {
+    const apiErrors = parseRawError(error);
+    return parseAPIErrors(apiErrors, [], rules ?? [], fallbackErrorMessageID);
+  }, [error, rules, fallbackErrorMessageID]);
 
-  const errorMessage = useMemo(() => {
-    return errorMessageProps ?? genericErrorMessage;
-  }, [errorMessageProps, genericErrorMessage]);
+  const message = useMemo(() => renderErrors(null, topErrors, renderToString), [
+    topErrors,
+    renderToString,
+  ]);
 
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (errorMessage != null) {
+    if (message != null) {
       setVisible(true);
     }
-  }, [errorMessage]);
+  }, [message]);
 
   const errorDialogContentProps = useMemo(() => {
     return {
       title: <FormattedMessage id="error" />,
-      subText: errorMessage,
+      subText: message,
     };
-  }, [errorMessage]);
+  }, [message]);
 
   const onDismiss = useCallback(() => {
     setVisible(false);

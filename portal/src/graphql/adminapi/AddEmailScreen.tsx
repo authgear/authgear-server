@@ -8,8 +8,7 @@ import FormTextField from "../../FormTextField";
 import AddIdentityForm from "./AddIdentityForm";
 import { useAppConfigQuery } from "../portal/query/appConfigQuery";
 import { useUserQuery } from "./query/userQuery";
-import { GenericErrorHandlingRule } from "../../error/useGenericError";
-import { passwordFieldErrorRules } from "../../PasswordField";
+import { ErrorParseRule } from "../../error/parse";
 
 import styles from "./AddEmailScreen.module.scss";
 
@@ -26,8 +25,7 @@ const EmailField: React.FC<EmailFieldProps> = function EmailField(props) {
   );
   return (
     <FormTextField
-      parentJSONPointer=""
-      jsonPointer="email"
+      parentJSONPointer="/"
       fieldName="email"
       fieldNameMessageID="AddEmailScreen.email.label"
       className={styles.emailField}
@@ -61,7 +59,7 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
   }, []);
   const title = <NavBreadcrumb items={navBreadcrumbItems} />;
 
-  const rules: GenericErrorHandlingRule[] = useMemo(
+  const rules: ErrorParseRule[] = useMemo(
     () => [
       {
         reason: "InvariantViolated",
@@ -69,7 +67,6 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
         errorMessageID: "AddEmailScreen.error.duplicated-email",
         field: "email",
       },
-      ...passwordFieldErrorRules,
     ],
     []
   );

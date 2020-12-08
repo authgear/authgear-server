@@ -7,17 +7,15 @@ import {
   MessageBar,
   MessageBarType,
   PrimaryButton,
+  Text,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { useValidationError } from "./error/useValidationError";
-import { FormContext } from "./error/FormContext";
-import ShowUnhandledValidationErrorCause from "./error/ShowUnhandledValidationErrorCauses";
 import { useSystemConfig } from "./context/SystemConfigContext";
-import ShowError from "./ShowError";
 import NavigationBlockerDialog from "./NavigationBlockerDialog";
 import CommandBarContainer from "./CommandBarContainer";
-import { GenericErrorHandlingRule, parseError } from "./error/useGenericError";
 import { APIError } from "./error/error";
+import { FormProvider, useFormTopErrors } from "./form";
+import { ErrorParseRule, renderError } from "./error/parse";
 
 export interface FormModel {
   updateError: unknown;
@@ -26,6 +24,23 @@ export interface FormModel {
   reset: () => void;
   save: () => void;
 }
+
+const FormErrorMessageBar: React.FC = (props) => {
+  const { renderToString } = useContext(Context);
+
+  const errors = useFormTopErrors();
+  if (errors.length === 0) {
+    return <>{props.children}</>;
+  }
+
+  return (
+    <MessageBar messageBarType={MessageBarType.error}>
+      {errors.map((err, i) => (
+        <Text key={i}>{renderError(null, err, renderToString)}</Text>
+      ))}
+    </MessageBar>
+  );
+};
 
 export interface SaveButtonProps {
   labelId: string;
@@ -37,8 +52,8 @@ export interface FormContainerProps {
   canSave?: boolean;
   saveButtonProps?: SaveButtonProps;
   localError?: APIError | null;
-  errorParseRules?: GenericErrorHandlingRule[];
-  fallbackErrorMessageId?: string;
+  errorRules?: ErrorParseRule[];
+  fallbackErrorMessageID?: string;
   farItems?: ICommandBarItemProps[];
   messageBar?: React.ReactNode;
 }
@@ -51,10 +66,10 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
     canSave = true,
     saveButtonProps = { labelId: "save", iconName: "Save" },
     localError,
-    errorParseRules = [],
-    fallbackErrorMessageId = "generic-error.unknown-error",
+    errorRules,
+    fallbackErrorMessageID,
     farItems,
-    messageBar: propsMessageBar,
+    messageBar,
   } = props;
 
   const { themes } = useSystemConfig();
@@ -107,79 +122,17 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
     };
   }, [renderToString]);
 
-  const {
-    otherError,
-    unhandledCauses: rawUnhandledCauses,
-    value: { registerField, causes },
-  } = useValidationError(updateError ?? localError);
-
-  const [messageBar, formContext] = useMemo(() => {
-    if (!otherError) {
-      return [null, { registerField, causes }];
-    }
-
-    const {
-      standaloneErrorMessageIds,
-      fieldErrorMessageIds,
-      unrecognizedError,
-      unhandledCauses,
-    } = parseError(otherError, rawUnhandledCauses, errorParseRules);
-
-    const errorMessageIds = standaloneErrorMessageIds.slice();
-    if (unrecognizedError) {
-      errorMessageIds.push(fallbackErrorMessageId);
-    }
-
-    let messageBar: React.ReactNode;
-    if (unhandledCauses.length > 0) {
-      messageBar = (
-        <ShowUnhandledValidationErrorCause causes={unhandledCauses} />
-      );
-    } else if (unrecognizedError) {
-      messageBar = <ShowError error={unrecognizedError} />;
-    } else if (errorMessageIds.length > 0) {
-      messageBar = (
-        <MessageBar messageBarType={MessageBarType.error}>
-          {errorMessageIds.map((id, i) => (
-            <FormattedMessage key={i} id={id} />
-          ))}
-        </MessageBar>
-      );
-    } else {
-      messageBar = null;
-    }
-
-    const mappedCauses = { ...causes };
-    for (const [field, messageIds] of Object.entries(fieldErrorMessageIds)) {
-      const fieldCauses = mappedCauses[field] ?? [];
-      for (const id of messageIds) {
-        fieldCauses.push({
-          kind: "general",
-          location: field,
-          details: { msg: renderToString(id) },
-        });
-      }
-      mappedCauses[field] = fieldCauses;
-    }
-
-    return [messageBar, { registerField, causes: mappedCauses }];
-  }, [
-    otherError,
-    rawUnhandledCauses,
-    errorParseRules,
-    causes,
-    fallbackErrorMessageId,
-    registerField,
-    renderToString,
-  ]);
-
   return (
-    <FormContext.Provider value={formContext}>
+    <FormProvider
+      error={updateError ?? localError}
+      rules={errorRules}
+      fallbackErrorMessageID={fallbackErrorMessageID}
+    >
       <CommandBarContainer
         isLoading={isUpdating}
         items={commandBarItems}
         farItems={farItems}
-        messageBar={messageBar ?? propsMessageBar}
+        messageBar={<FormErrorMessageBar>{messageBar}</FormErrorMessageBar>}
       >
         <form onSubmit={onFormSubmit}>{props.children}</form>
       </CommandBarContainer>
@@ -198,7 +151,7 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
         </DialogFooter>
       </Dialog>
       <NavigationBlockerDialog blockNavigation={isDirty} />
-    </FormContext.Provider>
+    </FormProvider>
   );
 };
 

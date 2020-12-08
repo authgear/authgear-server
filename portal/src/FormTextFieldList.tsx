@@ -1,14 +1,15 @@
 import { ITextFieldProps, TextField } from "@fluentui/react";
-import React, { useCallback, useMemo } from "react";
-import { useFormField } from "./error/FormFieldContext";
+import React, { useCallback, useContext, useMemo } from "react";
 import FieldList from "./FieldList";
 import cn from "classnames";
+import { Context } from "@oursky/react-messageformat";
 import styles from "./FormTextFieldList.module.scss";
+import { useFormField } from "./form";
+import { renderErrors } from "./error/parse";
 
 interface TextFieldListItemProps {
   index: number;
-  getJSONPointer: (index: number) => RegExp | string;
-  parentJSONPointer: RegExp | string;
+  parentJSONPointer: string;
   textFieldProps?: ITextFieldProps;
   value: string;
   onChange: (value: string) => void;
@@ -17,23 +18,24 @@ interface TextFieldListItemProps {
 const TextFieldListItem: React.FC<TextFieldListItemProps> = function TextFieldListItem(
   props: TextFieldListItemProps
 ) {
-  const {
-    index,
-    parentJSONPointer,
-    getJSONPointer,
-    textFieldProps,
-    value,
-    onChange,
-  } = props;
-
+  const { index, parentJSONPointer, textFieldProps, value, onChange } = props;
   const { value: _value, className: inputClassName, ...reducedTextFieldProps } =
     textFieldProps ?? {};
 
-  const jsonPointer = useMemo(() => {
-    return getJSONPointer(index);
-  }, [index, getJSONPointer]);
+  const { renderToString } = useContext(Context);
 
-  const { errorMessage } = useFormField(jsonPointer, parentJSONPointer, "");
+  const field = useMemo(
+    () => ({
+      parentJSONPointer,
+      fieldName: index.toString(10),
+    }),
+    [parentJSONPointer, index]
+  );
+  const { errors } = useFormField(field);
+  const errorMessage = useMemo(
+    () => renderErrors(field, errors, renderToString),
+    [field, errors, renderToString]
+  );
 
   const _onChange = useCallback(
     (_event, newValue) => {
@@ -59,16 +61,12 @@ const TextFieldListItem: React.FC<TextFieldListItemProps> = function TextFieldLi
 interface FormTextFieldListProps {
   className?: string;
   label?: React.ReactNode;
-  jsonPointer: RegExp | string;
-  parentJSONPointer: RegExp | string;
+  parentJSONPointer: string;
   fieldName: string;
-  fieldNameMessageID?: string;
-  getItemJSONPointer: (index: number) => RegExp | string;
   inputProps?: ITextFieldProps;
   list: string[];
   onListChange: (list: string[]) => void;
   addButtonLabelMessageID?: string;
-  errorMessage?: string;
 }
 
 const FormTextFieldList: React.FC<FormTextFieldListProps> = function FormTextFieldList(
@@ -77,46 +75,38 @@ const FormTextFieldList: React.FC<FormTextFieldListProps> = function FormTextFie
   const {
     className,
     label,
-    jsonPointer,
     parentJSONPointer,
     fieldName,
-    fieldNameMessageID,
-    getItemJSONPointer,
     inputProps,
     list,
     onListChange,
     addButtonLabelMessageID,
-    errorMessage,
   } = props;
   const makeDefaultItem = useCallback(() => "", []);
   const renderListItem = useCallback(
     (index: number, value: string, onChange: (newValue: string) => void) => (
       <TextFieldListItem
         index={index}
-        getJSONPointer={getItemJSONPointer}
-        parentJSONPointer={jsonPointer}
+        parentJSONPointer={`${parentJSONPointer}/${fieldName}`}
         textFieldProps={inputProps}
         value={value}
         onChange={onChange}
       />
     ),
-    [getItemJSONPointer, inputProps, jsonPointer]
+    [inputProps, parentJSONPointer, fieldName]
   );
 
   return (
     <FieldList
       className={className}
       label={label}
-      jsonPointer={jsonPointer}
       parentJSONPointer={parentJSONPointer}
       fieldName={fieldName}
-      fieldNameMessageID={fieldNameMessageID}
       list={list}
       onListChange={onListChange}
       makeDefaultItem={makeDefaultItem}
       renderListItem={renderListItem}
       addButtonLabelMessageID={addButtonLabelMessageID}
-      errorMessage={errorMessage}
     />
   );
 };

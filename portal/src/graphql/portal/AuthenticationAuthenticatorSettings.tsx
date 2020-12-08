@@ -30,7 +30,6 @@ import {
   useIntegerTextField,
 } from "../../hook/useInput";
 import { clearEmptyObject } from "../../util/misc";
-import { GenericErrorHandlingRule } from "../../error/useGenericError";
 import { useParams } from "react-router-dom";
 import {
   AppConfigFormModel,
@@ -42,6 +41,7 @@ import FormContainer from "../../FormContainer";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
 import styles from "./AuthenticationAuthenticatorSettings.module.scss";
+import { ErrorParseRule } from "../../error/parse";
 
 interface AuthenticatorTypeFormState<
   T = PrimaryAuthenticatorType | SecondaryAuthenticatorType
@@ -452,7 +452,6 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
           onChange={onRequireMFAOptionChange}
         />
         <FormTextField
-          jsonPointer="/authentication/recovery_code/count"
           parentJSONPointer="/authentication/recovery_code"
           fieldName="count"
           fieldNameMessageID="AuthenticationAuthenticatorSettingsScreen.policy.recovery-code-number"
@@ -480,12 +479,12 @@ const AuthenticationAuthenticatorSettingsScreen: React.FC = function Authenticat
 
   // TODO: refine this error, include more info for distinguishing
   // general validation error
-  const errorRules: GenericErrorHandlingRule[] = useMemo(
+  const errorRules: ErrorParseRule[] = useMemo(
     () => [
       {
         reason: "ValidationFailed",
         kind: "general",
-        jsonPointer: /\/authentication\/identities\/[0-9]+/,
+        location: "/authentication/identities/\\d+",
         errorMessageID:
           "AuthenticationAuthenticatorSettingsScreen.error.no-primary-authenticator",
       },
@@ -502,7 +501,7 @@ const AuthenticationAuthenticatorSettingsScreen: React.FC = function Authenticat
   }
 
   return (
-    <FormContainer form={form} errorParseRules={errorRules}>
+    <FormContainer form={form} errorRules={errorRules}>
       <AuthenticationAuthenticatorSettingsContent form={form} />
     </FormContainer>
   );

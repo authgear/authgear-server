@@ -5,12 +5,11 @@ import { FormattedMessage } from "@oursky/react-messageformat";
 import { useAppConfigQuery } from "../portal/query/appConfigQuery";
 import { useUserQuery } from "./query/userQuery";
 import NavBreadcrumb from "../../NavBreadcrumb";
-import { passwordFieldErrorRules } from "../../PasswordField";
 import FormTextField from "../../FormTextField";
 import AddIdentityForm from "./AddIdentityForm";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-import { GenericErrorHandlingRule } from "../../error/useGenericError";
+import { ErrorParseRule } from "../../error/parse";
 
 import styles from "./AddUsernameScreen.module.scss";
 
@@ -29,8 +28,7 @@ const UsernameField: React.FC<UsernameFieldProps> = function UsernameField(
   );
   return (
     <FormTextField
-      parentJSONPointer=""
-      jsonPointer="username"
+      parentJSONPointer="/"
       fieldName="username"
       fieldNameMessageID="AddUsernameScreen.username.label"
       className={styles.usernameField}
@@ -64,7 +62,7 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
   }, []);
   const title = <NavBreadcrumb items={navBreadcrumbItems} />;
 
-  const rules: GenericErrorHandlingRule[] = useMemo(
+  const rules: ErrorParseRule[] = useMemo(
     () => [
       {
         reason: "InvariantViolated",
@@ -72,7 +70,6 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
         errorMessageID: "AddUsernameScreen.error.duplicated-username",
         field: "username",
       },
-      ...passwordFieldErrorRules,
     ],
     []
   );

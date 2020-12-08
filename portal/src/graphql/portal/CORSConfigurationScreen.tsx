@@ -40,10 +40,6 @@ function constructConfig(
   });
 }
 
-function getAllowedOriginJSONPointer(index: number): string {
-  return `/http/allowed_origins/${index}`;
-}
-
 interface CORSConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
 }
@@ -77,9 +73,7 @@ const CORSConfigurationContent: React.FC<CORSConfigurationContentProps> = functi
       </Text>
       <FormTextFieldList
         className={styles.fieldList}
-        jsonPointer="/http/allowed_origins"
         parentJSONPointer="/http"
-        getItemJSONPointer={getAllowedOriginJSONPointer}
         fieldName="allowed_origins"
         list={state.allowedOrigins}
         onListChange={onAllowedOriginsChange}
