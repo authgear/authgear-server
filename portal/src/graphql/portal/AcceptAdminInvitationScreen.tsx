@@ -1,19 +1,20 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useContext, useMemo } from "react";
 import { MessageBar, MessageBarType, Text } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useLocation, useNavigate } from "react-router-dom";
 import cn from "classnames";
 
 import { useAcceptCollaboratorInvitationMutation } from "./mutations/acceptCollaboratorInvitationMutation";
 import ButtonWithLoading from "../../ButtonWithLoading";
-import { useGenericError } from "../../error/useGenericError";
 
 import styles from "./AcceptAdminInvitationScreen.module.scss";
 import ScreenHeader from "../../ScreenHeader";
+import { parseAPIErrors, parseRawError, renderErrors } from "../../error/parse";
 
 const AcceptAdminInvitationScreen: React.FC = function AcceptAdminInvitationScreen() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { renderToString } = useContext(Context);
 
   const invitationCode = useMemo(() => {
     return new URLSearchParams(location.search).get("code");
@@ -24,25 +25,30 @@ const AcceptAdminInvitationScreen: React.FC = function AcceptAdminInvitationScre
     loading,
     error,
   } = useAcceptCollaboratorInvitationMutation();
-  const { errorMessage } = useGenericError(
-    error,
-    [],
-    [
-      {
-        reason: "CollaboratorInvitationInvalidCode",
-        errorMessageID: "AcceptAdminInvitationScreen.invalid-code-error",
-      },
-      {
-        reason: "CollaboratorDuplicate",
-        errorMessageID:
-          "AcceptAdminInvitationScreen.duplicated-collaborator-error",
-      },
-      {
-        reason: "CollaboratorInvitationInvalidEmail",
-        errorMessageID: "AcceptAdminInvitationScreen.invalid-email-error",
-      },
-    ]
-  );
+
+  const errorMessage = useMemo(() => {
+    const apiErrors = parseRawError(error);
+    const { topErrors } = parseAPIErrors(
+      apiErrors,
+      [],
+      [
+        {
+          reason: "CollaboratorInvitationInvalidCode",
+          errorMessageID: "AcceptAdminInvitationScreen.invalid-code-error",
+        },
+        {
+          reason: "CollaboratorDuplicate",
+          errorMessageID:
+            "AcceptAdminInvitationScreen.duplicated-collaborator-error",
+        },
+        {
+          reason: "CollaboratorInvitationInvalidEmail",
+          errorMessageID: "AcceptAdminInvitationScreen.invalid-email-error",
+        },
+      ]
+    );
+    return renderErrors(null, topErrors, renderToString);
+  }, [error, renderToString]);
 
   const onAccept = useCallback(() => {
     acceptCollaboratorInvitation(invitationCode ?? "")

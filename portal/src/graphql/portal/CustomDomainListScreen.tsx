@@ -25,9 +25,11 @@ import ShowLoading from "../../ShowLoading";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import { useTextField } from "../../hook/useInput";
 import {
-  GenericErrorHandlingRule,
-  useGenericError,
-} from "../../error/useGenericError";
+  ErrorParseRule,
+  parseAPIErrors,
+  parseRawError,
+  renderErrors,
+} from "../../error/parse";
 import ErrorDialog from "../../error/ErrorDialog";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
@@ -99,7 +101,7 @@ const AddDomainSection: React.FC = function AddDomainSection() {
     return newDomain !== "";
   }, [newDomain]);
 
-  const errorRules: GenericErrorHandlingRule[] = useMemo(() => {
+  const errorRules: ErrorParseRule[] = useMemo(() => {
     return [
       {
         errorMessageID: "CustomDomainListScreen.add-domain.duplicated-error",
@@ -112,12 +114,17 @@ const AddDomainSection: React.FC = function AddDomainSection() {
     ];
   }, []);
 
-  const { errorMessage: addDomainErrorMessage } = useGenericError(
-    createDomainError,
-    [],
-    errorRules,
-    "CustomDomainListScreen.add-domain.generic-error"
-  );
+  const errors = useMemo(() => {
+    const apiErrors = parseRawError(createDomainError);
+    const { topErrors } = parseAPIErrors(
+      apiErrors,
+      [],
+      errorRules,
+      "CustomDomainListScreen.add-domain.generic-error"
+    );
+    return topErrors;
+  }, [createDomainError, errorRules]);
+  const errorMessage = renderErrors(null, errors, renderToString);
 
   return (
     <form className={styles.addDomain} onSubmit={onAddClick}>
@@ -128,7 +135,7 @@ const AddDomainSection: React.FC = function AddDomainSection() {
         )}
         value={newDomain}
         onChange={onNewDomainChange}
-        errorMessage={addDomainErrorMessage}
+        errorMessage={errorMessage}
       />
       <ButtonWithLoading
         type="submit"
@@ -239,7 +246,7 @@ const DeleteDomainDialog: React.FC<DeleteDomainDialogProps> = function DeleteDom
       });
   }, [domainID, deleteDomain, dismissDialog]);
 
-  const errorRules: GenericErrorHandlingRule[] = [
+  const errorRules: ErrorParseRule[] = [
     {
       reason: "Forbidden",
       errorMessageID:

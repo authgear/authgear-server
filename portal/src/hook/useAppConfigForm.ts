@@ -3,6 +3,7 @@ import deepEqual from "deep-equal";
 import { useAppConfigQuery } from "../graphql/portal/query/appConfigQuery";
 import { useUpdateAppConfigMutation } from "../graphql/portal/mutations/updateAppConfigMutation";
 import { PortalAPIAppConfig } from "../types";
+import { APIError } from "../error/error";
 
 export interface AppConfigFormModel<State> {
   isLoading: boolean;
@@ -28,7 +29,8 @@ export type ConfigConstructor<State> = (
 export function useAppConfigForm<State>(
   appID: string,
   constructState: StateConstructor<State>,
-  constructConfig: ConfigConstructor<State>
+  constructConfig: ConfigConstructor<State>,
+  validate?: (state: State) => APIError | null
 ): AppConfigFormModel<State> {
   const {
     loading: isLoading,
@@ -37,12 +39,9 @@ export function useAppConfigForm<State>(
     rawAppConfig: rawConfig,
     refetch: reload,
   } = useAppConfigQuery(appID);
-  const {
-    loading: isUpdating,
-    error: updateError,
-    updateAppConfig: updateConfig,
-    resetError,
-  } = useUpdateAppConfigMutation(appID);
+  const { updateAppConfig: updateConfig } = useUpdateAppConfigMutation(appID);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateError, setUpdateError] = useState<unknown>(null);
 
   const effectiveConfig = useMemo(() => effectiveAppConfig ?? { id: appID }, [
     effectiveAppConfig,
@@ -70,14 +69,20 @@ export function useAppConfigForm<State>(
     if (isUpdating) {
       return;
     }
-    resetError();
+    setUpdateError(null);
     setCurrentState(null);
-  }, [isUpdating, resetError]);
+  }, [isUpdating]);
 
   const save = useCallback(() => {
     if (!rawConfig || !initialState || !currentState) {
       return;
     } else if (!isDirty || isUpdating) {
+      return;
+    }
+
+    const err = validate?.(currentState);
+    if (err) {
+      setUpdateError(err);
       return;
     }
 
@@ -87,9 +92,13 @@ export function useAppConfigForm<State>(
       currentState,
       effectiveConfig
     );
+
+    setIsUpdating(true);
+    setUpdateError(null);
     updateConfig(newConfig)
       .then(() => setCurrentState(null))
-      .catch(() => {});
+      .catch((err) => setUpdateError(err))
+      .finally(() => setIsUpdating(false));
   }, [
     isDirty,
     isUpdating,
@@ -99,6 +108,7 @@ export function useAppConfigForm<State>(
     initialState,
     currentState,
     updateConfig,
+    validate,
   ]);
 
   const state = currentState ?? initialState;

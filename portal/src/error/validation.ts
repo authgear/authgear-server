@@ -1,3 +1,5 @@
+import type { ParsedAPIError } from "./parse";
+
 export interface APIValidationError {
   errorName: string;
   reason: "ValidationFailed";
@@ -9,6 +11,7 @@ export interface ValidationFailedErrorInfo {
 }
 
 export type ValidationFailedErrorInfoCause =
+  | LocalErrorCause
   | RequiredErrorCause
   | GeneralErrorCause
   | FormatErrorCause
@@ -17,6 +20,14 @@ export type ValidationFailedErrorInfoCause =
   | MaximumErrorCause
   | MinLengthErrorCause
   | MaxLengthErrorCause;
+
+export interface LocalErrorCause {
+  location: string;
+  kind: "__local";
+  details: {
+    error: ParsedAPIError;
+  };
+}
 
 export interface RequiredErrorCause {
   location: string;
@@ -89,10 +100,10 @@ export interface MaxLengthErrorCause {
   };
 }
 
-export interface LocalValidationError {
+export interface LocalValidationError extends ParsedAPIError {
   location?: string;
-  message: string;
 }
+
 export function makeLocalValidationError(
   errors: LocalValidationError[]
 ): APIValidationError | null {
@@ -103,11 +114,11 @@ export function makeLocalValidationError(
     errorName: "LocalValidationFailed",
     reason: "ValidationFailed",
     info: {
-      causes: errors.map(({ location, message }) => ({
+      causes: errors.map(({ location, ...error }) => ({
         location: location ?? "",
-        kind: "general",
+        kind: "__local",
         details: {
-          msg: message,
+          error: error,
         },
       })),
     },

@@ -17,12 +17,13 @@ import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
-import { useFormField } from "../../error/FormFieldContext";
+import { useFormField } from "../../form";
 import FieldList from "../../FieldList";
 import FormContainer from "../../FormContainer";
-import styles from "./HooksSettings.module.scss";
 import { clearEmptyObject } from "../../util/misc";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
+import styles from "./HooksSettings.module.scss";
+import { renderErrors } from "../../error/parse";
 
 interface HookEventHandler {
   event: string;
@@ -75,19 +76,31 @@ const HookHandlerItemEdit: React.FC<HookHandlerItemEditProps> = function HookHan
   props
 ) {
   const { index, value, onChange } = props;
+  const { renderToString } = useContext(Context);
 
-  const parentJSONPointer = "/hook/handlers";
-  const jsonPointer = `/hook/handlers/${index}`;
-
-  const { errorMessage: eventErrorMessage } = useFormField(
-    jsonPointer + "/event",
-    parentJSONPointer,
-    "event"
+  const eventField = useMemo(
+    () => ({
+      parentJSONPointer: `/hook/handlers/${index}`,
+      fieldName: "event",
+    }),
+    [index]
   );
-  const { errorMessage: urlErrorMessage } = useFormField(
-    jsonPointer + "/url",
-    parentJSONPointer,
-    "url"
+  const urlField = useMemo(
+    () => ({
+      parentJSONPointer: `/hook/handlers/${index}`,
+      fieldName: "url",
+    }),
+    [index]
+  );
+  const { errors: eventErrors } = useFormField(eventField);
+  const { errors: urlErrors } = useFormField(urlField);
+  const eventErrorMessage = useMemo(
+    () => renderErrors(eventField, eventErrors, renderToString),
+    [eventField, eventErrors, renderToString]
+  );
+  const urlErrorMessage = useMemo(
+    () => renderErrors(urlField, urlErrors, renderToString),
+    [urlField, urlErrors, renderToString]
   );
 
   const onEventChange = useCallback(
@@ -225,7 +238,6 @@ const HooksSettingsContent: React.FC<HooksSettingsContentProps> = function Hooks
             <FormattedMessage id="HooksSettings.handlers.label" />
           </Label>
         }
-        jsonPointer="/hook/handlers"
         parentJSONPointer="/hook"
         fieldName="handlers"
         list={state.handlers}

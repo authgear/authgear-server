@@ -1,14 +1,5 @@
 .root {
-  display: flex;
-  min-height: 100%;
-}
-
-.wrapper {
-  padding: 10px 20px;
-}
-
-.content {
-  margin: 0 20px 50px;
+  margin: 0 32px;
 }
 
 .identityOption {
@@ -27,8 +18,4 @@
 .userInfo {
   margin-bottom: 15px;
   width: 350px;
-}
-
-.addUserButton {
-  margin-top: 20px;
 }

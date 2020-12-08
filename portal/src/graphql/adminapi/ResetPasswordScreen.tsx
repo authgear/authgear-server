@@ -1,196 +1,131 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useContext, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import cn from "classnames";
-import deepEqual from "deep-equal";
-import { Text, TextField } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import { useResetPasswordMutation } from "./mutations/resetPasswordMutation";
 import NavBreadcrumb from "../../NavBreadcrumb";
-import PasswordField, {
-  localValidatePassword,
-  passwordFieldErrorRules,
-  PasswordFieldLocalErrorMessageMap,
-} from "../../PasswordField";
-import NavigationBlockerDialog from "../../NavigationBlockerDialog";
+import PasswordField from "../../PasswordField";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
-import ButtonWithLoading from "../../ButtonWithLoading";
-import {
-  ModifiedIndicatorPortal,
-  ModifiedIndicatorWrapper,
-} from "../../ModifiedIndicatorPortal";
 import { useAppConfigQuery } from "../portal/query/appConfigQuery";
 import { useTextField } from "../../hook/useInput";
-import { useGenericError } from "../../error/useGenericError";
 import { PortalAPIAppConfig } from "../../types";
+import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
+import FormContainer from "../../FormContainer";
+import FormTextField from "../../FormTextField";
 
 import styles from "./ResetPasswordScreen.module.scss";
+import { validatePassword } from "../../error/password";
 
-interface ResetPasswordFormProps {
-  appConfig: PortalAPIAppConfig | null;
-  resetForm: () => void;
-}
-
-interface ResetPasswordFormData {
+interface FormState {
   newPassword: string;
   confirmPassword: string;
 }
 
-const ResetPasswordForm: React.FC<ResetPasswordFormProps> = function (
-  props: ResetPasswordFormProps
-) {
-  const { appConfig, resetForm } = props;
+const defaultFormState: FormState = {
+  newPassword: "",
+  confirmPassword: "",
+};
 
-  const { userID } = useParams();
-  const navigate = useNavigate();
+interface ResetPasswordContentProps {
+  appConfig: PortalAPIAppConfig | null;
+  form: SimpleFormModel<FormState>;
+}
+
+const ResetPasswordContent: React.FC<ResetPasswordContentProps> = function (
+  props
+) {
   const {
-    resetPassword,
-    loading: resettingPassword,
-    error: resetPasswordError,
-  } = useResetPasswordMutation(userID);
+    appConfig,
+    form: { state, setState },
+  } = props;
   const { renderToString } = useContext(Context);
 
-  const [
-    localValidationErrorMessageMap,
-    setLocalValidationErrorMessageMap,
-  ] = useState<PasswordFieldLocalErrorMessageMap>(null);
-  const [submittedForm, setSubmittedForm] = useState(false);
-
-  const passwordPolicy = useMemo(() => {
-    return appConfig?.authenticator?.password?.policy ?? {};
-  }, [appConfig]);
-
-  const initialFormData = useMemo<ResetPasswordFormData>(() => {
-    return {
-      newPassword: "",
-      confirmPassword: "",
-    };
+  const navBreadcrumbItems = useMemo(() => {
+    return [
+      { to: "../../..", label: <FormattedMessage id="UsersScreen.title" /> },
+      { to: "..", label: <FormattedMessage id="UserDetailsScreen.title" /> },
+      { to: ".", label: <FormattedMessage id="ResetPasswordScreen.title" /> },
+    ];
   }, []);
-  const [formData, setFormData] = useState(initialFormData);
-  const { newPassword, confirmPassword } = formData;
-
-  const isFormModified = useMemo(() => {
-    return !deepEqual(initialFormData, formData);
-  }, [formData, initialFormData]);
 
   const { onChange: onNewPasswordChange } = useTextField((value) => {
-    setFormData((prev) => ({ ...prev, newPassword: value }));
+    setState((prev) => ({ ...prev, newPassword: value }));
   });
   const { onChange: onConfirmPasswordChange } = useTextField((value) => {
-    setFormData((prev) => ({ ...prev, confirmPassword: value }));
+    setState((prev) => ({ ...prev, confirmPassword: value }));
   });
 
-  const onFormSubmit = useCallback(
-    (ev: React.SyntheticEvent<HTMLElement>) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-
-      const localErrorMessageMap = localValidatePassword(
-        renderToString,
-        passwordPolicy,
-        formData.newPassword,
-        formData.confirmPassword
-      );
-      setLocalValidationErrorMessageMap(localErrorMessageMap);
-
-      if (localErrorMessageMap != null) {
-        return;
-      }
-
-      resetPassword(formData.newPassword)
-        .then((userID) => {
-          if (userID != null) {
-            setSubmittedForm(true);
-          }
-        })
-        .catch(() => {});
-    },
-    [renderToString, formData, passwordPolicy, resetPassword]
-  );
-
-  useEffect(() => {
-    if (submittedForm) {
-      navigate("..#account-security");
-    }
-  }, [submittedForm, navigate]);
-
-  const { errorMessage, unrecognizedError } = useGenericError(
-    resetPasswordError,
-    [],
-    passwordFieldErrorRules
-  );
-
-  if (appConfig == null) {
-    return (
-      <Text>
-        <FormattedMessage id="ResetPasswordScreen.error.fetch-password-policy" />
-      </Text>
-    );
-  }
-
   return (
-    <form className={styles.form} onSubmit={onFormSubmit}>
-      <ModifiedIndicatorPortal
-        resetForm={resetForm}
-        isModified={isFormModified}
-      />
-      {unrecognizedError && <ShowError error={unrecognizedError} />}
-      <NavigationBlockerDialog
-        blockNavigation={!submittedForm && isFormModified}
-      />
+    <div className={styles.root}>
+      <NavBreadcrumb items={navBreadcrumbItems} />
       <PasswordField
         className={styles.newPasswordField}
         textFieldClassName={styles.passwordField}
-        errorMessage={localValidationErrorMessageMap?.password ?? errorMessage}
         label={renderToString("ResetPasswordScreen.new-password")}
-        value={newPassword}
+        value={state.newPassword}
         onChange={onNewPasswordChange}
-        passwordPolicy={passwordPolicy}
+        passwordPolicy={appConfig?.authenticator?.password?.policy ?? {}}
+        parentJSONPointer="/"
+        fieldName="password"
       />
-      <TextField
+      <FormTextField
         className={cn(styles.passwordField, styles.confirmPasswordField)}
         label={renderToString("ResetPasswordScreen.confirm-password")}
         type="password"
-        value={confirmPassword}
+        value={state.confirmPassword}
         onChange={onConfirmPasswordChange}
-        errorMessage={localValidationErrorMessageMap?.confirmPassword}
+        parentJSONPointer="/"
+        fieldName="confirm_password"
       />
-      <ButtonWithLoading
-        type="submit"
-        className={styles.confirm}
-        disabled={!isFormModified || submittedForm}
-        loading={resettingPassword}
-        labelId="confirm"
-      />
-    </form>
+    </div>
   );
 };
 
 const ResetPasswordScreen: React.FC = function ResetPasswordScreen() {
   const { appID } = useParams();
+  const navigate = useNavigate();
+
   const { effectiveAppConfig, loading, error, refetch } = useAppConfigQuery(
     appID
   );
+  const passwordPolicy = useMemo(
+    () => effectiveAppConfig?.authenticator?.password?.policy ?? {},
+    [effectiveAppConfig]
+  );
 
-  const navBreadcrumbItems = useMemo(() => {
-    return [
-      { to: "../../..", label: <FormattedMessage id="UsersScreen.title" /> },
-      { to: "../", label: <FormattedMessage id="UserDetailsScreen.title" /> },
-      { to: ".", label: <FormattedMessage id="ResetPasswordScreen.title" /> },
-    ];
-  }, []);
+  const { userID } = useParams();
+  const { resetPassword } = useResetPasswordMutation(userID);
 
-  const [remountIdentifier, setRemountIdentifier] = useState(0);
-  const resetForm = useCallback(() => {
-    setRemountIdentifier((prev) => prev + 1);
-  }, []);
+  const validate = useCallback(
+    (state: FormState) => {
+      return validatePassword(
+        state.newPassword,
+        passwordPolicy,
+        state.confirmPassword
+      );
+    },
+    [passwordPolicy]
+  );
+
+  const submit = useCallback(
+    async (state: FormState) => {
+      await resetPassword(state.newPassword);
+    },
+    [resetPassword]
+  );
+
+  const form = useSimpleForm(defaultFormState, submit, validate);
+
+  const canSave =
+    form.state.newPassword.length > 0 && form.state.confirmPassword.length > 0;
+
+  useEffect(() => {
+    if (form.isSubmitted) {
+      navigate("..#account-security");
+    }
+  }, [form.isSubmitted, navigate]);
 
   if (loading) {
     return <ShowLoading />;
@@ -201,16 +136,9 @@ const ResetPasswordScreen: React.FC = function ResetPasswordScreen() {
   }
 
   return (
-    <main className={styles.root}>
-      <ModifiedIndicatorWrapper className={styles.content}>
-        <NavBreadcrumb items={navBreadcrumbItems} />
-        <ResetPasswordForm
-          key={remountIdentifier}
-          appConfig={effectiveAppConfig}
-          resetForm={resetForm}
-        />
-      </ModifiedIndicatorWrapper>
-    </main>
+    <FormContainer form={form} canSave={canSave}>
+      <ResetPasswordContent form={form} appConfig={effectiveAppConfig} />
+    </FormContainer>
   );
 };
 

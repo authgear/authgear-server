@@ -1,90 +1,53 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { FormattedMessage } from "@oursky/react-messageformat";
-import { Label, Text, TextField } from "@fluentui/react";
-import ShowError from "../../ShowError";
+import { Label, Text } from "@fluentui/react";
 import ScreenHeader from "../../ScreenHeader";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import { useCreateAppMutation } from "./mutations/createAppMutation";
 import { useTextField } from "../../hook/useInput";
 import { useSystemConfig } from "../../context/SystemConfigContext";
-import { useGenericError } from "../../error/useGenericError";
 
 import styles from "./CreateAppScreen.module.scss";
-import ButtonWithLoading from "../../ButtonWithLoading";
+import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
+import { ErrorParseRule } from "../../error/parse";
+import FormTextField from "../../FormTextField";
+import FormContainer from "../../FormContainer";
 
-interface CreateAppProps {
-  isCreating: boolean;
-  createApp: (appID: string) => Promise<string | null>;
-  errorMessage: string | undefined;
-}
-
-interface CreateAppFormData {
+interface FormState {
   appID: string;
 }
 
-const APP_ID_SCHEME = "https://";
-
-const CreateApp: React.FC<CreateAppProps> = function CreateApp(
-  props: CreateAppProps
-) {
-  const { isCreating, createApp, errorMessage } = props;
-  const navigate = useNavigate();
-  const systemConfig = useSystemConfig();
-
-  const [formData, setFormData] = useState<CreateAppFormData>({
-    appID: "",
-  });
-  const { appID } = formData;
-  const { onChange: onAppIDChange } = useTextField((value) =>
-    setFormData((prev) => ({ ...prev, appID: value }))
-  );
-
-  const onFormSubmit = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault();
-      createApp(appID)
-        .then((id) => {
-          if (id) {
-            navigate("/app/" + encodeURIComponent(id));
-          }
-        })
-        .catch(() => {});
-    },
-    [appID, createApp, navigate]
-  );
-
-  return (
-    <main className={styles.body}>
-      <form onSubmit={onFormSubmit}>
-        <Label className={styles.fieldLabel}>
-          <FormattedMessage id="CreateAppScreen.app-id.label" />
-        </Label>
-        <Text className={styles.fieldDesc}>
-          <FormattedMessage id="CreateAppScreen.app-id.desc" />
-        </Text>
-        <TextField
-          className={styles.appIDField}
-          value={appID}
-          disabled={isCreating}
-          onChange={onAppIDChange}
-          prefix={APP_ID_SCHEME}
-          suffix={systemConfig.appHostSuffix}
-          errorMessage={errorMessage}
-        />
-        <ButtonWithLoading
-          type="submit"
-          disabled={appID.length === 0 || isCreating}
-          labelId="create"
-          loading={isCreating}
-        />
-      </form>
-    </main>
-  );
+const defaultFormState: FormState = {
+  appID: "",
 };
 
-const CreateAppScreen: React.FC = function CreateAppScreen() {
-  const { loading, error, createApp } = useCreateAppMutation();
+const APP_ID_SCHEME = "https://";
+
+const errorRules: ErrorParseRule[] = [
+  {
+    reason: "DuplicatedAppID",
+    errorMessageID: "CreateAppScreen.error.duplicated-app-id",
+  },
+  {
+    reason: "AppIDReserved",
+    errorMessageID: "CreateAppScreen.error.reserved-app-id",
+  },
+  {
+    reason: "InvalidAppID",
+    errorMessageID: "CreateAppScreen.error.invalid-app-id",
+  },
+];
+
+interface CreateAppContentProps {
+  form: SimpleFormModel<FormState, string | null>;
+}
+
+const CreateAppContent: React.FC<CreateAppContentProps> = function CreateAppContent(
+  props
+) {
+  const { state, setState } = props.form;
+  const systemConfig = useSystemConfig();
 
   const navBreadcrumbItems = React.useMemo(() => {
     return [
@@ -93,39 +56,67 @@ const CreateAppScreen: React.FC = function CreateAppScreen() {
     ];
   }, []);
 
-  const { errorMessage, unrecognizedError } = useGenericError(
-    error,
-    [],
-    [
-      {
-        reason: "DuplicatedAppID",
-        errorMessageID: "CreateAppScreen.error.duplicated-app-id",
-      },
-      {
-        reason: "AppIDReserved",
-        errorMessageID: "CreateAppScreen.error.reserved-app-id",
-      },
-      {
-        reason: "InvalidAppID",
-        errorMessageID: "CreateAppScreen.error.invalid-app-id",
-      },
-    ],
+  const { onChange: onAppIDChange } = useTextField((value) =>
+    setState((prev) => ({ ...prev, appID: value }))
+  );
 
-    "CreateAppScreen.error.generic"
+  return (
+    <main className={styles.content}>
+      <NavBreadcrumb items={navBreadcrumbItems} />
+      <Label className={styles.fieldLabel}>
+        <FormattedMessage id="CreateAppScreen.app-id.label" />
+      </Label>
+      <Text className={styles.fieldDesc}>
+        <FormattedMessage id="CreateAppScreen.app-id.desc" />
+      </Text>
+      <FormTextField
+        className={styles.appIDField}
+        parentJSONPointer="/"
+        fieldName="app_id"
+        value={state.appID}
+        errorRules={errorRules}
+        disabled={props.form.isUpdating}
+        onChange={onAppIDChange}
+        prefix={APP_ID_SCHEME}
+        suffix={systemConfig.appHostSuffix}
+      />
+    </main>
+  );
+};
+
+const CreateAppScreen: React.FC = function CreateAppScreen() {
+  const navigate = useNavigate();
+  const { createApp } = useCreateAppMutation();
+
+  const submit = useCallback(
+    async (state: FormState) => {
+      return createApp(state.appID);
+    },
+    [createApp]
+  );
+  const form = useSimpleForm(defaultFormState, submit);
+
+  useEffect(() => {
+    if (form.submissionResult) {
+      const appID = form.submissionResult;
+      navigate("/app/" + encodeURIComponent(appID));
+    }
+  }, [form, navigate]);
+
+  const saveButtonProps = useMemo(
+    () => ({
+      iconName: "Add",
+      labelId: "create",
+    }),
+    []
   );
 
   return (
     <div className={styles.root}>
       <ScreenHeader />
-      {unrecognizedError && <ShowError error={unrecognizedError} />}
-      <section className={styles.content}>
-        <NavBreadcrumb items={navBreadcrumbItems} />
-        <CreateApp
-          isCreating={loading}
-          createApp={createApp}
-          errorMessage={errorMessage}
-        />
-      </section>
+      <FormContainer form={form} saveButtonProps={saveButtonProps}>
+        <CreateAppContent form={form} />
+      </FormContainer>
     </div>
   );
 };

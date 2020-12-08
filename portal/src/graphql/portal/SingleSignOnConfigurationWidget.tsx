@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import cn from "classnames";
 import { Label, Toggle } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
@@ -27,7 +27,7 @@ interface SingleSignOnConfigurationWidgetProps {
   className?: string;
 
   jsonPointer: string;
-  clientSecretParentJsonPointer: string | RegExp;
+  clientSecretParentJsonPointer: string;
 
   isEnabled: boolean;
   onIsEnabledChange: (value: boolean) => void;
@@ -181,17 +181,6 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
 
   const [extended, setExtended] = useState(isEnabled);
 
-  const clientSecretJSONPointer = useMemo(() => {
-    if (typeof clientSecretParentJsonPointer === "string") {
-      return clientSecretParentJsonPointer
-        ? `${clientSecretParentJsonPointer}/client_secret`
-        : "";
-    }
-    return new RegExp(
-      `${clientSecretParentJsonPointer.source.replace("$", "")}/client_secret$`
-    );
-  }, [clientSecretParentJsonPointer]);
-
   // Always extended when enabled
   // Collapse on disabled
   // make sure text field mounted for showing error
@@ -258,7 +247,6 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
     >
       {visibleFields.has("alias") && (
         <FormTextField
-          jsonPointer={`${jsonPointer}/alias`}
           parentJSONPointer={jsonPointer}
           fieldName="alias"
           fieldNameMessageID="SingleSignOnConfigurationScreen.widget.alias"
@@ -270,7 +258,6 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
       )}
       {visibleFields.has("client_id") && (
         <FormTextField
-          jsonPointer={`${jsonPointer}/client_id`}
           parentJSONPointer={jsonPointer}
           fieldName="client_id"
           fieldNameMessageID="SingleSignOnConfigurationScreen.widget.client-id"
@@ -282,7 +269,6 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
       )}
       {visibleFields.has("client_secret") && (
         <FormTextField
-          jsonPointer={clientSecretJSONPointer}
           parentJSONPointer={clientSecretParentJsonPointer}
           fieldName="client_secret"
           fieldNameMessageID="SingleSignOnConfigurationScreen.widget.client-secret"
@@ -299,7 +285,6 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
       )}
       {visibleFields.has("tenant") && (
         <FormTextField
-          jsonPointer={`${jsonPointer}/tenant`}
           parentJSONPointer={jsonPointer}
           fieldName="tenant"
           fieldNameMessageID="SingleSignOnConfigurationScreen.widget.tenant"
@@ -311,7 +296,6 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
       )}
       {visibleFields.has("key_id") && (
         <FormTextField
-          jsonPointer={`${jsonPointer}/key_id`}
           parentJSONPointer={jsonPointer}
           fieldName="key_id"
           fieldNameMessageID="SingleSignOnConfigurationScreen.widget.key-id"
@@ -323,7 +307,6 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
       )}
       {visibleFields.has("team_id") && (
         <FormTextField
-          jsonPointer={`${jsonPointer}/team_id`}
           parentJSONPointer={jsonPointer}
           fieldName="team_id"
           fieldNameMessageID="SingleSignOnConfigurationScreen.widget.team-id"

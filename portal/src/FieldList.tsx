@@ -1,9 +1,9 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useContext, useMemo } from "react";
 import { ActionButton, IconButton, Stack, Text } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
-
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "./context/SystemConfigContext";
-import { useFormField } from "./error/FormFieldContext";
+import { useFormField } from "./form";
+import { renderErrors } from "./error/parse";
 
 import styles from "./FieldList.module.scss";
 
@@ -16,16 +16,13 @@ type RenderFieldListItem<T> = (
 interface FieldListProps<T> {
   className?: string;
   label?: React.ReactNode;
-  jsonPointer: RegExp | string;
-  parentJSONPointer: RegExp | string;
+  parentJSONPointer: string;
   fieldName: string;
-  fieldNameMessageID?: string;
   list: T[];
   onListChange: (list: T[]) => void;
   makeDefaultItem: () => T;
   renderListItem: RenderFieldListItem<T>;
   addButtonLabelMessageID?: string;
-  errorMessage?: string;
 }
 
 const FieldList = function FieldList<T>(
@@ -34,25 +31,29 @@ const FieldList = function FieldList<T>(
   const {
     className,
     label,
-    jsonPointer,
     parentJSONPointer,
     fieldName,
-    fieldNameMessageID,
     list,
     onListChange,
     renderListItem,
     makeDefaultItem,
     addButtonLabelMessageID,
-    errorMessage: errorMessageProps,
   } = props;
 
   const { themes } = useSystemConfig();
+  const { renderToString } = useContext(Context);
 
-  const { errorMessage } = useFormField(
-    jsonPointer,
-    parentJSONPointer,
-    fieldName,
-    fieldNameMessageID
+  const field = useMemo(
+    () => ({
+      parentJSONPointer,
+      fieldName,
+    }),
+    [parentJSONPointer, fieldName]
+  );
+  const { errors } = useFormField(field);
+  const errorMessage = useMemo(
+    () => renderErrors(field, errors, renderToString),
+    [field, errors, renderToString]
   );
 
   const onItemChange = useCallback(
@@ -94,9 +95,7 @@ const FieldList = function FieldList<T>(
           />
         ))}
       </Stack>
-      <Text className={styles.errorMessage}>
-        {errorMessageProps ?? errorMessage}
-      </Text>
+      <Text className={styles.errorMessage}>{errorMessage}</Text>
       <ActionButton
         className={styles.addButton}
         theme={themes.actionButton}

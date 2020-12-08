@@ -1,20 +1,20 @@
 import React, { useContext, useMemo } from "react";
 import cn from "classnames";
 import zxcvbn from "zxcvbn";
-import { ITextFieldProps, Text, TextField } from "@fluentui/react";
+import { Text } from "@fluentui/react";
 import { Context, FormattedMessage, Values } from "@oursky/react-messageformat";
 
 import PasswordStrengthMeter from "./PasswordStrengthMeter";
 import { PasswordPolicyConfig } from "./types";
-import { GenericErrorHandlingRule } from "./error/useGenericError";
-import { defaultFormatErrorMessageList } from "./util/validation";
+import FormTextField, { FormTextFieldProps } from "./FormTextField";
+import { checkPasswordPolicy } from "./error/password";
 
 import styles from "./PasswordField.module.scss";
 
 export type GuessableLevel = 0 | 1 | 2 | 3 | 4 | 5;
 export type GuessableLevelNames = Record<GuessableLevel, string>;
 
-interface PasswordFieldProps extends ITextFieldProps {
+interface PasswordFieldProps extends FormTextFieldProps {
   className?: string;
   textFieldClassName?: string;
   passwordPolicy: PasswordPolicyConfig;
@@ -24,122 +24,6 @@ interface PasswordPolicyData {
   key: keyof PasswordPolicyConfig;
   messageId: string;
   messageValues?: Values;
-}
-
-export type PasswordFieldLocalErrorMessageMap = {
-  password?: string;
-  confirmPassword?: string;
-} | null;
-
-export const passwordFieldErrorRules: GenericErrorHandlingRule[] = [
-  {
-    reason: "PasswordPolicyViolated",
-    cause: "PasswordReused",
-    errorMessageID: "PasswordField.error.password-reused",
-    field: "password",
-  },
-  {
-    reason: "PasswordPolicyViolated",
-    cause: "PasswordContainingExcludedKeywords",
-    errorMessageID: "PasswordField.error.containing-excluded-keywords",
-    field: "password",
-  },
-];
-
-function checkPasswordPolicy(
-  passwordPolicy: PasswordPolicyConfig,
-  password: string | undefined,
-  level: GuessableLevel
-) {
-  const isPolicySatisfied: Partial<Record<
-    keyof PasswordPolicyConfig,
-    boolean
-  >> = {};
-  if (password == null) {
-    return isPolicySatisfied;
-  }
-  if (passwordPolicy.min_length != null) {
-    isPolicySatisfied.min_length = password.length >= passwordPolicy.min_length;
-  }
-  if (passwordPolicy.lowercase_required === true) {
-    isPolicySatisfied.lowercase_required = /[a-z]/.test(password);
-  }
-  if (passwordPolicy.uppercase_required === true) {
-    isPolicySatisfied.uppercase_required = /[A-Z]/.test(password);
-  }
-  if (passwordPolicy.digit_required === true) {
-    isPolicySatisfied.digit_required = /\d/.test(password);
-  }
-  if (passwordPolicy.symbol_required === true) {
-    // treat all character which is not alphanumeric as symbol
-    isPolicySatisfied.symbol_required = /[^a-zA-Z0-9]/.test(password);
-  }
-  if (passwordPolicy.minimum_guessable_level != null) {
-    isPolicySatisfied.minimum_guessable_level =
-      level >= passwordPolicy.minimum_guessable_level;
-  }
-
-  return isPolicySatisfied;
-}
-
-export function isPasswordValid(
-  passwordPolicy: PasswordPolicyConfig,
-  password: string | undefined,
-  level: GuessableLevel
-): boolean {
-  if (password == null) {
-    return false;
-  }
-  const isPolicySatisfied = checkPasswordPolicy(
-    passwordPolicy,
-    password,
-    level
-  );
-  return Object.values(isPolicySatisfied).every(Boolean);
-}
-
-export enum PasswordFieldErrorID {
-  InvalidPassword = "invalid-password",
-  ConfirmPasswordNotMatch = "confirm-password-not-match",
-}
-
-export function localValidatePassword(
-  renderToString: (messageId: string) => string,
-  passwordPolicy: PasswordPolicyConfig,
-  password: string,
-  confirmPassword?: string
-): PasswordFieldLocalErrorMessageMap {
-  let isValid = true;
-  const passwordErrorMessages: string[] = [];
-  const confirmPasswordErrorMessages: string[] = [];
-  if (confirmPassword != null && password !== confirmPassword) {
-    confirmPasswordErrorMessages.push(
-      renderToString("PasswordField.error.confirm-password-not-match")
-    );
-    isValid = false;
-  }
-
-  const guessableLevel = extractGuessableLevel(zxcvbn(password));
-  const passwordValid = isPasswordValid(
-    passwordPolicy,
-    password,
-    guessableLevel
-  );
-  if (!passwordValid) {
-    passwordErrorMessages.push(
-      renderToString("PasswordField.error.invalid-password")
-    );
-    isValid = false;
-  }
-
-  return isValid
-    ? null
-    : {
-        password: defaultFormatErrorMessageList(passwordErrorMessages),
-        confirmPassword: defaultFormatErrorMessageList(
-          confirmPasswordErrorMessages
-        ),
-      };
 }
 
 function renderGuessableLevelNames(
@@ -265,12 +149,12 @@ const PasswordField: React.FC<PasswordFieldProps> = function PasswordField(
   const guessableLevel = extractGuessableLevel(result);
 
   const isPasswordPolicySatisfied = useMemo(
-    () => checkPasswordPolicy(passwordPolicy, password, guessableLevel),
+    () => checkPasswordPolicy(passwordPolicy, password ?? "", guessableLevel),
     [password, passwordPolicy, guessableLevel]
   );
   return (
     <div className={className}>
-      <TextField
+      <FormTextField
         {...rest}
         value={password}
         className={textFieldClassName}

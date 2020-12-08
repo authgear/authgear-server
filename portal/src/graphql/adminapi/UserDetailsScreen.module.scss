@@ -1,7 +1,5 @@
 .root {
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
+  margin: 0 32px;
 }
 
 .screenContent {
@@ -9,7 +7,7 @@
 }
 
 .userDetails {
-  margin: 0 15px;
+  margin: 15px;
 }
 
 .userDetailsTab {

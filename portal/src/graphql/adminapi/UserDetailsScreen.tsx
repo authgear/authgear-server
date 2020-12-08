@@ -7,8 +7,7 @@ import { useAppConfigQuery } from "../portal/query/appConfigQuery";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-import UserDetailCommandBar from "./UserDetailCommandBar";
-import { ModifiedIndicatorWrapper } from "../../ModifiedIndicatorPortal";
+import UserDetailCommandBarContainer from "./UserDetailCommandBarContainer";
 import UserDetailSummary from "./UserDetailSummary";
 import UserDetailsAccountSecurity from "./UserDetailsAccountSecurity";
 import UserDetailsConnectedIdentities from "./UserDetailsConnectedIdentities";
@@ -145,17 +144,16 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
     [];
 
   return (
-    <main className={styles.root}>
-      <UserDetailCommandBar user={user} identities={identities} />
-      <ModifiedIndicatorWrapper className={styles.screenContent}>
+    <UserDetailCommandBarContainer user={user} identities={identities}>
+      <main className={styles.root}>
         <NavBreadcrumb items={navBreadcrumbItems} />
         <UserDetails
           data={user}
           loading={loading || loadingAppConfig}
           appConfig={effectiveAppConfig}
         />
-      </ModifiedIndicatorWrapper>
-    </main>
+      </main>
+    </UserDetailCommandBarContainer>
   );
 };
 

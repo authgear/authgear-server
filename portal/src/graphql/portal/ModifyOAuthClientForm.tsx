@@ -18,47 +18,6 @@ interface ModifyOAuthClientFormProps {
   onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
 }
 
-const jsonPointerRegExp: Pick<
-  Record<
-    keyof OAuthClientConfig,
-    {
-      field: RegExp;
-      parent: RegExp;
-      getItemJSONPointer?: (index: number) => RegExp;
-    }
-  >,
-  | "name"
-  | "access_token_lifetime_seconds"
-  | "refresh_token_lifetime_seconds"
-  | "redirect_uris"
-  | "post_logout_redirect_uris"
-> = {
-  name: {
-    field: /^\/oauth\/clients\/[0-9]+\/name$/,
-    parent: /^\/oauth\/clients\/[0-9]+$/,
-  },
-  access_token_lifetime_seconds: {
-    field: /^\/oauth\/clients\/[0-9]+\/access_token_lifetime_seconds$/,
-    parent: /^\/oauth\/clients\/[0-9]+$/,
-  },
-  refresh_token_lifetime_seconds: {
-    field: /^\/oauth\/clients\/[0-9]+\/refresh_token_lifetime_seconds$/,
-    parent: /^\/oauth\/clients\/[0-9]+$/,
-  },
-  redirect_uris: {
-    field: /^\/oauth\/clients\/[0-9]+\/redirect_uris$/,
-    parent: /^\/oauth\/clients\/[0-9]+$/,
-    getItemJSONPointer: (index) =>
-      new RegExp(`^/oauth/clients/[0-9]+/redirect_uris/${index}$`),
-  },
-  post_logout_redirect_uris: {
-    field: /^\/oauth\/clients\/[0-9]+\/post_logout_redirect_uris$/,
-    parent: /^\/oauth\/clients\/[0-9]+$/,
-    getItemJSONPointer: (index) =>
-      new RegExp(`^/oauth/clients/[0-9]+/post_logout_redirect_uris/${index}$`),
-  },
-};
-
 export function getReducedClientConfig(
   clientConfig: OAuthClientConfig
 ): Omit<OAuthClientConfig, "grant_types" | "response_types"> {
@@ -149,8 +108,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
   return (
     <section className={cn(styles.root, className)}>
       <FormTextField
-        jsonPointer={jsonPointerRegExp.name.field}
-        parentJSONPointer={jsonPointerRegExp.name.parent}
+        parentJSONPointer="/oauth/clients/\d+"
         fieldName="name"
         fieldNameMessageID="ModifyOAuthClientForm.name-label"
         className={styles.inputField}
@@ -159,10 +117,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
         required={true}
       />
       <FormTextField
-        jsonPointer={jsonPointerRegExp.access_token_lifetime_seconds.field}
-        parentJSONPointer={
-          jsonPointerRegExp.access_token_lifetime_seconds.parent
-        }
+        parentJSONPointer="/oauth/clients/\d+"
         fieldName="access_token_lifetime_seconds"
         fieldNameMessageID="ModifyOAuthClientForm.acces-token-lifetime-label"
         className={styles.inputField}
@@ -170,10 +125,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
         onChange={onAccessTokenLifetimeChange}
       />
       <FormTextField
-        jsonPointer={jsonPointerRegExp.refresh_token_lifetime_seconds.field}
-        parentJSONPointer={
-          jsonPointerRegExp.refresh_token_lifetime_seconds.parent
-        }
+        parentJSONPointer="/oauth/clients/\d+"
         fieldName="refresh_token_lifetime_seconds"
         fieldNameMessageID="ModifyOAuthClientForm.refresh-token-lifetime-label"
         className={styles.inputField}
@@ -182,11 +134,8 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
       />
       <FormTextFieldList
         className={styles.inputFieldList}
-        jsonPointer={jsonPointerRegExp.redirect_uris.field}
-        parentJSONPointer={jsonPointerRegExp.redirect_uris.parent}
-        getItemJSONPointer={jsonPointerRegExp.redirect_uris.getItemJSONPointer!}
+        parentJSONPointer="/oauth/clients/\d+"
         fieldName="redirect_uris"
-        fieldNameMessageID="ModifyOAuthClientForm.redirect-uris-label"
         list={clientConfig.redirect_uris}
         onListChange={onRedirectUrisChange}
         addButtonLabelMessageID="ModifyOAuthClientForm.add-uri"
@@ -202,13 +151,8 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
       />
       <FormTextFieldList
         className={styles.inputFieldList}
-        jsonPointer={jsonPointerRegExp.post_logout_redirect_uris.field}
-        parentJSONPointer={jsonPointerRegExp.post_logout_redirect_uris.parent}
-        getItemJSONPointer={
-          jsonPointerRegExp.post_logout_redirect_uris.getItemJSONPointer!
-        }
+        parentJSONPointer="/oauth/clients/\d+"
         fieldName="post_logout_redirect_uris"
-        fieldNameMessageID="ModifyOAuthClientForm.post-logout-redirect-uris-label"
         list={clientConfig.post_logout_redirect_uris ?? []}
         onListChange={onPostLogoutRedirectUrisChange}
         addButtonLabelMessageID="ModifyOAuthClientForm.add-uri"

@@ -1,6 +1,3 @@
-import { ApolloError } from "@apollo/client";
-import { GraphQLError } from "graphql";
-
 import { APIValidationError } from "./validation";
 import { APIInvariantViolationError } from "./invariant";
 import { APIPasswordPolicyViolatedError } from "./password";
@@ -27,7 +24,22 @@ import {
 } from "./apps";
 import { APIResourceNotFoundError } from "./resources";
 
+export interface NetworkError {
+  errorName: "NetworkFailed";
+  reason: "NetworkFailed";
+}
+
+export interface UnknownError {
+  errorName: "Unknown";
+  reason: "Unknown";
+  info: {
+    message: string;
+  };
+}
+
 export type APIError =
+  | NetworkError
+  | UnknownError
   | APIValidationError
   | APIInvariantViolationError
   | APIPasswordPolicyViolatedError
@@ -48,20 +60,11 @@ export type APIError =
   | APIReservedAppIDError
   | APIResourceNotFoundError;
 
-export function isAPIError(value?: { [key: string]: any }): value is APIError {
-  if (value == null) {
-    return false;
-  }
-  return "errorName" in value && "reason" in value;
-}
-
-export function isApolloError(error: unknown): error is ApolloError {
-  return error instanceof ApolloError;
-}
-
-export function extractAPIError(error: GraphQLError): APIError | undefined {
-  if (isAPIError(error.extensions)) {
-    return error.extensions;
-  }
-  return undefined;
+export function isAPIError(value: unknown): value is APIError {
+  return (
+    typeof value === "object" &&
+    !!value &&
+    "errorName" in value &&
+    "reason" in value
+  );
 }

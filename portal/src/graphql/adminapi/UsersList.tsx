@@ -1,13 +1,5 @@
-import React, {
-  useMemo,
-  useContext,
-  useState,
-  useCallback,
-  useRef,
-  useEffect,
-} from "react";
+import React, { useMemo, useContext, useState, useCallback } from "react";
 import cn from "classnames";
-import { useQuery, gql } from "@apollo/client";
 import {
   ShimmeredDetailsList,
   DetailsListLayoutMode,
@@ -19,17 +11,11 @@ import {
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { Link } from "react-router-dom";
-import {
-  UsersListQuery,
-  UsersListQuery_users,
-  UsersListQueryVariables,
-} from "./__generated__/UsersListQuery";
+import { UsersListQuery_users } from "./__generated__/UsersListQuery";
 
-import ShowError from "../../ShowError";
 import PaginationWidget from "../../PaginationWidget";
 import SetUserDisabledDialog from "./SetUserDisabledDialog";
 
-import { encodeOffsetToCursor } from "../../util/pagination";
 import { formatDatetime } from "../../util/formatDatetime";
 import { extractUserInfoFromIdentities } from "../../util/user";
 import { nonNullable } from "../../util/types";
@@ -37,7 +23,7 @@ import { nonNullable } from "../../util/types";
 import styles from "./UsersList.module.scss";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 
-interface PlainUsersListProps {
+interface UsersListProps {
   className?: string;
   loading: boolean;
   users: UsersListQuery_users | null;
@@ -74,9 +60,7 @@ const isUserListItem = (value: unknown): value is UserListItem => {
   );
 };
 
-const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
-  props: PlainUsersListProps
-) {
+const UsersList: React.FC<UsersListProps> = function UsersList(props) {
   const {
     className,
     loading,
@@ -272,88 +256,6 @@ const PlainUsersList: React.FC<PlainUsersListProps> = function PlainUsersList(
         />
       )}
     </>
-  );
-};
-
-const query = gql`
-  query UsersListQuery($pageSize: Int!, $cursor: String) {
-    users(first: $pageSize, after: $cursor) {
-      edges {
-        node {
-          id
-          createdAt
-          lastLoginAt
-          isDisabled
-          identities {
-            edges {
-              node {
-                id
-                claims
-              }
-            }
-          }
-        }
-      }
-      totalCount
-    }
-  }
-`;
-
-const pageSize = 10;
-
-interface Props {
-  className?: string;
-}
-
-const UsersList: React.FC<Props> = function UsersList(props: Props) {
-  const { className } = props;
-  const [offset, setOffset] = useState(0);
-
-  // after: is exclusive so if we pass it "offset:0",
-  // The first item is excluded.
-  // Therefore we have adjust it by -1.
-  const cursor = useMemo(() => {
-    if (offset === 0) {
-      return null;
-    }
-    return encodeOffsetToCursor(offset - 1);
-  }, [offset]);
-
-  const onChangeOffset = useCallback((offset) => {
-    setOffset(offset);
-  }, []);
-
-  const { loading, error, data, refetch } = useQuery<
-    UsersListQuery,
-    UsersListQueryVariables
-  >(query, {
-    variables: {
-      pageSize,
-      cursor,
-    },
-    fetchPolicy: "network-only",
-  });
-
-  const prevDataRef = useRef<UsersListQuery | undefined>();
-  useEffect(() => {
-    prevDataRef.current = data;
-  });
-  const prevData = prevDataRef.current;
-
-  if (error != null) {
-    return <ShowError error={error} onRetry={refetch} />;
-  }
-
-  return (
-    <PlainUsersList
-      className={className}
-      loading={loading}
-      users={data?.users ?? null}
-      offset={offset}
-      pageSize={pageSize}
-      totalCount={(data ?? prevData)?.users?.totalCount ?? undefined}
-      onChangeOffset={onChangeOffset}
-    />
   );
 };
 
