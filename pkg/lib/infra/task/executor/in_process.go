@@ -2,6 +2,7 @@ package executor
 
 import (
 	"context"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
@@ -43,13 +44,22 @@ func (e *InProcessExecutor) Run(taskCtx *task.Context, param task.Param) {
 			}
 		}()
 
+		start := time.Now()
 		err := task.Run(ctx, param)
+		duration := time.Since(start)
+
 		if err != nil {
 			e.Logger.WithFields(map[string]interface{}{
 				"task_name": param.TaskName(),
 				"error":     err,
 				"stack":     errorutil.Callers(8),
+				"duration":  duration,
 			}).Error("error occurred when running async task")
+		} else {
+			e.Logger.WithFields(map[string]interface{}{
+				"task_name": param.TaskName(),
+				"duration":  duration,
+			}).Info("async task completed")
 		}
 	}()
 }
