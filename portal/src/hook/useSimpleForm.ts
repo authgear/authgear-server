@@ -2,27 +2,28 @@ import { useCallback, useMemo, useState } from "react";
 import deepEqual from "deep-equal";
 import { APIError } from "../error/error";
 
-export interface SimpleFormModel<State> {
+export interface SimpleFormModel<State, Result = unknown> {
   updateError: unknown;
   isDirty: boolean;
   isUpdating: boolean;
   isSubmitted: boolean;
+  submissionResult: Result;
   state: State;
   setState: (fn: (state: State) => State) => void;
   reset: () => void;
   save: () => void;
 }
 
-export function useSimpleForm<State>(
+export function useSimpleForm<State, Result = unknown>(
   defaultState: State,
-  submit: (state: State) => Promise<unknown>,
+  submit: (state: State) => Promise<Result>,
   validate?: (state: State) => APIError | null
-): SimpleFormModel<State> {
+): SimpleFormModel<State, Result> {
   const [initialState, setInitialState] = useState(defaultState);
   const [currentState, setCurrentState] = useState(initialState);
   const [error, setError] = useState<unknown>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState<unknown>(null);
 
   const isDirty = useMemo(
     () => !deepEqual(initialState, currentState, { strict: true }),
@@ -50,10 +51,10 @@ export function useSimpleForm<State>(
 
     setIsLoading(true);
     submit(currentState)
-      .then(() => {
+      .then((result) => {
         setError(null);
         setInitialState(currentState);
-        setIsSubmitted(true);
+        setSubmissionResult(result);
       })
       .catch((e) => setError(e))
       .finally(() => setIsLoading(false));
@@ -69,7 +70,8 @@ export function useSimpleForm<State>(
   return {
     isUpdating: isLoading,
     isDirty,
-    isSubmitted,
+    isSubmitted: submissionResult != null,
+    submissionResult: submissionResult as Result,
     updateError: error,
     state: currentState,
     setState,
