@@ -148,7 +148,7 @@ type RateLimiter interface {
 
 type Context struct {
 	IsCommitting bool   `wire:"-"`
-	WebStateID   string `wire:"-"`
+	WebSessionID string `wire:"-"`
 
 	Request    *http.Request
 	Database   db.SQLExecutor

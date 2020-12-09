@@ -55,7 +55,7 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 
 	nonceSource := input.GetNonceSource()
 	errorRedirectURI := input.GetErrorRedirectURI()
-	state := ctx.WebStateID
+	state := ctx.WebSessionID
 
 	oauthProvider := ctx.OAuthProviderFactory.NewOAuthProvider(alias)
 	if oauthProvider == nil {

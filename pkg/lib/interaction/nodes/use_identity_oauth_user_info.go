@@ -42,7 +42,7 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 	alias := input.GetProviderAlias()
 	nonceSource := input.GetNonceSource()
 	code := input.GetCode()
-	state := ctx.WebStateID
+	state := ctx.WebSessionID
 	scope := input.GetScope()
 	oauthError := input.GetError()
 	errorDescription := input.GetErrorDescription()
