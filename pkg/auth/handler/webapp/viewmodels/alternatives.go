@@ -6,7 +6,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
@@ -77,20 +76,16 @@ func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interac
 					currentTarget = node.GetOOBOTPTarget()
 				}
 
-				for i, a := range edge.Authenticators {
-					channel := a.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType].(string)
+				for i := range edge.Authenticators {
+					channel := edge.GetOOBOTPChannel(i)
+					target := edge.GetOOBOTPTarget(i)
 
-					var target string
 					var maskedTarget string
 					switch channel {
 					case string(authn.AuthenticatorOOBChannelSMS):
-						phone := a.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string)
-						target = phone
-						maskedTarget = corephone.Mask(phone)
+						maskedTarget = corephone.Mask(target)
 					case string(authn.AuthenticatorOOBChannelEmail):
-						email := a.Claims[authenticator.AuthenticatorClaimOOBOTPEmail].(string)
-						target = email
-						maskedTarget = mail.MaskAddress(email)
+						maskedTarget = mail.MaskAddress(target)
 					default:
 						panic("authentication_begin: unexpected channel: " + channel)
 					}
