@@ -62,11 +62,21 @@ func (n *NodeEnsureVerificationBegin) DeriveEdges(graph *interaction.Graph) ([]i
 		break
 	case verification.StatusPending:
 		if n.RequestedByUser && !n.SkipVerification {
-			return []interaction.Edge{&EdgeVerifyIdentity{Identity: n.Identity}}, nil
+			return []interaction.Edge{
+				&EdgeVerifyIdentity{
+					Identity:        n.Identity,
+					RequestedByUser: n.RequestedByUser,
+				},
+			}, nil
 		}
 	case verification.StatusRequired:
 		if !n.SkipVerification {
-			return []interaction.Edge{&EdgeVerifyIdentity{Identity: n.Identity}}, nil
+			return []interaction.Edge{
+				&EdgeVerifyIdentity{
+					Identity:        n.Identity,
+					RequestedByUser: n.RequestedByUser,
+				},
+			}, nil
 		}
 	}
 

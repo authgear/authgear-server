@@ -15,13 +15,15 @@ func init() {
 }
 
 type EdgeVerifyIdentity struct {
-	Identity *identity.Info
+	Identity        *identity.Info
+	RequestedByUser bool
 }
 
 func (e *EdgeVerifyIdentity) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	node := &NodeVerifyIdentity{
-		Identity: e.Identity,
-		CodeID:   verification.NewCodeID(),
+		Identity:        e.Identity,
+		CodeID:          verification.NewCodeID(),
+		RequestedByUser: e.RequestedByUser,
 	}
 	result, err := node.SendCode(ctx)
 	if err != nil {
@@ -47,15 +49,19 @@ func (e *EdgeVerifyIdentityResume) Instantiate(ctx *interaction.Context, graph *
 		Channel:      r.Channel,
 		CodeLength:   r.CodeLength,
 		SendCooldown: r.SendCooldown,
+		// VerifyIdentityResume is always requested by user.
+		RequestedByUser: true,
 	}, nil
 }
 
 type NodeVerifyIdentity struct {
-	Identity     *identity.Info `json:"identity"`
-	CodeID       string         `json:"code_id"`
-	Channel      string         `json:"channel"`
-	CodeLength   int            `json:"code_length"`
-	SendCooldown int            `json:"send_cooldown"`
+	Identity        *identity.Info `json:"identity"`
+	CodeID          string         `json:"code_id"`
+	RequestedByUser bool           `json:"requested_by_user"`
+
+	Channel      string `json:"channel"`
+	CodeLength   int    `json:"code_length"`
+	SendCooldown int    `json:"send_cooldown"`
 }
 
 // GetVerificationIdentity implements VerifyIdentityNode.
