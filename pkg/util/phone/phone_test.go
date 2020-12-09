@@ -77,6 +77,40 @@ func TestPhone(t *testing.T) {
 			})
 		})
 
+		Convey("ParseE164ToCallingCodeAndNumber", func() {
+			Convey("valid cases", func() {
+				check := func(e164, nationalNumber, callingCode string) {
+					actualNationalNumber, actualCallingCode, err := ParseE164ToCallingCodeAndNumber(e164)
+					So(actualNationalNumber, ShouldEqual, nationalNumber)
+					So(actualCallingCode, ShouldEqual, callingCode)
+					So(err, ShouldBeNil)
+				}
+
+				check("+61401123456", "401123456", "61")
+				check("+85298887766", "98887766", "852")
+			})
+
+			Convey("invalid, not in E.164 format", func() {
+				check := func(input string) {
+					_, _, err := ParseE164ToCallingCodeAndNumber(input)
+					So(err, ShouldBeError, "not in E.164 format")
+				}
+
+				check("unknown")
+				check("85298887766")
+			})
+
+			Convey("invalid, invalid phone number", func() {
+				check := func(input string) {
+					_, _, err := ParseE164ToCallingCodeAndNumber(input)
+					So(err, ShouldBeError, "invalid phone number")
+				}
+
+				check("+85212345678")
+				check("+852123456")
+			})
+		})
+
 		Convey("Mask", func() {
 			phone := "+85223456789"
 			So(Mask(phone), ShouldEqual, "+8522345****")

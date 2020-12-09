@@ -149,6 +149,10 @@ h1, h2, h3, h4, h5, h6 {
   border-bottom-color: #a19f9d;
 }
 
+.input:disabled {
+  opacity: 0.7;
+}
+
 .input:focus, .btn:focus {
   outline: none;
 }
@@ -203,6 +207,10 @@ h1, h2, h3, h4, h5, h6 {
   background-position: right 5px center;
   background-size: 12px auto;
   background-repeat: no-repeat;
+}
+
+.select:disabled {
+  background-image: none;
 }
 
 .text-input {
