@@ -188,10 +188,10 @@ func (s *Service2) doPost(
 					GraphID: graph.InstanceID,
 				})
 			case *nodes.EdgeAuthenticationOOBTrigger:
-				inputFn = func() (input interface{}, err error) {
-					input = &inputTriggerOOB{AuthenticatorIndex: 0}
-					return
-				}
+				session.Steps = append(session.Steps, SessionStep{
+					Kind:    SessionStepSendOOBOTPAuthn,
+					GraphID: graph.InstanceID,
+				})
 			default:
 				panic(fmt.Errorf("webapp: unexpected edge: %T", defaultEdge))
 			}

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+{{ template "__html_head.html" . }}
+<body class="page">
+<div class="content">
+
+{{ template "__header.html" . }}
+
+{{ template "__nav_bar.html" }}
+
+<div class="simple-form vertical-form form-fields-container pane">
+
+{{ if $.OOBOTPChannel }}
+{{ if eq $.OOBOTPChannel "sms" }}
+<h1 class="title primary-txt">{{ template "oob-otp-page-title--sms" }}</h1>
+{{ end }}
+{{ if eq $.OOBOTPChannel "email" }}
+<h1 class="title primary-txt">{{ template "oob-otp-page-title--email" }}</h1>
+{{ end }}
+{{ end }}
+
+{{ template "__error.html" . }}
+
+{{ if $.OOBOTPTarget }}
+<div class="description primary-txt">{{ template "oob-otp-send-description" (dict "target" $.OOBOTPTarget) }}</div>
+{{ end }}
+
+<form class="vertical-form form-fields-container" method="post" novalidate>
+{{ $.CSRFField }}
+
+<button class="btn primary-btn align-self-flex-end" type="submit" name="x_action" value="send">{{ template "next-button-label" }}</button>
+
+</form>
+
+{{ template "__alternatives.html" . }}
+
+</div>
+
+</div>
+</body>
+</html>
