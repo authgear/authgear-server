@@ -72,6 +72,7 @@ Supported [standard client metadata](https://openid.net/specs/openid-connect-reg
 - `client_id`: OIDC client ID.
 - `access_token_lifetime`: Access token lifetime in seconds, default to 1800.
 - `refresh_token_lifetime`: Refresh token lifetime in seconds, default to max(access_token_lifetime, 86400). It must be greater than or equal to `access_token_lifetime`.
+- `is_first_party`: Indicate whether the client is a [first-party client](#first-party-clients), default to false.
 
 #### Generic RP Client Metadata example
 
@@ -405,3 +406,27 @@ Silent Authentication
 1. SDK reads the result message, logout if the result indicates IdP Session is invalid
 1. If authorization code request result is successful, send the token request to Authgear with code + code verifier
 1. Authgear returns token response to SDK with id token + new access token
+
+## First-party Clients
+
+OAuth protocol allows user to delegate access to clients, so that clients can
+act on behalf of the user.
+
+Usually, OAuth clients are third-party clients, with limited trust:
+- User need to give consent to a client before clients is allowed access.
+- Privileged user operations (e.g. change password) is usually not exposed
+  through APIs accessible through OAuth protocol.
+
+However, developers may want to give first-party clients full trust:
+- First-party clients do not need user consent in authorization process.
+- First-party clients have access to privileged user operations through a
+  special OAuth scope value (`https://authgear.com/scopes/full-access`).
+
+To designate an OAuth client as first-party client, developer may set
+`is_first_party` attribute to `true` in the corresponding client metadata.
+
+Developers should note the security implications for first-party clients:
+- Access tokens for first-party clients should not be passed to third-party
+  clients with limited trust.
+  (TODO: on-behalf-of flow https://tools.ietf.org/html/rfc7523)
+  (TODO: authenticate clients using client secret)
