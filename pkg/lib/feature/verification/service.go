@@ -232,7 +232,7 @@ func (s *Service) IsUserVerified(identities []*identity.Info) (bool, error) {
 	}
 }
 
-func (s *Service) CreateNewCode(id string, info *identity.Info) (*Code, error) {
+func (s *Service) CreateNewCode(id string, info *identity.Info, webSessionID string) (*Code, error) {
 	err := s.RateLimiter.TakeToken(GenerateRateLimitBucket(id))
 	if err != nil {
 		return nil, err
@@ -254,6 +254,7 @@ func (s *Service) CreateNewCode(id string, info *identity.Info) (*Code, error) {
 		LoginID:      info.Claims[identity.IdentityClaimLoginIDValue].(string),
 		Code:         code,
 		ExpireAt:     s.Clock.NowUTC().Add(s.Config.CodeExpiry.Duration()),
+		WebSessionID: webSessionID,
 	}
 
 	err = s.CodeStore.Create(codeModel)

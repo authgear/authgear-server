@@ -25,6 +25,8 @@ type Code struct {
 	LoginID     string    `json:"login_id"`
 	Code        string    `json:"code"`
 	ExpireAt    time.Time `json:"expire_at"`
+
+	WebSessionID string `json:"web_session_id"`
 }
 
 func (c *Code) SendResult() *otp.CodeSendResult {

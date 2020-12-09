@@ -102,7 +102,7 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context) (*otp.CodeSendRe
 	}
 
 	if code == nil || ctx.Clock.NowUTC().After(code.ExpireAt) {
-		code, err = ctx.Verification.CreateNewCode(n.CodeID, n.Identity)
+		code, err = ctx.Verification.CreateNewCode(n.CodeID, n.Identity, ctx.WebSessionID)
 		if err != nil {
 			return nil, err
 		}
