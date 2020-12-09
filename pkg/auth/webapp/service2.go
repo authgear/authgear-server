@@ -136,7 +136,7 @@ func (s *Service2) doPost(
 	var err error
 	for {
 		var edges []interaction.Edge
-		graph, edges, err = s.runGraph(result, inputFn, graphFn)
+		graph, edges, err = s.runGraph(session, result, inputFn, graphFn)
 		isFinished = len(edges) == 0 && err == nil
 		if err != nil || isFinished {
 			break
@@ -235,13 +235,14 @@ func (s *Service2) doPost(
 }
 
 func (s *Service2) runGraph(
+	session *Session,
 	result *Result,
 	inputFn func() (interface{}, error),
 	graphFn func(ctx *interaction.Context) (*interaction.Graph, error),
 ) (*interaction.Graph, []interaction.Edge, error) {
 	var graph *interaction.Graph
 	var edges []interaction.Edge
-	interactionErr := s.Graph.DryRun("", func(ctx *interaction.Context) (*interaction.Graph, error) {
+	interactionErr := s.Graph.DryRun(session.ID, func(ctx *interaction.Context) (*interaction.Graph, error) {
 		var err error
 		graph, err = graphFn(ctx)
 		if err != nil {
