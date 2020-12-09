@@ -3,7 +3,7 @@ package mail
 import (
 	"errors"
 
-	"github.com/go-gomail/gomail"
+	"gopkg.in/gomail.v2"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/log"

@@ -79,10 +79,10 @@ func (v *SchemaValidator) ValidateWithMessage(r io.Reader, msg string) error {
 		if !hasInvalidChild {
 			info, err := toJSONObject(n.Info)
 			if err != nil {
-				panic(fmt.Sprintf("validation: failed to marshal error info at %s: %s", n.KeywordLocation, err.Error()))
+				panic(fmt.Sprintf("validation: failed to marshal error info at %s: %s", n.Verbose().KeywordLocation, err.Error()))
 			}
 
-			keyword := n.KeywordLocation.Last()
+			keyword := n.Keyword
 			if len(info) == 0 && keyword == "format" {
 				if err, ok := n.Info.(error); ok {
 					info = map[string]interface{}{
