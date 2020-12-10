@@ -143,10 +143,10 @@ func (s *Service2) doPost(
 		}
 
 		kind := deriveSessionStepKind(graph)
-		session.Steps = append(session.Steps, SessionStep{
-			Kind:    deriveSessionStepKind(graph),
-			GraphID: graph.InstanceID,
-		})
+		session.Steps = append(
+			session.Steps,
+			NewSessionStep(deriveSessionStepKind(graph), graph.InstanceID),
+		)
 
 		inputFn = nil
 		// Select default for steps with choice
@@ -173,25 +173,25 @@ func (s *Service2) doPost(
 
 			switch defaultEdge := edges[0].(type) {
 			case *nodes.EdgeConsumeRecoveryCode:
-				session.Steps = append(session.Steps, SessionStep{
-					Kind:    SessionStepEnterRecoveryCode,
-					GraphID: graph.InstanceID,
-				})
+				session.Steps = append(session.Steps, NewSessionStep(
+					SessionStepEnterRecoveryCode,
+					graph.InstanceID,
+				))
 			case *nodes.EdgeAuthenticationPassword:
-				session.Steps = append(session.Steps, SessionStep{
-					Kind:    SessionStepEnterPassword,
-					GraphID: graph.InstanceID,
-				})
+				session.Steps = append(session.Steps, NewSessionStep(
+					SessionStepEnterPassword,
+					graph.InstanceID,
+				))
 			case *nodes.EdgeAuthenticationTOTP:
-				session.Steps = append(session.Steps, SessionStep{
-					Kind:    SessionStepEnterTOTP,
-					GraphID: graph.InstanceID,
-				})
+				session.Steps = append(session.Steps, NewSessionStep(
+					SessionStepEnterTOTP,
+					graph.InstanceID,
+				))
 			case *nodes.EdgeAuthenticationOOBTrigger:
-				session.Steps = append(session.Steps, SessionStep{
-					Kind:    SessionStepSendOOBOTPAuthn,
-					GraphID: graph.InstanceID,
-				})
+				session.Steps = append(session.Steps, NewSessionStep(
+					SessionStepSendOOBOTPAuthn,
+					graph.InstanceID,
+				))
 			default:
 				panic(fmt.Errorf("webapp: unexpected edge: %T", defaultEdge))
 			}
@@ -199,15 +199,15 @@ func (s *Service2) doPost(
 		case SessionStepCreateAuthenticator:
 			switch defaultEdge := edges[0].(type) {
 			case *nodes.EdgeCreateAuthenticatorPassword:
-				session.Steps = append(session.Steps, SessionStep{
-					Kind:    SessionStepCreatePassword,
-					GraphID: graph.InstanceID,
-				})
+				session.Steps = append(session.Steps, NewSessionStep(
+					SessionStepCreatePassword,
+					graph.InstanceID,
+				))
 			case *nodes.EdgeCreateAuthenticatorOOBSetup:
-				session.Steps = append(session.Steps, SessionStep{
-					Kind:    SessionStepSetupOOBOTP,
-					GraphID: graph.InstanceID,
-				})
+				session.Steps = append(session.Steps, NewSessionStep(
+					SessionStepSetupOOBOTP,
+					graph.InstanceID,
+				))
 			case *nodes.EdgeCreateAuthenticatorTOTPSetup:
 				inputFn = func() (interface{}, error) {
 					return &inputSelectTOTP{}, nil

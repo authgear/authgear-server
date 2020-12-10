@@ -26,6 +26,14 @@ const (
 	SessionStepUserDisabled        SessionStepKind = "user-disabled"
 )
 
+func NewSessionStep(kind SessionStepKind, graphID string) SessionStep {
+	return SessionStep{
+		Kind:     kind,
+		GraphID:  graphID,
+		FormData: make(map[string]interface{}),
+	}
+}
+
 func (k SessionStepKind) Path() string {
 	switch k {
 	case SessionStepPromoteUser:
@@ -86,8 +94,9 @@ func (k SessionStepKind) MatchPath(path string) bool {
 }
 
 type SessionStep struct {
-	Kind    SessionStepKind `json:"kind"`
-	GraphID string          `json:"graph_id"`
+	Kind     SessionStepKind        `json:"kind"`
+	GraphID  string                 `json:"graph_id"`
+	FormData map[string]interface{} `json:"form_data"`
 }
 
 func (s SessionStep) URL() *url.URL {
