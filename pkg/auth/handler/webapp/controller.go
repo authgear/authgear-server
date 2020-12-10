@@ -16,6 +16,7 @@ import (
 type PageService interface {
 	UpdateSession(session *webapp.Session) error
 	Get(session *webapp.Session) (*interaction.Graph, error)
+	GetSession(id string) (*webapp.Session, error)
 	GetWithIntent(session *webapp.Session, intent interaction.Intent) (*interaction.Graph, error)
 	PostWithIntent(
 		session *webapp.Session,
@@ -96,6 +97,14 @@ func (c *Controller) Get(fn func() error) {
 
 func (c *Controller) PostAction(action string, fn func() error) {
 	c.postHandlers[action] = fn
+}
+
+func (c *Controller) GetSession(id string) (*webapp.Session, error) {
+	return c.Page.GetSession(id)
+}
+
+func (c *Controller) UpdateSession(s *webapp.Session) error {
+	return c.Page.UpdateSession(s)
 }
 
 func (c *Controller) Serve() {
@@ -202,6 +211,14 @@ func (c *Controller) InteractionGet() (*interaction.Graph, error) {
 		return nil, err
 	}
 
+	if err := c.rewindSessionHistory(s); err != nil {
+		return nil, err
+	}
+
+	return c.Page.Get(s)
+}
+
+func (c *Controller) InteractionGetWithSession(s *webapp.Session) (*interaction.Graph, error) {
 	if err := c.rewindSessionHistory(s); err != nil {
 		return nil, err
 	}

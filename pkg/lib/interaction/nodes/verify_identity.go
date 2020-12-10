@@ -84,6 +84,11 @@ func (n *NodeVerifyIdentity) GetVerificationCodeLength() int {
 	return n.CodeLength
 }
 
+// GetVerificationCodeChannel implements VerifyIdentityNode.
+func (n *NodeVerifyIdentity) GetRequestedByUser() bool {
+	return n.RequestedByUser
+}
+
 func (n *NodeVerifyIdentity) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }

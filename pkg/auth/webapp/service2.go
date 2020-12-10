@@ -15,6 +15,7 @@ import (
 )
 
 type SessionStore interface {
+	Get(id string) (*Session, error)
 	Create(session *Session) (err error)
 	Update(session *Session) (err error)
 	Delete(id string) (err error)
@@ -59,6 +60,10 @@ func (s *Service2) CreateSession(session *Session, redirectURI string) (*Result,
 		Cookies:     []*http.Cookie{s.CookieFactory.ValueCookie(s.SessionCookie.Def, session.ID)},
 	}
 	return result, nil
+}
+
+func (s *Service2) GetSession(id string) (*Session, error) {
+	return s.Sessions.Get(id)
 }
 
 func (s *Service2) UpdateSession(session *Session) error {
