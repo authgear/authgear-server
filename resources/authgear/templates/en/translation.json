@@ -96,6 +96,7 @@
 
   "oob-otp-page-title--sms": "SMS One-Time-Password",
   "oob-otp-page-title--email": "Email One-Time-Password",
+  "oob-otp-send-description": "Click next to get the code at {target}.",
   "oob-otp-placeholder": "code",
   "oob-otp-description": "We have sent a {length}-character code to {target}. Please enter the code below to continue",
   "oob-otp-resend-button-hint": "Didn''t receive the code? ",

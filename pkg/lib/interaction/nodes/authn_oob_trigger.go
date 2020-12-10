@@ -19,6 +19,14 @@ type EdgeAuthenticationOOBTrigger struct {
 	Authenticators []*authenticator.Info
 }
 
+func (e *EdgeAuthenticationOOBTrigger) getAuthenticator(idx int) (*authenticator.Info, error) {
+	if idx < 0 || idx >= len(e.Authenticators) {
+		return nil, authenticator.ErrAuthenticatorNotFound
+	}
+
+	return e.Authenticators[idx], nil
+}
+
 func (e *EdgeAuthenticationOOBTrigger) AuthenticatorType() authn.AuthenticatorType {
 	return authn.AuthenticatorTypeOOB
 }
@@ -26,6 +34,31 @@ func (e *EdgeAuthenticationOOBTrigger) AuthenticatorType() authn.AuthenticatorTy
 func (e *EdgeAuthenticationOOBTrigger) IsDefaultAuthenticator() bool {
 	filtered := filterAuthenticators(e.Authenticators, authenticator.KeepDefault)
 	return len(filtered) > 0
+}
+
+func (e *EdgeAuthenticationOOBTrigger) GetOOBOTPTarget(idx int) string {
+	info, err := e.getAuthenticator(idx)
+	if err != nil {
+		return ""
+	}
+
+	channel := authn.AuthenticatorOOBChannel(info.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType].(string))
+	var target string
+	switch channel {
+	case authn.AuthenticatorOOBChannelSMS:
+		target = info.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string)
+	case authn.AuthenticatorOOBChannelEmail:
+		target = info.Claims[authenticator.AuthenticatorClaimOOBOTPEmail].(string)
+	}
+	return target
+}
+
+func (e *EdgeAuthenticationOOBTrigger) GetOOBOTPChannel(idx int) string {
+	info, err := e.getAuthenticator(idx)
+	if err != nil {
+		return ""
+	}
+	return info.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType].(string)
 }
 
 func (e *EdgeAuthenticationOOBTrigger) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {

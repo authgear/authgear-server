@@ -22,7 +22,7 @@
                 {{ if eq .Step "enter-password" }}
                     {{ template "enter-password-instead" .Data }}
                 {{ end }}
-                {{ if eq .Step "enter-oob-otp" }}
+                {{ if eq .Step "enter-oob-otp-authn" }}
                     {{ template "enter-oob-otp-instead" .Data }}
                 {{ end }}
                 {{ if eq .Step "enter-recovery-code" }}
