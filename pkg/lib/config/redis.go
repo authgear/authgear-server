@@ -21,8 +21,10 @@ type RedisConfig struct {
 }
 
 func (c *RedisConfig) SetDefaults() {
+	// Now we use redis pubsub, we need to have much greater number of connections.
+	// https://redis.io/topics/clients#maximum-number-of-clients
 	if c.MaxOpenConnection == nil {
-		c.MaxOpenConnection = newInt(2)
+		c.MaxOpenConnection = newInt(10000)
 	}
 	if c.MaxIdleConnection == nil {
 		c.MaxIdleConnection = newInt(2)

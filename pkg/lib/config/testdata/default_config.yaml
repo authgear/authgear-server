@@ -16,7 +16,7 @@ database:
   max_connection_lifetime_seconds: 1800
   idle_connection_timeout_seconds: 300
 redis:
-  max_open_connection: 2
+  max_open_connection: 10000
   max_idle_connection: 2
   idle_connection_timeout_seconds: 300
   max_connection_lifetime_seconds: 900
