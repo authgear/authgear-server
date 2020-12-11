@@ -53,10 +53,21 @@ func (h *WebsocketHandler) Accept(r *http.Request) (channelName string, err erro
 }
 
 func (h *WebsocketHandler) OnWebsocketMessage(messageType websocket.MessageType, data []byte) (*pubsub.WebsocketOutgoingMessage, error) {
-	// FIXME: Implement the protocol.
+	// We do not expect the client to send us anything.
 	return nil, nil
 }
 
 func WebsocketChannelName(appID string, id string) string {
 	return fmt.Sprintf("app:%s:webapp-session-ws:%s", appID, id)
+}
+
+type WebsocketMessageKind string
+
+const (
+	// WebsocketMessageKindRefresh means when the client receives this message, they should refresh the page.
+	WebsocketMessageKindRefresh = "refresh"
+)
+
+type WebsocketMessage struct {
+	Kind WebsocketMessageKind `json:"kind"`
 }

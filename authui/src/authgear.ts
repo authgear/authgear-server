@@ -152,6 +152,17 @@ function back(e: Event) {
   window.history.back();
 }
 
+function refreshPage() {
+  let url = window.location.pathname;
+  if (window.location.search !== "") {
+    url += "?" + window.location.search;
+  }
+  if (window.location.hash !== "") {
+    url += "#" + window.location.hash;
+  }
+  Turbolinks.visit(url, { action: "replace" });
+}
+
 window.api.onLoad(() => {
   const elems = document.querySelectorAll(".back-btn");
   for (let i = 0; i < elems.length; i++) {
@@ -252,4 +263,52 @@ window.api.onLoad(() => {
       cancelAnimationFrame(animHandle);
     }
   };
+});
+
+window.api.onLoad(() => {
+  const scheme = window.location.protocol === "https:" ? "wss:" : "ws:";
+  const host = window.location.host;
+  const url = `${scheme}//${host}/ws`;
+
+  let ws: WebSocket | null = null;
+
+  function dispose() {
+    ws?.close();
+    ws = null;
+  }
+
+  function connect() {
+    ws = new WebSocket(url);
+
+    ws.onopen = function(e) {
+      console.log("ws onopen", e);
+    };
+
+    ws.onclose = function(e) {
+      console.log("ws onclose", e);
+      // Close code 1000 means we do not need to reconnect.
+      if (e.code === 1000) {
+        return;
+      }
+
+      dispose();
+      connect();
+    };
+
+    ws.onerror = function(e) {
+      console.error("ws onerror", e);
+    };
+
+    ws.onmessage = function(e) {
+      console.log("ws onmessage", e);
+      const message = JSON.parse(e.data);
+      switch (message.kind) {
+      case "refresh":
+        refreshPage();
+      }
+    }
+  }
+
+  connect();
+  return dispose;
 });
