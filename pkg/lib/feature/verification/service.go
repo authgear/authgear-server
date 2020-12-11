@@ -232,7 +232,7 @@ func (s *Service) IsUserVerified(identities []*identity.Info) (bool, error) {
 	}
 }
 
-func (s *Service) CreateNewCode(id string, info *identity.Info) (*Code, error) {
+func (s *Service) CreateNewCode(id string, info *identity.Info, webSessionID string, requestedByUser bool) (*Code, error) {
 	err := s.RateLimiter.TakeToken(GenerateRateLimitBucket(id))
 	if err != nil {
 		return nil, err
@@ -246,14 +246,16 @@ func (s *Service) CreateNewCode(id string, info *identity.Info) (*Code, error) {
 
 	code := otp.FormatNumeric.Generate()
 	codeModel := &Code{
-		ID:           id,
-		UserID:       info.UserID,
-		IdentityID:   info.ID,
-		IdentityType: string(info.Type),
-		LoginIDType:  string(loginIDType),
-		LoginID:      info.Claims[identity.IdentityClaimLoginIDValue].(string),
-		Code:         code,
-		ExpireAt:     s.Clock.NowUTC().Add(s.Config.CodeExpiry.Duration()),
+		ID:              id,
+		UserID:          info.UserID,
+		IdentityID:      info.ID,
+		IdentityType:    string(info.Type),
+		LoginIDType:     string(loginIDType),
+		LoginID:         info.Claims[identity.IdentityClaimLoginIDValue].(string),
+		Code:            code,
+		ExpireAt:        s.Clock.NowUTC().Add(s.Config.CodeExpiry.Duration()),
+		WebSessionID:    webSessionID,
+		RequestedByUser: requestedByUser,
 	}
 
 	err = s.CodeStore.Create(codeModel)

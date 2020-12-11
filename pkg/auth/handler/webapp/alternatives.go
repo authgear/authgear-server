@@ -80,10 +80,10 @@ func handleAlternativeSteps(ctrl *Controller) {
 
 		var result *webapp.Result
 		if inputFn == nil {
-			session.Steps = append(session.Steps, webapp.SessionStep{
-				Kind:    stepKind,
-				GraphID: session.CurrentStep().GraphID,
-			})
+			session.Steps = append(session.Steps, webapp.NewSessionStep(
+				stepKind,
+				session.CurrentStep().GraphID,
+			))
 			if err = ctrl.Page.UpdateSession(session); err != nil {
 				return err
 			}

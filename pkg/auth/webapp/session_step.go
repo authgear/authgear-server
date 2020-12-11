@@ -26,6 +26,14 @@ const (
 	SessionStepUserDisabled        SessionStepKind = "user-disabled"
 )
 
+func NewSessionStep(kind SessionStepKind, graphID string) SessionStep {
+	return SessionStep{
+		Kind:     kind,
+		GraphID:  graphID,
+		FormData: make(map[string]interface{}),
+	}
+}
+
 func (k SessionStepKind) Path() string {
 	switch k {
 	case SessionStepPromoteUser:
@@ -86,8 +94,15 @@ func (k SessionStepKind) MatchPath(path string) bool {
 }
 
 type SessionStep struct {
-	Kind    SessionStepKind `json:"kind"`
-	GraphID string          `json:"graph_id"`
+	// Kind is the kind of the step.
+	Kind SessionStepKind `json:"kind"`
+	// GraphID is the graph ID of the step.
+	GraphID string `json:"graph_id"`
+	// FormData is the place to store shared form data across different user agents.
+	// The only use case currently is verification email being opened in another user agent.
+	// In that case, the form submitted by the other user agent will update FormData.
+	// The original user agent will then read from it to fill in its form.
+	FormData map[string]interface{} `json:"form_data"`
 }
 
 func (s SessionStep) URL() *url.URL {

@@ -6,6 +6,23 @@
 
 {{ template "__header.html" . }}
 
+{{ if eq $.Action "update_session_step" }}
+
+<form class="simple-form vertical-form form-fields-container pane" method="post" novalidate>
+
+<h1 class="title primary-txt">{{ template "verify-user-return-page-title" }}</h1>
+<div class="description primary-txt">{{ template "verify-user-return-page-description" }}</div>
+
+{{ $.CSRFField }}
+
+{{ template "__error.html" . }}
+
+<input type="hidden" name="x_code" value="{{ $.VerificationCode }}">
+<button class="btn primary-btn align-self-flex-end" type="submit" name="x_action" value="{{ $.Action }}">{{ template "next-button-label" }}</button>
+</form>
+
+{{ else }}
+
 {{ if $.IdentityDisplayID }}
 {{ template "__nav_bar.html" }}
 {{ else }}
@@ -55,7 +72,7 @@
 		value="{{ $.VerificationCode }}"
 	>
 {{ end }}
-<button class="btn primary-btn align-self-flex-end" type="submit" name="x_action" value="submit">{{ template "next-button-label" }}</button>
+<button class="btn primary-btn align-self-flex-end" type="submit" name="x_action" value="{{ $.Action }}">{{ template "next-button-label" }}</button>
 </form>
 
 <form class="link verify-user-trigger-form" method="post" novalidate>
@@ -71,6 +88,8 @@
 {{ end }}
 
 </div>
+
+{{ end }}
 
 </div>
 </body>

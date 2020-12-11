@@ -111,6 +111,9 @@
   "verify-user-resend-button-label": "Resend",
   "verify-user-resend-button-label--unit": "Resend (%ds)",
 
+  "verify-user-return-page-title": "Continue verification",
+  "verify-user-return-page-description": "Please click the button and then return to where you were.",
+
   "verify-user-success-page-title": "Account verification",
   "verify-user-success-description": "You have successfully verified your account.",
 
@@ -245,6 +248,9 @@
 
   "show-password-label": "Show password",
   "hide-password-label": "Hide password",
+
+  "return-page-title": "Return to where you were",
+  "return-page-description": "Please return to where you were to continue. If you were interacting with an mobile app, please switch back to the app. If you were interacting with a website, please switch back to that tab.",
 
   "toc-pp-footer": "<p class=\"toc-pp-footer\">By registering, you agree to our <a target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a> and <a target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>.</p>"
 }

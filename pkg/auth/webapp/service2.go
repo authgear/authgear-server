@@ -15,6 +15,7 @@ import (
 )
 
 type SessionStore interface {
+	Get(id string) (*Session, error)
 	Create(session *Session) (err error)
 	Update(session *Session) (err error)
 	Delete(id string) (err error)
@@ -59,6 +60,10 @@ func (s *Service2) CreateSession(session *Session, redirectURI string) (*Result,
 		Cookies:     []*http.Cookie{s.CookieFactory.ValueCookie(s.SessionCookie.Def, session.ID)},
 	}
 	return result, nil
+}
+
+func (s *Service2) GetSession(id string) (*Session, error) {
+	return s.Sessions.Get(id)
 }
 
 func (s *Service2) UpdateSession(session *Session) error {
@@ -136,17 +141,17 @@ func (s *Service2) doPost(
 	var err error
 	for {
 		var edges []interaction.Edge
-		graph, edges, err = s.runGraph(result, inputFn, graphFn)
+		graph, edges, err = s.runGraph(session, result, inputFn, graphFn)
 		isFinished = len(edges) == 0 && err == nil
 		if err != nil || isFinished {
 			break
 		}
 
 		kind := deriveSessionStepKind(graph)
-		session.Steps = append(session.Steps, SessionStep{
-			Kind:    deriveSessionStepKind(graph),
-			GraphID: graph.InstanceID,
-		})
+		session.Steps = append(
+			session.Steps,
+			NewSessionStep(deriveSessionStepKind(graph), graph.InstanceID),
+		)
 
 		inputFn = nil
 		// Select default for steps with choice
@@ -173,25 +178,25 @@ func (s *Service2) doPost(
 
 			switch defaultEdge := edges[0].(type) {
 			case *nodes.EdgeConsumeRecoveryCode:
-				session.Steps = append(session.Steps, SessionStep{
-					Kind:    SessionStepEnterRecoveryCode,
-					GraphID: graph.InstanceID,
-				})
+				session.Steps = append(session.Steps, NewSessionStep(
+					SessionStepEnterRecoveryCode,
+					graph.InstanceID,
+				))
 			case *nodes.EdgeAuthenticationPassword:
-				session.Steps = append(session.Steps, SessionStep{
-					Kind:    SessionStepEnterPassword,
-					GraphID: graph.InstanceID,
-				})
+				session.Steps = append(session.Steps, NewSessionStep(
+					SessionStepEnterPassword,
+					graph.InstanceID,
+				))
 			case *nodes.EdgeAuthenticationTOTP:
-				session.Steps = append(session.Steps, SessionStep{
-					Kind:    SessionStepEnterTOTP,
-					GraphID: graph.InstanceID,
-				})
+				session.Steps = append(session.Steps, NewSessionStep(
+					SessionStepEnterTOTP,
+					graph.InstanceID,
+				))
 			case *nodes.EdgeAuthenticationOOBTrigger:
-				session.Steps = append(session.Steps, SessionStep{
-					Kind:    SessionStepSendOOBOTPAuthn,
-					GraphID: graph.InstanceID,
-				})
+				session.Steps = append(session.Steps, NewSessionStep(
+					SessionStepSendOOBOTPAuthn,
+					graph.InstanceID,
+				))
 			default:
 				panic(fmt.Errorf("webapp: unexpected edge: %T", defaultEdge))
 			}
@@ -199,15 +204,15 @@ func (s *Service2) doPost(
 		case SessionStepCreateAuthenticator:
 			switch defaultEdge := edges[0].(type) {
 			case *nodes.EdgeCreateAuthenticatorPassword:
-				session.Steps = append(session.Steps, SessionStep{
-					Kind:    SessionStepCreatePassword,
-					GraphID: graph.InstanceID,
-				})
+				session.Steps = append(session.Steps, NewSessionStep(
+					SessionStepCreatePassword,
+					graph.InstanceID,
+				))
 			case *nodes.EdgeCreateAuthenticatorOOBSetup:
-				session.Steps = append(session.Steps, SessionStep{
-					Kind:    SessionStepSetupOOBOTP,
-					GraphID: graph.InstanceID,
-				})
+				session.Steps = append(session.Steps, NewSessionStep(
+					SessionStepSetupOOBOTP,
+					graph.InstanceID,
+				))
 			case *nodes.EdgeCreateAuthenticatorTOTPSetup:
 				inputFn = func() (interface{}, error) {
 					return &inputSelectTOTP{}, nil
@@ -235,13 +240,14 @@ func (s *Service2) doPost(
 }
 
 func (s *Service2) runGraph(
+	session *Session,
 	result *Result,
 	inputFn func() (interface{}, error),
 	graphFn func(ctx *interaction.Context) (*interaction.Graph, error),
 ) (*interaction.Graph, []interaction.Edge, error) {
 	var graph *interaction.Graph
 	var edges []interaction.Edge
-	interactionErr := s.Graph.DryRun("", func(ctx *interaction.Context) (*interaction.Graph, error) {
+	interactionErr := s.Graph.DryRun(session.ID, func(ctx *interaction.Context) (*interaction.Graph, error) {
 		var err error
 		graph, err = graphFn(ctx)
 		if err != nil {
