@@ -465,7 +465,8 @@ then use it in OAuth authorization flow to copy user session to web user
 agent:
 ```
 GET /oauth2/authorize?client_id=client_id&prompt=none&response_type=none
-    &session_token=<session token>&redirect_uri=<redirect URI> HTTP/1.1
+    &login_hint=https%3A%2F%2Fauthgear.com%2Flogin_hint%3Ftype%3Dsession_token%26session_token%3D<session token>
+    &redirect_uri=<redirect URI> HTTP/1.1
 Host: accounts.example.com
 
 ---
