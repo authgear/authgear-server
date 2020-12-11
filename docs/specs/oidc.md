@@ -430,3 +430,58 @@ Developers should note the security implications for first-party clients:
   clients with limited trust.
   (TODO: on-behalf-of flow https://tools.ietf.org/html/rfc7523)
   (TODO: authenticate clients using client secret)
+  
+### Session Token
+
+For mobile first-party clients, developer may want to 'transfer' the
+user session from the native app (obtained through OAuth protocol) to
+web UI. In this case, developer may use access token to exchange for a
+one-time-use session token, which can be used to copy the user session
+to web user agent.
+
+First, the native app should perform authentication through standard
+OAuth flow to obtain an access token. However, refresh token must not
+be requested (i.e. not including `offline_access` in requested scopes),
+so that the access token would be bound to the user session instead of
+a refresh token.
+
+When the native app wants to copy the user session to web user agent,
+the native app may use the access token in the session token endpoint to
+obtain a session token:
+```
+POST /oauth2/session-token HTTP/1.1
+Host: accounts.example.com
+Authorization: Bearer <access token>
+
+---
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"result":{"session_token":"<session token>"}}
+```
+
+A one-time-use session token would be returned, and the native app may
+then use it in OAuth authorization flow to copy user session to web user
+agent:
+```
+GET /oauth2/authorize?client_id=client_id&prompt=none&response_type=none
+    &session_token=<session token>&redirect_uri=<redirect URI> HTTP/1.1
+Host: accounts.example.com
+
+---
+HTTP/1.1 302 Found
+Set-Cookie: <session cookie>
+Location: <redirect URI>
+```
+
+When the session token is requested:
+- The OAuth client associated with the access token must be a first-party
+  client.
+- The access token must be bound to an IdP session (i.e. no refresh token)
+
+When the session token is consumed:
+- If the session token is invalid, normal OAuth authorization flow would be
+  performed instead.
+- The session cookie associated with the IdP session is re-generated, to
+  invalidate other active session cookies of the same IdP session.
+ 
