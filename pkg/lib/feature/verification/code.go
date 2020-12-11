@@ -27,6 +27,8 @@ type Code struct {
 	ExpireAt    time.Time `json:"expire_at"`
 
 	WebSessionID string `json:"web_session_id"`
+
+	RequestedByUser bool `json:"requested_by_user"`
 }
 
 func (c *Code) SendResult() *otp.CodeSendResult {

@@ -1,7 +1,6 @@
 package webapp
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -173,38 +172,11 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				return err
 			}
 
-			var graph *interaction.Graph
 			session, err := ctrl.GetSession(code.WebSessionID)
-			if errors.Is(err, webapp.ErrSessionNotFound) || errors.Is(err, webapp.ErrInvalidSession) {
-				session = nil
-			} else if err != nil {
-				return err
-			}
 
-			var action string
-			if session == nil {
-				// The web session is invalid.
-				// Here we assume the verification is requested by the user.
-				// This is because if verification is NOT requested by the user, the interaction can never continue.
-				action = VerifyIdentityActionResume
-			} else {
-				graph, err = ctrl.InteractionGetWithSession(session)
-				if err != nil {
-					return err
-				}
-				var n VerifyIdentityNode
-				if graph.FindLastNode(&n) {
-					requestedByUser := n.GetRequestedByUser()
-					if requestedByUser {
-						action = VerifyIdentityActionResume
-					} else {
-						action = VerifyIdentityActionUpdateSessionStep
-					}
-				}
-			}
-
-			switch action {
-			case VerifyIdentityActionResume:
+			if code.RequestedByUser {
+				// In VerifyIdentityActionResume, session can be nil.
+				action := VerifyIdentityActionResume
 				graph, err := ctrl.EntryPointGet(opts, intent)
 				if err != nil {
 					return err
@@ -216,7 +188,19 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				}
 
 				h.Renderer.RenderHTML(w, r, TemplateWebVerifyIdentityHTML, data)
-			case VerifyIdentityActionUpdateSessionStep:
+			} else {
+				// In VerifyIdentityActionUpdateSessionStep, session is required.
+				// So we handle the error here.
+				if err != nil {
+					return err
+				}
+
+				action := VerifyIdentityActionUpdateSessionStep
+				graph, err := ctrl.InteractionGetWithSession(session)
+				if err != nil {
+					return err
+				}
+
 				data, err := h.GetData(r, w, action, session, graph)
 				if err != nil {
 					return err
@@ -229,9 +213,7 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 			// So this page should be opened by the original user agent.
 			// We assume this user agent has web session cookie.
 			session, err := ctrl.InteractionSession()
-			if errors.Is(err, webapp.ErrSessionNotFound) || errors.Is(err, webapp.ErrInvalidSession) {
-				session = nil
-			} else if err != nil {
+			if err != nil {
 				return err
 			}
 
