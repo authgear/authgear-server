@@ -293,9 +293,6 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		}
 
 		step := session.CurrentStep()
-		if step.FormData == nil {
-			step.FormData = make(map[string]interface{})
-		}
 		step.FormData["x_code"] = r.Form.Get("x_code")
 		session.Steps[len(session.Steps)-1] = step
 
