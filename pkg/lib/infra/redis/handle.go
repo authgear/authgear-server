@@ -33,7 +33,7 @@ func (h *Handle) WithConn(f func(conn Conn) error) error {
 		"max_connection_lifetime_seconds": *h.cfg.MaxConnectionLifetime,
 	}).Debug("open redis connection")
 
-	conn := h.pool.Open(h.cfg, h.credentials).Get()
+	conn := h.Pool().Get()
 	defer func() {
 		err := conn.Close()
 		if err != nil {
@@ -42,4 +42,8 @@ func (h *Handle) WithConn(f func(conn Conn) error) error {
 	}()
 
 	return f(conn)
+}
+
+func (h *Handle) Pool() *redigo.Pool {
+	return h.pool.Open(h.cfg, h.credentials)
 }

@@ -17056,6 +17056,17 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	return returnHandler
 }
 
+func newWebAppWebsocketHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	handle := appProvider.Redis
+	websocketHandler := &webapp2.WebsocketHandler{
+		LoggerFactory: factory,
+		RedisHandle:   handle,
+	}
+	return websocketHandler
+}
+
 // Injectors from wire_middleware.go:
 
 func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {

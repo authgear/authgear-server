@@ -63,6 +63,9 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 	webappSSOCallbackChain := httproute.Chain(
 		webappChain,
 	)
+	webappWebsocketChain := httproute.Chain(
+		webappChain,
+	)
 	webappPageChain := httproute.Chain(
 		webappChain,
 		p.Middleware(newCSRFMiddleware),
@@ -85,6 +88,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 	webappAuthEntrypointRoute := httproute.Route{Middleware: webappAuthEntrypointChain}
 	webappAuthenticatedRoute := httproute.Route{Middleware: webappAuthenticatedChain}
 	webappSSOCallbackRoute := httproute.Route{Middleware: webappSSOCallbackChain}
+	webappWebsocketRoute := httproute.Route{Middleware: webappWebsocketChain}
 
 	router.Add(webapphandler.ConfigureRootRoute(webappAuthEntrypointRoute), p.Handler(newWebAppRootHandler))
 	router.Add(webapphandler.ConfigureLoginRoute(webappAuthEntrypointRoute), p.Handler(newWebAppLoginHandler))
@@ -132,6 +136,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 	router.Add(oauthhandler.ConfigureChallengeRoute(apiRoute), p.Handler(newOAuthChallengeHandler))
 
 	router.Add(oauthhandler.ConfigureUserInfoRoute(scopedRoute), p.Handler(newOAuthUserInfoHandler))
+	router.Add(webapphandler.ConfigureWebsocketRoute(webappWebsocketRoute), p.Handler(newWebAppWebsocketHandler))
 
 	if staticAsset.ServingEnabled {
 		router.Add(webapphandler.ConfigureStaticAssetsRoute(webappRoute), p.Handler(newWebAppStaticAssetsHandler))
