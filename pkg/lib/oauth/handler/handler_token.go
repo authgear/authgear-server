@@ -282,6 +282,13 @@ func (h *TokenHandler) handleAnonymousRequest(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
+	if !client.IsFirstParty {
+		return nil, protocol.NewError(
+			"unauthorized_client",
+			"third-party clients may not use anonymous user",
+		)
+	}
+
 	var graph *interaction.Graph
 	var attrs *session.Attrs
 	err := h.Graphs.DryRun("", func(ctx *interaction.Context) (*interaction.Graph, error) {
