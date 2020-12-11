@@ -8,6 +8,7 @@ http:
   - "img-src 'self' data:"
   - object-src 'none'
   - base-uri 'none'
+  - "connect-src 'self' ws://test wss://test"
   - block-all-mixed-content
 database:
   max_open_connection: 2
