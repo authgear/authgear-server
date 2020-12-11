@@ -309,6 +309,10 @@ window.api.onLoad(() => {
     }
   }
 
-  connect();
+  // Avoid websocket connection unless it is necessary.
+  if (window.location.pathname.startsWith("/verify_identity")) {
+    connect();
+  }
+
   return dispose;
 });
