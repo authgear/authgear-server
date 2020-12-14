@@ -436,22 +436,20 @@ Developers should note the security implications for first-party clients:
 For mobile first-party clients, developer may want to 'transfer' the
 user session from the native app (obtained through OAuth protocol) to
 web UI. In this case, developer may use access token to exchange for a
-one-time-use session token, which can be used to copy the user session
-to web user agent.
+session token, which can be used to copy the user session to web user agent.
 
 First, the native app should perform authentication through standard
-OAuth flow to obtain an access token. However, refresh token must not
-be requested (i.e. not including `offline_access` in requested scopes),
-so that the access token would be bound to the user session instead of
-a refresh token.
+OAuth flow to obtain an access token and refresh token.
 
 When the native app wants to copy the user session to web user agent,
-the native app may use the access token in the session token endpoint to
+the native app may use the refresh token in the session token endpoint to
 obtain a session token:
 ```
 POST /oauth2/session-token HTTP/1.1
 Host: accounts.example.com
-Authorization: Bearer <access token>
+Content-Type: application/json
+
+{"refresh_token":"<refresh token>","lifetime":3600}
 
 ---
 HTTP/1.1 200 OK
@@ -460,29 +458,22 @@ Content-Type: application/json
 {"result":{"session_token":"<session token>"}}
 ```
 
-A one-time-use session token would be returned, and the native app may
-then use it in OAuth authorization flow to copy user session to web user
-agent:
+A session token would be returned, and the native app may inject it into the
+session token cookie in web view/header, and open the desired page:
 ```
-GET /oauth2/authorize?client_id=client_id&prompt=none&response_type=none
-    &login_hint=https%3A%2F%2Fauthgear.com%2Flogin_hint%3Ftype%3Dsession_token%26session_token%3D<session token>
-    &redirect_uri=<redirect URI> HTTP/1.1
+GET /settings HTTP/1.1
 Host: accounts.example.com
-
----
-HTTP/1.1 302 Found
-Set-Cookie: <session cookie>
-Location: <redirect URI>
+Cookie: session_token=<session token>
 ```
 
 When the session token is requested:
 - The OAuth client associated with the access token must be a first-party
   client.
-- The access token must be bound to an IdP session (i.e. no refresh token)
+- The requested session token lifetime would be capped by the refresh token
+  lifetime.
 
-When the session token is consumed:
-- If the session token is invalid, normal OAuth authorization flow would be
-  performed instead.
-- The session cookie associated with the IdP session is re-generated, to
-  invalidate other active session cookies of the same IdP session.
- 
+When the session token value in cookie is validated:
+- Session token cookie takes priority over IdP session cookie, even if the
+  session token is invalid.
+- If the session token is invalid/expired, it'll be treated same as invalid
+  session.
