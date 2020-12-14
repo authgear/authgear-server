@@ -1790,12 +1790,12 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -2264,6 +2264,8 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -2292,12 +2294,12 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -2766,6 +2768,8 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -2794,12 +2798,12 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -3268,6 +3272,8 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -3296,12 +3302,12 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -3770,6 +3776,8 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -3791,12 +3799,12 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -4265,6 +4273,8 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -4287,12 +4297,12 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -4761,6 +4771,8 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -4782,12 +4794,12 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -5256,6 +5268,8 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -5278,12 +5292,12 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -5752,6 +5766,8 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -5775,12 +5791,12 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -6249,6 +6265,8 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -6270,12 +6288,12 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -6744,6 +6762,8 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -6765,12 +6785,12 @@ func newWebAppSendOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -7239,6 +7259,8 @@ func newWebAppSendOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -7260,12 +7282,12 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -7734,6 +7756,8 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -7755,12 +7779,12 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -8229,6 +8253,8 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -8250,12 +8276,12 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -8724,6 +8750,8 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -8745,12 +8773,12 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -9219,6 +9247,8 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -9241,12 +9271,12 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -9715,6 +9745,8 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -9736,12 +9768,12 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -10210,6 +10242,8 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -10236,12 +10270,12 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -10710,6 +10744,8 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -10731,12 +10767,12 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -11205,6 +11241,8 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -11227,12 +11265,12 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -11701,6 +11739,8 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -11722,12 +11762,12 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -12196,6 +12236,8 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -12220,12 +12262,12 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -12694,6 +12736,8 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -12719,12 +12763,12 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -13193,6 +13237,8 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -13217,12 +13263,12 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -13691,6 +13737,8 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -13715,12 +13763,12 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -14189,6 +14237,8 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -14214,12 +14264,12 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -14688,6 +14738,8 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -14716,12 +14768,12 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -15190,6 +15242,8 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -15212,12 +15266,12 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -15686,6 +15740,8 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -15708,12 +15764,12 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -16182,6 +16238,8 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -16565,12 +16623,12 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
-	serviceLogger := webapp.NewServiceLogger(factory)
-	request := p.Request
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	redisHandle := appProvider.Redis
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
@@ -17039,6 +17097,8 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
@@ -17054,6 +17114,21 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Renderer:          responseRenderer,
 	}
 	return returnHandler
+}
+
+func newWebAppWebsocketHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	factory := appProvider.LoggerFactory
+	handle := appProvider.Redis
+	websocketHandler := &webapp2.WebsocketHandler{
+		AppID:         appID,
+		LoggerFactory: factory,
+		RedisHandle:   handle,
+	}
+	return websocketHandler
 }
 
 // Injectors from wire_middleware.go:

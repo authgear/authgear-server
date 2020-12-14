@@ -47,4 +47,5 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(UserDisabledHandler), "*"),
 	wire.Struct(new(LogoutHandler), "*"),
 	wire.Struct(new(ReturnHandler), "*"),
+	wire.Struct(new(WebsocketHandler), "*"),
 )

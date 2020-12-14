@@ -1,5 +1,10 @@
 package config
 
+import (
+	"fmt"
+	"net/url"
+)
+
 var _ = Schema.Add("HTTPConfig", `
 {
 	"type": "object",
@@ -27,6 +32,11 @@ type HTTPConfig struct {
 
 func (c *HTTPConfig) SetDefaults() {
 	if len(c.CSPDirectives) == 0 {
+		u, err := url.Parse(c.PublicOrigin)
+		if err != nil {
+			panic(err)
+		}
+
 		c.CSPDirectives = HTTPCSPDirectives{
 			"default-src 'self'",
 			"font-src 'self' cdnjs.cloudflare.com static2.sharepointonline.com",
@@ -35,6 +45,9 @@ func (c *HTTPConfig) SetDefaults() {
 			"img-src 'self' data:",
 			"object-src 'none'",
 			"base-uri 'none'",
+			// https://github.com/w3c/webappsec-csp/issues/7
+			// 'self' does not include websocket in Safari :(
+			fmt.Sprintf("connect-src 'self' ws://%s wss://%s", u.Host, u.Host),
 			"block-all-mixed-content",
 		}
 	}

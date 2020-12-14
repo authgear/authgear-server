@@ -1,16 +1,21 @@
 package webapp
 
 import (
+	"encoding/json"
 	"net/http"
+
+	redigo "github.com/gomodule/redigo/redis"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/pubsub"
 )
 
 type PageService interface {
@@ -31,6 +36,8 @@ type PageService interface {
 
 type ControllerDeps struct {
 	Database      *db.Handle
+	RedisHandle   *redis.Handle
+	AppID         config.AppID
 	Page          PageService
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
@@ -103,8 +110,41 @@ func (c *Controller) GetSession(id string) (*webapp.Session, error) {
 	return c.Page.GetSession(id)
 }
 
+type redisPool struct {
+	RedisHandle *redis.Handle
+}
+
+func (p *redisPool) Get() redigo.Conn {
+	return p.RedisHandle.Pool().Get()
+}
+
 func (c *Controller) UpdateSession(s *webapp.Session) error {
-	return c.Page.UpdateSession(s)
+	err := c.Page.UpdateSession(s)
+	if err != nil {
+		return err
+	}
+
+	publisher := &pubsub.Publisher{
+		RedisPool: &redisPool{c.RedisHandle},
+	}
+
+	channelName := WebsocketChannelName(string(c.AppID), s.ID)
+
+	msg := &WebsocketMessage{
+		Kind: WebsocketMessageKindRefresh,
+	}
+
+	b, err := json.Marshal(msg)
+	if err != nil {
+		return err
+	}
+
+	err = publisher.Publish(channelName, b)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *Controller) Serve() {
