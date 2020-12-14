@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	redigo "github.com/gomodule/redigo/redis"
-	"nhooyr.io/websocket"
 
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -50,11 +49,6 @@ func (h *WebsocketHandler) Accept(r *http.Request) (channelName string, err erro
 
 	channelName = WebsocketChannelName(string(h.AppID), s.ID)
 	return
-}
-
-func (h *WebsocketHandler) OnWebsocketMessage(messageType websocket.MessageType, data []byte) (*pubsub.WebsocketOutgoingMessage, error) {
-	// We do not expect the client to send us anything.
-	return nil, nil
 }
 
 func WebsocketChannelName(appID string, id string) string {

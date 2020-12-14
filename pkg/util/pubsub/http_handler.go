@@ -22,7 +22,6 @@ type WebsocketOutgoingMessage struct {
 
 type Delegate interface {
 	Accept(r *http.Request) (channelName string, err error)
-	OnWebsocketMessage(messageType websocket.MessageType, data []byte) (*WebsocketOutgoingMessage, error)
 }
 
 const (
@@ -129,27 +128,11 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				readCtx, cancel := context.WithTimeout(rootCtx, WebsocketReadTimeout)
 				defer cancel()
 
-				messageType, data, err := wsConn.Read(readCtx)
+				// Read everything from the connection and discard them.
+				_, _, err := wsConn.Read(readCtx)
 				if err != nil {
 					errChan <- err
 					return
-				}
-
-				outgoing, err := h.Delegate.OnWebsocketMessage(messageType, data)
-				if err != nil {
-					errChan <- err
-					return
-				}
-
-				if outgoing != nil {
-					writeCtx, cancel := context.WithTimeout(rootCtx, WebsocketWriteTimeout)
-					defer cancel()
-
-					err = wsConn.Write(writeCtx, outgoing.MessageType, outgoing.Data)
-					if err != nil {
-						errChan <- err
-						return
-					}
 				}
 			}
 		}
