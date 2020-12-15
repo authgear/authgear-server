@@ -3,6 +3,7 @@ package pubsub
 import (
 	"context"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -88,10 +89,9 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				// cancelling the context does not immediately make ReceiveTimeout return error.
 				// Therefore, we have to use a small enough timeout to ensure pubsub is closed within a reasonble delay.
 				iface, err := psc.ReceiveTimeout(rootCtx, RedisReadTimeout)
-				if timeoutErr, ok := err.(interface{ Timeout() bool }); ok && timeoutErr.Timeout() {
+				if os.IsTimeout(err) {
 					continue
 				}
-
 				if err != nil {
 					errChan <- err
 					return
