@@ -11,7 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
-	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
@@ -90,7 +90,7 @@ func (i *anonymousTokenInput) GetAnonymousRequestToken() string { return i.JWT }
 type AuthenticateURLProvider struct {
 	Endpoints     EndpointsProvider
 	Pages         PageService
-	SessionCookie idpsession.CookieDef
+	SessionCookie session.CookieDef
 	CookieFactory CookieFactory
 }
 

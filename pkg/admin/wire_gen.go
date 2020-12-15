@@ -357,7 +357,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sessionConfig := appConfig.Session
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
-	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,

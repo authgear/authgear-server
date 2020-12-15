@@ -1,4 +1,4 @@
-package idpsession
+package session
 
 import (
 	"net/http"

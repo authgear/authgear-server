@@ -17,8 +17,8 @@ type resolverProvider interface {
 }
 
 type Resolver struct {
-	CookieFactory CookieFactory
-	Cookie        CookieDef
+	CookieFactory session.CookieFactory
+	Cookie        session.CookieDef
 	Provider      resolverProvider
 	TrustProxy    config.TrustProxy
 	Clock         clock.Clock
