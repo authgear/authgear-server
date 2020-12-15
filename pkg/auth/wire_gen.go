@@ -102,14 +102,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &oauth2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	provider := &anonymous.Provider{
-		Store: anonymousStore,
-		Clock: clock,
-	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
@@ -148,7 +140,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
-	loginidProvider := &loginid.Provider{
+	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
@@ -163,13 +155,21 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Store: oauthStore,
 		Clock: clock,
 	}
+	anonymousStore := &anonymous.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	anonymousProvider := &anonymous.Provider{
+		Store: anonymousStore,
+		Clock: clock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
 		Store:          serviceStore,
-		LoginID:        loginidProvider,
+		LoginID:        provider,
 		OAuth:          oauthProvider,
-		Anonymous:      provider,
+		Anonymous:      anonymousProvider,
 	}
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -489,7 +489,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
-		AnonymousIdentities:      provider,
+		AnonymousIdentities:      anonymousProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -529,23 +529,26 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticateURLProvider := &webapp.AuthenticateURLProvider{
 		Endpoints: endpointsProvider,
-		Anonymous: provider,
 		Pages:     webappService2,
 	}
 	scopesValidator := _wireScopesValidatorValue
 	tokenGenerator := _wireTokenGeneratorValue
+	loginHintResolver := &handler.LoginHintResolver{
+		Anonymous: anonymousProvider,
+	}
 	authorizationHandler := &handler.AuthorizationHandler{
-		Context:        context,
-		AppID:          appID,
-		Config:         oAuthConfig,
-		Logger:         authorizationHandlerLogger,
-		Authorizations: authorizationStore,
-		CodeGrants:     store,
-		OAuthURLs:      urlProvider,
-		WebAppURLs:     authenticateURLProvider,
-		ValidateScopes: scopesValidator,
-		CodeGenerator:  tokenGenerator,
-		Clock:          clock,
+		Context:         context,
+		AppID:           appID,
+		Config:          oAuthConfig,
+		Logger:          authorizationHandlerLogger,
+		Authorizations:  authorizationStore,
+		CodeGrants:      store,
+		OAuthURLs:       urlProvider,
+		WebAppURLs:      authenticateURLProvider,
+		ValidateScopes:  scopesValidator,
+		CodeGenerator:   tokenGenerator,
+		LoginHintParser: loginHintResolver,
+		Clock:           clock,
 	}
 	authorizeHandler := &oauth.AuthorizeHandler{
 		Logger:       authorizeHandlerLogger,

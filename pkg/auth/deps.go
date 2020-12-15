@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
-	identityanonymous "github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
@@ -39,7 +38,6 @@ var DependencySet = wire.NewSet(
 	deps.RequestDependencySet,
 	deps.CommonDependencySet,
 
-	wire.Bind(new(webapp.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 	wire.Bind(new(webapp.GraphService), new(*interaction.Service)),
 	wire.Bind(new(webapp.CookieFactory), new(*httputil.CookieFactory)),
 

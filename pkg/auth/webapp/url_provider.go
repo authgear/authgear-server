@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/url"
 	"path"
-	"strings"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -61,18 +60,18 @@ func (p *URLProvider) SSOCallbackURL(c config.OAuthSSOProviderConfig) *url.URL {
 	return u
 }
 
-type AnonymousIdentityProvider interface {
-	ParseRequestUnverified(requestJWT string) (r *anonymous.Request, err error)
+type AnonymousRequest struct {
+	JWT     string
+	Request *anonymous.Request
 }
 
 type AuthenticateURLOptions struct {
-	ClientID    string
-	RedirectURI string
-	UILocales   string
-	Prompt      string
-	LoginHint   string
+	ClientID         string
+	RedirectURI      string
+	UILocales        string
+	Prompt           string
+	AuthenticateHint interface{}
 }
-
 type PageService interface {
 	CreateSession(session *Session, redirectURI string) (*Result, error)
 	PostWithIntent(session *Session, intent interaction.Intent, inputFn func() (interface{}, error)) (*Result, error)
@@ -84,7 +83,6 @@ func (i *anonymousTokenInput) GetAnonymousRequestToken() string { return i.JWT }
 
 type AuthenticateURLProvider struct {
 	Endpoints EndpointsProvider
-	Anonymous AnonymousIdentityProvider
 	Pages     PageService
 }
 
@@ -94,46 +92,28 @@ func (p *AuthenticateURLProvider) AuthenticateURL(options AuthenticateURLOptions
 		Prompt:      options.Prompt,
 		UILocales:   options.UILocales,
 	})
-	if options.LoginHint != "" {
-		result, err := p.handleLoginHint(options, session)
-		if err != nil {
-			return nil, err
-		}
-		if result != nil {
-			return result, nil
-		}
-	}
 
-	return p.Pages.CreateSession(session, p.Endpoints.AuthenticateEndpointURL().String())
+	var result httputil.Result
+	var err error
+	if options.AuthenticateHint != nil {
+		result, err = p.handleHint(options, session)
+	} else {
+		result, err = p.Pages.CreateSession(session, p.Endpoints.AuthenticateEndpointURL().String())
+	}
+	return result, err
 }
 
-func (p *AuthenticateURLProvider) handleLoginHint(
+func (p *AuthenticateURLProvider) handleHint(
 	options AuthenticateURLOptions,
 	session *Session,
 ) (httputil.Result, error) {
-	if !strings.HasPrefix(options.LoginHint, "https://authgear.com/login_hint?") {
-		return nil, nil
-	}
-
-	url, err := url.Parse(options.LoginHint)
-	if err != nil {
-		return nil, err
-	}
-	query := url.Query()
-
-	switch query.Get("type") {
-	case "anonymous":
-		jwt := query.Get("jwt")
-		request, err := p.Anonymous.ParseRequestUnverified(query.Get("jwt"))
-		if err != nil {
-			return nil, err
-		}
-
-		switch request.Action {
+	switch hint := options.AuthenticateHint.(type) {
+	case AnonymousRequest:
+		switch hint.Request.Action {
 		case anonymous.RequestActionPromote:
 			intent := interactionintents.NewIntentPromote()
 			inputer := func() (interface{}, error) {
-				return &anonymousTokenInput{JWT: jwt}, nil
+				return &anonymousTokenInput{JWT: hint.JWT}, nil
 			}
 			return p.Pages.PostWithIntent(session, intent, inputer)
 
@@ -146,6 +126,6 @@ func (p *AuthenticateURLProvider) handleLoginHint(
 		}
 
 	default:
-		return nil, fmt.Errorf("unsupported login hint type: %s", query.Get("type"))
+		return nil, fmt.Errorf("unsupported authenticate hint type: %T", options.AuthenticateHint)
 	}
 }

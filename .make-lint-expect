@@ -4,6 +4,7 @@ pkg/api/event/hook_response.go cannot import github.com/authgear/authgear-server
 
 exit status 1
 pkg/lib/oauth/handler/handler_authz.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
+pkg/lib/oauth/handler/login_hint.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
 pkg/lib/oauth/handler/mock_test.go cannot import github.com/authgear/authgear-server/pkg/auth/webapp
 
 exit status 1

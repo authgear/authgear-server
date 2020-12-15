@@ -42,13 +42,14 @@ type AuthorizationHandler struct {
 	Config  *config.OAuthConfig
 	Logger  AuthorizationHandlerLogger
 
-	Authorizations oauth.AuthorizationStore
-	CodeGrants     oauth.CodeGrantStore
-	OAuthURLs      OAuthURLProvider
-	WebAppURLs     WebAppAuthenticateURLProvider
-	ValidateScopes ScopesValidator
-	CodeGenerator  TokenGenerator
-	Clock          clock.Clock
+	Authorizations  oauth.AuthorizationStore
+	CodeGrants      oauth.CodeGrantStore
+	OAuthURLs       OAuthURLProvider
+	WebAppURLs      WebAppAuthenticateURLProvider
+	ValidateScopes  ScopesValidator
+	CodeGenerator   TokenGenerator
+	LoginHintParser *LoginHintResolver
+	Clock           clock.Clock
 }
 
 func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.Result {
@@ -126,8 +127,14 @@ func (h *AuthorizationHandler) doHandle(
 		// Not authenticated as IdP session => request authentication and retry
 		authnOptions.ClientID = r.ClientID()
 		authnOptions.UILocales = strings.Join(r.UILocales(), " ")
-		authnOptions.LoginHint = r.LoginHint()
+
+		hint, err := h.LoginHintParser.ResolveLoginHint(r.LoginHint())
+		if err != nil {
+			return nil, protocol.NewError("invalid_request", err.Error())
+		}
+		authnOptions.AuthenticateHint = hint
 		r.SetLoginHint("")
+
 		authorizeURI := h.OAuthURLs.AuthorizeURL(r)
 		authnOptions.RedirectURI = authorizeURI.String()
 
