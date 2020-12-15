@@ -48,4 +48,5 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(LogoutHandler), "*"),
 	wire.Struct(new(ReturnHandler), "*"),
 	wire.Struct(new(WebsocketHandler), "*"),
+	wire.Struct(new(WechatAuthHandler), "*"),
 )

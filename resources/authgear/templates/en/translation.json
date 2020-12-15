@@ -76,6 +76,7 @@
   "oauth-branding-facebook": "Login with Facebook",
   "oauth-branding-linkedin": "Sign in with LinkedIn",
   "oauth-branding-azureadv2": "Sign in with Microsoft",
+  "oauth-branding-wechat": "Sign in with WeChat",
 
   "sso-login-id-separator": "or",
 
@@ -251,6 +252,9 @@
 
   "return-page-title": "Return to where you were",
   "return-page-description": "Please return to where you were to continue. If you were interacting with an mobile app, please switch back to the app. If you were interacting with a website, please switch back to that tab.",
+
+  "wechat-auth-title": "Sign in with WeChat",
+  "wechat-auth-description": "Please scan the QR code in your WeChat app to sign in.",
 
   "toc-pp-footer": "<p class=\"toc-pp-footer\">By registering, you agree to our <a target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a> and <a target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>.</p>"
 }

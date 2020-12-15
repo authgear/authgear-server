@@ -73,7 +73,15 @@ func (k SessionStepKind) Path() string {
 func (k SessionStepKind) MatchPath(path string) bool {
 	switch k {
 	case SessionStepOAuthRedirect:
-		return strings.HasPrefix(path, "/sso/oauth2/callback/")
+		switch path {
+		case "/sso/wechat/auth":
+			// In Wechat authorize flow, instead of redirect user to provider authorization page
+			// redirect user to page that display qr code
+			// https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/Wechat_webpage_authorization.html
+			return true
+		default:
+			return strings.HasPrefix(path, "/sso/oauth2/callback/")
+		}
 	case SessionStepAuthenticate:
 		switch path {
 		case "/enter_totp", "/enter_password", "/enter_oob_otp", "/enter_recovery_code", "/send_oob_otp":

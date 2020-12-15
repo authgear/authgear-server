@@ -557,6 +557,11 @@ a.btn {
   background-color: #e2e2e2;
 }
 
+.wechat {
+  color: white;
+  background-color: #07c160;
+}
+
 .sso-loginid-separator {
   text-align: center;
   margin: 6px;
