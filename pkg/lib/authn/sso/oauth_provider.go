@@ -105,6 +105,12 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 			Credentials:              *credentials,
 			LoginIDNormalizerFactory: p.LoginIDNormalizerFactory,
 		}
+	case config.OAuthSSOProviderTypeWechat:
+		return &WechatImpl{
+			RedirectURL:    p.RedirectURL,
+			ProviderConfig: *providerConfig,
+			Credentials:    *credentials,
+		}
 	}
 	return nil
 }
