@@ -36,6 +36,7 @@ type WechatAuthHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
+	CSRFCookie        webapp.CSRFCookieDef
 }
 
 func (h *WechatAuthHandler) GetData(r *http.Request, w http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -86,6 +87,35 @@ func (h *WechatAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		graph, err := ctrl.InteractionGet()
 		if err != nil {
 			return err
+		}
+
+		if session != nil {
+			step := session.CurrentStep()
+			action, ok := step.FormData["x_action"].(string)
+			if ok && action == WechatActionCallback {
+				nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
+
+				data := InputOAuthCallback{
+					// TODO: support different alias
+					ProviderAlias:    "wechat",
+					NonceSource:      nonceSource,
+					Code:             step.FormData["x_code"].(string),
+					Scope:            step.FormData["x_scope"].(string),
+					Error:            step.FormData["x_error"].(string),
+					ErrorDescription: step.FormData["x_error_description"].(string),
+				}
+
+				result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+					input = &data
+					return
+				})
+				if err != nil {
+					return err
+				}
+				result.WriteResponse(w, r)
+				return nil
+
+			}
 		}
 
 		data, err := h.GetData(r, w, session, graph)

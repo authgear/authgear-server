@@ -4312,10 +4312,12 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	wechatAuthHandler := &webapp2.WechatAuthHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
+		CSRFCookie:        csrfCookieDef,
 	}
 	return wechatAuthHandler
 }

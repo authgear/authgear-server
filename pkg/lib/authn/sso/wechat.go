@@ -1,7 +1,6 @@
 package sso
 
 import (
-	"errors"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -17,9 +16,10 @@ type WechatURLProvider interface {
 }
 
 type WechatImpl struct {
-	ProviderConfig config.OAuthSSOProviderConfig
-	Credentials    config.OAuthClientCredentialsItem
-	URLProvider    WechatURLProvider
+	ProviderConfig  config.OAuthSSOProviderConfig
+	Credentials     config.OAuthClientCredentialsItem
+	URLProvider     WechatURLProvider
+	UserInfoDecoder UserInfoDecoder
 }
 
 func (*WechatImpl) Type() config.OAuthSSOProviderType {
@@ -45,5 +45,37 @@ func (w *WechatImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 }
 
 func (w *WechatImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (AuthInfo, error) {
-	return AuthInfo{}, errors.New("not implemented")
+	return w.NonOpenIDConnectGetAuthInfo(r, param)
 }
+
+func (w *WechatImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _ GetAuthInfoParam) (authInfo AuthInfo, err error) {
+	accessTokenResp, err := wechatFetchAccessTokenResp(
+		r.Code,
+		w.ProviderConfig.ClientID,
+		w.Credentials.ClientSecret,
+	)
+	if err != nil {
+		return
+	}
+
+	rawProfile, err := wechatFetchUserProfile(accessTokenResp)
+	if err != nil {
+		return
+	}
+
+	providerUserInfo, err := w.UserInfoDecoder.DecodeUserInfo(w.ProviderConfig.Type, rawProfile)
+	if err != nil {
+		return
+	}
+
+	authInfo.ProviderConfig = w.ProviderConfig
+	authInfo.ProviderAccessTokenResp = accessTokenResp
+	authInfo.ProviderRawProfile = rawProfile
+	authInfo.ProviderUserInfo = *providerUserInfo
+	return
+}
+
+var (
+	_ OAuthProvider            = &WechatImpl{}
+	_ NonOpenIDConnectProvider = &WechatImpl{}
+)

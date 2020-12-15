@@ -22,6 +22,8 @@ func (d *UserInfoDecoder) DecodeUserInfo(providerType config.OAuthSSOProviderTyp
 		providerUserInfo = DecodeAzureADv2(userInfo)
 	case config.OAuthSSOProviderTypeApple:
 		providerUserInfo = DecodeApple(userInfo)
+	case config.OAuthSSOProviderTypeWechat:
+		providerUserInfo = DecodeWechat(userInfo)
 	default:
 		panic(fmt.Sprintf("sso: unknown provider type: %v", providerType))
 	}
@@ -94,5 +96,13 @@ func DecodeLinkedIn(userInfo map[string]interface{}) *ProviderUserInfo {
 	return &ProviderUserInfo{
 		ID:    id,
 		Email: email,
+	}
+}
+
+func DecodeWechat(userInfo map[string]interface{}) *ProviderUserInfo {
+	id, _ := userInfo["openid"].(string)
+
+	return &ProviderUserInfo{
+		ID: id,
 	}
 }
