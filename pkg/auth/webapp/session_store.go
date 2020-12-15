@@ -1,12 +1,13 @@
 package webapp
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
-	goredis "github.com/gomodule/redigo/redis"
+	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
@@ -20,16 +21,17 @@ type SessionStoreRedis struct {
 }
 
 func (s *SessionStoreRedis) Create(session *Session) (err error) {
+	ctx := context.Background()
 	key := sessionKey(string(s.AppID), session.ID)
 	bytes, err := json.Marshal(session)
 	if err != nil {
 		return
 	}
 
-	err = s.Redis.WithConn(func(conn redis.Conn) error {
-		ttl := toMilliseconds(SessionExpiryDuration)
-		_, err = goredis.String(conn.Do("SET", key, bytes, "PX", ttl, "NX"))
-		if errors.Is(err, goredis.ErrNil) {
+	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+		ttl := SessionExpiryDuration
+		_, err = conn.SetNX(ctx, key, bytes, ttl).Result()
+		if errors.Is(err, goredis.Nil) {
 			return fmt.Errorf("webapp-store: failed to create session: %w", err)
 		}
 		if err != nil {
@@ -41,16 +43,17 @@ func (s *SessionStoreRedis) Create(session *Session) (err error) {
 }
 
 func (s *SessionStoreRedis) Update(session *Session) (err error) {
+	ctx := context.Background()
 	key := sessionKey(string(s.AppID), session.ID)
 	bytes, err := json.Marshal(session)
 	if err != nil {
 		return
 	}
 
-	err = s.Redis.WithConn(func(conn redis.Conn) error {
-		ttl := toMilliseconds(SessionExpiryDuration)
-		_, err = goredis.String(conn.Do("SET", key, bytes, "PX", ttl, "XX"))
-		if errors.Is(err, goredis.ErrNil) {
+	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+		ttl := SessionExpiryDuration
+		_, err = conn.SetXX(ctx, key, bytes, ttl).Result()
+		if errors.Is(err, goredis.Nil) {
 			return ErrInvalidSession
 		}
 		if err != nil {
@@ -62,10 +65,11 @@ func (s *SessionStoreRedis) Update(session *Session) (err error) {
 }
 
 func (s *SessionStoreRedis) Get(id string) (session *Session, err error) {
+	ctx := context.Background()
 	key := sessionKey(string(s.AppID), id)
-	err = s.Redis.WithConn(func(conn redis.Conn) error {
-		data, err := goredis.Bytes(conn.Do("GET", key))
-		if errors.Is(err, goredis.ErrNil) {
+	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+		data, err := conn.Get(ctx, key).Bytes()
+		if errors.Is(err, goredis.Nil) {
 			err = ErrInvalidSession
 			return err
 		}
@@ -83,16 +87,13 @@ func (s *SessionStoreRedis) Get(id string) (session *Session, err error) {
 }
 
 func (s *SessionStoreRedis) Delete(id string) error {
+	ctx := context.Background()
 	key := sessionKey(string(s.AppID), id)
-	err := s.Redis.WithConn(func(conn redis.Conn) error {
-		_, err := conn.Do("DEL", key)
+	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+		_, err := conn.Del(ctx, key).Result()
 		return err
 	})
 	return err
-}
-
-func toMilliseconds(d time.Duration) int64 {
-	return int64(d / time.Millisecond)
 }
 
 func sessionKey(appID string, id string) string {

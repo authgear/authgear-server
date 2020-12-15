@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	redigo "github.com/gomodule/redigo/redis"
+	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -36,8 +36,8 @@ func (h *WebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	handler.ServeHTTP(w, r)
 }
 
-func (h *WebsocketHandler) Get() redigo.Conn {
-	return h.RedisHandle.Pool().Get()
+func (h *WebsocketHandler) Get() *goredis.Client {
+	return h.RedisHandle.Pool()
 }
 
 func (h *WebsocketHandler) Accept(r *http.Request) (channelName string, err error) {

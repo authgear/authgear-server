@@ -1,12 +1,12 @@
 package challenge
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
 
-	redigo "github.com/gomodule/redigo/redis"
+	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
@@ -20,6 +20,7 @@ type Provider struct {
 }
 
 func (p *Provider) Create(purpose Purpose) (*Challenge, error) {
+	ctx := context.Background()
 	now := p.Clock.NowUTC()
 	ttl := purpose.ValidityPeriod()
 	c := &Challenge{
@@ -35,9 +36,9 @@ func (p *Provider) Create(purpose Purpose) (*Challenge, error) {
 		return nil, err
 	}
 
-	err = p.Redis.WithConn(func(conn redis.Conn) error {
-		_, err = redigo.String(conn.Do("SET", key, data, "PX", toMilliseconds(ttl), "NX"))
-		if errors.Is(err, redigo.ErrNil) {
+	err = p.Redis.WithConn(func(conn *goredis.Conn) error {
+		_, err = conn.SetNX(ctx, key, data, ttl).Result()
+		if errors.Is(err, goredis.Nil) {
 			return errors.New("fail to create new challenge")
 		} else if err != nil {
 			return err
@@ -53,13 +54,14 @@ func (p *Provider) Create(purpose Purpose) (*Challenge, error) {
 }
 
 func (p *Provider) Consume(token string) (*Purpose, error) {
+	ctx := context.Background()
 	key := challengeKey(p.AppID, token)
 
 	c := &Challenge{}
 
-	err := p.Redis.WithConn(func(conn redis.Conn) error {
-		data, err := redigo.Bytes(conn.Do("GET", key))
-		if errors.Is(err, redigo.ErrNil) {
+	err := p.Redis.WithConn(func(conn *goredis.Conn) error {
+		data, err := conn.Get(ctx, key).Bytes()
+		if errors.Is(err, goredis.Nil) {
 			return ErrInvalidChallenge
 		} else if err != nil {
 			return err
@@ -70,7 +72,7 @@ func (p *Provider) Consume(token string) (*Purpose, error) {
 			return err
 		}
 
-		_, err = conn.Do("DEL", key)
+		_, err = conn.Del(ctx, key).Result()
 		if err != nil {
 			return err
 		}
@@ -86,8 +88,4 @@ func (p *Provider) Consume(token string) (*Purpose, error) {
 
 func challengeKey(appID config.AppID, token string) string {
 	return fmt.Sprintf("app:%s:challenge:%s", appID, token)
-}
-
-func toMilliseconds(d time.Duration) int64 {
-	return int64(d / time.Millisecond)
 }

@@ -1,12 +1,12 @@
 package verification
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
 
-	goredis "github.com/gomodule/redigo/redis"
+	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
@@ -20,16 +20,17 @@ type StoreRedis struct {
 }
 
 func (s *StoreRedis) Create(code *Code) error {
+	ctx := context.Background()
 	data, err := json.Marshal(code)
 	if err != nil {
 		return err
 	}
 
-	return s.Redis.WithConn(func(conn redis.Conn) error {
+	return s.Redis.WithConn(func(conn *goredis.Conn) error {
 		codeKey := redisCodeKey(s.AppID, code.ID)
-		ttl := toMilliseconds(code.ExpireAt.Sub(s.Clock.NowUTC()))
-		_, err := goredis.String(conn.Do("SET", codeKey, data, "PX", ttl))
-		if errors.Is(err, goredis.ErrNil) {
+		ttl := code.ExpireAt.Sub(s.Clock.NowUTC())
+		_, err := conn.Set(ctx, codeKey, data, ttl).Result()
+		if errors.Is(err, goredis.Nil) {
 			return errors.New("duplicated code")
 		} else if err != nil {
 			return err
@@ -40,11 +41,12 @@ func (s *StoreRedis) Create(code *Code) error {
 }
 
 func (s *StoreRedis) Get(id string) (*Code, error) {
+	ctx := context.Background()
 	key := redisCodeKey(s.AppID, id)
 	var codeModel *Code
-	err := s.Redis.WithConn(func(conn redis.Conn) error {
-		data, err := goredis.Bytes(conn.Do("GET", key))
-		if errors.Is(err, goredis.ErrNil) {
+	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+		data, err := conn.Get(ctx, key).Bytes()
+		if errors.Is(err, goredis.Nil) {
 			return ErrCodeNotFound
 		} else if err != nil {
 			return err
@@ -61,18 +63,15 @@ func (s *StoreRedis) Get(id string) (*Code, error) {
 }
 
 func (s *StoreRedis) Delete(id string) error {
-	return s.Redis.WithConn(func(conn redis.Conn) error {
+	ctx := context.Background()
+	return s.Redis.WithConn(func(conn *goredis.Conn) error {
 		key := redisCodeKey(s.AppID, id)
-		_, err := conn.Do("DEL", key)
+		_, err := conn.Del(ctx, key).Result()
 		if err != nil {
 			return err
 		}
 		return err
 	})
-}
-
-func toMilliseconds(d time.Duration) int64 {
-	return int64(d / time.Millisecond)
 }
 
 func redisCodeKey(appID config.AppID, id string) string {

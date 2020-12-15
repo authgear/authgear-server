@@ -1,12 +1,13 @@
 package mfa
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
-	goredis "github.com/gomodule/redigo/redis"
+	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
@@ -21,10 +22,12 @@ type StoreDeviceTokenRedis struct {
 
 func (s *StoreDeviceTokenRedis) Get(userID string, token string) (*DeviceToken, error) {
 	var deviceToken *DeviceToken
-	err := s.Redis.WithConn(func(conn redis.Conn) error {
+	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+		ctx := context.Background()
 		key := redisDeviceTokensKey(s.AppID, userID)
-		data, err := goredis.Bytes(conn.Do("GET", key))
-		if errors.Is(err, goredis.ErrNil) {
+
+		data, err := conn.Get(ctx, key).Bytes()
+		if errors.Is(err, goredis.Nil) {
 			return ErrDeviceTokenNotFound
 		} else if err != nil {
 			return err
@@ -60,13 +63,14 @@ func (s *StoreDeviceTokenRedis) Get(userID string, token string) (*DeviceToken, 
 }
 
 func (s *StoreDeviceTokenRedis) Create(token *DeviceToken) error {
-	err := s.Redis.WithConn(func(conn redis.Conn) error {
+	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+		ctx := context.Background()
 		key := redisDeviceTokensKey(s.AppID, token.UserID)
 
 		tokens := map[string]*DeviceToken{}
-		data, err := goredis.Bytes(conn.Do("GET", key))
+		data, err := conn.Get(ctx, key).Bytes()
 		if err != nil {
-			if !errors.Is(err, goredis.ErrNil) {
+			if !errors.Is(err, goredis.Nil) {
 				return err
 			}
 		} else {
@@ -92,28 +96,31 @@ func (s *StoreDeviceTokenRedis) Create(token *DeviceToken) error {
 }
 
 func (s *StoreDeviceTokenRedis) DeleteAll(userID string) error {
-	err := s.Redis.WithConn(func(conn redis.Conn) error {
+	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
 		key := redisDeviceTokensKey(s.AppID, userID)
-
-		_, err := conn.Do("DEL", key)
+		ctx := context.Background()
+		_, err := conn.Del(ctx, key).Result()
 		return err
 	})
 
 	return err
 }
 
-func (s *StoreDeviceTokenRedis) saveTokens(conn redis.Conn, key string, tokens map[string]*DeviceToken, ttl int64) error {
+func (s *StoreDeviceTokenRedis) saveTokens(conn *goredis.Conn, key string, tokens map[string]*DeviceToken, ttl time.Duration) error {
+	ctx := context.Background()
+
 	if len(tokens) > 0 {
 		data, err := json.Marshal(tokens)
 		if err != nil {
 			return err
 		}
-		_, err = goredis.String(conn.Do("SET", key, data, "PX", ttl))
+
+		_, err = conn.Set(ctx, key, data, ttl).Result()
 		if err != nil {
 			return err
 		}
 	} else {
-		_, err := conn.Do("DEL", key)
+		_, err := conn.Del(ctx, key).Result()
 		if err != nil {
 			return err
 		}
@@ -121,7 +128,7 @@ func (s *StoreDeviceTokenRedis) saveTokens(conn redis.Conn, key string, tokens m
 	return nil
 }
 
-func houseKeepDeviceTokens(tokens map[string]*DeviceToken, now time.Time) (changed bool, ttl int64) {
+func houseKeepDeviceTokens(tokens map[string]*DeviceToken, now time.Time) (changed bool, ttl time.Duration) {
 	maxExpiry := now
 	for token, model := range tokens {
 		if now.After(model.ExpireAt) {
@@ -132,7 +139,7 @@ func houseKeepDeviceTokens(tokens map[string]*DeviceToken, now time.Time) (chang
 		}
 	}
 
-	ttl = int64(maxExpiry.Sub(now) / time.Millisecond)
+	ttl = maxExpiry.Sub(now)
 	return
 }
 

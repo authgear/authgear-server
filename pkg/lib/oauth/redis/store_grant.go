@@ -1,13 +1,14 @@
 package redis
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
 	"time"
 
-	redigo "github.com/gomodule/redigo/redis"
+	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -16,10 +17,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
-
-func toMilliseconds(d time.Duration) int64 {
-	return int64(d / time.Millisecond)
-}
 
 type Logger struct{ *log.Logger }
 
@@ -36,9 +33,10 @@ type GrantStore struct {
 	Clock       clock.Clock
 }
 
-func (s *GrantStore) load(conn redigo.Conn, key string, ptr interface{}) error {
-	data, err := redigo.Bytes(conn.Do("GET", key))
-	if errors.Is(err, redigo.ErrNil) {
+func (s *GrantStore) load(conn *goredis.Conn, key string, ptr interface{}) error {
+	ctx := context.Background()
+	data, err := conn.Get(ctx, key).Bytes()
+	if errors.Is(err, goredis.Nil) {
 		return oauth.ErrGrantNotFound
 	} else if err != nil {
 		return err
@@ -46,40 +44,41 @@ func (s *GrantStore) load(conn redigo.Conn, key string, ptr interface{}) error {
 	return json.Unmarshal(data, &ptr)
 }
 
-func (s *GrantStore) save(conn redigo.Conn, key string, value interface{}, expireAt time.Time, ifNotExists bool) error {
+func (s *GrantStore) save(conn *goredis.Conn, key string, value interface{}, expireAt time.Time, ifNotExists bool) error {
+	ctx := context.Background()
 	data, err := json.Marshal(value)
 	if err != nil {
 		return err
 	}
 	ttl := expireAt.Sub(s.Clock.NowUTC())
 
-	var ctrl string
 	if ifNotExists {
-		ctrl = "NX"
+		_, err = conn.SetNX(ctx, key, data, ttl).Result()
 	} else {
-		ctrl = "XX"
+		_, err = conn.SetXX(ctx, key, data, ttl).Result()
 	}
-
-	_, err = redigo.String(conn.Do("SET", key, data, "PX", toMilliseconds(ttl), ctrl))
-	if errors.Is(err, redigo.ErrNil) {
+	if errors.Is(err, goredis.Nil) {
 		if ifNotExists {
 			return errors.New("grant already exist")
 		}
 		return oauth.ErrGrantNotFound
+	} else if err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func (s *GrantStore) del(conn redigo.Conn, key string) error {
-	_, err := conn.Do("DEL", key)
+func (s *GrantStore) del(conn *goredis.Conn, key string) error {
+	ctx := context.Background()
+	_, err := conn.Del(ctx, key).Result()
 	return err
 }
 
 func (s *GrantStore) GetCodeGrant(codeHash string) (*oauth.CodeGrant, error) {
 	g := &oauth.CodeGrant{}
 
-	err := s.Redis.WithConn(func(conn redis.Conn) error {
+	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
 		return s.load(conn, codeGrantKey(string(s.AppID), codeHash), g)
 	})
 	if err != nil {
@@ -90,20 +89,20 @@ func (s *GrantStore) GetCodeGrant(codeHash string) (*oauth.CodeGrant, error) {
 }
 
 func (s *GrantStore) CreateCodeGrant(grant *oauth.CodeGrant) error {
-	return s.Redis.WithConn(func(conn redis.Conn) error {
+	return s.Redis.WithConn(func(conn *goredis.Conn) error {
 		return s.save(conn, codeGrantKey(grant.AppID, grant.CodeHash), grant, grant.ExpireAt, true)
 	})
 }
 
 func (s *GrantStore) DeleteCodeGrant(grant *oauth.CodeGrant) error {
-	return s.Redis.WithConn(func(conn redis.Conn) error {
+	return s.Redis.WithConn(func(conn *goredis.Conn) error {
 		return s.del(conn, codeGrantKey(grant.AppID, grant.CodeHash))
 	})
 }
 
 func (s *GrantStore) GetAccessGrant(tokenHash string) (*oauth.AccessGrant, error) {
 	g := &oauth.AccessGrant{}
-	err := s.Redis.WithConn(func(conn redis.Conn) error {
+	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
 		return s.load(conn, accessGrantKey(string(s.AppID), tokenHash), g)
 	})
 	if err != nil {
@@ -114,20 +113,20 @@ func (s *GrantStore) GetAccessGrant(tokenHash string) (*oauth.AccessGrant, error
 }
 
 func (s *GrantStore) CreateAccessGrant(grant *oauth.AccessGrant) error {
-	return s.Redis.WithConn(func(conn redis.Conn) error {
+	return s.Redis.WithConn(func(conn *goredis.Conn) error {
 		return s.save(conn, accessGrantKey(grant.AppID, grant.TokenHash), grant, grant.ExpireAt, true)
 	})
 }
 
 func (s *GrantStore) DeleteAccessGrant(grant *oauth.AccessGrant) error {
-	return s.Redis.WithConn(func(conn redis.Conn) error {
+	return s.Redis.WithConn(func(conn *goredis.Conn) error {
 		return s.del(conn, accessGrantKey(grant.AppID, grant.TokenHash))
 	})
 }
 
 func (s *GrantStore) GetOfflineGrant(id string) (*oauth.OfflineGrant, error) {
 	g := &oauth.OfflineGrant{}
-	err := s.Redis.WithConn(func(conn redis.Conn) error {
+	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
 		return s.load(conn, offlineGrantKey(string(s.AppID), id), g)
 	})
 	if err != nil {
@@ -137,13 +136,14 @@ func (s *GrantStore) GetOfflineGrant(id string) (*oauth.OfflineGrant, error) {
 }
 
 func (s *GrantStore) CreateOfflineGrant(grant *oauth.OfflineGrant) error {
+	ctx := context.Background()
 	expiry, err := grant.ExpireAt.MarshalText()
 	if err != nil {
 		return err
 	}
 
-	err = s.Redis.WithConn(func(conn redis.Conn) error {
-		_, err = conn.Do("HSET", offlineGrantListKey(grant.AppID, grant.Attrs.UserID), grant.ID, expiry)
+	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+		_, err = conn.HSet(ctx, offlineGrantListKey(grant.AppID, grant.Attrs.UserID), grant.ID, expiry).Result()
 		if err != nil {
 			return fmt.Errorf("failed to update session list: %w", err)
 		}
@@ -163,13 +163,14 @@ func (s *GrantStore) CreateOfflineGrant(grant *oauth.OfflineGrant) error {
 }
 
 func (s *GrantStore) UpdateOfflineGrant(grant *oauth.OfflineGrant) error {
+	ctx := context.Background()
 	expiry, err := grant.ExpireAt.MarshalText()
 	if err != nil {
 		return err
 	}
 
-	err = s.Redis.WithConn(func(conn redis.Conn) error {
-		_, err = conn.Do("HSET", offlineGrantListKey(grant.AppID, grant.Attrs.UserID), grant.ID, expiry)
+	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+		_, err = conn.HSet(ctx, offlineGrantListKey(grant.AppID, grant.Attrs.UserID), grant.ID, expiry).Result()
 		if err != nil {
 			return fmt.Errorf("failed to update session list: %w", err)
 		}
@@ -189,12 +190,13 @@ func (s *GrantStore) UpdateOfflineGrant(grant *oauth.OfflineGrant) error {
 }
 
 func (s *GrantStore) DeleteOfflineGrant(grant *oauth.OfflineGrant) error {
-	err := s.Redis.WithConn(func(conn redis.Conn) error {
+	ctx := context.Background()
+	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
 		err := s.del(conn, offlineGrantKey(grant.AppID, grant.ID))
 		if err != nil {
 			return err
 		}
-		_, err = conn.Do("HDEL", offlineGrantListKey(grant.AppID, grant.Attrs.UserID), grant.ID)
+		_, err = conn.HDel(ctx, offlineGrantListKey(grant.AppID, grant.Attrs.UserID), grant.ID).Result()
 		if err != nil {
 			// Ignore err
 			s.Logger.WithError(err).Error("failed to update session list")
@@ -210,11 +212,12 @@ func (s *GrantStore) DeleteOfflineGrant(grant *oauth.OfflineGrant) error {
 }
 
 func (s *GrantStore) ListOfflineGrants(userID string) ([]*oauth.OfflineGrant, error) {
+	ctx := context.Background()
 	listKey := offlineGrantListKey(string(s.AppID), userID)
 
 	var grants []*oauth.OfflineGrant
-	err := s.Redis.WithConn(func(conn redis.Conn) error {
-		sessionList, err := redigo.StringMap(conn.Do("HGETALL", listKey))
+	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+		sessionList, err := conn.HGetAll(ctx, listKey).Result()
 		if err != nil {
 			return err
 		}
@@ -223,7 +226,7 @@ func (s *GrantStore) ListOfflineGrants(userID string) ([]*oauth.OfflineGrant, er
 			grant := &oauth.OfflineGrant{}
 			err = s.load(conn, offlineGrantKey(string(s.AppID), id), grant)
 			if errors.Is(err, oauth.ErrGrantNotFound) {
-				_, err = conn.Do("HDEL", listKey, id)
+				_, err = conn.HDel(ctx, listKey, id).Result()
 				if err != nil {
 					s.Logger.WithError(err).Error("failed to update session list")
 				}
