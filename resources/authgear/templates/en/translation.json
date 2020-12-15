@@ -192,6 +192,7 @@
   "settings-identity-oauth-facebook": "Facebook",
   "settings-identity-oauth-linkedin": "LinkedIn",
   "settings-identity-oauth-azureadv2": "Azure AD",
+  "settings-identity-oauth-wechat": "WeChat",
   "settings-identity-login-id-email": "Email Address",
   "settings-identity-login-id-phone": "Phone Number",
   "settings-identity-login-id-username": "Username",
