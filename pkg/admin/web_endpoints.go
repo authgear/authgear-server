@@ -27,3 +27,13 @@ func (WebEndpoints) ResetPasswordURL(code string) *url.URL {
 func (WebEndpoints) SSOCallbackURL(providerConfig config.OAuthSSOProviderConfig) *url.URL {
 	panic("not implemented")
 }
+
+func (WebEndpoints) AuthorizeEndpointURL() *url.URL {
+	// WechatURLProvider
+	panic("not implemented")
+}
+
+func (WebEndpoints) CallbackEndpointURL() *url.URL {
+	// WechatURLProvider
+	panic("not implemented")
+}

@@ -54,6 +54,7 @@ type OAuthProviderFactory struct {
 	Clock                    clock.Clock
 	UserInfoDecoder          UserInfoDecoder
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
+	WechatURLProvider        WechatURLProvider
 }
 
 func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
@@ -107,9 +108,9 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 		}
 	case config.OAuthSSOProviderTypeWechat:
 		return &WechatImpl{
-			RedirectURL:    p.RedirectURL,
 			ProviderConfig: *providerConfig,
 			Credentials:    *credentials,
+			URLProvider:    p.WechatURLProvider,
 		}
 	}
 	return nil

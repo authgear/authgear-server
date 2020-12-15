@@ -64,6 +64,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(sso.RedirectURLProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(forgotpassword.URLProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(verification.WebAppURLProvider), new(*webapp.URLProvider)),
+	wire.Bind(new(sso.WechatURLProvider), new(*webapp.WechatURLProvider)),
 
 	middleware.DependencySet,
 
