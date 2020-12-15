@@ -96,6 +96,9 @@ From the user point of view, they do not perform any explicit authentication. Th
 - Anonymous user cannot have secondary authenticators
 - Anonymous user cannot access the settings page
 
+Anonymous users can be used only by first-party OAuth clients, since it allows
+the client access of user credentials.
+
 #### Anonymous Identity JWT
 
 The server verifies the validity of the key-pair by verify a JWT. A challenge is requested by the client on demand, it is one-time use and short-lived. The JWT is provided in the [login_hint](./oidc.md#login_hint).
