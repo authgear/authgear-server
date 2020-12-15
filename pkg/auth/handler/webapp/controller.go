@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	redigo "github.com/gomodule/redigo/redis"
+	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -114,8 +114,8 @@ type redisPool struct {
 	RedisHandle *redis.Handle
 }
 
-func (p *redisPool) Get() redigo.Conn {
-	return p.RedisHandle.Pool().Get()
+func (p *redisPool) Get() *goredis.Client {
+	return p.RedisHandle.Pool()
 }
 
 func (c *Controller) UpdateSession(s *webapp.Session) error {

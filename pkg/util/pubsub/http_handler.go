@@ -3,16 +3,17 @@ package pubsub
 import (
 	"context"
 	"net/http"
+	"os"
 	"time"
 
-	"github.com/gomodule/redigo/redis"
+	"github.com/go-redis/redis/v8"
 	"nhooyr.io/websocket"
 
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 type RedisPool interface {
-	Get() redis.Conn
+	Get() *redis.Client
 }
 
 type WebsocketOutgoingMessage struct {
@@ -27,7 +28,7 @@ type Delegate interface {
 const (
 	WebsocketReadTimeout  = 30 * time.Second
 	WebsocketWriteTimeout = 10 * time.Second
-	RedisReadTimeout      = 30 * time.Second
+	RedisReadTimeout      = 1 * time.Second
 )
 
 // HTTPHandler receives incoming websocket messages and delegates them to the delegate.
@@ -50,6 +51,7 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		doneChan <- struct{}{}
 		doneChan <- struct{}{}
 		cancel()
+		logger.Info("canceled root context")
 	}()
 
 	wsConn, err := websocket.Accept(w, r, &websocket.AcceptOptions{})
@@ -70,44 +72,44 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger = logger.WithField("channel", channelName)
 
 	go func() {
-		redisConn := h.RedisPool.Get()
-		psc := redis.PubSubConn{Conn: redisConn}
+		redisClient := h.RedisPool.Get()
+		psc := redisClient.Subscribe(rootCtx, channelName)
+
 		defer func() {
 			psc.Close()
 			logger.Info("redis goroutine is tearing down")
 		}()
-
-		err := psc.Subscribe(channelName)
-		if err != nil {
-			errChan <- err
-			return
-		}
 
 		for {
 			select {
 			case <-doneChan:
 				return
 			default:
-				// Once ReceiveWithTimeout results in error once.
-				// The next call to ReceiveWithTimeout immediately fails with closed connection :(
-				// Therefore we have to make RedisReadTimeout the same as WebsocketReadTimeout.
-				// The redis connection will have a delay of RedisReadTimeout before closing.
-				switch n := psc.ReceiveWithTimeout(RedisReadTimeout).(type) {
-				case error:
-					errChan <- n
+				// Even though ReceiveTimeout takes context,
+				// cancelling the context does not immediately make ReceiveTimeout return error.
+				// Therefore, we have to use a small enough timeout to ensure pubsub is closed within a reasonble delay.
+				iface, err := psc.ReceiveTimeout(rootCtx, RedisReadTimeout)
+				if os.IsTimeout(err) {
+					continue
+				}
+				if err != nil {
+					errChan <- err
 					return
-				case redis.Message:
+				}
+
+				switch n := iface.(type) {
+				case *redis.Message:
 					writeCtx, cancel := context.WithTimeout(rootCtx, WebsocketWriteTimeout)
 					defer cancel()
-					err := wsConn.Write(writeCtx, websocket.MessageText, n.Data)
+					err := wsConn.Write(writeCtx, websocket.MessageText, []byte(n.Payload))
 					if err != nil {
 						errChan <- err
 						return
 					}
-				case redis.Subscription:
+				case *redis.Subscription:
 					// Nothing special to do.
 					break
-				case redis.Pong:
+				case *redis.Pong:
 					// Nothing special to do.
 					break
 				}

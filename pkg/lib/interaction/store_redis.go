@@ -1,16 +1,15 @@
 package interaction
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
 
-	goredis "github.com/gomodule/redigo/redis"
+	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 type StoreRedis struct {
@@ -19,32 +18,39 @@ type StoreRedis struct {
 }
 
 func (s *StoreRedis) CreateGraph(graph *Graph) error {
-	return s.create(graph, "NX")
+	return s.create(graph, true)
 }
 
 func (s *StoreRedis) CreateGraphInstance(graph *Graph) error {
-	return s.create(graph, "XX")
+	return s.create(graph, false)
 }
 
-func (s *StoreRedis) create(graph *Graph, graphSetMode string) error {
+func (s *StoreRedis) create(graph *Graph, ifNotExists bool) error {
+	ctx := context.Background()
 	bytes, err := json.Marshal(graph)
 	if err != nil {
 		return err
 	}
 
-	return s.Redis.WithConn(func(conn redis.Conn) error {
+	return s.Redis.WithConn(func(conn *goredis.Conn) error {
 		graphKey := redisGraphKey(s.AppID, graph.GraphID)
 		instanceKey := redisInstanceKey(s.AppID, graph.InstanceID)
-		ttl := toMilliseconds(GraphLifetime)
-		_, err := goredis.String(conn.Do("SET", graphKey, []byte(graphKey), "PX", ttl, graphSetMode))
-		if errorutil.Is(err, goredis.ErrNil) {
+		ttl := GraphLifetime
+
+		var err error
+		if ifNotExists {
+			_, err = conn.SetNX(ctx, graphKey, []byte(graphKey), ttl).Result()
+		} else {
+			_, err = conn.SetXX(ctx, graphKey, []byte(graphKey), ttl).Result()
+		}
+		if errors.Is(err, goredis.Nil) {
 			return ErrGraphNotFound
 		} else if err != nil {
 			return err
 		}
 
-		_, err = goredis.String(conn.Do("SET", instanceKey, bytes, "PX", ttl, "NX"))
-		if errorutil.Is(err, goredis.ErrNil) {
+		_, err = conn.SetNX(ctx, instanceKey, bytes, ttl).Result()
+		if errors.Is(err, goredis.Nil) {
 			return errors.New("failed to create interaction graph instance")
 		} else if err != nil {
 			return err
@@ -55,11 +61,12 @@ func (s *StoreRedis) create(graph *Graph, graphSetMode string) error {
 }
 
 func (s *StoreRedis) GetGraphInstance(instanceID string) (*Graph, error) {
+	ctx := context.Background()
 	instanceKey := redisInstanceKey(s.AppID, instanceID)
 	var graph Graph
-	err := s.Redis.WithConn(func(conn redis.Conn) error {
-		data, err := goredis.Bytes(conn.Do("GET", instanceKey))
-		if errorutil.Is(err, goredis.ErrNil) {
+	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+		data, err := conn.Get(ctx, instanceKey).Bytes()
+		if errors.Is(err, goredis.Nil) {
 			return ErrGraphNotFound
 		} else if err != nil {
 			return err
@@ -71,8 +78,8 @@ func (s *StoreRedis) GetGraphInstance(instanceID string) (*Graph, error) {
 		}
 
 		graphKey := redisGraphKey(s.AppID, graph.GraphID)
-		_, err = goredis.String(conn.Do("GET", graphKey))
-		if errorutil.Is(err, goredis.ErrNil) {
+		_, err = conn.Get(ctx, graphKey).Result()
+		if errors.Is(err, goredis.Nil) {
 			return ErrGraphNotFound
 		} else if err != nil {
 			return err
@@ -84,18 +91,15 @@ func (s *StoreRedis) GetGraphInstance(instanceID string) (*Graph, error) {
 }
 
 func (s *StoreRedis) DeleteGraph(graph *Graph) error {
-	return s.Redis.WithConn(func(conn redis.Conn) error {
+	ctx := context.Background()
+	return s.Redis.WithConn(func(conn *goredis.Conn) error {
 		graphKey := redisGraphKey(s.AppID, graph.GraphID)
-		_, err := conn.Do("DEL", graphKey)
+		_, err := conn.Del(ctx, graphKey).Result()
 		if err != nil {
 			return err
 		}
 		return err
 	})
-}
-
-func toMilliseconds(d time.Duration) int64 {
-	return int64(d / time.Millisecond)
 }
 
 func redisGraphKey(appID config.AppID, graphID string) string {

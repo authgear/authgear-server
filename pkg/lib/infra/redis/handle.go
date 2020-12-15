@@ -1,13 +1,13 @@
 package redis
 
 import (
-	redigo "github.com/gomodule/redigo/redis"
+	"context"
+
+	"github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
-
-type Conn = redigo.Conn
 
 type Handle struct {
 	pool        *Pool
@@ -25,7 +25,7 @@ func NewHandle(pool *Pool, cfg *config.RedisConfig, credentials *config.RedisCre
 	}
 }
 
-func (h *Handle) WithConn(f func(conn Conn) error) error {
+func (h *Handle) WithConn(f func(conn *redis.Conn) error) error {
 	h.logger.WithFields(map[string]interface{}{
 		"max_open_connection":             *h.cfg.MaxOpenConnection,
 		"max_idle_connection":             *h.cfg.MaxIdleConnection,
@@ -33,7 +33,8 @@ func (h *Handle) WithConn(f func(conn Conn) error) error {
 		"max_connection_lifetime_seconds": *h.cfg.MaxConnectionLifetime,
 	}).Debug("open redis connection")
 
-	conn := h.Pool().Get()
+	ctx := context.Background()
+	conn := h.Pool().Conn(ctx)
 	defer func() {
 		err := conn.Close()
 		if err != nil {
@@ -44,6 +45,6 @@ func (h *Handle) WithConn(f func(conn Conn) error) error {
 	return f(conn)
 }
 
-func (h *Handle) Pool() *redigo.Pool {
+func (h *Handle) Pool() *redis.Client {
 	return h.pool.Open(h.cfg, h.credentials)
 }

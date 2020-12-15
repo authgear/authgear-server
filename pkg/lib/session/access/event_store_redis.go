@@ -1,8 +1,11 @@
 package access
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+
+	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
@@ -24,14 +27,20 @@ func (s *EventStoreRedis) AppendEvent(sessionID string, event *Event) error {
 	}
 
 	streamKey := accessEventStreamKey(s.AppID, sessionID)
-	args := []interface{}{streamKey}
-	if maxEventStreamLength >= 0 {
-		args = append(args, "MAXLEN", "~", maxEventStreamLength)
+	args := &goredis.XAddArgs{
+		Stream: streamKey,
+		ID:     "*",
+		Values: map[string]interface{}{
+			eventTypeAccessEvent: data,
+		},
 	}
-	args = append(args, "*", eventTypeAccessEvent, data)
+	if maxEventStreamLength >= 0 {
+		args.MaxLenApprox = maxEventStreamLength
+	}
 
-	return s.Redis.WithConn(func(conn redis.Conn) error {
-		_, err = conn.Do("XADD", args...)
+	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+		ctx := context.Background()
+		_, err = conn.XAdd(ctx, args).Result()
 		if err != nil {
 			return err
 		}
@@ -42,8 +51,9 @@ func (s *EventStoreRedis) AppendEvent(sessionID string, event *Event) error {
 func (s *EventStoreRedis) ResetEventStream(sessionID string) error {
 	streamKey := accessEventStreamKey(s.AppID, sessionID)
 
-	return s.Redis.WithConn(func(conn redis.Conn) error {
-		_, err := conn.Do("DEL", streamKey)
+	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+		ctx := context.Background()
+		_, err := conn.Del(ctx, streamKey).Result()
 		if err != nil {
 			return err
 		}

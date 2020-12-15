@@ -2,9 +2,8 @@ package redis
 
 import (
 	"sync"
-	"time"
 
-	"github.com/gomodule/redigo/redis"
+	"github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -13,16 +12,16 @@ type Pool struct {
 	closed     bool
 	closeMutex sync.RWMutex
 
-	cache      map[string]*redis.Pool
+	cache      map[string]*redis.Client
 	cacheMutex sync.RWMutex
 }
 
 func NewPool() *Pool {
-	p := &Pool{cache: map[string]*redis.Pool{}}
+	p := &Pool{cache: map[string]*redis.Client{}}
 	return p
 }
 
-func (p *Pool) Open(cfg *config.RedisConfig, credentials *config.RedisCredentials) *redis.Pool {
+func (p *Pool) Open(cfg *config.RedisConfig, credentials *config.RedisCredentials) *redis.Client {
 	p.closeMutex.RLock()
 	defer func() { p.closeMutex.RUnlock() }()
 	if p.closed {
@@ -62,35 +61,14 @@ func (p *Pool) Close() (err error) {
 	return
 }
 
-func (p *Pool) openRedis(cfg *config.RedisConfig, credentials *config.RedisCredentials) *redis.Pool {
-	dialFunc := func() (conn redis.Conn, err error) {
-		conn, err = redis.DialURL(credentials.RedisURL)
-		return
+func (p *Pool) openRedis(cfg *config.RedisConfig, credentials *config.RedisCredentials) *redis.Client {
+	opts, err := redis.ParseURL(credentials.RedisURL)
+	if err != nil {
+		panic(err)
 	}
-	testOnBorrowFunc := func(conn redis.Conn, t time.Time) (err error) {
-		_, err = conn.Do("PING")
-		return
-	}
-
-	return p.newPool(
-		cfg,
-		dialFunc,
-		testOnBorrowFunc,
-	)
-}
-
-func (p *Pool) newPool(
-	cfg *config.RedisConfig,
-	dialFunc func() (conn redis.Conn, err error),
-	testOnBorrowFunc func(conn redis.Conn, t time.Time) error,
-) *redis.Pool {
-	return &redis.Pool{
-		MaxActive:       *cfg.MaxOpenConnection,
-		MaxIdle:         *cfg.MaxIdleConnection,
-		IdleTimeout:     cfg.IdleConnectionTimeout.Duration(),
-		MaxConnLifetime: cfg.MaxConnectionLifetime.Duration(),
-		Wait:            true,
-		Dial:            dialFunc,
-		TestOnBorrow:    testOnBorrowFunc,
-	}
+	// FIXME(redis): MaxIdleConnection is not supported.
+	opts.PoolSize = *cfg.MaxOpenConnection
+	opts.IdleTimeout = cfg.IdleConnectionTimeout.Duration()
+	opts.MaxConnAge = cfg.MaxConnectionLifetime.Duration()
+	return redis.NewClient(opts)
 }

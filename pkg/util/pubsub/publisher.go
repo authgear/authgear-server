@@ -1,12 +1,16 @@
 package pubsub
 
+import (
+	"context"
+)
+
 type Publisher struct {
 	RedisPool RedisPool
 }
 
 func (p *Publisher) Publish(channelName string, data []byte) error {
-	redisConn := p.RedisPool.Get()
-	defer redisConn.Close()
-	_, err := redisConn.Do("PUBLISH", channelName, data)
-	return err
+	ctx := context.Background()
+	redisClient := p.RedisPool.Get()
+	cmd := redisClient.Publish(ctx, channelName, string(data))
+	return cmd.Err()
 }
