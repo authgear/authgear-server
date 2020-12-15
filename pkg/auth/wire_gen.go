@@ -528,13 +528,19 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	authenticateURLProvider := &webapp.AuthenticateURLProvider{
-		Endpoints: endpointsProvider,
-		Pages:     webappService2,
+		Endpoints:     endpointsProvider,
+		Pages:         webappService2,
+		SessionCookie: idpsessionCookieDef,
+		CookieFactory: cookieFactory,
 	}
 	scopesValidator := _wireScopesValidatorValue
 	tokenGenerator := _wireTokenGeneratorValue
 	loginHintResolver := &handler.LoginHintResolver{
-		Anonymous: anonymousProvider,
+		Anonymous:        anonymousProvider,
+		OfflineGrants:    store,
+		AppSessionTokens: store,
+		AppSessions:      store,
+		Clock:            clock,
 	}
 	authorizationHandler := &handler.AuthorizationHandler{
 		Context:         context,

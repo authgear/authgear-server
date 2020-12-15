@@ -3,6 +3,7 @@ package webapp
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"net/url"
 	"path"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
+	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
@@ -65,6 +67,10 @@ type AnonymousRequest struct {
 	Request *anonymous.Request
 }
 
+type RawSessionCookieRequest struct {
+	Value string
+}
+
 type AuthenticateURLOptions struct {
 	ClientID         string
 	RedirectURI      string
@@ -82,8 +88,10 @@ type anonymousTokenInput struct{ JWT string }
 func (i *anonymousTokenInput) GetAnonymousRequestToken() string { return i.JWT }
 
 type AuthenticateURLProvider struct {
-	Endpoints EndpointsProvider
-	Pages     PageService
+	Endpoints     EndpointsProvider
+	Pages         PageService
+	SessionCookie idpsession.CookieDef
+	CookieFactory CookieFactory
 }
 
 func (p *AuthenticateURLProvider) AuthenticateURL(options AuthenticateURLOptions) (httputil.Result, error) {
@@ -124,6 +132,13 @@ func (p *AuthenticateURLProvider) handleHint(
 		default:
 			return nil, errors.New("unknown anonymous request action")
 		}
+
+	case RawSessionCookieRequest:
+		cookie := p.CookieFactory.ValueCookie(p.SessionCookie.Def, hint.Value)
+		return &Result{
+			Cookies:     []*http.Cookie{cookie},
+			RedirectURI: options.RedirectURI,
+		}, nil
 
 	default:
 		return nil, fmt.Errorf("unsupported authenticate hint type: %T", options.AuthenticateHint)
