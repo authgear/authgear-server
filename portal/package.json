@@ -48,7 +48,7 @@
     "deep-equal": "2.0.5",
     "history": "5.0.0",
     "i18n-iso-countries": "6.3.0",
-    "immer": "7.0.9",
+    "immer": "8.0.0",
     "js-yaml": "3.14.1",
     "luxon": "1.25.0",
     "react": "17.0.1",
