@@ -446,7 +446,7 @@ When the native app wants to copy the user session from app to web user agent,
 the native app may use the refresh token in the session token endpoint to
 obtain a one-time-use app session token:
 ```
-POST /oauth2/session-token HTTP/1.1
+POST /oauth2/app-session-token HTTP/1.1
 Host: accounts.example.com
 Content-Type: application/json
 
@@ -456,7 +456,7 @@ Content-Type: application/json
 HTTP/1.1 200 OK
 Content-Type: application/json
 
-{"result":{"session_token":"<session token>"}}
+{"result":{"app_session_token":"<app session token>"}}
 ```
 
 A one-time-use app session token would be returned, and the native app may
@@ -464,7 +464,7 @@ then use it in OAuth authorization flow to open authenticated page in web user
 agent:
 ```
 GET /oauth2/authorize?client_id=client_id&prompt=none&response_type=none
-    &login_hint=https%3A%2F%2Fauthgear.com%2Flogin_hint%3Ftype%3Dsession_token%26session_token%3D<session token>
+    &login_hint=https%3A%2F%2Fauthgear.com%2Flogin_hint%3Ftype%3Dapp_session_token%26app_session_token%3D<app session token>
     &redirect_uri=<redirect URI> HTTP/1.1
 Host: accounts.example.com
 
