@@ -64,6 +64,7 @@ type TokenHandler struct {
 	CodeGrants        oauth.CodeGrantStore
 	OfflineGrants     oauth.OfflineGrantStore
 	AccessGrants      oauth.AccessGrantStore
+	AppSessionTokens  oauth.AppSessionTokenStore
 	AccessEvents      *access.EventProvider
 	Sessions          SessionProvider
 	Graphs            GraphService
@@ -220,46 +221,45 @@ func (h *TokenHandler) handleAuthorizationCode(
 
 var errInvalidRefreshToken = protocol.NewError("invalid_grant", "invalid refresh token")
 
-func (h *TokenHandler) handleRefreshToken(
-	client *config.OAuthClientConfig,
-	r protocol.TokenRequest,
-) (protocol.TokenResponse, error) {
-	token, grantID, err := oauth.DecodeRefreshToken(r.RefreshToken())
+func (h *TokenHandler) parseRefreshToken(token string) (*oauth.Authorization, *oauth.OfflineGrant, error) {
+	token, grantID, err := oauth.DecodeRefreshToken(token)
 	if err != nil {
-		return nil, errInvalidRefreshToken
+		return nil, nil, errInvalidRefreshToken
 	}
 
 	offlineGrant, err := h.OfflineGrants.GetOfflineGrant(grantID)
 	if errors.Is(err, oauth.ErrGrantNotFound) {
-		return nil, errInvalidRefreshToken
+		return nil, nil, errInvalidRefreshToken
 	} else if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if h.Clock.NowUTC().After(offlineGrant.ExpireAt) {
-		return nil, errInvalidRefreshToken
+		return nil, nil, errInvalidRefreshToken
 	}
 
 	tokenHash := oauth.HashToken(token)
 	if subtle.ConstantTimeCompare([]byte(tokenHash), []byte(offlineGrant.TokenHash)) != 1 {
-		return nil, errInvalidRefreshToken
+		return nil, nil, errInvalidRefreshToken
 	}
 
 	authz, err := h.Authorizations.GetByID(offlineGrant.AuthorizationID)
 	if errors.Is(err, oauth.ErrAuthorizationNotFound) {
-		return nil, errInvalidRefreshToken
+		return nil, nil, errInvalidRefreshToken
 	} else if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	// Check if the user has been disabled.
-	u, err := h.Users.GetRaw(offlineGrant.Attrs.UserID)
+	return authz, offlineGrant, nil
+}
+
+func (h *TokenHandler) handleRefreshToken(
+	client *config.OAuthClientConfig,
+	r protocol.TokenRequest,
+) (protocol.TokenResponse, error) {
+	authz, offlineGrant, err := h.parseRefreshToken(r.RefreshToken())
 	if err != nil {
 		return nil, err
-	}
-	err = u.CheckStatus()
-	if err != nil {
-		return nil, errInvalidRefreshToken
 	}
 
 	resp, err := h.issueTokensForRefreshToken(client, offlineGrant, authz)

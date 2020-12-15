@@ -77,6 +77,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handleroauth.JWSSource), new(*oidc.IDTokenIssuer)),
 	wire.Bind(new(handleroauth.ChallengeProvider), new(*challenge.Provider)),
 	wire.Bind(new(handleroauth.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
+	wire.Bind(new(handleroauth.AppSessionTokenIssuer), new(*oauthhandler.TokenHandler)),
 	ProvideOAuthMetadataProviders,
 
 	viewmodelswebapp.DependencySet,

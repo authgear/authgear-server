@@ -21,10 +21,10 @@ import (
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger {
-	return Logger{lf.New("oauth-grant-store")}
+	return Logger{lf.New("oauth-store")}
 }
 
-type GrantStore struct {
+type Store struct {
 	Redis       *redis.Handle
 	AppID       config.AppID
 	Logger      Logger
@@ -33,7 +33,7 @@ type GrantStore struct {
 	Clock       clock.Clock
 }
 
-func (s *GrantStore) load(conn *goredis.Conn, key string, ptr interface{}) error {
+func (s *Store) load(conn *goredis.Conn, key string, ptr interface{}) error {
 	ctx := context.Background()
 	data, err := conn.Get(ctx, key).Bytes()
 	if errors.Is(err, goredis.Nil) {
@@ -44,7 +44,7 @@ func (s *GrantStore) load(conn *goredis.Conn, key string, ptr interface{}) error
 	return json.Unmarshal(data, &ptr)
 }
 
-func (s *GrantStore) save(conn *goredis.Conn, key string, value interface{}, expireAt time.Time, ifNotExists bool) error {
+func (s *Store) save(conn *goredis.Conn, key string, value interface{}, expireAt time.Time, ifNotExists bool) error {
 	ctx := context.Background()
 	data, err := json.Marshal(value)
 	if err != nil {
@@ -69,13 +69,13 @@ func (s *GrantStore) save(conn *goredis.Conn, key string, value interface{}, exp
 	return nil
 }
 
-func (s *GrantStore) del(conn *goredis.Conn, key string) error {
+func (s *Store) del(conn *goredis.Conn, key string) error {
 	ctx := context.Background()
 	_, err := conn.Del(ctx, key).Result()
 	return err
 }
 
-func (s *GrantStore) GetCodeGrant(codeHash string) (*oauth.CodeGrant, error) {
+func (s *Store) GetCodeGrant(codeHash string) (*oauth.CodeGrant, error) {
 	g := &oauth.CodeGrant{}
 
 	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
@@ -88,19 +88,19 @@ func (s *GrantStore) GetCodeGrant(codeHash string) (*oauth.CodeGrant, error) {
 	return g, nil
 }
 
-func (s *GrantStore) CreateCodeGrant(grant *oauth.CodeGrant) error {
+func (s *Store) CreateCodeGrant(grant *oauth.CodeGrant) error {
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
 		return s.save(conn, codeGrantKey(grant.AppID, grant.CodeHash), grant, grant.ExpireAt, true)
 	})
 }
 
-func (s *GrantStore) DeleteCodeGrant(grant *oauth.CodeGrant) error {
+func (s *Store) DeleteCodeGrant(grant *oauth.CodeGrant) error {
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
 		return s.del(conn, codeGrantKey(grant.AppID, grant.CodeHash))
 	})
 }
 
-func (s *GrantStore) GetAccessGrant(tokenHash string) (*oauth.AccessGrant, error) {
+func (s *Store) GetAccessGrant(tokenHash string) (*oauth.AccessGrant, error) {
 	g := &oauth.AccessGrant{}
 	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
 		return s.load(conn, accessGrantKey(string(s.AppID), tokenHash), g)
@@ -112,19 +112,19 @@ func (s *GrantStore) GetAccessGrant(tokenHash string) (*oauth.AccessGrant, error
 	return g, nil
 }
 
-func (s *GrantStore) CreateAccessGrant(grant *oauth.AccessGrant) error {
+func (s *Store) CreateAccessGrant(grant *oauth.AccessGrant) error {
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
 		return s.save(conn, accessGrantKey(grant.AppID, grant.TokenHash), grant, grant.ExpireAt, true)
 	})
 }
 
-func (s *GrantStore) DeleteAccessGrant(grant *oauth.AccessGrant) error {
+func (s *Store) DeleteAccessGrant(grant *oauth.AccessGrant) error {
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
 		return s.del(conn, accessGrantKey(grant.AppID, grant.TokenHash))
 	})
 }
 
-func (s *GrantStore) GetOfflineGrant(id string) (*oauth.OfflineGrant, error) {
+func (s *Store) GetOfflineGrant(id string) (*oauth.OfflineGrant, error) {
 	g := &oauth.OfflineGrant{}
 	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
 		return s.load(conn, offlineGrantKey(string(s.AppID), id), g)
@@ -135,7 +135,7 @@ func (s *GrantStore) GetOfflineGrant(id string) (*oauth.OfflineGrant, error) {
 	return g, nil
 }
 
-func (s *GrantStore) CreateOfflineGrant(grant *oauth.OfflineGrant) error {
+func (s *Store) CreateOfflineGrant(grant *oauth.OfflineGrant) error {
 	ctx := context.Background()
 	expiry, err := grant.ExpireAt.MarshalText()
 	if err != nil {
@@ -162,7 +162,7 @@ func (s *GrantStore) CreateOfflineGrant(grant *oauth.OfflineGrant) error {
 	return nil
 }
 
-func (s *GrantStore) UpdateOfflineGrant(grant *oauth.OfflineGrant) error {
+func (s *Store) UpdateOfflineGrant(grant *oauth.OfflineGrant) error {
 	ctx := context.Background()
 	expiry, err := grant.ExpireAt.MarshalText()
 	if err != nil {
@@ -189,7 +189,7 @@ func (s *GrantStore) UpdateOfflineGrant(grant *oauth.OfflineGrant) error {
 	return nil
 }
 
-func (s *GrantStore) DeleteOfflineGrant(grant *oauth.OfflineGrant) error {
+func (s *Store) DeleteOfflineGrant(grant *oauth.OfflineGrant) error {
 	ctx := context.Background()
 	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
 		err := s.del(conn, offlineGrantKey(grant.AppID, grant.ID))
@@ -211,7 +211,7 @@ func (s *GrantStore) DeleteOfflineGrant(grant *oauth.OfflineGrant) error {
 	return nil
 }
 
-func (s *GrantStore) ListOfflineGrants(userID string) ([]*oauth.OfflineGrant, error) {
+func (s *Store) ListOfflineGrants(userID string) ([]*oauth.OfflineGrant, error) {
 	ctx := context.Background()
 	listKey := offlineGrantListKey(string(s.AppID), userID)
 
@@ -247,4 +247,54 @@ func (s *GrantStore) ListOfflineGrants(userID string) ([]*oauth.OfflineGrant, er
 		return grants[i].ID < grants[j].ID
 	})
 	return grants, nil
+}
+
+func (s *Store) GetAppSessionToken(tokenHash string) (*oauth.AppSessionToken, error) {
+	t := &oauth.AppSessionToken{}
+
+	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+		return s.load(conn, appSessionTokenKey(string(s.AppID), tokenHash), t)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return t, nil
+}
+
+func (s *Store) CreateAppSessionToken(token *oauth.AppSessionToken) error {
+	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+		return s.save(conn, appSessionTokenKey(token.AppID, token.TokenHash), token, token.ExpireAt, true)
+	})
+}
+
+func (s *Store) DeleteAppSessionToken(token *oauth.AppSessionToken) error {
+	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+		return s.del(conn, appSessionTokenKey(token.AppID, token.TokenHash))
+	})
+}
+
+func (s *Store) GetAppSession(tokenHash string) (*oauth.AppSession, error) {
+	t := &oauth.AppSession{}
+
+	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+		return s.load(conn, appSessionKey(string(s.AppID), tokenHash), t)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return t, nil
+}
+
+func (s *Store) CreateAppSession(session *oauth.AppSession) error {
+	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+		return s.save(conn, appSessionKey(session.AppID, session.TokenHash), session, session.ExpireAt, true)
+	})
+}
+
+func (s *Store) DeleteAppSession(session *oauth.AppSession) error {
+	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+		return s.del(conn, appSessionKey(session.AppID, session.TokenHash))
+	})
 }

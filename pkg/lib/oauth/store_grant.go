@@ -20,3 +20,15 @@ type AccessGrantStore interface {
 	CreateAccessGrant(*AccessGrant) error
 	DeleteAccessGrant(*AccessGrant) error
 }
+
+type AppSessionStore interface {
+	GetAppSession(tokenHash string) (*AppSession, error)
+	CreateAppSession(*AppSession) error
+	DeleteAppSession(*AppSession) error
+}
+
+type AppSessionTokenStore interface {
+	GetAppSessionToken(tokenHash string) (*AppSessionToken, error)
+	CreateAppSessionToken(*AppSessionToken) error
+	DeleteAppSessionToken(*AppSessionToken) error
+}

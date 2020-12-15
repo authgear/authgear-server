@@ -366,7 +366,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef:     cookieDef,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -375,7 +375,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{

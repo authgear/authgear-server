@@ -139,7 +139,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: sqlExecutor,
 	}
 	logger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	store := &redis.Store{
 		Redis:       handle,
 		AppID:       appID,
 		Logger:      logger,
@@ -151,7 +151,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	endpointsProvider := &EndpointsProvider{
 		HTTP: httpConfig,
 	}
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -355,7 +355,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		TaskQueue:            queue,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -367,7 +367,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		CookieDef:     cookieDef,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: store,
 		Clock: clock,
 	}
 	coordinator := &facade.Coordinator{
@@ -386,7 +386,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Coordinator: coordinator,
 	}
 	queries := &user.Queries{
-		Store:        store,
+		Store:        userStore,
 		Identities:   identityFacade,
 		Verification: verificationService,
 	}
@@ -405,8 +405,8 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	oauthResolver := &oauth2.Resolver{
 		TrustProxy:         trustProxy,
 		Authorizations:     authorizationStore,
-		AccessGrants:       grantStore,
-		OfflineGrants:      grantStore,
+		AccessGrants:       store,
+		OfflineGrants:      store,
 		AccessTokenDecoder: accessTokenEncoding,
 		Sessions:           provider,
 		Clock:              clock,
