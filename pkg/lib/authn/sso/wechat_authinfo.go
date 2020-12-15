@@ -12,6 +12,7 @@ import (
 )
 
 const (
+	// nolint: gosec
 	wechatAccessTokenURL = "https://api.weixin.qq.com/sns/oauth2/access_token"
 	wechatUserInfoURL    = "https://api.weixin.qq.com/sns/userinfo"
 )

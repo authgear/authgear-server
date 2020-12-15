@@ -96,8 +96,7 @@ func (h *WechatAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
 
 				data := InputOAuthCallback{
-					// TODO: support different alias
-					ProviderAlias:    "wechat",
+					ProviderAlias:    step.FormData["x_alias"].(string),
 					NonceSource:      nonceSource,
 					Code:             step.FormData["x_code"].(string),
 					Scope:            step.FormData["x_scope"].(string),
