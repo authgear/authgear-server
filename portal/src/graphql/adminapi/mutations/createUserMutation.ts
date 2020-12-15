@@ -33,9 +33,10 @@ export function useCreateUserMutation(): {
   loading: boolean;
   error: unknown;
 } {
-  const [mutationFunction, { error, loading }] = useMutation<
-    CreateUserMutation
-  >(createUserMutation);
+  const [
+    mutationFunction,
+    { error, loading },
+  ] = useMutation<CreateUserMutation>(createUserMutation);
   const createUser = useCallback(
     async (identity: LoginIDIdentity, password?: string) => {
       const result = await mutationFunction({

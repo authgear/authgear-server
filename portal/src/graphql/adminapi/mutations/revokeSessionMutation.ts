@@ -24,9 +24,10 @@ export function useRevokeSessionMutation(): {
   loading: boolean;
   error: unknown;
 } {
-  const [mutationFunction, { error, loading }] = useMutation<
-    RevokeSessionMutation
-  >(revokeSessionMutation);
+  const [
+    mutationFunction,
+    { error, loading },
+  ] = useMutation<RevokeSessionMutation>(revokeSessionMutation);
 
   const revokeSession = useCallback(
     async (sessionID: string) => {

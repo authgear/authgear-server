@@ -327,9 +327,10 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> = function
     deleteDomainDialogVisible,
     setConfirmDeleteDomainDialogVisible,
   ] = useState(false);
-  const [deleteDomainDialogData, setDeleteDomainDialogData] = useState<
-    DeleteDomainDialogData
-  >({ domainID: "", domain: "" });
+  const [
+    deleteDomainDialogData,
+    setDeleteDomainDialogData,
+  ] = useState<DeleteDomainDialogData>({ domainID: "", domain: "" });
 
   const domainListColumns: IColumn[] = useMemo(() => {
     return makeDomainListColumn(renderToString);

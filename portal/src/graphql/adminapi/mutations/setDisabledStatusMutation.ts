@@ -20,9 +20,10 @@ export function useSetDisabledStatusMutation(
   loading: boolean;
   error: unknown;
 } {
-  const [mutationFunction, { loading, error }] = useMutation<
-    SetDisabledStatusMutation
-  >(setDisabledStatusMutation);
+  const [
+    mutationFunction,
+    { loading, error },
+  ] = useMutation<SetDisabledStatusMutation>(setDisabledStatusMutation);
 
   const setDisabledStatus = useCallback(
     async (isDisabled: boolean) => {

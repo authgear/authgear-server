@@ -47,9 +47,10 @@ export function useSetVerifiedStatusMutation(
   loading: boolean;
   error: unknown;
 } {
-  const [mutationFunction, { loading, error }] = useMutation<
-    SetVerifiedStatusMutation
-  >(setVerifiedStatusMutation);
+  const [
+    mutationFunction,
+    { loading, error },
+  ] = useMutation<SetVerifiedStatusMutation>(setVerifiedStatusMutation);
 
   const setVerifiedStatus = useCallback(
     async (claimName: string, claimValue: string, isVerified: boolean) => {

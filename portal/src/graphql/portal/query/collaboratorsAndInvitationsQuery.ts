@@ -56,14 +56,20 @@ interface CollaboratorsAndInvitationsQueryResult
 export function useCollaboratorsAndInvitationsQuery(
   appID: string
 ): CollaboratorsAndInvitationsQueryResult {
-  const { data, loading, error, refetch } = useQuery<
-    CollaboratorsAndInvitationsQuery
-  >(collaboratorsAndInvitationsQuery, {
-    client,
-    variables: {
-      appID,
-    },
-  });
+  const {
+    data,
+    loading,
+    error,
+    refetch,
+  } = useQuery<CollaboratorsAndInvitationsQuery>(
+    collaboratorsAndInvitationsQuery,
+    {
+      client,
+      variables: {
+        appID,
+      },
+    }
+  );
 
   const { collaborators, collaboratorInvitations } = useMemo(() => {
     const appNode = data?.node?.__typename === "App" ? data.node : null;

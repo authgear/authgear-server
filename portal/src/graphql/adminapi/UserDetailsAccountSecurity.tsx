@@ -190,10 +190,9 @@ function getOobOtpVerificationMethod(
   }
 }
 
-const oobOtpVerificationMethodIconName: Partial<Record<
-  OOBOTPVerificationMethod,
-  string
->> = {
+const oobOtpVerificationMethodIconName: Partial<
+  Record<OOBOTPVerificationMethod, string>
+> = {
   email: "Mail",
   phone: "CellPhone",
 };

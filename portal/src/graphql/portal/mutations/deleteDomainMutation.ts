@@ -32,9 +32,10 @@ export function useDeleteDomainMutation(
   loading: boolean;
   error: unknown;
 } {
-  const [mutationFunction, { error, loading }] = useMutation<
-    DeleteDomainMutation
-  >(deleteDomainMutation, {
+  const [
+    mutationFunction,
+    { error, loading },
+  ] = useMutation<DeleteDomainMutation>(deleteDomainMutation, {
     client,
   });
 

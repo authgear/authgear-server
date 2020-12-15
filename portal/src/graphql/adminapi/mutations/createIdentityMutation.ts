@@ -61,9 +61,10 @@ export function useCreateLoginIDIdentityMutation(
   loading: boolean;
   error: unknown;
 } {
-  const [mutationFunction, { error, loading }] = useMutation<
-    CreateIdentityMutation
-  >(createIdentityMutation);
+  const [
+    mutationFunction,
+    { error, loading },
+  ] = useMutation<CreateIdentityMutation>(createIdentityMutation);
 
   const createIdentity = useCallback(
     async (loginIDIdentity: IdentityDefinitionLoginID, password?: string) => {
