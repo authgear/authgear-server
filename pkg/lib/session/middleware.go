@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 var ErrInvalidSession = errors.New("provided session is invalid")
@@ -19,6 +20,8 @@ type IDPSessionResolver Resolver
 type AccessTokenSessionResolver Resolver
 
 type Middleware struct {
+	SessionCookie              CookieDef
+	CookieFactory              CookieFactory
 	IDPSessionResolver         IDPSessionResolver
 	AccessTokenSessionResolver AccessTokenSessionResolver
 	AccessEvents               *access.EventProvider
@@ -31,6 +34,12 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 		s, err := m.resolve(rw, r)
 
 		if errors.Is(err, ErrInvalidSession) {
+			// Clear invalid session cookie if exist
+			if _, err := r.Cookie(m.SessionCookie.Def.Name); err == nil {
+				cookie := m.CookieFactory.ClearCookie(m.SessionCookie.Def)
+				httputil.UpdateCookie(rw, cookie)
+			}
+
 			r = r.WithContext(WithInvalidSession(r.Context()))
 		} else if err != nil {
 			panic(err)

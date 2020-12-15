@@ -79,17 +79,17 @@ func newPanicLogMiddleware(p *deps.RequestProvider) httproute.Middleware {
 }
 
 func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	request := p.Request
 	appProvider := p.AppProvider
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	sessionConfig := appConfig.Session
 	cookieDef := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	handle := appProvider.Redis
 	appID := appConfig.ID
 	clock := _wireSystemClockValue
@@ -119,11 +119,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Random:       rand,
 	}
 	resolver := &idpsession.Resolver{
-		CookieFactory: cookieFactory,
-		Cookie:        cookieDef,
-		Provider:      provider,
-		TrustProxy:    trustProxy,
-		Clock:         clock,
+		Cookie:     cookieDef,
+		Provider:   provider,
+		TrustProxy: trustProxy,
+		Clock:      clock,
 	}
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -407,11 +406,15 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Authorizations:     authorizationStore,
 		AccessGrants:       store,
 		OfflineGrants:      store,
+		AppSessions:        store,
 		AccessTokenDecoder: accessTokenEncoding,
 		Sessions:           provider,
+		SessionCookie:      cookieDef,
 		Clock:              clock,
 	}
 	sessionMiddleware := &session.Middleware{
+		SessionCookie:              cookieDef,
+		CookieFactory:              cookieFactory,
 		IDPSessionResolver:         resolver,
 		AccessTokenSessionResolver: oauthResolver,
 		AccessEvents:               eventProvider,

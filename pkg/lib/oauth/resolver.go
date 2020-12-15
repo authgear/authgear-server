@@ -26,12 +26,29 @@ type Resolver struct {
 	Authorizations     AuthorizationStore
 	AccessGrants       AccessGrantStore
 	OfflineGrants      OfflineGrantStore
+	AppSessions        AppSessionStore
 	AccessTokenDecoder AccessTokenDecoder
 	Sessions           ResolverSessionProvider
+	SessionCookie      session.CookieDef
 	Clock              clock.Clock
 }
 
 func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Session, error) {
+	s, err := re.resolveHeader(r)
+	if errors.Is(err, session.ErrInvalidSession) {
+		s = nil
+	} else if err != nil {
+		return nil, err
+	}
+	if s != nil {
+		return s, nil
+	}
+
+	s, err = re.resolveCookie(r)
+	return s, err
+}
+
+func (re *Resolver) resolveHeader(r *http.Request) (session.Session, error) {
 	token := parseAuthorizationHeader(r)
 	if token == "" {
 		// No bearer token in Authorization header. Simply proceed.
@@ -102,6 +119,47 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Se
 	}
 
 	return authSession, nil
+}
+
+func (re *Resolver) resolveCookie(r *http.Request) (session.Session, error) {
+	cookie, err := r.Cookie(re.SessionCookie.Def.Name)
+	if err != nil {
+		// No session cookie. Simply proceed.
+		return nil, nil
+	}
+
+	aSession, err := re.AppSessions.GetAppSession(HashToken(cookie.Value))
+	if errors.Is(err, ErrGrantNotFound) {
+		return nil, session.ErrInvalidSession
+	} else if err != nil {
+		return nil, err
+	}
+
+	offlineGrant, err := re.OfflineGrants.GetOfflineGrant(aSession.OfflineGrantID)
+	if errors.Is(err, ErrGrantNotFound) {
+		return nil, session.ErrInvalidSession
+	} else if err != nil {
+		return nil, err
+	}
+
+	authz, err := re.Authorizations.GetByID(offlineGrant.AuthorizationID)
+	if errors.Is(err, ErrAuthorizationNotFound) {
+		// Authorization does not exists (e.g. revoked)
+		return nil, session.ErrInvalidSession
+	} else if err != nil {
+		return nil, err
+	} else if !authz.IsAuthorized([]string{FullAccessScope}) {
+		// App sessions must have full user access to be valid
+		return nil, session.ErrInvalidSession
+	}
+
+	event := access.NewEvent(re.Clock.NowUTC(), r, bool(re.TrustProxy))
+	offlineGrant.AccessInfo.LastAccess = event
+	if err = re.OfflineGrants.UpdateOfflineGrant(offlineGrant); err != nil {
+		return nil, err
+	}
+
+	return offlineGrant, nil
 }
 
 func parseAuthorizationHeader(r *http.Request) (token string) {
