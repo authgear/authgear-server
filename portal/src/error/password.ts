@@ -22,10 +22,9 @@ export function checkPasswordPolicy(
   password: string,
   level: GuessableLevel
 ): Partial<Record<keyof PasswordPolicyConfig, boolean>> {
-  const isPolicySatisfied: Partial<Record<
-    keyof PasswordPolicyConfig,
-    boolean
-  >> = {};
+  const isPolicySatisfied: Partial<
+    Record<keyof PasswordPolicyConfig, boolean>
+  > = {};
   if (password.length === 0) {
     return isPolicySatisfied;
   }

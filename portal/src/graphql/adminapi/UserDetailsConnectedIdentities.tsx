@@ -318,9 +318,10 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
     setIsConfirmationDialogVisible,
   ] = useState(false);
 
-  const [confirmationDialogData, setConfirmationDialogData] = useState<
-    ConfirmationDialogData
-  >({
+  const [
+    confirmationDialogData,
+    setConfirmationDialogData,
+  ] = useState<ConfirmationDialogData>({
     identityID: "",
     identityName: "",
   });

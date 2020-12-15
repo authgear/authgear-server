@@ -39,9 +39,10 @@ export function useCreateDomainMutation(
   loading: boolean;
   error: unknown;
 } {
-  const [mutationFunction, { error, loading }] = useMutation<
-    CreateDomainMutation
-  >(createDomainMutation, {
+  const [
+    mutationFunction,
+    { error, loading },
+  ] = useMutation<CreateDomainMutation>(createDomainMutation, {
     client,
   });
   const createDomain = useCallback(

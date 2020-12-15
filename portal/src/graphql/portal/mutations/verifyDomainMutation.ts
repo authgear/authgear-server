@@ -39,9 +39,10 @@ export function useVerifyDomainMutation(
   loading: boolean;
   error: unknown;
 } {
-  const [mutationFunction, { error, loading }] = useMutation<
-    VerifyDomainMutation
-  >(verifyDomainMutation, { client });
+  const [
+    mutationFunction,
+    { error, loading },
+  ] = useMutation<VerifyDomainMutation>(verifyDomainMutation, { client });
   const verifyDomain = useCallback(
     async (domainID: string) => {
       const result = await mutationFunction({

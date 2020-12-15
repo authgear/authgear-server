@@ -6,7 +6,7 @@
     "export-graphql-schema": "node export-graphql-schema.js"
   },
   "devDependencies": {
-    "graphql": "15.3.0",
-    "mjml": "4.6.3"
+    "graphql": "15.4.0",
+    "mjml": "4.7.1"
   }
 }

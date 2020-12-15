@@ -19,9 +19,10 @@ export function useResetPasswordMutation(
   loading: boolean;
   error: unknown;
 } {
-  const [mutationFunction, { loading, error }] = useMutation<
-    ResetPasswordMutation
-  >(resetPasswordMutation);
+  const [
+    mutationFunction,
+    { loading, error },
+  ] = useMutation<ResetPasswordMutation>(resetPasswordMutation);
 
   const resetPassword = useCallback(
     async (password: string) => {
