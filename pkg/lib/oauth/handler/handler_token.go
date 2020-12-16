@@ -250,6 +250,17 @@ func (h *TokenHandler) parseRefreshToken(token string) (*oauth.Authorization, *o
 		return nil, nil, err
 	}
 
+	// Check if the user has been disabled.
+	u, err := h.Users.GetRaw(offlineGrant.Attrs.UserID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	err = u.CheckStatus()
+	if err != nil {
+		return nil, nil, errInvalidRefreshToken
+	}
+
 	return authz, offlineGrant, nil
 }
 
