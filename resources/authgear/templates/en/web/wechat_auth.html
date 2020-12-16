@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+{{ template "__html_head.html" . }}
+<body class="page">
+<div class="content">
+
+{{ template "__header.html" . }}
+
+{{ template "__nav_bar.html" }}
+
+<div class="simple-form vertical-form form-fields-container pane">
+
+<h1 class="title primary-txt">{{ template "wechat-auth-title" }}</h1>
+
+{{ template "__error.html" . }}
+
+<p class="description primary-txt">{{ template "wechat-auth-description" }}</p>
+
+<img src="{{ $.ImageURI }}">
+
+</div>
+</html>

@@ -36,6 +36,10 @@
 					<i class="fab fa-microsoft" aria-hidden="true"></i>
 					<span class="title">{{ template "oauth-branding-azureadv2" }}</span>
 					{{- end -}}
+					{{- if eq .provider_type "wechat" -}}
+					<i class="fab fa-weixin" aria-hidden="true"></i>
+					<span class="title">{{ template "oauth-branding-wechat" }}</span>
+					{{- end -}}
 					</span>
 				</button>
 				</form>

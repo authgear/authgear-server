@@ -61,6 +61,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(otp.EndpointsProvider), new(*WebEndpoints)),
 	wire.Bind(new(verification.WebAppURLProvider), new(*WebEndpoints)),
 	wire.Bind(new(forgotpassword.URLProvider), new(*WebEndpoints)),
+	wire.Bind(new(sso.WechatURLProvider), new(*WebEndpoints)),
 
 	transport.DependencySet,
 	adminauthz.DependencySet,

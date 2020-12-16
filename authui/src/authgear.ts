@@ -314,5 +314,9 @@ window.api.onLoad(() => {
     connect();
   }
 
+  if (window.location.pathname.startsWith("/sso/wechat/auth")) {
+    connect();
+  }
+
   return dispose;
 });

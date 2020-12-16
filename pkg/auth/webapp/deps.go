@@ -23,4 +23,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(SessionStore), new(*SessionStoreRedis)),
 	wire.Struct(new(Service2), "*"),
 	wire.Bind(new(PageService), new(*Service2)),
+
+	wire.Struct(new(WechatURLProvider), "*"),
 )

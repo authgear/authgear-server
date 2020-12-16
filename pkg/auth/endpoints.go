@@ -52,3 +52,8 @@ func (p *EndpointsProvider) SettingsEndpointURL() *url.URL       { return p.urlO
 func (p *EndpointsProvider) ResetPasswordEndpointURL() *url.URL  { return p.urlOf("./reset_password") }
 func (p *EndpointsProvider) VerifyIdentityEndpointURL() *url.URL { return p.urlOf("./verify_identity") }
 func (p *EndpointsProvider) SSOCallbackEndpointURL() *url.URL    { return p.urlOf("sso/oauth2/callback") }
+
+func (p *EndpointsProvider) WeChatAuthorizeEndpointURL() *url.URL { return p.urlOf("sso/wechat/auth") }
+func (p *EndpointsProvider) WeChatCallbackEndpointURL() *url.URL {
+	return p.urlOf("sso/wechat/callback")
+}

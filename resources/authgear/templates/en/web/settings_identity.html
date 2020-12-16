@@ -36,6 +36,7 @@
     {{ if eq .provider_type "facebook" }} {{ $fa = "fab fa-facebook-f" }} {{ end }}
     {{ if eq .provider_type "linkedin" }} {{ $fa = "fab fa-linkedin-in" }}{{ end }}
     {{ if eq .provider_type "azureadv2" }}{{ $fa = "fab fa-microsoft" }}  {{ end }}
+    {{ if eq .provider_type "wechat" }}   {{ $fa = "fab fa-weixin" }}     {{ end }}
     {{ end }}
 
     {{ if eq .type "login_id" }}
@@ -53,6 +54,7 @@
         {{ if eq .provider_type "facebook" }}{{ template "settings-identity-oauth-facebook" }}{{ end }}
         {{ if eq .provider_type "linkedin" }}{{ template "settings-identity-oauth-linkedin" }}{{ end }}
         {{ if eq .provider_type "azureadv2" }}{{ template "settings-identity-oauth-azureadv2" }}{{ end }}
+        {{ if eq .provider_type "wechat" }}{{ template "settings-identity-oauth-wechat" }}{{ end }}
       {{ end }}
       {{ if eq .type "login_id" }}
         {{ if eq .login_id_type "email" }}{{ template "settings-identity-login-id-email" }}{{ end }}

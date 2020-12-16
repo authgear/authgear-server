@@ -22,6 +22,8 @@ type EndpointsProvider interface {
 	ResetPasswordEndpointURL() *url.URL
 	VerifyIdentityEndpointURL() *url.URL
 	SSOCallbackEndpointURL() *url.URL
+	WeChatAuthorizeEndpointURL() *url.URL
+	WeChatCallbackEndpointURL() *url.URL
 }
 
 type URLProvider struct {

@@ -8,6 +8,7 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/Masterminds/squirrel v1.4.0
 	github.com/authgear/graphql-go-relay v0.0.0-20201016065100-df672205b892
+	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc
 	github.com/dlclark/regexp2 v1.4.0 // indirect
 	github.com/getsentry/sentry-go v0.6.1
 	github.com/go-redis/redis/v8 v8.4.2
