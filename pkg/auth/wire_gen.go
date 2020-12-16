@@ -2128,6 +2128,9 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	userInfoDecoder := sso.UserInfoDecoder{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
+	wechatURLProvider := &webapp.WechatURLProvider{
+		Endpoints: endpointsProvider,
+	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                endpointsProvider,
 		IdentityConfig:           identityConfig,
@@ -2136,6 +2139,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clockClock,
 		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
+		WechatURLProvider:        wechatURLProvider,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
@@ -16632,16 +16636,16 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -16650,7 +16654,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -16820,7 +16824,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -17134,16 +17138,16 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -17152,7 +17156,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -17322,7 +17326,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
