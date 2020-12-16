@@ -32,7 +32,8 @@ type AlternativeStep struct {
 }
 
 type AlternativeStepsViewModel struct {
-	AlternativeSteps []AlternativeStep
+	AlternativeSteps      []AlternativeStep
+	CanRequestDeviceToken bool
 }
 
 func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interaction.Graph, currentStepKind webapp.SessionStepKind) error {
@@ -49,7 +50,7 @@ func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interac
 	for _, edge := range edges {
 		switch edge := edge.(type) {
 		case *nodes.EdgeUseDeviceToken:
-			break
+			m.CanRequestDeviceToken = true
 		case *nodes.EdgeConsumeRecoveryCode:
 			if currentStepKind != webapp.SessionStepEnterRecoveryCode {
 				m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{

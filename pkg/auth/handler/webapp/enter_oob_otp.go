@@ -41,7 +41,6 @@ func ConfigureEnterOOBOTPRoute(route httproute.Route) httproute.Route {
 }
 
 type EnterOOBOTPViewModel struct {
-	AlternativeSteps       []viewmodels.AlternativeStep
 	OOBOTPTarget           string
 	OOBOTPCodeSendCooldown int
 	OOBOTPCodeLength       int
@@ -81,7 +80,7 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 	}
 
 	currentNode := graph.CurrentNode()
-	alternatives := &viewmodels.AlternativeStepsViewModel{}
+	alternatives := viewmodels.AlternativeStepsViewModel{}
 	switch currentNode.(type) {
 	case *nodes.NodeAuthenticationOOBTrigger:
 		err := alternatives.AddAuthenticationAlternatives(graph, webapp.SessionStepEnterOOBOTPAuthn)
@@ -96,10 +95,10 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 	default:
 		panic(fmt.Errorf("enter_oob_otp: unexpected node: %T", currentNode))
 	}
-	viewModel.AlternativeSteps = alternatives.AlternativeSteps
 
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, viewModel)
+	viewmodels.Embed(data, alternatives)
 
 	return data, nil
 }
