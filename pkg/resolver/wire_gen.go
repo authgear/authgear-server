@@ -79,17 +79,17 @@ func newPanicLogMiddleware(p *deps.RequestProvider) httproute.Middleware {
 }
 
 func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	request := p.Request
 	appProvider := p.AppProvider
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	sessionConfig := appConfig.Session
-	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	handle := appProvider.Redis
 	appID := appConfig.ID
 	clock := _wireSystemClockValue
@@ -119,11 +119,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Random:       rand,
 	}
 	resolver := &idpsession.Resolver{
-		CookieFactory: cookieFactory,
-		Cookie:        cookieDef,
-		Provider:      provider,
-		TrustProxy:    trustProxy,
-		Clock:         clock,
+		Cookie:     cookieDef,
+		Provider:   provider,
+		TrustProxy: trustProxy,
+		Clock:      clock,
 	}
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -139,7 +138,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: sqlExecutor,
 	}
 	logger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	store := &redis.Store{
 		Redis:       handle,
 		AppID:       appID,
 		Logger:      logger,
@@ -151,7 +150,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	endpointsProvider := &EndpointsProvider{
 		HTTP: httpConfig,
 	}
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -355,7 +354,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		TaskQueue:            queue,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -367,7 +366,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		CookieDef:     cookieDef,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: store,
 		Clock: clock,
 	}
 	coordinator := &facade.Coordinator{
@@ -386,7 +385,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Coordinator: coordinator,
 	}
 	queries := &user.Queries{
-		Store:        store,
+		Store:        userStore,
 		Identities:   identityFacade,
 		Verification: verificationService,
 	}
@@ -405,13 +404,17 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	oauthResolver := &oauth2.Resolver{
 		TrustProxy:         trustProxy,
 		Authorizations:     authorizationStore,
-		AccessGrants:       grantStore,
-		OfflineGrants:      grantStore,
+		AccessGrants:       store,
+		OfflineGrants:      store,
+		AppSessions:        store,
 		AccessTokenDecoder: accessTokenEncoding,
 		Sessions:           provider,
+		SessionCookie:      cookieDef,
 		Clock:              clock,
 	}
 	sessionMiddleware := &session.Middleware{
+		SessionCookie:              cookieDef,
+		CookieFactory:              cookieFactory,
 		IDPSessionResolver:         resolver,
 		AccessTokenSessionResolver: oauthResolver,
 		AccessEvents:               eventProvider,

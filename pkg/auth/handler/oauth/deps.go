@@ -19,4 +19,5 @@ var DependencySet = wire.NewSet(
 	NewEndSessionHandlerLogger,
 	wire.Struct(new(EndSessionHandler), "*"),
 	wire.Struct(new(ChallengeHandler), "*"),
+	wire.Struct(new(AppSessionTokenHandler), "*"),
 )

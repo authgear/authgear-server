@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type resolverProvider interface {
@@ -17,11 +16,10 @@ type resolverProvider interface {
 }
 
 type Resolver struct {
-	CookieFactory CookieFactory
-	Cookie        CookieDef
-	Provider      resolverProvider
-	TrustProxy    config.TrustProxy
-	Clock         clock.Clock
+	Cookie     session.CookieDef
+	Provider   resolverProvider
+	TrustProxy config.TrustProxy
+	Clock      clock.Clock
 }
 
 func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Session, error) {
@@ -35,8 +33,6 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Se
 	if err != nil {
 		if errors.Is(err, ErrSessionNotFound) {
 			err = session.ErrInvalidSession
-			cookie := re.CookieFactory.ClearCookie(re.Cookie.Def)
-			httputil.UpdateCookie(rw, cookie)
 		}
 		return nil, err
 	}

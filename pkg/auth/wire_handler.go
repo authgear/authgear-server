@@ -68,6 +68,13 @@ func newOAuthChallengeHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handleroauth.AppSessionTokenHandler)),
+	))
+}
+
 func newWebAppRootHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

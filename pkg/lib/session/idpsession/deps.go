@@ -11,7 +11,6 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(StoreRedis), "*"),
 	wire.Bind(new(Store), new(*StoreRedis)),
 
-	NewSessionCookieDef,
 	wire.Value(Rand(corerand.SecureRand)),
 	wire.Struct(new(Provider), "*"),
 	wire.Struct(new(Resolver), "*"),

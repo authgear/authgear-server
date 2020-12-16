@@ -7,14 +7,19 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
+
+type CookieFactory interface {
+	ClearCookie(def *httputil.CookieDef) *http.Cookie
+}
 
 type Manager struct {
 	Store         Store
 	Clock         clock.Clock
 	Config        *config.SessionConfig
 	CookieFactory CookieFactory
-	CookieDef     CookieDef
+	CookieDef     session.CookieDef
 }
 
 func (m *Manager) ClearCookie() *http.Cookie {

@@ -81,7 +81,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	redisHandle := appProvider.Redis
 	logger := redis.NewLogger(factory)
 	clock := _wireSystemClockValue
-	grantStore := &redis.GrantStore{
+	store := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      logger,
@@ -101,14 +101,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	urlProvider := &oauth2.URLProvider{
 		Endpoints: endpointsProvider,
-	}
-	store := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	provider := &anonymous.Provider{
-		Store: store,
-		Clock: clock,
 	}
 	serviceLogger := webapp.NewServiceLogger(factory)
 	sessionStoreRedis := &webapp.SessionStoreRedis{
@@ -148,7 +140,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
-	loginidProvider := &loginid.Provider{
+	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
@@ -163,13 +155,21 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Store: oauthStore,
 		Clock: clock,
 	}
+	anonymousStore := &anonymous.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	anonymousProvider := &anonymous.Provider{
+		Store: anonymousStore,
+		Clock: clock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
 		Store:          serviceStore,
-		LoginID:        loginidProvider,
+		LoginID:        provider,
 		OAuth:          oauthProvider,
-		Anonymous:      provider,
+		Anonymous:      anonymousProvider,
 	}
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -333,16 +333,16 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: store,
 		Clock: clock,
 	}
 	coordinator := &facade.Coordinator{
@@ -489,7 +489,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
-		AnonymousIdentities:      provider,
+		AnonymousIdentities:      anonymousProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -505,7 +505,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -528,24 +528,33 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	authenticateURLProvider := &webapp.AuthenticateURLProvider{
-		Endpoints: endpointsProvider,
-		Anonymous: provider,
-		Pages:     webappService2,
+		Endpoints:     endpointsProvider,
+		Pages:         webappService2,
+		SessionCookie: cookieDef2,
+		CookieFactory: cookieFactory,
 	}
 	scopesValidator := _wireScopesValidatorValue
 	tokenGenerator := _wireTokenGeneratorValue
+	loginHintResolver := &handler.LoginHintResolver{
+		Anonymous:        anonymousProvider,
+		OfflineGrants:    store,
+		AppSessionTokens: store,
+		AppSessions:      store,
+		Clock:            clock,
+	}
 	authorizationHandler := &handler.AuthorizationHandler{
-		Context:        context,
-		AppID:          appID,
-		Config:         oAuthConfig,
-		Logger:         authorizationHandlerLogger,
-		Authorizations: authorizationStore,
-		CodeGrants:     grantStore,
-		OAuthURLs:      urlProvider,
-		WebAppURLs:     authenticateURLProvider,
-		ValidateScopes: scopesValidator,
-		CodeGenerator:  tokenGenerator,
-		Clock:          clock,
+		Context:         context,
+		AppID:           appID,
+		Config:          oAuthConfig,
+		Logger:          authorizationHandlerLogger,
+		Authorizations:  authorizationStore,
+		CodeGrants:      store,
+		OAuthURLs:       urlProvider,
+		WebAppURLs:      authenticateURLProvider,
+		ValidateScopes:  scopesValidator,
+		CodeGenerator:   tokenGenerator,
+		LoginHintParser: loginHintResolver,
+		Clock:           clock,
 	}
 	authorizeHandler := &oauth.AuthorizeHandler{
 		Logger:       authorizeHandlerLogger,
@@ -591,7 +600,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	redisHandle := appProvider.Redis
 	logger := redis.NewLogger(factory)
 	clockClock := _wireSystemClockValue
-	grantStore := &redis.GrantStore{
+	store := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      logger,
@@ -627,7 +636,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	interactionLogger := interaction.NewLogger(factory)
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
-	store := &service.Store{
+	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -674,12 +683,12 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
-		Store:          store,
+		Store:          serviceStore,
 		LoginID:        loginidProvider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
 	}
-	serviceStore := &service2.Store{
+	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -750,7 +759,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	service3 := &service2.Service{
-		Store:       serviceStore,
+		Store:       store2,
 		Password:    passwordProvider,
 		TOTP:        totpProvider,
 		OOBOTP:      oobProvider,
@@ -835,7 +844,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
-	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         storeRedis,
 		Clock:         clockClock,
@@ -844,7 +853,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef:     cookieDef,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: store,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -1031,9 +1040,10 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:        trustProxy,
 		Logger:            handlerTokenHandlerLogger,
 		Authorizations:    authorizationStore,
-		CodeGrants:        grantStore,
-		OfflineGrants:     grantStore,
-		AccessGrants:      grantStore,
+		CodeGrants:        store,
+		OfflineGrants:     store,
+		AccessGrants:      store,
+		AppSessionTokens:  store,
 		AccessEvents:      eventProvider,
 		Sessions:          provider,
 		Graphs:            interactionService,
@@ -1071,7 +1081,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	clockClock := _wireSystemClockValue
-	grantStore := &redis.GrantStore{
+	store := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      logger,
@@ -1080,8 +1090,8 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	revokeHandler := &handler.RevokeHandler{
-		OfflineGrants: grantStore,
-		AccessGrants:  grantStore,
+		OfflineGrants: store,
+		AccessGrants:  store,
 	}
 	oauthRevokeHandler := &oauth.RevokeHandler{
 		Logger:        revokeHandlerLogger,
@@ -1369,7 +1379,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sessionConfig := appConfig.Session
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
-	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
@@ -1378,7 +1388,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef:     cookieDef,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -1387,7 +1397,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -1675,7 +1685,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sessionConfig := appConfig.Session
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
-	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
@@ -1684,7 +1694,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef:     cookieDef,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -1693,7 +1703,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -1787,6 +1797,498 @@ func newOAuthChallengeHandler(p *deps.RequestProvider) http.Handler {
 		JSON:       jsonResponseWriter,
 	}
 	return challengeHandler
+}
+
+func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
+	jsonResponseWriter := &httputil.JSONResponseWriter{
+		Logger: jsonResponseWriterLogger,
+	}
+	request := p.Request
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	oAuthConfig := appConfig.OAuth
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	tokenHandlerLogger := handler.NewTokenHandlerLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
+	context := deps.ProvideRequestContext(request)
+	handle := appProvider.Database
+	sqlExecutor := db.SQLExecutor{
+		Context:  context,
+		Database: handle,
+	}
+	authorizationStore := &pq.AuthorizationStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	redisHandle := appProvider.Redis
+	logger := redis.NewLogger(factory)
+	clockClock := _wireSystemClockValue
+	store := &redis.Store{
+		Redis:       redisHandle,
+		AppID:       appID,
+		Logger:      logger,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
+	storeRedis := &idpsession.StoreRedis{
+		Redis:  redisHandle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: storeRedisLogger,
+	}
+	sessionConfig := appConfig.Session
+	idpsessionRand := _wireRandValue
+	provider := &idpsession.Provider{
+		Request:      request,
+		Store:        storeRedis,
+		AccessEvents: eventProvider,
+		TrustProxy:   trustProxy,
+		Config:       sessionConfig,
+		Clock:        clockClock,
+		Random:       idpsessionRand,
+	}
+	interactionLogger := interaction.NewLogger(factory)
+	authenticationConfig := appConfig.Authentication
+	identityConfig := appConfig.Identity
+	serviceStore := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginIDConfig := identityConfig.LoginID
+	manager := appProvider.Resources
+	typeCheckerFactory := &loginid.TypeCheckerFactory{
+		Config:    loginIDConfig,
+		Resources: manager,
+	}
+	checker := &loginid.Checker{
+		Config:             loginIDConfig,
+		TypeCheckerFactory: typeCheckerFactory,
+	}
+	normalizerFactory := &loginid.NormalizerFactory{
+		Config: loginIDConfig,
+	}
+	loginidProvider := &loginid.Provider{
+		Store:             loginidStore,
+		Config:            loginIDConfig,
+		Checker:           checker,
+		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
+	}
+	oauthStore := &oauth3.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	oauthProvider := &oauth3.Provider{
+		Store: oauthStore,
+		Clock: clockClock,
+	}
+	anonymousStore := &anonymous.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	anonymousProvider := &anonymous.Provider{
+		Store: anonymousStore,
+		Clock: clockClock,
+	}
+	serviceService := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          serviceStore,
+		LoginID:        loginidProvider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+	}
+	store2 := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	passwordLogger := password.NewLogger(factory)
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		Logger:          passwordLogger,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+		Housekeeper:     housekeeper,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	oobStoreRedis := &oob.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oobLogger := oob.NewLogger(factory)
+	oobProvider := &oob.Provider{
+		Config:    authenticatorOOBConfig,
+		Store:     oobStore,
+		CodeStore: oobStoreRedis,
+		Clock:     clockClock,
+		Logger:    oobLogger,
+	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	service3 := &service2.Service{
+		Store:       store2,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
+	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	verificationStoreRedis := &verification.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storePQ := &verification.StorePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	verificationService := &verification.Service{
+		Request:     request,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
+		Clock:       clockClock,
+		CodeStore:   verificationStoreRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
+	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+		RateLimiter:   limiter,
+	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	resolver := &template.Resolver{
+		Resources:          manager,
+		DefaultLanguageTag: defaultTemplateLanguage,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	queue := appProvider.TaskQueue
+	welcomemessageProvider := &welcomemessage.Provider{
+		Translation:          translationService,
+		RateLimiter:          limiter,
+		WelcomeMessageConfig: welcomeMessageConfig,
+		TaskQueue:            queue,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+	}
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	cookieDef := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	idpsessionManager := &idpsession.Manager{
+		Store:         storeRedis,
+		Clock:         clockClock,
+		Config:        sessionConfig,
+		CookieFactory: cookieFactory,
+		CookieDef:     cookieDef,
+	}
+	sessionManager := &oauth2.SessionManager{
+		Store: store,
+		Clock: clockClock,
+	}
+	coordinator := &facade.Coordinator{
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		Users:           rawCommands,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
+	}
+	identityFacade := facade.IdentityFacade{
+		Coordinator: coordinator,
+	}
+	authenticatorFacade := facade.AuthenticatorFacade{
+		Coordinator: coordinator,
+	}
+	mainOriginProvider := &MainOriginProvider{
+		Request:    request,
+		TrustProxy: trustProxy,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
+	}
+	messageSender := &otp.MessageSender{
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
+		TaskQueue:   queue,
+	}
+	codeSender := &oob.CodeSender{
+		OTPMessageSender: messageSender,
+	}
+	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	urlProvider := &webapp.URLProvider{
+		Endpoints: endpointsProvider,
+	}
+	userInfoDecoder := sso.UserInfoDecoder{
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	wechatURLProvider := &webapp.WechatURLProvider{
+		Endpoints: endpointsProvider,
+	}
+	oAuthProviderFactory := &sso.OAuthProviderFactory{
+		Endpoints:                endpointsProvider,
+		IdentityConfig:           identityConfig,
+		Credentials:              oAuthClientCredentials,
+		RedirectURL:              urlProvider,
+		Clock:                    clockClock,
+		UserInfoDecoder:          userInfoDecoder,
+		LoginIDNormalizerFactory: normalizerFactory,
+		WechatURLProvider:        wechatURLProvider,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
+		Redis: redisHandle,
+	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
+	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
+	}
+	verificationCodeSender := &verification.CodeSender{
+		OTPMessageSender: messageSender,
+		WebAppURLs:       urlProvider,
+	}
+	challengeProvider := &challenge.Provider{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	hookLogger := hook.NewLogger(factory)
+	queries := &user.Queries{
+		Store:        userStore,
+		Identities:   identityFacade,
+		Verification: verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	hookStore := &hook.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	hookProvider := &hook.Provider{
+		Context:   context,
+		Logger:    hookLogger,
+		Database:  handle,
+		Clock:     clockClock,
+		Users:     rawProvider,
+		Store:     hookStore,
+		Deliverer: deliverer,
+	}
+	commands := &user.Commands{
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: verificationService,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
+	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
+	interactionContext := &interaction.Context{
+		Request:                  request,
+		Database:                 sqlExecutor,
+		Clock:                    clockClock,
+		Config:                   appConfig,
+		TrustProxy:               trustProxy,
+		Identities:               identityFacade,
+		Authenticators:           authenticatorFacade,
+		AnonymousIdentities:      anonymousProvider,
+		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
+		OAuthProviderFactory:     oAuthProviderFactory,
+		MFA:                      mfaService,
+		ForgotPassword:           forgotpasswordProvider,
+		ResetPassword:            forgotpasswordProvider,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
+		Challenges:               challengeProvider,
+		Users:                    userProvider,
+		Hooks:                    hookProvider,
+		CookieFactory:            cookieFactory,
+		Sessions:                 provider,
+		SessionCookie:            cookieDef,
+		MFADeviceTokenCookie:     mfaCookieDef,
+	}
+	interactionStoreRedis := &interaction.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+	}
+	interactionService := &interaction.Service{
+		Logger:  interactionLogger,
+		Context: interactionContext,
+		Store:   interactionStoreRedis,
+	}
+	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
+	idTokenIssuer := &oidc.IDTokenIssuer{
+		Secrets: oAuthKeyMaterials,
+		BaseURL: endpointsProvider,
+		Users:   queries,
+		Clock:   clockClock,
+	}
+	accessTokenEncoding := &oauth2.AccessTokenEncoding{
+		Secrets:    oAuthKeyMaterials,
+		Clock:      clockClock,
+		UserClaims: idTokenIssuer,
+		BaseURL:    endpointsProvider,
+	}
+	tokenGenerator := _wireTokenGeneratorValue
+	tokenHandler := &handler.TokenHandler{
+		Request:           request,
+		AppID:             appID,
+		Config:            oAuthConfig,
+		TrustProxy:        trustProxy,
+		Logger:            tokenHandlerLogger,
+		Authorizations:    authorizationStore,
+		CodeGrants:        store,
+		OfflineGrants:     store,
+		AccessGrants:      store,
+		AppSessionTokens:  store,
+		AccessEvents:      eventProvider,
+		Sessions:          provider,
+		Graphs:            interactionService,
+		IDTokenIssuer:     idTokenIssuer,
+		AccessTokenIssuer: accessTokenEncoding,
+		GenerateToken:     tokenGenerator,
+		Clock:             clockClock,
+		Users:             queries,
+	}
+	appSessionTokenHandler := &oauth.AppSessionTokenHandler{
+		JSON:             jsonResponseWriter,
+		AppSessionTokens: tokenHandler,
+	}
+	return appSessionTokenHandler
 }
 
 func newWebAppRootHandler(p *deps.RequestProvider) http.Handler {
@@ -2050,16 +2552,16 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -2068,7 +2570,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -2238,7 +2740,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -2558,16 +3060,16 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -2576,7 +3078,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -2746,7 +3248,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -3066,16 +3568,16 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -3084,7 +3586,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -3254,7 +3756,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -3574,16 +4076,16 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -3592,7 +4094,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -3762,7 +4264,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -4075,16 +4577,16 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -4093,7 +4595,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -4263,7 +4765,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -4578,16 +5080,16 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -4596,7 +5098,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -4766,7 +5268,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -5077,16 +5579,16 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -5095,7 +5597,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -5265,7 +5767,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -5579,16 +6081,16 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -5597,7 +6099,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -5767,7 +6269,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -6080,16 +6582,16 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -6098,7 +6600,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -6268,7 +6770,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -6582,16 +7084,16 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -6600,7 +7102,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -6770,7 +7272,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -7085,16 +7587,16 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -7103,7 +7605,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -7273,7 +7775,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -7586,16 +8088,16 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -7604,7 +8106,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -7774,7 +8276,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -8087,16 +8589,16 @@ func newWebAppSendOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -8105,7 +8607,7 @@ func newWebAppSendOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -8275,7 +8777,7 @@ func newWebAppSendOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -8588,16 +9090,16 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -8606,7 +9108,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -8776,7 +9278,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -9089,16 +9591,16 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -9107,7 +9609,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -9277,7 +9779,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -9590,16 +10092,16 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -9608,7 +10110,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -9778,7 +10280,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -10091,16 +10593,16 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -10109,7 +10611,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -10279,7 +10781,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -10593,16 +11095,16 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -10611,7 +11113,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -10781,7 +11283,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -11094,16 +11596,16 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -11112,7 +11614,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -11282,7 +11784,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -11600,16 +12102,16 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -11618,7 +12120,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -11788,7 +12290,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -12101,16 +12603,16 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -12119,7 +12621,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -12289,7 +12791,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -12603,16 +13105,16 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -12621,7 +13123,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -12791,7 +13293,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -13104,16 +13606,16 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -13122,7 +13624,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -13292,7 +13794,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -13608,16 +14110,16 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -13626,7 +14128,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -13796,7 +14298,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -14113,16 +14615,16 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -14131,7 +14633,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -14301,7 +14803,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -14617,16 +15119,16 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -14635,7 +15137,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -14805,7 +15307,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -15121,16 +15623,16 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -15139,7 +15641,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -15309,7 +15811,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -15626,16 +16128,16 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -15644,7 +16146,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -15814,7 +16316,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -16134,16 +16636,16 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -16152,7 +16654,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -16322,7 +16824,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -16636,16 +17138,16 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -16654,7 +17156,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -16824,7 +17326,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -17138,16 +17640,16 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -17156,7 +17658,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -17326,7 +17828,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -17626,7 +18128,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sessionConfig := appConfig.Session
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
-	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
@@ -17635,7 +18137,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef:     cookieDef,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -17644,7 +18146,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -18001,16 +18503,16 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	idpsessionCookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:         idpsessionStoreRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
-		CookieDef:     idpsessionCookieDef,
+		CookieDef:     cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -18019,7 +18521,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: redisStore,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -18189,7 +18691,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
-		SessionCookie:            idpsessionCookieDef,
+		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
@@ -18419,17 +18921,17 @@ func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 }
 
 func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	request := p.Request
 	appProvider := p.AppProvider
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	sessionConfig := appConfig.Session
-	cookieDef := idpsession.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	handle := appProvider.Redis
 	appID := appConfig.ID
 	clockClock := _wireSystemClockValue
@@ -18459,11 +18961,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Random:       idpsessionRand,
 	}
 	resolver := &idpsession.Resolver{
-		CookieFactory: cookieFactory,
-		Cookie:        cookieDef,
-		Provider:      provider,
-		TrustProxy:    trustProxy,
-		Clock:         clockClock,
+		Cookie:     cookieDef,
+		Provider:   provider,
+		TrustProxy: trustProxy,
+		Clock:      clockClock,
 	}
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -18479,7 +18980,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: sqlExecutor,
 	}
 	logger := redis.NewLogger(factory)
-	grantStore := &redis.GrantStore{
+	store := &redis.Store{
 		Redis:       handle,
 		AppID:       appID,
 		Logger:      logger,
@@ -18495,7 +18996,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -18699,7 +19200,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		TaskQueue:            queue,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -18711,7 +19212,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		CookieDef:     cookieDef,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: grantStore,
+		Store: store,
 		Clock: clockClock,
 	}
 	coordinator := &facade.Coordinator{
@@ -18730,7 +19231,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Coordinator: coordinator,
 	}
 	queries := &user.Queries{
-		Store:        store,
+		Store:        userStore,
 		Identities:   identityFacade,
 		Verification: verificationService,
 	}
@@ -18749,13 +19250,17 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	oauthResolver := &oauth2.Resolver{
 		TrustProxy:         trustProxy,
 		Authorizations:     authorizationStore,
-		AccessGrants:       grantStore,
-		OfflineGrants:      grantStore,
+		AccessGrants:       store,
+		OfflineGrants:      store,
+		AppSessions:        store,
 		AccessTokenDecoder: accessTokenEncoding,
 		Sessions:           provider,
+		SessionCookie:      cookieDef,
 		Clock:              clockClock,
 	}
 	sessionMiddleware := &session.Middleware{
+		SessionCookie:              cookieDef,
+		CookieFactory:              cookieFactory,
 		IDPSessionResolver:         resolver,
 		AccessTokenSessionResolver: oauthResolver,
 		AccessEvents:               eventProvider,

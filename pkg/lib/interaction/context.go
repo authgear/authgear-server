@@ -180,7 +180,7 @@ type Context struct {
 	Hooks                HookProvider
 	CookieFactory        CookieFactory
 	Sessions             SessionProvider
-	SessionCookie        idpsession.CookieDef
+	SessionCookie        session.CookieDef
 	MFADeviceTokenCookie mfa.CookieDef
 }
 

@@ -6,5 +6,5 @@ import (
 
 var DependencySet = wire.NewSet(
 	NewLogger,
-	wire.Struct(new(GrantStore), "*"),
+	wire.Struct(new(Store), "*"),
 )

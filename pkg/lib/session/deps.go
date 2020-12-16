@@ -7,4 +7,5 @@ import (
 var DependencySet = wire.NewSet(
 	wire.Struct(new(Middleware), "*"),
 	wire.Struct(new(Manager), "*"),
+	NewSessionCookieDef,
 )

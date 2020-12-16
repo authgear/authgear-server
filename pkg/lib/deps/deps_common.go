@@ -104,6 +104,7 @@ var CommonDependencySet = wire.NewSet(
 		identityoauth.DependencySet,
 		identityanonymous.DependencySet,
 		wire.Bind(new(interaction.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
+		wire.Bind(new(oauthhandler.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 
 		identityservice.DependencySet,
 		wire.Bind(new(identityservice.LoginIDIdentityProvider), new(*identityloginid.Provider)),
@@ -156,9 +157,11 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(facade.OAuthService), new(*oauthpq.AuthorizationStore)),
 
 		oauthredis.DependencySet,
-		wire.Bind(new(oauth.AccessGrantStore), new(*oauthredis.GrantStore)),
-		wire.Bind(new(oauth.CodeGrantStore), new(*oauthredis.GrantStore)),
-		wire.Bind(new(oauth.OfflineGrantStore), new(*oauthredis.GrantStore)),
+		wire.Bind(new(oauth.AccessGrantStore), new(*oauthredis.Store)),
+		wire.Bind(new(oauth.CodeGrantStore), new(*oauthredis.Store)),
+		wire.Bind(new(oauth.OfflineGrantStore), new(*oauthredis.Store)),
+		wire.Bind(new(oauth.AppSessionTokenStore), new(*oauthredis.Store)),
+		wire.Bind(new(oauth.AppSessionStore), new(*oauthredis.Store)),
 
 		oauth.DependencySet,
 		wire.Bind(new(session.AccessTokenSessionResolver), new(*oauth.Resolver)),
