@@ -26,7 +26,6 @@ var TemplateWebSendOOBOTPHTML = template.RegisterHTML(
 )
 
 type SendOOBOTPViewModel struct {
-	AlternativeSteps []viewmodels.AlternativeStep
 	OOBOTPTarget     string
 	OOBOTPCodeLength int
 	OOBOTPChannel    string
@@ -53,7 +52,7 @@ func (h *SendOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, gra
 	data := make(map[string]interface{})
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	viewModel := EnterOOBOTPViewModel{}
+	viewModel := SendOOBOTPViewModel{}
 
 	var node AuthenticationBeginNode
 	if !graph.FindLastNode(&node) {
@@ -77,15 +76,15 @@ func (h *SendOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, gra
 		panic(fmt.Errorf("send_oob_otp: unexpected edge: %T", edges[0]))
 	}
 
-	alternatives := &viewmodels.AlternativeStepsViewModel{}
+	alternatives := viewmodels.AlternativeStepsViewModel{}
 	err = alternatives.AddAuthenticationAlternatives(graph, webapp.SessionStepEnterOOBOTPAuthn)
 	if err != nil {
 		return nil, err
 	}
-	viewModel.AlternativeSteps = alternatives.AlternativeSteps
 
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, viewModel)
+	viewmodels.Embed(data, alternatives)
 	return data, nil
 }
 

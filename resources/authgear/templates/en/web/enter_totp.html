@@ -30,13 +30,11 @@
 	placeholder="{{ template "enter-totp-code-placeholder" }}"
 >
 
-{{ range $.Alternatives }}
-{{ if eq .Type "device_token" }}
+{{ if $.CanRequestDeviceToken }}
 <div class="device-token-control align-self-flex-start">
 <input class="device-token-input" id="device-token" type="checkbox" name="x_device_token" value="true">
 <label class="device-token-label primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
 </div>
-{{ end }}
 {{ end }}
 
 <button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
