@@ -430,3 +430,58 @@ Developers should note the security implications for first-party clients:
   clients with limited trust.
   (TODO: on-behalf-of flow https://tools.ietf.org/html/rfc7523)
   (TODO: authenticate clients using client secret)
+  
+### App Session Token
+
+For mobile first-party clients, developer may want to 'transfer' the
+user session from the native app (obtained through OAuth protocol) to
+web UI. In this case, developer may use refresh token to exchange for a
+one-time-use app session token, which can be used to open authenticated pages
+using the refresh token.
+
+First, the native app should perform authentication through standard
+OAuth flow to obtain an access token and refresh token.
+
+When the native app wants to copy the user session from app to web user agent,
+the native app may use the refresh token in the session token endpoint to
+obtain a one-time-use app session token:
+```
+POST /oauth2/app-session-token HTTP/1.1
+Host: accounts.example.com
+Content-Type: application/json
+
+{"refresh_token":"<refresh token>"}
+
+---
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"result":{"app_session_token":"<app session token>"}}
+```
+
+A one-time-use app session token would be returned, and the native app may
+then use it in OAuth authorization flow to open authenticated page in web user
+agent:
+```
+GET /oauth2/authorize?client_id=client_id&prompt=none&response_type=none
+    &login_hint=https%3A%2F%2Fauthgear.com%2Flogin_hint%3Ftype%3Dapp_session_token%26app_session_token%3D<app session token>
+    &redirect_uri=<redirect URI> HTTP/1.1
+Host: accounts.example.com
+
+---
+HTTP/1.1 302 Found
+Set-Cookie: <session cookie>
+Location: <redirect URI>
+```
+
+When the app session token is requested:
+- The OAuth client associated with the access token must be a first-party
+  client.
+
+When the app session token is consumed:
+- If the app session token is invalid, normal OAuth authorization flow would be
+  performed instead.
+- The session cookie would contain a token referencing the refresh token,
+  instead of IdP sessions. Therefore, the lifetime of session cookie is bound
+  to refresh token instead of IdP session.
+ 
