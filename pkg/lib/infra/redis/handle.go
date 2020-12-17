@@ -34,7 +34,7 @@ func (h *Handle) WithConn(f func(conn *redis.Conn) error) error {
 	}).Debug("open redis connection")
 
 	ctx := context.Background()
-	conn := h.Pool().Conn(ctx)
+	conn := h.Client().Conn(ctx)
 	defer func() {
 		err := conn.Close()
 		if err != nil {
@@ -45,6 +45,6 @@ func (h *Handle) WithConn(f func(conn *redis.Conn) error) error {
 	return f(conn)
 }
 
-func (h *Handle) Pool() *redis.Client {
-	return h.pool.Open(h.cfg, h.credentials)
+func (h *Handle) Client() *redis.Client {
+	return h.pool.Client(h.cfg, h.credentials)
 }

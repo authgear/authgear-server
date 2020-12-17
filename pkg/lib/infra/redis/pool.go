@@ -12,16 +12,18 @@ type Pool struct {
 	closed     bool
 	closeMutex sync.RWMutex
 
-	cache      map[string]*redis.Client
-	cacheMutex sync.RWMutex
+	cachedClient      map[string]*redis.Client
+	cachedClientMutex sync.RWMutex
 }
 
 func NewPool() *Pool {
-	p := &Pool{cache: map[string]*redis.Client{}}
+	p := &Pool{
+		cachedClient: make(map[string]*redis.Client),
+	}
 	return p
 }
 
-func (p *Pool) Open(cfg *config.RedisConfig, credentials *config.RedisCredentials) *redis.Client {
+func (p *Pool) Client(cfg *config.RedisConfig, credentials *config.RedisCredentials) *redis.Client {
 	p.closeMutex.RLock()
 	defer func() { p.closeMutex.RUnlock() }()
 	if p.closed {
@@ -29,20 +31,20 @@ func (p *Pool) Open(cfg *config.RedisConfig, credentials *config.RedisCredential
 	}
 	connKey := credentials.ConnKey()
 
-	p.cacheMutex.RLock()
-	pool, exists := p.cache[connKey]
-	p.cacheMutex.RUnlock()
+	p.cachedClientMutex.RLock()
+	pool, exists := p.cachedClient[connKey]
+	p.cachedClientMutex.RUnlock()
 	if exists {
 		return pool
 	}
 
-	p.cacheMutex.Lock()
-	pool, exists = p.cache[connKey]
+	p.cachedClientMutex.Lock()
+	pool, exists = p.cachedClient[connKey]
 	if !exists {
 		pool = p.openRedis(cfg, credentials)
-		p.cache[connKey] = pool
+		p.cachedClient[connKey] = pool
 	}
-	p.cacheMutex.Unlock()
+	p.cachedClientMutex.Unlock()
 
 	return pool
 }
@@ -52,7 +54,7 @@ func (p *Pool) Close() (err error) {
 	defer func() { p.closeMutex.Unlock() }()
 
 	p.closed = true
-	for _, db := range p.cache {
+	for _, db := range p.cachedClient {
 		if closeErr := db.Close(); closeErr != nil {
 			err = closeErr
 		}

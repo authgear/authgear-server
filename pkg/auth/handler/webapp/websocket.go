@@ -37,7 +37,7 @@ func (h *WebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *WebsocketHandler) Get() *goredis.Client {
-	return h.RedisHandle.Pool()
+	return h.RedisHandle.Client()
 }
 
 func (h *WebsocketHandler) Accept(r *http.Request) (channelName string, err error) {
