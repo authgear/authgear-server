@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import cn from "classnames";
 import produce from "immer";
-import { DirectionalHint } from "@fluentui/react";
+import { Checkbox, DirectionalHint } from "@fluentui/react";
 
 import LabelWithTooltip from "../../LabelWithTooltip";
 import FormTextField from "../../FormTextField";
@@ -30,6 +30,8 @@ export function getReducedClientConfig(
   return {
     ...rest,
     post_logout_redirect_uris: rest.post_logout_redirect_uris ?? [],
+    is_first_party: rest.is_first_party ?? false,
+    issue_jwt_access_token: rest.issue_jwt_access_token ?? false,
   };
 }
 
@@ -105,6 +107,28 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
     [onClientConfigChange, clientConfig]
   );
 
+  const onIsFirstPartyClientChange = useCallback(
+    (_, value?: boolean) => {
+      onClientConfigChange(
+        updateClientConfig(clientConfig, "is_first_party", value ?? false)
+      );
+    },
+    [onClientConfigChange, clientConfig]
+  );
+
+  const onIssueJWTAccessTokenChange = useCallback(
+    (_, value?: boolean) => {
+      onClientConfigChange(
+        updateClientConfig(
+          clientConfig,
+          "issue_jwt_access_token",
+          value ?? false
+        )
+      );
+    },
+    [onClientConfigChange, clientConfig]
+  );
+
   return (
     <section className={cn(styles.root, className)}>
       <FormTextField
@@ -132,6 +156,30 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
         value={clientConfig.refresh_token_lifetime_seconds?.toString() ?? ""}
         onChange={onRefreshTokenLifetimeChange}
       />
+      <div className={cn(styles.inputField, styles.checkboxContainer)}>
+        <Checkbox
+          checked={clientConfig.is_first_party}
+          onChange={onIsFirstPartyClientChange}
+        />
+        <LabelWithTooltip
+          labelId="ModifyOAuthClientForm.is-first-party-client-label"
+          tooltipHeaderId=""
+          tooltipMessageId="ModifyOAuthClientForm.is-first-party-client-tooltip-message"
+          directionalHint={DirectionalHint.bottomLeftEdge}
+        />
+      </div>
+      <div className={cn(styles.inputField, styles.checkboxContainer)}>
+        <Checkbox
+          checked={clientConfig.issue_jwt_access_token}
+          onChange={onIssueJWTAccessTokenChange}
+        />
+        <LabelWithTooltip
+          labelId="ModifyOAuthClientForm.issue-jwt-access-token-label"
+          tooltipHeaderId=""
+          tooltipMessageId="ModifyOAuthClientForm.issue-jwt-access-token-tooltip-message"
+          directionalHint={DirectionalHint.bottomLeftEdge}
+        />
+      </div>
       <FormTextFieldList
         className={styles.inputFieldList}
         parentJSONPointer="/oauth/clients/\d+"
