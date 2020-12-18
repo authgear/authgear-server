@@ -309,14 +309,6 @@ window.api.onLoad(() => {
     }
   }
 
-  // Avoid websocket connection unless it is necessary.
-  if (window.location.pathname.startsWith("/verify_identity")) {
-    connect();
-  }
-
-  if (window.location.pathname.startsWith("/sso/wechat/auth")) {
-    connect();
-  }
-
+  connect();
   return dispose;
 });
