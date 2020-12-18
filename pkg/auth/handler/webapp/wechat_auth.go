@@ -37,6 +37,7 @@ type WechatAuthHandler struct {
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
 	CSRFCookie        webapp.CSRFCookieDef
+	Publisher         *Publisher
 }
 
 func (h *WechatAuthHandler) GetData(r *http.Request, w http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -93,6 +94,8 @@ func (h *WechatAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			step := session.CurrentStep()
 			action, ok := step.FormData["x_action"].(string)
 			if ok && action == WechatActionCallback {
+				// with callback action
+				// submit data to oauth callback
 				nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
 
 				data := InputOAuthCallback{
@@ -114,6 +117,19 @@ func (h *WechatAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				result.WriteResponse(w, r)
 				return nil
 
+			}
+
+			// start wechat authentication
+			msg := &WebsocketMessage{
+				Kind: WebsocketMessageKindWeChatLoginStart,
+				Data: WebsocketMessageWeChatLoginStartData{
+					State: session.ID,
+				},
+			}
+
+			err = h.Publisher.Publish(session, msg)
+			if err != nil {
+				return err
 			}
 		}
 

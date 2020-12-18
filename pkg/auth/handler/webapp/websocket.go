@@ -94,9 +94,15 @@ type WebsocketMessageKind string
 
 const (
 	// WebsocketMessageKindRefresh means when the client receives this message, they should refresh the page.
-	WebsocketMessageKindRefresh = "refresh"
+	WebsocketMessageKindRefresh          = "refresh"
+	WebsocketMessageKindWeChatLoginStart = "wechat_login_start"
 )
 
 type WebsocketMessage struct {
 	Kind WebsocketMessageKind `json:"kind"`
+	Data interface{}          `json:"data"`
+}
+
+type WebsocketMessageWeChatLoginStartData struct {
+	State string `json:"state"`
 }

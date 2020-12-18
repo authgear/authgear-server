@@ -4842,6 +4842,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
 		CSRFCookie:        csrfCookieDef,
+		Publisher:         publisher,
 	}
 	return wechatAuthHandler
 }
