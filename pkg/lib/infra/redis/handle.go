@@ -10,15 +10,18 @@ import (
 )
 
 type Handle struct {
-	pool        *Pool
+	pool *Pool
+	hub  *Hub
+
 	cfg         *config.RedisConfig
 	credentials *config.RedisCredentials
 	logger      *log.Logger
 }
 
-func NewHandle(pool *Pool, cfg *config.RedisConfig, credentials *config.RedisCredentials, lf *log.Factory) *Handle {
+func NewHandle(pool *Pool, hub *Hub, cfg *config.RedisConfig, credentials *config.RedisCredentials, lf *log.Factory) *Handle {
 	return &Handle{
 		pool:        pool,
+		hub:         hub,
 		cfg:         cfg,
 		logger:      lf.New("redis-handle"),
 		credentials: credentials,
@@ -43,6 +46,10 @@ func (h *Handle) WithConn(f func(conn *redis.Conn) error) error {
 	}()
 
 	return f(conn)
+}
+
+func (h *Handle) Subscribe(channelName string) (chan *redis.Message, func(), error) {
+	return h.hub.Subscribe(h.cfg, h.credentials, channelName)
 }
 
 func (h *Handle) Client() *redis.Client {
