@@ -110,6 +110,7 @@ func (h *AuthorizationHandler) doHandle(
 
 	s := session.GetSession(h.Context)
 	authnOptions := webapp.AuthenticateURLOptions{}
+	authnOptions.WsChannelID = r.WsChannelID()
 	if slice.ContainsString(r.Prompt(), "login") {
 		// Request login prompt => force re-authentication and retry
 		r2 := protocol.AuthorizationRequest{}

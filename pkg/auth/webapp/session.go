@@ -20,6 +20,7 @@ func WithSession(ctx context.Context, session *Session) context.Context {
 }
 
 type SessionOptions struct {
+	WsChannelID     string
 	RedirectURI     string
 	KeepAfterFinish bool
 	UILocales       string
@@ -30,6 +31,7 @@ type SessionOptions struct {
 
 func NewSessionOptionsFromSession(s *Session) SessionOptions {
 	return SessionOptions{
+		WsChannelID:     s.WsChannelID,
 		RedirectURI:     s.RedirectURI,
 		KeepAfterFinish: s.KeepAfterFinish,
 		UILocales:       s.UILocales,
@@ -40,6 +42,8 @@ func NewSessionOptionsFromSession(s *Session) SessionOptions {
 
 type Session struct {
 	ID string `json:"id"`
+
+	WsChannelID string `json:"ws_channel_id"`
 
 	// Steps is a history stack of steps taken within this session.
 	Steps []SessionStep `json:"steps,omitempty"`
@@ -74,8 +78,13 @@ func newSessionID() string {
 }
 
 func NewSession(options SessionOptions) *Session {
+	id := newSessionID()
+	if options.WsChannelID == "" {
+		options.WsChannelID = id
+	}
 	s := &Session{
-		ID:              newSessionID(),
+		ID:              id,
+		WsChannelID:     options.WsChannelID,
 		RedirectURI:     options.RedirectURI,
 		KeepAfterFinish: options.KeepAfterFinish,
 		Extra:           make(map[string]interface{}),

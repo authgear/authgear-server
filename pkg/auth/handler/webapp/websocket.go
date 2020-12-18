@@ -38,13 +38,17 @@ func (h *WebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *WebsocketHandler) Accept(r *http.Request) (channelName string, err error) {
-	s := webapp.GetSession(r.Context())
-	if s == nil {
-		err = webapp.ErrSessionNotFound
-		return
+	wsChannelID := r.URL.Query().Get("ws_channel_id")
+	if wsChannelID == "" {
+		s := webapp.GetSession(r.Context())
+		if s == nil {
+			err = webapp.ErrSessionNotFound
+			return
+		}
+		wsChannelID = s.WsChannelID
 	}
 
-	channelName = WebsocketChannelName(string(h.AppID), s.ID)
+	channelName = WebsocketChannelName(string(h.AppID), wsChannelID)
 	return
 }
 
