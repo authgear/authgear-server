@@ -53,6 +53,8 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
       access_token_lifetime_seconds: undefined,
       refresh_token_lifetime_seconds: undefined,
       post_logout_redirect_uris: undefined,
+      issue_jwt_access_token: undefined,
+      is_first_party: undefined,
     },
   };
 }
