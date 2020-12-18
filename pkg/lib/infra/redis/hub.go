@@ -21,7 +21,7 @@ type SubscriberID struct {
 	Counter int64
 }
 
-func (i *SubscriberID) Get() int64 {
+func (i *SubscriberID) Next() int64 {
 	for {
 		curr := atomic.LoadInt64(&i.Counter)
 		if atomic.CompareAndSwapInt64(&i.Counter, curr, curr+1) {
@@ -30,7 +30,7 @@ func (i *SubscriberID) Get() int64 {
 	}
 }
 
-type SubscriberKey struct {
+type ChannelKey struct {
 	ConnKey     string
 	ChannelName string
 }
@@ -48,7 +48,7 @@ type Hub struct {
 
 	mutex      sync.RWMutex
 	pubsub     map[string]*redis.PubSub
-	subscriber map[SubscriberKey][]Subscriber
+	subscriber map[ChannelKey][]Subscriber
 }
 
 func NewHub(pool *Pool, lf *log.Factory) *Hub {
@@ -57,7 +57,7 @@ func NewHub(pool *Pool, lf *log.Factory) *Hub {
 		SubscriberID: &SubscriberID{},
 		Logger:       lf.New("redis-hub"),
 
-		subscriber: make(map[SubscriberKey][]Subscriber),
+		subscriber: make(map[ChannelKey][]Subscriber),
 		pubsub:     make(map[string]*redis.PubSub),
 	}
 	return h
@@ -74,9 +74,9 @@ func (h *Hub) Subscribe(
 	defer h.mutex.Unlock()
 
 	pubsub := h.getPubSub(cfg, credentials)
-	id := h.SubscriberID.Get()
+	id := h.SubscriberID.Next()
 
-	key := SubscriberKey{
+	key := ChannelKey{
 		ConnKey:     connKey,
 		ChannelName: channelName,
 	}
@@ -135,7 +135,7 @@ func (h *Hub) getPubSub(cfg *config.RedisConfig, credentials *config.RedisCreden
 				// Nothing special to do.
 				break
 			case *redis.Message:
-				key := SubscriberKey{
+				key := ChannelKey{
 					ConnKey:     connKey,
 					ChannelName: n.Channel,
 				}
