@@ -2,7 +2,6 @@ package redis
 
 import (
 	"context"
-	"os"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -117,24 +116,14 @@ func (h *Hub) getPubSub(cfg *config.RedisConfig, credentials *config.RedisCreden
 	h.pubsub[connKey] = pubsub
 
 	go func() {
+		c := pubsub.Channel()
 		for {
-			iface, err := pubsub.ReceiveTimeout(ctx, RedisReadTimeout)
-			if os.IsTimeout(err) {
-				continue
-			}
-			if err != nil {
-				h.cleanupAll(cfg, credentials)
-				return
-			}
-
-			switch n := iface.(type) {
-			case *redis.Subscription:
-				// Nothing special to do.
-				break
-			case *redis.Pong:
-				// Nothing special to do.
-				break
-			case *redis.Message:
+			select {
+			case n, ok := <-c:
+				if !ok {
+					h.cleanupAll(cfg, credentials)
+					return
+				}
 				key := ChannelKey{
 					ConnKey:     connKey,
 					ChannelName: n.Channel,
