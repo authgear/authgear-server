@@ -12,7 +12,7 @@ import (
 )
 
 type RedisHub interface {
-	Subscribe(channelName string) (chan *redis.Message, func(), error)
+	Subscribe(channelName string) (chan *redis.Message, func())
 }
 
 type WebsocketOutgoingMessage struct {
@@ -70,11 +70,7 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger = logger.WithField("channel", channelName)
 
 	go func() {
-		msgChan, cancel, err := h.RedisHub.Subscribe(channelName)
-		if err != nil {
-			errChan <- err
-			return
-		}
+		msgChan, cancel := h.RedisHub.Subscribe(channelName)
 
 		defer func() {
 			cancel()

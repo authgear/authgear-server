@@ -48,7 +48,7 @@ func (h *Handle) WithConn(f func(conn *redis.Conn) error) error {
 	return f(conn)
 }
 
-func (h *Handle) Subscribe(channelName string) (chan *redis.Message, func(), error) {
+func (h *Handle) Subscribe(channelName string) (chan *redis.Message, func()) {
 	return h.hub.Subscribe(h.cfg, h.credentials, channelName)
 }
 

@@ -4,16 +4,11 @@ import (
 	"context"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/log"
-)
-
-const (
-	RedisReadTimeout = 1 * time.Second
 )
 
 type SubscriberID struct {
@@ -29,14 +24,32 @@ func (i *SubscriberID) Next() int64 {
 	}
 }
 
-type ChannelKey struct {
-	ConnKey     string
-	ChannelName string
+type Subscriber struct {
+	ChannelName  string
+	SubscriberID int64
+	// The drop pattern
+	// See https://www.ardanlabs.com/blog/2017/10/the-behavior-of-channels.html
+	MessageChannel chan *redis.Message
 }
 
-type Subscriber struct {
+// ControlMessageJoin is essentially Subscriber.
+type ControlMessageJoin = Subscriber
+
+// ControlMessageLeave is basically Subscriber without MessageChannel.
+type ControlMessageLeave struct {
+	ChannelName  string
 	SubscriberID int64
-	Chan         chan *redis.Message
+}
+
+// PubSub is an actor wrapping redis.PubSub
+type PubSub struct {
+	PubSub     *redis.PubSub
+	Subscriber map[string][]Subscriber
+	// Mailbox handles 3 messages.
+	// 1. When the mailbox is closed, that means the actor should die.
+	// 2. ControlMessageJoin
+	// 3. ControlMessageLeave
+	Mailbox chan interface{}
 }
 
 // Hub aims to multiplex multiple subscription to Redis PubSub channel over a single connection.
@@ -45,9 +58,8 @@ type Hub struct {
 	SubscriberID *SubscriberID
 	Logger       *log.Logger
 
-	mutex      sync.RWMutex
-	pubsub     map[string]*redis.PubSub
-	subscriber map[ChannelKey][]Subscriber
+	mutex  sync.RWMutex
+	pubsub map[string]*PubSub
 }
 
 func NewHub(pool *Pool, lf *log.Factory) *Hub {
@@ -55,9 +67,7 @@ func NewHub(pool *Pool, lf *log.Factory) *Hub {
 		Pool:         pool,
 		SubscriberID: &SubscriberID{},
 		Logger:       lf.New("redis-hub"),
-
-		subscriber: make(map[ChannelKey][]Subscriber),
-		pubsub:     make(map[string]*redis.PubSub),
+		pubsub:       make(map[string]*PubSub),
 	}
 	return h
 }
@@ -66,45 +76,33 @@ func (h *Hub) Subscribe(
 	cfg *config.RedisConfig,
 	credentials *config.RedisCredentials,
 	channelName string,
-) (chan *redis.Message, func(), error) {
-	connKey := credentials.ConnKey()
-
-	h.mutex.Lock()
-	defer h.mutex.Unlock()
-
+) (chan *redis.Message, func()) {
 	pubsub := h.getPubSub(cfg, credentials)
+
 	id := h.SubscriberID.Next()
+	// The drop pattern
+	// See https://www.ardanlabs.com/blog/2017/10/the-behavior-of-channels.html
+	c := make(chan *redis.Message, 10)
 
-	key := ChannelKey{
-		ConnKey:     connKey,
-		ChannelName: channelName,
-	}
-
-	c := make(chan *redis.Message)
-
-	h.subscriber[key] = append(h.subscriber[key], Subscriber{
-		SubscriberID: id,
-		Chan:         c,
-	})
-
-	// Subscribe if it is the first subscriber.
-	if len(h.subscriber[key]) == 1 {
-		h.Logger.Infof("subscribe because the first subscriber is joining")
-		ctx := context.Background()
-		err := pubsub.Subscribe(ctx, channelName)
-		if err != nil {
-			return nil, nil, err
-		}
+	pubsub.Mailbox <- ControlMessageJoin{
+		ChannelName:    channelName,
+		SubscriberID:   id,
+		MessageChannel: c,
 	}
 
 	return c, func() {
-		h.cleanupOne(cfg, credentials, channelName, id)
-	}, nil
+		pubsub.Mailbox <- ControlMessageLeave{
+			SubscriberID: id,
+			ChannelName:  channelName,
+		}
+	}
 }
 
-func (h *Hub) getPubSub(cfg *config.RedisConfig, credentials *config.RedisCredentials) *redis.PubSub {
-	connKey := credentials.ConnKey()
+func (h *Hub) getPubSub(cfg *config.RedisConfig, credentials *config.RedisCredentials) *PubSub {
+	h.mutex.Lock()
+	defer h.mutex.Unlock()
 
+	connKey := credentials.ConnKey()
 	pubsub, ok := h.pubsub[connKey]
 	if ok {
 		return pubsub
@@ -112,122 +110,119 @@ func (h *Hub) getPubSub(cfg *config.RedisConfig, credentials *config.RedisCreden
 
 	ctx := context.Background()
 	client := h.Pool.Client(cfg, credentials)
-	pubsub = client.Subscribe(ctx)
+	redisPubSub := client.Subscribe(ctx)
+	mailbox := make(chan interface{})
+	pubsub = &PubSub{
+		PubSub:     redisPubSub,
+		Subscriber: make(map[string][]Subscriber),
+		Mailbox:    mailbox,
+	}
 	h.pubsub[connKey] = pubsub
 
+	// This goroutine is the actor code of PubSub.
 	go func() {
-		c := pubsub.Channel()
+		c := pubsub.PubSub.Channel()
 		for {
 			select {
-			case n, ok := <-c:
+			case n, ok := <-pubsub.Mailbox:
+				// The mailbox is closed. This actor is dying.
 				if !ok {
-					h.cleanupAll(cfg, credentials)
+					h.mutex.Lock()
+					defer h.mutex.Unlock()
+
+					// Close all subscriber channels
+					for channelName, subscribers := range pubsub.Subscriber {
+						for _, sub := range subscribers {
+							h.Logger.Infof("closing channel ID: %v", sub.SubscriberID)
+							close(sub.MessageChannel)
+						}
+						delete(pubsub.Subscriber, channelName)
+					}
+
+					delete(h.pubsub, connKey)
+
+					h.Logger.Infof("closing pubsub: %v", connKey)
+					err := pubsub.PubSub.Close()
+					if err != nil {
+						h.Logger.WithError(err).Errorf("failed to clean up all")
+					}
+
+					// Exit this actor.
 					return
 				}
-				key := ChannelKey{
-					ConnKey:     connKey,
-					ChannelName: n.Channel,
+
+				switch n := n.(type) {
+				case ControlMessageJoin:
+					pubsub.Subscriber[n.ChannelName] = append(
+						pubsub.Subscriber[n.ChannelName],
+						Subscriber{
+							ChannelName:    n.ChannelName,
+							SubscriberID:   n.SubscriberID,
+							MessageChannel: n.MessageChannel,
+						},
+					)
+
+					// Subscribe if it is the first subscriber.
+					if len(pubsub.Subscriber[n.ChannelName]) == 1 {
+						h.Logger.Infof("subscribe because the first subscriber is joining")
+						ctx := context.Background()
+						err := pubsub.PubSub.Subscribe(ctx, n.ChannelName)
+						if err != nil {
+							h.Logger.WithError(err).Errorf("failed to subscribe: %v", n.ChannelName)
+							close(pubsub.Mailbox)
+							break
+						}
+					}
+				case ControlMessageLeave:
+					numRemaining := -1
+					// Close the specific subscriber channel
+					subscribers := pubsub.Subscriber[n.ChannelName]
+					idx := -1
+					for i, sub := range subscribers {
+						if sub.SubscriberID == n.SubscriberID {
+							idx = i
+							break
+						}
+					}
+					if idx != -1 {
+						sub := subscribers[idx]
+						h.Logger.Infof("closing channel ID: %v", sub.SubscriberID)
+						close(sub.MessageChannel)
+					}
+
+					subscribers = append(subscribers[:idx], subscribers[idx+1:]...)
+					pubsub.Subscriber[n.ChannelName] = subscribers
+					numRemaining = len(subscribers)
+
+					// Unsubscribe if subscriber is the last one subscribing the channelName.
+					if numRemaining == 0 {
+						h.Logger.Infof("unsubscribe because the last subscriber is leaving")
+						ctx := context.Background()
+						err := pubsub.PubSub.Unsubscribe(ctx, n.ChannelName)
+						if err != nil {
+							h.Logger.WithError(err).Errorf("failed to unsubscribe: %v", n.ChannelName)
+						}
+					}
+				}
+			case n, ok := <-c:
+				if !ok {
+					close(pubsub.Mailbox)
+					break
 				}
 
-				h.mutex.RLock()
-				subs := make([]Subscriber, len(h.subscriber[key]))
-				copy(subs, h.subscriber[key])
-				h.mutex.RUnlock()
-
-				for _, s := range subs {
-					s.Chan <- n
+				for _, s := range pubsub.Subscriber[n.Channel] {
+					// The drop pattern
+					// See https://www.ardanlabs.com/blog/2017/10/the-behavior-of-channels.html
+					select {
+					case s.MessageChannel <- n:
+						break
+					default:
+						h.Logger.Debugf("dropped message to subscriber ID: %v", s.SubscriberID)
+					}
 				}
 			}
 		}
 	}()
 
 	return pubsub
-}
-
-func (h *Hub) cleanupAll(
-	cfg *config.RedisConfig,
-	credentials *config.RedisCredentials,
-) {
-	connKey := credentials.ConnKey()
-
-	h.mutex.Lock()
-	defer h.mutex.Unlock()
-
-	// Close all subscriber channels
-	for key, subscribers := range h.subscriber {
-		if key.ConnKey != connKey {
-			continue
-		}
-		for _, sub := range subscribers {
-			h.Logger.Infof("closing channel ID: %v", sub.SubscriberID)
-			close(sub.Chan)
-		}
-		delete(h.subscriber, key)
-	}
-
-	p, ok := h.pubsub[connKey]
-	if !ok {
-		return
-	}
-	defer func() {
-		delete(h.pubsub, connKey)
-	}()
-
-	h.Logger.Infof("closing pubsub: %v", connKey)
-	err := p.Close()
-	if err != nil {
-		h.Logger.WithError(err).Errorf("failed to clean up all")
-	}
-}
-
-func (h *Hub) cleanupOne(
-	cfg *config.RedisConfig,
-	credentials *config.RedisCredentials,
-	channelName string,
-	id int64,
-) {
-	connKey := credentials.ConnKey()
-
-	h.mutex.Lock()
-	defer h.mutex.Unlock()
-
-	numRemaining := -1
-	// Close the specific subscriber channel
-	for key, subscribers := range h.subscriber {
-		if key.ConnKey != connKey || key.ChannelName != channelName {
-			continue
-		}
-
-		idx := -1
-		for i, sub := range subscribers {
-			if sub.SubscriberID == id {
-				idx = i
-				break
-			}
-		}
-		if idx != -1 {
-			sub := subscribers[idx]
-			h.Logger.Infof("closing channel ID: %v", sub.SubscriberID)
-			close(sub.Chan)
-		}
-
-		subscribers = append(subscribers[:idx], subscribers[idx+1:]...)
-		h.subscriber[key] = subscribers
-		numRemaining = len(subscribers)
-	}
-
-	// Unsubscribe if subscriber is the last one subscribing the channelName.
-	if numRemaining == 0 {
-		h.Logger.Infof("unsubscribe because the last subscriber is leaving")
-		p, ok := h.pubsub[connKey]
-		if !ok {
-			return
-		}
-
-		ctx := context.Background()
-		err := p.Unsubscribe(ctx, channelName)
-		if err != nil {
-			h.Logger.WithError(err).Errorf("failed to unsubscribe: %v", channelName)
-		}
-	}
 }
