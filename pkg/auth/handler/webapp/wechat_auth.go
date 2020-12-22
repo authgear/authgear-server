@@ -25,7 +25,7 @@ var TemplateWebWechatAuthHandlerHTML = template.RegisterHTML(
 func ConfigureWechatAuthRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET").
-		WithPathPattern("/sso/wechat/auth")
+		WithPathPattern("/sso/wechat/auth/:alias")
 }
 
 type WeChatAuthViewModel struct {
@@ -96,7 +96,7 @@ func (h *WechatAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
 
 				data := InputOAuthCallback{
-					ProviderAlias:    step.FormData["x_alias"].(string),
+					ProviderAlias:    httproute.GetParam(r, "alias"),
 					NonceSource:      nonceSource,
 					Code:             step.FormData["x_code"].(string),
 					Scope:            step.FormData["x_scope"].(string),

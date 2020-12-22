@@ -12,7 +12,7 @@ const WechatActionCallback = "callback"
 func ConfigureWechatCallbackRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/sso/wechat/callback/:alias")
+		WithPathPattern("/sso/wechat/callback")
 }
 
 type WechatCallbackHandler struct {
@@ -37,7 +37,6 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 		step := session.CurrentStep()
 		step.FormData["x_action"] = WechatActionCallback
-		step.FormData["x_alias"] = httproute.GetParam(r, "alias")
 		step.FormData["x_code"] = r.Form.Get("code")
 		step.FormData["x_scope"] = r.Form.Get("scope")
 		step.FormData["x_error"] = r.Form.Get("error")
