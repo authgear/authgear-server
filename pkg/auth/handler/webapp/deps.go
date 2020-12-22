@@ -11,6 +11,8 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(ControllerDeps), "*"),
 	wire.Struct(new(ControllerFactory), "*"),
 
+	NewPublisher,
+
 	wire.Struct(new(PanicMiddleware), "*"),
 
 	wire.Struct(new(StaticAssetsHandler), "*"),

@@ -1,10 +1,7 @@
 package webapp
 
 import (
-	"encoding/json"
 	"net/http"
-
-	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -15,7 +12,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/log"
-	"github.com/authgear/authgear-server/pkg/util/pubsub"
 )
 
 type PageService interface {
@@ -41,6 +37,7 @@ type ControllerDeps struct {
 	Page          PageService
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
+	Publisher     *Publisher
 
 	TrustProxy config.TrustProxy
 }
@@ -110,36 +107,17 @@ func (c *Controller) GetSession(id string) (*webapp.Session, error) {
 	return c.Page.GetSession(id)
 }
 
-type redisPool struct {
-	RedisHandle *redis.Handle
-}
-
-func (p *redisPool) Get() *goredis.Client {
-	return p.RedisHandle.Client()
-}
-
 func (c *Controller) UpdateSession(s *webapp.Session) error {
 	err := c.Page.UpdateSession(s)
 	if err != nil {
 		return err
 	}
 
-	publisher := &pubsub.Publisher{
-		RedisPool: &redisPool{c.RedisHandle},
-	}
-
-	channelName := WebsocketChannelName(string(c.AppID), s.ID)
-
 	msg := &WebsocketMessage{
 		Kind: WebsocketMessageKindRefresh,
 	}
 
-	b, err := json.Marshal(msg)
-	if err != nil {
-		return err
-	}
-
-	err = publisher.Publish(channelName, b)
+	err = c.Publisher.Publish(s, msg)
 	if err != nil {
 		return err
 	}
