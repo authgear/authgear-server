@@ -269,6 +269,7 @@ window.api.onLoad(() => {
 window.api.onLoad(() => {
   const e = document.querySelector('[data-auto-submit="true"]');
   if (e instanceof HTMLElement) {
+    e.removeAttribute("data-auto-submit");
     e.click();
   }
 });
