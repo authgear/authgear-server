@@ -38,7 +38,7 @@ func (h *WebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *WebsocketHandler) Accept(r *http.Request) (channelName string, err error) {
-	wsChannelID := r.URL.Query().Get("ws_channel_id")
+	wsChannelID := r.URL.Query().Get("x_ws_channel_id")
 	if wsChannelID == "" {
 		s := webapp.GetSession(r.Context())
 		if s == nil {
