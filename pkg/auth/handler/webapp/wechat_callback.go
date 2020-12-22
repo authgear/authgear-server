@@ -3,11 +3,17 @@ package webapp
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 const WechatActionCallback = "callback"
+
+type JSONResponseWriter interface {
+	WriteResponse(rw http.ResponseWriter, resp *api.Response)
+}
 
 func ConfigureWechatCallbackRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -17,6 +23,7 @@ func ConfigureWechatCallbackRoute(route httproute.Route) httproute.Route {
 
 type WechatCallbackHandler struct {
 	ControllerFactory ControllerFactory
+	JSON              JSONResponseWriter
 }
 
 func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -29,7 +36,7 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 	sessionID := r.Form.Get("state")
 
-	handler := func() error {
+	updateWebSession := func() error {
 		session, err := ctrl.GetSession(sessionID)
 		if err != nil {
 			return err
@@ -49,6 +56,25 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 			return err
 		}
 
+		return nil
+	}
+
+	handler := func() error {
+		err := updateWebSession()
+		// serve api
+		if httputil.IsJSONContentType(r.Header.Get("content-type")) {
+			if err == nil {
+				h.JSON.WriteResponse(w, &api.Response{Result: nil})
+			} else {
+				h.JSON.WriteResponse(w, &api.Response{Error: err})
+			}
+			return nil
+		}
+
+		// serve webapp page
+		if err != nil {
+			return err
+		}
 		result := &webapp.Result{
 			RedirectURI: "/return",
 		}
