@@ -20,10 +20,7 @@ var TemplateWebSetupOOBOTPHTML = template.RegisterHTML(
 	components...,
 )
 
-const SetupOOBOTPRequestSchema = "SetupOOBOTPRequestSchema"
-
-var SetupOOBOTPSchema = validation.NewMultipartSchema("").
-	Add(SetupOOBOTPRequestSchema, `
+var SetupOOBOTPSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
@@ -56,7 +53,7 @@ var SetupOOBOTPSchema = validation.NewMultipartSchema("").
 			}
 		]
 	}
-	`).Instantiate()
+`)
 
 func ConfigureSetupOOBOTPRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -184,7 +181,7 @@ func (h *SetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctrl.PostAction("", func() error {
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
-			err = SetupOOBOTPSchema.PartValidator(SetupOOBOTPRequestSchema).ValidateValue(FormToJSON(r.Form))
+			err = SetupOOBOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return
 			}

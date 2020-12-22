@@ -146,10 +146,7 @@ var createCollaboratorInvitationInput = graphql.NewInputObject(graphql.InputObje
 	},
 })
 
-var createCollaboratorInvitationInputSchemaName = "CreateCollaboratorInvitationInputSchema"
-
-var createCollaboratorInvitationInputSchema = validation.NewMultipartSchema("").
-	Add(createCollaboratorInvitationInputSchemaName, `
+var createCollaboratorInvitationInputSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
@@ -161,7 +158,7 @@ var createCollaboratorInvitationInputSchema = validation.NewMultipartSchema("").
 		},
 		"required": ["appID", "inviteeEmail"]
 	}
-	`).Instantiate()
+`)
 
 var createCollaboratorInvitationPayload = graphql.NewObject(graphql.ObjectConfig{
 	Name: "CreateCollaboratorInvitationPayload",
@@ -183,9 +180,7 @@ var _ = registerMutationField(
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			input := p.Args["input"].(map[string]interface{})
-			err := createCollaboratorInvitationInputSchema.PartValidator(
-				createCollaboratorInvitationInputSchemaName,
-			).ValidateValue(input)
+			err := createCollaboratorInvitationInputSchema.Validator().ValidateValue(input)
 			if err != nil {
 				return nil, err
 			}

@@ -47,56 +47,52 @@ func NewEnterLoginIDViewModel(r *http.Request, displayID string) EnterLoginIDVie
 	}
 }
 
-const RemoveLoginIDRequest = "RemoveLoginIDRequest"
-const AddOrUpdateLoginIDRequest = "AddOrUpdateLoginIDRequest"
+var RemoveLoginIDSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"x_identity_id": { "type": "string" }
+		},
+		"required": ["x_login_id_key"]
+	}
+`)
 
-var EnterLoginIDSchema = validation.NewMultipartSchema("").
-	Add(RemoveLoginIDRequest, `
-		{
-			"type": "object",
-			"properties": {
-				"x_login_id_key": { "type": "string" },
-				"x_identity_id": { "type": "string" }
-			},
-			"required": ["x_login_id_key", "x_identity_id"]
-		}
-	`).
-	Add(AddOrUpdateLoginIDRequest, `
-		{
-			"type": "object",
-			"properties": {
-				"x_login_id_input_type": { "type": "string" },
-				"x_login_id_key": { "type": "string" },
-				"x_login_id_type": { "type": "string" },
-				"x_calling_code": { "type": "string" },
-				"x_national_number": { "type": "string" },
-				"x_login_id": { "type": "string" }
-			},
-			"required": ["x_login_id_input_type", "x_login_id_key", "x_login_id_type"],
-			"allOf": [
-				{
-					"if": {
-						"properties": {
-							"x_login_id_key": { "type": "string", "const": "phone" }
-						}
-					},
-					"then": {
-						"required": ["x_calling_code", "x_national_number"]
+var AddOrUpdateLoginIDSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"x_login_id_input_type": { "type": "string" },
+			"x_login_id_key": { "type": "string" },
+			"x_login_id_type": { "type": "string" },
+			"x_calling_code": { "type": "string" },
+			"x_national_number": { "type": "string" },
+			"x_login_id": { "type": "string" }
+		},
+		"required": ["x_login_id_input_type", "x_login_id_key", "x_login_id_type"],
+		"allOf": [
+			{
+				"if": {
+					"properties": {
+						"x_login_id_key": { "type": "string", "const": "phone" }
 					}
 				},
-				{
-					"if": {
-						"properties": {
-							"x_login_id_key": { "type": "string", "enum": ["username", "email"] }
-						}
-					},
-					"then": {
-						"required": ["x_login_id"]
-					}
+				"then": {
+					"required": ["x_calling_code", "x_national_number"]
 				}
-			]
-		}
-	`).Instantiate()
+			},
+			{
+				"if": {
+					"properties": {
+						"x_login_id_key": { "type": "string", "enum": ["username", "email"] }
+					}
+				},
+				"then": {
+					"required": ["x_login_id"]
+				}
+			}
+		]
+	}
+`)
 
 func ConfigureEnterLoginIDRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -162,6 +158,11 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		intent := intents.NewIntentRemoveIdentity(userID)
 
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			err = RemoveLoginIDSchema.Validator().ValidateValue(FormToJSON(r.Form))
+			if err != nil {
+				return nil, err
+			}
+
 			input = &InputRemoveIdentity{
 				Type: authn.IdentityTypeLoginID,
 				ID:   identityID,
@@ -190,7 +191,7 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		}
 
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
-			err = EnterLoginIDSchema.PartValidator(AddOrUpdateLoginIDRequest).ValidateValue(FormToJSON(r.Form))
+			err = AddOrUpdateLoginIDSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return nil, err
 			}

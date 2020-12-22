@@ -16,18 +16,15 @@ var TemplateWebEnterRecoveryCodeHTML = template.RegisterHTML(
 	components...,
 )
 
-const EnterRecoveryCodeRequestSchema = "EnterRecoveryCodeRequestSchema"
-
-var EnterRecoveryCodeSchema = validation.NewMultipartSchema("").
-	Add(EnterRecoveryCodeRequestSchema, `
-		{
-			"type": "object",
-			"properties": {
-				"x_code": { "type": "string" }
-			},
-			"required": ["x_code"]
-		}
-	`).Instantiate()
+var EnterRecoveryCodeSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"x_code": { "type": "string" }
+		},
+		"required": ["x_code"]
+	}
+`)
 
 func ConfigureEnterRecoveryCodeRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -96,7 +93,7 @@ func (h *EnterRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 
 	ctrl.PostAction("", func() error {
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
-			err = EnterRecoveryCodeSchema.PartValidator(EnterRecoveryCodeRequestSchema).ValidateValue(FormToJSON(r.Form))
+			err = EnterRecoveryCodeSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return
 			}

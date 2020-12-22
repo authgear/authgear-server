@@ -18,45 +18,42 @@ var TemplateWebSignupHTML = template.RegisterHTML(
 	components...,
 )
 
-const SignupWithLoginIDRequestSchema = "SignupWithLoginIDRequestSchema"
-
-var SignupSchema = validation.NewMultipartSchema("").
-	Add(SignupWithLoginIDRequestSchema, `
-		{
-			"type": "object",
-			"properties": {
-				"x_login_id_key": { "type": "string" },
-				"x_login_id_type": { "type": "string" },
-				"x_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] },
-				"x_calling_code": { "type": "string" },
-				"x_national_number": { "type": "string" },
-				"x_login_id": { "type": "string" }
-			},
-			"required": ["x_login_id_key", "x_login_id_type", "x_login_id_input_type"],
-			"allOf": [
-				{
-					"if": {
-						"properties": {
-							"x_login_id_input_type": { "type": "string", "const": "phone" }
-						}
-					},
-					"then": {
-						"required": ["x_calling_code", "x_national_number"]
+var SignupWithLoginIDSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"x_login_id_key": { "type": "string" },
+			"x_login_id_type": { "type": "string" },
+			"x_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] },
+			"x_calling_code": { "type": "string" },
+			"x_national_number": { "type": "string" },
+			"x_login_id": { "type": "string" }
+		},
+		"required": ["x_login_id_key", "x_login_id_type", "x_login_id_input_type"],
+		"allOf": [
+			{
+				"if": {
+					"properties": {
+						"x_login_id_input_type": { "type": "string", "const": "phone" }
 					}
 				},
-				{
-					"if": {
-						"properties": {
-							"x_login_id_input_type": { "type": "string", "enum": ["text", "email"] }
-						}
-					},
-					"then": {
-						"required": ["x_login_id"]
-					}
+				"then": {
+					"required": ["x_calling_code", "x_national_number"]
 				}
-			]
-		}
-	`).Instantiate()
+			},
+			{
+				"if": {
+					"properties": {
+						"x_login_id_input_type": { "type": "string", "enum": ["text", "email"] }
+					}
+				},
+				"then": {
+					"required": ["x_login_id"]
+				}
+			}
+		]
+	}
+`)
 
 func ConfigureSignupRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -133,7 +130,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctrl.PostAction("login_id", func() error {
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
-			err = SignupSchema.PartValidator(SignupWithLoginIDRequestSchema).ValidateValue(FormToJSON(r.Form))
+			err = SignupWithLoginIDSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return
 			}

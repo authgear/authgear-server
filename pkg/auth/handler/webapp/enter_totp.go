@@ -16,18 +16,15 @@ var TemplateWebEnterTOTPHTML = template.RegisterHTML(
 	components...,
 )
 
-const EnterTOTPRequestSchema = "EnterTOTPRequestSchema"
-
-var EnterTOTPSchema = validation.NewMultipartSchema("").
-	Add(EnterTOTPRequestSchema, `
-		{
-			"type": "object",
-			"properties": {
-				"x_code": { "type": "string" }
-			},
-			"required": ["x_code"]
-		}
-	`).Instantiate()
+var EnterTOTPSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"x_code": { "type": "string" }
+		},
+		"required": ["x_code"]
+	}
+`)
 
 func ConfigureEnterTOTPRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -88,7 +85,7 @@ func (h *EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctrl.PostAction("", func() error {
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
-			err = EnterTOTPSchema.PartValidator(EnterTOTPRequestSchema).ValidateValue(FormToJSON(r.Form))
+			err = EnterTOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return
 			}

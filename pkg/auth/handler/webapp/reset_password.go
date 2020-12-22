@@ -17,20 +17,17 @@ var TemplateWebResetPasswordHTML = template.RegisterHTML(
 	components...,
 )
 
-const ResetPasswordRequestSchema = "ResetPasswordRequestSchema"
-
-var ResetPasswordSchema = validation.NewMultipartSchema("").
-	Add(ResetPasswordRequestSchema, `
-		{
-			"type": "object",
-			"properties": {
-				"code": { "type": "string" },
-				"x_password": { "type": "string" },
-				"x_confirm_password": { "type": "string" }
-			},
-			"required": ["code", "x_password", "x_confirm_password"]
-		}
-	`).Instantiate()
+var ResetPasswordSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"code": { "type": "string" },
+			"x_password": { "type": "string" },
+			"x_confirm_password": { "type": "string" }
+		},
+		"required": ["code", "x_password", "x_confirm_password"]
+	}
+`)
 
 func ConfigureResetPasswordRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -83,7 +80,7 @@ func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 	ctrl.PostAction("", func() error {
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
-			err = ResetPasswordSchema.PartValidator(ResetPasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
+			err = ResetPasswordSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return
 			}

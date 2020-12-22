@@ -20,10 +20,7 @@ var TemplateWebLoginHTML = template.RegisterHTML(
 	components...,
 )
 
-const LoginWithLoginIDRequestSchema = "LoginWithLoginIDRequestSchema"
-
-var LoginSchema = validation.NewMultipartSchema("").
-	Add(LoginWithLoginIDRequestSchema, `
+var LoginWithLoginIDSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
@@ -56,7 +53,7 @@ var LoginSchema = validation.NewMultipartSchema("").
 			}
 		]
 	}
-	`).Instantiate()
+`)
 
 func ConfigureLoginRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -133,7 +130,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctrl.PostAction("login_id", func() error {
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
-			err = LoginSchema.PartValidator(LoginWithLoginIDRequestSchema).ValidateValue(FormToJSON(r.Form))
+			err = LoginWithLoginIDSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return
 			}

@@ -18,19 +18,16 @@ var TemplateWebCreatePasswordHTML = template.RegisterHTML(
 	components...,
 )
 
-const CreatePasswordRequestSchema = "CreatePasswordRequestSchema"
-
-var CreatePasswordSchema = validation.NewMultipartSchema("").
-	Add(CreatePasswordRequestSchema, `
-		{
-			"type": "object",
-			"properties": {
-				"x_password": { "type": "string" },
-				"x_confirm_password": { "type": "string" }
-			},
-			"required": ["x_password", "x_confirm_password"]
-		}
-	`).Instantiate()
+var CreatePasswordSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"x_password": { "type": "string" },
+			"x_confirm_password": { "type": "string" }
+		},
+		"required": ["x_password", "x_confirm_password"]
+	}
+`)
 
 func ConfigureCreatePasswordRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -128,7 +125,7 @@ func (h *CreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 	ctrl.PostAction("", func() error {
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
-			err = CreatePasswordSchema.PartValidator(CreatePasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
+			err = CreatePasswordSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return
 			}
