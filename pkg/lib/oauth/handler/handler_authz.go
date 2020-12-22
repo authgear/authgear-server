@@ -37,10 +37,11 @@ func NewAuthorizationHandlerLogger(lf *log.Factory) AuthorizationHandlerLogger {
 }
 
 type AuthorizationHandler struct {
-	Context context.Context
-	AppID   config.AppID
-	Config  *config.OAuthConfig
-	Logger  AuthorizationHandlerLogger
+	Context    context.Context
+	AppID      config.AppID
+	Config     *config.OAuthConfig
+	HTTPConfig *config.HTTPConfig
+	Logger     AuthorizationHandlerLogger
 
 	Authorizations  oauth.AuthorizationStore
 	CodeGrants      oauth.CodeGrantStore
@@ -60,7 +61,7 @@ func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.
 			Response:     protocol.NewErrorResponse("unauthorized_client", "invalid client ID"),
 		}
 	}
-	redirectURI, errResp := parseRedirectURI(client, r)
+	redirectURI, errResp := parseRedirectURI(client, h.HTTPConfig, r)
 	if errResp != nil {
 		return authorizationResultError{
 			ResponseMode: r.ResponseMode(),

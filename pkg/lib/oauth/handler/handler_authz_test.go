@@ -28,6 +28,9 @@ func TestAuthorizationHandler(t *testing.T) {
 			Context: context.Background(),
 			AppID:   "app-id",
 			Config:  &config.OAuthConfig{},
+			HTTPConfig: &config.HTTPConfig{
+				PublicOrigin: "http://accounts.example.com",
+			},
 
 			Authorizations: authzStore,
 			CodeGrants:     codeGrantStore,
@@ -71,6 +74,13 @@ func TestAuthorizationHandler(t *testing.T) {
 					"Invalid OAuth authorization request:\n"+
 						"error: invalid_request\n"+
 						"error_description: redirect URI is not allowed\n")
+			})
+			Convey("implicitly allowed redirect URI on AS", func() {
+				resp := handle(protocol.AuthorizationRequest{
+					"client_id":    "client-id",
+					"redirect_uri": "http://accounts.example.com/settings",
+				})
+				So(resp.Result().StatusCode, ShouldEqual, 200)
 			})
 		})
 

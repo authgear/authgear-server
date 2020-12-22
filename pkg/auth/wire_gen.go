@@ -66,6 +66,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	oAuthConfig := appConfig.OAuth
+	httpConfig := appConfig.HTTP
 	authorizationHandlerLogger := handler.NewAuthorizationHandlerLogger(factory)
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -107,7 +108,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
@@ -546,6 +546,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Context:         context,
 		AppID:           appID,
 		Config:          oAuthConfig,
+		HTTPConfig:      httpConfig,
 		Logger:          authorizationHandlerLogger,
 		Authorizations:  authorizationStore,
 		CodeGrants:      store,
