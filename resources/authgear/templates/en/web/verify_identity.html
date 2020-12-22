@@ -43,7 +43,15 @@
 	value="{{ $.VerificationCode }}"
 	{{ if eq $.Action "update_session_step" }}readonly{{ end }}
 >
-<button class="btn primary-btn align-self-flex-end" type="submit" name="x_action" value="{{ $.Action }}">{{ template "next-button-label" }}</button>
+<button
+	class="btn primary-btn align-self-flex-end"
+	type="submit"
+	name="x_action"
+	value="{{ $.Action }}"
+	{{ if eq $.Action "submit" }}{{ if $.VerificationCode }}data-auto-submit="true"{{ end }}{{ end }}
+>
+{{ template "next-button-label" }}
+</button>
 </form>
 
 <form class="link verify-user-trigger-form" method="post" novalidate>
