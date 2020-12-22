@@ -191,7 +191,7 @@ export type VerificationCriteria = typeof verificationCriteriaList[number];
 // type alias of integer in JSON schema
 type DurationSeconds = number;
 
-interface VerificationConfig {
+export interface VerificationConfig {
   claims?: VerificationClaimsConfig;
   criteria?: VerificationCriteria;
   code_expiry_seconds?: DurationSeconds;

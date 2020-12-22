@@ -34,6 +34,7 @@ import HooksSettings from "./graphql/portal/HooksSettings";
 import CORSConfigurationScreen from "./graphql/portal/CORSConfigurationScreen";
 import AuthenticationLoginIDSettingsScreen from "./graphql/portal/AuthenticationLoginIDSettings";
 import AuthenticationAuthenticatorSettingsScreen from "./graphql/portal/AuthenticationAuthenticatorSettings";
+import VerificationConfigurationScreen from "./graphql/portal/VerificationConfigurationScreen";
 
 const AppRoot: React.FC = function AppRoot() {
   const { appID } = useParams();
@@ -94,6 +95,10 @@ const AppRoot: React.FC = function AppRoot() {
           <Route
             path="/configuration/authentication/authenticators"
             element={<AuthenticationAuthenticatorSettingsScreen />}
+          />
+          <Route
+            path="/configuration/authentication/verification"
+            element={<VerificationConfigurationScreen />}
           />
           <Route
             path="/configuration/anonymous-users"

@@ -59,6 +59,10 @@ const links: NavLinkProps[] = [
         textKey: "AuthenticationAuthenticatorSettingsScreen.title.nav",
         url: "configuration/authentication/authenticators",
       },
+      {
+        textKey: "VerificationConfigurationScreen.title.nav",
+        url: "configuration/authentication/verification",
+      },
     ],
   },
   {
