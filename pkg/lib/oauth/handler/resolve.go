@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -19,7 +20,7 @@ func resolveClient(config *config.OAuthConfig, r oauthRequest) *config.OAuthClie
 	return nil
 }
 
-func parseRedirectURI(client *config.OAuthClientConfig, r oauthRequest) (*url.URL, protocol.ErrorResponse) {
+func parseRedirectURI(client *config.OAuthClientConfig, http *config.HTTPConfig, r oauthRequest) (*url.URL, protocol.ErrorResponse) {
 	allowedURIs := client.RedirectURIs
 	redirectURIString := r.RedirectURI()
 	if len(allowedURIs) == 1 && redirectURIString == "" {
@@ -33,12 +34,22 @@ func parseRedirectURI(client *config.OAuthClientConfig, r oauthRequest) (*url.UR
 	}
 
 	allowed := false
+
 	for _, u := range allowedURIs {
 		if u == redirectURIString {
 			allowed = true
 			break
 		}
 	}
+
+	// Implicitly allow URIs at same origin as the AS.
+	// NOTE: this is a willful violation of OAuth spec, since first-party apps
+	//       would often want to open pages on AS using OAuth mechanism.
+	redirectURIOrigin := fmt.Sprintf("%s://%s", redirectURI.Scheme, redirectURI.Host)
+	if redirectURIOrigin == http.PublicOrigin {
+		allowed = true
+	}
+
 	if !allowed {
 		return nil, protocol.NewErrorResponse("invalid_request", "redirect URI is not allowed")
 	}
