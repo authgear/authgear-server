@@ -3,7 +3,6 @@ package pubsub
 import (
 	"context"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -12,8 +11,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-type RedisPool interface {
-	Get() *redis.Client
+type RedisHub interface {
+	Subscribe(channelName string) (chan *redis.Message, func())
 }
 
 type WebsocketOutgoingMessage struct {
@@ -28,14 +27,13 @@ type Delegate interface {
 const (
 	WebsocketReadTimeout  = 30 * time.Second
 	WebsocketWriteTimeout = 10 * time.Second
-	RedisReadTimeout      = 1 * time.Second
 )
 
 // HTTPHandler receives incoming websocket messages and delegates them to the delegate.
 // For each websocket connection, a redis pubsub connection is established.
 // Every message from the redis pubsub connection is forwarded to the websocket connection verbatim.
 type HTTPHandler struct {
-	RedisPool     RedisPool
+	RedisHub      RedisHub
 	Delegate      Delegate
 	LoggerFactory *log.Factory
 }
@@ -72,11 +70,10 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger = logger.WithField("channel", channelName)
 
 	go func() {
-		redisClient := h.RedisPool.Get()
-		psc := redisClient.Subscribe(rootCtx, channelName)
+		msgChan, cancel := h.RedisHub.Subscribe(channelName)
 
 		defer func() {
-			psc.Close()
+			cancel()
 			logger.Info("redis goroutine is tearing down")
 		}()
 
@@ -84,34 +81,17 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			select {
 			case <-doneChan:
 				return
-			default:
-				// Even though ReceiveTimeout takes context,
-				// cancelling the context does not immediately make ReceiveTimeout return error.
-				// Therefore, we have to use a small enough timeout to ensure pubsub is closed within a reasonble delay.
-				iface, err := psc.ReceiveTimeout(rootCtx, RedisReadTimeout)
-				if os.IsTimeout(err) {
-					continue
-				}
-				if err != nil {
-					errChan <- err
+			case n, ok := <-msgChan:
+				if !ok {
 					return
 				}
 
-				switch n := iface.(type) {
-				case *redis.Message:
-					writeCtx, cancel := context.WithTimeout(rootCtx, WebsocketWriteTimeout)
-					defer cancel()
-					err := wsConn.Write(writeCtx, websocket.MessageText, []byte(n.Payload))
-					if err != nil {
-						errChan <- err
-						return
-					}
-				case *redis.Subscription:
-					// Nothing special to do.
-					break
-				case *redis.Pong:
-					// Nothing special to do.
-					break
+				writeCtx, cancel := context.WithTimeout(rootCtx, WebsocketWriteTimeout)
+				defer cancel()
+				err := wsConn.Write(writeCtx, websocket.MessageText, []byte(n.Payload))
+				if err != nil {
+					errChan <- err
+					return
 				}
 			}
 		}

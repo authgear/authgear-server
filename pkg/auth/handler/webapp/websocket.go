@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	goredis "github.com/go-redis/redis/v8"
-
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
@@ -28,16 +26,12 @@ type WebsocketHandler struct {
 
 func (h *WebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	handler := &pubsub.HTTPHandler{
-		RedisPool:     h,
+		RedisHub:      h.RedisHandle,
 		Delegate:      h,
 		LoggerFactory: h.LoggerFactory,
 	}
 
 	handler.ServeHTTP(w, r)
-}
-
-func (h *WebsocketHandler) Get() *goredis.Client {
-	return h.RedisHandle.Pool()
 }
 
 func (h *WebsocketHandler) Accept(r *http.Request) (channelName string, err error) {

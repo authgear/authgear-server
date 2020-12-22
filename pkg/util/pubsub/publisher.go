@@ -2,7 +2,13 @@ package pubsub
 
 import (
 	"context"
+
+	"github.com/go-redis/redis/v8"
 )
+
+type RedisPool interface {
+	Get() *redis.Client
+}
 
 type Publisher struct {
 	RedisPool RedisPool

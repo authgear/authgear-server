@@ -10,15 +10,18 @@ import (
 )
 
 type Handle struct {
-	pool        *Pool
+	pool *Pool
+	hub  *Hub
+
 	cfg         *config.RedisConfig
 	credentials *config.RedisCredentials
 	logger      *log.Logger
 }
 
-func NewHandle(pool *Pool, cfg *config.RedisConfig, credentials *config.RedisCredentials, lf *log.Factory) *Handle {
+func NewHandle(pool *Pool, hub *Hub, cfg *config.RedisConfig, credentials *config.RedisCredentials, lf *log.Factory) *Handle {
 	return &Handle{
 		pool:        pool,
+		hub:         hub,
 		cfg:         cfg,
 		logger:      lf.New("redis-handle"),
 		credentials: credentials,
@@ -34,7 +37,7 @@ func (h *Handle) WithConn(f func(conn *redis.Conn) error) error {
 	}).Debug("open redis connection")
 
 	ctx := context.Background()
-	conn := h.Pool().Conn(ctx)
+	conn := h.Client().Conn(ctx)
 	defer func() {
 		err := conn.Close()
 		if err != nil {
@@ -45,6 +48,11 @@ func (h *Handle) WithConn(f func(conn *redis.Conn) error) error {
 	return f(conn)
 }
 
-func (h *Handle) Pool() *redis.Client {
-	return h.pool.Open(h.cfg, h.credentials)
+func (h *Handle) Subscribe(channelName string) (chan *redis.Message, func()) {
+	sub := h.hub.Subscribe(h.cfg, h.credentials, channelName)
+	return sub.MessageChannel, sub.Cancel
+}
+
+func (h *Handle) Client() *redis.Client {
+	return h.pool.Client(h.cfg, h.credentials)
 }

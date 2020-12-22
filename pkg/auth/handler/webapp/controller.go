@@ -115,7 +115,7 @@ type redisPool struct {
 }
 
 func (p *redisPool) Get() *goredis.Client {
-	return p.RedisHandle.Pool()
+	return p.RedisHandle.Client()
 }
 
 func (c *Controller) UpdateSession(s *webapp.Session) error {

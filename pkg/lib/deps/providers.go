@@ -24,6 +24,7 @@ type RootProvider struct {
 	SentryHub          *getsentry.Hub
 	DatabasePool       *db.Pool
 	RedisPool          *redis.Pool
+	RedisHub           *redis.Hub
 	TaskQueueFactory   TaskQueueFactory
 	BaseResources      *resource.Manager
 }
@@ -55,6 +56,7 @@ func NewRootProvider(
 
 	dbPool := db.NewPool()
 	redisPool := redis.NewPool()
+	redisHub := redis.NewHub(redisPool, loggerFactory)
 
 	p = RootProvider{
 		EnvironmentConfig:  cfg,
@@ -63,6 +65,7 @@ func NewRootProvider(
 		SentryHub:          sentryHub,
 		DatabasePool:       dbPool,
 		RedisPool:          redisPool,
+		RedisHub:           redisHub,
 		TaskQueueFactory:   taskQueueFactory,
 		BaseResources: resource.NewManagerWithDir(
 			resource.DefaultRegistry,
@@ -90,6 +93,7 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 	)
 	redis := redis.NewHandle(
 		p.RedisPool,
+		p.RedisHub,
 		cfg.AppConfig.Redis,
 		cfg.SecretConfig.LookupData(config.RedisCredentialsKey).(*config.RedisCredentials),
 		loggerFactory,
