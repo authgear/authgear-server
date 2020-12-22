@@ -24,10 +24,7 @@ var TemplateWebSetupTOTPHTML = template.RegisterHTML(
 	components...,
 )
 
-const SetupTOTPRequestSchema = "SetupTOTPRequestSchema"
-
-var SetupTOTPSchema = validation.NewMultipartSchema("").
-	Add(SetupTOTPRequestSchema, `
+var SetupTOTPSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
@@ -35,7 +32,7 @@ var SetupTOTPSchema = validation.NewMultipartSchema("").
 		},
 		"required": ["x_code"]
 	}
-	`).Instantiate()
+`)
 
 func ConfigureSetupTOTPRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -158,7 +155,7 @@ func (h *SetupTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctrl.PostAction("", func() error {
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
-			err = SetupTOTPSchema.PartValidator(SetupTOTPRequestSchema).ValidateValue(FormToJSON(r.Form))
+			err = SetupTOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return
 			}

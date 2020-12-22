@@ -17,18 +17,15 @@ var TemplateWebEnterPasswordHTML = template.RegisterHTML(
 	components...,
 )
 
-const EnterPasswordRequestSchema = "EnterPasswordRequestSchema"
-
-var EnterPasswordSchema = validation.NewMultipartSchema("").
-	Add(EnterPasswordRequestSchema, `
-		{
-			"type": "object",
-			"properties": {
-				"x_password": { "type": "string" }
-			},
-			"required": ["x_password"]
-		}
-	`).Instantiate()
+var EnterPasswordSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"x_password": { "type": "string" }
+		},
+		"required": ["x_password"]
+	}
+`)
 
 func ConfigureEnterPasswordRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -129,7 +126,7 @@ func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 	ctrl.PostAction("", func() error {
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
-			err = EnterPasswordSchema.PartValidator(EnterPasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
+			err = EnterPasswordSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return
 			}

@@ -17,20 +17,17 @@ var TemplateWebChangeSecondaryPasswordHTML = template.RegisterHTML(
 	components...,
 )
 
-const ChangeSecondaryPasswordRequestSchema = "ChangeSecondaryPasswordRequestSchema"
-
-var ChangeSecondaryPasswordSchema = validation.NewMultipartSchema("").
-	Add(ChangeSecondaryPasswordRequestSchema, `
-		{
-			"type": "object",
-			"properties": {
-				"x_old_password": { "type": "string" },
-				"x_new_password": { "type": "string" },
-				"x_confirm_password": { "type": "string" }
-			},
-			"required": ["x_old_password", "x_new_password", "x_confirm_password"]
-		}
-	`).Instantiate()
+var ChangeSecondaryPasswordSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"x_old_password": { "type": "string" },
+			"x_new_password": { "type": "string" },
+			"x_confirm_password": { "type": "string" }
+		},
+		"required": ["x_old_password", "x_new_password", "x_confirm_password"]
+	}
+`)
 
 func ConfigureChangeSecondaryPasswordRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -84,7 +81,7 @@ func (h *ChangeSecondaryPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 
 	ctrl.PostAction("", func() error {
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
-			err = ChangeSecondaryPasswordSchema.PartValidator(ChangeSecondaryPasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
+			err = ChangeSecondaryPasswordSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return
 			}

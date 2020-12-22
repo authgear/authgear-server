@@ -17,33 +17,27 @@ func ConfigureChallengeRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/oauth2/challenge")
 }
 
-const (
-	ChallengeAPISchemaIDRequest  = "OAuthChallengeRequest"
-	ChallengeAPISchemaIDResponse = "OAuthChallengeResponse"
-)
+var ChallengeAPIRequestSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"purpose": { "type": "string" }
+		},
+		"required": ["purpose"]
+	}
+`)
 
-var ChallengeAPISchema = validation.NewMultipartSchema("").
-	Add(ChallengeAPISchemaIDRequest, `
-		{
-			"type": "object",
-			"additionalProperties": false,
-			"properties": {
-				"purpose": { "type": "string" }
-			},
-			"required": ["purpose"]
-		}
-	`).
-	Add(ChallengeAPISchemaIDResponse, `
-		{
-			"type": "object",
-			"properties": {
-				"token": { "type": "string" },
-				"expire_at": { "type": "string" }
-			},
-			"required": ["token", "expire_at"]
-		}
-	`).
-	Instantiate()
+var ChallengeAPIResponseSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"token": { "type": "string" },
+			"expire_at": { "type": "string" }
+		},
+		"required": ["token", "expire_at"]
+	}
+`)
 
 type ChallengeRequest struct {
 	Purpose challenge.Purpose `json:"purpose"`
@@ -99,7 +93,7 @@ func (h *ChallengeHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request
 
 func (h *ChallengeHandler) Handle(resp http.ResponseWriter, req *http.Request) (*ChallengeResponse, error) {
 	var payload ChallengeRequest
-	if err := httputil.BindJSONBody(req, resp, ChallengeAPISchema.PartValidator(ChallengeAPISchemaIDRequest), &payload); err != nil {
+	if err := httputil.BindJSONBody(req, resp, ChallengeAPIRequestSchema.Validator(), &payload); err != nil {
 		return nil, err
 	}
 

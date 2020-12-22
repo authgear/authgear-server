@@ -17,43 +17,40 @@ var TemplateWebForgotPasswordHTML = template.RegisterHTML(
 	components...,
 )
 
-const ForgotPasswordRequestSchema = "ForgotPasswordRequestSchema"
-
-var ForgotPasswordSchema = validation.NewMultipartSchema("").
-	Add(ForgotPasswordRequestSchema, `
-		{
-			"type": "object",
-			"properties": {
-				"x_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] },
-				"x_calling_code": { "type": "string" },
-				"x_national_number": { "type": "string" },
-				"x_login_id": { "type": "string" }
-			},
-			"required": ["x_login_id_input_type"],
-			"allOf": [
-				{
-					"if": {
-						"properties": {
-							"x_login_id_input_type": { "type": "string", "const": "phone" }
-						}
-					},
-					"then": {
-						"required": ["x_calling_code", "x_national_number"]
+var ForgotPasswordSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"x_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] },
+			"x_calling_code": { "type": "string" },
+			"x_national_number": { "type": "string" },
+			"x_login_id": { "type": "string" }
+		},
+		"required": ["x_login_id_input_type"],
+		"allOf": [
+			{
+				"if": {
+					"properties": {
+						"x_login_id_input_type": { "type": "string", "const": "phone" }
 					}
 				},
-				{
-					"if": {
-						"properties": {
-							"x_login_id_input_type": { "type": "string", "enum": ["text", "email"] }
-						}
-					},
-					"then": {
-						"required": ["x_login_id"]
-					}
+				"then": {
+					"required": ["x_calling_code", "x_national_number"]
 				}
-			]
-		}
-	`).Instantiate()
+			},
+			{
+				"if": {
+					"properties": {
+						"x_login_id_input_type": { "type": "string", "enum": ["text", "email"] }
+					}
+				},
+				"then": {
+					"required": ["x_login_id"]
+				}
+			}
+		]
+	}
+`)
 
 func ConfigureForgotPasswordRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -110,7 +107,7 @@ func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 	ctrl.PostAction("", func() error {
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
-			err = ForgotPasswordSchema.PartValidator(ForgotPasswordRequestSchema).ValidateValue(FormToJSON(r.Form))
+			err = ForgotPasswordSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return
 			}

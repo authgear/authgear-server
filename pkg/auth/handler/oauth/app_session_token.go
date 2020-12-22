@@ -20,33 +20,27 @@ func ConfigureAppSessionTokenRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/oauth2/app_session_token")
 }
 
-const (
-	AppSessionTokenAPISchemaIDRequest  = "AppSessionTokenChallengeRequest"
-	AppSessionTokenAPISchemaIDResponse = "AppSessionTokenChallengeResponse"
-)
+var AppSessionTokenAPIRequestSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"additionalProperties": false,
+		"properties": {
+			"refresh_token": { "type": "string" }
+		},
+		"required": ["refresh_token"]
+	}
+`)
 
-var AppSessionTokenAPISchema = validation.NewMultipartSchema("").
-	Add(AppSessionTokenAPISchemaIDRequest, `
-		{
-			"type": "object",
-			"additionalProperties": false,
-			"properties": {
-				"refresh_token": { "type": "string" }
-			},
-			"required": ["refresh_token"]
-		}
-	`).
-	Add(AppSessionTokenAPISchemaIDResponse, `
-		{
-			"type": "object",
-			"properties": {
-				"app_session_token": { "type": "string" },
-				"expire_at": { "type": "string" }
-			},
-			"required": ["app_session_token", "expire_at"]
-		}
-	`).
-	Instantiate()
+var AppSessionTokenAPIResponseSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"app_session_token": { "type": "string" },
+			"expire_at": { "type": "string" }
+		},
+		"required": ["app_session_token", "expire_at"]
+	}
+`)
 
 type AppSessionTokenRequest struct {
 	RefreshToken string `json:"refresh_token"`
@@ -77,7 +71,7 @@ func (h *AppSessionTokenHandler) ServeHTTP(resp http.ResponseWriter, req *http.R
 
 func (h *AppSessionTokenHandler) Handle(resp http.ResponseWriter, req *http.Request) (*AppSessionTokenResponse, error) {
 	var payload AppSessionTokenRequest
-	if err := httputil.BindJSONBody(req, resp, AppSessionTokenAPISchema.PartValidator(AppSessionTokenAPISchemaIDRequest), &payload); err != nil {
+	if err := httputil.BindJSONBody(req, resp, AppSessionTokenAPIRequestSchema.Validator(), &payload); err != nil {
 		return nil, err
 	}
 

@@ -21,18 +21,15 @@ var TemplateWebEnterOOBOTPHTML = template.RegisterHTML(
 	components...,
 )
 
-const EnterOOBOTPRequestSchema = "EnterOOBOTPRequestSchema"
-
-var EnterOOBOTPSchema = validation.NewMultipartSchema("").
-	Add(EnterOOBOTPRequestSchema, `
-		{
-			"type": "object",
-			"properties": {
-				"x_code": { "type": "string" }
-			},
-			"required": ["x_code"]
-		}
-	`).Instantiate()
+var EnterOOBOTPSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"x_code": { "type": "string" }
+		},
+		"required": ["x_code"]
+	}
+`)
 
 func ConfigureEnterOOBOTPRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -146,7 +143,7 @@ func (h *EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctrl.PostAction("submit", func() error {
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
-			err = EnterOOBOTPSchema.PartValidator(EnterOOBOTPRequestSchema).ValidateValue(FormToJSON(r.Form))
+			err = EnterOOBOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return
 			}

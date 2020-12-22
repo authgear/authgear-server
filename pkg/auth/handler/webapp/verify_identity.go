@@ -22,18 +22,15 @@ var TemplateWebVerifyIdentityHTML = template.RegisterHTML(
 	components...,
 )
 
-const VerifyIdentityRequestSchema = "VerifyIdentityRequestSchema"
-
-var VerifyIdentitySchema = validation.NewMultipartSchema("").
-	Add(VerifyIdentityRequestSchema, `
-		{
-			"type": "object",
-			"properties": {
-				"x_code": { "type": "string" }
-			},
-			"required": ["x_code"]
-		}
-	`).Instantiate()
+var VerifyIdentitySchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"x_code": { "type": "string" }
+		},
+		"required": ["x_code"]
+	}
+`)
 
 func ConfigureVerifyIdentityRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -146,7 +143,7 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	intent := intents.NewIntentVerifyIdentityResume(verificationCodeID)
 
 	inputFn := func() (input interface{}, err error) {
-		err = VerifyIdentitySchema.PartValidator(VerifyIdentityRequestSchema).ValidateValue(FormToJSON(r.Form))
+		err = VerifyIdentitySchema.Validator().ValidateValue(FormToJSON(r.Form))
 		if err != nil {
 			return
 		}
