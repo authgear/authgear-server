@@ -244,6 +244,16 @@
   "AuthenticationAuthenticatorSettingsScreen.policy.allow-retrieve-recovery-code": "Allow user to retrieve recovery code again",
   "AuthenticationAuthenticatorSettingsScreen.error.no-primary-authenticator": "No usable primary authenticator is enabled",
 
+  "VerificationConfigurationScreen.title": "User Verification",
+  "VerificationConfigurationScreen.title.nav": "User Verification",
+  "VerificationConfigurationScreen.code-expiry-seconds.label": "Verification code valid duration (seconds)",
+  "VerificationConfigurationScreen.criteria.label": "Verified user criteria",
+  "VerificationConfigurationScreen.criteria.any": "At least one user's email/phone is verified",
+  "VerificationConfigurationScreen.criteria.all": "All user's email/phone are verified",
+  "VerificationConfigurationScreen.verification.claims.email": "Email address verification",
+  "VerificationConfigurationScreen.verification.claims.phoneNumber": "Phone number verification",
+  "VerificationConfigurationScreen.verification.required.label": "Required",
+
   "AnonymousUsersConfigurationScreen.title": "Anonymous Users",
   "AnonymousUsersConfigurationScreen.enable.label": "Enable anonymous users?",
   "AnonymousUsersConfigurationScreen.conflict-droplist.label": "User identity conflict when promote to normal user",
