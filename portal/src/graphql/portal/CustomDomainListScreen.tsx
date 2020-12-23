@@ -409,7 +409,7 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> = function
 
   return (
     <div>
-      <NavBreadcrumb className={styles.header} items={navBreadcrumbItems} />
+      <NavBreadcrumb items={navBreadcrumbItems} />
       <Text className={styles.description}>
         <FormattedMessage id="CustomDomainListScreen.desc" />
       </Text>

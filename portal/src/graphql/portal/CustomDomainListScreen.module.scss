@@ -1,5 +1,5 @@
 .root {
-  padding-top: 40px;
+  margin: 0 32px;
   position: relative;
 }
 
@@ -10,13 +10,9 @@
   width: 100%;
 }
 
-.header {
-  margin: 0 32px;
-}
-
 .description {
   display: block;
-  margin: 0 32px 15px;
+  margin: 16px 8px;
   width: 650px;
   font-size: 13px;
   line-height: 1.3;
