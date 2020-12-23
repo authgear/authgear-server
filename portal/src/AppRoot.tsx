@@ -117,19 +117,19 @@ const AppRoot: React.FC = function AppRoot() {
             element={<ForgotPasswordSettingsScreen />}
           />
           <Route
-            path="/configuration/clients/cors"
+            path="/configuration/apps/cors"
             element={<CORSConfigurationScreen />}
           />
           <Route
-            path="/configuration/clients/oauth"
+            path="/configuration/apps/oauth"
             element={<OAuthClientConfigurationScreen />}
           />
           <Route
-            path="/configuration/clients/oauth/add"
+            path="/configuration/apps/oauth/add"
             element={<CreateOAuthClientScreen />}
           />
           <Route
-            path="/configuration/clients/oauth/:clientID/edit"
+            path="/configuration/apps/oauth/:clientID/edit"
             element={<EditOAuthClientScreen />}
           />
           <Route
