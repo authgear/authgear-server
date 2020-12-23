@@ -35,3 +35,5 @@ func (r AuthorizationRequest) CodeChallengeMethod() string { return r["code_chal
 // Websocket channel
 
 func (r AuthorizationRequest) WsChannelID() string { return r["x_ws_channel_id"] }
+
+func (r AuthorizationRequest) SDK() string { return r["x_sdk"] }

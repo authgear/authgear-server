@@ -79,6 +79,7 @@ type AuthenticateURLOptions struct {
 	Prompt           string
 	AuthenticateHint interface{}
 	WsChannelID      string
+	SDK              string
 }
 type PageService interface {
 	CreateSession(session *Session, redirectURI string) (*Result, error)
@@ -104,6 +105,7 @@ func (p *AuthenticateURLProvider) AuthenticateURL(options AuthenticateURLOptions
 		Prompt:      options.Prompt,
 		UILocales:   options.UILocales,
 		WsChannelID: options.WsChannelID,
+		SDK:         options.SDK,
 		UpdatedAt:   now,
 	})
 
