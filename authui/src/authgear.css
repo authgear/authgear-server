@@ -54,13 +54,10 @@ button {
   padding: 0;
   background-color: transparent;
   border: none;
-}
-
-button:not([disabled]):hover {
   cursor: pointer;
 }
 
-button[disabled] {
+button:disabled {
   cursor: not-allowed;
 }
 
@@ -149,7 +146,7 @@ h1, h2, h3, h4, h5, h6 {
   border-bottom-color: #a19f9d;
 }
 
-.input:disabled {
+.input:disabled, .input:read-only {
   opacity: 0.7;
 }
 
@@ -209,7 +206,7 @@ h1, h2, h3, h4, h5, h6 {
   background-repeat: no-repeat;
 }
 
-.select:disabled {
+.select:disabled, .select:read-only {
   background-image: none;
 }
 

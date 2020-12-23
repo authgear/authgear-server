@@ -112,9 +112,6 @@
   "verify-user-resend-button-label": "Resend",
   "verify-user-resend-button-label--unit": "Resend (%ds)",
 
-  "verify-user-return-page-title": "Continue verification",
-  "verify-user-return-page-description": "Please click the button and then return to where you were.",
-
   "verify-user-success-page-title": "Account verification",
   "verify-user-success-description": "You have successfully verified your account.",
 

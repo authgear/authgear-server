@@ -265,6 +265,15 @@ window.api.onLoad(() => {
   };
 });
 
+// Handle auto form submission
+window.api.onLoad(() => {
+  const e = document.querySelector('[data-auto-submit="true"]');
+  if (e instanceof HTMLElement) {
+    e.removeAttribute("data-auto-submit");
+    e.click();
+  }
+});
+
 window.api.onLoad(() => {
   const scheme = window.location.protocol === "https:" ? "wss:" : "ws:";
   const host = window.location.host;
