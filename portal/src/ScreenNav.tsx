@@ -9,7 +9,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Context } from "@oursky/react-messageformat";
 import { INavLink, INavLinkGroup, Nav } from "@fluentui/react";
 import { Location } from "history";
-import styles from "./ScreenNav.module.scss";
 
 function getAppRouterPath(location: Location) {
   // app router -> /app/:appID/*
@@ -36,20 +35,17 @@ function isPathSame(url1: string, url2: string) {
 interface NavLinkProps {
   textKey: string;
   url: string;
-  iconName?: string;
   children?: Array<{
     textKey: string;
     url: string;
-    iconName?: string;
   }>;
 }
 
 const links: NavLinkProps[] = [
-  { textKey: "ScreenNav.users", url: "users", iconName: "People" },
+  { textKey: "ScreenNav.users", url: "users" },
   {
     textKey: "ScreenNav.authentication",
     url: "configuration/authentication",
-    iconName: "Shield",
     children: [
       {
         textKey: "AuthenticationLoginIDSettingsScreen.title.nav",
@@ -68,17 +64,14 @@ const links: NavLinkProps[] = [
   {
     textKey: "ScreenNav.anonymous-users",
     url: "configuration/anonymous-users",
-    iconName: "Color",
   },
   {
     textKey: "ScreenNav.single-sign-on",
     url: "configuration/single-sign-on",
-    iconName: "PlugConnected",
   },
   {
     textKey: "ScreenNav.passwords",
     url: "configuration/passwords",
-    iconName: "PasswordField",
     children: [
       {
         textKey: "PasswordPolicySettingsScreen.title",
@@ -93,12 +86,10 @@ const links: NavLinkProps[] = [
   {
     textKey: "ScreenNav.user-interface",
     url: "configuration/user-interface",
-    iconName: "PreviewLink",
   },
   {
     textKey: "ScreenNav.client-applications",
     url: "configuration/clients",
-    iconName: "Devices3",
     children: [
       {
         textKey: "CORSConfigurationScreen.title",
@@ -113,7 +104,6 @@ const links: NavLinkProps[] = [
   {
     textKey: "ScreenNav.dns",
     url: "configuration/dns",
-    iconName: "ServerProcesses",
     children: [
       {
         textKey: "PublicOriginConfigurationScreen.title",
@@ -128,12 +118,10 @@ const links: NavLinkProps[] = [
   {
     textKey: "ScreenNav.localization-appearance",
     url: "configuration/localization-appearance",
-    iconName: "WebTemplate",
   },
   {
     textKey: "ScreenNav.settings",
     url: "configuration/settings",
-    iconName: "Settings",
     children: [
       {
         textKey: "PortalAdminSettings.title",
@@ -196,16 +184,10 @@ const ScreenNav: React.FC = function ScreenNav() {
         isExpanded = expandState[props.url] || selectedKeys.includes(props.url);
       }
       return {
+        isExpanded,
         key: props.url,
         name: renderToString(props.textKey),
         url: children.length > 0 ? "" : props.url,
-        iconProps: props.iconName
-          ? {
-              className: styles.icon,
-              iconName: props.iconName,
-            }
-          : undefined,
-        isExpanded,
         links: children.map((p) => navItem(p)),
       };
     },
