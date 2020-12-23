@@ -6,7 +6,9 @@
 
 {{ template "__header.html" . }}
 
-{{ if $.IdentityDisplayID }}
+{{ if eq $.Action "update_session_step" }}
+{{ template "__nav_bar.html" true }}
+{{ else if $.IdentityDisplayID }}
 {{ template "__nav_bar.html" }}
 {{ else }}
 {{ template "__nav_bar.html" true }}
