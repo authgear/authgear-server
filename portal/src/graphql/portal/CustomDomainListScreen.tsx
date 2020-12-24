@@ -1,4 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
+import cn from "classnames";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import {
@@ -408,7 +409,7 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> = function
   }, []);
 
   return (
-    <div>
+    <div className={styles.content}>
       <NavBreadcrumb items={navBreadcrumbItems} />
       <Text className={styles.description}>
         <FormattedMessage id="CustomDomainListScreen.desc" />
@@ -461,16 +462,17 @@ const CustomDomainListScreen: React.FC = function CustomDomainListScreen() {
   }
 
   return (
-    <main className={styles.root}>
-      {isVerifySuccessMessageVisible && (
-        <MessageBar
-          className={styles.verifySuccessMessageBar}
-          messageBarType={MessageBarType.success}
-          onDismiss={dismissVerifySuccessMessageBar}
-        >
-          <FormattedMessage id="CustomDomainListScreen.verify-success-message" />
-        </MessageBar>
-      )}
+    <main>
+      <MessageBar
+        className={cn(
+          styles.verifySuccessMessageBar,
+          isVerifySuccessMessageVisible && styles.visible
+        )}
+        messageBarType={MessageBarType.success}
+        onDismiss={dismissVerifySuccessMessageBar}
+      >
+        <FormattedMessage id="CustomDomainListScreen.verify-success-message" />
+      </MessageBar>
       <CustomDomainListContent domains={domains ?? []} />
     </main>
   );

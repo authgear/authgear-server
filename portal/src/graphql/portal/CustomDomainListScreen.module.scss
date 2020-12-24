@@ -1,13 +1,13 @@
-.root {
+.content {
   margin: 0 32px;
-  position: relative;
 }
 
 .verifySuccessMessageBar {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
+  visibility: hidden;
+
+  &.visible {
+    visibility: visible;
+  }
 }
 
 .description {
