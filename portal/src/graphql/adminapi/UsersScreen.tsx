@@ -113,7 +113,7 @@ const UsersScreen: React.FC = function UsersScreen() {
       messageBar={messageBar}
     >
       <main className={styles.content}>
-        <NavBreadcrumb className={styles.title} items={items} />
+        <NavBreadcrumb items={items} />
         <UsersList
           className={styles.usersList}
           loading={loading}

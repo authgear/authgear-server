@@ -165,10 +165,7 @@ const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
   return (
     <CommandBarContainer isLoading={false} farItems={commandBarItems}>
       <div className={styles.content}>
-        <NavBreadcrumb
-          className={styles.breadcrumb}
-          items={navBreadcrumbItems}
-        />
+        <NavBreadcrumb items={navBreadcrumbItems} />
         <PortalAdminList
           className={styles.list}
           loading={false}

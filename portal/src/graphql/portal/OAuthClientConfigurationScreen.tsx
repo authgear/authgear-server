@@ -200,7 +200,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
 
   return (
     <div className={styles.root}>
-      <NavBreadcrumb className={styles.title} items={navBreadcrumbItems} />
+      <NavBreadcrumb items={navBreadcrumbItems} />
       <section className={styles.clientEndpointSection}>
         <Text className={styles.description}>
           <FormattedMessage

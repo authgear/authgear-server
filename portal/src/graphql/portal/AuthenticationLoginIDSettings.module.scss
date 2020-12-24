@@ -1,14 +1,14 @@
 .root {
   width: 850px;
-  padding: 0 32px;
+  margin: 0 32px;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   border-bottom: 1px solid #edebe9;
-  padding: 10px 20px;
-  margin: 20px 0;
+  margin: 16px 8px;
+  padding: 8px 0;
 
   .column {
     width: 80px;
@@ -17,7 +17,7 @@
 }
 
 .section {
-  margin: 20px 0;
+  margin: 16px 8px;
 }
 
 .checkboxLabel {

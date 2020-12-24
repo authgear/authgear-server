@@ -140,13 +140,14 @@ const AnonymousUserConfigurationContent: React.FC<AnonymousUserConfigurationCont
     <div className={styles.root}>
       <NavBreadcrumb items={navBreadcrumbItems} />
       <Toggle
-        className={styles.enableToggle}
+        className={styles.toggle}
         checked={state.enabled}
         onChange={onEnableChange}
         label={renderToString("AnonymousUsersConfigurationScreen.enable.label")}
         inlineLabel={true}
       />
       <Dropdown
+        className={styles.dropdown}
         styles={dropDownStyles}
         label={renderToString(
           "AnonymousUsersConfigurationScreen.conflict-droplist.label"

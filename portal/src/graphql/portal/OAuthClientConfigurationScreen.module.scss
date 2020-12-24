@@ -1,13 +1,8 @@
 .root {
-}
-
-.title {
   margin: 0 32px;
 }
 
 .clientEndpointSection {
-  margin: 0 32px 20px;
-
   .header {
     display: block;
     font-weight: 600;
@@ -15,8 +10,8 @@
   }
 
   .description {
+    margin: 16px 8px;
     display: block;
-    margin-bottom: 15px;
     max-width: 500px;
     font-size: 13px;
     line-height: 1.3;

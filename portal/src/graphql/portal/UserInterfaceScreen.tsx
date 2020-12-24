@@ -58,7 +58,7 @@ const UserInterfaceContent: React.FC<UserInterfaceContentProps> = function UserI
   return (
     <div className={styles.root}>
       <NavBreadcrumb items={navBreadcrumbItems} />
-      <Label>
+      <Label className={styles.title}>
         <FormattedMessage id="UserInterfaceScreen.custom-css.label" />
       </Label>
       <CodeEditor
