@@ -17,7 +17,7 @@ var StaticAssetResources = map[string]resource.Descriptor{
 	"password-policy-js": PasswordPolicyJS,
 	"web-css":            WebCSS,
 	"app-logo":           AppLogo,
-	"app-banner":         AppBanner,
+	"favicon":            Favicon,
 }
 
 type ResourceManager interface {

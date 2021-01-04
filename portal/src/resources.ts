@@ -81,8 +81,8 @@ export const RESOURCE_APP_LOGO: ResourceDefinition = {
   optional: true,
 };
 
-export const RESOURCE_APP_BANNER: ResourceDefinition = {
-  resourcePath: resourcePath`static/${"locale"}/app_banner${"extension"}`,
+export const RESOURCE_FAVICON: ResourceDefinition = {
+  resourcePath: resourcePath`static/${"locale"}/favicon${"extension"}`,
   type: "binary",
   extensions: IMAGE_EXTENSIONS,
   usesEffectiveDataAsFallbackValue: false,
@@ -108,7 +108,7 @@ export const ALL_TEMPLATES = [
 export const ALL_LOCALIZABLE_RESOURCES = [
   ...ALL_TEMPLATES,
   RESOURCE_APP_LOGO,
-  RESOURCE_APP_BANNER,
+  RESOURCE_FAVICON,
 ];
 
 export const PATH_AUTHGEAR_CSS = "static/authgear.css";
