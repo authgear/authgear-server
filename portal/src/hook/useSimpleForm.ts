@@ -23,6 +23,7 @@ export function useSimpleForm<State, Result = unknown>(
   const [currentState, setCurrentState] = useState(initialState);
   const [error, setError] = useState<unknown>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [submissionResult, setSubmissionResult] = useState<unknown>(null);
 
   const isDirty = useMemo(
@@ -55,6 +56,7 @@ export function useSimpleForm<State, Result = unknown>(
         setError(null);
         setInitialState(currentState);
         setSubmissionResult(result);
+        setIsSubmitted(true);
       })
       .catch((e) => setError(e))
       .finally(() => setIsLoading(false));
@@ -70,7 +72,7 @@ export function useSimpleForm<State, Result = unknown>(
   return {
     isUpdating: isLoading,
     isDirty,
-    isSubmitted: submissionResult != null,
+    isSubmitted,
     submissionResult: submissionResult as Result,
     updateError: error,
     state: currentState,
