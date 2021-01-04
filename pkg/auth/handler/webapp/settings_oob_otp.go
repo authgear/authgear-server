@@ -23,7 +23,7 @@ var TemplateWebSettingsOOBOTPHTML = template.RegisterHTML(
 func ConfigureSettingsOOBOTPRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/settings/oob_otp")
+		WithPathPattern("/settings/mfa/oob_otp")
 }
 
 type SettingsOOBOTPViewModel struct {

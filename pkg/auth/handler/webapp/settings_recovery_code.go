@@ -21,7 +21,7 @@ var TemplateWebSettingsRecoveryCodeHTML = template.RegisterHTML(
 func ConfigureSettingsRecoveryCodeRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/settings/recovery_code")
+		WithPathPattern("/settings/mfa/recovery_code")
 }
 
 type SettingsRecoveryCodeViewModel struct {

@@ -32,7 +32,7 @@ var ChangeSecondaryPasswordSchema = validation.NewSimpleSchema(`
 func ConfigureChangeSecondaryPasswordRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/settings/change_secondary_password")
+		WithPathPattern("/settings/mfa/change_secondary_password")
 }
 
 type ChangeSecondaryPasswordHandler struct {

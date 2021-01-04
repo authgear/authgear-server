@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+{{ template "__html_head.html" . }}
+<body class="page">
+<main class="content">
+
+{{ template "__header.html" . }}
+
+{{ template "__nav_bar.html" }}
+
+{{ template "__error.html" . }}
+
+{{ $has_secondary_totp := false }}
+{{ $has_secondary_oob_otp := false }}
+{{ $secondary_password := false }}
+{{ range $.Authenticators }}
+{{ if eq .Kind "secondary" }}
+  {{ if eq .Type "totp" }}
+    {{ $has_secondary_totp = true }}
+  {{ else if eq .Type "oob_otp" }}
+    {{ $has_secondary_oob_otp = true }}
+  {{ else if eq .Type "password" }}
+    {{ $secondary_password = . }}
+  {{ end }}
+{{ end }}
+{{ end }}
+{{ $has_mfa := (or $has_secondary_totp $has_secondary_oob_otp $secondary_password) }}
+{{ $show_secondary_totp := (or $has_secondary_totp $.SecondaryTOTPAllowed) }}
+{{ $show_secondary_oob_otp := (or $has_secondary_oob_otp $.SecondaryOOBOTPAllowed) }}
+{{ $show_secondary_password := (or $secondary_password $.SecondaryPasswordAllowed) }}
+
+<section class="pane">
+  <!-- Title -->
+  <section class="settings-row settings-page-section-with-title">
+    <h3 class="title primary-txt">
+      {{ template "settings-page-mfa-section-title" }}
+    </h3>
+  </section>
+
+  <!-- Secondary TOTP -->
+  {{ if $show_secondary_totp }}
+  <section class="settings-row settings-page-section-with-title-desc-action">
+    <p class="title primary-txt">
+      {{ template "settings-page-secondary-totp-title" }}
+    </p>
+    {{ if $has_secondary_totp }}
+    <p class="description good-txt">
+      {{ template "activated-label" }}
+    </p>
+    {{ else }}
+    <p class="description warn-txt">
+      {{ template "inactive-label" }}
+    </p>
+    {{ end }}
+    <a class="action" href="/settings/mfa/totp">
+      {{ template "details-button-label" }}
+    </a>
+  </section>
+  {{ end }}
+
+  <!-- Secondary OOB OTP -->
+  {{ if $show_secondary_oob_otp }}
+  <section class="settings-row settings-page-section-with-title-desc-action">
+    <p class="title primary-txt">
+      {{ template "settings-page-secondary-oob-otp-title" }}
+    </p>
+    {{ if $has_secondary_oob_otp }}
+    <p class="description good-txt">
+      {{ template "activated-label" }}
+    </p>
+    {{ else }}
+    <p class="description warn-txt">
+      {{ template "inactive-label" }}
+    </p>
+    {{ end }}
+    <a class="action" href="/settings/mfa/oob_otp">
+      {{ template "details-button-label" }}
+    </a>
+  </section>
+  {{ end }}
+
+  <!-- Secondary Password -->
+  {{ if $show_secondary_password }}
+  <section class="settings-row settings-page-section-with-title-desc-action">
+    <p class="title primary-txt">
+      {{ template "settings-page-secondary-password-title" }}
+    </p>
+    {{ if $secondary_password }}
+    <p class="description secondary-txt">
+      <!-- FIXME(ui): Use user preferred timezone -->
+      {{ template "settings-page-secondary-password-description" (dict "time" $secondary_password.UpdatedAt) }}
+    </p>
+    <a class="action secondary-btn" href="/settings/mfa/change_secondary_password">
+      {{ template "change-password-button-label" }}
+    </a>
+    <form class="action-2" method="post" novalidate>
+      {{ $.CSRFField }}
+      <input type="hidden" name="x_authenticator_id" value="{{ $secondary_password.ID }}">
+      <button class="destructive-btn" type="submit" name="x_action" value="remove_secondary_password">
+        {{ template "remove-button-label" }}
+      </button>
+    </form>
+    {{ else }}
+    <form class="action" method="post" novalidate>
+      {{ $.CSRFField }}
+      <button class="secondary-btn" type="submit" name="x_action" value="setup_secondary_password">
+        {{ template "setup-password-button-label" }}
+      </button>
+    </form>
+    {{ end }}
+  </section>
+  {{ end }}
+
+  <!-- Recovery code -->
+  {{ if $has_mfa }}
+  <section class="settings-row settings-page-section-with-title-desc-action">
+    <h3 class="title primary-txt">
+      {{ template "settings-page-recovery-code-title" }}
+    </h3>
+    <p class="description secondary-txt">
+      {{ template "settings-page-recovery-code-description" }}
+    </p>
+    <a class="action" href="/settings/mfa/recovery_code">
+      {{ template "show-recovery-code-button-label" }}
+    </a>
+  </section>
+  {{ end }}
+
+  <!-- Revoke all device tokens -->
+  {{ if $has_mfa }}
+  <form class="settings-row settings-page-section-revoke-device-tokens" method="post" novalidate>
+    {{ $.CSRFField }}
+    <button class="action btn destructive-btn" type="submit" name="x_action" value="revoke_devices">
+      {{ template "revoke-all-device-tokens-button-label" }}
+    </button>
+  </form>
+  {{ end }}
+</section>
+
+</main>
+</body>
+</html>
