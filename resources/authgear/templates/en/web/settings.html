@@ -12,6 +12,21 @@
   Click <a href="/logout">here</a> to sign out.
 </p>
 
+<!-- Connected Identities -->
+<section class="pane">
+  <section class="settings-row settings-page-section-with-title-desc-action">
+    <h2 class="title primary-txt">
+      {{ template "settings-identity-title" }}
+    </h2>
+    <p class="description secondary-txt">
+      {{ template "settings-page-identity-section-description" }}
+    </p>
+    <a class="action" href="/settings/identity">
+      {{ template "details-button-label" }}
+    </a>
+  </section>
+</section>
+
 <!-- Security -->
 <section class="pane">
   <!-- The title and the description -->
@@ -73,36 +88,39 @@
   {{ end}}{{ end }}
   {{ end }}
 
-  <!-- Individual secondary authenticator section is shown if it is allowed in the configuration -->
-  <!-- or the user somehow has authenticator of that kind -->
-  {{ $has_secondary_totp := false }}
-  {{ $has_secondary_oob_otp := false }}
-  {{ $secondary_password := false }}
-  {{ range $.Authenticators }}
-  {{ if eq .Kind "secondary" }}
-    {{ if eq .Type "totp" }}
-      {{ $has_secondary_totp = true }}
-    {{ else if eq .Type "oob_otp" }}
-      {{ $has_secondary_oob_otp = true }}
-    {{ else if eq .Type "password" }}
-      {{ $secondary_password = . }}
-    {{ end }}
-  {{ end }}
-  {{ end }}
-  {{ $has_mfa := (or $has_secondary_totp $has_secondary_oob_otp $secondary_password) }}
-  {{ $show_secondary_totp := (or $has_secondary_totp $.SecondaryTOTPAllowed) }}
-  {{ $show_secondary_oob_otp := (or $has_secondary_oob_otp $.SecondaryOOBOTPAllowed) }}
-  {{ $show_secondary_password := (or $secondary_password $.SecondaryPasswordAllowed) }}
-  {{ $show_mfa := (or $show_secondary_totp $show_secondary_oob_otp $show_secondary_password) }}
+</section>
 
-  <!-- MFA title -->
-  {{ if $show_mfa }}
+<!-- MFA -->
+<!-- Individual secondary authenticator section is shown if it is allowed in the configuration -->
+<!-- or the user somehow has authenticator of that kind -->
+{{ $has_secondary_totp := false }}
+{{ $has_secondary_oob_otp := false }}
+{{ $secondary_password := false }}
+{{ range $.Authenticators }}
+{{ if eq .Kind "secondary" }}
+  {{ if eq .Type "totp" }}
+    {{ $has_secondary_totp = true }}
+  {{ else if eq .Type "oob_otp" }}
+    {{ $has_secondary_oob_otp = true }}
+  {{ else if eq .Type "password" }}
+    {{ $secondary_password = . }}
+  {{ end }}
+{{ end }}
+{{ end }}
+{{ $has_mfa := (or $has_secondary_totp $has_secondary_oob_otp $secondary_password) }}
+{{ $show_secondary_totp := (or $has_secondary_totp $.SecondaryTOTPAllowed) }}
+{{ $show_secondary_oob_otp := (or $has_secondary_oob_otp $.SecondaryOOBOTPAllowed) }}
+{{ $show_secondary_password := (or $secondary_password $.SecondaryPasswordAllowed) }}
+{{ $show_mfa := (or $show_secondary_totp $show_secondary_oob_otp $show_secondary_password) }}
+
+{{ if $show_mfa }}
+<section class="pane">
+  <!-- Title -->
   <section class="settings-row settings-page-section-with-title">
     <h3 class="title primary-txt">
       {{ template "settings-page-mfa-section-title" }}
     </h3>
   </section>
-  {{ end }}
 
   <!-- Secondary TOTP -->
   {{ if $show_secondary_totp }}
@@ -202,23 +220,8 @@
     </button>
   </form>
   {{ end }}
-
 </section>
-
-<!-- Connected Identities -->
-<section class="pane">
-  <section class="settings-row settings-page-section-with-title-desc-action">
-    <h2 class="title primary-txt">
-      {{ template "settings-identity-title" }}
-    </h2>
-    <p class="description secondary-txt">
-      {{ template "settings-page-identity-section-description" }}
-    </p>
-    <a class="action" href="/settings/identity">
-      {{ template "details-button-label" }}
-    </a>
-  </section>
-</section>
+{{ end }}
 
 <!-- Sessions -->
 <section class="pane">
