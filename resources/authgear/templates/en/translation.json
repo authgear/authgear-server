@@ -71,6 +71,9 @@
 
   "create-device-token-label": "Do not ask again on this device",
 
+  "signup-label": "Sign up",
+  "login-label": "Log in",
+
   "oauth-branding-apple": "Sign in with Apple",
   "oauth-branding-google": "Sign in with Google",
   "oauth-branding-facebook": "Login with Facebook",
@@ -85,8 +88,6 @@
   "use-text-login-id-description": "Use {variant, select, email {email} username {username} other {email or username}} instead",
   "use-email-login-id-description": "Use email instead",
   "use-phone-login-id-description": "Use phone instead",
-  "signup-button-hint": "Don''t have an account yet? ",
-  "signup-button-label": "Create one!",
   "forgot-password-button-label": "Can''t access your account?",
 
   "enter-password-page-title": "Enter password",
@@ -116,8 +117,6 @@
   "verify-user-success-description": "You have successfully verified your account.",
 
   "use-login-id-key": "Use {key} instead",
-  "login-button-hint": "Have an account already? ",
-  "login-button-label": "Sign in!",
 
   "create-password-page-title": "Create password",
   "password-policy-required-password-strength-label": "Your new password must be",
