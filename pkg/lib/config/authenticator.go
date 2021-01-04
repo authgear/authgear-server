@@ -68,7 +68,7 @@ func (c *PasswordPolicyConfig) IsEnabled() bool {
 
 func (c *PasswordPolicyConfig) SetDefaults() {
 	if c.MinLength == nil {
-		c.MinLength = newInt(1)
+		c.MinLength = newInt(8)
 	}
 }
 

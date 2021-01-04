@@ -283,7 +283,7 @@ identity:
 authenticator:
   password:
     policy:
-      min_length: 1
+      min_length: 8
   totp:
     maximum: 99
   oob_otp:
