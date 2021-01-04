@@ -66,12 +66,6 @@ a {
   cursor: pointer;
 }
 
-/* a:link is more specific than .primary-btn so we need to add :not here */
-a:not(.btn):link,
-a:not(.btn):visited {
-  color: var(--color-primary);
-}
-
 select {
   -moz-appearance: none;
   -webkit-appearance: none;
@@ -235,6 +229,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .link {
+  color: var(--color-primary);
   font-size: smaller;
 }
 
@@ -1068,4 +1063,23 @@ a.btn {
 .toc-pp-footer {
   font-size: smaller;
   margin: 12px;
+}
+
+.signin-signup-switch {
+  display: flex;
+  flex-direction: row;
+  height: 50px;
+}
+
+.signin-signup-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  border-bottom: 2px solid #EDEBE9;
+}
+
+.signin-signup-link.current {
+  border-bottom: 2px solid var(--color-primary);
+  color: var(--color-primary);
 }

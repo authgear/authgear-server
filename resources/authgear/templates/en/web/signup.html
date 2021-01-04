@@ -13,6 +13,14 @@
 		</div>
 		{{ else }}
 		<div class="authorize-form pane">
+
+			{{ if not $.PublicSignupDisabled }}
+			<div class="signin-signup-switch">
+				<a class="signin-signup-link primary-txt" href="{{ call $.MakeURL "/login"}}" data-turbolinks-action="replace">{{ template "login-label" }}</a>
+				<a class="signin-signup-link primary-txt current" href="{{ call $.MakeURL "/signup"}}" data-turbolinks-action="replace">{{ template "signup-label" }}</a>
+			</div>
+			{{ end }}
+
 			<div class="authorize-idp-section">
 				{{ range $.IdentityCandidates }}
 				{{ if eq .type "oauth" }}
@@ -121,11 +129,6 @@
 					</a>
 				{{ end }}{{ end }}
 				{{ end }}
-
-				<div class="link align-self-flex-start">
-					<span class="primary-text">{{ template "login-button-hint" }}</span>
-					<a href="{{ call $.MakeURL "/login" }}" data-turbolinks-action="replace">{{ template "login-button-label" }}</a>
-				</div>
 
 				{{ if .ForgotPasswordEnabled }}
 				<a class="link align-self-flex-start" href="{{ call $.MakeURL "/forgot_password" }}">{{ template "forgot-password-button-label" }}</a>
