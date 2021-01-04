@@ -1082,3 +1082,9 @@ a.btn {
   border-bottom: 2px solid var(--color-primary);
   color: var(--color-primary);
 }
+
+.wechat-auth-qr-code {
+  width: 200px;
+  height: 200px;
+  align-self: center;
+}
