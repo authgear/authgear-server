@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 const WechatActionCallback = "callback"
@@ -23,6 +23,7 @@ func ConfigureWechatCallbackRoute(route httproute.Route) httproute.Route {
 
 type WechatCallbackHandler struct {
 	ControllerFactory ControllerFactory
+	BaseViewModel     *viewmodels.BaseViewModeler
 	JSON              JSONResponseWriter
 }
 
@@ -61,7 +62,8 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	handler := func() error {
 		err := updateWebSession()
 		// serve api
-		if httputil.IsJSONContentType(r.Header.Get("content-type")) {
+		baseViewModel := h.BaseViewModel.ViewModel(r, w)
+		if baseViewModel.IsNativeSDK {
 			if err == nil {
 				h.JSON.WriteResponse(w, &api.Response{Result: nil})
 			} else {

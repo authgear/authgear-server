@@ -5350,6 +5350,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	wechatCallbackHandler := &webapp2.WechatCallbackHandler{
 		ControllerFactory: controllerFactory,
+		BaseViewModel:     baseViewModeler,
 		JSON:              jsonResponseWriter,
 	}
 	return wechatCallbackHandler
