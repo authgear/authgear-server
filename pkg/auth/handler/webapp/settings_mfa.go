@@ -123,7 +123,9 @@ func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err := h.MFA.InvalidateAllDeviceTokens(userID); err != nil {
 			return err
 		}
-		http.Redirect(w, r, redirectURI, http.StatusFound)
+
+		result := webapp.Result{RedirectURI: redirectURI}
+		result.WriteResponse(w, r)
 		return nil
 	})
 
