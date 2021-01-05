@@ -2,6 +2,7 @@ package webapp
 
 import (
 	"context"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/util/base32"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
@@ -24,6 +25,7 @@ type SessionOptions struct {
 	UILocales       string
 	Prompt          string
 	Extra           map[string]interface{}
+	UpdatedAt       time.Time
 }
 
 func NewSessionOptionsFromSession(s *Session) SessionOptions {
@@ -58,6 +60,9 @@ type Session struct {
 	// UILocales are the locale to be used to render UI, passed in from OAuth
 	// flow or query parameter.
 	UILocales string `json:"ui_locales,omitempty"`
+
+	// UpdatedAt indicate the session last updated time
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 }
 
 func newSessionID() string {
@@ -76,6 +81,7 @@ func NewSession(options SessionOptions) *Session {
 		Extra:           make(map[string]interface{}),
 		Prompt:          options.Prompt,
 		UILocales:       options.UILocales,
+		UpdatedAt:       options.UpdatedAt,
 	}
 	for k, v := range options.Extra {
 		s.Extra[k] = v

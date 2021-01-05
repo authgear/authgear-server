@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
@@ -38,6 +39,7 @@ type BaseViewModel struct {
 	SessionStepURLs       []string
 	ForgotPasswordEnabled bool
 	PublicSignupDisabled  bool
+	PageLoadedAt          int
 }
 
 func (m *BaseViewModel) SetError(err error) {
@@ -74,9 +76,11 @@ type BaseViewModeler struct {
 	Authentication *config.AuthenticationConfig
 	ErrorCookie    ErrorCookie
 	Translations   TranslationService
+	Clock          clock.Clock
 }
 
 func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) BaseViewModel {
+	now := m.Clock.NowUTC().Unix()
 	requestURI := &url.URL{
 		Path:     r.URL.Path,
 		RawQuery: r.URL.RawQuery,
@@ -111,6 +115,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		},
 		ForgotPasswordEnabled: *m.ForgotPassword.Enabled,
 		PublicSignupDisabled:  m.Authentication.PublicSignupDisabled,
+		PageLoadedAt:          int(now),
 	}
 
 	if apiError, ok := m.ErrorCookie.GetError(r); ok {

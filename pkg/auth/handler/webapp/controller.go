@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -38,6 +39,7 @@ type ControllerDeps struct {
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
 	Publisher     *Publisher
+	Clock         clock.Clock
 
 	TrustProxy config.TrustProxy
 }
@@ -108,6 +110,8 @@ func (c *Controller) GetSession(id string) (*webapp.Session, error) {
 }
 
 func (c *Controller) UpdateSession(s *webapp.Session) error {
+	now := c.Clock.NowUTC()
+	s.UpdatedAt = now
 	err := c.Page.UpdateSession(s)
 	if err != nil {
 		return err
@@ -159,16 +163,17 @@ func (c *Controller) renderError(err error) {
 
 func (c *Controller) EntryPointSession(opts webapp.SessionOptions) *webapp.Session {
 	s := webapp.GetSession(c.request.Context())
-	if s == nil {
-		s = webapp.NewSession(opts)
-	} else {
-		s = webapp.NewSession(webapp.NewSessionOptionsFromSession(s))
+	now := c.Clock.NowUTC()
+	o := opts
+	if s != nil {
+		o = webapp.NewSessionOptionsFromSession(s)
 		if opts.RedirectURI != "" {
-			s.RedirectURI = opts.RedirectURI
+			o.RedirectURI = opts.RedirectURI
 		}
-		s.KeepAfterFinish = opts.KeepAfterFinish
+		o.KeepAfterFinish = opts.KeepAfterFinish
 	}
-
+	o.UpdatedAt = now
+	s = webapp.NewSession(o)
 	return s
 }
 

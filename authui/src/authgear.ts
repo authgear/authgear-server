@@ -277,20 +277,39 @@ window.api.onLoad(() => {
 window.api.onLoad(() => {
   const scheme = window.location.protocol === "https:" ? "wss:" : "ws:";
   const host = window.location.host;
-  const url = `${scheme}//${host}/ws`;
+  var meta: HTMLMetaElement | null = document.querySelector(
+    'meta[name="x-authgear-page-loaded-at"]'
+  );
+  let sessionUpdatedAfter = "";
+  if (meta != null) {
+    sessionUpdatedAfter = meta.content || "";
+  }
 
   let ws: WebSocket | null = null;
 
   function dispose() {
-    ws?.close();
+    if (ws != null) {
+      ws.onclose = function () {};
+      ws.close();
+    }
     ws = null;
   }
 
   function connect() {
+    const url =
+      `${scheme}//${host}/ws` +
+      (sessionUpdatedAfter
+        ? `?session_updated_after=${sessionUpdatedAfter}`
+        : "");
+
     ws = new WebSocket(url);
 
-    ws.onopen = function(e) {
+    ws.onopen = function (e) {
       console.log("ws onopen", e);
+      // after connected, we don't need to check session updated again when
+      // reconnect
+      // clear the checking parameter
+      sessionUpdatedAfter = "";
     };
 
     ws.onclose = function(e) {

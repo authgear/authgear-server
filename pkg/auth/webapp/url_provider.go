@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
@@ -92,13 +93,16 @@ type AuthenticateURLProvider struct {
 	Pages         PageService
 	SessionCookie session.CookieDef
 	CookieFactory CookieFactory
+	Clock         clock.Clock
 }
 
 func (p *AuthenticateURLProvider) AuthenticateURL(options AuthenticateURLOptions) (httputil.Result, error) {
+	now := p.Clock.NowUTC()
 	session := NewSession(SessionOptions{
 		RedirectURI: options.RedirectURI,
 		Prompt:      options.Prompt,
 		UILocales:   options.UILocales,
+		UpdatedAt:   now,
 	})
 
 	var result httputil.Result

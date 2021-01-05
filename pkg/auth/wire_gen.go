@@ -532,6 +532,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Pages:         webappService2,
 		SessionCookie: cookieDef2,
 		CookieFactory: cookieFactory,
+		Clock:         clock,
 	}
 	scopesValidator := _wireScopesValidatorValue
 	tokenGenerator := _wireTokenGeneratorValue
@@ -2771,6 +2772,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -2786,6 +2788,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -3281,6 +3284,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -3296,6 +3300,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -3791,6 +3796,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -3806,6 +3812,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -4301,6 +4308,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -4316,6 +4324,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -4804,6 +4813,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -4819,6 +4829,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -5309,6 +5320,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -5324,6 +5336,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -5810,6 +5823,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -5825,6 +5839,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -6314,6 +6329,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -6329,6 +6345,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -6817,6 +6834,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -6832,6 +6850,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -7321,6 +7340,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -7336,6 +7356,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -7826,6 +7847,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -7841,6 +7863,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -8329,6 +8352,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -8344,6 +8368,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -8832,6 +8857,7 @@ func newWebAppSendOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -8847,6 +8873,7 @@ func newWebAppSendOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -9335,6 +9362,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -9350,6 +9378,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -9838,6 +9867,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -9853,6 +9883,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -10341,6 +10372,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -10356,6 +10388,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -10844,6 +10877,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -10859,6 +10893,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -11348,6 +11383,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -11363,6 +11399,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -11851,6 +11888,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -11866,6 +11904,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -12359,6 +12398,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -12374,6 +12414,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -12862,6 +12903,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -12877,6 +12919,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -13366,6 +13409,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -13381,6 +13425,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -13869,6 +13914,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -13884,6 +13930,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -14375,6 +14422,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -14390,6 +14438,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -14882,6 +14931,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -14897,6 +14947,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -15388,6 +15439,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -15403,6 +15455,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -15894,6 +15947,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -15909,6 +15963,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -16401,6 +16456,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -16416,6 +16472,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -16911,6 +16968,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -16926,6 +16984,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -17415,6 +17474,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -17430,6 +17490,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -17919,6 +17980,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -17934,6 +17996,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -18281,6 +18344,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -18784,6 +18848,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -18799,6 +18864,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 		Publisher:     publisher,
+		Clock:         clockClock,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -18820,10 +18886,12 @@ func newWebAppWebsocketHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Redis
+	publisher := webapp2.NewPublisher(appID, handle)
 	websocketHandler := &webapp2.WebsocketHandler{
 		AppID:         appID,
 		LoggerFactory: factory,
 		RedisHandle:   handle,
+		Publisher:     publisher,
 	}
 	return websocketHandler
 }
@@ -18914,6 +18982,7 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		TemplateEngine:    engine,
 		StaticAssets:      staticAssetResolver,
 	}
+	clockClock := _wireSystemClockValue
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
@@ -18921,6 +18990,7 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Authentication: authenticationConfig,
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
+		Clock:          clockClock,
 	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
