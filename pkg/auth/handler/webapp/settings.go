@@ -4,13 +4,16 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -53,6 +56,7 @@ type SettingsHandler struct {
 	Verification      SettingsVerificationService
 	Authenticators    SettingsAuthenticatorService
 	MFA               SettingsMFAService
+	CSRFCookie        webapp.CSRFCookieDef
 }
 
 func (h *SettingsHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -121,6 +125,12 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer ctrl.Serve()
 
+	redirectURI := httputil.HostRelative(r.URL).String()
+	providerAlias := r.Form.Get("x_provider_alias")
+	identityID := r.Form.Get("x_identity_id")
+	userID := ctrl.RequireUserID()
+	nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
+
 	ctrl.Get(func() error {
 		data, err := h.GetData(r, w)
 		if err != nil {
@@ -128,6 +138,66 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		h.Renderer.RenderHTML(w, r, TemplateWebSettingsHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("link_oauth", func() error {
+		opts := webapp.SessionOptions{
+			RedirectURI: redirectURI,
+		}
+		intent := intents.NewIntentAddIdentity(userID)
+
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			input = &InputUseOAuth{
+				ProviderAlias:    providerAlias,
+				NonceSource:      nonceSource,
+				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
+			}
+			return
+		})
+		if err != nil {
+			return err
+		}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
+
+	ctrl.PostAction("unlink_oauth", func() error {
+		opts := webapp.SessionOptions{
+			RedirectURI: redirectURI,
+		}
+		intent := intents.NewIntentRemoveIdentity(userID)
+
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			input = &InputRemoveIdentity{
+				Type: authn.IdentityTypeOAuth,
+				ID:   identityID,
+			}
+			return
+		})
+		if err != nil {
+			return err
+		}
+		result.WriteResponse(w, r)
+		return nil
+	})
+
+	ctrl.PostAction("verify_login_id", func() error {
+		opts := webapp.SessionOptions{
+			RedirectURI:     redirectURI,
+			KeepAfterFinish: true,
+		}
+		intent := intents.NewIntentVerifyIdentity(userID, authn.IdentityTypeLoginID, identityID)
+
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			input = nil
+			return
+		})
+		if err != nil {
+			return err
+		}
+		result.WriteResponse(w, r)
 		return nil
 	})
 }
