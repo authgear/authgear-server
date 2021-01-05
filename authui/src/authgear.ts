@@ -140,7 +140,7 @@ function back(e: Event) {
   e.stopPropagation();
   const rootMeta = document.querySelector('meta[name="authgear-history-root"]');
   if (rootMeta) {
-    if (rootArea === "settings" && window.location.pathname !== "/settings") {
+    if (rootArea === "settings" && !window.location.pathname.startsWith("/settings")) {
       // Replace the history root with settings top-page.
       // FIXME: forward history is not cleared.
       rootMeta.remove();
