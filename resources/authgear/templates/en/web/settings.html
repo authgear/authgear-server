@@ -9,7 +9,7 @@
 {{ template "__nav_bar.html" true }}
 
 <p class="align-self-center primary-txt">
-  Click <a href="/logout">here</a> to sign out.
+  Click <a class="link" href="/logout">here</a> to sign out.
 </p>
 
 <!-- Connected Identities -->
@@ -21,7 +21,7 @@
     <p class="description secondary-txt">
       {{ template "settings-page-identity-section-description" }}
     </p>
-    <a class="action" href="/settings/identity">
+    <a class="link action" href="/settings/identity">
       {{ template "details-button-label" }}
     </a>
   </section>
@@ -50,7 +50,7 @@
       <!-- FIXME(ui): Use user preferred timezone -->
       {{ template "settings-page-primary-password-description" (dict "time" .UpdatedAt) }}
     </p>
-    <a class="action" href="/settings/change_password">
+    <a class="link action" href="/settings/change_password">
       {{ template "change-password-button-label" }}
     </a>
   </section>
@@ -81,7 +81,7 @@
       <!-- FIXME(ui): Use user preferred timezone -->
       {{ template "settings-page-primary-oob-otp-description" (dict "time" .CreatedAt) }}
     </p>
-    <a class="action" href="/settings/identity">
+    <a class="link action" href="/settings/identity">
       {{ template "details-button-label" }}
     </a>
   </section>
@@ -122,7 +122,7 @@
     <p class="description secondary-txt">
       {{ template "settings-page-mfa-section-description" }}
     </p>
-    <a class="action" href="/settings/mfa">
+    <a class="link action" href="/settings/mfa">
       {{ template "details-button-label" }}
     </a>
   </section>
@@ -138,7 +138,7 @@
     <p class="description secondary-txt">
       {{ template "settings-page-session-section-description" }}
     </p>
-    <a class="action" href="/settings/sessions">
+    <a class="link action" href="/settings/sessions">
       {{ template "details-button-label" }}
     </a>
   </section>

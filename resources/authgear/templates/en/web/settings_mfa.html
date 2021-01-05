@@ -52,7 +52,7 @@
       {{ template "inactive-label" }}
     </p>
     {{ end }}
-    <a class="action" href="/settings/mfa/totp">
+    <a class="link action" href="/settings/mfa/totp">
       {{ template "details-button-label" }}
     </a>
   </section>
@@ -73,7 +73,7 @@
       {{ template "inactive-label" }}
     </p>
     {{ end }}
-    <a class="action" href="/settings/mfa/oob_otp">
+    <a class="link action" href="/settings/mfa/oob_otp">
       {{ template "details-button-label" }}
     </a>
   </section>
@@ -101,7 +101,7 @@
       </button>
     </form>
     {{ else }}
-    <form class="action" method="post" novalidate>
+    <form class="link action" method="post" novalidate>
       {{ $.CSRFField }}
       <button class="secondary-btn" type="submit" name="x_action" value="setup_secondary_password">
         {{ template "setup-password-button-label" }}
@@ -120,7 +120,7 @@
     <p class="description secondary-txt">
       {{ template "settings-page-recovery-code-description" }}
     </p>
-    <a class="action" href="/settings/mfa/recovery_code">
+    <a class="link action" href="/settings/mfa/recovery_code">
       {{ template "show-recovery-code-button-label" }}
     </a>
   </section>
