@@ -6,7 +6,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -23,15 +25,17 @@ func ConfigureSettingsRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/settings")
 }
 
-type SettingsViewModel struct {
-	Authenticators           []*authenticator.Info
-	SecondaryTOTPAllowed     bool
-	SecondaryOOBOTPAllowed   bool
-	SecondaryPasswordAllowed bool
-}
-
 type SettingsAuthenticatorService interface {
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
+}
+
+type SettingsIdentityService interface {
+	ListByUser(userID string) ([]*identity.Info, error)
+	ListCandidates(userID string) ([]identity.Candidate, error)
+}
+
+type SettingsVerificationService interface {
+	GetVerificationStatuses(is []*identity.Info) (map[string][]verification.ClaimStatus, error)
 }
 
 type SettingsSessionManager interface {
@@ -45,8 +49,68 @@ type SettingsHandler struct {
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
 	Authentication    *config.AuthenticationConfig
+	Identities        SettingsIdentityService
+	Verification      SettingsVerificationService
 	Authenticators    SettingsAuthenticatorService
 	MFA               SettingsMFAService
+}
+
+func (h *SettingsHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+	userID := session.GetUserID(r.Context())
+
+	data := map[string]interface{}{}
+
+	// BaseViewModel
+	baseViewModel := h.BaseViewModel.ViewModel(r, nil)
+	viewmodels.Embed(data, baseViewModel)
+
+	// MFA
+	authenticators, err := h.Authenticators.List(*userID)
+	if err != nil {
+		return nil, err
+	}
+	totp := false
+	oobotp := false
+	password := false
+	for _, typ := range h.Authentication.SecondaryAuthenticators {
+		switch typ {
+		case authn.AuthenticatorTypePassword:
+			password = true
+		case authn.AuthenticatorTypeTOTP:
+			totp = true
+		case authn.AuthenticatorTypeOOB:
+			oobotp = true
+		}
+	}
+	mfaViewModel := SettingsMFAViewModel{
+		Authenticators:           authenticators,
+		SecondaryTOTPAllowed:     totp,
+		SecondaryOOBOTPAllowed:   oobotp,
+		SecondaryPasswordAllowed: password,
+	}
+	viewmodels.Embed(data, mfaViewModel)
+
+	// Identity - Part 1
+	candidates, err := h.Identities.ListCandidates(*userID)
+	if err != nil {
+		return nil, err
+	}
+	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithCandidates(candidates)
+	viewmodels.Embed(data, authenticationViewModel)
+
+	// Identity - Part 2
+	identities, err := h.Identities.ListByUser(*userID)
+	if err != nil {
+		return nil, err
+	}
+	identityViewModel := SettingsIdentityViewModel{}
+	identityViewModel.VerificationStatuses, err = h.Verification.GetVerificationStatuses(identities)
+	if err != nil {
+		return nil, err
+	}
+	viewmodels.Embed(data, identityViewModel)
+
+	return data, nil
 }
 
 func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -57,40 +121,11 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer ctrl.Serve()
 
-	userID := ctrl.RequireUserID()
-
 	ctrl.Get(func() error {
-		data := map[string]interface{}{}
-
-		baseViewModel := h.BaseViewModel.ViewModel(r, nil)
-		viewmodels.Embed(data, baseViewModel)
-
-		authenticators, err := h.Authenticators.List(userID)
+		data, err := h.GetData(r, w)
 		if err != nil {
-			panic(err)
+			return err
 		}
-
-		totp := false
-		oobotp := false
-		password := false
-		for _, typ := range h.Authentication.SecondaryAuthenticators {
-			switch typ {
-			case authn.AuthenticatorTypePassword:
-				password = true
-			case authn.AuthenticatorTypeTOTP:
-				totp = true
-			case authn.AuthenticatorTypeOOB:
-				oobotp = true
-			}
-		}
-
-		viewModel := SettingsViewModel{
-			Authenticators:           authenticators,
-			SecondaryTOTPAllowed:     totp,
-			SecondaryOOBOTPAllowed:   oobotp,
-			SecondaryPasswordAllowed: password,
-		}
-		viewmodels.Embed(data, viewModel)
 
 		h.Renderer.RenderHTML(w, r, TemplateWebSettingsHTML, data)
 		return nil

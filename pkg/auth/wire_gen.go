@@ -13949,6 +13949,8 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
 		Authentication:    authenticationConfig,
+		Identities:        serviceService,
+		Verification:      verificationService,
 		Authenticators:    service3,
 		MFA:               mfaService,
 	}
