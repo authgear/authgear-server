@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -38,6 +39,7 @@ type ControllerDeps struct {
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
 	Publisher     *Publisher
+	Clock         clock.Clock
 
 	TrustProxy config.TrustProxy
 }
@@ -108,6 +110,8 @@ func (c *Controller) GetSession(id string) (*webapp.Session, error) {
 }
 
 func (c *Controller) UpdateSession(s *webapp.Session) error {
+	now := c.Clock.NowUTC()
+	s.UpdatedAt = now
 	err := c.Page.UpdateSession(s)
 	if err != nil {
 		return err

@@ -22,6 +22,7 @@ type WebsocketOutgoingMessage struct {
 
 type Delegate interface {
 	Accept(r *http.Request) (channelName string, err error)
+	OnRedisSubscribe(r *http.Request) error
 }
 
 const (
@@ -71,6 +72,12 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		msgChan, cancel := h.RedisHub.Subscribe(channelName)
+
+		err := h.Delegate.OnRedisSubscribe(r)
+		if err != nil {
+			logger.WithError(err).Info("failed to call on redis subscribe")
+			return
+		}
 
 		defer func() {
 			cancel()
