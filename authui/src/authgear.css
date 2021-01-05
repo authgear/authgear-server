@@ -265,9 +265,8 @@ a.btn {
   height: 90px;
   margin: 6px;
   background-position: center;
-  background-size: 60px 60px;
+  background-size: auto 100%;
   background-repeat: no-repeat;
-  background-color: var(--color-primary);
 }
 
 .pane {

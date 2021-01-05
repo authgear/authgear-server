@@ -380,7 +380,7 @@
   "ResourceConfigurationScreen.passwordless-authenticator.title": "Passwordless Authenticator",
   "ResourceConfigurationScreen.forgot-password.title": "Forgot Password",
 
-  "ResourceConfigurationScreen.app-banner": "App Banner",
+  "ResourceConfigurationScreen.favicon": "Favicon",
   "ResourceConfigurationScreen.app-logo": "App Logo",
 
   "EditTemplatesWidget.email": "Email",

@@ -13,8 +13,8 @@ const (
 )
 
 const (
-	appLogoNamePrefix   = "app_logo"
-	appBannerNamePrefix = "app_banner"
+	appLogoNamePrefix = "app_logo"
+	faviconNamePrefix = "favicon"
 )
 
 type StaticAsset struct {
@@ -35,4 +35,4 @@ var WebCSS = resource.RegisterResource(CSSDescriptor{
 })
 
 var AppLogo = resource.RegisterResource(ImageDescriptor{Name: appLogoNamePrefix})
-var AppBanner = resource.RegisterResource(ImageDescriptor{Name: appBannerNamePrefix})
+var Favicon = resource.RegisterResource(ImageDescriptor{Name: faviconNamePrefix})

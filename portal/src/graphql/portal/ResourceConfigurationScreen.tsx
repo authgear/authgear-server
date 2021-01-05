@@ -16,7 +16,7 @@ import {
   ALL_LOCALIZABLE_RESOURCES,
   ALL_TEMPLATES,
   renderPath,
-  RESOURCE_APP_BANNER,
+  RESOURCE_FAVICON,
   RESOURCE_APP_LOGO,
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML,
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT,
@@ -439,9 +439,9 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         >
           <div className={styles.pivotItemAppearance}>
             <ImageFilePicker
-              title={renderToString("ResourceConfigurationScreen.app-banner")}
-              base64EncodedData={getValueIgnoreEmptyString(RESOURCE_APP_BANNER)}
-              onChange={getOnChangeImage(RESOURCE_APP_BANNER)}
+              title={renderToString("ResourceConfigurationScreen.favicon")}
+              base64EncodedData={getValueIgnoreEmptyString(RESOURCE_FAVICON)}
+              onChange={getOnChangeImage(RESOURCE_FAVICON)}
             />
             <ImageFilePicker
               title={renderToString("ResourceConfigurationScreen.app-logo")}

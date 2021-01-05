@@ -6,9 +6,9 @@
   </mj-attributes>
 </mj-head>
 <mj-body background-color="#f3f3f3">
-  <mj-section padding="20px 0 0">
+  <mj-section padding="20px 0 0 0">
     <mj-column>
-      <mj-image align="left" width="150px" src="{{ call $.StaticAssetURL `app-logo` }}"/>
+      <mj-image padding="0" align="left" width="150px" src="{{ call $.StaticAssetURL `app-logo` }}"/>
     </mj-column>
   </mj-section>
   <mj-section>
