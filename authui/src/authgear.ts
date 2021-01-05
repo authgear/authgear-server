@@ -288,7 +288,10 @@ window.api.onLoad(() => {
   let ws: WebSocket | null = null;
 
   function dispose() {
-    ws?.close();
+    if (ws != null) {
+      ws.onclose = function () {};
+      ws.close();
+    }
     ws = null;
   }
 
