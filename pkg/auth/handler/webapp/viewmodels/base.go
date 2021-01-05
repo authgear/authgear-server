@@ -124,7 +124,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		httputil.UpdateCookie(rw, m.ErrorCookie.ResetError())
 	}
 
-	SDK := r.URL.Query().Get("x_sdk")
+	SDK := r.Form.Get("x_sdk")
 	if s := webapp.GetSession(r.Context()); s != nil {
 		for _, step := range s.Steps {
 			if path := step.Kind.Path(); path == "" {
