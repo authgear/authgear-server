@@ -532,6 +532,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Pages:         webappService2,
 		SessionCookie: cookieDef2,
 		CookieFactory: cookieFactory,
+		Clock:         clock,
 	}
 	scopesValidator := _wireScopesValidatorValue
 	tokenGenerator := _wireTokenGeneratorValue

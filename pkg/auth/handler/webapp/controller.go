@@ -163,16 +163,17 @@ func (c *Controller) renderError(err error) {
 
 func (c *Controller) EntryPointSession(opts webapp.SessionOptions) *webapp.Session {
 	s := webapp.GetSession(c.request.Context())
-	if s == nil {
-		s = webapp.NewSession(opts)
-	} else {
-		s = webapp.NewSession(webapp.NewSessionOptionsFromSession(s))
+	now := c.Clock.NowUTC()
+	o := opts
+	if s != nil {
+		o = webapp.NewSessionOptionsFromSession(s)
 		if opts.RedirectURI != "" {
-			s.RedirectURI = opts.RedirectURI
+			o.RedirectURI = opts.RedirectURI
 		}
-		s.KeepAfterFinish = opts.KeepAfterFinish
+		o.KeepAfterFinish = opts.KeepAfterFinish
 	}
-
+	o.UpdatedAt = now
+	s = webapp.NewSession(o)
 	return s
 }
 

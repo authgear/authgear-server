@@ -25,6 +25,7 @@ type SessionOptions struct {
 	UILocales       string
 	Prompt          string
 	Extra           map[string]interface{}
+	UpdatedAt       time.Time
 }
 
 func NewSessionOptionsFromSession(s *Session) SessionOptions {
@@ -80,6 +81,7 @@ func NewSession(options SessionOptions) *Session {
 		Extra:           make(map[string]interface{}),
 		Prompt:          options.Prompt,
 		UILocales:       options.UILocales,
+		UpdatedAt:       options.UpdatedAt,
 	}
 	for k, v := range options.Extra {
 		s.Extra[k] = v
