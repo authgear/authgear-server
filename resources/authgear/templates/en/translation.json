@@ -251,7 +251,11 @@
   "return-page-description": "Please return to where you were to continue. If you were interacting with an mobile app, please switch back to the app. If you were interacting with a website, please switch back to that tab.",
 
   "wechat-auth-title": "Login with WeChat",
-  "wechat-auth-description": "Please scan the QR code in your WeChat app to sign in.",
+  "wechat-auth-with-app-description": "Click the below button to open WeChat app",
+  "wechat-auth-with-qr-code-description": "Scan the QR code in your WeChat app to sign in.",
+  "wechat-open-app": "Open WeChat app to login",
+
+  "wechat-auth-separator": "or",
 
   "toc-pp-footer": "<p class=\"toc-pp-footer\">By registering, you agree to our <a target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a> and <a target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>.</p>"
 }

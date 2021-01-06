@@ -31,3 +31,9 @@ func (r AuthorizationRequest) UILocales() []string { return parseSpaceDelimitedS
 
 func (r AuthorizationRequest) CodeChallenge() string       { return r["code_challenge"] }
 func (r AuthorizationRequest) CodeChallengeMethod() string { return r["code_challenge_method"] }
+
+// Websocket channel
+
+func (r AuthorizationRequest) WsChannelID() string { return r["x_ws_channel_id"] }
+
+func (r AuthorizationRequest) SDK() string { return r["x_sdk"] }

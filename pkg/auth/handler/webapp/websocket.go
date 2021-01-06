@@ -38,13 +38,17 @@ func (h *WebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *WebsocketHandler) Accept(r *http.Request) (channelName string, err error) {
-	s := webapp.GetSession(r.Context())
-	if s == nil {
-		err = webapp.ErrSessionNotFound
-		return
+	wsChannelID := r.URL.Query().Get("x_ws_channel_id")
+	if wsChannelID == "" {
+		s := webapp.GetSession(r.Context())
+		if s == nil {
+			err = webapp.ErrSessionNotFound
+			return
+		}
+		wsChannelID = s.WsChannelID
 	}
 
-	channelName = WebsocketChannelName(string(h.AppID), s.ID)
+	channelName = WebsocketChannelName(string(h.AppID), wsChannelID)
 	return
 }
 
@@ -90,9 +94,15 @@ type WebsocketMessageKind string
 
 const (
 	// WebsocketMessageKindRefresh means when the client receives this message, they should refresh the page.
-	WebsocketMessageKindRefresh = "refresh"
+	WebsocketMessageKindRefresh          = "refresh"
+	WebsocketMessageKindWeChatLoginStart = "wechat_login_start"
 )
 
 type WebsocketMessage struct {
 	Kind WebsocketMessageKind `json:"kind"`
+	Data interface{}          `json:"data"`
+}
+
+type WebsocketMessageWeChatLoginStartData struct {
+	State string `json:"state"`
 }

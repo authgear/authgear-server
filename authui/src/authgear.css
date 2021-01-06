@@ -553,7 +553,7 @@ a.btn {
   background-color: #07c160;
 }
 
-.sso-loginid-separator {
+.sso-loginid-separator, .wechat-auth-separator {
   text-align: center;
   margin: 6px;
   padding: 6px;
@@ -1081,4 +1081,10 @@ a.btn {
 .signin-signup-link.current {
   border-bottom: 2px solid var(--color-primary);
   color: var(--color-primary);
+}
+
+.wechat-auth-qr-code {
+  width: 200px;
+  height: 200px;
+  align-self: center;
 }

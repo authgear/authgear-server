@@ -127,7 +127,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 	router.Add(webapphandler.ConfigureSSOCallbackRoute(webappSSOCallbackRoute), p.Handler(newWebAppSSOCallbackHandler))
 
 	router.Add(webapphandler.ConfigureWechatAuthRoute(webappPageRoute), p.Handler(newWechatAuthHandler))
-	router.Add(webapphandler.ConfigureWechatCallbackRoute(webappPageRoute), p.Handler(newWechatCallbackHandler))
+	router.Add(webapphandler.ConfigureWechatCallbackRoute(webappSSOCallbackRoute), p.Handler(newWechatCallbackHandler))
 
 	router.Add(oauthhandler.ConfigureOIDCMetadataRoute(oauthAPIRoute), p.Handler(newOAuthMetadataHandler))
 	router.Add(oauthhandler.ConfigureOAuthMetadataRoute(oauthAPIRoute), p.Handler(newOAuthMetadataHandler))
