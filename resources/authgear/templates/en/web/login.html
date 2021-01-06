@@ -7,21 +7,105 @@
 
 		{{ template "__nav_bar.html" true }}
 
-		<div class="authorize-form pane">
+		{{ template "__error.html" . }}
+
+		<div class="pane flex flex-direction-column">
 
 			{{ if not $.PublicSignupDisabled }}
-			<div class="signin-signup-switch">
+			<div class="signin-signup-switch flex flex-direction-row">
 				<a class="signin-signup-link primary-txt current" href="{{ call $.MakeURL "/login"}}" data-turbolinks-action="replace">{{ template "login-label" }}</a>
 				<a class="signin-signup-link primary-txt" href="{{ call $.MakeURL "/signup"}}" data-turbolinks-action="replace">{{ template "signup-label" }}</a>
 			</div>
 			{{ end }}
 
-			<div class="authorize-idp-section">
+			<form class="flex flex-direction-column margin-6 width-full" method="post" novalidate>
+				{{ $.CSRFField }}
+
+				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if $.LoginPageLoginIDHasPhone }}
+				<div class="margin-6 phone-input">
+					<select class="input select primary-txt" name="x_calling_code">
+						{{ range $.CountryCallingCodes }}
+						<option
+							value="{{ . }}"
+							{{ if $.x_calling_code }}{{ if eq $.x_calling_code . }}
+							selected
+							{{ end }}{{ end }}
+							>
+							+{{ . }}
+						</option>
+						{{ end }}
+					</select>
+					<input
+						class="input text-input primary-txt"
+						type="text"
+						inputmode="numeric"
+						pattern="[0-9]*"
+						autocomplete="tel-national"
+						autocapitalize="none"
+						name="x_national_number"
+						placeholder="{{ template "phone-number-placeholder" }}"
+					>
+				</div>
+				{{ end }}{{ end }}{{ end }}
+
+				{{ if $.x_login_id_input_type }}{{ if not (eq $.x_login_id_input_type "phone") }}{{ if (not (eq $.LoginPageTextLoginIDVariant "none")) }}
+				<input
+					class="margin-6 input text-input primary-txt"
+					type="{{ $.LoginPageTextLoginIDInputType }}"
+					autocomplete="username"
+					autocapitalize="none"
+					name="x_login_id"
+					placeholder="{{ template "login-id-placeholder" (dict "variant" $.LoginPageTextLoginIDVariant) }}"
+				>
+				<!-- This field is for Chrome and Safari to consider the above field as username for autocomplete -->
+				<input style="display: none" aria-hidden="true" type="password" autocomplete="current-password" name="">
+				{{ end }}{{ end }}{{ end }}
+
+				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if (not (eq $.LoginPageTextLoginIDVariant "none")) }}
+				<a class="link font-smaller align-self-flex-start block margin-v-12 margin-h-6" href="{{ call $.MakeURL "" "x_login_id_input_type" $.LoginPageTextLoginIDInputType }}" data-turbolinks-action="replace">{{ template "use-text-login-id-description" (dict "variant" $.LoginPageTextLoginIDVariant) }}</a>
+				{{ end }}{{ end }}{{ end }}
+
+				{{ if $.x_login_id_input_type }}{{ if not (eq $.x_login_id_input_type "phone") }}{{ if $.LoginPageLoginIDHasPhone }}
+				<a class="link font-smaller align-self-flex-start block margin-v-12 margin-h-6" href="{{ call $.MakeURL "" "x_login_id_input_type" "phone" }}" data-turbolinks-action="replace">{{ template "use-phone-login-id-description" }}</a>
+				{{ end }}{{ end }}{{ end }}
+
+				{{ if or $.LoginPageLoginIDHasPhone (not (eq $.LoginPageTextLoginIDVariant "none")) }}
+				<button class="btn primary-btn margin-6" type="submit" name="x_action" value="login_id">{{ template "next-button-label" }}</button>
+				{{ end }}
+
+				{{/* Forgot password link is deliberately omitted here. */}}
+			</form>
+
+			{{/* Separator */}}
+			{{ $has_oauth := false }}
+			{{ $has_login_id := false }}
+			{{ range $.IdentityCandidates }}
+				{{ if eq .type "oauth" }}
+				{{ $has_oauth = true }}
+				{{ end }}
+				{{ if eq .type "login_id" }}
+				{{ $has_login_id = true }}
+				{{ end }}
+			{{ end }}
+
+			{{ if $has_oauth }}{{ if $has_login_id }}
+			<div class="sso-loginid-separator flex flex-direction-row align-items-center margin-6 width-full">
+				<span class="primary-txt margin-h-6">{{ template "sso-login-id-separator-both-present" }}</span>
+			</div>
+			{{ end }}{{ end }}
+
+			{{ if $has_oauth }}{{ if not $has_login_id }}
+			<div class="text-align-center margin-v-12 margin-h-6">
+				{{ template "sso-login-id-separator-oauth-present" }}
+			</div>
+			{{ end }}{{ end }}
+
+			<div class="flex flex-direction-column margin-6 width-full">
 				{{ range $.IdentityCandidates }}
 				{{ if eq .type "oauth" }}
-				<form class="authorize-idp-form" method="post" novalidate>
+				<form class="flex flex-direction-column" method="post" novalidate>
 				{{ $.CSRFField }}
-				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_action" value="oauth" data-form-xhr="false">
+				<button class="btn sso-btn margin-v-4 margin-h-6 {{ .provider_type }}" type="submit" name="x_action" value="oauth" data-form-xhr="false">
 					<input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
 					<span class="sso-btn-content">
 					{{- if eq .provider_type "apple" -}}
@@ -55,81 +139,11 @@
 				{{ end }}
 			</div>
 
-			{{ $has_oauth := false }}
-			{{ $has_login_id := false }}
-			{{ range $.IdentityCandidates }}
-				{{ if eq .type "oauth" }}
-				{{ $has_oauth = true }}
-				{{ end }}
-				{{ if eq .type "login_id" }}
-				{{ $has_login_id = true }}
-				{{ end }}
-			{{ end }}
-			{{ if $has_oauth }}{{ if $has_login_id }}
-			<div class="primary-txt sso-loginid-separator">{{ template "sso-login-id-separator" }}</div>
-			{{ end }}{{ end }}
+			<p class="font-smaller margin-6 padding-6 width-full">
+			{{ template "toc-pp-footer" (dict "termsOfService" (.Translations.RenderText "terms-of-service-link" nil) "privacyPolicy" (.Translations.RenderText "privacy-policy-link" nil)) }}
+			</p>
 
-			{{ template "__error.html" . }}
-
-			<form class="authorize-loginid-form" method="post" novalidate>
-				{{ $.CSRFField }}
-
-				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if $.LoginPageLoginIDHasPhone }}
-				<div class="phone-input">
-					<select class="input select primary-txt" name="x_calling_code">
-						{{ range $.CountryCallingCodes }}
-						<option
-							value="{{ . }}"
-							{{ if $.x_calling_code }}{{ if eq $.x_calling_code . }}
-							selected
-							{{ end }}{{ end }}
-							>
-							+{{ . }}
-						</option>
-						{{ end }}
-					</select>
-					<input
-						class="input text-input primary-txt"
-						type="text"
-						inputmode="numeric"
-						pattern="[0-9]*"
-						autocomplete="tel-national"
-						autocapitalize="none"
-						name="x_national_number"
-						placeholder="{{ template "phone-number-placeholder" }}"
-					>
-				</div>
-				{{ end }}{{ end }}{{ end }}
-
-				{{ if $.x_login_id_input_type }}{{ if not (eq $.x_login_id_input_type "phone") }}{{ if (not (eq $.LoginPageTextLoginIDVariant "none")) }}
-				<input
-					class="input text-input primary-txt"
-					type="{{ $.LoginPageTextLoginIDInputType }}"
-					autocomplete="username"
-					autocapitalize="none"
-					name="x_login_id"
-					placeholder="{{ template "login-id-placeholder" (dict "variant" $.LoginPageTextLoginIDVariant) }}"
-				>
-				<!-- This field is for Chrome and Safari to consider the above field as username for autocomplete -->
-				<input style="display: none" aria-hidden="true" type="password" autocomplete="current-password" name="">
-				{{ end }}{{ end }}{{ end }}
-
-				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if (not (eq $.LoginPageTextLoginIDVariant "none")) }}
-				<a class="link font-smaller align-self-flex-start" href="{{ call $.MakeURL "" "x_login_id_input_type" $.LoginPageTextLoginIDInputType }}" data-turbolinks-action="replace">{{ template "use-text-login-id-description" (dict "variant" $.LoginPageTextLoginIDVariant) }}</a>
-				{{ end }}{{ end }}{{ end }}
-
-				{{ if $.x_login_id_input_type }}{{ if not (eq $.x_login_id_input_type "phone") }}{{ if $.LoginPageLoginIDHasPhone }}
-				<a class="link font-smaller align-self-flex-start" href="{{ call $.MakeURL "" "x_login_id_input_type" "phone" }}" data-turbolinks-action="replace">{{ template "use-phone-login-id-description" }}</a>
-				{{ end }}{{ end }}{{ end }}
-
-				{{ if $.ForgotPasswordEnabled }}
-				<a class="link font-smaller align-self-flex-start" href="{{ call $.MakeURL "/forgot_password" }}">{{ template "forgot-password-button-label" }}</a>
-				{{ end }}
-
-				{{ if or $.LoginPageLoginIDHasPhone (not (eq $.LoginPageTextLoginIDVariant "none")) }}
-				<button class="btn primary-btn align-self-flex-end" type="submit" name="x_action" value="login_id">{{ template "next-button-label" }}</button>
-				{{ end }}
-			</form>
+			<div class="footer-watermark margin-12 width-full"></div>
 		</div>
 	</div>
 </body>
