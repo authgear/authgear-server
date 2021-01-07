@@ -78,6 +78,7 @@ type AuthenticateURLOptions struct {
 	UILocales        string
 	Prompt           string
 	AuthenticateHint interface{}
+	Platform         string
 }
 type PageService interface {
 	CreateSession(session *Session, redirectURI string) (*Result, error)
@@ -101,6 +102,7 @@ func (p *AuthenticateURLProvider) AuthenticateURL(options AuthenticateURLOptions
 	session := NewSession(SessionOptions{
 		RedirectURI: options.RedirectURI,
 		Prompt:      options.Prompt,
+		Platform:    options.Platform,
 		UpdatedAt:   now,
 	})
 

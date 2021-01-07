@@ -23,6 +23,7 @@ type SessionOptions struct {
 	RedirectURI     string
 	KeepAfterFinish bool
 	Prompt          string
+	Platform        string
 	Extra           map[string]interface{}
 	UpdatedAt       time.Time
 }
@@ -32,6 +33,7 @@ func NewSessionOptionsFromSession(s *Session) SessionOptions {
 		RedirectURI:     s.RedirectURI,
 		KeepAfterFinish: s.KeepAfterFinish,
 		Prompt:          s.Prompt,
+		Platform:        s.Platform,
 		Extra:           nil, // Omit extra by default
 	}
 }
@@ -55,6 +57,9 @@ type Session struct {
 	// Prompt is used to indicate requested authentication behavior
 	Prompt string `json:"prompt,omitempty"`
 
+	// Platform is used to indicate the request is triggered by which platform
+	Platform string `json:"platform,omitempty"`
+
 	// UpdatedAt indicate the session last updated time
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 }
@@ -74,6 +79,7 @@ func NewSession(options SessionOptions) *Session {
 		KeepAfterFinish: options.KeepAfterFinish,
 		Extra:           make(map[string]interface{}),
 		Prompt:          options.Prompt,
+		Platform:        options.Platform,
 		UpdatedAt:       options.UpdatedAt,
 	}
 	for k, v := range options.Extra {
