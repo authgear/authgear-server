@@ -33,7 +33,7 @@ func (p *Publisher) Get() *goredis.Client {
 }
 
 func (p *Publisher) Publish(s *webapp.Session, msg *WebsocketMessage) error {
-	channelName := WebsocketChannelName(string(p.AppID), s.WsChannelID)
+	channelName := WebsocketChannelName(string(p.AppID), s.ID)
 
 	b, err := json.Marshal(msg)
 	if err != nil {

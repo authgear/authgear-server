@@ -14,19 +14,9 @@
 
 {{ template "__error.html" . }}
 
-{{ if .IsNativeSDK }}
+<p class="description primary-txt">{{ template "wechat-auth-description" }}</p>
 
-<p class="description primary-txt">{{ template "wechat-auth-with-app-description" }}</p>
-
-<a class="btn primary-btn" href="{{ $.CurrentURI }}" data-turbolinks-action="replace">{{ template "wechat-open-app" }}</a>
-
-<div class="primary-txt wechat-auth-separator">{{ template "wechat-auth-separator" }}</div>
-
-{{ end }}
-
-<p class="description primary-txt">{{ template "wechat-auth-with-qr-code-description" }}</p>
-
-<img class="wechat-auth-qr-code" src="{{ $.ImageURI }}">
+<img src="{{ $.ImageURI }}">
 
 </div>
 </html>

@@ -95,5 +95,4 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.PageService), new(*webapp.Service2)),
 	wire.Bind(new(handlerwebapp.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(handlerwebapp.VerifyIdentityVerificationService), new(*verification.Service)),
-	wire.Bind(new(handlerwebapp.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
 )

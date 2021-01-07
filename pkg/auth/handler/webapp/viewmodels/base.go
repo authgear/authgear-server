@@ -40,7 +40,6 @@ type BaseViewModel struct {
 	ForgotPasswordEnabled bool
 	PublicSignupDisabled  bool
 	PageLoadedAt          int
-	IsNativeSDK           bool
 }
 
 func (m *BaseViewModel) SetError(err error) {
@@ -124,7 +123,6 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		httputil.UpdateCookie(rw, m.ErrorCookie.ResetError())
 	}
 
-	SDK := r.Form.Get("x_sdk")
 	if s := webapp.GetSession(r.Context()); s != nil {
 		for _, step := range s.Steps {
 			if path := step.Kind.Path(); path == "" {
@@ -132,14 +130,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 			}
 			model.SessionStepURLs = append(model.SessionStepURLs, step.URL().String())
 		}
-		if SDK == "" {
-			SDK = s.SDK
-		}
 	}
-
-	model.IsNativeSDK = (SDK == "ios" ||
-		SDK == "android" ||
-		SDK == "react-native")
 
 	return model
 }

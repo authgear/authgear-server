@@ -25,12 +25,11 @@ var TemplateWebWechatAuthHandlerHTML = template.RegisterHTML(
 func ConfigureWechatAuthRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET").
-		WithPathPattern("/sso/wechat/auth/:alias")
+		WithPathPattern("/sso/wechat/auth")
 }
 
 type WeChatAuthViewModel struct {
-	ImageURI   htmltemplate.URL
-	CurrentURI string
+	ImageURI htmltemplate.URL
 }
 
 type WechatAuthHandler struct {
@@ -38,7 +37,6 @@ type WechatAuthHandler struct {
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
 	CSRFCookie        webapp.CSRFCookieDef
-	Publisher         *Publisher
 }
 
 func (h *WechatAuthHandler) GetData(r *http.Request, w http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -64,8 +62,7 @@ func (h *WechatAuthHandler) GetData(r *http.Request, w http.ResponseWriter, sess
 		// dataURI is generated here and not user generated,
 		// so it is safe to use htmltemplate.URL with it.
 		// nolint:gosec
-		ImageURI:   htmltemplate.URL(dataURI),
-		CurrentURI: r.URL.RequestURI(),
+		ImageURI: htmltemplate.URL(dataURI),
 	}
 
 	viewmodels.Embed(data, baseViewModel)
@@ -96,12 +93,10 @@ func (h *WechatAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			step := session.CurrentStep()
 			action, ok := step.FormData["x_action"].(string)
 			if ok && action == WechatActionCallback {
-				// with callback action
-				// submit data to oauth callback
 				nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
 
 				data := InputOAuthCallback{
-					ProviderAlias:    httproute.GetParam(r, "alias"),
+					ProviderAlias:    step.FormData["x_alias"].(string),
 					NonceSource:      nonceSource,
 					Code:             step.FormData["x_code"].(string),
 					Scope:            step.FormData["x_scope"].(string),
@@ -119,19 +114,6 @@ func (h *WechatAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				result.WriteResponse(w, r)
 				return nil
 
-			}
-
-			// start wechat authentication
-			msg := &WebsocketMessage{
-				Kind: WebsocketMessageKindWeChatLoginStart,
-				Data: WebsocketMessageWeChatLoginStartData{
-					State: session.ID,
-				},
-			}
-
-			err = h.Publisher.Publish(session, msg)
-			if err != nil {
-				return err
 			}
 		}
 

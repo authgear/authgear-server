@@ -20,32 +20,26 @@ func WithSession(ctx context.Context, session *Session) context.Context {
 }
 
 type SessionOptions struct {
-	WsChannelID     string
 	RedirectURI     string
 	KeepAfterFinish bool
 	UILocales       string
 	Prompt          string
-	SDK             string
 	Extra           map[string]interface{}
 	UpdatedAt       time.Time
 }
 
 func NewSessionOptionsFromSession(s *Session) SessionOptions {
 	return SessionOptions{
-		WsChannelID:     s.WsChannelID,
 		RedirectURI:     s.RedirectURI,
 		KeepAfterFinish: s.KeepAfterFinish,
 		UILocales:       s.UILocales,
 		Prompt:          s.Prompt,
-		SDK:             s.SDK,
 		Extra:           nil, // Omit extra by default
 	}
 }
 
 type Session struct {
 	ID string `json:"id"`
-
-	WsChannelID string `json:"ws_channel_id"`
 
 	// Steps is a history stack of steps taken within this session.
 	Steps []SessionStep `json:"steps,omitempty"`
@@ -62,9 +56,6 @@ type Session struct {
 
 	// Prompt is used to indicate requested authentication behavior
 	Prompt string `json:"prompt,omitempty"`
-
-	// SDK is used to indicate the request is triggered by sdk
-	SDK string `json:"sdk,omitempty"`
 
 	// UILocales are the locale to be used to render UI, passed in from OAuth
 	// flow or query parameter.
@@ -83,18 +74,12 @@ func newSessionID() string {
 }
 
 func NewSession(options SessionOptions) *Session {
-	id := newSessionID()
-	if options.WsChannelID == "" {
-		options.WsChannelID = id
-	}
 	s := &Session{
-		ID:              id,
-		WsChannelID:     options.WsChannelID,
+		ID:              newSessionID(),
 		RedirectURI:     options.RedirectURI,
 		KeepAfterFinish: options.KeepAfterFinish,
 		Extra:           make(map[string]interface{}),
 		Prompt:          options.Prompt,
-		SDK:             options.SDK,
 		UILocales:       options.UILocales,
 		UpdatedAt:       options.UpdatedAt,
 	}
