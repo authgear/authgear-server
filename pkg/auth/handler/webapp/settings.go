@@ -126,10 +126,8 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer ctrl.Serve()
 
 	redirectURI := httputil.HostRelative(r.URL).String()
-	providerAlias := r.Form.Get("x_provider_alias")
 	identityID := r.Form.Get("x_identity_id")
 	userID := ctrl.RequireUserID()
-	nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
 
 	ctrl.Get(func() error {
 		data, err := h.GetData(r, w)
@@ -138,28 +136,6 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		h.Renderer.RenderHTML(w, r, TemplateWebSettingsHTML, data)
-		return nil
-	})
-
-	ctrl.PostAction("link_oauth", func() error {
-		opts := webapp.SessionOptions{
-			RedirectURI: redirectURI,
-		}
-		intent := intents.NewIntentAddIdentity(userID)
-
-		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
-			input = &InputUseOAuth{
-				ProviderAlias:    providerAlias,
-				NonceSource:      nonceSource,
-				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
-			}
-			return
-		})
-		if err != nil {
-			return err
-		}
-
-		result.WriteResponse(w, r)
 		return nil
 	})
 
