@@ -9,8 +9,144 @@
 {{ template "__nav_bar.html" true }}
 
 <p class="align-self-center primary-txt">
-  Click <a href="/logout">here</a> to sign out.
+  Click <a class="link" href="/logout">here</a> to sign out.
 </p>
+
+{{ template "__error.html" . }}
+
+{{/* Identity */}}
+<section class="pane">
+  <section class="settings-identity-row settings-identity-title-section">
+    <h1 class="title primary-txt">
+      {{ template "settings-identity-title" }}
+    </h1>
+    <p class="description secondary-txt">
+      {{ template "settings-identity-description" }}
+    </p>
+  </section>
+
+  {{ range .IdentityCandidates }}
+  {{ $claim_verification_statuses := index $.VerificationStatuses .identity_id }}
+  {{ $verification_status := "disabled" }}
+  {{ if ne (len $claim_verification_statuses) 0 }}
+    {{ $verification_status = (index $claim_verification_statuses 0).Status }}
+  {{ end }}
+
+  {{/* We do not want to show OAuth connect button */}}
+  {{ $is_oauth_candidate := (and (eq .type "oauth") (not .identity_id)) }}
+
+  {{ if not $is_oauth_candidate }}
+  <section class="settings-identity-row settings-identity-identity-section">
+    {{ $fa := "" }}
+
+    {{ if eq .type "oauth" }}
+    {{ if eq .provider_type "google" }}   {{ $fa = "fab fa-google" }}     {{ end }}
+    {{ if eq .provider_type "apple" }}    {{ $fa = "fab fa-apple"  }}     {{ end }}
+    {{ if eq .provider_type "facebook" }} {{ $fa = "fab fa-facebook-f" }} {{ end }}
+    {{ if eq .provider_type "linkedin" }} {{ $fa = "fab fa-linkedin-in" }}{{ end }}
+    {{ if eq .provider_type "azureadv2" }}{{ $fa = "fab fa-microsoft" }}  {{ end }}
+    {{ if eq .provider_type "wechat" }}   {{ $fa = "fab fa-weixin" }}     {{ end }}
+    {{ end }}
+
+    {{ if eq .type "login_id" }}
+    {{ if eq .login_id_type "email" }}   {{ $fa = "fas fa-envelope" }}{{ end }}
+    {{ if eq .login_id_type "username" }}{{ $fa = "fas fa-at" }}      {{ end }}
+    {{ if eq .login_id_type "phone" }}   {{ $fa = "fas fa-phone" }}   {{ end }}
+
+    {{ end }}
+
+    <i class="icon {{ $fa }}" aria-hidden="true"></i>
+    <h2 class="name primary-txt">
+      {{ if eq .type "oauth" }}
+        {{ if eq .provider_type "google" }}{{ template "settings-identity-oauth-google" }}{{ end }}
+        {{ if eq .provider_type "apple" }}{{ template "settings-identity-oauth-apple" }}{{ end }}
+        {{ if eq .provider_type "facebook" }}{{ template "settings-identity-oauth-facebook" }}{{ end }}
+        {{ if eq .provider_type "linkedin" }}{{ template "settings-identity-oauth-linkedin" }}{{ end }}
+        {{ if eq .provider_type "azureadv2" }}{{ template "settings-identity-oauth-azureadv2" }}{{ end }}
+        {{ if eq .provider_type "wechat" }}{{ template "settings-identity-oauth-wechat" }}{{ end }}
+      {{ end }}
+      {{ if eq .type "login_id" }}
+        {{ if eq .login_id_type "email" }}{{ template "settings-identity-login-id-email" }}{{ end }}
+        {{ if eq .login_id_type "phone" }}{{ template "settings-identity-login-id-phone" }}{{ end }}
+        {{ if eq .login_id_type "username" }}{{ template "settings-identity-login-id-username" }}{{ end }}
+        {{ if eq .login_id_type "raw" }}{{ template "settings-identity-login-id-raw" }}{{ end }}
+      {{ end }}
+    </h2>
+
+    {{ if .display_id }}
+    <h3 class="claim secondary-txt text-ellipsis">
+      {{ .display_id }}
+
+      <!-- TODO(verification): show verification for all identity types -->
+      {{ if eq .type "login_id" }}
+      {{ if .identity_id }}
+      {{ if or (eq $verification_status "pending") (eq $verification_status "required") }}
+      <span class="warn-txt">
+        ({{ template "verification-status-label--unverified" }})
+      </span>
+      {{ end }}
+      {{ if eq $verification_status "verified" }}
+      <span class="good-txt">
+        ({{ template "verification-status-label--verified" }})
+      </span>
+      {{ end }}
+      {{ end }}
+      {{ end }}
+    </h3>
+    {{ end }}
+
+    {{ if eq .type "oauth" }}
+    <form class="primary-action" method="post" novalidate>
+    {{ $.CSRFField }}
+    <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
+    <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
+    {{ if .identity_id }}
+    <button class="btn destructive-btn" type="submit" name="x_action" value="unlink_oauth">{{ template "disconnect-button-label" }}</button>
+    {{ else }}
+    <button class="anchor" type="submit" name="x_action" value="link_oauth" data-form-xhr="false">{{ template "connect-button-label" }}</button>
+    {{ end }}
+    </form>
+    {{ end }}
+
+    {{ if eq .type "login_id" }}
+    {{ if .identity_id }}
+    <a class="link primary-action" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type "x_identity_id" .identity_id }}">{{ template "change-button-label" }}</a>
+    {{ else }}
+    <a class="link primary-action" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type }}">
+      {{ if eq .login_id_type "username" }}
+      {{ template "setup-button-label" }}
+      {{ else }}
+      {{ template "connect-button-label" }}
+      {{ end }}
+    </a>
+    {{ end }}
+    {{ end }}
+
+    {{ if eq .type "login_id" }}
+    {{ if .identity_id }}
+    {{ if or (eq $verification_status "pending") (eq $verification_status "required") }}
+    <form class="secondary-action" method="post" novalidate>
+    {{ $.CSRFField }}
+    <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
+    <button class="anchor" type="submit" name="x_action" value="verify_login_id">
+      {{ template "resend-verification-code-button-label" }}
+    </button>
+    </form>
+    {{ end }}
+    {{ end }}
+    {{ end }}
+
+  </section>
+  {{ end }}
+  {{ end }}
+
+  <section class="settings-row">
+    <a class="link action" href="/settings/identity">
+      {{ template "more-button-label" }}
+    </a>
+  </section>
+
+</section>
 
 <!-- Security -->
 <section class="pane">
@@ -35,7 +171,7 @@
       <!-- FIXME(ui): Use user preferred timezone -->
       {{ template "settings-page-primary-password-description" (dict "time" .UpdatedAt) }}
     </p>
-    <a class="action" href="/settings/change_password">
+    <a class="link action" href="/settings/change_password">
       {{ template "change-password-button-label" }}
     </a>
   </section>
@@ -66,170 +202,64 @@
       <!-- FIXME(ui): Use user preferred timezone -->
       {{ template "settings-page-primary-oob-otp-description" (dict "time" .CreatedAt) }}
     </p>
-    <a class="action" href="/settings/identity">
+    <a class="link action" href="/settings/identity">
       {{ template "details-button-label" }}
     </a>
   </section>
   {{ end}}{{ end }}
   {{ end }}
 
-  <!-- Individual secondary authenticator section is shown if it is allowed in the configuration -->
-  <!-- or the user somehow has authenticator of that kind -->
-  {{ $has_secondary_totp := false }}
-  {{ $has_secondary_oob_otp := false }}
-  {{ $secondary_password := false }}
-  {{ range $.Authenticators }}
-  {{ if eq .Kind "secondary" }}
-    {{ if eq .Type "totp" }}
-      {{ $has_secondary_totp = true }}
-    {{ else if eq .Type "oob_otp" }}
-      {{ $has_secondary_oob_otp = true }}
-    {{ else if eq .Type "password" }}
-      {{ $secondary_password = . }}
-    {{ end }}
-  {{ end }}
-  {{ end }}
-  {{ $has_mfa := (or $has_secondary_totp $has_secondary_oob_otp $secondary_password) }}
-  {{ $show_secondary_totp := (or $has_secondary_totp $.SecondaryTOTPAllowed) }}
-  {{ $show_secondary_oob_otp := (or $has_secondary_oob_otp $.SecondaryOOBOTPAllowed) }}
-  {{ $show_secondary_password := (or $secondary_password $.SecondaryPasswordAllowed) }}
-  {{ $show_mfa := (or $show_secondary_totp $show_secondary_oob_otp $show_secondary_password) }}
-
-  <!-- MFA title -->
-  {{ if $show_mfa }}
-  <section class="settings-row settings-page-section-with-title">
-    <h3 class="title primary-txt">
-      {{ template "settings-page-mfa-section-title" }}
-    </h3>
-  </section>
-  {{ end }}
-
-  <!-- Secondary TOTP -->
-  {{ if $show_secondary_totp }}
-  <section class="settings-row settings-page-section-with-title-desc-action">
-    <p class="title primary-txt">
-      {{ template "settings-page-secondary-totp-title" }}
-    </p>
-    {{ if $has_secondary_totp }}
-    <p class="description good-txt">
-      {{ template "activated-label" }}
-    </p>
-    {{ else }}
-    <p class="description warn-txt">
-      {{ template "inactive-label" }}
-    </p>
-    {{ end }}
-    <a class="action" href="/settings/totp">
-      {{ template "details-button-label" }}
-    </a>
-  </section>
-  {{ end }}
-
-  <!-- Secondary OOB OTP -->
-  {{ if $show_secondary_oob_otp }}
-  <section class="settings-row settings-page-section-with-title-desc-action">
-    <p class="title primary-txt">
-      {{ template "settings-page-secondary-oob-otp-title" }}
-    </p>
-    {{ if $has_secondary_oob_otp }}
-    <p class="description good-txt">
-      {{ template "activated-label" }}
-    </p>
-    {{ else }}
-    <p class="description warn-txt">
-      {{ template "inactive-label" }}
-    </p>
-    {{ end }}
-    <a class="action" href="/settings/oob_otp">
-      {{ template "details-button-label" }}
-    </a>
-  </section>
-  {{ end }}
-
-  <!-- Secondary Password -->
-  {{ if $show_secondary_password }}
-  <section class="settings-row settings-page-section-with-title-desc-action">
-    <p class="title primary-txt">
-      {{ template "settings-page-secondary-password-title" }}
-    </p>
-    {{ if $secondary_password }}
-    <p class="description secondary-txt">
-      <!-- FIXME(ui): Use user preferred timezone -->
-      {{ template "settings-page-secondary-password-description" (dict "time" $secondary_password.UpdatedAt) }}
-    </p>
-    <a class="action secondary-btn" href="/settings/change_secondary_password">
-      {{ template "change-password-button-label" }}
-    </a>
-    <form class="action-2" method="post" novalidate>
-      {{ $.CSRFField }}
-      <input type="hidden" name="x_authenticator_id" value="{{ $secondary_password.ID }}">
-      <button class="destructive-btn" type="submit" name="x_action" value="remove_secondary_password">
-        {{ template "remove-button-label" }}
-      </button>
-    </form>
-    {{ else }}
-    <form class="action" method="post" novalidate>
-      {{ $.CSRFField }}
-      <button class="secondary-btn" type="submit" name="x_action" value="setup_secondary_password">
-        {{ template "setup-password-button-label" }}
-      </button>
-    </form>
-    {{ end }}
-  </section>
-  {{ end }}
-
-  <!-- Recovery code -->
-  {{ if $has_mfa }}
-  <section class="settings-row settings-page-section-with-title-desc-action">
-    <h3 class="title primary-txt">
-      {{ template "settings-page-recovery-code-title" }}
-    </h3>
-    <p class="description secondary-txt">
-      {{ template "settings-page-recovery-code-description" }}
-    </p>
-    <a class="action" href="/settings/recovery_code">
-      {{ template "show-recovery-code-button-label" }}
-    </a>
-  </section>
-  {{ end }}
-
-  <!-- Revoke all device tokens -->
-  {{ if $has_mfa }}
-  <form class="settings-row settings-page-section-revoke-device-tokens" method="post" novalidate>
-    {{ $.CSRFField }}
-    <button class="action btn destructive-btn" type="submit" name="x_action" value="revoke_devices">
-      {{ template "revoke-all-device-tokens-button-label" }}
-    </button>
-  </form>
-  {{ end }}
-
 </section>
 
-<!-- Connected Identities -->
+<!-- MFA -->
+<!-- Individual secondary authenticator section is shown if it is allowed in the configuration -->
+<!-- or the user somehow has authenticator of that kind -->
+{{ $has_secondary_totp := false }}
+{{ $has_secondary_oob_otp := false }}
+{{ $secondary_password := false }}
+{{ range $.Authenticators }}
+{{ if eq .Kind "secondary" }}
+  {{ if eq .Type "totp" }}
+    {{ $has_secondary_totp = true }}
+  {{ else if eq .Type "oob_otp" }}
+    {{ $has_secondary_oob_otp = true }}
+  {{ else if eq .Type "password" }}
+    {{ $secondary_password = . }}
+  {{ end }}
+{{ end }}
+{{ end }}
+{{ $has_mfa := (or $has_secondary_totp $has_secondary_oob_otp $secondary_password) }}
+{{ $show_secondary_totp := (or $has_secondary_totp $.SecondaryTOTPAllowed) }}
+{{ $show_secondary_oob_otp := (or $has_secondary_oob_otp $.SecondaryOOBOTPAllowed) }}
+{{ $show_secondary_password := (or $secondary_password $.SecondaryPasswordAllowed) }}
+{{ $show_mfa := (or $show_secondary_totp $show_secondary_oob_otp $show_secondary_password) }}
+
+{{ if $show_mfa }}
 <section class="pane">
   <section class="settings-row settings-page-section-with-title-desc-action">
     <h2 class="title primary-txt">
-      {{ template "settings-identity-title" }}
+      {{ template "settings-page-mfa-section-title" }}
     </h2>
     <p class="description secondary-txt">
-      {{ template "settings-page-identity-section-description" }}
+      {{ template "settings-page-mfa-section-description" }}
     </p>
-    <a class="action" href="/settings/identity">
+    <a class="link action" href="/settings/mfa">
       {{ template "details-button-label" }}
     </a>
   </section>
 </section>
+{{ end }}
 
 <!-- Sessions -->
 <section class="pane">
   <section class="settings-row settings-page-section-with-title-desc-action">
     <h2 class="title primary-txt">
-      {{ template "settings-sessions-title" }}
+      {{ template "settings-page-session-section-title" }}
     </h2>
     <p class="description secondary-txt">
       {{ template "settings-page-session-section-description" }}
     </p>
-    <a class="action" href="/settings/sessions">
+    <a class="link action" href="/settings/sessions">
       {{ template "details-button-label" }}
     </a>
   </section>

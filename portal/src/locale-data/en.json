@@ -151,7 +151,7 @@
   "ResetPasswordScreen.confirm-password": "Confirm Password",
   "ResetPasswordScreen.error.fetch-password-policy": "Failed to fetch password policy",
 
-  "UserDetails.connected-identities.header": "Connected Identities",
+  "UserDetails.connected-identities.header": "Identities",
   "UserDetails.connected-identities.title": "Identities",
   "UserDetails.connected-identities.add-identity": "Add Identity",
   "UserDetails.connected-identities.oauth": "Social",

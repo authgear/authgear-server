@@ -37,7 +37,7 @@ type LogoutHandler struct {
 
 func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		baseViewModel := h.BaseViewModel.ViewModel(r, nil)
+		baseViewModel := h.BaseViewModel.ViewModel(r, w)
 
 		data := map[string]interface{}{}
 

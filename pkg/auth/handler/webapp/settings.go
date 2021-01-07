@@ -7,9 +7,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -28,20 +28,17 @@ func ConfigureSettingsRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/settings")
 }
 
-type SettingsViewModel struct {
-	Authenticators           []*authenticator.Info
-	SecondaryTOTPAllowed     bool
-	SecondaryOOBOTPAllowed   bool
-	SecondaryPasswordAllowed bool
-}
-
 type SettingsAuthenticatorService interface {
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 }
 
-type SettingsMFAService interface {
-	ListRecoveryCodes(userID string) ([]*mfa.RecoveryCode, error)
-	InvalidateAllDeviceTokens(userID string) error
+type SettingsIdentityService interface {
+	ListByUser(userID string) ([]*identity.Info, error)
+	ListCandidates(userID string) ([]identity.Candidate, error)
+}
+
+type SettingsVerificationService interface {
+	GetVerificationStatuses(is []*identity.Info) (map[string][]verification.ClaimStatus, error)
 }
 
 type SettingsSessionManager interface {
@@ -55,8 +52,69 @@ type SettingsHandler struct {
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
 	Authentication    *config.AuthenticationConfig
+	Identities        SettingsIdentityService
+	Verification      SettingsVerificationService
 	Authenticators    SettingsAuthenticatorService
 	MFA               SettingsMFAService
+	CSRFCookie        webapp.CSRFCookieDef
+}
+
+func (h *SettingsHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+	userID := session.GetUserID(r.Context())
+
+	data := map[string]interface{}{}
+
+	// BaseViewModel
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
+	viewmodels.Embed(data, baseViewModel)
+
+	// MFA
+	authenticators, err := h.Authenticators.List(*userID)
+	if err != nil {
+		return nil, err
+	}
+	totp := false
+	oobotp := false
+	password := false
+	for _, typ := range h.Authentication.SecondaryAuthenticators {
+		switch typ {
+		case authn.AuthenticatorTypePassword:
+			password = true
+		case authn.AuthenticatorTypeTOTP:
+			totp = true
+		case authn.AuthenticatorTypeOOB:
+			oobotp = true
+		}
+	}
+	mfaViewModel := SettingsMFAViewModel{
+		Authenticators:           authenticators,
+		SecondaryTOTPAllowed:     totp,
+		SecondaryOOBOTPAllowed:   oobotp,
+		SecondaryPasswordAllowed: password,
+	}
+	viewmodels.Embed(data, mfaViewModel)
+
+	// Identity - Part 1
+	candidates, err := h.Identities.ListCandidates(*userID)
+	if err != nil {
+		return nil, err
+	}
+	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithCandidates(candidates)
+	viewmodels.Embed(data, authenticationViewModel)
+
+	// Identity - Part 2
+	identities, err := h.Identities.ListByUser(*userID)
+	if err != nil {
+		return nil, err
+	}
+	identityViewModel := SettingsIdentityViewModel{}
+	identityViewModel.VerificationStatuses, err = h.Verification.GetVerificationStatuses(identities)
+	if err != nil {
+		return nil, err
+	}
+	viewmodels.Embed(data, identityViewModel)
+
+	return data, nil
 }
 
 func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -68,91 +126,53 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer ctrl.Serve()
 
 	redirectURI := httputil.HostRelative(r.URL).String()
-	authenticatorID := r.Form.Get("x_authenticator_id")
+	identityID := r.Form.Get("x_identity_id")
 	userID := ctrl.RequireUserID()
 
 	ctrl.Get(func() error {
-		data := map[string]interface{}{}
-
-		baseViewModel := h.BaseViewModel.ViewModel(r, nil)
-		viewmodels.Embed(data, baseViewModel)
-
-		authenticators, err := h.Authenticators.List(userID)
+		data, err := h.GetData(r, w)
 		if err != nil {
-			panic(err)
+			return err
 		}
-
-		totp := false
-		oobotp := false
-		password := false
-		for _, typ := range h.Authentication.SecondaryAuthenticators {
-			switch typ {
-			case authn.AuthenticatorTypePassword:
-				password = true
-			case authn.AuthenticatorTypeTOTP:
-				totp = true
-			case authn.AuthenticatorTypeOOB:
-				oobotp = true
-			}
-		}
-
-		viewModel := SettingsViewModel{
-			Authenticators:           authenticators,
-			SecondaryTOTPAllowed:     totp,
-			SecondaryOOBOTPAllowed:   oobotp,
-			SecondaryPasswordAllowed: password,
-		}
-		viewmodels.Embed(data, viewModel)
 
 		h.Renderer.RenderHTML(w, r, TemplateWebSettingsHTML, data)
 		return nil
 	})
 
-	ctrl.PostAction("revoke_devices", func() error {
-		if err := h.MFA.InvalidateAllDeviceTokens(userID); err != nil {
-			return err
-		}
-		http.Redirect(w, r, redirectURI, http.StatusFound)
-		return nil
-	})
-
-	ctrl.PostAction("setup_secondary_password", func() error {
+	ctrl.PostAction("unlink_oauth", func() error {
 		opts := webapp.SessionOptions{
 			RedirectURI: redirectURI,
 		}
-		intent := intents.NewIntentAddAuthenticator(
-			userID,
-			interaction.AuthenticationStageSecondary,
-			authn.AuthenticatorTypePassword,
-		)
+		intent := intents.NewIntentRemoveIdentity(userID)
 
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
-			return &InputCreateAuthenticator{}, nil
+			input = &InputRemoveIdentity{
+				Type: authn.IdentityTypeOAuth,
+				ID:   identityID,
+			}
+			return
 		})
 		if err != nil {
 			return err
 		}
-
 		result.WriteResponse(w, r)
 		return nil
 	})
 
-	ctrl.PostAction("remove_secondary_password", func() error {
+	ctrl.PostAction("verify_login_id", func() error {
 		opts := webapp.SessionOptions{
-			RedirectURI: redirectURI,
+			RedirectURI:     redirectURI,
+			KeepAfterFinish: true,
 		}
-		intent := intents.NewIntentRemoveAuthenticator(userID)
+		intent := intents.NewIntentVerifyIdentity(userID, authn.IdentityTypeLoginID, identityID)
 
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
-			return &InputRemoveAuthenticator{
-				Type: authn.AuthenticatorTypePassword,
-				ID:   authenticatorID,
-			}, nil
+			input = nil
+			return
 		})
 		if err != nil {
 			return err
 		}
-
 		result.WriteResponse(w, r)
 		return nil
 	})

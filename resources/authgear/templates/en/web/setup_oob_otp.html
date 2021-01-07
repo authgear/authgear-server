@@ -62,13 +62,13 @@
 {{ end }}
 
 {{ if eq $.InputType "email" }}
-<a class="align-self-flex-start" href="{{ call $.MakeCurrentStepURL "x_input_type" "phone" }}" data-turbolinks-action="replace">
+<a class="link font-smaller align-self-flex-start" href="{{ call $.MakeCurrentStepURL "x_input_type" "phone" }}" data-turbolinks-action="replace">
 	{{ template "setup-oob-otp-use-phone-description" }}
 </a>
 {{ end }}
 
 {{ if eq $.InputType "phone" }}
-<a class="align-self-flex-start" href="{{ call $.MakeCurrentStepURL "x_input_type" "email" }}" data-turbolinks-action="replace">
+<a class="link font-smaller align-self-flex-start" href="{{ call $.MakeCurrentStepURL "x_input_type" "email" }}" data-turbolinks-action="replace">
 	{{ template "setup-oob-otp-use-email-description" }}
 </a>
 {{ end }}

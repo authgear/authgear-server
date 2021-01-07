@@ -23,7 +23,7 @@ var TemplateWebSettingsTOTPHTML = template.RegisterHTML(
 func ConfigureSettingsTOTPRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/settings/totp")
+		WithPathPattern("/settings/mfa/totp")
 }
 
 type SettingsTOTPViewModel struct {

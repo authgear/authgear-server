@@ -152,7 +152,7 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 	ctrl.PostAction("remove", func() error {
 		opts := webapp.SessionOptions{
-			RedirectURI: "/settings/identity",
+			RedirectURI: "/settings",
 		}
 		identityID := r.Form.Get("x_identity_id")
 		intent := intents.NewIntentRemoveIdentity(userID)
@@ -178,7 +178,7 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 	ctrl.PostAction("add_or_update", func() error {
 		opts := webapp.SessionOptions{
-			RedirectURI: "/settings/identity",
+			RedirectURI: "/settings",
 		}
 		loginIDKey := r.Form.Get("x_login_id_key")
 		loginIDType := r.Form.Get("x_login_id_type")

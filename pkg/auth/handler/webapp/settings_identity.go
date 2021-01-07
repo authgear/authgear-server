@@ -6,7 +6,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -30,15 +29,6 @@ type SettingsIdentityViewModel struct {
 	VerificationStatuses map[string][]verification.ClaimStatus
 }
 
-type SettingsIdentityService interface {
-	ListByUser(userID string) ([]*identity.Info, error)
-	ListCandidates(userID string) ([]identity.Candidate, error)
-}
-
-type SettingsVerificationService interface {
-	GetVerificationStatuses(is []*identity.Info) (map[string][]verification.ClaimStatus, error)
-}
-
 type SettingsIdentityHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
@@ -50,8 +40,10 @@ type SettingsIdentityHandler struct {
 
 func (h *SettingsIdentityHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
+
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	userID := session.GetUserID(r.Context())
+
 	candidates, err := h.Identities.ListCandidates(*userID)
 	if err != nil {
 		return nil, err
