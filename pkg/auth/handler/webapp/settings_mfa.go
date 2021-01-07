@@ -11,7 +11,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
-	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -50,26 +49,6 @@ type SettingsMFAHandler struct {
 	CSRFCookie        webapp.CSRFCookieDef
 }
 
-func (h *SettingsMFAHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
-	data := map[string]interface{}{}
-	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	userID := session.GetUserID(r.Context())
-	viewModel := SettingsMFAViewModel{}
-	authenticators, err := h.Authenticators.List(*userID,
-		authenticator.KeepKind(authenticator.KindSecondary),
-		authenticator.KeepType(authn.AuthenticatorTypeTOTP),
-	)
-	if err != nil {
-		return nil, err
-	}
-	viewModel.Authenticators = authenticators
-
-	viewmodels.Embed(data, baseViewModel)
-	viewmodels.Embed(data, viewModel)
-
-	return data, nil
-}
-
 func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctrl, err := h.ControllerFactory.New(r, w)
 	if err != nil {
@@ -85,7 +64,7 @@ func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctrl.Get(func() error {
 		data := map[string]interface{}{}
 
-		baseViewModel := h.BaseViewModel.ViewModel(r, nil)
+		baseViewModel := h.BaseViewModel.ViewModel(r, w)
 		viewmodels.Embed(data, baseViewModel)
 
 		authenticators, err := h.Authenticators.List(userID)

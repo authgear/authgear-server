@@ -65,7 +65,7 @@ func (h *SettingsHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[
 	data := map[string]interface{}{}
 
 	// BaseViewModel
-	baseViewModel := h.BaseViewModel.ViewModel(r, nil)
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
 	// MFA
