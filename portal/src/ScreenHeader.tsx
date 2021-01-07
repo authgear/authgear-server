@@ -2,7 +2,7 @@ import React, { useCallback, useContext, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Context } from "@oursky/react-messageformat";
 import authgear from "@authgear/web";
-import { Icon, IconButton, Text } from "@fluentui/react";
+import { Icon, IconButton, Text, Link as FluentUILink } from "@fluentui/react";
 import { useAppConfigQuery } from "./graphql/portal/query/appConfigQuery";
 
 import styles from "./ScreenHeader.module.scss";
@@ -21,6 +21,11 @@ const ScreenHeaderAppSection: React.FC<ScreenHeaderAppSectionProps> = function S
 ) {
   const { appID } = props;
   const { effectiveAppConfig, loading } = useAppConfigQuery(appID);
+  const { appHostSuffix, themes } = useSystemConfig();
+
+  const rawAppID = effectiveAppConfig?.id;
+  const endpoint =
+    rawAppID != null ? "https://" + rawAppID + appHostSuffix : null;
 
   if (loading) {
     return null;
@@ -29,9 +34,19 @@ const ScreenHeaderAppSection: React.FC<ScreenHeaderAppSectionProps> = function S
   return (
     <>
       <Icon className={styles.headerArrow} iconName="ChevronRight" />
-      <Text className={styles.headerAppID}>
-        {effectiveAppConfig?.id ?? appID}
-      </Text>
+      {rawAppID != null && endpoint != null ? (
+        <FluentUILink
+          className={styles.headerAppID}
+          target="_blank"
+          rel="noopener"
+          href={endpoint}
+          theme={themes.inverted}
+        >
+          {`${rawAppID} - ${endpoint}`}
+        </FluentUILink>
+      ) : (
+        <Text className={styles.headerAppID}>{appID}</Text>
+      )}
     </>
   );
 };
