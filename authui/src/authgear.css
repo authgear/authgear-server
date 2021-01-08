@@ -830,3 +830,11 @@ a.btn {
   border-bottom: 2px solid var(--color-primary);
   color: var(--color-primary);
 }
+
+.switch-link-group .click-to-switch, .switch-link-group.switched .switch-to-item {
+  display: flex;
+}
+
+.switch-link-group.switched .click-to-switch, .switch-link-group .switch-to-item {
+  display: none;
+}

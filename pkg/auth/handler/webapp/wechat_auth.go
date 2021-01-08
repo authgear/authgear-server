@@ -4,6 +4,7 @@ import (
 	htmltemplate "html/template"
 	"image"
 	"net/http"
+	"net/url"
 
 	"github.com/boombuler/barcode"
 	"github.com/boombuler/barcode/qr"
@@ -15,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	coreimage "github.com/authgear/authgear-server/pkg/util/image"
 	"github.com/authgear/authgear-server/pkg/util/template"
+	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
 
 var TemplateWebWechatAuthHandlerHTML = template.RegisterHTML(
@@ -29,7 +31,9 @@ func ConfigureWechatAuthRoute(route httproute.Route) httproute.Route {
 }
 
 type WeChatAuthViewModel struct {
-	ImageURI htmltemplate.URL
+	ImageURI          htmltemplate.URL
+	WeChatRedirectURI htmltemplate.URL
+	CurrentURI        string
 }
 
 type WechatAuthHandler struct {
@@ -62,7 +66,20 @@ func (h *WechatAuthHandler) GetData(r *http.Request, w http.ResponseWriter, sess
 		// dataURI is generated here and not user generated,
 		// so it is safe to use htmltemplate.URL with it.
 		// nolint:gosec
-		ImageURI: htmltemplate.URL(dataURI),
+		ImageURI:   htmltemplate.URL(dataURI),
+		CurrentURI: r.URL.RequestURI(),
+	}
+
+	if session.WeChatRedirectURI != "" {
+		u, err := url.Parse(session.WeChatRedirectURI)
+		if err != nil {
+			return nil, err
+		}
+		weChatRedirectURI := urlutil.WithQueryParamsAdded(u, map[string]string{"state": session.ID}).String()
+		// weChatRedirectURI is generated here and not user generated,
+		// so it is safe to use htmltemplate.URL with it.
+		// nolint:gosec
+		viewModel.WeChatRedirectURI = htmltemplate.URL(weChatRedirectURI)
 	}
 
 	viewmodels.Embed(data, baseViewModel)

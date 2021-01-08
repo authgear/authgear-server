@@ -14,9 +14,30 @@
 
 <h1 class="font-inherit margin-10 primary-txt">{{ template "wechat-auth-title" }}</h1>
 
-<p class="font-smaller overflow-wrap-break-word margin-10 primary-txt">{{ template "wechat-auth-description" }}</p>
+{{ if .IsNativePlatform }}
+{{ if .WeChatRedirectURI }}
+<p class="font-smaller overflow-wrap-break-word margin-10 primary-txt">{{ template "wechat-auth-with-app-description" }}</p>
+
+<div class="switch-link-group flex flex-direction-column margin-10">
+<a class="btn primary-btn item click-to-switch"
+    href="{{ $.WeChatRedirectURI }}"
+    data-turbolinks-action="replace"
+>
+{{ template "wechat-open-app" }}
+</a>
+<a class="btn primary-btn item switch-to-item"
+    href="{{ $.CurrentURI }}"
+    data-turbolinks-action="replace"
+>
+{{ template "wechat-proceed" }}
+</a>
+</div>
+{{ end }}
+{{ else }}
+<p class="font-smaller overflow-wrap-break-word margin-10 primary-txt">{{ template "wechat-auth-with-qr-code-description" }}</p>
 
 <img class="margin-10 qr-code-image" src="{{ $.ImageURI }}">
+{{ end }}
 
 </div>
 </html>
