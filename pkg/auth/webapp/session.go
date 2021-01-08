@@ -20,21 +20,23 @@ func WithSession(ctx context.Context, session *Session) context.Context {
 }
 
 type SessionOptions struct {
-	RedirectURI     string
-	KeepAfterFinish bool
-	Prompt          string
-	Platform        string
-	Extra           map[string]interface{}
-	UpdatedAt       time.Time
+	RedirectURI       string
+	KeepAfterFinish   bool
+	Prompt            string
+	Platform          string
+	WeChatRedirectURI string
+	Extra             map[string]interface{}
+	UpdatedAt         time.Time
 }
 
 func NewSessionOptionsFromSession(s *Session) SessionOptions {
 	return SessionOptions{
-		RedirectURI:     s.RedirectURI,
-		KeepAfterFinish: s.KeepAfterFinish,
-		Prompt:          s.Prompt,
-		Platform:        s.Platform,
-		Extra:           nil, // Omit extra by default
+		RedirectURI:       s.RedirectURI,
+		KeepAfterFinish:   s.KeepAfterFinish,
+		Prompt:            s.Prompt,
+		Platform:          s.Platform,
+		WeChatRedirectURI: s.WeChatRedirectURI,
+		Extra:             nil, // Omit extra by default
 	}
 }
 
@@ -62,6 +64,10 @@ type Session struct {
 
 	// UpdatedAt indicate the session last updated time
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+
+	// WeChatRedirectURI is provided by native mobile platform
+	// which will be redirected to when user click login button in wechat auth page
+	WeChatRedirectURI string `json:"wechat_redirect_uri,omitempty"`
 }
 
 func newSessionID() string {
@@ -74,13 +80,14 @@ func newSessionID() string {
 
 func NewSession(options SessionOptions) *Session {
 	s := &Session{
-		ID:              newSessionID(),
-		RedirectURI:     options.RedirectURI,
-		KeepAfterFinish: options.KeepAfterFinish,
-		Extra:           make(map[string]interface{}),
-		Prompt:          options.Prompt,
-		Platform:        options.Platform,
-		UpdatedAt:       options.UpdatedAt,
+		ID:                newSessionID(),
+		RedirectURI:       options.RedirectURI,
+		KeepAfterFinish:   options.KeepAfterFinish,
+		Extra:             make(map[string]interface{}),
+		Prompt:            options.Prompt,
+		Platform:          options.Platform,
+		WeChatRedirectURI: options.WeChatRedirectURI,
+		UpdatedAt:         options.UpdatedAt,
 	}
 	for k, v := range options.Extra {
 		s.Extra[k] = v

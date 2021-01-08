@@ -73,12 +73,13 @@ type RawSessionCookieRequest struct {
 }
 
 type AuthenticateURLOptions struct {
-	ClientID         string
-	RedirectURI      string
-	UILocales        string
-	Prompt           string
-	AuthenticateHint interface{}
-	Platform         string
+	ClientID          string
+	RedirectURI       string
+	UILocales         string
+	Prompt            string
+	AuthenticateHint  interface{}
+	Platform          string
+	WeChatRedirectURI string
 }
 type PageService interface {
 	CreateSession(session *Session, redirectURI string) (*Result, error)
@@ -100,10 +101,11 @@ type AuthenticateURLProvider struct {
 func (p *AuthenticateURLProvider) AuthenticateURL(options AuthenticateURLOptions) (httputil.Result, error) {
 	now := p.Clock.NowUTC()
 	session := NewSession(SessionOptions{
-		RedirectURI: options.RedirectURI,
-		Prompt:      options.Prompt,
-		Platform:    options.Platform,
-		UpdatedAt:   now,
+		RedirectURI:       options.RedirectURI,
+		Prompt:            options.Prompt,
+		Platform:          options.Platform,
+		WeChatRedirectURI: options.WeChatRedirectURI,
+		UpdatedAt:         now,
 	})
 
 	var result *Result
