@@ -346,32 +346,27 @@ h1, h2, h3, h4, h5, h6 {
 
 .password-input-wrapper {
   display: flex;
-  border-radius: 0;
-  border-bottom-style: solid;
-  border-bottom-width: 1px;
-  border-bottom-color: #a19f9d;
+  flex-direction: row;
 }
 
 .password-input-wrapper .input {
+  padding-right: 32px;
+  margin-right: -32px;
   flex: 1;
-  padding: 0 12px 0 0;
-  border: none;
 }
 
 .password-input-wrapper .show-password-button {
+  flex: 0 0 32px;
   display: inline-block;
-  flex: none;
 }
-
 .password-input-wrapper.show-password .show-password-button {
   display: none;
 }
 
 .password-input-wrapper .hide-password-button {
+  flex: 0 0 32px;
   display: none;
-  flex: none;
 }
-
 .password-input-wrapper.show-password .hide-password-button {
   display: inline-block;
 }
@@ -401,6 +396,14 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 2px;
 }
 
+/* Make <a> appears like <button> */
+a.btn {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
 .primary-btn {
   color: white;
   background-color: var(--color-primary);
@@ -417,13 +420,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .link {
   color: var(--color-primary);
-}
-
-a.btn {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
 }
 
 .page {
