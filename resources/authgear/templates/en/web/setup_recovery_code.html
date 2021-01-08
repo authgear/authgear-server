@@ -10,28 +10,25 @@
 
 	{{ template "__error.html" . }}
 
-	<section class="pane">
-		<section class="recovery-code-row recovery-code-title-section">
-			<h1 class="title primary-txt">
-				{{ template "recovery-code-title" }}
-			</h1>
-		</section>
+	<section class="pane padding-6">
+		<h1 class="font-inherit margin-10 primary-txt">
+			{{ template "recovery-code-title" }}
+		</h1>
 
-		<section class="recovery-code-row recovery-code-list-section">
-			<p class="description primary-txt">{{ template "recovery-code-storage-description" }}</p>
-
-			<div class="code-list-container">
-				<ol class="code-list">
+		<section class="margin-10 recovery-code-list-section">
+			<p class="margin-v-10 primary-txt">{{ template "recovery-code-storage-description" }}</p>
+			<div class="margin-10 code-list-container">
+				<ol class="margin-0 padding-0 code-list">
 					{{ range $.RecoveryCodes }}
 						<li class="code-item">{{ . }}</li>
 					{{ end }}
 				</ol>
 			</div>
 
-			<p class="description primary-txt">{{ template "recovery-code-consumption-description" }}</p>
+			<p class="margin-v-10 primary-txt">{{ template "recovery-code-consumption-description" }}</p>
 		</section>
 
-		<section class="recovery-code-row recovery-code-action-section">
+		<section class="margin-10 recovery-code-action-section">
 			<form method="post" novalidate target="_blank">
 				{{ $.CSRFField }}
 				<button class="action btn primary-btn" type="submit" name="x_action" value="download" data-form-xhr="false">
@@ -46,7 +43,6 @@
 			</form>
 		</section>
 	</section>
-
 </main>
 </body>
 </html>

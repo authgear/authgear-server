@@ -121,6 +121,10 @@ h1, h2, h3, h4, h5, h6 {
   text-align: center;
 }
 
+.overflow-wrap-break-word {
+  overflow-wrap: break-word;
+}
+
 .flex {
   display: flex;
 }
@@ -133,12 +137,28 @@ h1, h2, h3, h4, h5, h6 {
   flex-direction: row;
 }
 
+.flex-direction-row-reverse {
+  flex-direction: row-reverse;
+}
+
 .block {
   display: block;
 }
 
+.margin-0 {
+  margin: 0;
+}
+
+.padding-0 {
+  padding: 0;
+}
+
 .margin-6 {
   margin: 6px;
+}
+
+.margin-10 {
+  margin: 10px;
 }
 
 .margin-12 {
@@ -165,6 +185,11 @@ h1, h2, h3, h4, h5, h6 {
   margin-right: 6px;
 }
 
+.margin-h-10 {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
 .padding-6 {
   padding: 6px;
 }
@@ -186,6 +211,10 @@ h1, h2, h3, h4, h5, h6 {
   font-size: smaller;
 }
 
+.font-inherit {
+  font-size: inherit;
+}
+
 .align-self-flex-start {
   align-self: flex-start;
 }
@@ -200,6 +229,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .align-items-center {
   align-items: center;
+}
+
+.justify-content-space-between {
+  justify-content: space-between;
 }
 
 .primary-txt {
@@ -254,7 +287,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .password-input-wrapper {
   display: flex;
-  padding: 6px 12px;
   border-radius: 0;
   border-bottom-style: solid;
   border-bottom-width: 1px;
@@ -412,7 +444,6 @@ a.btn {
   display: block;
   width: 266px;
   height: 4px;
-  margin: 8px 0;
 }
 
 .password-strength-meter::-webkit-meter-optimum-value,
@@ -606,65 +637,13 @@ a.btn {
   margin: 6px;
 }
 
-.device-token-control {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-
 .device-token-label {
   padding: 4px;
   font-size: smaller;
 }
 
-.simple-form {
-  padding: 10px;
-}
-
-.simple-form .title {
-  font-size: inherit;
-}
-
-.simple-form .description {
-  font-size: smaller;
-  overflow-wrap: break-word;
-}
-
-.simple-form .nav-bar {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-
-.simple-form .login-id {
-  margin: 10px;
-}
-
-.vertical-form {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-fields-container > * {
-  margin: 10px;
-}
-
-.form-fields-container > form.form-fields-container {
-  margin: 0;
-}
-
-.oob-otp-trigger-form {
-  margin: 0 10px;
-}
-
 .enter-login-id-remove-form {
   display: none;
-}
-
-.enter-login-id-buttons {
-  display: flex;
-  flex-direction: row-reverse;
-  justify-content: space-between;
 }
 
 .setup-totp .totp-image {
@@ -1049,30 +1028,13 @@ a.btn {
   font-size: 1rem;
 }
 
-.recovery-code-row {
-  margin: 10px 14px 0px 14px;
-  padding: 0 0 10px 0;
-}
-
-.recovery-code-title-section .title {
-  margin: 0;
-  font-size: 1rem;
-}
-
 .recovery-code-list-section {
   align-self: center;
-  justify-self: end;
 }
 
 .recovery-code-list-section .code-list-container {
-   display: flex;
-   justify-content: center;
-   padding: 16px;
- }
-
-.recovery-code-list-section .code-list {
-  padding: 0;
-  margin: 0;
+  display: flex;
+  justify-content: center;
 }
 
 @media (min-width: 576px) {

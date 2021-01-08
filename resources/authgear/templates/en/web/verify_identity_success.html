@@ -8,13 +8,13 @@
 
 {{ template "__nav_bar.html" true }}
 
-<div class="simple-form vertical-form form-fields-container pane">
-
-<h1 class="title primary-txt">{{ template "verify-user-success-page-title" }}</h1>
-
 {{ template "__error.html" . }}
 
-<div class="description primary-txt">{{ template "verify-user-success-description" }}</div>
+<div class="flex flex-direction-column pane">
+
+<h1 class="font-inherit margin-10 primary-txt">{{ template "verify-user-success-page-title" }}</h1>
+
+<div class="font-smaller overflow-wrap-break-word margin-10 primary-txt">{{ template "verify-user-success-description" }}</div>
 
 </div>
 

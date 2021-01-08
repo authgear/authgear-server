@@ -14,27 +14,27 @@
 {{ template "__nav_bar.html" true }}
 {{ end }}
 
-<div class="simple-form vertical-form form-fields-container pane">
+{{ template "__error.html" . }}
+
+<div class="pane flex flex-direction-column padding-6">
 
 {{ if $.IdentityDisplayID }}
 {{ if eq $.VerificationCodeChannel "sms" }}
-<h1 class="title primary-txt">{{ template "verify-user-page-title--sms" }}</h1>
+<h1 class="font-inherit margin-10 primary-txt">{{ template "verify-user-page-title--sms" }}</h1>
 {{ end }}
 {{ if eq $.VerificationCodeChannel "email" }}
-<h1 class="title primary-txt">{{ template "verify-user-page-title--email" }}</h1>
+<h1 class="font-inherit margin-10 primary-txt">{{ template "verify-user-page-title--email" }}</h1>
 {{ end }}
 {{ end }}
-
-{{ template "__error.html" . }}
 
 {{ if $.IdentityDisplayID }}
-<div class="description primary-txt">{{ template "verify-user-description" (dict "length" $.VerificationCodeLength "target" $.IdentityDisplayID) }}</div>
+<div class="font-smaller overflow-wrap-break-word primary-txt margin-10">{{ template "verify-user-description" (dict "length" $.VerificationCodeLength "target" $.IdentityDisplayID) }}</div>
 
-<form class="vertical-form form-fields-container" method="post" novalidate>
+<form class="flex flex-direction-column" method="post" novalidate>
 {{ $.CSRFField }}
 
 <input
-	class="input text-input primary-txt"
+	class="input text-input primary-txt margin-10"
 	type="text"
 	inputmode="numeric"
 	pattern="[0-9]*"
@@ -46,7 +46,7 @@
 	{{ if eq $.Action "update_session_step" }}readonly{{ end }}
 >
 <button
-	class="btn primary-btn align-self-flex-end"
+	class="btn primary-btn align-self-flex-end margin-10"
 	type="submit"
 	name="x_action"
 	value="{{ $.Action }}"
@@ -56,21 +56,19 @@
 </button>
 </form>
 
-<form class="link verify-user-trigger-form" method="post" novalidate>
+<form class="link margin-10" method="post" novalidate>
 {{ $.CSRFField }}
 
 {{ if not (eq $.Action "update_session_step") }}
 <span class="primary-txt">{{ template "verify-user-resend-button-hint" }}</span>
-<button id="resend-button" class="anchor" type="submit" name="x_action" value="resend"
+<button id="resend-button" class="secondary-btn" type="submit" name="x_action" value="resend"
 	data-cooldown="{{ $.VerificationCodeSendCooldown }}"
 	data-label="{{ template "verify-user-resend-button-label" }}"
 	data-label-unit="{{ template "verify-user-resend-button-label--unit" }}">{{ template "verify-user-resend-button-label" }}</button>
 {{ end }}
 
 </form>
-
 {{ end }}
-
 </div>
 
 </div>
