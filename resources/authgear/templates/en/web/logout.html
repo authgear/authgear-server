@@ -9,12 +9,12 @@
 {{ template "__nav_bar.html" }}
 
 <section class="pane">
-  <section class="logout-row logout-section">
-    <h2 class="title primary-txt">
+  <section class="margin-h-14 padding-v-10 gap-8 row-sep grid grid-title-action">
+    <h2 class="grid-area-title font-inherit primary-txt">
       {{ template "logout-button-hint" }}
     </h2>
     <!-- We need to disable XHR for this request because after logout it could possibly redirect to external website with post_logout_uri -->
-    <form class="action" method="post" novalidate>
+    <form class="grid-area-action" method="post" novalidate>
       {{ $.CSRFField }}
       <button class="btn secondary-btn" type="submit" name="x_action" value="logout" data-form-xhr="false">{{ template "logout-button-label" }}</button>
     </form>

@@ -145,8 +145,20 @@ h1, h2, h3, h4, h5, h6 {
   display: block;
 }
 
+.grid {
+  display: grid;
+}
+
+.gap-8 {
+  gap: 8px;
+}
+
 .margin-0 {
   margin: 0;
+}
+
+.margin-2 {
+  margin: 2px;
 }
 
 .padding-0 {
@@ -175,9 +187,24 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 6px;
 }
 
+.margin-v-10 {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
 .margin-v-12 {
   margin-top: 12px;
   margin-bottom: 12px;
+}
+
+.margin-v-14 {
+  margin-top: 14px;
+  margin-bottom: 14px;
+}
+
+.margin-h-4 {
+  margin-left: 4px;
+  margin-right: 4px;
 }
 
 .margin-h-6 {
@@ -190,8 +217,23 @@ h1, h2, h3, h4, h5, h6 {
   margin-right: 10px;
 }
 
+.margin-h-12 {
+  margin-left: 12px;
+  margin-right: 12px;
+}
+
+.margin-h-14 {
+  margin-left: 14px;
+  margin-right: 14px;
+}
+
 .padding-6 {
   padding: 6px;
+}
+
+.padding-v-10 {
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 /* min-width and max-width initial value is auto, which means content size. */
@@ -225,6 +267,22 @@ h1, h2, h3, h4, h5, h6 {
 
 .align-self-center {
   align-self: center;
+}
+
+.align-self-start {
+  align-self: start;
+}
+
+.justify-self-center {
+  justify-self: center;
+}
+
+.justify-self-end {
+  justify-self: end;
+}
+
+.justify-self-start {
+  justify-self: start;
 }
 
 .align-items-center {
@@ -362,12 +420,6 @@ h1, h2, h3, h4, h5, h6 {
 
 button.link {
   text-align: left;
-}
-
-button.anchor {
-  /* NOTE(1) */
-  font-size: 1rem;
-  color: var(--color-primary);
 }
 
 a.btn {
@@ -652,380 +704,95 @@ a.btn {
   align-self: center;
 }
 
-.logout-row {
-  margin: 14px 18px;
-}
-
-.logout-section {
-  display: grid;
+.grid-title-action {
   grid: "title  action" auto
       /   1fr    auto;
 }
 
-.logout-section > * {
-  margin: 0;
+.grid-title-desc {
+  grid: "title"
+        "desc";
 }
 
-.logout-section .title {
-  grid-area: title;
-  font-size: 1rem;
-  align-self: center;
+.grid-title {
+  grid: "title" auto
+      /  1fr;
 }
 
-.logout-section .action {
-  grid-area: action;
+.grid-action {
+  grid: "action" auto
+      /  1fr;
 }
 
-.settings-row {
-  margin: 10px 14px 0px 14px;
-  padding: 0 0 10px 0;
-}
-
-.settings-row:not(:last-child) {
-  border-bottom: 1px solid #E5E5E5;
-}
-
-.settings-page-section-with-title-desc-action {
-  display: grid;
-  grid: "title    action  " auto
-        "desc     action-2" auto
+.grid-title-desc-action1-action2 {
+  grid: "title    action1" auto
+        "desc     action2" auto
       /  1fr       auto;
-  gap: 8px;
 }
 
-.settings-page-section-with-title-desc-action > * {
-  margin: 0;
-}
-
-
-.settings-page-section-with-title-desc-action .title {
-  grid-area: title;
-  font-size: 1rem;
-}
-
-.settings-page-section-with-title-desc-action .description {
-  grid-area: desc;
-  font-size: smaller;
-}
-
-.settings-page-section-with-title-desc-action .action {
-  grid-area: action;
-  justify-self: end;
-}
-
-.settings-page-section-with-title-desc-action .action-2 {
-  grid-area: action-2;
-  justify-self: end;
-}
-
-.settings-page-section-with-title-info-desc-action {
-  display: grid;
+.grid-title-info-desc-action {
   grid: "title    action" auto
         "info     ......" auto
         "desc     ......" auto
       /  1fr       auto;
-  gap: 8px;
 }
 
-.settings-page-section-with-title-info-desc-action > * {
-  margin: 0;
-}
-
-.settings-page-section-with-title-info-desc-action .title {
-  grid-area: title;
-}
-
-.settings-page-section-with-title-info-desc-action .info {
-  grid-area: info;
-  font-size: smaller;
-}
-
-.settings-page-section-with-title-info-desc-action .description {
-  grid-area: desc;
-  font-size: smaller;
-}
-
-.settings-page-section-with-title-info-desc-action .action {
-  grid-area: action;
-}
-
-.settings-page-section-with-title {
-  display: grid;
-  grid: "title" auto
-      /  1fr;
-  gap: 8px;
-}
-
-.settings-page-section-with-title > * {
-  margin: 0;
-}
-
-.settings-page-section-with-title .title {
-  grid-area: title;
-  font-size: 1rem;
-}
-
-.settings-page-section-revoke-device-tokens {
-  display: grid;
-  grid: "action" auto
-      /  1fr;
-  gap: 8px;
-}
-
-.settings-page-section-revoke-device-tokens > * {
-  margin: 0;
-}
-
-.settings-page-section-revoke-device-tokens .action {
-  grid-area: action;
-  justify-self: start;
-}
-
-.settings-identity-row {
-  margin: 10px 14px 0px 14px;
-  padding: 0 0 10px 0;
-}
-
-.settings-identity-row:not(:last-child) {
-  border-bottom: 1px solid #E5E5E5;
-}
-
-.settings-identity-title-section {
-  display: grid;
-  grid: "title"
-        "desc";
-  gap: 8px;
-}
-
-.settings-identity-title-section > * {
-  margin: 0;
-}
-
-.settings-identity-title-section .title {
-  grid-area: title;
-  font-size: 1rem;
-}
-
-.settings-identity-title-section .description {
-  grid-area: desc;
-  font-size: smaller;
-}
-
-.settings-identity-identity-section {
-  display: grid;
+.grid-icon-name-claim-action1-action2 {
   grid: "icon  name   action1" auto
         "icon  claim  action2" auto
       /  32px   1fr    auto;
-  font-size: 1rem;
 }
 
-.settings-identity-identity-section > * {
-  margin: 0;
-}
-
-.settings-identity-identity-section .icon {
-  align-self: start;
-  justify-self: center;
-  grid-area: icon;
-  margin: 2px;
-}
-
-.settings-identity-identity-section .name {
-  grid-area: name;
-  align-self: center;
-  /* We must keep using the dfault value justify-self: stretch */
-  /* So that this element takes exact 1fr width */
-  /* Otherwise it could overflow */
-  font-size: inherit;
-}
-
-.settings-identity-identity-section .claim {
-  grid-area: claim;
-  align-self: center;
-  /* We must keep using the dfault value justify-self: stretch */
-  /* So that this element takes exact 1fr width */
-  /* Otherwise it could overflow */
-  font-size: smaller;
-}
-
-.settings-identity-identity-section .primary-action {
-  grid-area: action1;
-  align-self: center;
-  justify-self: end;
-}
-
-.settings-identity-identity-section .secondary-action {
-  grid-area: action2;
-  align-self: center;
-  justify-self: end;
-}
-
-.settings-totp-row {
-  margin: 10px 14px 0px 14px;
-  padding: 0 0 10px 0;
-}
-
-.settings-totp-row:not(:last-child) {
-  border-bottom: 1px solid #E5E5E5;
-}
-
-.settings-totp-title-section .title {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.settings-totp-item-section {
-  display: grid;
-  grid: "name  action" auto
-        "desc  ......" auto
-      /  1fr   auto    auto;
-  font-size: 1rem;
-}
-
-.settings-totp-item-section > * {
-  margin: 0;
-}
-
-.settings-totp-item-section .name {
-  grid-area: name;
-  align-self: center;
-  /* We must keep using the default value justify-self: stretch */
-  /* So that this element takes exact 1fr width */
-  /* Otherwise it could overflow */
-  font-size: inherit;
-}
-
-.settings-totp-item-section .desc {
-  grid-area: desc;
-  align-self: center;
-  /* We must keep using the default value justify-self: stretch */
-  /* So that this element takes exact 1fr width */
-  /* Otherwise it could overflow */
-  font-size: smaller;
-}
-
-.settings-totp-item-section .action {
-  grid-area: action;
-  align-self: center;
-  justify-self: end;
-}
-
-.settings-totp-add-section .action {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.settings-oob-otp-row {
-  margin: 10px 14px 0px 14px;
-  padding: 0 0 10px 0;
-}
-
-.settings-oob-otp-row:not(:last-child) {
-  border-bottom: 1px solid #E5E5E5;
-}
-
-.settings-oob-otp-title-section .title {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.settings-oob-otp-item-section {
-  display: grid;
+.grid-icon-name-desc-action {
   grid: "icon  name  action" auto
         "icon  desc  ......" auto
       /  36px  1fr   auto    auto;
-  font-size: 1rem;
 }
 
-.settings-oob-otp-item-section > * {
-  margin: 0;
-}
-
-.settings-oob-otp-item-section .icon {
-  align-self: start;
-  justify-self: center;
-  grid-area: icon;
-  margin: 2px;
-}
-
-.settings-oob-otp-item-section .name {
-  grid-area: name;
-  align-self: center;
-  /* We must keep using the default value justify-self: stretch */
-  /* So that this element takes exact 1fr width */
-  /* Otherwise it could overflow */
-  font-size: inherit;
-}
-
-.settings-oob-otp-item-section .desc {
-  grid-area: desc;
-  align-self: center;
-  /* We must keep using the default value justify-self: stretch */
-  /* So that this element takes exact 1fr width */
-  /* Otherwise it could overflow */
-  font-size: smaller;
-}
-
-.settings-oob-otp-item-section .action {
-  grid-area: action;
-  align-self: center;
-  justify-self: end;
-}
-
-.settings-sessions-row {
-  margin: 10px 14px 0px 14px;
-  padding: 0 0 10px 0;
-}
-
-.settings-sessions-row:not(:last-child) {
-  border-bottom: 1px solid #E5E5E5;
-}
-
-.settings-sessions-title-section .title {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.settings-sessions-item-section {
-  display: grid;
+.grid-name-desc-action {
   grid: "name  action" auto
         "desc  action" auto
       /  1fr   auto    auto;
-  font-size: 1rem;
-  line-height: 1.5;
 }
 
-.settings-sessions-item-section > * {
-  margin: 0;
-}
-
-.settings-sessions-item-section .name {
+.grid-area-name {
   grid-area: name;
-  align-self: center;
-  /* We must keep using the default value justify-self: stretch */
-  /* So that this element takes exact 1fr width */
-  /* Otherwise it could overflow */
-  font-size: inherit;
 }
 
-.settings-sessions-item-section .desc {
+.grid-area-title {
+  grid-area: title;
+}
+
+.grid-area-desc {
   grid-area: desc;
-  align-self: center;
-  /* We must keep using the default value justify-self: stretch */
-  /* So that this element takes exact 1fr width */
-  /* Otherwise it could overflow */
-  font-size: inherit;
 }
 
-.settings-sessions-item-section .action {
+.grid-area-action1 {
+  grid-area: action1;
+}
+
+.grid-area-action2 {
+  grid-area: action2;
+}
+
+.grid-area-action {
   grid-area: action;
-  align-self: start;
-  justify-self: end;
 }
 
-.settings-sessions-revoke-all-section .action {
-  margin: 0;
-  font-size: 1rem;
+.grid-area-info {
+  grid-area: info;
+}
+
+.grid-area-icon {
+  grid-area: icon;
+}
+
+.grid-area-claim {
+  grid-area: claim;
+}
+
+.row-sep:not(:last-child) {
+  border-bottom: 1px solid #E5E5E5;
 }
 
 .recovery-code-list-section {

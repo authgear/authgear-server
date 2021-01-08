@@ -11,11 +11,11 @@
 {{ template "__error.html" . }}
 
 <section class="pane">
-  <section class="settings-identity-row settings-identity-title-section">
-    <h1 class="title primary-txt">
+  <section class="margin-h-14 padding-v-10 gap-8 row-sep grid grid-title-desc">
+    <h1 class="grid-area-title margin-0 font-inherit primary-txt">
       {{ template "settings-identity-title" }}
     </h1>
-    <p class="description secondary-txt">
+    <p class="grid-area-desc margin-0 font-smaller secondary-txt">
       {{ template "settings-identity-description" }}
     </p>
   </section>
@@ -27,7 +27,7 @@
     {{ $verification_status = (index $claim_verification_statuses 0).Status }}
   {{ end }}
 
-  <section class="settings-identity-row settings-identity-identity-section">
+  <section class="margin-h-14 padding-v-10 row-sep grid grid-icon-name-claim-action1-action2">
     {{ $fa := "" }}
 
     {{ if eq .type "oauth" }}
@@ -46,8 +46,8 @@
 
     {{ end }}
 
-    <i class="icon {{ $fa }}" aria-hidden="true"></i>
-    <h2 class="name primary-txt">
+    <i class="grid-area-icon align-self-start justify-self-center margin-2 {{ $fa }}" aria-hidden="true"></i>
+    <h2 class="grid-area-name align-self-center font-inherit margin-0 primary-txt">
       {{ if eq .type "oauth" }}
         {{ if eq .provider_type "google" }}{{ template "settings-identity-oauth-google" }}{{ end }}
         {{ if eq .provider_type "apple" }}{{ template "settings-identity-oauth-apple" }}{{ end }}
@@ -65,7 +65,7 @@
     </h2>
 
     {{ if .display_id }}
-    <h3 class="claim secondary-txt text-ellipsis">
+    <h3 class="grid-area-claim align-self-center font-smaller margin-0 secondary-txt text-ellipsis">
       {{ .display_id }}
 
       <!-- TODO(verification): show verification for all identity types -->
@@ -87,23 +87,23 @@
     {{ end }}
 
     {{ if eq .type "oauth" }}
-    <form class="primary-action" method="post" novalidate>
+    <form class="grid-area-action1 align-self-center justify-self-end" method="post" novalidate>
     {{ $.CSRFField }}
     <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
     <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
     {{ if .identity_id }}
-    <button class="btn destructive-btn" type="submit" name="x_action" value="unlink_oauth">{{ template "disconnect-button-label" }}</button>
+    <button class="destructive-btn" type="submit" name="x_action" value="unlink_oauth">{{ template "disconnect-button-label" }}</button>
     {{ else }}
-    <button class="anchor" type="submit" name="x_action" value="link_oauth" data-form-xhr="false">{{ template "connect-button-label" }}</button>
+    <button class="secondary-btn" type="submit" name="x_action" value="link_oauth" data-form-xhr="false">{{ template "connect-button-label" }}</button>
     {{ end }}
     </form>
     {{ end }}
 
     {{ if eq .type "login_id" }}
     {{ if .identity_id }}
-    <a class="link primary-action" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type "x_identity_id" .identity_id }}">{{ template "change-button-label" }}</a>
+    <a class="link grid-area-action1 align-self-center justify-self-end" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type "x_identity_id" .identity_id }}">{{ template "change-button-label" }}</a>
     {{ else }}
-    <a class="link primary-action" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type }}">
+    <a class="link grid-area-action1 align-self-center justify-self-end" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type }}">
       {{ if eq .login_id_type "username" }}
       {{ template "setup-button-label" }}
       {{ else }}
@@ -116,10 +116,10 @@
     {{ if eq .type "login_id" }}
     {{ if .identity_id }}
     {{ if or (eq $verification_status "pending") (eq $verification_status "required") }}
-    <form class="secondary-action" method="post" novalidate>
+    <form class="grid-area-action2 align-self-center justify-self-end" method="post" novalidate>
     {{ $.CSRFField }}
     <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
-    <button class="anchor" type="submit" name="x_action" value="verify_login_id">
+    <button class="secondary-btn" type="submit" name="x_action" value="verify_login_id">
       {{ template "resend-verification-code-button-label" }}
     </button>
     </form>
