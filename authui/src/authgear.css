@@ -125,8 +125,20 @@ h1, h2, h3, h4, h5, h6 {
   overflow-wrap: break-word;
 }
 
+.display-none {
+  display: none;
+}
+
+.block {
+  display: block;
+}
+
 .flex {
   display: flex;
+}
+
+.grid {
+  display: grid;
 }
 
 .flex-direction-column {
@@ -141,14 +153,6 @@ h1, h2, h3, h4, h5, h6 {
   flex-direction: row-reverse;
 }
 
-.block {
-  display: block;
-}
-
-.grid {
-  display: grid;
-}
-
 .gap-8 {
   gap: 8px;
 }
@@ -159,10 +163,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .margin-2 {
   margin: 2px;
-}
-
-.padding-0 {
-  padding: 0;
 }
 
 .margin-6 {
@@ -227,6 +227,14 @@ h1, h2, h3, h4, h5, h6 {
   margin-right: 14px;
 }
 
+.padding-0 {
+  padding: 0;
+}
+
+.padding-4 {
+  padding: 4px;
+}
+
 .padding-6 {
   padding: 6px;
 }
@@ -234,13 +242,6 @@ h1, h2, h3, h4, h5, h6 {
 .padding-v-10 {
   padding-top: 10px;
   padding-bottom: 10px;
-}
-
-/* min-width and max-width initial value is auto, which means content size. */
-/* So setting min-width and min-height to 0 will make flex child not to overflow its parent */
-.flex-child-no-overflow {
-  min-width: 0;
-  min-height: 0;
 }
 
 .text-ellipsis {
@@ -418,10 +419,6 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-primary);
 }
 
-button.link {
-  text-align: left;
-}
-
 a.btn {
   display: flex;
   flex-direction: row;
@@ -467,10 +464,6 @@ a.btn {
 
 .js .back-btn {
   visibility: visible;
-}
-
-.public-signup-disabled-notice {
-  margin: 12px;
 }
 
 .password-policy-title {
@@ -689,16 +682,7 @@ a.btn {
   margin: 6px;
 }
 
-.device-token-label {
-  padding: 4px;
-  font-size: smaller;
-}
-
-.enter-login-id-remove-form {
-  display: none;
-}
-
-.setup-totp .totp-image {
+.qr-code-image {
   width: 200px;
   height: 200px;
   align-self: center;
