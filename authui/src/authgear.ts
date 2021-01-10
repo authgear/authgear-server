@@ -320,6 +320,15 @@ window.api.onLoad(() => {
     ws = null;
   }
 
+  function refreshIfNeeded() {
+    const ele = document.querySelector('[data-is-refresh-link="true"]');
+    if (ele) {
+      // if there is refresh link in the page, don't refresh automatically
+      return;
+    }
+    refreshPage();
+  }
+
   function connect() {
     const url =
       `${scheme}//${host}/ws` +
@@ -352,14 +361,14 @@ window.api.onLoad(() => {
       console.error("ws onerror", e);
     };
 
-    ws.onmessage = function(e) {
+    ws.onmessage = function (e) {
       console.log("ws onmessage", e);
       const message = JSON.parse(e.data);
       switch (message.kind) {
-      case "refresh":
-        refreshPage();
+        case "refresh":
+          refreshIfNeeded();
       }
-    }
+    };
   }
 
   connect();
