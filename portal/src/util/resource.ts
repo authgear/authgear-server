@@ -1,3 +1,5 @@
+import { toByteArray, fromByteArray } from "base64-js";
+
 export type LanguageTag = string;
 
 export const BUILTIN_LOCALE: LanguageTag = "en";
@@ -87,11 +89,15 @@ export function binary(a: string): string {
 }
 
 export function decodeForText(a: string): string {
-  return atob(a);
+  const byteArray = toByteArray(a);
+  const decoder = new TextDecoder();
+  return decoder.decode(byteArray);
 }
 
 export function encodeForText(a: string): string {
-  return btoa(a);
+  const encoder = new TextEncoder();
+  const byteArray = encoder.encode(a);
+  return fromByteArray(byteArray);
 }
 
 export function specifierId(specifier: ResourceSpecifier): string {
