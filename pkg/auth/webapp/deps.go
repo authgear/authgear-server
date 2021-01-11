@@ -17,6 +17,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(AuthEntryPointMiddleware), "*"),
 	wire.Struct(new(SessionMiddleware), "*"),
 	wire.Bind(new(SessionMiddlewareStore), new(*SessionStoreRedis)),
+	wire.Struct(new(UILocalesMiddleware), "*"),
 
 	NewServiceLogger,
 	wire.Struct(new(SessionStoreRedis), "*"),

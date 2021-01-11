@@ -59,6 +59,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 		httproute.MiddlewareFunc(webapp.IntlMiddleware),
 		p.Middleware(newPanicWebAppMiddleware),
 		p.Middleware(newWebAppSessionMiddleware),
+		p.Middleware(newWebAppUILocalesMiddleware),
 	)
 	webappSSOCallbackChain := httproute.Chain(
 		webappChain,
